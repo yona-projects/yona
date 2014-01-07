@@ -36,7 +36,7 @@ import utils.Config;
 public class ValidationEmailSender extends UntypedActor {
 
     @Override
-    public void onReceive(Object object) throws Exception {
+    public void onReceive(Object object) {
         if (!(object instanceof Email)) {
             return;
         }

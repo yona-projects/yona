@@ -38,8 +38,7 @@ public class FileDiff {
      *
      * @throws java.io.IOException
      */
-    public List<Hunk> getHunks()
-            throws IOException {
+    public List<Hunk> getHunks() {
 
         List<Hunk> hunks = new ArrayList<>();
 

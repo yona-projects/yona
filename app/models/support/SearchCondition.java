@@ -16,8 +16,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.avaje.ebean.Expr.icontains;
-
 public class SearchCondition extends AbstractPostingApp.SearchCondition {
     public String state;
     public Boolean commentedCheck;
@@ -37,7 +35,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
         one.state = this.state;
         one.commentedCheck = this.commentedCheck;
         one.milestoneId = this.milestoneId;
-        one.labelIds = new HashSet<Long>(this.labelIds);
+        one.labelIds = new HashSet<>(this.labelIds);
         one.authorId = this.authorId;
         one.assigneeId = this.assigneeId;
         return one;
@@ -127,7 +125,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
         }
 
         if (authorId != null) {
-            if (authorId == User.anonymous.id) {
+            if (authorId.equals(User.anonymous.id)) {
                 el.isNull("authorId");
             } else {
                 el.eq("authorId", authorId);
@@ -135,7 +133,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
         }
 
         if (assigneeId != null) {
-            if (assigneeId == User.anonymous.id) {
+            if (assigneeId.equals(User.anonymous.id)) {
                 el.isNull("assignee");
             } else {
                 el.eq("assignee.user.id", assigneeId);
@@ -144,7 +142,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
         }
 
         if (milestoneId != null) {
-            if (milestoneId == Milestone.NULL_MILESTONE_ID) {
+            if (milestoneId.equals(Milestone.NULL_MILESTONE_ID)) {
                 el.isNull("milestone");
             } else {
                 el.eq("milestone.id", milestoneId);

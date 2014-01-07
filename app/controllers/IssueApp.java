@@ -34,7 +34,6 @@ import com.avaje.ebean.ExpressionList;
 import java.io.IOException;
 import java.lang.Integer;
 import java.lang.NumberFormatException;
-import java.net.URL;
 import java.util.*;
 import org.codehaus.jackson.node.ObjectNode;
 import play.libs.Json;
@@ -120,7 +119,7 @@ public class IssueApp extends AbstractPostingApp {
         if(amountStr != null){ // or amount from query string
             try {
                 itemsPerPage = Integer.parseInt(amountStr);
-            } catch (NumberFormatException e){}
+            } catch (NumberFormatException ignored){}
         }
 
         return Math.min(itemsPerPage, ITEMS_PER_PAGE_MAX);
@@ -206,7 +205,7 @@ public class IssueApp extends AbstractPostingApp {
         for (Issue issue : issueList){
             Long issueId = issue.getNumber();
 
-            if(issueId == exceptId){
+            if(issueId.equals(exceptId)){
                 continue;
             }
 
@@ -356,7 +355,7 @@ public class IssueApp extends AbstractPostingApp {
      * @throws IOException
      */
     @Transactional
-    public static Result massUpdate(String ownerName, String projectName) throws IOException {
+    public static Result massUpdate(String ownerName, String projectName) {
         Form<IssueMassUpdate> issueMassUpdateForm
                 = new Form<>(IssueMassUpdate.class).bindFromRequest();
         if (issueMassUpdateForm.hasErrors()) {
@@ -374,7 +373,7 @@ public class IssueApp extends AbstractPostingApp {
 
         for (Issue issue : issueMassUpdate.issues) {
             issue.refresh();
-            if (issueMassUpdate.delete == true) {
+            if (issueMassUpdate.delete) {
                 if (AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(),
                         Operation.DELETE)) {
                     issue.delete();
@@ -470,7 +469,7 @@ public class IssueApp extends AbstractPostingApp {
      * @throws IOException
      */
     @Transactional
-    public static Result newIssue(String ownerName, String projectName) throws IOException {
+    public static Result newIssue(String ownerName, String projectName) {
         Form<Issue> issueForm = new Form<>(Issue.class).bindFromRequest();
         Project project = ProjectApp.getProject(ownerName, projectName);
         if (project == null) {
@@ -607,7 +606,7 @@ public class IssueApp extends AbstractPostingApp {
      * @see {@link AbstractPostingApp#editPosting(models.AbstractPosting, models.AbstractPosting, play.data.Form}
      */
     @Transactional
-    public static Result editIssue(String ownerName, String projectName, Long number) throws IOException {
+    public static Result editIssue(String ownerName, String projectName, Long number) {
         Form<Issue> issueForm = new Form<>(Issue.class).bindFromRequest();
 
         Project project = ProjectApp.getProject(ownerName, projectName);
@@ -856,7 +855,7 @@ public class IssueApp extends AbstractPostingApp {
      */
     private static void addLabels(Issue issue, Http.Request request) {
         if (issue.labels == null) {
-            issue.labels = new HashSet<IssueLabel>();
+            issue.labels = new HashSet<>();
         }
 
         Http.MultipartFormData multipart = request.body().asMultipartFormData();

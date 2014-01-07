@@ -61,7 +61,7 @@ public class BranchApp extends Controller {
     }
 
     @ProjectAccess(value = Operation.DELETE, isGitOnly = true)
-    public static Result deleteBranch(String loginId, String projectName, String branchName) throws IOException, GitAPIException {
+    public static Result deleteBranch(String loginId, String projectName, String branchName) throws GitAPIException {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
         Repository repository = GitRepository.buildGitRepository(project);
         GitRepository.deleteBranch(repository, branchName);

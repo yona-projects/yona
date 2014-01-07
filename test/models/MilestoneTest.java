@@ -228,7 +228,6 @@ public class MilestoneTest extends ModelTest<Milestone> {
         Issue issue = Issue.finder.byId(7l);
         Milestone m5 = issue.milestone;
         assertThat(m5.getNumOpenIssues()).isEqualTo(1);
-;
         assertThat(m5.getNumClosedIssues()).isEqualTo(1);
         assertThat(m5.getNumTotalIssues()).isEqualTo(2);
         assertThat(m5.getCompletionRate()).isEqualTo(50);

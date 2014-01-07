@@ -81,7 +81,7 @@ public class LabelSearchUtil {
      */
     private static boolean hasLabels(final LabelOwner labelOwner, final Set<Long> labelIds) {
         Set<Long> objectLabelIds = new HashSet<>();
-        Set<? extends ResourceConvertible> labels = (Set<? extends ResourceConvertible>) labelOwner.getLabels();
+        Set<? extends ResourceConvertible> labels = labelOwner.getLabels();
         for (ResourceConvertible label : labels) {
             objectLabelIds.add(Long.valueOf(label.asResource().getId()));
         }

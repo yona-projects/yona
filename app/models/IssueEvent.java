@@ -1,6 +1,5 @@
 package models;
 
-import controllers.UserApp;
 import models.enumeration.EventType;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -37,7 +36,7 @@ public class IssueEvent extends Model implements TimelineItem {
     private static final int DRAFT_TIME_IN_MILLIS = Configuration.root()
         .getMilliseconds("application.issue-event.draft-time", 30 * 1000L).intValue();
 
-    public static Finder<Long, IssueEvent> find = new Finder<Long, IssueEvent>(Long.class,
+    public static Finder<Long, IssueEvent> find = new Finder<>(Long.class,
             IssueEvent.class);
 
     /**

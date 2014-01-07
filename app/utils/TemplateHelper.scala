@@ -90,7 +90,7 @@ object TemplateHelper {
     elements.input
   }
 
-  def getJSPath(): String = {
+  def getJSPath: String = {
     routes.Assets.at("javascripts/").toString
   }
 
@@ -122,7 +122,7 @@ object TemplateHelper {
   }
 
   def branchItemType(branch: String) = {
-    var names = branch.split('/');
+    var names = branch.split('/')
 
     if(names(0).equals("refs") && names.length >= 3){
         names(1) match {
@@ -136,19 +136,19 @@ object TemplateHelper {
   }
 
   def branchItemName(branch: String) = {
-    var names = branch.split('/');
+    var names = branch.split('/')
 
     if(names(0).equals("refs") && names.length >= 3){
-        names.slice(2, names.length).mkString("/");
+        names.slice(2, names.length).mkString("/")
     } else {
         branch
     }
   }
 
   def branchInHTML(branch: String) = {
-    var names = branch.split('/');
-    var branchType = branchItemType(branch);
-    var branchName = branchItemName(branch);
+    var names = branch.split('/')
+    var branchType = branchItemType(branch)
+    var branchName = branchItemName(branch)
 
     if(names(0).equals("refs") && names.length >= 3){
         "<span class=\"label " + branchType + "\">" + branchType + "</span>" + branchName
@@ -159,20 +159,17 @@ object TemplateHelper {
 
   def getBranchURL(project:Project, branchName:String, viewType:String, path:String) = {
     viewType match {
-        case "history" => {
-            routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branchName, "UTF-8"), null)
-        }
-        case "code" => {
-            routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branchName, "UTF-8"), path)
-        }
-        case _ => {
-            "#"
-        }
+        case "history" =>
+          routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branchName, "UTF-8"), null)
+        case "code" =>
+          routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branchName, "UTF-8"), path)
+        case _ =>
+          "#"
     }
   }
 
   def getUserAvatar(user: models.User, avatarSize:String = "small") = {
-    var userInfoURL = routes.UserApp.userInfo(user.loginId).toString();
+    var userInfoURL = routes.UserApp.userInfo(user.loginId).toString()
 
     "<a href=\"" + userInfoURL + "\" class=\"usf-group\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"" + user.name + "\"><img src=\"" + user.avatarUrl + "\" class=\"avatar-wrap " + avatarSize + "\"></a>"
   }
@@ -279,22 +276,20 @@ object TemplateHelper {
         case first::second::tail => renderTwoLines(first, second, comments, isEndOfLineMissing) + renderLines(tail, comments, isEndOfLineMissing)
       }
 
-    @tailrec def _threadAndRemains(thread: List[PullRequestComment], remains: List[TimelineItem], comments: List[TimelineItem]): Tuple2[List[PullRequestComment], List[TimelineItem]] = {
+    @tailrec def _threadAndRemains(thread: List[PullRequestComment], remains: List[TimelineItem], comments: List[TimelineItem]): (List[PullRequestComment], List[TimelineItem]) = {
       if (comments.isEmpty) {
         (thread, remains)
       } else {
         (thread.head, comments.head) match {
-          case (a: PullRequestComment, b: PullRequestComment) if a.threadEquals(b) => {
+          case (a: PullRequestComment, b: PullRequestComment) if a.threadEquals(b) =>
             _threadAndRemains(thread :+ b, remains, comments.tail)
-          }
-          case (a, b) => {
+          case (a, b) =>
             _threadAndRemains(thread, remains :+ b, comments.tail)
-          }
         }
       }
     }
 
-    def threadAndRemains(comment: PullRequestComment, comments: List[TimelineItem]): Tuple2[List[PullRequestComment], List[TimelineItem]] = {
+    def threadAndRemains(comment: PullRequestComment, comments: List[TimelineItem]): (List[PullRequestComment], List[TimelineItem]) = {
       _threadAndRemains(List(comment), List(), if (comments.isEmpty) List() else comments.tail)
     }
 
@@ -306,26 +301,22 @@ object TemplateHelper {
 
     @tailrec def renderCommentsOnPullRequest(pull: PullRequest, html: play.api.templates.Html, comments: List[TimelineItem]): play.api.templates.Html = {
       val remains = comments.head match {
-        case (comment: PullRequestComment) if isLineComment(comment) => {
+        case (comment: PullRequestComment) if isLineComment(comment) =>
           threadAndRemains(comment, comments) match {
             case (thread, remains) => {
               html += partial_pull_request_comment(pull, comment, thread)
               remains
             }
           }
-        }
-        case (comment: PullRequestComment) => {
+        case (comment: PullRequestComment) =>
           html += partial_pull_request_comment(pull, comment)
           comments.tail
-        }
-        case (comment: CommitComment) => {
+        case (comment: CommitComment) =>
           html += partial_commit_comment(pull, comment)
           comments.tail
-        }
-        case (event: PullRequestEvent) => {
+        case (event: PullRequestEvent) =>
           html += partial_pull_request_event(pull, event)
           comments.tail
-        }
       }
 
       if (remains.isEmpty) {
@@ -362,7 +353,7 @@ object TemplateHelper {
     }
 
     def getAvatar(file:org.codehaus.jackson.JsonNode):String = {
-      val avatarURL = fieldText(file, "avatar");
+      val avatarURL = fieldText(file, "avatar")
 
       if(avatarURL != null){
         "<a href=\"" + getUserLink(fieldText(file, "userLoginId")) + "\" class=\"avatar-wrap smaller\"><img src=\"" + avatarURL + "\"></a>"
@@ -376,8 +367,8 @@ object TemplateHelper {
         "updir"
       } else {
         fieldText(file, "type") match {
-          case "folder" => { "dynatree-ico-cf" }
-          case _ =>        { "dynatree-ico-c"  }
+          case "folder" => "dynatree-ico-cf"
+          case _ =>        "dynatree-ico-c"
         }
       }
     }
@@ -396,15 +387,9 @@ object TemplateHelper {
 
     def getFileRev(vcsType:String, file:org.codehaus.jackson.JsonNode):String = {
       vcsType match {
-        case "GIT" => {
-          fieldText(file,"commitId")
-        }
-        case "Subversion" => {
-          fieldText(file, "revisionNo")
-        }
-        case _ => {
-          ""
-        }
+        case "GIT" => fieldText(file,"commitId")
+        case "Subversion" => fieldText(file, "revisionNo")
+        case _ => ""
       }
     }
   }

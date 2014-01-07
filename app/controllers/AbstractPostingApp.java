@@ -147,7 +147,7 @@ public class AbstractPostingApp extends Controller {
      * @return
      * @throws IOException
      */
-    public static Result newComment(final Comment comment, Form<? extends Comment> commentForm, final Call toView, Runnable containerUpdater) throws IOException {
+    public static Result newComment(final Comment comment, Form<? extends Comment> commentForm, final Call toView, Runnable containerUpdater) {
         if (commentForm.hasErrors()) {
             flash(Constants.WARNING, "post.comment.empty");
             return redirect(toView);

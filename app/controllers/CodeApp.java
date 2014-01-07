@@ -79,7 +79,7 @@ public class CodeApp extends Controller {
      * @param path 파일 경로
      */
     public static Result codeBrowserWithBranch(String userName, String projectName, String branch, String path)
-        throws UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException, Exception {
+        throws UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException {
         Project project = ProjectApp.getProject(userName, projectName);
 
         if (!RepositoryService.VCS_GIT.equals(project.vcs) && !RepositoryService.VCS_SUBVERSION.equals(project.vcs)) {
@@ -93,7 +93,7 @@ public class CodeApp extends Controller {
         }
         fileInfo.put("path", path);
 
-        List<ObjectNode> recursiveData = new ArrayList<ObjectNode>();
+        List<ObjectNode> recursiveData = new ArrayList<>();
         List<String> branches = repository.getBranches();
 
         /** 해당 경로가 폴더이고 최상위가 아니면, 최상위 경로부터 순서대로 정보를 추가한다 **/

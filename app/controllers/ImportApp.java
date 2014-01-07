@@ -2,7 +2,6 @@ package controllers;
 
 import models.Project;
 import models.ProjectUser;
-import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
 import play.data.Form;
 import play.db.ebean.Transactional;
@@ -45,7 +44,7 @@ public class ImportApp extends Controller {
      */
     @Transactional
     public static Result newProject() throws GitAPIException, IOException {
-        if( !AccessControl.isCreatable(UserApp.currentUser(), ResourceType.PROJECT) ){
+        if( !AccessControl.isCreatable(UserApp.currentUser()) ){
             return forbidden("'" + UserApp.currentUser().name + "' has no permission");
         }
 

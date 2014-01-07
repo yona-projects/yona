@@ -69,10 +69,9 @@ public interface PlayRepository {
      * @throws IOException
      * @throws SVNException
      */
-    public abstract String getPatch(String commitId) throws GitAPIException, IOException, SVNException;
+    public abstract String getPatch(String commitId) throws IOException, SVNException;
 
-    public abstract List<FileDiff> getDiff(String commitId) throws GitAPIException, IOException,
-            SVNException;
+    public abstract List<FileDiff> getDiff(String commitId) throws IOException;
 
     /**
      * {@code untilRevName}에 해당하는 리비전까지의 커밋 목록을 반환한다.

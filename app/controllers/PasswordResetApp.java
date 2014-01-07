@@ -120,8 +120,7 @@ public class PasswordResetApp extends Controller {
      * @param s
      * @return
      */
-    public static Result resetPasswordForm(String s){
-        String hashString = s;
+    public static Result resetPasswordForm(String hashString){
         return ok(resetPassword.render("title.resetPassword", form(User.class), hashString));
     }
 

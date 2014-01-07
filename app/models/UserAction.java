@@ -8,6 +8,7 @@ import java.util.List;
 
 @MappedSuperclass
 abstract public class UserAction extends Model {
+    private static final long serialVersionUID = 7150871138735757127L;
     @Id
     public Long id;
 

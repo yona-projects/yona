@@ -131,7 +131,7 @@ public final class FastHttpDateFormat {
         if (cachedDate != null)
             return cachedDate;
 
-        String newDate = null;
+        String newDate;
         Date dateValue = new Date(value);
         if (threadLocalformat != null) {
             newDate = threadLocalformat.format(dateValue);
@@ -160,7 +160,7 @@ public final class FastHttpDateFormat {
         if (cachedDate != null)
             return cachedDate.longValue();
 
-        Long date = null;
+        Long date;
         if (threadLocalformats != null) {
             date = internalParseDate(value, threadLocalformats);
             updateParseCache(value, date);
@@ -188,8 +188,7 @@ public final class FastHttpDateFormat {
         for (int i = 0; (date == null) && (i < formats.length); i++) {
             try {
                 date = formats[i].parse(value);
-            } catch (ParseException e) {
-                ;
+            } catch (ParseException ignored) {
             }
         }
         if (date == null) {

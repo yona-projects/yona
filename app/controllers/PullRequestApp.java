@@ -35,7 +35,6 @@ import org.tmatesoft.svn.core.SVNException;
 
 import actions.AnonymousCheckAction;
 import actors.PullRequestMergingActor;
-import actors.RelatedPullRequestMergingActor;
 import akka.actor.Props;
 import play.api.mvc.Call;
 import play.data.Form;
@@ -200,7 +199,7 @@ public class PullRequestApp extends Controller {
      */
     @With(AnonymousCheckAction.class)
     @IsCreatable(ResourceType.FORK)
-    public static Result newPullRequestForm(String userName, String projectName) throws ServletException, IOException, GitAPIException {
+    public static Result newPullRequestForm(String userName, String projectName) throws IOException, GitAPIException {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
         ValidationResult validation = validateBeforePullRequest(project);
@@ -268,7 +267,7 @@ public class PullRequestApp extends Controller {
     @Transactional
     @With(AnonymousCheckAction.class)
     @IsCreatable(ResourceType.FORK)
-    public static Result newPullRequest(String userName, String projectName) throws ServletException, IOException, GitAPIException {
+    public static Result newPullRequest(String userName, String projectName) throws IOException, GitAPIException {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
         ValidationResult validation = validateBeforePullRequest(project);
@@ -311,7 +310,7 @@ public class PullRequestApp extends Controller {
 
         Call pullRequestCall = routes.PullRequestApp.pullRequest(pullRequest.toProject.owner, pullRequest.toProject.name, pullRequest.number);
 
-        NotificationEvent notiEvent = NotificationEvent.addNewPullRequest(pullRequestCall, request(), pullRequest);
+        NotificationEvent notiEvent = NotificationEvent.addNewPullRequest(pullRequestCall, pullRequest);
         PullRequestEvent.addEvent(notiEvent, pullRequest);
 
         PullRequestEventMessage message = new PullRequestEventMessage(
@@ -386,7 +385,7 @@ public class PullRequestApp extends Controller {
      */
     @ProjectAccess(Operation.READ)
     @PullRequestAccess(Operation.READ)
-    public static Result pullRequest(String userName, String projectName, long pullRequestNumber) throws IOException {
+    public static Result pullRequest(String userName, String projectName, long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
 
@@ -420,7 +419,7 @@ public class PullRequestApp extends Controller {
      */
     @ProjectAccess(Operation.READ)
     @PullRequestAccess(Operation.READ)
-    public static Result pullRequestState(String userName, String projectName, long pullRequestNumber) throws IOException {
+    public static Result pullRequestState(String userName, String projectName, long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
 
@@ -522,7 +521,7 @@ public class PullRequestApp extends Controller {
     }
 
     private static void addNotification(PullRequest pullRequest, Call call, State from, State to) {
-        NotificationEvent notiEvent = NotificationEvent.addPullRequestUpdate(call, request(), pullRequest, from, to);
+        NotificationEvent notiEvent = NotificationEvent.addPullRequestUpdate(call, pullRequest, from, to);
         PullRequestEvent.addEvent(notiEvent, pullRequest);
     }
 
@@ -599,7 +598,7 @@ public class PullRequestApp extends Controller {
     @With(AnonymousCheckAction.class)
     @ProjectAccess(Operation.READ)
     @PullRequestAccess(Operation.UPDATE)
-    public static Result editPullRequestForm(String userName, String projectName, Long pullRequestNumber) throws ServletException, IOException, GitAPIException {
+    public static Result editPullRequestForm(String userName, String projectName, Long pullRequestNumber) throws IOException, GitAPIException {
         Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(toProject, pullRequestNumber);
         Project fromProject = pullRequest.fromProject;

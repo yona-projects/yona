@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Entity;
-import javax.validation.constraints.Size;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -115,9 +114,6 @@ public class CommitComment extends CodeComment {
      * @return path와 line정보가 있으면 true 아니면 false
      */
     public boolean hasLocation() {
-        if (StringUtils.isNotBlank(this.path) && this.line != null) {
-            return true;
-        }
-        return false;
+        return StringUtils.isNotBlank(this.path) && this.line != null;
     }
 }

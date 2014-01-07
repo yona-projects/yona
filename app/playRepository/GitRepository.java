@@ -96,7 +96,7 @@ public class GitRepository implements PlayRepository {
      * @throws IOException
      * @see #buildGitRepository(String, String)
      */
-    public GitRepository(String ownerName, String projectName) throws IOException {
+    public GitRepository(String ownerName, String projectName) {
         this.ownerName = ownerName;
         this.projectName = projectName;
         this.repository = buildGitRepository(ownerName, projectName);
@@ -195,7 +195,7 @@ public class GitRepository implements PlayRepository {
      * @see #getMetaDataFromPath(String, String)
      */
     @Override
-    public ObjectNode getMetaDataFromPath(String path) throws IOException, NoHeadException, GitAPIException, SVNException {
+    public ObjectNode getMetaDataFromPath(String path) throws IOException, GitAPIException, SVNException {
         return getMetaDataFromPath(null, path);
     }
 
@@ -371,7 +371,7 @@ public class GitRepository implements PlayRepository {
             this.commitIterator = getCommitIterator();
         }
 
-        public SortedMap<String, JsonNode> find() throws IOException, GitAPIException {
+        public SortedMap<String, JsonNode> find() throws IOException {
             while (shouldFindMore()) {
                 RevCommit commit = commitIterator.next();
                 Map<String, ObjectId> objects = findObjects(commit);
@@ -437,7 +437,7 @@ public class GitRepository implements PlayRepository {
         }
 
         private void traverseTree(RevCommit commit, TreeWalkHandler handler) throws IOException {
-            TreeWalk treeWalk = null;
+            TreeWalk treeWalk;
             if (StringUtils.isEmpty(basePath)) {
                 treeWalk = new TreeWalk(repository);
                 treeWalk.addTree(commit.getTree());
@@ -523,7 +523,7 @@ public class GitRepository implements PlayRepository {
      * @throws IOException
      */
     @Override
-    public String getPatch(String rev) throws GitAPIException, IOException {
+    public String getPatch(String rev) throws IOException {
         // Get the trees, from current commit and its parent, as treeWalk.
         ObjectId commitId = repository.resolve(rev);
 
@@ -762,7 +762,7 @@ public class GitRepository implements PlayRepository {
      * @return
      * @throws IOException
      */
-    public static Repository createGitRepository(Project project) throws IOException {
+    public static Repository createGitRepository(Project project) {
         return GitRepository.buildGitRepository(project);
     }
 
@@ -778,7 +778,7 @@ public class GitRepository implements PlayRepository {
      * @throws IOException
      * * @see <a href="https://www.kernel.org/pub/software/scm/git/docs/gitglossary.html#def_bare_repository">bare repository</a>
      */
-    public static void cloneRepository(String gitUrl, Project forkingProject) throws GitAPIException, IOException {
+    public static void cloneRepository(String gitUrl, Project forkingProject) throws GitAPIException {
         String directory = getGitDirectory(forkingProject);
         Git.cloneRepository()
                 .setURI(gitUrl)
@@ -1155,9 +1155,9 @@ public class GitRepository implements PlayRepository {
      * @return
      */
     public static boolean canDeleteFromBranch(PullRequest pullRequest) {
-        List<Ref> refs = null;
+        List<Ref> refs;
         Repository fromRepo = null; // repository that sent the pull request
-        String currentBranch = null;
+        String currentBranch;
         try {
             fromRepo = buildGitRepository(pullRequest.fromProject);
             currentBranch = fromRepo.getFullBranch();
@@ -1286,8 +1286,7 @@ public class GitRepository implements PlayRepository {
             return commits;
         }
 
-        Repository repo = null;
-        RevWalk walk = null;
+        Repository repo;
         try {
             if(pullRequest.isClosed()) {
                 repo = buildGitRepository(pullRequest.toProject);
@@ -1312,10 +1311,6 @@ public class GitRepository implements PlayRepository {
             return commits;
         } catch (Exception e) {
             throw new RuntimeException(e);
-        } finally {
-            if(walk != null) {
-                walk.dispose();
-            }
         }
     }
 
@@ -1337,8 +1332,7 @@ public class GitRepository implements PlayRepository {
             treeWalk.setRecursive(true);
             diffFormatter.format(DiffEntry.scan(treeWalk));
 
-            String patch = out.toString("UTF-8");
-            return patch;
+            return out.toString("UTF-8");
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
@@ -1351,8 +1345,7 @@ public class GitRepository implements PlayRepository {
             return "";
         }
 
-        Repository repo = null;
-        RevWalk walk = null;
+        Repository repo;
         try {
             repo = buildGitRepository(pullRequest.toProject);
 
@@ -1368,10 +1361,6 @@ public class GitRepository implements PlayRepository {
             return getPatch(repo, untilId.getName(), sinceId.getName());
         } catch (Exception e) {
             throw new RuntimeException(e);
-        } finally {
-            if(walk != null) {
-                walk.dispose();
-            }
         }
     }
 
@@ -1421,7 +1410,7 @@ public class GitRepository implements PlayRepository {
             }
 
             @Override
-            public ObjectLoader open(AnyObjectId objectId, int typeHint) throws MissingObjectException, IncorrectObjectTypeException, IOException {
+            public ObjectLoader open(AnyObjectId objectId, int typeHint) throws IOException {
                 for (ObjectReader reader : readers) {
                     if (reader.has(objectId, typeHint)) {
                         return reader.open(objectId, typeHint);

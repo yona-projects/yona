@@ -3,7 +3,6 @@ package utils;
 import org.apache.commons.lang3.StringUtils;
 import play.api.http.MediaRange;
 import play.mvc.Http;
-import scala.Option;
 
 import java.io.UnsupportedEncodingException;
 import java.net.*;

@@ -279,11 +279,12 @@ public class NotificationEvent extends Model {
 
     /**
      * 신규로 코드를 보냈을때의 알림 설정
+     *
      * @param pullRequestCall
      * @param pullRequest
      * @return
      */
-    public static NotificationEvent addNewPullRequest(Call pullRequestCall, Http.Request request, PullRequest pullRequest) {
+    public static NotificationEvent addNewPullRequest(Call pullRequestCall, PullRequest pullRequest) {
         String title = NotificationEvent.formatNewTitle(pullRequest);
         Set<User> watchers = pullRequest.getWatchers();
         watchers.addAll(NotificationEvent.getMentionedUsers(pullRequest.body));
@@ -310,14 +311,14 @@ public class NotificationEvent extends Model {
     /**
      * 보낸코드의 상태가 변경되었을때의 알림 설정
      *
+     *
      * @param pullRequestCall
-     * @param request
      * @param pullRequest
      * @param oldState
      * @param newState
      * @return
      */
-    public static NotificationEvent addPullRequestUpdate(Call pullRequestCall, Http.Request request, PullRequest pullRequest, State oldState, State newState) {
+    public static NotificationEvent addPullRequestUpdate(Call pullRequestCall, PullRequest pullRequest, State oldState, State newState) {
         String title = NotificationEvent.formatReplyTitle(pullRequest);
         Set<User> watchers = pullRequest.getWatchers();
         watchers.addAll(NotificationEvent.getMentionedUsers(pullRequest.body));
@@ -376,14 +377,14 @@ public class NotificationEvent extends Model {
     }
     /**
      * 보낸 코드의 병합 결과 알림 설정
+     *
      * @param sender
      * @param pullRequest
      * @param conflicts
-     * @param request
      * @param state
      * @return
      */
-    public static NotificationEvent addPullRequestMerge(User sender, PullRequest pullRequest, GitConflicts conflicts, Request request, State state) {
+    public static NotificationEvent addPullRequestMerge(User sender, PullRequest pullRequest, GitConflicts conflicts, State state) {
         String title = NotificationEvent.formatReplyTitle(pullRequest);
         Resource resource = pullRequest.asResource();
         Set<User> receivers = new HashSet<>();

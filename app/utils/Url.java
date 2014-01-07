@@ -1,6 +1,5 @@
 package utils;
 
-import java.net.*;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;

@@ -10,7 +10,7 @@ import java.util.EnumSet;
 
 public abstract class Resource {
     public static boolean exists(ResourceType type, String id) {
-        Model.Finder<Long, ? extends Model> finder = null;
+        Model.Finder<Long, ? extends Model> finder;
 
         switch(type) {
             case ISSUE_POST:
@@ -56,11 +56,7 @@ public abstract class Resource {
                 try {
                     String[] pair = id.split(":");
                     Project project = Project.find.byId(Long.valueOf(pair[0]));
-                    if (RepositoryService.getRepository(project).getCommit(pair[1]) != null) {
-                        return true;
-                    } else {
-                        return false;
-                    }
+                    return RepositoryService.getRepository(project).getCommit(pair[1]) != null;
                 } catch (Exception e) {
                     play.Logger.error("Failed to determine whether the commit exists", e);
                     return false;
@@ -81,7 +77,7 @@ public abstract class Resource {
     }
 
     public static Resource get(ResourceType resourceType, String resourceId) {
-        Resource resource = null;
+        Resource resource;
 
         if (resourceType.equals(ResourceType.COMMIT)) {
             return Commit.getAsResource(resourceId);

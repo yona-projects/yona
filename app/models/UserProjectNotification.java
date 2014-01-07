@@ -84,11 +84,7 @@ public class UserProjectNotification extends Model {
     }
 
     public void toggle() {
-        if(this.allowed == false) {
-            this.allowed = true;
-        } else {
-            this.allowed = false;
-        }
+        this.allowed = !this.allowed;
         update();
     }
 
@@ -114,9 +110,6 @@ public class UserProjectNotification extends Model {
      */
     public static boolean isEnabledNotiType(User user, Project project, EventType eventType) {
         UserProjectNotification notification = findOne(user, project, eventType);
-        if (notification == null || notification.allowed) {
-            return true;
-        }
-        return notification.allowed;
+        return notification == null || notification.allowed;
     }
 }

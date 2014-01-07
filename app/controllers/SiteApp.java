@@ -23,7 +23,6 @@ import views.html.site.*;
 
 import java.util.*;
 
-import static play.data.Form.form;
 import static play.libs.Json.toJson;
 
 /**
@@ -60,7 +59,7 @@ public class SiteApp extends Controller {
         email.setCharset("utf-8");
 
         String errorMessage = null;
-        boolean sended = false;
+        boolean sended;
         String result = Mailer.send(email);
         Logger.info(">>>" + result);
         sended = true;

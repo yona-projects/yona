@@ -149,8 +149,9 @@ public class PlayServletRequest implements HttpServletRequest {
             }
 
             @Override
-            protected void finalize() throws IOException {
+            protected void finalize() throws Throwable {
                 close();
+                super.finalize();
             }
         };
     }
@@ -262,7 +263,7 @@ public class PlayServletRequest implements HttpServletRequest {
 
         try {
             scheme = new URI(request.uri()).getScheme();
-        } catch (URISyntaxException e) {
+        } catch (URISyntaxException ignored) {
         }
 
         if (scheme == null) {
@@ -308,11 +309,7 @@ public class PlayServletRequest implements HttpServletRequest {
     @Override
     public boolean isSecure() {
         // FIXME: Make this to work precisely after releasing Play 2.1.
-        if (getScheme().equals("https")) {
-            return true;
-        } else {
-            return false;
-        }
+        return getScheme().equals("https");
     }
 
     @Override

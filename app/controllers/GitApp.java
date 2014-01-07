@@ -7,9 +7,6 @@ import javax.servlet.ServletException;
 import models.Project;
 import models.enumeration.Operation;
 
-import org.eclipse.jgit.transport.ServiceMayNotContinueException;
-
-import play.Logger;
 import play.mvc.Controller;
 import play.mvc.Result;
 import play.mvc.With;
@@ -17,7 +14,6 @@ import playRepository.PlayRepository;
 import playRepository.RepositoryService;
 import utils.AccessControl;
 import utils.BasicAuthAction;
-import utils.HttpUtil;
 
 public class GitApp extends Controller {
 
@@ -60,12 +56,9 @@ public class GitApp extends Controller {
         }
 
         PlayRepository repository = RepositoryService.getRepository(project);
-        if (AccessControl
-                .isAllowed(UserApp.currentUser(), repository.asResource(), operation)) {
-            return true;
-        }
+        return AccessControl
+                .isAllowed(UserApp.currentUser(), repository.asResource(), operation);
 
-        return false;
     }
 
     /**

@@ -1,6 +1,5 @@
 package models;
 
-import controllers.UserApp;
 import models.enumeration.ResourceType;
 import models.resource.GlobalResource;
 import models.resource.Resource;

@@ -5,7 +5,6 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 
 import models.enumeration.RoleType;
@@ -44,9 +43,7 @@ public class Role extends Model {
      * @return
      */
     public static List<Role> getActiveRoles() {
-        List<Role> projectRoles = find.where().eq("active", true)
-                .findList();
-        return projectRoles;
+        return find.where().eq("active", true).findList();
     }
 
     /**

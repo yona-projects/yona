@@ -22,6 +22,7 @@ import javax.servlet.ServletException;
 import models.*;
 
 import org.codehaus.jackson.node.ObjectNode;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
@@ -80,13 +81,12 @@ public class RepositoryService {
      *
      * @param userName
      * @param projectName
-     * @param type
      * @throws IOException
      * @throws ServletException
      * @see {@link ProjectApp#deleteProject(String, String)}
      * @see {@link playRepository.PlayRepository#delete()}
      */
-    public static void deleteRepository(String userName, String projectName, String type)
+    public static void deleteRepository(String userName, String projectName)
             throws IOException, ServletException {
         Project project = ProjectApp.getProject(userName, projectName);
         RepositoryService.getRepository(project).delete();
@@ -105,12 +105,12 @@ public class RepositoryService {
      * @throws ServletException
      * @throws ClientException
      * @throws UnsupportedOperationException
-     * @see {@link #deleteRepository(String, String, String)}
+     * @see {@link #deleteRepository(String, String)}
      * @see {@link PlayRepository#create()}
      */
     public static void createRepository(Project project) throws IOException, ServletException,
             ClientException, UnsupportedOperationException {
-        RepositoryService.deleteRepository(project.owner, project.name, project.vcs);
+        RepositoryService.deleteRepository(project.owner, project.name);
         RepositoryService.getRepository(project).create();
     }
 
@@ -129,10 +129,12 @@ public class RepositoryService {
      * @return
      * @throws Exception
      */
-    public static List<ObjectNode> getMetaDataFromAncestorDirectories(PlayRepository repository, String branch, String path)
-        throws Exception {
+    public static List<ObjectNode> getMetaDataFromAncestorDirectories(PlayRepository repository,
+                                                                      String branch,
+                                                                      String path) throws
+            SVNException, GitAPIException, IOException {
 
-        List<ObjectNode> recursiveData = new ArrayList<ObjectNode>();
+        List<ObjectNode> recursiveData = new ArrayList<>();
 
         String partialPath = "";
         String[] pathArray = path.split("/");
@@ -174,8 +176,7 @@ public class RepositoryService {
      * @see {@link PlayRepository#getRawFile(String)}
      */
     public static byte[] getFileAsRaw(String userName, String projectName, String revision, String path)
-            throws MissingObjectException, IncorrectObjectTypeException, AmbiguousObjectException,
-            UnsupportedOperationException, IOException, ServletException, SVNException {
+            throws UnsupportedOperationException, IOException, ServletException, SVNException {
         Project project = ProjectApp.getProject(userName, projectName);
         return RepositoryService.getRepository(project).getRawFile(revision, path);
     }
@@ -199,12 +200,13 @@ public class RepositoryService {
             return null;
         }
 
-        if (project.vcs.equals(VCS_GIT)) {
-            return new GitRepository(project.owner, project.name);
-        } else if (project.vcs.equals(VCS_SUBVERSION)) {
-            return new SVNRepository(project.owner, project.name);
-        } else {
-            throw new UnsupportedOperationException();
+        switch (project.vcs) {
+            case VCS_GIT:
+                return new GitRepository(project.owner, project.name);
+            case VCS_SUBVERSION:
+                return new SVNRepository(project.owner, project.name);
+            default:
+                throw new UnsupportedOperationException();
         }
     }
 
@@ -348,15 +350,19 @@ public class RepositoryService {
             Repository repository = GitRepository.createGitRepository(project);
             PipedInputStream responseStream = new PipedInputStream();
 
-            if (service.equals("git-upload-pack")) {
-                uploadPack(requestStream, repository, new PipedOutputStream(responseStream));
-            } else if (service.equals("git-receive-pack")) {
-                PostReceiveHook postReceiveHook = createPostReceiveHook(UserApp.currentUser(), project, request);
-                receivePack(requestStream, repository, new PipedOutputStream(responseStream),
-                        postReceiveHook);
-                // receivePack.setEchoCommandFailures(true);//git버전에 따라서 불린값 설정필요.
-            } else {
-                requestStream.close();
+            switch (service) {
+                case "git-upload-pack":
+                    uploadPack(requestStream, repository, new PipedOutputStream(responseStream));
+                    break;
+                case "git-receive-pack":
+                    PostReceiveHook postReceiveHook = createPostReceiveHook(UserApp.currentUser(), project, request);
+                    receivePack(requestStream, repository, new PipedOutputStream(responseStream),
+                            postReceiveHook);
+                    // receivePack.setEchoCommandFailures(true);//git버전에 따라서 불린값 설정필요.
+                    break;
+                default:
+                    requestStream.close();
+                    break;
             }
 
             return responseStream;

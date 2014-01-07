@@ -206,7 +206,7 @@ public class ProjectApp extends Controller {
      */
     @Transactional
     public static Result newProject() throws Exception {
-        if( !AccessControl.isCreatable(UserApp.currentUser(), ResourceType.PROJECT) ){
+        if( !AccessControl.isCreatable(UserApp.currentUser()) ){
            return forbidden(ErrorViews.Forbidden.render("'" + UserApp.currentUser().name + "' has no permission"));
         }
         Form<Project> filledNewProjectForm = form(Project.class).bindFromRequest();
@@ -382,7 +382,7 @@ public class ProjectApp extends Controller {
         }
 
         if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.DELETE)) {
-            RepositoryService.deleteRepository(loginId, projectName, project.vcs);
+            RepositoryService.deleteRepository(loginId, projectName);
             project.delete();
 
             // XHR 호출에 의한 경우라면 204 No Content 와 Location 헤더로 응답한다
@@ -484,7 +484,7 @@ public class ProjectApp extends Controller {
      * @throws SVNException
      */
     public static Result mentionListAtCommitDiff(String ownerLoginId, String projectName, String commitId, Long pullRequestId)
-            throws IOException, UnsupportedOperationException, ServletException, GitAPIException,
+            throws IOException, UnsupportedOperationException, ServletException,
             SVNException {
         Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
 
@@ -496,7 +496,7 @@ public class ProjectApp extends Controller {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
-        PullRequest pullRequest = null;
+        PullRequest pullRequest;
         Project fromProject = project;
         if( pullRequestId != -1 ){
             pullRequest = PullRequest.findById(pullRequestId);
@@ -537,7 +537,7 @@ public class ProjectApp extends Controller {
      * @throws SVNException
      */
     public static Result mentionListAtPullRequest(String ownerLoginId, String projectName, String commitId, Long pullRequestId)
-            throws IOException, UnsupportedOperationException, ServletException, GitAPIException,
+            throws IOException, UnsupportedOperationException, ServletException,
             SVNException {
         Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
 
@@ -611,7 +611,7 @@ public class ProjectApp extends Controller {
     }
 
     private static void collectAuthorAndCommenter(Project project, Long number, List<User> userList, String resourceType) {
-        AbstractPosting posting = null;
+        AbstractPosting posting;
         switch (ResourceType.getValue(resourceType)) {
             case ISSUE_POST:
                 posting = AbstractPosting.findByNumber(Issue.finder, project, number);

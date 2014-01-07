@@ -56,8 +56,6 @@ import views.html.welcome.secret;
 import views.html.welcome.restart;
 import static play.data.Form.form;
 import static play.mvc.Results.badRequest;
-import static play.mvc.Results.ok;
-import static play.mvc.Results.redirect;
 
 public class Global extends GlobalSettings {
     public static final String APPLICATION_CONF_DEFAULT = "application.conf.default";
@@ -112,21 +110,13 @@ public class Global extends GlobalSettings {
     private boolean notificationEnabled() {
         play.Configuration config = play.Configuration.root();
         Boolean notificationEnabled = config.getBoolean("notification.bymail.enabled");
-        if (notificationEnabled == null || notificationEnabled) {
-            return true;
-        } else {
-            return false;
-        }
+        return notificationEnabled == null || notificationEnabled;
     }
 
     private boolean validateSecret() {
         play.Configuration config = play.Configuration.root();
         String secret = config.getString("application.secret");
-        if (secret == null || !secret.equals(DEFAULT_SECRET)) {
-            return true;
-        } else {
-            return false;
-        }
+        return secret == null || !secret.equals(DEFAULT_SECRET);
     }
 
     private static void insertInitialData() {
@@ -142,7 +132,7 @@ public class Global extends GlobalSettings {
     @SuppressWarnings("rawtypes")
     public Action onRequest(final Http.Request request, Method actionMethod) {
         if (isValidationRequired) {
-            if (validateSecret() == false) {
+            if (!validateSecret()) {
                 if (isRestartRequired) {
                     return getRestartAction();
                 } else {

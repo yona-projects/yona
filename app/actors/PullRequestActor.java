@@ -65,14 +65,14 @@ public abstract class PullRequestActor extends UntypedActor {
             if (mergeResult.conflicts()) {
                 mergeResult.setConflictStateOfPullRequest();
                 NotificationEvent notiEvent = NotificationEvent.addPullRequestMerge(message.getSender(),
-                        pullRequest, mergeResult.getGitConflicts(), message.getRequest(), State.CONFLICT);
+                        pullRequest, mergeResult.getGitConflicts(), State.CONFLICT);
                 PullRequestEvent.addMergeEvent(notiEvent.getSender(), EventType.PULL_REQUEST_MERGED, State.CONFLICT, pullRequest);
             }
 
             if (mergeResult.resolved()) {
                 mergeResult.setResolvedStateOfPullRequest();
                 NotificationEvent notiEvent = NotificationEvent.addPullRequestMerge(message.getSender(),
-                        pullRequest, mergeResult.getGitConflicts(), message.getRequest(), State.RESOLVED);
+                        pullRequest, mergeResult.getGitConflicts(), State.RESOLVED);
                 PullRequestEvent.addMergeEvent(notiEvent.getSender(), EventType.PULL_REQUEST_MERGED, State.RESOLVED, pullRequest);
             }
 

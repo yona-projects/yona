@@ -186,7 +186,7 @@ public class Project extends Model implements LabelOwner {
     public static boolean exists(String loginId, String projectName) {
         int findRowCount = find.where().ieq("owner", loginId)
                 .ieq("name", projectName).findRowCount();
-        return (findRowCount != 0) ? true : false;
+        return (findRowCount != 0);
     }
 
     /**
@@ -203,7 +203,7 @@ public class Project extends Model implements LabelOwner {
                                                 String projectName) {
         int findRowCount = find.where().ieq("name", projectName)
                 .ieq("owner", userName).ne("id", id).findRowCount();
-        return (findRowCount == 0) ? true : false;
+        return (findRowCount == 0);
     }
 
     /**
@@ -222,10 +222,7 @@ public class Project extends Model implements LabelOwner {
                 .eq("projectUser.role.id", RoleType.MANAGER.roleType())
                 .findList();
 
-        Iterator<Project> iterator = projects.iterator();
-
-        while (iterator.hasNext()) {
-            Project project = iterator.next();
+        for (Project project : projects) {
             if (ProjectUser.checkOneMangerPerOneProject(userId, project.id)) {
                 return true;
             }
@@ -288,9 +285,7 @@ public class Project extends Model implements LabelOwner {
             return userProjectList;
         }
 
-        List<Project> filteredList = Ebean.filter(Project.class).sort(orderString).filter(userProjectList);
-
-        return filteredList;
+        return Ebean.filter(Project.class).sort(orderString).filter(userProjectList);
     }
 
     public static List<Project> findProjectsCreatedByUser(String loginId, String orderString) {
@@ -299,9 +294,7 @@ public class Project extends Model implements LabelOwner {
             return userProjectList;
         }
 
-        List<Project> filteredList = Ebean.filter(Project.class).sort(orderString).filter(userProjectList);
-
-        return filteredList;
+        return Ebean.filter(Project.class).sort(orderString).filter(userProjectList);
     }
     /**
      * {@code state} 별 프로젝트 카운트를 반환한다.
@@ -312,14 +305,15 @@ public class Project extends Model implements LabelOwner {
      * @return 프로젝트 카운트
      */
     public static int countByState(String state) {
-        if (state.equals("all")) {
-            return find.findRowCount();
-        } else if (state.equals("public")) {
-            return find.where().eq("isPublic", true).findRowCount();
-        } else if (state.equals("private")) {
-            return find.where().eq("isPublic", false).findRowCount();
-        } else {
-            return 0;
+        switch (state) {
+            case "all":
+                return find.findRowCount();
+            case "public":
+                return find.where().eq("isPublic", true).findRowCount();
+            case "private":
+                return find.where().eq("isPublic", false).findRowCount();
+            default:
+                return 0;
         }
     }
 
@@ -359,7 +353,7 @@ public class Project extends Model implements LabelOwner {
     public String defaultBranch() {
         try {
             return RepositoryService.getRepository(this).getDefaultBranch();
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
         return "HEAD";
     }
@@ -411,7 +405,7 @@ public class Project extends Model implements LabelOwner {
      * @throws SVNException the sVN exception
      * @throws ServletException the servlet exception
      */
-    public String getReadmeFileName() throws IOException, GitAPIException, SVNException, ServletException {
+    public String getReadmeFileName() throws IOException, SVNException, ServletException {
         String baseFileName = "README.md";
 
         PlayRepository repo = RepositoryService.getRepository(this);

@@ -372,7 +372,7 @@ public class UserApp extends Controller {
         Collections.sort(projects, new Comparator<Project>() {
             @Override
             public int compare(Project p1, Project p2) {
-                int compareLastPushedDate = 0;
+                int compareLastPushedDate;
                 if (p1.lastPushedDate == null && p2.lastPushedDate == null) {
                     return p1.name.compareTo(p2.name);
                 }
@@ -512,7 +512,7 @@ public class UserApp extends Controller {
                     attachment.moveTo(currentUser().avatarAsResource());
                 }
             }
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException ignored) {
         }
 
         Email.deleteOtherInvalidEmails(user.email);
@@ -733,11 +733,7 @@ public class UserApp extends Controller {
     private static boolean isUseSignUpConfirm(){
         Configuration config = play.Play.application().configuration();
         String useSignUpConfirm = config.getString("signup.require.confirm");
-        if (useSignUpConfirm != null && useSignUpConfirm.equals("true")) {
-            return true;
-        } else {
-            return false;
-        }
+        return useSignUpConfirm != null && useSignUpConfirm.equals("true");
     }
 
     /*
@@ -793,7 +789,7 @@ public class UserApp extends Controller {
      */
     private static User createNewUser(User user) {
         RandomNumberGenerator rng = new SecureRandomNumberGenerator();
-        user.passwordSalt = rng.nextBytes().getBytes().toString();
+        user.passwordSalt = Arrays.toString(rng.nextBytes().getBytes());
         user.password = hashedPassword(user.password, user.passwordSalt);
         User.create(user);
         if (isUseSignUpConfirm()) {

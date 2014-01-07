@@ -13,7 +13,6 @@ import org.apache.commons.lang.StringUtils;
 import play.api.Play;
 import play.data.validation.Constraints.Validator;
 import play.libs.Scala;
-import play.libs.F.*;
 import scala.Tuple3;
 import static play.libs.F.*;
 
