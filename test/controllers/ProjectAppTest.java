@@ -2,18 +2,23 @@ package controllers;
 
 import models.Label;
 import models.Project;
+import models.PushedBranch;
 import models.User;
+
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ObjectNode;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import play.libs.Json;
+import play.mvc.Http;
 import play.mvc.Result;
 import play.test.FakeApplication;
 import play.test.Helpers;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -167,5 +172,28 @@ public class ProjectAppTest {
 
         project.refresh();
         assertThat(project.overview).isEqualTo(newDescription);  //is model updated
+    }
+
+    @Test
+    public void deletePushedBranch() {
+        //Given
+        String loginId = "yobi";
+        String projectName = "projectYobi";
+        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+        PushedBranch pushedBranch = new PushedBranch(new Date(), "testBranch", project);
+        pushedBranch.save();
+        Long id = pushedBranch.id;
+
+        //When
+        Result result = callAction(
+                controllers.routes.ref.ProjectApp.deletePushedBranch(project.owner, project.name, id),
+                fakeRequest(DELETE, "/yobi/projectYobi/deletePushedBranch/" + id)
+                        .withSession(UserApp.SESSION_USERID, User.findByLoginId(loginId).id.toString())
+                );
+
+        //Then
+        assertThat(status(result)).isEqualTo(OK);
+        assertThat(PushedBranch.find.byId(id)).isNull();
+
     }
 }

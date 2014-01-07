@@ -1,6 +1,7 @@
 package controllers;
 
 import actions.AnonymousCheckAction;
+
 import com.avaje.ebean.Junction;
 import com.avaje.ebean.Page;
 import com.avaje.ebean.ExpressionList;
@@ -257,7 +258,7 @@ public class ProjectApp extends Controller {
             filledUpdatedProjectForm.reject("name");
             Project project = Project.find.byId(
                             Long.valueOf(filledUpdatedProjectForm.field("id").value()));
-            PlayRepository repository = RepositoryService.getRepository(project); 
+            PlayRepository repository = RepositoryService.getRepository(project);
             return badRequest(setting.render("title.projectSetting",
                     filledUpdatedProjectForm, project, repository.getBranches()));
         }
@@ -1034,5 +1035,23 @@ public class ProjectApp extends Controller {
         project.detachLabel(tag);
 
         return status(Http.Status.NO_CONTENT);
+    }
+
+    /**
+     * 최근 푸쉬된 브랜치 정보를 삭제한다.
+     * @param ownerName
+     * @param projectName
+     * @param id
+     * @return
+     */
+    @Transactional
+    @With(AnonymousCheckAction.class)
+    @ProjectAccess(Operation.DELETE)
+    public static Result deletePushedBranch(String ownerName, String projectName, Long id) {
+        PushedBranch pushedBranch = PushedBranch.find.byId(id);
+        if (pushedBranch != null) {
+            pushedBranch.delete();
+        }
+        return ok();
     }
 }
