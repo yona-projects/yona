@@ -35,6 +35,8 @@
             else  "addfriend"
         }
         case EventType.NEW_COMMIT =>{"push"}
+        case EventType.PULL_REQUEST_REVIEWED=>{"preview closed"}
+        case EventType.PULL_REQUEST_UNREVIEWED=>{"preview"}
         case _ => {"info"}
     }
 }
