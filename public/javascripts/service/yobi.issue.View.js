@@ -60,7 +60,6 @@
             htElement.welUploader = $("#upload");
             htElement.welTextarea = $("#comment-editor");
 
-            htElement.welAttachments = $(".attachments");
             htElement.welLabels = $('.issue-label');
             htElement.welBtnWatch = $('#watch-button');
             
@@ -203,7 +202,7 @@
          * initialize fileDownloader
          */
         function _initFileDownloader(){
-            htElement.welAttachments.each(function(i, elContainer){
+            $(".attachments").each(function(i, elContainer){
                 if(!$(elContainer).data("isYobiAttachment")){
                     (new yobi.Attachments({"elContainer": elContainer}));
                 }
@@ -243,6 +242,7 @@
                     htElement.welTimeline.html(sResult); // update timeline HTML
                     yobi.Markdown.enableMarkdown(htElement.welTimeline.find("[markdown]")); // enable markdown
                     htElement.welTimeline.find("[data-request-method]").requestAs(); // delete button
+                    _initFileDownloader(); // attachments on comment
                 }
             }).always(function(){
                 htVar.bTimelineUpdating = false;
