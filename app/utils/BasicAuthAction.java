@@ -85,15 +85,22 @@ public class BasicAuthAction extends Action<Object> {
     public Result call(Context context) throws Throwable {
         User user;
         try {
+            
             user = authenticate(context.request());
         } catch (MalformedCredentialsException error) {
-            return badRequest();
+            return AccessLogger.log(context.request()
+                    , badRequest()
+                    , null);
         } catch (UnsupportedEncodingException e) {
-            return internalServerError();
+            return AccessLogger.log(context.request()
+                    , internalServerError()
+                    , null);
         }
 
         if (user == null) {
-            return unauthorized(context.response());
+            return AccessLogger.log(context.request()
+                    , unauthorized(context.response())
+                    , null);
         }
 
         if (!user.isAnonymous()) {
