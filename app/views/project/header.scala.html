@@ -71,6 +71,7 @@
                         }
                     </li> 
                     }
+                    @if(project.isPublic || ProjectUser.isMember(UserApp.currentUser.id, project.id)) {
                     <li>
                         @if(User.isWatching(project)) {
                         <button class="ybtn ybtn-watching ybtn-small dropdown-toggle" tyle="button" data-toggle="dropdown">
@@ -120,6 +121,7 @@
                             }
                         </div>
                     </li>
+                    }
                 </ul>
             </div>    
         </div>    
