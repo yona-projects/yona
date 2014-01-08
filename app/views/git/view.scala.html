@@ -21,12 +21,12 @@
         <div id="__info" class="mt20">
             @**<!-- Pull Request Info -->**@
             <div class="board-header issue" style="border-top:none;">
-                <div class="title pull-left">
-                    <strong class="board-id">#@pull.number</strong> @pull.title
-                </div>
-                <div class="pull-right">
+                <div class="pull-right mr10 mt10">
                     <div class="date">@agoString(pull.createdAgo)</div>
                     <span class="badge @if(pull.isConflict == true) {badge-issue-conflict} else {badge-issue-@pull.state.state.toLowerCase}">@if(pull.isConflict == true) {@Messages("pullRequest.state.conflict")} else {@Messages("pullRequest.state." + pull.state.state)}</span>
+                </div>
+                <div class="title">
+                    <strong class="board-id">#@pull.number</strong> @pull.title
                 </div>
             </div>
 
