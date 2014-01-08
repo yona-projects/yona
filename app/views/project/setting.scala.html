@@ -8,6 +8,7 @@
 
 <div class="project-page-wrap">
     @partial_settingmenu(project)
+
 	<form id="saveSetting" method="post" action="@routes.ProjectApp.settingProject(project.owner, project.name)" enctype="multipart/form-data" class="nm">
     <div class="bubble-wrap gray" style="overflow: visible">
         <input type="hidden" name="id" value="@projectForm("id").value.toLong">
@@ -37,49 +38,12 @@
                 </dt>
                 <dd>
                     <input id="project-name" type="text" name="name" maxlength="250" value="@project.name">
-                    <!-- @inputText(projectForm("name"), 'class->"text", 'maxlength -> "250") -->
                 </dd>
-                <dt>
-                    <label for="project-review-point">@Messages("project.review.point")</label>
-                </dt>
-                <dd>
-                    <div data-id="project-review-point" id="branches" class="btn-group branches" data-name="defaultReviewPoint">
-                        <button class="btn dropdown-toggle large" data-toggle="dropdown">
-                            <span class="d-label">@project.defaultReviewPoint</span>
-                            <span class="d-caret"><span class="caret"></span></span>
-                        </button>
-                        <ul class="dropdown-menu">
-                        @for(point <- 1 to project.getMaxNumberOfRequiredReviewPoint){
-                            <li data-value="@point"><a>@point</a></li>
-                        }
-                        </ul>
-                    </div>
-                </dd>
-                <dt>
-                    <label for="project-default-branch">@Messages("project.defaultBranch.placeholder")</label>
-                </dt>
-                <dd>
-                    <div data-id="project-default-branch" id="project-default-branch" class="btn-group branches" data-name="defaultBranch">
-                        <button class="btn dropdown-toggle large" data-toggle="dropdown">
-                            <span class="d-label">@branchItemName(project.defaultBranch())</span>
-                            <span class="d-caret"><span class="caret"></span></span>
-                        </button>
-                        <ul class="dropdown-menu">
-                        @for(branch <- branches if branchItemType(branch) == "branch"){
-                            @defining(branchItemName(branch)){ branchName =>
-                                <li data-value="@branch"><a>@Html(branchName)</a></li>
-                            }
-                        }
-                        </ul>
-                    </div>
-                </dd>
-
                 <dt>
                 	<label for="project-desc">@Messages("project.description.placeholder")</label>
                 </dt>
                 <dd>
                     <textarea id="project-desc" name="overview" maxlength="250" class="textarea">@project.overview</textarea>
-                    <!-- @textarea(projectForm("overview"), 'class->"textarea") -->
                 </dd>
             </dl>
         </div>
@@ -93,12 +57,45 @@
             </div>
         </div>
 
-        @**
-        <!-- 현재 레이아웃에 존재하지 않는 기능 -->
-        <input type="hidden" name="isAuthorEditable" value="true"/>
-        <input type="hidden" name="siteurl" value="@routes.ProjectApp.project(project.owner, project.name)"/>
-        **@
+        <div class="box-wrap middle">
+            <div class="cu-label vmiddle">@Messages("project.review.point")</div>
+            <div class="cu-desc">
+                <div class="btn-group branches" data-id="project-review-point" data-name="defaultReviewPoint">
+                    <button class="btn dropdown-toggle large" data-toggle="dropdown">
+                        <span class="d-label">@project.defaultReviewPoint</span>
+                        <span class="d-caret"><span class="caret"></span></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        @for(point <- 1 to project.getMaxNumberOfRequiredReviewPoint){
+                        <li data-value="@point"><a>@point</a></li>
+                        }
+                    </ul>
+                </div>
+                <span class="note ml10">@Messages("project.review.point.description")</span>
+            </div>
+        </div>
+
+        <div class="box-wrap middle">
+            <div class="cu-label vmiddle">@Messages("code.branches.defaultBranch")</div>
+            <div class="cu-desc">
+                <div class="btn-group branches" data-id="project-default-branch" data-name="defaultBranch">
+                    <button class="btn dropdown-toggle large" data-toggle="dropdown">
+                        <span class="d-label">@branchItemName(project.defaultBranch())</span>
+                        <span class="d-caret"><span class="caret"></span></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        @for(branch <- branches if branchItemType(branch) == "branch"){
+                        @defining(branchItemName(branch)){ branchName =>
+                        <li data-value="@branch"><a>@Html(branchName)</a></li>
+                        }
+                        }
+                    </ul>
+                </div>
+                <span class="note ml10">@Messages("project.defaultBranch.placeholder")</span>
+            </div>
+        </div>
     </div>
+
     <div class="box-wrap bottom">
         <button id="save" type="submit" class="ybtn ybtn-info">@Messages("button.save")</button>
     </div>
