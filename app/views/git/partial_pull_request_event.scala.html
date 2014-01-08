@@ -25,75 +25,105 @@
 @import utils.TemplateHelper.DiffRenderer._
 @import utils.JodaDateUtil._
 
-@event.eventType match {
-    case EventType.PULL_REQUEST_REVIEWED => {
-    <li class="event" id="comment-@event.id">
-        <span class="state closed">@Messages("pullRequest.reviewed")</span>
-        <span class="date"><a href="#event-@event.id">@Messages("notification.pullrequest.reviewed", event.senderLoginId) - @momentFromNow(event.getDate(), lang.language)</a></span>
-    </li>
-    }
+@avatarByLoginId(loginId: String, loginName: String) = {
+    <a href="@routes.UserApp.userInfo(loginId)" class="usf-group" data-toggle="tooltip" data-placement="top" title="@loginName">
+        <img src="@User.findByLoginId(loginId).avatarUrl" class="avatar-wrap small">
+    </a>
+}
 
-    case EventType.PULL_REQUEST_UNREVIEWED => {
-    <li class="event" id="comment-@event.id">
-        <span class="state open">@Messages("pullRequest.unreviewed")</span>
-        <span class="date"><a href="#event-@event.id">@Messages("notification.pullrequest.unreviewed", event.senderLoginId) - @momentFromNow(event.getDate(), lang.language)</a></span>
-    </li>
+@linkToUser(loginId: String, loginName: String, showAvatar: Boolean = true) = {
+    @loginId match {
+    case (loginId: String) => {
+        @if(showAvatar){ @avatarByLoginId(loginId, loginName) }
+        <a href="@routes.UserApp.userInfo(loginId)" class="usf-group" data-toggle="tooltip" data-placement="top" title="@loginName">
+            <strong>@loginId</strong>
+        </a>
     }
-
-    case EventType.PULL_REQUEST_STATE_CHANGED => {
-    <li class="event" id="comment-@event.id">
-        <span class="state @event.newValue">@Messages("pullRequest.event." + event.newValue)</span>
-        <span class="date"><a href="#event-@event.id">@Messages("pullRequest.event.message." + event.newValue, event.senderLoginId) - @momentFromNow(event.getDate(), lang.language)</a></span>
-    </li>
+    case _ => { Anonymous }
     }
+}
+@defining(User.findByLoginId(event.senderLoginId)) { user =>
+    @event.eventType match {
+        case EventType.PULL_REQUEST_REVIEWED => {
+        <li class="event" id="comment-@event.id">
+            <span class="state changed">@Messages("pullRequest.reviewed")</span>
+            @Html(Messages("notification.pullrequest.reviewed",linkToUser(user.loginId, user.name)))
+            <span class="date">
+                <a href="#event-@event.id">@momentFromNow(event.getDate(), lang.language)</a>
+            </span>
+        </li>
+        }
 
-    case EventType.PULL_REQUEST_MERGED => {
-    <li class="event" id="comment-@event.id">
-        <span class="state @event.newValue">@Messages("pullRequest.event." + event.newValue)</span>
-        <span class="date"><a href="#event-@event.id">@Messages("pullRequest.event.message." + event.newValue, event.senderLoginId) - @momentFromNow(event.getDate(), lang.language)</a></span>
-    </li>
-    }
+        case EventType.PULL_REQUEST_UNREVIEWED => {
+        <li class="event" id="comment-@event.id">
+            <span class="state changed">@Messages("pullRequest.unreviewed")</span>
+            @Html(Messages("notification.pullrequest.unreviewed", linkToUser(user.loginId, user.name)))
+            <span class="date">
+                <a href="#event-@event.id">@momentFromNow(event.getDate(), lang.language)</a>
+            </span>
+        </li>
+        }
+        case EventType.PULL_REQUEST_STATE_CHANGED => {
+        <li class="event" id="comment-@event.id">
+            <span class="state @event.newValue">@Messages("pullRequest.event." + event.newValue)</span>
+            @Html(Messages("pullRequest.event.message." + event.newValue, linkToUser(user.loginId, user.name)))
+            <span class="date">
+                <a href="#event-@event.id">@momentFromNow(event.getDate(), lang.language)</a>
+            </span>
+        </li>
+        }
 
-    case EventType.PULL_REQUEST_COMMIT_CHANGED => {
-    <li class="comment @isAuthorComment(event.senderLoginId)" id="comment-@event.id">
-        <div class="comment-avatar">
-            <a href="@routes.UserApp.userInfo(event.senderLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@User.findByLoginId(event.senderLoginId).name">
-                <img src="@User.findByLoginId(event.senderLoginId).avatarUrl" width="32" height="32" alt="@User.findByLoginId(event.senderLoginId).name">
-            </a>
-        </div>
-        <div class="media-body">
-            <div class="meta-info">
-                <span class="comment_author pull-left">
-                    <a href="@routes.UserApp.userInfo(event.senderLoginId)" data-toggle="tooltip" data-placement="top" title="@User.findByLoginId(event.senderLoginId).name">
-                        <strong>@event.senderLoginId @Messages("pullRequest.event.commit")</strong>
-                    </a>
-                </span>
-                <span class="ago">@momentFromNow(event.created, lang.language)</span>
+        case EventType.PULL_REQUEST_MERGED => {
+        <li class="event" id="comment-@event.id">
+            <span class="state @event.newValue">@Messages("pullRequest.event." + event.newValue)</span>
+            @Html(Messages("pullRequest.event.message." + event.newValue, linkToUser(user.loginId, user.name)))
+            <span class="date">
+                <a href="#event-@event.id">@momentFromNow(event.getDate(), lang.language)</a>
+            </span>
+        </li>
+        }
+
+        case EventType.PULL_REQUEST_COMMIT_CHANGED => {
+        <li class="comment @isAuthorComment(event.senderLoginId)" id="comment-@event.id">
+            <div class="comment-avatar">
+                <a href="@routes.UserApp.userInfo(event.senderLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@User.findByLoginId(event.senderLoginId).name">
+                    <img src="@User.findByLoginId(event.senderLoginId).avatarUrl" width="32" height="32" alt="@User.findByLoginId(event.senderLoginId).name">
+                </a>
             </div>
-            <ul class="commit-list">
-            @for(commit <- event.getPullRequestCommits) {
-                <li class="comment-body commit-info @if(commit.state == PullRequestCommit.State.PRIOR){ outdated }">
-                @defining(User.findByEmail(commit.authorEmail)) { author =>
-                    <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.commitId)" class="commit-id">
-                        @commit.commitShortId
-                    </a>
-                    @if(!author.isAnonymous()) {
-                    <a href="@routes.UserApp.userInfo(author.loginId)" class="avatar-wrap small" data-toggle="tooltip" data-placement="top" title="@User.findByLoginId(author.loginId).name">
-                        <img src="@author.avatarUrl"  alt="@author.name"> @commit.authorEmail
-                    </a>
-                    <div class="date">@utils.TemplateHelper.agoString(ago(commit.authorDate))</div>
-                    } else {
-                        <img src="@urlToPicture(commit.getAuthorEmail, 32)" class="avatar-wrap small">
+            <div class="media-body">
+                <div class="meta-info">
+                    <span class="comment_author pull-left">
+                        <a href="@routes.UserApp.userInfo(event.senderLoginId)" data-toggle="tooltip" data-placement="top" title="@User.findByLoginId(event.senderLoginId).name">
+                            <strong>@event.senderLoginId @Messages("pullRequest.event.commit")</strong>
+                        </a>
+                    </span>
+                    <span class="ago">@momentFromNow(event.created, lang.language)</span>
+                </div>
+                <ul class="commit-list">
+                @for(commit <- event.getPullRequestCommits) {
+                    <li class="comment-body commit-info @if(commit.state == PullRequestCommit.State.PRIOR){ outdated }">
+                    @defining(User.findByEmail(commit.authorEmail)) { author =>
+                        <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.commitId)" class="commit-id">
+                            @commit.commitShortId
+                        </a>
+                        @if(!author.isAnonymous()) {
+                        <a href="@routes.UserApp.userInfo(author.loginId)" class="avatar-wrap small" data-toggle="tooltip" data-placement="top" title="@User.findByLoginId(author.loginId).name">
+                            <img src="@author.avatarUrl"  alt="@author.name"> @commit.authorEmail
+                        </a>
+                        <div class="date">@utils.TemplateHelper.agoString(ago(commit.authorDate))</div>
+                        } else {
+                            <img src="@urlToPicture(commit.getAuthorEmail, 32)" class="avatar-wrap small">
+                        }
+                        <p class="commitMsg">@commit.commitMessage.split("\n")(0)  @if(commit.commitMessage.split("\n").length > 1) {<button class="moreBtn" data-toggle="more"><span>...</span></button>}</p>
+                        <p class="commitMsg desc hide">@commit.commitMessage.replace(commit.commitMessage.split("\n")(0)+"\n", "")</p>
                     }
-                    <p class="commitMsg">@commit.commitMessage.split("\n")(0)  @if(commit.commitMessage.split("\n").length > 1) {<button class="moreBtn" data-toggle="more"><span>...</span></button>}</p>
-                    <p class="commitMsg desc hide">@commit.commitMessage.replace(commit.commitMessage.split("\n")(0)+"\n", "")</p>
+                    </li>
                 }
-                </li>
-            }
-            </ul>
-        </div>
-    </li>
-    }
-    case _ => {
+                </ul>
+            </div>
+        </li>
+        }
+        case _ => {
+        }
     }
 }
