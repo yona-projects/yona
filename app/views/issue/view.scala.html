@@ -26,14 +26,14 @@
 <div class="project-page-wrap board-view">
     @** Post Info **@
     <div class="board-header issue">
-        <div class="title pull-left">
-            <strong class="board-id">#@issue.getNumber</strong> @issue.title
-        </div>
-        <div class="pull-right">
+        <div class="pull-right mr10 mt10">
             <div class="date">@agoString(issue.ago)</div>
             <div class="switch @if(!isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)){ deactivate }" data-on-label="@Messages("issue.state.open")" data-off-label="@Messages("issue.state.closed")">
                 <input id="issueOpen" type="checkbox" data-toggle="switch" @if(issue.state == State.OPEN){ checked="checked" } @if(!isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)){disabled="disabled"}>
             </div>
+        </div>
+        <div class="title">
+            <strong class="board-id">#@issue.getNumber</strong> @issue.title
         </div>
     </div>
 
