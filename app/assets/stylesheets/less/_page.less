@@ -2331,16 +2331,22 @@
     .project-btn-wrap {
         text-align:center;
         padding:5px 0;
-
-        a {
-            display:block !important;
+        .project-btn-item {
+            display:block; 
+            
+            a {
+                display:block;  
+            }          
         }
+        
         &.git-project{
-          a {
-            display: inline-block !important;
-          }
+            .project-btn-item {
+                display: inline-block;
+                padding:0 5px;
+            }          
         }
     }
+
     .inner {
         background-color: @white;
         /*margin-right: 10px;*/
