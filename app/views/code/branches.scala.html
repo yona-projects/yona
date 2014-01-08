@@ -41,28 +41,25 @@
                 }
             </ul>
 
-            <table class="table">
-                <thead>
+            <table class="table branch-list-wrap">
+                <thead class="thead">
                     <tr>
                         <th>@Messages("title.branches")</th>
-                        <th>@Messages("userinfo.daysAgo.prefix") @Messages("code.commitMsg")</th>
-                        <th>@Messages("userinfo.daysAgo.prefix") @Messages("code.commitDate")</th>
-                        <th>@Messages("userinfo.daysAgo.prefix") @Messages("code.author")</th>
-                        <th>@Messages("userinfo.daysAgo.prefix") @Messages("pullRequest")</th>
-                        @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.DELETE)) {
+                        <th>@Messages("code.branches.commitMsg")</th>
+                        <th>@Messages("code.branches.commitDate")</th>
+                        <th>@Messages("code.branches.pullRequest")</th>
+                        @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.DELETE) ||
+                            isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
                             <th></th>
                         }
                     </tr>
                 </thead>
-                <tbody class="branch-list-wrap">
-                    <tr style="background-color: aliceblue">
-                        @partial_branchrow(project, head, true)
-                    </tr>
-                @for(branch <- branches.iterator()) {
-                    <tr>
+                <tbody>
+                    @partial_branchrow(project, head, true)
+
+                    @for(branch <- branches.iterator()) {
                         @partial_branchrow(project, branch, false)
-                    </tr>
-                }
+                    }
                 </tbody>
             </table>
         </div>

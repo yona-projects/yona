@@ -4821,8 +4821,82 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 }
 
 .branch-list-wrap {
+    .thead {
+        background-color: #f5f5f5;
+        line-height: 34px;
+        font-size: 12px;
+        border-bottom:1px solid #ccc;
+    }
+    tr.head {
+        background: #fafafa;
+    }
+    th, td {
+        .vmiddle;
+        border:none;
+    }
+    tr {
+        border-bottom:1px solid #e5e5e5;
+    }
+
+    .branchName {
+        width:250px;
+
+        a { color:@blue; }
+
+        .headBranch {
+            color: #0088cc;
+            background-color: #fff;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            padding:3px 5px;
+            .border-radius(3px);
+        }
+    }
     .commitMsg {
-        .text-overflow();
-        .inline-block;
+        a {
+            .inline-block;
+            .vmiddle;
+        }
+        pre { background:#f5f5f5; }
+        button.more {
+            .inline-block;
+            border:none; margin:0; font-size:14px;
+            background:#bbb; color:#fff;
+            padding:0px 6px; margin-bottom:2px; margin-left:5px;
+            .border-radius(2px);
+        }
+    }
+    
+    .commitDate {
+        width:100px;
+    }
+
+    .pullRequest {
+        width:150px;
+        .disabled  { color:#cdcdcd; }
+        .pullrequest-state {
+            &.open:before {
+                content:""; display: inline-block;
+                width: 10px; height: 10px; .border-radius(10px);
+                margin-right: 5px; vertical-align: middle;
+                background-color: #b6da54;
+            }
+            &.closed:before {
+                content:""; display: inline-block;
+                width: 10px; height: 10px; .border-radius(10px);
+                margin-right: 5px; vertical-align: middle;
+                background-color: #fd6956;
+            }
+            &.merged:before {
+                content:""; display: inline-block;
+                width: 10px; height: 10px; .border-radius(10px);
+                margin-right: 5px; vertical-align: middle;
+                background-color: #65c9df;
+            }
+        }
+    }
+
+    .actions {
+        width:200px;
+        text-align:right !important;
     }
 }

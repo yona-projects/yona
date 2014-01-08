@@ -208,6 +208,7 @@ DELETE         /:user/:project/commit/:commitId/comments/:id/delete             
 # Branches
 GET            /:user/:project/branches                                               controllers.BranchApp.branches(user, project)
 DELETE         /:user/:project/code/:branch/                                          controllers.BranchApp.deleteBranch(user, project, branch)
+POST           /:user/:project/code/:branch/setAsDefault                              controllers.BranchApp.setAsDefault(user, project, branch)
 
 # Help
 GET            /help                                                                  controllers.HelpApp.help()
