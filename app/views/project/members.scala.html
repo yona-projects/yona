@@ -110,10 +110,12 @@
     }
     @** -- // -- **@
 </div>
-
+<link rel="stylesheet" type="text/css" media="screen" href="/assets/stylesheets/mention.css">
 <script type="text/javascript">
    $(document).ready(function(){
-       $yobi.loadModule("project.Member");
+       $yobi.loadModule("project.Member", {
+           "sActionURL": "@routes.UserApp.users()"
+       });
    });
 </script>
 

@@ -81,19 +81,31 @@ public class UserApp extends Controller {
             return status(Http.Status.NOT_ACCEPTABLE);
         }
 
-        ExpressionList<User> el = User.find.select("loginId").where().contains("loginId", query);
+        ExpressionList<User> el = User.find.select("loginId, name").where().disjunction();
+        el.icontains("loginId", query);
+        el.icontains("name", query);
+        el.endJunction();
+
         int total = el.findRowCount();
         if (total > MAX_FETCH_USERS) {
             el.setMaxRows(MAX_FETCH_USERS);
             response().setHeader("Content-Range", "items " + MAX_FETCH_USERS + "/" + total);
         }
 
-        List<String> loginIds = new ArrayList<>();
-        for (User user: el.findList()) {
-            loginIds.add(user.loginId);
+        List<Map<String, String>> users = new ArrayList<>();
+        for (User user : el.findList()) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(String.format("<img class='mention_image' src='%s'>", user.avatarUrl()));
+            sb.append(String.format("<b class='mention_name'>%s</b>", user.name));
+            sb.append(String.format("<span class='mention_username'> @%s</span>", user.loginId));
+
+            Map<String, String> userMap = new HashMap<>();
+            userMap.put("info", sb.toString());
+            userMap.put("loginId", user.loginId);
+            users.add(userMap);
         }
 
-        return ok(toJson(loginIds));
+        return ok(toJson(users));
     }
 
     /**
