@@ -382,8 +382,8 @@ public class ProjectApp extends Controller {
         }
 
         if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.DELETE)) {
-            RepositoryService.deleteRepository(loginId, projectName);
             project.delete();
+            RepositoryService.deleteRepository(project);
 
             // XHR 호출에 의한 경우라면 204 No Content 와 Location 헤더로 응답한다
             if(HttpUtil.isRequestedWithXHR(request())){
