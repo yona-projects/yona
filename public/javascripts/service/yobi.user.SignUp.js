@@ -3,7 +3,7 @@
  *
  * Copyright NHN Corporation.
  * Released under the MIT license
- * 
+ *
  * http://yobi.dev.naver.com/license
  */
 
@@ -34,8 +34,10 @@
             htElement.welInputPassword2 = $('#retypedPassword');
             htElement.welInputEmail     = $('#email');
             htElement.welInputLoginId   = $('#loginId');
+            htElement.welInputLoginId.focus();
 
             htElement.welForm = $("form[name=signup]");
+
         }
 
         /**

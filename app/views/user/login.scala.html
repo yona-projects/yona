@@ -1,50 +1,45 @@
-@(message:String, userForm:Form[User])
-
-@siteLayout(message, utils.MenuType.NONE) {
-
+@(message:String, userForm:Form[User]) @siteLayout(message, utils.MenuType.NONE) {
 <div class="page full">
-	<div class="center-wrap tag-line-wrap login">
-		<h1 class="title">
-			Log In for <span class="high-light">@Messages("app.name")</span>
-		</h1>
-		<p class="tag-line">Software development platform for Open Source project.</p>
-	</div>
-	<div class="login-form-wrap frm-wrap">
-		<form action="@routes.UserApp.login()" method="POST">
-			<dl>
-				<dt>
-					<label for="loginId">@Messages("user.loginId")</label>
-				</dt>
-				<dd>
-					<input id="loginId" name="loginId" type="text" class="text email" autocomplete="off">
-				</dd>
+  <div class="center-wrap tag-line-wrap login">
+    <h1 class="title">
+      Log In for <span class="high-light">@Messages("app.name")</span>
+    </h1>
+    <p class="tag-line">Software development platform for Open Source project.</p>
+  </div>
+  <div class="login-form-wrap frm-wrap">
+    <form action="@routes.UserApp.login()" method="POST">
+      <dl>
+        <dt>
+          <label for="loginId">@Messages("user.loginId")</label>
+        </dt>
+        <dd>
+          <input id="loginId" name="loginId" type="text" class="text email" autocomplete="off">
+        </dd>
 
-				<dt>
-					<label for="password">@Messages("user.password")</label>
-				</dt>
-				<dd>
-					<input id="password" name="password" type="password" class="text password" autocomplete="off">
-				</dd>
-			</dl>
+        <dt>
+          <label for="password">@Messages("user.password")</label>
+        </dt>
+        <dd>
+          <input id="password" name="password" type="password" class="text password" autocomplete="off">
+        </dd>
+      </dl>
 
-			<div class="act-row right-txt">
-				<input id="remember-me" type="checkbox" name="rememberMe" class="checkbox" autocomplete="off"><!--
-			 --><label for="remember-me" class="bg-checkbox">@Messages("title.rememberMe")</label>
+      <div class="act-row right-txt">
+        <input id="remember-me" type="checkbox" name="rememberMe" class="checkbox" autocomplete="off">
+        <!-- -->
+        <label for="remember-me" class="bg-checkbox">@Messages("title.rememberMe")</label> <a href="@routes.PasswordResetApp.lostPassword()" class="forgot-password"> <span class="ybtn ybtn-mini ybtn-danger">@Messages("title.forgotpassword")</span>
+        </a>
+      </div>
 
-				<a href="@routes.PasswordResetApp.lostPassword()" class="forgot-password">
-					<span class="ybtn ybtn-mini ybtn-danger">@Messages("title.forgotpassword")</span>
-			 	</a>
-			</div>
-
-			<div class="btns-row">
-				<button type="submit" class="ybtn"> @Messages("button.login")</button>
-			</div>
-		</form>
-	</div>
+      <div class="btns-row">
+        <button type="submit" class="ybtn">@Messages("button.login")</button>
+      </div>
+    </form>
+  </div>
 </div>
 <script type="text/javascript">
-$(function(){
-	$('#loginId').focus();
-});
+    $(function() {
+        $('#loginId').focus();
+    });
 </script>
 }
