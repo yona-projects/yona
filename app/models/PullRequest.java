@@ -335,12 +335,15 @@ public class PullRequest extends Model implements ResourceConvertible {
      * @param newPullRequest
      */
     public void updateWith(PullRequest newPullRequest) {
+        deleteIssueEvents();
+
         this.toBranch = newPullRequest.toBranch;
         this.fromBranch = newPullRequest.fromBranch;
         this.title = newPullRequest.title;
         this.body = newPullRequest.body;
-        updateIssueEvents();
         update();
+
+        addNewIssueEvents();
     }
 
     /**
@@ -637,15 +640,7 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     /**
-     * 풀리퀘가 수정될 때 기존의 모든 이슈 이벤트를 삭제하고 새로 추가한다.
-     */
-    public void updateIssueEvents() {
-        deleteIssueEvents();
-        addNewIssueEvents();
-    }
-
-    /**
-     * 풀리퀘가 삭제될 때 관련있는 모든 이슈 이벤트를 삭제한다.
+     * 풀리퀘가 삭제될 때 이 풀리퀘와 관련있는 이슈 이벤트를 삭제한다.
      */
     public void deleteIssueEvents() {
         String newValue = getNewEventValue();
