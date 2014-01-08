@@ -1,37 +1,94 @@
 // responsive
-@media all and (max-width:620px){
-    .prj .gnb-inner .gnb-menu-wrap .gnb-menus {
-        margin:0;
+@media all and (max-width:1024px){
+    .gnb-outer {
+        .gnb-inner {
+            width:980px;
+        }
+    }
+    
+    .page-wrap {
+        width:980px;
+    }
 
-        &.right {
-            position: relative; float: none;
-            display: block; clear: both;
-            padding-bottom:15px; text-align:right;
+    .project-menu-inner {
+        width:980px;
+    }
+
+    .project-page-wrap {
+        width: 980px;
+    }
+
+    .site-breadcrumb-outer {
+        .site-breadcrumb-inner {
+            width: 980px;
+        }
+    }
+    .project-header-outer {
+        .project-header-inner {
+            .project-header-wrap {
+                width: 980px;
+            }
         }
     }
 
-    .code-browse-wrap {
-        .code-viewer-wrap {
-            .code-tree {
-                display:none;
-                width:0px;
-            }
-            .code-viewer {
-                display:block;
-                width:100%;
-            }
+    .project-menu-outer {
+        .project-menu-inner {
+            width: 980px;
         }
-
-        .cell {
-            &.directory-wrap {
-                display:none;
-                width:0px;
-            }
-            &.file-wrap {
-                width:100%; display:block;
-            }
-        }
-
-        .btnResize { display:none; }
     }
+    .project-home-header {
+        .project-clone-wrap {
+            .project-clone-url {
+                width: 125px;
+            }
+
+            &:hover {
+                .project-clone-url {
+                    width:250px;
+                }
+            }
+        }
+    }
+
+    .project-home {
+        .project-btn-wrap {
+            &.git-project{
+                .project-btn-item {
+                    display: block;
+                    padding:5px 0;
+                }          
+            }
+        }
+    }
+
+    .diff-body {
+        .diff-partial-outer {
+            .diff-partial-inner {
+                .diff-partial-code {
+                    table {
+                        tr {
+                            &.comments {
+                                td {
+                                    li {
+                                        max-width: 910px;
+                                    }
+                                }
+                            }
+
+                            td {
+                                &.diff-comment-box {
+                                    .write-comment-box {
+                                        .write-comment-wrap {
+                                            max-width: 850px;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
 }

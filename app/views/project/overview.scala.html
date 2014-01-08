@@ -114,9 +114,16 @@
         <div class="span3">
             <div class="bubble-wrap gray project-home">
                 <div class="project-btn-wrap @if(project.vcs.equals("GIT")){ git-project }">
-                    <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="ybtn ybtn-success">@Messages("button.newIssue")</a>
+                    <span class="project-btn-item">
+                        <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="ybtn ybtn-success">@Messages("button.newIssue")</a>
+                    </span>    
                     @if(project.vcs.equals("GIT")){
-                    <a href="@routes.PullRequestApp.newFork(project.owner, project.name)" class="ybtn">@Messages("fork")</a>                }
+                    <span class="project-btn-item">
+                        <a href="@routes.PullRequestApp.newFork(project.owner, project.name)" class="ybtn">
+                            @Messages("fork")
+                        </a> 
+                    </span>               
+                    }
                 </div>
                 @defining(Milestone.findOpenMilestones(project.id)){ milestones =>
                     @if(milestones.length > 0){
