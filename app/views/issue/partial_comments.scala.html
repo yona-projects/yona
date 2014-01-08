@@ -55,12 +55,6 @@
     if(commentId == UserApp.currentUser().loginId) {"author"}
 }
 
-@getissueStateIcons(state: String) = @{
-    if(state == Messages("issue.state.open")) "power"
-    else if(state == Messages("issue.state.closed")) "shutdown"
-    else "timeline"
-}
-
 <div class="comment-header"><i class="yobicon-comments"></i> <strong>@Messages("common.comment")</strong> <strong class="num">@issue.comments.size</strong></div>
 <hr class="nm">
 
@@ -101,10 +95,10 @@
         @defining(User.findByLoginId(event.senderLoginId)) { user =>
             @event.eventType match {
                 case EventType.ISSUE_STATE_CHANGED => {
-                    <span class="state @event.newValue"><i class="yobicon-@getissueStateIcons(Messages("issue.state." + event.newValue))"></i> @Messages("issue.state." + event.newValue)</span> @Html(Messages("issue.event." + event.newValue, linkToUser(user.loginId, user.name)))
+                    <span class="state @event.newValue">@Messages("issue.state." + event.newValue)</span> @Html(Messages("issue.event." + event.newValue, linkToUser(user.loginId, user.name)))
                 }
                 case EventType.ISSUE_ASSIGNEE_CHANGED => {
-                    <span class="state changed"><i class="yobicon-ftpaccounts"></i> @Messages("issue.state.assigned")</span>
+                    <span class="state changed">@Messages("issue.state.assigned")</span>
                     @Html(Messages(assginedMesssage(event.newValue, user), linkToUser(user.loginId, user.name), linkToUser(event.newValue,User.findByLoginId(event.newValue).name, true)))
                 }
                 case EventType.ISSUE_REFERRED => {
