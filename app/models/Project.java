@@ -3,22 +3,18 @@ package models;
 import com.avaje.ebean.Ebean;
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
-
-import controllers.EnrollProjectApp;
 import controllers.routes;
 import models.enumeration.RequestState;
 import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
 import models.resource.GlobalResource;
 import models.resource.Resource;
-
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.tmatesoft.svn.core.SVNException;
-
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
@@ -29,7 +25,6 @@ import validation.ExConstraints;
 
 import javax.persistence.*;
 import javax.servlet.ServletException;
-
 import java.io.IOException;
 import java.util.*;
 
@@ -717,9 +712,7 @@ public class Project extends Model implements LabelOwner {
         }
         for(User user : acceptedUsers) {
             user.cancelEnroll(this);
-            EnrollProjectApp
-                    .addNotificationEvent(this, user, RequestState.ACCEPT,
-                            routes.ProjectApp.project(owner, name));
+            NotificationEvent.afterMemberRequest(this, user, RequestState.ACCEPT, routes.ProjectApp.project(owner, name).url());
         }
     }
 

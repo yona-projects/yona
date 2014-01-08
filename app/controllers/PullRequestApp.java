@@ -20,22 +20,23 @@
  */
 package controllers;
 
+import actions.AnonymousCheckAction;
+import actors.PullRequestMergingActor;
+import akka.actor.Props;
 import com.avaje.ebean.Page;
-
 import controllers.annotation.IsCreatable;
 import controllers.annotation.ProjectAccess;
 import controllers.annotation.PullRequestAccess;
 import models.*;
-import models.enumeration.*;
-
+import models.enumeration.Operation;
+import models.enumeration.ResourceType;
+import models.enumeration.RoleType;
+import models.enumeration.State;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.tmatesoft.svn.core.SVNException;
 
-import actions.AnonymousCheckAction;
-import actors.PullRequestMergingActor;
-import akka.actor.Props;
 import play.api.mvc.Call;
 import play.data.Form;
 import play.db.ebean.Transactional;
@@ -49,10 +50,11 @@ import utils.*;
 import views.html.git.*;
 
 import javax.servlet.ServletException;
-
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 프로젝트 복사(포크)와 코드 주고받기(풀리퀘) 기능을 다루는 컨트롤러
@@ -310,7 +312,7 @@ public class PullRequestApp extends Controller {
 
         Call pullRequestCall = routes.PullRequestApp.pullRequest(pullRequest.toProject.owner, pullRequest.toProject.name, pullRequest.number);
 
-        NotificationEvent notiEvent = NotificationEvent.addNewPullRequest(pullRequestCall, pullRequest);
+        NotificationEvent notiEvent = NotificationEvent.afterNewPullRequest(pullRequest);
         PullRequestEvent.addEvent(notiEvent, pullRequest);
 
         PullRequestEventMessage message = new PullRequestEventMessage(
@@ -515,13 +517,13 @@ public class PullRequestApp extends Controller {
         }
 
         Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
-        pullRequest.merge(message, call);
+        pullRequest.merge(message);
 
-        return redirect(call);
+        return redirect(routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber));
     }
 
     private static void addNotification(PullRequest pullRequest, Call call, State from, State to) {
-        NotificationEvent notiEvent = NotificationEvent.addPullRequestUpdate(call, pullRequest, from, to);
+        NotificationEvent notiEvent = NotificationEvent.afterPullRequestUpdated(pullRequest, from, to);
         PullRequestEvent.addEvent(notiEvent, pullRequest);
     }
 

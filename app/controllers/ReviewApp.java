@@ -73,7 +73,7 @@ public class ReviewApp extends Controller {
     }
 
     private static void addNotification(PullRequest pullRequest, Call call, EventType eventType) {
-        NotificationEvent notiEvent = NotificationEvent.addPullRequestReviewed(call, pullRequest, eventType);
+        NotificationEvent notiEvent = NotificationEvent.afterReviewed(call, pullRequest, eventType);
         PullRequestEvent.addEvent(notiEvent, pullRequest);
     }
 

@@ -3,29 +3,25 @@ package controllers;
 
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
-
 import models.*;
-import models.enumeration.EventType;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
-
 import org.codehaus.jackson.node.ObjectNode;
-import play.libs.Json;
-import views.html.board.*;
-
-import utils.AccessControl;
-import utils.JodaDateUtil;
-import utils.ErrorViews;
-
 import play.data.Form;
 import play.db.ebean.Transactional;
+import play.libs.Json;
 import play.mvc.Call;
 import play.mvc.Result;
+import utils.AccessControl;
+import utils.ErrorViews;
+import utils.JodaDateUtil;
+import views.html.board.create;
+import views.html.board.edit;
+import views.html.board.list;
+import views.html.board.view;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 import static com.avaje.ebean.Expr.icontains;
 
@@ -150,31 +146,9 @@ public class BoardApp extends AbstractPostingApp {
         // Attach all of the files in the current user's temporary storage.
         Attachment.moveAll(UserApp.currentUser().asResource(), post.asResource());
 
-        Call toPost = routes.BoardApp.post(project.owner, project.name, post.getNumber());
+        NotificationEvent.afterNewPost(post);
 
-        addNotificationEventFromNewPost(post, toPost);
-
-        return redirect(toPost);
-    }
-
-    private static void addNotificationEventFromNewPost(Posting post, Call toPost) {
-        Set<User> watchers = post.getWatchers();
-        watchers.addAll(NotificationEvent.getMentionedUsers(post.body));
-        watchers.remove(post.getAuthor());
-
-        NotificationEvent notiEvent = new NotificationEvent();
-        notiEvent.created = new Date();
-        notiEvent.title = NotificationEvent.formatNewTitle(post);
-        notiEvent.senderId = UserApp.currentUser().id;
-        notiEvent.receivers = watchers;
-        notiEvent.urlToView = toPost.url();
-        notiEvent.resourceId = post.id.toString();
-        notiEvent.resourceType = post.asResource().getType();
-        notiEvent.eventType = EventType.NEW_POSTING;
-        notiEvent.oldValue = null;
-        notiEvent.newValue = post.body;
-        NotificationEvent.add(notiEvent);
-
+        return redirect(routes.BoardApp.post(project.owner, project.name, post.getNumber()));
     }
 
     /**

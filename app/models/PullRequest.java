@@ -2,10 +2,9 @@ package models;
 
 import actors.RelatedPullRequestMergingActor;
 import akka.actor.Props;
-
+import com.avaje.ebean.Expr;
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
-
 import controllers.UserApp;
 import controllers.routes;
 import models.enumeration.EventType;
@@ -13,7 +12,6 @@ import models.enumeration.ResourceType;
 import models.enumeration.State;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
-
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
@@ -23,26 +21,29 @@ import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.joda.time.Duration;
 
-import com.avaje.ebean.Expr;
-
-import play.api.mvc.Call;
 import play.api.templates.HtmlFormat;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
 import play.i18n.Messages;
 import play.libs.Akka;
-import playRepository.*;
+
+import playRepository.FileDiff;
+import playRepository.GitCommit;
+import playRepository.GitConflicts;
+import playRepository.GitRepository;
 import playRepository.GitRepository.AfterCloneAndFetchOperation;
 import playRepository.GitRepository.CloneAndFetch;
-import utils.*;
+import utils.Constants;
+import utils.JodaDateUtil;
+import utils.TemplateHelper;
+import utils.WatchService;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
-
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.io.File;
 
 import static com.avaje.ebean.Expr.eq;
 
@@ -374,7 +375,7 @@ public class PullRequest extends Model implements ResourceConvertible {
         GitRepository.restoreBranch(this);
     }
 
-    public void merge(final PullRequestEventMessage message, final Call call) {
+    public void merge(final PullRequestEventMessage message) {
         final PullRequest pullRequest = this;
         GitRepository.cloneAndFetch(pullRequest, new AfterCloneAndFetchOperation() {
             @Override
@@ -411,7 +412,7 @@ public class PullRequest extends Model implements ResourceConvertible {
                     pullRequest.receiver = UserApp.currentUser();
                     pullRequest.update();
 
-                    NotificationEvent.addPullRequestUpdate(call, pullRequest, State.OPEN, State.MERGED);
+                    NotificationEvent.afterPullRequestUpdated(pullRequest, State.OPEN, State.MERGED);
                     PullRequestEvent.addStateEvent(pullRequest, State.MERGED);
 
                     Akka.system().actorOf(new Props(RelatedPullRequestMergingActor.class)).tell(message, null);
@@ -798,7 +799,6 @@ public class PullRequest extends Model implements ResourceConvertible {
     /**
      * 보낸 코드를 병합해보고 결과 정보를 반환한다.
      *
-     * @param pullRequest
      * @return
      */
     public PullRequestMergeResult attemptMerge() {

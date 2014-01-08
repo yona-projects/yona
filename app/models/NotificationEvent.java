@@ -1,33 +1,32 @@
 package models;
 
-import models.enumeration.EventType;
-import models.enumeration.RequestState;
-import models.enumeration.ResourceType;
-import models.enumeration.State;
+import controllers.UserApp;
+import controllers.routes;
+import models.enumeration.*;
 import models.resource.GlobalResource;
 import models.resource.Resource;
-
+import models.resource.ResourceConvertible;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.joda.time.DateTime;
-
-import controllers.UserApp;
-import controllers.routes;
+import org.tmatesoft.svn.core.SVNException;
 import play.Configuration;
 import play.api.mvc.Call;
 import play.db.ebean.Model;
 import play.i18n.Messages;
-import play.mvc.Http;
-import play.mvc.Http.Request;
-import playRepository.Commit;
-import playRepository.GitConflicts;
-import playRepository.GitRepository;
+import playRepository.*;
 import utils.WatchService;
 
 import javax.persistence.*;
+import javax.servlet.ServletException;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -76,52 +75,8 @@ public class NotificationEvent extends Model {
     @OneToOne(mappedBy="notificationEvent", cascade = CascadeType.ALL)
     public NotificationMail notificationMail;
 
-    public static String formatReplyTitle(Project project, Commit commit) {
-        return String.format("Re: [%s] %s (%s)",
-                project.name, commit.getShortMessage(), commit.getShortId());
-    }
-
-    public static String formatReplyTitle(PullRequest pullRequest) {
-        return String.format("Re: [%s] %s (#%s)",
-                pullRequest.toProject.name, pullRequest.title, pullRequest.number);
-    }
-
-    public static String formatReplyTitle(AbstractPosting posting) {
-        return String.format("Re: [%s] %s (#%d)",
-                posting.project.name, posting.title, posting.getNumber());
-    }
-
-    public static String formatReplyTitle(Project project, User user) {
-        return String.format("Re: [%s] @%s wants to join your project", project.name, user.loginId);
-    }
-
-    public static String formatNewTitle(AbstractPosting posting) {
-        return String.format("[%s] %s (#%d)",
-                posting.project.name, posting.title, posting.getNumber());
-    }
-
-    public static String formatNewTitle(PullRequest pullRequest) {
-        return String.format("[%s] %s (#%d)",
-                pullRequest.toProject.name, pullRequest.title, pullRequest.number);
-    }
-
-    public static String formatNewTitle(Project project, User user) {
-        return String.format("[%s] @%s wants to join your project", project.name, user.loginId);
-    }
-
     public String getOldValue() {
         return oldValue;
-    }
-
-    @Transient
-    public static Set<User> getMentionedUsers(String body) {
-        Matcher matcher = Pattern.compile("@" + User.LOGIN_ID_PATTERN).matcher(body);
-        Set<User> users = new HashSet<>();
-        while(matcher.find()) {
-            users.add(User.findByLoginId(matcher.group().substring(1)));
-        }
-        users.remove(User.anonymous);
-        return users;
     }
 
     @Transient
@@ -131,49 +86,49 @@ public class NotificationEvent extends Model {
         }
 
         switch (eventType) {
-        case ISSUE_STATE_CHANGED:
-            if (newValue.equals(State.CLOSED.state())) {
-                return Messages.get("notification.issue.closed");
-            } else {
-                return Messages.get("notification.issue.reopened");
-            }
-        case ISSUE_ASSIGNEE_CHANGED:
-            if (newValue == null) {
-                return Messages.get("notification.issue.unassigned");
-            } else {
-                return Messages.get("notification.issue.assigned", newValue);
-            }
-        case NEW_ISSUE:
-        case NEW_POSTING:
-        case NEW_COMMENT:
-        case NEW_PULL_REQUEST:
-        case NEW_PULL_REQUEST_COMMENT:
-        case NEW_COMMIT:
-            return newValue;
-        case PULL_REQUEST_STATE_CHANGED:
-            if (State.OPEN.state().equals(newValue)) {
-                return Messages.get("notification.pullrequest.reopened");
-            } else {
-                return Messages.get("notification.pullrequest." + newValue);
-            }
-        case PULL_REQUEST_COMMIT_CHANGED:
-            return newValue;
-        case PULL_REQUEST_MERGED:
-            return Messages.get("notification.type.pullrequest.merged." + newValue) + "\n" + StringUtils.defaultString(oldValue, StringUtils.EMPTY);
-        case MEMBER_ENROLL_REQUEST:
-            if (RequestState.REQUEST.name().equals(newValue)) {
-                return Messages.get("notification.member.enroll.request");
-            } else  if (RequestState.ACCEPT.name().equals(newValue)) {
-                return Messages.get("notification.member.enroll.accept");
-            } else {
-                return Messages.get("notification.member.enroll.cancel");
-            }
-        case PULL_REQUEST_REVIEWED:
-            return Messages.get("notification.pullrequest.reviewed", newValue);
-        case PULL_REQUEST_UNREVIEWED:
-            return Messages.get("notification.pullrequest.unreviewed", newValue);
-        default:
-            return null;
+            case ISSUE_STATE_CHANGED:
+                if (newValue.equals(State.CLOSED.state())) {
+                    return Messages.get("notification.issue.closed");
+                } else {
+                    return Messages.get("notification.issue.reopened");
+                }
+            case ISSUE_ASSIGNEE_CHANGED:
+                if (newValue == null) {
+                    return Messages.get("notification.issue.unassigned");
+                } else {
+                    return Messages.get("notification.issue.assigned", newValue);
+                }
+            case NEW_ISSUE:
+            case NEW_POSTING:
+            case NEW_COMMENT:
+            case NEW_PULL_REQUEST:
+            case NEW_PULL_REQUEST_COMMENT:
+            case NEW_COMMIT:
+                return newValue;
+            case PULL_REQUEST_STATE_CHANGED:
+                if (State.OPEN.state().equals(newValue)) {
+                    return Messages.get("notification.pullrequest.reopened");
+                } else {
+                    return Messages.get("notification.pullrequest." + newValue);
+                }
+            case PULL_REQUEST_COMMIT_CHANGED:
+                return newValue;
+            case PULL_REQUEST_MERGED:
+                return Messages.get("notification.type.pullrequest.merged." + newValue) + "\n" + StringUtils.defaultString(oldValue, StringUtils.EMPTY);
+            case MEMBER_ENROLL_REQUEST:
+                if (RequestState.REQUEST.name().equals(newValue)) {
+                    return Messages.get("notification.member.enroll.request");
+                } else  if (RequestState.ACCEPT.name().equals(newValue)) {
+                    return Messages.get("notification.member.enroll.accept");
+                } else {
+                    return Messages.get("notification.member.enroll.cancel");
+                }
+            case PULL_REQUEST_REVIEWED:
+                return Messages.get("notification.pullrequest.reviewed", newValue);
+            case PULL_REQUEST_UNREVIEWED:
+                return Messages.get("notification.pullrequest.unreviewed", newValue);
+            default:
+                return null;
         }
     }
 
@@ -187,21 +142,21 @@ public class NotificationEvent extends Model {
 
     public Project getProject() {
         switch(resourceType) {
-        case ISSUE_ASSIGNEE:
-            return Assignee.finder.byId(Long.valueOf(resourceId)).project;
-        case PROJECT:
-            return Project.find.byId(Long.valueOf(resourceId));
-        default:
-            Resource resource = getResource();
-            if (resource != null) {
-                if (resource instanceof GlobalResource) {
-                    return null;
+            case ISSUE_ASSIGNEE:
+                return Assignee.finder.byId(Long.valueOf(resourceId)).project;
+            case PROJECT:
+                return Project.find.byId(Long.valueOf(resourceId));
+            default:
+                Resource resource = getResource();
+                if (resource != null) {
+                    if (resource instanceof GlobalResource) {
+                        return null;
+                    } else {
+                        return resource.getProject();
+                    }
                 } else {
-                    return resource.getProject();
+                    return null;
                 }
-            } else {
-                return null;
-            }
         }
     }
 
@@ -278,30 +233,153 @@ public class NotificationEvent extends Model {
     }
 
     /**
-     * 신규로 코드를 보냈을때의 알림 설정
+     * 신규로 코드를 보냈을때의 알림을 추가한다.
      *
-     * @param pullRequestCall
      * @param pullRequest
      * @return
+     * @see {@link controllers.PullRequestApp#newPullRequest(String, String)}
      */
-    public static NotificationEvent addNewPullRequest(Call pullRequestCall, PullRequest pullRequest) {
-        String title = NotificationEvent.formatNewTitle(pullRequest);
-        Set<User> watchers = pullRequest.getWatchers();
-        watchers.addAll(NotificationEvent.getMentionedUsers(pullRequest.body));
-        watchers.addAll(GitRepository.getRelatedAuthors(pullRequest));
-        watchers.remove(pullRequest.contributor);
-
-        NotificationEvent notiEvent = new NotificationEvent();
-        notiEvent.created = new Date();
-        notiEvent.title = title;
-        notiEvent.senderId = UserApp.currentUser().id;
-        notiEvent.receivers = watchers;
-        notiEvent.urlToView = pullRequestCall.url();
-        notiEvent.resourceId = pullRequest.id.toString();
-        notiEvent.resourceType = pullRequest.asResource().getType();
+    public static NotificationEvent afterNewPullRequest(User sender, String urlToView, PullRequest pullRequest) {
+        NotificationEvent notiEvent = createFrom(sender, pullRequest);
+        notiEvent.title = formatNewTitle(pullRequest);;
+        notiEvent.urlToView = urlToView;
+        notiEvent.receivers = getReceivers(pullRequest);
         notiEvent.eventType = EventType.NEW_PULL_REQUEST;
         notiEvent.oldValue = null;
         notiEvent.newValue = pullRequest.body;
+        NotificationEvent.add(notiEvent);
+        return notiEvent;
+    }
+
+    /**
+     * 보낸코드의 상태가 변경되었을때의 알림을 추가한다.
+     *
+     * @param sender this parameter is nullable, If this parameter is null, UserApp().currentUser() is used.
+     * @param urlToView
+     * @param pullRequest
+     * @param oldState
+     * @param newState
+     * @return
+     * @see {@link models.PullRequest#merge(models.PullRequestEventMessage)}
+     * @see {@link controllers.PullRequestApp#addNotification(models.PullRequest, play.api.mvc.Call, models.enumeration.State, models.enumeration.State)}
+     */
+    public static NotificationEvent afterPullRequestUpdated(User sender, String urlToView, PullRequest pullRequest, State oldState, State newState) {
+        NotificationEvent notiEvent = createFrom(sender, pullRequest);
+        notiEvent.title = formatReplyTitle(pullRequest);
+        notiEvent.urlToView = urlToView;
+        notiEvent.receivers = getReceivers(pullRequest);
+        notiEvent.eventType = EventType.PULL_REQUEST_STATE_CHANGED;
+        notiEvent.oldValue = oldState.state();
+        notiEvent.newValue = newState.state();
+        NotificationEvent.add(notiEvent);
+        return notiEvent;
+    }
+
+    /**
+     * 보낸 코드의 병합 결과 알림을 추가한다.
+     *
+     * @param sender
+     * @param pullRequest
+     * @param conflicts
+     * @param state
+     * @return
+     * @see {@link actors.PullRequestActor#processPullRequestMerging(models.PullRequestEventMessage, models.PullRequest)}
+     */
+    public static NotificationEvent afterMerge(User sender, PullRequest pullRequest, GitConflicts conflicts, State state) {
+        NotificationEvent notiEvent = createFrom(sender, pullRequest);
+        notiEvent.title = formatReplyTitle(pullRequest);
+        notiEvent.urlToView = urlToView(pullRequest);
+        notiEvent.receivers = getReceivers(pullRequest);
+        notiEvent.eventType = EventType.PULL_REQUEST_MERGED;
+        notiEvent.newValue = state.state();
+        if (conflicts != null) {
+            notiEvent.oldValue = StringUtils.join(conflicts.conflictFiles, "\n");
+        }
+        NotificationEvent.add(notiEvent);
+        return notiEvent;
+    }
+
+    /**
+     * 보낸 코드에 댓글이 달렸을 때 알림을 추가한다.
+     *
+     * @param pullRequest
+     * @param newComment
+     * @param urlToView
+     * @see {@link controllers.PullRequestCommentApp#newComment(String, String, Long)}
+     */
+    public static void afterNewComment(PullRequest pullRequest, PullRequestComment newComment, String urlToView) {
+        NotificationEvent notiEvent = createFromCurrentUser(pullRequest);
+        notiEvent.title = formatReplyTitle(pullRequest);
+        notiEvent.urlToView = urlToView;
+        Set<User> receivers = getMentionedUsers(newComment.contents);
+        receivers.addAll(getReceivers(pullRequest));
+        receivers.remove(User.findByLoginId(newComment.authorLoginId));
+        notiEvent.receivers = receivers;
+        notiEvent.eventType = EventType.NEW_PULL_REQUEST_COMMENT;
+        notiEvent.oldValue = null;
+        notiEvent.newValue = newComment.contents;
+
+        NotificationEvent.add(notiEvent);
+    }
+
+    public static NotificationEvent afterNewPullRequest(PullRequest pullRequest) {
+        return afterNewPullRequest(UserApp.currentUser(), urlToView(pullRequest), pullRequest);
+    }
+
+    public static NotificationEvent afterPullRequestUpdated(User sender, PullRequest pullRequest, State oldState, State newState) {
+        return afterPullRequestUpdated(sender, urlToView(pullRequest), pullRequest, oldState, newState);
+    }
+
+    public static NotificationEvent afterPullRequestUpdated(String urlToView, PullRequest pullRequest, State oldState, State newState) {
+        return afterPullRequestUpdated(UserApp.currentUser(), urlToView, pullRequest, oldState, newState);
+    }
+
+    public static NotificationEvent afterPullRequestUpdated(PullRequest pullRequest, State oldState, State newState) {
+        return afterPullRequestUpdated(urlToView(pullRequest), pullRequest, oldState, newState);
+    }
+
+    /**
+     * 이슈와 게시물에 새 댓글을 달렸을 때 알림을 추가한다.
+     *
+     * @param comment
+     * @param urlToView
+     */
+    public static void afterNewComment(Comment comment, String urlToView) {
+        AbstractPosting post = comment.getParent();
+
+
+        NotificationEvent notiEvent = createFromCurrentUser(comment);
+        notiEvent.title = formatReplyTitle(post);
+        notiEvent.urlToView = urlToView;
+        Set<User> receivers = getReceivers(post);
+        receivers.addAll(getMentionedUsers(comment.contents));
+        receivers.remove(UserApp.currentUser());
+        notiEvent.receivers = receivers;
+        notiEvent.eventType = EventType.NEW_COMMENT;
+        notiEvent.oldValue = null;
+        notiEvent.newValue = comment.contents;
+
+        NotificationEvent.add(notiEvent);
+    }
+
+    /**
+     * 상태 변경에 대한 알림을 추가한다.
+     *
+     * 등록된 notification은 사이트 메인 페이지를 통해 사용자에게 보여지며 또한
+     * {@link models.NotificationMail#startSchedule()} 에 의해 메일로 발송된다.
+     *
+     * @param oldState
+     * @param issue
+     * @param urlToView
+     */
+    public static NotificationEvent afterStateChanged(State oldState, Issue issue, String urlToView) {
+        NotificationEvent notiEvent = createFromCurrentUser(issue);
+        notiEvent.title = formatReplyTitle(issue);
+        notiEvent.urlToView = urlToView;
+        notiEvent.receivers = getReceivers(issue);
+        notiEvent.eventType = EventType.ISSUE_STATE_CHANGED;
+        notiEvent.oldValue = oldState.state();
+        notiEvent.newValue = issue.state.state();
 
         NotificationEvent.add(notiEvent);
 
@@ -309,110 +387,138 @@ public class NotificationEvent extends Model {
     }
 
     /**
-     * 보낸코드의 상태가 변경되었을때의 알림 설정
+     * 담당자 변경에 대한 알림을 추가한다.
      *
+     * 등록된 notification은 사이트 메인 페이지를 통해 사용자에게 보여지며 또한
+     * {@link models.NotificationMail#startSchedule()} 에 의해 메일로 발송된다.
      *
-     * @param pullRequestCall
-     * @param pullRequest
-     * @param oldState
-     * @param newState
-     * @return
+     * @param oldAssignee
+     * @param issue
+     * @param urlToView
      */
-    public static NotificationEvent addPullRequestUpdate(Call pullRequestCall, PullRequest pullRequest, State oldState, State newState) {
-        String title = NotificationEvent.formatReplyTitle(pullRequest);
-        Set<User> watchers = pullRequest.getWatchers();
-        watchers.addAll(NotificationEvent.getMentionedUsers(pullRequest.body));
-        watchers.remove(UserApp.currentUser());
+    public static NotificationEvent afterAssigneeChanged(User oldAssignee, Issue issue, String urlToView) {
+        NotificationEvent notiEvent = createFromCurrentUser(issue);
 
-        NotificationEvent notiEvent = new NotificationEvent();
-        notiEvent.created = new Date();
-        notiEvent.title = title;
-        notiEvent.senderId = UserApp.currentUser().id;
-        notiEvent.receivers = watchers;
-        notiEvent.urlToView = pullRequestCall.url();
-        notiEvent.resourceId = pullRequest.id.toString();
-        notiEvent.resourceType = pullRequest.asResource().getType();
-        notiEvent.eventType = EventType.PULL_REQUEST_STATE_CHANGED;
-        notiEvent.oldValue = oldState.state();
-        notiEvent.newValue = newState.state();
-
-        add(notiEvent);
-
-        return notiEvent;
-    }
-
-    /**
-     * 보낸코드의 상태가 변경되었을때의 알림 설정
-     *
-     * @param pullRequestCall
-     * @param request
-     * @param pullRequest
-     * @param oldState
-     * @param newState
-     * @return
-     */
-    public static NotificationEvent addPullRequestUpdate(User sender, PullRequest pullRequest, State oldState, State newState) {
-        String title = NotificationEvent.formatReplyTitle(pullRequest);
-        Set<User> watchers = pullRequest.getWatchers();
-        watchers.addAll(NotificationEvent.getMentionedUsers(pullRequest.body));
-        watchers.remove(sender);
-        Project toProject = pullRequest.toProject;
-
-        NotificationEvent notiEvent = new NotificationEvent();
-        notiEvent.created = new Date();
-        notiEvent.title = title;
-        notiEvent.senderId = sender.id;
-        notiEvent.receivers = watchers;
-        notiEvent.urlToView = routes.PullRequestApp.pullRequest(
-                toProject.owner, toProject.name, pullRequest.number).url();
-        notiEvent.resourceId = pullRequest.id.toString();
-        notiEvent.resourceType = pullRequest.asResource().getType();
-        notiEvent.eventType = EventType.PULL_REQUEST_STATE_CHANGED;
-        notiEvent.oldValue = oldState.state();
-        notiEvent.newValue = newState.state();
-
-        add(notiEvent);
-
-        return notiEvent;
-    }
-    /**
-     * 보낸 코드의 병합 결과 알림 설정
-     *
-     * @param sender
-     * @param pullRequest
-     * @param conflicts
-     * @param state
-     * @return
-     */
-    public static NotificationEvent addPullRequestMerge(User sender, PullRequest pullRequest, GitConflicts conflicts, State state) {
-        String title = NotificationEvent.formatReplyTitle(pullRequest);
-        Resource resource = pullRequest.asResource();
-        Set<User> receivers = new HashSet<>();
-        receivers.add(pullRequest.contributor);
-        Project toProject = pullRequest.toProject;
-
-        NotificationEvent notiEvent = new NotificationEvent();
-        notiEvent.created = new Date();
-        notiEvent.title = title;
-        notiEvent.senderId = sender.id;
-        notiEvent.receivers = receivers;
-        notiEvent.urlToView = routes.PullRequestApp.pullRequest(
-                toProject.owner, toProject.name, pullRequest.number).url();
-        notiEvent.resourceId = resource.getId();
-        notiEvent.resourceType = resource.getType();
-        notiEvent.eventType = EventType.PULL_REQUEST_MERGED;
-        notiEvent.newValue = state.state();
-
-        if (conflicts != null) {
-            notiEvent.oldValue = StringUtils.join(conflicts.conflictFiles, "\n");
+        Set<User> receivers = getReceivers(issue);
+        if(oldAssignee != null) {
+            notiEvent.oldValue = oldAssignee.loginId;
+            if(!oldAssignee.loginId.equals(UserApp.currentUser().loginId)) {
+                receivers.add(oldAssignee);
+            }
         }
 
-        add(notiEvent);
+        if (issue.assignee != null) {
+            notiEvent.newValue = User.find.byId(issue.assignee.user.id).loginId;
+        }
+        notiEvent.title = formatReplyTitle(issue);
+        notiEvent.receivers = receivers;
+        notiEvent.urlToView = urlToView;
+        notiEvent.eventType = EventType.ISSUE_ASSIGNEE_CHANGED;
+
+        NotificationEvent.add(notiEvent);
 
         return notiEvent;
     }
 
-    public static NotificationEvent addPullRequestReviewed(Call call, PullRequest pullRequest, EventType eventType) {
+    public static void afterNewIssue(Issue issue) {
+        NotificationEvent notiEvent = createFromCurrentUser(issue);
+        notiEvent.title = formatNewTitle(issue);
+        notiEvent.receivers = getReceivers(issue);
+        notiEvent.urlToView = getUrlToView(issue);
+        notiEvent.eventType = EventType.NEW_ISSUE;
+        notiEvent.oldValue = null;
+        notiEvent.newValue = issue.body;
+
+        NotificationEvent.add(notiEvent);
+    }
+
+    public static void afterNewPost(Posting post) {
+        NotificationEvent notiEvent = createFromCurrentUser(post);
+        notiEvent.title = formatNewTitle(post);
+        notiEvent.receivers = getReceivers(post);
+        notiEvent.urlToView = getUrlToView(post);
+        notiEvent.eventType = EventType.NEW_POSTING;
+        notiEvent.oldValue = null;
+        notiEvent.newValue = post.body;
+
+        NotificationEvent.add(notiEvent);
+    }
+
+    public static void afterNewCommitComment(Project project, CommitComment codeComment, String urlToView) throws IOException, SVNException, ServletException {
+        Commit commit = RepositoryService.getRepository(project).getCommit(codeComment.commitId);
+        Set<User> watchers = commit.getWatchers(project);
+        watchers.addAll(getMentionedUsers(codeComment.contents));
+        watchers.remove(UserApp.currentUser());
+
+        NotificationEvent notiEvent = createFromCurrentUser(codeComment);
+        notiEvent.title = formatReplyTitle(project, commit);
+        notiEvent.receivers = watchers;
+        notiEvent.urlToView = urlToView;
+        notiEvent.eventType = EventType.NEW_COMMENT;
+        notiEvent.oldValue = null;
+        notiEvent.newValue = codeComment.contents;
+
+        NotificationEvent.add(notiEvent);
+    }
+
+    /**
+     * 멤버 등록 요청에 관련된 알림을 보낸다.
+     *
+     * @param project
+     * @param user
+     * @param state
+     * @param urlToView
+     */
+    public static void afterMemberRequest(Project project, User user, RequestState state, String urlToView) {
+        NotificationEvent notiEvent = createFromCurrentUser(project);
+        notiEvent.eventType = EventType.MEMBER_ENROLL_REQUEST;
+        notiEvent.receivers = getReceivers(project);
+        notiEvent.newValue = state.name();
+        notiEvent.urlToView = urlToView;
+        if (state == RequestState.ACCEPT || state == RequestState.REJECT) {
+            notiEvent.receivers.remove(UserApp.currentUser());
+            notiEvent.receivers.add(user);
+        }
+        if (state == RequestState.REQUEST) {
+            notiEvent.title = formatNewTitle(project, user);
+            notiEvent.oldValue = RequestState.CANCEL.name();
+        } else {
+            notiEvent.title = formatReplyTitle(project, user);
+            notiEvent.oldValue = RequestState.REQUEST.name();
+        }
+        NotificationEvent.add(notiEvent);
+    }
+
+    /**
+     * 새 커밋이 있을 때 알림을 추가한다.
+     *
+     * @param commits
+     * @param refNames
+     * @param project
+     * @param sender
+     * @param title
+     * @param watchers
+     */
+    public static void afterNewCommits(List<RevCommit> commits, List<String> refNames, Project project, User sender, String title, Set<User> watchers) {
+        NotificationEvent notiEvent = createFrom(sender, project);
+        notiEvent.title = title;
+        notiEvent.receivers = watchers;
+        notiEvent.urlToView = getUrlToHistoryView(project);
+        notiEvent.eventType = EventType.NEW_COMMIT;
+        notiEvent.oldValue = null;
+        notiEvent.newValue = newCommitsMessage(commits, refNames, project);
+        NotificationEvent.add(notiEvent);
+    }
+
+    /**
+     * 코드 보내기 리뷰 완료 또는 리뷰 완료 취소할 때 알림을 추가한다.
+     *
+     * @param call
+     * @param pullRequest
+     * @param eventType
+     * @return
+     */
+    public static NotificationEvent afterReviewed(Call call, PullRequest pullRequest, EventType eventType) {
         String title = formatReplyTitle(pullRequest);
         Resource resource = pullRequest.asResource();
         Set<User> receivers = pullRequest.getWatchers();
@@ -435,4 +541,175 @@ public class NotificationEvent extends Model {
 
         return notiEvent;
     }
+
+    private static String getUrlToHistoryView(Project project) {
+        return routes.CodeHistoryApp.historyUntilHead(project.owner, project.name).url();
+    }
+
+    private static String newCommitsMessage(List<RevCommit> commits, List<String> refNames, Project project) {
+        StringBuilder result = new StringBuilder();
+
+        if(commits.size() > 0) {
+            result.append("New Commits: \n");
+            for(RevCommit commit : commits) {
+                GitCommit gitCommit = new GitCommit(commit);
+                // <a href="/owner/project/commit/1231234">1231234</a>: commit's short message \n
+                result.append("<a href=\"");
+                result.append(routes.CodeHistoryApp.show(project.owner, project.name, gitCommit.getId()).url());
+                result.append("\">");
+                result.append(gitCommit.getShortId());
+                result.append("</a>");
+                result.append(": ");
+                result.append(gitCommit.getShortMessage());
+                result.append("\n");
+            }
+        }
+
+        if(refNames.size() > 0) {
+            result.append("Branches: \n");
+            for(String refName: refNames) {
+                // <a href="/owner/project/branch_name">branch_name</a> \n
+                result.append("<a href=\"");
+                String branchName = null;
+                try {
+                    branchName = URLEncoder.encode(refName, "UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                    throw new RuntimeException(e);
+                }
+                result.append(routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, branchName, "").url());
+                result.append("\">");
+                result.append(refName);
+                result.append("</a>");
+                result.append("\n");
+            }
+        }
+
+        return result.toString();
+    }
+
+    /**
+     * 다음 값을 설정한다.
+     * - created: 현재 시간
+     * - resourceId: {@code rc}의 id
+     * - resourceType {@code rc}의 type
+     * - senderId: {@code sender}의 id
+     *
+     * @param sender
+     * @param rc
+     * @return
+     */
+    private static NotificationEvent createFrom(User sender, ResourceConvertible rc) {
+        NotificationEvent notiEvent = new NotificationEvent();
+        notiEvent.senderId = sender.id;
+        notiEvent.created = new Date();
+        Resource resource = rc.asResource();
+        notiEvent.resourceId = resource.getId();
+        notiEvent.resourceType = resource.getType();
+        return notiEvent;
+    }
+
+    /**
+     * 다음 값을 설정한다.
+     * - created: 현재 시간
+     * - resourceId: {@code rc}의 id
+     * - resourceType {@code rc}의 type* - created
+     * - senderId: {@link controllers.UserApp#currentUser()}를 사용해서 sernderId를 설정한다.
+     *
+     * @param rc
+     * @return
+     * @see {@link #createFrom(models.User, models.resource.ResourceConvertible)}
+     */
+    private static NotificationEvent createFromCurrentUser(ResourceConvertible rc) {
+        return createFrom(UserApp.currentUser(), rc);
+    }
+
+    private static Set<User> getReceivers(AbstractPosting abstractPosting) {
+        Set<User> receivers = abstractPosting.getWatchers();
+        receivers.addAll(getMentionedUsers(abstractPosting.body));
+        receivers.remove(UserApp.currentUser());
+        return receivers;
+    }
+
+    private static String getUrlToView(Issue issue) {
+        return routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.getNumber()).url();
+    }
+
+    private static String getUrlToView(Posting post) {
+        return routes.BoardApp.post(post.project.owner, post.project.name, post.getNumber()).url();
+    }
+
+    private static String formatReplyTitle(AbstractPosting posting) {
+        return String.format("Re: [%s] %s (#%d)",
+                posting.project.name, posting.title, posting.getNumber());
+    }
+
+    private static String formatNewTitle(AbstractPosting posting) {
+        return String.format("[%s] %s (#%d)",
+                posting.project.name, posting.title, posting.getNumber());
+    }
+
+    private static String formatReplyTitle(Project project, Commit commit) {
+        return String.format("Re: [%s] %s (%s)",
+                project.name, commit.getShortMessage(), commit.getShortId());
+    }
+
+    private static String urlToView(PullRequest pullRequest) {
+        Project toProject = pullRequest.toProject;
+        return routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, pullRequest.number).url();
+    }
+
+    private static Set<User> getReceivers(PullRequest pullRequest) {
+        Set<User> watchers = pullRequest.getWatchers();
+        watchers.addAll(getMentionedUsers(pullRequest.body));
+        watchers.addAll(GitRepository.getRelatedAuthors(pullRequest));
+        watchers.remove(UserApp.currentUser());
+        return watchers;
+    }
+
+    private static String formatNewTitle(PullRequest pullRequest) {
+        return String.format("[%s] %s (#%d)",
+                pullRequest.toProject.name, pullRequest.title, pullRequest.number);
+    }
+
+    private static String formatReplyTitle(PullRequest pullRequest) {
+        return String.format("Re: [%s] %s (#%s)",
+                pullRequest.toProject.name, pullRequest.title, pullRequest.number);
+    }
+
+    /**
+     * 멤버 등록 관련 알림을 받을 대상자 추출
+     * - 해당 프로젝트의 매니저이면서 지켜보기를 켜둔 사용자들
+     *
+     * @param project
+     * @return
+     */
+    private static Set<User> getReceivers(Project project) {
+        Set<User> receivers = new HashSet<>();
+        List<User> managers = User.findUsersByProject(project.id, RoleType.MANAGER);
+        for (User manager : managers) {
+            if (WatchService.isWatching(manager, project.asResource())) {
+                receivers.add(manager);
+            }
+        }
+        return receivers;
+    }
+
+    private static String formatNewTitle(Project project, User user) {
+        return String.format("[%s] @%s wants to join your project", project.name, user.loginId);
+    }
+
+    private static String formatReplyTitle(Project project, User user) {
+        return String.format("Re: [%s] @%s wants to join your project", project.name, user.loginId);
+    }
+
+    private static Set<User> getMentionedUsers(String body) {
+        Matcher matcher = Pattern.compile("@" + User.LOGIN_ID_PATTERN).matcher(body);
+        Set<User> users = new HashSet<>();
+        while(matcher.find()) {
+            users.add(User.findByLoginId(matcher.group().substring(1)));
+        }
+        users.remove(User.anonymous);
+        return users;
+    }
+
 }

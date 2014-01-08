@@ -1,42 +1,29 @@
 package controllers;
 
+import com.avaje.ebean.ExpressionList;
+import com.avaje.ebean.Page;
+import jxl.write.WriteException;
 import models.*;
-import models.enumeration.*;
-
-import play.i18n.Messages;
-import play.mvc.Http;
-import views.html.issue.edit;
-import views.html.issue.partial_search;
-import views.html.issue.view;
-import views.html.issue.list;
-import views.html.issue.create;
-import views.html.issue.partial_comments;
-
-import utils.AccessControl;
-import utils.JodaDateUtil;
-import utils.HttpUtil;
-import utils.ErrorViews;
-import utils.LabelSearchUtil;
-
+import models.enumeration.Operation;
+import models.enumeration.ResourceType;
+import models.enumeration.State;
+import org.apache.commons.lang.StringUtils;
+import org.apache.tika.Tika;
+import org.codehaus.jackson.node.ObjectNode;
 import play.data.Form;
 import play.db.ebean.Transactional;
+import play.i18n.Messages;
+import play.libs.Json;
 import play.mvc.Call;
+import play.mvc.Http;
 import play.mvc.Result;
-
-import jxl.write.WriteException;
-
-import org.apache.tika.Tika;
-import org.apache.commons.lang.StringUtils;
-
-import com.avaje.ebean.Page;
-import com.avaje.ebean.ExpressionList;
+import utils.*;
+import views.html.issue.*;
 
 import java.io.IOException;
-import java.lang.Integer;
-import java.lang.NumberFormatException;
-import java.util.*;
-import org.codehaus.jackson.node.ObjectNode;
-import play.libs.Json;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 public class IssueApp extends AbstractPostingApp {
     private static final String EXCEL_EXT = "xls";
@@ -101,7 +88,7 @@ public class IssueApp extends AbstractPostingApp {
 
             case "html":
             default:
-                return issuesAsHTML(project, issues, searchCondition); 
+                return issuesAsHTML(project, issues, searchCondition);
         }
     }
 
@@ -128,7 +115,7 @@ public class IssueApp extends AbstractPostingApp {
     /**
      * 이슈 목록을 HTML 페이지로 반환
      * issues() 에서 기본값으로 호출된다
-     * 
+     *
      * @param project 프로젝트
      * @param issues 이슈 목록 페이지
      * @param searchCondition 검색 조건
@@ -141,7 +128,7 @@ public class IssueApp extends AbstractPostingApp {
     /**
      * 이슈 목록을 Microsoft Excel 형식으로 반환
      * issues() 에서 요청 형식({@code format})이 엑셀(xls)일 경우 호출된다
-     * 
+     *
      * @param project 프로젝트
      * @param el
      * @throws WriteException
@@ -162,7 +149,7 @@ public class IssueApp extends AbstractPostingApp {
     /**
      * 이슈 목록을 PJAX 용으로 응답한다
      * issuesAsHTML()과 거의 같지만 캐시하지 않고 partial_search 로 렌더링한다는 점이 다르다
-     * 
+     *
      * @param project
      * @param issues
      * @param searchCondition
@@ -175,11 +162,11 @@ public class IssueApp extends AbstractPostingApp {
 
     /**
      * 이슈 목록을 정해진 갯수만큼 JSON으로 반환한다
-     * QueryString 으로 목록에서 제외할 이슈ID (exceptId) 를 지정할 수 있고 
+     * QueryString 으로 목록에서 제외할 이슈ID (exceptId) 를 지정할 수 있고
      * 반환하는 갯수는 ITEMS_PER_PAGE
-     * 
-     * 이슈 작성/수정시 비슷할 수 있는 이슈 표현을 위해 XHR 이슈 검색시 사용된다 
-     * 
+     *
+     * 이슈 작성/수정시 비슷할 수 있는 이슈 표현을 위해 XHR 이슈 검색시 사용된다
+     *
      * @param project
      * @param issues
      * @return
@@ -286,9 +273,9 @@ public class IssueApp extends AbstractPostingApp {
 
     /**
      * 이슈 타임라인 조회
-     * 
+     *
      * <p>when: 단일 이슈의 타임라인 조회</p>
-     * 
+     *
      * 접근 권한이 없을 경우, Forbidden 으로 응답한다.
      * 조회하려는 이슈가 존재하지 않을 경우엔 NotFound 로 응답한다.
      *
@@ -311,14 +298,14 @@ public class IssueApp extends AbstractPostingApp {
         if (!AccessControl.isAllowed(UserApp.currentUser(), issueInfo.asResource(), Operation.READ)) {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
-        
+
         for (IssueLabel label: issueInfo.labels) {
             label.refresh();
         }
-        
+
         return ok(partial_comments.render(project, issueInfo));
     }
-    
+
     /**
      * 새 이슈 등록 폼
      *
@@ -438,10 +425,12 @@ public class IssueApp extends AbstractPostingApp {
             String urlToView = routes.IssueApp.issue(issue.project.owner, issue.project.name,
                     issue.getNumber()).url();
             if(assigneeChanged) {
-                addAssigneeChangedNotification(oldAssignee, updatedIssue, urlToView);
+                NotificationEvent notiEvent = NotificationEvent.afterAssigneeChanged(oldAssignee, updatedIssue, urlToView);
+                IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
             }
             if(stateChanged) {
-                addStateChangedNotification(oldState, updatedIssue, urlToView);
+                NotificationEvent notiEvent = NotificationEvent.afterStateChanged(oldState, updatedIssue, urlToView);
+                IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
             }
         }
 
@@ -506,28 +495,9 @@ public class IssueApp extends AbstractPostingApp {
         // Attach all of the files in the current user's temporary storage.
         Attachment.moveAll(UserApp.currentUser().asResource(), newIssue.asResource());
 
-        final Call issueCall = routes.IssueApp.issue(project.owner, project.name, newIssue.getNumber());
+        NotificationEvent.afterNewIssue(newIssue);
 
-        String title = NotificationEvent.formatNewTitle(newIssue);
-        Set<User> watchers = newIssue.getWatchers();
-        watchers.addAll(NotificationEvent.getMentionedUsers(newIssue.body));
-        watchers.remove(newIssue.getAuthor());
-
-        NotificationEvent notiEvent = new NotificationEvent();
-        notiEvent.created = new Date();
-        notiEvent.title = title;
-        notiEvent.senderId = UserApp.currentUser().id;
-        notiEvent.receivers = watchers;
-        notiEvent.urlToView = issueCall.url();
-        notiEvent.resourceId = newIssue.id.toString();
-        notiEvent.resourceType = newIssue.asResource().getType();
-        notiEvent.eventType = EventType.NEW_ISSUE;
-        notiEvent.oldValue = null;
-        notiEvent.newValue = newIssue.body;
-
-        NotificationEvent.add(notiEvent);
-
-        return redirect(issueCall);
+        return redirect(routes.IssueApp.issue(project.owner, project.name, newIssue.getNumber()));
     }
 
     /**
@@ -585,7 +555,8 @@ public class IssueApp extends AbstractPostingApp {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", issue.project));
         }
         issue.toNextState();
-        addStateChangedNotification(issue.previousState(), issue, redirectTo.absoluteURL(request() ));
+        NotificationEvent notiEvent = NotificationEvent.afterStateChanged(issue.previousState(), issue, redirectTo.absoluteURL(request()));
+        IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
         return redirect(redirectTo);
     }
 
@@ -643,92 +614,18 @@ public class IssueApp extends AbstractPostingApp {
             if(originalIssue.assignee != null) {
                 oldAssignee = originalIssue.assignee.user;
             }
-            addAssigneeChangedNotification(oldAssignee, updatedIssue, redirectTo.absoluteURL(request()));
+            NotificationEvent notiEvent = NotificationEvent.afterAssigneeChanged(oldAssignee, updatedIssue, redirectTo.absoluteURL(request()));
+            IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
         }
 
         if(issue.state != originalIssue.state) {
             Issue updatedIssue = Issue.finder.byId(originalIssue.id);
-            addStateChangedNotification(issue.state, updatedIssue,
-                    redirectTo.absoluteURL(request()
-                    ));
+            NotificationEvent notiEvent = NotificationEvent.afterStateChanged(issue.state, updatedIssue,
+                    redirectTo.absoluteURL(request()));
+            IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
         }
 
         return result;
-    }
-
-    /**
-     * 상태 변경에 대한 notification을 등록한다.
-     *
-     * 등록된 notification은 사이트 메인 페이지를 통해 사용자에게 보여지며 또한
-     * {@link models.NotificationMail#startSchedule()} 에 의해 메일로 발송된다.
-     *
-     * @param oldState
-     * @param updatedIssue
-     * @param urlToView
-     */
-    @Transactional
-    private static void addStateChangedNotification(State oldState, Issue updatedIssue, String urlToView) {
-        NotificationEvent notiEvent = new NotificationEvent();
-
-        notiEvent.oldValue = oldState.state();
-        notiEvent.newValue = updatedIssue.state.state();
-
-        notiEvent.receivers = updatedIssue.getWatchers();
-        notiEvent.receivers.remove(UserApp.currentUser());
-
-        notiEvent.senderId = UserApp.currentUser().id;
-
-        notiEvent.title = NotificationEvent.formatReplyTitle(updatedIssue);
-
-        notiEvent.created = new Date();
-        notiEvent.urlToView = urlToView;
-        notiEvent.resourceId = updatedIssue.id.toString();
-        notiEvent.resourceType = updatedIssue.asResource().getType();
-        notiEvent.eventType = EventType.ISSUE_STATE_CHANGED;
-
-        NotificationEvent.add(notiEvent);
-
-        IssueEvent.addFromNotificationEvent(notiEvent, updatedIssue, UserApp.currentUser().loginId);
-    }
-
-    /**
-     * 담당자 변경에 대한 notification을 등록한다.
-     *
-     * 등록된 notification은 사이트 메인 페이지를 통해 사용자에게 보여지며 또한
-     * {@link models.NotificationMail#startSchedule()} 에 의해 메일로 발송된다.
-     *
-     * @param oldAssignee
-     * @param updatedIssue
-     * @param urlToView
-     */
-    @Transactional
-    private static void addAssigneeChangedNotification(User oldAssignee, Issue updatedIssue, String urlToView) {
-        NotificationEvent notiEvent = new NotificationEvent();
-
-        Set<User> receivers = updatedIssue.getWatchers();
-        if(oldAssignee != null) {
-            notiEvent.oldValue = oldAssignee.loginId;
-            receivers.add(oldAssignee);
-        }
-        receivers.remove(UserApp.currentUser());
-
-        notiEvent.title = NotificationEvent.formatReplyTitle(updatedIssue);
-
-        if (updatedIssue.assignee != null) {
-            notiEvent.newValue = User.find.byId(updatedIssue.assignee.user.id).loginId;
-        }
-
-        notiEvent.created = new Date();
-        notiEvent.senderId = UserApp.currentUser().id;
-        notiEvent.receivers = receivers;
-        notiEvent.urlToView = urlToView;
-        notiEvent.resourceId = updatedIssue.id.toString();
-        notiEvent.resourceType = updatedIssue.asResource().getType();
-        notiEvent.eventType = EventType.ISSUE_ASSIGNEE_CHANGED;
-
-        NotificationEvent.add(notiEvent);
-
-        IssueEvent.addFromNotificationEvent(notiEvent, updatedIssue, UserApp.currentUser().loginId);
     }
 
     /*
