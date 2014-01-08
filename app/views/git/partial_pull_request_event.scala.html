@@ -28,14 +28,14 @@
 @event.eventType match {
     case EventType.PULL_REQUEST_REVIEWED => {
     <li class="event" id="comment-@event.id">
-        <span class="state open">@Messages("pullRequest.reviewed")</span>
+        <span class="state closed">@Messages("pullRequest.reviewed")</span>
         <span class="date"><a href="#event-@event.id">@Messages("notification.pullrequest.reviewed", event.senderLoginId) - @momentFromNow(event.getDate(), lang.language)</a></span>
     </li>
     }
 
     case EventType.PULL_REQUEST_UNREVIEWED => {
     <li class="event" id="comment-@event.id">
-        <span class="state closed">@Messages("pullRequest.unreviewed")</span>
+        <span class="state open">@Messages("pullRequest.unreviewed")</span>
         <span class="date"><a href="#event-@event.id">@Messages("notification.pullrequest.unreviewed", event.senderLoginId) - @momentFromNow(event.getDate(), lang.language)</a></span>
     </li>
     }
