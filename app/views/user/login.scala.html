@@ -38,10 +38,13 @@
 
 			<div class="btns-row">
 				<button type="submit" class="ybtn"> @Messages("button.login")</button>
-				<a href="@routes.UserApp.signupForm()" class="ybtn ybtn-success"> @Messages("title.signup")</a>
 			</div>
 		</form>
 	</div>
 </div>
-
+<script type="text/javascript">
+$(function(){
+	$('#loginId').focus();
+});
+</script>
 }
