@@ -54,9 +54,24 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
 
 /** yobi.ui.Dropdown **/
 .dropdown-toggle {
-    background:@white; text-align:left;
-    padding:0px; padding-left:12px; outline:none;
-    .border-radius(2px);
+    display:inline-block;
+    position:relative;
+    margin-bottom: 0;
+    margin-left: .3em;
+    padding:0px; padding-left:12px;
+    text-align    : left;
+    vertical-align: middle;
+    white-space   : nowrap;
+    color: #333;
+    background : @yobi-btn-default;
+    text-shadow: none;
+    line-height: 20px;
+    font-size: 14px;
+    outline:0 none;
+    border: 1px solid rgba(0,0,0,.15);
+    .border-radius(3px)  !important;
+    .box-shadow(0 1px 0 rgba(0,0,0,.05));
+    .transition(all 0.3s ease);
 
     &.small  .d-label { width: 29px;  }
     &.medium .d-label { width: 58px;  }
@@ -75,7 +90,6 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     .d-caret {
         float:right; margin:0;
         padding:4px 9px;
-        border-left:1px solid rgba(0,0,0,0.1);
 
         .caret {
             border-top-color:#4f4f4f;
@@ -573,7 +587,7 @@ span.issue-label {
 
     i { line-height:20px;}
 
-    &.ybnt-midium {
+    &.ybtn-medium {
         padding:4px 12px;
     }
 
