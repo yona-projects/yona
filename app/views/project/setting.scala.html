@@ -57,21 +57,28 @@
                 </div>
             </div>
 
-            <div class="box-wrap middle">
-                <div class="cu-label vmiddle">@Messages("project.review.point")</div>
+            <div class="box-wrap middle reviewer-count-wrap">
+                <div class="cu-label vmiddle">@Messages("project.reviewer.count")</div>
                 <div class="cu-desc">
-                    <div class="btn-group branches" data-id="project-review-point" data-name="defaultReviewPoint">
-                        <button class="btn dropdown-toggle large" data-toggle="dropdown">
-                            <span class="d-label">@project.defaultReviewPoint</span>
-                            <span class="d-caret"><span class="caret"></span></span>
-                        </button>
-                        <ul class="dropdown-menu">
-                            @for(point <- 1 to project.getMaxNumberOfRequiredReviewPoint){
-                            <li data-value="@point"><a>@point</a></li>
-                            }
-                        </ul>
+                    <input name="isUsingReviewerCount" data-toggle="reviewer-count" data-action="show" type="radio" @if(project.isUsingReviewerCount == true){checked="checked"} id="reviewerCountEnable" value="true" class="radio-btn">
+                    <label for="reviewerCountEnable" class="bg-radiobtn label-public">@Messages("project.reviewer.count.enable")</label>
+                    <input name="isUsingReviewerCount" data-toggle="reviewer-count" data-action="hide" type="radio" @if(project.isUsingReviewerCount == false){checked="checked"} id="reviewerCountDisable" value="false" class="radio-btn">
+                    <label for="reviewerCountDisable" class="bg-radiobtn label-private">@Messages("project.reviewer.count.disable")</label>
+
+                    <div id="welReviewerCount" data-value="@project.isUsingReviewerCount" class="hide">
+                        <div class="btn-group branches" data-id="project-reviewer-count" data-name="defaultReviewerCount">
+                            <button class="btn dropdown-toggle large" data-toggle="dropdown">
+                                <span class="d-label">@project.defaultReviewerCount</span>
+                                <span class="d-caret"><span class="caret"></span></span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                @for(point <- 1 to project.getMaxNumberOfRequiredReviewerCount){
+                                <li data-value="@point"><a>@point</a></li>
+                                }
+                            </ul>
+                        </div>
+                        <span class="note ml10">@Messages("project.reviewer.count.description")</span>
                     </div>
-                    <span class="note ml10">@Messages("project.review.point.description")</span>
                 </div>
             </div>
 

@@ -122,7 +122,9 @@ public class Project extends Model implements LabelOwner {
     @OneToMany(cascade = CascadeType.REMOVE)
     public List<CommitComment> codeComments;
 
-    public Integer defaultReviewPoint = 1;
+    public Integer defaultReviewerCount = 1;
+
+    public boolean isUsingReviewerCount;
 
     /**
      * 신규 프로젝트를 생성한다.
@@ -916,7 +918,7 @@ public class Project extends Model implements LabelOwner {
      *
      * @return 필요한 리뷰 포인트의 최대값.
      */
-    public int getMaxNumberOfRequiredReviewPoint() {
+    public int getMaxNumberOfRequiredReviewerCount() {
         List<ProjectUser> members = ProjectUser.findMemberListByProject(this.id);
         if(members.size() > 1) {
             return members.size();

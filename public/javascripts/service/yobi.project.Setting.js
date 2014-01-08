@@ -3,7 +3,7 @@
  *
  * Copyright NHN Corporation.
  * Released under the MIT license
- * 
+ *
  * http://yobi.dev.naver.com/license
  */
 
@@ -45,8 +45,8 @@
             htElement.welForm = $("form#saveSetting");
             htElement.welInputLogo = $("#logoPath");
             htElement.welInputName = $("input#project-name");
-
             htElement.welBtnSave   = $("#save");
+            htElement.welReviewerCount = $("#welReviewerCount");
 
             // popovers
             htVar.waPopOvers = $([$("#project_name"), $("#share_option_explanation"), $("#terms")]);
@@ -58,6 +58,20 @@
         function _attachEvent(){
             htElement.welInputLogo.change(_onChangeLogoPath);
             htElement.welBtnSave.click(_onClickBtnSave);
+
+            if(htElement.welReviewerCount.data("value") === true) {
+                htElement.welReviewerCount.show();
+            }
+
+            $(".reviewer-count-wrap").on("click", '[data-toggle="reviewer-count"]', _toggleReviewerCount);
+        }
+
+        /**
+         * 리뷰어 기능 사용 여부를 토글 한다.
+         */
+        function _toggleReviewerCount(){
+            var sAction = $(this).data("action");
+            htElement.welReviewerCount[sAction]();
         }
 
         /**

@@ -44,6 +44,7 @@
                 </code>
             </span>
         </div>
+        @if(project.isUsingReviewerCount) {
         <div class="pull-right">
             <span class="badge">@Messages("pullRequest.reviewed") @pull.reviewers.size
                 @for(reviewer <- pull.reviewers) {
@@ -51,6 +52,7 @@
                 }
             </span>
         </div>
+        }
     </div>
 
     <div id="helpMessage" class="well" style="display:none;">
