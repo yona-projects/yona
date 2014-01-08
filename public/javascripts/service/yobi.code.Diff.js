@@ -247,7 +247,7 @@
             var sLineType = htBlockInfo.bIsReversed ? htBlockInfo.sStartType : htBlockInfo.sEndType;
             var welContainer = $('.diff-container[data-file-path="' + htBlockInfo.sFilePath + '"]');
             var welTR = welContainer.find('tr[data-line="' + sLineNum + '"][data-type="' + sLineType + '"]');
-            welTR.data("blockInfo", JSON.stringify(htBlockInfo)); // 블록정보 JSON
+            welTR.data("blockInfo", htBlockInfo); // 블록정보
 
             yobi.CodeCommentBox.show(welTR, {
                 "sPlacement": htBlockInfo.bIsReversed ? "top" : "bottom"

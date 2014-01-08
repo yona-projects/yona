@@ -51,6 +51,11 @@ yobi.CodeCommentBox = (function(){
         _initFileUploader();
     }
 
+    /**
+     * Initialize Variables
+     * @param htOptions
+     * @private
+     */
     function _initVar(htOptions){
         htVar.fOnAfterShow = htOptions.fOnAfterShow;
         htVar.fOnAfterHide = htOptions.fOnAfterHide;
@@ -61,42 +66,39 @@ yobi.CodeCommentBox = (function(){
         };
     }
 
+    /**
+     * Initialize Elements
+     * @private
+     */
     function _initElement(){
         htElement.welCommentWrap = $("#review-form");
-        htElement.welCommentForm = _getEmptyCommentForm(htElement.welCommentWrap.find("form"));
+        htElement.welCommentForm = htElement.welCommentWrap.find("form");
         htElement.welCommentTextarea = htElement.welCommentForm.find("textarea.comment");
         htElement.welCommentUploader = htElement.welCommentForm.find(".upload-wrap");
     }
 
+    /**
+     * Attach event handlers
+     * @private
+     */
     function _attachEvent(){
         htElement.welCommentForm.on("click", '[data-toggle="close"]', function(){
             _hide();
         });
+
+        htElement.welCommentForm.on("submit", function(){
+            _removeEmptyFieldsOnForm();
+        });
     }
 
     /**
-     * 필요한 INPUT(type=hidden) 필드가 존재하는 댓글 폼을 반환한다
-     *
-     * @returns {*|jQuery|HTMLElement}
+     * Remove empty INPUT elements
      * @private
      */
-    function _getEmptyCommentForm(welForm){
-        var aInput = [];
-        var aFields = ["path", "line", "side", "commitA", "commitB", "blockInfo"];
-        var welHidden = $('<input type="hidden">');
-
-        aFields.forEach(function(sFieldName){
-            var welField = welForm.find('input[name="' + sFieldName + '"]');
-
-            if(welField.length === 0){
-                aInput.push(welHidden.clone().attr("name", sFieldName)); // append new field
-            } else {
-                welField.val(""); // empty previous value
-            }
-        });
-
-        welForm.append(aInput);
-        return welForm;
+    function _removeEmptyFieldsOnForm(){
+        htElement.welCommentForm.find("input").filter(function(){
+            return ($(this).val().length === 0);
+        }).remove();
     }
 
     /**
@@ -113,19 +115,12 @@ yobi.CodeCommentBox = (function(){
             welTarget = welTr.prevUntil("tr[data-line]");
         }
 
-        var sType = welTarget.data("type");
-        var welDiffContainer = welTarget.closest(".diff-container"); // = table
-        var htData = {
-            "line"     : welTarget.data("line"),
-            "side"     : (sType === 'remove') ? 'A' : 'B',
-            "blockInfo": welTarget.data("blockInfo"),
-            "commitA"  : welDiffContainer.data("commitA"),
-            "commitB"  : welDiffContainer.data("commitB"),
-            "path"     : welDiffContainer.data(sType === "remove" ? "path-a" : "path-b")
-        };
-        // TODO: 서버 전송할 필드에 따라 불필요한 정보는 제거할 필요 있음 (대부분의 정보는 blockInfo 에 포함하고 있어서)
+        // set form field values
+        var htBlockInfo = welTarget.data("blockInfo");
+        var htData = _getFormFieldsFromBlockInfo(htBlockInfo);
+        _setReviewFormFields(htData);
 
-        // show form and fill fields
+        // show comment form
         // sPlacement means where to show commentBox from welTr (top or bottom)
         // sArrowPlacement means where to show arrow on commentBox (opposite side to sPlacement)
         var sPlacement = (htOptions.sPlacement || "bottom").toLowerCase();
@@ -139,7 +134,6 @@ yobi.CodeCommentBox = (function(){
         htElement.welCommentWrap.css("top", nTop + "px");
         htElement.welCommentWrap.show();
         htElement.welCommentTextarea.focus();
-        _setReviewFormFields(htElement.welCommentForm, htData);
 
         // run callback function
         if(typeof htOptions.fCallback === "function"){
@@ -152,22 +146,77 @@ yobi.CodeCommentBox = (function(){
     }
 
     /**
+     * 블록 정보를 Form 전송을 위한 데이터로 만든다.
+     * 불필요한 항목은 제거하고, 필드명도 다듬어서 반환
+     *
+     * @param htBlockInfo
+     * @returns {{}}
+     * @private
+     */
+    function _getFormFieldsFromBlockInfo(htBlockInfo){
+        var sNewKey;
+        var htData = {};
+        var aBlockWords = ["bIsReversed"];
+
+        for(var sKey in htBlockInfo){
+            // 특정한 항목은 폼 데이터에 넣지 않는다
+            if(aBlockWords.indexOf(sKey) > -1){
+                continue;
+            }
+
+            sNewKey = sKey.substr(1,1).toLowerCase() + sKey.substring(2);
+            htData[sNewKey] = htBlockInfo[sKey];
+        }
+
+        return htData;
+    }
+
+    /**
      * welForm 을 htData 를 기준으로 폼 데이터를 채운다
+     * input(type="hidden")이 존재하면 값을 지정하고
+     * 존재하지 않으면 새롭게 만들어서 폼에 추가한다
      *
      * @param welForm
      * @param htData
      * @private
      */
-    function _setReviewFormFields(welForm, htData){
-        var welInput;
+    function _setReviewFormFields(htData){
+        var aInput = [];
+        var welField, elField, sFieldName;
+        var welForm = htElement.welCommentForm;
 
-        for(var sFieldName in htData){
-            welInput = welForm.find('input[name="' + sFieldName + '"]');
+        for(sFieldName in htData){
+            welField = welForm.find('input[type="hidden"][name="' + sFieldName + '"]');
 
-            if(welInput.length === 1){
-                welInput.val(htData[sFieldName]);
+            if(welField.length === 0){
+                elField = _getHiddenField(sFieldName, htData[sFieldName]);
+                aInput.push(elField); // append new field
+            } else {
+                welField.val(htData[sFieldName]);
             }
         }
+
+        // prepend new INPUT elements to welForm
+        if(aInput.length > 0){
+            welForm.prepend(aInput);
+        }
+    }
+
+    /**
+     * name=sFieldName,value=sFieldValue 인
+     * hidden type input 엘리먼트를 반환한다
+     *
+     * @param sFieldName
+     * @param sFieldValue
+     * @returns {HTMLElement}
+     * @private
+     */
+    function _getHiddenField(sFieldName, sFieldValue){
+        var elInput = document.createElement("INPUT");
+        elInput.setAttribute("name", sFieldName);
+        elInput.setAttribute("type", "hidden");
+        elInput.value = sFieldValue;
+        return elInput;
     }
 
     /**

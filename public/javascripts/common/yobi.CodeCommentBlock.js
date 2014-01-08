@@ -160,6 +160,8 @@ yobi.CodeCommentBlock = (function(){
             "nEndOffset"  : bIsReversed ? oSelection.anchorOffset : oSelection.focusOffset,
             "sPathA"      : welTable.data("pathA"),
             "sPathB"      : welTable.data("pathB"),
+            "sCommitA"    : welTable.data("commitA"),
+            "sCommitB"    : welTable.data("commitB"),
             "sFilePath"   : welTable.data("filePath")
         };
     }
