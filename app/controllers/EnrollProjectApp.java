@@ -2,6 +2,7 @@ package controllers;
 
 import models.NotificationEvent;
 import models.Project;
+import models.ProjectUser;
 import models.User;
 import models.enumeration.RequestState;
 import play.db.ebean.Transactional;
@@ -29,12 +30,15 @@ public class EnrollProjectApp extends Controller {
         }
 
         User user = UserApp.currentUser();
-        if (user.isAnonymous()) {
+        if (!ProjectUser.isGuest(project, user)) {
             return badRequest();
         }
 
-        user.enroll(project);
-        NotificationEvent.afterMemberRequest(project, user, RequestState.REQUEST, routes.ProjectApp.members(loginId, projectName).url());
+        if (!User.enrolled(project)) {
+            user.enroll(project);
+            NotificationEvent.afterMemberRequest(project, user, RequestState.REQUEST, routes.ProjectApp.members(loginId, projectName).url());
+        }
+
         return ok();
     }
 
@@ -54,12 +58,15 @@ public class EnrollProjectApp extends Controller {
         }
 
         User user = UserApp.currentUser();
-        if (user.isAnonymous()) {
+        if (!ProjectUser.isGuest(project, user)) {
             return badRequest();
         }
 
-        user.cancelEnroll(project);
-        NotificationEvent.afterMemberRequest(project, user, RequestState.CANCEL, routes.ProjectApp.members(loginId, proejctName).url());
+        if (User.enrolled(project)) {
+            user.cancelEnroll(project);
+            NotificationEvent.afterMemberRequest(project, user, RequestState.CANCEL, routes.ProjectApp.members(loginId, proejctName).url());
+        }
+
         return ok();
     }
 }

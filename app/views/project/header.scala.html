@@ -3,7 +3,8 @@
 @import utils._
 @import utils.TemplateHelper._
 @import utils.AccessControl._
-@import models.enumeration.ResourceType;
+@import models.enumeration.ResourceType
+@import controllers.UserApp
 
 <div class="project-header-outer" style="background-image:url(@urlToProjectLogo(project))">
     <div class="project-header-inner">
@@ -33,7 +34,7 @@
             </div>
             <div class="project-util-wrap">
                 <ul class="project-util">
-                    @if(ProjectUser.roleOf(session.get("loginId"), project).equals(RoleType.GUEST.getLowerCasedName())) {
+                    @if(ProjectUser.isGuest(project, UserApp.currentUser)) {
                     <li>
                         @if(User.enrolled(project)) {
                         <button class="ybtn ybtn-small ybtn-info dropdown-toggle" type="button" data-toggle="dropdown">

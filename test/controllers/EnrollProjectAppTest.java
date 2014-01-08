@@ -60,12 +60,14 @@ public class EnrollProjectAppTest {
     }
 
     @Test
-    public void enrollAnonymous() {
+    public void enrollNotGuest() {
         // Given
         Project project = Project.find.byId(1L);
+        User admin = User.find.byId(1L);
 
         // When
-        Result result = callAction(routes.ref.EnrollProjectApp.enroll(project.owner, project.name));
+        Result result = callAction(routes.ref.EnrollProjectApp.enroll(project.owner, project.name),
+                fakeRequest().withSession(UserApp.SESSION_USERID, admin.id.toString()));
 
         // Then
         assertThat(status(result)).isEqualTo(Http.Status.BAD_REQUEST);
@@ -78,6 +80,23 @@ public class EnrollProjectAppTest {
         User user = User.find.byId(6L);
 
         // When
+        Result result = callAction(routes.ref.EnrollProjectApp.enroll(project.owner, project.name),
+                fakeRequest().withSession(UserApp.SESSION_USERID, user.id.toString()));
+
+        // Then
+        assertThat(status(result)).isEqualTo(Http.Status.OK);
+        assertThat(user.enrolledProjects).contains(project);
+    }
+
+    @Test
+    public void enrollDuplicated() {
+        // Given
+        Project project = Project.find.byId(1L);
+        User user = User.find.byId(6L);
+
+        // When
+        callAction(routes.ref.EnrollProjectApp.enroll(project.owner, project.name),
+                fakeRequest().withSession(UserApp.SESSION_USERID, user.id.toString()));
         Result result = callAction(routes.ref.EnrollProjectApp.enroll(project.owner, project.name),
                 fakeRequest().withSession(UserApp.SESSION_USERID, user.id.toString()));
 
@@ -100,7 +119,7 @@ public class EnrollProjectAppTest {
     }
 
     @Test
-    public void cancelEnrollAnonymous() {
+    public void cancelEnrollNotGuest() {
         // Given
         Project project = Project.find.byId(1L);
 
