@@ -321,8 +321,11 @@ yobi.Label = (function(htOptions){
             return _requestDeleteLabel(sLabelId);
         }
 
-        // 편집모드가 아닐때 클릭한거면 라벨의 활성상태 토글(.active)
+        // 편집모드가 아닐때 클릭했다면 해당 라벨을
+        // 토글하고, 같은 카테고리의 다른 모든 라벨은
+        // 선택상태를 해제한다.
         if(!htVar.bEditable){
+            welLabel.siblings().removeClass("active");
             welLabel.toggleClass("active");
         }
 
