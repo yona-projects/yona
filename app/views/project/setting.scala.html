@@ -8,107 +8,104 @@
 
 <div class="project-page-wrap">
     @partial_settingmenu(project)
-	<form id="saveSetting" method="post" action="@routes.ProjectApp.settingProject(project.owner, project.name)" enctype="multipart/form-data" class="nm">
-    <div class="bubble-wrap gray" style="overflow: visible">
-        <input type="hidden" name="id" value="@projectForm("id").value.toLong">
-        <input type="hidden" name="watchingCount" value="@projectForm("watchingCount").value.toLong">
-        <div class="box-wrap top clearfix frm-wrap" style="padding-top:20px;">
-            <div class="setting-box left">
-                <div class="logo-wrap" style="background-image:url('@urlToProjectLogo(project)')"></div>
-                <div class="logo-desc">
-                    <ul class="unstyled descs">
-                        <li><strong>@Messages("project.logo")</strong></li>
-                        <li>@Messages("project.logo.type") <span class="point">bmp, jpg, gif, png</span></li>
-                        <li>@Messages("project.logo.maxFileSize") <span class="point">5MB</span></li>
-                        <li>
-                        	<div class="btn-wrap">
-								<div class="nbtn medium white fake-file-wrap">
-									<i class="yobicon-upload"></i> @Messages("button.upload")<!--
-								--> <input id="logoPath" type="file" class="file" name="logoPath" accept="image/*">
-								</div>
-							</div>
-                        </li>
-                    </ul>
+
+    <form id="saveSetting" method="post" action="@routes.ProjectApp.settingProject(project.owner, project.name)" enctype="multipart/form-data" class="nm">
+        <div class="bubble-wrap gray" style="overflow: visible">
+            <input type="hidden" name="id" value="@projectForm("id").value.toLong">
+            <input type="hidden" name="watchingCount" value="@projectForm("watchingCount").value.toLong">
+            <div class="box-wrap top clearfix frm-wrap" style="padding-top:20px;">
+                <div class="setting-box left">
+                    <div class="logo-wrap" style="background-image:url('@urlToProjectLogo(project)')"></div>
+                    <div class="logo-desc">
+                        <ul class="unstyled descs">
+                            <li><strong>@Messages("project.logo")</strong></li>
+                            <li>@Messages("project.logo.type") <span class="point">bmp, jpg, gif, png</span></li>
+                            <li>@Messages("project.logo.maxFileSize") <span class="point">5MB</span></li>
+                            <li>
+                                <div class="btn-wrap">
+                                    <div class="nbtn medium white fake-file-wrap">
+                                        <i class="yobicon-upload"></i> @Messages("button.upload")<!--
+                                    --> <input id="logoPath" type="file" class="file" name="logoPath" accept="image/*">
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <dl class="setting-box right">
+                    <dt>
+                        <label for="project-name">@Messages("project.name.placeholder")</label>
+                    </dt>
+                    <dd>
+                        <input id="project-name" type="text" name="name" maxlength="250" value="@project.name">
+                    </dd>
+                    <dt>
+                        <label for="project-desc">@Messages("project.description.placeholder")</label>
+                    </dt>
+                    <dd>
+                        <textarea id="project-desc" name="overview" maxlength="250" class="textarea">@project.overview</textarea>
+                    </dd>
+                </dl>
+            </div>
+
+            <div class="box-wrap middle">
+                <div class="cu-label">@Messages("project.shareOption")</div>
+                <div class="cu-desc">
+                    <input name="isPublic" type="radio" @if(project.isPublic == true){checked="checked"} id="public" value="true" class="radio-btn"><label for="public" class="bg-radiobtn label-public">@Messages("project.public")</label>
+                    <input name="isPublic" type="radio" @if(project.isPublic == false){checked="checked"} id="private" value="false" class="radio-btn"><label for="private" class="bg-radiobtn label-private">@Messages("project.private")</label>
+                    <span class="note">@Messages("project.private.notice")</span>
                 </div>
             </div>
-            <dl class="setting-box right">
-            	<dt>
-					<label for="project-name">@Messages("project.name.placeholder")</label>
-                </dt>
-                <dd>
-                    <input id="project-name" type="text" name="name" maxlength="250" value="@project.name">
-                    <!-- @inputText(projectForm("name"), 'class->"text", 'maxlength -> "250") -->
-                </dd>
-                <dt>
-                    <label for="project-review-point">@Messages("project.review.point")</label>
-                </dt>
-                <dd>
-                    <div data-id="project-review-point" id="branches" class="btn-group branches" data-name="defaultReviewPoint">
+
+            <div class="box-wrap middle">
+                <div class="cu-label vmiddle">@Messages("project.review.point")</div>
+                <div class="cu-desc">
+                    <div class="btn-group branches" data-id="project-review-point" data-name="defaultReviewPoint">
                         <button class="btn dropdown-toggle large" data-toggle="dropdown">
                             <span class="d-label">@project.defaultReviewPoint</span>
                             <span class="d-caret"><span class="caret"></span></span>
                         </button>
                         <ul class="dropdown-menu">
-                        @for(point <- 1 to project.getMaxNumberOfRequiredReviewPoint){
+                            @for(point <- 1 to project.getMaxNumberOfRequiredReviewPoint){
                             <li data-value="@point"><a>@point</a></li>
-                        }
+                            }
                         </ul>
                     </div>
-                </dd>
-                <dt>
-                    <label for="project-default-branch">@Messages("project.defaultBranch.placeholder")</label>
-                </dt>
-                <dd>
-                    <div data-id="project-default-branch" id="project-default-branch" class="btn-group branches" data-name="defaultBranch">
+                    <span class="note ml10">@Messages("project.review.point.description")</span>
+                </div>
+            </div>
+
+            <div class="box-wrap middle">
+                <div class="cu-label vmiddle">@Messages("code.branches.defaultBranch")</div>
+                <div class="cu-desc">
+                    <div class="btn-group branches" data-id="project-default-branch" data-name="defaultBranch">
                         <button class="btn dropdown-toggle large" data-toggle="dropdown">
                             <span class="d-label">@branchItemName(project.defaultBranch())</span>
                             <span class="d-caret"><span class="caret"></span></span>
                         </button>
                         <ul class="dropdown-menu">
-                        @for(branch <- branches if branchItemType(branch) == "branch"){
+                            @for(branch <- branches if branchItemType(branch) == "branch"){
                             @defining(branchItemName(branch)){ branchName =>
-                                <li data-value="@branch"><a>@Html(branchName)</a></li>
+                            <li data-value="@branch"><a>@Html(branchName)</a></li>
                             }
-                        }
+                            }
                         </ul>
                     </div>
-                </dd>
-
-                <dt>
-                	<label for="project-desc">@Messages("project.description.placeholder")</label>
-                </dt>
-                <dd>
-                    <textarea id="project-desc" name="overview" maxlength="250" class="textarea">@project.overview</textarea>
-                    <!-- @textarea(projectForm("overview"), 'class->"textarea") -->
-                </dd>
-            </dl>
-        </div>
-
-        <div class="box-wrap middle">
-            <div class="cu-label">@Messages("project.shareOption")</div>
-            <div class="cu-desc">
-                <input name="isPublic" type="radio" @if(project.isPublic == true){checked="checked"} id="public" value="true" class="radio-btn"><label for="public" class="bg-radiobtn label-public">@Messages("project.public")</label>
-                <input name="isPublic" type="radio" @if(project.isPublic == false){checked="checked"} id="private" value="false" class="radio-btn"><label for="private" class="bg-radiobtn label-private">@Messages("project.private")</label>
-                <span class="note">@Messages("project.private.notice")</span>
+                    <span class="note ml10">@Messages("project.defaultBranch.placeholder")</span>
+                </div>
             </div>
         </div>
 
-        @**
-        <!-- 현재 레이아웃에 존재하지 않는 기능 -->
-        <input type="hidden" name="isAuthorEditable" value="true"/>
-        <input type="hidden" name="siteurl" value="@routes.ProjectApp.project(project.owner, project.name)"/>
-        **@
-    </div>
-    <div class="box-wrap bottom">
-        <button id="save" type="submit" class="ybtn ybtn-info">@Messages("button.save")</button>
-    </div>
-	</form>
+        <div class="box-wrap bottom">
+            <button id="save" type="submit" class="ybtn ybtn-info">@Messages("button.save")</button>
+        </div>
+    </form>
 </div>
 
 <script type="text/javascript">
-	$(document).ready(function(){
+    $(document).ready(function(){
         $yobi.loadModule("project.Setting");
-	});
+    });
 </script>
 
 }
