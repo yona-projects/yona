@@ -110,15 +110,23 @@ yobi.CodeCommentBox = (function(){
         htOptions = htOptions || {};
 
         var welTarget = welTr;
+        var sThreadId = welTarget.data("thread-id");
 
-        if(typeof welTarget.data("line") === "undefined"){
-            welTarget = welTr.prevUntil("tr[data-line]");
+        // 기존 스레드에 댓글을 추가하는 버튼이면
+        if(typeof sThreadId !== "undefined"){
+            _setReviewFormFields({
+                "thread.id": sThreadId
+            }, true);
+        } else {
+            if(typeof welTarget.data("line") === "undefined"){
+                welTarget = welTr.prevUntil("tr[data-line]");
+            }
+
+            // set form field values
+            var htBlockInfo = welTarget.data("blockInfo");
+            var htData = _getFormFieldsFromBlockInfo(htBlockInfo);
+            _setReviewFormFields(htData);
         }
-
-        // set form field values
-        var htBlockInfo = welTarget.data("blockInfo");
-        var htData = _getFormFieldsFromBlockInfo(htBlockInfo);
-        _setReviewFormFields(htData);
 
         // show comment form
         // sPlacement means where to show commentBox from welTr (top or bottom)
@@ -180,11 +188,17 @@ yobi.CodeCommentBox = (function(){
      * @param htData
      * @private
      */
-    function _setReviewFormFields(htData){
+    function _setReviewFormFields(htData, bForceClean){
         var aInput = [];
         var welField, elField, sFieldName;
         var welForm = htElement.welCommentForm;
 
+        // 기존에 있던 hidden field 제거하는 경우
+        if(bForceClean === true){
+            welForm.find('input[type="hidden"]').remove();
+        }
+
+        // 필드가 없으면 만들고, 있으면 값 지정
         for(sFieldName in htData){
             welField = welForm.find('input[type="hidden"][name="' + sFieldName + '"]');
 
