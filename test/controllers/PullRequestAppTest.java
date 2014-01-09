@@ -24,6 +24,7 @@ import static org.fest.assertions.Assertions.assertThat;
 import static play.mvc.Http.Status.*;
 import static play.test.Helpers.*;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,6 +33,11 @@ import models.PullRequest;
 import models.User;
 import models.enumeration.State;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.transport.RefSpec;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -40,6 +46,7 @@ import org.junit.Test;
 import play.mvc.Result;
 import play.test.FakeApplication;
 import play.test.Helpers;
+import playRepository.GitRepository;
 
 public class PullRequestAppTest {
     protected FakeApplication app;
@@ -49,7 +56,7 @@ public class PullRequestAppTest {
     private Long pullRequestNumber;
 
     @Test
-    public void testCloseAnonymous() {
+    public void testCloseAnonymous() throws Exception {
         initParameters("alecsiel", "sample", 10L);
         Result result = callAction(
                 controllers.routes.ref.PullRequestApp.close(ownerLoginId, projectName, pullRequestNumber)
@@ -59,7 +66,7 @@ public class PullRequestAppTest {
     }
 
     @Test
-    public void testCloseNotExistProject() {
+    public void testCloseNotExistProject() throws Exception {
         initParameters("alecsiel", "sample", 10L);
         User currentUser = User.findByLoginId("admin");
 
@@ -73,7 +80,7 @@ public class PullRequestAppTest {
     }
 
     @Test
-    public void testCloseNotExistPullRequest() {
+    public void testCloseNotExistPullRequest() throws Exception {
         initParameters("yobi", "projectYobi-1", 10L);
         User currentUser = User.findByLoginId("admin");
 
@@ -87,7 +94,7 @@ public class PullRequestAppTest {
     }
 
     @Test
-    public void testClosePullRequest() {
+    public void testClosePullRequest() throws Exception {
         initParameters("yobi", "projectYobi", 1L);
         User currentUser = User.findByLoginId("admin");
 
@@ -102,7 +109,7 @@ public class PullRequestAppTest {
     }
 
     @Test
-    public void testClosePullRequestNotAllow() {
+    public void testClosePullRequestNotAllow() throws Exception {
         initParameters("yobi", "projectYobi", 1L);
         User currentUser = User.findByLoginId("alecsiel");
 
@@ -117,7 +124,7 @@ public class PullRequestAppTest {
     }
 
     @Test
-    public void testOpenAnonymous() {
+    public void testOpenAnonymous() throws Exception {
         initParameters("alecsiel", "sample", 10L);
         Result result = callAction(
                 controllers.routes.ref.PullRequestApp.open(ownerLoginId, projectName, pullRequestNumber)
@@ -127,7 +134,7 @@ public class PullRequestAppTest {
     }
 
     @Test
-    public void testOpenPullRequestBadRequest() {
+    public void testOpenPullRequestBadRequest() throws Exception {
         initParameters("yobi", "projectYobi", 1L);
         User currentUser = User.findByLoginId("admin");
 
@@ -141,7 +148,7 @@ public class PullRequestAppTest {
     }
 
     @Test
-    public void testOpenPullRequest() {
+    public void testOpenPullRequest() throws Exception {
         initParameters("yobi", "HelloSocialApp", 1L);
         User currentUser = User.findByLoginId("admin");
 
@@ -156,7 +163,7 @@ public class PullRequestAppTest {
     }
 
     @Test
-    public void testAcceptAnonymous() {
+    public void testAcceptAnonymous() throws Exception {
         initParameters("alecsiel", "sample", 10L);
         Result result = callAction(
                 controllers.routes.ref.PullRequestApp.accept(ownerLoginId, projectName, pullRequestNumber)
@@ -166,7 +173,7 @@ public class PullRequestAppTest {
     }
 
     @Test
-    public void testNewForkByAdmin() {
+    public void testNewForkByAdmin() throws Exception {
         initParameters("yobi", "projectYobi", 1L);
         User currentUser = User.findByLoginId("admin");
 
@@ -180,7 +187,7 @@ public class PullRequestAppTest {
     }
 
     @Test
-    public void testNewForkByMember() {
+    public void testNewForkByMember() throws Exception {
         initParameters("yobi", "projectYobi", 1L);
         User currentUser = User.findByLoginId("yobi");
 
@@ -195,7 +202,7 @@ public class PullRequestAppTest {
     }
 
     @Test
-    public void testNewForkByNotMember() {
+    public void testNewForkByNotMember() throws Exception {
         initParameters("yobi", "projectYobi", 1L);
         User currentUser = User.findByLoginId("alecsiel");
 
@@ -209,7 +216,7 @@ public class PullRequestAppTest {
     }
 
     @Test
-    public void testNewForkPrivateProjectAndNotMember() {
+    public void testNewForkPrivateProjectAndNotMember() throws Exception {
         initParameters("laziel", "Jindo", 1L);
         User currentUser = User.findByLoginId("alecsiel");
 
@@ -223,7 +230,7 @@ public class PullRequestAppTest {
     }
 
     @Test
-    public void testForkAlreadyExistForkProject() {
+    public void testForkAlreadyExistForkProject() throws Exception {
         initParameters("yobi", "projectYobi", 1L);
         User currentUser = User.findByLoginId("yobi");
 
@@ -237,7 +244,7 @@ public class PullRequestAppTest {
     }
 
     @Test
-    public void testForkSampleName() {
+    public void testForkSampleName() throws Exception {
         initParameters("yobi", "TestApp", 1L);
         User currentUser = User.findByLoginId("yobi");
 
@@ -254,7 +261,7 @@ public class PullRequestAppTest {
         assertThat(status(result)).isEqualTo(SEE_OTHER);
     }
     @Test
-    public void testNewForkRoute() {
+    public void testNewForkRoute() throws Exception {
         initParameters("yobi", "projectYobi", 1L);
         String url = "/" + ownerLoginId + "/" + projectName + "/newFork";
         User currentUser = User.findByLoginId("yobi");
@@ -266,7 +273,7 @@ public class PullRequestAppTest {
     }
 
     @Test
-    public void testCloseRoute() {
+    public void testCloseRoute() throws Exception {
         initParameters("yobi", "projectYobi", 1L);
         String url = "/" + ownerLoginId + "/" + projectName + "/pullRequest/" + pullRequestNumber + "/close";
         User currentUser = User.findByLoginId("yobi");
@@ -283,7 +290,7 @@ public class PullRequestAppTest {
     }
 
     @Test
-    public void testOpenRoute() {
+    public void testOpenRoute() throws Exception {
         initParameters("yobi", "projectYobi", 1L);
         String url = "/" + ownerLoginId + "/" + projectName + "/pullRequest/" + pullRequestNumber + "/open";
         User currentUser = User.findByLoginId("yobi");
@@ -308,6 +315,8 @@ public class PullRequestAppTest {
 
     @Before
     public void before() {
+        GitRepository.setRepoPrefix("resources/test/repo/git/");
+        GitRepository.setRepoForMergingPrefix("resources/test/repo/git-merging/");
         app = support.Helpers.makeTestApplication();
         Helpers.start(app);
     }
@@ -315,11 +324,42 @@ public class PullRequestAppTest {
     @After
     public void after() {
         Helpers.stop(app);
+        support.Files.rm_rf(new File(GitRepository.getRepoPrefix()));
+        support.Files.rm_rf(new File(GitRepository.getRepoForMergingPrefix()));
     }
 
-    private void initParameters(String ownerLoginId, String projectName, Long pullRequestNumber) {
+    private void initParameters(String ownerLoginId, String projectName, Long pullRequestNumber)
+            throws Exception {
         this.ownerLoginId = ownerLoginId;
         this.projectName = projectName;
         this.pullRequestNumber = pullRequestNumber;
+        Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
+        PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
+        initRepositories(pullRequest);
+    }
+
+    private void initRepositories(PullRequest pullRequest) throws Exception {
+        if (pullRequest == null) {
+            return;
+        }
+        initRepository(pullRequest.toProject,
+                StringUtils.removeStart(pullRequest.toBranch, "refs/heads/"), "1.txt");
+        initRepository(pullRequest.fromProject,
+                StringUtils.removeStart(pullRequest.fromBranch, "refs/heads/"), "2.txt");
+    }
+
+    private void initRepository(Project project, String branchName, String fileName) throws Exception {
+        GitRepository gitRepository = new GitRepository(project);
+        gitRepository.create();
+
+        Repository repository = GitRepository.buildMergingRepository(project);
+        Git git =  new Git(repository);
+
+        FileUtils.touch(new File(GitRepository.getDirectoryForMerging(project.owner, project.name + "/" + fileName)));
+        git.add().addFilepattern(fileName).call();
+        git.commit().setMessage(fileName).call();
+        git.push().setRefSpecs(new RefSpec("master:master"), new RefSpec("master:" + branchName)).call();
+        gitRepository.close();
+        repository.close();
     }
 }

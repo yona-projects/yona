@@ -1105,17 +1105,19 @@ public class GitRepository implements PlayRepository {
      * @throws IOException
      */
     public static Repository buildMergingRepository(PullRequest pullRequest) {
-        Project toProject = pullRequest.toProject;
+        return buildMergingRepository(pullRequest.toProject);
+    }
 
+    public static Repository buildMergingRepository(Project project) {
         // merge 할 때 사용할 Git 저장소 디렉토리 경로를 생성한다.
-        String workingTree = GitRepository.getDirectoryForMerging(toProject.owner, toProject.name);
+        String workingTree = GitRepository.getDirectoryForMerging(project.owner, project.name);
 
         try {
             // 이미 만들어둔 clone 디렉토리가 있다면 그걸 사용해서 Repository를 생성하고
             // 없을 때는 새로 만든다.
             File gitDir = new File(workingTree + "/.git");
             if(!gitDir.exists()) {
-                return cloneRepository(pullRequest.toProject, workingTree).getRepository();
+                return cloneRepository(project, workingTree).getRepository();
             } else {
                 return new RepositoryBuilder().setGitDir(gitDir).build();
             }

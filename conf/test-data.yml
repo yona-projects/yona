@@ -107,12 +107,13 @@ pullRequests:
                                     id: 2
         toProject:       !!models.Project
                                     id: 1
-        fromBranch:      frombranch
-        toBranch:        tobranch
+        fromBranch:      refs/heads/frombranch
+        toBranch:        refs/heads/tobranch
         contributor:     !!models.User
                                     id: 1
         created:           2013-11-18 13:19:00
         state:          OPEN
+        isConflict:          false
     - !!models.PullRequest
         title:      HelloSocialApp test pull-request
         body:       HelloSocialApp의 테스트용 pull-request 입니다.
@@ -120,12 +121,13 @@ pullRequests:
                                     id: 6
         toProject:       !!models.Project
                                     id: 5
-        fromBranch:      frombranch
-        toBranch:        tobranch
+        fromBranch:      refs/heads/frombranch
+        toBranch:        refs/heads/tobranch
         contributor:     !!models.User
                                     id: 1
         created:           2013-11-18 13:41:00
         state:          CLOSED
+        isConflict:          false
 # Board
 postings:
     - !!models.Posting

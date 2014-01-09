@@ -42,8 +42,8 @@ public class GitRepositoryTest {
 
     @After
     public void after() {
-        rm_rf(new File(GitRepository.getRepoPrefix()));
-        rm_rf(new File(GitRepository.getRepoForMergingPrefix()));
+        support.Files.rm_rf(new File(GitRepository.getRepoPrefix()));
+        support.Files.rm_rf(new File(GitRepository.getRepoForMergingPrefix()));
     }
 
     @Test
@@ -177,8 +177,8 @@ public class GitRepositoryTest {
         Project original = createProject(userName, projectName);
         Project fork = createProject("keesun", projectName);
 
-        rm_rf(new File(GitRepository.getGitDirectory(original)));
-        rm_rf(new File(GitRepository.getGitDirectory(fork)));
+        support.Files.rm_rf(new File(GitRepository.getGitDirectory(original)));
+        support.Files.rm_rf(new File(GitRepository.getGitDirectory(fork)));
 
         GitRepository fromRepo = new GitRepository(userName, projectName);
         fromRepo.create();
@@ -196,11 +196,11 @@ public class GitRepositoryTest {
     public void cloneRepositoryWithNonBareMode() throws IOException, GitAPIException {
         // Given
         Project originProject = createProject("whiteship", "test");
-        rm_rf(new File(GitRepository.getGitDirectory(originProject)));
+        support.Files.rm_rf(new File(GitRepository.getGitDirectory(originProject)));
         new GitRepository(originProject.owner, originProject.name).create();
 
         String cloneWorkingTreePath = GitRepository.getDirectoryForMerging(originProject.owner, originProject.name);
-        rm_rf(new File(cloneWorkingTreePath));
+        support.Files.rm_rf(new File(cloneWorkingTreePath));
 
         // When
         Git.cloneRepository()
@@ -571,19 +571,6 @@ public class GitRepositoryTest {
         PullRequest pullRequest = new PullRequest();
         pullRequest.toProject = project;
         return pullRequest;
-    }
-
-    private void rm_rf(File file) {
-        assert file != null;
-        if (file.isDirectory()) {
-            File[] list = file.listFiles();
-            assert list != null;
-            for(int i = 0; i < list.length; i++){
-                rm_rf(list[i]);
-            }
-        }
-        System.gc();
-        file.delete();
     }
 
     private byte[] getRawFile(Repository repository, String path) throws IOException {
