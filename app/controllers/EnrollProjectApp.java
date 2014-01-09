@@ -2,14 +2,12 @@ package controllers;
 
 import models.NotificationEvent;
 import models.Project;
+import models.ProjectUser;
 import models.User;
 import models.enumeration.RequestState;
 import play.db.ebean.Transactional;
 import play.mvc.Controller;
-import play.mvc.Http;
 import play.mvc.Result;
-import utils.Constants;
-import utils.ErrorViews;
 
 /**
  * 프로젝트에 멤버로 등록해달라는 요청을 처리하는 컨트롤러
@@ -28,18 +26,20 @@ public class EnrollProjectApp extends Controller {
     public static Result enroll(String loginId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
         if(project == null) {
-            return badProject(loginId, projectName);
+            return badRequest();
         }
 
         User user = UserApp.currentUser();
-        if(user.isAnonymous()) {
-            flash(Constants.WARNING, "user.login.alert");
-            return redirect(routes.UserApp.loginForm());
+        if (!ProjectUser.isGuest(project, user)) {
+            return badRequest();
         }
 
-        user.enroll(project);
-        NotificationEvent.afterMemberRequest(project, user, RequestState.REQUEST, routes.ProjectApp.members(loginId, projectName).url());
-        return redirect(request().getHeader(Http.HeaderNames.REFERER));
+        if (!User.enrolled(project)) {
+            user.enroll(project);
+            NotificationEvent.afterMemberRequest(project, user, RequestState.REQUEST, routes.ProjectApp.members(loginId, projectName).url());
+        }
+
+        return ok();
     }
 
     /**
@@ -54,22 +54,19 @@ public class EnrollProjectApp extends Controller {
     public static Result cancelEnroll(String loginId, String proejctName) {
         Project project = Project.findByOwnerAndProjectName(loginId, proejctName);
         if(project == null) {
-            return badProject(loginId, proejctName);
+            return badRequest();
         }
 
         User user = UserApp.currentUser();
-        if(user.isAnonymous()) {
-            flash(Constants.WARNING, "user.login.alert");
-            return redirect(routes.UserApp.loginForm());
+        if (!ProjectUser.isGuest(project, user)) {
+            return badRequest();
         }
 
-        user.cancelEnroll(project);
-        NotificationEvent.afterMemberRequest(project, user, RequestState.CANCEL, routes.ProjectApp.members(loginId, proejctName).url());
-        return redirect(request().getHeader(Http.HeaderNames.REFERER));
-    }
+        if (User.enrolled(project)) {
+            user.cancelEnroll(project);
+            NotificationEvent.afterMemberRequest(project, user, RequestState.CANCEL, routes.ProjectApp.members(loginId, proejctName).url());
+        }
 
-    private static Result badProject(String loginId, String projectName) {
-        return badRequest(ErrorViews.BadRequest.render("No project matches given user name '" + loginId + "' and project name '" + projectName + "'"));
+        return ok();
     }
-
 }

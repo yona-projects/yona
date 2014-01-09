@@ -756,7 +756,7 @@ public class PullRequestApp extends Controller {
         boolean hasError = false;
 
         // anonymous는 위에서 걸렀고, 남은건 manager, member, site-manager, guest인데 이중에서 guest만 다시 걸러낸다.
-        if(isGuest(project, UserApp.currentUser())) {
+        if(ProjectUser.isGuest(project, UserApp.currentUser())) {
             result = forbidden(ErrorViews.BadRequest.render("Guest is not allowed this request", project));
             hasError = true;
         }
@@ -780,9 +780,5 @@ public class PullRequestApp extends Controller {
             return result;
         }
 
-    }
-
-    private static boolean isGuest(Project project, User currentUser) {
-        return ProjectUser.roleOf(currentUser.loginId, project).equals("guest");
     }
 }

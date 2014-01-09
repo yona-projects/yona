@@ -7,7 +7,6 @@ import models.enumeration.EventType;
 import models.enumeration.Operation;
 import play.i18n.Messages;
 import play.mvc.Controller;
-import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.With;
 import utils.AccessControl;
@@ -23,7 +22,7 @@ public class WatchProjectApp extends Controller {
     public static Result watch(String userName, String projectName) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         WatchService.watch(project.asResource());
-        return redirect(request().getHeader(Http.HeaderNames.REFERER));
+        return ok();
     }
 
     @ProjectAccess(Operation.READ)
@@ -31,7 +30,7 @@ public class WatchProjectApp extends Controller {
     public static Result unwatch(String userName, String projectName) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         WatchService.unwatch(project.asResource());
-        return redirect(request().getHeader(Http.HeaderNames.REFERER));
+        return ok();
     }
 
     @With(AnonymousCheckAction.class)

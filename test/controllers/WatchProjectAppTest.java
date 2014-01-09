@@ -68,18 +68,15 @@ public class WatchProjectAppTest {
         // given
         String ownerName = "yobi";
         String projectName = "projectYobi";
-        String referer = "http://test/projects";
         Long userId = 3L;
         FakeRequest request = fakeRequest("POST", "/" + ownerName + "/" + projectName + "/watch").
-                withSession(UserApp.SESSION_USERID, String.valueOf(userId)).
-                withHeader(Http.HeaderNames.REFERER, referer);
+                withSession(UserApp.SESSION_USERID, String.valueOf(userId));
 
         // when
         Result result = callAction(routes.ref.WatchProjectApp.watch(ownerName, projectName), request);
 
         // then
-        assertThat(status(result)).isEqualTo(Http.Status.SEE_OTHER);
-        assertThat(redirectLocation(result)).isEqualTo(referer);
+        assertThat(status(result)).isEqualTo(Http.Status.OK);
         assertProjectIsInUserWatchingProjects(ownerName, projectName, userId);
     }
 
@@ -118,18 +115,15 @@ public class WatchProjectAppTest {
      // given
         String ownerName = "yobi";
         String projectName = "projectYobi";
-        String referer = "http://test/projects";
         Long userId = 3L;
         FakeRequest request = fakeRequest("POST", "/" + ownerName + "/" + projectName + "/unwatch").
-                withSession(UserApp.SESSION_USERID, String.valueOf(userId)).
-                withHeader(Http.HeaderNames.REFERER, referer);
+                withSession(UserApp.SESSION_USERID, String.valueOf(userId));
 
         // when
         Result result = callAction(routes.ref.WatchProjectApp.unwatch(ownerName, projectName), request);
 
         // then
-        assertThat(status(result)).isEqualTo(Http.Status.SEE_OTHER);
-        assertThat(redirectLocation(result)).isEqualTo(referer);
+        assertThat(status(result)).isEqualTo(Http.Status.OK);
         assertProjectIsNotInUserWatchingProjects(ownerName,
                 projectName, userId);
     }

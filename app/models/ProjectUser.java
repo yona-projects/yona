@@ -260,6 +260,10 @@ public class ProjectUser extends Model {
      */
     public static String roleOf(String loginId, Project project) {
         User user = User.findByLoginId(loginId);
+       return roleOf(user, project);
+    }
+
+    public static String roleOf(User user, Project project) {
         if(user == null) {
             return RoleType.ANONYMOUS.getLowerCasedName();
         }
@@ -306,5 +310,9 @@ public class ProjectUser extends Model {
             return false;
         }
         return user.isSiteManager() || ProjectUser.isManager(user.id, project.id);
+    }
+
+    public static boolean isGuest(Project project, User user) {
+        return roleOf(user, project).equals(RoleType.GUEST.getLowerCasedName());
     }
 }

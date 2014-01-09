@@ -97,7 +97,7 @@ public class ProjectUserTest extends ModelTest<ProjectUser> {
         assertThat(roleName).isEqualTo("sitemanager");
 
         // WHEN
-        roleName = ProjectUser.roleOf(null, project);
+        roleName = ProjectUser.roleOf((String) null, project);
         // THEN
         assertThat(roleName).isEqualTo("anonymous");
 
@@ -126,5 +126,20 @@ public class ProjectUserTest extends ModelTest<ProjectUser> {
         // WHEN // THEN
         assertThat(ProjectUser.isAllowedToSettings("keesun", project)).isFalse();
 
+    }
+
+    @Test
+    public void isGuest() {
+        // Given
+        Project project = getTestProject(1L);
+        User anonymous = User.anonymous;
+        User member = getTestUser(3L);
+        User guest = getTestUser(4L);
+
+        // When
+        // Then
+        assertThat(ProjectUser.isGuest(project, anonymous)).isFalse();
+        assertThat(ProjectUser.isGuest(project, member)).isFalse();
+        assertThat(ProjectUser.isGuest(project, guest)).isTrue();
     }
 }
