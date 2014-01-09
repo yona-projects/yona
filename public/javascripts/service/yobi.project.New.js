@@ -3,7 +3,7 @@
  *
  * Copyright NHN Corporation.
  * Released under the MIT license
- * 
+ *
  * http://yobi.dev.naver.com/license
  */
 
@@ -40,6 +40,9 @@
             htElement.welBtnVCSSelected = $("#vcs_msg"); // <button data-toggle="dropdown">
             htElement.aVCSItems = $("#vcs_dropdown li a");
             htElement.svnWarning = $("#svn");
+            htElement.welInputProjectName = $("#project-name");
+
+            htElement.welInputProjectName.focus();
         }
 
         /**

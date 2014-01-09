@@ -1,68 +1,69 @@
 @(message: String, newUserForm: Form[User])
+
 @import utils.TemplateHelper._
 
 @siteLayout(message, utils.MenuType.NONE) {
 <div class="page full">
-	<div class="center-wrap tag-line-wrap signup">
-		<h1 class="title">
-			Sign Up for <span class="high-light">@Messages("app.name")</span>
-		</h1>
-		<p class="tag-line">Software development platform for Open Source project.</p>
-	</div>
+  <div class="center-wrap tag-line-wrap signup">
+    <h1 class="title">
+      Sign Up for <span class="high-light">@Messages("app.name")</span>
+    </h1>
+    <p class="tag-line">Software development platform for Open Source project.</p>
+  </div>
 
-	<div class="signup-form-wrap frm-wrap">
-		<form action="@routes.UserApp.newUser()" method="post" name="signup">
-			<dl>
-				<dt>
-					<label for="loginId">@Messages("user.signupId")</label>
-				</dt>
-				<dd>
-					<input id="loginId" type="text" name="loginId" class="text password" placeholder="" autocomplete="off">
-				</dd>
+  <div class="signup-form-wrap frm-wrap">
+    <form action="@routes.UserApp.newUser()" method="post" name="signup">
+      <dl>
+        <dt>
+          <label for="loginId">@Messages("user.signupId")</label>
+        </dt>
+        <dd>
+          <input id="loginId" type="text" name="loginId" class="text password" placeholder="" autocomplete="off">
+        </dd>
 
-				<dt>
-					<label for="uname">@Messages("user.name")</label>
-				</dt>
-				<dd>
-					<input id="uname" type="text" name="name" class="text password" placeholder="" autocomplete="off">
-				</dd>
+        <dt>
+          <label for="uname">@Messages("user.name")</label>
+        </dt>
+        <dd>
+          <input id="uname" type="text" name="name" class="text password" placeholder="" autocomplete="off">
+        </dd>
 
-				<dt>
-					<label for="email">@Messages("user.email")</label>
-				</dt>
-				<dd>
-					<input id="email" type="text" name="email" class="text password" placeholder="" autocomplete="off">
-				</dd>
+        <dt>
+          <label for="email">@Messages("user.email")</label>
+        </dt>
+        <dd>
+          <input id="email" type="text" name="email" class="text password" placeholder="" autocomplete="off">
+        </dd>
 
-				<dt>
-					<label for="password">@Messages("user.password")</label>
-				</dt>
-				<dd>
-					<input id="password" type="password" name="password" class="text password" placeholder="" autocomplete="off">
-				</dd>
+        <dt>
+          <label for="password">@Messages("user.password")</label>
+        </dt>
+        <dd>
+          <input id="password" type="password" name="password" class="text password" placeholder="" autocomplete="off">
+        </dd>
 
-				<dt>
-					<label for="retypedPassword">@Messages("validation.retypePassword")</label>
-				</dt>
-				<dd>
-					<input id="retypedPassword" type="password" name="retypedPassword" class="text password" placeholder="" autocomplete="off">
-				</dd>
-			</dl>
+        <dt>
+          <label for="retypedPassword">@Messages("validation.retypePassword")</label>
+        </dt>
+        <dd>
+          <input id="retypedPassword" type="password" name="retypedPassword" class="text password" placeholder="" autocomplete="off">
+        </dd>
+      </dl>
 
-			<div class="act-row">
-				@Messages("user.isAlreadySignupUser") <a href="@routes.UserApp.loginForm()" class="go-login">@Messages("title.login")</a>
-			</div>
-			<div class="btns-row">
-				<button type="submit" class="ybtn ybtn-success">@Messages("user.signupBtn")</button>
-			</div>
-		</form>
-	</div>
+      <div class="act-row">
+        @Messages("user.isAlreadySignupUser") <a href="@routes.UserApp.loginForm()" class="go-login">@Messages("title.login")</a>
+      </div>
+      <div class="btns-row">
+        <button type="submit" class="ybtn ybtn-success">@Messages("user.signupBtn")</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <script type="text/javascript" src="@getJSLink("lib/validate")"></script>
 <script type="text/javascript">
-   	$(document).ready(function(){
-		$yobi.loadModule("user.SignUp");
-   	});
+    $(document).ready(function() {
+        $yobi.loadModule("user.SignUp");
+    });
 </script>
 }

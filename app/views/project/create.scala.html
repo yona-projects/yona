@@ -4,81 +4,74 @@
 @import playRepository.RepositoryService
 
 @siteLayout(title, utils.MenuType.NEW_PROJECT){
-    <div class="project-page-wrap">
-        <div class="form-wrap new-project">
-            <form action="@routes.ProjectApp.newProject()" method="post" name="newproject" class="frm-wrap">
-                <legend>
-                    @Messages("title.newProject")
-                    <span>
-                        <small>@Messages("project.import.or") &nbsp </small><a href="@routes.ImportApp.importForm()" class="btn btn-small"><strong>@Messages("project.import.from.git")</strong></a>
-                    </span>
-                </legend>
-            	<dl>
-            		<dt>
-            			<div class="n-alert" data-errType="name">
-		                    <div class="orange-txt">
-		            			@if(flash.get("warning") != null) {
-		            			<span class="warning">@Messages(flash.get("warning"))</span>
-						}
-		                        <span class="msg wrongName" style="display:none;">@Messages("project.wrongName")</span>
-		                    </div>
-		                </div>
-            			<label for="project-name">@Messages("project.name.placeholder")</label>
-            		</dt>
-            		<dd>
-            			<input id="project-name" type="text" name="name" class="text" placeholder="" maxlength="250">
-            		</dd>
+<div class="project-page-wrap">
+  <div class="form-wrap new-project">
+    <form action="@routes.ProjectApp.newProject()" method="post" name="newproject" class="frm-wrap">
+      <legend>
+        @Messages("title.newProject") <span> <small>@Messages("project.import.or") &nbsp </small><a href="@routes.ImportApp.importForm()" class="btn btn-small"><strong>@Messages("project.import.from.git")</strong></a>
+        </span>
+      </legend>
+      <dl>
+        <dt>
+          <div class="n-alert" data-errType="name">
+            <div class="orange-txt">
+              @if(flash.get("warning") != null) { <span class="warning">@Messages(flash.get("warning"))</span> } <span class="msg wrongName" style="display: none;">@Messages("project.wrongName")</span>
+            </div>
+          </div>
+          <label for="project-name">@Messages("project.name.placeholder")</label>
+        </dt>
+        <dd>
+          <input id="project-name" type="text" name="name" class="text" placeholder="" maxlength="250">
+        </dd>
 
-            		<dt>
-						<label for="description">@Messages("project.description.placeholder")</label>
-					</dt>
-					<dd>
-						<textarea id="description" name="overview" class="text textarea.span4" style="resize:vertical;"></textarea>
-					</dd>
-            	</dl>
+        <dt>
+          <label for="description">@Messages("project.description.placeholder")</label>
+        </dt>
+        <dd>
+          <textarea id="description" name="overview" class="text textarea.span4" style="resize: vertical;"></textarea>
+        </dd>
+      </dl>
 
-                <ul class="options unstyled">
-                    <li class="option">
-                        <div class="option-label">@Messages("project.shareOption")</div>
-                        <div class="option-desc">
-                            <input name="isPublic" type="radio" checked="checked" id="public" value="true" class="radio-btn"><label for="public" class="bg-radiobtn label-public">@Messages("project.public")</label>
-                            <input name="isPublic" type="radio" id="private" value="false" class="radio-btn"><label for="private" class="bg-radiobtn label-private">@Messages("project.private")</label>
-                            <span class="note">@Messages("project.private.notice")</span>
-                        </div>
-                    </li>
-                    <li id="vcs_dropdown" class="option">
-                        <div class="option-label">@Messages("project.vcs")</div>
-                        <div class="option-desc">
-							<div class="btn-group" data-name="vcs">
-								<button class="btn dropdown-toggle large" data-toggle="dropdown">
-									<span class="d-label"></span>
-									<span class="d-caret"><span class="caret"></span></span>
-								</button>
-								<ul class="dropdown-menu">
-                                    @RepositoryService.vcsTypes.map{ v =>
-                                        <li data-value="@v._1" @if(v._1 == "GIT"){ data-selected="true" class="active" }><a href="javascript:void(0)">@Messages(v._2)</a></li>
-                                    }
-								</ul>
-							</div>
+      <ul class="options unstyled">
+        <li class="option">
+          <div class="option-label">@Messages("project.shareOption")</div>
+          <div class="option-desc">
+            <input name="isPublic" type="radio" checked="checked" id="public" value="true" class="radio-btn"><label for="public" class="bg-radiobtn label-public">@Messages("project.public")</label> <input name="isPublic" type="radio" id="private" value="false" class="radio-btn"><label for="private" class="bg-radiobtn label-private">@Messages("project.private")</label> <span class="note">@Messages("project.private.notice")</span>
+          </div>
+        </li>
+        <li id="vcs_dropdown" class="option">
+          <div class="option-label">@Messages("project.vcs")</div>
+          <div class="option-desc">
+            <div class="btn-group" data-name="vcs">
+              <button class="btn dropdown-toggle large" data-toggle="dropdown">
+                <span class="d-label"></span> <span class="d-caret"><span class="caret"></span></span>
+              </button>
+              <ul class="dropdown-menu">
+                @RepositoryService.vcsTypes.map{ v =>
+                <li data-value="@v._1" @if(v._1== "GIT"){ data-selected="true" class="active"}><a href="javascript:void(0)">@Messages(v._2)</a></li> }
+              </ul>
+            </div>
 
-							<span id="svn" class="note" style="display:none;">@Messages("project.svn.warning")</span>
-                        </div>
-                    </li>
-                </ul>
-                <div class="actions">
-                    <button class="ybtn ybtn-success"><i class="yobicon-database-add"></i> @Messages("project.create")</button>
-                    <a href="/" class="ybtn">@Messages("button.cancel")</a>
-                </div>
-            </form>
-        </div>
-    </div>
+            <span id="svn" class="note" style="display: none;">@Messages("project.svn.warning")</span>
+          </div>
+        </li>
+      </ul>
+      <div class="actions">
+        <button class="ybtn ybtn-success">
+          <i class="yobicon-database-add"></i> @Messages("project.create")
+        </button>
+        <a href="/" class="ybtn">@Messages("button.cancel")</a>
+      </div>
+    </form>
+  </div>
+</div>
 
 <script type="text/javascript" src="@getJSLink("lib/spin")"></script>
 <script type="text/javascript">
-    $(document).ready(function(){
-    	$yobi.loadModule("project.New", {
-    		"sFormName": "newproject"
-    	});
+    $(document).ready(function() {
+        $yobi.loadModule("project.New", {
+            "sFormName" : "newproject"
+        });
     });
 </script>
 }
