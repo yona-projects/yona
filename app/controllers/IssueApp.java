@@ -576,7 +576,6 @@ public class IssueApp extends AbstractPostingApp {
      * @throws IOException
      * @see {@link AbstractPostingApp#editPosting(models.AbstractPosting, models.AbstractPosting, play.data.Form}
      */
-    @Transactional
     public static Result editIssue(String ownerName, String projectName, Long number) {
         Form<Issue> issueForm = new Form<>(Issue.class).bindFromRequest();
 
@@ -620,7 +619,7 @@ public class IssueApp extends AbstractPostingApp {
 
         if(issue.state != originalIssue.state) {
             Issue updatedIssue = Issue.finder.byId(originalIssue.id);
-            NotificationEvent notiEvent = NotificationEvent.afterStateChanged(issue.state, updatedIssue,
+            NotificationEvent notiEvent = NotificationEvent.afterStateChanged(originalIssue.state, updatedIssue,
                     redirectTo.absoluteURL(request()));
             IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
         }
