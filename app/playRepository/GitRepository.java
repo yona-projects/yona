@@ -1518,7 +1518,7 @@ public class GitRepository implements PlayRepository {
             String pathB = diff.getPath(DiffEntry.Side.NEW);
 
             if (treeA != null
-                    && Arrays.asList(DELETE, MODIFY, RENAME).contains(diff.getChangeType())) {
+                    && Arrays.asList(DELETE, MODIFY, RENAME, COPY).contains(diff.getChangeType())) {
                 TreeWalk t1 = TreeWalk.forPath(repositoryA, pathA, treeA);
                 ObjectId blobA = t1.getObjectId(0);
                 byte[] rawA = repositoryA.open(blobA).getBytes();
@@ -1529,7 +1529,7 @@ public class GitRepository implements PlayRepository {
             }
 
             if (treeB != null
-                    && Arrays.asList(ADD, MODIFY, RENAME).contains(diff.getChangeType())) {
+                    && Arrays.asList(ADD, MODIFY, RENAME, COPY).contains(diff.getChangeType())) {
                 TreeWalk t2 = TreeWalk.forPath(repositoryB, pathB, treeB);
                 ObjectId blobB = t2.getObjectId(0);
                 byte[] rawB = repositoryB.open(blobB).getBytes();
