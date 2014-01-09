@@ -378,7 +378,7 @@ public class NotificationEvent extends Model {
         notiEvent.urlToView = urlToView;
         notiEvent.receivers = getReceivers(issue);
         notiEvent.eventType = EventType.ISSUE_STATE_CHANGED;
-        notiEvent.oldValue = oldState.state();
+        notiEvent.oldValue = oldState != null ? oldState.state() : null;
         notiEvent.newValue = issue.state.state();
 
         NotificationEvent.add(notiEvent);
