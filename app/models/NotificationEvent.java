@@ -553,14 +553,7 @@ public class NotificationEvent extends Model {
             result.append("New Commits: \n");
             for(RevCommit commit : commits) {
                 GitCommit gitCommit = new GitCommit(commit);
-                // <a href="/owner/project/commit/1231234">1231234</a>: commit's short message \n
-                result.append("<a href=\"");
-                result.append(routes.CodeHistoryApp.show(project.owner, project.name, gitCommit.getId()).url());
-                result.append("\">");
                 result.append(gitCommit.getShortId());
-                result.append("</a>");
-                result.append(": ");
-                result.append(gitCommit.getShortMessage());
                 result.append("\n");
             }
         }
@@ -568,18 +561,7 @@ public class NotificationEvent extends Model {
         if(refNames.size() > 0) {
             result.append("Branches: \n");
             for(String refName: refNames) {
-                // <a href="/owner/project/branch_name">branch_name</a> \n
-                result.append("<a href=\"");
-                String branchName = null;
-                try {
-                    branchName = URLEncoder.encode(refName, "UTF-8");
-                } catch (UnsupportedEncodingException e) {
-                    throw new RuntimeException(e);
-                }
-                result.append(routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, branchName, "").url());
-                result.append("\">");
                 result.append(refName);
-                result.append("</a>");
                 result.append("\n");
             }
         }
