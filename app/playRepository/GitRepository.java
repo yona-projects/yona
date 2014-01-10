@@ -20,8 +20,6 @@ import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.blame.BlameResult;
 import org.eclipse.jgit.diff.*;
 import org.eclipse.jgit.diff.Edit.Type;
-import org.eclipse.jgit.errors.IncorrectObjectTypeException;
-import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.lib.RefUpdate.Result;
 import org.eclipse.jgit.patch.FileHeader;
@@ -831,42 +829,6 @@ public class GitRepository implements PlayRepository {
     }
 
     /**
-     * {@code pullRequest}를 자동으로 merge해도 괜찮은지 확인한다.
-     *
-     * bare repository는 checkout 등의 명령어를 사용할 수 없기 때문에
-     * 코드를 받을 프로젝트를 clone하는 non-bare repository를 생성하고,
-     * 그 repository로 코드를 보내는 저장소의 브랜치와 코드를 받는 저장소의 브랜치를 체크아웃 받은다음
-     * '코드를 받을 저장소의 브랜치'를 fetch 받은 브랜치에서
-     * '코드를 보내는 저장소의 브랜치'를 fetch 받은 브랜치를 merge한다.
-     *
-     * 이때 merge한 결과 conflict가 발생하면 false를 리턴하고 그렇지 않은 경우에는 true를 반환한다.
-     *
-     * @param pullRequest
-     * @return
-     */
-    public static boolean isSafeToMerge(final PullRequest pullRequest) {
-        final MergeResult[] mergeResult = {null};
-
-        cloneAndFetch(pullRequest, new AfterCloneAndFetchOperation() {
-            @Override
-            public void invoke(CloneAndFetch cloneAndFetch) throws IOException, GitAPIException {
-                Repository clonedRepository = cloneAndFetch.getRepository();
-
-                // 코드를 받을 브랜치(toBranch)로 이동(checkout)한다.
-                checkout(clonedRepository, cloneAndFetch.getDestToBranchName());
-
-                // 코드를 보낸 브랜치의 코드를 merge 한다.
-                mergeResult[0] = merge(clonedRepository, cloneAndFetch.getDestFromBranchName());
-
-                deleteMergingDirectory(pullRequest);
-            }
-        });
-
-        // merge 결과를 반환한다.
-        return mergeResult[0].getMergeStatus().isSuccessful();
-    }
-
-    /**
      * {@code repository}에서 {@code branchName}에 해당하는 브랜치로 checkout 한다.
      *
      * @param repository
@@ -893,30 +855,6 @@ public class GitRepository implements PlayRepository {
 
     public static String getDirectoryForMergingObjects(String owner, String projectName) {
         return getDirectoryForMerging(owner, projectName) + "/.git/objects";
-    }
-
-    /**
-     * {@code pullRequest} 보내는 브랜치에만 있고 받는 브랜치에는 없는 커밋 목록을 반환한다.
-     *
-     * @param pullRequest
-     * @return
-     */
-    public static List<GitCommit> getPullingCommits(final PullRequest pullRequest) {
-        final List<GitCommit> commits = new ArrayList<>();
-
-        cloneAndFetch(pullRequest, new AfterCloneAndFetchOperation() {
-            @Override
-            public void invoke(CloneAndFetch cloneAndFetch) throws IOException, GitAPIException {
-                List<GitCommit> commitList = diffCommits(cloneAndFetch.getRepository(),
-                        cloneAndFetch.getDestFromBranchName(), cloneAndFetch.getDestToBranchName());
-
-                for(GitCommit commit : commitList) {
-                    commits.add(commit);
-                }
-            }
-        });
-
-        return commits;
     }
 
     @SuppressWarnings("unchecked")
@@ -1047,10 +985,9 @@ public class GitRepository implements PlayRepository {
     /**
      * 풀리퀘스트 기능 구현에 필요한 기본 작업을 수행하는 템플릿 메서드
      *
-     * when: {@link #isSafeToMerge(models.PullRequest)}, {@link #merge(models.PullRequest)}
-     * , {@link #getPullingCommits(models.PullRequest)} 등 {@code pullRequest}의 toProject에 해당하는
-     * 저장소를 Clone 하고 fromBranch와 toBranch를 Fetch 한 다음 {@code operation}을 호출하여
-     * 이후 작업을 진행한다.
+     * when: {@link models.PullRequest#merge}, {@link models.PullRequest#attemptMerge()} 등
+     * {@code pullRequest}의 toProject에 해당하는 저장소를 Clone 하고 fromBranch와 toBranch를
+     * Fetch 한 다음 {@code operation}을 호출하여 이후 작업을 진행한다.
      *
      * @param pullRequest
      * @param operation
