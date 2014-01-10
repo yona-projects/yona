@@ -4483,92 +4483,53 @@ div.markdown-preview {
     .post-list-wrap {
         list-style: none;
 
-        .post-item-wrap {
-            border:1px solid #ddd;
-            .border-radius(3px 3px 0 0);
-            display: block;
+        .listitem {
+            padding:10px 0;
         }
+                 
+        .post-info-wrap {     
+            line-height: 20px;
+            margin-top: 5px;
 
-        .post-list-item {
-            padding:10px;
-            border-bottom:1px solid #ddd;
-            
-            &:nth-child(even) {
-                background-color: #f5f9fc;
-            }
-
-            .post-project-avatar {
-                float:left;
-            }
-
-            .post-info-wrap {
-                position:relative;
-
-                .post-info {
-                    padding:0 75px 0 15px;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
-                    word-break : break-all;
-                    line-height: 20px;
-
-                    .post-project {
-                        font-size:15px;
-                        font-weight: bold;
-                        display:inline-block;
-                        line-height: 20px;
-                    }
-
-                    .post-info-separator {
-                        font-size:15px;
-                        font-weight: bold;
-                        padding:0 5px;
-                    }
-
-                    .post-title {
-                        font-size:15px;
-                        font-weight: bold;
-                    }
-                }
-
-                .post-state {
-                    position: absolute;
-                    top:5px;
-                    right:5px;
-                    padding:5px 15px;
-                    .border-radius(15px);
-                    display:inline-block;
-                    color:#FFF;
-                    font-weight: bold;
-
-                    &.open { background-color: @state-open;}
-                    &.closed { background-color: @state-closed;}
-                }
-            }
-
-            .post-meta-wrap {
-                font-size:11px;
+            .post-project {
+                font-size:15px;
+                font-weight: bold;
+                display:inline-block;
                 line-height: 20px;
+                color:#0088cc;
 
-                .avatar-wrap {
-                    width:14px;
-                    height: 14px;
-                    margin-left:15px;
-                }
+            }
 
-                .post-meta-item {
-                    margin:0 5px;
-                }
+            .post-info-separator {
+                font-size:15px;
+                font-weight: bold;
+                padding:0 5px;
+            }
 
-                .post-comments {
-                    i { vertical-align: middle;}
-                }
+            .post-title {
+                font-size:15px;
+                font-weight: bold;
+            }
+            
+        }    
+        
+        .post-meta-wrap {
+            font-size:11px;
+            line-height: 20px;
+
+            .avatar-wrap {
+                width:14px;
+                height: 14px;
+            }
+
+            .post-meta-item {
+                margin:0 5px;
+            }
+
+            .post-comments {
+                i { vertical-align: middle;}
             }
         }
-    }
-
-    .project-list-wrap {
-        list-style: none;
     }
 
     .h_setting{margin:0 0 20px 0;font-size:14px;color:#4c4c4c;font-weight:bold;line-height:1em}
