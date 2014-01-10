@@ -5,6 +5,7 @@ import com.avaje.ebean.Page;
 import info.schleichardt.play2.mailplugin.Mailer;
 import models.*;
 
+import models.enumeration.State;
 import models.enumeration.UserState;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.EmailException;
@@ -142,7 +143,7 @@ public class SiteApp extends Controller {
     }
 
     /**
-     * 전체 이슈 목록을 보여준다.
+     * 전체 이슈 목록을 state 별로 보여준다.
      *
      * when 관리자 페이지의 이슈 관리
      *
@@ -152,8 +153,10 @@ public class SiteApp extends Controller {
      * @return the result
      */
     public static Result issueList(int pageNum) {
-        Page<Issue> page = Issue.finder.order("createdDate DESC").findPagingList(ISSUE_COUNT_PER_PAGE).getPage(pageNum - 1);
-        return ok(issueList.render("title.siteSetting", page));
+        String state = StringUtils.defaultIfBlank(request().getQueryString("state"), State.OPEN.name());
+        State currentState = State.valueOf(state.toUpperCase());
+        Page<Issue> page = Issue.findIssuesByState(ISSUE_COUNT_PER_PAGE, pageNum - 1, currentState);
+        return ok(issueList.render("title.siteSetting", page, currentState));
     }
 
     /**
