@@ -524,6 +524,19 @@ span.issue-label {
     }
 }
 
+.yobiSpinner {
+    display: none;
+    position: absolute; z-index: 999;
+    top: 0; bottom: 0; left: 0; right: 0;
+    background: rgba(0,0,0,0.4);
+
+    .spinContainer {
+        position:fixed;
+        width:100px; height:100px;
+        top:50%; left:50%;
+    }
+}
+
 /** etc **/
 .num-badge {
     font-weight: bold;
