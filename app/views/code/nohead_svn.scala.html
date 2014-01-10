@@ -33,7 +33,7 @@
             <h5>@Messages("code.nohead.svn.clone", Messages("app.name"))</h5>
             <pre><code>svn co @CodeApp.getURL(project) --username @UserApp.currentUser().loginId
 cd @project.name/
-echo "# Hello @project.name" > README.md
+echo "# @project.name" > README.md
 svn add README.md
 svn commit -m "first commit"</code></pre>
 }

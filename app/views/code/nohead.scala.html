@@ -27,14 +27,14 @@
             <h5>@Messages("code.nohead.clone", Messages("app.name"))</h5>
 			<pre><code>git clone @getCodeURL(project)
 cd @project.name/
-echo "# Hello @project.name" > README.md
+echo "# @project.name" > README.md
 git add README.md
 git commit -m "Hello @Messages("app.name")"
 git push origin master</code></pre>
             <h5>@Messages("code.nohead.init", Messages("app.name"))</h5>
             <pre><code>mkdir @project.name
 cd @project.name/
-echo "# Hello @project.name" > README.md
+echo "# @project.name" > README.md
 git init
 git add README.md
 git commit -m "Hello @Messages("app.name")"
