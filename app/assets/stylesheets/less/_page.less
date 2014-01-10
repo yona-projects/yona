@@ -1039,7 +1039,6 @@
                     margin-right: 10px;
                 }
                 .activity-desc {
-                    overflow: hidden;
 
                     .header-text {
                         margin-top: 0px;
@@ -1047,7 +1046,11 @@
                         font-size: 12px;
                         line-height: 100%;
                         color: #666;
-
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                        word-break : break-all;
+                    
                         .actor {
                             color: @orange;/*#D06930;*/
                             font-weight: bold;/*normal;*/
