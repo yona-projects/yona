@@ -4359,6 +4359,45 @@ div.markdown-preview {
 
 // -- site admin
 .site-setting-wrap {
+    width: 1170px;
+    margin:20px auto 0;
+
+    .site-setting-nav {
+        list-style: none;
+
+        li {
+            border-left: 4px solid #EEE;
+            line-height: 30px;
+            margin-top:3px;
+            font-size:14px;
+
+            a {
+                display:block;
+                padding:5px 10px;
+                
+                &:hover {
+                    background-color:#EEE;
+                    text-decoration: none;
+                }
+            }
+
+            &:first-child {
+                margin-top:0;
+            }
+
+            &.active {
+                border-left:4px solid @primary;
+                font-weight: bold;
+                
+                a:hover {
+                    background: none;
+                }
+            }
+
+
+        }
+    }
+
     .fl{float:left}
     .fr{float:right}
     .section0{margin-bottom:0}

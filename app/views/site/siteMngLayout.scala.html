@@ -11,37 +11,38 @@
 }
 
 @siteLayout(Messages(title), utils.MenuType.SITE_SETTING) {
-<div class="page full site-setting-wrap">
+<div class="site-breadcrumb-outer">
+    <div class="site-breadcrumb-inner">
+        <h3>@Messages("site.sidebar")</h3>
+    </div>    
+</div>
+<div class="site-setting-wrap">
     <div class="row-fluid">
-        <div class="site_lnb">
-            <div class="lnb_area">
-                <h3 class="h_site">@Messages("site.sidebar")</h3>
-                <ul>
-                    <li class="@isActiveMenu(routes.SiteApp.userList())">
-                        <a href="@routes.SiteApp.userList()"><i class="yobicon-user"></i>@Messages("site.sidebar.userList")</a>
-                    </li>
-                    <li class="@isActiveMenu(routes.SiteApp.postList())">
-                        <a href="@routes.SiteApp.postList()"><i class="yobicon-pencil"></i>@Messages("site.sidebar.postList")</a>
-                    </li>
-                    <li class="@isActiveMenu(routes.SiteApp.issueList())">
-                        <a href="@routes.SiteApp.issueList()"><i class="yobicon-check"></i>@Messages("site.sidebar.issueList")</a>
-                    </li>
-                    <li class="@isActiveMenu(routes.SiteApp.projectList())">
-                        <a href="@routes.SiteApp.projectList()"><i class="yobicon-folder-open"></i>@Messages("site.sidebar.projectList")</a>
-                    </li>
-                    <li class="divider"></li>
-                    <li class="@isActiveMenu(routes.Application.index())">
-                        <a href="@routes.SiteApp.writeMail()"><i class="yobicon-envelope"></i>@Messages("site.sidebar.mailSend")</a>
-                    </li>
-                    <li class="@isActiveMenu(routes.Application.index())">
-                        <a href="@routes.SiteApp.massMail()"><i class="yobicon-envelope"></i>@Messages("site.sidebar.massMail")</a>
-                    </li>
-                </ul>
-            </div>
+        <div class="span2">
+            <ul class="site-setting-nav">
+                <li class="@isActiveMenu(routes.SiteApp.userList())">
+                    <a href="@routes.SiteApp.userList()">@Messages("site.sidebar.userList")</a>
+                </li>
+                <li class="@isActiveMenu(routes.SiteApp.postList())">
+                    <a href="@routes.SiteApp.postList()">@Messages("site.sidebar.postList")</a>
+                </li>
+                <li class="@isActiveMenu(routes.SiteApp.issueList())">
+                    <a href="@routes.SiteApp.issueList()">@Messages("site.sidebar.issueList")</a>
+                </li>
+                <li class="@isActiveMenu(routes.SiteApp.projectList())">
+                    <a href="@routes.SiteApp.projectList()">@Messages("site.sidebar.projectList")</a>
+                </li>
+                <li class="@isActiveMenu(routes.Application.index())">
+                    <a href="@routes.SiteApp.writeMail()">@Messages("site.sidebar.mailSend")</a>
+                </li>
+                <li class="@isActiveMenu(routes.Application.index())">
+                    <a href="@routes.SiteApp.massMail()">@Messages("site.sidebar.massMail")</a>
+                </li>
+            </ul>    
         </div>
-        <div class="content_area">
+        <div class="span10"> 
             @content
-        </div>
-    </div>
+         </div>   
+    </div>   
 </div>
 }
