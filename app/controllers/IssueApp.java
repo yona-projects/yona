@@ -555,7 +555,7 @@ public class IssueApp extends AbstractPostingApp {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", issue.project));
         }
         issue.toNextState();
-        NotificationEvent notiEvent = NotificationEvent.afterStateChanged(issue.previousState(), issue, redirectTo.absoluteURL(request()));
+        NotificationEvent notiEvent = NotificationEvent.afterStateChanged(issue.previousState(), issue, redirectTo.url());
         IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
         return redirect(redirectTo);
     }
