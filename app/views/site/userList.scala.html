@@ -1,4 +1,4 @@
-@(message: String, currentPage: com.avaje.ebean.Page[User])
+@(message: String, currentPage: com.avaje.ebean.Page[User], userState: UserState, query: String)
 
 @thead(title: String) = {
 <h3 class="h_setting">@title</h3>
@@ -27,7 +27,7 @@
     <td><a href="#alertEdit-@user.loginId" data-toggle="modal">@user.email</a></td>
     <td class="btn_area c">
         @if(!(user.state == UserState.DELETED)){
-        <a class="btn" href="@routes.SiteApp.toggleAccountLock(user.loginId)">@Messages("button" +
+        <a class="btn" data-request-method="post" data-request-uri="@routes.SiteApp.toggleAccountLock(user.loginId, user.state.name(), query)">@Messages("button" +
                 ".user.makeAccountUnlock."+ (user.state == UserState.LOCKED))</a>
         <a class="btn btn-danger" data-toggle="modal" href="#alertDeletion-@user.loginId">@Messages("button.delete")</a>
 
@@ -70,7 +70,7 @@
     <div class="title_area">
         <h2 class="fl">@Messages("site.sidebar.userList")</h2>
         <form class="form-search fr" action="@routes.SiteApp.userList()">
-            <input type="text" class="input-medium search-query input-xlarge" name="loginId" placeholder="@Messages("site.userList.search")">
+            <input type="text" class="input-medium search-query input-xlarge" name="query" placeholder="@Messages("site.userList.search")" value="@query">
             <button type="submit" class="btn">@Messages("title.search")</button>
         </form>
     </div>

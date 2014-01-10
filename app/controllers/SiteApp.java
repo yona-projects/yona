@@ -119,8 +119,11 @@ public class SiteApp extends Controller {
      * @return the result
      * @see {@link User#findUsers(int, String)}
      */
-    public static Result userList(int pageNum, String loginId) {
-        return ok(userList.render("title.siteSetting", User.findUsers(pageNum, loginId)));
+    public static Result userList(int pageNum, String query) {
+        String state = StringUtils.defaultIfBlank(request().getQueryString("state"), UserState.ACTIVE.name());
+        UserState userState = UserState.valueOf(state);
+        Page<User> users = User.findUsers(pageNum -1, query, userState);
+        return ok(userList.render("title.siteSetting", users, userState, query));
     }
 
     /**
@@ -228,8 +231,11 @@ public class SiteApp extends Controller {
      * @param loginId the login id
      * @return the result
      */
-    @Transactional
-    public static Result toggleAccountLock(String loginId){
+
+    public static Result toggleAccountLock(String loginId, String state, String query){
+        String stateParam = StringUtils.defaultIfBlank(state, UserState.ACTIVE.name());
+        UserState userState = UserState.valueOf(stateParam);
+
         if(User.findByLoginId(session().get("loginId")).isSiteManager()){
             User targetUser = User.findByLoginId(loginId);
             if (targetUser.isAnonymous()){
@@ -241,7 +247,7 @@ public class SiteApp extends Controller {
             } else {
                 targetUser.changeState(UserState.ACTIVE);
             }
-            return ok(userList.render("title.siteSetting", User.findUsers(0, null)));
+            return ok(userList.render("title.siteSetting", User.findUsers(0, query, userState), userState, query));
         }
         flash(Constants.WARNING, "error.auth.unauthorized.waringMessage");
         return redirect(routes.Application.index());
