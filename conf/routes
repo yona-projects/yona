@@ -50,7 +50,7 @@ POST           /sites/mail                                                      
 GET            /sites/massmail                                                        controllers.SiteApp.massMail()
 POST           /sites/mailList                                                        controllers.SiteApp.mailList()
 GET            /sites/userList                                                        controllers.SiteApp.userList(pageNum: Int ?= 1, query: String ?= null)
-DELETE         /sites/user/delete                                                     controllers.SiteApp.deleteUser(userId: Long)
+DELETE         /sites/user/delete:userId                                              controllers.SiteApp.deleteUser(userId:Long)
 GET            /sites/projectList                                                     controllers.SiteApp.projectList(filter:String ?= "", pageNum: Int ?=0)
 DELETE         /sites/project/delete/:projectId                                       controllers.SiteApp.deleteProject(projectId:Long)
 POST           /sites/toggleAccountLock                                               controllers.SiteApp.toggleAccountLock(loginId: String, state: String ?= null, query: String ?= null)

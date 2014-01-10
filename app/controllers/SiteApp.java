@@ -178,7 +178,7 @@ public class SiteApp extends Controller {
             flash(Constants.WARNING, "error.auth.unauthorized.waringMessage");
         }
 
-        return redirect(routes.SiteApp.userList(0, null));
+        return redirect(routes.SiteApp.userList(1, null));
     }
 
     /**
