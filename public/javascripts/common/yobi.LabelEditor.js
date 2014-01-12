@@ -56,15 +56,15 @@ yobi.LabelEditor = (function(welContainer, htOptions){
         htVar.sTplEditor = htOptions.sTplEditor || '<div class="control-group label-editor">\
         <strong class="control-label">${labelNew}</strong>\
         <div id="custom-label" class="controls">\
-            <div class="colors"><input type="text" name="labelColor" class="input-small labelColor" placeholder="${labelCustomColor}"></div>\
             <div class="row-fluid">\
-                <div class="span6">\
+                <div>\
                     <input type="text" name="labelCategory" class="input-small labelInput" data-provider="typeahead" autocomplete="off" placeholder="${labelCategory}">\
                 </div>\
-                <div class="span6">\
+                <div>\
                     <input type="text" name="labelName" class="input-small labelInput" placeholder="${labelName}" autocomplete="off">\
                 </div>\
             </div>\
+            <div class="colors"><input type="text" name="labelColor" class="input-small labelColor" placeholder="${labelCustomColor}"></div>\
             <div class="row-fluid">\
                 <div class="span12"><button type="button" class="nbtn medium black labelSubmit">${labelAdd}</button></div>\
             </div>\
@@ -89,14 +89,34 @@ yobi.LabelEditor = (function(welContainer, htOptions){
         _makeColorTable(); // 색상표 생성
 
         htElement.waBtnCustomColor = htElement.welWrap.find("button.issueColor");
-        htElement.waCustomLabelInput = htElement.welWrap.find("input"); // color, name, category
-
         htElement.welCustomLabelColor = htElement.welWrap.find("input[name=labelColor]"); // $('#custom-label-color');
         htElement.welCustomLabelName =  htElement.welWrap.find("input[name=labelName]");  // $('#custom-label-name');
         htElement.welCustomLabelCategory = htElement.welWrap.find("input[name=labelCategory]"); // $('#custom-label-category');
         htElement.welCustomLabelCategory.typeahead();
-
         htElement.welBtnCustomLabelSubmit  = htElement.welWrap.find("button.labelSubmit"); //$('#custom-label-submit');
+
+        // Focus to the category input area.
+        htElement.welCustomLabelCategory.focus();
+    }
+
+    /**
+     * Enter 키가 눌렸을 경우 기본 이벤트 무시
+     * @returns false when enter key pressed
+     */
+    function _preventDefaultWhenEnterPressed(eEvt) {
+        return !(eEvt.keyCode === 13);
+    }
+
+    /**
+     * Enter 키가 눌렸을 경우 기본 이벤트 무시하고 특정 엘리먼트로 포커스 이동
+     * @private false when enter key pressed
+     */
+    function _preventSubmitAndMoveWhenEnterPressed(eEvt, welTarget){
+        var code = eEvt.keyCode || eEvt.which;
+        if (code === 13) {
+            welTarget.focus();
+            eEvt.preventDefault();
+        }
     }
 
     /**
@@ -107,8 +127,28 @@ yobi.LabelEditor = (function(welContainer, htOptions){
         htElement.waBtnCustomColor.click(_onClickBtnCustomColor);
         htElement.welBtnCustomLabelSubmit.click(_onClickBtnSubmitCustom);
 
-        htElement.waCustomLabelInput.keypress(_onKeypressInputCustom);
-        htElement.waCustomLabelInput.keyup(_onKeyupInputCustom);
+        htElement.welCustomLabelCategory
+            .keypress(_preventDefaultWhenEnterPressed);
+        htElement.welCustomLabelName
+            .keypress(_preventDefaultWhenEnterPressed)
+            .keyup(function(e) {
+                if ( e.keyCode === 13){
+                    htElement.welCustomLabelColor.focus();
+                    e.preventDefault();
+                    return false;
+                }
+            });
+        htElement.welCustomLabelColor
+            .keypress(function(e) {
+                if ( e.keyCode === 13 ){
+                    _addCustomLabel();
+                    e.preventDefault();
+                    return false;
+                }
+            })
+            .keyup(function(e){
+                _preventSubmitAndMoveWhenEnterPressed(e, htElement.welCustomLabelName);
+            });
         htElement.welCustomLabelColor.keyup(_onKeyupInputColorCustom);
     }
 
@@ -144,24 +184,7 @@ yobi.LabelEditor = (function(welContainer, htOptions){
      */
     function _onClickBtnSubmitCustom(){
         _addCustomLabel();
-    }
-
-    /**
-     * 입력폼에서 keypress 이벤트 발생시 이벤트 핸들러
-     * @param {Wrapped Event} weEvt
-     */
-    function _onKeypressInputCustom(weEvt){
-        return !(weEvt.keyCode === 13);
-    }
-
-    /**
-     * 입력폼에서 keyup 이벤트 발생시 이벤트 핸들러
-     * @param {Wrapped Event} weEvt
-     */
-    function _onKeyupInputCustom(weEvt){
-        if(weEvt.keyCode === 13){
-            _addCustomLabel();
-        }
+        htElement.welCustomLabelName.focus();
     }
 
     /**
@@ -224,9 +247,8 @@ yobi.LabelEditor = (function(welContainer, htOptions){
         htElement.welCustomLabelColor.val(new RGBColor(sColor).toHex());
         htElement.welCustomLabelColor.css("border-color", sColor);
         _updateSelectedColor(sColor);
-
-        // Focus to the category input area.
-        htElement.welCustomLabelCategory.focus();
+        //move caret to custom lable color input
+        htElement.welCustomLabelColor.focus();
     }
 
     /**
