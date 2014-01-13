@@ -53,7 +53,7 @@ public class PullRequestCommentApp extends Controller {
         Attachment.moveAll(UserApp.currentUser().asResource(), newComment.asResource());
 
         String url = new URL(referer).getPath() + "#comment-" + newComment.id;
-        NotificationEvent.afterNewComment(pullRequest, newComment, url);
+        NotificationEvent.afterNewComment(UserApp.currentUser(), pullRequest, newComment, url);
         return redirect(url);
     }
 

@@ -386,6 +386,7 @@ public class PullRequest extends Model implements ResourceConvertible {
                 Repository cloneRepository = cloneAndFetch.getRepository();
                 String srcToBranchName = pullRequest.toBranch;
                 String destToBranchName = cloneAndFetch.getDestToBranchName();
+                User sender = message.getSender();
 
                 // 코드를 받을 브랜치(toBranch)로 이동(checkout)한다.
                 GitRepository.checkout(cloneRepository, cloneAndFetch.getDestToBranchName());
@@ -401,7 +402,7 @@ public class PullRequest extends Model implements ResourceConvertible {
 
                 if (mergeResult.getMergeStatus().isSuccessful()) {
                     // merge 커밋 메시지 수정
-                    RevCommit mergeCommit = writeMergeCommitMessage(cloneRepository, UserApp.currentUser());
+                    RevCommit mergeCommit = writeMergeCommitMessage(cloneRepository, sender);
                     pullRequest.mergedCommitIdFrom = mergedCommitIdFrom;
                     pullRequest.mergedCommitIdTo = mergeCommit.getId().getName();
 
@@ -412,11 +413,11 @@ public class PullRequest extends Model implements ResourceConvertible {
                     // 풀리퀘스트 완료
                     pullRequest.state = State.MERGED;
                     pullRequest.received = JodaDateUtil.now();
-                    pullRequest.receiver = UserApp.currentUser();
+                    pullRequest.receiver = sender;
                     pullRequest.update();
 
-                    NotificationEvent.afterPullRequestUpdated(pullRequest, State.OPEN, State.MERGED);
-                    PullRequestEvent.addStateEvent(pullRequest, State.MERGED);
+                    NotificationEvent.afterPullRequestUpdated(sender, pullRequest, State.OPEN, State.MERGED);
+                    PullRequestEvent.addStateEvent(sender, pullRequest, State.MERGED);
 
                     Akka.system().actorOf(new Props(RelatedPullRequestMergingActor.class)).tell(message, null);
                 }
