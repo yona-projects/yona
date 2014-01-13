@@ -2,14 +2,18 @@ package controllers;
 
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
+
+import controllers.annotation.ProjectAccess;
 import jxl.write.WriteException;
 import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.tika.Tika;
 import org.codehaus.jackson.node.ObjectNode;
+
 import play.data.Form;
 import play.db.ebean.Transactional;
 import play.i18n.Messages;
@@ -47,24 +51,14 @@ public class IssueApp extends AbstractPostingApp {
      * @throws WriteException
      * @throws IOException
      */
+    @ProjectAccess(Operation.READ)
     public static Result issues(String ownerName, String projectName, String state, String format, int pageNum) throws WriteException, IOException {
         Project project = ProjectApp.getProject(ownerName, projectName);
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
-
-        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
 
         // SearchCondition from param
         Form<models.support.SearchCondition> issueParamForm = new Form<>(models.support.SearchCondition.class);
         models.support.SearchCondition searchCondition = issueParamForm.bindFromRequest().get();
         searchCondition.pageNum = pageNum - 1;
-        searchCondition.state = state;
-        if (searchCondition.orderBy.equals("id")) {
-            searchCondition.orderBy = "createdDate";
-        }
         searchCondition.labelIds.addAll(LabelSearchUtil.getLabelIds(request()));
 
         // determine pjax or json when requested with XHR
