@@ -104,7 +104,8 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
     public SearchCondition() {
         super();
         milestoneId = null;
-        state = State.OPEN.name();
+        state = State.OPEN.name().toLowerCase();
+        orderBy = "createdDate";
         commentedCheck = false;
     }
 
