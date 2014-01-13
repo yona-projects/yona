@@ -1,6 +1,7 @@
 
 package controllers;
 
+import actions.NullProjectCheckAction;
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
 import models.*;
@@ -12,6 +13,7 @@ import play.db.ebean.Transactional;
 import play.libs.Json;
 import play.mvc.Call;
 import play.mvc.Result;
+import play.mvc.With;
 import utils.AccessControl;
 import utils.ErrorViews;
 import utils.JodaDateUtil;
@@ -55,11 +57,9 @@ public class BoardApp extends AbstractPostingApp {
      * @param pageNum 페이지 번호
      * @return
      */
+    @With(NullProjectCheckAction.class)
     public static Result posts(String userName, String projectName, int pageNum) {
         Project project = ProjectApp.getProject(userName, projectName);
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
@@ -90,11 +90,9 @@ public class BoardApp extends AbstractPostingApp {
      * @param projectName 프로젝트 이름
      * @return
      */
+    @With(NullProjectCheckAction.class)
     public static Result newPostForm(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound", project, "post"));
-        }
 
         boolean isAllowedToNotice = ProjectUser.isAllowedToNotice(UserApp.currentUser(), project);
 
@@ -114,12 +112,10 @@ public class BoardApp extends AbstractPostingApp {
      * @return
      */
     @Transactional
+    @With(NullProjectCheckAction.class)
     public static Result newPost(String userName, String projectName) {
         Form<Posting> postForm = new Form<>(Posting.class).bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
 
         if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.BOARD_POST)) {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
@@ -166,11 +162,9 @@ public class BoardApp extends AbstractPostingApp {
      * @param number 게시물number
      * @return
      */
+    @With(NullProjectCheckAction.class)
     public static Result post(String userName, String projectName, Long number) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render());
-        }
 
         Posting post = Posting.findByNumber(project, number);
         if (post == null) {
@@ -206,11 +200,9 @@ public class BoardApp extends AbstractPostingApp {
      * @param number 게시물number
      * @return
      */
+    @With(NullProjectCheckAction.class)
     public static Result editPostForm(String owner, String projectName, Long number) {
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
 
         Posting posting = Posting.findByNumber(project, number);
         if (posting == null) {
@@ -241,12 +233,10 @@ public class BoardApp extends AbstractPostingApp {
      * @see AbstractPostingApp#editPosting(models.AbstractPosting, models.AbstractPosting, play.data.Form
      */
     @Transactional
+    @With(NullProjectCheckAction.class)
     public static Result editPost(String userName, String projectName, Long number) {
         Form<Posting> postForm = new Form<>(Posting.class).bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
 
         if (postForm.hasErrors()) {
             boolean isAllowedToNotice = ProjectUser.isAllowedToNotice(UserApp.currentUser(), project);
@@ -280,11 +270,9 @@ public class BoardApp extends AbstractPostingApp {
      * @see controllers.AbstractPostingApp#delete(play.db.ebean.Model, models.resource.Resource, play.mvc.Call)
      */
     @Transactional
+    @With(NullProjectCheckAction.class)
     public static Result deletePost(String owner, String projectName, Long number) {
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
         Posting posting = Posting.findByNumber(project, number);
         Call redirectTo = routes.BoardApp.posts(project.owner, project.name, 1);
 
@@ -307,11 +295,9 @@ public class BoardApp extends AbstractPostingApp {
      * @see controllers.AbstractPostingApp#newComment(models.Comment, play.data.Form, play.mvc.Call, Runnable)
      */
     @Transactional
+    @With(NullProjectCheckAction.class)
     public static Result newComment(String owner, String projectName, Long number) throws IOException {
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
         final Posting posting = Posting.findByNumber(project, number);
         if (posting == null) {
             return notFound(ErrorViews.NotFound.render("error.notfound"));
@@ -354,6 +340,7 @@ public class BoardApp extends AbstractPostingApp {
      * @see controllers.AbstractPostingApp#delete(play.db.ebean.Model, models.resource.Resource, play.mvc.Call)
      */
     @Transactional
+    @With(NullProjectCheckAction.class)
     public static Result deleteComment(String userName, String projectName, Long number, Long commentId) {
         Comment comment = PostingComment.find.byId(commentId);
         Project project = comment.asResource().getProject();

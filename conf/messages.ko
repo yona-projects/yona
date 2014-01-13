@@ -149,6 +149,7 @@ error.notfound.issue = 존재하지 않는 이슈입니다
 error.notfound.post = 존재하지 않는 글입니다
 error.notfound.watch = 존재하지 않는 알림 정보입니다.
 error.notfound.commit = 존재하지 않는 커밋입니다.
+error.notfound.project = 존재하지 않는 프로젝트입니다.
 error.required = 필수 입력란입니다.
 error.tooLargeText.title = 너무 큰 텍스트 데이터를 보냈습니다.
 error.tooLargeText.limit = 텍스트 데이터는 최대 "{0}" 바이트까지만 보낼 수 있습니다.

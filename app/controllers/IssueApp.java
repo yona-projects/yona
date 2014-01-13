@@ -1,5 +1,6 @@
 package controllers;
 
+import actions.NullProjectCheckAction;
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
 
@@ -21,6 +22,7 @@ import play.libs.Json;
 import play.mvc.Call;
 import play.mvc.Http;
 import play.mvc.Result;
+import play.mvc.With;
 import utils.*;
 import views.html.issue.*;
 
@@ -215,11 +217,9 @@ public class IssueApp extends AbstractPostingApp {
      * @param number 이슈 번호
      * @return
      */
+    @With(NullProjectCheckAction.class)
     public static Result issue(String ownerName, String projectName, Long number) {
         Project project = ProjectApp.getProject(ownerName, projectName);
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
 
         Issue issueInfo = Issue.findByNumber(project, number);
 
@@ -278,11 +278,9 @@ public class IssueApp extends AbstractPostingApp {
      * @param number 이슈 번호
      * @return
      */
+    @With(NullProjectCheckAction.class)
     public static Result timeline(String ownerName, String projectName, Long number) {
         Project project = ProjectApp.getProject(ownerName, projectName);
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
 
         Issue issueInfo = Issue.findByNumber(project, number);
         if (issueInfo == null) {
@@ -310,11 +308,9 @@ public class IssueApp extends AbstractPostingApp {
      * @return
      * @see {@link AbstractPostingApp#newPostingForm(Project, ResourceType, play.mvc.Content)}
      */
+    @With(NullProjectCheckAction.class)
     public static Result newIssueForm(String ownerName, String projectName) {
         Project project = ProjectApp.getProject(ownerName, projectName);
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
 
         return newPostingForm(project, ResourceType.ISSUE_POST,
                 create.render("title.newIssue", new Form<>(Issue.class), project));
@@ -336,6 +332,7 @@ public class IssueApp extends AbstractPostingApp {
      * @throws IOException
      */
     @Transactional
+    @With(NullProjectCheckAction.class)
     public static Result massUpdate(String ownerName, String projectName) {
         Form<IssueMassUpdate> issueMassUpdateForm
                 = new Form<>(IssueMassUpdate.class).bindFromRequest();
@@ -345,9 +342,6 @@ public class IssueApp extends AbstractPostingApp {
         IssueMassUpdate issueMassUpdate = issueMassUpdateForm.get();
 
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound", project));
-        }
 
         int updatedItems = 0;
         int rejectedByPermission = 0;
@@ -452,12 +446,10 @@ public class IssueApp extends AbstractPostingApp {
      * @throws IOException
      */
     @Transactional
+    @With(NullProjectCheckAction.class)
     public static Result newIssue(String ownerName, String projectName) {
         Form<Issue> issueForm = new Form<>(Issue.class).bindFromRequest();
         Project project = ProjectApp.getProject(ownerName, projectName);
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
 
         if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_POST)) {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
@@ -506,11 +498,10 @@ public class IssueApp extends AbstractPostingApp {
      * @param number 이슈 번호
      * @return
      */
+    @With(NullProjectCheckAction.class)
     public static Result editIssueForm(String ownerName, String projectName, Long number) {
         Project project = ProjectApp.getProject(ownerName, projectName);
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
+
         Issue issue = Issue.findByNumber(project, number);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
@@ -537,11 +528,10 @@ public class IssueApp extends AbstractPostingApp {
      * @throws IOException
      */
     @Transactional
+    @With(NullProjectCheckAction.class)
     public static Result nextState(String ownerName, String projectName, Long number) {
         Project project = ProjectApp.getProject(ownerName, projectName);
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
+
         final Issue issue = Issue.findByNumber(project, number);
 
         Call redirectTo = routes.IssueApp.issue(project.owner, project.name, number);
@@ -570,13 +560,11 @@ public class IssueApp extends AbstractPostingApp {
      * @throws IOException
      * @see {@link AbstractPostingApp#editPosting(models.AbstractPosting, models.AbstractPosting, play.data.Form}
      */
+    @With(NullProjectCheckAction.class)
     public static Result editIssue(String ownerName, String projectName, Long number) {
         Form<Issue> issueForm = new Form<>(Issue.class).bindFromRequest();
 
         Project project = ProjectApp.getProject(ownerName, projectName);
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
 
         if (issueForm.hasErrors()) {
             return badRequest(edit.render("error.validation", issueForm, Issue.findByNumber(project, number), project));
@@ -647,11 +635,9 @@ public class IssueApp extends AbstractPostingApp {
      * @ see {@link AbstractPostingApp#delete(play.db.ebean.Model, models.resource.Resource, Call)}
      */
     @Transactional
+    @With(NullProjectCheckAction.class)
     public static Result deleteIssue(String ownerName, String projectName, Long number) {
         Project project = ProjectApp.getProject(ownerName, projectName);
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
         Issue issue = Issue.findByNumber(project, number);
         Call redirectTo =
             routes.IssueApp.issues(project.owner, project.name, State.OPEN.state(), "html", 1);
@@ -674,11 +660,10 @@ public class IssueApp extends AbstractPostingApp {
      * @see {@link AbstractPostingApp#newComment(models.Comment, play.data.Form}
      */
     @Transactional
+    @With(NullProjectCheckAction.class)
     public static Result newComment(String ownerName, String projectName, Long number) throws IOException {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
+
         final Issue issue = Issue.findByNumber(project, number);
         if (issue == null) {
             return notFound(ErrorViews.NotFound.render("error.notfound"));
@@ -722,6 +707,7 @@ public class IssueApp extends AbstractPostingApp {
      * @see {@link AbstractPostingApp#delete(play.db.ebean.Model, models.resource.Resource, Call)}
      */
     @Transactional
+    @With(NullProjectCheckAction.class)
     public static Result deleteComment(String ownerName, String projectName, Long issueNumber,
             Long commentId) {
         Comment comment = IssueComment.find.byId(commentId);

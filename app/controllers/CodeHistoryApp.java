@@ -1,5 +1,6 @@
 package controllers;
 
+import actions.NullProjectCheckAction;
 import models.Attachment;
 import models.CommitComment;
 import models.NotificationEvent;
@@ -14,6 +15,7 @@ import play.data.Form;
 import play.mvc.Call;
 import play.mvc.Controller;
 import play.mvc.Result;
+import play.mvc.With;
 import playRepository.Commit;
 import playRepository.FileDiff;
 import playRepository.PlayRepository;
@@ -57,6 +59,7 @@ public class CodeHistoryApp extends Controller {
      * @throws GitAPIException
      * @throws SVNException
      */
+    @With(NullProjectCheckAction.class)
     public static Result historyUntilHead(String ownerName, String projectName) throws IOException,
             UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
@@ -84,14 +87,11 @@ public class CodeHistoryApp extends Controller {
      * @throws GitAPIException
      * @throws SVNException
      */
+    @With(NullProjectCheckAction.class)
     public static Result history(String ownerName, String projectName, String branch, String path) throws IOException,
             UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
-
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
 
         PlayRepository repository = RepositoryService.getRepository(project);
 
@@ -136,14 +136,11 @@ public class CodeHistoryApp extends Controller {
      * @throws GitAPIException
      * @throws SVNException
      */
+    @With(NullProjectCheckAction.class)
     public static Result show(String ownerName, String projectName, String commitId)
             throws IOException, UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
-
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
@@ -182,16 +179,13 @@ public class CodeHistoryApp extends Controller {
         }
     }
 
+    @With(NullProjectCheckAction.class)
     public static Result newComment(String ownerName, String projectName, String commitId)
             throws IOException, ServletException, SVNException {
         Form<CommitComment> codeCommentForm = new Form<>(CommitComment.class)
                 .bindFromRequest();
 
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
-
-        if (project == null) {
-            return notFound(notfound_default.render(request().path()));
-        }
 
         if (codeCommentForm.hasErrors()) {
             return badRequest(ErrorViews.BadRequest.render("error.validation", project));
@@ -232,6 +226,7 @@ public class CodeHistoryApp extends Controller {
         return toView;
     }
 
+    @With(NullProjectCheckAction.class)
     public static Result deleteComment(String ownerName, String projectName, String commitId,
                                        Long id) {
         CommitComment codeComment = CommitComment.find.byId(id);

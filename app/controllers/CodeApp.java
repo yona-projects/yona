@@ -1,5 +1,6 @@
 package controllers;
 
+import actions.NullProjectCheckAction;
 import models.Project;
 import models.enumeration.Operation;
 import org.apache.tika.Tika;
@@ -9,6 +10,7 @@ import org.tmatesoft.svn.core.SVNException;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
+import play.mvc.With;
 import playRepository.PlayRepository;
 import playRepository.RepositoryService;
 import utils.AccessControl;
@@ -33,12 +35,10 @@ public class CodeApp extends Controller {
      * @param userName 프로젝트 소유자 이름
      * @param projectName 프로젝트 이름
      */
+    @With(NullProjectCheckAction.class)
     public static Result codeBrowser(String userName, String projectName)
             throws IOException, UnsupportedOperationException, ServletException {
         Project project = ProjectApp.getProject(userName, projectName);
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
@@ -78,6 +78,7 @@ public class CodeApp extends Controller {
      * @param branch 브랜치 이름
      * @param path 파일 경로
      */
+    @With(NullProjectCheckAction.class)
     public static Result codeBrowserWithBranch(String userName, String projectName, String branch, String path)
         throws UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException {
         Project project = ProjectApp.getProject(userName, projectName);
@@ -112,6 +113,7 @@ public class CodeApp extends Controller {
      * @param projectName 프로젝트 이름
      * @param path 파일 또는 폴더의 경로
      */
+    @With(NullProjectCheckAction.class)
     public static Result ajaxRequest(String userName, String projectName, String path) throws Exception{
         PlayRepository repository = RepositoryService.getRepository(userName, projectName);
         ObjectNode fileInfo = repository.getMetaDataFromPath(path);
@@ -131,6 +133,7 @@ public class CodeApp extends Controller {
      * @param branch 브랜치 이름
      * @param path 파일 또는 폴더의 경로
      */
+    @With(NullProjectCheckAction.class)
     public static Result ajaxRequestWithBranch(String userName, String projectName, String branch, String path)
             throws UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException{
         CodeApp.hostName = request().host();
@@ -152,6 +155,7 @@ public class CodeApp extends Controller {
      * @param revision
      * @param path
      */
+    @With(NullProjectCheckAction.class)
     public static Result showRawFile(String userName, String projectName, String revision, String path) throws Exception{
         byte[] fileAsRaw = RepositoryService.getFileAsRaw(userName, projectName, revision, path);
         if(fileAsRaw == null){
@@ -167,6 +171,7 @@ public class CodeApp extends Controller {
      * @param projectName
      * @param path
      */
+    @With(NullProjectCheckAction.class)
     public static Result showImageFile(String userName, String projectName, String revision, String path) throws Exception{
         final byte[] fileAsRaw = RepositoryService.getFileAsRaw(userName, projectName, revision, path);
         String mimeType = tika.detect(fileAsRaw);

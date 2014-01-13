@@ -4,7 +4,7 @@
  * Copyright 2013 NAVER Corp.
  * http://yobi.io
  *
- * @Author Wansoon Park, Keesun Baek
+ * @Author Wansoon Park, Keesun Baik
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,22 +21,28 @@
 package actions.support;
 
 import org.apache.commons.lang3.StringUtils;
+import play.mvc.Http;
 
-
+/**
+ * 프로젝트 관련 URL을 파싱한다.
+ * /{user.loginId}/{project.name}/** 패턴에 해당하는 URL에서 프로젝트 owner와 name 정보를 축출한다.
+ */
 public class PathParser {
     private static final String DELIMETER = "/";
     private String[] paths;
-    private String contextPath;
-    private String path;
 
     public PathParser(String path) {
         this.paths = StringUtils.split(path, DELIMETER);
     }
 
     public PathParser(String contextPath, String path) {
-        this.contextPath = StringUtils.removeEnd(contextPath, DELIMETER);
-        this.path = StringUtils.removeStart(path, this.contextPath);
-        this.paths = StringUtils.split(this.path, DELIMETER);
+        String delimRemovedPath = StringUtils.removeEnd(contextPath, DELIMETER);
+        String contextRemovedPath = StringUtils.removeStart(path, delimRemovedPath);
+        this.paths = StringUtils.split(contextRemovedPath, DELIMETER);
+    }
+
+    public PathParser(Http.Context context) {
+        this(play.Configuration.root().getString("application.context"), context.request().path());
     }
 
     public String getOwnerLoginId() {

@@ -1,30 +1,30 @@
 package controllers;
 
-import java.util.List;
-import java.util.Map;
-
+import actions.NullProjectCheckAction;
 import models.IssueLabel;
 import models.Project;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
+import play.data.DynamicForm;
+import play.data.Form;
+import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
+import play.mvc.With;
 import utils.AccessControl;
 import utils.ErrorViews;
-import views.html.board.view;
 
-import static play.libs.Json.toJson;
-
-import play.data.*;
-import play.db.ebean.Transactional;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static play.data.Form.form;
+import static play.libs.Json.toJson;
 
 public class IssueLabelApp extends Controller {
-     /**
+    /**
      * 특정 프로젝트의 모든 이슈라벨을 달라는 요청에 응답한다.
      *
      * when: 이슈에 라벨을 붙일 때, 이슈의 고급검색에서 라벨의 목록을 보여줄 때.
@@ -39,19 +39,17 @@ public class IssueLabelApp extends Controller {
      * 클라이언트가 {@code application/json}을 받아들일 수 없는 경우에는 {@code 406 Not Acceptable}로 응답한다.
      * 성공적인 응답에서 엔터티 본문의 미디어 타입은 언제나 {@code application/json}이기 때문이다.
      *
-     * @param ownerName 프로젝트 소유자의 이름
+     * @param ownerName   프로젝트 소유자의 이름
      * @param projectName 프로젝트의 이름
      * @return 이슈라벨들을 달라는 요청에 대한 응답
      */
+    @With(NullProjectCheckAction.class)
     public static Result labels(String ownerName, String projectName) {
         if (!request().accepts("application/json")) {
             return status(Http.Status.NOT_ACCEPTABLE);
         }
 
         Project project = ProjectApp.getProject(ownerName, projectName);
-        if (project == null) {
-            return notFound();
-        }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return forbidden("You have no permission to access the project '" + project + "'.");
@@ -71,7 +69,7 @@ public class IssueLabelApp extends Controller {
         return ok(toJson(labels));
     }
 
-     /**
+    /**
      * 특정 프로젝트에 새 이슈라벨 하나를 추가해달라는 요청에 응답한다.
      *
      * when: 사용자가 고급검색, 이슈편집, 이슈등록 페이지에서 새 이슈라벨의 추가를 시도했을 때
@@ -90,18 +88,16 @@ public class IssueLabelApp extends Controller {
      *
      * 사용자에게 프로젝트에 이슈라벨을 만들 권한이 없는 경우에는 {@code 403 Forbidden}으로 응답한다.
      *
-     * @param ownerName 프로젝트 소유자의 이름
+     * @param ownerName   프로젝트 소유자의 이름
      * @param projectName 프로젝트의 이름
      * @return 이슈라벨을 추가해달라는 요청에 대한 응답
      */
     @Transactional
-     public static Result newLabel(String ownerName, String projectName) {
+    @With(NullProjectCheckAction.class)
+    public static Result newLabel(String ownerName, String projectName) {
         Form<IssueLabel> labelForm = new Form<>(IssueLabel.class).bindFromRequest();
 
         Project project = ProjectApp.getProject(ownerName, projectName);
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
 
         if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_LABEL)) {
             return forbidden(ErrorViews.Forbidden.render("You have no permission to add an issue label to the project '" +
@@ -132,7 +128,7 @@ public class IssueLabelApp extends Controller {
         }
     }
 
-     /**
+    /**
      * 이슈라벨 하나를 삭제해달라는 요청에 응답한다.
      *
      * when: 사용자가 고급검색, 이슈편집, 이슈등록 페이지에서 이슈라벨의 삭제 버튼을 클릭했을 때
@@ -145,13 +141,14 @@ public class IssueLabelApp extends Controller {
      * 않음) 그렇지 않다면 {@code 400 Bad request}로 응답한다. 이는 DELETE 메소드를 흉내내는 방법이며, 이렇게
      * 하는 이유는 HTML Form이 DELETE 메소드를 지원하지 않기 때문이다.
      *
-     * @param ownerName 사용하지 않음
+     * @param ownerName   사용하지 않음
      * @param projectName 사용하지 않음
-     * @param id 삭제할 이슈라벨의 아이디
+     * @param id          삭제할 이슈라벨의 아이디
      * @return 이슈라벨을 삭제해달라는 요청에 대한 응답
      */
     @Transactional
-     public static Result delete(String ownerName, String projectName, Long id) {
+    @With(NullProjectCheckAction.class)
+    public static Result delete(String ownerName, String projectName, Long id) {
         // _method must be 'delete'
         DynamicForm bindedForm = form().bindFromRequest();
         if (!bindedForm.get("_method").toLowerCase()
