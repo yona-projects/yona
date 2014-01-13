@@ -40,7 +40,6 @@
                         <a href="#" class="go-zen" style="position: absolute; right: 8px; margin-top: 32px;"><i class="s s--zen">Edit in Zen Mode</i></a>
                         @help.markdown()
                         <textarea id="body" name="body" markdown="true" class="zen-mode text content .go-zen--textarea" tabindex="2"  data-label="@Messages("issue.error.emptyBody")"></textarea>
-                        @help.experimental()
                     </dd>
                 </dl>
 
@@ -54,15 +53,6 @@
                     <button type="submit" class="ybtn ybtn-success">@Messages("button.save")</button><!--
                  --><a href="javascript:history.back();" class="ybtn">@Messages("button.cancel")</a>
                 </div>
-                <dl id="relativeIssue" class="relative-issue">
-                    <dt>
-                        @Messages("issue.relativeCandidate")
-                        <a href="#experimentalHelp" role="button" class="ybtn ybtn-inverse ybtn-minimum" data-toggle="modal">@Messages("common.experimental")</a>
-                    </dt>
-                    <dd>
-                        <ul class="unstyled"></ul>
-                    </dd>
-                </dl>
             </div>
             <div class="span3">
                 @if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_ASSIGNEE)) {

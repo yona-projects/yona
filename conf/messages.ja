@@ -196,7 +196,6 @@ issue.new.result = 確認結果
 issue.noAssignee = 担当者 無し
 issue.noAuthor = 登録者 無し
 issue.noMilestone = マイルストーン 無し
-issue.relativeCandidate = 似ているかも知れないイシュー
 issue.search = 検索
 issue.state = 状態
 issue.state.all = 全部
