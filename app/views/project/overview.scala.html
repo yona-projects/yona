@@ -44,10 +44,10 @@
             </div>
         </div>
         <div class="project-clone-wrap">
-            <input type="text" class="project-clone-url" id="cloneURL" readonly="readonly" value="@CodeApp.getURLWithLoginId(project)">
+            <input type="text" class="project-clone-url" id="cloneURL" readonly="readonly" value="@if(project.isGit){ @CodeApp.getURLWithLoginId(project) } else { @CodeApp.getURL(project) }">
             <button class="ybtn project-clone-button" id="cloneURLBtn">@Messages("code.copyUrl")</button>
         </div>
-    </div>    
+    </div>
     <div class="row-fluid">
         <div class="span9">
 	        <ul id="homeTabs" class="nav nav-tabs">
@@ -116,13 +116,13 @@
                 <div class="project-btn-wrap @if(project.vcs.equals("GIT")){ git-project }">
                     <span class="project-btn-item">
                         <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="ybtn ybtn-success">@Messages("button.newIssue")</a>
-                    </span>    
+                    </span>
                     @if(project.vcs.equals("GIT")){
                     <span class="project-btn-item">
                         <a href="@routes.PullRequestApp.newFork(project.owner, project.name)" class="ybtn">
                             @Messages("fork")
-                        </a> 
-                    </span>               
+                        </a>
+                    </span>
                     }
                 </div>
                 @defining(Milestone.findOpenMilestones(project.id)){ milestones =>

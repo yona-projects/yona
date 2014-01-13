@@ -26,13 +26,18 @@
 @projectLayout(Messages("title.commitHistory"), project, utils.MenuType.CODE) {
 @projectMenu(project, utils.MenuType.CODE, "main-menu-only")
 <div class="project-page-wrap">
-	<div class="row-fluid">
-		<div class="span12">
-			@Html(Messages("code.nohead"))
+    <div class="row-fluid">
+        <div class="span12">
+            @Html(Messages("code.nohead"))
             @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
-                <h5>@Messages("code.nohead.svn.clone", Messages("app.name"))</h5>
-            }
-		</div>
+            <h5>@Messages("code.nohead.svn.clone", Messages("app.name"))</h5>
+            <pre><code>svn co @CodeApp.getURL(project) --username @UserApp.currentUser().loginId
+cd @project.name/
+echo "# @project.name" > README.md
+svn add README.md
+svn commit -m "first commit"</code></pre>
+}
+        </div>
     </div>
 </div>
 
