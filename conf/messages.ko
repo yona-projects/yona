@@ -199,7 +199,6 @@ issue.new.result = 확인결과
 issue.noAssignee = 담당자 없음
 issue.noAuthor = 작성자 없음
 issue.noMilestone = 마일스톤 없음
-issue.relativeCandidate = 비슷할 수도 있는 이슈
 issue.search = 검색
 issue.state = 상태
 issue.state.all = 전체

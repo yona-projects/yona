@@ -41,16 +41,6 @@
                         <a href="#" class="go-zen"><i class="s s--zen" style="position: absolute; right: 8px; margin-top: 32px;">Edit in Zen Mode</i></a>
                         @help.markdown()
                         <textarea id="body" name="body" markdown="true" class="zen-mode text content" tabindex="2">@issue.body</textarea>
-                        <dl id="relativeIssue" class="relative-issue">
-                            <dt>
-                                @Messages("issue.relativeCandidate")
-                                <a href="#experimentalHelp" role="button" class="ybtn ybtn-inverse ybtn-minimum" data-toggle="modal">@Messages("common.experimental")</a>
-                            </dt>
-                            <dd>
-                                <ul class="unstyled"></ul>
-                            </dd>
-                        </dl>
-                        @help.experimental()
                     </dd>
                 </dl>
 

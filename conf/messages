@@ -199,7 +199,6 @@ issue.new.result = Result
 issue.noAssignee = No Assignee
 issue.noAuthor = No Author
 issue.noMilestone = No Milestone
-issue.relativeCandidate = Similar issues
 issue.search = SEARCH
 issue.state = State
 issue.state.all = All
