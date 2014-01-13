@@ -72,12 +72,21 @@
                 htElement.welInput.typeahead({ minLength: 0 });
                 htData = htElement.welInput.data('typeahead');
                 htData.items = htVar.htData.limit || 8;
-                htData.source = _onTypeAhead;
+                htData.source = htVar.htData.source || _onTypeAhead;
+
+                if(typeof htVar.htData.updater === "function"){
+                    htData.updater = htVar.htData.updater;
+                }
+
+                if(typeof htVar.htData.render === "function"){
+                    htData.render = htVar.htData.render;
+                }
+
                 htData.minLength = 0;
             } catch (err){
                 if(typeof console == "object") {
                     console.log(err);
-            }
+                }
             }
         }
 
@@ -87,8 +96,7 @@
         * For more information, See "source" option at
         * http://twitter.github.io/bootstrap/javascript.html#typeahead
         *
-
-        * @param {Function} frocess
+        * @param {Function} fProcess
         */
         function _onTypeAhead(sQuery, fProcess) {
             if (sQuery.match(htVar.sLastQuery) && htVar.bIsLastRangeEntire) {
