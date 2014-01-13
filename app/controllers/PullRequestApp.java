@@ -41,6 +41,8 @@ import play.api.mvc.Call;
 import play.data.Form;
 import play.db.ebean.Transactional;
 import play.libs.Akka;
+import play.libs.F.Function;
+import play.libs.F.Promise;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -55,6 +57,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 /**
  * 프로젝트 복사(포크)와 코드 주고받기(풀리퀘) 기능을 다루는 컨트롤러
@@ -202,33 +205,43 @@ public class PullRequestApp extends Controller {
     @With(AnonymousCheckAction.class)
     @IsCreatable(ResourceType.FORK)
     public static Result newPullRequestForm(String userName, String projectName) throws IOException, GitAPIException {
-        Project project = Project.findByOwnerAndProjectName(userName, projectName);
+        final Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
         ValidationResult validation = validateBeforePullRequest(project);
         if(validation.hasError()) {
             return validation.getResult();
         }
 
-        List<Project> projects = project.getAssociationProjects();
+        final List<Project> projects = project.getAssociationProjects();
 
-        Project fromProject = getSelectedProject(project, request().getQueryString("fromProjectId"), false);
-        Project toProject = getSelectedProject(project, request().getQueryString("toProjectId"), true);
+        final Project fromProject = getSelectedProject(project, request().getQueryString("fromProjectId"), false);
+        final Project toProject = getSelectedProject(project, request().getQueryString("toProjectId"), true);
 
-        List<GitBranch> fromBranches = new GitRepository(fromProject).getAllBranches();
-        List<GitBranch> toBranches = new GitRepository(toProject).getAllBranches();
+        final List<GitBranch> fromBranches = new GitRepository(fromProject).getAllBranches();
+        final List<GitBranch> toBranches = new GitRepository(toProject).getAllBranches();
 
-        PullRequest pullRequest = PullRequest.createNewPullRequest(fromProject, toProject
+        final PullRequest pullRequest = PullRequest.createNewPullRequest(fromProject, toProject
                             , StringUtils.defaultIfBlank(request().getQueryString("fromBranch"), fromBranches.get(0).getName())
                             , StringUtils.defaultIfBlank(request().getQueryString("toBranch"), project.defaultBranch()));
 
-        PullRequestMergeResult mergeResult = pullRequest.getPullRequestMergeResult();
+        Promise<PullRequestMergeResult> promise = Akka.future(new Callable<PullRequestMergeResult>() {
+            @Override
+            public PullRequestMergeResult call() throws Exception {
+                return pullRequest.getPullRequestMergeResult();
+            }
+        });
 
-        if (HttpUtil.isRequestedWithXHR(request())) {
-            response().setHeader("Cache-Control", "no-cache, no-store");
-            return ok(partial_diff.render(new Form<>(PullRequest.class).fill(pullRequest), project, pullRequest, mergeResult));
-        }
+        return async(promise.map(new Function<PullRequestMergeResult, Result>() {
+            @Override
+            public Result apply(PullRequestMergeResult mergeResult) throws Throwable {
+                if (HttpUtil.isRequestedWithXHR(request())) {
+                    response().setHeader("Cache-Control", "no-cache, no-store");
+                    return ok(partial_diff.render(new Form<>(PullRequest.class).fill(pullRequest), project, pullRequest, mergeResult));
+                }
 
-        return ok(create.render("title.newPullRequest", new Form<>(PullRequest.class).fill(pullRequest), project, projects, fromProject, toProject, fromBranches, toBranches, pullRequest, mergeResult));
+                return ok(create.render("title.newPullRequest", new Form<>(PullRequest.class).fill(pullRequest), project, projects, fromProject, toProject, fromBranches, toBranches, pullRequest, mergeResult));
+            }
+        }));
     }
 
     /**
@@ -505,21 +518,33 @@ public class PullRequestApp extends Controller {
     @With(AnonymousCheckAction.class)
     @ProjectAccess(Operation.READ)
     @PullRequestAccess(Operation.ACCEPT)
-    public static Result accept(String userName, String projectName, long pullRequestNumber) {
+    public static Result accept(final String userName, final String projectName,
+            final long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
-        PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
+        final PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
 
-        PullRequestEventMessage message = new PullRequestEventMessage(
+        final PullRequestEventMessage message = new PullRequestEventMessage(
                 UserApp.currentUser(), request(), project, pullRequest.toBranch);
 
         if(!pullRequest.isReviewed()) {
             return badRequest(ErrorViews.BadRequest.render("pullRequest.not.enough.review.point"));
         }
 
-        Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
-        pullRequest.merge(message);
+        Promise<Void> promise = Akka.future(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                pullRequest.merge(message);
+                return null;
+            }
+        });
 
-        return redirect(routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber));
+        return async(promise.map(new Function<Void, Result>() {
+            @Override
+            public Result apply(Void v) throws Throwable {
+                return redirect(routes.PullRequestApp.pullRequest(userName, projectName,
+                        pullRequestNumber));
+            }
+        }));
     }
 
     private static void addNotification(PullRequest pullRequest, Call call, State from, State to) {

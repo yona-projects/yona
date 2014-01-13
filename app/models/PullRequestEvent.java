@@ -69,10 +69,10 @@ public class PullRequestEvent extends Model implements TimelineItem {
     }
 
 
-    public static void addStateEvent(PullRequest pullRequest, State state) {
+    public static void addStateEvent(User sender, PullRequest pullRequest, State state) {
         PullRequestEvent event = new PullRequestEvent();
         event.created = JodaDateUtil.now();
-        event.senderLoginId = UserApp.currentUser().loginId;
+        event.senderLoginId = sender.loginId;
         event.pullRequest = pullRequest;
         event.eventType = EventType.PULL_REQUEST_STATE_CHANGED;
         event.newValue = state.state();

@@ -243,7 +243,7 @@ public class NotificationEvent extends Model {
         NotificationEvent notiEvent = createFrom(sender, pullRequest);
         notiEvent.title = formatNewTitle(pullRequest);;
         notiEvent.urlToView = urlToView;
-        notiEvent.receivers = getReceivers(pullRequest);
+        notiEvent.receivers = getReceivers(sender, pullRequest);
         notiEvent.eventType = EventType.NEW_PULL_REQUEST;
         notiEvent.oldValue = null;
         notiEvent.newValue = pullRequest.body;
@@ -267,7 +267,7 @@ public class NotificationEvent extends Model {
         NotificationEvent notiEvent = createFrom(sender, pullRequest);
         notiEvent.title = formatReplyTitle(pullRequest);
         notiEvent.urlToView = urlToView;
-        notiEvent.receivers = getReceivers(pullRequest);
+        notiEvent.receivers = getReceivers(sender, pullRequest);
         notiEvent.eventType = EventType.PULL_REQUEST_STATE_CHANGED;
         notiEvent.oldValue = oldState.state();
         notiEvent.newValue = newState.state();
@@ -289,7 +289,7 @@ public class NotificationEvent extends Model {
         NotificationEvent notiEvent = createFrom(sender, pullRequest);
         notiEvent.title = formatReplyTitle(pullRequest);
         notiEvent.urlToView = urlToView(pullRequest);
-        notiEvent.receivers = getReceivers(pullRequest);
+        notiEvent.receivers = getReceivers(sender, pullRequest);
         notiEvent.eventType = EventType.PULL_REQUEST_MERGED;
         notiEvent.newValue = state.state();
         if (conflicts != null) {
@@ -302,17 +302,18 @@ public class NotificationEvent extends Model {
     /**
      * 보낸 코드에 댓글이 달렸을 때 알림을 추가한다.
      *
+     * @param sender
      * @param pullRequest
      * @param newComment
      * @param urlToView
      * @see {@link controllers.PullRequestCommentApp#newComment(String, String, Long)}
      */
-    public static void afterNewComment(PullRequest pullRequest, PullRequestComment newComment, String urlToView) {
+    public static void afterNewComment(User sender, PullRequest pullRequest, PullRequestComment newComment, String urlToView) {
         NotificationEvent notiEvent = createFromCurrentUser(pullRequest);
         notiEvent.title = formatReplyTitle(pullRequest);
         notiEvent.urlToView = urlToView;
         Set<User> receivers = getMentionedUsers(newComment.contents);
-        receivers.addAll(getReceivers(pullRequest));
+        receivers.addAll(getReceivers(sender, pullRequest));
         receivers.remove(User.findByLoginId(newComment.authorLoginId));
         notiEvent.receivers = receivers;
         notiEvent.eventType = EventType.NEW_PULL_REQUEST_COMMENT;
@@ -640,11 +641,11 @@ public class NotificationEvent extends Model {
         return routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, pullRequest.number).url();
     }
 
-    private static Set<User> getReceivers(PullRequest pullRequest) {
+    private static Set<User> getReceivers(User sender, PullRequest pullRequest) {
         Set<User> watchers = pullRequest.getWatchers();
         watchers.addAll(getMentionedUsers(pullRequest.body));
         watchers.addAll(GitRepository.getRelatedAuthors(pullRequest));
-        watchers.remove(UserApp.currentUser());
+        watchers.remove(sender);
         return watchers;
     }
 
