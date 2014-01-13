@@ -951,8 +951,8 @@ public class PullRequest extends Model implements ResourceConvertible {
         this.update();
     }
 
-    public int getRequiredReviewPoint() {
-        return this.toProject.defaultReviewPoint;
+    public int getRequiredReviewerCount() {
+        return this.toProject.defaultReviewerCount;
     }
 
     public void addReviewer(User user) {
@@ -970,11 +970,11 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     public boolean isReviewed() {
-        return reviewers.size() >= toProject.defaultReviewPoint;
+        return reviewers.size() >= toProject.defaultReviewerCount;
     }
 
-    public int getLackingPoints() {
-        return toProject.defaultReviewPoint - reviewers.size();
+    public int getLackingReviewerCount() {
+        return toProject.defaultReviewerCount - reviewers.size();
     }
 
 }

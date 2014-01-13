@@ -27,7 +27,6 @@ import utils.WatchService;
 
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -160,8 +159,8 @@ public class PullRequestTest extends ModelTest<PullRequest> {
         Project project = pullRequest.toProject;
 
         // When & Then
-        assertThat(pullRequest.getRequiredReviewPoint()).isEqualTo(project.defaultReviewPoint);
-        assertThat(pullRequest.getRequiredReviewPoint()).isEqualTo(1);
+        assertThat(pullRequest.getRequiredReviewerCount()).isEqualTo(project.defaultReviewPoint);
+        assertThat(pullRequest.getRequiredReviewerCount()).isEqualTo(1);
         assertThat(pullRequest.isReviewed()).isFalse();
 
         // When & Then
@@ -172,7 +171,7 @@ public class PullRequestTest extends ModelTest<PullRequest> {
         pullRequest.clearReviewers();
         assertThat(pullRequest.reviewers.size()).isEqualTo(0);
         assertThat(pullRequest.isReviewed()).isFalse();
-        assertThat(pullRequest.getLackingPoints()).isEqualTo(1);
+        assertThat(pullRequest.getLackingReviewerCount()).isEqualTo(1);
     }
 
     @Test

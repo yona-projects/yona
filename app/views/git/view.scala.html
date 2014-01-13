@@ -48,7 +48,7 @@
                     }
                 </button>
                 <div id="actOnOpen" class="mr5 pull-right" style="@if(pull.isMerging == false && pull.isOpen()){display:block;}else{display:none;}">
-                    @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT)) {
+                    @if(project.isUsingReviewerCount && isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT)) {
                         @if(pull.isReviewedBy(UserApp.currentUser())) {
                             <a data-request-method="post" class="ybtn" href="@routes.ReviewApp.unreview(project.owner, project.name, pull.number)">
                             @Messages("pullRequest.unreviewed")
@@ -60,10 +60,10 @@
                         }
                     }
                     @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT)) {
-                        @if(pull.isReviewed) {
+                        @if(pull.isReviewed || !project.isUsingReviewerCount) {
                             <a data-request-method="post" id="btnAccept" href="@routes.PullRequestApp.accept(project.owner, project.name, pull.number)" class="ybtn ybtn-success" @if(pull.isConflict == true){style="display:none;"}>@Messages("pullRequest.accept")</a>
                         } else {
-                            <button class="ybtn ybtn-disabled" data-toggle="tooltip" data-placement="top" title="@Messages("pullRequest.not.enough.review.point", pull.getLackingPoints())">@Messages("pullRequest.accept")</button>
+                            <button class="ybtn ybtn-disabled" data-toggle="tooltip" data-placement="top" title="@Messages("pullRequest.not.enough.review.point", pull.getLackingReviewerCount())">@Messages("pullRequest.accept")</button>
                         }
 
                     }

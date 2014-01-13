@@ -526,7 +526,7 @@ public class PullRequestApp extends Controller {
         final PullRequestEventMessage message = new PullRequestEventMessage(
                 UserApp.currentUser(), request(), project, pullRequest.toBranch);
 
-        if(!pullRequest.isReviewed()) {
+        if(project.isUsingReviewerCount && !pullRequest.isReviewed()) {
             return badRequest(ErrorViews.BadRequest.render("pullRequest.not.enough.review.point"));
         }
 
