@@ -168,10 +168,11 @@
             }
             
             $.ajax(htVar.sIssuesUrl, {
-                "method" : "post",
-                "data"   : htReqData,
-                "success": htOptions.fOnLoad,
-                "error"  : htOptions.fOnError
+                "method"  : "post",
+                "dataType": "json",
+                "data"    : htReqData,
+                "success" : htOptions.fOnLoad,
+                "error"   : htOptions.fOnError
             });
         }
         

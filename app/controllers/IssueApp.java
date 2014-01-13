@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import utils.HttpUtil;
 
 public class IssueApp extends AbstractPostingApp {
     private static final String EXCEL_EXT = "xls";
@@ -230,7 +231,7 @@ public class IssueApp extends AbstractPostingApp {
         Issue issueInfo = Issue.findByNumber(project, number);
 
         if (issueInfo == null) {
-            if (isXHR()){
+            if (HttpUtil.isJSONPreferred(request())){
                 ObjectNode result = Json.newObject();
                 result.put("title", number);
                 result.put("body", Messages.get("error.notfound.issue"));
@@ -251,7 +252,8 @@ public class IssueApp extends AbstractPostingApp {
         Form<Comment> commentForm = new Form<>(Comment.class);
         Form<Issue> editForm = new Form<>(Issue.class).fill(Issue.findByNumber(project, number));
 
-        if( isXHR() ) {
+        // Determine response type with Accept header
+        if (HttpUtil.isJSONPreferred(request())){
             ObjectNode result = Json.newObject();
             result.put("id", issueInfo.getNumber());
             result.put("title", issueInfo.title);
@@ -260,15 +262,9 @@ public class IssueApp extends AbstractPostingApp {
             result.put("createdDate", issueInfo.createdDate.toString());
             result.put("link", routes.IssueApp.issue(project.owner, project.name, issueInfo.getNumber()).toString());
             return ok(result);
+        } else {
+            return ok(view.render("title.issueDetail", issueInfo, editForm, commentForm, project));
         }
-
-        return ok(view.render("title.issueDetail", issueInfo, editForm, commentForm, project));
-    }
-
-    private static Boolean isXHR() {
-        // Response as JSON on XHR
-        String contentType = HttpUtil.getPreferType(request(), "application/json", "text/html");
-        return contentType.equals("application/json");
     }
 
     /**
@@ -438,8 +434,14 @@ public class IssueApp extends AbstractPostingApp {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
-        // Response as JSON on XHR
-        return isXHR() ? ok() : redirect(request().getHeader("Referer"));
+        // Determine type of response with Accept header
+        if (HttpUtil.isJSONPreferred(request())){
+            // jQuery treats as error if response text empty
+            // on dataType is json
+            return ok("{}");
+        } else {
+            return redirect(request().getHeader("Referer"));
+        }
     }
 
     /**
