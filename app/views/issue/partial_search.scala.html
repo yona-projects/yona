@@ -78,82 +78,68 @@
                     <dl class="issue-option">
                         <dt>@Messages("issue.author")</dt>
                         <dd>
-                            <div class="btn-group" data-name="authorId">
-                                <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                                    <span class="d-label">@Messages("common.order.all")</span>
-                                    <span class="d-caret"><span class="caret"></span></span>
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li data-value=""><a>@Messages("common.order.all")</a></li>
-                                    @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
-                                        <li data-value="@UserApp.currentUser().id"><a>@Messages("issue.list.authoredByMe")</a></li>
+                            <select id="authorId" name="authorId">
+                                <option value="">@Messages("common.order.all")</option>
+                                @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
+                                <option value="@UserApp.currentUser().id">@Messages("issue.list.authoredByMe")</option>
+                                }
+                                @for(author <- User.findIssueAuthorsByProjectId(project.id)) {
+                                    <option value="@author.id"
+                                    @if(param.authorId != null && param.authorId == author.id){
+                                        selected
                                     }
-                                    <li class="divider"></li>
-                                    @for(author <- User.findIssueAuthorsByProjectId(project.id)) {
-                                    <li data-value="@author.id" @if(param.authorId != null && param.authorId == author.id){data-selected="true" class="active"}>
-                                        <a class="usf-group">
-                                            <span class="avatar-wrap smaller">
-                                                <img src="@author.avatarUrl" width="20" height="20">
-                                            </span>
-
-                                            <strong class="name">@author.name</strong>
-                                            <span class="loginid"> <strong>@{"@"}</strong>@author.loginId</span>
-                                        </a>
-                                    </li>
-                                    }
-                                </ul>
-                            </div>
+                                    data-avatar-url="@author.avatarUrl"
+                                    data-login-id="@author.loginId">
+                                    @author.name
+                                    </option>
+                                }
+                            </select>
                         </dd>
                     </dl>
 
                     <dl class="issue-option">
                         <dt>@Messages("issue.assignee")</dt>
                         <dd>
-                            <div class="btn-group" data-name="assigneeId">
-                                <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                                    <span class="d-label">@Messages("common.order.all")</span>
-                                    <span class="d-caret"><span class="caret"></span></span>
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li data-value=""><a>@Messages("common.order.all")</a></li>
-                                    <li data-value="@User.anonymous.id" @if(param.assigneeId != null && param.assigneeId == User.anonymous.id){data-selected="true" class="active"}><a>@Messages("issue.noAssignee")</a></li>
-                                    @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
-                                        <li data-value="@UserApp.currentUser().id"><a>@Messages("issue.list.assignedToMe")</a></li>
+                            <select id="assigneeId" name="assigneeId">
+                                <option value="">@Messages("common.order.all")</option>
+                                <option value="@User.anonymous.id" @if(param.assigneeId != null && param.assigneeId == User.anonymous.id){ selected }>@Messages("issue.noAssignee")</option>
+                                @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
+                                <option value="@UserApp.currentUser().id">@Messages("issue.list.assignedToMe")</a></option>}
+                                @for(member <- project.members) {
+                                    <option value="@member.user.id"
+                                    @if(param.assigneeId != null
+                                        && param.assigneeId == member.user.id){
+                                        selected
                                     }
-                                    <li class="divider"></li>
-                                    @for(member <- project.members) {
-                                    <li data-value="@member.user.id" @if(param.assigneeId != null && param.assigneeId == member.user.id){data-selected="true" class="active"}>
-                                        <a class="usf-group">
-                                            <span class="avatar-wrap smaller">
-                                                <img src="@member.user.avatarUrl" width="20" height="20">
-                                            </span>
-
-                                            <strong class="name">@member.user.name</strong>
-                                            <span class="loginid"> <strong>@{"@"}</strong>@member.user.loginId</span>
-                                        </a>
-                                    </li>
-                                    }
-                                </ul>
-                            </div>
+                                    data-avatar-url="@member.user.avatarUrl"
+                                    data-login-id="@member.user.loginId">
+                                        @member.user.name
+                                    </option>
+                                }
+                            </select>
                         </dd>
                     </dl>
+
                     <dl class="issue-option">
                         <dt>@Messages("milestone")</dt>
                         <dd>
-                            <div class="btn-group" data-name="milestoneId">
-                                <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                                    <span class="d-label">@Messages("milestone.state.all")</span>
-                                    <span class="d-caret"><span class="caret"></span></span>
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li data-value=""><a>@Messages("milestone.state.all")</a></li>
-                                    <li data-value="@Milestone.NULL_MILESTONE_ID" @if(param.milestoneId != null && param.milestoneId == Milestone.NULL_MILESTONE_ID){data-selected="true" class="active"}><a>@Messages("issue.noMilestone")</a></li>
-                                    <li class="divider"></li>
-                                    @for(milestone <- Milestone.findByProjectId(project.id)) {
-                                    <li data-value="@milestone.id" @if(param.milestoneId != null && param.milestoneId == milestone.id){data-selected="true" class="active"}><a>@milestone.title</a></li>
-                                    }
-                                </ul>
-                            </div>
+                            <select id="milestoneId" name="milestoneId">
+                                <option value="">@Messages("milestone.state.all")</option>
+                                @if(param.milestoneId != null
+                                    && param.milestoneId == Milestone.NULL_MILESTONE_ID){
+                                    <option value="@Milestone.NULL_MILESTONE_ID">
+                                        @Messages("issue.noMilestone")
+                                    </option>
+                                }
+                                @for(milestone <- Milestone.findByProjectId(project.id)) {
+                                    <option value="@milestone.id"
+                                    @if(param.milestoneId != null && param.milestoneId == milestone.id){
+                                        selected
+                                    }>
+                                        @milestone.title
+                                    </option>
+                                }
+                            </select>
                         </dd>
                     </dl>
                 </div>
@@ -222,28 +208,62 @@
 
         <script type="text/javascript">
             $(document).ready(function(){
-                yobi.Label.init({
-                    "sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)",
-                    "sURLPost"     : "@routes.IssueLabelApp.newLabel(project.owner, project.name)",
-                    "bRefresh"     : true
-                    @if(param.labelIds != null){
-                    , "aSelectedLabels" : [@StringUtils.join(param.labelIds, ",")]
-                    } else {
-                    , "aSelectedLabels" : []
-                    }
-                });
+                $("#assigneeId, #authorId")
+                    .select2({
+                        formatResult: format,
+                        formatSelection: format,
+                        width: "resolve"
+                    })
+                    .on("change", function(e){
+                        $("form[name='search']" ).submit();
+                    });
 
-                $yobi.loadModule("issue.List", {
-                    "welSearchOrder": $("a[orderBy]"),
-                    "welSearchState": $("a[state]"),
-                    "welSearchAuthor": $("div[data-name='authorId']"),
-                    "welSearchAssignee": $("div[data-name='assigneeId']"),
-                    "welSearchMilestone": $("div[data-name='milestoneId']"),
-                    "welSearchForm":$("form[name='search']"),
-                    "welFilter": $("a[pjax-filter]"),
-                    "elPagination": $("#pagination"),
-                    "nTotalPages" : @currentPage.getTotalPageCount()
-                });
+                $("#milestoneId")
+                    .select2({
+                        width: "resolve"
+                    })
+                    .on("change", function(e){
+                        $("form[name='search']").submit();
+                    });
+
+                /**
+                 * select box list customization using select2
+                 *
+                 */
+                function format(state) {
+                    var originalOption = state.element;
+                    if($(originalOption).data('avatar-url')){
+                        return "<img src='"+$(originalOption).data('avatar-url') +"'  width='20' height='20'>"
+                            + "<span style='font-weight: bold'>" + state.text + "</span>"
+                            +"<span style='color: gray'>@{"@"}" + $(originalOption).data('login-id') + "</span>";
+                    } else {
+                        return state.text;
+                    }
+                }
+            });
+        </script>
+        <script type="text/javascript">
+            $(document).ready(function(){
+				yobi.Label.init({
+				    "sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)",
+				    "sURLPost"     : "@routes.IssueLabelApp.newLabel(project.owner, project.name)",
+				    "bRefresh"     : true
+				    @if(param.labelIds != null){
+				    , "aSelectedLabels" : [@StringUtils.join(param.labelIds, ",")]
+				    } else {
+				    , "aSelectedLabels" : []
+				    }
+				});
+
+				$yobi.loadModule("issue.List", {
+				"welSearchOrder": $("a[orderBy]"),
+		   	        "welSearchState": $("a[state]"),
+		   	        "welSearchMilestone": $("div[data-name='milestoneId']"),
+		   	        "welSearchForm":$("form[name='search']"),
+		   	        "welFilter": $("a[pjax-filter]"),
+		   		    "elPagination": $("#pagination"),
+		   		    "nTotalPages" : @currentPage.getTotalPageCount()
+			   	});
 
                 yobi.ShortcutKey.setKeymapLink({
                    "N": "@routes.IssueApp.newIssueForm(project.owner, project.name)"

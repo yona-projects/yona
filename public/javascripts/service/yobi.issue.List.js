@@ -31,7 +31,7 @@
          */
         function _initVar(htOptions){
             htVar.nTotalPages = htOptions.nTotalPages || 1;
-            
+
             htVar.oSearchAuthor    = new yobi.ui.Dropdown({"elContainer": htOptions.welSearchAuthor});
             htVar.oSearchAssignee  = new yobi.ui.Dropdown({"elContainer": htOptions.welSearchAssignee});
             htVar.oSearchMilestone = new yobi.ui.Dropdown({"elContainer": htOptions.welSearchMilestone});
@@ -115,16 +115,16 @@
             yobi.Label.resetLabel($(this).attr('data-labelId'));
             htElement.welSearchForm.submit();
         }
-        
+
         function _onChangeSearchField() {
             htElement.welSearchForm.submit();
         }
 
         function _onClickSearchFilter(event) {
             event.preventDefault();
-            htVar.oSearchAuthor.selectByValue($(this).attr("authorId"));
-            htVar.oSearchAssignee.selectByValue($(this).attr("assigneeId"));
-            htVar.oSearchMilestone.selectByValue($(this).attr("milestoneId"));
+            $("#authorId").val($(this).attr("authorId"));
+            $("#assigneeId").val($(this).attr("assigneeId"));
+            $("#milestoneId").val($(this).attr("milestoneId"));
             htElement.welSearchForm.submit();
         }
 
