@@ -21,14 +21,14 @@
 package controllers;
 
 import actions.AnonymousCheckAction;
-import controllers.annotation.ProjectAccess;
-import controllers.annotation.PullRequestAccess;
+import controllers.annotation.IsAllowed;
 import models.NotificationEvent;
 import models.Project;
 import models.PullRequest;
 import models.PullRequestEvent;
 import models.enumeration.EventType;
 import models.enumeration.Operation;
+import models.enumeration.ResourceType;
 import play.api.mvc.Call;
 import play.db.ebean.Transactional;
 import play.mvc.Controller;
@@ -38,12 +38,11 @@ import play.mvc.With;
 /**
  * @author Keesun Baik
  */
+@With(AnonymousCheckAction.class)
 public class ReviewApp extends Controller {
 
     @Transactional
-    @With(AnonymousCheckAction.class)
-    @ProjectAccess(Operation.READ)
-    @PullRequestAccess(Operation.ACCEPT)
+    @IsAllowed(value = Operation.ACCEPT, resourceType = ResourceType.PULL_REQUEST)
     public static Result review(String userName, String projectName, Long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
@@ -57,9 +56,7 @@ public class ReviewApp extends Controller {
     }
 
     @Transactional
-    @With(AnonymousCheckAction.class)
-    @ProjectAccess(Operation.READ)
-    @PullRequestAccess(Operation.ACCEPT)
+    @IsAllowed(value = Operation.ACCEPT, resourceType = ResourceType.PULL_REQUEST)
     public static Result unreview(String userName, String projectName, Long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);

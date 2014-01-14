@@ -3,18 +3,16 @@ package controllers;
 import actions.NullProjectCheckAction;
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
-
-import controllers.annotation.ProjectAccess;
+import controllers.annotation.IsAllowed;
+import controllers.annotation.IsCreatable;
 import jxl.write.WriteException;
 import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.tika.Tika;
 import org.codehaus.jackson.node.ObjectNode;
-
 import play.data.Form;
 import play.db.ebean.Transactional;
 import play.i18n.Messages;
@@ -53,7 +51,7 @@ public class IssueApp extends AbstractPostingApp {
      * @throws WriteException
      * @throws IOException
      */
-    @ProjectAccess(Operation.READ)
+    @IsAllowed(Operation.READ)
     public static Result issues(String ownerName, String projectName, String state, String format, int pageNum) throws WriteException, IOException {
         Project project = ProjectApp.getProject(ownerName, projectName);
 
@@ -230,7 +228,7 @@ public class IssueApp extends AbstractPostingApp {
                 result.put("body", Messages.get("error.notfound.issue"));
                 return ok(result);
             } else {
-                return notFound(ErrorViews.NotFound.render("error.notfound", project, "issue"));
+                return notFound(ErrorViews.NotFound.render("error.notfound", project, ResourceType.ISSUE_POST.resource()));
             }
         }
 
@@ -278,18 +276,10 @@ public class IssueApp extends AbstractPostingApp {
      * @param number 이슈 번호
      * @return
      */
-    @With(NullProjectCheckAction.class)
+    @IsAllowed(resourceType = ResourceType.ISSUE_POST, value = Operation.READ)
     public static Result timeline(String ownerName, String projectName, Long number) {
         Project project = ProjectApp.getProject(ownerName, projectName);
-
         Issue issueInfo = Issue.findByNumber(project, number);
-        if (issueInfo == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound", project, "issue"));
-        }
-
-        if (!AccessControl.isAllowed(UserApp.currentUser(), issueInfo.asResource(), Operation.READ)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
 
         for (IssueLabel label: issueInfo.labels) {
             label.refresh();
@@ -306,14 +296,11 @@ public class IssueApp extends AbstractPostingApp {
      * @param ownerName 프로젝트 소유자 이름
      * @param projectName 프로젝트 이름
      * @return
-     * @see {@link AbstractPostingApp#newPostingForm(Project, ResourceType, play.mvc.Content)}
      */
-    @With(NullProjectCheckAction.class)
+    @IsCreatable(ResourceType.ISSUE_POST)
     public static Result newIssueForm(String ownerName, String projectName) {
         Project project = ProjectApp.getProject(ownerName, projectName);
-
-        return newPostingForm(project, ResourceType.ISSUE_POST,
-                create.render("title.newIssue", new Form<>(Issue.class), project));
+        return ok(create.render("title.newIssue", new Form<>(Issue.class), project));
     }
 
     /**
@@ -446,14 +433,10 @@ public class IssueApp extends AbstractPostingApp {
      * @throws IOException
      */
     @Transactional
-    @With(NullProjectCheckAction.class)
+    @IsCreatable(ResourceType.ISSUE_POST)
     public static Result newIssue(String ownerName, String projectName) {
         Form<Issue> issueForm = new Form<>(Issue.class).bindFromRequest();
         Project project = ProjectApp.getProject(ownerName, projectName);
-
-        if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_POST)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
 
         if (issueForm.hasErrors()) {
             return badRequest(create.render("error.validation", issueForm, project));
@@ -498,16 +481,10 @@ public class IssueApp extends AbstractPostingApp {
      * @param number 이슈 번호
      * @return
      */
-    @With(NullProjectCheckAction.class)
+    @IsAllowed(resourceType = ResourceType.ISSUE_POST, value = Operation.UPDATE)
     public static Result editIssueForm(String ownerName, String projectName, Long number) {
         Project project = ProjectApp.getProject(ownerName, projectName);
-
         Issue issue = Issue.findByNumber(project, number);
-
-        if (!AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
-
         Form<Issue> editForm = new Form<>(Issue.class).fill(issue);
 
         return ok(edit.render("title.editIssue", editForm, issue, project));
@@ -528,16 +505,13 @@ public class IssueApp extends AbstractPostingApp {
      * @throws IOException
      */
     @Transactional
-    @With(NullProjectCheckAction.class)
+    @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.ISSUE_POST)
     public static Result nextState(String ownerName, String projectName, Long number) {
         Project project = ProjectApp.getProject(ownerName, projectName);
 
         final Issue issue = Issue.findByNumber(project, number);
 
         Call redirectTo = routes.IssueApp.issue(project.owner, project.name, number);
-        if (!AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", issue.project));
-        }
         issue.toNextState();
         NotificationEvent notiEvent = NotificationEvent.afterStateChanged(issue.previousState(), issue, redirectTo.url());
         IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
@@ -635,7 +609,7 @@ public class IssueApp extends AbstractPostingApp {
      * @ see {@link AbstractPostingApp#delete(play.db.ebean.Model, models.resource.Resource, Call)}
      */
     @Transactional
-    @With(NullProjectCheckAction.class)
+    @IsAllowed(value = Operation.DELETE, resourceType = ResourceType.ISSUE_POST)
     public static Result deleteIssue(String ownerName, String projectName, Long number) {
         Project project = ProjectApp.getProject(ownerName, projectName);
         Issue issue = Issue.findByNumber(project, number);
@@ -660,29 +634,17 @@ public class IssueApp extends AbstractPostingApp {
      * @see {@link AbstractPostingApp#newComment(models.Comment, play.data.Form}
      */
     @Transactional
-    @With(NullProjectCheckAction.class)
+    @IsCreatable(ResourceType.ISSUE_COMMENT)
     public static Result newComment(String ownerName, String projectName, Long number) throws IOException {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
-
         final Issue issue = Issue.findByNumber(project, number);
-        if (issue == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
         Call redirectTo = routes.IssueApp.issue(project.owner, project.name, number);
-        Form<IssueComment> commentForm = new Form<>(IssueComment.class)
-                .bindFromRequest();
+        Form<IssueComment> commentForm = new Form<>(IssueComment.class).bindFromRequest();
 
         if (commentForm.hasErrors()) {
             return badRequest(ErrorViews.BadRequest.render("error.validation", project));
         }
-
-        if (!AccessControl.isProjectResourceCreatable(
-                    UserApp.currentUser(), project, ResourceType.ISSUE_COMMENT)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
-
         final IssueComment comment = commentForm.get();
-
         return newComment(comment, commentForm, redirectTo, new Runnable() {
             @Override
             public void run() {

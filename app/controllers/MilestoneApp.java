@@ -1,20 +1,28 @@
 package controllers;
 
-import actions.NullProjectCheckAction;
-import models.*;
-import models.enumeration.*;
-import play.data.*;
+import controllers.annotation.IsAllowed;
+import controllers.annotation.IsCreatable;
+import models.Attachment;
+import models.Milestone;
+import models.Project;
+import models.enumeration.Direction;
+import models.enumeration.Operation;
+import models.enumeration.ResourceType;
+import models.enumeration.State;
+import play.data.Form;
 import play.db.ebean.Transactional;
-import play.mvc.*;
+import play.mvc.Controller;
+import play.mvc.Result;
 import utils.AccessControl;
 import utils.Constants;
 import utils.ErrorViews;
 import utils.HttpUtil;
-import views.html.milestone.*;
+import views.html.milestone.create;
+import views.html.milestone.edit;
+import views.html.milestone.list;
+import views.html.milestone.view;
 
-import java.util.*;
-
-import org.apache.commons.lang3.StringUtils;
+import java.util.List;
 
 import static play.data.Form.form;
 
@@ -46,13 +54,9 @@ public class MilestoneApp extends Controller {
      * @param projectName
      * @return
      */
-    @With(NullProjectCheckAction.class)
+    @IsAllowed(Operation.READ)
     public static Result milestones(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
-        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
-
         MilestoneCondition mCondition = form(MilestoneCondition.class).bindFromRequest().get();
 
         List<Milestone> milestones = Milestone.findMilestones(project.id,
@@ -75,14 +79,9 @@ public class MilestoneApp extends Controller {
      * @param projectName
      * @return
      */
-    @With(NullProjectCheckAction.class)
+    @IsCreatable(ResourceType.MILESTONE)
     public static Result newMilestoneForm(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
-
-        if(!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.MILESTONE)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
-
         return ok(create.render("title.newMilestone", new Form<>(Milestone.class), project));
     }
 
@@ -103,14 +102,10 @@ public class MilestoneApp extends Controller {
      * @see {@link #validate(models.Project, play.data.Form)}
      */
     @Transactional
-    @With(NullProjectCheckAction.class)
+    @IsCreatable(ResourceType.MILESTONE)
     public static Result newMilestone(String userName, String projectName) {
         Form<Milestone> milestoneForm = new Form<>(Milestone.class).bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
-
-        if(!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.MILESTONE)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
 
         validate(project, milestoneForm);
         if (milestoneForm.hasErrors()) {
@@ -158,14 +153,10 @@ public class MilestoneApp extends Controller {
      * @param milestoneId
      * @return
      */
-    @With(NullProjectCheckAction.class)
+    @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.MILESTONE)
     public static Result editMilestoneForm(String userName, String projectName, Long milestoneId) {
         Project project = ProjectApp.getProject(userName, projectName);
         Milestone milestone = Milestone.findById(milestoneId);
-
-        if(!AccessControl.isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.UPDATE)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
 
         Form<Milestone> editForm = new Form<>(Milestone.class).fill(milestone);
         return ok(edit.render("title.editMilestone", editForm, milestoneId, project));
@@ -186,15 +177,11 @@ public class MilestoneApp extends Controller {
      * @return
      */
     @Transactional
-    @With(NullProjectCheckAction.class)
+    @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.MILESTONE)
     public static Result editMilestone(String userName, String projectName, Long milestoneId) {
         Project project = ProjectApp.getProject(userName, projectName);
         Form<Milestone> milestoneForm = new Form<>(Milestone.class).bindFromRequest();
         Milestone original = Milestone.findById(milestoneId);
-
-        if(!AccessControl.isAllowed(UserApp.currentUser(), original.asResource(), Operation.UPDATE)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
 
         if(!original.title.equals(milestoneForm.field("title").value())) {
             validate(project, milestoneForm);
@@ -232,13 +219,11 @@ public class MilestoneApp extends Controller {
      * @return
      */
     @Transactional
-    @With(NullProjectCheckAction.class)
+    @IsAllowed(value = Operation.DELETE, resourceType = ResourceType.MILESTONE)
     public static Result deleteMilestone(String userName, String projectName, Long id) {
         Project project = ProjectApp.getProject(userName, projectName);
         Milestone milestone = Milestone.findById(id);
-        if(!AccessControl.isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.DELETE)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
+
         if(!project.id.equals(milestone.project.id)) {
             return internalServerError();
         }
@@ -263,16 +248,10 @@ public class MilestoneApp extends Controller {
      * @return
      */
     @Transactional
-    @With(NullProjectCheckAction.class)
+    @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.MILESTONE)
     public static Result open(String userName, String projectName, Long id) {
-        Project project = ProjectApp.getProject(userName, projectName);
         Milestone milestone = Milestone.findById(id);
-        if(!AccessControl.isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.UPDATE)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
-
         milestone.open();
-
         return redirect(routes.MilestoneApp.milestone(userName, projectName, id));
     }
 
@@ -286,16 +265,10 @@ public class MilestoneApp extends Controller {
      * @return
      */
     @Transactional
-    @With(NullProjectCheckAction.class)
+    @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.MILESTONE)
     public static Result close(String userName, String projectName, Long id) {
-        Project project = ProjectApp.getProject(userName, projectName);
         Milestone milestone = Milestone.findById(id);
-        if(!AccessControl.isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.UPDATE)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
-
         milestone.close();
-
         return redirect(routes.MilestoneApp.milestone(userName, projectName, id));
     }
 
@@ -310,17 +283,10 @@ public class MilestoneApp extends Controller {
      * @param id
      * @return
      */
-    @With(NullProjectCheckAction.class)
+    @IsAllowed(value = Operation.READ, resourceType = ResourceType.MILESTONE)
     public static Result milestone(String userName, String projectName, Long id) {
         Project project = ProjectApp.getProject(userName, projectName);
         Milestone milestone = Milestone.findById(id);
-        if(milestone == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
-
-        if (!AccessControl.isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.READ)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
 
         String paramState = request().getQueryString("state");
         State state = State.getValue(paramState);

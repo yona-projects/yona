@@ -1,6 +1,7 @@
 package controllers;
 
-import actions.NullProjectCheckAction;
+import controllers.annotation.IsAllowed;
+import controllers.annotation.IsCreatable;
 import models.IssueLabel;
 import models.Project;
 import models.enumeration.Operation;
@@ -11,8 +12,6 @@ import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
-import play.mvc.With;
-import utils.AccessControl;
 import utils.ErrorViews;
 
 import java.util.ArrayList;
@@ -43,17 +42,13 @@ public class IssueLabelApp extends Controller {
      * @param projectName 프로젝트의 이름
      * @return 이슈라벨들을 달라는 요청에 대한 응답
      */
-    @With(NullProjectCheckAction.class)
+    @IsAllowed(Operation.READ)
     public static Result labels(String ownerName, String projectName) {
         if (!request().accepts("application/json")) {
             return status(Http.Status.NOT_ACCEPTABLE);
         }
 
         Project project = ProjectApp.getProject(ownerName, projectName);
-
-        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden("You have no permission to access the project '" + project + "'.");
-        }
 
         List<Map<String, String>> labels = new ArrayList<>();
         for (IssueLabel label : IssueLabel.findByProject(project)) {
@@ -93,16 +88,10 @@ public class IssueLabelApp extends Controller {
      * @return 이슈라벨을 추가해달라는 요청에 대한 응답
      */
     @Transactional
-    @With(NullProjectCheckAction.class)
+    @IsCreatable(ResourceType.ISSUE_LABEL)
     public static Result newLabel(String ownerName, String projectName) {
         Form<IssueLabel> labelForm = new Form<>(IssueLabel.class).bindFromRequest();
-
         Project project = ProjectApp.getProject(ownerName, projectName);
-
-        if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_LABEL)) {
-            return forbidden(ErrorViews.Forbidden.render("You have no permission to add an issue label to the project '" +
-                    project + "'.", project));
-        }
 
         IssueLabel label = labelForm.get();
         label.project = project;
@@ -147,7 +136,7 @@ public class IssueLabelApp extends Controller {
      * @return 이슈라벨을 삭제해달라는 요청에 대한 응답
      */
     @Transactional
-    @With(NullProjectCheckAction.class)
+    @IsAllowed(value = Operation.DELETE, resourceType = ResourceType.ISSUE_LABEL)
     public static Result delete(String ownerName, String projectName, Long id) {
         // _method must be 'delete'
         DynamicForm bindedForm = form().bindFromRequest();
@@ -157,17 +146,7 @@ public class IssueLabelApp extends Controller {
         }
 
         IssueLabel label = IssueLabel.finder.byId(id);
-
-        if (label == null) {
-            return notFound(ErrorViews.NotFound.render("The label #" + id + " is not found."));
-        }
-
-        if (!AccessControl.isAllowed(UserApp.currentUser(), label.asResource(), Operation.DELETE)) {
-            return forbidden(ErrorViews.Forbidden.render("You have no permission to delete the label #" + label.id + ".", label.project));
-        }
-
         label.delete();
-
         return ok();
     }
 }

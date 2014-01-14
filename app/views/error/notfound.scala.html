@@ -2,16 +2,18 @@
 
 @getMenuType(target:String) = @{
     target match {
-        case "issues" => utils.MenuType.ISSUE
-        case "post" => utils.MenuType.BOARD
+        case "issue_post" => utils.MenuType.ISSUE
+        case "board_post" => utils.MenuType.BOARD
+        case "milestone" => utils.MenuType.MILESTONE
         case _ => utils.MenuType.PROJECT_HOME
     }
 }
 
 @getReturnURL(target:String) = @{
     target match {
-        case "issues" => routes.IssueApp.issues(project.owner, project.name, "all")
-        case "post" => routes.BoardApp.posts(project.owner, project.name)
+        case "issue_post" => routes.IssueApp.issues(project.owner, project.name, "all")
+        case "board_post" => routes.BoardApp.posts(project.owner, project.name)
+        case "milestone" => routes.MilestoneApp.milestones(project.owner, project.name)
         case _ => "javascript:history.back();"
     }
 }

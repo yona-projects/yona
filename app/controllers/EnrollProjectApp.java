@@ -1,5 +1,7 @@
 package controllers;
 
+import actions.AnonymousCheckAction;
+import actions.NullProjectCheckAction;
 import models.NotificationEvent;
 import models.Project;
 import models.ProjectUser;
@@ -8,10 +10,12 @@ import models.enumeration.RequestState;
 import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Result;
+import play.mvc.With;
 
 /**
  * 프로젝트에 멤버로 등록해달라는 요청을 처리하는 컨트롤러
  */
+@With(AnonymousCheckAction.class)
 public class EnrollProjectApp extends Controller {
 
     /**
@@ -23,11 +27,9 @@ public class EnrollProjectApp extends Controller {
      * @return
      */
     @Transactional
+    @With(NullProjectCheckAction.class)
     public static Result enroll(String loginId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
-        if(project == null) {
-            return badRequest();
-        }
 
         User user = UserApp.currentUser();
         if (!ProjectUser.isGuest(project, user)) {
@@ -51,11 +53,9 @@ public class EnrollProjectApp extends Controller {
      * @return
      */
     @Transactional
+    @With(NullProjectCheckAction.class)
     public static Result cancelEnroll(String loginId, String proejctName) {
         Project project = Project.findByOwnerAndProjectName(loginId, proejctName);
-        if(project == null) {
-            return badRequest();
-        }
 
         User user = UserApp.currentUser();
         if (!ProjectUser.isGuest(project, user)) {

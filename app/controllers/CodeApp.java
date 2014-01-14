@@ -1,6 +1,7 @@
 package controllers;
 
 import actions.NullProjectCheckAction;
+import controllers.annotation.IsAllowed;
 import models.Project;
 import models.enumeration.Operation;
 import org.apache.tika.Tika;
@@ -13,7 +14,6 @@ import play.mvc.Result;
 import play.mvc.With;
 import playRepository.PlayRepository;
 import playRepository.RepositoryService;
-import utils.AccessControl;
 import utils.ErrorViews;
 import views.html.code.nohead;
 import views.html.code.nohead_svn;
@@ -35,14 +35,10 @@ public class CodeApp extends Controller {
      * @param userName 프로젝트 소유자 이름
      * @param projectName 프로젝트 이름
      */
-    @With(NullProjectCheckAction.class)
+    @IsAllowed(Operation.READ)
     public static Result codeBrowser(String userName, String projectName)
             throws IOException, UnsupportedOperationException, ServletException {
         Project project = ProjectApp.getProject(userName, projectName);
-
-        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
 
         if (!RepositoryService.VCS_GIT.equals(project.vcs) && !RepositoryService.VCS_SUBVERSION.equals(project.vcs)) {
             return status(Http.Status.NOT_IMPLEMENTED, project.vcs + " is not supported!");

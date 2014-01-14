@@ -33,30 +33,24 @@ import controllers.UserApp;
 import controllers.annotation.IsCreatable;
 
 /**
- * 해당 프로젝트가 존재하는지 체크하고 사용자가 resource type별 생성권한이 있는지 체크한다.
+ * 1. 프로젝트가 존재하는지 확인한다.
+ * 2. 프로젝트에 특정 타입의 리소스를 생성할 수 있는지 확인한다.
  *
- * @author Wansoon Park, Keesun Beak
- *
+ * @author Wansoon Park, Keesun Baik
+ * @see {@link controllers.annotation.IsCreatable}
  */
 public class IsCreatableAction extends Action<IsCreatable> {
 
     @Override
     public Result call(Context context) throws Throwable {
-        String path = context._requestHeader().path();
-
-        play.Configuration config = play.Configuration.root();
-        String contextPath = config.getString("application.context");
-
-        PathParser parser = new PathParser(contextPath, path);
-
+        PathParser parser = new PathParser(context);
         String ownerLoginId = parser.getOwnerLoginId();
         String projectName = parser.getProjectName();
 
         Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
 
         if (project == null) {
-            return AccessLogger.log(context.request()
-                    , notFound(ErrorViews.NotFound.render("No project matches given parameters '" + ownerLoginId + "' and project_name '" + projectName + "'"))
+            return AccessLogger.log(context.request(), notFound(ErrorViews.NotFound.render("error.notfound.project"))
                     , null);
         }
 

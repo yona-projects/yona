@@ -5,7 +5,7 @@
  * http://yobi.io
  *
  * @Author Wansoon Park
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,14 +20,8 @@
  */
 package actions.support;
 
-import org.junit.Before;
 import org.junit.*;
 
-import play.mvc.*;
-import play.test.*;
-import play.libs.F.*;
-
-import static play.test.Helpers.*;
 import static org.fest.assertions.Assertions.*;
 
 
@@ -38,24 +32,24 @@ public class PathParserTest {
     @Test
     public void testPathParser() {
         String path = "/yobi/yobiProject/pullRequest/1";
-        
+
         pathParser = new PathParser(path);
-        
+
         assertThat(pathParser.getOwnerLoginId()).isEqualTo("yobi");
         assertThat(pathParser.getProjectName()).isEqualTo("yobiProject");
-        assertThat(pathParser.getPullRequestNumber()).isEqualTo(1);
+        assertThat(pathParser.getPathSegment(3)).isEqualTo("1");
     }
-    
+
     @Test
     public void testPathParserIncludeContext() {
         String path = "/yobi/yobiProject/pullRequest/1";
         String context = "/test";
 
         pathParser = new PathParser(context, path);
-        
+
         assertThat(pathParser.getOwnerLoginId()).isEqualTo("yobi");
         assertThat(pathParser.getProjectName()).isEqualTo("yobiProject");
-        assertThat(pathParser.getPullRequestNumber()).isEqualTo(1);
+        assertThat(pathParser.getPathSegment(3)).isEqualTo("1");
 
     }
 }

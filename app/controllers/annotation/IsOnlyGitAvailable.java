@@ -4,8 +4,8 @@
  * Copyright 2013 NAVER Corp.
  * http://yobi.io
  *
- * @Author Wansoon Park, Keesun Baek
- * 
+ * @Author Keesun Baik
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,23 +20,25 @@
  */
 package controllers.annotation;
 
+import actions.IsOnlyGitAvailableAction;
+import play.mvc.With;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import models.enumeration.Operation;
-import play.mvc.With;
-import actions.PullRequestCheckAction;
-
 /**
- * {@code PullRequest}의 {@code Operation} 권한을 체크한다.
- * @author Wansoon Park, Keesun Beak
+ * /{user.loginId}/{project.name}/** 에 해당하는 URL에 적용할 수 있는 Git 프로젝트 확인용 애노테이션.
+ * - URL 패턴에 대응하는 프로젝트가 있는 확인하다. 없으면 404 Not Found.
+ * - 접근하려는 프로젝트가 Git 프로젝트인지 확인한다. Git 프로젝트가 아니면 400 BadRequest.
  *
+ * @author Keesun Baik
+ * @see {@link actions.IsOnlyGitAvailableAction}
  */
-@With(PullRequestCheckAction.class)
+@With(IsOnlyGitAvailableAction.class)
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface PullRequestAccess {
-    Operation value();
+public @interface IsOnlyGitAvailable {
+
 }
