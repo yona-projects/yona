@@ -17,6 +17,7 @@ import models.enumeration.ResourceType;
 
 import org.codehaus.jackson.JsonNode;
 
+import org.h2.util.StringUtils;
 import play.Logger;
 import play.api.http.MediaRange;
 import play.mvc.Controller;
@@ -122,6 +123,9 @@ public class AttachmentApp extends Controller {
      */
     public static Result getFile(Long id) throws IOException {
         Attachment attachment = Attachment.find.byId(id);
+        String action = HttpUtil.getFirstValueFromQuery(request().queryString(), "action");
+        String dispositionType = StringUtils.equals(action, "download") ? "attachment" : "inline";
+        String eTag = attachment.hash + "-" + dispositionType;
 
         if (attachment == null) {
             return notFound();
@@ -132,7 +136,7 @@ public class AttachmentApp extends Controller {
         }
 
         String ifNoneMatchValue = request().getHeader("If-None-Match");
-        if(ifNoneMatchValue != null && ifNoneMatchValue.equals(attachment.hash)) {
+        if(ifNoneMatchValue != null && ifNoneMatchValue.equals(eTag)) {
             return status(NOT_MODIFIED);
         }
 
@@ -141,8 +145,8 @@ public class AttachmentApp extends Controller {
         String filename = HttpUtil.encodeContentDisposition(attachment.name);
 
         response().setHeader("Content-Type", attachment.mimeType);
-        response().setHeader("Content-Disposition", "attachment; " + filename);
-        response().setHeader("ETag", attachment.hash);
+        response().setHeader("Content-Disposition", dispositionType + "; " + filename);
+        response().setHeader("ETag", eTag);
 
         return ok(file);
     }
