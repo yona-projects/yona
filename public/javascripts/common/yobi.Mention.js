@@ -35,7 +35,8 @@ yobi.Mention = function(htOptions) {
             "typeaheadOpts": {
                 "items": 15
             },
-            "users": []
+            "users": [],
+            "queryBy": ["username"]
         };
     }
 
