@@ -9,6 +9,13 @@ import java.net.*;
 import java.util.*;
 
 public class HttpUtil {
+    /**
+     * QueryString 에서 지정한 name 에 해당하는 값 중 가장 먼저 존재하는 값을 반환한다
+     * 예를 들어 key=value1&key=value2 라는 문자열일 때 key 의 값은 value1 을 반환
+     * @param query
+     * @param name
+     * @return
+     */
     public static String getFirstValueFromQuery(Map<String, String[]> query, String name) {
         String[] values = query.get(name);
 
@@ -19,10 +26,17 @@ public class HttpUtil {
         }
     }
 
+    /**
+     * Encode the filename with RFC 2231; IE 8 or less, and Safari 5 or less
+     * are not supported.
+     *
+     * @param filename
+     * @return
+     * @throws UnsupportedEncodingException
+     * @see http://greenbytes.de/tech/tc2231/
+     */
     public static String encodeContentDisposition(String filename)
             throws UnsupportedEncodingException {
-        // Encode the filename with RFC 2231; IE 8 or less, and Safari 5 or less
-        // are not supported. See http://greenbytes.de/tech/tc2231/
         filename = filename.replaceAll("[:\\x5c\\/{?]", "_");
         filename = URLEncoder.encode(filename, "UTF-8").replaceAll("\\+", "%20");
         filename = "filename*=UTF-8''" + filename;
