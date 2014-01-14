@@ -159,7 +159,7 @@ public class PullRequestTest extends ModelTest<PullRequest> {
         Project project = pullRequest.toProject;
 
         // When & Then
-        assertThat(pullRequest.getRequiredReviewerCount()).isEqualTo(project.defaultReviewPoint);
+        assertThat(pullRequest.getRequiredReviewerCount()).isEqualTo(project.defaultReviewerCount);
         assertThat(pullRequest.getRequiredReviewerCount()).isEqualTo(1);
         assertThat(pullRequest.isReviewed()).isFalse();
 
