@@ -273,6 +273,11 @@ public class Issue extends AbstractPosting implements LabelOwner {
             public ResourceType getType() {
                 return resourceType;
             }
+
+            @Override
+            public Long getAuthorId() {
+                return authorId;
+            }
         };
     }
 
