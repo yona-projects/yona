@@ -57,16 +57,16 @@
     }
 
 	@if(notices != null && notices.size > 0) {
-    <div class="notice-wrap bubble-wrap gray">
-		<ul class="board-list unstyled">
-		@for(post <- notices) {
-            @partial_list(post, project)
-		}
-        </ul>
-	</div>
+   
+	<ul class="post-list-wrap notice-wrap">
+	@for(post <- notices) {
+        @partial_list(post, project)
+	}
+    </ul>
+	
 	}
 
-	<ul class="board-list unstyled">
+	<ul class="post-list-wrap">
 	@for(post <- page.getList()){
         @partial_list(post, project)
     }

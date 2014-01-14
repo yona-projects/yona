@@ -1,27 +1,39 @@
 @(post:models.Posting, project:Project)
-<li class="board">
-    <div class="board-id">
-        <a href="@routes.BoardApp.post(project.owner, project.name, post.getNumber)">@post.getNumber</a>
+
+@import utils.TemplateHelper._
+@defining(User.findByLoginId(post.authorLoginId)){ user =>
+<li class="post-item">
+    <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap mlarge" data-toggle="tooltip" data-placement="top" title="@user.loginId">
+        @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){
+            <img src="@urlToPicture(user.email, 32)">       
+        } else {
+            <img src="@user.avatarUrl" alt="@user.name" width="32" height="32"/>
+        } 
+    </a>
+    <div class="title-wrap">
+        <span class="post-id">@post.getNumber</span>
+        @if(post.notice == true){<span class="label label-notice">@Messages("post.notice")</span>&nbsp;}
+        <a href="@routes.BoardApp.post(project.owner, project.name, post.getNumber)" class="title">
+            @post.title
+        </a>
     </div>
-    <div class="author-avatar-space">
-        <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="avatar-wrap img-rounded"><!--
-        --><img src="@User.findByLoginId(post.authorLoginId).avatarUrl" alt="@post.authorName"></a>
-    </div>
-    <div class="contents">
-        <p class="title">
-            <a href="@routes.BoardApp.post(project.owner, project.name, post.getNumber)">
-                @if(post.notice == true){<span class="label label-notice">@Messages("post.notice")</span>&nbsp;}
-                @post.title
+    <div class="infos">
+        @if(user.name){
+            <a href="@routes.UserApp.userInfo(user.loginId)" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="top" title="@user.loginId">
+                @user.name
             </a>
-        </p>
-        <p class="infos nm">
-            <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author">@post.authorName</a><!--
-            -->&nbsp;<span class="date">@utils.TemplateHelper.agoString(post.ago())</span>
-            @if(post.numOfComments > 0){
-             <a href="@routes.BoardApp.post(project.owner, project.name, post.getNumber)#comments" class="comment-wrap">
-                <i class="yobicon-comments"></i> <span class="num">@post.numOfComments</span>
+        } else {
+            <span class="infos-item">@Messages("issue.noAuthor")</span>
+        }
+
+        <span class="infos-item">@agoString(post.ago)</span>
+
+        @if(post.numOfComments >0){
+            <a href="@routes.BoardApp.post(project.owner, project.name, post.getNumber)#comments" class="infos-item infos-icon-link">
+                <i class="yobicon-comments"></i>
+                <span class="size">@post.numOfComments</span>
             </a>
-            }
-        </p>
-    </div>
+        }
+    </div>    
 </li>
+}

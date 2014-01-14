@@ -5,72 +5,77 @@
 
 @urlToList = {@routes.IssueApp.issues(project.owner, project.name, searchCondition.state, "html", pageIndex + 1)}
 
-@makeLabelLink(project:Project, searchCondition:models.support.SearchCondition, label:IssueLabel) = {
-    <a href="#" class="label issue-label list-label" data-labelId="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>
-}
-
 @issueLabels(issue:Issue) = {@for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {@label.category,@label.id,@label.name|}}
 
+<ul class="post-list-wrap">
 @for(issue <- issueList){
-<div class="row-fluid issue-item" id="issue-item-@issue.id">
-    <div class="span9">
-        @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
-        <label for="issue-@issue.id" class="mass-update-check pull-left">
-            <input id="issue-@issue.id" type="checkbox" name="checked-issue" data-toggle="issue-checkbox" data-issue-id="@issue.id" data-issue-labels="@issueLabels(issue)">
-        </label>
-        }
-        @**<!--<a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="avatar-wrap mlarge pull-left">
-            <img src="@User.findByLoginId(issue.authorLoginId).avatarUrl" alt="@issue.authorName">
-        </a>-->**@
-        <label for="issue-@issue.id">
-            <div class="title">
-                <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)" class="title-link">
-                    <strong class="issue-id">#@issue.getNumber</strong>
-                    @issue.title
+    @defining(User.findByLoginId(issue.authorLoginId)){ user =>
+    <li class="post-item" id="issue-item-@issue.id">
+        <div class="span9">
+            @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
+            <label for="issue-@issue.id" class="mass-update-check">
+                <input id="issue-@issue.id" type="checkbox" name="checked-issue" data-toggle="issue-checkbox" data-issue-id="@issue.id" data-issue-labels="@issueLabels(issue)">
+            </label>
+            }
+            <label for="issue-@issue.id" class="issue-item-row">
+                <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap mlarge" data-toggle="tooltip" data-placement="top" title="@user.loginId">
+                    @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){
+                        <img src="@urlToPicture(user.email, 32)">       
+                    } else {
+                        <img src="@user.avatarUrl" alt="@user.name" width="32" height="32"/>
+                    } 
                 </a>
-            </div>
-            <div class="infos nm">
-                @if(issue.authorName){
-                    <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="author" data-toggle="tooltip" data-placement="top" title="@issue.authorName">@issue.authorLoginId</a>
-                } else {
-                    <span class="gray-txt">@Messages("issue.noAuthor")</span>
-                }
-
-                <span class="date ml10">@agoString(issue.ago)</span>
-
-                @if(issue.comments.size()>0){
-                    <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)#comments" class="comment-wrap">
-                        <i class="icon yobicon-comments"></i><span class="num">@issue.comments.size()</span>
+                <div class="title-wrap">
+                    <span class="post-id">#@issue.getNumber</span>
+                    <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)" class="title">
+                        @issue.title
                     </a>
-                }
-                <div class="lb ml10">
-                @for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
-                    @makeLabelLink(project, searchCondition, label)
-                }
                 </div>
+                <div class="infos">
+                    @if(user.name){
+                        <a href="@routes.UserApp.userInfo(user.loginId)" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="top" title="@user.loginId">
+                            @user.name
+                        </a>
+                    } else {
+                        <span class="infos-item">@Messages("issue.noAuthor")</span>
+                    }
+
+                    <span class="infos-item">@agoString(issue.ago)</span>
+
+                    @if(issue.comments.size()>0){
+                        <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)#comments" class="infos-item infos-icon-link">
+                            <i class="yobicon-comments"></i>
+                            <span class="size">@issue.comments.size()</span>
+                        </a>
+                    }
+                    @for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
+                        <a href="#" class="label issue-label list-label" data-labelId="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>
+                    }
+                </div>
+            </label>
+        </div>
+        <div class="span3">
+            <div class="mt5 pull-right">
+                @if(issue.assigneeName != null) {
+                    <a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)" class="avatar-wrap assinee" data-toggle="tooltip" data-placement="top" title="@Messages("issue.assignee"): @issue.assigneeName">
+                        <img src="@issue.assignee.user.avatarUrl" width="32" height="32" alt="@issue.assigneeName">
+                    </a>
+                } else {
+                   <div class="empty-avatar-wrap">&nbsp;</div>
+                }
             </div>
-        </label>
-    </div>
-
-    <div class="span3 mt4">
-        <div class="empty-avatar-space pull-right">
-            @if(issue.assigneeName != null) {
-                <a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)" class="avatar-wrap img-rounded " data-toggle="tooltip" data-placement="top" title="@Messages("issue.assignee"): @issue.assigneeName">
-                    <img src="@issue.assignee.user.avatarUrl" width="32" height="32" alt="@issue.assigneeName">
-                </a>
-            } else {
-               &nbsp;
-            }
+            <div class="pull-right">
+                @if(issue.milestone != null) {
+                    <div class="mileston-tag">
+                        <a href="@routes.MilestoneApp.milestone(project.owner, project.name, issue.milestone.id)" data-toggle="tooltip" data-placement="top" title="@Messages("milestone")">
+                        @issue.milestone.title
+                    </a>
+                    </div>
+                }
+            </div>
         </div>
-
-        <div class="mileston-tag pull-right">
-            @**<!--@Messages("issue.state." + issue.state.toString.toLowerCase)-->**@
-            @if(issue.milestone != null) {
-                <a href="@routes.MilestoneApp.milestone(project.owner, project.name, issue.milestone.id)" data-toggle="tooltip" data-placement="top" title="@Messages("milestone")">
-                    <span class="milestone-title">@issue.milestone.title</span>
-                </a>
-            }
-        </div>
-    </div>
-</div>
+    </li>
+    }
 }
+</ul>
+

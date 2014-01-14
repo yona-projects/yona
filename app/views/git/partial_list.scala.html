@@ -4,75 +4,60 @@
 @branchName(branch:String) = @{
     branch.replace("refs/heads/", "")
 }
-
+<ul class="post-list-wrap">
 @if(page.getList().size()> 0){
     @for(req <- page.getList().iterator()) {
-        <div class="row-fluid issue-item @if(req.isConflict == true) {conflict}">
+    @defining(User.findByLoginId(req.contributor.loginId)){ user =>
+        <li class="post-item">
             <div class="span10">
-                <div class="num pull-left number-id">
-                    <a href="@routes.PullRequestApp.pullRequest(req.toProject.owner, req.toProject.name, req.number)">
-                        <string class="pullrequest-id">#@req.number</string>
+                <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap mlarge" data-toggle="tooltip" data-placement="top" title="@user.loginId">
+                    @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){
+                        <img src="@urlToPicture(user.email, 32)">       
+                    } else {
+                        <img src="@user.avatarUrl" alt="@user.name" width="32" height="32"/>
+                    } 
+                </a>
+                <div class="title-wrap">
+                    <span class="post-id">@req.getNumber</span>
+                    <a href="@routes.PullRequestApp.pullRequest(req.toProject.owner, req.toProject.name, req.number)" class="title @if(req.isConflict == true) {conflict}">
+                        @req.title
                     </a>
                 </div>
-                <a href="@routes.UserApp.userInfo(req.contributor.loginId)" class="avatar-wrap mlarge pull-left ml10 mt5">
-                    <img src="@req.contributor.avatarUrl" alt="@req.contributor.name">
-                </a>
-                <label>
-                    <div class="title">
-                        <a href="@routes.PullRequestApp.pullRequest(req.toProject.owner, req.toProject.name, req.number)" class="title-link">@req.title</a>
-                    </div>
-                    <div class="infos nm">
-                        <a href="@routes.UserApp.userInfo(req.contributor.loginId)" class="author">@req.contributor.name</a>
-                        <span class="date ml10">@agoString(req.createdAgo())</span>
-                        @defining(req.comments.size + CommitComment.countByCommits(req.fromProject, req.pullRequestCommits)) { count =>
-                            @if(count > 0) {
-                            <a href="@routes.PullRequestApp.pullRequest(req.toProject.owner, req.toProject.name, req.number)#comments" class="comment-wrap">
-                                <i class="icon yobicon-comments"></i>
-                                <span class="num">@count</span>
+                <div class="infos">
+                    @if(user.name){
+                        <a href="@routes.UserApp.userInfo(user.loginId)" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="top" title="@user.loginId">
+                            @user.name
+                        </a>
+                    } else {
+                        <span class="infos-item">@Messages("issue.noAuthor")</span>
+                    }
+                    <span class="infos-item">@agoString(req.createdAgo())</span>
+                    @defining(req.comments.size + CommitComment.countByCommits(req.fromProject, req.pullRequestCommits)) { count =>
+                        @if(count > 0) {
+                            <a href="@routes.PullRequestApp.pullRequest(req.toProject.owner, req.toProject.name, req.number)#comments" class="infos-item infos-icon-link">
+                                <i class="yobicon-comments"></i>
+                                <span class="size">@count</span>
                             </a>
-                            }
                         }
-                        <div class="pullRequest-branch ml20">
-                            <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.from")">
-                                <code class="from">
-                                    <i class="yobicon-branch"></i>
-                                    @if(!project.owner.equals(req.fromProject.owner) || !project.name.equals(req.fromProject.name)) {
-                                    <a href="@routes.UserApp.userInfo(req.fromProject.owner)">@req.fromProject.owner</a>/<!--
-                                 --><a href="@routes.ProjectApp.project(req.fromProject.owner, req.fromProject.name)">@req.fromProject.name</a>:
-                                    }
-                                    @branchName(req.fromBranch)
-                                </code>
-                            </span>
-                            <i class="yobicon-right ml10"></i>
-                            <span class="ml10" data-toggle="tooltip" data-original-title="@Messages("pullRequest.to")">
-                                <code class="to">
-                                    <i class="yobicon-branch"></i>
-                                    @if(!project.owner.equals(req.toProject.owner) || !project.name.equals(req.toProject.name)) {
-                                    <a href="@routes.UserApp.userInfo(req.toProject.owner)">@req.toProject.owner</a>/<!--
-                                 --><a href="@routes.ProjectApp.project(req.toProject.owner, req.toProject.name)">@req.toProject.name</a>:
-                                    }
-                                    @branchName(req.toBranch)
-                                </code>
-                            </span>
-                        </div>
-                    </div>
-                </label>
+                    }
+                </div>
             </div>
             <div class="span2">
-                <div class="empty-avatar-space pull-right">
+                <div class="mt5 pull-right">
                     @if(req.receiver != null) {
-                        <a href="@routes.UserApp.userInfo(req.receiver.loginId)" class="avatar-wrap img-rounded" data-toggle="tooltip" data-placement="top" title="" data-original-title="@req.receiver.name">
+                        <a href="@routes.UserApp.userInfo(req.receiver.loginId)" class="avatar-wrap assinee" data-toggle="tooltip" data-placement="top" title="" data-original-title="@req.receiver.name">
                             <img src="@req.receiver.avatarUrl" width="32" height="32" alt="@req.receiver.name">
                         </a>
                     } else {
-                        &nbsp;
+                        <div class="empty-avatar-wrap">&nbsp;</div>
                     }
                 </div>
                 <div class="state @if(req.isConflict == true) {conflict} else { @req.state.toString.toLowerCase} pull-right">@if(req.isConflict == true) {@Messages("pullRequest.state.conflict")} else {@Messages("pullRequest.state." + req.state.toString.toLowerCase)}</div>
             </div>
-        </div>
+        </li>
     }
-    <div id="pagination"><!-- pagination.js will fill here. --></div>
+    }
+    <div id="pagination"></div>
 } else {
 <div class="row-fluid">
     <ul class="thumbnails">
@@ -106,6 +91,7 @@
     </ul>
 </div>
 }
+</ul>
 
 <script type="text/javascript">
     $(function(){
