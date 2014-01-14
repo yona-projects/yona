@@ -243,7 +243,7 @@ public class NotificationEvent extends Model {
         NotificationEvent notiEvent = createFrom(sender, pullRequest);
         notiEvent.title = formatNewTitle(pullRequest);;
         notiEvent.urlToView = urlToView;
-        notiEvent.receivers = getReceivers(sender, pullRequest);
+        notiEvent.receivers = getReceiversWithRelatedAuthors(sender, pullRequest);
         notiEvent.eventType = EventType.NEW_PULL_REQUEST;
         notiEvent.oldValue = null;
         notiEvent.newValue = pullRequest.body;
@@ -289,7 +289,7 @@ public class NotificationEvent extends Model {
         NotificationEvent notiEvent = createFrom(sender, pullRequest);
         notiEvent.title = formatReplyTitle(pullRequest);
         notiEvent.urlToView = urlToView(pullRequest);
-        notiEvent.receivers = getReceivers(sender, pullRequest);
+        notiEvent.receivers = state == State.MERGED ? getReceiversWithRelatedAuthors(sender, pullRequest) : getReceivers(sender, pullRequest);
         notiEvent.eventType = EventType.PULL_REQUEST_MERGED;
         notiEvent.newValue = state.state();
         if (conflicts != null) {
@@ -347,7 +347,6 @@ public class NotificationEvent extends Model {
      */
     public static void afterNewComment(Comment comment, String urlToView) {
         AbstractPosting post = comment.getParent();
-
 
         NotificationEvent notiEvent = createFromCurrentUser(comment);
         notiEvent.title = formatReplyTitle(post);
@@ -642,9 +641,20 @@ public class NotificationEvent extends Model {
     }
 
     private static Set<User> getReceivers(User sender, PullRequest pullRequest) {
+        Set<User> watchers = getDefaultReceivers(pullRequest);
+        watchers.remove(sender);
+        return watchers;
+    }
+
+    private static Set<User> getDefaultReceivers(PullRequest pullRequest) {
         Set<User> watchers = pullRequest.getWatchers();
         watchers.addAll(getMentionedUsers(pullRequest.body));
-        watchers.addAll(GitRepository.getRelatedAuthors(pullRequest));
+        return watchers;
+    }
+
+    private static Set<User> getReceiversWithRelatedAuthors(User sender, PullRequest pullRequest) {
+        Set<User> watchers = getDefaultReceivers(pullRequest);
+        watchers.addAll(pullRequest.relatedAuthors);
         watchers.remove(sender);
         return watchers;
     }

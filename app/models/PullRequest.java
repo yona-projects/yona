@@ -159,10 +159,18 @@ public class PullRequest extends Model implements ResourceConvertible {
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
         name = "pull_request_reviewers",
-        joinColumns = @JoinColumn(name = "pull_request_id", referencedColumnName = "id"),
-        inverseJoinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id")
+        joinColumns = @JoinColumn(name = "pull_request_id"),
+        inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     public List<User> reviewers = new ArrayList<>();
+
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(
+        name = "pull_request_related_authors",
+        joinColumns = @JoinColumn(name = "pull_request_id"),
+        inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    public Set<User> relatedAuthors = new HashSet<>();
 
     public static PullRequest createNewPullRequest(Project fromProject, Project toProject, String fromBranch, String toBranch) {
         PullRequest pullRequest = new PullRequest();
@@ -399,6 +407,9 @@ public class PullRequest extends Model implements ResourceConvertible {
 
                 // 코드를 보낸 브랜치(fromBranch)의 코드를 merge 한다.
                 mergeResult = GitRepository.merge(cloneRepository, cloneAndFetch.getDestFromBranchName());
+
+                // 코드 보내기에서 변경한 코드의 원작자를 설정한다.
+                pullRequest.relatedAuthors = GitRepository.getRelatedAuthors(cloneAndFetch);
 
                 if (mergeResult.getMergeStatus().isSuccessful()) {
                     // merge 커밋 메시지 수정
@@ -813,6 +824,8 @@ public class PullRequest extends Model implements ResourceConvertible {
                 for (GitCommit gitCommit : commitList) {
                     commits.add(gitCommit);
                 }
+
+                pullRequest.relatedAuthors = GitRepository.getRelatedAuthors(cloneAndFetch);
 
                 GitRepository.checkout(clonedRepository, cloneAndFetch.getDestToBranchName());
 

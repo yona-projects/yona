@@ -886,67 +886,56 @@ public class GitRepository implements PlayRepository {
     }
 
     /**
-     * {@code pullRequest} 에 의해서 변경되는 코드의 원작자들을 얻는다.
+     * {@code cloneAndFetch} 에서 변경되는 코드의 원작자들을 얻는다.
+     *
      * 원작자는 변경된 line 을 마지막으로 수정한 사람의 email 을 이용해서
      * yobi 사용자를 찾은 결과이다.
      *
-     * @param pullRequest
+     * @param cloneAndFetch
      * @return
-     * @see playRepository.GitCommit#getAuthor()
+     * @throws IOException
+     * @throws GitAPIException
      */
-    public static Set<User> getRelatedAuthors(PullRequest pullRequest) {
-        final Set<User> authors = new HashSet<>();
-        cloneAndFetch(pullRequest, new AfterCloneAndFetchOperation() {
-            @Override
-            public void invoke(CloneAndFetch cloneAndFetch) throws IOException,
-                    GitAPIException {
-                Repository repository = cloneAndFetch.getRepository();
-                List<RevCommit> commits = diffRevCommits(repository,
-                        cloneAndFetch.destFromBranchName,
-                        cloneAndFetch.destToBranchName);
-                for (RevCommit revCommit: commits) {
-                    findAuthors(revCommit, repository);
-                }
-            }
+    public static Set<User> getRelatedAuthors(CloneAndFetch cloneAndFetch) throws IOException, GitAPIException {
+        Set<User> authors = new HashSet<>();
+        Repository repo = cloneAndFetch.getRepository();
+        List<RevCommit> commits = diffRevCommits(repo, cloneAndFetch.getDestFromBranchName(), cloneAndFetch.getDestToBranchName());
+        for (RevCommit revCommit: commits) {
+            findAuthors(revCommit, repo, authors);
+        }
+        return authors;
+    }
 
-            /*
-             * 하나의 commit 과 그것의 parent commit 들을 비교해서 변경되는 부분을 구하고
-             * 변경된 부분의 이전 author 들을 찾는다.
-             */
-            private void findAuthors(RevCommit commit, Repository repository)
-                    throws IOException, GitAPIException {
-                RevCommit[] parents = commit.getParents();
-                for (RevCommit parent : parents) {
-                    TreeWalk treeWalk = new TreeWalk(repository);
-                    treeWalk.setRecursive(true);
-                    treeWalk.addTree(parent.getTree());
-                    treeWalk.addTree(commit.getTree());
-                    List<DiffEntry> diffs = DiffEntry.scan(treeWalk);
-                    for (DiffEntry diff : diffs) {
-                        DiffFormatter diffFormatter = new DiffFormatter(NullOutputStream.INSTANCE);
-                        diffFormatter.setRepository(repository);
-                        FileHeader fileHeader = diffFormatter.toFileHeader(diff);
-                        EditList edits = fileHeader.toEditList();
-                        BlameResult blameResult = new Git(repository).blame()
-                                .setFilePath(diff.getOldPath())
-                                .setFollowFileRenames(true)
-                                .setStartCommit(parent).call();
-                        for (Edit edit : edits) {
-                            if (edit.getType() != Type.INSERT && edit.getType() != Type.EMPTY) {
-                                for (int i = edit.getBeginA(); i < edit.getEndA(); i++) {
-                                    PersonIdent personIdent = blameResult.getSourceAuthor(i);
-                                    if (personIdent != null) {
-                                        authors.add(User.findByEmail(personIdent.getEmailAddress()));
-                                    }
-                                }
+    private static void findAuthors(RevCommit commit, Repository repository, Set<User> authors) throws IOException, GitAPIException {
+        RevCommit[] parents = commit.getParents();
+        for (RevCommit parent : parents) {
+            TreeWalk treeWalk = new TreeWalk(repository);
+            treeWalk.setRecursive(true);
+            treeWalk.addTree(parent.getTree());
+            treeWalk.addTree(commit.getTree());
+            List<DiffEntry> diffs = DiffEntry.scan(treeWalk);
+            for (DiffEntry diff : diffs) {
+                DiffFormatter diffFormatter = new DiffFormatter(NullOutputStream.INSTANCE);
+                diffFormatter.setRepository(repository);
+                FileHeader fileHeader = diffFormatter.toFileHeader(diff);
+                EditList edits = fileHeader.toEditList();
+                BlameResult blameResult = new Git(repository).blame()
+                        .setFilePath(diff.getOldPath())
+                        .setFollowFileRenames(true)
+                        .setStartCommit(parent).call();
+                for (Edit edit : edits) {
+                    if (edit.getType() != Type.INSERT && edit.getType() != Type.EMPTY) {
+                        for (int i = edit.getBeginA(); i < edit.getEndA(); i++) {
+                            PersonIdent personIdent = blameResult.getSourceAuthor(i);
+                            if (personIdent != null) {
+                                authors.add(User.findByCommitterEmail(personIdent.getEmailAddress()));
                             }
                         }
                     }
                 }
             }
-        });
+        }
         authors.remove(User.anonymous);
-        return authors;
     }
 
     /**
