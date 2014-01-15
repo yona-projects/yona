@@ -83,7 +83,7 @@
                 $(el).click(_onChangeSearchLabel);
             });
             
-            htElement.welFilter.each(function(i, el) {
+            if(htElement.welFilter) htElement.welFilter.each(function(i, el) {
                 $(el).click(_onClickSearchFilter);
             });
 

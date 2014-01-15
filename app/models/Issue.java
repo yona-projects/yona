@@ -173,6 +173,10 @@ public class Issue extends AbstractPosting implements LabelOwner {
         return cond.asExpressionList(Project.find.byId(projectId)).findRowCount();
     }
 
+
+    public static int countIssuesBy(SearchCondition cond) {
+        return cond.asExpressionList().findRowCount();
+    }
     /**
      * Generate a Microsoft Excel file in byte array from the given issue list,
      * using JXL.

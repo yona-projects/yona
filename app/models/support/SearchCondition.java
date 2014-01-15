@@ -25,6 +25,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
     public Long authorId;
 
     public Long assigneeId;
+    public Project project;
 
     public SearchCondition clone() {
         SearchCondition one = new SearchCondition();
@@ -109,16 +110,77 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
         commentedCheck = false;
     }
 
-    public ExpressionList<Issue> asExpressionList(Project project) {
-        ExpressionList<Issue> el = Issue.finder.where().eq("project.id", project.id);
+    /**
+     * 프로젝트 제한을 두지 않고 전체 이슈를 대상으로 검색할 때 사용한다.
+     *
+     * @return ExpressionList<Issue>
+     */
+    public ExpressionList<Issue> asExpressionList() {
+        ExpressionList<Issue> el = Issue.finder.where();
+
+        if (assigneeId != null) {
+            if (assigneeId.equals(User.anonymous.id)) {
+                el.isNull("assignee");
+            } else {
+                el.eq("assignee.user.id", assigneeId);
+            }
+        }
+
+        if (authorId != null) {
+            el.eq("authorId", authorId);
+        }
 
         if (StringUtils.isNotBlank(filter)) {
             Junction<Issue> junction = el.disjunction();
             junction.icontains("title", filter)
-            .icontains("body", filter);
+                    .icontains("body", filter);
             List<Object> ids = Issue.finder.where()
-                    .eq("project.id", project.id)
                     .icontains("comments.contents", filter).findIds();
+            if (!ids.isEmpty()) {
+                junction.idIn(ids);
+            }
+            junction.endJunction();
+        }
+
+        if (commentedCheck) {
+            el.ge("numOfComments", AbstractPosting.NUMBER_OF_ONE_MORE_COMMENTS);
+        }
+
+        State st = State.getValue(state);
+        if (st.equals(State.OPEN) || st.equals(State.CLOSED)) {
+            el.eq("state", st);
+        }
+
+        if (orderBy != null) {
+            el.orderBy(orderBy + " " + orderDir);
+        }
+
+        return el;
+    }
+
+    /**
+     * 특정 프로젝트를 대상으로 검색 표현식을 만든다.
+     *
+     * @return ExpressionList<Issue>
+     */
+    public ExpressionList<Issue> asExpressionList(Project project) {
+        ExpressionList<Issue> el = Issue.finder.where();
+        if( project != null ){
+            el.eq("project.id", project.id);
+        }
+        if (StringUtils.isNotBlank(filter)) {
+            Junction<Issue> junction = el.disjunction();
+            junction.icontains("title", filter)
+            .icontains("body", filter);
+            List<Object> ids = null;
+            if( project == null){
+                ids = Issue.finder.where()
+                        .icontains("comments.contents", filter).findIds();
+            } else {
+                ids = Issue.finder.where()
+                        .eq("project.id", project.id)
+                        .icontains("comments.contents", filter).findIds();
+            }
             if (!ids.isEmpty()) {
                 junction.idIn(ids);
             }

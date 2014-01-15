@@ -1,6 +1,7 @@
 package controllers;
 
 import actions.NullProjectCheckAction;
+import actions.AnonymousCheckAction;
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
 import controllers.annotation.IsAllowed;
@@ -33,6 +34,56 @@ import utils.HttpUtil;
 public class IssueApp extends AbstractPostingApp {
     private static final String EXCEL_EXT = "xls";
     private static final Integer ITEMS_PER_PAGE_MAX = 45;
+
+    /**
+     * 내 이슈 목록 조회
+     *
+     * <p>when: 자신의 이슈만 검색하고 싶을때</p>
+     *
+     * 입력된 검색 조건이 있다면 적용하고 페이징 처리된 목록을 보여준다.
+     *
+     * @param state 이슈 상태 (해결 / 미해결)
+     * @param format 요청 형식
+     * @param pageNum 페이지 번호
+     * @return
+     * @throws WriteException
+     * @throws IOException
+     */
+    @With(AnonymousCheckAction.class)
+    public static Result userIssues(String state, String format, int pageNum) throws WriteException, IOException {
+        Project project = null;
+        // SearchCondition from param
+        Form<models.support.SearchCondition> issueParamForm = new Form<>(models.support.SearchCondition.class);
+        models.support.SearchCondition searchCondition = issueParamForm.bindFromRequest().get();
+        if( searchCondition.assigneeId == null &&  searchCondition.authorId == null) {
+            searchCondition.assigneeId = UserApp.currentUser().id;
+        }
+        searchCondition.pageNum = pageNum - 1;
+
+        // determine pjax or json when requested with XHR
+        if (HttpUtil.isRequestedWithXHR(request())) {
+            format = HttpUtil.isPJAXRequest(request()) ? "pjax" : "json";
+        }
+
+        Integer itemsPerPage = getItemsPerPage();
+        ExpressionList<Issue> el = searchCondition.asExpressionList();
+        Page<Issue> issues = el.findPagingList(itemsPerPage).getPage(searchCondition.pageNum);
+
+        switch(format){
+            case EXCEL_EXT:
+                return issuesAsExcel(project, el);
+
+            case "pjax":
+                return issuesAsPjax(project, issues, searchCondition);
+
+            case "json":
+                return issuesAsJson(project, issues);
+
+            case "html":
+            default:
+                return issuesAsHTML(project, issues, searchCondition);
+        }
+    }
 
     /**
      * 이슈 목록 조회
@@ -117,7 +168,12 @@ public class IssueApp extends AbstractPostingApp {
      * @return
      */
     private static Result issuesAsHTML(Project project, Page<Issue> issues, models.support.SearchCondition searchCondition){
-        return ok(list.render("title.issueList", issues, searchCondition, project));
+        if(project == null){
+            return ok(my_list.render("title.issueList", issues, searchCondition, project));
+        } else {
+            return ok(list.render("title.issueList", issues, searchCondition, project));
+        }
+
     }
 
     /**
@@ -152,7 +208,12 @@ public class IssueApp extends AbstractPostingApp {
      */
     private static Result issuesAsPjax(Project project, Page<Issue> issues, models.support.SearchCondition searchCondition) {
         response().setHeader("Cache-Control", "no-cache, no-store");
-        return ok(partial_search.render("title.issueList", issues, searchCondition, project));
+        if (project == null) {
+            return ok(my_partial_search.render("title.issueList", issues, searchCondition, project));
+        } else {
+            return ok(partial_search.render("title.issueList", issues, searchCondition, project));
+        }
+
     }
 
     /**

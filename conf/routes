@@ -27,6 +27,7 @@ POST           /noti/toggle/:projectId/:notiType                                
 
 # User
 GET            /users                                                                 controllers.UserApp.users(query: String ?= "")
+GET            /user/issues                                                 controllers.IssueApp.userIssues(state:String ?= "", format:String ?= "html", pageNum: Int ?= 1)
 GET            /users/loginform                                                       controllers.UserApp.loginForm()
 POST           /users/login                                                           controllers.UserApp.login()
 GET            /users/logout                                                          controllers.UserApp.logout()
