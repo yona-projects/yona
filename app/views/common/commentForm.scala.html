@@ -21,27 +21,6 @@
             </div>
         </div>
     </form>
-    <script type="text/javascript">
-        $(document).ready(function(){
-            var welForm = $("#comment-form");
-            var welBtnSubmit = welForm.find("button[type=submit]");
-
-            welForm.on("submit", function(){
-                // set submit button as disabled
-                welBtnSubmit.attr("disabled", "disabled").addClass("ybtn-disabled");
-
-                // restore button if cancel submitting with ESC key
-                if(!welForm.data("cancelerAttached")){
-                    welForm.data("cancelerAttached", true);
-                    $(window).on("keydown", function(weEvt){
-                        if(weEvt.keyCode === 27){
-                            welBtnSubmit.removeAttr("disabled").removeClass("ybtn-disabled");
-                        }
-                    });
-                }
-            });
-        });
-    </script>
 
 } else {
 
@@ -49,7 +28,7 @@
         <div class="write-comment-wrap">
             <textarea class="text comment disabled" disabled="disabled">@Messages("error.auth.unauthorized.comment")</textarea>
             <div class="right-txt">
-                <button class="ybtn ybtn-success disabled" disabled="disabled">@Messages("button.comment.new")</button>
+                <button class="ybtn ybtn-disabled" disabled="disabled">@Messages("button.comment.new")</button>
             </div>
         </div>
     </div>
