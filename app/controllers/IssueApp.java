@@ -229,6 +229,8 @@ public class IssueApp extends AbstractPostingApp {
 
         Issue issueInfo = Issue.findByNumber(project, number);
 
+        response().setHeader("Vary", "Accept");
+
         if (issueInfo == null) {
             if (isXHR()){
                 ObjectNode result = Json.newObject();
