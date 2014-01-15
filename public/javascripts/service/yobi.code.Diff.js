@@ -230,7 +230,46 @@
                         yobi.CodeCommentBox.hide();
                     }
                 });
+
+                // block/unblock with thread range with mouseenter/leave event
+                var waCodeCommentThread = $('div[data-toggle="CodeCommentThread"]');
+                waCodeCommentThread.on({
+                    "mouseenter": _onMouseOverCodeCommentThread,
+                    "mouseleave": _onMouseLeaveCodeCommentThread
+                });
             }
+        }
+
+        /**
+         * On MouseEnter event fired from CodeCommentThread
+         * @param weEvt
+         * @private
+         */
+        function _onMouseOverCodeCommentThread(weEvt){
+            // only no mouse button clicked
+            if(weEvt.which !== 0){
+                return;
+            }
+
+            var welThread = $(weEvt.currentTarget);
+            var htBlockInfo = {
+                "sPath"       : welThread.data("range-path"),
+                "sStartSide"  : welThread.data("range-startside"),
+                "nStartLine"  : parseInt(welThread.data("range-startline"), 10),
+                "nStartColumn": parseInt(welThread.data("range-startcolumn"), 10),
+                "sEndSide"    : welThread.data("range-endside"),
+                "nEndLine"    : parseInt(welThread.data("range-endline"), 10),
+                "nEndColumn"  : parseInt(welThread.data("range-endcolumn"), 10)
+            };
+            yobi.CodeCommentBlock.block(htBlockInfo);
+        }
+
+        /**
+         * On MouseLeave event fired from CodeCommentThread
+         * @private
+         */
+        function _onMouseLeaveCodeCommentThread(){
+            yobi.CodeCommentBlock.unblock();
         }
 
         /**

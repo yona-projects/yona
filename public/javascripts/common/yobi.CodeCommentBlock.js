@@ -273,12 +273,11 @@ yobi.CodeCommentBlock = (function(){
      */
     function _getElementsByOffsetOptions(htOffset){
         var htResult = {};
-        var sContainerProp = htOffset.sPathA ? "[data-path-a='" + htOffset.sPathA + "']" :
-            (htOffset.sPathB ? "[data-path-b='" + htOffset.sPathB + "']" : "");
+        var sContainerProp = htOffset.sPath ? "[data-file-path='" + htOffset.sPath + "']": "";
         var sStartProp = [htOffset.nStartLine ? "[data-line=" + htOffset.nStartLine + "]": "",
-            htOffset.sStartType ? "[data-type=" + htOffset.sStartType + "]" : ""].join("");
+            htOffset.sStartSide ? "[data-side=" + htOffset.sStartSide + "]" : ""].join("");
         var sEndProp = [htOffset.nEndLine ? "[data-line=" + htOffset.nEndLine + "]": "",
-            htOffset.sEndType ? "[data-type=" + htOffset.sEndType + "]": ""].join("");
+            htOffset.sEndSide ? "[data-side=" + htOffset.sEndSide + "]": ""].join("");
         var welContainer = $("table.diff-container" + sContainerProp);
 
         htResult.welStartLine = welContainer.find("tr" + sStartProp);
