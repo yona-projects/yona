@@ -569,6 +569,7 @@ title.issueTracker = Issue Tracker
 title.keymap = Keyboard shortcuts
 title.login = Log in
 title.logout = Log out
+title.markdown.help = Markdown help
 title.mailSetting = Mail Configuration
 title.massMail = Send Massive Mail
 title.milestoneList = Milestone List

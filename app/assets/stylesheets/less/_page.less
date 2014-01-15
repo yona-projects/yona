@@ -2906,12 +2906,15 @@
 }
 
 div.markdown-preview {
-    font-size: 12px; width:99%; overflow-x:auto;
-    margin:0px; margin-bottom:9px;
+    font-size: 12px; 
+    overflow-x:auto;
+    margin:0px; 
+    margin-bottom:9px;
     vertical-align : middle;
     border:1px solid #ccc;
-    .border-radius(2px);
-    .inline-block;
+    padding:10px;
+    .border-radius(0 0 3px 3px);
+    
 }
 
 .write-comment-box {
@@ -2921,20 +2924,16 @@ div.markdown-preview {
     .write-comment-wrap {
         margin-bottom: 10px;
         position: relative;
-        div.markdown-preview {
-            .border-radius(2px 0 0 2px);
-        }
+        
         .disabled {
             resize:none;
         }
     }
 
     .comment {
-        width: 98.7%;/*795px;*/
         height: 80px;
         margin: 0;
         resize:vertical;
-        .border-radius(2px 0 0 2px);
         .box-shadow(none);
         &:focus {
             border: 1px solid @gray-cc;
@@ -4602,10 +4601,171 @@ div.markdown-preview {
 
 /*div#mode-select { text-align:right; }*/
 .pullreq-info { display:block; clear:both; padding-bottom:10px; margin-bottom:10px; }
+
+.go-zen {
+    position: absolute;
+    right: 8px;
+    margin-top: 14px;
+    z-index:999;
+}
+
+.textarea-box {
+    padding: 0; 
+    margin: 0; 
+    display: block;
+    padding-right: 14px;
+
+    textarea {
+        .border-radius(0 0 3px 3px);
+        width: 100%;
+        resize:vertical !important;
+    }
+}
+
 .markdown-help {
-  position: absolute;
-  margin-top: -1px;
-  right: 5px;
+    margin:5px 0 0;
+
+    .markdown-help-title {
+        background-color: #F7F7F7;
+        padding:0 10px;
+        display: inline-block;
+        line-height: 30px;
+        border:1px solid #ddd;
+        border-bottom: none;
+        .border-radius(3px 3px 0 0);
+
+    }
+
+    .markdown-help-nav {
+        list-style: none;
+        background-color: #F7F7F7;
+        border:1px solid #ddd;
+        border-bottom: none;
+        li {
+            display: inline-block;
+            padding:5px 10px;
+            line-height: 20px;
+            
+            .label {
+                background-color: #C7C9C9;
+            }
+
+            &.help-nav {
+                cursor: pointer;
+                position: relative;
+                color:#788ba7;
+
+                &:hover {
+                    color:#333;
+                }
+
+                &.active {
+                    color:#333;
+                    font-weight: bold;
+
+                    &:before {
+                        content: " ";
+                        position: absolute;
+                        bottom: 0;
+                        left: 50%;
+                        width: 0;
+                        height: 0;
+                        overflow: hidden;
+                        border: 7px solid transparent;
+                        border-style: outset outset solid outset;
+                        border-bottom-color: #ddd;
+                        margin-left: -7px;
+                    }
+
+                    &:after {
+                        content: " ";
+                        position: absolute;
+                        bottom: -1px;
+                        left: 50%;
+                        width: 0;
+                        height: 0;
+                        overflow: hidden;
+                        border: 7px solid transparent;
+                        border-style: outset outset solid outset;
+                        border-bottom-color: #FFF;
+                        margin-left: -7px;
+                    }
+                }
+            }
+        }
+    }  
+
+    .markdown-help-wrap {
+        list-style: none;
+        background-color: #FFF;
+
+        .markdown-help-item {
+            border-top:none;
+            height: 0;
+            overflow: hidden;
+
+            &.active {
+                border:1px solid #ddd;
+                border-top: none;
+                border-bottom: none;
+                height: auto;
+                padding:10px;
+
+            }
+
+            h3 {
+                padding:5px 0;
+                font-size:16px;
+                line-height: 30px;
+                font-weight: bold;
+            }
+
+            .thead {
+                background-color: #F7F7F7;
+                .border-radius(6px 6px 0 0);
+                border:1px solid #ddd;
+                border-bottom: none;
+
+                div {
+                    padding:0 10px;
+                    line-height: 30px;
+                    font-weight: bold;
+                }
+            }
+
+            .markdwon-syntax-wrap {
+                border:1px solid #ddd;
+
+                .markdwon-syntax {
+                    padding:10px;
+
+                    pre {
+                        padding:0;
+                        margin:0;
+                        background-color: transparent;
+                        border:none;
+                    }
+                }
+
+                .markdown-wrap {
+                    padding:5px 10px;
+
+                    h1,h2 {
+                        margin:15px 0;
+                    }
+
+                    img {
+                        margin: 0;
+                        padding: 0;
+                    }
+
+                    p {
+                        margin: 5px 0;
+                    }
+                }
+            }
+        }
+    }
 }
 
 .conflict-files {
