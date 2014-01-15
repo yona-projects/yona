@@ -62,7 +62,7 @@ public class AbstractPostingApp extends Controller {
         public Set<User> getReceivers();
         public String getMessage();
         public String getUrlToView();
-
+        public String getReference();
     }
 
     protected static abstract class AbstractNotification implements Notification {
@@ -108,7 +108,8 @@ public class AbstractPostingApp extends Controller {
 
     public static class NotificationFactory {
         public static Notification create(final User sender, final Set<User> receivers, final String title,
-                                          final String message, final String urlToView) {
+                                          final String message, final String urlToView,
+                                          final String reference) {
             return new AbstractNotification() {
                 public User getSender() {
                     return sender;
@@ -131,6 +132,9 @@ public class AbstractPostingApp extends Controller {
                 public String getUrlToView() {
                     return urlToView;
                 }
+
+                @Override
+                public String getReference() { return reference; }
             };
         }
     }
@@ -205,6 +209,8 @@ public class AbstractPostingApp extends Controller {
             email.setHtmlMsg(noti.getHtmlMessage());
             email.setTextMsg(noti.getPlainMessage());
             email.setCharset("utf-8");
+            email.addHeader("References",
+                    "<" + noti.getReference() + "@" + Config.getHostname() + ">");
             Mailer.send(email);
             String escapedTitle = email.getSubject().replace("\"", "\\\"");
             String logEntry = String.format("\"%s\" %s", escapedTitle, email.getBccAddresses());

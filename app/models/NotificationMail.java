@@ -81,7 +81,8 @@ public class NotificationMail extends Model {
                                             mail.notificationEvent.receivers,
                                             mail.notificationEvent.title,
                                             message,
-                                            Url.create(mail.notificationEvent.urlToView)
+                                            Url.create(mail.notificationEvent.urlToView),
+                                            Url.removeFragment(mail.notificationEvent.urlToView)
                                     ));
                         }
                         mail.delete();

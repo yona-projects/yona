@@ -36,6 +36,53 @@ public class Config {
         }
     }
 
+    /**
+     * 시스템의 기본 IP 주소를 알아낸다.
+     *
+     * @return
+     * @throws SocketException
+     * @throws UnknownHostException
+     */
+    private static InetAddress getDefaultAddress() throws SocketException, UnknownHostException {
+        Enumeration<NetworkInterface> n = NetworkInterface.getNetworkInterfaces();
+        while(n.hasMoreElements())  {
+            Enumeration<InetAddress> a = n.nextElement().getInetAddresses();
+            while(a.hasMoreElements()) {
+                InetAddress address = a.nextElement();
+                if (!address.isAnyLocalAddress() && (address instanceof Inet4Address)) {
+                    return address;
+                }
+            }
+        }
+        return InetAddress.getLocalHost();
+    }
+
+    /**
+     * 사용자의 설정에서 호스트이름을 얻는다.
+     *
+     * application.hostname 값을 읽어서 반환하되, 만약 그 값이 없다면 {@link #getDefaultAddress()}를
+     * 이용해 시스템의 기본 IP 주소를 알아낸 뒤, 그 주소에서 호스트이름을 알아내어 반환한다.
+     *
+     * @return 호스트이름
+     */
+    public static String getHostname() {
+        play.Configuration config = play.Configuration.root();
+
+        if (config != null) {
+            String hostname = play.Configuration.root().getString("application.hostname");
+            if (hostname != null && !hostname.isEmpty()) {
+                return hostname;
+            }
+        }
+
+        try {
+            return getDefaultAddress().getHostName();
+        } catch (Exception e) {
+            play.Logger.warn("Failed to get the hostname", e);
+            return "localhost";
+        }
+    }
+
     public static String getHostport() {
         Http.Context context = Http.Context.current.get();
 
@@ -43,17 +90,7 @@ public class Config {
             return getHostport(context.request().host());
         } else {
             try {
-                Enumeration<NetworkInterface> n = NetworkInterface.getNetworkInterfaces();
-                while(n.hasMoreElements())  {
-                    Enumeration<InetAddress> a = n.nextElement().getInetAddresses();
-                    while(a.hasMoreElements()) {
-                        InetAddress address = a.nextElement();
-                        if (!address.isAnyLocalAddress() && (address instanceof Inet4Address)) {
-                            return address.getHostAddress();
-                        }
-                    }
-                }
-                return InetAddress.getLocalHost().getHostAddress();
+                return getDefaultAddress().getHostAddress();
             } catch (Exception e) {
                 play.Logger.warn("Failed to get the host address", e);
                 return "localhost";
