@@ -9,7 +9,13 @@ import java.net.*;
 import java.util.*;
 
 public class HttpUtil {
-
+    /**
+     * QueryString 에서 지정한 name 에 해당하는 값 중 가장 먼저 존재하는 값을 반환한다
+     * 예를 들어 key=value1&key=value2 라는 문자열일 때 key 의 값은 value1 을 반환
+     * @param query
+     * @param name
+     * @return
+     */
     public static String getFirstValueFromQuery(Map<String, String[]> query, String name) {
         String[] values = query.get(name);
 
@@ -20,16 +26,31 @@ public class HttpUtil {
         }
     }
 
+    /**
+     * Encode the filename with RFC 2231; IE 8 or less, and Safari 5 or less
+     * are not supported.
+     *
+     * @param filename
+     * @return
+     * @throws UnsupportedEncodingException
+     * @see http://greenbytes.de/tech/tc2231/
+     */
     public static String encodeContentDisposition(String filename)
             throws UnsupportedEncodingException {
-        // Encode the filename with RFC 2231; IE 8 or less, and Safari 5 or less
-        // are not supported. See http://greenbytes.de/tech/tc2231/
         filename = filename.replaceAll("[:\\x5c\\/{?]", "_");
         filename = URLEncoder.encode(filename, "UTF-8").replaceAll("\\+", "%20");
         filename = "filename*=UTF-8''" + filename;
         return filename;
     }
 
+    /**
+     * 주어진 Http.Request 의 acceptedTypes 와 두 번째 이후의 String ... types 를 비교하여
+     * 그 중 가장 선호되는 contentType 을 반환한다. 해당하는 형식이 존재하지 않으면 null 이 반환된다
+     *
+     * @param request
+     * @param types
+     * @return
+     */
     public static String getPreferType(Http.Request request, String ... types) {
         // acceptedTypes is sorted by preference.
         for(MediaRange range : request.acceptedTypes()) {
@@ -40,6 +61,17 @@ public class HttpUtil {
             }
         }
         return null;
+    }
+
+    /**
+     * getPreferType()을 이용하여 주어진 Http.Request 가
+     * application/json 을 가장 받기 원하는지(preferred) 여부를 반환한다
+     *
+     * @param request
+     * @return
+     */
+    public static Boolean isJSONPreferred(Http.Request request){
+        return getPreferType(request, "text/html", "application/json").equals("application/json");
     }
 
     /**
