@@ -1,11 +1,36 @@
 @(messageKey:String = "error.notfound")
 
-@siteLayout(Messages(messageKey), utils.MenuType.SITE_HOME) {
-<div class="project-page-wrap">
-    <div class="error-wrap">
-        <i class="ico-404"></i>
-        <p>@Messages(messageKey)</p>
-        <a href="@routes.Application.index()" class="ybtn ybtn-info">@Messages("menu.home")</a>
+@layout(Messages(messageKey))(""){
+    <header class="gnb-outer">
+        <div class="gnb-inner">
+            <a href="@routes.Application.index()" class="logo"><h1 class="blind">@Messages("app.name")</h1></a>
+            <ul class="gnb-nav">
+                <li>
+                    <a href="@routes.ProjectApp.projects()">@Messages("title.projectList")</a>
+                </li>
+                <li>
+                    <a href="@routes.HelpApp.help()">@Messages("title.help")</a>
+                </li>
+                <li>
+                    <a href="https://github.com/nforge/yobi/issues?state=open" target="_blank">@Messages("title.yobi.feedback")</a>
+                </li>
+            </ul>
+            @common.usermenu(null)
+        </div>
+    </header>
+
+    <div class="project-page-wrap">
+        <div class="error-wrap">
+            <i class="ico-404"></i>
+            <p>@Messages(messageKey)</p>
+            <a href="@routes.Application.index()" class="ybtn ybtn-info">@Messages("menu.home")</a>
+        </div>
     </div>
-</div>
+
+    <footer class="page-footer-outer">
+        <div class="page-footer">
+            <span class="provider">Copyright © <a href="http://navercorp.com/" target="_blank">NAVER Corp.</a> Supported by <a href="http://developer.naver.com/wiki/pages/techSupport" target="_blank" class="d2-program"><span class="d2">D2</span><span class="program"> Program</span></a></span>
+        </div>
+    </footer>
+    @common.alert()
 }
