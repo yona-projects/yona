@@ -2,30 +2,32 @@
 
 @siteMngLayout(message) {
 <div class="title_area">
-    <h2 class="fl">@Messages(message)</h2>
+    <h2 class="pull-left">@Messages(message)</h2>
 </div>
-
-<div>
-    <p>
-        <input id="mailtoAll" type="radio" name="mailingType" value="all">
-        <label for="mailtoAll" class="radio">@Messages("site.massMail.toAll")</label>
-    </p>
-    <p>
-        <input id="mailtoPrj" type="radio" name="mailingType" value="projects" checked>@Messages("site.massMail.toProjects"):
-        <label for="mailtoPrj" class="radio">
-            <span id="selected-projects"><!-- project names are added here by yobi.site.MassMail.js --></span>
-            <input id="input-project" type="text" class="text uname" data-provider="typeahead" autocomplete="off" placeholder="@Messages("project.name")"/>
-            <button id="select-project" type="submit" class="btn btn-primary" data-loading-text="@Messages("site.massMail.loading")">
+<div class="mess-mail-wrap">
+    <label class="radio" for="mailtoAll">
+        <input type="radio" name="mailingType" id="mailtoAll" value="all" checked="checked" data-toggle="mail-type" data-action="hide">
+        @Messages("site.massMail.toAll")
+    </label>
+    <label class="radio" for="mailtoPrj">
+        <input type="radio" name="mailingType" id="mailtoPrj" value="projects" data-toggle="mail-type" data-action="show">
+        @Messages("site.massMail.toProjects")
+    </label>
+    <div class="control-group hide" id="project-list-wrap">
+        <div class="controls">
+            <input id="input-project" type="text" class="span3" data-provider="typeahead" autocomplete="off" placeholder="@Messages("project.name")" />
+            <button id="select-project" type="submit" class="ybtn" data-loading-text="@Messages("site.massMail.loading")">
                 <strong>@Messages("button.add")</strong>
             </button>
-        </label>
-    </p>
+        </div>
+
+        <div id="selected-projects"></div>
+    </div>
+
+    <button id="write-email" type="submit" class="ybtn ybtn-primary">
+        <strong>@Messages("site.mail.write")</strong>
+    </button>
 </div>
-
-<button id="write-email" type="submit" class="btn btn-primary">
-    <strong>@Messages("site.mail.write")</strong>
-</button>
-
 <script type="text/javascript">
   $(document).ready(function(){
     $yobi.loadModule("site.MassMail", {

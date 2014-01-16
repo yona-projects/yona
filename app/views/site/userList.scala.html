@@ -1,117 +1,121 @@
-@(message: String, currentPage: com.avaje.ebean.Page[User])
+@(message: String, currentPage: com.avaje.ebean.Page[User], userState: UserState, query: String)
 
-@thead(title: String) = {
-<h3 class="h_setting">@title</h3>
-<table class="bbs_type1">
-<caption>@title</caption>
-<colgroup>
-    <col style="width:20%" />
-    <col style="width:20%" />
-    <col style="width:32%" />
-    <col />
-</colgroup>
-<thead>
-<tr>
-    <th scope="col">@Messages("user.loginId")</th>
-    <th scope="col">@Messages("user.name")</th>
-    <th scope="col">@Messages("user.email")</th>
-    <th scope="col" class="last">&nbsp;</th>
-</tr>
-</thead>
-}
+@import utils.JodaDateUtil._
+@import utils.TemplateHelper._
 
-@listItem(user: models.User) = {
-<tr>
-    <td><a href="@routes.UserApp.userInfo(user.loginId)">@user.loginId</a></td>
-    <td class="c">@user.name</td>
-    <td><a href="#alertEdit-@user.loginId" data-toggle="modal">@user.email</a></td>
-    <td class="btn_area c">
-        @if(!(user.state == UserState.DELETED)){
-        <a class="btn" href="@routes.SiteApp.toggleAccountLock(user.loginId)">@Messages("button" +
-                ".user.makeAccountUnlock."+ (user.state == UserState.LOCKED))</a>
-        <a class="btn btn-danger" data-toggle="modal" href="#alertDeletion-@user.loginId">@Messages("button.delete")</a>
-
-        <div id="alertDeletion-@user.loginId" class="modal hide">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">×</button>
-                <h3>@Messages("site.user.delete")</h3>
-            </div>
-            <div class="modal-body">
-                <p>@Messages("site.user.deleteConfirm")</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" data-request-method="delete" data-request-uri="@routes.SiteApp.deleteUser(user.id)" class="btn btn-danger">@Messages("button.yes")</button>
-                <button type="button" class="btn" data-dismiss="modal">@Messages("button.no")</button>
-            </div>
-        </div>
-
-        <div id="alertEdit-@user.loginId" class="modal hide">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">×</button>
-                <h3>@Messages("site.user.emailEdit")</h3>
-            </div>
-            <form method="post" action="#">
-                <div class="modal-body">
-                    <p>@Messages("site.user.editConfirm")</p>
-                    <input />
-                </div>
-                <div class="modal-footer">
-                    <a href="#" class="btn" data-dismiss="modal">@Messages("button.cancel")</a>
-                    <input type="submit" class="btn btn-danger" value="@Messages("button.save")"/>
-                </div>
-            </form>
-        </div>
-        }
-    </td>
-</tr>
+@isActiveTabMenu(state: UserState) =@{
+    if(state==userState) {"active"}
 }
 
 @siteMngLayout(message) {
     <div class="title_area">
-        <h2 class="fl">@Messages("site.sidebar.userList")</h2>
-        <form class="form-search fr" action="@routes.SiteApp.userList()">
-            <input type="text" class="input-medium search-query input-xlarge" name="loginId" placeholder="@Messages("site.userList.search")">
-            <button type="submit" class="btn">@Messages("title.search")</button>
+        <h2 class="pull-left">@Messages("site.sidebar.userList")</h2>
+        <form class="form-search pull-right" action="@routes.SiteApp.userList()">
+            <input type="hidden" name="state" value="@userState" />
+            <div class="search-bar">
+                <input class="textbox" name="query" type="text" placeholder="@Messages("site.userList.search")" value="@query">
+                <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+            </div>
         </form>
     </div>
-
-    <div class="section39">
-        @thead(Messages("site.userList.locked"))
-        <tbody>
-        @for(user <- currentPage.getList()) {
-        @if(user.state == UserState.LOCKED){
-            @listItem(user)
+    <ul class="nav nav-tabs">
+      <li class="@isActiveTabMenu(UserState.ACTIVE)"><a href="@routes.SiteApp.userList()?state=@UserState.ACTIVE.name">@Messages("site.userList.unlocked")</a></li>
+      <li class="@isActiveTabMenu(UserState.LOCKED)"><a href="@routes.SiteApp.userList()?state=@UserState.LOCKED.name">@Messages("site.userList.locked")</a></li>
+      <li class="@isActiveTabMenu(UserState.DELETED)"><a href="@routes.SiteApp.userList()?state=@UserState.DELETED.name">@Messages("site.userList.deleted")</a></li>
+    </ul>
+    <div class="row-fluid listhead">
+        <div class="span3 listhead-title">
+            <strong>@Messages("user.name")</strong>
+        </div>
+        <div class="span4 listhead-title">
+            <strong>@Messages("user.email")</strong>
+        </div>
+        <div class="span2 listhead-title">
+            <strong>@Messages("userinfo.since")</strong>
+        </div>
+        @if(userState != UserState.DELETED) {
+        <div class="span3 listhead-title">
+            <strong>&nbsp;</strong>
+        </div>
+        } else {
+        <div class="span3 listhead-title">
+            <strong>@Messages("userinfo.leave")</strong>
+        </div>
         }
-        }
-        </tbody>
-        </table>
     </div>
-
-    <div class="section39">
-        @thead(Messages("site.userList.deleted"))
-        <tbody>
+    <ul class="user-list-wrap">
         @for(user <- currentPage.getList()) {
-            @if(user.state == UserState.DELETED){
-                @listItem(user)
+        <li class="row-fluid listitem">
+            <div class="span3 listitem-col">
+                <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap list-avatar">
+                    @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){
+                        <img src="@urlToPicture(user.email, 32)">       
+                    } else {
+                        <img src="@user.avatarUrl" alt="@user.name" width="32" height="32"/>
+                    } 
+                </a>
+                <a href="@routes.UserApp.userInfo(user.loginId)" class="user-name">
+                    @user.name
+                </a>   
+                <a href="@routes.UserApp.userInfo(user.loginId)" class="user-id">
+                    @{"@"}@user.loginId
+                </a>                 
+            </div>
+            <div class="span4 listitem-col">
+                @user.email
+            </div>
+            <div class="span2 listitem-col">
+                @user.getDateString
+            </div>
+            @if(userState != UserState.DELETED) {
+            <div class="span3 listitem-col">
+                <a class="ybtn" data-request-method="post" data-request-uri="@routes.SiteApp.toggleAccountLock(user.loginId, user.state.name(), query)">
+                    @Messages("button" +".user.makeAccountUnlock."+ (user.state == UserState.LOCKED))
+                </a>
+                <button class="ybtn ybtn-danger" data-toggle="account-delete" data-href="@routes.SiteApp.deleteUser(user.id)" data-user-id="@user.loginId" data-user-name="@user.name">
+                    @Messages("button.delete")
+                </button>
+            </div>
+            } else {
+            <div class="span3 listitem-col">
+                @user.lastStateModifiedDate
+            </div>
             }
+        </li>    
         }
-        </tbody>
-    </table>
-    </div>
+    </ul>
+    
+    <div id="pagination"></div>
 
-    <div class="section0">
-        @thead(Messages("site.userList.unlocked"))
-        <tbody>
-        @for(user <- currentPage.getList()) {
-        @if(user.state == UserState.ACTIVE){
-            @listItem(user)
-        }
-        }
-        </tbody>
-        </table>
-
-        <div class="row-fluid mt30">
-            <center>@partial_paginationForUserList(currentPage, 5, "pagination")</center>
+    <div id="alertDeletionWrap" class="modal fade">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">×</button>
+            <span id="userInfo"></span>
+            <span>@Messages("site.user.delete")</span>
+        </div>
+        <div class="modal-body">
+            <p>@Messages("site.user.deleteConfirm")</p>
+        </div>
+        <div class="modal-footer">
+            <a id="accountToggleBtn" class="ybtn ybtn-danger">
+                @Messages("button.yes")
+            </a>
+            <button type="button" class="ybtn" data-dismiss="modal">@Messages("button.no")</button>
         </div>
     </div>
+
+    <script type="text/javascript">
+    $(function(){
+        $('.user-list-wrap').on('click','[data-toggle="account-delete"]',function(){
+            $('#accountToggleBtn')
+                .data("requestUri", $(this).data('href'))
+                .data("requestMethod","delete")
+                .requestAs();
+            $('#userInfo').html($(this).data('userName')+'('+$(this).data('userId')+')');
+            $('#alertDeletionWrap').modal('show');
+        });
+
+        yobi.Pagination.update($("#pagination"), @currentPage.getTotalPageCount());
+    });
+    </script>
 }

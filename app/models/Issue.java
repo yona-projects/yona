@@ -22,7 +22,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
-
+import com.avaje.ebean.Page;
 /**
  * 이슈
  */
@@ -356,6 +356,23 @@ public class Issue extends AbstractPosting implements LabelOwner {
                 .eq("project.id", project.id)
                 .eq("state", State.OPEN)
                 .ge("createdDate", JodaDateUtil.before(days)).order().desc("createdDate").findList();
+    }
+
+    /**
+     * {@code project}에서 상태(open/closed)별 최근 이슈 중에 {@code size} 만큼을 가져온다.
+     *
+     * when: 관리자 페이지의 이슈 관리
+     *
+     * @param project
+     * @param size
+     * @param pageNum
+     * @param state
+     * @return
+     */
+    public static Page<Issue> findIssuesByState(int size, int pageNum, State state) {
+       return finder.where().eq("state", state)
+                .order().desc("createdDate")
+                .findPagingList(size).getPage(pageNum);
     }
 
     /**

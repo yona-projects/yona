@@ -5,6 +5,7 @@ import com.avaje.ebean.Page;
 import info.schleichardt.play2.mailplugin.Mailer;
 import models.*;
 
+import models.enumeration.State;
 import models.enumeration.UserState;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.EmailException;
@@ -119,8 +120,11 @@ public class SiteApp extends Controller {
      * @return the result
      * @see {@link User#findUsers(int, String)}
      */
-    public static Result userList(int pageNum, String loginId) {
-        return ok(userList.render("title.siteSetting", User.findUsers(pageNum, loginId)));
+    public static Result userList(int pageNum, String query) {
+        String state = StringUtils.defaultIfBlank(request().getQueryString("state"), UserState.ACTIVE.name());
+        UserState userState = UserState.valueOf(state);
+        Page<User> users = User.findUsers(pageNum -1, query, userState);
+        return ok(userList.render("title.siteSetting", users, userState, query));
     }
 
     /**
@@ -139,7 +143,7 @@ public class SiteApp extends Controller {
     }
 
     /**
-     * 전체 이슈 목록을 보여준다.
+     * 전체 이슈 목록을 state 별로 보여준다.
      *
      * when 관리자 페이지의 이슈 관리
      *
@@ -149,8 +153,10 @@ public class SiteApp extends Controller {
      * @return the result
      */
     public static Result issueList(int pageNum) {
-        Page<Issue> page = Issue.finder.order("createdDate DESC").findPagingList(ISSUE_COUNT_PER_PAGE).getPage(pageNum - 1);
-        return ok(issueList.render("title.siteSetting", page));
+        String state = StringUtils.defaultIfBlank(request().getQueryString("state"), State.OPEN.name());
+        State currentState = State.valueOf(state.toUpperCase());
+        Page<Issue> page = Issue.findIssuesByState(ISSUE_COUNT_PER_PAGE, pageNum - 1, currentState);
+        return ok(issueList.render("title.siteSetting", page, currentState));
     }
 
     /**
@@ -175,7 +181,7 @@ public class SiteApp extends Controller {
             flash(Constants.WARNING, "error.auth.unauthorized.waringMessage");
         }
 
-        return redirect(routes.SiteApp.userList(0, null));
+        return redirect(routes.SiteApp.userList(1, null));
     }
 
     /**
@@ -228,8 +234,11 @@ public class SiteApp extends Controller {
      * @param loginId the login id
      * @return the result
      */
-    @Transactional
-    public static Result toggleAccountLock(String loginId){
+
+    public static Result toggleAccountLock(String loginId, String state, String query){
+        String stateParam = StringUtils.defaultIfBlank(state, UserState.ACTIVE.name());
+        UserState userState = UserState.valueOf(stateParam);
+
         if(User.findByLoginId(session().get("loginId")).isSiteManager()){
             User targetUser = User.findByLoginId(loginId);
             if (targetUser.isAnonymous()){
@@ -241,7 +250,7 @@ public class SiteApp extends Controller {
             } else {
                 targetUser.changeState(UserState.ACTIVE);
             }
-            return ok(userList.render("title.siteSetting", User.findUsers(0, null)));
+            return ok(userList.render("title.siteSetting", User.findUsers(0, query, userState), userState, query));
         }
         flash(Constants.WARNING, "error.auth.unauthorized.waringMessage");
         return redirect(routes.Application.index());

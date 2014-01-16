@@ -43,6 +43,7 @@
             htElement.welSelectedProjects = $('#selected-projects');
             htElement.welBtnSelectProject = $('#select-project');
             htElement.welBtnWriteEmail = $('#write-email');
+            htElement.welProjectList = $('#project-list-wrap')
         }
 
         /**
@@ -55,6 +56,15 @@
             new yobi.ui.Typeahead(htElement.welInputProject, {
                 "sActionURL": htVar.sURLProjects
             });
+
+            $('.mess-mail-wrap').on('click','[data-toggle="mail-type"]',_clickMailTypeLabel)
+        }
+
+        function _clickMailTypeLabel() {
+            var sAction = $(this).data('action');
+            htElement.welSelectedProjects.html("");
+            htElement.welProjectList[sAction]();
+
         }
 
         /**
@@ -67,7 +77,7 @@
             if (sMailingType == 'all') {
                 aProjects = {'all': 'true'}
             } else {
-                waProjectSpan = $('#selected-projects span');
+                waProjectSpan = $('#selected-projects > .label');
                 aProjects = [];
                 for (var i = 0; i < waProjectSpan.length; i++) {
                     aProjects.push(waProjectSpan[i].childNodes[0].nodeValue.trim());
@@ -77,6 +87,7 @@
             // Send a request contains project names to get email addresses and
             // launch user's mail client with them using mailto scheme.
             htElement.welBtnWriteEmail.button('loading');
+            
             $yobi.sendForm({
                 "sURL"      : htVar.sURLMailList,
                 "htOptForm": {"method":"POST"},
@@ -88,6 +99,7 @@
                     for (var i = 0; i < data.length; i++) {
                         mailto += data[i] + ',';
                     }
+                    console.log(mailto);
                     form.attr('method', 'POST');
                     form.attr('action', mailto);
                     form.attr('enctype', 'text/plain');
@@ -102,7 +114,7 @@
          * #selected-projects div.
          */
         function _onClickSelectProject() {
-            _appendProjectLabel([htElement.welInputProject.val()]);
+            _appendProjectLabel(htElement.welInputProject.val());
             htElement.welInputProject.val("");
             return false;
         }
@@ -114,7 +126,7 @@
          */
         function _onKeyPressInputProject(oEvent) {
             if (oEvent.keyCode == 13) {
-                _appendProjectLabel([htElement.welInputProject.val()]);
+                _appendProjectLabel(htElement.welInputProject.val());
                 htElement.welInputProject.val("");
                 return false;
             }
@@ -131,6 +143,7 @@
             };
 
             var welProject = $('<span class="label label-info">' + sName + " </span>")
+                .css('margin-right','5px')
                 .append($('<a href="javascript:void(0)">x</a>')
                 .click(fOnClickUnselect));
 
@@ -142,10 +155,8 @@
          *
          * @param {Object} htProjects
          */
-        function _appendProjectLabel(htTags) {
-            for(var sId in htTags) {
-                htElement.welSelectedProjects.append(_createProjectLabel(sId, htTags[sId]));
-            }
+        function _appendProjectLabel(sTags) {
+            htElement.welSelectedProjects.append(_createProjectLabel(sTags));
         }
 
         _init(htOptions);
