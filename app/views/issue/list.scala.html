@@ -6,31 +6,33 @@ models.support.SearchCondition, project:Project)
 <div class="project-page-wrap">
 	@views.html.issue.partial_search(title, currentPage, param, project)
 </div>
-<div id="spin" style="position:absolute; top:35%; left:50%"></div>
 <script type="text/javascript">
     $(document).ready(function(){
-        var pjaxOptions = {
-			fragment:"div[pjax-container]",
-			timeout:3000
+        var htPjaxOptions = {
+            "fragment": "div[pjax-container]",
+            "timeout" : 3000
         };
 
         $.pjax.defaults.maxCacheLength = 0;
 
-        $(document).on('click', 'a[pjax-page]', function(event) {
-            $.pjax.click(event, "div[pjax-container]", pjaxOptions)
+        // on click pagination
+        $(document).on("click", "a[pjax-page]", function(weEvt) {
+            $.pjax.click(weEvt, "div[pjax-container]", htPjaxOptions);
         });
 
-        $(document).on("submit", "form[name='search']", function(event) {
-			$.pjax.submit(event, "div[pjax-container]", pjaxOptions)
-		});
-
-        $(document).on('pjax:send', function() {
-			var target = document.getElementById('spin');
-			spinner = new Spinner().spin(target);
+        // on submit search form
+        $(document).on("submit", "form[name='search']", function(weEvt) {
+            $.pjax.submit(weEvt, "div[pjax-container]", htPjaxOptions);
         });
 
-        $(document).on('pjax:complete', function() {
-            spinner.stop();
+        // show spinners
+        $(document).on({
+            "pjax:send": function(){
+                yobi.ui.Spinner.show();
+            },
+            "pjax:complete": function(){
+                yobi.ui.Spinner.hide();
+            }
         });
     });
 </script>
