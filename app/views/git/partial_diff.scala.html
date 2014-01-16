@@ -57,7 +57,6 @@
 
         <ul class="nav nav-tabs nm">
             <li class="active"><a href="#__commits" data-toggle="tab">@Messages("pullRequest.menu.commit")</a></li>
-            <li><a href="#__changes" data-toggle="tab">@Messages("pullRequest.menu.changes")</a></li>
         </ul>
         <div class="tab-content">
             <div id="__commits" class="code-browse-wrap tab-pane active">
@@ -114,13 +113,6 @@
                         }
                         </tbody>
                     </table>
-                </div>
-            </div>
-            <div id="__changes" class="tab-pane mt20">
-                <div class="diff-body">
-                @if(result.getGitConflicts() == null) {
-                @views.html.partial_diff(pullRequest.getDiff, null, pullRequest.fromProject, pullRequest.toProject)
-                }
                 </div>
             </div>
         </div>
