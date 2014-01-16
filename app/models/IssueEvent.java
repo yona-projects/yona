@@ -6,9 +6,7 @@ import org.joda.time.DateTime;
 import play.Configuration;
 import play.db.ebean.Model;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 import java.util.*;
 import java.util.regex.Matcher;
 
@@ -23,10 +21,11 @@ public class IssueEvent extends Model implements TimelineItem {
 
     public String senderLoginId;
     public String senderEmail;
-    
+
     @ManyToOne
     public Issue issue;
 
+    @Enumerated(EnumType.STRING)
     public EventType eventType;
 
     public String oldValue;
