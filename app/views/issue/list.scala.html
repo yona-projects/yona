@@ -6,7 +6,6 @@ models.support.SearchCondition, project:Project)
 <div class="project-page-wrap">
 	@views.html.issue.partial_search(title, currentPage, param, project)
 </div>
-<div id="spin" style="position:absolute; top:35%; left:50%"></div>
 <script type="text/javascript">
     $(document).ready(function(){
         var pjaxOptions = {
@@ -25,12 +24,11 @@ models.support.SearchCondition, project:Project)
 		});
 
         $(document).on('pjax:send', function() {
-			var target = document.getElementById('spin');
-			spinner = new Spinner().spin(target);
+			yobi.ui.Spinner.show();
         });
 
         $(document).on('pjax:complete', function() {
-            spinner.stop();
+            yobi.ui.Spinner.hide();
         });
     });
 </script>
