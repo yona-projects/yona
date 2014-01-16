@@ -85,6 +85,7 @@ public class AttachmentApp extends Controller {
         // IT WILL BE SEND IN JSON!
         String contentType = HttpUtil.getPreferType(request(), "application/json", "text/html");
         response().setHeader("Content-Type", contentType);
+        response().setHeader("Vary", "Accept");
 
         // The response SHOULD include an entity containing a list of resource
         // characteristics and location(s) from which the user or user agent can

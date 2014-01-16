@@ -224,6 +224,8 @@ public class IssueApp extends AbstractPostingApp {
 
         Issue issueInfo = Issue.findByNumber(project, number);
 
+        response().setHeader("Vary", "Accept");
+
         if (issueInfo == null) {
             if (HttpUtil.isJSONPreferred(request())){
                 ObjectNode result = Json.newObject();
