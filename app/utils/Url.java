@@ -97,4 +97,10 @@ public class Url {
     private static String join(List<String> pathSegments) {
         return "/" + StringUtils.join(pathSegments, "/");
     }
+
+    public static String removeFragment(String url) {
+        int index = url.indexOf('#');
+        String result = index >= 0 ? url.substring(0, index) : url;
+        return result;
+    }
 }
