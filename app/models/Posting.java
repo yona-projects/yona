@@ -117,7 +117,7 @@ public class Posting extends AbstractPosting {
      * @param number
      * @return
      */
-    public static Posting findByNumber(Project project, Long number) {
+    public static Posting findByNumber(Project project, long number) {
         return AbstractPosting.findByNumber(finder, project, number);
     }
 

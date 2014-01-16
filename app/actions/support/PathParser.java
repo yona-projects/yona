@@ -4,7 +4,7 @@
  * Copyright 2013 NAVER Corp.
  * http://yobi.io
  *
- * @Author Wansoon Park, Keesun Baek
+ * @Author Wansoon Park, Keesun Baik
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,36 +21,45 @@
 package actions.support;
 
 import org.apache.commons.lang3.StringUtils;
+import play.mvc.Http;
 
-
+/**
+ * 프로젝트 관련 URL을 파싱한다.
+ * /{user.loginId}/{project.name}/** 패턴에 해당하는 URL에서 필요한 정보를 축출한다.
+ *
+ * @author Wansoon Park, Keesun Baik
+ */
 public class PathParser {
-    private static final String DELIMETER = "/";
-    private String[] paths;
-    private String contextPath;
-    private String path;
+    private static final String DELIM = "/";
+    private String[] pathSegments;
 
     public PathParser(String path) {
-        this.paths = StringUtils.split(path, DELIMETER);
+        this.pathSegments = StringUtils.split(path, DELIM);
     }
 
     public PathParser(String contextPath, String path) {
-        this.contextPath = StringUtils.removeEnd(contextPath, DELIMETER);
-        this.path = StringUtils.removeStart(path, this.contextPath);
-        this.paths = StringUtils.split(this.path, DELIMETER);
+        String contextRemovedPath = StringUtils.removeStart(path, contextPath);
+        this.pathSegments = StringUtils.split(contextRemovedPath, DELIM);
+    }
+
+    public PathParser(Http.Context context) {
+        this(play.Configuration.root().getString("application.context"), context.request().path());
     }
 
     public String getOwnerLoginId() {
-        return this.paths[0];
+        return this.pathSegments[0];
     }
 
     public String getProjectName() {
-        return this.paths[1];
+        return this.pathSegments[1];
     }
 
-    public int getPullRequestNumber() {
-        return Integer.parseInt(this.paths[3]);
+    public String getPathSegment(int index) {
+        return pathSegments[index];
     }
+
     public String toString() {
-        return DELIMETER + StringUtils.join(this.paths, DELIMETER);
+        return DELIM + StringUtils.join(this.pathSegments, DELIM);
     }
+
 }

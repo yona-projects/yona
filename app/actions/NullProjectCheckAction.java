@@ -4,7 +4,7 @@
  * Copyright 2013 NAVER Corp.
  * http://yobi.io
  *
- * @Author Wansoon Park, Keesun Baek
+ * @Author Keesun Baik
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,29 +20,25 @@
  */
 package actions;
 
+import actions.support.PathParser;
 import models.Project;
-import models.User;
 import play.mvc.Action;
-import play.mvc.Http.Context;
+import play.mvc.Http;
 import play.mvc.Result;
-import utils.AccessControl;
 import utils.AccessLogger;
 import utils.ErrorViews;
-import actions.support.PathParser;
-import controllers.UserApp;
-import controllers.annotation.IsCreatable;
 
 /**
- * 1. 프로젝트가 존재하는지 확인한다.
- * 2. 프로젝트에 특정 타입의 리소스를 생성할 수 있는지 확인한다.
+ * /{user.loginId}/{project.name}/** 패턴의 요청에 해당하는 프로젝트가 존재하는지 확인하는 액션.
+ * - URL에 해당하는 프로젝트가 없을 때 404 Not Found로 응답한다.
+ * - URL에 해당하는 프로젝트가 있을 때 요청 처리한다.
  *
- * @author Wansoon Park, Keesun Baik
- * @see {@link controllers.annotation.IsCreatable}
+ * @author Keesun Baik
  */
-public class IsCreatableAction extends Action<IsCreatable> {
+public class NullProjectCheckAction extends Action.Simple {
 
     @Override
-    public Result call(Context context) throws Throwable {
+    public Result call(Http.Context context) throws Throwable {
         PathParser parser = new PathParser(context);
         String ownerLoginId = parser.getOwnerLoginId();
         String projectName = parser.getProjectName();
@@ -54,14 +50,6 @@ public class IsCreatableAction extends Action<IsCreatable> {
                     , null);
         }
 
-        User currentUser = UserApp.currentUser();
-        if (!AccessControl.isProjectResourceCreatable(currentUser, project, this.configuration.value())) {
-            return AccessLogger.log(context.request()
-                    , forbidden(ErrorViews.Forbidden.render("error.forbidden", project))
-                    , null);
-        }
-
         return this.delegate.call(context);
     }
-
 }

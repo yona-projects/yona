@@ -294,21 +294,4 @@ public class AbstractPostingApp extends Controller {
         return redirect(redirectTo);
     }
 
-    /**
-     * 새 게시물 또는 이슈 생성 권한이 있는지 확인하고 {@code content}를 보여준다.
-     *
-     * when: 게시물이나 이슈 생성할 때 사용한다.
-     *
-     * @param project
-     * @param resourceType
-     * @param content
-     * @return
-     */
-    public static Result newPostingForm(Project project, ResourceType resourceType, Content content) {
-        if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, resourceType)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
-
-        return ok(content);
-    }
 }

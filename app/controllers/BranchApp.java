@@ -20,7 +20,8 @@
  */
 package controllers;
 
-import controllers.annotation.ProjectAccess;
+import controllers.annotation.IsAllowed;
+import controllers.annotation.IsOnlyGitAvailable;
 import models.Project;
 import models.enumeration.Operation;
 import org.apache.commons.collections.CollectionUtils;
@@ -39,6 +40,7 @@ import java.util.List;
 /**
  * @author Keesun Baik
  */
+@IsOnlyGitAvailable
 public class BranchApp extends Controller {
 
     /**
@@ -50,7 +52,7 @@ public class BranchApp extends Controller {
      * @throws IOException
      * @throws GitAPIException
      */
-    @ProjectAccess(value = Operation.READ, isGitOnly = true)
+    @IsAllowed(Operation.READ)
     public static Result branches(String loginId, String projectName) throws IOException, GitAPIException {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
         GitRepository gitRepository = new GitRepository(project);
@@ -80,7 +82,7 @@ public class BranchApp extends Controller {
      * @throws IOException
      * @throws GitAPIException
      */
-    @ProjectAccess(value = Operation.DELETE, isGitOnly = true)
+    @IsAllowed(Operation.DELETE)
     public static Result deleteBranch(String loginId, String projectName, String branchName) throws GitAPIException {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
         Repository repository = GitRepository.buildGitRepository(project);
@@ -96,7 +98,7 @@ public class BranchApp extends Controller {
      * @param branchName
      * @return
      */
-    @ProjectAccess(value = Operation.UPDATE, isGitOnly = true)
+    @IsAllowed(Operation.UPDATE)
     public static Result setAsDefault(String loginId, String projectName, String branchName) throws IOException, GitAPIException {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
         GitRepository gitRepository = new GitRepository(project);

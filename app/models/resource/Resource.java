@@ -1,5 +1,7 @@
 package models.resource;
 
+import actions.support.PathParser;
+import controllers.routes;
 import models.*;
 import models.enumeration.ResourceType;
 import play.db.ebean.Model;
@@ -139,4 +141,37 @@ public abstract class Resource {
     public Resource getContainer() { return null; }
     public Long getAuthorId() { return null; }
     public void delete() { throw new UnsupportedOperationException(); }
+
+    /**
+     * {@code parser}와 {@code project} 정보에서 {@code resourceType}에 해당하는 리소스를 찾는다.
+     * - 해당하는 리소스가 있을 때는 {@link models.resource.ResourceConvertible} 타입 객체를 리턴한다.
+     * - 해당하는 리소스가 없을 때는 리턴한 레퍼런스가 null일 수도 있다.
+     *
+     * @param parser
+     * @param resourceType
+     * @param project
+     * @return
+     * @see {@link actions.IsAllowedAction}
+     */
+    public static ResourceConvertible getResourceObject(PathParser parser, Project project, ResourceType resourceType) {
+        switch (resourceType) {
+            case PROJECT:
+                return project;
+            case MILESTONE:
+                return Milestone.findById(Long.parseLong(parser.getPathSegment(3)));
+            case BOARD_POST:
+                return Posting.findByNumber(project, Long.parseLong(parser.getPathSegment(3)));
+            case ISSUE_POST:
+                return Issue.findByNumber(project, Long.parseLong(parser.getPathSegment(3)));
+            case ISSUE_LABEL:
+                return IssueLabel.finder.byId(Long.parseLong(parser.getPathSegment(4)));
+            case PULL_REQUEST:
+                return PullRequest.findOne(project, Long.parseLong(parser.getPathSegment(3)));
+            case COMMIT_COMMENT:
+                return CommitComment.find.byId(Long.parseLong(parser.getPathSegment(5)));
+            default:
+                throw new IllegalAccessError(getInvalidResourceTypeMessage(resourceType));
+        }
+    }
+
 }

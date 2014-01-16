@@ -24,9 +24,7 @@ import actions.AnonymousCheckAction;
 import actors.PullRequestMergingActor;
 import akka.actor.Props;
 import com.avaje.ebean.Page;
-import controllers.annotation.IsCreatable;
-import controllers.annotation.ProjectAccess;
-import controllers.annotation.PullRequestAccess;
+import controllers.annotation.*;
 import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
@@ -62,6 +60,7 @@ import java.util.concurrent.Callable;
 /**
  * 프로젝트 복사(포크)와 코드 주고받기(풀리퀘) 기능을 다루는 컨트롤러
  */
+@IsOnlyGitAvailable
 public class PullRequestApp extends Controller {
 
     /**
@@ -349,15 +348,9 @@ public class PullRequestApp extends Controller {
      * @param projectName
      * @return
      */
-    @ProjectAccess(Operation.READ)
+    @IsAllowed(Operation.READ)
     public static Result pullRequests(String userName, String projectName, int pageNum) {
-
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
-
-        if(!project.vcs.equals("GIT")) {
-            return badRequest(ErrorViews.BadRequest.render("Now, only git project is allowed this request.", project));
-        }
-
         Page<PullRequest> page = PullRequest.findPagingList(State.OPEN, project, pageNum - 1);
         return ok(list.render(project, page, "opened"));
     }
@@ -369,7 +362,7 @@ public class PullRequestApp extends Controller {
      * @param projectName
      * @return
      */
-    @ProjectAccess(Operation.READ)
+    @IsAllowed(Operation.READ)
     public static Result closedPullRequests(String userName, String projectName, int pageNum) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         Page<PullRequest> page = PullRequest.findClosedPagingList(project, pageNum - 1);
@@ -383,7 +376,7 @@ public class PullRequestApp extends Controller {
      * @param projectName
      * @return
      */
-    @ProjectAccess(Operation.READ)
+    @IsAllowed(Operation.READ)
     public static Result sentPullRequests(String userName, String projectName, int pageNum) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         Page<PullRequest> page = PullRequest.findSentPullRequests(project, pageNum - 1);
@@ -398,8 +391,7 @@ public class PullRequestApp extends Controller {
      * @param pullRequestNumber
      * @return
      */
-    @ProjectAccess(Operation.READ)
-    @PullRequestAccess(Operation.READ)
+    @IsAllowed(value = Operation.READ, resourceType = ResourceType.PULL_REQUEST)
     public static Result pullRequest(String userName, String projectName, long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
@@ -432,8 +424,7 @@ public class PullRequestApp extends Controller {
      * @param pullRequestNumber
      * @return
      */
-    @ProjectAccess(Operation.READ)
-    @PullRequestAccess(Operation.READ)
+    @IsAllowed(value = Operation.READ, resourceType = ResourceType.PULL_REQUEST)
     public static Result pullRequestState(String userName, String projectName, long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
@@ -470,8 +461,7 @@ public class PullRequestApp extends Controller {
      * @param pullRequestNumber
      * @return
      */
-    @ProjectAccess(Operation.READ)
-    @PullRequestAccess(Operation.READ)
+    @IsAllowed(value = Operation.READ, resourceType = ResourceType.PULL_REQUEST)
     public static Result pullRequestCommits(String userName, String projectName, long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
@@ -487,8 +477,7 @@ public class PullRequestApp extends Controller {
      * @param pullRequestNumber
      * @return
      */
-    @ProjectAccess(Operation.READ)
-    @PullRequestAccess(Operation.READ)
+    @IsAllowed(value = Operation.READ, resourceType = ResourceType.PULL_REQUEST)
     public static Result pullRequestChanges(String userName, String projectName, long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
@@ -516,8 +505,7 @@ public class PullRequestApp extends Controller {
      */
     @Transactional
     @With(AnonymousCheckAction.class)
-    @ProjectAccess(Operation.READ)
-    @PullRequestAccess(Operation.ACCEPT)
+    @IsAllowed(value = Operation.ACCEPT, resourceType = ResourceType.PULL_REQUEST)
     public static Result accept(final String userName, final String projectName,
             final long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
@@ -562,8 +550,7 @@ public class PullRequestApp extends Controller {
      */
     @Transactional
     @With(AnonymousCheckAction.class)
-    @ProjectAccess(Operation.READ)
-    @PullRequestAccess(Operation.CLOSE)
+    @IsAllowed(value = Operation.CLOSE, resourceType = ResourceType.PULL_REQUEST)
     public static Result close(String userName, String projectName, Long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
@@ -589,8 +576,7 @@ public class PullRequestApp extends Controller {
      */
     @Transactional
     @With(AnonymousCheckAction.class)
-    @ProjectAccess(Operation.READ)
-    @PullRequestAccess(Operation.CLOSE)
+    @IsAllowed(value = Operation.REOPEN, resourceType = ResourceType.PULL_REQUEST)
     public static Result open(String userName, String projectName, Long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
@@ -623,8 +609,7 @@ public class PullRequestApp extends Controller {
      * @throws ServletException
      */
     @With(AnonymousCheckAction.class)
-    @ProjectAccess(Operation.READ)
-    @PullRequestAccess(Operation.UPDATE)
+    @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
     public static Result editPullRequestForm(String userName, String projectName, Long pullRequestNumber) throws IOException, GitAPIException {
         Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(toProject, pullRequestNumber);
@@ -652,8 +637,7 @@ public class PullRequestApp extends Controller {
      */
     @Transactional
     @With(AnonymousCheckAction.class)
-    @ProjectAccess(Operation.READ)
-    @PullRequestAccess(Operation.UPDATE)
+    @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
     public static Result editPullRequest(String userName, String projectName, Long pullRequestNumber) {
         Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(toProject, pullRequestNumber);
@@ -693,8 +677,7 @@ public class PullRequestApp extends Controller {
      */
     @Transactional
     @With(AnonymousCheckAction.class)
-    @ProjectAccess(Operation.READ)
-    @PullRequestAccess(Operation.UPDATE)
+    @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
     public static Result deleteFromBranch(String userName, String projectName, Long pullRequestNumber) {
         Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(toProject, pullRequestNumber);
@@ -714,8 +697,7 @@ public class PullRequestApp extends Controller {
      */
     @Transactional
     @With(AnonymousCheckAction.class)
-    @ProjectAccess(Operation.READ)
-    @PullRequestAccess(Operation.UPDATE)
+    @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
     public static Result restoreFromBranch(String userName, String projectName, Long pullRequestNumber) {
         Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(toProject, pullRequestNumber);
@@ -739,7 +721,7 @@ public class PullRequestApp extends Controller {
      * @throws SVNException
      */
     @Transactional
-    @ProjectAccess(Operation.READ)
+    @IsAllowed(Operation.READ)
     public static Result commitView(String userName, String projectName, Long pullRequestNumber, String commitId) throws GitAPIException, SVNException, IOException, ServletException {
         Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(toProject, pullRequestNumber);

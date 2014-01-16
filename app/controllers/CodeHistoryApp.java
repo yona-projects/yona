@@ -1,5 +1,8 @@
 package controllers;
 
+import actions.NullProjectCheckAction;
+import controllers.annotation.IsAllowed;
+import controllers.annotation.IsCreatable;
 import models.Attachment;
 import models.CommitComment;
 import models.NotificationEvent;
@@ -14,11 +17,11 @@ import play.data.Form;
 import play.mvc.Call;
 import play.mvc.Controller;
 import play.mvc.Result;
+import play.mvc.With;
 import playRepository.Commit;
 import playRepository.FileDiff;
 import playRepository.PlayRepository;
 import playRepository.RepositoryService;
-import utils.AccessControl;
 import utils.ErrorViews;
 import utils.HttpUtil;
 import utils.PullRequestCommit;
@@ -26,9 +29,7 @@ import views.html.code.diff;
 import views.html.code.history;
 import views.html.code.nohead;
 import views.html.code.svnDiff;
-import views.html.error.forbidden;
 import views.html.error.notfound;
-import views.html.error.notfound_default;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
@@ -57,6 +58,7 @@ public class CodeHistoryApp extends Controller {
      * @throws GitAPIException
      * @throws SVNException
      */
+    @With(NullProjectCheckAction.class)
     public static Result historyUntilHead(String ownerName, String projectName) throws IOException,
             UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
@@ -84,20 +86,12 @@ public class CodeHistoryApp extends Controller {
      * @throws GitAPIException
      * @throws SVNException
      */
+    @IsAllowed(Operation.READ)
     public static Result history(String ownerName, String projectName, String branch, String path) throws IOException,
             UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
-
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
-
         PlayRepository repository = RepositoryService.getRepository(project);
-
-        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
 
         String pageStr = HttpUtil.getFirstValueFromQuery(request().queryString(), "page");
         int page = 0;
@@ -136,19 +130,11 @@ public class CodeHistoryApp extends Controller {
      * @throws GitAPIException
      * @throws SVNException
      */
+    @IsAllowed(Operation.READ)
     public static Result show(String ownerName, String projectName, String commitId)
             throws IOException, UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
-
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
-
-        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
-
         PlayRepository repository = RepositoryService.getRepository(project);
         Commit commit = repository.getCommit(commitId);
 
@@ -182,6 +168,7 @@ public class CodeHistoryApp extends Controller {
         }
     }
 
+    @IsCreatable(ResourceType.COMMIT_COMMENT)
     public static Result newComment(String ownerName, String projectName, String commitId)
             throws IOException, ServletException, SVNException {
         Form<CommitComment> codeCommentForm = new Form<>(CommitComment.class)
@@ -189,21 +176,12 @@ public class CodeHistoryApp extends Controller {
 
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
-        if (project == null) {
-            return notFound(notfound_default.render(request().path()));
-        }
-
         if (codeCommentForm.hasErrors()) {
             return badRequest(ErrorViews.BadRequest.render("error.validation", project));
         }
 
         if (RepositoryService.getRepository(project).getCommit(commitId) == null) {
             return notFound(notfound.render("error.notfound", project, request().path()));
-        }
-
-        if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project,
-                ResourceType.COMMIT_COMMENT)) {
-            return forbidden(forbidden.render("error.forbidden", project));
         }
 
         CommitComment codeComment = codeCommentForm.get();
@@ -232,19 +210,11 @@ public class CodeHistoryApp extends Controller {
         return toView;
     }
 
+    @With(NullProjectCheckAction.class)
+    @IsAllowed(value = Operation.DELETE, resourceType = ResourceType.COMMIT_COMMENT)
     public static Result deleteComment(String ownerName, String projectName, String commitId,
                                        Long id) {
         CommitComment codeComment = CommitComment.find.byId(id);
-
-        if (codeComment == null) {
-            return notFound(notfound_default.render(request().path()));
-        }
-
-        if (!AccessControl.isAllowed(UserApp.currentUser(), codeComment.asResource(),
-                Operation.DELETE)) {
-            return forbidden(forbidden.render("error.forbidden", codeComment.project));
-        }
-
         codeComment.delete();
 
         Call toView = routes.CodeHistoryApp.show(ownerName, projectName, commitId);

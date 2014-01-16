@@ -1,15 +1,15 @@
 package controllers;
 
 import actions.AnonymousCheckAction;
-
+import actions.NullProjectCheckAction;
+import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Junction;
 import com.avaje.ebean.Page;
-import com.avaje.ebean.ExpressionList;
-
-import controllers.annotation.ProjectAccess;
+import controllers.annotation.IsAllowed;
 import models.*;
-import models.enumeration.*;
-
+import models.enumeration.Operation;
+import models.enumeration.ResourceType;
+import models.enumeration.RoleType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonNode;
@@ -17,28 +17,28 @@ import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.tmatesoft.svn.core.SVNException;
-
 import play.data.Form;
 import play.data.validation.ValidationError;
 import play.db.ebean.Transactional;
 import play.libs.Json;
-import play.mvc.*;
+import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
+import play.mvc.Result;
+import play.mvc.With;
 import playRepository.Commit;
 import playRepository.PlayRepository;
 import playRepository.RepositoryService;
 import scala.reflect.io.FileOperationException;
-import utils.AccessControl;
-import utils.Constants;
-import utils.HttpUtil;
-import utils.ErrorViews;
-import utils.LabelSearchUtil;
+import utils.*;
 import validation.ExConstraints.RestrictedValidator;
-import views.html.project.*;
+import views.html.project.create;
+import views.html.project.delete;
+import views.html.project.overview;
+import views.html.project.setting;
 
 import javax.servlet.ServletException;
-
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -90,7 +90,7 @@ public class ProjectApp extends Controller {
     }
 
     @With(AnonymousCheckAction.class)
-    @ProjectAccess(Operation.UPDATE)
+    @IsAllowed(Operation.UPDATE)
     public static Result projectOverviewUpdate(String ownerId, String projectName){
         JsonNode json = request().body().asJson();
         Project targetProject = Project.findByOwnerAndProjectName(ownerId, projectName);
@@ -119,19 +119,10 @@ public class ProjectApp extends Controller {
      * @throws SVNException the svn exception
      * @throws GitAPIException the git api exception
      */
+    @IsAllowed(Operation.READ)
     public static Result project(String loginId, String projectName) throws IOException, ServletException, SVNException, GitAPIException {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
-
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-            // No project matches given parameters'" + loginId + "' and project_name '" + projectName + "'"));
-        }
-
         project.fixInvalidForkData();
-
-        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
 
         PlayRepository repository = RepositoryService.getRepository(project);
 
@@ -178,17 +169,9 @@ public class ProjectApp extends Controller {
      * @param projectName
      * @return 프로젝트 정보
      */
+    @IsAllowed(Operation.UPDATE)
     public static Result settingForm(String loginId, String projectName) throws Exception {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
-
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
-
-        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
-
         Form<Project> projectForm = form(Project.class).fill(project);
         PlayRepository repository = RepositoryService.getRepository(project);
         return ok(setting.render("title.projectSetting", projectForm, project, repository.getBranches()));
@@ -347,17 +330,9 @@ public class ProjectApp extends Controller {
      * @param projectName the project name
      * @return 프로젝트폼, 프로젝트 정보
      */
+    @IsAllowed(Operation.DELETE)
     public static Result deleteForm(String loginId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
-
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
-
-        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
-
         Form<Project> projectForm = form(Project.class).fill(project);
         return ok(delete.render("title.projectDelete", projectForm, project));
     }
@@ -374,28 +349,19 @@ public class ProjectApp extends Controller {
      * @throws Exception the exception
      */
     @Transactional
+    @IsAllowed(Operation.DELETE)
     public static Result deleteProject(String loginId, String projectName) throws Exception {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+        project.delete();
+        RepositoryService.deleteRepository(project);
 
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
+        // XHR 호출에 의한 경우라면 204 No Content 와 Location 헤더로 응답한다
+        if(HttpUtil.isRequestedWithXHR(request())){
+            response().setHeader("Location", routes.Application.index().toString());
+            return status(204);
         }
 
-        if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.DELETE)) {
-            project.delete();
-            RepositoryService.deleteRepository(project);
-
-            // XHR 호출에 의한 경우라면 204 No Content 와 Location 헤더로 응답한다
-            if(HttpUtil.isRequestedWithXHR(request())){
-                response().setHeader("Location", routes.Application.index().toString());
-                return status(204);
-            }
-
-            return redirect(routes.Application.index());
-        } else {
-            flash(Constants.WARNING, "project.member.isManager");
-            return redirect(routes.ProjectApp.settingForm(loginId, projectName));
-        }
+        return redirect(routes.Application.index());
     }
 
     /**
@@ -411,18 +377,10 @@ public class ProjectApp extends Controller {
      * @return 프로젝트, 멤버목록, Role 목록
      */
     @Transactional
+    @IsAllowed(Operation.UPDATE)
     public static Result members(String loginId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
-
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
-        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
-
         project.cleanEnrolledUsers();
-
         return ok(views.html.project.members.render("title.projectMembers",
                 ProjectUser.findMemberListByProject(project.id), project,
                 Role.getActiveRoles()));
@@ -442,6 +400,7 @@ public class ProjectApp extends Controller {
      * @param resourceType
      * @return
      */
+    @IsAllowed(Operation.READ)
     public static Result mentionList(String loginId, String projectName, Long number, String resourceType) {
         String prefer = HttpUtil.getPreferType(request(), HTML, JSON);
         if (prefer == null) {
@@ -451,9 +410,6 @@ public class ProjectApp extends Controller {
         }
 
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
 
         List<User> userList = new ArrayList<>();
         collectAuthorAndCommenter(project, number, userList, resourceType);
@@ -483,18 +439,11 @@ public class ProjectApp extends Controller {
      * @throws GitAPIException
      * @throws SVNException
      */
+    @IsAllowed(Operation.READ)
     public static Result mentionListAtCommitDiff(String ownerLoginId, String projectName, String commitId, Long pullRequestId)
             throws IOException, UnsupportedOperationException, ServletException,
             SVNException {
         Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
-
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
-
-        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
 
         PullRequest pullRequest;
         Project fromProject = project;
@@ -536,18 +485,11 @@ public class ProjectApp extends Controller {
      * @throws GitAPIException
      * @throws SVNException
      */
+    @IsAllowed(Operation.READ)
     public static Result mentionListAtPullRequest(String ownerLoginId, String projectName, String commitId, Long pullRequestId)
             throws IOException, UnsupportedOperationException, ServletException,
             SVNException {
         Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
-
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
-
-        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
 
         PullRequest pullRequest = PullRequest.findById(pullRequestId);
         List<User> userList = new ArrayList<>();
@@ -675,6 +617,7 @@ public class ProjectApp extends Controller {
      * @return 프로젝트, 멤버목록, Role 목록
      */
     @Transactional
+    @With(NullProjectCheckAction.class)
     public static Result newMember(String loginId, String projectName) {
         // TODO change into view validation
         Form<User> addMemberForm = form(User.class).bindFromRequest();
@@ -685,10 +628,6 @@ public class ProjectApp extends Controller {
 
         User user = User.findByLoginId(form(User.class).bindFromRequest().get().loginId);
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
-
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
             flash(Constants.WARNING, "project.member.isManager");
@@ -718,12 +657,9 @@ public class ProjectApp extends Controller {
      * @return the result
      */
     @Transactional
+    @With(NullProjectCheckAction.class)
     public static Result deleteMember(String loginId, String projectName, Long userId) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
-
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
 
         if (UserApp.currentUser().id.equals(userId)
                 || AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
@@ -752,23 +688,14 @@ public class ProjectApp extends Controller {
      * @return
      */
     @Transactional
+    @IsAllowed(Operation.UPDATE)
     public static Result editMember(String loginId, String projectName, Long userId) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
-
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
+        if (project.isOwner(User.find.byId(userId))) {
+            return forbidden(ErrorViews.Forbidden.render("project.member.ownerMustBeAManager", project));
         }
-
-        if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
-            if (project.isOwner(User.find.byId(userId))) {
-                return forbidden(ErrorViews.Forbidden.render("project.member.ownerMustBeAManager", project));
-            }
-            ProjectUser.assignRole(userId, project.id, form(Role.class)
-                    .bindFromRequest().get().id);
-            return status(Http.Status.NO_CONTENT);
-        } else {
-            return forbidden(ErrorViews.Forbidden.render("project.member.isManager", project));
-        }
+        ProjectUser.assignRole(userId, project.id, form(Role.class).bindFromRequest().get().id);
+        return status(Http.Status.NO_CONTENT);
     }
 
     /**
@@ -895,16 +822,9 @@ public class ProjectApp extends Controller {
      * @param projectName the project name
      * @return 프로젝트 태그 JSON 데이터
      */
+    @IsAllowed(Operation.READ)
     public static Result labels(String owner, String projectName) {
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
-
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
-
-        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
 
         if (!request().accepts("application/json")) {
             return status(Http.Status.NOT_ACCEPTABLE);
@@ -934,12 +854,9 @@ public class ProjectApp extends Controller {
      * @return the result
      */
     @Transactional
+    @With(NullProjectCheckAction.class)
     public static Result attachLabel(String ownerName, String projectName) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
-
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)) {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
@@ -1008,12 +925,9 @@ public class ProjectApp extends Controller {
      * @return the result
      */
     @Transactional
+    @With(NullProjectCheckAction.class)
     public static Result detachLabel(String ownerName, String projectName, Long id) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
-
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)) {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
@@ -1046,7 +960,7 @@ public class ProjectApp extends Controller {
      */
     @Transactional
     @With(AnonymousCheckAction.class)
-    @ProjectAccess(Operation.DELETE)
+    @IsAllowed(Operation.DELETE)
     public static Result deletePushedBranch(String ownerName, String projectName, Long id) {
         PushedBranch pushedBranch = PushedBranch.find.byId(id);
         if (pushedBranch != null) {
