@@ -116,7 +116,7 @@ DELETE         /:user/:project/member/:id/delete                                
 DELETE         /:user/:project/pushedBranch/:id/delete                                controllers.ProjectApp.deletePushedBranch(user, project, id:Long)
 
 # Project Review Menu
-GET            /:user/:project/reviews                                                controllers.ReviewApp.reviews(user, project)
+GET            /:user/:project/reviews                                                controllers.ReviewThreadApp.reviewThreads(user, project)
 
 # Milestones
 GET            /:user/:project/milestones                                             controllers.MilestoneApp.milestones(user, project)

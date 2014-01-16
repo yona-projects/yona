@@ -3,19 +3,26 @@
 @import utils.TemplateHelper._
 @import utils.JodaDateUtil
 
+@buildPath(state:String, sortField:String, orderDir:String, authorId:Long) = @{
+    var path = "?state=" + state + "&orderBy=" + sortField + "&orderDir=" + orderDir
+    if (authorId != null) {
+        path = path + "&authorId=" + authorId
+    }
+    path
+}
 @makeSortLink(sortField:String, sortFieldString:String) = {
     @if(param.orderBy == sortField) {
         @if(param.orderDir == "asc") {
-            <a href="@routes.ReviewApp.reviews(project.owner, project.name)?state=@param.state&orderBy=@sortField&orderDir=desc&authorId=@param.authorId" class="filter">
+            <a href="@routes.ReviewThreadApp.reviewThreads(project.owner, project.name)@buildPath(param.state, sortField, "desc", param.authorId)" class="filter">
                 <i class="ico btn-gray-arrow"></i>@sortFieldString
             </a>
         } else {
-            <a href="@routes.ReviewApp.reviews(project.owner, project.name)?state=@param.state&orderBy=@sortField&orderDir=asc&authorId=@param.authorId" class="filter">
+            <a href="@routes.ReviewThreadApp.reviewThreads(project.owner, project.name)@buildPath(param.state, sortField, "asc", param.authorId)" class="filter">
                 <i class="ico btn-gray-arrow down"></i>@sortFieldString
             </a>
         }
     } else {
-        <a href="@routes.ReviewApp.reviews(project.owner, project.name)?state=@param.state&orderBy=@sortField&orderDir=desc&authorId=@param.authorId" class="filter">
+        <a href="@routes.ReviewThreadApp.reviewThreads(project.owner, project.name)@buildPath(param.state, sortField, "desc", param.authorId)" class="filter">
             <i class="ico btn-gray-arrow down"></i>@sortFieldString
         </a>
     }
@@ -34,25 +41,25 @@
             <div class="inner advanced">
                 <ul class="lst-stacked unstyled">
                     <li @if(param.participationId == null && param.authorId == null){class="active"}>
-                        <a href="@routes.ReviewApp.reviews(project.owner, project.name)">
+                        <a href="@routes.ReviewThreadApp.reviewThreads(project.owner, project.name)">
                             @Messages("review.allReview")
                             <span class="num-badge pull-right">@paramForEveryone</span>
                         </a>
                     </li>
                     <li @if(param.participationId == UserApp.currentUser().id){class="active"}>
-                        <a href="@routes.ReviewApp.reviews(project.owner, project.name)?participationId=@UserApp.currentUser().id">
+                        <a href="@routes.ReviewThreadApp.reviewThreads(project.owner, project.name)?participationId=@UserApp.currentUser().id">
                             @Messages("review.involvingYou")
                             <span class="num-badge pull-right">@paramForParticipant</span>
                         </a>
                     </li>
                     <li @if(param.authorId == UserApp.currentUser().id){class="active"}>
-                        <a href="@routes.ReviewApp.reviews(project.owner, project.name)?authorId=@UserApp.currentUser().id">
+                        <a href="@routes.ReviewThreadApp.reviewThreads(project.owner, project.name)?authorId=@UserApp.currentUser().id">
                             @Messages("review.createdByYou")
                             <span class="num-badge pull-right">@paramForAuthor</span>
                         </a>
                     </li>
                 </ul>
-                @form(routes.ReviewApp.reviews(project.owner, project.name)) {
+                @form(routes.ReviewThreadApp.reviewThreads(project.owner, project.name)) {
                     <input type="hidden" name="authorId" value="@param.authorId">
                     <input type="hidden" name="participationId" value="@param.participationId">
                     <input type="hidden" name="orderDir" value="@param.orderDir">
@@ -75,7 +82,7 @@
             <ul class="nav nav-tabs nm">
                 @for(state <- Array(State.OPEN, State.CLOSED)) {
                 <li  @if(param.state == state.name) { class="active"}>
-                    <a href="@routes.ReviewApp.reviews(project.owner, project.name)?pageNum=1&state=@state.name&authorId=@param.authorId&participationId=@param.participationId">
+                    <a href="@routes.ReviewThreadApp.reviewThreads(project.owner, project.name)?pageNum=1&state=@state.name&authorId=@param.authorId&participationId=@param.participationId">
                         @Messages("issue.state." + state.name.toLowerCase())
                         <span class="num-badge">@CommentThread.countReviewsBy(project.id, param.clone.setState(state.name))</span>
                     </a>
@@ -104,7 +111,7 @@
                             </div>
                             <div class="review-content">
                                 <div class="review-comment">
-                                    <a href="#">
+                                    <a href="">
                                         @thread.getFirstReviewComment.getContents()
                                     </a>
                                 </div>

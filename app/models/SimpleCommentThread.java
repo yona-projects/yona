@@ -11,4 +11,5 @@ import play.db.ebean.Model.Finder;
 @Entity
 @DiscriminatorValue("simple")
 public class SimpleCommentThread extends CommentThread {
+    private static final long serialVersionUID = -1L;
 }

@@ -9,5 +9,8 @@ import javax.persistence.Entity;
 @Entity
 @DiscriminatorValue("non_ranged")
 public class NonRangedCodeCommentThread extends CommentThread {
+
+    private static final long serialVersionUID = -1L;
+
     public String commitId;
 }

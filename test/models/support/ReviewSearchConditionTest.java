@@ -1,4 +1,4 @@
-/*
+/**
  * Yobi, Project Hosting SW
  *
  * Copyright 2013 NAVER Corp.
@@ -18,27 +18,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package models.support;
-
 
 import models.*;
 import org.junit.*;
-import java.util.Map;
 import java.util.List;
-import java.util.Date;
-import java.util.HashMap;
+import play.test.FakeApplication;
 import play.test.Helpers;
 import utils.JodaDateUtil;
 import controllers.ProjectApp;
 import static org.fest.assertions.Assertions.assertThat;
 
-
 /**
  * {@link models.support.ReviewSearchCondition}을 테스트
  */
 public class ReviewSearchConditionTest extends ModelTest<ReviewSearchCondition> {
+
+    protected static FakeApplication app;
+
     /**
      * 리뷰에서 커밋 로그 검색을 테스트
      */
@@ -145,7 +142,7 @@ public class ReviewSearchConditionTest extends ModelTest<ReviewSearchCondition> 
         // given
         Project project = ProjectApp.getProject("yobi", "projectYobi");
         ReviewSearchCondition searchCondition = new ReviewSearchCondition();
-        searchCondition.authorId = User.findByLoginId("admin").id;
+        searchCondition.participationId = User.findByLoginId("admin").id;
         searchCondition.state = CommentThread.ThreadState.OPEN.name();
 
         // when
@@ -162,53 +159,49 @@ public class ReviewSearchConditionTest extends ModelTest<ReviewSearchCondition> 
         User adminUser = User.findByLoginId("admin");
         User lazielUser = User.findByLoginId("laziel");
         Project project = ProjectApp.getProject("yobi", "projectYobi");
-        HashMap<String, Object> properties = new HashMap<>();
-        CommentThread thread;
 
-
-        properties.put("createdDate", JodaDateUtil.before(1));
-        properties.put("commitId", "controllers");
-        properties.put("prevCommitId", "99");
-        properties.put("state", CommentThread.ThreadState.OPEN);
-        thread = makeThread(CodeCommentThread.class, adminUser, "Comment #1 : 111", project, properties);
-
-        properties.clear();
-        makeComment(thread, lazielUser, "Comment #1-1", properties);
-        makeComment(thread, lazielUser, "Comment #1-2", properties);
-
-
-        properties.clear();
-        properties.put("createdDate", JodaDateUtil.before(2));
-        properties.put("commitId", "200");
-        properties.put("prevCommitId", "199");
-        properties.put("state", CommentThread.ThreadState.OPEN);
-        thread = makeThread(CodeCommentThread.class, adminUser, "Comment #2 : /app/controllers/BoardApp.java", project, properties);
-
-        properties.clear();
-        makeComment(thread, adminUser, "Comment #2-1", properties);
-        makeComment(thread, lazielUser, "Comment #2-2", properties);
-
-
-        properties.clear();
-        properties.put("createdDate", JodaDateUtil.before(3));
-        properties.put("commitId", "300");
-        properties.put("prevCommitId", "299");
-        properties.put("state", CommentThread.ThreadState.OPEN);
-        properties.put("path", "/app/controllers/IssueApp.java");
-        thread = makeThread(CodeCommentThread.class, lazielUser, "Comment #3", project, properties);
-
-        properties.clear();
-        makeComment(thread, lazielUser, "Comment #3-1", properties);
-        makeComment(thread, adminUser, "Comment #3-2", properties);
-        makeComment(thread, lazielUser, "Comment #3-3", properties);
+        addTestThread1(adminUser, lazielUser, project);
+        addTestThread2(adminUser, lazielUser, project);
+        addTestThread3(adminUser, lazielUser, project);
     }
+
+    private void addTestThread1(User admin, User user, Project project) {
+        CodeCommentThread thread = new CodeCommentThread();
+        thread.createdDate = JodaDateUtil.today();
+        thread.commitId = "controllers";
+        thread.state = CommentThread.ThreadState.OPEN;
+        makeThread(admin, "Comment #1 : 111", project, thread);
+        makeComment(thread, user, "Comment #1-1");
+        makeComment(thread, user, "Comment #1-2");
+    }
+
+    private void addTestThread2(User admin, User user, Project project) {
+        CodeCommentThread thread = new CodeCommentThread();
+        thread.createdDate = JodaDateUtil.before(2);
+        thread.commitId = "200";
+        thread.state = CommentThread.ThreadState.OPEN;
+        makeThread(admin, "Comment #2 : /app/controllers/BoardApp.java", project, thread);
+        makeComment(thread, admin, "Comment #2-1");
+        makeComment(thread, user, "Comment #2-2");
+    }
+
+    private void addTestThread3(User admin, User user, Project project) {
+        CodeCommentThread thread = new CodeCommentThread();
+        thread.createdDate = JodaDateUtil.before(3);
+        thread.commitId = "300";
+        thread.state = CommentThread.ThreadState.OPEN;
+        thread.codeRange.path = "/app/controllers/IssueApp.java";
+        makeThread(user, "Comment #3", project, thread);
+        makeComment(thread, user, "Comment #3-1");
+        makeComment(thread, user, "Comment #3-2");
+        makeComment(thread, user, "Comment #3-3");
+    }
+
 
     @Before
     public void before() {
-        Map<String, String> config = support.Config.makeTestConfig();
-        app = Helpers.fakeApplication(config);
+        app = support.Helpers.makeTestApplication();
         Helpers.start(app);
-
         addTestData();
     }
 
@@ -222,14 +215,11 @@ public class ReviewSearchConditionTest extends ModelTest<ReviewSearchCondition> 
      * @param thread
      * @param author
      * @param contents
-     * @param properties
      * @return
      */
-    private ReviewComment makeComment(CommentThread thread, User author, String contents, HashMap<String, Object> properties) {
-        if (!properties.containsKey("createdDate")) properties.put("createdDate", JodaDateUtil.now());
-
+    private ReviewComment makeComment(CommentThread thread, User author, String contents) {
         ReviewComment reviewComment = new ReviewComment();
-        reviewComment.createdDate = (Date)properties.get("createdDate");
+        reviewComment.createdDate = JodaDateUtil.now();
         reviewComment.author = new UserIdent(author);
         reviewComment.thread = thread;
         reviewComment.setContents(contents);
@@ -240,48 +230,16 @@ public class ReviewSearchConditionTest extends ModelTest<ReviewSearchCondition> 
 
     /**
      * 스레드 생성 함수.
-     * @param type
      * @param author
      * @param contents
      * @param project
-     * @param properties
+     * @param thread
      * @return
      */
-    private CommentThread makeThread(Class type, User author, String contents, Project project, HashMap<String, Object> properties) {
-        CommentThread thread;
-
-        if (!properties.containsKey("createdDate")) properties.put("createdDate", JodaDateUtil.now());
-        if (!properties.containsKey("commitId")) properties.put("commitId", Long.toHexString(Double.doubleToLongBits(Math.random())));
-        if (!properties.containsKey("prevCommitId")) properties.put("prevCommitId", Long.toHexString(Double.doubleToLongBits(Math.random())));
-        if (!properties.containsKey("state")) properties.put("state", (Math.random() % 2 == 0) ? CommentThread.ThreadState.OPEN : CommentThread.ThreadState.CLOSED);
-        if (!properties.containsKey("path")) properties.put("path", "/README.md");
-
-        if (type == CodeCommentThread.class) {
-            CodeCommentThread codeCommentThread = new CodeCommentThread();
-
-            codeCommentThread.commitId = properties.get("commitId").toString();
-            codeCommentThread.prevCommitId = properties.get("prevCommitId").toString();
-            CodeRange codeRange = new CodeRange();
-            codeRange.path = properties.get("path").toString();
-            codeCommentThread.codeRange = codeRange;
-
-            thread = codeCommentThread;
-        } else if (type == NonRangedCodeCommentThread.class) {
-            NonRangedCodeCommentThread nonRangedCodeCommentThread = new NonRangedCodeCommentThread();
-
-            nonRangedCodeCommentThread.commitId = properties.get("commitId").toString();
-
-            thread = nonRangedCodeCommentThread;
-        } else {
-            return null;
-        }
-
-        thread.createdDate = (Date)properties.get("createdDate");
-        thread.state = (CommentThread.ThreadState)properties.get("state");
+    private void makeThread(User author, String contents, Project project, CommentThread thread) {
         thread.project = project;
         thread.author = new UserIdent(author);
         thread.save();
-
 
         ReviewComment reviewComment = new ReviewComment();
         reviewComment.createdDate = thread.createdDate;
@@ -289,7 +247,5 @@ public class ReviewSearchConditionTest extends ModelTest<ReviewSearchCondition> 
         reviewComment.thread = thread;
         reviewComment.setContents(contents);
         reviewComment.save();
-
-        return thread;
     }
 }

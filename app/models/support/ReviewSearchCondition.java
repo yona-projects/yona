@@ -1,4 +1,4 @@
-/*
+/**
  * Yobi, Project Hosting SW
  *
  * Copyright 2013 NAVER Corp.
@@ -18,10 +18,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package models.support;
-
 
 import models.*;
 import java.util.List;
@@ -90,7 +87,6 @@ public class ReviewSearchCondition extends AbstractPostingApp.SearchCondition {
         one.state = this.state;
         one.authorId = this.authorId;
         one.participationId = this.participationId;
-
         return one;
     }
 
