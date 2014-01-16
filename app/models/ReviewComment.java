@@ -75,7 +75,7 @@ public class ReviewComment extends Model implements ResourceConvertible {
     public static List<ReviewComment> findByThread(Long threadId) {
         return find.where()
                 .eq("thread.id", threadId)
-                .order().desc("createdDate")
+                .order().asc("createdDate")
                 .findList();
     }
 

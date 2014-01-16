@@ -1,12 +1,12 @@
 package models;
 
+import models.support.ReviewSearchCondition;
 import play.data.format.Formats;
 import play.data.validation.Constraints;
 import models.enumeration.ResourceType;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
 import play.db.ebean.Model;
-
 import javax.persistence.*;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
@@ -35,7 +35,7 @@ public class CommentThread extends Model implements ResourceConvertible {
     public UserIdent author;
 
     @OneToMany(mappedBy = "thread")
-    public List<ReviewComment> reviewComments = new ArrayList<ReviewComment>();
+    public List<ReviewComment> reviewComments = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     public ThreadState state;
@@ -122,4 +122,24 @@ public class CommentThread extends Model implements ResourceConvertible {
         reviewComment.thread = this;
     }
 
+    public ReviewComment getFirstReviewComment() {
+        List<ReviewComment> list = ReviewComment.findByThread(this.id);
+        if(!list.isEmpty()) {
+            return list.get(0);
+        }
+
+        throw new IllegalStateException("This thread have not ReviewComment..");
+    }
+
+    /**
+     * {@code projectId} 프로젝트에서 인자 조건에 따른 thread 개수를 반환한다.
+     *
+     * @param projectId
+     * @param cond
+     * @return
+     */
+
+    public static int countReviewsBy(Long projectId, ReviewSearchCondition cond) {
+        return cond.asExpressionList(Project.find.byId(projectId)).findRowCount();
+    }
 }

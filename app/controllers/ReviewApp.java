@@ -22,14 +22,15 @@ package controllers;
 
 import actions.AnonymousCheckAction;
 import controllers.annotation.IsAllowed;
-import models.NotificationEvent;
-import models.Project;
-import models.PullRequest;
-import models.PullRequestEvent;
+import models.*;
 import models.enumeration.EventType;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
+import com.avaje.ebean.ExpressionList;
+import com.avaje.ebean.Page;
+import models.support.ReviewSearchCondition;
 import play.api.mvc.Call;
+import play.data.Form;
 import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -40,6 +41,7 @@ import play.mvc.With;
  */
 @With(AnonymousCheckAction.class)
 public class ReviewApp extends Controller {
+    public static final int REVIEWS_PER_PAGE = 2;
 
     @Transactional
     @IsAllowed(value = Operation.ACCEPT, resourceType = ResourceType.PULL_REQUEST)
@@ -74,4 +76,21 @@ public class ReviewApp extends Controller {
         PullRequestEvent.addEvent(notiEvent, pullRequest);
     }
 
+    /**
+     * 프로젝트 포함된 스레드 목록을 반환
+     *
+     * @param ownerName
+     * @param projectName
+     * @return
+     */
+    public static Result reviews(String ownerName, String projectName) {
+        ReviewSearchCondition searchCondition = Form.form(ReviewSearchCondition.class).bindFromRequest().get();
+
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+
+        ExpressionList<CommentThread> el = searchCondition.asExpressionList(project);
+        Page<CommentThread> commentThreads = el.findPagingList(REVIEWS_PER_PAGE).getPage(searchCondition.pageNum - 1);
+
+        return ok(views.html.review.list.render(project, commentThreads, searchCondition));
+    }
 }

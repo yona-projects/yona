@@ -1,0 +1,116 @@
+@(project:Project, page:com.avaje.ebean.Page[CommentThread], searchCondition:models.support.ReviewSearchCondition)
+@import views.html.helper.form
+
+
+@makeSortLink(sortField:String, sortFieldString:String) = {
+    @if(searchCondition.orderBy == sortField) {
+        @if(searchCondition.orderDir == "asc") {
+            <a href="@routes.ReviewApp.reviews(project.owner, project.name)?state=@searchCondition.state&orderBy=@sortField&orderDir=desc&authorId=@searchCondition.authorId">/\ @sortFieldString</a>
+        } else {
+            <a href="@routes.ReviewApp.reviews(project.owner, project.name)?state=@searchCondition.state&orderBy=@sortField&orderDir=asc&authorId=@searchCondition.authorId">\/ @sortFieldString</a>
+        }
+    } else {
+        <a href="@routes.ReviewApp.reviews(project.owner, project.name)?state=@searchCondition.state&orderBy=@sortField&orderDir=desc&authorId=@searchCondition.authorId">\/ @sortFieldString</a>
+    }
+}
+
+
+@projectLayout("Review", project, utils.MenuType.PROJECT_REVIEW) {
+    @projectMenu(project, utils.MenuType.PROJECT_REVIEW, "")
+
+    <br>
+
+    <a href="@routes.ReviewApp.reviews(project.owner, project.name)">@Messages("review.allReview")</a> <br>
+    <a href="@routes.ReviewApp.reviews(project.owner, project.name)?participationId=@UserApp.currentUser().id">@Messages("review.involvingYou")</a> <br>
+    <a href="@routes.ReviewApp.reviews(project.owner, project.name)?authorId=@UserApp.currentUser().id">@Messages("review.createdByYou")</a> <br><br>
+
+    @form(routes.ReviewApp.reviews(project.owner, project.name)) {
+        <input type="hidden" name="authorId" value="@searchCondition.authorId">
+        <input type="hidden" name="participationId" value="@searchCondition.participationId">
+        <input type="hidden" name="orderDir" value="@searchCondition.orderDir">
+        <input type="hidden" name="orderBy" value="@searchCondition.orderBy">
+        <input type="hidden" name="state" value="@searchCondition.state">
+        Search: <input type="text" name="filter">
+        <input type="submit" value="search">
+    }
+
+    @for(state <- CommentThread.ThreadState.values()) {
+        <a href="@routes.ReviewApp.reviews(project.owner, project.name)?pageNum=1&state=@state.name.toLowerCase&authorId=@searchCondition.authorId">[@state.name.toLowerCase]</a>
+    }
+
+    <br><br>
+
+    @makeSortLink("createdDate", Messages("common.order.date"))
+
+    <br><br>
+
+    @for(thread <- page.getList())  {
+        <table border="1" width="600px">
+            <tr>
+                <td>Thread ID</td>
+                <td>@thread.id</td>
+            </tr>
+            <tr>
+                <td>Date</td>
+                <td>@thread.createdDate</td>
+            </tr>
+            <tr>
+                <td width="20%">Author</td>
+                <td>@thread.getFirstReviewComment.author.name</td>
+            </tr>
+            <tr>
+                <td width="15%">State</td>
+                <td>@thread.state.name()</td>
+            </tr>
+            <tr>
+                <td>Contents</td>
+                <td>@thread.getFirstReviewComment.getContents()</td>
+            </tr>
+            @thread match {
+                case codeCommentThread:models.CodeCommentThread => {
+                    <tr>
+                        <td>Thread Type</td>
+                        <td>CodeCommentThread</td>
+                    </tr>
+                    <tr>
+                        <td>CommitId</td>
+                        <td>@codeCommentThread.commitId</td>
+                    </tr>
+                    <tr>
+                        <td width="15%">PrevCommitId</td>
+                        <td>@codeCommentThread.prevCommitId</td>
+                    </tr>
+                    <tr>
+                        <td>Path</td>
+                        <td>@codeCommentThread.codeRange.path</td>
+                    </tr>
+                }
+                case nonRangedCodeCommentThread:models.NonRangedCodeCommentThread => {
+                        <tr>
+                            <td>Thread Type</td>
+                            <td>NonRangedCodeCommentThread</td>
+                        </tr>
+                        <tr>
+                            <td>CommitId</td>
+                            <td>@nonRangedCodeCommentThread.commitId</td>
+                        </tr>
+                }
+            }
+        </table>
+        <br>
+    }
+
+    @if(page.hasPrev()) {
+        <a href="@routes.ReviewApp.reviews(project.owner, project.name)?pageNum=@(searchCondition.pageNum-1)&state=@searchCondition.state&orderBy=@searchCondition.orderBy&orderDir=@searchCondition.orderDir&authorId=@searchCondition.authorId">< PREV</a>
+    } else {
+        < PREV
+    }
+
+    <input type="text" name="" value="@searchCondition.pageNum">
+
+    @if(page.hasNext()) {
+        <a href="@routes.ReviewApp.reviews(project.owner, project.name)?pageNum=@(searchCondition.pageNum+1)&state=@searchCondition.state&orderBy=@searchCondition.orderBy&orderDir=@searchCondition.orderDir&authorId=@searchCondition.authorId">NEXT ></a>
+    } else {
+        NEXT >
+    }
+}
