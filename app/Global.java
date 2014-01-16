@@ -27,6 +27,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
+import java.util.Date;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -36,6 +37,7 @@ import com.avaje.ebean.Ebean;
 
 import controllers.routes;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.impl.cookie.DateUtils;
 import play.Application;
 import play.GlobalSettings;
 import play.Configuration;
@@ -146,6 +148,8 @@ public class Global extends GlobalSettings {
         final long start = System.currentTimeMillis();
         return new Action.Simple() {
             public Result call(Http.Context ctx) throws Throwable {
+                ctx.response().setHeader("Date", DateUtils.formatDate(new Date()));
+                ctx.response().setHeader("Cache-Control", "no-cache");
                 Result result = delegate.call(ctx);
                 AccessLogger.log(request, result, start);
                 return result;
