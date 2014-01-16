@@ -8,8 +8,16 @@
     <form id="comment-form" action="@action" method="post" enctype="multipart/form-data">
         <div class="write-comment-box">
             <div class="write-comment-wrap">
+                <div id="mode-select">
+                    <input type="radio" name="edit-mode" id="edit-mode" value="edit" checked="checked" class="radio-btn">
+                    <label for="edit-mode" style="margin-right:3px;">Edit</label>
+                    <input type="radio" name="edit-mode" id="preview-mode" value="preview" class="radio-btn">
+                    <label for="preview-mode">Preview</label>
+                </div>
                 @help.markdown()
-                <textarea id="comment-editor" name="contents" class="text comment" markdown="true"></textarea>
+                <div class="textarea-box">
+                    <textarea id="comment-editor" name="contents" class="comment" markdown="true"></textarea>
+                </div>
                 @** fileUploader **@
                 @if(!UserApp.currentUser.isAnonymous) {
                     @common.fileUploader(resourceType, null)

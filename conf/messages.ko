@@ -569,6 +569,7 @@ title.issueTracker = 이슈 트래커
 title.keymap = 단축키 안내
 title.login = 로그인
 title.logout = 로그아웃
+title.markdown.help = 마크다운 도움말
 title.mailSetting = 메일 설정
 title.massMail = 대량 메일 발송
 title.milestoneList = 마일스톤 목록

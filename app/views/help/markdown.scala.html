@@ -1,113 +1,230 @@
 <div class="markdown-help">
-    <a href="#markdownHelp" role="button" class="ybtn ybtn-inverse ybtn-mini" data-toggle="modal">Yobi markdown?</a>
-    <div id="markdownHelp" class="modal hide fade" style="left: 0; width: 80%; margin-left:20px">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-            <h3>Yobi Markdown Help</h3>
-        </div>
-        <div class="modal-body">
-            <div class="pull-left">
-                                <pre>
-HEADERS
--------
-
+    <ul class="markdown-help-nav">
+        <li>
+            <span class="label">
+                @Messages("title.markdown.help")
+            </span>
+        </li>
+        <li class="help-nav" data-toggle="markdown-help" data-target="markdownHeaders">Headers</li>
+        <li class="help-nav" data-toggle="markdown-help" data-target="markdownLinks">Links</li>
+        <li class="help-nav" data-toggle="markdown-help" data-target="markdownLists">Lists</li>
+        <li class="help-nav" data-toggle="markdown-help" data-target="markdownImages">Images</li>
+        <li class="help-nav" data-toggle="markdown-help" data-target="markdownBlockquotes">Blockquotes</li>
+        <li class="help-nav" data-toggle="markdown-help" data-target="markdownCodes">Codes</li>
+        <li class="help-nav" data-toggle="markdown-help" data-target="markdownTables">Tables</li>
+        <li class="help-nav" data-toggle="markdown-help" data-target="markdownStyling">Styling</li>
+        <li class="help-nav" data-toggle="markdown-help" data-target="markdownShortLinks">Short Links</li>
+    </ul>
+    <ul class="markdown-help-wrap">
+        <li class="markdown-help-item" id="markdownHeaders">
+            <div class="row-fluid thead">
+                <div class="span6">Markdown Input</div>
+                <div class="span6">Markdown Output</div>
+            </div>
+            <div class="row-fluid markdwon-syntax-wrap">
+                <div class="span6 markdwon-syntax">
+<pre>
 # This is an H1
 ## This is an H2
-###### This is an H6
-
-
-Code
-----
-
-```
-    var name = "world"
-    console.log("hello " + name);
-```
-
-LISTS
------
-
-- Seoul
-- Busan
-- JeJu
-
-or
-
-1. Wake up
-2. Eat breakfast
-    - Ham
-    - Egg
-3. Ready to go to work
-
-
-BLOCKQUOTES
------------
-
-> 'I can't explain MYSELF, I'm afraid, sir' said Alice,
-> 'because I'm not myself, you see.'
-> 'I don't see,' said the Caterpillar.
-
-## Link
-
-[yobi home](http://yobi.io/)
-
-or
+### This is an H3
+</pre>
+                </div>
+                <div class="span6 markdown-wrap" markdown="true">
+# This is an H1
+## This is an H2
+### This is an H3
+                </div>
+            </div>
+        </li>
+        <li class="markdown-help-item" id="markdownLinks">
+            <div class="row-fluid thead">
+                <div class="span6">Markdown Input</div>
+                <div class="span6">Markdown Output</div>
+            </div>
+            <div class="row-fluid markdwon-syntax-wrap">
+                <div class="span6 markdwon-syntax">
+<pre>
+[Site](http://yobi.io/ "Yobi Site")
 
 http://yobi.io/
+</pre>
+                </div>
+                <div class="span6 markdown-wrap" markdown="true">
+[Site](http://yobi.io/ "Yobi Site")
 
-## Inline Code
-
- This is javascript code `var i=0` Did you see?
-
-
-## Short Links Expression
-
-Issue no: #34
-Mention: @@yobiman
-commit: @@b398cbd or @@b398cbda6ddea8c2dfcd433b9460c7a04c09843e
-                                </pre>
+http://yobi.io/
+                </div>
+            </div>            
+        </li>
+        <li class="markdown-help-item" id="markdownLists">
+            <div class="row-fluid thead">
+                <div class="span6">Markdown Input</div>
+                <div class="span6">Markdown Output</div>
             </div>
-            <div class="pull-left" style="padding:10px">
-                <h2>HEADERS  </h2>
-                <h1>This is an H1</h1>
-                <h2>This is an H2</h2>
-                <h6>This is an H6</h6>
-                <h2>Code  </h2>
-<pre><code>    var name = "world"
-    console.log("hello " + name);</code></pre>
-                <h2>LISTS  </h2>
-                <ul>
-                    <li>Seoul  </li>
-                    <li>Busan  </li>
-                    <li>JeJu  </li>
-                </ul>
-                <p>or  </p>
-                <ol>
-                    <li>Wake up  </li>
-                    <li>Eat breakfast  <ul>
-                        <li>Ham  </li>
-                        <li>Egg  </li>
-                    </ul>
-                    </li>
-                    <li>Ready to go to work  </li>
-                </ol>
-                <br />
-                <br />
-                <br />
-                <h2>BLOCKQUOTES  </h2>
-                <blockquote>
-                    <p>'I can't explain MYSELF, I'm afraid, sir' said Alice,<br>'because I'm not myself, you see.'<br>'I don't see,' said the Caterpillar.  </p>
-                </blockquote>
-                <h2>Link</h2>
-                <p><a href="http://yobi.io/">yobi home</a>  </p>
-                <p>or  </p>
-                <p><a href="http://yobi.io/">http://yobi.io/</a>  </p>
-                <h2>Inline Code</h2>
-                <p> This is javascript code <code>var i=0</code> Did you see? </p>
-                <br />
-                <h2>Short Links Expression</h2>
-                <p>Issue no: <a href="/doortts/Yobi/issue/34">#34</a><br>Mention: <a href="/yobiman">@@yobiman</a><br>commit: <a href="/b398cbd">@@b398cbd</a> or <a href="/b398cbda6ddea8c2dfcd433b9460c7a04c09843e">@@b398cbda6ddea8c2dfcd433b9460c7a04c09843e</a></p>
+            <div class="row-fluid markdwon-syntax-wrap">
+                <div class="span6 markdwon-syntax">
+<pre>
+* Red 
+    1. White
+    2. Blue
+* Green.
+</pre>
+                </div>
+                <div class="span6 markdown-wrap" markdown="true">
+* Red 
+    1. White
+    2. Blue
+* Green
+                </div>
             </div>
-        </div>
-    </div>
+        </li>
+        <li class="markdown-help-item" id="markdownImages">
+            <div class="row-fluid thead">
+                <div class="span6">Markdown Input</div>
+                <div class="span6">Markdown Output</div>
+            </div>
+            <div class="row-fluid markdwon-syntax-wrap">
+                <div class="span6 markdwon-syntax">
+<pre>
+![title](http://developer.naver.com/wiki/attach/TechSupport/img_yobi.jpg "Yobi")
+</pre>
+                </div>
+                <div class="span6 markdown-wrap" markdown="true">
+![title](http://developer.naver.com/wiki/attach/TechSupport/img_yobi.jpg "Yobi")
+                </div>
+            </div>
+        </li>
+        <li class="markdown-help-item" id="markdownBlockquotes">
+            <div class="row-fluid thead">
+                <div class="span6">Markdown Input</div>
+                <div class="span6">Markdown Output</div>
+            </div>
+            <div class="row-fluid markdwon-syntax-wrap">
+                <div class="span6 markdwon-syntax">
+<pre>
+> Lorem ipsum dolor sit amet, consectetuer adipiscing elit. 
+>
+> Aenean commodo ligula eget dolor. 
+</pre>
+                </div>
+                <div class="span6 markdown-wrap" markdown="true">
+> Lorem ipsum dolor sit amet, consectetuer adipiscing elit. 
+>
+> Aenean commodo ligula eget dolor. 
+                </div>
+            </div>
+        </li>
+        <li class="markdown-help-item" id="markdownCodes">
+            <div class="row-fluid thead">
+                <div class="span6">Markdown Input</div>
+                <div class="span6">Markdown Output</div>
+            </div>
+            <div class="row-fluid markdwon-syntax-wrap">
+                <div class="span6 markdwon-syntax">
+<pre>
+`function test() {console.log("hello world");}`
+
+```javascript
+function test() {
+  console.log("hello world");
+}
+``` 
+</pre>
+                </div>
+                <div class="span6 markdown-wrap" markdown="true">
+`function test() {console.log("hello world");}`
+
+```javascript
+function test() {
+  console.log("hello world");
+}
+```
+                </div>
+            </div>
+        </li>
+        <li class="markdown-help-item" id="markdownTables">
+            <div class="row-fluid thead">
+                <div class="span6">Markdown Input</div>
+                <div class="span6">Markdown Output</div>
+            </div>
+            <div class="row-fluid markdwon-syntax-wrap">
+                <div class="span6 markdwon-syntax">
+<pre>
+| Project Type | Pull Request | Issue |
+| ------------ | ------------ | ----- |
+| Git          | Yes          | Yes   |
+| SVN          | No           | Yes   |
+</pre>
+                </div>
+                <div class="span6 markdown-wrap" markdown="true">
+| Project Type | Pull Request | Issue |
+| ------------ | ------------ | ----- |
+| Git          | Yes          | Yes   |
+| SVN          | No           | Yes   |
+                </div>
+            </div>
+        </li>
+        <li class="markdown-help-item" id="markdownStyling">
+            <div class="row-fluid thead">
+                <div class="span6">Markdown Input</div>
+                <div class="span6">Markdown Output</div>
+            </div>
+            <div class="row-fluid markdwon-syntax-wrap">
+                <div class="span6 markdwon-syntax">
+<pre>
+*This is an italic*
+**This is an bold**
+~~This is an strike~~
+</pre>
+                </div>
+                <div class="span6 markdown-wrap" markdown="true">
+*This is an italic*
+**This is an bold**
+~~This is an strike~~
+                </div>
+            </div>
+        </li>
+        </li>
+        <li class="markdown-help-item" id="markdownShortLinks">
+            <div class="row-fluid thead">
+                <div class="span6">Markdown Input</div>
+                <div class="span6">Markdown Output</div>
+            </div>
+            <div class="row-fluid markdwon-syntax-wrap">
+                <div class="span6 markdwon-syntax">
+<pre>
+Issue no: #2
+Mention: @{"@"}yobi
+commit: @{"@"}763575 or @{"@"}763575f177a4ce8b9370954de3ea1a1410205593
+</pre>
+                </div>
+                <div class="span6 markdown-wrap" >
+<p>Issue no: <a href="http://demo.yobi.io/yobi/yobi/issue/2">#2</a><p>
+<p>Mention: <a href="http://demo.yobi.io/yobi">@{"@"}yobi</a></p>
+<p>commit: <a href="http://demo.yobi.io/yobi/yobi/commit/763575">@{"@"}763575</a>  or 
+<a href="http://demo.yobi.io/yobi/yobi/commit/763575f177a4ce8b9370954de3ea1a1410205593">@{"@"}763575</a></p> 
+                </div>
+            </div>
+        </li>
+    </ul>
 </div>
+
+<script type="text/javascript">
+$(function(){
+    $('.markdown-help-nav').on('click','[data-toggle="markdown-help"]',function() {
+        var sTarget = $(this).data('target');
+        var welTarget = $('#'+sTarget);
+
+        var welCurrentlyActiveElement = $('li[data-toggle="markdown-help"].active');
+        
+        if(welCurrentlyActiveElement.data('target') !== sTarget) {
+            welCurrentlyActiveElement.toggleClass('active');
+            $('#'+welCurrentlyActiveElement.data('target')).toggleClass('active');
+        }
+
+        $(this).toggleClass('active');
+        welTarget.toggleClass('active');
+    });
+});
+</script>
+
