@@ -21,7 +21,26 @@
             </div>
         </div>
     </form>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            var welCommentForm = $("#comment-form");
 
+            welCommentForm.on("submit", function(){
+                yobi.ui.Spinner.show({"bUseDimmer": true});
+                welCommentForm.data("bOnSubmit", true);
+            });
+
+            // -- ESC 키를 눌러 폼 전송을 중단하는 경우
+            $(window).on("keydown", function(weEvt){
+                var bOnSubmit = welCommentForm.data("bOnSubmit");
+
+                if(weEvt.keyCode === 27 && bOnSubmit){
+                    yobi.ui.Spinner.hide();
+                    welCommentForm.data("bOnSubmit", false);
+                }
+            });
+        });
+    </script>
 } else {
 
     <div class="write-comment-box">
