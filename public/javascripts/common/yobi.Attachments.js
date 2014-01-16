@@ -49,8 +49,10 @@ yobi.Attachments = function(htOptions) {
      * @param {Hash Table} htOptions 초기화 옵션
      */
     function _initVar(htOptions){
+        var sFileLink = '<a href="${fileHref}" target="_blank"><i class="yobicon-paperclip"></i>${fileName} (${fileSizeReadable})</a>';
+        var sFileDownloadLink = '<a href="${fileHref}?action=download" class="download" title="${fileName}"><i class="yobicon-download"></i></a>';
         htVar.sTplFileList = htOptions.sTplFileList || '<ul class="attaches wm">';
-        htVar.sTplFileItem = htOptions.sTplFileItem || '<li class="attach"><a href="${fileHref}"><i class="yobicon-paperclip"></i>${fileName} (${fileSizeReadable})</a></li>';
+        htVar.sTplFileItem = htOptions.sTplFileItem || '<li class="attach">'+sFileLink + sFileDownloadLink +'</li>';
         htVar.sResourceId = htOptions.sResourceId; // ResId: Optional
         htVar.sResourceType = htOptions.sResourceType; // ResType: Required
     }
