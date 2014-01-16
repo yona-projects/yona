@@ -4783,6 +4783,15 @@ label.issue-item-row {
                                         display: block;
                                     }
                                 }
+
+                                .yobicon-comments {
+                                    position:absolute;
+                                    cursor: pointer;
+                                    .opacity(0);
+                                    margin-left: -84px;
+                                    width: 25px;
+                                    margin-top:2px;
+                                }
                             }
 
                             &.code {
@@ -4844,14 +4853,12 @@ label.issue-item-row {
                         &.comments {
                             display: none;
                             td {
-                                border:1px solid #e5e5e5;
-                                border-left: none;
-                                border-right: none;
-                                padding:10px 5px;
+                                padding:0;
 
                                 li {
                                     max-width: 1150px;
                                 }
+                                /* see .comment-thread-wrap */
                             }
                         }
                     }
@@ -4861,16 +4868,6 @@ label.issue-item-row {
                             display: table-row;
                         }
                     }
-                }
-
-                .yobicon-comments {
-                    position:absolute;
-                    cursor: pointer;
-                    .opacity(0);
-                    margin-left: -84px;
-                    width: 25px;
-                    margin-top:2px;
-
                 }
 
                 tr.add:hover, tr.remove:hover,tr.context:hover{
@@ -4899,9 +4896,59 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     visibility: hidden;
 }
 
+.comment-thread-wrap {
+    border:1px solid #e5e5e5;
+    border-width:1px 0px;
+    padding:0 5px;
+    background-color:#fefefe;
+
+    .thread-header {
+        text-align:right;
+        padding:5px; margin-top:5px;
+    }
+
+    .comments {
+        margin:0 5px;
+        .comment { padding: 2px 0; }
+        .media-body { background: #fff; }
+    }
+
+    .btn-thread-here {
+        display:none;
+    }
+
+    .thread-actrow {
+        text-align:right;
+        padding:5px 5px 10px;
+    }
+
+    &.fold {
+        padding:0; margin:0;
+        background: transparent;
+        border: none;
+        .box-shadow(none);
+
+        .thread-header, .thread-actrow, .comments {
+            display:none;
+        }
+        .btn-thread-here {
+            position:absolute;
+            right:-52px;
+            display:block;
+        }
+    }
+}
+.comment-thread-wrap + .comment-thread-wrap {
+    margin-top:20px;
+}
+.comment-thread-wrap.fold + .comment-thread-wrap {
+    margin-top:0;
+    .btn-thread-here { margin-top:20px; }
+}
+
 .review-form {
     position:absolute; display: none;
-    z-index:99; top:0px; left:10px; right:10px;
+    z-index:99; top:0px; left:2px; right:2px;
     padding: 15px 15px 10px;
     background: #fff;
     border:1px solid #ccc;
@@ -4955,10 +5002,6 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     background-color:rgba(0,133,255,0.25); /* blue */
     /*background-color:rgba(255,245,0,0.35); /* yellow */
     padding:4px 0;
-}
-.btn-thread {
-    margin-left:52px !important;
-    display:block; width:100%; max-width:1098px;
 }
 
 .warning-none {

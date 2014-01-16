@@ -230,6 +230,10 @@
                         yobi.CodeCommentBox.hide();
                     }
                 });
+                welContainer.on("click", ".btn-thread-minimize", function(weEvt){
+                    var welThread = $(weEvt.currentTarget).closest(".comment-thread-wrap");
+                    welThread.toggleClass("fold");
+                });
 
                 // block/unblock with thread range with mouseenter/leave event
                 var waCodeCommentThread = $('div[data-toggle="CodeCommentThread"]');

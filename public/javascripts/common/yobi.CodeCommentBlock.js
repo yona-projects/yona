@@ -123,7 +123,11 @@ yobi.CodeCommentBlock = (function(){
         // in range ...
         if(nAnchorIndex !== nFocusIndex){
             welStartLine.nextUntil(welEndLine).each(function(){
-                if($(this).find("td.code > pre").length !== 1){
+                var welLine = $(this);
+
+                // tr.comments is tolerable
+                if(!welLine.hasClass("comments") &&
+                    welLine.find("td.code > pre").length !== 1){
                     bHasRange = true;
                 }
             });
