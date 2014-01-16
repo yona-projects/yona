@@ -1,0 +1,131 @@
+@(title: String, currentPage: com.avaje.ebean.Page[Issue], param:models.support.SearchCondition, project:Project)
+
+@import helper._
+@import utils.TemplateHelper._
+@import utils.AccessControl._
+@import scala.collection.immutable.Map
+@import scala.collection.mutable.ArrayBuffer
+@import models.enumeration._
+@import org.apache.commons.lang.StringUtils
+@import utils.HttpUtil._
+
+@urlToList = {@routes.IssueApp.issues(project.owner, project.name, param.state, "html", currentPage.getPageIndex + 1)}
+@paramForEveryone = @{ param.clone().setState(param.state).setAssigneeId(null).setAuthorId(null) }
+@paramForIssuesAssignedToMe = @{ param.clone().setState(param.state).setAssigneeId(UserApp.currentUser().id).setAuthorId(null) }
+@paramForIssuesAuthoredByMe = @{ param.clone().setState(param.state).setAssigneeId(null).setAuthorId(UserApp.currentUser().id) }
+
+@urlAssignedToMe = {@routes.IssueApp.userIssues(param.state, "html", 1)&assigneeId=@User.findByLoginId(session.get("loginId")).id&milestoneId=@param.milestoneId}
+
+@urlAuthoredByMe = {@routes.IssueApp.userIssues(param.state, "html", 1)&authorId=@User.findByLoginId(session.get("loginId")).id&milestoneId=@param.milestoneId}
+
+@getPageListUrl(pageIndex:Integer) = {@routes.IssueApp.userIssues(param.state, "html", pageIndex + 1)}
+
+@makeFilterLink(fieldName:String, orderBy:String, orderDir:String, fieldText:String) = {
+	@if(orderBy.equals(fieldName)) {
+		<a href="#" orderBy="@orderBy" orderDir="@if(orderDir.equals("desc")){asc}else{desc}" class="filter active"><i class="ico btn-gray-arrow @if(orderDir.equals("desc")){ down }"></i>@fieldText</a>
+	} else {
+	    <a href="#" orderBy="@fieldName" orderDir="desc" class="filter"><i class="ico btn-gray-arrow down"></i>@fieldText</a>
+	}
+}
+
+@getTabLinkByState(state:State) = {@routes.IssueApp.issues(project.owner, project.name, state.state)@if(param.assigneeId != null){?assigneeId=@param.assigneeId}@if(param.authorId != null){&authorId=@param.authorId}@if(param.milestoneId != null){&milestoneId=@param.milestoneId}}
+
+	<div pjax-container class="row-fluid issue-list-wrap">
+        <div class="span2 search-wrap">
+            <div class="inner advanced">
+                <ul class="lst-stacked unstyled">
+                    @if(UserApp.currentUser().id != -1l){
+                    <li @if(param.assigneeId == UserApp.currentUser().id){ class="active"}>
+                        <a pjax-filter href="#" authorId="" assigneeId="@User.findByLoginId(session.get("loginId")).id" milestoneId="@param.milestoneId">@Messages("issue.list.assignedToMe")
+                        </a>
+                    </li>
+                    <li @if(param.authorId == UserApp.currentUser().id){ class="active"}>
+                        <a pjax-filter href="#" authorId="@User.findByLoginId(session.get("loginId")).id" assigneeId="" milestoneId="@param.milestoneId">@Messages("issue.list.authoredByMe")
+                        </a>
+                    </li>
+                    }
+                </ul>
+
+                @if(param.milestoneId != null){
+                    @defining(Milestone.findById(param.milestoneId)){ milestone =>
+                        @if(milestone != null){
+                            <hr>
+                            @views.html.milestone.partial_status(milestone, project)
+                        }
+                    }
+                }
+
+                <form id="search" name="search" action="@routes.IssueApp.userIssues()" method="get">
+                    <input type="hidden" name="orderBy" value="@param.orderBy">
+                    <input type="hidden" name="orderDir" value="@param.orderDir">
+                    <input type="hidden" name="state" value="@param.state">
+                    <input type="hidden" name="authorId" value="@param.authorId">
+                    <input type="hidden" name="assigneeId" value="@param.assigneeId">
+
+                    <hr>
+                    <div class="srch-input">
+                        <div class="srch-input-inner">
+                            <input type="text" name="filter" class="text" value="@param.filter">
+                            <button type="submit" class="btn-transparent"><i class="yobicon-search"></i></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="span10" id="span10">
+            <ul class="nav nav-tabs nm">
+            @for(state <- Array(State.OPEN, State.CLOSED)) {
+                <li @if(param.state == state.state) { class="active" } data-pjax>
+                    <a href="#" state="@state.state">
+                        @Messages("issue.state." + state.name.toLowerCase())
+                        <span class="num-badge">@Issue.countIssuesBy(param.clone.setState(state))</span>
+                    </a>
+                </li>
+            }
+            </ul>
+
+
+        @if(currentPage.getList().size() > 0){
+		<div class="filter-wrap small-heights">
+                @if(currentPage.getList().size() > 1){
+			<div class="filters pull-right">
+				@makeFilterLink("updatedDate", param.orderBy, param.orderDir, Messages("common.order.updatedDate"))
+				@makeFilterLink("createdDate", param.orderBy, param.orderDir, Messages("common.order.date"))
+				@makeFilterLink("numOfComments", param.orderBy, param.orderDir, Messages("common.order.comments"))
+			</div>
+			}
+		</div>
+
+            @my_partial_list(currentPage.getList, param, currentPage.getPageIndex, currentPage.getTotalPageCount)
+
+            <div class="pull-left" style="padding:10px;">
+            </div>
+            <div id="pagination"><!-- pagination.js will fill here. --></div>
+        } else {
+            <div class="error-wrap">
+                <i class="ico ico-err1"></i>
+                <p>@Messages("issue.is.empty")</p>
+            </div>
+        }
+        </div>
+		<script type="text/javascript">
+			$(document).ready(function(){
+                $("a[pjax-filter]" ).bind("click",function(){
+                    $("input[name='authorId']").val($(this).attr("authorId"));
+                    $("input[name='assigneeId']").val($(this).attr("assigneeId"));
+                    $("#search" ).submit();
+                });
+				$yobi.loadModule("issue.List", {
+                "welSearchOrder": $("a[orderBy]"),
+                "welSearchState": $("a[state]"),
+                "welSearchAuthor": $("div[data-name='authorId']"),
+                "welSearchAssignee": $("div[data-name='assigneeId']"),
+                "welSearchMilestone": $("div[data-name='milestoneId']"),
+                "welSearchForm":$("form[name='search']"),
+                "welFilter": $("a[pjax-filter]"),
+                "elPagination": $("#pagination"),
+                "nTotalPages" : @currentPage.getTotalPageCount()
+				});
+			});
+		</script>
+    </div>

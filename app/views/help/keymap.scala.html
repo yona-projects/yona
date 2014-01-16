@@ -24,14 +24,18 @@
 	            <span class="ybtn ybtn-small">M</span>
 	            <span class="help-inline">@Messages("milestone")</span><br>
 
-                @if(project.vcs.equals("GIT")){
+                @if(project != null ) {
+                    @if(project.vcs.equals("GIT")){
                 <span class="ybtn ybtn-small">F</span>
                 <span class="help-inline">@Messages("menu.pullRequest")</span><br>
+                    }
                 }
 
-                @if(ProjectUser.roleOf(session.get("loginId"), project).equals("manager")){
+                @if(project != null ) {
+                    @if(ProjectUser.roleOf(session.get("loginId"), project).equals("manager")){
 	            <span class="ybtn ybtn-small">Q</span>
                 <span class="help-inline">@Messages("project.setting")</span><br>
+                    }
                 }
             </div>
 

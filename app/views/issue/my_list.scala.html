@@ -1,0 +1,53 @@
+@(title: String, currentPage: com.avaje.ebean.Page[Issue], param:
+models.support.SearchCondition, project:Project)
+
+@siteLayout("app.name", utils.MenuType.SITE_HOME) {
+    <div>
+        <button class="btn-transparent" id="toggleIntro"></button>
+    </div>
+    <div class="page-wrap">
+        <ul class="nav nav-tabs">
+            <li><a href="@routes.Application.index()">@Messages("notification")</a></li>
+            <li class="active"><a href="@routes.IssueApp.userIssues()">@Messages("issue.myIssue")</a></li>
+        </ul>
+
+        @views.html.issue.my_partial_search(title, currentPage, param, project)
+</div>
+<div id="spin" style="position:absolute; top:35%; left:50%"></div>
+<script type="text/javascript" src="/assets/javascripts/lib/spin.js"></script>
+<script type="text/javascript">
+    $(document).ready(function(){
+        $(".issue-label").on('click', function(event) {
+            window.location.href = $(this).attr("href");
+        });
+        var pjaxOptions = {
+            fragment:"div[pjax-container]",
+            timeout:3000
+        };
+
+        $.pjax.defaults.maxCacheLength = 0;
+
+        $(document).on('click', 'a[pjax-page]', function(event) {
+            $.pjax.click(event, "div[pjax-container]", pjaxOptions)
+        });
+
+        $(document).on("submit", "form[name='search']", function(event) {
+			$.pjax.submit(event, "div[pjax-container]", pjaxOptions)
+		});
+
+        $(document).on('pjax:send', function() {
+            yobi.ui.Spinner.show();
+        });
+
+        $(document).on('pjax:complete', function() {
+            yobi.ui.Spinner.hide();
+        });
+        $(document).on('pjax:end', function() {
+            $(".issue-label").on('click', function() {
+                window.location.href = $(this).attr("href");
+            });
+        });
+
+    });
+</script>
+}
