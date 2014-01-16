@@ -110,7 +110,7 @@
             function handleIn() {
                 var e=$(this);
                 e.tooltip ( { title : 'loading..' } ).tooltip('show');
-                $.get(e.attr('href'),function(data) {
+                $.getJSON(e.attr('href'),function(data) {
                     if( e.tooltip ) e.tooltip('hide');
                     e.popover({
                         title: data.title,
