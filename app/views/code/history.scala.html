@@ -65,7 +65,7 @@
     <div class="bubble-wrap dark-gray repo-wrap">
         <div class="code-browse-wrap">
             @if(path != null){
-            <div id="breadcrumbs" class="code-browse-header">
+            <div id="breadcrumbs" class="code-breadcrumb-wrap">
                 <a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(selectedBranch, "UTF-8"), "")">@project.name</a>
                 @makeBreadCrumbs(path)
             </div>
