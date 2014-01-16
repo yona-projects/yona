@@ -21,8 +21,8 @@ models.support.SearchCondition, project:Project)
             window.location.href = $(this).attr("href");
         });
         var pjaxOptions = {
-			fragment:"div[pjax-container]",
-			timeout:3000
+            fragment:"div[pjax-container]",
+            timeout:3000
         };
 
         $.pjax.defaults.maxCacheLength = 0;
@@ -36,15 +36,14 @@ models.support.SearchCondition, project:Project)
 		});
 
         $(document).on('pjax:send', function() {
-			var target = document.getElementById('spin');
-			spinner = new Spinner().spin(target);
+            yobi.ui.Spinner.show();
         });
 
         $(document).on('pjax:complete', function() {
-            spinner.stop();
+            yobi.ui.Spinner.hide();
         });
         $(document).on('pjax:end', function() {
-            $(".issue-label").on('click', function(event) {
+            $(".issue-label").on('click', function() {
                 window.location.href = $(this).attr("href");
             });
         });

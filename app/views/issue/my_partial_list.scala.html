@@ -19,12 +19,12 @@
             </a>-->**@
         <label for="issue-@issue.id">
             <div class="pull-left">
-                <a href="@routes.ProjectApp.project(issue.project.owner, issue.project.name)" class="avatar-wrap mlarge">
-                    <img src="@urlToProjectLogo(issue.project)" alt="@issue.project.name">
+                <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="avatar-wrap mlarge">
+                    <img data-toggle="tooltip" data-placement="top" src="@User.findByLoginId(issue.authorLoginId).avatarUrl()" alt="@issue.authorName" title="@issue.authorLoginId">
                 </a>
             </div>
             <div class="title">
-                <a href="@routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.getNumber)" class="title-link">
+                <a href="@routes.ProjectApp.project(issue.project.owner, issue.project.name)" class="title-link font-blue">@issue.project.name</a><a href="@routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.getNumber)" class="title-link">
                     <strong class="issue-id">#@issue.getNumber</strong>
 
                     @issue.title
@@ -35,7 +35,7 @@
             </div>
             <div class="infos nm">
                 @if(issue.authorName){
-                    <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="author" data-toggle="tooltip" data-placement="top" title="@issue.authorName">@issue.authorLoginId</a>
+                    <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="author" data-toggle="tooltip" data-placement="bottom" title="@issue.authorLoginId">@issue.authorName</a>
                 } else {
                     <span class="gray-txt">@Messages("issue.noAuthor")</span>
                 }
