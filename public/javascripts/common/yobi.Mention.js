@@ -36,7 +36,7 @@ yobi.Mention = function(htOptions) {
                 "items": 15
             },
             "users": [],
-            "queryBy": ["username"]
+            "queryBy": ["username", "name"]
         };
     }
 
