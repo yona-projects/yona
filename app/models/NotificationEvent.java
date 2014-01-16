@@ -554,6 +554,8 @@ public class NotificationEvent extends Model {
             for(RevCommit commit : commits) {
                 GitCommit gitCommit = new GitCommit(commit);
                 result.append(gitCommit.getShortId());
+                result.append(" ");
+                result.append(gitCommit.getShortMessage());
                 result.append("\n");
             }
         }
