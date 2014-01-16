@@ -43,11 +43,6 @@
                         <i class="icon yobicon-comments"></i><span class="num">@issue.comments.size()</span>
                     </a>
                 }
-                @if(Attachment.findByContainer(issue.asResource).size > 0){
-                    <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)#attachments" class="comment-wrap">
-                        <i class="icon yobicon-paperclip vmiddle"></i><span class="num">@Attachment.findByContainer(issue.asResource).size</span>
-                    </a>
-                }
                 <div class="lb ml10">
                 @for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
                     @makeLabelLink(project, searchCondition, label)
