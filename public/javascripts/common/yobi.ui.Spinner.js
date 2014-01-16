@@ -51,7 +51,7 @@
          * @private
          */
         function _initVar(htOptions){
-            htVar.htOptions = {  // -- Default Options
+            htVar.htOptions = $.extend({  // -- Default Options
                 "lines"    : 11, // The number of lines to draw
                 "length"   : 26, // The length of each line
                 "width"    : 7,  // The line thickness
@@ -59,7 +59,7 @@
                 "corners"  : 1,  // Corner roundness (0..1)
                 "rotate"   : 0,  // The rotation offset
                 "direction": -1, // 1: clockwise, -1: counterclockwise
-                "color"    : "#fff", // #rgb or #rrggbb or array of colors
+                "color"    : "#bbb", // #rgb or #rrggbb or array of colors
                 "speed"    : 1.5,    // Rounds per second
                 "trail"    : 66,     // Afterglow percentage
                 "shadow"   : false,  // Whether to render a shadow
@@ -68,9 +68,7 @@
                 "zIndex"   : 2e9,    // The z-index (defaults to 2000000000)
                 "top"      : "auto", // Top position relative to parent in px
                 "left"     : "auto"  // Left position relative to parent in px
-            };
-
-            _setOption(htOptions);
+            }, htOptions);
 
             htVar.oSpinner = new Spinner(htVar.htOptions);
         }
@@ -85,25 +83,19 @@
         }
 
         /**
-         * Set user defined options
-         * @param htOpt
-         * @private
-         */
-        function _setOption(htOpt){
-            for(var sKey in htOpt){
-                htVar.htOptions[sKey] = htOpt[sKey];
-            }
-        }
-
-        /**
          * Show spinner
          * @private
          */
-        function _showSpinner(){
+        function _showSpinner(htOptions){
+            var bUseDimmer = (htOptions && typeof htOptions.bUseDimmer !== "undefined") ?
+                              htOptions.bUseDimmer : false;
+            var sBackground = bUseDimmer ? "rgba(0,0,0,0.4)": "transparent";
+
             htVar.oSpinner.spin();
             htElement.welContainer.append(htVar.oSpinner.el);
 
-            htElement.welWrapper.fadeIn();
+            htElement.welWrapper.css("background", sBackground);
+            htElement.welWrapper.show();
         }
 
         /**
@@ -111,9 +103,8 @@
          * @private
          */
         function _hideSpinner(){
-            htElement.welWrapper.fadeOut(400, function(){
-                htVar.oSpinner.stop();
-            });
+            htElement.welWrapper.hide();
+            htVar.oSpinner.stop();
         }
 
         _init(htOptions || {});
@@ -121,45 +112,19 @@
         // public interfaces
         return {
             "show": _showSpinner,
-            "hide": _hideSpinner,
-            "setOption": _setOption
+            "hide": _hideSpinner
         };
     })();
 
 })("yobi.ui.Spinner");
 
 /**
- * 페이지 내에 존재하는 form 의 submit 이벤트와
- * jQuery.requestAs 의 beforeRequest 이벤트 발생시
- * 자동으로 ui.Spinner.show() 를 실행한다
+ * Safari 브라우저의 캐시로 인해
+ * Spinner 가 표시되고 있는 상태로 패이지를 이동했다가
+ * "뒤로가기" 버튼을 눌러 돌아오면 여전히 표시중인 문제를 해결하기 위해
+ * 페이지를 벗어나기 직전 없애고 Spinner 를 감춤 처리하도록 한다
  */
 $(document).ready(function(){
-    // <form>
-    window.bFormSubmitted = false;
-
-    $("form").on("submit", function(){
-        yobi.ui.Spinner.show();
-        window.bFormSubmitted = true;
-    });
-
-    // -- ESC 키를 눌러 폼 전송을 중단하는 경우
-    $(window).on("keydown", function(weEvt){
-        if(weEvt.keyCode === 27 && window.bFormSubmitted){
-            yobi.ui.Spinner.hide();
-            window.bFormSubmitted = false;
-        }
-    });
-    // --- //
-
-    // [data-request-method]
-    $("[data-request-method]").each(function(i, el){
-        $(el).data("requestAs").on("beforeRequest", function(){
-            yobi.ui.Spinner.show();
-        });
-    });
-    // --- //
-
-    // for OSX Safari
     if(navigator.userAgent.indexOf("Safari") > -1){
         $(window).on("beforeunload", function(){
             yobi.ui.Spinner.hide();
