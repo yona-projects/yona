@@ -113,8 +113,20 @@
                 </div>
             </div>
 
-            @helper.inputText(form("title"), 'class->"text title", 'maxlength -> "250", 'tabindex -> 1, 'placeholder->"Title")
-            @helper.textarea(form("body"), 'markdown -> true, 'class->"text content", 'tabindex -> 2)
+            <input type="text" name="title" id="title" placeholder="" maxlength="maxlength" tabindex="1" class="text" value="@pull.title">
+            <div style="position: relative;">
+                <div id="mode-select">
+                    <input type="radio" name="edit-mode" id="edit-mode" value="edit" checked="checked" class="radio-btn">
+                    <label for="edit-mode" style="margin-right:3px;">Edit</label>
+                    <input type="radio" name="edit-mode" id="preview-mode" value="preview" class="radio-btn">
+                    <label for="preview-mode">Preview</label>
+                </div>
+                <a href="#" class="go-zen"><i class="s s--zen">Edit in Zen Mode</i></a>
+                @help.markdown()
+                <div class="textarea-box">
+                    <textarea id="body" name="body" markdown="true" class="zen-mode content" tabindex="2" >@pull.body</textarea>
+                </div>
+            </div>
 
             @common.fileUploader(ResourceType.PULL_REQUEST, pull.id)
 
