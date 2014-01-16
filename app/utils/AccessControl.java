@@ -230,6 +230,8 @@ public class AccessControl {
     private static boolean isEditableAsAuthor(User user, Resource resource) {
         switch (resource.getType()) {
         case ISSUE_POST:
+        case ISSUE_STATE:
+        case ISSUE_ASSIGNEE:
         case ISSUE_COMMENT:
         case NONISSUE_COMMENT:
         case BOARD_POST:
