@@ -133,6 +133,8 @@
     </div>
 </div>
 
+<link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">
+<script type="text/javascript" src="@getJSLink("lib/mentionjs/mention")"></script>
 <script type="text/javascript">
 $(document).ready(function() {
     $yobi.loadModule("git.Write", {
@@ -141,6 +143,12 @@ $(document).ready(function() {
         "welToProject"  : $("div[data-name='toProjectId']"),
         "welFromBranch" : $("div[data-name='fromBranch']"),
         "welToBranch"   : $("div[data-name='toBranch']")
+    });
+
+    // yobi.Mention
+    yobi.Mention({
+        "target": "body",
+        "url"   : "@routes.ProjectApp.mentionList(project.owner, project.name)"
     });
 });
 </script>
