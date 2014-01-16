@@ -3,6 +3,7 @@ users:
     - !!models.User
         name:           Yobi
         loginId:        yobi
+        state:          ACTIVE
         password:       ys9gr1Xet/DL9RpmgczOlJg+txPvqnZCaw/z55gb0KU=
         passwordSalt:   '[B@1032a4'
         email:          yobi@yobi.io

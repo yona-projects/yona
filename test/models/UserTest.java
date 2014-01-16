@@ -5,9 +5,11 @@ import static org.fest.assertions.Assertions.assertThat;
 import java.util.List;
 import java.util.Map;
 
+import models.enumeration.UserState;
 import org.junit.Test;
 
 import com.avaje.ebean.Page;
+import org.omg.PortableInterceptor.ACTIVE;
 import play.data.validation.Validation;
 
 public class UserTest extends ModelTest<User> {
@@ -84,7 +86,7 @@ public class UserTest extends ModelTest<User> {
 	public void findUsers() throws Exception {
 	    // Given
 	    // When
-	    Page<User> searchUsers = User.findUsers(0, "yo");
+	    Page<User> searchUsers = User.findUsers(0, "yobi", UserState.ACTIVE);
 	    // Then
 	    assertThat(searchUsers.getTotalRowCount()).isEqualTo(1);
 	}

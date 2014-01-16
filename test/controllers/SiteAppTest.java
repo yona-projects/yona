@@ -50,7 +50,7 @@ public class SiteAppTest {
 
         //When
         callAction(
-                controllers.routes.ref.SiteApp.toggleAccountLock(loginId),
+                controllers.routes.ref.SiteApp.toggleAccountLock(loginId, "", ""),
                 fakeRequest()
                         .withFormUrlEncodedBody(data)
                         .withSession("loginId", "admin")
