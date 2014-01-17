@@ -85,7 +85,7 @@
  * @param isBinaryOverwritten 기존 데이터가 바이너리인 경우 true
 **@
 @renderAddedLines(rawText: RawText, path: String, comments:Map[String, List[_ <: CodeComment]], isBinaryOverwritten: Boolean = false) = {
-  <tr class="range"><td>...</td><td>...</td><td>@@@@ -0,0 +1,@rawText.size @@@@</td></tr>
+  <tr class="range"><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="hunk">@@@@ -0,0 +1,@rawText.size @@@@</td></tr>
   @if(isBinaryOverwritten ){
       @renderCodeIsBinary("remove", "-")
   }
@@ -101,7 +101,7 @@
  * @param isOverwrittenByBinary 새 데이터가 바이너리인 경우 true
 **@
 @renderRemovedLines(rawText: RawText, path: String, comments:Map[String, List[_ <: CodeComment]], isOverwrittenByBinary: Boolean = false) = {
-  <tr class="range"><td>...</td><td>...</td><td>@@@@ -1,@rawText.size +0,0 @@@@</td></tr>
+  <tr class="range"><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="hunk">@@@@ -1,@rawText.size +0,0 @@@@</td></tr>
   @renderRawFile("remove", path, rawText, CodeComment.Side.A, "-", comments)
   @if(isOverwrittenByBinary){
       @renderCodeIsBinary("add", "+")      
