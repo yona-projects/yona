@@ -5,6 +5,7 @@ List[playRepository.FileDiff],path:String)
 @import playRepository.RepositoryService
 @import java.net.URLEncoder
 @import utils.TemplateHelper._
+@import utils.TemplateHelper.Branches._
 @import utils.JodaDateUtil
 @import utils.AccessControl._
 
@@ -22,7 +23,8 @@ List[playRepository.FileDiff],path:String)
                 <ul class="dropdown-menu">
                 @defining(RepositoryService.getRepository(project).getBranches()) { branches =>
                     @for(branch <- branches){
-                        @partial_branchitem(project, branch, "history", "")
+                        @common.branchItem("history", project, branch, null,
+                            utils.TemplateHelper.equals(branch, selectedBranch))
                     }
                 }
                 </ul>

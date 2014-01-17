@@ -2,6 +2,7 @@
 
 @import utils.JodaDateUtil._
 @import utils.TemplateHelper._
+@import utils.TemplateHelper.Branches._
 @import utils.Url
 @import playRepository.RepositoryService
 @import java.net.URLEncoder
@@ -81,7 +82,8 @@
                     <ul class="dropdown-menu">
                         @defining(RepositoryService.getRepository(project).getBranches()) { branches =>
                             @for(branch <- branches){
-                                @partial_branchitem(project, branch, "history", "")
+                                @common.branchItem("history", project, branch, null,
+                                    utils.TemplateHelper.equals(branch, selectedBranch))
                             }
                         }
                     </ul>

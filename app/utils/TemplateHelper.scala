@@ -29,6 +29,7 @@ import scala.annotation.tailrec
 import playRepository.FileDiff
 import play.api.i18n.Lang
 import models.CodeCommentThread
+import javax.swing.text.html.HTML
 
 object TemplateHelper {
 
@@ -92,6 +93,14 @@ object TemplateHelper {
 
   def equals(a: String, b: String) = (a == b) || a.equals(b)
 
+  def equalsThen(a: String, b: String, thenStr: String): String = {
+    if(a != null && b != null && equals(a, b)){
+      thenStr
+    } else {
+      ""
+    }
+  }
+
   def getPort(uri: URI) = {
     val port = uri.getPort
     port match {
@@ -115,53 +124,6 @@ object TemplateHelper {
     }
   }
 
-  def branchItemType(branch: String) = {
-    var names = branch.split('/')
-
-    if(names(0).equals("refs") && names.length >= 3){
-        names(1) match {
-            case "heads" => "branch"
-            case "tags"  => "tag"
-            case _       => names(1)
-        }
-    } else {
-        branch
-    }
-  }
-
-  def branchItemName(branch: String) = {
-    var names = branch.split('/')
-
-    if(names(0).equals("refs") && names.length >= 3){
-        names.slice(2, names.length).mkString("/")
-    } else {
-        branch
-    }
-  }
-
-  def branchInHTML(branch: String) = {
-    var names = branch.split('/')
-    var branchType = branchItemType(branch)
-    var branchName = branchItemName(branch)
-
-    if(names(0).equals("refs") && names.length >= 3){
-        "<span class=\"label " + branchType + "\">" + branchType + "</span>" + branchName
-    } else {
-        branch
-    }
-  }
-
-  def getBranchURL(project:Project, branchName:String, viewType:String, path:String) = {
-    viewType match {
-        case "history" =>
-          routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branchName, "UTF-8"), null)
-        case "code" =>
-          routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branchName, "UTF-8"), path)
-        case _ =>
-          "#"
-    }
-  }
-
   def getUserAvatar(user: models.User, avatarSize:String = "small") = {
     var userInfoURL = routes.UserApp.userInfo(user.loginId).toString()
 
@@ -172,6 +134,66 @@ object TemplateHelper {
     models.Attachment.findByContainer(project.asResource) match {
       case files if files.size > 0 => routes.AttachmentApp.getFile(files.head.id)
       case _ => routes.Assets.at("images/bg-default-project.jpg")
+    }
+  }
+
+  /**
+   * get branch item name
+   * @param branch
+   * @return
+   */
+  def branchItemName(branch:String) = {
+    Branches.itemName(branch)
+  }
+
+  object Branches {
+    def itemType(branch: String): String = {
+      val names = branch.split('/').toList
+
+      names match {
+        case refs :: heads => "branch"
+        case refs :: tags  => "tag"
+        case refs :: _     => names(1)
+        case _ => branch
+      }
+    }
+
+    def itemName(branch: String): String = {
+      val names = branch.split("/", 3).toList
+
+      names match {
+        case refs :: branchType :: branchName => branchName(0)
+        case _ => branch
+      }
+    }
+
+    def branchInHTML(branch: String) = {
+      val names = branch.split('/')
+      val branchType = itemType(branch)
+      val branchName = itemName(branch)
+
+      if(names(0).equals("refs") && names.length >= 3){
+        "<span class=\"label " + branchType + "\">" + branchType + "</span>" + branchName
+      } else {
+        branch
+      }
+    }
+
+    def getURL(viewType:String, project:Project, branchName:String, path:String) = viewType match {
+      case "history" =>
+        routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branchName, "UTF-8"), null)
+      case "code" =>
+        routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branchName, "UTF-8"), path)
+      case _ =>
+        "#"
+    }
+
+    def getItemHTML(viewType:String, project:Project, branch:String, path:String, selectedBranch:String): String = {
+      "<li data-value=\"" + branch + "\"" +
+        equalsThen(branch, selectedBranch , "data-selected=\"true\"") + ">" +
+        "<a href=\"" + getURL(viewType, project, itemName(branch), path) + "\">" +
+        branchInHTML(branch) + "</a>" +
+        "</li>"
     }
   }
 

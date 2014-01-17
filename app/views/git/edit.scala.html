@@ -1,32 +1,8 @@
 @(title:String, form: Form[PullRequest], project: Project, fromBranches: List[playRepository.GitBranch], toBranches: List[playRepository.GitBranch], pull: PullRequest)
 
 @import utils.TemplateHelper._
+@import utils.TemplateHelper.Branches._
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
-
-@branchItemType(itemType:String) = @{
-    if(itemType == "heads"){
-        "branch"
-    } else if(itemType == "tags") {
-        "tag"
-    } else {
-        itemType
-    }
-}
-
-@makeBranchItem(branch:String) = {
-    @defining(branch.split('/')){ names =>
-        @if(names(0).equals("refs")){
-            <li data-value="@branch" data-selected="true" class="active">
-                <a href="#">
-                    <span class="label @branchItemType(names(1))">@branchItemType(names(1))</span>
-                    @branch.replace("refs/" + names(1) + "/", "")
-                </a>
-            </li>
-        } else {
-            <li data-value="@branch" data-selected="true" class="active"><a href="#">@branch</a></li>
-        }
-    }
-}
 
 @projectLayout(title, project.originalProject, utils.MenuType.PULL_REQUEST) {
 @projectMenu(project.originalProject, utils.MenuType.PULL_REQUEST, "main-menu-only")
@@ -76,7 +52,9 @@
                                     <span class="d-caret"><span class="caret"></span></span>
                                 </button>
                                 <ul class="dropdown-menu">
-                                    @makeBranchItem(form("fromBranch").value())
+                                    @defining(form("fromBranch").value()) { fromBranch =>
+                                        @common.branchItem("pullRequest", null, fromBranch, null, true)
+                                    }
                                 </ul>
                             </div>
                         </div>
@@ -107,7 +85,9 @@
                                     <span class="d-caret"><span class="caret"></span></span>
                                 </button>
                                 <ul class="dropdown-menu">
-                                    @makeBranchItem(form("toBranch").value())
+                                @defining(form("toBranch").value()) { toBranch =>
+                                    @common.branchItem("pullRequest", null, toBranch, null, true)
+                                }
                                 </ul>
                             </div>
                         </div>

@@ -1,6 +1,7 @@
 @(project:Project, branches:List[String], recursiveData:List[org.codehaus.jackson.node.ObjectNode], branch:String, path:String)
 
 @import utils.TemplateHelper._
+@import utils.TemplateHelper.Branches._
 @import utils.TemplateHelper.CodeBrowser._
 @import java.net.URLEncoder
 
@@ -61,8 +62,9 @@
                         <span class="d-caret"><span class="caret"></span></span>
                     </button>
                     <ul class="dropdown-menu">
-                    @for(branch <- branches){
-                        @partial_branchitem(project, branch, "code", path)
+                    @for(branchName <- branches){
+                        @common.branchItem("code", project, branchName, path,
+                            utils.TemplateHelper.equals(branchName, branch))
                     }
                     </ul>
                 </div>
