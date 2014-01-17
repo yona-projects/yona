@@ -1,18 +1,32 @@
 package models;
 
-import controllers.AbstractPostingApp;
+import info.schleichardt.play2.mailplugin.Mailer;
+import models.enumeration.UserState;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.mail.HtmlEmail;
 import org.joda.time.DateTime;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import play.Configuration;
+import play.Logger;
 import play.db.ebean.Model;
 import play.libs.Akka;
 import scala.concurrent.duration.Duration;
+import utils.Config;
+import utils.Markdown;
 import utils.Url;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Entity
@@ -73,17 +87,7 @@ public class NotificationMail extends Model {
 
                     for (NotificationMail mail: mails) {
                         if (mail.notificationEvent.resourceExists()) {
-                            String message = mail.notificationEvent.getMessage();
-
-                            AbstractPostingApp.sendNotification(
-                                    AbstractPostingApp.NotificationFactory.create(
-                                            mail.notificationEvent.getSender(),
-                                            mail.notificationEvent.receivers,
-                                            mail.notificationEvent.title,
-                                            message,
-                                            Url.create(mail.notificationEvent.urlToView),
-                                            Url.removeFragment(mail.notificationEvent.urlToView)
-                                    ));
+                            sendNotification(mail.notificationEvent);
                         }
                         mail.delete();
                     }
@@ -92,4 +96,95 @@ public class NotificationMail extends Model {
             Akka.system().dispatcher()
         );
     }
+
+    /**
+     * {@code event}에 해당하는 알림 이메일을 발송한다.
+     *
+     * @param event
+     * @see <a href="https://github.com/nforge/yobi/blob/master/docs/technical/watch.md>watch.md</a>
+     */
+    private static void sendNotification(NotificationEvent event) {
+        Set<User> receivers = event.receivers;
+
+        // Remove inactive users.
+        Iterator<User> iterator = receivers.iterator();
+        while (iterator.hasNext()) {
+            User user = iterator.next();
+            if (user.state != UserState.ACTIVE) {
+                iterator.remove();
+            }
+        }
+
+        receivers.remove(User.anonymous);
+
+        if(receivers.isEmpty()) {
+            return;
+        }
+
+        final HtmlEmail email = new HtmlEmail();
+
+        try {
+            email.setFrom(Config.getEmailFromSmtp(), event.getSender().name);
+            email.addTo(Config.getEmailFromSmtp(), "Yobi");
+
+            for (User receiver : receivers) {
+                email.addBcc(receiver.email, receiver.name);
+            }
+
+            String message = event.getMessage();
+            String urlToView = Url.create(event.urlToView);
+            String reference = Url.removeFragment(event.urlToView);
+
+            email.setSubject(event.title);
+            email.setHtmlMsg(getHtmlMessage(message, urlToView));
+            email.setTextMsg(getPlainMessage(message, urlToView));
+            email.setCharset("utf-8");
+            email.addHeader("References", "<" + reference + "@" + Config.getHostname() + ">");
+            Mailer.send(email);
+            String escapedTitle = email.getSubject().replace("\"", "\\\"");
+            String logEntry = String.format("\"%s\" %s", escapedTitle, email.getBccAddresses());
+            play.Logger.of("mail").info(logEntry);
+        } catch (Exception e) {
+            Logger.warn("Failed to send a notification: "
+                    + email + "\n" + ExceptionUtils.getStackTrace(e));
+        }
+    }
+
+    private static String getHtmlMessage(String message, String urlToView) {
+        Document doc = Jsoup.parse(Markdown.render(message));
+
+        String[] attrNames = {"src", "href"};
+        for (String attrName : attrNames) {
+            Elements tags = doc.select("*[" + attrName + "]");
+            for (Element tag : tags) {
+                String uri = tag.attr(attrName);
+                try {
+                    if (!new URI(uri).isAbsolute()) {
+                        tag.attr(attrName, Url.create(uri));
+                    }
+                } catch (URISyntaxException e) {
+                    play.Logger.info("A malformed URI is ignored", e);
+                }
+            }
+        }
+
+        if (urlToView != null) {
+            doc.body().append(String.format("<hr><a href=\"%s\">%s</a>", urlToView,
+                    "View it on Yobi"));
+        }
+
+        return doc.html();
+    }
+
+    private static String getPlainMessage(String message, String urlToView) {
+        String msg = message;
+        String url = urlToView;
+
+        if (url != null) {
+            msg += String.format("\n\n--\nView it on %s", url);
+        }
+
+        return msg;
+    }
+
 }
