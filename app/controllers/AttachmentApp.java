@@ -131,7 +131,7 @@ public class AttachmentApp extends Controller {
             return notFound();
         }
 
-        String eTag = attachment.hash + "-" + dispositionType;
+        String eTag = "\"" + attachment.hash + "-" + dispositionType + "\"";
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), attachment.asResource(), Operation.READ)) {
             return forbidden();
@@ -139,6 +139,7 @@ public class AttachmentApp extends Controller {
 
         String ifNoneMatchValue = request().getHeader("If-None-Match");
         if(ifNoneMatchValue != null && ifNoneMatchValue.equals(eTag)) {
+            response().setHeader("ETag", eTag);
             return status(NOT_MODIFIED);
         }
 
