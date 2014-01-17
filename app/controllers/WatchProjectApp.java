@@ -11,6 +11,8 @@ import play.i18n.Messages;
 import play.mvc.Controller;
 import play.mvc.Result;
 import play.mvc.With;
+import utils.AccessControl;
+import utils.ErrorViews;
 import utils.WatchService;
 
 @With(AnonymousCheckAction.class)
@@ -30,12 +32,17 @@ public class WatchProjectApp extends Controller {
         return ok();
     }
 
-    @IsAllowed(Operation.READ)
     public static Result toggle(Long projectId, String notificationType) {
         EventType notiType = EventType.valueOf(notificationType);
         Project project = Project.find.byId(projectId);
         User user = UserApp.currentUser();
 
+        if(project == null) {
+            return notFound(ErrorViews.NotFound.render("error.notfound.project"));
+        }
+        if(!AccessControl.isAllowed(user, project.asResource(), Operation.READ)) {
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
+        }
         if(!WatchService.isWatching(user, project.asResource())) {
             return badRequest(Messages.get("error.notfound.watch"));
         }
