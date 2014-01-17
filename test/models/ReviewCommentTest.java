@@ -47,34 +47,12 @@ public class ReviewCommentTest extends ModelTest<ReviewComment> {
 
     @Test
     public void findByThread() {
-        // given
-        List<Long> ids = addTestData();
-        Long idOfThread1 = ids.get(0);
-        CommentThread thread = CommentThread.find.byId(idOfThread1);
-        assertThat(thread).isNotNull();
-
         // when
-        List<ReviewComment> commentList = ReviewComment.findByThread(idOfThread1);
-
-        // then
-        assertThat(commentList.size()).isEqualTo(2);
-        assertThat(commentList.get(0).id).isEqualTo(ids.get(2));
-        assertThat(commentList.get(1).id).isEqualTo(ids.get(1));
-
-
-        /* Test comments in CodeCommentThread */
-
-        // given
-        Long idOfThread2 = ids.get(3);
-        thread = CommentThread.find.byId(idOfThread2);
-        assertThat(thread).isNotNull();
-
-        // when
-        commentList = ReviewComment.findByThread(idOfThread2);
+        List<ReviewComment> commentList = ReviewComment.findByThread(thread.id);
 
         // then
         assertThat(commentList.size()).isEqualTo(1);
-        assertThat(commentList.get(0).id).isEqualTo(ids.get(4));
+        assertThat(commentList.get(0).id).isEqualTo(comment.id);
     }
 
     @Test
@@ -147,7 +125,7 @@ public class ReviewCommentTest extends ModelTest<ReviewComment> {
         reviewComment.setContents(contents);
         reviewComment.author = thread.author;
         reviewComment.createdDate = new Date();
-        reviewComment.thread = thread;
+        thread.addComment(reviewComment);
         reviewComment.save();
 
         return reviewComment;
@@ -242,7 +220,7 @@ public class ReviewCommentTest extends ModelTest<ReviewComment> {
         thread.save();
 
         comment = new ReviewComment();
-        comment.thread = thread;
+        thread.addComment(comment);
         comment.author = new UserIdent(author);
         comment.save();
 

@@ -108,6 +108,11 @@ public class CommentThread extends Model implements ResourceConvertible {
         };
     }
 
+    public void removeComment(ReviewComment reviewComment) {
+        reviewComments.remove(reviewComment);
+        reviewComment.thread = null;
+    }
+
     public enum ThreadState {
         OPEN, CLOSED;
     }

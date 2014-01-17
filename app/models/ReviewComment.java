@@ -109,9 +109,12 @@ public class ReviewComment extends Model implements ResourceConvertible {
      * CommentThread의 ReviewComment가 모두 삭제되면 CommentThread도 삭제됩니다.
      */
     public void delete() {
+        long threadId = thread.id;
+        thread.removeComment(this);
+
         super.delete();
-        if (ReviewComment.findByThread(thread.id).isEmpty()) {
-            thread.delete();
+        if (ReviewComment.findByThread(threadId).isEmpty()) {
+            CommentThread.find.byId(threadId).delete();
         }
     }
 }
