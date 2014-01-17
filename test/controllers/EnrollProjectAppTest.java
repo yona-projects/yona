@@ -53,10 +53,11 @@ public class EnrollProjectAppTest {
         String projectName = "project";
 
         // When
-        Result result = callAction(routes.ref.EnrollProjectApp.enroll(loginId, projectName));
+        Result result = callAction(routes.ref.EnrollProjectApp.enroll(loginId, projectName),
+                fakeRequest(POST, routes.EnrollProjectApp.enroll(loginId, projectName).url()));
 
         // Then
-        assertThat(status(result)).isEqualTo(Http.Status.BAD_REQUEST);
+        assertThat(status(result)).isEqualTo(Http.Status.NOT_FOUND);
     }
 
     @Test
@@ -66,8 +67,10 @@ public class EnrollProjectAppTest {
         User admin = User.find.byId(1L);
 
         // When
-        Result result = callAction(routes.ref.EnrollProjectApp.enroll(project.owner, project.name),
-                fakeRequest().withSession(UserApp.SESSION_USERID, admin.id.toString()));
+        Result result = callAction(
+                routes.ref.EnrollProjectApp.enroll(project.owner, project.name),
+                fakeRequest(POST, routes.EnrollProjectApp.enroll(project.owner, project.name).url())
+                        .withSession(UserApp.SESSION_USERID, admin.id.toString()));
 
         // Then
         assertThat(status(result)).isEqualTo(Http.Status.BAD_REQUEST);
@@ -80,8 +83,10 @@ public class EnrollProjectAppTest {
         User user = User.find.byId(6L);
 
         // When
-        Result result = callAction(routes.ref.EnrollProjectApp.enroll(project.owner, project.name),
-                fakeRequest().withSession(UserApp.SESSION_USERID, user.id.toString()));
+        Result result = callAction(
+                routes.ref.EnrollProjectApp.enroll(project.owner, project.name),
+                fakeRequest(POST, routes.EnrollProjectApp.enroll(project.owner, project.name).url())
+                        .withSession(UserApp.SESSION_USERID, user.id.toString()));
 
         // Then
         assertThat(status(result)).isEqualTo(Http.Status.OK);
@@ -95,10 +100,14 @@ public class EnrollProjectAppTest {
         User user = User.find.byId(6L);
 
         // When
-        callAction(routes.ref.EnrollProjectApp.enroll(project.owner, project.name),
-                fakeRequest().withSession(UserApp.SESSION_USERID, user.id.toString()));
-        Result result = callAction(routes.ref.EnrollProjectApp.enroll(project.owner, project.name),
-                fakeRequest().withSession(UserApp.SESSION_USERID, user.id.toString()));
+        callAction(
+                routes.ref.EnrollProjectApp.enroll(project.owner, project.name),
+                fakeRequest(POST, routes.EnrollProjectApp.enroll(project.owner, project.name).url())
+                        .withSession(UserApp.SESSION_USERID, user.id.toString()));
+        Result result = callAction(
+                routes.ref.EnrollProjectApp.enroll(project.owner, project.name),
+                fakeRequest(POST, routes.EnrollProjectApp.enroll(project.owner, project.name).url())
+                        .withSession(UserApp.SESSION_USERID, user.id.toString()));
 
         // Then
         assertThat(status(result)).isEqualTo(Http.Status.OK);
@@ -112,19 +121,25 @@ public class EnrollProjectAppTest {
         String projectName = "project";
 
         // When
-        Result result = callAction(routes.ref.EnrollProjectApp.cancelEnroll(loginId, projectName));
+        Result result = callAction(routes.ref.EnrollProjectApp.cancelEnroll(loginId, projectName),
+                fakeRequest(POST, routes.EnrollProjectApp.cancelEnroll(loginId, projectName).url()));
 
         // Then
-        assertThat(status(result)).isEqualTo(Http.Status.BAD_REQUEST);
+        assertThat(status(result)).isEqualTo(Http.Status.NOT_FOUND);
     }
 
     @Test
     public void cancelEnrollNotGuest() {
         // Given
         Project project = Project.find.byId(1L);
+        User admin = User.find.byId(1L);
 
         // When
-        Result result = callAction(routes.ref.EnrollProjectApp.cancelEnroll(project.owner, project.name));
+        Result result = callAction(
+                routes.ref.EnrollProjectApp.cancelEnroll(project.owner, project.name),
+                fakeRequest(POST,
+                        routes.EnrollProjectApp.cancelEnroll(project.owner, project.name).url())
+                        .withSession(UserApp.SESSION_USERID, admin.id.toString()));
 
         // Then
         assertThat(status(result)).isEqualTo(Http.Status.BAD_REQUEST);
@@ -137,8 +152,11 @@ public class EnrollProjectAppTest {
         User user = User.find.byId(6L);
 
         // When
-        Result result = callAction(routes.ref.EnrollProjectApp.cancelEnroll(project.owner, project.name),
-                fakeRequest().withSession(UserApp.SESSION_USERID, user.id.toString()));
+        Result result = callAction(
+                routes.ref.EnrollProjectApp.cancelEnroll(project.owner, project.name),
+                fakeRequest(POST,
+                        routes.EnrollProjectApp.cancelEnroll(project.owner, project.name).url())
+                        .withSession(UserApp.SESSION_USERID, user.id.toString()));
 
         // Then
         assertThat(status(result)).isEqualTo(Http.Status.OK);
