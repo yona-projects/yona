@@ -232,8 +232,7 @@ public class PullRequestTest extends ModelTest<PullRequest> {
         GitRepository.setRepoPrefix(REPO_PREFIX);
         GitRepository.setRepoForMergingPrefix(MERGING_REPO_PREFIX);
 
-        Map<String, String> config = support.Helpers.makeTestConfig();
-        app = Helpers.fakeApplication(config);
+        app = support.Helpers.makeTestApplication();
         Helpers.start(app);
 
         Project project = Project.findByOwnerAndProjectName("yobi", "projectYobi");
