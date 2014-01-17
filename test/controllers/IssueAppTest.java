@@ -27,6 +27,9 @@ public class IssueAppTest {
     private User anonymous;
     private Issue issue;
 
+    private String projectOwner = "yobi";
+    private String projectName = "projectYobi";
+
     @BeforeClass
     public static void beforeClass() {
         callAction(
@@ -39,7 +42,7 @@ public class IssueAppTest {
         app = support.Helpers.makeTestApplication();
         Helpers.start(app);
 
-        Project project = Project.findByOwnerAndProjectName("yobi", "projectYobi");
+        Project project = Project.findByOwnerAndProjectName(projectOwner, projectName);
         admin = User.findByLoginId("admin");
         manager = User.findByLoginId("yobi");
         member = User.findByLoginId("laziel");
@@ -75,11 +78,10 @@ public class IssueAppTest {
 
         //When
         return callAction(
-                controllers.routes.ref.IssueApp.newIssue("yobi", "projectYobi"),
-                fakeRequest()
-                        .withFormUrlEncodedBody(data)
-                        .withSession(UserApp.SESSION_USERID, user.getId().toString())
-        );
+                controllers.routes.ref.IssueApp.newIssue(projectOwner, projectName),
+                fakeRequest(POST, routes.IssueApp.newIssue(projectOwner, projectName).url())
+                        .withFormUrlEncodedBody(data).withSession(UserApp.SESSION_USERID,
+                                user.getId().toString()));
     }
 
     private Result editBy(User user) {
@@ -88,19 +90,23 @@ public class IssueAppTest {
         data.put("body", "universe");
 
         return callAction(
-                controllers.routes.ref.IssueApp.editIssue("yobi", "projectYobi", issue.getNumber()),
-                fakeRequest()
-                        .withFormUrlEncodedBody(data)
-                        .withSession(UserApp.SESSION_USERID, user.id.toString())
-        );
+                controllers.routes.ref.IssueApp.editIssue(projectOwner, projectName,
+                        issue.getNumber()),
+                fakeRequest(
+                        POST,
+                        routes.IssueApp.editIssue(projectOwner, projectName, issue.getNumber())
+                                .url()).withFormUrlEncodedBody(data).withSession(
+                        UserApp.SESSION_USERID, user.id.toString()));
     }
 
     private Result deleteBy(User user) {
         return callAction(
-                controllers.routes.ref.IssueApp.deleteIssue("yobi", "projectYobi", issue.getNumber()),
-                fakeRequest()
-                        .withSession(UserApp.SESSION_USERID, user.id.toString())
-        );
+                controllers.routes.ref.IssueApp.deleteIssue(projectOwner, projectName,
+                        issue.getNumber()),
+                fakeRequest(
+                        DELETE,
+                        routes.IssueApp.deleteIssue(projectOwner, projectName, issue.getNumber())
+                                .url()).withSession(UserApp.SESSION_USERID, user.id.toString()));
     }
 
     private Result commentBy(User user) {
@@ -110,11 +116,13 @@ public class IssueAppTest {
 
         //When
         return callAction(
-                controllers.routes.ref.IssueApp.newComment("yobi", "projectYobi", issue.getNumber()),
-                fakeRequest()
-                        .withFormUrlEncodedBody(data)
-                        .withSession(UserApp.SESSION_USERID, user.getId().toString())
-        );
+                controllers.routes.ref.IssueApp.newComment(projectOwner, projectName,
+                        issue.getNumber()),
+                fakeRequest(
+                        POST,
+                        routes.IssueApp.newComment(projectOwner, projectName, issue.getNumber())
+                                .url()).withFormUrlEncodedBody(data).withSession(
+                        UserApp.SESSION_USERID, user.getId().toString()));
     }
 
     @Test

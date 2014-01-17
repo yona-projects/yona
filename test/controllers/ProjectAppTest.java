@@ -56,14 +56,15 @@ public class ProjectAppTest {
         data.put("name", "linux");
         User admin = User.findByLoginId("admin");
 
+        String user = "yobi";
+        String projectName = "projectYobi";
+
         //When
         Result result = callAction(
-                controllers.routes.ref.ProjectApp.attachLabel("yobi", "projectYobi"),
-                fakeRequest()
-                        .withFormUrlEncodedBody(data)
-                        .withHeader("Accept", "application/json")
-                        .withSession(UserApp.SESSION_USERID, admin.id.toString())
-        );
+                controllers.routes.ref.ProjectApp.attachLabel(user, projectName),
+                fakeRequest(POST, routes.ProjectApp.attachLabel(user, projectName).url())
+                        .withFormUrlEncodedBody(data).withHeader("Accept", "application/json")
+                        .withSession(UserApp.SESSION_USERID, admin.id.toString()));
 
         //Then
         assertThat(status(result)).isEqualTo(CREATED);
@@ -88,6 +89,9 @@ public class ProjectAppTest {
         project.labels.add(label1);
         project.update();
 
+        String user = "yobi";
+        String projectName = "projectYobi";
+
         // If null is given as the first parameter, "Label" is chosen as the category.
         Label label2 = new Label(null, "foo");
         label2.save();
@@ -96,9 +100,9 @@ public class ProjectAppTest {
 
         //When
         Result result = callAction(
-                controllers.routes.ref.ProjectApp.labels("yobi", "projectYobi"),
-                fakeRequest().withHeader("Accept", "application/json")
-        );
+                controllers.routes.ref.ProjectApp.labels(user, projectName),
+                fakeRequest(GET, routes.ProjectApp.labels(user, projectName).url()).withHeader(
+                        "Accept", "application/json"));
 
         //Then
         assertThat(status(result)).isEqualTo(OK);
@@ -132,15 +136,15 @@ public class ProjectAppTest {
         data.put("_method", "DELETE");
         User admin = User.findByLoginId("admin");
 
+        String user = "yobi";
+        String projectName = "projectYobi";
+
         //When
         Result result = callAction(
-                controllers.routes.ref.ProjectApp.detachLabel("yobi", "projectYobi",
-                        labelId),
-                fakeRequest()
-                        .withFormUrlEncodedBody(data)
-                        .withHeader("Accept", "application/json")
-                        .withSession(UserApp.SESSION_USERID, admin.id.toString())
-        );
+                controllers.routes.ref.ProjectApp.detachLabel(user, projectName, labelId),
+                fakeRequest(POST, routes.ProjectApp.detachLabel(user, projectName, labelId).url())
+                        .withFormUrlEncodedBody(data).withHeader("Accept", "application/json")
+                        .withSession(UserApp.SESSION_USERID, admin.id.toString()));
 
         //Then
         assertThat(status(result)).isEqualTo(204);
