@@ -424,14 +424,9 @@ yobi.Attachments = function(htOptions) {
         var sFileName = welItem.attr("data-name");
         var sFilePath = welItem.attr("data-href");
 
-        var sLinkText = '';
-        if (sMimeType.substr(0,5) === "image"){
-            sLinkText = '<img src="' + sFilePath + '">';
-        } else {
-            sLinkText = '[' + sFileName +'](' + sFilePath + ')';
-        }
-
-        return sLinkText;
+        var sLinkText = '[' + sFileName + '](' + sFilePath + ')\n';
+        
+        return  (sMimeType.substr(0,5) === "image") ? '!'+sLinkText : sLinkText;
     }
 
     /**
