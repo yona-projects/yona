@@ -5057,7 +5057,7 @@ div.markdown-preview {
                         }
 
                         &.comments {
-                            display: table-row;
+                            display: none;
                             td {
                                 border:1px solid #e5e5e5;
                                 border-left: none;
@@ -5070,8 +5070,14 @@ div.markdown-preview {
                             }
                         }
                     }
+
+                    &.show-comments {
+                        tr.comments {
+                            display: table-row;
+                        }
+                    }
                 }
-               
+                
                 .icon-comment {
                     position:absolute;
                     cursor: pointer; 

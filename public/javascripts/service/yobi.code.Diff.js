@@ -190,7 +190,7 @@
          */
         function _initToggleCommentsButton() {
             $('#toggle-comments').click(function() {
-                $('.diff-body').toggleClass('show-comments');
+                $('.diff-container').toggleClass('show-comments');
                 $("#minimap").toggle();
             });
         }

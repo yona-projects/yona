@@ -178,7 +178,7 @@
          */
         function _initToggleCommentsButton() {
             $('#toggle-comments').click(function() {
-                $('#commit').toggleClass('show-comments');
+                $('.diff-container').toggleClass('show-comments');
                 $("#minimap").toggle();
             });
         }
