@@ -102,14 +102,11 @@
 @common.mergely()
 @common.commentDeleteModal()
 
-<link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mergely/codemirror.css")">
-<link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mergely/mergely.css")">
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mentionjs/mention.css")">
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/mentionjs/mention.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/diff.js")"></script>
-<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/mergely/codemirror.min.js")"></script>
-<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/mergely/mergely.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yobi.Interval.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/common/yobi.CodeCommentBox.js")"></script>
 <script type="text/javascript">
     $(document).ready(function() {
         $yobi.loadModule("git.View", {

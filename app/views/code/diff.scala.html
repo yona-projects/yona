@@ -132,6 +132,7 @@ List[playRepository.FileDiff],path:String)
             @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.COMMIT_COMMENT)){
                 @common.reviewForm(project, ResourceType.COMMIT_COMMENT, routes.CodeHistoryApp.newComment(project.owner, project.name, commit.getId).toString())
             }
+            @** // BlockComment **@
         </div>
 
         <button id="watch-button" type="button" class="pull-left ybtn @if(commit.getWatchers(project).contains(UserApp.currentUser())) { active ybtn-watching }" data-toggle="button">@Messages("notification.watch")</button>
@@ -153,6 +154,7 @@ List[playRepository.FileDiff],path:String)
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mentionjs/mention.css")">
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/mentionjs/mention.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yobi.CodeCommentBlock.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/common/yobi.CodeCommentBox.js")"></script>
 <script type="text/javascript">
     $(document).ready(function(){
         $yobi.loadModule("code.Diff", {
