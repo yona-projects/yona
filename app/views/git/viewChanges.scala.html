@@ -10,26 +10,28 @@
 @projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
+        <div class="code-browse-wrap">
+            @partial_info(project, pull)
 
-        @partial_info(project, pull)
+            <ul class="nav nav-tabs nm">
+                <li><a href="@routes.PullRequestApp.pullRequest(project.owner, project.name, pull.number)">@Messages("pullRequest.menu.overview")</a></li>
+                <li><a href="@routes.PullRequestApp.pullRequestCommits(project.owner, project.name, pull.number)">@Messages("pullRequest.menu.commit")</a></li>
+                <li class="active"><a href="@routes.PullRequestApp.pullRequestChanges(project.owner, project.name, pull.number)">@Messages("pullRequest.menu.changes")</a></li>
+            </ul>
 
-        <ul class="nav nav-tabs nm">
-            <li><a href="@routes.PullRequestApp.pullRequest(project.owner, project.name, pull.number)">@Messages("pullRequest.menu.overview")</a></li>
-            <li><a href="@routes.PullRequestApp.pullRequestCommits(project.owner, project.name, pull.number)">@Messages("pullRequest.menu.commit")</a></li>
-            <li class="active"><a href="@routes.PullRequestApp.pullRequestChanges(project.owner, project.name, pull.number)">@Messages("pullRequest.menu.changes")</a></li>
-        </ul>
-
-        <div id="__changes" class="mt20">
-            <div class="diff-body">
+            <div class="diff-body mt20">
                 @if(pull.isMerging == false && pull.isConflict == false){
                     @views.html.partial_diff(pull.getDiff, pull.getCodeCommentThreadsForChanges, pull.toProject, pull.toProject)
                 } else {
                     @partial_state(project, pull, false, false)
                 }
+                <div class="btnPop"><button type="button" class="ybtn ybtn-info ybtn-mini"><i class="yobicon-comments"></i></button></div>
             </div>
-        </div>
-        <div style="display:none">
-        @common.commentForm(project, ResourceType.PULL_REQUEST_COMMENT, routes.PullRequestCommentApp.newComment(project.owner, project.name, pull.id).toString())
+            @** BlockComment **@
+            @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.PULL_REQUEST_COMMENT)){
+                @common.reviewForm(project, ResourceType.PULL_REQUEST_COMMENT, routes.PullRequestCommentApp.newComment(project.owner, project.name, pull.id).toString())
+            }
+            @** // BlockComment **@
         </div>
 
         <div id="minimap" class="minimap-outer">
@@ -40,12 +42,15 @@
         </div>
     </div>
 </div>
+
 @common.markdown(project)
 @common.mergely()
 @common.commentDeleteModal("#__changes")
 
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mentionjs/mention.css")">
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/mentionjs/mention.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/common/yobi.CodeCommentBox.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/common/yobi.CodeCommentBlock.js")"></script> 
 <script type="text/javascript">
     $(document).ready(function() {
         yobi.Mention({

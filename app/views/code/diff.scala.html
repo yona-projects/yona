@@ -128,8 +128,9 @@ List[playRepository.FileDiff],path:String)
             </div>
             @** // Comment **@
 
-            @if(isProjectResourceCreatable(User.findByLoginId(session.get("loginId")), project, ResourceType.COMMIT_COMMENT)){
-                @partial_reviewform(project, ResourceType.COMMIT_COMMENT, routes.CodeHistoryApp.newComment(project.owner, project.name, commit.getId).toString())
+            @** BlockComment **@
+            @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.COMMIT_COMMENT)){
+                @common.reviewForm(project, ResourceType.COMMIT_COMMENT, routes.CodeHistoryApp.newComment(project.owner, project.name, commit.getId).toString())
             }
         </div>
 
