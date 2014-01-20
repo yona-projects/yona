@@ -633,34 +633,28 @@ public class PullRequest extends Model implements ResourceConvertible {
      */
     private void addNewIssueEvents() {
         Set<Issue> referredIsseus = IssueEvent.findReferredIssue(this.title + this.body, this.toProject);
-        String newValue = getNewEventValue();
+        String newValue = this.id.toString();
         for(Issue issue : referredIsseus) {
             IssueEvent issueEvent = new IssueEvent();
             issueEvent.issue = issue;
             issueEvent.senderLoginId = this.contributor.loginId;
             issueEvent.newValue = newValue;
             issueEvent.created = new Date();
-            issueEvent.eventType = EventType.ISSUE_REFERRED;
+            issueEvent.eventType = EventType.ISSUE_REFERRED_FROM_PULL_REQUEST;
             issueEvent.save();
         }
-    }
-
-    private String getNewEventValue() {
-        return Messages.get("issue.event.referred.from.pullrequest",
-                this.contributor.loginId, TemplateHelper.branchItemName(this.fromBranch), TemplateHelper.branchItemName(this.toBranch),
-                routes.PullRequestApp.pullRequest(this.toProject.owner, this.toProject.name, this.number), HtmlFormat.escape(this.title), this.number, HtmlFormat.escape(this.body));
     }
 
     /**
      * 풀리퀘가 삭제될 때 이 풀리퀘와 관련있는 이슈 이벤트를 삭제한다.
      */
     public void deleteIssueEvents() {
-        String newValue = getNewEventValue();
+        String newValue = this.id.toString();
 
         List<IssueEvent> oldEvents = IssueEvent.find.where()
                 .eq("newValue", newValue)
                 .eq("senderLoginId", this.contributor.loginId)
-                .eq("eventType", EventType.ISSUE_REFERRED)
+                .eq("eventType", EventType.ISSUE_REFERRED_FROM_PULL_REQUEST)
                 .findList();
 
         for(IssueEvent event : oldEvents) {

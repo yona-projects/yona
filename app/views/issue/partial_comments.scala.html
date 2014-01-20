@@ -101,7 +101,10 @@
                     <span class="state changed">@Messages("issue.state.assigned")</span>
                     @Html(Messages(assginedMesssage(event.newValue, user), linkToUser(user.loginId, user.name), linkToUser(event.newValue,User.findByLoginId(event.newValue).name, true)))
                 }
-                case EventType.ISSUE_REFERRED => {
+                case EventType.ISSUE_REFERRED_FROM_COMMIT => {
+                    @Html(event.newValue)
+                }
+                case EventType.ISSUE_REFERRED_FROM_PULL_REQUEST => {
                     @Html(event.newValue)
                 }
                 case _ => {
