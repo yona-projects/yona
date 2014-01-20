@@ -52,7 +52,7 @@
 
         @** fileUploader **@
         @if(!UserApp.currentUser.isAnonymous) {
-            @common.fileUploader(ResourceType.BOARD_POST, number)
+            @common.fileUploader(ResourceType.BOARD_POST, posting.id)
         }
         @** end of fileUploader **@
 
