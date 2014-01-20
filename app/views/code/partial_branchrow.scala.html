@@ -65,14 +65,13 @@
             } else {
                 @Messages("code.commitMsg.empty")
             }
-
-            @defining(branch.getHeadCommit.getMessage){ commitMsg =>
-                @if(commitMsg.split("\n").length > 1){
-                    <button type="button" class="more">&hellip;</button>
-                    <pre class="hidden">@commitMsg.replace(commitMsg.split("\n")(0)+"\n", "")</pre>
-                }
-            }
         </a>
+        @defining(branch.getHeadCommit.getMessage){ commitMsg =>
+            @if(commitMsg.split("\n").length > 1){
+                <button type="button" class="more">&hellip;</button>
+                <pre class="hidden mt5">@commitMsg.replace(commitMsg.split("\n")(0)+"\n", "")</pre>
+            }
+        }
     </td>
     <td class="commitDate">
         @momentFromNow(branch.getHeadCommit.getCommitterDate, lang.language)
