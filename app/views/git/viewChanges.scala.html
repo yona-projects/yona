@@ -53,18 +53,21 @@
 <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yobi.CodeCommentBlock.js")"></script> 
 <script type="text/javascript">
     $(document).ready(function() {
+        // yobi.Mention
+        @defining(ifElse(pull.getCurrentCommits.isEmpty(),
+            routes.ProjectApp.mentionListAtPullRequest(pull.toProject.owner, pull.toProject.name, "", pull.id).toString(),
+            routes.ProjectApp.mentionListAtPullRequest(pull.toProject.owner, pull.toProject.name, pull.getCurrentCommits.get(0).getCommitId, pull.id).toString()
+        )){ mentionURL =>
         yobi.Mention({
             target:'comment-editor',
-            @if(pull.getCurrentCommits.isEmpty) {
-                url : "@Html(routes.ProjectApp.mentionListAtPullRequest(pull.toProject.owner, pull.toProject.name, "", pull.id).toString())"
-            } else {
-                url : "@Html(routes.ProjectApp.mentionListAtPullRequest(pull.toProject.owner, pull.toProject.name, pull.getCurrentCommits.get(0).getCommitId, pull.id).toString())"
-            }
+            url   : "@Html(mentionURL)"
         });
+        }
 
+        // code.Diff
         $yobi.loadModule("code.Diff", {
             "welDiff"      : $("#pull-request-changes"),
-            "bCommentable" : "@isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.PULL_REQUEST_COMMENT)"
+            "bCommentable" : @isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.PULL_REQUEST_COMMENT)
         });
 
         $("button.moreBtn").on("click", function(){
