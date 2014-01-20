@@ -99,7 +99,7 @@ GET            /notifications                                                   
 # Projects
 GET            /projectform                                                           controllers.ProjectApp.newProjectForm()
 POST           /projects                                                              controllers.ProjectApp.newProject()
-GET            /projects                                                              controllers.ProjectApp.projects(filter:String ?= "", state: String ?= "all", pageNum: Int ?= 1)
+GET            /projects                                                              controllers.ProjectApp.projects(filter:String ?= "", state: String ?= "public", pageNum: Int ?= 1)
 GET            /:user/:project                                                        controllers.ProjectApp.project(user, project)
 PUT            /:user/:project                                                        controllers.ProjectApp.projectOverviewUpdate(user, project)
 GET            /:user/:project/settingform                                            controllers.ProjectApp.settingForm(user, project)
