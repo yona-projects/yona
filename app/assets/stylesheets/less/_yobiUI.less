@@ -1184,18 +1184,22 @@ span.issue-label {
 }
 
 .search-bar {
-    border:1px solid rgba(0,0,0, .25);
+    border:1px solid #ccc;
     .border-radius(3px);
     line-height:20px;
-    display:inline-block;
+    padding:4px 25px 4px 5px;
+    position: relative;
+    height: 20px;
+    background-color: #FFF;
 
     .textbox {
         border:0 none;
         height: 20px;
-        padding:5px;
         width:350px;
-        margin:0;
-        
+        margin: 0 -5px;
+        padding:0 5px;
+        .transition(width .15s);
+
         &.small {
             width:150px;
         }
@@ -1211,6 +1215,10 @@ span.issue-label {
                 width:350px;
             }
         }
+
+        &.full {
+            width: 100%;
+        }
     }
 
     .search-btn {
@@ -1218,6 +1226,8 @@ span.issue-label {
         border:0;
         height: 20px;
         outline:0 none;
-        margin-right: 5px;
+        position:absolute;
+        top:5px;
+        right:5px;
     }
 }

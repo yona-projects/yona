@@ -23,7 +23,7 @@
         background-repeat: no-repeat;
         width:44px;
         height:40px;
-        
+
         &:before {
             content: " ";
             float: left;
@@ -1462,154 +1462,21 @@
 }
 .bottom-actrow {margin-top:15px;  padding: 6px 2px;}
 .issue-list-wrap { clear:both;}
+
 .search-wrap {
-    form { margin: 0; }
-    float:left;
-    .inner {
-        position:relative;
-        /*padding: 20px 20px 5px 20px;*/
-
-        input { margin:0; }
-        form  { margin:0 auto; /*text-align:center;*/ }
-        .input-medium { width:94%; }
-
-        .actrow { position:absolute; right:0px; top:0px; }
-        .text {
-            background-color: #fff;
-            border: 1px solid #ccc;
-            .border-radius(2px 0 0 2px);
-            &:focus { .box-shadow(none); }
-        }
-
-        .srch-input {
-
-            .srch-input-inner {
-                display:block;
-                line-height: 20px;
-                padding:5px 25px 5px 5px;
-                border:1px solid rgba(0,0,0, .15);
-                .border-radius(3px);
-                position:relative;
-
-                input  {
-                    border:none;
-                    padding:0;
-                    width:100%;
-
-                }
-
-                button {
-                    position:absolute;
-                    top:7px;
-                    right:5px;
-                    outline:0;
-                }
-
-            }
-        }
-
-        .btn-advanced {
-            color:#707070;
-            font-weight:bold;
-            /*padding-left:18px;*/
-            margin:10px 0 0; text-align:right;
-            vertical-align:middle;
-            display:inline-block;
-
-            i {
-                vertical-align:middle; margin-right:3px;
-                .ico-arrow-down-blue;
-            }
-        }
-
-        .srch-advanced {
-            display:none;
-        }
-
-        &.advanced {
-            .srch-advanced {
-                display:block; text-align:left;
-                margin:10px 0 20px;
-            }
-            .btn-advanced {
-                i { .ico-arrow-up-blue; }
-            }
-            .caret-wrap .caret {
-                border-top:0;
-                border-bottom:4px solid @blue;
-            }
-        }
-
-        .labels-wrap { padding-top:10px; }
-        .milestone-info {
-            padding-bottom:20px;
-            margin-bottom:20px;
-        }
-        
-        .preset-list {
-            padding-bottom:20px;
-            margin-bottom:20px;
-            border-bottom:1px solid #ddd;
-
-            li {
-                font-size:13px;
-                padding:8px;
-                a { display: block}
-                &.active {
-                    color: #fff;
-                    background: @secondary;
-                    font-weight:bold;
-
-                    .border-radius(2px);
-                    .box-shadow(inset 1px 1px 1px rgba(0,0,0,0.2));
-                    .num-badge { color:#fff; }
-                }
-            }
-        }
-    } // -- end of .inner //
-
-    &.user-setting {
-        .inner {
-           padding:10px;
-           background-position: 570px bottom;
-            .text { width: 400px; }
-            .search-btn { width: 120px; }
-        }
-    }
-    &.board {
-        width:100%;
-        .inner {
-            .text { width: 547px; }
-        }
-    }
-    &.help {
-        .inner {
-            form { width:565px; }
-            padding-left: 30px;
-            .labels {
-                line-height:29px; margin-right:20px;
-                vertical-align: middle;
-                font-size: 18px;
-                &.sub {
-                    color: #555;
-                    .opacity(70);
-                    margin-right: 5px;
-                }
-            }
-            .sp-line {
-                .inline-block;
-                border-left: 1px solid #CCC;
-                margin: 0 11px;
-                height: 12px;
-                vertical-align: text-bottom;
-            }
-
-            .text {
-                width: 408px;
-            }
-        }
+    clear:both;
+    padding:10px 0;
+    height: 30px;
+    
+    &.underline {
+        border-bottom: 1px solid #ddd;
     }
 }
+
+.srch-advanced {
+    margin-top:10px;
+}
+
 .all-projects {
     margin: 0 0 20px;
     list-style: none;
@@ -2550,13 +2417,6 @@
         color: #51AACC;
         margin-right: 5px;
     }
-}
-
-.board-wrap {
-    display:block;
-    overflow:auto;
-    padding-bottom:15px;
-    border-bottom:1px solid #ececec;
 }
 
 .board-header {

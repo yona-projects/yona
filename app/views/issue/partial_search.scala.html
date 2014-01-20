@@ -32,148 +32,145 @@
 
 	<div pjax-container class="row-fluid issue-list-wrap">
         <div class="span2 search-wrap">
-            <div class="inner advanced">
-                <ul class="lst-stacked unstyled">
-                    <li @if(param.assigneeId == null && param.authorId == null){class="active"}>
-                        <a pjax-filter href="#" authorId="" assigneeId="" milestoneId="@param.milestoneId">@Messages("issue.list.all")
-                            <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, paramForEveryone)</span>
-                        </a>
-                    </li>
-                    @if(UserApp.currentUser().id != -1l){
-                    <li @if(param.assigneeId == UserApp.currentUser().id){ class="active"}>
-                        <a pjax-filter href="#" authorId="" assigneeId="@User.findByLoginId(session.get("loginId")).id" milestoneId="@param.milestoneId">@Messages("issue.list.assignedToMe")
-                            <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, paramForIssuesAssignedToMe)</span>
-                        </a>
-                    </li>
-                    <li @if(param.authorId == UserApp.currentUser().id){ class="active"}>
-                        <a pjax-filter href="#" authorId="@User.findByLoginId(session.get("loginId")).id" assigneeId="" milestoneId="@param.milestoneId">@Messages("issue.list.authoredByMe")
-                            <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, paramForIssuesAuthoredByMe)</span>
-                        </a>
-                    </li>
-                    }
-                </ul>
+            <ul class="lst-stacked unstyled">
+                <li @if(param.assigneeId == null && param.authorId == null){class="active"}>
+                    <a pjax-filter href="#" authorId="" assigneeId="" milestoneId="@param.milestoneId">@Messages("issue.list.all")
+                        <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, paramForEveryone)</span>
+                    </a>
+                </li>
+                @if(!UserApp.currentUser().isSiteManager()){
+                <li @if(param.assigneeId == UserApp.currentUser().id){ class="active"}>
+                    <a pjax-filter href="#" authorId="" assigneeId="@User.findByLoginId(session.get("loginId")).id" milestoneId="@param.milestoneId">@Messages("issue.list.assignedToMe")
+                        <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, paramForIssuesAssignedToMe)</span>
+                    </a>
+                </li>
+                <li @if(param.authorId == UserApp.currentUser().id){ class="active"}>
+                    <a pjax-filter href="#" authorId="@User.findByLoginId(session.get("loginId")).id" assigneeId="" milestoneId="@param.milestoneId">@Messages("issue.list.authoredByMe")
+                        <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, paramForIssuesAuthoredByMe)</span>
+                    </a>
+                </li>
+                }
+            </ul>
 
-                @if(param.milestoneId != null){
-                    @defining(Milestone.findById(param.milestoneId)){ milestone =>
-                        @if(milestone != null){
-                            <hr>
-                            @views.html.milestone.partial_status(milestone, project)
-                        }
+            @if(param.milestoneId != null){
+                @defining(Milestone.findById(param.milestoneId)){ milestone =>
+                    @if(milestone != null){
+                        <hr>
+                        @views.html.milestone.partial_status(milestone, project)
                     }
                 }
+            }
 
-                <form id="search" name="search" action="@routes.IssueApp.issues(project.owner, project.name)" method="get">
-                    <input type="hidden" name="orderBy" value="@param.orderBy">
-                    <input type="hidden" name="orderDir" value="@param.orderDir">
-                    <input type="hidden" name="state" value="@param.state">
-
-                    <hr>
-                    <div class="srch-input">
-                        <div class="srch-input-inner">
-                            <input type="text" name="filter" class="text" value="@param.filter">
-                            <button type="submit" class="btn-transparent"><i class="yobicon-search"></i></button>
-                        </div>
+            <form id="search" name="search" action="@routes.IssueApp.issues(project.owner, project.name)" method="get">
+                <input type="hidden" name="orderBy" value="@param.orderBy">
+                <input type="hidden" name="orderDir" value="@param.orderDir">
+                <input type="hidden" name="state" value="@param.state">
+                <hr>
+                <div class="search">
+                    <div class="search-bar">
+                        <input name="filter" class="textbox full" type="text" value="@param.filter">
+                        <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
                     </div>
+                </div>
 
-                    <div id="advanced-search-form" class="srch-advanced">
+                <div id="advanced-search-form" class="srch-advanced">
 
-                        <dl class="issue-option">
-                            <dt>@Messages("issue.author")</dt>
-                            <dd>
-                                <div class="btn-group" data-name="authorId">
-                                    <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                                        <span class="d-label">@Messages("common.order.all")</span>
-                                        <span class="d-caret"><span class="caret"></span></span>
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li data-value=""><a>@Messages("common.order.all")</a></li>
-                                        @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
-                                            <li data-value="@UserApp.currentUser().id"><a>@Messages("issue.list.authoredByMe")</a></li>
-                                        }
-                                        <li class="divider"></li>
-                                        @for(author <- User.findIssueAuthorsByProjectId(project.id)) {
-                                        <li data-value="@author.id" @if(param.authorId != null && param.authorId == author.id){data-selected="true" class="active"}>
-	                                        <a class="usf-group">
-                                                <span class="avatar-wrap smaller">
-                                                    <img src="@author.avatarUrl" width="20" height="20">
-                                                </span>
-
-                                                <strong class="name">@author.name</strong>
-                                                <span class="loginid"> <strong>@{"@"}</strong>@author.loginId</span>
-                                            </a>
-                                        </li>
-                                        }
-                                    </ul>
-                                </div>
-                            </dd>
-                        </dl>
-
-						<dl class="issue-option">
-                            <dt>@Messages("issue.assignee")</dt>
-                            <dd>
-                                <div class="btn-group" data-name="assigneeId">
-                                    <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                                        <span class="d-label">@Messages("common.order.all")</span>
-                                        <span class="d-caret"><span class="caret"></span></span>
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li data-value=""><a>@Messages("common.order.all")</a></li>
-                                        <li data-value="@User.anonymous.id" @if(param.assigneeId != null && param.assigneeId == User.anonymous.id){data-selected="true" class="active"}><a>@Messages("issue.noAssignee")</a></li>
-                                        @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
-                                            <li data-value="@UserApp.currentUser().id"><a>@Messages("issue.list.assignedToMe")</a></li>
-                                        }
-                                        <li class="divider"></li>
-                                        @for(member <- project.members) {
-                                        <li data-value="@member.user.id" @if(param.assigneeId != null && param.assigneeId == member.user.id){data-selected="true" class="active"}>
-                                            <a class="usf-group">
-                                                <span class="avatar-wrap smaller">
-                                                    <img src="@member.user.avatarUrl" width="20" height="20">
-                                                </span>
-
-                                                <strong class="name">@member.user.name</strong>
-                                                <span class="loginid"> <strong>@{"@"}</strong>@member.user.loginId</span>
-                                            </a>
-                                        </li>
-                                        }
-                                    </ul>
-                                </div>
-                            </dd>
-                        </dl>
-                        <dl class="issue-option">
-                            <dt>@Messages("milestone")</dt>
-                            <dd>
-                                <div class="btn-group" data-name="milestoneId">
-                                    <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                                        <span class="d-label">@Messages("milestone.state.all")</span>
-                                        <span class="d-caret"><span class="caret"></span></span>
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li data-value=""><a>@Messages("milestone.state.all")</a></li>
-                                        <li data-value="@Milestone.NULL_MILESTONE_ID" @if(param.milestoneId != null && param.milestoneId == Milestone.NULL_MILESTONE_ID){data-selected="true" class="active"}><a>@Messages("issue.noMilestone")</a></li>
-                                        <li class="divider"></li>
-                                        @for(milestone <- Milestone.findByProjectId(project.id)) {
-                                        <li data-value="@milestone.id" @if(param.milestoneId != null && param.milestoneId == milestone.id){data-selected="true" class="active"}><a>@milestone.title</a></li>
-                                        }
-                                    </ul>
-                                </div>
-                            </dd>
-                        </dl>
-                    </div>
-
-                    <hr>
-                    <dl id="labels" class="issue-option labels-wrap">
-                        <dt>
-                            @Messages("label.select")
-                            @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
-                            <button id="manage-label-link" type="button" class="btn-transparent"><i class="yobicon-cog"></i></button>
-                            }
-                        </dt>
+                    <dl class="issue-option">
+                        <dt>@Messages("issue.author")</dt>
                         <dd>
-                            <fieldset class="labels issue-form-labels"></fieldset>
+                            <div class="btn-group" data-name="authorId">
+                                <button class="btn dropdown-toggle auto" data-toggle="dropdown">
+                                    <span class="d-label">@Messages("common.order.all")</span>
+                                    <span class="d-caret"><span class="caret"></span></span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li data-value=""><a>@Messages("common.order.all")</a></li>
+                                    @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
+                                        <li data-value="@UserApp.currentUser().id"><a>@Messages("issue.list.authoredByMe")</a></li>
+                                    }
+                                    <li class="divider"></li>
+                                    @for(author <- User.findIssueAuthorsByProjectId(project.id)) {
+                                    <li data-value="@author.id" @if(param.authorId != null && param.authorId == author.id){data-selected="true" class="active"}>
+                                        <a class="usf-group">
+                                            <span class="avatar-wrap smaller">
+                                                <img src="@author.avatarUrl" width="20" height="20">
+                                            </span>
+
+                                            <strong class="name">@author.name</strong>
+                                            <span class="loginid"> <strong>@{"@"}</strong>@author.loginId</span>
+                                        </a>
+                                    </li>
+                                    }
+                                </ul>
+                            </div>
                         </dd>
                     </dl>
-                </form>
-            </div>
+
+					<dl class="issue-option">
+                        <dt>@Messages("issue.assignee")</dt>
+                        <dd>
+                            <div class="btn-group" data-name="assigneeId">
+                                <button class="btn dropdown-toggle auto" data-toggle="dropdown">
+                                    <span class="d-label">@Messages("common.order.all")</span>
+                                    <span class="d-caret"><span class="caret"></span></span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li data-value=""><a>@Messages("common.order.all")</a></li>
+                                    <li data-value="@User.anonymous.id" @if(param.assigneeId != null && param.assigneeId == User.anonymous.id){data-selected="true" class="active"}><a>@Messages("issue.noAssignee")</a></li>
+                                    @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
+                                        <li data-value="@UserApp.currentUser().id"><a>@Messages("issue.list.assignedToMe")</a></li>
+                                    }
+                                    <li class="divider"></li>
+                                    @for(member <- project.members) {
+                                    <li data-value="@member.user.id" @if(param.assigneeId != null && param.assigneeId == member.user.id){data-selected="true" class="active"}>
+                                        <a class="usf-group">
+                                            <span class="avatar-wrap smaller">
+                                                <img src="@member.user.avatarUrl" width="20" height="20">
+                                            </span>
+
+                                            <strong class="name">@member.user.name</strong>
+                                            <span class="loginid"> <strong>@{"@"}</strong>@member.user.loginId</span>
+                                        </a>
+                                    </li>
+                                    }
+                                </ul>
+                            </div>
+                        </dd>
+                    </dl>
+                    <dl class="issue-option">
+                        <dt>@Messages("milestone")</dt>
+                        <dd>
+                            <div class="btn-group" data-name="milestoneId">
+                                <button class="btn dropdown-toggle auto" data-toggle="dropdown">
+                                    <span class="d-label">@Messages("milestone.state.all")</span>
+                                    <span class="d-caret"><span class="caret"></span></span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li data-value=""><a>@Messages("milestone.state.all")</a></li>
+                                    <li data-value="@Milestone.NULL_MILESTONE_ID" @if(param.milestoneId != null && param.milestoneId == Milestone.NULL_MILESTONE_ID){data-selected="true" class="active"}><a>@Messages("issue.noMilestone")</a></li>
+                                    <li class="divider"></li>
+                                    @for(milestone <- Milestone.findByProjectId(project.id)) {
+                                    <li data-value="@milestone.id" @if(param.milestoneId != null && param.milestoneId == milestone.id){data-selected="true" class="active"}><a>@milestone.title</a></li>
+                                    }
+                                </ul>
+                            </div>
+                        </dd>
+                    </dl>
+                </div>
+
+                <hr>
+                <dl id="labels" class="issue-option labels-wrap">
+                    <dt>
+                        @Messages("label.select")
+                        @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
+                        <button id="manage-label-link" type="button" class="btn-transparent"><i class="yobicon-cog"></i></button>
+                        }
+                    </dt>
+                    <dd>
+                        <fieldset class="labels issue-form-labels"></fieldset>
+                    </dd>
+                </dl>
+            </form>
         </div>
         <div class="span10" id="span10">
             <div class="pull-right">
