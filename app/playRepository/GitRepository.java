@@ -387,7 +387,23 @@ public class GitRepository implements PlayRepository {
             if (StringUtils.isNotEmpty(basePath)) {
                 logCommand.addPath(basePath);
              }
-            return logCommand.call().iterator();
+            final Iterator<RevCommit> iterator = logCommand.call().iterator();
+            return new Iterator<RevCommit>() {
+                @Override
+                public void remove() {
+                    iterator.remove();
+                }
+
+                @Override
+                public RevCommit next() {
+                    return fixRevCommitNoParents(iterator.next());
+                }
+
+                @Override
+                public boolean hasNext() {
+                    return iterator.hasNext();
+                }
+            };
         }
 
         private boolean shouldFindMore() {
@@ -429,7 +445,8 @@ public class GitRepository implements PlayRepository {
             // blobs and trees which has change between the last commit and the current commit.
             traverseTree(commit, objectCollector);
             for(RevCommit parent : commit.getParents()) {
-                traverseTree(parent, objectRemover);
+                RevCommit fixedParent = fixRevCommitNoTree(parent);
+                traverseTree(fixedParent, objectRemover);
             }
             return objects;
         }
@@ -448,6 +465,38 @@ public class GitRepository implements PlayRepository {
             }
             while (treeWalk.next()) {
                 handler.handle(treeWalk);
+            }
+        }
+
+        /*
+         * JGit 의 LogCommand 를 사용하여 commit 조회를 할 때 path 정보를 이용하였을 경우
+         * commit 객체가 부모 commit 에 대한 정보를 가지고 있지 않을 수 있다.
+         * 이러한 현상은 아래의 JGit version 에서 확인 되었다.
+         * 3.1.0.201310021548-r ~ 3.2.0.201312181205-r
+         */
+        private RevCommit fixRevCommitNoParents(RevCommit commit) {
+            if (commit.getParentCount() == 0) {
+                return fixRevCommit(commit);
+            }
+            return commit;
+        }
+
+        /*
+         * fixRevCommitNoParents 를 통해서 가져온 커밋의 parents 는 tree 정보가 없을 수 있다
+         */
+        private RevCommit fixRevCommitNoTree(RevCommit commit) {
+            if (commit.getTree() == null) {
+                return fixRevCommit(commit);
+            }
+            return commit;
+        }
+
+        private RevCommit fixRevCommit(RevCommit commit) {
+            RevWalk revWalk = new RevWalk(repository);
+            try {
+                return revWalk.parseCommit(commit);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
         }
 
