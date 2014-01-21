@@ -196,9 +196,9 @@ public class CodeHistoryApp extends Controller {
         Call toView = routes.CodeHistoryApp.show(project.owner, project.name, commitId);
         toView = backToThePullRequestCommitView(toView);
 
-        NotificationEvent.afterNewCommitComment(project, codeComment, toView.url());
-
-        return redirect(toView + "#comment-" + codeComment.id);
+        String urlToView = toView + "#comment-" + codeComment.id;
+        NotificationEvent.afterNewCommitComment(project, codeComment, urlToView);
+        return redirect(urlToView);
     }
 
     private static Call backToThePullRequestCommitView(Call toView) {
