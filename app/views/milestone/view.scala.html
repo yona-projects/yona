@@ -53,7 +53,7 @@
         </div>
 
     	<ul class="nav nav-tabs">
-        @for(state <- Array(State.ALL, State.OPEN, State.CLOSED)) {
+        @for(state <- Array(State.OPEN, State.CLOSED, State.ALL)) {
             <li @if(issueState == state) { class="active" }>
                 <a href="@getTabLinkByState(state)">
                     @Messages("issue.state." + state.name.toLowerCase())
