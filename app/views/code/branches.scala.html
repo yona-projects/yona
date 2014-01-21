@@ -67,8 +67,8 @@
 </div>
 <script type="text/javascript">
     $(document).ready(function(){
-        $("button.more").click(function(){
-            $(this).next("pre").toggleClass("hidden");
+        $("button.moreBtn").on("click", function(){
+            $(this).next("pre.commitMsg.desc").toggleClass("hidden");
         });
     });
 </script>

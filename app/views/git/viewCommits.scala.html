@@ -46,14 +46,9 @@
                             }
 
                             @defining(commit.getCommitMessage()){ commitMsg =>
-                                <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.getCommitId())">
-                                    @commitMsg.split("\n")(0)
-                                </a>
-
-                                @if(commitMsg.split("\n").length > 1){
-                                <button type="button" class="more">&hellip;</button>
-                                <pre class="hidden">@commitMsg.replace(commitMsg.split("\n")(0)+"\n", "")</pre>
-                                }
+                                @common.commitMsg(commitMsg.split("\n")(0),
+                                    commitMsg,
+                                    routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.getCommitId()).toString())
                             }
                         </td>
                         <td class="date">@agoString(ago(commit.getAuthorDate()))</td>
@@ -83,9 +78,9 @@
 }
 
 <script type="text/javascript">
-$(function() {
-    $('.code-table').on('click','.more',function(){
-        $(this).next('pre').toggleClass('hidden');
+    $(document).ready(function(){
+        $("button.moreBtn").on("click", function(){
+            $(this).next("pre.commitMsg.desc").toggleClass("hidden");
+        });
     });
-});
 </script>

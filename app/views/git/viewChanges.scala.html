@@ -59,6 +59,10 @@
             "welDiff"      : $("#pull-request-changes"),
             "bCommentable" : "@isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.PULL_REQUEST_COMMENT)"
         });
+
+        $("button.moreBtn").on("click", function(){
+            $(this).next("pre.commitMsg.desc").toggleClass("hidden");
+        });
     });
 </script>
 }
