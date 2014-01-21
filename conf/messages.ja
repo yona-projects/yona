@@ -184,8 +184,6 @@ issue.event.assignedToMe = {0}さんが自分をのイシューの担当者に�
 issue.event.closed = {0}さんがこのイシューをクローズしました
 issue.event.open = {0}さんがこのイシューを再オープンしました
 issue.event.unassigned = {0}さんがこのイシューを担当者ない物にしました
-issue.event.referred.from.pullrequest = {0}さんが<a href="{3}">{1}から{2}に送るコード</a>でこのイシューについて話しました
-issue.event.referred.from.commit = {1} <strong>{0}</strong>さんが<a href="{3}" class="commit-id">{2}</a>でこのイシューについて話しました
 issue.is.empty = 該当するイシューはありません。
 issue.list.all = 全体 イシュー
 issue.list.assignedToMe = 私が担当しているイシュー
