@@ -37,6 +37,8 @@
                 name: 'name',
                 image: 'image',
                 queryBy: [],
+                suffix : ' ',
+                useSuffix : true,
                 typeaheadOpts: {}
             };
 
@@ -123,7 +125,7 @@
                     	
                     this.tempQuery = data;
 
-                    return data;
+                    return (settings.useSuffix) ? data+settings.suffix : data;
                 },
                 _sorter = function(items) {
                     if (items.length && settings.sensitive) {
