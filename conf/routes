@@ -196,6 +196,7 @@ GET            /:user/:project/code                                             
 GET            /:user/:project/code/:branch                                           controllers.CodeApp.codeBrowserWithBranch(user, project, branch:String, path="")
 GET            /:user/:project/code/:branch/*path                                     controllers.CodeApp.codeBrowserWithBranch(user, project, branch:String, path:String)
 GET            /:user/:project/rawcode/:rev/*path                                     controllers.CodeApp.showRawFile(user, project, rev:String, path:String)
+GET            /:user/:project/files/:rev/*path                                       controllers.CodeApp.openFile(user, project, rev:String, path:String)
 GET            /:user/:project/image/:rev/*path                                       controllers.CodeApp.showImageFile(user, project, rev:String, path:String)
 
 # Commits

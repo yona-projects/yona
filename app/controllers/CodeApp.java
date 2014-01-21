@@ -217,4 +217,23 @@ public class CodeApp extends Controller {
         }
         return url;
     }
+
+     /**
+     * 지정한 프로젝트의 지정한 파일을 연다.
+     *
+     * @param userName
+     * @param revision
+     * @param path
+     */
+    @IsAllowed(Operation.READ)
+    public static Result openFile(String userName, String projectName, String revision,
+                           String path) throws Exception{
+        byte[] raw = RepositoryService.getFileAsRaw(userName, projectName, revision, path);
+
+        if(raw == null){
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
+        }
+
+        return ok(raw).as(tika.detect(raw));
+    }
 }

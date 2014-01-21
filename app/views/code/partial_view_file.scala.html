@@ -27,6 +27,7 @@
 @defining(path.substring(path.lastIndexOf("/") + 1)) { fileName =>
 @defining(getFileRev(project.vcs, files)) { revId=>
 @defining(routes.CodeApp.showRawFile(project.owner, project.name, revId, path)) { filePath =>
+@defining(routes.CodeApp.openFile(project.owner, project.name, revId, path)) { pathToOpenFile =>
 <div class="file-wrap" data-type="file">
     <div class="file-header nm">
         <div id="fileInfo" class="file-info">
@@ -53,6 +54,9 @@
                 <i class="yobicon-download-alt yobicon-white vmiddle"></i> Raw
             </a>
             }
+            <a href="@pathToOpenFile" class="ybtn" target="_blank">
+                <i class="yobicon-download-alt yobicon-white vmiddle"></i> @Messages("code.open")
+            </a>
             <a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), path)" class="ybtn">@Messages("code.history")</a>
         </div>
     </div>
@@ -76,6 +80,7 @@
     <pre id="showCode" class="code-wrap" data-mimeType="@files.get("mimeType")"></pre>
     }
 </div>
+}
 }
 }
 }

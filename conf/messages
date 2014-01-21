@@ -97,6 +97,7 @@ code.nohead.pull.push = You can keep update your code to your {0} repository wit
 code.nohead.remote = If you already have existing Git repository, you can just add remote and push your code.
 code.nohead.svn.clone = You can commit your code to this repository.
 code.older = Older
+code.open = Open
 code.openCommentBox = Open Comment Box
 code.outdatedDiff = Outdated Diff
 code.renamedPath = {1} (Renamed from {0})
