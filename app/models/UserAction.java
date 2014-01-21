@@ -41,4 +41,11 @@ abstract public class UserAction extends Model {
                 .eq("user.id", subject.id)
                 .eq("resourceType", resourceType).findList();
     }
+
+    public static <T extends UserAction> int countBy(Finder<Long, T> finder,
+                                                        ResourceType resourceType, String resourceId) {
+        return finder.where()
+                .eq("resourceType", resourceType)
+                .eq("resourceId", resourceId).findRowCount();
+    }
 }

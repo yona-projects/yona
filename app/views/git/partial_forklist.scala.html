@@ -47,7 +47,7 @@
                         </ul>
                         <p>
                             @Html(Messages("project.onmember", User.findUsersByProject(fork.id).length))
-                            <i class="yobicon-eye yobicon-middle"></i> @Html(Messages("project.onwatching", fork.watchingCount))
+                            <i class="yobicon-eye yobicon-middle"></i> @Html(Messages("project.onwatching", fork.getWatchingCount))
                         </p>
                     </div>
                     }

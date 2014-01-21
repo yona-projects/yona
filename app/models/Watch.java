@@ -22,4 +22,8 @@ public class Watch extends UserAction {
     public static List<Watch> findBy(User user, ResourceType resourceType) {
         return findBy(find, user, resourceType);
     }
+
+    public static int countBy(ResourceType type, String id) {
+        return countBy(find, type, id);
+    }
 }

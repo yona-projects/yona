@@ -138,7 +138,7 @@ public class UserTest extends ModelTest<User> {
         // Given
         Project project = Project.find.byId(1l);
         User user = User.findByLoginId("doortts");
-        assertThat(project.watchingCount).isEqualTo(0);
+        assertThat(project.getWatchingCount()).isEqualTo(0);
         assertThat(user.getWatchingProjects().size()).isEqualTo(0);
 
         // When
@@ -147,7 +147,7 @@ public class UserTest extends ModelTest<User> {
         // Then
         assertThat(user.getWatchingProjects().size()).isEqualTo(1);
         assertThat(user.getWatchingProjects().contains(project)).isTrue();
-        assertThat(project.watchingCount).isEqualTo(1);
+        assertThat(project.getWatchingCount()).isEqualTo(1);
 
         // when
         user.removeWatching(project);
@@ -155,7 +155,7 @@ public class UserTest extends ModelTest<User> {
         // Then
         assertThat(user.getWatchingProjects().size()).isEqualTo(0);
         assertThat(user.getWatchingProjects().contains(project)).isFalse();
-        assertThat(project.watchingCount).isEqualTo(0);
+        assertThat(project.getWatchingCount()).isEqualTo(0);
     }
 
 }
