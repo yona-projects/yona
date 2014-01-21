@@ -81,9 +81,9 @@ public class AbstractPostingApp extends Controller {
         // Attach all of the files in the current user's temporary storage.
         Attachment.moveAll(UserApp.currentUser().asResource(), comment.asResource());
 
-        NotificationEvent.afterNewComment(comment, toView.url());
-
-        return redirect(toView + "#comment-" + comment.id);
+        String urlToView = toView + "#comment-" + comment.id;
+        NotificationEvent.afterNewComment(comment, urlToView);
+        return redirect(urlToView);
     }
 
 
