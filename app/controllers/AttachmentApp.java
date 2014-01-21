@@ -126,11 +126,12 @@ public class AttachmentApp extends Controller {
         Attachment attachment = Attachment.find.byId(id);
         String action = HttpUtil.getFirstValueFromQuery(request().queryString(), "action");
         String dispositionType = StringUtils.equals(action, "download") ? "attachment" : "inline";
-        String eTag = attachment.hash + "-" + dispositionType;
 
         if (attachment == null) {
             return notFound();
         }
+
+        String eTag = "\"" + attachment.hash + "-" + dispositionType + "\"";
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), attachment.asResource(), Operation.READ)) {
             return forbidden();
@@ -138,6 +139,7 @@ public class AttachmentApp extends Controller {
 
         String ifNoneMatchValue = request().getHeader("If-None-Match");
         if(ifNoneMatchValue != null && ifNoneMatchValue.equals(eTag)) {
+            response().setHeader("ETag", eTag);
             return status(NOT_MODIFIED);
         }
 
