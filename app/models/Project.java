@@ -21,7 +21,6 @@ import play.db.ebean.Transactional;
 import playRepository.*;
 import utils.FileUtil;
 import utils.JodaDateUtil;
-import utils.WatchService;
 import validation.ExConstraints;
 
 import javax.persistence.*;
@@ -911,7 +910,7 @@ public class Project extends Model implements LabelOwner {
 
     public int getWatchingCount() {
         Resource resource = this.asResource();
-        return WatchService.countWatchers(resource.getType(), resource.getId());
+        return Watch.countBy(resource.getType(), resource.getId());
     }
 
 }

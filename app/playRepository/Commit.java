@@ -3,7 +3,6 @@ package playRepository;
 import models.*;
 import models.enumeration.ResourceType;
 import models.resource.Resource;
-import utils.WatchService;
 
 import java.util.*;
 
@@ -42,7 +41,7 @@ public abstract class Commit {
             }
         }
 
-        return WatchService.findActualWatchers(actualWatchers, asResource(project));
+        return Watch.findActualWatchers(actualWatchers, asResource(project));
     }
 
     public static Project getProjectFromResourceId(String resourceId) {

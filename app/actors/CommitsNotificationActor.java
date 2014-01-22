@@ -20,12 +20,8 @@
  */
 package actors;
 
-import models.NotificationEvent;
-import models.PostReceiveMessage;
-import models.Project;
-import models.User;
+import models.*;
 import org.eclipse.jgit.revwalk.RevCommit;
-import utils.WatchService;
 
 import java.util.List;
 import java.util.Set;
@@ -53,7 +49,7 @@ public class CommitsNotificationActor extends PostReceiveActor {
             title = String.format("[%s] pushed %d commits.", project.name, commits.size());
         }
 
-        Set<User> watchers = WatchService.findWatchers(project.asResource());
+        Set<User> watchers = Watch.findWatchers(project.asResource());
         watchers.remove(sender);
 
         NotificationEvent.afterNewCommits(commits, refNames, project, sender, title, watchers);
