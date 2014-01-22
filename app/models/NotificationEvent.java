@@ -309,7 +309,7 @@ public class NotificationEvent extends Model {
      * @see {@link controllers.PullRequestCommentApp#newComment(String, String, Long)}
      */
     public static void afterNewComment(User sender, PullRequest pullRequest, PullRequestComment newComment, String urlToView) {
-        NotificationEvent notiEvent = createFromCurrentUser(pullRequest);
+        NotificationEvent notiEvent = createFrom(sender, newComment);
         notiEvent.title = formatReplyTitle(pullRequest);
         notiEvent.urlToView = urlToView;
         Set<User> receivers = getMentionedUsers(newComment.contents);
