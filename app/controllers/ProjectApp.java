@@ -8,6 +8,7 @@ import com.avaje.ebean.Page;
 import controllers.annotation.IsAllowed;
 import models.*;
 import models.enumeration.Operation;
+import models.enumeration.RequestState;
 import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
 import org.apache.commons.collections.CollectionUtils;
@@ -638,6 +639,7 @@ public class ProjectApp extends Controller {
         } else if (!ProjectUser.isMember(user.id, project.id)){
             ProjectUser.assignRole(user.id, project.id, RoleType.MEMBER);
             project.cleanEnrolledUsers();
+            NotificationEvent.afterMemberRequest(project, user, RequestState.ACCEPT, routes.ProjectApp.project(loginId, projectName).url());
         } else{
             flash(Constants.WARNING, "project.member.alreadyMember");
         }
