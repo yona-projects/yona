@@ -5,7 +5,6 @@ import models.NotificationEvent;
 import models.PullRequest;
 import models.PullRequestComment;
 import models.enumeration.Operation;
-import models.enumeration.ResourceType;
 import play.data.Form;
 import play.db.ebean.Transactional;
 import play.mvc.Controller;

@@ -1,7 +1,6 @@
 package controllers;
 
 import models.Project;
-import org.h2.util.StringUtils;
 import play.Logger;
 import play.mvc.Controller;
 import play.mvc.Result;
