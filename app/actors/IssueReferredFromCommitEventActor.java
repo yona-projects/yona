@@ -42,40 +42,25 @@ public class IssueReferredFromCommitEventActor extends PostReceiveActor {
     void doReceive(PostReceiveMessage cap) {
         List<RevCommit> commits = commitAndRefNames(cap).getCommits();
         for(RevCommit commit : commits) {
-            addIssueEvent(commit, cap.getProject());
+            addIssueEvent(commit, cap.getProject(), cap.getUser());
         }
     }
 
-    private void addIssueEvent(RevCommit commit, Project project) {
+    private void addIssueEvent(RevCommit commit, Project project, User user) {
         GitCommit gitCommit = new GitCommit(commit);
         String fullMessage = gitCommit.getMessage();
         Set<Issue> referredIssues = IssueEvent.findReferredIssue(fullMessage, project);
-        String newValue = getNewEventValue(gitCommit, project);
+        String newValue = gitCommit.getId();
 
         for(Issue issue : referredIssues) {
             IssueEvent issueEvent = new IssueEvent();
             issueEvent.issue = issue;
-            issueEvent.senderLoginId = gitCommit.getCommitterName();
-            issueEvent.senderEmail = gitCommit.getCommitterEmail();
+            issueEvent.senderLoginId = user.loginId;
+            issueEvent.senderEmail = user.email;
             issueEvent.newValue = newValue;
             issueEvent.created = new Date();
-            issueEvent.eventType = EventType.ISSUE_REFERRED;
+            issueEvent.eventType = EventType.ISSUE_REFERRED_FROM_COMMIT;
             issueEvent.save();
         }
     }
-
-    private String getNewEventValue(GitCommit gitCommit, Project project) {
-        User user = User.findByCommitterEmail(gitCommit.getCommitterEmail());
-        String userAvatar = utils.TemplateHelper.getUserAvatar(user, "small");
-        String commiterLoginId = user.isAnonymous() ? "" : user.loginId;
-
-        return Messages.get("issue.event.referred.from.commit",
-            commiterLoginId,
-            userAvatar,
-            gitCommit.getShortId(),
-            routes.CodeHistoryApp.show(project.owner, project.name, gitCommit.getId()),
-            gitCommit.getShortMessage(),
-            gitCommit.getMessage());
-    }
-
 }
