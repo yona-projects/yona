@@ -2,6 +2,7 @@ package playRepository;
 
 import controllers.ProjectApp;
 import controllers.UserApp;
+import controllers.routes;
 import models.Project;
 import models.PullRequest;
 import models.User;
@@ -467,6 +468,8 @@ public class GitRepository implements PlayRepository {
                 data.put("userLoginId", user.loginId);
                 data.put("createdDate", revCommit.getCommitTime() * 1000l);
                 data.put("author", commit.getAuthorName());
+                data.put("commitId", commit.getShortId());
+                data.put("commitUrl", routes.CodeHistoryApp.show(ownerName, projectName, commit.getShortId()).url());
                 found.put(path, data);
                 targets.remove(path);
             }

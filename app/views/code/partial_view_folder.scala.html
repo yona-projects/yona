@@ -36,7 +36,7 @@
         </div>
         <div class="span5 commitMsg">
             @Html(getAvatar(file))
-            <span class="ml5">@fieldText(file, "msg")</span>
+            <span class="ml5"><a href="@fieldText(file, "commitUrl")">@fieldText(file, "msg")</a></span>
         </div>
         <div class="span1 commitDate">@getFileDate(file, "createdDate")</div>
     </div>
@@ -84,7 +84,7 @@
     </div>
     <div class="span5 commitMsg">
         ${avatarImg}
-        <span class="ml5">${commitMsg}</span>
+        <span class="ml5"><a href="${commitUrl}">${commitMsg}</a></span>
     </div>
     <div class="span1 commitDate">${commitDate}</div>
 </div>
