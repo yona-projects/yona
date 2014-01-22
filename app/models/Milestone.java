@@ -4,6 +4,8 @@ import models.enumeration.*;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
 import models.support.*;
+
+import org.apache.commons.lang3.time.DateUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import play.data.format.*;
@@ -239,7 +241,9 @@ public class Milestone extends Model implements ResourceConvertible {
     }
 
     public String until(){
-        Duration duration = new Duration(DateTime.now(), new DateTime(dueDate));
+        Date now = DateUtils.truncate(new Date(), Calendar.DATE);
+        Date dueDate = DateUtils.truncate(this.dueDate, Calendar.DATE);
+        Duration duration = new Duration(new DateTime(now), new DateTime(dueDate));
         long days = duration.getStandardDays();
         if(days < 0) {
             return Messages.get("common.time.overday", -days);
