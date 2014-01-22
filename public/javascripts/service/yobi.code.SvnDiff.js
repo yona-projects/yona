@@ -177,8 +177,8 @@
          * initialize toggle comments button
          */
         function _initToggleCommentsButton() {
-            $('#toggle-comments').click(function() {
-                $('#commit').toggleClass('show-comments');
+            $('#toggle-comments').on('click',function() {
+                $('.diff-container').toggleClass('show-comments');
                 $("#minimap").toggle();
             });
         }
