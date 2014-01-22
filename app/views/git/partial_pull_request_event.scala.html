@@ -26,7 +26,7 @@
 @import utils.JodaDateUtil._
 
 @avatarByLoginId(loginId: String, loginName: String) = {
-    <a href="@routes.UserApp.userInfo(loginId)" class="usf-group" data-toggle="tooltip" data-placement="top" title="@loginName">
+    <a href="@routes.UserApp.userInfo(loginId)" class="usf-group" data-toggle="tooltip" data-placement="top" title="@loginId">
         <img src="@User.findByLoginId(loginId).avatarUrl" class="avatar-wrap small">
     </a>
 }
@@ -35,8 +35,8 @@
     @loginId match {
     case (loginId: String) => {
         @if(showAvatar){ @avatarByLoginId(loginId, loginName) }
-        <a href="@routes.UserApp.userInfo(loginId)" class="usf-group" data-toggle="tooltip" data-placement="top" title="@loginName">
-            <strong>@loginId</strong>
+        <a href="@routes.UserApp.userInfo(loginId)" class="usf-group" data-toggle="tooltip" data-placement="top" title="@loginId">
+            <strong>@loginName</strong>
         </a>
     }
     case _ => { Anonymous }
