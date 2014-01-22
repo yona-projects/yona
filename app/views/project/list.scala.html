@@ -1,4 +1,4 @@
-@(message: String, currentPage: com.avaje.ebean.Page[Project], filter:String, listState:String)
+@(message: String, currentPage: com.avaje.ebean.Page[Project], filter:String)
 @import utils.TemplateHelper._
 @import utils.JodaDateUtil
 
@@ -12,7 +12,6 @@
 	<div class="search-wrap">
 		<div id="search" class="pull-right">
 			<form action="@routes.ProjectApp.projects()" method="get">
-                <input name="state" type="hidden" value="@listState">
 				<div class="search-bar">
                     <input name="filter" class="textbox" type="text" placeholder="@Messages("site.project.filter")" value="@filter">
                     <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>

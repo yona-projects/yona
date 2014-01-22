@@ -7,6 +7,7 @@ import com.avaje.ebean.Junction;
 import com.avaje.ebean.Page;
 import controllers.annotation.IsAllowed;
 import models.*;
+import models.Project.State;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
@@ -712,17 +713,22 @@ public class ProjectApp extends Controller {
      * @param pageNum the page num
      * @return json일 경우 json형태의 프로젝트명 목록, html일 경우 java객체 형태의 프로젝트 목록
      */
-    public static Result projects(String query, String state, int pageNum) {
+    public static Result projects(String query, int pageNum) {
 
         String prefer = HttpUtil.getPreferType(request(), HTML, JSON);
         if (prefer == null) {
             return status(Http.Status.NOT_ACCEPTABLE);
         }
 
+        State state = State.PUBLIC;
+        if (UserApp.currentUser().isSiteManager()) {
+            state = State.ALL;
+        }
+
         response().setHeader("Vary", "Accept");
 
         if (prefer.equals(JSON)) {
-            return getProjectsToJSON(query);
+            return getProjectsToJSON(query, state);
         } else {
             return getPagingProjects(query, state, pageNum);
         }
@@ -737,12 +743,54 @@ public class ProjectApp extends Controller {
      * 공개여부가 @{code state} 인 프로젝트 목록을 최근생성일로 정렬하여 페이징 형태로 가져온다.
      *
      * @param query 검색질의(프로젝트명 / 관리자 아이디 / Overview)
-     * @param state 프로젝트 상태(공개/비공개)
+     * @param state 프로젝트 상태(공개/비공개/전체)
      * @param pageNum 페이지번호
      * @return 프로젝트명 또는 관리자 로그인 아이디가 {@code query}를 포함하고 공개여부가 @{code state} 인 프로젝트 목록
      */
-    private static Result getPagingProjects(String query, String state, int pageNum) {
+    private static Result getPagingProjects(String query, State state, int pageNum) {
 
+        ExpressionList<Project> el = createProjectSearchExpressionList(query, state);
+
+        Set<Long> labelIds = LabelSearchUtil.getLabelIds(request());
+        if (CollectionUtils.isNotEmpty(labelIds)) {
+            el.add(LabelSearchUtil.createLabelSearchExpression(el.query(), labelIds));
+        }
+
+        el.orderBy("createdDate desc");
+        Page<Project> projects = el.findPagingList(PROJECT_COUNT_PER_PAGE).getPage(pageNum - 1);
+
+        return ok(views.html.project.list.render("title.projectList", projects, query));
+    }
+
+    /**
+     * 프로젝트 정보를 JSON으로 가져온다.
+     *
+     * 프로젝트명 / 관리자 아이디 / Overview 중 {@code query} 가 포함되는 프로젝트 목록을 {@link #MAX_FETCH_PROJECTS} 만큼 가져오고
+     * JSON으로 변환하여 반환한다.
+     *
+     * @param query 검색질의(프로젝트명 / 관리자 / Overview)
+     * @param state state 프로젝트 상태(공개/비공개/전체)
+     * @return JSON 형태의 프로젝트 목록
+     */
+    private static Result getProjectsToJSON(String query, State state) {
+
+        ExpressionList<Project> el = createProjectSearchExpressionList(query, state);
+
+        int total = el.findRowCount();
+        if (total > MAX_FETCH_PROJECTS) {
+            el.setMaxRows(MAX_FETCH_PROJECTS);
+            response().setHeader("Content-Range", "items " + MAX_FETCH_PROJECTS + "/" + total);
+        }
+
+        List<String> projectNames = new ArrayList<>();
+        for (Project project: el.findList()) {
+            projectNames.add(project.owner + "/" + project.name);
+        }
+
+        return ok(toJson(projectNames));
+    }
+
+    private static ExpressionList<Project> createProjectSearchExpressionList(String query, State state) {
         ExpressionList<Project> el = Project.find.where();
 
         if (StringUtils.isNotBlank(query)) {
@@ -757,53 +805,13 @@ public class ProjectApp extends Controller {
             junction.endJunction();
         }
 
-        Project.State stateType = Project.State.valueOf(state.toUpperCase());
-        if (stateType == Project.State.PUBLIC) {
+        if (state == Project.State.PUBLIC) {
             el.eq("isPublic", true);
-        } else if (stateType == Project.State.PRIVATE) {
+        } else if (state == Project.State.PRIVATE) {
             el.eq("isPublic", false);
         }
 
-        Set<Long> labelIds = LabelSearchUtil.getLabelIds(request());
-        if (CollectionUtils.isNotEmpty(labelIds)) {
-            el.add(LabelSearchUtil.createLabelSearchExpression(el.query(), labelIds));
-        }
-
-        el.orderBy("createdDate desc");
-        Page<Project> projects = el.findPagingList(PROJECT_COUNT_PER_PAGE).getPage(pageNum - 1);
-
-        return ok(views.html.project.list.render("title.projectList", projects, query, state));
-    }
-
-    /**
-     * 프로젝트 정보를 JSON으로 가져온다.
-     *
-     * 프로젝트명 / 관리자 아이디 / Overview 중 {@code query} 가 포함되는 프로젝트 목록을 {@link #MAX_FETCH_PROJECTS} 만큼 가져오고
-     * JSON으로 변환하여 반환한다.
-     *
-     * @param query 검색질의(프로젝트명 / 관리자 / Overview)
-     * @return JSON 형태의 프로젝트 목록
-     */
-    private static Result getProjectsToJSON(String query) {
-
-        ExpressionList<Project> el = Project.find.where().disjunction()
-                .icontains("owner", query)
-                .icontains("name", query)
-                .icontains("overview", query)
-                .endJunction();
-
-        int total = el.findRowCount();
-        if (total > MAX_FETCH_PROJECTS) {
-            el.setMaxRows(MAX_FETCH_PROJECTS);
-            response().setHeader("Content-Range", "items " + MAX_FETCH_PROJECTS + "/" + total);
-        }
-
-        List<String> projectNames = new ArrayList<>();
-        for (Project project: el.findList()) {
-            projectNames.add(project.owner + "/" + project.name);
-        }
-
-        return ok(toJson(projectNames));
+        return el;
     }
 
     /**
