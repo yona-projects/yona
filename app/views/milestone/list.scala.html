@@ -38,14 +38,14 @@
         }
 
         <ul class="nav nav-tabs">
-            <li class="@if(param.state.equals("all")){active}">
-                <a href="@makeMilestoneListLink("all")">@Messages("milestone.state.all")</a>
-            </li>
             <li class="@if(param.state.equals("open")){active}">
                 <a href="@makeMilestoneListLink("open")">@Messages("milestone.state.open")</a>
             </li>
             <li class="@if(param.state.equals("closed")){active}">
                 <a href="@makeMilestoneListLink("closed")">@Messages("milestone.state.closed")</a>
+            </li>
+            <li class="@if(param.state.equals("all")){active}">
+                <a href="@makeMilestoneListLink("all")">@Messages("milestone.state.all")</a>
             </li>
         </ul>
     </div>
