@@ -48,6 +48,7 @@ public class UpdateRecentlyPushedBranch implements PostReceiveHook {
     public void onPostReceive(ReceivePack receivePack, Collection<ReceiveCommand> commands) {
         removeOldPushedBranches();
         saveRecentlyPushedBranch(ReceiveCommandUtil.getPushedBranches(commands));
+        deletePushedBranch(ReceiveCommandUtil.getDeletedBranches(commands));
     }
 
     /*
@@ -78,6 +79,19 @@ public class UpdateRecentlyPushedBranch implements PostReceiveHook {
             if (pushedBranch == null && PullRequest.findByFromProjectAndBranch(project, branch).isEmpty()) {
                 pushedBranch = new PushedBranch(JodaDateUtil.now(), branch, project);
                 pushedBranch.save();
+            }
+        }
+    }
+
+    /*
+     * 삭제된 브랜치가 있을 경우 pushed-branch 정보에서도 삭제한다.
+     */
+    private void deletePushedBranch(Set<String> deletedBranches) {
+        for (String branch : deletedBranches) {
+            PushedBranch pushedBranch = PushedBranch.find.where().eq("project", project)
+                    .eq("name", branch).findUnique();
+            if (pushedBranch != null) {
+                pushedBranch.delete();
             }
         }
     }
