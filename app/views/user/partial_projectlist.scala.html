@@ -29,7 +29,7 @@
             </div>
             <div class="desc">@project.overview</div>
             <div class="name-tag">
-                @Messages("project.create") <strong>@JodaDateUtil.momentFromNow(project.createdDate, lang.language)</strong> 
+                @Messages("project.create") <strong>@JodaDateUtil.momentFromNow(project.createdDate, lang.language)</strong>
                 @if(project.lastPushedDateAgo() != null) {, @Messages("project.codeUpdate") <strong>@JodaDateUtil.momentFromNow(project.lastPushedDate.getTime(), lang.language)}</strong>
             </div>
         </div>
@@ -55,14 +55,14 @@
                     <a href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="nbtn blue medium watchBtn">
                         <i class="yobicon-eye-open yobicon-middle yobicon-white"></i>
                         @Messages("notification.watch")
-                        <span class="num-badge">@project.watchingCount</span>
+                        <span class="num-badge">@project.getWatchingCount</span>
                     </a>
                 }
                 @if(!User.isWatching(project) && project.isPublic) {
                     <a href="@routes.WatchProjectApp.watch(project.owner, project.name)" class="nbtn  medium watchBtn">
                         <i class="yobicon-eye-close yobicon-middle yobicon-white"></i>
                         @Messages("notification.watch")
-                        <span class="num-badge">@project.watchingCount</span>
+                        <span class="num-badge">@project.getWatchingCount</span>
                     </a>
                 }
             }

@@ -21,6 +21,7 @@ import play.db.ebean.Transactional;
 import playRepository.*;
 import utils.FileUtil;
 import utils.JodaDateUtil;
+import utils.WatchService;
 import validation.ExConstraints;
 
 import javax.persistence.*;
@@ -102,10 +103,6 @@ public class Project extends Model implements LabelOwner {
     @OneToMany(mappedBy = "project")
     public Set<Assignee> assignees;
 
-    /**
-     * 사용자에게 관심 프로젝트로 등록된 개수
-     */
-    public long watchingCount;
     public Date lastPushedDate;
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
@@ -668,14 +665,6 @@ public class Project extends Model implements LabelOwner {
         project.originalProject = null;
     }
 
-    public void upWatcingCount() {
-        this.watchingCount++;
-    }
-
-    public void downWathcingCount() {
-        this.watchingCount--;
-    }
-
     /**
      * 데이터 교정용 메서드로, 원본이 삭제된 포크 프로젝트일 경우에 포크 프로젝트를 원본 프로젝트로 만든다.
      *
@@ -918,6 +907,11 @@ public class Project extends Model implements LabelOwner {
         } else {
             return 1;
         }
+    }
+
+    public int getWatchingCount() {
+        Resource resource = this.asResource();
+        return WatchService.countWatchers(resource.getType(), resource.getId());
     }
 
 }

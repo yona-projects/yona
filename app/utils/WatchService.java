@@ -161,4 +161,8 @@ public class WatchService {
         });
         return actualWatchers;
     }
+
+    public static int countWatchers(ResourceType type, String id) {
+        return Watch.countBy(type, id);
+    }
 }

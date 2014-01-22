@@ -6,7 +6,7 @@
 <div class="site-breadcrumb-outer">
     <div class="site-breadcrumb-inner">
         <h3>@Messages("title.projectList")</h3>
-    </div>    
+    </div>
 </div>
 <div class="project-page-wrap">
 	<div class="search-wrap projects">
@@ -78,7 +78,7 @@
                     </ul>
                     <p>
                         @Html(Messages("project.onmember", User.findUsersByProject(project.id).length))
-                        <i class="yobicon-eye yobicon-middle"></i> @Html(Messages("project.onwatching", project.watchingCount))
+                        <i class="yobicon-eye yobicon-middle"></i> @Html(Messages("project.onwatching", project.getWatchingCount))
                     </p>
                 </div>
                 }

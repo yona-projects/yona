@@ -388,15 +388,11 @@ public class User extends Model implements ResourceConvertible {
     @Transactional
     public void addWatching(Project project) {
         WatchService.watch(this, project.asResource());
-        project.upWatcingCount();
-        project.update();
     }
 
     @Transactional
     public void removeWatching(Project project) {
         WatchService.unwatch(this, project.asResource());
-        project.downWathcingCount();
-        project.update();
     }
 
     public static boolean isWatching(Project project) {
