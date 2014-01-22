@@ -30,7 +30,6 @@ import models.PushedBranch;
 
 import org.eclipse.jgit.transport.PostReceiveHook;
 import org.eclipse.jgit.transport.ReceiveCommand;
-import org.eclipse.jgit.transport.ReceiveCommand.Type;
 import org.eclipse.jgit.transport.ReceivePack;
 
 import utils.JodaDateUtil;
@@ -48,7 +47,7 @@ public class UpdateRecentlyPushedBranch implements PostReceiveHook {
     @Override
     public void onPostReceive(ReceivePack receivePack, Collection<ReceiveCommand> commands) {
         removeOldPushedBranches();
-        saveRecentlyPushedBranch(getPushedBranches(commands));
+        saveRecentlyPushedBranch(ReceiveCommandUtil.getPushedBranches(commands));
     }
 
     /*
@@ -81,16 +80,5 @@ public class UpdateRecentlyPushedBranch implements PostReceiveHook {
                 pushedBranch.save();
             }
         }
-    }
-
-    /*
-     * ReceiveCommand 중, branch create, update 에 해당하는 것들의 참조 branch set 을 구한다.
-     */
-    private Set<String> getPushedBranches(
-            Collection<ReceiveCommand> commands) {
-        return ReceiveCommandUtil.getRefNamesByCommandType(commands,
-                Type.CREATE,
-                Type.UPDATE,
-                Type.UPDATE_NONFASTFORWARD);
     }
 }
