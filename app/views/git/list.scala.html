@@ -19,8 +19,6 @@
             @Messages("pullRequest")
         </a>
     </div>
-
-    @if(project.hasForks() || project.isForkedFromOrigin()) {
     <ul class="nav nav-tabs">
         <li @if(requestType.equals("opened")){class="active"}>
             <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)">
@@ -34,7 +32,6 @@
                 <span class="num-badge">@PullRequest.findClosedPullRequests(project).size</span>
             </a>
         </li>
-    }
     @if(project.isForkedFromOrigin()){
         <li @if(requestType.equals("sent")){class="active"}>
             <a href="@routes.PullRequestApp.sentPullRequests(project.owner, project.name)">
@@ -45,7 +42,7 @@
         }
     </ul>
 
-    <div class="tab-content">
+    <div class="tab-content" style="clear:both;padding-top:15px;">
         <div id="list" class="row-fluid tab-pane active">
             @partial_list(project, page)
         </div>
