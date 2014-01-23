@@ -25,11 +25,13 @@ import static play.mvc.Http.Status.*;
 import static play.test.Helpers.*;
 
 import java.io.File;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import models.Project;
 import models.PullRequest;
+import models.PushedBranch;
 import models.User;
 import models.enumeration.State;
 
@@ -149,17 +151,28 @@ public class PullRequestAppTest {
 
     @Test
     public void testOpenPullRequest() throws Exception {
+        // Given
         initParameters("yobi", "HelloSocialApp", 1L);
         User currentUser = User.findByLoginId("admin");
+        Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
+        PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
+        PushedBranch pushedBranch = new PushedBranch(new Date(), pullRequest.fromBranch,
+                pullRequest.fromProject);
+        pushedBranch.save();
 
+        // When
         Result result = callAction(
                 controllers.routes.ref.PullRequestApp.open(ownerLoginId, projectName, pullRequestNumber),
                 fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/pullRequest/" + pullRequestNumber)
                 .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
               );
 
+        // Then
         assertThat(status(result)).isEqualTo(SEE_OTHER);
-        assertThat(PullRequest.findById(pullRequestNumber).state).isEqualTo(State.OPEN);
+        assertThat(PullRequest.findOne(project, pullRequestNumber).state).isEqualTo(State.OPEN);
+        assertThat(
+                PushedBranch.find.where().eq("project", pullRequest.fromProject)
+                        .eq("name", pullRequest.fromBranch).findUnique()).isNull();
     }
 
     @Test

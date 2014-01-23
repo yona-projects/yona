@@ -484,6 +484,7 @@ public class PullRequest extends Model implements ResourceConvertible {
      */
     public void reopen() {
         changeState(State.OPEN);
+        PushedBranch.removeByPullRequestFrom(this);
     }
 
     /**
