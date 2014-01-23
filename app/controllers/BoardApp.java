@@ -71,6 +71,7 @@ public class BoardApp extends AbstractPostingApp {
         }
 
         ExpressionList<Posting> el = searchCondition.asExpressionList(project);
+        el.eq("notice", false);
         Page<Posting> posts = el.findPagingList(ITEMS_PER_PAGE).getPage(searchCondition.pageNum);
         List<Posting> notices = Posting.findNotices(project);
 
