@@ -3023,7 +3023,7 @@ div.markdown-preview {
 
         .attached-file {
             display: inline-block;
-            width: 360px;
+            width: 355px;
             height: 30px;
             line-height: 30px;
             border: 1px solid #ccc;
@@ -3036,7 +3036,12 @@ div.markdown-preview {
             -webkit-transition-duration: 0.5s;
             &:hover { border:1px solid @primary; }
 
-            .icon-question-sign { display:none; margin-right:3px; color:@secondary; }
+            i {
+                display:none;
+                margin-right:3px;
+                vertical-align: middle;
+                color:@yobi-blue;
+            }
             .name {
                 display: inline-block;
                 max-width: 120px;
@@ -3081,7 +3086,7 @@ div.markdown-preview {
 
             /* 임시 파일 표시 */
             &.temporary {
-               .icon-question-sign { display:inline-block; }
+               i { display:inline-block; }
             }
         }
     }
