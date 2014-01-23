@@ -18,7 +18,7 @@
                     } 
                 </a>
                 <div class="title-wrap">
-                    <span class="post-id">@req.getNumber</span>
+                    <span class="post-id">@req.number</span>
                     <a href="@routes.PullRequestApp.pullRequest(req.toProject.owner, req.toProject.name, req.number)" class="title @if(req.isConflict == true) {conflict}">
                         @req.title
                     </a>
