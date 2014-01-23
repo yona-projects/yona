@@ -6,6 +6,7 @@ import java.util.*;
 import javax.servlet.*;
 
 import controllers.UserApp;
+import controllers.routes;
 import models.Project;
 import models.User;
 import models.enumeration.ResourceType;
@@ -151,6 +152,7 @@ public class SVNRepository implements PlayRepository {
                 data.put("commiter", author);
                 data.put("commitDate", commitTime);
                 data.put("commitId", entry.getRevision());
+                data.put("commitUrl", routes.CodeHistoryApp.show(ownerName, projectName, String.valueOf(entry.getRevision())).url());
                 data.put("size", entry.getSize());
 
                 listData.put(entry.getName(), data);
