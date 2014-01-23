@@ -823,15 +823,10 @@ public class PullRequest extends Model implements ResourceConvertible {
 
                 GitRepository.checkout(clonedRepository, cloneAndFetch.getDestToBranchName());
 
-                String mergedCommitIdFrom;
-                MergeResult mergeResult;
-
-                synchronized(this) {
-                    mergedCommitIdFrom =
-                            clonedRepository.getRef(org.eclipse.jgit.lib.Constants.HEAD).getObjectId().getName();
-
-                    mergeResult = GitRepository.merge(clonedRepository, cloneAndFetch.getDestFromBranchName());
-                }
+                String mergedCommitIdFrom = clonedRepository
+                        .getRef(org.eclipse.jgit.lib.Constants.HEAD).getObjectId().getName();
+                MergeResult mergeResult = GitRepository.merge(clonedRepository,
+                        cloneAndFetch.getDestFromBranchName());
 
                 if (mergeResult.getMergeStatus() == MergeResult.MergeStatus.CONFLICTING) {
                     conflicts[0] = new GitConflicts(clonedRepository, mergeResult);
