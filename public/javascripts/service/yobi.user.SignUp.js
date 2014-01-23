@@ -189,22 +189,21 @@
          * @param {String} sMessage
          */
         function showErrorMessage(welInput, sMessage){
-            welInput.tooltip({"trigger": "manual", "placement": "left"});
+            welInput.popover({"trigger": "manual", "placement": "left"});
 
-            var oToolTip = welInput.data('tooltip');
+            var oToolTip = welInput.data('popover');
             oToolTip.options.placement = 'left';
             oToolTip.options.trigger   = 'manual';
-            oToolTip.options.title     = sMessage;
             oToolTip.options.content   = sMessage;
 
-            welInput.tooltip('show');
+            welInput.popover('show');
         }
 
         function hideErrorMessage(welInput){
-            welInput.tooltip("hide");
+            welInput.popover("hide");
 
             try{
-                welInput.tooltip("destroy");
+                welInput.popover("destroy");
             } catch(e){} // to avoid bootstrap bug
         }
 
