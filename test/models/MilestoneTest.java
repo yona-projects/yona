@@ -1,7 +1,11 @@
 package models;
 
 import models.enumeration.State;
+
+import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Test;
+
+import play.i18n.Messages;
 import utils.JodaDateUtil;
 
 import java.util.*;
@@ -256,5 +260,46 @@ public class MilestoneTest extends ModelTest<Milestone> {
         isUnique = Milestone.isUniqueProjectIdAndTitle(1l, "unique milestone");
         //Then
         assertThat(isUnique == true);
+    }
+
+    @Test
+    public void untilOver() {
+        // Given
+        int days = 3;
+        Milestone milestone = new Milestone();
+        milestone.dueDate = DateUtils.truncate(DateUtils.addDays(new Date(), -days), Calendar.DATE);
+
+        // When
+        String until = milestone.until();
+
+        // Then
+        assertThat(until).isEqualTo(Messages.get("common.time.overday", days));
+    }
+
+    @Test
+    public void untilToday() {
+        // Given
+        Milestone milestone = new Milestone();
+        milestone.dueDate = DateUtils.truncate(new Date(), Calendar.DATE);
+
+        // When
+        String until = milestone.until();
+
+        // Then
+        assertThat(until).isEqualTo(Messages.get("common.time.today"));
+    }
+
+    @Test
+    public void untilLeft() {
+        // Given
+        int days = 3;
+        Milestone milestone = new Milestone();
+        milestone.dueDate = DateUtils.truncate(DateUtils.addDays(new Date(), days), Calendar.DATE);
+
+        // When
+        String until = milestone.until();
+
+        // Then
+        assertThat(until).isEqualTo(Messages.get("common.time.leftday", days));
     }
 }
