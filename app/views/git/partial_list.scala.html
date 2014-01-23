@@ -59,37 +59,10 @@
     }
     <div id="pagination"></div>
 } else {
-<div class="row-fluid">
-    <ul class="thumbnails">
-        <li class="span4">
-            <div class="thumbnail" style="height:520px;">
-                <div class="caption">
-                    <h5>@Messages("fork")</h5>
-                    <p>@Messages("fork.help.message.1")</p>
-                </div>
-                <img src="@routes.Assets.at("images/fork-pull/fork.jpg")">
-            </div>
-        </li>
-        <li class="span4">
-            <div class="thumbnail" style="height:520px;">
-                <div class="caption">
-                    <h5>@Messages("pullRequest")</h5>
-                    <p>@Messages("pullRequest.help.message.2")</p>
-                </div>
-                <img src="@routes.Assets.at("images/fork-pull/pull-request.jpg")">
-            </div>
-        </li>
-        <li class="span4">
-            <div class="thumbnail" style="height:520px;">
-                <div class="caption">
-                    <h5>@Messages("pullRequest.accept")</h5>
-                    <p>@Messages("pullRequest.merge.help.2")</p>
-                </div>
-                <img src="@routes.Assets.at("images/fork-pull/merge.jpg")">
-            </div>
-        </li>
-    </ul>
-</div>
+    <div class="error-wrap">
+        <i class="ico ico-err1"></i>
+        <p>@Messages("pullRequest.is.empty")</p>
+    </div>
 }
 </ul>
 
