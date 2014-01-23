@@ -78,24 +78,29 @@
         @for(milestone <- milestones){
         <li class="milestone">
             <div class="infos">
-            	@**<!--
-                <ul class="contributors">
-                    <li class="contributor">
-                        <a href="/uname" class="img-rounded"><img src="/assets/images/default-avatar-34.png"></a>
-                    </li>
-                </ul>
-                 -->**@
-
-                <div class="meta-info">
+            	<div class="meta-info">
                     <strong class="version"></strong>
                     <a href="@routes.MilestoneApp.milestone(project.owner, project.name, milestone.id)" class="title">@milestone.title</a>
-                    @if(milestone.dueDate != null) {
+                    @if(milestone.state != State.CLOSED) {
+                        @if(milestone.dueDate != null) {
                         <span class="sp">|</span>
                         <span class="due-date @if(milestone.isOverDueDate()){over}">
                             @Messages("label.dueDate")
                             <strong>@milestone.getDueDateString</strong>
-                            <span class="date">(@milestone.until)</span>
+                            <span class="date">
+                                (@milestone.until)
+                            </span>
                         </span>
+                        }
+                    } else {
+                        <span class="sp">|</span>
+                        <span class="state closed">@Messages("milestone.state." + milestone.state.state)</span>
+                        @if(milestone.dueDate != null) {
+                        <span class="due-date ml5">
+                            @Messages("label.dueDate")
+                            <strong>@milestone.getDueDateString</strong>
+                        </span>
+                        }
                     }
                     <div class="issue-wrap pull-right">
                         <a href="@makeIssuesLink(milestone.id,"open")" class="ybtn open medium open-issue">
