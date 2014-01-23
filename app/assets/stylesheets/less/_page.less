@@ -1049,12 +1049,31 @@
                         word-break : break-all;
                     
                         .actor {
-                            color: @orange;/*#D06930;*/
-                            font-weight: bold;/*normal;*/
+                            font-weight: bold;
+
+                            &:hover {
+                                color:@yobi-link;
+                                text-decoration: none;
+                            }
                         }
                         .whereis {
                             font-size: 11px;
-                            color: #000; /*#4092A1;*/
+                            color: #333;
+
+                            a:hover {
+                                color:@yobi-link;
+                                text-decoration: none;
+                            }
+
+                            .where {
+                                color:@yobi-link;
+                                font-weight: bold;
+                                background-color:#f7f7f7;
+                                padding:3px 5px;
+                                display: inline-block;
+                                .box-shadow(inset 0 0 5px #fff);
+                                .border-radius(2px);
+                            }
                         }
                         .title { font-size:12px; font-weight:bold; }
                     }

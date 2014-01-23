@@ -21,7 +21,7 @@
 	}
 }
 @makeHistoryWho(history:History)  = {<a href="@userPageUrlOnHistory(history)" class="actor">@history.getWho()</a>}
-@makeHistoryHow(history:History)  = {<a href="@history.getUrl()"><span class="whereis"><code>@history.getShortTitle()</code> @history.getHow()</span></a> }
+@makeHistoryHow(history:History)  = {<span class="whereis"><a href="@history.getUrl()" class="where">@history.getShortTitle()</a> <a href="@history.getUrl()">@history.getHow()</a></span> }
 @makeHistoryWhat(history:History) = {@Messages("project.history.type." + history.getWhat())}
 
 @projectLayout(message, project, utils.MenuType.PROJECT_HOME) {
@@ -86,7 +86,7 @@
 	                        <ul class="activity-streams unstyled">
 	                            @for(history <- histories.iterator()) {
 	                            <li class="activity-stream">
-	                                <a href="@userPageUrlOnHistory(history)" class="avatar-wrap pull-left" style="margin-right:15px;">
+	                                <a href="@userPageUrlOnHistory(history)" class="avatar-wrap pull-left mr10">
 	                                    <img src="@userAvatarUrlOnHistory(history)" width="32" height="32">
 	                                </a>
 	                                <div class="activity-desc">
