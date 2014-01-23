@@ -19,7 +19,7 @@
             @Messages("pullRequest")
         </a>
     </div>
-    <ul class="nav nav-tabs">
+    <ul class="nav nav-tabs nm">
         <li @if(requestType.equals("opened")){class="active"}>
             <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)">
                 @Messages("pullRequest.opened.code")
