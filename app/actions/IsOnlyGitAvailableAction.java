@@ -23,38 +23,25 @@ package actions;
 import actions.support.PathParser;
 import controllers.annotation.IsOnlyGitAvailable;
 import models.Project;
-import play.mvc.Action;
-import play.mvc.Http;
+import play.mvc.Http.Context;
 import play.mvc.Result;
 import utils.AccessLogger;
 import utils.ErrorViews;
 
 /**
- * 1. 프로젝트가 존재하는지 확인한다.
- * 2. 프로젝트가 Git 프로젝트인지 확인한다.
+ * 프로젝트가 Git 프로젝트인지 확인한다.
  *
+ * @see {@link AbstractProjectCheckAction}
+ * @see {@link controllers.annotation.IsOnlyGitAvailable}
  * @author Keesun Baik
  */
-public class IsOnlyGitAvailableAction extends Action<IsOnlyGitAvailable> {
-
+public class IsOnlyGitAvailableAction extends AbstractProjectCheckAction<IsOnlyGitAvailable> {
     @Override
-    public Result call(Http.Context context) throws Throwable {
-        PathParser parser = new PathParser(context);
-        String ownerLoginId = parser.getOwnerLoginId();
-        String projectName = parser.getProjectName();
-
-        Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
-
-        if (project == null) {
-            return AccessLogger.log(context.request(), notFound(ErrorViews.NotFound.render("error.notfound.project"))
-                    , null);
-        }
-
+    protected Result call(Project project, Context context, PathParser parser) throws Throwable {
         if(!project.isGit()) {
             return AccessLogger.log(context.request(), badRequest(ErrorViews.BadRequest.render("error.badrequest.only.available.for.git")), null);
         }
 
         return this.delegate.call(context);
     }
-
 }
