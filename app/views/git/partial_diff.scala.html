@@ -97,13 +97,9 @@
                                     }
                                 }
                                 @defining(commit.getMessage()){ commitMsg =>
-                                <a href="@routes.CodeHistoryApp.show(pullRequest.fromProject.owner, pullRequest.fromProject.name, commit.getId())">
-                                    @commitMsg.split("\n")(0)
-                                </a>
-                                @if(commitMsg.split("\n").length > 1){
-                                <button type="button" class="more"><i class="yobicon-ellipsis-horizontal"></i></button>
-                                <pre class="hidden">@commitMsg.replace(commitMsg.split("\n")(0)+"\n", "")</pre>
-                                }
+                                    @common.commitMsg(commitMsg.split("\n")(0),
+                                        commitMsg,
+                                        routes.CodeHistoryApp.show(pullRequest.fromProject.owner, pullRequest.fromProject.name, commit.getId()).toString())
                                 }
                             </td>
                             <td class="date">@agoString(ago(commit.getAuthorDate()))</td>

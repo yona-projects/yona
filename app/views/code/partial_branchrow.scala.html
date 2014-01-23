@@ -56,23 +56,11 @@
         <a href="@goToBranchURL(branch.getName)">@branch.getShortName</a>
         @if(isHead){<span class="headBranch ml10">@Messages("code.branches.defaultBranch")</span>}
     </td>
-    <td class="commitMsg">
+    <td class="commitMessage">
         @getCommiterAvatar(branch)
-
-        <a href="@getShowCommitURL(branch)" class="message">
-            @if(branch.getHeadCommit.getShortMessage()){
-                @branch.getHeadCommit.getShortMessage()
-            } else {
-                @Messages("code.commitMsg.empty")
-            }
-
-            @defining(branch.getHeadCommit.getMessage){ commitMsg =>
-                @if(commitMsg.split("\n").length > 1){
-                    <button type="button" class="more">&hellip;</button>
-                    <pre class="hidden">@commitMsg.replace(commitMsg.split("\n")(0)+"\n", "")</pre>
-                }
-            }
-        </a>
+        @common.commitMsg(branch.getHeadCommit.getShortMessage(),
+                          branch.getHeadCommit.getMessage,
+                          getShowCommitURL(branch))
     </td>
     <td class="commitDate">
         @momentFromNow(branch.getHeadCommit.getCommitterDate, lang.language)

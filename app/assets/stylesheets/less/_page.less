@@ -2725,68 +2725,30 @@
 
                 }
 
+                /** pullRequest view **/
                 .commit-list {
                     list-style:none;
                     padding:0;
                     margin:0;
 
                     .commit-info {
-                        padding:5px;
+                        padding:10px 5px;
 
                         .commit-id {
                             float:left;
-                            margin-top: 5px;
                             color:#51aacc;
                             width: 70px;
                             text-align: center;
                         }
 
                         .commitMsg {
-                            margin:0;
-                            margin-left:90px;
-                            margin-right:150px;
-                            padding:5px;
-                            font-size:14px;
-                            word-break: break-word;
-                            overflow: hidden;
-                            text-overflow: ellipsis;
-                            white-space:nowrap;
-                            vertical-align:middle;
-
-                            &.desc {
-                                padding-left:15px;
-                                white-space: pre-wrap;
-                                word-break: break-all;
-                                word-wrap: break-word;
-                                font-size:11px;
-                                border-left: 3px solid #F1f1f1;
-
-                                &.hide {
-                                    display:none;
-                                }
+                            &.short {
+                                margin:0;
+                                vertical-align: middle;
+                                padding:5px;
                             }
-
-                            .moreBtn {
-                                background-color:transparent;
-                                border:0;
-                                display: inline-block;
-                                line-height: 0;
-                                margin-left: 3px;
-                                position: relative;
-                                top: -1px;
-                                outline:none;
-
-                                span {
-                                    background-color: #bbb;
-                                    color: #fff;
-                                    padding: 0 7px;
-                                    line-height: 6px;
-                                    height: 12px;
-                                    font-size: 12px;
-                                    vertical-align: middle;
-                                    display: inline-block;
-                                    .border-radius(2px);
-                                }
+                            &.desc {
+                                margin-left:80px;
                             }
                         }
 
@@ -2808,7 +2770,7 @@
                     }
 
                     .avatar-wrap {
-                        margin-top:2px;
+                        margin-top:-2px;
                         float:right;
                         margin-right:5px;
                     }
@@ -2816,7 +2778,7 @@
                     .date {
                         float:right;
                         margin-right:15px;
-                        margin-top:5px;
+                        margin-top:3px;
                     }
                 }
 
@@ -2904,6 +2866,49 @@
         }
     }
 
+}
+
+.commitMsg {
+    &.short {
+        padding:5px;
+        font-size:14px;
+        word-break: break-word;
+        vertical-align:middle;
+        .text-overflow();
+    }
+    &.desc { /* pre */
+        word-break: break-all;
+        word-wrap: break-word;
+        font-size:12px;
+        background:transparent;
+        border:none;
+        border-left: 3px solid #F1f1f1;
+        font-family:@base-font-family;
+        color:#666;
+        .border-radius(0);
+    }
+    &.moreBtn { /* button */
+        position: relative;
+        top: -1px;
+        display: inline-block;
+        outline:none;
+        background-color:transparent;
+        border:0;
+        line-height: 0;
+        margin-left: 3px;
+
+        span {
+            display: inline-block;
+            background-color: #bbb;
+            color: #fff;
+            padding: 2px 7px;
+            line-height: 6px;
+            height: 12px;
+            font-size: 12px;
+            vertical-align: middle;
+            .border-radius(2px);
+        }
+    }
 }
 
 div.markdown-preview {
@@ -3543,22 +3548,11 @@ div.markdown-preview {
     .commit-wrap {
         background-color: @white;
 
-        .commit-id { text-align:center; }
+        .commit-id { text-align:center; vertical-align: top; }
 
         .tbody {
             td { padding:10px 15px 10px 5px; }
-            .messages {
-                a { display:inline-block; font-size:14px; }
-                pre { background:#f5f5f5; }
-                vertical-align:top;
-                button.more {
-                    display:inline-block;
-                    border:none; margin:0; font-size:14px;
-                    background:#bbb; color:#fff;
-                    padding: 0px 6px; margin-bottom:2px; margin-left:5px;
-                    .border-radius(2px);
-                }
-            }
+            .messages { /* see .commitMsg */ }
 
             .commit-id {
                 width: 70px; text-align:center;
@@ -3572,8 +3566,12 @@ div.markdown-preview {
                     &:hover { color:@link-hover-color; text-decoration:underline; }
                 }
             }
+            .messages { vertical-align:top;}
             .date { vertical-align:top;}
-            .author { vertical-align:top;}
+            .author {
+                vertical-align:top;
+                .avatar-wrap { margin-top:0; }
+            }
             .browse {  width:70px; text-align:center; }
         }
     }
@@ -3583,10 +3581,6 @@ div.markdown-preview {
     .commitId {
         color:#999;
         margin-top:5px;
-    }
-    .commitMsg {
-        font-family:@base-font-family;
-        font-size:12px;
     }
     .commitInfo {
         .avatar-wrap { margin-right:5px; }
@@ -3798,9 +3792,6 @@ div.markdown-preview {
         .updir { font-weight:bold; }
 
         .messages {
-           /* commit History */
-           pre { background:none; border:none; margin:0; }
-
            .number-of-comments { float: right; position: relative; }
 
            /* fileList */
@@ -5143,7 +5134,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         background: #fafafa;
     }
     th, td {
-        .vmiddle;
+        vertical-align:top;
         border:none;
     }
     tr {
@@ -5151,7 +5142,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     }
 
     .branchName {
-        width:250px;
+        padding-top:13px;
 
         a { color:@blue; }
 
@@ -5160,30 +5151,31 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
             background-color: #fff;
             border: 1px solid rgba(0, 0, 0, 0.1);
             padding:3px 5px;
+            .inline-block;
             .border-radius(3px);
         }
     }
-    .commitMsg {
-        a {
-            .inline-block;
-            .vmiddle;
+
+    .commitMessage {
+        padding-top:13px;
+
+        .usf-group       { float:left; }
+        .avatar-wrap     { margin-top:0px; margin-right:10px; }
+        .commitMsg.short {
+            display:inline;
+            overflow:visible;
+            white-space: normal;
+            padding:0;
         }
-        pre { background:#f5f5f5; }
-        button.more {
-            .inline-block;
-            border:none; margin:0; font-size:14px;
-            background:#bbb; color:#fff;
-            padding:0px 6px; margin-bottom:2px; margin-left:5px;
-            .border-radius(2px);
-        }
+        .commitMsg.desc  { margin-top:5px; }
     }
-    
+
     .commitDate {
-        width:100px;
+        width:115px; padding-top:13px;
     }
 
     .pullRequest {
-        width:150px;
+        width:170px; padding-top:13px;
         .disabled  { color:#cdcdcd; }
         .pullrequest-state {
             &.open:before {
@@ -5208,7 +5200,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     }
 
     .actions {
-        width:200px;
+        width:220px; min-width:220px;
         text-align:right !important;
     }
 }

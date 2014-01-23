@@ -133,17 +133,7 @@
                                     }
                                 }
 
-                                @defining(commit.getMessage()){ commitMsg =>
-                                    @if(commit.getShortMessage()) {
-                                        <a href="@showCommitURL">@commit.getShortMessage()</a>
-                                    } else {
-                                        <a href="@showCommitURL">@Messages("code.commitMsg.empty")</a>
-                                    }
-                                    @if(commitMsg.split("\n").length > 1){
-                                        <button type="button" class="more">&hellip;</button>
-                                        <pre class="hidden">@commitMsg.replace(commitMsg.split("\n")(0)+"\n", "")</pre>
-                                    }
-                                }
+                                @common.commitMsg(commit.getShortMessage(), commit.getMessage(), showCommitURL.toString())
                             </td>
                             @if(path != null){
                             <td class="browse">
@@ -153,7 +143,7 @@
                             </td>
                             }
                             <td class="date">@momentFromNow(commit.getAuthorDate(), lang.language)</td>
-                            <td class="author @commit.getAuthorEmail">
+                            <td class="author">
                                 @(commit.getAuthor, commit.getAuthorEmail, commit.getAuthorName) match {
                                 case (user: User, _, _) if !user.isAnonymous => {
 
@@ -203,8 +193,8 @@
 
 <script type="text/javascript">
 $(document).ready(function(){
-    $("button.more").click(function(){
-        $(this).next("pre").toggleClass("hidden");
+    $("button.moreBtn").on("click", function(){
+        $(this).next("pre.commitMsg.desc").toggleClass("hidden");
     });
 
     var htKeyMap = {};
