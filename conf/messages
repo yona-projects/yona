@@ -219,7 +219,6 @@ issue.state.all = All
 issue.state.assigned = Assigned
 issue.state.closed = Closed
 issue.state.enrolled = Enrolled
-issue.state.finished = Finished
 issue.state.open = Open
 issue.unwatch.start = Notifications of this issue has muted
 issue.update.assignee = Update assignee
