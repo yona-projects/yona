@@ -1075,6 +1075,9 @@
                                 .box-shadow(inset 0 0 5px #fff);
                                 .border-radius(2px);
                             }
+                            .title{
+                                font-weight: bold;
+                            }
                         }
                         .title { font-size:12px; font-weight:bold; }
                     }
@@ -2796,7 +2799,7 @@
                 }
 
                 .comment-body {
-                    font-size: 12px;
+                    font-size: small;
                     padding:0 15px;
 
                     a { font-weight:bold;}
@@ -2950,7 +2953,7 @@ div.markdown-preview {
     }
 
     .comment {
-        height: 80px;
+        height: 120px;
         margin: 0;
         resize:vertical;
         .box-shadow(none);
@@ -3123,6 +3126,9 @@ div.markdown-preview {
     .text {
         width: 99%; /*946px;/*866px;*/
     }
+    textarea.content{
+      height: 250px;
+    }
     textarea.text {
         resize:vertical;
     }
@@ -3215,7 +3221,8 @@ label.issue-item-row {
     clear: both;
 
     &.active {
-        background-color:#EFE;
+        background-color:#F0F0F0;
+        border-left: 8px solid #E6E4E4;
     }
 
     .mass-update-check {
@@ -3247,7 +3254,9 @@ label.issue-item-row {
 
         .post-id {
             color:#999;
-            margin-right:10px;
+            margin-right:5px;
+            font-size: small;
+            font-weight: bold;
         }
 
         .title {
@@ -3282,7 +3291,7 @@ label.issue-item-row {
         color:#999;
 
         .infos-item {
-            margin-right:10px;
+            margin-right:8px;
             display:inline-block;
 
             &.infos-link-item {
@@ -4588,6 +4597,7 @@ label.issue-item-row {
         .border-radius(0 0 3px 3px);
         width: 100%;
         resize:vertical !important;
+        font-size: small;
     }
 }
 
