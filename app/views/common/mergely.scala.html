@@ -34,9 +34,9 @@
 </div>
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mergely/codemirror.css")">
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mergely/mergely.css")">
-<script type="text/javascript" src="@getJSLink("lib/mergely/codemirror.min")"></script>
-<script type="text/javascript" src="@getJSLink("lib/mergely/mergely")"></script>
-<script type="text/javascript" src="@getJSLink("common/yobi.ui.Mergely")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/mergely/codemirror.min.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/mergely/mergely.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/common/yobi.ui.Mergely.js")"></script>
 <script type="text/javascript">
     $(document).ready(function(){
         yobi.ui.Mergely().setButtons("[data-toggle=mergely]");

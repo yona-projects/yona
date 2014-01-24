@@ -64,12 +64,12 @@
 
 @common.markdown(project)
 
-<link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">
-<script type="text/javascript" src="@getJSLink("lib/mentionjs/mention")"></script>
+<link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("stylesheets/mention.css")">
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/mentionjs/mention.js")"></script>
 
-<link rel="stylesheet" type="text/css" href="@getCSSLink("pikaday")" />
-<script type="text/javascript" src="@getJSLink("lib/moment-with-langs.min")"></script>
-<script type="text/javascript" src="@getJSLink("lib/pikaday")"></script>
+<link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/pikaday.css")" />
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/moment-with-langs.min.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/pikaday.js")"></script>
 <script type="text/javascript">
     $(document).ready(function(){
         // yobi.milestone.Write

@@ -2,11 +2,11 @@
 
 @import utils.TemplateHelper._
 
-<link rel="stylesheet" type="text/css" href="@getCSSLink("hljsstyles/default")" />
-<script type="text/javascript" src="@getJSLink("lib/hljs/hljs")"></script>
-<script type="text/javascript" src="@getJSLink("lib/hljs/languages/allinone")"></script>
-<script type="text/javascript" src="@getJSLink("lib/marked")"></script>
-<script type="text/javascript" src="@getJSLink("lib/xss")"></script>
+<link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/hljsstyles/default.css")" />
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/hljs/hljs.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/hljs/languages/allinone.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/marked.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/xss.js")"></script>
 <script type="text/javascript">
 $(document).ready(function(){
     var htOptions = {

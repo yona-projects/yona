@@ -169,9 +169,9 @@
     </div>
 </div>
 
-<link rel="stylesheet" type="text/css" href="@getCSSLink("jcrop/jquery.Jcrop")" />
-<script type="text/javascript" src="@getJSLink("lib/jquery/jquery.Jcrop.min")"></script>
-<script type="text/javascript" src="@getJSLink("lib/canvas-to-blob")"></script>
+<link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/jcrop/jquery.Jcrop.css")" />
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery/jquery.Jcrop.min.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/canvas-to-blob.js")"></script>
 <script type="text/javascript">
     $(document).ready(function(){
         $yobi.loadModule("user.Setting", {

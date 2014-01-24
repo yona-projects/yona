@@ -82,7 +82,7 @@ options.submit에 자바스크립트 함수를 설정하지 않았다면 동기�
 
 사용 예:
 
-    <script src="@getJSLink("pagination")" type="text/javascript"></script>
+    <script src="@routes.Assets.at("javascripts/common/yobo.Pagination.js")" type="text/javascript"></script>
     <script type="text/javascript">
     var pagination = new Pagination();
     pagination.init(function() {
@@ -99,7 +99,7 @@ options.submit에 자바스크립트 함수를 설정했다면 비동기로 동�
 
 사용 예:
 
-    <script src="@getJSLink("pagination")" type="text/javascript"></script>
+    <script src="@routes.Assets.at("javascripts/common/yobo.Pagination.js")" type="text/javascript"></script>
     <script type="text/javascript">
     var pagination = new Pagination();
 
