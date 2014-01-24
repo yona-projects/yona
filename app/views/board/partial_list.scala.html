@@ -1,5 +1,6 @@
 @(post:models.Posting, project:Project)
 
+@import utils.JodaDateUtil
 @import utils.TemplateHelper._
 @defining(User.findByLoginId(post.authorLoginId)){ user =>
 <li class="post-item">
@@ -26,7 +27,9 @@
             <span class="infos-item">@Messages("issue.noAuthor")</span>
         }
 
-        <span class="infos-item">@agoString(post.ago)</span>
+        <span class="infos-item" title="@JodaDateUtil.getDateString(post.createdDate)">
+            @agoString(post.ago)
+        </span>
 
         @if(post.numOfComments >0){
             <a href="@routes.BoardApp.post(project.owner, project.name, post.getNumber)#comments" class="infos-item infos-icon-link">

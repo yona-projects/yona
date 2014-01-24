@@ -1,6 +1,6 @@
 @(form: Form[PullRequest], project: Project, pullRequest:models.PullRequest, result:models.PullRequestMergeResult)
 
-@import utils.JodaDateUtil._
+@import utils.JodaDateUtil
 @import utils.TemplateHelper._
 @import utils.AccessControl._
 @import models.enumeration
@@ -102,7 +102,9 @@
                                         routes.CodeHistoryApp.show(pullRequest.fromProject.owner, pullRequest.fromProject.name, commit.getId()).toString())
                                 }
                             </td>
-                            <td class="date">@agoString(ago(commit.getAuthorDate()))</td>
+                            <td class="date" title="@JodaDateUtil.getDateString(commit.getAuthorDate)">
+                                @agoString(JodaDateUtil.ago(commit.getAuthorDate()))
+                            </td>
                             <td class="author @commit.getAuthorEmail">
                                 @defining(User.find.where.eq("email", commit.getAuthorEmail).findUnique) { user =>
                                 @if(user != null) {

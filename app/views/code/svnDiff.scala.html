@@ -3,7 +3,7 @@
 @import playRepository.RepositoryService
 @import java.net.URLEncoder
 @import utils.TemplateHelper._
-@import utils.JodaDateUtil._
+@import utils.JodaDateUtil
 @import utils.AccessControl._
 
 @branchItemType(itemType:String) = @{
@@ -77,7 +77,9 @@
                 <strong>@User.anonymous.name</strong>
             }
             }
-            <span class="ago">@agoString(ago(commit.getAuthorDate))</span>
+            <span class="ago" title="@JodaDateUtil.getDateString(commit.getAuthorDate)">
+                @agoString(JodaDateUtil.ago(commit.getAuthorDate))
+            </span>
             <strong class="commitId pull-right">@{"@"}@commit.getId</strong>
             @if(comments.size > 0) {
             <span class="pull-right mt5 mr10">
@@ -122,7 +124,11 @@
                                     <strong>@comment.authorLoginId </strong>
                                 </a>
                             </span>
-                            <span class="ago"><a href="#comment-@comment.id">@utils.TemplateHelper.agoString(ago(comment.createdDate))</a></span>
+                            <span class="ago">
+                                <a href="#comment-@comment.id" title="@JodaDateUtil.getDateString(commit.getAuthorDate)">
+                                    @agoString(JodaDateUtil.ago(comment.createdDate))
+                                </a>
+                            </span>
                             @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
                             <span class="edit pull-right">
                                 <button class="btn-transparent pull-right close" data-request-method="delete" data-request-uri="@routes.CodeHistoryApp.deleteComment(project.owner, project.name, commit.getId, comment.id)"><i class="yobicon-trash"></i></button>

@@ -1,4 +1,6 @@
 @(project: Project, page: com.avaje.ebean.Page[PullRequest])
+
+@import utils.JodaDateUtil
 @import utils.TemplateHelper._
 
 @branchName(branch:String) = @{
@@ -31,7 +33,9 @@
                     } else {
                         <span class="infos-item">@Messages("issue.noAuthor")</span>
                     }
-                    <span class="infos-item">@agoString(req.createdAgo())</span>
+                    <span class="infos-item" title="@JodaDateUtil.getDateString(req.created)">
+                        @agoString(req.createdAgo())
+                    </span>
                     @defining(req.comments.size + CommitComment.countByCommits(req.fromProject, req.pullRequestCommits)) { count =>
                         @if(count > 0) {
                             <a href="@routes.PullRequestApp.pullRequest(req.toProject.owner, req.toProject.name, req.number)#comments" class="infos-item infos-icon-link">

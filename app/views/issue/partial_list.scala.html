@@ -1,5 +1,6 @@
 @(project:Project, issueList:Collection[Issue], searchCondition:models.support.SearchCondition, pageIndex:Int, totalPageCount:Int)
 @import java.util
+@import utils.JodaDateUtil
 @import utils.TemplateHelper._
 @import utils.AccessControl._
 
@@ -40,7 +41,9 @@
                         <span class="infos-item">@Messages("issue.noAuthor")</span>
                     }
 
-                    <span class="infos-item">@agoString(issue.ago)</span>
+                    <span class="infos-item" title="@JodaDateUtil.getDateString(issue.createdDate)">
+                        @agoString(issue.ago)
+                    </span>
 
                     @if(issue.comments.size()>0){
                         <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)#comments" class="infos-item infos-icon-link">

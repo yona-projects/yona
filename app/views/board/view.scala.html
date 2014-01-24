@@ -1,5 +1,6 @@
 @(post:Posting, commentForm:Form[PostingComment],  project:Project)
 
+@import utils.JodaDateUtil
 @import utils.TemplateHelper._
 @import utils.AccessControl._
 @import models.enumeration._
@@ -18,7 +19,9 @@
 	@** Post Info **@
     <div class="board-header issue">
         <div class="pull-right mr10 mt10">
-            <div class="date">@agoString(post.ago)</div>
+            <div class="date" title="@JodaDateUtil.getDateString(post.createdDate)">
+                @agoString(post.ago)
+            </div>
         </div>
         <div class="title">
             <strong class="board-id">@post.getNumber</strong> @post.title
