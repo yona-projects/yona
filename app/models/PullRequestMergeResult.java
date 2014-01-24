@@ -64,7 +64,12 @@ public class PullRequestMergeResult {
         List<PullRequestCommit> currentCommits = new ArrayList<>();
         for (GitCommit commit: gitCommits) {
             boolean existCommit = false;
-            for (PullRequestCommit pullRequestCommit: PullRequestCommit.find.where().eq("pullRequest", pullRequest).findList()) {
+            List<PullRequestCommit> pullRequestCommits = PullRequestCommit.find.where()
+                                    .eq("pullRequest", pullRequest)
+                                    .eq("state", PullRequestCommit.State.CURRENT)
+                                    .findList();
+
+            for (PullRequestCommit pullRequestCommit: pullRequestCommits) {
                 if(commit.getId().equals(pullRequestCommit.commitId)) {
                     existCommit = true;
                     break;
