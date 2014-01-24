@@ -8,6 +8,7 @@ import models.PullRequest;
 import models.User;
 import models.enumeration.ResourceType;
 import models.resource.Resource;
+import models.support.ModelLock;
 
 import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -56,6 +57,7 @@ import static org.eclipse.jgit.diff.DiffEntry.ChangeType.*;
  * Git 저장소
  */
 public class GitRepository implements PlayRepository {
+    private static final ModelLock<Project> PROJECT_LOCK = new ModelLock<>();
 
     /**
      * Git 저장소 베이스 디렉토리
@@ -984,36 +986,38 @@ public class GitRepository implements PlayRepository {
      * @param pullRequest
      * @param operation
      */
-    public static synchronized void cloneAndFetch(PullRequest pullRequest, AfterCloneAndFetchOperation operation) {
+    public static void cloneAndFetch(PullRequest pullRequest, AfterCloneAndFetchOperation operation) {
         Repository cloneRepository = null;
         try {
-            cloneRepository = buildMergingRepository(pullRequest);
+            synchronized (PROJECT_LOCK.get(pullRequest.toProject)) {
+                cloneRepository = buildMergingRepository(pullRequest);
 
-            String srcToBranchName = pullRequest.toBranch;
-            String destToBranchName = srcToBranchName + "-to-" + pullRequest.id;
-            String srcFromBranchName = pullRequest.fromBranch;
-            String destFromBranchName = srcFromBranchName + "-from-" + pullRequest.id;
+                String srcToBranchName = pullRequest.toBranch;
+                String destToBranchName = srcToBranchName + "-to-" + pullRequest.id;
+                String srcFromBranchName = pullRequest.fromBranch;
+                String destFromBranchName = srcFromBranchName + "-from-" + pullRequest.id;
 
-            new Git(cloneRepository).reset().setMode(ResetCommand.ResetType.HARD).setRef(Constants.HEAD).call();
-            new Git(cloneRepository).clean().setIgnore(true).setCleanDirectories(true).call();
-            checkout(cloneRepository, pullRequest.toProject.defaultBranch());
+                new Git(cloneRepository).reset().setMode(ResetCommand.ResetType.HARD).setRef(Constants.HEAD).call();
+                new Git(cloneRepository).clean().setIgnore(true).setCleanDirectories(true).call();
+                checkout(cloneRepository, pullRequest.toProject.defaultBranch());
 
-            // 코드를 받아오면서 생성될 브랜치를 미리 삭제한다.
-            deleteBranch(cloneRepository, destToBranchName);
-            deleteBranch(cloneRepository, destFromBranchName);
+                // 코드를 받아오면서 생성될 브랜치를 미리 삭제한다.
+                deleteBranch(cloneRepository, destToBranchName);
+                deleteBranch(cloneRepository, destFromBranchName);
 
-            // 코드를 받을 브랜치에 해당하는 코드를 fetch 한다.
-            fetch(cloneRepository, pullRequest.toProject, srcToBranchName, destToBranchName);
-            // 코드를 보내는 브랜치에 해당하는 코드를 fetch 한다.
-            fetch(cloneRepository, pullRequest.fromProject, srcFromBranchName, destFromBranchName);
+                // 코드를 받을 브랜치에 해당하는 코드를 fetch 한다.
+                fetch(cloneRepository, pullRequest.toProject, srcToBranchName, destToBranchName);
+                // 코드를 보내는 브랜치에 해당하는 코드를 fetch 한다.
+                fetch(cloneRepository, pullRequest.fromProject, srcFromBranchName, destFromBranchName);
 
-            CloneAndFetch cloneAndFetch = new CloneAndFetch(cloneRepository, destToBranchName, destFromBranchName);
-            operation.invoke(cloneAndFetch);
+                CloneAndFetch cloneAndFetch = new CloneAndFetch(cloneRepository, destToBranchName, destFromBranchName);
+                operation.invoke(cloneAndFetch);
 
-            // master로 이동
-            new Git(cloneRepository).reset().setMode(ResetCommand.ResetType.HARD).setRef(Constants.HEAD).call();
-            new Git(cloneRepository).clean().setIgnore(true).setCleanDirectories(true).call();
-            checkout(cloneRepository, pullRequest.toProject.defaultBranch());
+                // master로 이동
+                new Git(cloneRepository).reset().setMode(ResetCommand.ResetType.HARD).setRef(Constants.HEAD).call();
+                new Git(cloneRepository).clean().setIgnore(true).setCleanDirectories(true).call();
+                checkout(cloneRepository, pullRequest.toProject.defaultBranch());
+            }
         } catch (GitAPIException e) {
             throw new IllegalStateException(e);
         } catch (IOException e) {
