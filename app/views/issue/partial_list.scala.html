@@ -7,7 +7,7 @@
 
 @issueLabels(issue:Issue) = {@for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {@label.category,@label.id,@label.name|}}
 
-<ul class="post-list-wrap">
+<ul class="post-list-wrap row-fluid">
 @for(issue <- issueList){
     @defining(User.findByLoginId(issue.authorLoginId)){ user =>
     <li class="post-item" id="issue-item-@issue.id">
