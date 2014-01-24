@@ -37,7 +37,6 @@ import playRepository.GitRepository.CloneAndFetch;
 import utils.Constants;
 import utils.JodaDateUtil;
 import utils.TemplateHelper;
-import utils.WatchService;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
@@ -451,7 +450,7 @@ public class PullRequest extends Model implements ResourceConvertible {
             }
         }
 
-        return WatchService.findActualWatchers(actualWatchers, asResource());
+        return Watch.findActualWatchers(actualWatchers, asResource());
     }
 
     private RevCommit writeMergeCommitMessage(Repository cloneRepository, User user) throws GitAPIException {

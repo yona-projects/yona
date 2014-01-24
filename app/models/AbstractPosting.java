@@ -9,7 +9,6 @@ import play.data.format.Formats;
 import play.data.validation.Constraints;
 import play.db.ebean.*;
 import utils.JodaDateUtil;
-import utils.WatchService;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
@@ -257,6 +256,6 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
             }
         }
 
-        return WatchService.findActualWatchers(actualWatchers, asResource());
+        return Watch.findActualWatchers(actualWatchers, asResource());
     }
 }

@@ -7,6 +7,7 @@ import models.Project;
 import models.User;
 
 import models.UserProjectNotification;
+import models.Watch;
 import models.enumeration.EventType;
 import org.junit.After;
 import org.junit.Before;
@@ -16,7 +17,6 @@ import play.mvc.Http;
 import play.mvc.Result;
 import play.test.FakeApplication;
 import play.test.FakeRequest;
-import utils.WatchService;
 
 public class WatchProjectAppTest {
     private static FakeApplication app;
@@ -139,7 +139,7 @@ public class WatchProjectAppTest {
         Project project = Project.find.byId(projectId);
         EventType eventType = EventType.valueOf(eventTypeValue);
 
-        WatchService.watch(user, project.asResource());
+        Watch.watch(user, project.asResource());
         assertThat(user.getWatchingProjects().contains(project)).isTrue();
         assertThat(UserProjectNotification.isEnabledNotiType(user, project, eventType)).isTrue();
 

@@ -23,7 +23,6 @@ package models;
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.*;
 
-import utils.WatchService;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -99,11 +98,11 @@ public class PullRequestTest extends ModelTest<PullRequest> {
         // Given
         PullRequest pullRequest = PullRequest.findById(1L);
         User watcher = getTestUser(2L);
-        WatchService.watch(watcher, pullRequest.asResource());
+        Watch.watch(watcher, pullRequest.asResource());
 
         User unwatcher = getTestUser(3L);
         unwatcher.addWatching(pullRequest.toProject);
-        WatchService.unwatch(unwatcher, pullRequest.asResource());
+        Watch.unwatch(unwatcher, pullRequest.asResource());
 
         // When
         Set<User> watchers = pullRequest.getWatchers();
@@ -117,7 +116,7 @@ public class PullRequestTest extends ModelTest<PullRequest> {
         // Given
         PullRequest pullRequest = PullRequest.findById(2L);
         User watcher = getTestUser();
-        WatchService.watch(watcher, pullRequest.asResource());
+        Watch.watch(watcher, pullRequest.asResource());
 
         // When
         Set<User> watchers = pullRequest.getWatchers();

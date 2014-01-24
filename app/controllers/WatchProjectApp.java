@@ -5,6 +5,7 @@ import controllers.annotation.IsAllowed;
 import models.Project;
 import models.User;
 import models.UserProjectNotification;
+import models.Watch;
 import models.enumeration.EventType;
 import models.enumeration.Operation;
 import play.i18n.Messages;
@@ -13,7 +14,6 @@ import play.mvc.Result;
 import play.mvc.With;
 import utils.AccessControl;
 import utils.ErrorViews;
-import utils.WatchService;
 
 @With(AnonymousCheckAction.class)
 public class WatchProjectApp extends Controller {
@@ -21,14 +21,14 @@ public class WatchProjectApp extends Controller {
     @IsAllowed(Operation.READ)
     public static Result watch(String userName, String projectName) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
-        WatchService.watch(project.asResource());
+        Watch.watch(project.asResource());
         return ok();
     }
 
     @IsAllowed(Operation.READ)
     public static Result unwatch(String userName, String projectName) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
-        WatchService.unwatch(project.asResource());
+        Watch.unwatch(project.asResource());
         return ok();
     }
 
@@ -43,7 +43,7 @@ public class WatchProjectApp extends Controller {
         if(!AccessControl.isAllowed(user, project.asResource(), Operation.READ)) {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
-        if(!WatchService.isWatching(user, project.asResource())) {
+        if(!Watch.isWatching(user, project.asResource())) {
             return badRequest(Messages.get("error.notfound.watch"));
         }
 

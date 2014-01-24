@@ -10,9 +10,6 @@ import models.enumeration.*;
 import models.resource.GlobalResource;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
-import models.support.FinderTemplate;
-import models.support.OrderParams;
-import models.support.SearchParams;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.crypto.hash.Sha256Hash;
@@ -30,8 +27,6 @@ import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
 import com.avaje.ebean.RawSql;
 import com.avaje.ebean.RawSqlBuilder;
-
-import utils.WatchService;
 
 /**
  * User 클래스
@@ -387,16 +382,16 @@ public class User extends Model implements ResourceConvertible {
 
     @Transactional
     public void addWatching(Project project) {
-        WatchService.watch(this, project.asResource());
+        Watch.watch(this, project.asResource());
     }
 
     @Transactional
     public void removeWatching(Project project) {
-        WatchService.unwatch(this, project.asResource());
+        Watch.unwatch(this, project.asResource());
     }
 
     public static boolean isWatching(Project project) {
-        return WatchService.isWatching(project.asResource());
+        return Watch.isWatching(project.asResource());
     }
 
     public List<Project> getWatchingProjects() {
@@ -404,7 +399,7 @@ public class User extends Model implements ResourceConvertible {
     }
 
     public List<Project> getWatchingProjects(String orderString) {
-        List<String> projectIds = WatchService.findWatchedResourceIds(this, ResourceType.PROJECT);
+        List<String> projectIds = Watch.findWatchedResourceIds(this, ResourceType.PROJECT);
         List<Project> projects = new ArrayList<>();
         for (String id : projectIds) {
             projects.add(Project.find.byId(Long.valueOf(id)));

@@ -17,7 +17,6 @@ import play.api.mvc.Call;
 import play.db.ebean.Model;
 import play.i18n.Messages;
 import playRepository.*;
-import utils.WatchService;
 
 import javax.persistence.*;
 import javax.servlet.ServletException;
@@ -217,7 +216,7 @@ public class NotificationEvent extends Model {
             @Override
             public boolean evaluate(Object obj) {
                 User receiver = (User) obj;
-                if (!WatchService.isWatching(receiver, resource)) {
+                if (!Watch.isWatching(receiver, resource)) {
                     return true;
                 }
                 return UserProjectNotification.isEnabledNotiType(receiver, project, event.eventType);
@@ -682,7 +681,7 @@ public class NotificationEvent extends Model {
         Set<User> receivers = new HashSet<>();
         List<User> managers = User.findUsersByProject(project.id, RoleType.MANAGER);
         for (User manager : managers) {
-            if (WatchService.isWatching(manager, project.asResource())) {
+            if (Watch.isWatching(manager, project.asResource())) {
                 receivers.add(manager);
             }
         }

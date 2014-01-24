@@ -5,7 +5,6 @@ import models.enumeration.ResourceType;
 import models.enumeration.State;
 import org.junit.Test;
 
-import utils.WatchService;
 
 import java.util.HashSet;
 
@@ -69,7 +68,7 @@ public class NotificationEventTest extends ModelTest<NotificationEvent> {
         Project project = issue.project;
 
         User watching_project_off = getTestUser(2L);
-        WatchService.watch(watching_project_off, project.asResource());
+        Watch.watch(watching_project_off, project.asResource());
         UserProjectNotification.unwatchExplictly(watching_project_off, project, EventType.ISSUE_ASSIGNEE_CHANGED);
 
         User off = getTestUser(3L);

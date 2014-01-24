@@ -18,27 +18,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package utils;
+package models;
 
-import static org.fest.assertions.Assertions.*;
-import static play.test.Helpers.*;
+import models.enumeration.ResourceType;
+import models.resource.Resource;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import play.test.FakeApplication;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import models.Issue;
-import models.Unwatch;
-import models.User;
-import models.Watch;
-import models.enumeration.ResourceType;
-import models.resource.Resource;
+import static org.fest.assertions.Assertions.assertThat;
+import static play.test.Helpers.start;
+import static play.test.Helpers.stop;
 
-import org.junit.*;
+public class WatchTest {
 
-import play.test.*;
-
-public class WatchServiceTest {
     private FakeApplication application;
 
     @Before
@@ -59,7 +57,7 @@ public class WatchServiceTest {
         User user = User.find.byId(1L);
 
         // When
-        WatchService.watch(user, resource);
+        Watch.watch(user, resource);
 
         // Then
         assertThat(Watch.findBy(user, resource.getType(), resource.getId())).isNotNull();
@@ -73,7 +71,7 @@ public class WatchServiceTest {
         User user = User.find.byId(1L);
 
         // When
-        WatchService.unwatch(user, resource);
+        Watch.unwatch(user, resource);
 
         // Then
         assertThat(Watch.findBy(user, resource.getType(), resource.getId())).isNull();
@@ -86,11 +84,11 @@ public class WatchServiceTest {
         Resource resource = Issue.finder.byId(1L).asResource();
         User watcher1 = User.find.byId(2L);
         User watcher2 = User.find.byId(3L);
-        WatchService.watch(watcher1, resource);
-        WatchService.watch(watcher2, resource);
+        Watch.watch(watcher1, resource);
+        Watch.watch(watcher2, resource);
 
         // When
-        Set<User> watchers = WatchService.findWatchers(resource);
+        Set<User> watchers = Watch.findWatchers(resource);
 
         // Then
         assertThat(watchers).containsOnly(watcher1, watcher2);
@@ -102,11 +100,11 @@ public class WatchServiceTest {
         Resource resource = Issue.finder.byId(1L).asResource();
         User unwatcher1 = User.find.byId(2L);
         User unwatcher2 = User.find.byId(3L);
-        WatchService.unwatch(unwatcher1, resource);
-        WatchService.unwatch(unwatcher2, resource);
+        Watch.unwatch(unwatcher1, resource);
+        Watch.unwatch(unwatcher2, resource);
 
         // When
-        Set<User> unwachers = WatchService.findUnwatchers(resource);
+        Set<User> unwachers = Watch.findUnwatchers(resource);
 
         // Then
         assertThat(unwachers).containsOnly(unwatcher1, unwatcher2);
@@ -118,11 +116,11 @@ public class WatchServiceTest {
         User user = User.find.byId(2L);
         Resource resource1 = Issue.finder.byId(1L).asResource();
         Resource resource2 = Issue.finder.byId(2L).asResource();
-        WatchService.watch(user, resource1);
-        WatchService.watch(user, resource2);
+        Watch.watch(user, resource1);
+        Watch.watch(user, resource2);
 
         // When
-        List<String> watchedResourceIds = WatchService.findWatchedResourceIds(user, ResourceType.ISSUE_POST);
+        List<String> watchedResourceIds = Watch.findWatchedResourceIds(user, ResourceType.ISSUE_POST);
 
         // Then
         assertThat(watchedResourceIds).containsOnly(resource1.getId(), resource2.getId());
@@ -135,15 +133,15 @@ public class WatchServiceTest {
         User user2 = User.find.byId(3L);
         Resource resource1 = Issue.finder.byId(1L).asResource();
         Resource resource2 = Issue.finder.byId(2L).asResource();
-        WatchService.watch(user1, resource1);
-        WatchService.watch(user2, resource2);
+        Watch.watch(user1, resource1);
+        Watch.watch(user2, resource2);
 
         // When
         // Then
-        assertThat(WatchService.isWatching(user1, resource1)).isTrue();
-        assertThat(WatchService.isWatching(user2, resource1)).isFalse();
-        assertThat(WatchService.isWatching(user1, resource2)).isFalse();
-        assertThat(WatchService.isWatching(user2, resource2)).isTrue();
+        assertThat(Watch.isWatching(user1, resource1)).isTrue();
+        assertThat(Watch.isWatching(user2, resource1)).isFalse();
+        assertThat(Watch.isWatching(user1, resource2)).isFalse();
+        assertThat(Watch.isWatching(user2, resource2)).isTrue();
     }
 
     @Test
@@ -152,26 +150,27 @@ public class WatchServiceTest {
         Resource resource_of_private_project = Issue.finder.byId(5L).asResource();
 
         User watch_issue_not_member = User.find.byId(2L);
-        WatchService.watch(watch_issue_not_member, resource_of_private_project);
+        Watch.watch(watch_issue_not_member, resource_of_private_project);
 
         User watch_isssue = User.find.byId(3L);
-        WatchService.watch(watch_isssue, resource_of_private_project);
+        Watch.watch(watch_isssue, resource_of_private_project);
 
         User watch_project = User.find.byId(4L);
-        WatchService.watch(watch_project, resource_of_private_project.getProject().asResource());
+        Watch.watch(watch_project, resource_of_private_project.getProject().asResource());
 
         User watch_project_unwatch_issue = User.find.byId(5L);
-        WatchService.watch(watch_project_unwatch_issue, resource_of_private_project.getProject().asResource());
-        WatchService.unwatch(watch_project_unwatch_issue, resource_of_private_project);
+        Watch.watch(watch_project_unwatch_issue, resource_of_private_project.getProject().asResource());
+        Watch.unwatch(watch_project_unwatch_issue, resource_of_private_project);
 
         User base_watcher_not_member = User.find.byId(6L);
         Set<User> baseWatchers = new HashSet<>();
         baseWatchers.add(base_watcher_not_member);
 
         // When
-        Set<User> actualWatchers = WatchService.findActualWatchers(baseWatchers, resource_of_private_project);
+        Set<User> actualWatchers = Watch.findActualWatchers(baseWatchers, resource_of_private_project);
 
         // Then
         assertThat(actualWatchers).containsOnly(watch_isssue, watch_project);
     }
+
 }

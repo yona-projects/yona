@@ -26,14 +26,8 @@ import java.util.Date;
 import java.util.Set;
 import java.util.TimeZone;
 
+import models.*;
 import org.junit.*;
-
-import utils.WatchService;
-
-import models.CommitComment;
-import models.ModelTest;
-import models.Project;
-import models.User;
 
 public class CommitTest extends ModelTest<Commit> {
     @Test
@@ -108,11 +102,11 @@ public class CommitTest extends ModelTest<Commit> {
         Project project = getTestProject();
 
         User watcher = getTestUser(3L);
-        WatchService.watch(watcher, commit.asResource(project));
+        Watch.watch(watcher, commit.asResource(project));
 
         User unwatcher = getTestUser(4L);
         unwatcher.addWatching(project);
-        WatchService.unwatch(unwatcher, commit.asResource(project));
+        Watch.unwatch(unwatcher, commit.asResource(project));
 
         // When
         Set<User> watchers = commit.getWatchers(project);
@@ -129,7 +123,7 @@ public class CommitTest extends ModelTest<Commit> {
         Project project = getTestProject(5L);
 
         User watcher = getTestUser(2L);
-        WatchService.watch(watcher, commit.asResource(project));
+        Watch.watch(watcher, commit.asResource(project));
 
         // When
         Set<User> watchers = commit.getWatchers(project);
