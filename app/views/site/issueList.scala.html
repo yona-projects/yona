@@ -1,5 +1,6 @@
 @(message: String, currentPage: com.avaje.ebean.Page[Issue], currentState: State)
 
+@import utils.JodaDateUtil
 @import utils.TemplateHelper._
 
 @isActiveTabMenu(state: State) =@{
@@ -41,7 +42,7 @@
                 <a href="@routes.UserApp.userInfo(user.loginId)" class="post-meta-item">
                     @user.name
                 </a>
-                <span class="post-meta-item">
+                <span class="post-meta-item" title="@JodaDateUtil.getDateString(issue.createdDate)">
                     @agoString(issue.ago())
                 </span>
                 <span class="post-comments post-meta-item">

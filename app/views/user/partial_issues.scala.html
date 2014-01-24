@@ -26,7 +26,9 @@
                 } else {
                     <span class="gray-txt">@Messages("issue.noAuthor")</span>
                 }
-                <span class="date">@agoString(issue.ago)</span>
+                <span class="date" title="@JodaDateUtil.getDateString(issue.createdDate)">
+                    @agoString(issue.ago)
+                </span>
 
                 @if(issue.comments.size()>0){
                 <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)#comments" class="comment-wrap">

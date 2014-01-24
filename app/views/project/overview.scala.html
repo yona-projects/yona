@@ -1,7 +1,7 @@
 @(message: String, project: Project, histories: List[models.History] )
 @import org.apache.commons.lang.StringUtils
 
-@import utils.JodaDateUtil._
+@import utils.JodaDateUtil
 @import utils.TemplateHelper._
 @import utils.AccessControl._
 @import models.enumeration._
@@ -53,7 +53,7 @@
 	        <ul id="homeTabs" class="nav nav-tabs">
 	            <li class="active"><a href="#readme" data-toggle="tab">README</a></li>
 	            @if(histories.size > 0) {
-	            <li><a href="#recent" data-toggle="tab">@Messages("project.history.recent") (@if(histories.size > 0) {@agoString(ago(histories.get(0).getWhen))})</a></li>
+	            <li><a href="#recent" data-toggle="tab">@Messages("project.history.recent") (@if(histories.size > 0) {@agoString(JodaDateUtil.ago(histories.get(0).getWhen))})</a></li>
 	            }
 	        </ul>
 
@@ -98,7 +98,9 @@
 	                                        ))
 	                                    </p>
 	                                    <p class="others" style="padding-left:0;">
-	                                        <span class="date" style="margin-left:0;">@agoString(ago(history.getWhen()))</span>
+	                                        <span class="date" style="margin-left:0;" title="@JodaDateUtil.getDateString(history.getWhen())">
+                                                @agoString(JodaDateUtil.ago(history.getWhen()))
+                                            </span>
 	                                    </p>
 	                                </div>
 	                            </li>

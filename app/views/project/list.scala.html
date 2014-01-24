@@ -58,7 +58,7 @@
                     @project.overview
                     </div>
                     <p class="name-tag">by <a href="@routes.UserApp.userInfo(project.owner)" class="owner-name-small">@project.owner</a>
-                    at <strong>@agoString(JodaDateUtil.ago(project.createdDate))</strong> <span class="small-font">@if(project.lastPushedDateAgo() != null) {, @Messages("project.codeUpdate") <strong>@agoString(project.lastPushedDateAgo())}</strong></span>
+                    at <strong title="@JodaDateUtil.getDateString(project.createdDate)">@agoString(JodaDateUtil.ago(project.createdDate))</strong> <span class="small-font">@if(project.lastPushedDateAgo() != null) {, @Messages("project.codeUpdate") <strong>@agoString(project.lastPushedDateAgo())}</strong></span>
                     </p>
                 </div>
             </div>

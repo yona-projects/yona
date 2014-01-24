@@ -1,10 +1,22 @@
 package utils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.*;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class JodaDateUtil {
+    public static String getDateString(Date date) {
+        return getDateString(date, null);
+    }
+    public static String getDateString(Date date, String format) {
+        if(StringUtils.isEmpty(format)) {
+            format = "yyyy-MM-dd hh:mm:ss";
+        }
+        SimpleDateFormat sdf = new SimpleDateFormat(format);
+        return sdf.format(date);
+    }
     public static Date today() {
         return LocalDate.now().toDate();
     }
