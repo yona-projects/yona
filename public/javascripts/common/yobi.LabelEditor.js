@@ -52,23 +52,8 @@ yobi.LabelEditor = (function(welContainer, htOptions){
         htVar.sURLPost = htOptions.sURLPost;
         htVar.fOnCreate = htOptions.fOnCreate || function(){};
 
-        htVar.aColors = htOptions.aColors || ['#999999','#da5454','#f86ca0','#ff9e9d','#ff9933','#ffcc33','#f8c86c','#99ca3c','#22b4b9','#4d68b1','#6ca6f8','#3fb8af','#9966cc','#ffffff'];
-        htVar.sTplEditor = htOptions.sTplEditor || '<div class="control-group label-editor">\
-        <strong class="control-label">${labelNew}</strong>\
-        <div id="custom-label" class="controls">\
-            <div class="row-fluid">\
-                <div>\
-                    <input type="text" name="labelCategory" class="input-small labelInput" data-provider="typeahead" autocomplete="off" placeholder="${labelCategory}">\
-                </div>\
-                <div>\
-                    <input type="text" name="labelName" class="input-small labelInput" placeholder="${labelName}" autocomplete="off">\
-                </div>\
-            </div>\
-            <div class="colors"><input type="text" name="labelColor" class="input-small labelColor" placeholder="${labelCustomColor}"></div>\
-            <div class="row-fluid">\
-                <div class="span12"><button type="button" class="nbtn medium black labelSubmit">${labelAdd}</button></div>\
-            </div>\
-        </div></div>';
+        htVar.aColors = htOptions.aColors || ['#da5454','#f86ca0','#ff9e9d','#ffcc33','#f8c86c','#ff9933','#99ca3c','#3fb8af','#22b4b9','#6ca6f8','#4d68b1','#9966cc'];
+        htVar.sTplEditor = htOptions.sTplEditor || $("#tplYobiLabelEditor").text();
         htVar.sTplBtnColor = htOptions.sTplBtnColor || '<button type="button" class="issue-label issueColor nbtn small" style="background-color:${color}">';
     }
 
