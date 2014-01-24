@@ -78,7 +78,19 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     &.large  .d-label { width: 116px; }
     &.auto   {
         width:100%;
-        .d-label { width: initial; }
+        padding-right:28px;
+        .d-label {
+            width: 100%;
+            display:block;
+            .text-overflow;
+        }
+        .d-caret {
+            position:absolute;
+            top:0;
+            right:0;
+            bottom:0;
+            background:inherit;
+        }
     }
 
     .d-label {
