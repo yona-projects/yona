@@ -20,17 +20,21 @@
  */
 package actions;
 
+import controllers.UserApp;
 import models.Project;
+import models.enumeration.Operation;
 import actions.support.PathParser;
 import play.mvc.Action;
 import play.mvc.Http.Context;
 import play.mvc.Result;
+import utils.AccessControl;
 import utils.AccessLogger;
 import utils.ErrorViews;
 
 /**
  * /{user.loginId}/{project.name}/** 패턴의 요청에 해당하는 프로젝트가 존재하는지 확인하는 액션.
  * - URL에 해당하는 프로젝트가 없을 때 404 Not Found 로 응답한다.
+ * - 현재 사용자가 URL에 해당하는 프로젝트에 읽기 권한이 없을 경우 404 Not Found 로 응답한다.
  * - URL에 해당하는 프로젝트가 있을 때 {@link AbstractProjectCheckAction#call(Project, Context)} 을
  *   호출하여 이후 검증 과정을 수행한다.
  *
@@ -46,6 +50,11 @@ public abstract class AbstractProjectCheckAction<T> extends Action<T> {
         Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
 
         if (project == null) {
+            return AccessLogger.log(context.request(),
+                    notFound(ErrorViews.NotFound.render("error.notfound.project")), null);
+        }
+
+        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return AccessLogger.log(context.request(),
                     notFound(ErrorViews.NotFound.render("error.notfound.project")), null);
         }
