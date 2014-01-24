@@ -232,6 +232,7 @@ public class ProjectApp extends Controller {
      * @throws UnsupportedOperationException
      */
     @Transactional
+    @IsAllowed(Operation.UPDATE)
     public static Result settingProject(String loginId, String projectName) throws IOException, NoSuchAlgorithmException, UnsupportedOperationException, ServletException {
         Form<Project> filledUpdatedProjectForm = form(Project.class).bindFromRequest();
         if (filledUpdatedProjectForm.hasErrors()) {
@@ -246,11 +247,6 @@ public class ProjectApp extends Controller {
                     filledUpdatedProjectForm, project, repository.getBranches()));
         }
         Project updatedProject = filledUpdatedProjectForm.get();
-
-        if (!AccessControl.isAllowed(UserApp.currentUser(), updatedProject.asResource(), Operation.UPDATE)) {
-            flash(Constants.WARNING, "project.member.isManager");
-            return redirect(routes.ProjectApp.settingForm(loginId, updatedProject.name));
-        }
 
         if (!Project.projectNameChangeable(updatedProject.id, loginId, updatedProject.name)) {
             flash(Constants.WARNING, "project.name.duplicate");
