@@ -1,4 +1,6 @@
-@(message:String, userForm:Form[User]) @siteLayout(message, utils.MenuType.NONE) {
+@(message:String, userForm:Form[User], redirectUrl:String)
+
+@siteLayout(message, utils.MenuType.NONE) {
 <div class="page full">
   <div class="center-wrap tag-line-wrap login">
     <h1 class="title">
@@ -34,6 +36,7 @@
       <div class="btns-row">
         <button type="submit" class="ybtn">@Messages("button.login")</button>
       </div>
+      <input type="hidden" name="redirectUrl" value="@redirectUrl" />
     </form>
   </div>
 </div>

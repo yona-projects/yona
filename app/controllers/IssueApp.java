@@ -356,6 +356,7 @@ public class IssueApp extends AbstractPostingApp {
      * @param projectName 프로젝트 이름
      * @return
      */
+    @With(AnonymousCheckAction.class)
     @IsCreatable(ResourceType.ISSUE_POST)
     public static Result newIssueForm(String ownerName, String projectName) {
         Project project = ProjectApp.getProject(ownerName, projectName);
@@ -546,6 +547,7 @@ public class IssueApp extends AbstractPostingApp {
      * @param number 이슈 번호
      * @return
      */
+    @With(AnonymousCheckAction.class)
     @IsAllowed(resourceType = ResourceType.ISSUE_POST, value = Operation.UPDATE)
     public static Result editIssueForm(String ownerName, String projectName, Long number) {
         Project project = ProjectApp.getProject(ownerName, projectName);

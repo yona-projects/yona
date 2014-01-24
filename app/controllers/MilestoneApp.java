@@ -1,5 +1,6 @@
 package controllers;
 
+import actions.AnonymousCheckAction;
 import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
 import models.Attachment;
@@ -13,6 +14,7 @@ import play.data.Form;
 import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Result;
+import play.mvc.With;
 import utils.Constants;
 import utils.ErrorViews;
 import utils.HttpUtil;
@@ -78,6 +80,7 @@ public class MilestoneApp extends Controller {
      * @param projectName
      * @return
      */
+    @With(AnonymousCheckAction.class)
     @IsCreatable(ResourceType.MILESTONE)
     public static Result newMilestoneForm(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
@@ -152,6 +155,7 @@ public class MilestoneApp extends Controller {
      * @param milestoneId
      * @return
      */
+    @With(AnonymousCheckAction.class)
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.MILESTONE)
     public static Result editMilestoneForm(String userName, String projectName, Long milestoneId) {
         Project project = ProjectApp.getProject(userName, projectName);
