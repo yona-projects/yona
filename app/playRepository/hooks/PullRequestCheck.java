@@ -31,12 +31,10 @@ import models.User;
 
 import org.eclipse.jgit.transport.PostReceiveHook;
 import org.eclipse.jgit.transport.ReceiveCommand;
-import org.eclipse.jgit.transport.ReceiveCommand.Type;
 import org.eclipse.jgit.transport.ReceivePack;
 
 import play.libs.Akka;
 import play.mvc.Http.Request;
-import actors.PullRequestMergingActor;
 import actors.RelatedPullRequestMergingActor;
 import akka.actor.Props;
 
@@ -58,34 +56,18 @@ public class PullRequestCheck implements PostReceiveHook {
 
     @Override
     public void onPostReceive(ReceivePack receivePack, Collection<ReceiveCommand> commands) {
-        Set<String> branches = getUpdatedBranches(commands);
+        Set<String> branches = ReceiveCommandUtil.getUpdatedBranches(commands);
         for (String branch : branches) {
             PullRequestEventMessage message = new PullRequestEventMessage(user, request, project, branch);
             Akka.system().actorOf(new Props(RelatedPullRequestMergingActor.class)).tell(message, null);
         }
 
-        Set<String> deletedBranches = getDeletedBranches(commands);
+        Set<String> deletedBranches = ReceiveCommandUtil.getDeletedBranches(commands);
         for (String branch : deletedBranches) {
             List<PullRequest> pullRequests = PullRequest.findRelatedPullRequests(project, branch);
             for (PullRequest pullRequest : pullRequests) {
                 pullRequest.delete();
             }
         }
-    }
-
-    /*
-     * ReceiveCommand 중, branch update 에 해당하는 것들의 참조 branch set 을 구한다.
-     */
-    private Set<String> getUpdatedBranches(Collection<ReceiveCommand> commands) {
-        return ReceiveCommandUtil.getRefNamesByCommandType(commands,
-                Type.UPDATE,
-                Type.UPDATE_NONFASTFORWARD);
-    }
-
-    /*
-     * ReceiveCommand 중, branch delete 에 해당하는 것들의 참조 branch set 을 구한다.
-     */
-    private Set<String> getDeletedBranches(Collection<ReceiveCommand> commands) {
-        return ReceiveCommandUtil.getRefNamesByCommandType(commands, Type.DELETE);
     }
 }

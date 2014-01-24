@@ -55,4 +55,32 @@ public class ReceiveCommandUtil {
     public static boolean isTypeMatching(ReceiveCommand command, Type... types) {
         return ArrayUtils.contains(types, command.getType());
     }
+
+    /**
+     * ReceiveCommand 중, branch update 에 해당하는 것들의 참조 branch set 을 구한다.
+     * @param commands
+     * @return
+     */
+    public static Set<String> getUpdatedBranches(Collection<ReceiveCommand> commands) {
+        return getRefNamesByCommandType(commands, Type.UPDATE, Type.UPDATE_NONFASTFORWARD);
+    }
+
+    /**
+     * ReceiveCommand 중, branch delete 에 해당하는 것들의 참조 branch set 을 구한다.
+     * @param commands
+     * @return
+     */
+    public static Set<String> getDeletedBranches(Collection<ReceiveCommand> commands) {
+        return ReceiveCommandUtil.getRefNamesByCommandType(commands, Type.DELETE);
+    }
+
+    /**
+     * ReceiveCommand 중, branch create, update 에 해당하는 것들의 참조 branch set 을 구한다.
+     * @param commands
+     * @return
+     */
+    public static Set<String> getPushedBranches(Collection<ReceiveCommand> commands) {
+        return getRefNamesByCommandType(commands, Type.CREATE, Type.UPDATE,
+                Type.UPDATE_NONFASTFORWARD);
+    }
 }

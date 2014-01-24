@@ -30,7 +30,6 @@ import models.PushedBranch;
 
 import org.eclipse.jgit.transport.PostReceiveHook;
 import org.eclipse.jgit.transport.ReceiveCommand;
-import org.eclipse.jgit.transport.ReceiveCommand.Type;
 import org.eclipse.jgit.transport.ReceivePack;
 
 import utils.JodaDateUtil;
@@ -48,7 +47,8 @@ public class UpdateRecentlyPushedBranch implements PostReceiveHook {
     @Override
     public void onPostReceive(ReceivePack receivePack, Collection<ReceiveCommand> commands) {
         removeOldPushedBranches();
-        saveRecentlyPushedBranch(getPushedBranches(commands));
+        saveRecentlyPushedBranch(ReceiveCommandUtil.getPushedBranches(commands));
+        deletePushedBranch(ReceiveCommandUtil.getDeletedBranches(commands));
     }
 
     /*
@@ -84,13 +84,15 @@ public class UpdateRecentlyPushedBranch implements PostReceiveHook {
     }
 
     /*
-     * ReceiveCommand 중, branch create, update 에 해당하는 것들의 참조 branch set 을 구한다.
+     * 삭제된 브랜치가 있을 경우 pushed-branch 정보에서도 삭제한다.
      */
-    private Set<String> getPushedBranches(
-            Collection<ReceiveCommand> commands) {
-        return ReceiveCommandUtil.getRefNamesByCommandType(commands,
-                Type.CREATE,
-                Type.UPDATE,
-                Type.UPDATE_NONFASTFORWARD);
+    private void deletePushedBranch(Set<String> deletedBranches) {
+        for (String branch : deletedBranches) {
+            PushedBranch pushedBranch = PushedBranch.find.where().eq("project", project)
+                    .eq("name", branch).findUnique();
+            if (pushedBranch != null) {
+                pushedBranch.delete();
+            }
+        }
     }
 }
