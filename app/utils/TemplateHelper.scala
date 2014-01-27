@@ -262,7 +262,7 @@ object TemplateHelper {
     def renderLine(line: DiffLine, comments: Map[String, List[CodeComment]], isEndOfLineMissing: DiffLine => Boolean): String =
       line.kind match {
         case DiffLineType.ADD =>
-        renderLine(line, line.numB + 1, null, line.numB + 1, commentsOnAddLine(line, comments), isEndOfLineMissing)
+          renderLine(line, line.numB + 1, null, line.numB + 1, commentsOnAddLine(line, comments), isEndOfLineMissing)
         case DiffLineType.REMOVE =>
           renderLine(line, line.numA + 1, line.numA + 1, null, commentsOnRemoveLine(line, comments), isEndOfLineMissing)
         case _ =>
