@@ -50,7 +50,7 @@ yobi.LabelEditor = (function(welContainer, htOptions){
      */
     function _initVar(htOptions){
         htVar.sURLPost = htOptions.sURLPost;
-        htVar.fOnCreate = htOptions.fOnCreate || function(){};
+        htVar.fOnCreate = htOptions.fOnCreate;
 
         htVar.aColors = htOptions.aColors || ['#da5454','#f86ca0','#ff9e9d','#ffcc33','#f8c86c','#ff9933','#99ca3c','#3fb8af','#22b4b9','#6ca6f8','#4d68b1','#9966cc'];
         htVar.sTplEditor = htOptions.sTplEditor || $("#tplYobiLabelEditor").text();
@@ -86,10 +86,10 @@ yobi.LabelEditor = (function(welContainer, htOptions){
 
     /**
      * Enter 키가 눌렸을 경우 기본 이벤트 무시
-     * @returns false when enter key pressed
+     * @returns {Boolean} false on enter key has pressed
      */
-    function _preventDefaultWhenEnterPressed(eEvt) {
-        return !(eEvt.keyCode === 13);
+    function _preventDefaultWhenEnterPressed(weEvt) {
+        return !((weEvt.keyCode || weEvt.which) === 13);
     }
 
     /**
@@ -98,7 +98,7 @@ yobi.LabelEditor = (function(welContainer, htOptions){
      */
     function _preventSubmitAndMoveWhenEnterPressed(eEvt, welTarget){
         var code = eEvt.keyCode || eEvt.which;
-        if (code === 13) {
+        if(code === 13){
             welTarget.focus();
             eEvt.preventDefault();
         }
@@ -115,26 +115,47 @@ yobi.LabelEditor = (function(welContainer, htOptions){
         htElement.welCustomLabelCategory
             .keypress(_preventDefaultWhenEnterPressed);
         htElement.welCustomLabelName
+            .focus(_onFocusLabelName)
             .keypress(_preventDefaultWhenEnterPressed)
-            .keyup(function(e) {
-                if(e.keyCode === 13){
+            .keyup(function(weEvt) {
+                if((weEvt.keyCode || weEvt.which) === 13){
                     htElement.welCustomLabelColor.focus();
-                    e.preventDefault();
+                    weEvt.preventDefault();
                     return false;
                 }
             });
         htElement.welCustomLabelColor
-            .keypress(function(e){
-                if(e.keyCode === 13){
+            .keypress(function(weEvt){
+                if((weEvt.keyCode || weEvt.which) === 13){
                     _addCustomLabel();
-                    e.preventDefault();
+                    weEvt.preventDefault();
                     return false;
                 }
             })
-            .keyup(function(e){
-                _preventSubmitAndMoveWhenEnterPressed(e, htElement.welCustomLabelName);
+            .keyup(function(weEvt){
+                _preventSubmitAndMoveWhenEnterPressed(weEvt, htElement.welCustomLabelName);
             });
         htElement.welCustomLabelColor.keyup(_onKeyupInputColorCustom);
+    }
+
+    function _onFocusLabelName(){
+        var sCategory = htElement.welCustomLabelCategory.val();
+        var sColor = htElement.welCustomLabelColor.val();
+
+        // 카테고리를 입력했고
+        if(sCategory.length < 1){
+            return;
+        }
+
+        var welFirstItemInCategory = $('.label-group[data-category="' + sCategory + '"] > .issue-label:first');
+
+        // 그 카테고리에 적어도 하나 이상의 항목이 있으며
+        // 컬러는 입력한 값이 없는 상태라면 첫번째 항목의 색을 자동으로 선택한다
+        if(welFirstItemInCategory.length > 0 && sColor.length === 0){
+            var sColor = new RGBColor(welFirstItemInCategory.css("background-color")).toHex();
+            _updateSelectedColor(sColor);
+            htElement.welCustomLabelColor.val(sColor);
+        }
     }
 
     /**
@@ -207,8 +228,12 @@ yobi.LabelEditor = (function(welContainer, htOptions){
                     return;
                 }
 
-                htElement.welCustomLabelCategory.data("typeahead").source.push(oRes.category);
-                htVar.fOnCreate(oRes);
+                htElement.welCustomLabelName.val("");
+                _addCategoryTypeahead(oRes.category);
+
+                if(typeof htVar.fOnCreate === "function"){
+                    htVar.fOnCreate(oRes);
+                }
             }
         });
     }
@@ -225,14 +250,14 @@ yobi.LabelEditor = (function(welContainer, htOptions){
         welTarget.addClass("active");
 
         // Get the selected color.
-        var sColor = welTarget.css('background-color');
+        var sColor = new RGBColor(welTarget.css('background-color')).toHex();
 
         // Fill the color input area with the hexadecimal value of
         // the selected color.
         _updateSelectedColor(sColor);
 
         //move caret to custom label color input
-        htElement.welCustomLabelColor.val(new RGBColor(sColor).toHex());
+        htElement.welCustomLabelColor.val(sColor);
         htElement.welCustomLabelColor.focus();
     }
 
@@ -283,6 +308,7 @@ yobi.LabelEditor = (function(welContainer, htOptions){
             } catch (e){ }
         });
 
+        htElement.welCustomLabelColor.css("border-color", sBgColor);
         aSelectors = elStyle = null;
     }
 
