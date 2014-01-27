@@ -107,6 +107,8 @@ public class Global extends GlobalSettings {
         if (notificationEnabled()) {
             NotificationMail.startSchedule();
         }
+
+        NotificationEvent.scheduleDeleteOldNotifications();
     }
 
     private boolean notificationEnabled() {

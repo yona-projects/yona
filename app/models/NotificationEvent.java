@@ -16,17 +16,18 @@ import play.Configuration;
 import play.api.mvc.Call;
 import play.db.ebean.Model;
 import play.i18n.Messages;
+import play.libs.Akka;
 import playRepository.*;
+import scala.concurrent.duration.Duration;
 
 import javax.persistence.*;
 import javax.servlet.ServletException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,6 +37,10 @@ public class NotificationEvent extends Model {
 
     private static final int NOTIFICATION_DRAFT_TIME_IN_MILLIS = Configuration.root()
             .getMilliseconds("application.notification.draft-time", 30 * 1000L).intValue();
+
+    private static final int NOTIFICATION_KEEP_TIME_DEFAULT = -1;
+    private static final int NOTIFICATION_KEEP_TIME_IN_DAYS = Configuration.root().getInt(
+            "application.notification.keep-time", NOTIFICATION_KEEP_TIME_DEFAULT);
 
     @Id
     public Long id;
@@ -706,4 +711,30 @@ public class NotificationEvent extends Model {
         return users;
     }
 
+    /**
+     * 하루에 한번 {@code NOTIFICATION_KEEP_TIME_IN_DAYS} 보다 오래된 알림을 삭제한다.
+     * 값이 지정되지 않았거나 양수가 아니라면 동작하지 않는다.
+     */
+    public static void scheduleDeleteOldNotifications() {
+        if (NOTIFICATION_KEEP_TIME_IN_DAYS > 0) {
+            Akka.system()
+                    .scheduler()
+                    .schedule(
+                            Duration.create(1, TimeUnit.MINUTES),
+                            Duration.create(1, TimeUnit.DAYS),
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    Date threshold = DateTime.now()
+                                            .minusDays(NOTIFICATION_KEEP_TIME_IN_DAYS).toDate();
+                                    List<NotificationEvent> olds = find.where()
+                                            .lt("created", threshold).findList();
+                                    for (NotificationEvent old : olds) {
+                                        old.delete();
+                                    }
+                                }
+                            },
+                            Akka.system().dispatcher());
+        }
+    }
 }
