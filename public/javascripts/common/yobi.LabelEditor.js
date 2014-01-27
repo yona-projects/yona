@@ -117,15 +117,15 @@ yobi.LabelEditor = (function(welContainer, htOptions){
         htElement.welCustomLabelName
             .keypress(_preventDefaultWhenEnterPressed)
             .keyup(function(e) {
-                if ( e.keyCode === 13){
+                if(e.keyCode === 13){
                     htElement.welCustomLabelColor.focus();
                     e.preventDefault();
                     return false;
                 }
             });
         htElement.welCustomLabelColor
-            .keypress(function(e) {
-                if ( e.keyCode === 13 ){
+            .keypress(function(e){
+                if(e.keyCode === 13){
                     _addCustomLabel();
                     e.preventDefault();
                     return false;
@@ -144,11 +144,11 @@ yobi.LabelEditor = (function(welContainer, htOptions){
      */
     function _getLabelEditor(){
         // label editor HTML
-        var welEditor = $.tmpl(htVar.sTplEditor, {
+        var welEditor = $yobi.tmpl(htVar.sTplEditor, {
             "labelAdd"        : Messages("label.add"),
             "labelNew"        : Messages("label.new"),
-            "labelName"        : Messages("label.name"),
-            "labelCategory"    : Messages('label.category'),
+            "labelName"       : Messages("label.name"),
+            "labelCategory"   : Messages('label.category'),
             "labelCustomColor": Messages("label.customColor")
         });
 
@@ -158,7 +158,7 @@ yobi.LabelEditor = (function(welContainer, htOptions){
     function _makeColorTable(){
         var aColorBtns = [];
         htVar.aColors.forEach(function(sColor){
-            aColorBtns.push($.tmpl(htVar.sTplBtnColor, {"color": sColor}));
+            aColorBtns.push($yobi.tmpl(htVar.sTplBtnColor, {"color": sColor}));
         });
         htElement.welColors.prepend(aColorBtns);
         aColorBtns = null;
@@ -229,10 +229,10 @@ yobi.LabelEditor = (function(welContainer, htOptions){
 
         // Fill the color input area with the hexadecimal value of
         // the selected color.
-        htElement.welCustomLabelColor.val(new RGBColor(sColor).toHex());
-        htElement.welCustomLabelColor.css("border-color", sColor);
         _updateSelectedColor(sColor);
-        //move caret to custom lable color input
+
+        //move caret to custom label color input
+        htElement.welCustomLabelColor.val(new RGBColor(sColor).toHex());
         htElement.welCustomLabelColor.focus();
     }
 
@@ -244,9 +244,8 @@ yobi.LabelEditor = (function(welContainer, htOptions){
         var sColor = htElement.welCustomLabelColor.val();
         var oColor = new RGBColor(sColor);
 
-        if (oColor.ok) {
-            _updateSelectedColor(sColor);
-            htElement.welCustomLabelColor.css("border-color", sColor);
+        if(oColor.ok){
+            _updateSelectedColor(oColor.toHex());
         }
 
         oColor = null;
@@ -263,7 +262,8 @@ yobi.LabelEditor = (function(welContainer, htOptions){
         var sFgColor = $yobi.getContrastColor(sBgColor);
         htElement.welCustomLabelName.css({
             "color": sFgColor,
-            "background-color": sBgColor
+            "background-color": sBgColor,
+            "border-color": sBgColor
         });
 
         // Change also place holder's
@@ -301,7 +301,10 @@ yobi.LabelEditor = (function(welContainer, htOptions){
      */
     function _addCategoryTypeahead(sCategory) {
         var aSource = htElement.welCustomLabelCategory.typeahead().data('typeahead').source;
-        aSource.push(sCategory);
+
+        if(aSource.indexOf(sCategory) === -1){
+            aSource.push(sCategory);
+        }
     }
 
     // 인터페이스 반환
