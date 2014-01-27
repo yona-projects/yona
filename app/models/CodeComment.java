@@ -32,7 +32,7 @@ abstract public class CodeComment extends Model implements ResourceConvertible, 
     public Integer line; // FIXME: DB엔 integer가 아닌 bigint로 되어있음.
     @Enumerated(EnumType.STRING)
     public Side side;
-    @Constraints.Required @Column(length = 4000) @Size(max=4000)
+    @Lob @Constraints.Required
     public String contents;
     @Constraints.Required
     public Date createdDate;

@@ -23,7 +23,7 @@ abstract public class Comment extends Model implements TimelineItem, ResourceCon
     @Id
     public Long id;
 
-    @Constraints.Required @Column(length = 4000) @Size(max=4000)
+    @Lob @Constraints.Required
     public String contents;
 
     @Constraints.Required
