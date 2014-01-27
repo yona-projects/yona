@@ -39,7 +39,7 @@ yobi.Label = (function(htOptions){
      * @param {String} htOptions.sURLPost       새 라벨 작성을 위한 AJAX URL
      */
     function _init(htOptions){
-        htOptions = htOptions || {"bEditable": false};
+        htOptions = $.extend({"bEditable": false}, htOptions);
         _initVar(htOptions);
         _initElement(htOptions);
         _initLabelEditor();
@@ -101,7 +101,9 @@ yobi.Label = (function(htOptions){
      */
     function _onSubmitForm(){
         // append labelIds to searchForm
-        _appendSelectedLabelIdsToForm();
+        if(htVar.bEditable === false){
+            _appendSelectedLabelIdsToForm();
+        }
 
         return true;
     }
@@ -139,6 +141,11 @@ yobi.Label = (function(htOptions){
      * 라벨 에디터 컨트롤
      */
     function _clickBtnManageLabel() {
+        // 편집모드로 진입하는 경우
+        if(htVar.bEditable === false){
+            _appendSelectedLabelIdsToForm();
+        }
+
         htVar.bEditable = !htVar.bEditable;
         _initLabelEditor();
     }
