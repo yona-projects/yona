@@ -3,6 +3,7 @@
 @import playRepository.DiffLineType
 @import playRepository.DiffLine
 @import playRepository.FileDiff
+@import playRepository.Hunk
 @import org.eclipse.jgit.diff.DiffEntry
 @import org.eclipse.jgit.diff.RawText
 @import utils.TemplateHelper.DiffRenderer._
@@ -22,14 +23,19 @@
   @if(diff.isFileModeChanged) {
     <tr><td class="linenum"><div class="line-number" data-line-num="@diff.oldMode"></div><span class="hidden">@diff.oldMode</span></td><td class="linenum"><div class="line-number" data-line-num="@diff.newMode"></div><span class="hidden">@diff.newMode</span></td><td class="isBinary">@Messages("code.fileModeChanged")</td></tr>
   }
-  @if(diff.getHunks.size > 0){
-    @for(hunk <- diff.getHunks) {
-      <tr class="range"><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="hunk">@@@@ -@(hunk.beginA + 1),@(hunk.endA - hunk.beginA) +@(hunk.beginB + 1),@(hunk.endB - hunk.beginB) @@@@</td></tr>
-      @Html(renderLines(hunk.lines.toList, comments, eolMissingChecker(diff)))
+  @diff.getHunks match {
+    case hunks: FileDiff.SizeExceededHunks => { <tr><td colspan=3>@Messages("code.tooBigDiff")</td></tr> }
+    case hunks if (hunks.size <= 0) => {
+      @diff.isFileModeChanged match {
+        case true => { }
+        case false => { <tr><td colspan=3>@Messages("code.noChanges")</td></tr> }
+      }
     }
-  } else {
-    @if(!diff.isFileModeChanged) {
-      <tr><td colspan=3>@Messages("code.noChanges")</td></tr>
+    case hunks => {
+      @for(hunk <- diff.getHunks) {
+        <tr class="range"><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="hunk">@@@@ -@(hunk.beginA + 1),@(hunk.endA - hunk.beginA) +@(hunk.beginB + 1),@(hunk.endB - hunk.beginB) @@@@</td></tr>
+        @Html(renderLines(hunk.lines.toList, comments, eolMissingChecker(diff)))
+      }
     }
   }
 }
@@ -85,11 +91,14 @@
  * @param isBinaryOverwritten 기존 데이터가 바이너리인 경우 true
 **@
 @renderAddedLines(rawText: RawText, path: String, comments:Map[String, List[_ <: CodeComment]], isBinaryOverwritten: Boolean = false) = {
-  <tr class="range"><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="hunk">@@@@ -0,0 +1,@rawText.size @@@@</td></tr>
-  @if(isBinaryOverwritten ){
-      @renderCodeIsBinary("remove", "-")
+  @null match {
+    case _ if rawText.size == 0 => { <tr><td colspan=3>@Messages("code.skipDiff")</td></tr> }
+    case _ if FileDiff.isRawTextSizeExceeds(rawText) => { <tr><td colspan=3>@Messages("code.tooBigDiff")</td></tr> }
+    case _ => { <tr class="range"><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="hunk">@@@@ -0,0 +1,@rawText.size @@@@</td></tr>
+      @if(isBinaryOverwritten ) { @renderCodeIsBinary("remove", "-") }
+      @renderRawFile("add", path, rawText, CodeComment.Side.B, "+", comments)
+    }
   }
-  @renderRawFile("add", path, rawText, CodeComment.Side.B, "+", comments)
 }
 
 @**
@@ -101,10 +110,13 @@
  * @param isOverwrittenByBinary 새 데이터가 바이너리인 경우 true
 **@
 @renderRemovedLines(rawText: RawText, path: String, comments:Map[String, List[_ <: CodeComment]], isOverwrittenByBinary: Boolean = false) = {
-  <tr class="range"><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="hunk">@@@@ -1,@rawText.size +0,0 @@@@</td></tr>
-  @renderRawFile("remove", path, rawText, CodeComment.Side.A, "-", comments)
-  @if(isOverwrittenByBinary){
-      @renderCodeIsBinary("add", "+")      
+  @null match {
+    case _ if rawText.size == 0 => { <tr><td colspan=3>@Messages("code.skipDiff")</td></tr> }
+    case _ if FileDiff.isRawTextSizeExceeds(rawText) => { <tr><td colspan=3>@Messages("code.tooBigDiff")</td></tr> }
+    case _ => { <tr class="range"><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="hunk">@@@@ -1,@rawText.size +0,0 @@@@</td></tr>
+      @renderRawFile("remove", path, rawText, CodeComment.Side.A, "-", comments)
+      @if(isOverwrittenByBinary) { @renderCodeIsBinary("add", "+") }
+    }
   }
 }
 

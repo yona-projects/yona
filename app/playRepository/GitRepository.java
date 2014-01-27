@@ -57,6 +57,10 @@ import static org.eclipse.jgit.diff.DiffEntry.ChangeType.*;
  */
 public class GitRepository implements PlayRepository {
 
+    public static final int DIFF_SIZE_LIMIT = 3 * FileDiff.SIZE_LIMIT;
+    public static final int DIFF_LINE_LIMIT = 3 * FileDiff.LINE_LIMIT;
+    public static final int DIFF_FILE_LIMIT = 2000;
+
     /**
      * Git 저장소 베이스 디렉토리
      */
@@ -1481,6 +1485,8 @@ public class GitRepository implements PlayRepository {
         }
 
         List<FileDiff> result = new ArrayList<>();
+        int size = 0;
+        int lines = 0;
 
         for (DiffEntry diff : formatter.scan(treeParserA, treeParserB)) {
             FileDiff fileDiff = new FileDiff();
@@ -1495,26 +1501,47 @@ public class GitRepository implements PlayRepository {
             String pathA = diff.getPath(DiffEntry.Side.OLD);
             String pathB = diff.getPath(DiffEntry.Side.NEW);
 
+            byte[] rawA = null;
             if (treeA != null
                     && Arrays.asList(DELETE, MODIFY, RENAME, COPY).contains(diff.getChangeType())) {
                 TreeWalk t1 = TreeWalk.forPath(repositoryA, pathA, treeA);
                 ObjectId blobA = t1.getObjectId(0);
-                byte[] rawA = repositoryA.open(blobA).getBytes();
+
+                try {
+                    rawA = repositoryA.open(blobA).getBytes();
+                } catch (org.eclipse.jgit.errors.LargeObjectException e) {
+                    result.add(fileDiff);
+                    continue;
+                }
 
                 fileDiff.isBinaryA = RawText.isBinary(rawA);
                 fileDiff.a = fileDiff.isBinaryA ? null : new RawText(rawA);
                 fileDiff.pathA = pathA;
             }
 
+            byte[] rawB = null;
             if (treeB != null
                     && Arrays.asList(ADD, MODIFY, RENAME, COPY).contains(diff.getChangeType())) {
                 TreeWalk t2 = TreeWalk.forPath(repositoryB, pathB, treeB);
                 ObjectId blobB = t2.getObjectId(0);
-                byte[] rawB = repositoryB.open(blobB).getBytes();
+
+                try {
+                    rawB = repositoryB.open(blobB).getBytes();
+                } catch (org.eclipse.jgit.errors.LargeObjectException e) {
+                    result.add(fileDiff);
+                    continue;
+                }
 
                 fileDiff.isBinaryB = RawText.isBinary(rawB);
                 fileDiff.b = fileDiff.isBinaryB ? null : new RawText(rawB);
                 fileDiff.pathB = pathB;
+            }
+
+            if (size > DIFF_SIZE_LIMIT || lines > DIFF_LINE_LIMIT) {
+                fileDiff.a = new RawText(new byte[0]);
+                fileDiff.b = new RawText(new byte[0]);
+                result.add(fileDiff);
+                continue;
             }
 
             if (!(fileDiff.isBinaryA || fileDiff.isBinaryB) && Arrays.asList(MODIFY, RENAME).contains(diff.getChangeType())) {
@@ -1525,6 +1552,22 @@ public class GitRepository implements PlayRepository {
                                 DiffAlgorithm.SupportedAlgorithm.HISTOGRAM));
                 fileDiff.editList = diffAlgorithm.diff(RawTextComparator.DEFAULT, fileDiff.a,
                         fileDiff.b);
+                size += fileDiff.getHunks().size;
+                lines += fileDiff.getHunks().lines;
+            }
+
+            if (!fileDiff.isBinaryB && diff.getChangeType().equals(ADD)) {
+                lines += fileDiff.b.size();
+                size += rawB.length;
+            }
+
+            if (!fileDiff.isBinaryA && diff.getChangeType().equals(DELETE)) {
+                lines += fileDiff.a.size();
+                 size += rawA.length;
+            }
+
+            if (result.size() > DIFF_FILE_LIMIT) {
+                break;
             }
 
             result.add(fileDiff);
