@@ -2,17 +2,14 @@ package models;
 
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
+import org.joda.time.Duration;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
+import utils.JodaDateUtil;
 
 import javax.persistence.*;
 import java.beans.Transient;
 import java.util.Date;
-
-import org.joda.time.Duration;
-import utils.JodaDateUtil;
-
-import javax.validation.constraints.Size;
 
 
 @MappedSuperclass
