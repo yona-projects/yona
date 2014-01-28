@@ -13,16 +13,13 @@
 @import utils.AccessControl._
 @import utils.Config
 
-@getTitle(issue:Issue, project:Project) = {
-    #@issue.getNumber @issue.title
-    @** Messages(title) **@
-}
+@getTitle(issue:Issue) = @{ "#" + issue.getNumber + " " + issue.title }
 
 @isFirstState(state:State) = {@if(issue.state.state == Issue.availableStates.get(0).state()){dirty}}
 
 @urlToIssues = @{ urlToList(request.getHeader("Referer"), routes.IssueApp.issues(project.owner, project.name, "open").toString) }
 
-@projectLayout(getTitle(issue, project).toString(), project, utils.MenuType.ISSUE){
+@projectLayout(getTitle(issue), project, utils.MenuType.ISSUE){
 @projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
 <div class="project-page-wrap board-view">
     @** Post Info **@
