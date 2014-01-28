@@ -161,11 +161,11 @@
 
 @common.markdown(project)
 
-<link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">
+<link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mentionjs/mention.css")">
 <script type="text/x-jquery-tmpl" id="tplRelIssue">
 <li class="issue-item"><a href="${link}" class="title-link" target="_blank"><strong class="issue-id">#${id}</strong> ${title}</a><span class="date">${date}</span></li>
 </script>
-<script type="text/javascript" src="@getJSLink("lib/mentionjs/mention")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/mentionjs/mention.js")"></script>
 <script type="text/javascript">
     $(document).ready(function(){
         // yobi.Label
