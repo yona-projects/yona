@@ -2291,16 +2291,15 @@
     padding:5px 0 ;
     margin-bottom:20px;
     position: relative;
-    border-left:3px solid #fc491e;
-
+    
     .project-overview {
-        
+        border-left:3px solid #fc491e;
         padding:0 10px;
+
         h3 { 
-            line-height: 20px;
+            line-height: 30px;
             font-size:14px;
             font-weight: normal;
-            padding-right:320px;
         }
 
         .project-description-edit {
@@ -2312,15 +2311,17 @@
 
     .project-clone-wrap {
         position: absolute;
-        right: 0;
         top:0;
-        padding:5px 10px;
+        right: 0;
+        padding:5px 0;
         .border-radius(6px);
-        &:hover {
-          .project-clone-url {width:450px;}
+        
+        .project-clone {
+            position: relative;
+            float:right;            
         }
 
-      .project-clone-url {
+        .project-clone-url {
             text-align: right;
             float:left;
             margin-bottom:0;
@@ -2332,6 +2333,10 @@
             cursor: pointer;
             .border-radius(3px 0 0 3px);
             .transition(width .15s);
+
+            &:focus {
+                width:450px;
+            }
         }
 
         .project-clone-button {
