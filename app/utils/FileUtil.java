@@ -59,7 +59,7 @@ public class FileUtil {
      * @return
      * @throws IOException
      */
-    static protected String detectCharset(InputStream is) throws IOException {
+    public static String detectCharset(InputStream is) throws IOException {
         UniversalDetector detector = new UniversalDetector(null);
         byte[] buf = new byte[4096];
         int nRead;
