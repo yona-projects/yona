@@ -21,6 +21,7 @@ import org.apache.tika.Tika;
 
 import models.enumeration.ResourceType;
 
+import org.apache.tika.metadata.Metadata;
 import play.data.validation.*;
 
 import play.db.ebean.Model;
@@ -227,7 +228,9 @@ public class Attachment extends Model implements ResourceConvertible {
         }
 
         if (this.mimeType == null) {
-            this.mimeType = new Tika().detect(file);
+            Metadata meta = new Metadata();
+            meta.add(Metadata.RESOURCE_NAME_KEY, this.name);
+            this.mimeType = new Tika().detect(new FileInputStream(file), meta);
         }
 
         // the size must be set before it is moved.
