@@ -97,6 +97,7 @@ code.nohead.pull.push = 지속적으로 코드를 갱신하여 올릴 때는 pul
 code.nohead.remote = 로컬에 이미 만들어둔 Git 저장소가 있다면 {0}에 생성된 Git 저장소만 remote로 추가하고 코드를 올릴 수 있습니다.
 code.nohead.svn.clone = {0}에 생성된 SVN 저장소에 코드를 커밋하실 수 있습니다.
 code.older = 다음
+code.open = 열기
 code.openCommentBox = 댓글창 열기
 code.outdatedDiff = 예전 변경
 code.renamedPath = {1} ({0}로부터 이름 변경됨)
