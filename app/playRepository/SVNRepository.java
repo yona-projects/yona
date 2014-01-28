@@ -171,7 +171,8 @@ public class SVNRepository implements PlayRepository {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         SVNProperties prop = new SVNProperties();
         repository.getFile(path, -1l, prop, baos);
-        long size = repository.info(path, -1l).getSize();
+        SVNDirEntry entry = repository.info(path, -1l);
+        long size = entry.getSize();
         boolean isBinary;
         String mimeType;
         String data = null;
@@ -203,7 +204,7 @@ public class SVNRepository implements PlayRepository {
         result.put("userName", user.name);
         result.put("userLoginId", user.loginId);
         result.put("createdDate", commitTime);
-        //result.put("commitMessage", ""); //TODO: 커밋메시지
+        result.put("commitMessage", entry.getCommitMessage());
         result.put("commiter", author);
         result.put("size", size);
         result.put("isBinary", isBinary);
