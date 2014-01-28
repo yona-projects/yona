@@ -22,34 +22,20 @@ package actions;
 
 import actions.support.PathParser;
 import models.Project;
-import play.mvc.Action;
-import play.mvc.Http;
+import play.mvc.Http.Context;
 import play.mvc.Result;
-import utils.AccessLogger;
-import utils.ErrorViews;
 
 /**
  * /{user.loginId}/{project.name}/** 패턴의 요청에 해당하는 프로젝트가 존재하는지 확인하는 액션.
  * - URL에 해당하는 프로젝트가 없을 때 404 Not Found로 응답한다.
  * - URL에 해당하는 프로젝트가 있을 때 요청 처리한다.
  *
+ * @see {@link AbstractProjectCheckAction}
  * @author Keesun Baik
  */
-public class NullProjectCheckAction extends Action.Simple {
-
+public class NullProjectCheckAction extends AbstractProjectCheckAction<Void> {
     @Override
-    public Result call(Http.Context context) throws Throwable {
-        PathParser parser = new PathParser(context);
-        String ownerLoginId = parser.getOwnerLoginId();
-        String projectName = parser.getProjectName();
-
-        Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
-
-        if (project == null) {
-            return AccessLogger.log(context.request(), notFound(ErrorViews.NotFound.render("error.notfound.project"))
-                    , null);
-        }
-
+    protected Result call(Project project, Context context, PathParser parser) throws Throwable {
         return this.delegate.call(context);
     }
 }

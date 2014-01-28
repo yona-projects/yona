@@ -22,7 +22,6 @@ package actions;
 
 import models.Project;
 import models.User;
-import play.mvc.Action;
 import play.mvc.Http.Context;
 import play.mvc.Result;
 import utils.AccessControl;
@@ -33,27 +32,15 @@ import controllers.UserApp;
 import controllers.annotation.IsCreatable;
 
 /**
- * 1. 프로젝트가 존재하는지 확인한다.
- * 2. 프로젝트에 특정 타입의 리소스를 생성할 수 있는지 확인한다.
+ * 프로젝트에 특정 타입의 리소스를 생성할 수 있는지 확인한다.
  *
  * @author Wansoon Park, Keesun Baik
+ * @see {@link AbstractProjectCheckAction}
  * @see {@link controllers.annotation.IsCreatable}
  */
-public class IsCreatableAction extends Action<IsCreatable> {
-
+public class IsCreatableAction extends AbstractProjectCheckAction<IsCreatable> {
     @Override
-    public Result call(Context context) throws Throwable {
-        PathParser parser = new PathParser(context);
-        String ownerLoginId = parser.getOwnerLoginId();
-        String projectName = parser.getProjectName();
-
-        Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
-
-        if (project == null) {
-            return AccessLogger.log(context.request(), notFound(ErrorViews.NotFound.render("error.notfound.project"))
-                    , null);
-        }
-
+    protected Result call(Project project, Context context, PathParser parser) throws Throwable {
         User currentUser = UserApp.currentUser();
         if (!AccessControl.isProjectResourceCreatable(currentUser, project, this.configuration.value())) {
             return AccessLogger.log(context.request()
@@ -63,5 +50,4 @@ public class IsCreatableAction extends Action<IsCreatable> {
 
         return this.delegate.call(context);
     }
-
 }

@@ -19,7 +19,6 @@ import org.codehaus.jackson.JsonNode;
 
 import org.h2.util.StringUtils;
 import play.Logger;
-import play.api.http.MediaRange;
 import play.mvc.Controller;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Result;

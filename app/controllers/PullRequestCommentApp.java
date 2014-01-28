@@ -17,6 +17,8 @@ import utils.ErrorViews;
 import java.io.IOException;
 import java.net.URL;
 
+import controllers.annotation.IsCreatable;
+
 /**
  * {@link models.PullRequestComment} CRUD 컨트롤러
  *
@@ -24,6 +26,7 @@ import java.net.URL;
 public class PullRequestCommentApp extends Controller {
 
     @Transactional
+    @IsCreatable(ResourceType.PULL_REQUEST_COMMENT)
     public static Result newComment(String ownerName, String projectName, Long pullRequestId) throws IOException {
         PullRequest pullRequest = PullRequest.findById(pullRequestId);
 
@@ -38,10 +41,6 @@ public class PullRequestCommentApp extends Controller {
             flash(Constants.WARNING, "post.comment.empty");
             play.Logger.info("Failed to submit a comment: " + commentForm.errors());
             return redirect(referer);
-        }
-
-        if (!AccessControl.isCreatable(UserApp.currentUser())) {
-            return forbidden(ErrorViews.Forbidden.render("error.auth.unauthorized.comment"));
         }
 
         PullRequestComment newComment = commentForm.get();

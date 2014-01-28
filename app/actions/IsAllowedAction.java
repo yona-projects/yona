@@ -28,38 +28,25 @@ import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
-import play.mvc.Action;
-import play.mvc.Http;
+import play.mvc.Http.Context;
 import play.mvc.Result;
 import utils.AccessControl;
 import utils.AccessLogger;
 import utils.ErrorViews;
 
 /**
- * 1. 프로젝트가 존재하는지 확인한다.
- * 2. 특정 타입의 리소스가 존재하는지 확인한다.
- * 3. 특정 타입의 리소스에 권한이 있는지 확인한다.
+ * 1. 특정 타입의 리소스가 존재하는지 확인한다.
+ * 2. 특정 타입의 리소스에 권한이 있는지 확인한다.
  *
  * 자세한 설명은 {@link controllers.annotation.IsAllowed} 애노테이션 참고.
  *
  * @author Keesun Baik
+ * @see {@link AbstractProjectCheckAction}
  * @see {@link controllers.annotation.IsAllowed}
  */
-public class IsAllowedAction extends Action<IsAllowed> {
-
+public class IsAllowedAction extends AbstractProjectCheckAction<IsAllowed> {
     @Override
-    public Result call(Http.Context context) throws Throwable {
-        PathParser parser = new PathParser(context);
-        String ownerLoginId = parser.getOwnerLoginId();
-        String projectName = parser.getProjectName();
-
-        Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
-
-        if (project == null) {
-            return AccessLogger.log(context.request(),
-                    notFound(ErrorViews.NotFound.render("error.notfound.project")), null);
-        }
-
+    protected Result call(Project project, Context context, PathParser parser) throws Throwable {
         ResourceType resourceType = this.configuration.resourceType();
         ResourceConvertible resourceObject = Resource.getResourceObject(parser, project, resourceType);
         Operation operation = this.configuration.value();
@@ -76,5 +63,4 @@ public class IsAllowedAction extends Action<IsAllowed> {
 
         return this.delegate.call(context);
     }
-
 }

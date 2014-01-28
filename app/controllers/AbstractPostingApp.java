@@ -1,32 +1,18 @@
 package controllers;
 
-import info.schleichardt.play2.mailplugin.Mailer;
 import models.*;
 import models.enumeration.Direction;
 import models.enumeration.Operation;
-import models.enumeration.ResourceType;
-import models.enumeration.UserState;
 import models.resource.Resource;
-import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.commons.mail.HtmlEmail;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-import play.Logger;
+
 import play.data.Form;
 import play.db.ebean.Model;
 import play.mvc.Call;
-import play.mvc.Content;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.*;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Iterator;
-import java.util.Set;
 
 /**
  * {@link BoardApp}과 {@link IssueApp}에서 공통으로 사용하는 기능을 담고 있는 컨트롤러 클래스

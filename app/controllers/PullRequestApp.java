@@ -140,6 +140,7 @@ public class PullRequestApp extends Controller {
      * @return
      */
     @Transactional
+    @IsCreatable(ResourceType.FORK)
     public static Result doClone(String userName, String projectName, String name, Boolean isPublic) {
         String status = "status";
         String failed = "failed";
