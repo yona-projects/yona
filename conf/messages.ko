@@ -111,6 +111,7 @@ common.attach.clickbutton = 버튼을 클릭해서 선택하세요
 common.attach.drophere = 첨부할 파일을 끌어다 놓거나
 common.attach.error = 파일 첨부에 실패했습니다.<br>{1} ({0})
 common.attach.pastehere = . 클립보드 이미지를 붙여 넣을 수도 있습니다
+common.attach.dropFilesHere = 여기에 파일을 끌어다 놓으면 업로드 됩니다
 common.attachment = 첨부파일
 common.comment = 댓글
 common.experimental = 실험적인 기능

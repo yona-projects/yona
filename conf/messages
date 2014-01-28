@@ -111,6 +111,7 @@ common.attach.clickbutton = click Upload button
 common.attach.drophere = Drop files here or
 common.attach.error = Upload failed as<br>{1} ({0})
 common.attach.pastehere = , or pasting from the clipboard.
+common.attach.dropFilesHere = Drop files here
 common.attachment= Attachment
 common.comment = Comment
 common.experimental = Experimental

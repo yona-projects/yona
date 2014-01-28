@@ -369,37 +369,123 @@ yobi.Files = (function(){
      */
     function _attachEvent(sNamespace){
         var htElement = htElements[sNamespace];
-        htElement.welInputFile.change(function(weEvt){
-            _onChangeFile(sNamespace, weEvt);
-        });
+        htElement.welInputFile.on("change", $.proxy(_onChangeFile, this, sNamespace));
 
         // Upload by Drag & Drop
         if(htVar.bDroppable){
-            htElement.welContainer.on("dragover", function(weEvt){
-                weEvt.preventDefault();
-                return false;
+            htElement.welContainer.on({
+                "dragover" : $.proxy(_onDragOver, this, sNamespace),
+                "drop"     : $.proxy(_onDropFile, this, sNamespace)
             });
 
-            if(htElement.welTextarea){
-                htElement.welTextarea.on("drop", function(weEvt){
-                    _onDropFile(sNamespace, weEvt);
-                });
-            }
-            htElement.welContainer.on("drop", function(weEvt){
-                _onDropFile(sNamespace, weEvt);
+            var sTplDropper = $("#tplDropFilesHere").text().trim() ||
+                '<div class="upload-drop-here"><div class="msg-wrap"><div class="msg">' +
+                Messages("common.attach.dropFilesHere") +
+                '</div></div></div>';
+            htElement.welDropper = $(sTplDropper);
+            htElement.welTextarea.before(htElement.welDropper);
+            htElement.welTextarea.on({
+                "dragover" : $.proxy(_onDragOver,  this, sNamespace),
+                "dragenter": $.proxy(_onDragEnter, this, sNamespace),
+                "dragleave": $.proxy(_onDragLeave, this, sNamespace),
+                "drop"     : $.proxy(_onDropFile,  this, sNamespace)
             });
         }
 
         // Upload by paste
         if(htVar.bPastable && htElement.welTextarea){
-            htElement.welTextarea.on("paste", function(weEvt){
-                _onPasteFile(sNamespace, weEvt);
-            });
+            htElement.welTextarea.on("paste", $.proxy(_onPasteFile, this, sNamespace));
         }
 
         // Mark as already attached
         htElement.welContainer.data("isYobiUploader", true);
         htElement.welTextarea.data("isYobiUploader", true);
+    }
+
+    /**
+     * Show "Drop files here"
+     * @private
+     */
+    function _showDropper(){
+        $(document.body).addClass("dragover");
+    }
+
+    /**
+     * Hide "Drop files here"
+     * @private
+     */
+    function _hideDropper(){
+        $(document.body).removeClass("dragover");
+    }
+
+    /**
+     * DragOver 이벤트 핸들러
+     *
+     * @param sNamespace
+     * @param weEvt
+     * @returns {boolean}
+     * @private
+     */
+    function _onDragOver(sNamespace, weEvt){
+        _showDropper();
+
+        weEvt.stopPropagation();
+        weEvt.preventDefault();
+        return false;
+    }
+
+    /**
+     * DragEnter 이벤트 핸들러
+     *
+     * @param sNamespace
+     * @param weEvt
+     * @private
+     */
+    function _onDragEnter(sNamespace, weEvt){
+        _showDropper();
+
+        weEvt.originalEvent.dataTransfer.dropEffect = _getDropEffect(weEvt);
+        weEvt.stopPropagation();
+        weEvt.preventDefault();
+    }
+
+    /**
+     * 전송되는 데이터 타입으로부터 dropEffect 문자열을 반환
+     *
+     * @param weEvt
+     * @returns {string}
+     * @private
+     */
+    function _getDropEffect(weEvt){
+        var oData = weEvt.originalEvent.dataTransfer;
+
+        if(!oData.types){
+            return "none";
+        }
+
+        if(oData.types.indexOf("text/uri-list") > -1){
+            return "link";
+        } else if((oData.types.indexOf("Files") > -1) ||
+                  (oData.types.indexOf("text/plain") > -1)){
+            return "copy";
+        }
+
+        return "none";
+    }
+
+    /**
+     * DragLeave 이벤트 핸들러
+     *
+     * @param sNamespace
+     * @param weEvt
+     * @private
+     */
+    function _onDragLeave(sNamespace, weEvt){
+        _hideDropper();
+
+        weEvt.originalEvent.dataTransfer.dropEffect = "none";
+        weEvt.stopPropagation();
+        weEvt.preventDefault();
     }
 
     /**
@@ -439,11 +525,19 @@ yobi.Files = (function(){
      * @param {Wrapped Event} weEvt
      */
     function _onDropFile(sNamespace, weEvt){
+        _hideDropper();
+
         var oFiles = weEvt.originalEvent.dataTransfer.files;
         if(!oFiles || oFiles.length === 0){
             return;
         }
+
         _uploadFile(oFiles, sNamespace);
+
+        _fireEvent("dropFile", {
+            "weEvt" : weEvt,
+            "oFiles": oFiles
+        }, sNamespace);
 
         weEvt.stopPropagation();
         weEvt.preventDefault();
