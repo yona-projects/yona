@@ -227,9 +227,18 @@ public class SVNRepository implements PlayRepository {
 
     @Override
     public String getPatch(String commitId) throws SVNException {
+        long rev = Integer.parseInt(commitId);
+        return getPatch(rev - 1, rev);
+    }
+
+    @Override
+    public String getPatch(String revA, String revB) throws SVNException {
+        return getPatch(Long.parseLong(revA), Long.parseLong(revB));
+    }
+
+    private String getPatch(long revA, long revB) throws SVNException {
         // Prepare required arguments.
         SVNURL svnURL = SVNURL.fromFile(new File(getRepoPrefix() + ownerName + "/" + projectName));
-        long rev = Integer.parseInt(commitId);
 
         // Get diffClient.
         SVNClientManager clientManager = SVNClientManager.newInstance();
@@ -238,15 +247,19 @@ public class SVNRepository implements PlayRepository {
         // Using diffClient, write the changes by commitId into
         // byteArrayOutputStream, as unified format.
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        diffClient.doDiff(svnURL, null, SVNRevision.create(rev - 1), SVNRevision.create(rev),
+        diffClient.doDiff(svnURL, null, SVNRevision.create(revA), SVNRevision.create(revB),
                 SVNDepth.INFINITY, true, byteArrayOutputStream);
-
 
         return byteArrayOutputStream.toString();
     }
 
     @Override
     public List<FileDiff> getDiff(String commitId) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<FileDiff> getDiff(String revA, String revB) throws IOException {
         throw new UnsupportedOperationException();
     }
 

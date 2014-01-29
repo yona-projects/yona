@@ -576,32 +576,55 @@ public class GitRepository implements PlayRepository {
      */
     @Override
     public String getPatch(String rev) throws IOException {
-        // Get the trees, from current commit and its parent, as treeWalk.
-        ObjectId commitId = repository.resolve(rev);
+        RevCommit commit = getRevCommit(rev);
 
-        if (commitId == null) {
+        if (commit == null) {
             return null;
         }
 
-        TreeWalk treeWalk = new TreeWalk(repository);
-        RevWalk revWalk = new RevWalk(repository);
-        RevCommit commit = revWalk.parseCommit(commitId);
+        RevCommit parent = null;
         if (commit.getParentCount() > 0) {
-            RevTree tree = revWalk.parseCommit(commit.getParent(0).getId()).getTree();
-            treeWalk.addTree(tree);
-        } else {
-            treeWalk.addTree(new EmptyTreeIterator());
+            parent = commit.getParent(0);
         }
-        treeWalk.addTree(commit.getTree());
 
-        // Render the difference from treeWalk which has two trees.
+        return getPatch(parent, commit);
+    }
+
+    @Override
+    public String getPatch(String revA, String revB) throws IOException {
+        RevCommit commitA = getRevCommit(revA);
+        RevCommit commitB = getRevCommit(revB);
+
+        if (commitA == null || commitB == null) {
+            return null;
+        }
+
+        return getPatch(commitA, commitB);
+    }
+
+    /*
+     * Render the difference from treeWalk which has two trees.
+     */
+    private String getPatch(RevCommit commitA, RevCommit commitB) throws IOException {
+        TreeWalk treeWalk = new TreeWalk(repository);
+        addTree(treeWalk, commitA);
+        addTree(treeWalk, commitB);
+        treeWalk.setRecursive(true);
+
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         DiffFormatter diffFormatter = new DiffFormatter(out);
         diffFormatter.setRepository(repository);
-        treeWalk.setRecursive(true);
         diffFormatter.format(DiffEntry.scan(treeWalk));
 
         return out.toString("UTF-8");
+    }
+
+    private void addTree(TreeWalk treeWalk, RevCommit commit) throws IOException {
+        if (commit == null) {
+            treeWalk.addTree(new EmptyTreeIterator());
+        } else {
+            treeWalk.addTree(commit.getTree());
+        }
     }
 
     /**
@@ -1352,6 +1375,7 @@ public class GitRepository implements PlayRepository {
         return getDiff(repository, revA, repository, revB);
     }
 
+    @Override
     public List<FileDiff> getDiff(String revA, String revB) throws IOException {
         return getDiff(this.repository, revA, revB);
     }

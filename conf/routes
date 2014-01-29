@@ -238,5 +238,8 @@ DELETE         /comments/:type/:id                                              
 POST           /:user/:project/pullRequest/:number/review                             controllers.ReviewApp.review(user, project, number: Long)
 POST           /:user/:project/pullRequest/:number/unreview                           controllers.ReviewApp.unreview(user, project, number: Long)
 
+# Compare
+GET            /:user/:project/compare/:revA..:revB                                             controllers.CompareApp.compare(user, project, revA, revB)
+
 # remove trailing slash - must be the bottom of this file
 GET            /*paths                                                                controllers.Application.removeTrailer(paths)
