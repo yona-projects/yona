@@ -64,6 +64,14 @@ yobi.Attachments = function(htOptions) {
      * @param {Hash Table} htOptions 초기화 옵션
      */
     function _initElement(htOptions){
+
+        // parentForm
+        htElements.welToAttach = htOptions.targetFormId || $(htOptions.elContainer);
+        var sTagName = htOptions.sTagNameForTemporaryUploadFiles || "temporaryUploadFiles";
+        htElements.welTemporaryUploadFileList = $('<input type="hidden" name="'+sTagName+'">');
+        htElements.welToAttach.prepend(htElements.welTemporaryUploadFileList);
+        aTemporaryFileIds = [];
+
         // welContainer
         htElements.welContainer = $(htOptions.elContainer);
         htElements.welContainer.data("isYobiAttachment", true);
@@ -269,6 +277,21 @@ yobi.Attachments = function(htOptions) {
         }, 500);
     }
 
+    function _addUploadFileIdToListAndForm(sFileId) {
+        if( aTemporaryFileIds.indexOf(sFileId) === -1) {
+            aTemporaryFileIds.push(sFileId);
+            htElements.welTemporaryUploadFileList.val(aTemporaryFileIds.join(","));
+        }
+    }
+
+    function _removeDeletedFileIdFromListAndForm(sFileId) {
+        var nIndex = aTemporaryFileIds.indexOf(sFileId.toString());
+        if( nIndex !== -1){
+            aTemporaryFileIds.splice(nIndex, 1);
+            htElements.welTemporaryUploadFileList.val(aTemporaryFileIds.join(","));
+        }
+    }
+
     /**
      * 첨부 파일 전송에 성공시 이벤트 핸들러
      * On success to submit temporary form created in onChangeFile()
@@ -282,6 +305,7 @@ yobi.Attachments = function(htOptions) {
         var oRes = htData.oRes;
         var nSubmitId = htData.nSubmitId;
 
+        _addUploadFileIdToListAndForm(htData.oRes.id);
         // Validate server response
         if(!(oRes instanceof Object) || !oRes.name || !oRes.url){
             return _onErrorUpload(nSubmitId, oRes);
@@ -384,9 +408,10 @@ yobi.Attachments = function(htOptions) {
     function _deleteAttachedFile(welItem){
        var sURL = welItem.attr("data-href");
 
-       yobi.Files.deleteFile({
+        yobi.Files.deleteFile({
            "sURL"   : sURL,
            "fOnLoad": function(){
+                _removeDeletedFileIdFromListAndForm(welItem.data("id"))
                 _clearLinkInTextarea(welItem);
                 welItem.remove();
 

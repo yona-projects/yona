@@ -28,6 +28,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.Date;
+import java.util.List;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -37,6 +38,7 @@ import com.avaje.ebean.Ebean;
 
 import controllers.UserApp;
 import controllers.routes;
+import models.enumeration.ResourceType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.cookie.DateUtils;
 import play.Application;
@@ -110,6 +112,17 @@ public class Global extends GlobalSettings {
         }
 
         NotificationEvent.scheduleDeleteOldNotifications();
+        cleanupTemporaryUploadFiles();
+    }
+
+    /**
+     * Remove all of temporary files uploaded by users
+     */
+    private void cleanupTemporaryUploadFiles() {
+        List<Attachment> attachmentList = Attachment.find.where().eq("containerType", ResourceType.USER).findList();
+        for (Attachment attachment : attachmentList) {
+            attachment.delete();
+        }
     }
 
     private boolean notificationEnabled() {

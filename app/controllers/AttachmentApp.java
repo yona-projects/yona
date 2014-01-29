@@ -27,6 +27,8 @@ import utils.HttpUtil;
 
 public class AttachmentApp extends Controller {
 
+    public static final String TAG_NAME_FOR_TEMPORARY_UPLOAD_FILES = "temporaryUploadFiles";
+
     /**
      * 사용자 첨부파일로 업로드한다
      *
@@ -255,13 +257,6 @@ public class AttachmentApp extends Controller {
     public static Result getFileList() {
         Map<String, List<Map<String, String>>> files =
                 new HashMap<>();
-
-        // Get files from the user's area.
-        List<Map<String, String>> userFiles = new ArrayList<>();
-        for (Attachment attach : Attachment.findByContainer(UserApp.currentUser().asResource())) {
-            userFiles.add(extractFileMetaDataFromAttachementAsMap(attach));
-        }
-        files.put("tempFiles", userFiles);
 
         // Get attached files only if the user has permission to read it.
         Map<String, String[]> query = request().queryString();
