@@ -428,6 +428,7 @@ project.you.want.to.be.a.member = You want to be a member of {0} project.
 pullRequest = PullRequest
 pullRequest.accept = Accept
 pullRequest.accepted.code = Accepted Code
+pullRequest.additional.changes = Additional Changes
 pullRequest.back.to.the.pullrequest = Back to the pull request.
 pullRequest.body.required = Explain this pull request.
 pullRequest.cancel = Cancel

@@ -98,6 +98,11 @@
                         </a>
                     </span>
                     <span class="ago">@momentFromNow(event.created, lang.language)</span>
+                    @if(event.oldValue != null) {
+                    <span>
+                      <a class="ybtn ybtn-mini" href="@urlToCompare(pull.toProject, event.oldValue)">@Messages("pullRequest.additional.changes")</a>
+                    </span>
+                    }
                 </div>
                 <ul class="commit-list">
                 @for(commit <- event.getPullRequestCommits) {

@@ -43,12 +43,15 @@ public abstract class PullRequestActor extends UntypedActor {
      */
     protected void processPullRequestMerging(PullRequestEventMessage message, PullRequest pullRequest) {
         try {
+            String oldMergeCommitId = pullRequest.mergedCommitIdTo;
             PullRequestMergeResult mergeResult = pullRequest.attemptMerge();
 
             if (mergeResult.hasDiffCommits()) {
                 mergeResult.saveCommits();
                 if (!mergeResult.getNewCommits().isEmpty()) {
-                    PullRequestEvent.addCommitEvents(message.getSender(), pullRequest, mergeResult.getNewCommits());
+                    PullRequestEvent.addCommitEvents(message.getSender(), pullRequest,
+                            mergeResult.getNewCommits(),
+                            getCommitEventOldValue(oldMergeCommitId, pullRequest.mergedCommitIdTo));
                     pullRequest.clearReviewers();
                 }
             } else {
@@ -76,5 +79,12 @@ public abstract class PullRequestActor extends UntypedActor {
         } catch (Exception e) {
             play.Logger.error("Failed to check merging from " + pullRequest, e);
         }
+    }
+
+    private String getCommitEventOldValue(String oldMergeCommitId, String newMergeCommitId) {
+        if (oldMergeCommitId == null) {
+            return null;
+        }
+        return oldMergeCommitId + PullRequest.DELIMETER + newMergeCommitId;
     }
 }
