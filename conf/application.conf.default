@@ -112,6 +112,9 @@ application.notification.bymail.delay = 180s
 # A new event notification can be merged if possible with previous one which is
 # not older than this seconds.
 application.notification.draft-time = 30s
+# Delete notifications which are older than this days.
+# If this value is undefined or not positive number, notifications will remain forever.
+# application.notification.keep-time = 60
 
 #customize play default thread pool size
 play {
