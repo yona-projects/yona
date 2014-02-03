@@ -39,7 +39,7 @@ yobi.Files = (function(){
 
         htVar.sListURL     = htOptions.sListURL;
         htVar.sUploadURL   = htOptions.sUploadURL;
-        htVar.htUploadOpts = {"dataType": "json"} || htOptions.htUploadOpts;
+        htVar.htUploadOpts = htOptions.htUploadOpts || {"dataType": "json"};
 
         htVar.bXHR2 = (typeof FormData != "undefined");                   // XMLHttpRequest 2 required
         htVar.bDroppable = (typeof window.File != "undefined");           // HTML5 FileAPI required
