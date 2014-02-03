@@ -67,7 +67,7 @@
                 }
             }
 
-            @if(user.loginId != project.owner && user.loginId == session.get("loginId") ){
+            @if(user.loginId != project.owner && user.loginId == session.get("loginId") && ProjectUser.isMember(user.id, project.id)){
             <a href="@routes.UserApp.leave(project.owner, project.name)" data-projectName="@project.name" class="nbtn black medium last leaveProject">
                 <i class="yobicon-trash"></i> @Messages("userinfo.leaveProject")
             </a>
