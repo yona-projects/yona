@@ -36,7 +36,7 @@ public class AttachmentTest extends ModelTest<Attachment> {
 
         // Then
         assertThat(attach.name).isEqualTo("bar.txt");
-        assertThat(attach.mimeType).isEqualTo("text/plain");
+        assertThat(attach.mimeType).isEqualTo("text/plain; charset=UTF-8");
         assertThat(new String(b, 0, length)).isEqualTo(new String("Hello"));
     }
 
