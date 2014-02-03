@@ -25,7 +25,9 @@
             <small class="ml10">
                 @if(milestone.dueDate != null) {
                 <span class="due-date">@Messages("label.dueDate") <strong>@milestone.getDueDateString</strong></span>
+                @if(milestone.state != State.CLOSED) {
                 <span class="date">(@milestone.until)</span>
+                }
                 }
                 <span class="badge badge-issue-@milestone.state.state.toLowerCase margin-left-5">@Messages("milestone.state." + milestone.state.state)</span>
             </small>
