@@ -22,6 +22,7 @@ import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.blame.BlameResult;
 import org.eclipse.jgit.diff.*;
 import org.eclipse.jgit.diff.Edit.Type;
+import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.lib.RefUpdate.Result;
 import org.eclipse.jgit.patch.FileHeader;
@@ -233,7 +234,7 @@ public class GitRepository implements PlayRepository {
      *
      * @param branch
      * @param path
-     * @return {@code path}가 디렉토리이면 그 안에 들어있는 파일과 디렉토리 목록을 담고있는 JSON, 파일이면 해당 파일 정보를 담고 있는 JSON
+     * @return {@code path}가 디렉토리이면 그 안에 들어있는 파일과 디렉토리 목록을 담고있는 JSON, 파일이면 해당 파일 정보를 담고 있는 JSON, 존재하지 않는 path 이면 null을 반환한다.
      * @throws IOException
      * @throws GitAPIException
      */
@@ -268,7 +269,12 @@ public class GitRepository implements PlayRepository {
             treeWalk.enterSubtree();
             return treeAsJson(path, treeWalk, headCommit);
         } else {
-            return fileAsJson(treeWalk, headCommit);
+            try {
+                return fileAsJson(treeWalk, headCommit);
+            } catch (MissingObjectException e) {
+                Logger.debug("Unavailable access. " + branch + "/" + path + " does not exist.");
+                return null;
+            }
         }
     }
 
