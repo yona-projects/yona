@@ -236,7 +236,7 @@ public class Attachment extends Model implements ResourceConvertible {
                     new BufferedInputStream(new FileInputStream(file)), meta);
             this.mimeType = mediaType.toString();
             if (mediaType.getType().toLowerCase().equals("text")) {
-                this.mimeType += " ;charset=" + FileUtil.detectCharset(new FileInputStream(file));
+                this.mimeType += "; charset=" + FileUtil.detectCharset(new FileInputStream(file));
             }
         }
 
