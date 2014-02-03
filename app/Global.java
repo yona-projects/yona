@@ -35,6 +35,7 @@ import models.*;
 
 import com.avaje.ebean.Ebean;
 
+import controllers.UserApp;
 import controllers.routes;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.cookie.DateUtils;
@@ -148,6 +149,9 @@ public class Global extends GlobalSettings {
         final long start = System.currentTimeMillis();
         return new Action.Simple() {
             public Result call(Http.Context ctx) throws Throwable {
+                if (ctx.session().get(UserApp.SESSION_USERID) == null) {
+                    UserApp.isRememberMe();
+                }
                 ctx.response().setHeader("Date", DateUtils.formatDate(new Date()));
                 ctx.response().setHeader("Cache-Control", "no-cache");
                 Result result = delegate.call(ctx);
