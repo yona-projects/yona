@@ -21,10 +21,13 @@ import org.apache.tika.Tika;
 
 import models.enumeration.ResourceType;
 
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.mime.MediaType;
 import play.data.validation.*;
 
 import play.db.ebean.Model;
 import scalax.file.NotDirectoryException;
+import utils.FileUtil;
 
 @Entity
 public class Attachment extends Model implements ResourceConvertible {
@@ -227,7 +230,14 @@ public class Attachment extends Model implements ResourceConvertible {
         }
 
         if (this.mimeType == null) {
-            this.mimeType = new Tika().detect(file);
+            Metadata meta = new Metadata();
+            meta.add(Metadata.RESOURCE_NAME_KEY, this.name);
+            MediaType mediaType = new Tika().getDetector().detect(
+                    new BufferedInputStream(new FileInputStream(file)), meta);
+            this.mimeType = mediaType.toString();
+            if (mediaType.getType().toLowerCase().equals("text")) {
+                this.mimeType += " ;charset=" + FileUtil.detectCharset(new FileInputStream(file));
+            }
         }
 
         // the size must be set before it is moved.
