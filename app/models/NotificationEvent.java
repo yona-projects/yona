@@ -626,14 +626,28 @@ public class NotificationEvent extends Model {
         return routes.BoardApp.post(post.project.owner, post.project.name, post.getNumber()).url();
     }
 
+    /**
+     * {@code posting}의 번호를 반환하되, 이슈라면 앞에 "#"을 붙인다.
+     *
+     * @param posting
+     * @return 조건에 따라 앞에 "#"이 붙은 번호
+     */
+    private static String getPrefixedNumber(AbstractPosting posting) {
+        if (posting instanceof Issue) {
+            return "#" + posting.getNumber();
+        } else {
+            return posting.getNumber().toString();
+        }
+    }
+
     private static String formatReplyTitle(AbstractPosting posting) {
-        return String.format("Re: [%s] %s (#%d)",
-                posting.project.name, posting.title, posting.getNumber());
+        return String.format("Re: [%s] %s (%s)",
+                posting.project.name, posting.title, getPrefixedNumber(posting));
     }
 
     private static String formatNewTitle(AbstractPosting posting) {
         return String.format("[%s] %s (#%d)",
-                posting.project.name, posting.title, posting.getNumber());
+                posting.project.name, posting.title, getPrefixedNumber(posting));
     }
 
     private static String formatReplyTitle(Project project, Commit commit) {
