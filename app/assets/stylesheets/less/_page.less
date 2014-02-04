@@ -1968,48 +1968,36 @@
 .members.project {
     margin: 0;
     list-style: none;
-    padding:10px;
 
     .member {
-        display:inline-block;
-        width:370px; /*415px, 375px;*/
-        text-align:left;
-        padding: 10px;/*20px;*/
-        margin-bottom: 6px;
-        background-color: @white;
-        margin-right:10px;
-        .border-radius(10px);
+        border-bottom:1px solid #DDD;
+        padding: 10px 5px;
+        display:block;
+        position: relative;
 
-        &:nth-child(3n) {
-            margin-right: 0px;
+        .member-name {
+            margin-top:2px;
+            line-height: 20px;
+            font-weight: bold;
         }
 
-        .m-body {
-            margin-left: 64px;
-            .td {
-                display: table-cell;
-                padding-left: 10px;
-                padding-top: 3px;
-                &:first-child {
-                    padding-left: 8px;
-                    width: 120px;
-                    max-width: 120px;
-                    border-right: 1px solid @gray-d4;
-                }
+        .member-id {
+            line-height: 20px;
+            color:#ccc;
+        }
+        
+        &:nth-child(odd) {
+            margin-left: 0;
+        }
 
-                p {
-                    word-wrap: break-word;
-                    margin-bottom: 2px;
-                }
-                .d-label {
-                    width: 108px; /*147px;*/
-                }
-                .btns {
-                    text-transform: capitalize;
-                    margin-top: 6px;
-                }
-                .uname { font-size: 20px; }
-                .name  { font-size: 11px; }
+        .member-setting {
+            position: absolute;
+            right:0;
+            top: 15px;
+
+            .owner {
+                margin-top:5px;
+                padding:5px;
             }
         }
     }

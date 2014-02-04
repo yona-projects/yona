@@ -635,6 +635,7 @@ user.password = 비밀번호
 user.role.anonymous = 익명 사용자
 user.role.guest = 지나가던 사람
 user.role.manager = 관리자
+user.role.owner =  프로젝트 소유자
 user.role.member = 참여자
 user.role.sitemanager = 사이트 관리자
 user.signup.requested = 가입 요청을 보냈습니다. 사이트 관리자가 검토/승인 후 사용가능합니다. 감사합니다.
