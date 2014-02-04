@@ -147,7 +147,7 @@
                                 @(commit.getAuthor, commit.getAuthorEmail, commit.getAuthorName) match {
                                 case (user: User, _, _) if !user.isAnonymous => {
 
-                                    <a href="@routes.UserApp.userInfo(commit.getAuthor.loginId)" class="avatar-wrap">
+                                    <a href="@routes.UserApp.userInfo(commit.getAuthor.loginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@user.loginId">
                                     @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){
                                         @if(commit.getAuthorEmail != null) {
                                             <img src="@urlToPicture(commit.getAuthorEmail, 32)">
@@ -159,7 +159,7 @@
                                     } </a>
                                 }
                                 case (_, email, _) if email != null => {
-                                    <span class="avatar-wrap">
+                                    <span class="avatar-wrap"  class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@commit.getAuthorEmail">
                                         <img src="@urlToPicture(commit.getAuthorEmail, 32)">
                                     </span>
                                 }
