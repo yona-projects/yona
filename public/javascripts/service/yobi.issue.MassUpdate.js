@@ -59,7 +59,7 @@
             htElement.welBtnDetachingLabel = $(htOptions.welDetachingLabel).find("button"); // 라벨 제거 버튼
             htElement.welAttachLabels = $('#attach-label-list');  // 라벨 추가 <ul>
             htElement.welDetachLabels = $('#delete-label-list');  // 라벨 제거 <ul>
-            htVar.sFullLabels = htElement.welAttachLabels.html(); // 전체 라벨 목록
+            
         }
 
         /**
@@ -125,8 +125,8 @@
          * Restore labels list
          */
         function _restoreLabelList(){
-            htElement.welAttachLabels.html(htVar.sFullLabels);
-            htElement.welDetachLabels.html(htVar.sFullLabels);
+            htElement.welAttachLabels.find('li').show();
+            htElement.welDetachLabels.find('li').show();            
         }
         
         /**
@@ -152,7 +152,7 @@
         function _setAttachLabelList(htLabels, nLength){
             var sCategory, sLabelId;
             var bVisible = false;
-
+            
             // 선택한 이슈에 설정된 라벨 정보로부터
             for(sCategory in htLabels){
                 for(sLabelId in htLabels[sCategory]){
@@ -247,7 +247,7 @@
             
             waChecked.each(function(i, el){
                 welCheck = $(el);
-                sIssueLabels = welCheck.data("issue-labels");
+                sIssueLabels = welCheck.data("issueLabels");
                 
                 if(!sIssueLabels){
                     return;
