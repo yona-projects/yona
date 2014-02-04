@@ -13,7 +13,6 @@ import java.io.File;
 public class Application extends Controller {
 
     public static Result index() {
-        UserApp.isRememberMe();
         return ok(index.render(UserApp.currentUser()));
     }
 
