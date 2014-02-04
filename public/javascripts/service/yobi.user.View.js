@@ -79,13 +79,19 @@
          * @param {Wrapped Event} weEvt
          */
         function _onClickBtnWatch(weEvt){
-            $.ajax($(this).attr('href'), {
+            var welTarget = $(this);
+            var sURL = welTarget.attr("href");
+
+            $.ajax(sURL, {
                 "method" : "post",
                 "success": function(){
                     document.location.reload();
                 },
-                "error": function(){
-                    $yobi.notify(Messages("error.internalServerError"));
+                "error"  : function(oRes){
+                    var bOnWatching = welTarget.hasClass("blue"); // 지켜보는 중이었나
+                    var sActionMsg = Messages(bOnWatching ? "project.unwatch" : "project.watch"); // 무엇을 하려 했나
+
+                    $yobi.notify(Messages("error.failedTo", sActionMsg, oRes.status, oRes.statusText));
                 }
             });
 

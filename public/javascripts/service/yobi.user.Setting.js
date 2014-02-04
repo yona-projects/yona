@@ -106,9 +106,11 @@
                 "success": function(data){
                     welTarget.prop("checked", bChecked);
                 },
-                "error"  : function(){
+                "error"  : function(oRes){
                     welTarget.prop("checked", !bChecked);
-                    $yobi.alert(Messages("error.internalServerError"));
+                    $yobi.alert(Messages("error.failedTo",
+                                Messages("userinfo.changeNotifications"),
+                                oRes.status, oRes.statusText));
                 }
             })
         }
