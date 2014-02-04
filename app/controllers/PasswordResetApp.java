@@ -145,6 +145,6 @@ public class PasswordResetApp extends Controller {
             Logger.debug("Not a valid request!");
         }
         flash(Constants.WARNING, "user.loginWithNewPassword");
-        return ok(login.render("title.login", form(User.class)));
+        return ok(login.render("title.login", form(User.class), null));
     }
 }

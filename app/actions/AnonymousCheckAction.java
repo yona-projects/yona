@@ -42,7 +42,9 @@ public class AnonymousCheckAction extends Action.Simple {
         User user = UserApp.currentUser();
         if(user.isAnonymous()) {
             play.mvc.Controller.flash(Constants.WARNING, "user.login.alert");
-            return AccessLogger.log(context.request(), redirect(routes.UserApp.loginForm()), null);
+            String loginFormUrl = routes.UserApp.loginForm().absoluteURL(context.request());
+            loginFormUrl += "?redirectUrl=" + context.request().path();
+            return AccessLogger.log(context.request(), redirect(loginFormUrl), null);
         }
         return this.delegate.call(context);
     }

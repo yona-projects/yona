@@ -21,10 +21,11 @@ package controllers;
 
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.annotation.Transactional;
+
 import models.*;
 import models.enumeration.Operation;
-
 import models.enumeration.UserState;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.crypto.RandomNumberGenerator;
 import org.apache.shiro.crypto.SecureRandomNumberGenerator;
@@ -39,11 +40,13 @@ import play.mvc.*;
 import play.mvc.Http.Cookie;
 import utils.AccessControl;
 import utils.Constants;
+import utils.HttpUtil;
 import utils.ReservedWordsValidator;
 import utils.ErrorViews;
 import views.html.user.*;
 
 import org.codehaus.jackson.node.ObjectNode;
+
 import play.libs.Json;
 
 import java.util.*;
@@ -114,7 +117,13 @@ public class UserApp extends Controller {
      * @return
      */
     public static Result loginForm() {
-        return ok(login.render("title.login", form(User.class)));
+        String redirectUrl = request().getQueryString("redirectUrl");
+        String loginFormUrl = routes.UserApp.loginForm().absoluteURL(request());
+        String referer = request().getHeader("Referer");
+        if(StringUtils.isEmpty(redirectUrl) && !StringUtils.equals(loginFormUrl, referer)) {
+            redirectUrl = request().getHeader("Referer");
+        }
+        return ok(login.render("title.login", form(User.class), redirectUrl));
     }
 
     /**
@@ -127,7 +136,8 @@ public class UserApp extends Controller {
     public static Result logout() {
         processLogout();
         flash(Constants.SUCCESS, "user.logout.success");
-        return redirect(routes.Application.index());
+        String redirectUrl = request().getHeader("Referer");
+        return redirect(redirectUrl);
     }
 
     /**
@@ -142,20 +152,26 @@ public class UserApp extends Controller {
     public static Result login() {
         Form<User> userForm = form(User.class).bindFromRequest();
         if(userForm.hasErrors()) {
-            return badRequest(login.render("title.login", userForm));
+            return badRequest(login.render("title.login", userForm, null));
         }
         User sourceUser = form(User.class).bindFromRequest().get();
+
+        Map<String, String[]> params = request().body().asFormUrlEncoded();
+        String redirectUrl = HttpUtil.getFirstValueFromQuery(params, "redirectUrl");
+
+        String loginFormUrl = routes.UserApp.loginForm().absoluteURL(request());
+        loginFormUrl += "?redirectUrl=" + redirectUrl;
 
         if (isUseSignUpConfirm()) {
             if (User.findByLoginId(sourceUser.loginId).state == UserState.LOCKED) {
                 flash(Constants.WARNING, "user.locked");
-                return redirect(routes.UserApp.loginForm());
+                return redirect(loginFormUrl);
             }
         }
 
         if (User.findByLoginId(sourceUser.loginId).state == UserState.DELETED) {
             flash(Constants.WARNING, "user.deleted");
-            return redirect(routes.UserApp.loginForm());
+            return redirect(loginFormUrl);
         }
 
         User authenticate = authenticateWithPlainPassword(sourceUser.loginId, sourceUser.password);
@@ -165,7 +181,12 @@ public class UserApp extends Controller {
             if (sourceUser.rememberMe) {
                 setupRememberMe(authenticate);
             }
-            return redirect(routes.Application.index());
+
+            if (StringUtils.isEmpty(redirectUrl)) {
+                return redirect(routes.Application.index());
+            } else {
+                return redirect(redirectUrl);
+            }
         }
 
         flash(Constants.WARNING, "user.login.failed");

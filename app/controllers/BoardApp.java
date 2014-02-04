@@ -1,15 +1,20 @@
 
 package controllers;
 
+import actions.AnonymousCheckAction;
 import actions.NullProjectCheckAction;
+
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
+
 import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
 import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
+
 import org.codehaus.jackson.node.ObjectNode;
+
 import play.data.Form;
 import play.db.ebean.Transactional;
 import play.libs.Json;
@@ -89,6 +94,7 @@ public class BoardApp extends AbstractPostingApp {
      * @param projectName 프로젝트 이름
      * @return
      */
+    @With(AnonymousCheckAction.class)
     @IsCreatable(ResourceType.BOARD_POST)
     public static Result newPostForm(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
@@ -188,6 +194,7 @@ public class BoardApp extends AbstractPostingApp {
      * @param number 게시물number
      * @return
      */
+    @With(AnonymousCheckAction.class)
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.BOARD_POST)
     public static Result editPostForm(String owner, String projectName, Long number) {
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
