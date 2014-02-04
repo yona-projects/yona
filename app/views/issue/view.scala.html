@@ -214,6 +214,7 @@
         <a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)" class="ybtn">@Messages("button.edit")</a>
         }
 
+        @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.WATCH)) {
         <button id="watch-button" type="button" class="ybtn" data-toggle="button" data-watching="@if(issue.getWatchers.contains(UserApp.currentUser())){true}else{false}">
 
             @if(issue.getWatchers.contains(UserApp.currentUser())) {
@@ -222,6 +223,7 @@
                 @Messages("project.watch")
             }
         </button>
+        }
     </div>
 
     @** Comment **@

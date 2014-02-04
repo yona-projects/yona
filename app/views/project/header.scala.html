@@ -4,6 +4,7 @@
 @import utils.TemplateHelper._
 @import utils.AccessControl._
 @import models.enumeration.ResourceType
+@import models.enumeration.Operation
 @import controllers.UserApp
 
 <div class="project-header-outer" style="background-image:url(@urlToProjectLogo(project))">
@@ -71,7 +72,7 @@
                         }
                     </li> 
                     }
-                    @if(project.isPublic || ProjectUser.isMember(UserApp.currentUser.id, project.id)) {
+                    @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.WATCH)) {
                     <li>
                         @if(User.isWatching(project)) {
                         <button class="ybtn ybtn-watching ybtn-small dropdown-toggle" tyle="button" data-toggle="dropdown">
