@@ -97,7 +97,8 @@ yobi.Attachments = function(htOptions) {
             "uploadProgress": _onUploadProgress,
             "successUpload" : _onSuccessUpload,
             "errorUpload"   : _onErrorUpload,
-            "pasteFile"     : _onPasteFile
+            "pasteFile"     : _onPasteFile,
+            "dropFile"      : _onDropFile
         }, sUploaderId);
     }
 
@@ -113,7 +114,8 @@ yobi.Attachments = function(htOptions) {
             "uploadProgress": _onUploadProgress,
             "successUpload" : _onSuccessUpload,
             "errorUpload"   : _onErrorUpload,
-            "pasteFile"     : _onPasteFile
+            "pasteFile"     : _onPasteFile,
+            "dropFile"      : _onDropFile
         }, sUploaderId);
     }
 
@@ -291,8 +293,13 @@ yobi.Attachments = function(htOptions) {
         }
 
         // 임시 업로드 링크가 있으면 실제 링크로 교체
-        var sTempLink = _getTempLinkText(htData.nSubmitId + ".png");
-        var sRealLink = _getLinkText($("#" + htData.nSubmitId));
+        var aFileItemQuery = [
+            "#" + htData.nSubmitId,
+            '.attached-file[data-id="' + htData.oRes.id + '"]'
+        ];
+        var welFileItem = $(aFileItemQuery.join(", "));
+        var sTempLink = _getTempLinkText(htData.oRes.name);
+        var sRealLink = _getLinkText(welFileItem);
         _replaceLinkInTextarea(sTempLink, sRealLink);
     }
 
@@ -402,15 +409,17 @@ yobi.Attachments = function(htOptions) {
      */
     function _insertLinkToTextarea(vLink){
         var welTextarea = htElements.welTextarea;
+
         if(welTextarea.length === 0){
             return false;
         }
 
-        var nPos  = welTextarea.prop('selectionStart');
+        var nPos = welTextarea.prop("selectionStart");
         var sText = welTextarea.val();
         var sLink = (typeof vLink === "string") ? vLink : _getLinkText(vLink);
 
         welTextarea.val(sText.substring(0, nPos) + sLink + sText.substring(nPos));
+        _setCursorPosition(welTextarea, nPos + sLink.length); // 추가한 링크 텍스트 끝으로 커서를 옮긴다
     }
 
     /**
@@ -425,7 +434,7 @@ yobi.Attachments = function(htOptions) {
         var sFilePath = welItem.attr("data-href");
 
         var sLinkText = '[' + sFileName + '](' + sFilePath + ')\n';
-        
+
         return  (sMimeType.substr(0,5) === "image") ? '!'+sLinkText : sLinkText;
     }
 
@@ -455,7 +464,9 @@ yobi.Attachments = function(htOptions) {
         }
 
         var sLink = (typeof vLink === "string") ? vLink : _getLinkText(vLink);
-        welTextarea.val(welTextarea.val().split(sLink).join(''));
+        var sData = welTextarea.val().split(sLink).join('');
+        sData = sData.split(sLink.trim()).join('');
+        welTextarea.val(sData);
     }
 
     /**
@@ -472,7 +483,46 @@ yobi.Attachments = function(htOptions) {
             return false;
         }
 
+        var nCurPos = _getCursorPosition(welTextarea);
+        var nGap = (sLink2.length - sLink1.length - 1);
+
         welTextarea.val(welTextarea.val().split(sLink1).join(sLink2));
+
+        if(nGap > 0){
+            _setCursorPosition(welTextarea, nCurPos + nGap);
+        }
+    }
+
+    /**
+     * 지정한 textarea 의 커서를 지정한 위치로 옮긴다
+     *
+     * @param welTextarea
+     * @param nPos
+     * @private
+     */
+    function _setCursorPosition(welTextarea, nPos){
+        var elTextarea = welTextarea.get(0);
+
+        if(elTextarea.setSelectionRange){
+            elTextarea.setSelectionRange(nPos, nPos);
+        } else if(elTextarea.createTextRange){
+            var oRange = elTextarea.createTextRange();
+            oRange.collapse(true);
+            oRange.moveEnd("character", nPos);
+            oRange.moveStart("character", nPos);
+            oRange.select();
+        }
+    }
+
+    /**
+     * 지정한 textarea 의 커서 위치를 반환한다
+     *
+     * @param welTextarea
+     * @return {Number}
+     * @private
+     */
+    function _getCursorPosition(welTextarea){
+        return welTextarea.prop("selectionStart");
     }
 
     /**
@@ -482,6 +532,23 @@ yobi.Attachments = function(htOptions) {
      */
     function _onPasteFile(htData){
         _insertLinkToTextarea(_getTempLinkText(htData.oFile.name));
+    }
+
+    /**
+     * 드래그 앤 드랍으로 파일 업로드 하는 경우 발생하는 이벤트 핸들러
+     * @param htData
+     * @private
+     */
+    function _onDropFile(htData){
+        var oFiles = htData.oFiles;
+        var nLength = oFiles.length;
+        var elTarget = htData.weEvt.target;
+
+        if(elTarget.tagName.toLowerCase() === "textarea"){
+            for(var i =0; i < nLength; i++){
+                _insertLinkToTextarea(_getTempLinkText(oFiles[i].name));
+            }
+        }
     }
 
     /**
