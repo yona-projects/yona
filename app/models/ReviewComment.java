@@ -101,6 +101,11 @@ public class ReviewComment extends Model implements ResourceConvertible {
             public Long getAuthorId() {
                 return author.id;
             }
+
+            @Override
+            public void delete() {
+                ReviewComment.this.delete();
+            }
         };
     }
 
