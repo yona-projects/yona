@@ -2890,8 +2890,10 @@
         font-size:14px;
         word-break: break-word;
         vertical-align:middle;
-        .text-overflow();
+        text-overflow: ellipsis;
+        white-space: pre-line;
     }
+
     &.desc { /* pre */
         word-break: break-all;
         word-wrap: break-word;
@@ -3568,12 +3570,22 @@ label.issue-item-row {
                 }
             }
             .messages { vertical-align:top;}
-            .date { vertical-align:top;}
             .author {
-                vertical-align:top;
-                .avatar-wrap { margin-top:0; }
+                width: 40px;
+                text-align: right;
+                line-height:1 !important;
+                vertical-align: top;
             }
-            .browse {  width:70px; text-align:center; }
+            .date {
+                width: 80px;
+                font-size:12px;
+                vertical-align: top;
+            }
+            .browse {
+                width:70px; 
+                text-align:center;
+                vertical-align: top;
+            }
         }
     }
 
