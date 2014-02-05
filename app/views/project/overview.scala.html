@@ -27,8 +27,8 @@
 @projectLayout(message, project, utils.MenuType.PROJECT_HOME) {
 @projectMenu(project, utils.MenuType.PROJECT_HOME, "")
 <div class="project-page-wrap">
-    <div class="project-home-header">
-        <div class="project-overview">
+    <div class="project-home-header row-fluid">
+        <div class="project-overview span9">
             <div class="project-description" data-toggle="project-description-tab">
             <h3><span id="project-description">@if(StringUtils.isEmpty(project.overview)) {@Messages("project.description.placeholder")} else {@project.overview}</span>
                 @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)){
@@ -43,9 +43,9 @@
                 </form>
             </div>
         </div>
-        <div class="project-clone-wrap">
+        <div class="project-clone-wrap span3">          
             <input type="text" class="project-clone-url" id="cloneURL" readonly="readonly" value="@if(project.isGit){ @CodeApp.getURLWithLoginId(project) } else { @CodeApp.getURL(project) }">
-            <button class="ybtn project-clone-button" id="cloneURLBtn">@Messages("code.copyUrl")</button>
+            <button class="ybtn project-clone-button" id="cloneURLBtn">@Messages("code.copyUrl")</button>     
         </div>
     </div>
     <div class="row-fluid">
