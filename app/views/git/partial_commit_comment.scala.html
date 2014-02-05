@@ -52,7 +52,7 @@
                   </span>
                   @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
                   <span class="edit pull-right">
-                      <button type="button" class="btn-transparent close" data-request-method="delete" data-request-uri="@routes.CodeHistoryApp.deleteComment(pull.fromProject.owner, pull.fromProject.name, comment.commitId, comment.id)"><i class="yobicon-trash"></i></button>
+                      <button type="button" class="btn-transparent close" data-toggle="comment-delete" data-request-uri="@routes.CodeHistoryApp.deleteComment(pull.fromProject.owner, pull.fromProject.name, comment.commitId, comment.id)"><i class="yobicon-trash"></i></button>
                   </span>
                   }
               </div>
@@ -80,7 +80,7 @@
                   </span>
                   @if(isAllowed(UserApp.currentUser(), reply.asResource(), Operation.DELETE)){
                   <span class="edit pull-right">
-                      <button type="button" class="btn-transparent close" data-request-method="delete" data-request-uri="@routes.CodeHistoryApp.deleteComment(pull.fromProject.owner, pull.fromProject.name, reply.commitId, reply.id)"><i class="yobicon-trash"></i></button>
+                      <button type="button" class="btn-transparent close" data-toggle="comment-delete" data-request-uri="@routes.CodeHistoryApp.deleteComment(pull.fromProject.owner, pull.fromProject.name, reply.commitId, reply.id)"><i class="yobicon-trash"></i></button>
                   </span>
                   }
               </div>

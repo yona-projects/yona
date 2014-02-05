@@ -31,7 +31,7 @@
 @projectMenu(project, utils.MenuType.CODE, "main-menu-only")
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
-        <div class="code-browse-wrap">
+        <div id="code-browse-wrap" class="code-browse-wrap">
             <div id="branches" class="btn-group branches pull-right" data-name="branch" data-activate="manual">
                 <button class="btn dropdown-toggle large" data-toggle="dropdown">
                     <span class="d-label">@if(selectedBranch){ @selectedBranch } else { HEAD }</span>
@@ -132,7 +132,7 @@
                                 </span>
                                 @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
                                 <span class="edit pull-right">
-                                    <button class="btn-transparent pull-right close" data-request-method="delete" data-request-uri="@routes.CodeHistoryApp.deleteComment(project.owner, project.name, commit.getId, comment.id)"><i class="yobicon-trash"></i></button>
+                                    <button class="btn-transparent pull-right close" data-toggle="comment-delete" data-request-uri="@routes.CodeHistoryApp.deleteComment(project.owner, project.name, commit.getId, comment.id)"><i class="yobicon-trash"></i></button>
                                 </span>
                                 }
                             </div>
@@ -164,6 +164,7 @@
     </div>
 </div>
 @common.markdown(project)
+@common.commentDeleteModal("#code-browse-wrap")
 
 <script type="text/x-jquery-tmpl" id="comment-icon-template">
     <i class="yobicon-comments"></i>
