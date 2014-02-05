@@ -1,17 +1,18 @@
 package models;
 
-import controllers.routes;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
+import org.joda.time.Duration;
+import play.data.validation.Constraints;
+import play.db.ebean.Model;
+import utils.JodaDateUtil;
 
-import org.joda.time.*;
-import play.data.validation.*;
-import play.db.ebean.*;
-import utils.*;
-
-import javax.persistence.*;
-import javax.validation.constraints.Size;
-import java.util.*;
+import javax.persistence.Id;
+import javax.persistence.Lob;
+import javax.persistence.MappedSuperclass;
+import javax.persistence.Transient;
+import java.util.Comparator;
+import java.util.Date;
 
 /**
  * 이슈 혹은 게시글의, 댓글
@@ -23,7 +24,7 @@ abstract public class Comment extends Model implements TimelineItem, ResourceCon
     @Id
     public Long id;
 
-    @Constraints.Required @Column(length = 4000) @Size(max=4000)
+    @Lob @Constraints.Required
     public String contents;
 
     @Constraints.Required

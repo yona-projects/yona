@@ -2,17 +2,14 @@ package models;
 
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
+import org.joda.time.Duration;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
+import utils.JodaDateUtil;
 
 import javax.persistence.*;
 import java.beans.Transient;
 import java.util.Date;
-
-import org.joda.time.Duration;
-import utils.JodaDateUtil;
-
-import javax.validation.constraints.Size;
 
 
 @MappedSuperclass
@@ -32,7 +29,7 @@ abstract public class CodeComment extends Model implements ResourceConvertible, 
     public Integer line; // FIXME: DB엔 integer가 아닌 bigint로 되어있음.
     @Enumerated(EnumType.STRING)
     public Side side;
-    @Constraints.Required @Column(length = 4000) @Size(max=4000)
+    @Lob @Constraints.Required
     public String contents;
     @Constraints.Required
     public Date createdDate;
