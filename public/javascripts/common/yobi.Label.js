@@ -65,6 +65,8 @@ yobi.Label = (function(htOptions){
         htVar.sTplLabel = htOptions.sTplLabel || '<div class="control-group"><label class="control-label" data-category="${category}">${category}</label></div>';
         htVar.sTplControls = htOptions.sTplControls || '<div class="controls label-group" data-category="${category}"></div>';
         htVar.sTplBtnLabelId = htOptions.sTplBtnLabelId || '<span class="issue-label ${labelCSS} ${activeClass}" data-labelId="${labelId}">${labelName}${deleteButton}</span>';
+        htVar.sTplLabelItem = $('#labelListItem').text();
+        htVar.sTplLabelCategoryItem = $('#labelCatetoryItem').text();
     }
 
     /**
@@ -175,18 +177,23 @@ yobi.Label = (function(htOptions){
         _addLabelIntoCategory(oLabel);
         _setActiveLabel(oLabel.id, oLabel.color);
         _addLabelForSettingGroup(oLabel);
+        $('input[name="labelName"]').val("");
     }
 
     function _addLabelForSettingGroup(oLabel) {
-        htElement.welAttachLabels.append(_makeNewSettingList(oLabel));
-        htElement.welDeleteLabels.append(_makeNewSettingList(oLabel));
-    }
-
-    function _makeNewSettingList(oLabel) {
-        var welLabelLink = $('<li/>').attr("data-value", oLabel.id).append(
-            $("<a/>").text(oLabel.category + ' - ' +oLabel.name)
-        );
-        return welLabelLink;
+        var sLabel;
+        var welAttachDivider = htElement.welAttachLabels.find('li[data-category="'+oLabel.category+'"].divider');
+        var welDeleteDivider = htElement.welDeleteLabels.find('li[data-category="'+oLabel.category+'"].divider');
+        
+        if(welAttachDivider.length === 0) {
+            sLabel = $yobi.tmpl(htVar.sTplLabelCatetoryItem, oLabel);
+            htElement.welAttachLabels.prepend(sLabel);
+            htElement.welDeleteLabels.prepend(sLabel);
+        } else {
+            sLabel = $yobi.tmpl(htVar.sTplLabelItem, oLabel);
+            welAttachDivider.before(sLabel);
+            welDeleteDivider.before(sLabel);
+        }
     }
 
     /**

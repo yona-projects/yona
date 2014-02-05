@@ -18,8 +18,18 @@
 
 <script type="text/x-jquery-tmpl" id="labelListItem">
 <li data-value="${id}" data-category="${category}">
-    <a><span class="issue-label active" data-labelId="${id}">${name}</span></a>
+    <a><span class="issue-label active list-label" data-labelId="${id}">${name}</span></a>
 </li>
+</script>
+
+<script id="labelCatetoryItem" type="text/x-jquery-tmpl">
+<li class="disabled" data-category="${category}"><span>${category}</span></li>
+<li data-value="${id}" data-category="${category}">
+    <a>
+        <span class="issue-label active list-label" data-labelid="${id}">${name}</span>
+    </a>
+</li>
+<li class="divider" data-category="${category}"></li>
 </script>
 
 <form id="mass-update-form" class="mass-update-form pull-left" action="@routes.IssueApp.massUpdate(project.owner, project.name)" method="post">
