@@ -315,6 +315,45 @@ $yobi = yobi.Common = (function(){
         return htVar.welHSC.text(sHTML).html();
     }
 
+    /**
+     * Get whether the file is image with MIME type, and filename extension.
+     * returns boolean or null if unavailable to determine result
+     *
+     * @param {Variant} vFile File object or HTMLElement
+     * @returns {Boolean|Null}
+     */
+    function isImageFile(vFile){
+        // if vFile is File Object
+        if(typeof window.File !== "undefined" && vFile instanceof window.File){
+            return (vFile.type.indexOf("image/") !== 0);
+        }
+
+        // if vFile is HTMLElement
+        var welFile = $(vFile);
+        var oFileList = welFile.prop("files");
+
+        if(oFileList && oFileList.length){
+            var bResult = true;
+
+            for(var i = 0, nLength = oFileList.length; i < nLength; i++){
+                bResult = bResult && isImageFile(oFileList[i]);
+            }
+
+            return bResult;
+        }
+
+        // if cannot find MIME type from File object
+        // get whether filename ends with extension looks like image file
+        // like as .gif, .bmp, .jpg, .jpeg, .png.
+        if(typeof welFile.val() === "string"){
+            htVar.rxImgExts = htVar.rxImgExts || /\.(gif|bmp|jpg|jpeg|png)$/i;
+            return htVar.rxImgExts.test(welFile.val());
+        }
+
+        // Unavailable to detect mimeType
+        return null;
+    }
+
     /* public Interface */
     return {
         "setScriptPath"   : setScriptPath,
@@ -330,7 +369,8 @@ $yobi = yobi.Common = (function(){
         "notify"    : notify,
         "nl2br"     : nl2br,
         "tmpl"      : processTpl,
-        "htmlspecialchars": htmlspecialchars
+        "htmlspecialchars": htmlspecialchars,
+        "isImageFile": isImageFile
     };
 })();
 

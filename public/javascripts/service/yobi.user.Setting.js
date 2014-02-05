@@ -87,7 +87,7 @@
          * @return {Boolean}
          */
         function _onAvatarBeforeUpload(htData){
-            if(htData.oFile && htData.oFile.type.indexOf("image/") !== 0){
+            if($yobi.isImageFile(htData.oFile) === false){
                 _onAvatarUploadError(Messages("user.avatar.onlyImage"));
                 return false;
             }
