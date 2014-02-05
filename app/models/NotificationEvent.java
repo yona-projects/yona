@@ -646,7 +646,7 @@ public class NotificationEvent extends Model {
     }
 
     private static String formatNewTitle(AbstractPosting posting) {
-        return String.format("[%s] %s (#%d)",
+        return String.format("[%s] %s (%s)",
                 posting.project.name, posting.title, getPrefixedNumber(posting));
     }
 
