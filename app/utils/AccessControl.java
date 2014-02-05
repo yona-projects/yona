@@ -1,5 +1,6 @@
 package utils;
 
+import controllers.UserApp;
 import models.Project;
 import models.ProjectUser;
 import models.User;
@@ -79,6 +80,7 @@ public class AccessControl {
      * 공개 프로젝트는 모든 사용자가 접근할 수 있다.
      * 사용자 및 사용자의 아바타는 그 사용자 본인만 갱신 혹은 삭제할 수 있다.
      * 프로젝트는 그 프로젝트의 관리자만이 갱신 혹은 삭제할 수 있다.
+     * 익명의 사용자는 지켜보기를 사용 할 수 없다. 비공개 프로젝트에서는 프로젝트 멤버만이 지켜보기를 사용 할 수 있다.
      *
      * @param user
      * @param resource
@@ -101,6 +103,13 @@ public class AccessControl {
 
             // anyone can read any resource which is not a project.
             return true;
+        }
+
+        if (operation == Operation.WATCH) {
+            if (resource.getType() == ResourceType.PROJECT) {
+                Project project = Project.find.byId(Long.valueOf(resource.getId()));
+                return project != null && project.isPublic ? !user.isAnonymous() : ProjectUser.isMember(user.id, project.id); 
+            }
         }
 
         // UPDATE, DELETE
@@ -180,6 +189,8 @@ public class AccessControl {
         case CLOSE:
         case REOPEN:
             return ProjectUser.isMember(user.id, project.id) || isEditableAsAuthor(user, resource);
+        case WATCH:
+            return project.isPublic ? !user.isAnonymous() : ProjectUser.isMember(user.id, project.id);
         default:
             // undefined
             return false;

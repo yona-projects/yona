@@ -59,9 +59,11 @@
         <a href="@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)" class="ybtn">@Messages("button.edit")</a>
         }
 
+        @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.WATCH)){
         <button id="watch-button" type="button" class="ybtn" data-toggle="button" data-watching="@if(post.getWatchers.contains(UserApp.currentUser())){true}else{false}">
             @if(post.getWatchers.contains(UserApp.currentUser())) { @Messages("project.unwatch") } else { @Messages("project.watch") }
         </button>
+        }
 	</div>
 
 	@** Comment **@

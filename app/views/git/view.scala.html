@@ -42,6 +42,7 @@
             </div>
 
             <div class="board-footer board-actrow">
+                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.WATCH)) {
                 <button id="watch-button" type="button" class="pull-right ybtn @if(pull.getWatchers.contains(UserApp.currentUser())) { ybtn-watching }" data-toggle="button">
                     @if(pull.getWatchers.contains(UserApp.currentUser())) {
                         @Messages("project.unwatch")
@@ -49,6 +50,7 @@
                         @Messages("project.watch")
                     }
                 </button>
+                }
                 <div id="actOnOpen" class="mr5 pull-right" style="@if(pull.isMerging == false && pull.isOpen()){display:block;}else{display:none;}">
                     @if(project.isUsingReviewerCount && isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT)) {
                         @if(pull.isReviewedBy(UserApp.currentUser())) {
