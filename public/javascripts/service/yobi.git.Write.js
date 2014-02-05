@@ -97,14 +97,20 @@
             htVar.htUserInput[sInputId] = true;
         }
 
-        function _refreshNewPullRequestForm() {
+        /**
+         * 프로젝트 선택이 바뀌면 페이지를 새로고침
+         *
+         * @private
+         */
+        function _refreshNewPullRequestForm(){
             var htData = {};
 
             htData.fromProjectId = htVar.oFromProject.getValue();
             htData.toProjectId = htVar.oToProject.getValue();
 
-            location.href = htVar.sFormURL + "?fromProjectId=" + htData.fromProjectId + "&toProjectId=" + htData.toProjectId;
+            document.location.href = htVar.sFormURL + "?fromProjectId=" + htData.fromProjectId + "&toProjectId=" + htData.toProjectId;
         }
+
         /**
          * 브랜치 선택이 바뀌면 폼 내용을 변경한다
          * request to reload pullRequestForm
@@ -168,9 +174,9 @@
         /**
          * onFailed to reloadForm
          */
-        function _onErrorReloadForm(){
+        function _onErrorReloadForm(oRes){
             _stopSpinner();
-            $yobi.showAlert(Messages("error.internalServerError"));
+            $yobi.alert(Messages("pullRequest.error.newPullRequestForm", oRes.status, oRes.statusText));
         }
 
         /**

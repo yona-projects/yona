@@ -144,9 +144,9 @@
                     welTarget.prop("checked", bChecked);
                     _updateTimeline();
                 },
-               "fOnError": function(){
+               "fOnError": function(oRes){
                     welTarget.prop("checked", !bChecked);
-                    _onErrorRequest();
+                    _onErrorRequest(Messages("issue.update.state"), oRes);
                }
             });
         }
@@ -164,7 +164,9 @@
                    htVar.oAssignee.selectItem("li[data-id=" + sValue + "]");
                    _updateTimeline();
                },
-               "fOnError": _onErrorRequest
+               "fOnError": function(oRes){
+                   _onErrorRequest(Messages("issue.update.assignee"), oRes);
+               }
             });
         }
         
@@ -179,7 +181,9 @@
                "fOnLoad" : function(){
                    $yobi.notify(Messages("issue.update.milestone"), 3000);
                },
-               "fOnError": _onErrorRequest
+               "fOnError": function(oRes){
+                   _onErrorRequest(Messages("issue.update.milestone"), oRes);
+               }
             });
         }
         
@@ -205,9 +209,13 @@
         
         /**
          * 이슈 정보 업데이트 호출 실패시
+         *
+         * @param sMessage
+         * @param oRes
+         * @private
          */
-        function _onErrorRequest(){
-            $yobi.alert(Messages("error.internalServerError"));
+        function _onErrorRequest(sMessage, oRes){
+            $yobi.notify(Messages("error.failedTo", sMessage, oRes.status, oRes.statusText));
         }
         
         /**

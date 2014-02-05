@@ -345,7 +345,7 @@ yobi.Attachments = function(htOptions) {
             htElements.welFileListHelp.hide();
         }
 
-        $yobi.notify(Messages("common.attach.error", htData.oRes.status, htData.oRes.statusText));
+        $yobi.notify(Messages("common.attach.error.upload", htData.oRes.status, htData.oRes.statusText));
         _clearLinkInTextarea(_getTempLinkText(htData.nSubmitId + ".png"));
     }
 
@@ -389,8 +389,8 @@ yobi.Attachments = function(htOptions) {
                     htElements.welFileListHelp.hide();
                 }
             },
-            "fOnError": function(){
-                $yobi.alert(Messages("error.internalServerError"));
+            "fOnError": function(oRes){
+                $yobi.notify(Messages("common.attach.error.delete", oRes.status, oRes.statusText));
             }
        });
     }
