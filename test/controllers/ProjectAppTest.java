@@ -5,8 +5,10 @@ import models.Project;
 import models.PushedBranch;
 import models.User;
 
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ObjectNode;
+import org.fest.assertions.Condition;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -29,6 +31,8 @@ import static play.test.Helpers.*;
 
 public class ProjectAppTest {
     protected static FakeApplication app;
+    private String acceptHtml = "text/html";
+    private String acceptJson = "application/json";
 
     @BeforeClass
     public static void beforeClass() {
@@ -199,5 +203,183 @@ public class ProjectAppTest {
         assertThat(status(result)).isEqualTo(OK);
         assertThat(PushedBranch.find.byId(id)).isNull();
 
+    }
+
+    @Test
+    public void projectSearchWithNoAcceptHeader() {
+        Result result = callAction(routes.ref.ProjectApp.projects("", 1), fakeRequest());
+        assertThat(status(result)).isEqualTo(NOT_ACCEPTABLE);
+    }
+
+    @Test
+    public void adminCanSearchPrivateProjects() {
+        // Given
+        User admin = User.find.byId(1L);
+        Project project = Project.findByOwnerAndProjectName("laziel", "Jindo");
+
+        // When
+        // Then
+        testProjectSearch(admin, project, acceptHtml, contains(routes.ProjectApp.project(project.owner,project.name).url()));
+    }
+
+    @Test
+    public void adminCanSearchPrivateProjectsAsJson() {
+        // Given
+        User admin = User.find.byId(1L);
+        Project project = Project.findByOwnerAndProjectName("laziel", "Jindo");
+
+        // When
+        // Then
+        testProjectSearch(admin, project, acceptJson, contains(project.owner + "/" + project.name));
+    }
+
+    @Test
+    public void adminCanSearchPublicProjects() {
+        // Given
+        User admin = User.find.byId(1L);
+        Project project = Project.findByOwnerAndProjectName("yobi", "projectYobi");
+
+        // When
+        // Then
+        testProjectSearch(admin, project, acceptHtml, contains(routes.ProjectApp.project(project.owner,project.name).url()));
+    }
+
+    @Test
+    public void adminCanSearchPublicProjectsAsJson() {
+        // Given
+        User admin = User.find.byId(1L);
+        Project project = Project.findByOwnerAndProjectName("yobi", "projectYobi");
+
+        // When
+        // Then
+        testProjectSearch(admin, project, acceptJson, contains(project.owner + "/" + project.name));
+    }
+
+    @Test
+    public void memberCannotSearchPrivateProjects() {
+        // Given
+        User member = User.find.byId(3L);
+        Project project = Project.findByOwnerAndProjectName("laziel", "Jindo");
+
+        // When
+        // Then
+        testProjectSearch(member, project, acceptHtml, doesNotContains(routes.ProjectApp.project(project.owner,project.name).url()));
+    }
+
+    @Test
+    public void memberCannotSearchPrivateProjectsAsJson() {
+        // Given
+        User member = User.find.byId(3L);
+        Project project = Project.findByOwnerAndProjectName("laziel", "Jindo");
+
+        // When
+        // Then
+        testProjectSearch(member, project, acceptJson, doesNotContains(project.owner + "/" + project.name));
+    }
+
+    @Test
+    public void memberCanSearchPublicProjects() {
+        // Given
+        User member = User.find.byId(2L);
+        Project project = Project.findByOwnerAndProjectName("yobi", "projectYobi");
+
+        // When
+        // Then
+        testProjectSearch(member, project, acceptHtml, contains(routes.ProjectApp.project(project.owner,project.name).url()));
+    }
+
+    @Test
+    public void memberCanSearchPublicProjectsAsJson() {
+        // Given
+        User member = User.find.byId(2L);
+        Project project = Project.findByOwnerAndProjectName("yobi", "projectYobi");
+
+        // When
+        // Then
+        testProjectSearch(member, project, acceptJson, contains(project.owner + "/" + project.name));
+    }
+
+    @Test
+    public void anonymousCannotSearchPrivateProjects() {
+        // Given
+        User anonymous = User.anonymous;
+        Project project = Project.findByOwnerAndProjectName("laziel", "Jindo");
+
+        // When
+        // Then
+        testProjectSearch(anonymous, project, acceptHtml, doesNotContains(routes.ProjectApp.project(project.owner,project.name).url()));
+    }
+
+    @Test
+    public void anonymousCannotSearchPrivateProjectsAsJson() {
+        // Given
+        User anonymous = User.anonymous;
+        Project project = Project.findByOwnerAndProjectName("laziel", "Jindo");
+
+        // When
+        // Then
+        testProjectSearch(anonymous, project, acceptJson, doesNotContains(project.owner + "/" + project.name));
+    }
+
+    @Test
+    public void anonymousCanSearchPublicProjects() {
+        // Given
+        User anonymous = User.anonymous;
+        Project project = Project.findByOwnerAndProjectName("yobi", "projectYobi");
+
+        // When
+        // Then
+        testProjectSearch(anonymous, project, acceptHtml, contains(routes.ProjectApp.project(project.owner,project.name).url()));
+    }
+
+    @Test
+    public void anonymousCanSearchPublicProjectsAsJson() {
+        // Given
+        User anonymous = User.anonymous;
+        Project project = Project.findByOwnerAndProjectName("yobi", "projectYobi");
+
+        // When
+        // Then
+        testProjectSearch(anonymous, project, acceptJson, contains(project.owner + "/" + project.name));
+    }
+
+    private void testProjectSearch(User user, Project project, String accept, Condition<String> condition) {
+        // Given
+        String query = project.name;
+
+        // When
+        Result result = callAction(
+                routes.ref.ProjectApp.projects(query, 1),
+                fakeRequest().withHeader(Http.HeaderNames.ACCEPT, accept).withSession(
+                        UserApp.SESSION_USERID, user.id.toString()));
+
+        // Then
+        assertThat(status(result)).isEqualTo(OK);
+        assertThat(contentType(result)).isEqualTo(accept);
+        assertThat(contentAsString(result)).is(condition);
+    }
+
+    private Condition<String> contains(final String expected) {
+        return new Condition<String>("contains '" + expected + "'") {
+            @Override
+            public boolean matches(String actual) {
+                if (actual == null) {
+                    return false;
+                }
+                return actual.contains(expected);
+            }
+        };
+    }
+
+    private Condition<String> doesNotContains(final String expected) {
+        return new Condition<String>("does not contains '" + expected + "'") {
+            @Override
+            public boolean matches(String actual) {
+                if (actual == null) {
+                    return false;
+                }
+                return !actual.contains(expected);
+            }
+        };
     }
 }
