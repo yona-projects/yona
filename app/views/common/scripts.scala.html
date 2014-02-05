@@ -105,26 +105,34 @@
             "sUploadURL": "@routes.AttachmentApp.uploadFile"
         });
 
-        // ajax for issue link detail)
-        $('.issueLink').hover(
-            function handleIn() {
-                var e=$(this);
-                e.tooltip ( { title : 'loading..' } ).tooltip('show');
-                $.getJSON(e.attr('href'),function(data) {
-                    if( e.tooltip ) e.tooltip('hide');
-                    e.popover({
-                        title: data.title,
-                        content: data.body,
-                        placement: 'right',
-                        html: 'true',
-                        trigger: 'hover'}
-                    ).popover('show');
-                });
+        // ajax for issue link detail(ui.IssuePreview)
+        $(document).on("mouseenter", ".issueLink", function(){
+            var welTarget = $(this);
 
-            }, function handleOut(){
-                var e=$(this);
-                e.tooltip('destroy');
-                e.popover('hide');
+            welTarget.tooltip({
+                "title": "@Messages("site.massMail.loading")",
+                "placement": "right"
+            }).tooltip("show");
+
+            $.getJSON(welTarget.attr("href"), function(htData){
+                if(welTarget.tooltip){
+                    welTarget.tooltip("hide");
+                }
+
+                welTarget.popover({
+                    "title"    : htData.title,
+                    "content"  : htData.body,
+                    "html"     : true,
+                    "placement": "right",
+                    "trigger"  : "hover"
+                }).popover("show");
             });
+        });
+
+        $(document).on("mouseleave", ".issueLink", function(){
+            var welTarget = $(this);
+            welTarget.tooltip("destroy");
+            welTarget.popover("hide");
+        });
     });
 </script>

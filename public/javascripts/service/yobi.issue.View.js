@@ -20,8 +20,8 @@
          * @param {Hash Table} htOptions
          */
         function _init(htOptions){
-            _initVar(htOptions || {});
             _initElement(htOptions || {});
+            _initVar(htOptions || {});
             _attachEvent();
 
             _initFileUploader();
@@ -29,6 +29,24 @@
             _setLabelTextColor();
             
             _setTimelineUpdateTimer();
+        }
+
+        /**
+         * initialize HTML Element variables
+         */
+        function _initElement(htOptions){
+            htElement.welUploader = $("#upload");
+            htElement.welTextarea = $("#comment-editor");
+
+            htElement.welLabels = $('.issue-label');
+            htElement.welBtnWatch = $('#watch-button');
+
+            htElement.welIssueUpdateForm = htOptions.welIssueUpdateForm;
+            htElement.sIssueCheckBoxesSelector = htOptions.sIssueCheckBoxesSelector;
+
+            htElement.welChkIssueOpen = $("#issueOpen");
+            htElement.welTimelineWrap = $("#timeline");
+            htElement.welTimelineList = htElement.welTimelineWrap.find(".timeline-list");
         }
 
         /**
@@ -43,32 +61,17 @@
             htVar.sWatchUrl   = htOptions.sWatchUrl;
             htVar.sUnwatchUrl = htOptions.sUnwatchUrl;
             htVar.sTimelineUrl = htOptions.sTimelineUrl;
-            
+
             htVar.oAssignee  = new yobi.ui.Dropdown({"elContainer": htOptions.welAssignee});
             htVar.oMilestone = new yobi.ui.Dropdown({"elContainer": htOptions.welMilestone});
-            
+
+            // for auto-update
             htVar.bTimelineUpdating = false;
             htVar.nTimelineUpdateTimer = null;
             htVar.nTimelineUpdatePeriod = htOptions.nTimelineUpdatePeriod || 60000; // 60000ms = 60s = 1m
-            htVar.sTimelineHTML = "";
-        }
-
-        /**
-         * initialize HTML Element variables
-         */
-        function _initElement(htOptions){
-            htElement.welUploader = $("#upload");
-            htElement.welTextarea = $("#comment-editor");
-
-            htElement.welLabels = $('.issue-label');
-            htElement.welBtnWatch = $('#watch-button');
-            
-            htElement.welIssueUpdateForm = htOptions.welIssueUpdateForm;
-            htElement.sIssueCheckBoxesSelector = htOptions.sIssueCheckBoxesSelector;
-            
-            htElement.welChkIssueOpen = $("#issueOpen");
-            htElement.welTimeline = $("#timeline");
-            htVar.sTimelineHTML = htElement.welTimeline.html();
+            htVar.sTimelineHTML = htElement.welTimelineList.html();
+            htVar.nTimelineItems = _countTimelineItems(); // 타임라인 항목 갯수
+            htVar.bOnFocusTextarea = false; // 댓글 작성폼에 포커스가 있는지 여부
         }
 
         /**
@@ -82,8 +85,32 @@
             htElement.welChkIssueOpen.change(_onChangeIssueOpen);
             htVar.oMilestone.onChange(_onChangeMilestone);
             htVar.oAssignee.onChange(_onChangeAssignee);
+
+            // 타임라인 자동업데이트를 위한 정보
+            if(htElement.welTextarea.length > 0){
+                htElement.welTextarea.on({
+                   "focus": _onFocusCommentTextarea,
+                   "blur" : _onBlurCommentTextarea
+                });
+            }
         }
-        
+
+        /**
+         * on focus textarea
+         * @private
+         */
+        function _onFocusCommentTextarea(){
+            htVar.bOnFocusTextarea = true;
+        }
+
+        /**
+         * on blur textarea
+         * @private
+         */
+        function _onBlurCommentTextarea(){
+            htVar.bOnFocusTextarea = false;
+        }
+
         /**
          * 지켜보기 버튼 클릭시 이벤트 핸들러
          * 
@@ -201,9 +228,11 @@
 
         /**
          * initialize fileDownloader
+         *
+         * @param {Wrapped Array} waTarget (optional)
          */
-        function _initFileDownloader(){
-            $(".attachments").each(function(i, elContainer){
+        function _initFileDownloader(waTarget){
+            (waTarget || $(".attachments")).each(function(i, elContainer){
                 if(!$(elContainer).data("isYobiAttachment")){
                     (new yobi.Attachments({"elContainer": elContainer}));
                 }
@@ -234,37 +263,124 @@
             if(htVar.bTimelineUpdating){
                 return;
             }
-            
+
             htVar.bTimelineUpdating = true;
             
-            $.get(htVar.sTimelineUrl, function(sResult){
-                if(sResult != htVar.sTimelineHTML){ // update only HTML has changed
-                    htVar.sTimelineHTML = sResult;
-                    htElement.welTimeline.html(sResult); // update timeline HTML
-                    yobi.Markdown.enableMarkdown(htElement.welTimeline.find("[markdown]")); // enable markdown
-                    htElement.welTimeline.find("[data-request-method]").requestAs(); // delete button
-                    _initFileDownloader(); // attachments on comment
-                }
-            }).always(function(){
+            $.get(htVar.sTimelineUrl, _onLoadTimeline).always(function(){
                 htVar.bTimelineUpdating = false;
             });
         }
-        
+
+        /**
+         * On load IssueTimeline
+         * @param sResult HTML String
+         * @private
+         */
+        function _onLoadTimeline(sResult){
+            if(sResult === htVar.sTimelineHTML){ // update only HTML has changed
+                return;
+            }
+
+            _fixTimelineHeight();
+
+            // 미리 그려서
+            var welTimelineList = _getRenderedTimeline(sResult);
+
+            // 첨부파일, 마크다운 렌더링 등에 시간이 걸리므로 약간의 시간차를 두고
+            setTimeout(function(){
+                // 한 번에 DOM Element 갈아끼우기
+                htElement.welTimelineList.replaceWith(welTimelineList);
+                htElement.welTimelineList = welTimelineList;
+                htVar.sTimelineHTML = sResult;
+
+                // 렌더링 이후 타임라인 항목 갯수가 변했나? = 영역의 높이가 달라지나?
+                var bChanged= (htVar.nTimelineItems !== _countTimelineItems());
+                var bTimelineChangedOnTyping = htVar.bOnFocusTextarea && bChanged;
+
+                // 댓글 입력 도중 타임라인 높이가 변경되었으면
+                // 댓글 입력폼과 화면 스크롤 간의 차이를 기억해둔다
+                var nScrollGap = bTimelineChangedOnTyping ?
+                    (htElement.welTextarea.offset().top - $(document).scrollTop()) : 0;
+
+                _unfixTimelineHeight();
+
+                // 입력 중인 댓글 폼이 계속 원래 보던 위치에 보이도록 화면 스크롤
+                if(bTimelineChangedOnTyping){
+                    $(document).scrollTop(htElement.welTextarea.offset().top - nScrollGap);
+                }
+            }, 500);
+        }
+
+        /**
+         * fix timeline height with current height
+         * @private
+         */
+        function _fixTimelineHeight(){
+            htElement.welTimelineWrap.height(htElement.welTimelineWrap.height());
+        }
+
+        /**
+         * unfix timeline height
+         * @private
+         */
+        function _unfixTimelineHeight(){
+            htElement.welTimelineWrap.height("");
+            htVar.nTimelineItems = _countTimelineItems();
+        }
+
+        /**
+         * Get issue timeline element which filled with specified HTML String
+         * @param sHTML
+         * @returns {*}
+         * @private
+         */
+        function _getRenderedTimeline(sHTML){
+            var welTimelineList = htElement.welTimelineList.clone();
+            welTimelineList.html(sHTML);
+
+            _initFileDownloader(welTimelineList.find(".attachments"));
+            yobi.Markdown.enableMarkdown(welTimelineList.find("[markdown]"));
+            welTimelineList.find("[data-request-method]").requestAs(); // delete button
+            welTimelineList.find("[data-toggle=tooltip]").tooltip(); // bootstrap tooltip
+
+            return welTimelineList;
+        }
+
         /**
          * update IssueTimeline automatically 
          * with interval timer
          */
         function _setTimelineUpdateTimer(){
-            if(htVar.nTimelineUpdateTimer != null){
-                clearInterval(htVar.nTimelineUpdateTimer);
-                htVar.nTimelineUpdateTimer = null;
-            }
-            
+            _unsetTimelineUpdateTimer();
+
+            htVar.nTimelineItems = _countTimelineItems();
             htVar.nTimelineUpdateTimer = setInterval(function(){
                 if(htVar.bTimelineUpdating !== true){
                     _updateTimeline();
                 }
             }, htVar.nTimelineUpdatePeriod);
+        }
+
+        /**
+         * Unset IssueTimeline update timer
+         * @private
+         */
+        function _unsetTimelineUpdateTimer(){
+            if(htVar.nTimelineUpdateTimer != null){
+                clearInterval(htVar.nTimelineUpdateTimer);
+            }
+
+            htVar.nTimelineUpdateTimer = null;
+        }
+
+        /**
+         * Count items in timeline
+         * for detect timeline has updated
+         * @returns {*}
+         * @private
+         */
+        function _countTimelineItems(){
+            return htElement.welTimelineList.find("ul.comments > li").length;
         }
 
         // initialize

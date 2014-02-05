@@ -229,7 +229,9 @@
     @** Comment **@
     <div id="comments" class="board-comment-wrap">
         <div id="timeline">
+            <div class="timeline-list">
             @partial_comments(project, issue)
+            </div>
         </div>
         @common.commentForm(project, ResourceType.ISSUE_COMMENT, routes.IssueApp.newComment(project.owner, project.name, issue.getNumber).toString())
     </div>
