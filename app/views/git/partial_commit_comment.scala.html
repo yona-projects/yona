@@ -42,7 +42,7 @@
                   </span>
                   <span class="ago">
                       @momentFromNow(comment.createdDate, lang.language) -
-                      <a @if(PullRequestCommit.State.PRIOR == state){class="outdated"} href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, comment.commitId)?#comment-@comment.id">
+                      <a @if(PullRequestCommit.State.PRIOR == state){class="outdated"} href="@routes.PullRequestApp.specificChange(pull.toProject.owner, pull.toProject.name, pull.number, comment.commitId)?#comment-@comment.id">
                           @if(comment.hasLocation()) {
                               @Messages("pullRequest.code.commented.on.from", shortId(comment.commitId), comment.path + ":" + comment.line)
                           } else {
@@ -73,9 +73,9 @@
                   </span>
                   <span class="ago">
                   @if(PullRequestCommit.State.PRIOR == state) {
-                      @momentFromNow(reply.createdDate, lang.language) - <a class="outdated" href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, reply.commitId)?#comment-@reply.id">@Messages("pullRequest.code.replied")</a>
+                      @momentFromNow(reply.createdDate, lang.language) - <a class="outdated" href="@routes.PullRequestApp.specificChange(pull.toProject.owner, pull.toProject.name, pull.number, reply.commitId)?#comment-@reply.id">@Messages("pullRequest.code.replied")</a>
                   } else {
-                      @momentFromNow(reply.createdDate, lang.language) - <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, reply.commitId)?#comment-@reply.id">@Messages("pullRequest.code.replied")</a>
+                      @momentFromNow(reply.createdDate, lang.language) - <a href="@routes.PullRequestApp.specificChange(pull.toProject.owner, pull.toProject.name, pull.number, reply.commitId)?#comment-@reply.id">@Messages("pullRequest.code.replied")</a>
                   }
                   </span>
                   @if(isAllowed(UserApp.currentUser(), reply.asResource(), Operation.DELETE)){

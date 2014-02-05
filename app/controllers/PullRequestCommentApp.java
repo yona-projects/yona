@@ -1,15 +1,15 @@
 package controllers;
 
-import models.Attachment;
-import models.NotificationEvent;
-import models.PullRequest;
-import models.PullRequestComment;
+import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
+import org.tmatesoft.svn.core.SVNException;
 import play.data.Form;
 import play.db.ebean.Transactional;
+import play.mvc.Call;
 import play.mvc.Controller;
 import play.mvc.Result;
+import playRepository.RepositoryService;
 import utils.AccessControl;
 import utils.Constants;
 import utils.ErrorViews;
@@ -19,41 +19,87 @@ import java.net.URL;
 
 import controllers.annotation.IsCreatable;
 
+import javax.servlet.ServletException;
+
+import views.html.error.notfound;
+
 /**
  * {@link models.PullRequestComment} CRUD 컨트롤러
  *
  */
 public class PullRequestCommentApp extends Controller {
 
-    @Transactional
     @IsCreatable(ResourceType.PULL_REQUEST_COMMENT)
-    public static Result newComment(String ownerName, String projectName, Long pullRequestId) throws IOException {
+    public static Result newComment(String ownerName, String projectName, Long pullRequestId,
+                                    String commitId) throws IOException, ServletException,
+            SVNException {
+        Form<CodeRange> codeRangeForm = new Form<>(CodeRange.class).bindFromRequest();
+
+        Form<ReviewComment> reviewCommentForm = new Form<>(ReviewComment.class)
+                .bindFromRequest();
+
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+
+        if (reviewCommentForm.hasErrors()) {
+            return badRequest(ErrorViews.BadRequest.render("error.validation", project));
+        }
+
         PullRequest pullRequest = PullRequest.findById(pullRequestId);
 
         if (pullRequest == null) {
-            return notFound();
+            return notFound(notfound.render("error.notfound", project, request().path()));
         }
 
-        String referer = request().getHeader("Referer");
+        ReviewComment comment = reviewCommentForm.get();
+        comment.author = new UserIdent(UserApp.currentUser());
+        if (comment.thread == null) {
+            if (codeRangeForm.errors().isEmpty()) {
+                CodeCommentThread thread = new CodeCommentThread();
 
-        Form<PullRequestComment> commentForm = new Form<>(PullRequestComment.class).bindFromRequest();
-        if (commentForm.hasErrors()) {
-            flash(Constants.WARNING, "post.comment.empty");
-            play.Logger.info("Failed to submit a comment: " + commentForm.errors());
-            return redirect(referer);
+                if (commitId != null) {
+                    thread.commitId = commitId;
+                } else {
+                    thread.commitId = pullRequest.mergedCommitIdTo;
+                    thread.prevCommitId = pullRequest.mergedCommitIdFrom;
+                }
+
+                User codeAuthor = RepositoryService
+                        .getRepository(project)
+                        .getCommit(thread.commitId)
+                        .getAuthor();
+                if (!codeAuthor.isAnonymous()) {
+                    thread.codeAuthors.add(codeAuthor);
+                }
+
+                thread.codeRange = codeRangeForm.get();
+
+                comment.thread = thread;
+            } else {
+                // non-range
+                NonRangedCodeCommentThread thread = new NonRangedCodeCommentThread();
+                thread.commitId = commitId;
+                comment.thread = thread;
+            }
+            comment.thread.project = project;
+            comment.thread.state = CommentThread.ThreadState.OPEN;
+            comment.thread.createdDate = comment.createdDate;
+            comment.thread.author = comment.author;
+            pullRequest.commentThreads.add(comment.thread);
+        } else {
+            comment.thread = CommentThread.find.byId(comment.thread.id);
         }
+        comment.save();
+        pullRequest.update();
 
-        PullRequestComment newComment = commentForm.get();
-        newComment.authorInfos(UserApp.currentUser());
-        newComment.pullRequest = pullRequest;
-        newComment.save();
+        Attachment.moveAll(UserApp.currentUser().asResource(), comment.asResource());
 
-        // Attach all of the files in the current user's temporary storage to this comment.
-        Attachment.moveAll(UserApp.currentUser().asResource(), newComment.asResource());
+        Call toView =
+                routes.PullRequestApp.pullRequestChanges(ownerName, projectName, pullRequest.number);
+        String urlToView = toView + "#comment-" + comment.id;
 
-        String url = new URL(referer).getPath() + "#comment-" + newComment.id;
-        NotificationEvent.afterNewComment(UserApp.currentUser(), pullRequest, newComment);
-        return redirect(url);
+        NotificationEvent.afterNewComment(UserApp.currentUser(), pullRequest, comment, urlToView);
+
+        return redirect(urlToView);
     }
 
     @Transactional

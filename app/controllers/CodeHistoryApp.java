@@ -220,21 +220,11 @@ public class CodeHistoryApp extends Controller {
         Attachment.moveAll(UserApp.currentUser().asResource(), comment.asResource());
 
         Call toView = routes.CodeHistoryApp.show(project.owner, project.name, commitId);
-        toView = backToThePullRequestCommitView(toView);
 
         // The below lines should be refactored using RouteUtil.
         String urlToView = toView + "#comment-" + comment.id;
         NotificationEvent.afterNewCommitComment(project, comment, commitId, urlToView);
         return redirect(urlToView);
-    }
-
-    public static Call backToThePullRequestCommitView(Call toView) {
-        String referer = request().getHeader("Referer");
-        if(PullRequestCommit.isValid(referer)) {
-            PullRequestCommit prc = new PullRequestCommit(referer);
-            toView = routes.PullRequestApp.commitView(prc.getProjectOwner(), prc.getProjectName(), prc.getPullRequestNumber(), prc.getCommitId());
-        }
-        return toView;
     }
 
     @With(NullProjectCheckAction.class)
@@ -245,7 +235,6 @@ public class CodeHistoryApp extends Controller {
         codeComment.delete();
 
         Call toView = routes.CodeHistoryApp.show(ownerName, projectName, commitId);
-        toView = backToThePullRequestCommitView(toView);
 
         return redirect(toView);
     }

@@ -324,18 +324,28 @@ object TemplateHelper {
 
     def shortId(commitId: String) = commitId.substring(0, Math.min(7, commitId.size))
 
-    @tailrec def renderCommentsOnPullRequest(pull: PullRequest, html: play.api.templates.Html, comments: List[TimelineItem]): play.api.templates.Html = {
-      val remains = comments.head match {
-        case (event: PullRequestEvent) =>
-          html += partial_pull_request_event(pull, event)
-          comments.tail
+    @tailrec def renderNonRangedThreads(threads: List[models.CommentThread], commitId: String, html: play.api.templates.Html): play.api.templates.Html =
+      threads match {
+        case head :: tail =>
+          head match {
+            case (thread: models.NonRangedCodeCommentThread)
+              if commitId == null || commitId == thread.commitId => html += partial_comment_thread(thread)
+            case _ => ;
+          }
+          renderNonRangedThreads(tail, commitId, html)
+        case _ => html
       }
-      if (remains.isEmpty) {
-        html
-      } else {
-        renderCommentsOnPullRequest(pull, html, remains)
+
+    @tailrec def renderEventsOnPullRequest(pull: PullRequest, html: play.api.templates.Html, comments: List[TimelineItem]): play.api.templates.Html =
+      comments match {
+        case head :: tail =>
+          head match {
+            case (event: PullRequestEvent) => html += partial_pull_request_event(pull, event)
+            case _ => ;
+          }
+          renderEventsOnPullRequest(pull, html, tail)
+        case _ => html
       }
-    }
   }
 
   object CodeBrowser {

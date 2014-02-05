@@ -473,22 +473,6 @@ public class PullRequestApp extends Controller {
 
     /**
      * {@code userName}과 {@code projectName}에 해당하는 프로젝트로 들어온
-     * {@code pullRequestId}에 해당하는 코드 요청의 커밋 목록을 조회한다.
-     *
-     * @param userName
-     * @param projectName
-     * @param pullRequestNumber
-     * @return
-     */
-    @IsAllowed(value = Operation.READ, resourceType = ResourceType.PULL_REQUEST)
-    public static Result pullRequestCommits(String userName, String projectName, long pullRequestNumber) {
-        Project project = Project.findByOwnerAndProjectName(userName, projectName);
-        PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
-        return ok(viewCommits.render(project, pullRequest));
-    }
-
-    /**
-     * {@code userName}과 {@code projectName}에 해당하는 프로젝트로 들어온
      * {@code pullRequestId}에 해당하는 코드 요청의 변경내역을 조회한다.
      *
      * @param userName
@@ -497,10 +481,17 @@ public class PullRequestApp extends Controller {
      * @return
      */
     @IsAllowed(value = Operation.READ, resourceType = ResourceType.PULL_REQUEST)
-    public static Result pullRequestChanges(String userName, String projectName, long pullRequestNumber) {
+    public static Result pullRequestChanges(String userName, String projectName,
+                                            long pullRequestNumber) {
+        return specificChange(userName, projectName, pullRequestNumber, null);
+    }
+
+    @IsAllowed(value = Operation.READ, resourceType = ResourceType.PULL_REQUEST)
+    public static Result specificChange(String userName, String projectName,
+                                            long pullRequestNumber, String commitId) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
-        return ok(viewChanges.render(project, pullRequest));
+        return ok(viewChanges.render(project, pullRequest, commitId));
     }
 
     /**
@@ -717,45 +708,6 @@ public class PullRequestApp extends Controller {
 
         return redirect(routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, pullRequestNumber));
     }
-
-    /**
-     * {@code pullRequestId}에 해당하는 코드 보내기 요청의 {@code commitId}의 Diff를 보여준다.
-     *
-     * @param userName
-     * @param projectName
-     * @param pullRequestNumber
-     * @param commitId
-     * @return
-     * @throws IOException
-     * @throws ServletException
-     * @throws GitAPIException
-     * @throws SVNException
-     */
-    @Transactional
-    @IsAllowed(Operation.READ)
-    public static Result commitView(String userName, String projectName, Long pullRequestNumber, String commitId) throws GitAPIException, SVNException, IOException, ServletException {
-        Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
-        PullRequest pullRequest = PullRequest.findOne(toProject, pullRequestNumber);
-
-        Project project = pullRequest.fromProject;
-
-        List<FileDiff> fileDiffs = RepositoryService.getRepository(project).getDiff(commitId);
-        Commit commit = RepositoryService.getRepository(project).getCommit(commitId);
-        Commit parentCommit = RepositoryService.getRepository(project).getParentCommitOf(commitId);
-
-        if (fileDiffs == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound", project));
-        }
-
-        List<CommitComment> comments = CommitComment.find.where().eq("commitId",
-                commitId).eq("project.id", project.id).order("createdDate").findList();
-
-        List<CodeCommentThread> threads = CodeCommentThread.findByCommitId
-                (CodeCommentThread.find, project, commitId);
-
-        return ok(diff.render(pullRequest, commit, parentCommit, fileDiffs, threads));
-    }
-
 
     /**
      * {@link PullRequest}를 만들어 보내기 전에 프로젝트와 현재 사용자의 권한을 검증한다.

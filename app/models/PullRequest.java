@@ -1006,7 +1006,8 @@ public class PullRequest extends Model implements ResourceConvertible {
      * @throws IOException
      * @throws GitAPIException
      */
-    public List<CodeCommentThread> getCodeCommentThreadsForChanges() throws IOException, GitAPIException {
+    public List<CodeCommentThread> getCodeCommentThreadsForChanges(String commitId) throws
+            IOException, GitAPIException {
         List<CodeCommentThread> result = new ArrayList<>();
         for(CommentThread commentThread : commentThreads) {
             // Include CodeCommentThread only
@@ -1016,26 +1017,32 @@ public class PullRequest extends Model implements ResourceConvertible {
 
             CodeCommentThread codeCommentThread = (CodeCommentThread) commentThread;
 
-            // Exclude threads on commit
-            if (codeCommentThread.isCommitComment()) {
-                continue;
-            }
+            if (commitId != null) {
+                if (codeCommentThread.commitId.equals(commitId)) {
+                    result.add(codeCommentThread);
+                }
+            } else {
+                // Exclude threads on specific commit
+                if (codeCommentThread.isCommitComment()) {
+                    continue;
+                }
 
-            // Include threads which are not outdated certainly.
-            if (mergedCommitIdFrom.equals(codeCommentThread.prevCommitId) && mergedCommitIdTo
-                    .equals(codeCommentThread.commitId)) {
-                result.add(codeCommentThread);
-                continue;
-            }
+                // Include threads which are not outdated certainly.
+                if (mergedCommitIdFrom.equals(codeCommentThread.prevCommitId) && mergedCommitIdTo
+                        .equals(codeCommentThread.commitId)) {
+                    result.add(codeCommentThread);
+                    continue;
+                }
 
-            // Include the other non-outdated threads
-            Repository mergedRepository = getMergedRepository();
-            if (noChangesBetween(mergedRepository,
-                mergedCommitIdFrom, mergedRepository, codeCommentThread.prevCommitId,
-                    codeCommentThread.codeRange.path) && noChangesBetween(mergedRepository,
-                    mergedCommitIdTo, mergedRepository, codeCommentThread.commitId,
-                    codeCommentThread.codeRange.path)) {
-                result.add(codeCommentThread);
+                // Include the other non-outdated threads
+                Repository mergedRepository = getMergedRepository();
+                if (noChangesBetween(mergedRepository,
+                        mergedCommitIdFrom, mergedRepository, codeCommentThread.prevCommitId,
+                        codeCommentThread.codeRange.path) && noChangesBetween(mergedRepository,
+                        mergedCommitIdTo, mergedRepository, codeCommentThread.commitId,
+                        codeCommentThread.codeRange.path)) {
+                    result.add(codeCommentThread);
+                }
             }
         }
         return result;
@@ -1049,6 +1056,9 @@ public class PullRequest extends Model implements ResourceConvertible {
      * @throws IOException
      */
     public List<FileDiff> getDiff(String commitId) throws IOException {
+        if (commitId == null) {
+            return getDiff();
+        }
         return GitRepository.getDiff(getMergedRepository(), commitId);
     }
 

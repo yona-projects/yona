@@ -1,7 +1,8 @@
-@(project: Project, pull: PullRequest)
+@(project: Project, pull: PullRequest, commitId: String = null)
 
 @import utils.JodaDateUtil._
 @import utils.TemplateHelper._
+@import utils.TemplateHelper.DiffRenderer._
 @import utils.AccessControl._
 @import models.enumeration
 @import scala.collection.JavaConversions._
@@ -15,23 +16,49 @@
 
             <ul class="nav nav-tabs nm">
                 <li><a href="@routes.PullRequestApp.pullRequest(project.owner, project.name, pull.number)">@Messages("pullRequest.menu.overview")</a></li>
-                <li><a href="@routes.PullRequestApp.pullRequestCommits(project.owner, project.name, pull.number)">@Messages("pullRequest.menu.commit")</a></li>
                 <li class="active"><a href="@routes.PullRequestApp.pullRequestChanges(project.owner, project.name, pull.number)">@Messages("pullRequest.menu.changes")</a></li>
             </ul>
 
+            <div id="commits" class="btn-group">
+                <button class="btn dropdown-toggle large" data-toggle="dropdown">
+                    <span class="d-label">@if(commitId == null) { All } else { @shortId(commitId) }</span>
+                    <span class="d-caret"><span class="caret"></span></span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li data-value="All"><a href="@routes.PullRequestApp.pullRequestChanges(project.owner, project.name, pull.number)">All</a>
+                    </li>
+                    @for(commit <- pull.pullRequestCommits){
+                    <li data-value="@commit.commitId">
+                        <a href="@routes.PullRequestApp.specificChange(project.owner, project.name, pull.number, commit.commitId)">@commit.commitShortId</a>
+                    </li>
+                    }
+                </ul>
+            </div>
+
             <div class="diff-body mt20">
                 @if(pull.isMerging == false && pull.isConflict == false){
-                    @views.html.partial_diff(pull.getDiff, pull.getCodeCommentThreadsForChanges, pull.toProject, pull.toProject)
+                    @views.html.partial_diff(pull.getDiff(commitId), pull.getCodeCommentThreadsForChanges(commitId), pull.toProject, pull.toProject)
                 } else {
                     @partial_state(project, pull, false, false)
                 }
                 <div class="btnPop"><button type="button" class="ybtn ybtn-info ybtn-mini"><i class="yobicon-comments"></i></button></div>
             </div>
+
             @** BlockComment **@
             @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.PULL_REQUEST_COMMENT)){
-                @common.reviewForm(project, ResourceType.PULL_REQUEST_COMMENT, routes.PullRequestCommentApp.newComment(project.owner, project.name, pull.id).toString())
+                @common.reviewForm(project, ResourceType.PULL_REQUEST_COMMENT, routes.PullRequestCommentApp.newComment(project.owner, project.name, pull.id, commitId).toString())
             }
             @** // BlockComment **@
+        </div>
+
+         <div class="board-comment-wrap">
+            <hr class="nm">
+            @if(pull.getTimelineComments.size > 0) {
+            <ul class="comments" id="comments">
+            @renderNonRangedThreads(pull.commentThreads.toList, commitId, Html(""))
+            </ul>
+            }
+            @common.commentForm(project, ResourceType.PULL_REQUEST_COMMENT, routes.PullRequestCommentApp.newComment(project.owner, project.name, pull.id, commitId).toString())
         </div>
 
         <div id="minimap" class="minimap-outer">
@@ -54,7 +81,7 @@
 <script type="text/javascript">
     $(document).ready(function() {
         // yobi.Mention
-        @defining(ifElse(pull.getCurrentCommits.isEmpty(),
+        @defining(ifElse(pull.getCurrentCommits.isEmpty,
             routes.ProjectApp.mentionListAtPullRequest(pull.toProject.owner, pull.toProject.name, "", pull.id).toString(),
             routes.ProjectApp.mentionListAtPullRequest(pull.toProject.owner, pull.toProject.name, pull.getCurrentCommits.get(0).getCommitId, pull.id).toString()
         )){ mentionURL =>

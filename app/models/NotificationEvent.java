@@ -335,18 +335,20 @@ public class NotificationEvent extends Model {
      * @param sender
      * @param pullRequest
      * @param newComment
-     * @see {@link controllers.PullRequestCommentApp#newComment(String, String, Long)}
+     * @param urlToView
+     * @see {@link controllers.PullRequestCommentApp#newComment(String, String, Long, String)}
      */
-    public static void afterNewComment(User sender, PullRequest pullRequest, PullRequestComment newComment) {
+    public static void afterNewComment(User sender, PullRequest pullRequest,
+                                       ReviewComment newComment, String urlToView) {
         NotificationEvent notiEvent = createFrom(sender, newComment);
         notiEvent.title = formatReplyTitle(pullRequest);
-        Set<User> receivers = getMentionedUsers(newComment.contents);
+        Set<User> receivers = getMentionedUsers(newComment.getContents());
         receivers.addAll(getReceivers(sender, pullRequest));
-        receivers.remove(User.findByLoginId(newComment.authorLoginId));
+        receivers.remove(User.findByLoginId(newComment.author.loginId));
         notiEvent.receivers = receivers;
         notiEvent.eventType = NEW_PULL_REQUEST_COMMENT;
         notiEvent.oldValue = null;
-        notiEvent.newValue = newComment.contents;
+        notiEvent.newValue = newComment.getContents();
 
         NotificationEvent.add(notiEvent);
     }

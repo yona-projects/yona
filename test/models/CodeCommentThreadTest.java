@@ -111,7 +111,7 @@ public class CodeCommentThreadTest extends ModelTest<CodeCommentThread>  {
         pullRequest.commentThreads.add(outdatedThread);
         pullRequest.commentThreads.add(threadOnChanges);
 
-        List<CodeCommentThread> threads = pullRequest.getCodeCommentThreadsForChanges();
+        List<CodeCommentThread> threads = pullRequest.getCodeCommentThreadsForChanges(null);
 
         assertThat(threads).describedAs("Exclude simple threads").excludes(simpleThread);
         assertThat(threads).describedAs("Exclude threads on commit").excludes(threadOnCommit);

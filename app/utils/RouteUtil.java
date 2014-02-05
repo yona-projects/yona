@@ -98,7 +98,6 @@ public class RouteUtil {
 
         play.mvc.Call toView = controllers.routes.CodeHistoryApp.show(
                 comment.project.owner, comment.project.name, comment.commitId);
-        toView = CodeHistoryApp.backToThePullRequestCommitView(toView);
         return toView + "#comment-" + comment.id;
     }
 

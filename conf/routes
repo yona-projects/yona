@@ -71,7 +71,7 @@ POST           /files/:id/?                                                     
 POST           /files/:id                                                             controllers.AttachmentApp.deleteFile(id: Long)
 
 # Pull Request Comment
-POST           /:ownerName/:project/pullRequest/:pullRequestId/comments               controllers.PullRequestCommentApp.newComment(ownerName, project, pullRequestId: Long)
+POST           /:ownerName/:project/pullRequest/:pullRequestId/comments               controllers.PullRequestCommentApp.newComment(ownerName, project, pullRequestId: Long, commitId: String ?= null)
 DELETE         /comment/:id/delete                                                    controllers.PullRequestCommentApp.deleteComment(id: Long)
 
 # Boards
@@ -164,8 +164,8 @@ GET            /:ownerName/:project/pullRequests                                
 GET            /:ownerName/:project/closedPullRequests                                controllers.PullRequestApp.closedPullRequests(ownerName, project)
 GET            /:ownerName/:project/sentPullRequests                                  controllers.PullRequestApp.sentPullRequests(ownerName, project)
 GET            /:ownerName/:project/pullRequest/:id                                   controllers.PullRequestApp.pullRequest(ownerName, project, id: Long)
-GET            /:ownerName/:project/pullRequest/:id/commits                           controllers.PullRequestApp.pullRequestCommits(ownerName, project, id: Long)
 GET            /:ownerName/:project/pullRequest/:id/changes                           controllers.PullRequestApp.pullRequestChanges(ownerName, project, id: Long)
+GET            /:ownerName/:project/pullRequest/:id/changes/:commitId                 controllers.PullRequestApp.specificChange(ownerName, project, id: Long, commitId: String)
 GET            /:ownerName/:project/pullRequest/:id/state                             controllers.PullRequestApp.pullRequestState(ownerName, project, id: Long)
 GET            /:ownerName/:project/newPullRequestForm                                controllers.PullRequestApp.newPullRequestForm(ownerName:String, project:String)
 POST           /:ownerName/:project/pullRequests                                      controllers.PullRequestApp.newPullRequest(ownerName, project)
@@ -176,8 +176,6 @@ GET            /:ownerName/:project/pullRequest/:id/editform                    
 POST           /:ownerName/:project/pullRequest/:id/edit                              controllers.PullRequestApp.editPullRequest(ownerName, project, id: Long)
 DELETE         /:ownerName/:project/pullRequest/:id/deletefrombranch                  controllers.PullRequestApp.deleteFromBranch(ownerName, project, id: Long)
 POST           /:ownerName/:project/pullRequest/:id/restorefrombranch                 controllers.PullRequestApp.restoreFromBranch(ownerName, project, id: Long)
-GET            /:ownerName/:project/pullRequest/:id/commit/:commitId                  controllers.PullRequestApp.commitView(ownerName, project, id: Long, commitId)
-
 
 # SVN
 HEAD           /svn/*path                                                             controllers.SvnApp.serviceWithPath(path:String)
