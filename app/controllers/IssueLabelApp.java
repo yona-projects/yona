@@ -149,4 +149,36 @@ public class IssueLabelApp extends Controller {
         label.delete();
         return ok();
     }
+
+    /**
+     * 특정 프로젝트의 모든 이슈라벨의 CSS 스타일을 달라는 요청에 응답한다
+     *
+     * when: 이슈 라벨을 사용하는 페이지에서 라벨 색상(스타일)을 필요로 할 때
+     *
+     * 주어진 {@code ownerName}과 {@code projectName}에 대응되는 프로젝트에 대해,
+     * 그 프로젝트에 속한 이슈라벨의 스타일을 {@code text/css} 형식으로 응답한다.
+     *
+     * 사용자에게 프로젝트에 접근할 권한이 없는 경우에는 {@code 403 Forbidden}으로 응답한다.
+     *
+     * @param ownerName   프로젝트 소유자의 이름
+     * @param projectName 프로젝트의 이름
+     * @return 이슈라벨의 스타일을 달라는 요청에 대한 응답
+     */
+    @IsAllowed(Operation.READ)
+    public static Result labelStyles(String ownerName, String projectName) {
+        Project project = ProjectApp.getProject(ownerName, projectName);
+        List<IssueLabel> labels = IssueLabel.findByProject(project);
+
+        String eTag = "\"" + labels.hashCode() + "\"";
+        String ifNoneMatchValue = request().getHeader("If-None-Match");
+
+        if(ifNoneMatchValue != null && ifNoneMatchValue.equals(eTag)) {
+            response().setHeader("ETag", eTag);
+            return status(NOT_MODIFIED);
+        }
+
+        response().setHeader("ETag", eTag);
+
+        return ok(views.html.common.issueLabelColor.render(labels)).as("text/css");
+    }
 }

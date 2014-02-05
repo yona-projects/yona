@@ -145,6 +145,7 @@ GET            /:user/:project/issue/$number<[0-9]+>/timeline                   
 GET            /:user/:project/issue/labels                                           controllers.IssueLabelApp.labels(user, project)
 POST           /:user/:project/issue/labels                                           controllers.IssueLabelApp.newLabel(user, project)
 POST           /:user/:project/issue/label/:id/delete                                 controllers.IssueLabelApp.delete(user, project, id:Long)
+GET            /:user/:project/issue/labels.css                                       controllers.IssueLabelApp.labelStyles(user, project)
 
 # Git
 GET            /:ownerName/:project/info/refs                                         controllers.GitApp.advertise(ownerName:String, project:String, service:String ?= null)
