@@ -248,19 +248,22 @@ object TemplateHelper {
     def renderLine(line: DiffLine, comments: Map[String, List[CodeComment]], isEndOfLineMissing: DiffLine => Boolean): String =
       line.kind match {
         case DiffLineType.ADD =>
-        renderLine(line, line.numB + 1, null, line.numB + 1, commentsOnAddLine(line, comments), isEndOfLineMissing)
+          renderLine(line, line.numB + 1, null, line.numB + 1, commentsOnAddLine(line, comments), isEndOfLineMissing)
         case DiffLineType.REMOVE =>
           renderLine(line, line.numA + 1, line.numA + 1, null, commentsOnRemoveLine(line, comments), isEndOfLineMissing)
         case _ =>
           renderLine(line, line.numB + 1, line.numA + 1, line.numB + 1, commentsOnContextLine(line, comments), isEndOfLineMissing)
       }
 
-    def renderLines(lines: List[DiffLine], comments: Map[String, List[CodeComment]], isEndOfLineMissing: DiffLine => Boolean): String =
+    @tailrec def _renderLines(progress: String, lines: List[DiffLine], comments: Map[String, List[CodeComment]], isEndOfLineMissing: DiffLine => Boolean): String =
       lines match {
         case Nil => ""
         case first::Nil => renderLine(first, comments, isEndOfLineMissing)
-        case first::second::tail => renderTwoLines(first, second, comments, isEndOfLineMissing) + renderLines(tail, comments, isEndOfLineMissing)
+        case first::second::tail => _renderLines(progress + renderTwoLines(first, second, comments, isEndOfLineMissing), tail, comments, isEndOfLineMissing)
       }
+
+    def renderLines(lines: List[DiffLine], comments: Map[String, List[CodeComment]], isEndOfLineMissing: DiffLine => Boolean): String =
+      _renderLines("", lines, comments, isEndOfLineMissing)
 
     @tailrec def _threadAndRemains(thread: List[PullRequestComment], remains: List[TimelineItem], comments: List[TimelineItem]): (List[PullRequestComment], List[TimelineItem]) = {
       if (comments.isEmpty) {

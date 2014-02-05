@@ -7,9 +7,7 @@ import org.eclipse.jgit.diff.EditList;
 import org.eclipse.jgit.diff.RawText;
 import org.eclipse.jgit.lib.FileMode;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -17,6 +15,8 @@ import java.util.List;
  * https://github.com/eclipse/jgit/blob/v2.3.1.201302201838-r/org.eclipse.jgit/src/org/eclipse/jgit/diff/DiffFormatter.java
  */
 public class FileDiff {
+    public static final int SIZE_LIMIT = 500 * 1024;
+    public static final int LINE_LIMIT = 5000;
     public RawText a;
     public RawText b;
     public EditList editList;
@@ -32,15 +32,46 @@ public class FileDiff {
     public CodeComment.Side interestSide = null;
     public FileMode oldMode;
     public FileMode newMode;
+    private Hunks hunks;
+
+    public static class Hunks extends ArrayList<Hunk> {
+        private static final long serialVersionUID = -2359650678446017697L;
+        public int size;
+        public int lines;
+    }
+
+    public static class SizeExceededHunks extends Hunks {
+        private static final long serialVersionUID = 3089104397758709369L;
+    }
+
+    public static boolean isRawTextSizeExceeds(RawText rawText) {
+        return getRawTextSize(rawText) > SIZE_LIMIT || rawText.size() > LINE_LIMIT;
+    }
+
+    public static int getRawTextSize(RawText rawText) {
+        int size = 0;
+        for(int i = 0; i < rawText.size(); i++) {
+            size += rawText.getString(i).length();
+        }
+        return size;
+    }
 
     /**
      * Get list of hunks
-     *
-     * @throws java.io.IOException
      */
-    public List<Hunk> getHunks() {
+    public Hunks getHunks() {
+        if (hunks != null) {
+            return hunks;
+        }
 
-        List<Hunk> hunks = new ArrayList<>();
+        if (editList == null) {
+            return null;
+        }
+
+        int size = 0;
+        int lines = 0;
+
+        hunks = new Hunks();
 
         for (int curIdx = 0; curIdx < editList.size();) {
             Hunk hunk = new Hunk();
@@ -84,12 +115,16 @@ public class FileDiff {
                     case A:
                         if (hunk.beginA <= interestLine && hunk.endA >= interestLine) {
                             hunks.add(hunk);
+                            size += hunk.size();
+                            lines += hunk.lines.size();
                             added = true;
                         }
                         break;
                     case B:
                         if (hunk.beginB <= interestLine && hunk.endB >= interestLine) {
                             hunks.add(hunk);
+                            size += hunk.size();
+                            lines += hunk.lines.size();
                             added = true;
                         }
                         break;
@@ -101,8 +136,18 @@ public class FileDiff {
                 }
             } else {
                 hunks.add(hunk);
+                size += hunk.size();
+                lines += hunk.lines.size();
+            }
+
+            if (size > SIZE_LIMIT || lines > LINE_LIMIT) {
+                hunks = new SizeExceededHunks();
+                return hunks;
             }
         }
+
+        hunks.size = size;
+        hunks.lines = lines;
 
         return hunks;
     }

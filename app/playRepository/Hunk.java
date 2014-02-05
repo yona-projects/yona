@@ -13,4 +13,12 @@ public class Hunk extends EditList {
     public int beginB;
     public int endB;
     public List<DiffLine> lines = new ArrayList<>();
+
+    public int size() {
+        int length = 0;
+        for (DiffLine line : lines) {
+            length += line.content.length();
+        }
+        return length;
+    }
 }
