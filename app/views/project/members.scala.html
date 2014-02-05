@@ -2,9 +2,9 @@
 
 @import helper._
 
-@memberRole(userRole: String) = {
+@memberRole(userRole: String, loginId: String, userId: Long) = {
     @for(role <- roles){
-           <li data-value="@role.id" @if(role.name.equals(userRole)){ data-selected="true" class="active" }><a href="javascript:void(0)">@Messages("user.role." + role.name)</a></li>
+           <li data-value="@role.id" @if(role.name.equals(userRole)){ data-selected="true" class="active" }><a href="javascript:void(0)" data-action="apply" data-href="@routes.ProjectApp.editMember(project.owner, project.name, userId)" data-loginId="@loginId">@Messages("user.role." + role.name)</a></li>
     }
 }
 
@@ -24,53 +24,36 @@
         </form>
     </div>
 
-    <div class="bubble-wrap gray" style="overflow:visible">
-        <ul class="members project">
-            @for(member <- members){
-                @if(member.user != null){
-
-            <li class="member">
-                <a href="@routes.UserApp.userInfo(member.user.loginId)" class="avatar-wrap large pull-left">
-                    <img src="@User.findByLoginId(member.user.loginId).avatarUrl" width="64" height="64">
-                </a>
-                <div class="m-body">
-                    <div class="td">
-                        <p>
-                            <a href="@routes.UserApp.userInfo(member.user.loginId)">
-                                <strong class="uname">@member.user.name</strong>
-                            </a>
-                        </p>
-                        <p class="name">(@member.user.loginId)</p>
-                    </div>
-                    <div class="td">
-                        @if(!project.isOwner(member.user)) {
-
-                        <div class="btn-group" data-name="roleof-@member.user.loginId">
-                            <button class="btn dropdown-toggle large" data-toggle="dropdown">
-                                <span class="d-label">@Messages("user.role." + member.role.name)</span>
-                                <span class="d-caret"><span class="caret"></span></span>
-                            </button>
-                            <ul class="dropdown-menu">@memberRole(member.role.name)</ul>
-                        </div>
-
-                        <p class="btns">
-                            <a href="javascript:void(0)" data-action="delete" data-href="@routes.ProjectApp.deleteMember(project.owner, project.name, member.user.id)" class="ybtn ybtn-danger ybtn-mini"><!--
-                             --><i class="yobicon-removefriend"></i> @Messages("button.delete")</a>
-                            <a href="javascript:void(0)" data-action="apply" data-href="@routes.ProjectApp.editMember(project.owner, project.name, member.user.id)" data-loginId="@member.user.loginId" class="ybtn ybtn-info ybtn-mini"><!--
-                             --><i class="yobicon-publish"></i> @Messages("button.apply")</a>
-                        </p>
-                        } else {
-                            <p style="height:55px;">@Messages("user.role." + member.role.name)</p>
-                        }
-                    </div>
+    <ul class="members project row-fluid">
+        @for(member <- members){
+            @if(member.user != null){
+        <li class="member span6">               
+            <a href="@routes.UserApp.userInfo(member.user.loginId)" class="avatar-wrap mlarge pull-left mr10">
+                <img src="@User.findByLoginId(member.user.loginId).avatarUrl" width="64" height="64">
+            </a>
+            <div class="member-name">@member.user.name</div>
+            <div class="member-id">@{"@"}@member.user.loginId</div>
+            <div class="member-setting">
+            @if(!project.isOwner(member.user)) {
+                 <div class="btn-group" data-name="roleof-@member.user.loginId">
+                    <button class="btn dropdown-toggle large" data-toggle="dropdown">
+                        <span class="d-label">@Messages("user.role." + member.role.name)</span>
+                        <span class="d-caret"><span class="caret"></span></span>
+                    </button>
+                    <ul class="dropdown-menu">@memberRole(member.role.name, member.user.loginId, member.user.id)</ul>
                 </div>
-            </li>
-
-                }
+                <a href="javascript:void(0)" data-action="delete" data-href="@routes.ProjectApp.deleteMember(project.owner, project.name, member.user.id)" class="ybtn ybtn-danger ybtn-small">
+                    @Messages("button.delete")
+                </a>
+            } else {
+               <span class="label owner">@Messages("user.role.owner")</span>
             }
-        </ul>
-    </div>
-
+            </div>   
+        </li>
+            }
+        }
+    </ul>
+    
     @** Confirm to delete member **@
     <div id="alertDeletion" class="modal hide">
         <div class="modal-header">

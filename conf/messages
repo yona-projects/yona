@@ -636,6 +636,7 @@ user.role.anonymous = Anonymous
 user.role.guest = Guest
 user.role.manager = Manager
 user.role.member = Member
+user.role.owner = Owner
 user.role.sitemanager = Site Manager
 user.signup.requested = SignUp has requested. Site admin will review your request. Thanks.
 user.signupBtn = Sign Up
