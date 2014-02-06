@@ -140,6 +140,7 @@ public class NotificationMail extends Model {
             email.setTextMsg(getPlainMessage(message, urlToView));
             email.setCharset("utf-8");
             email.addHeader("References", "<" + reference + "@" + Config.getHostname() + ">");
+            email.setSentDate(event.created);
             Mailer.send(email);
             String escapedTitle = email.getSubject().replace("\"", "\\\"");
             String logEntry = String.format("\"%s\" %s", escapedTitle, email.getBccAddresses());
