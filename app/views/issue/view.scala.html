@@ -195,6 +195,24 @@
                         </dl>
                         @**<!-- // -->**@
 
+                        @**<!-- voters -->**@
+                        <dl>
+                            <dt>@Messages("issue.vote")</dt>
+                            <dd>
+                                @if(isProjectResourceCreatable(User.findByLoginId(session.get("loginId")), project, ResourceType.ISSUE_COMMENT)) {
+                                    @if(issue.isVotedBy(UserApp.currentUser())) {
+                                        <a href="@routes.VoteApp.unvote(project.owner, project.name, issue.getNumber)" data-request-method="post" class="ybtn ybtn-success"  data-toggle="tooltip" data-placement="right" data-original-title="@Messages("issue.unvote.description")">+@issue.voters.size</a>
+                                    } else {
+                                        <a href="@routes.VoteApp.vote(project.owner, project.name, issue.getNumber)" data-request-method="post" class="ybtn" data-toggle="tooltip" data-placement="right" data-original-title="@Messages("issue.vote.description")">+@issue.voters.size</a>
+                                    }
+                                    <br><br>
+                                }
+                                @for(voter <- issue.voters) {
+                                    @Html(getUserAvatar(voter, "medium"))
+                                }
+                            </dd>
+                        </dl>
+                        @**<!-- // -->**@
                     </form>
                 </div>
             </div>

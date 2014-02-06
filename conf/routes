@@ -243,5 +243,9 @@ POST           /:user/:project/pullRequest/:number/unreview                     
 # Compare
 GET            /:user/:project/compare/:revA..:revB                                             controllers.CompareApp.compare(user, project, revA, revB)
 
+# Vote
+POST           /:user/:project/issue/:number/vote                                     controllers.VoteApp.vote(user, project, number: Long)
+POST           /:user/:project/issue/:number/unvote                                   controllers.VoteApp.unvote(user, project, number: Long)
+
 # remove trailing slash - must be the bottom of this file
 GET            /*paths                                                                controllers.Application.removeTrailer(paths)
