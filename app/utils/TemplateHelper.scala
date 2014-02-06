@@ -151,9 +151,9 @@ object TemplateHelper {
       val names = branch.split('/').toList
 
       names match {
-        case refs :: heads => "branch"
-        case refs :: tags  => "tag"
-        case refs :: _     => names(1)
+        case "refs" :: "heads" :: _ => "branch"
+        case "refs" :: "tags"  :: _ => "tag"
+        case "refs" :: name    :: _ => name
         case _ => branch
       }
     }
