@@ -241,11 +241,15 @@ POST           /:user/:project/pullRequest/:number/review                       
 POST           /:user/:project/pullRequest/:number/unreview                           controllers.ReviewApp.unreview(user, project, number: Long)
 
 # Compare
-GET            /:user/:project/compare/:revA..:revB                                             controllers.CompareApp.compare(user, project, revA, revB)
+GET            /:user/:project/compare/:revA..:revB                                   controllers.CompareApp.compare(user, project, revA, revB)
 
 # Vote
 POST           /:user/:project/issue/:number/vote                                     controllers.VoteApp.vote(user, project, number: Long)
 POST           /:user/:project/issue/:number/unvote                                   controllers.VoteApp.unvote(user, project, number: Long)
+
+# Comment Thread
+POST           /threads/:id/open                                                      controllers.CommentThreadApp.open(id: Long)
+POST           /threads/:id/close                                                     controllers.CommentThreadApp.close(id: Long)
 
 # remove trailing slash - must be the bottom of this file
 GET            /*paths                                                                controllers.Application.removeTrailer(paths)
