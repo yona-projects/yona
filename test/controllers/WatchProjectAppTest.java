@@ -53,14 +53,15 @@ public class WatchProjectAppTest {
         // given
         String ownerName = "yobi";
         String projectName = "projectYobi";
-        FakeRequest request = fakeRequest("POST", "/" + ownerName + "/" + projectName + "/watch");
+        String url = "/" + ownerName + "/" + projectName + "/watch";
+        FakeRequest request = fakeRequest("POST", url);
 
         // when
         Result result = callAction(routes.ref.WatchProjectApp.watch(ownerName, projectName), request);
 
         // then
         assertThat(status(result)).isEqualTo(Http.Status.SEE_OTHER);
-        assertThat(redirectLocation(result)).isEqualTo(routes.UserApp.loginForm().url());
+        assertThat(redirectLocation(result)).isEqualTo("http://" + routes.UserApp.loginForm().url() + "?redirectUrl=" + url);
     }
 
     @Test
@@ -100,14 +101,15 @@ public class WatchProjectAppTest {
         // given
         String ownerName = "yobi";
         String projectName = "projectYobi";
-        FakeRequest request = fakeRequest("POST", "/" + ownerName + "/" + projectName + "/unwatch");
+        String url = "/" + ownerName + "/" + projectName + "/unwatch";
+        FakeRequest request = fakeRequest("POST", url);
 
         // when
         Result result = callAction(routes.ref.WatchProjectApp.unwatch(ownerName, projectName), request);
 
         // then
         assertThat(status(result)).isEqualTo(Http.Status.SEE_OTHER);
-        assertThat(redirectLocation(result)).isEqualTo(routes.UserApp.loginForm().url());
+        assertThat(redirectLocation(result)).isEqualTo("http://" + routes.UserApp.loginForm().url() + "?redirectUrl=" + url);
     }
 
     @Test
