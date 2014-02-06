@@ -106,7 +106,7 @@
                                 </span>
                                 @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
                                 <span class="edit pull-right">
-                                    <button class="btn-transparent pull-right close" data-toggle="comment-delete" data-request-uri="@routes.CodeHistoryApp.deleteComment(pull.fromProject.owner, pull.fromProject.name, commit.getId, comment.id)"><i class="yobicon-trash"></i></button>
+                                    <button class="btn-transparent pull-right close" data-toggle="comment-delete" data-request-uri="@routes.CodeHistoryApp.deleteComment(pull.fromProject.owner, pull.fromProject.name, commit.getId, comment.id)" title="@Messages("common.comment.delete")"><i class="yobicon-trash"></i></button>
                                 </span>
                                 }
                             </div>
