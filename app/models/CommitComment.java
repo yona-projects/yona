@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Entity;
+import javax.persistence.Transient;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -15,6 +16,7 @@ public class CommitComment extends CodeComment {
     private static final long serialVersionUID = 1L;
     public static final Finder<Long, CommitComment> find = new Finder<>(Long.class, CommitComment.class);
 
+    @Transient
     public List<CommitComment> replies = new ArrayList<>();
 
     public String commitId;
