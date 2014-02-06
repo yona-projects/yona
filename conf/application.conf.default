@@ -103,6 +103,9 @@ smtp.archive.size = 5
 #if you want to use sign-up confirm, uncomment below
 #signup.require.confirm = true
 
+# User uploaded temporary files cleanup schedule (sec, default 24hour: 24*60*60 = 86400)
+# application.temporaryfiles.keep-up.time = 86400
+
 # Notification
 # ~~~~~~~~~~~~
 # Check mails to send every this seconds.

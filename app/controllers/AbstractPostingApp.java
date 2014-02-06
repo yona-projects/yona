@@ -8,6 +8,7 @@ import models.resource.Resource;
 import org.apache.commons.lang3.StringUtils;
 import play.data.Form;
 import play.db.ebean.Model;
+import play.i18n.Messages;
 import play.mvc.Call;
 import play.mvc.Controller;
 import play.mvc.Http;
@@ -159,11 +160,25 @@ public class AbstractPostingApp extends Controller {
      * @param resource 이슈글,게시판글,댓글
      */
     protected static void attachUploadFilesToPost(Resource resource) {
-        Http.MultipartFormData body = request().body().asMultipartFormData();
-        final String temporaryUploadFiles = body.asFormUrlEncoded().get(AttachmentApp.TAG_NAME_FOR_TEMPORARY_UPLOAD_FILES)[0];
-        if(StringUtils.isNotBlank(temporaryUploadFiles)){
-            Attachment.moveOnlySelected(UserApp.currentUser().asResource(), resource,
-                    temporaryUploadFiles.split(","));
+        final String[] temporaryUploadFiles = getTemporaryFileListFromHiddenForm();
+        if(StringUtils.isNotBlank(temporaryUploadFiles[0])){
+            int attachedFileCount = Attachment.moveOnlySelected(UserApp.currentUser().asResource(), resource,
+                    temporaryUploadFiles);
+            if( attachedFileCount != temporaryUploadFiles.length){
+                flash("failed", Messages.get("post.popup.fileAttach.hasMissing",
+                        temporaryUploadFiles.length - attachedFileCount, getTemporaryFilesServerKeepUpTimeOfMinuntes()));
+            }
         }
+    }
+
+    private static long getTemporaryFilesServerKeepUpTimeOfMinuntes() {
+        return AttachmentApp.TEMPORARYFILES_KEEPUP_TIME_MILLIS/(60*1000l);
+    }
+
+    private static String[] getTemporaryFileListFromHiddenForm() {
+        Http.MultipartFormData body = request().body().asMultipartFormData();
+        final String CSV_DELEMETER = ",";
+        return body.asFormUrlEncoded()
+            .get(AttachmentApp.TAG_NAME_FOR_TEMPORARY_UPLOAD_FILES)[0].split(CSV_DELEMETER);
     }
 }

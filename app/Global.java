@@ -29,9 +29,11 @@ import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import controllers.AttachmentApp;
 import models.*;
 
 import com.avaje.ebean.Ebean;
@@ -47,14 +49,17 @@ import play.Configuration;
 import play.Play;
 import play.api.mvc.Handler;
 import play.data.Form;
+import play.libs.Akka;
 import play.mvc.Action;
 import play.mvc.Http;
 import play.mvc.Http.RequestHeader;
 import play.mvc.Result;
 import play.mvc.Results;
 
+import scala.concurrent.duration.Duration;
 import utils.AccessLogger;
 import utils.ErrorViews;
+import utils.JodaDateUtil;
 import utils.YamlUtil;
 
 import views.html.welcome.secret;
@@ -112,17 +117,58 @@ public class Global extends GlobalSettings {
         }
 
         NotificationEvent.scheduleDeleteOldNotifications();
-        cleanupTemporaryUploadFiles();
+        cleanupTemporaryUploadFilesWithSchedule();
     }
 
     /**
      * Remove all of temporary files uploaded by users
      */
-    private void cleanupTemporaryUploadFiles() {
-        List<Attachment> attachmentList = Attachment.find.where().eq("containerType", ResourceType.USER).findList();
-        for (Attachment attachment : attachmentList) {
-            attachment.delete();
-        }
+    private void cleanupTemporaryUploadFilesWithSchedule() {
+        Akka.system().scheduler().schedule(
+                Duration.create(0, TimeUnit.SECONDS),
+                Duration.create(AttachmentApp.TEMPORARYFILES_KEEPUP_TIME_MILLIS, TimeUnit.MILLISECONDS),
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            String result = removeUserTemporaryFiles();
+                            play.Logger.info("User uploaded temporary files are cleaned up..." + result);
+                        } catch (Exception e) {
+                            play.Logger.warn("Failed!! User uploaded temporary files clean-up action failed!", e);
+                        }
+                    }
+
+                    /**
+                     * 사용자 임시 첨부 파일을 삭제
+                     *
+                     * 사용자에 의해 업로드 된지 {@code application.temporaryfiles.keep-up.time}초 이상 경과한
+                     * 임시파일들은 서버에서 삭제한다.
+                     *
+                     * @return 전체 대상 파일 중 지운 파일 ex> (10 of 10)
+                     */
+                    private String removeUserTemporaryFiles() {
+                        List<Attachment> attachmentList = Attachment.find.where()
+                                .eq("containerType", ResourceType.USER)
+                                .ge("createdDate", JodaDateUtil.beforeByMillis(AttachmentApp.TEMPORARYFILES_KEEPUP_TIME_MILLIS))
+                                .findList();
+                        int deletedFileCount = 0;
+                        for (Attachment attachment : attachmentList) {
+                            attachment.delete();
+                            deletedFileCount++;
+                        }
+                        if( attachmentList.size() != deletedFileCount) {
+                            play.Logger.error(
+                                String.format("Failed to delete user temporary files.\nExpected: %d  Actual: %d",
+                                    attachmentList.size(), deletedFileCount)
+                            );
+                        }
+                        return "(" + attachmentList.size() + "of" + deletedFileCount + ")";
+                    }
+                },
+                Akka.system().dispatcher()
+        );
+
+
     }
 
     private boolean notificationEnabled() {

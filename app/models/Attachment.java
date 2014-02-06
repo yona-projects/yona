@@ -8,6 +8,7 @@ import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Formatter;
 import java.util.List;
 
@@ -29,6 +30,7 @@ import play.data.validation.*;
 import play.db.ebean.Model;
 import scalax.file.NotDirectoryException;
 import utils.FileUtil;
+import utils.JodaDateUtil;
 
 @Entity
 public class Attachment extends Model implements ResourceConvertible {
@@ -49,10 +51,10 @@ public class Attachment extends Model implements ResourceConvertible {
     public ResourceType containerType;
 
     public String mimeType;
-
     public Long size;
-
     public String containerId;
+
+    private Date createdDate;
 
     /**
      * 주어진 {@code attach}와 내용이 같은 첨부 파일을 찾는다.
@@ -247,6 +249,7 @@ public class Attachment extends Model implements ResourceConvertible {
         // metadata - containerType, containerId, size and hash - in Database.
         this.containerType = container.getType();
         this.containerId = container.getId();
+        this.createdDate = JodaDateUtil.now();
 
         if (name == null) {
             this.name = file.getName();
