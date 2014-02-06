@@ -132,5 +132,11 @@
             welTarget.tooltip("destroy");
             welTarget.popover("hide");
         });
+
+        // notify flash messages
+        @for(key <- flash.keys) {
+            $yobi.notify("@Messages(flash.get(key))", 3000);
+        }
+
     });
 </script>

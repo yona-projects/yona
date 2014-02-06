@@ -266,14 +266,19 @@ $yobi = yobi.Common = (function(){
      * @param {String} sMessage
      * @param {Number} nDuration
      */
-    function notify(sMessage, nDuration){
+    function notify(sMessage, nDuration, sTitle){
         if(!htVar.oToast){
             htVar.oToast = new yobi.ui.Toast("#yobiToasts", {
                 "sTplToast": $("#tplYobiToast").text()
             });
         }
 
-        htVar.oToast.push(sMessage, nDuration);
+        if(sTitle){
+            htVar.oToast.push("<strong>" + sTitle + "</strong>" + "<br/>" + sMessage, nDuration);
+        } else {
+            htVar.oToast.push(sMessage, nDuration);
+        }
+
     }
 
     /**
