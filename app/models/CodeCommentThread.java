@@ -4,10 +4,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.ManyToMany;
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,7 +27,7 @@ public class CodeCommentThread extends CommentThread {
     public String prevCommitId = StringUtils.EMPTY;
     public String commitId;
 
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.ALL)
     public List<User> codeAuthors = new ArrayList<>();
 
     public boolean isCommitComment() {
