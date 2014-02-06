@@ -96,7 +96,7 @@
                         @defining(User.find.byId(thread.getFirstReviewComment.author.id)){ user =>
                         <li class="review-item">
                             <div class="review-number">
-                                <a href="#">#@thread.id</a>
+                                <a href="@DiffRenderer.urlToCommentThread(project, thread)">#@thread.id</a>
                             </div>
                             <div class="review-avatar">
                                 @if(user != null){
@@ -111,7 +111,7 @@
                             </div>
                             <div class="review-content">
                                 <div class="review-comment">
-                                    <a href="">
+                                    <a href="@DiffRenderer.urlToCommentThread(project, thread)">
                                         @thread.getFirstReviewComment.getContents()
                                     </a>
                                 </div>

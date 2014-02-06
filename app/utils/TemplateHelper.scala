@@ -25,6 +25,7 @@ import scala.annotation.tailrec
 import playRepository.FileDiff
 import play.api.i18n.Lang
 import models.CodeCommentThread
+import models.CommentThread
 import javax.swing.text.html.HTML
 
 object TemplateHelper {
@@ -324,6 +325,24 @@ object TemplateHelper {
           renderEventsOnPullRequest(pull, html, tail)
         case _ => html
       }
+
+    def urlToCommentThread(project: Project, thread: CommentThread) = {
+      // Before access any field in thread.pullRequest, refresh() should be
+      // called because lazy loading does not work for direct field access from
+      // Scala source files.
+      // See http://www.playframework.com/documentation/2.2.x/JavaEbean
+      (thread match {
+        case (t: CodeCommentThread) if t.pullRequest != null && t.commitId != null =>
+          thread.pullRequest.refresh()
+          routes.PullRequestApp.specificChange(project.owner, project.name, t.pullRequest.number, t.commitId)
+        case (t: CodeCommentThread) if t.pullRequest != null && t.commitId == null =>
+          thread.pullRequest.refresh()
+          routes.PullRequestApp.pullRequestChanges(project.owner, project.name, t.pullRequest.number)
+        case (t: CodeCommentThread) =>
+          routes.CodeHistoryApp.show(project.owner, project.name, t.commitId)
+        case _ => ""
+      }) + "#thread-" + thread.id
+    }
   }
 
   object CodeBrowser {
