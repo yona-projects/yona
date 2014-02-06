@@ -13,7 +13,9 @@ models.support.SearchCondition, project:Project)
             "timeout" : 3000
         };
 
-        $.pjax.defaults.maxCacheLength = 0;
+        if($.support.pjax) {
+            $.pjax.defaults.maxCacheLength = 0;
+        }
 
         // on click pagination
         $(document).on("click", "a[pjax-page]", function(weEvt) {
