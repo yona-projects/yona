@@ -84,7 +84,7 @@ public class PullRequestCommentApp extends Controller {
             comment.thread.state = CommentThread.ThreadState.OPEN;
             comment.thread.createdDate = comment.createdDate;
             comment.thread.author = comment.author;
-            pullRequest.commentThreads.add(comment.thread);
+            pullRequest.addCommentThread(comment.thread);
         } else {
             comment.thread = CommentThread.find.byId(comment.thread.id);
         }

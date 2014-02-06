@@ -167,7 +167,7 @@ public class PullRequest extends Model implements ResourceConvertible {
     )
     public Set<User> relatedAuthors = new HashSet<>();
 
-    @ManyToMany
+    @OneToMany(mappedBy = "pullRequest")
     public List<CommentThread> commentThreads = new ArrayList<>();
 
     public static PullRequest createNewPullRequest(Project fromProject, Project toProject, String fromBranch, String toBranch) {
@@ -1062,4 +1062,13 @@ public class PullRequest extends Model implements ResourceConvertible {
         return GitRepository.getDiff(getMergedRepository(), commitId);
     }
 
+    public void removeCommentThread(CommentThread commentThread) {
+        this.commentThreads.remove(commentThread);
+        commentThread.pullRequest = null;
+    }
+
+    public void addCommentThread(CommentThread thread) {
+        this.commentThreads.add(thread);
+        thread.pullRequest = this;
+    }
 }

@@ -119,8 +119,18 @@ public class ReviewComment extends Model implements ResourceConvertible {
         thread.removeComment(this);
 
         super.delete();
+
         if (ReviewComment.findByThread(threadId).isEmpty()) {
-            CommentThread.find.byId(threadId).delete();
+            CommentThread commentThread = CommentThread.find.byId(threadId);
+
+            PullRequest pullRequest = commentThread.pullRequest;
+            if(pullRequest != null) {
+                pullRequest.removeCommentThread(commentThread);
+            }
+
+            commentThread.delete();
         }
+
+
     }
 }

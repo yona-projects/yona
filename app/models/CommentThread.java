@@ -44,6 +44,9 @@ public class CommentThread extends Model implements ResourceConvertible {
     @Formats.DateTime(pattern = "YYYY/MM/DD/hh/mm/ss")
     public Date createdDate;
 
+    @ManyToOne
+    public PullRequest pullRequest;
+
     public static List<CommentThread> findByCommitId(String commitId) {
         return find.where()
                 .eq("commitId", commitId)

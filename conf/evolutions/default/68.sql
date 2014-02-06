@@ -16,6 +16,7 @@ create table comment_thread (
       end_side                  varchar(1),
       end_line                  integer,
       end_column                integer,
+      pull_request_id           bigint,
       constraint ck_comment_thread_state check (state in ('OPEN','CLOSED')),
       constraint ck_comment_thread_start_side check (start_side in ('A','B')),
       constraint ck_comment_thread_end_side check (end_side in ('A','B')),
@@ -39,12 +40,6 @@ create table comment_thread_n4user (
       constraint pk_comment_thread_n4user primary key (comment_thread_id, n4user_id))
 ;
 
-create table pull_request_comment_thread (
-      pull_request_id                bigint not null,
-      comment_thread_id              bigint not null,
-      constraint pk_pull_request_comment_thread primary key (pull_request_id, comment_thread_id))
-;
-
 create sequence comment_thread_seq;
 
 create sequence review_comment_seq;
@@ -59,15 +54,11 @@ alter table comment_thread_n4user add constraint fk_comment_thread_n4user_comm_0
 
 alter table comment_thread_n4user add constraint fk_comment_thread_n4user_n4us_02 foreign key (n4user_id) references n4user (id) on delete restrict on update restrict;
 
-alter table pull_request_comment_thread add constraint fk_pull_request_comment_threa_01 foreign key (pull_request_id) references pull_request (id) on delete restrict on update restrict;
-
-alter table pull_request_comment_thread add constraint fk_pull_request_comment_threa_02 foreign key (comment_thread_id) references comment_thread (id) on delete restrict on update restrict;
+alter table comment_thread add constraint fk_comment_thread_pull_request_01 foreign key (pull_request_id) references pull_request (id) on delete restrict on update restrict;
 
 # --- !Downs
 
 drop table if exists comment_thread;
-
-drop table if exists pull_request_comment_thread;
 
 drop table if exists review_comment;
 
