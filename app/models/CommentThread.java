@@ -145,4 +145,45 @@ public class CommentThread extends Model implements ResourceConvertible {
     public static int countReviewsBy(Long projectId, ReviewSearchCondition cond) {
         return cond.asExpressionList(Project.find.byId(projectId)).findRowCount();
     }
+
+    public static int count(PullRequest pullRequest, String commitId, String path) {
+        int count = 0;
+
+        for (CommentThread thread : CommentThread.findByCommitId(commitId)) {
+            if (pullRequest != null && thread.pullRequest != pullRequest) {
+                continue;
+            }
+
+            if (path != null && thread instanceof CodeCommentThread
+                    && !((CodeCommentThread)thread).codeRange.path.equals(path)) {
+                continue;
+            }
+
+            count++;
+        }
+
+        return count;
+    }
+
+    public static int countOnCommit(Project project, String commitId, String path) {
+        int count = 0;
+
+        List<CommentThread> threads = find.where()
+                .eq("commitId", commitId)
+                .eq("project.id", project.id)
+                .eq("pullrequest.id", null)
+                .order().desc("createdDate")
+                .findList();
+
+        for (CommentThread thread : threads) {
+            if (path != null && thread instanceof CodeCommentThread
+                    && !((CodeCommentThread)thread).codeRange.path.equals(path)) {
+                continue;
+            }
+
+            count++;
+        }
+
+        return count;
+    }
 }

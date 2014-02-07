@@ -44,8 +44,8 @@ public class RouteUtil {
                     return getUrl(CommitComment.find.byId(longId));
                 case PULL_REQUEST:
                     return getUrl(PullRequest.finder.byId(longId));
-                case PULL_REQUEST_COMMENT:
-                    return getUrl(PullRequestComment.find.byId(longId));
+                case REVIEW_COMMENT:
+                    return getUrl(ReviewComment.find.byId(longId));
                 default:
                     throw new IllegalArgumentException(
                             Resource.getInvalidResourceTypeMessage(resourceType));
@@ -113,9 +113,9 @@ public class RouteUtil {
         throw new IllegalArgumentException();
     }
 
-    public static String getUrl(PullRequestComment newComment) {
+    public static String getUrl(ReviewComment newComment) {
         if (newComment == null) return null;
 
-        return getUrl(newComment.pullRequest) + "#comment-" + newComment.id;
+        return getUrl(newComment.thread.pullRequest) + "#comment-" + newComment.id;
     }
 }

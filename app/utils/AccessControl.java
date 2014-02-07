@@ -61,7 +61,7 @@ public class AccessControl {
                 case NONISSUE_COMMENT:
                 case FORK:
                 case COMMIT_COMMENT:
-                case PULL_REQUEST_COMMENT:
+                case REVIEW_COMMENT:
                     return true;
                 default:
                     return false;
@@ -126,8 +126,6 @@ public class AccessControl {
             return user.id.toString().equals(resource.getId());
         case PROJECT:
             return ProjectUser.isManager(user.id, Long.valueOf(resource.getId()));
-        case PULL_REQUEST_COMMENT:
-            return user.isSiteManager() || isEditableAsAuthor(user, resource);
         default:
             // undefined
             return false;
@@ -254,8 +252,6 @@ public class AccessControl {
         case NONISSUE_COMMENT:
         case BOARD_POST:
         case COMMIT_COMMENT:
-        case PULL_REQUEST:
-        case PULL_REQUEST_COMMENT:
         case COMMENT_THREAD:
         case REVIEW_COMMENT:
             return resource.getAuthorId().equals(user.id);

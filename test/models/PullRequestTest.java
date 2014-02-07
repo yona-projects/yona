@@ -80,9 +80,11 @@ public class PullRequestTest extends ModelTest<PullRequest> {
         // Given
         PullRequest pullRequest = PullRequest.findById(1L);
         User commentUser = getTestUser();
-        PullRequestComment comment = new PullRequestComment();
-        comment.pullRequest = pullRequest;
-        comment.authorInfos(commentUser);
+        ReviewComment comment = new ReviewComment();
+        comment.thread = new NonRangedCodeCommentThread();
+        comment.thread.pullRequest = pullRequest;
+        comment.thread.project = pullRequest.toProject;
+        comment.author = new UserIdent(commentUser);
         comment.save();
 
         // When
@@ -141,12 +143,6 @@ public class PullRequestTest extends ModelTest<PullRequest> {
     @Test
     public void getTimelineComments() throws Exception {
         // Given
-        PullRequestComment comment1 = createPullRequestComment("2013-12-10");
-        PullRequestComment comment2 = createPullRequestComment("2013-12-12");
-        List<PullRequestComment> comments = new ArrayList<>();
-        comments.add(comment1);
-        comments.add(comment2);
-
         PullRequestEvent event1 = createPullRequestEvent("2013-12-11");
         PullRequestEvent event2 = createPullRequestEvent("2013-12-13");
         List<PullRequestEvent> events = new ArrayList<>();
@@ -154,14 +150,13 @@ public class PullRequestTest extends ModelTest<PullRequest> {
         events.add(event2);
 
         PullRequest pullRequest = new PullRequest();
-        pullRequest.comments = comments;
         pullRequest.pullRequestEvents = events;
 
         // When
         List<TimelineItem> timeline = pullRequest.getTimelineComments();
 
         // Then
-        assertThat(timeline).containsExactly(comment1, event1, comment2, event2);
+        assertThat(timeline).containsExactly(event1, event2);
     }
 
     @Test
@@ -202,12 +197,6 @@ public class PullRequestTest extends ModelTest<PullRequest> {
         pullRequest.removeReviewer(user);
         assertThat(pullRequest.reviewers.size()).isEqualTo(0);
         assertThat(pullRequest.isReviewedBy(user)).isFalse();
-    }
-
-    private PullRequestComment createPullRequestComment(String str) throws ParseException {
-        PullRequestComment comment = new PullRequestComment();
-        comment.createdDate = DateUtils.parseDate(str, "yyyy-MM-dd");
-        return comment;
     }
 
     private PullRequestEvent createPullRequestEvent(String str) throws ParseException {

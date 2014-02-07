@@ -71,8 +71,7 @@ POST           /files/:id/?                                                     
 POST           /files/:id                                                             controllers.AttachmentApp.deleteFile(id: Long)
 
 # Pull Request Comment
-POST           /:ownerName/:project/pullRequest/:pullRequestId/comments               controllers.PullRequestCommentApp.newComment(ownerName, project, pullRequestId: Long, commitId: String ?= null)
-DELETE         /comment/:id/delete                                                    controllers.PullRequestCommentApp.deleteComment(id: Long)
+POST           /:ownerName/:project/pullRequest/:pullRequestId/comments               controllers.PullRequestApp.newComment(ownerName, project, pullRequestId: Long, commitId: String ?= null)
 
 # Boards
 GET            /:user/:project/posts                                                  controllers.BoardApp.posts(user, project, pageNum: Int ?= 1)

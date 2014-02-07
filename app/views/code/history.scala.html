@@ -130,12 +130,11 @@
                                     </a>
                                 </td>
                                 <td class="messages">
-                                    @defining(CommitComment.count(project, commit.getId, path)){ numOfComment =>
+                                    @defining(CommentThread.count(null, commit.getId, path)){ numOfComment =>
                                         @if(numOfComment > 0) {
                                         <span class="number-of-comments"><i class="yobicon-comments"></i> @numOfComment</span>
                                         }
                                     }
-
                                     @common.commitMsg(commit.getShortMessage(), commit.getMessage(), showCommitURL.toString())
                                 </td>
                                 @if(path != null){

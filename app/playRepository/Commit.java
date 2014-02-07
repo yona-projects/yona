@@ -32,12 +32,27 @@ public abstract class Commit {
         }
 
         // Add every user who comments on this commit
-        List<CommitComment> comments = CommitComment.find.where()
-                .eq("project.id", project.id).eq("commitId", getId()).findList();
-        for (CommitComment c : comments) {
-            User user = User.find.byId(c.authorId);
-            if (user != null) {
-                actualWatchers.add(user);
+        if (project.vcs.equals(RepositoryService.VCS_GIT)) {
+            List<CommentThread> threads = CommentThread.find.where()
+                    .eq("project.id", project.id)
+                    .eq("commitId", getId())
+                    .eq("pullRequest.id", null).findList();
+            for (CommentThread thread : threads) {
+                for (ReviewComment comment : thread.reviewComments) {
+                    User user = User.find.byId(comment.author.id);
+                    if (user != null) {
+                        actualWatchers.add(user);
+                    }
+                }
+            }
+        } else {
+            List<CommitComment> comments = CommitComment.find.where()
+                    .eq("project.id", project.id).eq("commitId", getId()).findList();
+            for (CommitComment c : comments) {
+                User user = User.find.byId(c.authorId);
+                if (user != null) {
+                    actualWatchers.add(user);
+                }
             }
         }
 

@@ -24,7 +24,6 @@ public class CommentApp extends Controller {
 
         switch(comment.getType()) {
             case COMMIT_COMMENT:
-            case PULL_REQUEST_COMMENT:
             case REVIEW_COMMENT:
                 comment.delete();
                 return ok();

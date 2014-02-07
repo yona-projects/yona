@@ -113,7 +113,7 @@ public class NotificationEvent extends Model {
             case NEW_POSTING:
             case NEW_COMMENT:
             case NEW_PULL_REQUEST:
-            case NEW_PULL_REQUEST_COMMENT:
+            case NEW_REVIEW_COMMENT:
             case NEW_COMMIT:
             case ISSUE_BODY_CHANGED:
                 return newValue;
@@ -336,7 +336,7 @@ public class NotificationEvent extends Model {
      * @param pullRequest
      * @param newComment
      * @param urlToView
-     * @see {@link controllers.PullRequestCommentApp#newComment(String, String, Long, String)}
+     * @see {@link controllers.PullRequestApp#newComment(String, String, Long, String)}
      */
     public static void afterNewComment(User sender, PullRequest pullRequest,
                                        ReviewComment newComment, String urlToView) {
@@ -346,7 +346,7 @@ public class NotificationEvent extends Model {
         receivers.addAll(getReceivers(sender, pullRequest));
         receivers.remove(User.findByLoginId(newComment.author.loginId));
         notiEvent.receivers = receivers;
-        notiEvent.eventType = NEW_PULL_REQUEST_COMMENT;
+        notiEvent.eventType = NEW_REVIEW_COMMENT;
         notiEvent.oldValue = null;
         notiEvent.newValue = newComment.getContents();
 

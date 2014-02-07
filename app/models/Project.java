@@ -113,6 +113,9 @@ public class Project extends Model implements LabelOwner {
     @OneToMany(cascade = CascadeType.REMOVE)
     public List<CommitComment> codeComments;
 
+    @OneToMany(cascade = CascadeType.REMOVE)
+    public List<CommentThread> commentThreads;
+
     public Integer defaultReviewerCount = 1;
 
     public boolean isUsingReviewerCount;

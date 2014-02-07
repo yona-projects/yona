@@ -53,8 +53,8 @@
                     </div>
 
                     @** BlockComment **@
-                    @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.PULL_REQUEST_COMMENT)){
-                        @common.reviewForm(project, ResourceType.PULL_REQUEST_COMMENT, routes.PullRequestCommentApp.newComment(project.owner, project.name, pull.id, commitId).toString())
+                    @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.REVIEW_COMMENT)){
+                        @common.reviewForm(project, ResourceType.REVIEW_COMMENT, routes.PullRequestApp.newComment(project.owner, project.name, pull.id, commitId).toString())
                     }
                     @** // BlockComment **@
                 </div>
@@ -85,8 +85,8 @@
             </div>
 
             @** BlockComment **@
-            @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.PULL_REQUEST_COMMENT)){
-                @common.reviewForm(project, ResourceType.PULL_REQUEST_COMMENT, routes.PullRequestCommentApp.newComment(project.owner, project.name, pull.id, commitId).toString())
+            @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.REVIEW_COMMENT)){
+                @common.reviewForm(project, ResourceType.REVIEW_COMMENT, routes.PullRequestApp.newComment(project.owner, project.name, pull.id, commitId).toString())
             }
             @** // BlockComment **@
         </div>
@@ -98,7 +98,7 @@
             @renderNonRangedThreads(pull.commentThreads.toList, commitId, Html(""))
             </ul>
             }
-            @common.commentForm(project, ResourceType.PULL_REQUEST_COMMENT, routes.PullRequestCommentApp.newComment(project.owner, project.name, pull.id, commitId).toString())
+            @common.commentForm(project, ResourceType.REVIEW_COMMENT, routes.PullRequestApp.newComment(project.owner, project.name, pull.id, commitId).toString())
         </div>
 
         <div id="minimap" class="minimap-outer">
@@ -134,7 +134,7 @@
         // code.Diff
         $yobi.loadModule("code.Diff", {
             "welDiff"      : $("#pull-request-changes"),
-            "bCommentable" : @isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.PULL_REQUEST_COMMENT)
+            "bCommentable" : @isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.REVIEW_COMMENT)
         });
 
         $("button.moreBtn").on("click", function(){

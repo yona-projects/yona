@@ -15,11 +15,7 @@ import scala.collection.JavaConversions._
 import org.apache.commons.lang3.StringEscapeUtils.escapeHtml4
 import views.html.partial_diff_comment_on_line
 import views.html.partial_diff_line
-import views.html.git.partial_pull_request_comment
 import views.html.git.partial_pull_request_event
-import views.html.git.partial_commit_comment
-import models.PullRequestComment
-import models.CommitComment
 import models.PullRequestEvent
 import models.PullRequest
 import models.TimelineItem
@@ -301,30 +297,12 @@ object TemplateHelper {
     def renderLines(lines: List[DiffLine], comments: Map[String, List[CodeCommentThread]], isEndOfLineMissing: DiffLine => Boolean): String =
       _renderLines("", lines, comments, isEndOfLineMissing)
 
-    @tailrec def _threadAndRemains(thread: List[PullRequestComment], remains: List[TimelineItem], comments: List[TimelineItem]): (List[PullRequestComment], List[TimelineItem]) = {
-      if (comments.isEmpty) {
-        (thread, remains)
-      } else {
-        (thread.head, comments.head) match {
-          case (a: PullRequestComment, b: PullRequestComment) if a.threadEquals(b) =>
-            _threadAndRemains(thread :+ b, remains, comments.tail)
-          case (a, b) =>
-            _threadAndRemains(thread, remains :+ b, comments.tail)
-        }
-      }
-    }
-
-    def threadAndRemains(comment: PullRequestComment, comments: List[TimelineItem]): (List[PullRequestComment], List[TimelineItem]) = {
-      _threadAndRemains(List(comment), List(), if (comments.isEmpty) List() else comments.tail)
-    }
-
-    def isLineComment(comment: PullRequestComment) = comment.line != null && comment.hasValidCommitId
-
     def isAuthorComment(commentId: String) = if(commentId == UserApp.currentUser().loginId) "author"
 
     def shortId(commitId: String) = commitId.substring(0, Math.min(7, commitId.size))
 
-    @tailrec def renderNonRangedThreads(threads: List[models.CommentThread], commitId: String, html: play.api.templates.Html): play.api.templates.Html =
+    @tailrec
+    def renderNonRangedThreads(threads: List[models.CommentThread], commitId: String, html: play.api.templates.Html): play.api.templates.Html =
       threads match {
         case head :: tail =>
           head match {

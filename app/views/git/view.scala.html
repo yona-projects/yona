@@ -1,4 +1,4 @@
-@(project: Project, pull: PullRequest, comments: List[PullRequestComment], canDeleteBranch: Boolean, canRestoreBranch: Boolean)
+@(project: Project, pull: PullRequest, canDeleteBranch: Boolean, canRestoreBranch: Boolean)
 
 @import utils.JodaDateUtil
 @import utils.TemplateHelper._
@@ -96,6 +96,7 @@
             @renderEventsOnPullRequest(pull, Html(""), pull.getTimelineComments.toList)
             </ul>
             }
+            @common.commentForm(project, ResourceType.REVIEW_COMMENT, routes.PullRequestApp.newComment(project.owner, project.name, pull.id).toString())
         </div>
     </div>
 </div>
@@ -114,7 +115,7 @@
             "sWatchUrl"  : "@routes.WatchApp.watch(pull.asResource.asParameter)",
             "sUnwatchUrl": "@routes.WatchApp.unwatch(pull.asResource.asParameter)",
             "sStateUrl"  : "@routes.PullRequestApp.pullRequestState(pull.toProject.owner, pull.toProject.name, pull.number)",
-            "bCommentable" : "@isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.PULL_REQUEST_COMMENT)"
+            "bCommentable" : "@isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.REVIEW_COMMENT)"
         });
 
         yobi.Mention({

@@ -48,6 +48,7 @@ import play.mvc.With;
 import playRepository.*;
 import utils.*;
 import views.html.git.*;
+import views.html.error.notfound;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
@@ -422,15 +423,8 @@ public class PullRequestApp extends Controller {
             canRestoreBranch = GitRepository.canRestoreBranch(pullRequest);
         }
 
-        List<PullRequestComment> comments = new ArrayList<>();
-
-        for (PullRequestComment comment : pullRequest.comments) {
-            if (comment.line != null && comment.hasValidCommitId()) {
-                comments.add(comment);
-            }
-        }
         UserApp.currentUser().visits(project);
-        return ok(view.render(project, pullRequest, comments, canDeleteBranch, canRestoreBranch));
+        return ok(view.render(project, pullRequest, canDeleteBranch, canRestoreBranch));
     }
 
     /**
@@ -735,6 +729,85 @@ public class PullRequestApp extends Controller {
         }
 
         return new ValidationResult(result, hasError);
+    }
+
+    @IsCreatable(ResourceType.REVIEW_COMMENT)
+    public static Result newComment(String ownerName, String projectName, Long pullRequestId,
+                                    String commitId) throws IOException, ServletException,
+            SVNException {
+        Form<CodeRange> codeRangeForm = new Form<>(CodeRange.class).bindFromRequest();
+
+        Form<ReviewComment> reviewCommentForm = new Form<>(ReviewComment.class)
+                .bindFromRequest();
+
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+
+        if (reviewCommentForm.hasErrors()) {
+            return badRequest(ErrorViews.BadRequest.render("error.validation", project));
+        }
+
+        PullRequest pullRequest = PullRequest.findById(pullRequestId);
+
+        if (pullRequest == null) {
+            return notFound(notfound.render("error.notfound", project, request().path()));
+        }
+
+        ReviewComment comment = reviewCommentForm.get();
+        comment.author = new UserIdent(UserApp.currentUser());
+        if (comment.thread == null) {
+            if (codeRangeForm.errors().isEmpty()) {
+                CodeCommentThread thread = new CodeCommentThread();
+
+                if (commitId != null) {
+                    thread.commitId = commitId;
+                } else {
+                    thread.commitId = pullRequest.mergedCommitIdTo;
+                    thread.prevCommitId = pullRequest.mergedCommitIdFrom;
+                }
+
+                User codeAuthor = RepositoryService
+                        .getRepository(project)
+                        .getCommit(thread.commitId)
+                        .getAuthor();
+                if (!codeAuthor.isAnonymous()) {
+                    thread.codeAuthors.add(codeAuthor);
+                }
+
+                thread.codeRange = codeRangeForm.get();
+
+                comment.thread = thread;
+            } else {
+                // non-range
+                NonRangedCodeCommentThread thread = new NonRangedCodeCommentThread();
+                thread.commitId = commitId;
+                comment.thread = thread;
+            }
+            comment.thread.project = project;
+            comment.thread.state = CommentThread.ThreadState.OPEN;
+            comment.thread.createdDate = comment.createdDate;
+            comment.thread.author = comment.author;
+            pullRequest.addCommentThread(comment.thread);
+        } else {
+            comment.thread = CommentThread.find.byId(comment.thread.id);
+        }
+        comment.save();
+        pullRequest.update();
+
+        Attachment.moveAll(UserApp.currentUser().asResource(), comment.asResource());
+
+        play.mvc.Call toView;
+        if (commitId != null) {
+            toView = routes.PullRequestApp.specificChange(ownerName, projectName,
+                    pullRequest.number, commitId);
+        } else {
+            toView = routes.PullRequestApp.pullRequestChanges(ownerName, projectName,
+                    pullRequest.number);
+        }
+        String urlToView = toView + "#comment-" + comment.id;
+
+        NotificationEvent.afterNewComment(UserApp.currentUser(), pullRequest, comment, urlToView);
+
+        return redirect(urlToView);
     }
 
     static class ValidationResult {

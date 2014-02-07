@@ -551,28 +551,46 @@ public class ProjectApp extends Controller {
     }
 
     private static void addCommentAuthors(Long pullRequestId, List<User> userList) {
-        List<PullRequestComment> comments = PullRequest.findById(pullRequestId).comments;
-        for (PullRequestComment codeComment : comments) {
-            final User commenter = User.findByLoginId(codeComment.authorLoginId);
-            if(userList.contains(commenter)) {
-                userList.remove(commenter);
+        List<CommentThread> threads = PullRequest.findById(pullRequestId).commentThreads;
+        for (CommentThread thread : threads) {
+            for (ReviewComment comment : thread.reviewComments) {
+                final User commenter = User.findByLoginId(comment.author.loginId);
+                if(userList.contains(commenter)) {
+                    userList.remove(commenter);
+                }
+                userList.add(commenter);
             }
-            userList.add(commenter);
         }
         Collections.reverse(userList);
     }
 
     private static void addCodeCommenters(String commitId, Long projectId, List<User> userList) {
-        List<CommitComment> comments = CommitComment.find.where().eq("commitId",
-                commitId).eq("project.id", projectId).findList();
+        Project project = Project.find.byId(projectId);
 
-        for (CommitComment codeComment : comments) {
-            User commentAuthor = User.findByLoginId(codeComment.authorLoginId);
-            if( userList.contains(commentAuthor) ) {
-                userList.remove(commentAuthor);
+        if (project.vcs == RepositoryService.VCS_GIT) {
+            List<ReviewComment> comments = ReviewComment.find.where().eq("commitId",
+                    commitId).eq("project.id", projectId).eq("pullRequest.id", null).findList();
+
+            for (ReviewComment comment : comments) {
+                User commentAuthor = User.findByLoginId(comment.author.loginId);
+                if( userList.contains(commentAuthor) ) {
+                    userList.remove(commentAuthor);
+                }
+                userList.add(commentAuthor);
             }
-            userList.add(commentAuthor);
+        } else {
+            List<CommitComment> comments = CommitComment.find.where().eq("commitId",
+                    commitId).eq("project.id", projectId).findList();
+
+            for (CommitComment codeComment : comments) {
+                User commentAuthor = User.findByLoginId(codeComment.authorLoginId);
+                if( userList.contains(commentAuthor) ) {
+                    userList.remove(commentAuthor);
+                }
+                userList.add(commentAuthor);
+            }
         }
+
         Collections.reverse(userList);
     }
 

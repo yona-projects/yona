@@ -27,7 +27,6 @@ public enum ResourceType {
     FORK("fork"),
     COMMIT_COMMENT("code_comment"),
     PULL_REQUEST("pull_request"),
-    PULL_REQUEST_COMMENT("pull_request_comment"),
     COMMIT("commit"),
     COMMENT_THREAD("comment_thread"),
     REVIEW_COMMENT("review_comment"),
