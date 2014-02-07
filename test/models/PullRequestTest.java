@@ -141,25 +141,6 @@ public class PullRequestTest extends ModelTest<PullRequest> {
     }
 
     @Test
-    public void getTimelineComments() throws Exception {
-        // Given
-        PullRequestEvent event1 = createPullRequestEvent("2013-12-11");
-        PullRequestEvent event2 = createPullRequestEvent("2013-12-13");
-        List<PullRequestEvent> events = new ArrayList<>();
-        events.add(event1);
-        events.add(event2);
-
-        PullRequest pullRequest = new PullRequest();
-        pullRequest.pullRequestEvents = events;
-
-        // When
-        List<TimelineItem> timeline = pullRequest.getTimelineComments();
-
-        // Then
-        assertThat(timeline).containsExactly(event1, event2);
-    }
-
-    @Test
     public void testReviewPoint() {
         // Given
         PullRequest pullRequest = PullRequest.findById(1L);

@@ -93,11 +93,9 @@
 
         <div class="board-comment-wrap">
             <hr class="nm">
-            @if(pull.getTimelineComments.size > 0) {
             <ul class="comments" id="comments">
             @renderNonRangedThreads(pull.commentThreads.toList, commitId, Html(""))
             </ul>
-            }
             @common.commentForm(project, ResourceType.REVIEW_COMMENT, routes.PullRequestApp.newComment(project.owner, project.name, pull.id, commitId).toString())
         </div>
 

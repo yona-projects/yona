@@ -315,16 +315,18 @@ object TemplateHelper {
         case _ => html
       }
 
-    @tailrec def renderEventsOnPullRequest(pull: PullRequest, html: play.api.templates.Html, comments: List[TimelineItem]): play.api.templates.Html =
-      comments match {
+    @tailrec
+    def _renderEventsOnPullRequest(pull: PullRequest, events: List[PullRequestEvent],
+                                   html: play.api.templates.Html): play.api.templates.Html =
+      events match {
         case head :: tail =>
-          head match {
-            case (event: PullRequestEvent) => html += partial_pull_request_event(pull, event)
-            case _ => ;
-          }
-          renderEventsOnPullRequest(pull, html, tail)
+          html += partial_pull_request_event(pull, head)
+          _renderEventsOnPullRequest(pull, tail, html)
         case _ => html
       }
+
+    def renderEventsOnPullRequest(pull: PullRequest) =
+      _renderEventsOnPullRequest(pull, pull.pullRequestEvents.toList, play.api.templates.Html(""))
 
     def urlToCommentThread(project: Project, thread: CommentThread) = {
       // Before access any field in thread.pullRequest, refresh() should be

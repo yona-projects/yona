@@ -91,10 +91,11 @@
         <hr>
 
         <div class="board-comment-wrap">
-            @if(pull.getTimelineComments.size > 0) {
+            <hr class="nm">
+            @if(pull.pullRequestEvents.size > 0) {
             <ul class="comments" id="comments">
-            @renderEventsOnPullRequest(pull, Html(""), pull.getTimelineComments.toList)
-            </ul>
+            @renderEventsOnPullRequest(pull)
+            </ul> 
             }
             @common.commentForm(project, ResourceType.REVIEW_COMMENT, routes.PullRequestApp.newComment(project.owner, project.name, pull.id).toString())
         </div>

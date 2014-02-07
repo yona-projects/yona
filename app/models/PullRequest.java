@@ -716,21 +716,6 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     /**
-     * pull request의 모든 코멘트 정보를 가져오고 시간순으로 정렬 후 반환한다. (코멘트 + 코드코멘트 + 이벤트 )
-     *
-     * @return
-     */
-    @Transient
-    public List<TimelineItem> getTimelineComments() {
-        List<TimelineItem> timelineComments = new ArrayList<>();
-        timelineComments.addAll(pullRequestEvents);
-
-        Collections.sort(timelineComments, TimelineItem.ASC);
-
-        return timelineComments;
-    }
-
-    /**
      * 보낸 코드를 병합해보고 결과 정보를 반환한다.
      *
      * @return
