@@ -25,7 +25,7 @@
                         <a href="@routes.PullRequestApp.pullRequestChanges(project.owner, project.name, pull.number)">All</a>
                     </li>
                     <li class="divider"></li>
-                    @for(commit <- pull.pullRequestCommits){
+                    @for(commit <- pull.pullRequestCommits if commit.state == PullRequestCommit.State.CURRENT){
                     <li data-value="@commit.commitId">
                         <a href="@routes.PullRequestApp.specificChange(project.owner, project.name, pull.number, commit.commitId)">
                             <strong class="blue-txt mr10">@commit.commitShortId</strong>
