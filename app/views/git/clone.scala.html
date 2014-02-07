@@ -5,18 +5,20 @@
 
 @projectLayout(title, project.originalProject, utils.MenuType.PULL_REQUEST) {
 @projectMenu(project.originalProject, utils.MenuType.PULL_REQUEST, "main-menu-only")
-<div class="project-page-wrap">
-    <div class="content-wrap frm-wrap">
-        <legend>
-            @Messages("fork.forking", project.originalProject.owner, project.originalProject.name, project.owner, project.name)
-        </legend>
-        <p>
-            @Messages("fork.forking.message.1")
-        </p>
-        <p>
-            @Messages("fork.forking.message.2")
-        </p>
-        <div id="spin"></div>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="content-wrap frm-wrap">
+            <legend>
+                @Messages("fork.forking", project.originalProject.owner, project.originalProject.name, project.owner, project.name)
+            </legend>
+            <p>
+                @Messages("fork.forking.message.1")
+            </p>
+            <p>
+                @Messages("fork.forking.message.2")
+            </p>
+            <div id="spin"></div>
+        </div>
     </div>
 </div>
 <script type="text/javascript">

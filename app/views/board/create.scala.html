@@ -6,62 +6,64 @@
 
 @projectLayout(title, project, utils.MenuType.BOARD) {
 @projectMenu(project, utils.MenuType.BOARD, "main-menu-only")
-<div class="project-page-wrap">
-	<form action="@routes.BoardApp.newPost(project.owner, project.name)" method="post" enctype="multipart/form-data" class="nm">
-	<div class="content-wrap frm-wrap">
-		<dl>
-			<dt>
-				<label for="title">@Messages("title")</label>
-			</dt>
-			<dd>
-				@defining(form.errors().get("title")) { errors =>
-				<input type="text" id="title" name="title" class="zen-mode text title @if(errors != null) {error}" maxlength="250" tabindex="1" />
-					@if(errors != null) {
-						<div class="message">
-						@for(error <- errors) {
-							<div>@Messages(error.message)</div>
-						}
-						</div>
-					}
-				}
-			</dd>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+    	<form action="@routes.BoardApp.newPost(project.owner, project.name)" method="post" enctype="multipart/form-data" class="nm">
+    	<div class="content-wrap frm-wrap">
+    		<dl>
+    			<dt>
+    				<label for="title">@Messages("title")</label>
+    			</dt>
+    			<dd>
+    				@defining(form.errors().get("title")) { errors =>
+    				<input type="text" id="title" name="title" class="zen-mode text title @if(errors != null) {error}" maxlength="250" tabindex="1" />
+    					@if(errors != null) {
+    						<div class="message">
+    						@for(error <- errors) {
+    							<div>@Messages(error.message)</div>
+    						}
+    						</div>
+    					}
+    				}
+    			</dd>
 
-            <dd style="position: relative;">
-                <div id="mode-select">
-                    <input type="radio" name="edit-mode" id="edit-mode" value="edit" checked="checked" class="radio-btn">
-                    <label for="edit-mode" style="margin-right:3px;">Edit</label>
-                    <input type="radio" name="edit-mode" id="preview-mode" value="preview" class="radio-btn">
-                    <label for="preview-mode">Preview</label>
-                </div>
-                <a href="#" class="go-zen"><i class="s s--zen" >Edit in Zen Mode</i></a>
-                @help.markdown()
-				 <div class="textarea-box">
-                    <textarea id="body" name="body" class="zen-mode content" markdown="true" tabindex="2" data-label="@Messages("post.error.emptyBody")"></textarea>
-                </div>
-                
-			</dd>
+                <dd style="position: relative;">
+                    <div id="mode-select">
+                        <input type="radio" name="edit-mode" id="edit-mode" value="edit" checked="checked" class="radio-btn">
+                        <label for="edit-mode" style="margin-right:3px;">Edit</label>
+                        <input type="radio" name="edit-mode" id="preview-mode" value="preview" class="radio-btn">
+                        <label for="preview-mode">Preview</label>
+                    </div>
+                    <a href="#" class="go-zen"><i class="s s--zen" >Edit in Zen Mode</i></a>
+                    @help.markdown()
+    				 <div class="textarea-box">
+                        <textarea id="body" name="body" class="zen-mode content" markdown="true" tabindex="2" data-label="@Messages("post.error.emptyBody")"></textarea>
+                    </div>
+                    
+    			</dd>
 
-			@if(isAllowedToNotice){
-			<dd class="right-txt">
-				<input type="checkbox" id="notice" name="notice" class="checkbox" /><!--
-			 --><label for="notice" class="label-public">@Messages("post.notice.label")</label>
-			</dd>
-			}
-		</dl>
+    			@if(isAllowedToNotice){
+    			<dd class="right-txt">
+    				<input type="checkbox" id="notice" name="notice" class="checkbox" /><!--
+    			 --><label for="notice" class="label-public">@Messages("post.notice.label")</label>
+    			</dd>
+    			}
+    		</dl>
 
-        @** fileUploader **@
-        @if(!UserApp.currentUser.isAnonymous) {
-            @common.fileUploader(ResourceType.BOARD_POST, null)
-        }
-        @** end of fileUploader **@
+            @** fileUploader **@
+            @if(!UserApp.currentUser.isAnonymous) {
+                @common.fileUploader(ResourceType.BOARD_POST, null)
+            }
+            @** end of fileUploader **@
 
-		<div class="actions">
-			<button class="ybtn ybtn-success" tabindex="3">@Messages("button.save")</button><!--
-		 --><a href="javascript:history.back();" class="ybtn" tabindex="4">@Messages("button.cancel")</a>
-		</div>
+    		<div class="actions">
+    			<button class="ybtn ybtn-success" tabindex="3">@Messages("button.save")</button><!--
+    		 --><a href="javascript:history.back();" class="ybtn" tabindex="4">@Messages("button.cancel")</a>
+    		</div>
 
-	</div>
-	</form>
+    	</div>
+    	</form>
+    </div>
 </div>
 
 @common.markdown(project)

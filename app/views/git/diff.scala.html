@@ -28,111 +28,112 @@
 }
 
 @projectLayout(Messages("menu.pullRequest"), pull.toProject, utils.MenuType.PULL_REQUEST) {
-<div class="project-page-wrap">
-    <div class="code-browse-wrap">
-        <div class="actrow">
-            <a href="@routes.PullRequestApp.pullRequestCommits(pull.toProject.owner, pull.toProject.name, pull.number)" class="ybtn">
-                <i class="yobicon-arrow-right"></i> @Messages("pullRequest.back.to.the.pullrequest")
-            </a>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="code-browse-wrap">
+            <div class="actrow">
+                <a href="@routes.PullRequestApp.pullRequestCommits(pull.toProject.owner, pull.toProject.name, pull.number)" class="ybtn">
+                    <i class="yobicon-arrow-right"></i> @Messages("pullRequest.back.to.the.pullrequest")
+                </a>
 
-            <div class="pull-right">
-                <button id="watch-button" type="button" class="ybtn ybtn-info @if(commit.getWatchers(pull.fromProject).contains(UserApp.currentUser())) { active }" data-toggle="button">@Messages("notification.watch")</button>
+                <div class="pull-right">
+                    <button id="watch-button" type="button" class="ybtn ybtn-info @if(commit.getWatchers(pull.fromProject).contains(UserApp.currentUser())) { active }" data-toggle="button">@Messages("notification.watch")</button>
+                </div>
+            </div>
+            <hr>
+            <p class="commitInfo">
+                @(commit.getAuthor, commit.getAuthorEmail, commit.getAuthorName) match {
+                case (user: User, _, _) if !user.isAnonymous => {
+                    <a href="@routes.UserApp.userInfo(commit.getAuthor.loginId)" class="avatar-wrap">
+                        <img src="@commit.getAuthor.avatarUrl" alt="@commit.getAuthor.name" width="32" height="32"/>
+                    </a>
+                    <strong>@commit.getAuthor.name</strong>
+                }
+                case (_, email, name) if email != null => {
+                    <span class="avatar-wrap">
+                        <img src="@urlToPicture(commit.getAuthorEmail, 32)" width="32" height="32">
+                    </span>
+                    @if(name != null) {
+                    <strong>@name</strong>
+                    }
+                }
+                case (_, _, name) if name != null => {
+                    <strong>@name</strong>
+                }
+                case (_, _, _) => {
+                    <strong>@User.anonymous.name</strong>
+                }
+                }
+                <span class="ago" title="@JodaDateUtil.getDateString(commit.getAuthorDate)">
+                    @agoString(JodaDateUtil.ago(commit.getAuthorDate))
+                </span>
+                <strong class="commitId pull-right">@{"@"}@commit.getId</strong>
+                @if(comments.size > 0) {
+                <span class="pull-right mt5 mr10">
+                    <input id="toggle-comments" type="checkbox" checked="checked" class="checkbox">
+                    <label for="toggle-comments" class="form-label">@Messages("code.showcomments")</label>
+                </span>
+                }
+            </p>
+            <pre class="commitMsg">@commit.getMessage</pre>
+            <div class="diff-body">
+            @views.html.partial_diff(diff, comments, pull.fromProject, pull.toProject)
             </div>
         </div>
-        <hr>
-        <p class="commitInfo">
-            @(commit.getAuthor, commit.getAuthorEmail, commit.getAuthorName) match {
-            case (user: User, _, _) if !user.isAnonymous => {
-                <a href="@routes.UserApp.userInfo(commit.getAuthor.loginId)" class="avatar-wrap">
-                    <img src="@commit.getAuthor.avatarUrl" alt="@commit.getAuthor.name" width="32" height="32"/>
-                </a>
-                <strong>@commit.getAuthor.name</strong>
-            }
-            case (_, email, name) if email != null => {
-                <span class="avatar-wrap">
-                    <img src="@urlToPicture(commit.getAuthorEmail, 32)" width="32" height="32">
-                </span>
-                @if(name != null) {
-                <strong>@name</strong>
-                }
-            }
-            case (_, _, name) if name != null => {
-                <strong>@name</strong>
-            }
-            case (_, _, _) => {
-                <strong>@User.anonymous.name</strong>
-            }
-            }
-            <span class="ago" title="@JodaDateUtil.getDateString(commit.getAuthorDate)">
-                @agoString(JodaDateUtil.ago(commit.getAuthorDate))
-            </span>
-            <strong class="commitId pull-right">@{"@"}@commit.getId</strong>
+
+        @** Comment **@
+        <div class="board-comment-wrap">
+            @defining(comments.filter(v => v.line == null)) { comments =>
             @if(comments.size > 0) {
-            <span class="pull-right mt5 mr10">
-                <input id="toggle-comments" type="checkbox" checked="checked" class="checkbox">
-                <label for="toggle-comments" class="form-label">@Messages("code.showcomments")</label>
-            </span>
-            }
-        </p>
-        <pre class="commitMsg">@commit.getMessage</pre>
-        <div class="diff-body">
-        @views.html.partial_diff(diff, comments, pull.fromProject, pull.toProject)
-        </div>
-    </div>
-
-    @** Comment **@
-    <div class="board-comment-wrap">
-        @defining(comments.filter(v => v.line == null)) { comments =>
-        @if(comments.size > 0) {
-        <ul class="comments">
-            @for(comment <- comments){
-            <li id="comment-@comment.id" data-path="@comment.path" data-side="@comment.side" data-line="@comment.line" class="comment">
-                <div class="comment-avatar">
-                    <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
-                        <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
-                    </a>
-                </div>
-                <div class="media-body">
-                    <div class="meta-info">
-                        <span class="comment_author pull-left">
-                            <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
-                                <strong>@comment.authorLoginId </strong>
-                            </a>
-                        </span>
-                        <span class="ago" title="@JodaDateUtil.getDateString(comment.createdDate)">
-                            <a href="#comment-@comment.id">
-                                @agoString(JodaDateUtil.ago(comment.createdDate))
-                            </a>
-                        </span>
-                        @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
-                        <span class="edit pull-right">
-                            <button class="btn-transparent pull-right close" data-request-method="delete" data-request-uri="@routes.CodeHistoryApp.deleteComment(pull.fromProject.owner, pull.fromProject.name, commit.getId, comment.id)"><i class="yobicon-trash"></i></button>
-                        </span>
-                        }
+            <ul class="comments">
+                @for(comment <- comments){
+                <li id="comment-@comment.id" data-path="@comment.path" data-side="@comment.side" data-line="@comment.line" class="comment">
+                    <div class="comment-avatar">
+                        <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+                            <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
+                        </a>
                     </div>
+                    <div class="media-body">
+                        <div class="meta-info">
+                            <span class="comment_author pull-left">
+                                <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+                                    <strong>@comment.authorLoginId </strong>
+                                </a>
+                            </span>
+                            <span class="ago" title="@JodaDateUtil.getDateString(comment.createdDate)">
+                                <a href="#comment-@comment.id">
+                                    @agoString(JodaDateUtil.ago(comment.createdDate))
+                                </a>
+                            </span>
+                            @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
+                            <span class="edit pull-right">
+                                <button class="btn-transparent pull-right close" data-request-method="delete" data-request-uri="@routes.CodeHistoryApp.deleteComment(pull.fromProject.owner, pull.fromProject.name, commit.getId, comment.id)"><i class="yobicon-trash"></i></button>
+                            </span>
+                            }
+                        </div>
 
-                    <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
+                        <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
 
-                    <div class="attachments" data-resourceType="@ResourceType.COMMIT_COMMENT" data-resourceId="@comment.id"></div>
-                </div>
-            </li>
+                        <div class="attachments" data-resourceType="@ResourceType.COMMIT_COMMENT" data-resourceId="@comment.id"></div>
+                    </div>
+                </li>
+                }
+            </ul>
             }
-        </ul>
-        }
-        }
+            }
 
-        @common.commentForm(pull.fromProject, ResourceType.COMMIT_COMMENT, routes.CodeHistoryApp.newComment(pull.fromProject.owner, pull.fromProject.name, commit.getId).toString())
-    </div>
-    @** // Comment **@
+            @common.commentForm(pull.fromProject, ResourceType.COMMIT_COMMENT, routes.CodeHistoryApp.newComment(pull.fromProject.owner, pull.fromProject.name, commit.getId).toString())
+        </div>
+        @** // Comment **@
 
-    <div id="minimap" class="minimap-outer">
-        <div class="minimap-wrap">
-            <div class="minimap-curr"></div>
-            <div class="minimap-links"></div>
+        <div id="minimap" class="minimap-outer">
+            <div class="minimap-wrap">
+                <div class="minimap-curr"></div>
+                <div class="minimap-links"></div>
+            </div>
         </div>
     </div>
 </div>
-
 @common.markdown(pull.fromProject)
 @common.mergely()
 

@@ -29,125 +29,126 @@
 
 @projectLayout(title, project, utils.MenuType.MILESTONE) {
 @projectMenu(project, utils.MenuType.MILESTONE, "")
-<div class="project-page-wrap">
-    <div class="tab-wrap">
-        @if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.MILESTONE)) {
-        <div class="pull-right btns">
-            <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" class="ybtn ybtn-success">@Messages("milestone.menu.new")</a>
-        </div>
-        }
-
-        <ul class="nav nav-tabs">
-            <li class="@if(param.state.equals("open")){active}">
-                <a href="@makeMilestoneListLink("open")">@Messages("milestone.state.open")</a>
-            </li>
-            <li class="@if(param.state.equals("closed")){active}">
-                <a href="@makeMilestoneListLink("closed")">@Messages("milestone.state.closed")</a>
-            </li>
-            <li class="@if(param.state.equals("all")){active}">
-                <a href="@makeMilestoneListLink("all")">@Messages("milestone.state.all")</a>
-            </li>
-        </ul>
-    </div>
-
-	@if(milestones == null || milestones.isEmpty()){
-
-	<div class="error-wrap">
-		<i class="ico ico-err1"></i>
-		<p>@Messages("milestone.is.empty")</p>
-	</div>
-
-	} else {
-
-    <div class="filter-wrap milestone">
-        <div class="milestone-legend pull-left">
-            <i class="open"></i> @Messages("issue.state.open")
-            <i class="closed"></i> @Messages("issue.state.closed")
-
-        </div>
-
-        @if(milestones.length > 1){
-		<div class="filters">
-			@makeFilterLink("dueDate", param.orderBy, param.orderDir, Messages("common.order.dueDate"))
-			@makeFilterLink("completionRate", param.orderBy, param.orderDir, Messages("common.order.completionRate"))
-		</div>
-		}
-    </div>
-
-    <ul class="milestones">
-        @for(milestone <- milestones){
-        <li class="milestone">
-            <div class="infos">
-            	<div class="meta-info">
-                    <strong class="version"></strong>
-                    <a href="@routes.MilestoneApp.milestone(project.owner, project.name, milestone.id)" class="title">@milestone.title</a>
-                    @if(milestone.state != State.CLOSED) {
-                        @if(milestone.dueDate != null) {
-                        <span class="sp">|</span>
-                        <span class="due-date @if(milestone.isOverDueDate()){over}">
-                            @Messages("label.dueDate")
-                            <strong>@milestone.getDueDateString</strong>
-                            <span class="date">
-                                (@milestone.until)
-                            </span>
-                        </span>
-                        }
-                    } else {
-                        <span class="sp">|</span>
-                        <span class="state closed">@Messages("milestone.state." + milestone.state.state)</span>
-                        @if(milestone.dueDate != null) {
-                        <span class="due-date ml5">
-                            @Messages("label.dueDate")
-                            <strong>@milestone.getDueDateString</strong>
-                        </span>
-                        }
-                    }
-                    <div class="issue-wrap pull-right">
-                        <a href="@makeIssuesLink(milestone.id,"open")" class="ybtn open medium open-issue">
-                            @Messages("issue.state.open") <strong class="num-badge">@milestone.getNumOpenIssues</strong>
-                        </a>
-                        <a href="@makeIssuesLink(milestone.id,"closed")" class="ybtn closed medium closed-issue">
-                            @Messages("issue.state.closed") <strong class="num-badge">@milestone.getNumClosedIssues</strong>
-                        </a>
-                    </div>
-                </div>
-
-                <div class="progress-wrap">
-					<div class="progress @if(milestone.getCompletionRate==0){empty}">
-						<div class="progress-bar" style="width: @milestone.getCompletionRate%;"></div>
-					</div>
-                    
-					<div class="progress-label">
-                        @if(milestone.getNumOpenIssues + milestone.getNumClosedIssues > 0) {
-						<div class="pull-left">
-							<a href="@makeIssuesLink(milestone.id,"closed")">@Messages("issue.state.closed") <strong>@milestone.getCompletionRate%</strong></a>
-						</div>
-						<div class="pull-right">
-							<a href="@makeIssuesLink(milestone.id,"open")">@Messages("issue.state.open") <strong>@{100 - milestone.getCompletionRate}%</strong></a>
-						</div>
-                        } else {
-                            <div class="empty-issue">@Messages("issue.is.empty")</div>
-                        }
-					</div>
-                   
-				</div>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="tab-wrap">
+            @if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.MILESTONE)) {
+            <div class="pull-right btns">
+                <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" class="ybtn ybtn-success">@Messages("milestone.menu.new")</a>
             </div>
-            
-            <div class="completion-rate @if(milestone.getCompletionRate == 100){done}">
-                @if(milestone.getNumOpenIssues + milestone.getNumClosedIssues > 0) {
-                @milestone.getCompletionRate
-                <i>%</i>
-                } else {
-                    -
-                }
-			</div>
-            
-        </li>
-        }
-    </ul>
-    }
-</div>
+            }
 
+            <ul class="nav nav-tabs">
+                <li class="@if(param.state.equals("open")){active}">
+                    <a href="@makeMilestoneListLink("open")">@Messages("milestone.state.open")</a>
+                </li>
+                <li class="@if(param.state.equals("closed")){active}">
+                    <a href="@makeMilestoneListLink("closed")">@Messages("milestone.state.closed")</a>
+                </li>
+                <li class="@if(param.state.equals("all")){active}">
+                    <a href="@makeMilestoneListLink("all")">@Messages("milestone.state.all")</a>
+                </li>
+            </ul>
+        </div>
+
+    	@if(milestones == null || milestones.isEmpty()){
+
+    	<div class="error-wrap">
+    		<i class="ico ico-err1"></i>
+    		<p>@Messages("milestone.is.empty")</p>
+    	</div>
+
+    	} else {
+
+        <div class="filter-wrap milestone">
+            <div class="milestone-legend pull-left">
+                <i class="open"></i> @Messages("issue.state.open")
+                <i class="closed"></i> @Messages("issue.state.closed")
+
+            </div>
+
+            @if(milestones.length > 1){
+    		<div class="filters">
+    			@makeFilterLink("dueDate", param.orderBy, param.orderDir, Messages("common.order.dueDate"))
+    			@makeFilterLink("completionRate", param.orderBy, param.orderDir, Messages("common.order.completionRate"))
+    		</div>
+    		}
+        </div>
+
+        <ul class="milestones">
+            @for(milestone <- milestones){
+            <li class="milestone">
+                <div class="infos">
+                	<div class="meta-info">
+                        <strong class="version"></strong>
+                        <a href="@routes.MilestoneApp.milestone(project.owner, project.name, milestone.id)" class="title">@milestone.title</a>
+                        @if(milestone.state != State.CLOSED) {
+                            @if(milestone.dueDate != null) {
+                            <span class="sp">|</span>
+                            <span class="due-date @if(milestone.isOverDueDate()){over}">
+                                @Messages("label.dueDate")
+                                <strong>@milestone.getDueDateString</strong>
+                                <span class="date">
+                                    (@milestone.until)
+                                </span>
+                            </span>
+                            }
+                        } else {
+                            <span class="sp">|</span>
+                            <span class="state closed">@Messages("milestone.state." + milestone.state.state)</span>
+                            @if(milestone.dueDate != null) {
+                            <span class="due-date ml5">
+                                @Messages("label.dueDate")
+                                <strong>@milestone.getDueDateString</strong>
+                            </span>
+                            }
+                        }
+                        <div class="issue-wrap pull-right">
+                            <a href="@makeIssuesLink(milestone.id,"open")" class="ybtn open medium open-issue">
+                                @Messages("issue.state.open") <strong class="num-badge">@milestone.getNumOpenIssues</strong>
+                            </a>
+                            <a href="@makeIssuesLink(milestone.id,"closed")" class="ybtn closed medium closed-issue">
+                                @Messages("issue.state.closed") <strong class="num-badge">@milestone.getNumClosedIssues</strong>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="progress-wrap">
+    					<div class="progress @if(milestone.getCompletionRate==0){empty}">
+    						<div class="progress-bar" style="width: @milestone.getCompletionRate%;"></div>
+    					</div>
+                        
+    					<div class="progress-label">
+                            @if(milestone.getNumOpenIssues + milestone.getNumClosedIssues > 0) {
+    						<div class="pull-left">
+    							<a href="@makeIssuesLink(milestone.id,"closed")">@Messages("issue.state.closed") <strong>@milestone.getCompletionRate%</strong></a>
+    						</div>
+    						<div class="pull-right">
+    							<a href="@makeIssuesLink(milestone.id,"open")">@Messages("issue.state.open") <strong>@{100 - milestone.getCompletionRate}%</strong></a>
+    						</div>
+                            } else {
+                                <div class="empty-issue">@Messages("issue.is.empty")</div>
+                            }
+    					</div>
+                       
+    				</div>
+                </div>
+                
+                <div class="completion-rate @if(milestone.getCompletionRate == 100){done}">
+                    @if(milestone.getNumOpenIssues + milestone.getNumClosedIssues > 0) {
+                    @milestone.getCompletionRate
+                    <i>%</i>
+                    } else {
+                        -
+                    }
+    			</div>
+                
+            </li>
+            }
+        </ul>
+        }
+    </div>
+</div>
 <script type="text/javascript">
     $(document).ready(function() {
         yobi.ShortcutKey.setKeymapLink({

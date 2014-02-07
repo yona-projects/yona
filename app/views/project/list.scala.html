@@ -8,80 +8,81 @@
         <h3>@Messages("title.projectList")</h3>
     </div>
 </div>
-<div class="project-page-wrap">
-	<div class="search-wrap">
-		<div id="search" class="pull-right">
-			<form action="@routes.ProjectApp.projects()" method="get">
-				<div class="search-bar">
-                    <input name="filter" class="textbox" type="text" placeholder="@Messages("site.project.filter")" value="@filter">
-                    <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+    	<div class="search-wrap">
+    		<div id="search" class="pull-right">
+    			<form action="@routes.ProjectApp.projects()" method="get">
+    				<div class="search-bar">
+                        <input name="filter" class="textbox" type="text" placeholder="@Messages("site.project.filter")" value="@filter">
+                        <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                    </div>
+    			</form>
+             </div>
+        </div>
+    	<ul class="all-projects">
+        @for(project <- currentPage.getList) {
+            <li class="project">
+                <div class="info-wrap">
+                    <div class="owner-avatar-wrap">
+                        <a href="@routes.ProjectApp.project(project.owner,project.name)">
+                            <img src="@urlToProjectLogo(project)" alt="@project.name"/>
+                        </a>
+                    </div>
+                    <div style="float:left">
+                        <div class="header">
+                            <a href="@routes.ProjectApp.project(project.owner, project.name)" class="black">@project.name</a>
+                            @if(project.isForkedFromOrigin()){
+                                <span class="small-font blue-txt">
+                                    <a class="origin-title" href='@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)'>
+                                        <i class="yobicon-split"></i>
+                                        @project.originalProject.owner / @project.originalProject.name
+                                    </a>
+                                </span>
+                            }
+
+                            @if(!project.isPublic){ <i class="yobicon-lock yobicon-small"></i> }
+                            @for(label <- project.labels) {
+                                <a class="project-label @label.category.toLowerCase()" href="@routes.ProjectApp.projects()?labelIds=@label.id">@label.name</a>
+                            }
+                        </div>
+                        <div class="desc">
+                        @project.overview
+                        </div>
+                        <p class="name-tag">by <a href="@routes.UserApp.userInfo(project.owner)" class="owner-name-small">@project.owner</a>
+                        at <strong title="@JodaDateUtil.getDateString(project.createdDate)">@agoString(JodaDateUtil.ago(project.createdDate))</strong> <span class="small-font">@if(project.lastPushedDateAgo() != null) {, @Messages("project.codeUpdate") <strong>@agoString(project.lastPushedDateAgo())}</strong></span>
+                        </p>
+                    </div>
                 </div>
-			</form>
-         </div>
-    </div>
-	<ul class="all-projects">
-    @for(project <- currentPage.getList) {
-        <li class="project">
-            <div class="info-wrap">
-                <div class="owner-avatar-wrap">
-                    <a href="@routes.ProjectApp.project(project.owner,project.name)">
-                        <img src="@urlToProjectLogo(project)" alt="@project.name"/>
-                    </a>
-                </div>
-                <div style="float:left">
-                    <div class="header">
-                        <a href="@routes.ProjectApp.project(project.owner, project.name)" class="black">@project.name</a>
-                        @if(project.isForkedFromOrigin()){
-                            <span class="small-font blue-txt">
-                                <a class="origin-title" href='@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)'>
-                                    <i class="yobicon-split"></i>
-                                    @project.originalProject.owner / @project.originalProject.name
+                <div class="stats-wrap pull-right">
+                    @if(project.isPublic){
+                    <div class="members">
+                        <ul class="unstyled">
+                        @for(member <- User.findUsersByProject(project.id)){
+                            @if(member.loginId != project.owner){
+                            <li>
+                                <a href="@routes.UserApp.userInfo(member.loginId)" class="avatar-wrap">
+                                    <img src="@member.avatarUrl" alt="@member.name">
                                 </a>
-                            </span>
+                            </li>
+                            }
                         }
-
-                        @if(!project.isPublic){ <i class="yobicon-lock yobicon-small"></i> }
-                        @for(label <- project.labels) {
-                            <a class="project-label @label.category.toLowerCase()" href="@routes.ProjectApp.projects()?labelIds=@label.id">@label.name</a>
-                        }
+                        </ul>
+                        <p>
+                            @Html(Messages("project.onmember", User.findUsersByProject(project.id).length))
+                            <i class="yobicon-eye yobicon-middle"></i> @Html(Messages("project.onwatching", project.getWatchingCount))
+                        </p>
                     </div>
-                    <div class="desc">
-                    @project.overview
-                    </div>
-                    <p class="name-tag">by <a href="@routes.UserApp.userInfo(project.owner)" class="owner-name-small">@project.owner</a>
-                    at <strong title="@JodaDateUtil.getDateString(project.createdDate)">@agoString(JodaDateUtil.ago(project.createdDate))</strong> <span class="small-font">@if(project.lastPushedDateAgo() != null) {, @Messages("project.codeUpdate") <strong>@agoString(project.lastPushedDateAgo())}</strong></span>
-                    </p>
-                </div>
-            </div>
-            <div class="stats-wrap pull-right">
-                @if(project.isPublic){
-                <div class="members">
-                    <ul class="unstyled">
-                    @for(member <- User.findUsersByProject(project.id)){
-                        @if(member.loginId != project.owner){
-                        <li>
-                            <a href="@routes.UserApp.userInfo(member.loginId)" class="avatar-wrap">
-                                <img src="@member.avatarUrl" alt="@member.name">
-                            </a>
-                        </li>
-                        }
                     }
-                    </ul>
-                    <p>
-                        @Html(Messages("project.onmember", User.findUsersByProject(project.id).length))
-                        <i class="yobicon-eye yobicon-middle"></i> @Html(Messages("project.onwatching", project.getWatchingCount))
-                    </p>
                 </div>
-                }
-            </div>
-        </li>
-    }
-	</ul>
+            </li>
+        }
+    	</ul>
 
-	<!-- pagination.js will fill here. -->
-	<div id="pagination"></div>
+    	<!-- pagination.js will fill here. -->
+    	<div id="pagination"></div>
+    </div>
 </div>
-
 <script type="text/javascript">
 $(document).ready(function(){
     yobi.Pagination.update($("#pagination"), @currentPage.getTotalPageCount);

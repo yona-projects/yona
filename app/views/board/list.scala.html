@@ -18,67 +18,68 @@
 
 @projectLayout(title, project, utils.MenuType.BOARD) {
 @projectMenu(project, utils.MenuType.BOARD, "main-menu-only")
-<div class="project-page-wrap">
-    <div class="search-wrap underline">
-        <form id="option_form" method="get" class="pull-left">
-            <input type="hidden" name="orderBy"  value="@param.orderBy">
-            <input type="hidden" name="orderDir" value="@param.orderDir">
-            <div class="search-bar">
-                <input name="filter" class="textbox" type="text" placeholder="@Messages("project.searchPlaceholder")" value="@param.filter">
-                <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="search-wrap underline">
+            <form id="option_form" method="get" class="pull-left">
+                <input type="hidden" name="orderBy"  value="@param.orderBy">
+                <input type="hidden" name="orderDir" value="@param.orderDir">
+                <div class="search-bar">
+                    <input name="filter" class="textbox" type="text" placeholder="@Messages("project.searchPlaceholder")" value="@param.filter">
+                    <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                </div>
+            </form>
+            <div class="pull-right">
+                <a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="ybtn ybtn-success">@Messages("post.write")</a>
             </div>
-        </form>
-        <div class="pull-right">
-            <a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="ybtn ybtn-success">@Messages("post.write")</a>
         </div>
+
+    	@if(page.getTotalRowCount == 0 && notices.size == 0){
+
+    	<div class="error-wrap">
+    		<i class="ico ico-err1"></i>
+    		<p>@Messages("post.is.empty")</p>
+    	</div>
+
+    	} else {
+
+        @if(page.getTotalRowCount > 1){
+            <div class="filter-wrap board">
+                <div class="filters">
+                	@makeFilterLink("updatedDate", param.orderBy, param.orderDir, Messages("common.order.updatedDate"))
+                    @makeFilterLink("createdDate", param.orderBy, param.orderDir, Messages("common.order.date"))
+                    @makeFilterLink("numOfComments", param.orderBy, param.orderDir, Messages("common.order.comments"))
+                </div>
+            </div>
+        }
+
+    	@if(notices != null && notices.size > 0) {
+       
+    	<ul class="post-list-wrap notice-wrap">
+    	@for(post <- notices) {
+            @partial_list(post, project)
+    	}
+        </ul>
+    	
+    	}
+
+    	<ul class="post-list-wrap">
+    	@for(post <- page.getList()){
+            @partial_list(post, project)
+        }
+    	</ul>
+      }
+
+    	<div class="write-btn-wrap">
+    	</div>
+
+    	<div id="pagination">
+    		<!-- pagination.js will fill here. -->
+    	</div>
+
+        @help.keymap("boardList", project)
     </div>
-
-	@if(page.getTotalRowCount == 0 && notices.size == 0){
-
-	<div class="error-wrap">
-		<i class="ico ico-err1"></i>
-		<p>@Messages("post.is.empty")</p>
-	</div>
-
-	} else {
-
-    @if(page.getTotalRowCount > 1){
-        <div class="filter-wrap board">
-            <div class="filters">
-            	@makeFilterLink("updatedDate", param.orderBy, param.orderDir, Messages("common.order.updatedDate"))
-                @makeFilterLink("createdDate", param.orderBy, param.orderDir, Messages("common.order.date"))
-                @makeFilterLink("numOfComments", param.orderBy, param.orderDir, Messages("common.order.comments"))
-            </div>
-        </div>
-    }
-
-	@if(notices != null && notices.size > 0) {
-   
-	<ul class="post-list-wrap notice-wrap">
-	@for(post <- notices) {
-        @partial_list(post, project)
-	}
-    </ul>
-	
-	}
-
-	<ul class="post-list-wrap">
-	@for(post <- page.getList()){
-        @partial_list(post, project)
-    }
-	</ul>
-  }
-
-	<div class="write-btn-wrap">
-	</div>
-
-	<div id="pagination">
-		<!-- pagination.js will fill here. -->
-	</div>
-
-    @help.keymap("boardList", project)
 </div>
-
 <script type="text/javascript">
 	$(document).ready(function() {
 		$yobi.loadModule("board.List", {

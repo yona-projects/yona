@@ -30,114 +30,115 @@
 
 @projectLayout(title, project.originalProject, utils.MenuType.PULL_REQUEST) {
 @projectMenu(project.originalProject, utils.MenuType.PULL_REQUEST, "main-menu-only")
-<div class="project-page-wrap">
-    <div class="content-wrap frm-wrap">
-        @helper.form(action=routes.PullRequestApp.editPullRequest(pull.toProject.owner, pull.toProject.name, pull.number), 'enctype -> "multipart/form-data", 'class->"nm"){
-            <legend>
-                @Messages(title)
-                <span class="pull-right">
-                    <button id="helpBtn" class="ybtn ybtn-inverse ybtn-small ">
-                        <i class="yobicon-question-sign yobicon-large"></i> @Messages("title.help")
-                    </button>
-                </span>
-            </legend>
-            <div class="well" id="helpMessage" style="margin-bottom: 10px;">
-                <div class="row-fluid">
-                    <div class="pull-left">
-                        <img class="img-polaroid" src="@routes.Assets.at("images/fork-pull/pull-request.jpg")"><br>
-                    </div>
-                    <div class="pull-left help-messages">
-                        <p class="lead">@Messages("pullRequest.help.message.1")</p>
-                        <p>@Messages("pullRequest.help.message.2")</p>
-                        <p>@Messages("pullRequest.help.message.3")</p>
-                    </div>
-                </div>
-            </div>
-            <div class="pull-request-wrap">
-                <div class="option request-from">
-                    <div class="option-label">@Messages("pullRequest.from"):
-                        <div class="btn-group branches" data-name="fromProjectId">
-                            <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                                <span class="d-label">@Messages("pullRequest.select.branch")</span>
-                                <span class="d-caret"><span class="caret"></span></span>
-                            </button>
-                            <ul class="dropdown-menu">
-                                <li data-value="@pull.fromProject.id" data-selected="true">
-                                    <a href="#"><span class="label">repo</span>@pull.fromProject.owner/@pull.fromProject.name</a>
-                                </li>
-                            </ul>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="content-wrap frm-wrap">
+            @helper.form(action=routes.PullRequestApp.editPullRequest(pull.toProject.owner, pull.toProject.name, pull.number), 'enctype -> "multipart/form-data", 'class->"nm"){
+                <legend>
+                    @Messages(title)
+                    <span class="pull-right">
+                        <button id="helpBtn" class="ybtn ybtn-inverse ybtn-small ">
+                            <i class="yobicon-question-sign yobicon-large"></i> @Messages("title.help")
+                        </button>
+                    </span>
+                </legend>
+                <div class="well" id="helpMessage" style="margin-bottom: 10px;">
+                    <div class="row-fluid">
+                        <div class="pull-left">
+                            <img class="img-polaroid" src="@routes.Assets.at("images/fork-pull/pull-request.jpg")"><br>
                         </div>
-                    </div>
-                    <div class="option-desc mt5">
-                        <div class="btn-group branches" data-name="fromBranch">
-                            <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                                <span class="d-label">@Messages("pullRequest.select.branch")</span>
-                                <span class="d-caret"><span class="caret"></span></span>
-                            </button>
-                            <ul class="dropdown-menu">
-                                @makeBranchItem(form("fromBranch").value())
-                            </ul>
+                        <div class="pull-left help-messages">
+                            <p class="lead">@Messages("pullRequest.help.message.1")</p>
+                            <p>@Messages("pullRequest.help.message.2")</p>
+                            <p>@Messages("pullRequest.help.message.3")</p>
                         </div>
                     </div>
                 </div>
-
-                <div class="arrow">
-                   <i class="yobicon-right"></i>
-                </div>
-
-                <div class="option request-to">
-                    <div class="option-label">@Messages("pullRequest.to"):
-                        <div class="btn-group branches" data-name="toProjectId">
-                            <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                                <span class="d-label">@Messages("pullRequest.select.branch")</span>
-                                <span class="d-caret"><span class="caret"></span></span>
-                            </button>
-                            <ul class="dropdown-menu">
-                                <li data-value="@pull.toProject.id" data-selected="true">
-                                    <a href="#"><span class="label">repo</span>@pull.toProject.owner/@pull.toProject.name</a>
-                                </li>
-                            </ul>
+                <div class="pull-request-wrap">
+                    <div class="option request-from">
+                        <div class="option-label">@Messages("pullRequest.from"):
+                            <div class="btn-group branches" data-name="fromProjectId">
+                                <button class="btn dropdown-toggle auto" data-toggle="dropdown">
+                                    <span class="d-label">@Messages("pullRequest.select.branch")</span>
+                                    <span class="d-caret"><span class="caret"></span></span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li data-value="@pull.fromProject.id" data-selected="true">
+                                        <a href="#"><span class="label">repo</span>@pull.fromProject.owner/@pull.fromProject.name</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="option-desc mt5">
+                            <div class="btn-group branches" data-name="fromBranch">
+                                <button class="btn dropdown-toggle auto" data-toggle="dropdown">
+                                    <span class="d-label">@Messages("pullRequest.select.branch")</span>
+                                    <span class="d-caret"><span class="caret"></span></span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    @makeBranchItem(form("fromBranch").value())
+                                </ul>
+                            </div>
                         </div>
                     </div>
-                    <div class="option-desc mt5">
-                        <div class="btn-group branches" data-name="toBranch">
-                            <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                                <span class="d-label">@Messages("pullRequest.select.branch")</span>
-                                <span class="d-caret"><span class="caret"></span></span>
-                            </button>
-                            <ul class="dropdown-menu">
-                                @makeBranchItem(form("toBranch").value())
-                            </ul>
+
+                    <div class="arrow">
+                       <i class="yobicon-right"></i>
+                    </div>
+
+                    <div class="option request-to">
+                        <div class="option-label">@Messages("pullRequest.to"):
+                            <div class="btn-group branches" data-name="toProjectId">
+                                <button class="btn dropdown-toggle auto" data-toggle="dropdown">
+                                    <span class="d-label">@Messages("pullRequest.select.branch")</span>
+                                    <span class="d-caret"><span class="caret"></span></span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li data-value="@pull.toProject.id" data-selected="true">
+                                        <a href="#"><span class="label">repo</span>@pull.toProject.owner/@pull.toProject.name</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="option-desc mt5">
+                            <div class="btn-group branches" data-name="toBranch">
+                                <button class="btn dropdown-toggle auto" data-toggle="dropdown">
+                                    <span class="d-label">@Messages("pullRequest.select.branch")</span>
+                                    <span class="d-caret"><span class="caret"></span></span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    @makeBranchItem(form("toBranch").value())
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <input type="text" name="title" id="title" placeholder="" maxlength="maxlength" tabindex="1" class="text" value="@pull.title">
-            <div style="position: relative;">
-                <div id="mode-select">
-                    <input type="radio" name="edit-mode" id="edit-mode" value="edit" checked="checked" class="radio-btn">
-                    <label for="edit-mode" style="margin-right:3px;">Edit</label>
-                    <input type="radio" name="edit-mode" id="preview-mode" value="preview" class="radio-btn">
-                    <label for="preview-mode">Preview</label>
+                <input type="text" name="title" id="title" placeholder="" maxlength="maxlength" tabindex="1" class="text" value="@pull.title">
+                <div style="position: relative;">
+                    <div id="mode-select">
+                        <input type="radio" name="edit-mode" id="edit-mode" value="edit" checked="checked" class="radio-btn">
+                        <label for="edit-mode" style="margin-right:3px;">Edit</label>
+                        <input type="radio" name="edit-mode" id="preview-mode" value="preview" class="radio-btn">
+                        <label for="preview-mode">Preview</label>
+                    </div>
+                    <a href="#" class="go-zen"><i class="s s--zen">Edit in Zen Mode</i></a>
+                    @help.markdown()
+                    <div class="textarea-box">
+                        <textarea id="body" name="body" markdown="true" class="zen-mode content" tabindex="2" >@pull.body</textarea>
+                    </div>
                 </div>
-                <a href="#" class="go-zen"><i class="s s--zen">Edit in Zen Mode</i></a>
-                @help.markdown()
-                <div class="textarea-box">
-                    <textarea id="body" name="body" markdown="true" class="zen-mode content" tabindex="2" >@pull.body</textarea>
+
+                @common.fileUploader(ResourceType.PULL_REQUEST, pull.id)
+
+                <div class="actions">
+                    <button type="submit" class="ybtn ybtn-info">@Messages("button.save")</button>
+                    <a href="javascript:history.back();" class="ybtn">@Messages("button.cancel")</a>
                 </div>
-            </div>
-
-            @common.fileUploader(ResourceType.PULL_REQUEST, pull.id)
-
-            <div class="actions">
-                <button type="submit" class="ybtn ybtn-info">@Messages("button.save")</button>
-                <a href="javascript:history.back();" class="ybtn">@Messages("button.cancel")</a>
-            </div>
-        }
+            }
+        </div>
     </div>
 </div>
-
 @common.markdown(project)
 
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mentionjs/mention.css")">

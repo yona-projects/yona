@@ -5,7 +5,7 @@
 
 .gnb-outer {
     height:40px;
-    background-color:#1d2d46;   
+    background-color:#1d2d46;
 }
 
 .gnb-inner {
@@ -313,6 +313,10 @@
     }
 }
 
+.page-wrap-outer {
+    min-height: 450px;
+}
+
 .page-wrap {
     background-color: @white;
     width: 1170px;
@@ -444,18 +448,16 @@
 }
 
 .page-footer-outer {
-
-    padding:10px 0;
-    position: absolute;
-    bottom:0;
-    width:100%;
-    .center-block;
+    margin-top:50px;
     background-color:@yobi-white;
-    border-top:1px solid #e8e8e8;
+    padding:10px 0;
 
     .page-footer {
+        margin: 0 auto;
         text-align:center;
         line-height: 34px;
+        border-top:1px solid #e8e8e8;
+        width:1170px;
     }
 
     .provider {

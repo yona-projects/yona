@@ -5,86 +5,87 @@
 
 @projectLayout(title, project, utils.MenuType.PULL_REQUEST) {
 @projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
-<div class="project-page-wrap">
-    @if(isNew) {
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        @if(isNew) {
 
-    <div class="content-wrap frm-wrap">
-        <form action="@routes.PullRequestApp.fork(project.owner, project.name)" method="post" class="form-horizontal nm">
-            <input type="hidden" name="owner" value="@forkProject.owner" />
-            <fieldset>
-                <legend>
-                    <h4 style="padding-top:10px;">
-                        @project.owner / @project.name @Messages("fork")
-                        <span class="pull-right">
-                            <button id="helpBtn" class="ybtn ybtn-inverse ybtn-small">
-                                <i class="yobicon-question-sign yobicon-large"></i> @Messages("title.help")
-                            </button>
-                        </span>
-                    </h4>
-                </legend>
-                <div id="helpMessage" class="well">
-                    <div class="row-fluid">
-                        <div class="pull-left">
-                            <img class="img-polaroid" src="@routes.Assets.at("images/fork-pull/fork.jpg")"><br>
+        <div class="content-wrap frm-wrap">
+            <form action="@routes.PullRequestApp.fork(project.owner, project.name)" method="post" class="form-horizontal nm">
+                <input type="hidden" name="owner" value="@forkProject.owner" />
+                <fieldset>
+                    <legend>
+                        <h4 style="padding-top:10px;">
+                            @project.owner / @project.name @Messages("fork")
+                            <span class="pull-right">
+                                <button id="helpBtn" class="ybtn ybtn-inverse ybtn-small">
+                                    <i class="yobicon-question-sign yobicon-large"></i> @Messages("title.help")
+                                </button>
+                            </span>
+                        </h4>
+                    </legend>
+                    <div id="helpMessage" class="well">
+                        <div class="row-fluid">
+                            <div class="pull-left">
+                                <img class="img-polaroid" src="@routes.Assets.at("images/fork-pull/fork.jpg")"><br>
+                            </div>
+                            <div class="pull-left help-messages">
+                                <p class="lead">@Messages("fork.help.title")</p>
+                                <p>@Messages("fork.help.message.1")</p>
+                                <p>@Messages("fork.help.message.2")</p>
+                            </div>
                         </div>
-                        <div class="pull-left help-messages">
-                            <p class="lead">@Messages("fork.help.title")</p>
-                            <p>@Messages("fork.help.message.1")</p>
-                            <p>@Messages("fork.help.message.2")</p>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label" for="inputOwner">@Messages("project.owner")</label>
+                        <div class="controls">
+                            <input type="text" id="inputOwner" disabled value="@forkProject.owner" />
                         </div>
                     </div>
-                </div>
+                    <div class="control-group">
+                        <label class="control-label" for="inputName">@Messages("project.name")</label>
+                        <div class="controls">
+                            <input type="text" id="inputName" name="name" value="@forkProject.name" />
+                            <span class="help-inline">@Messages("project.name.alert")</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">@Messages("project.shareOption")</label>
+                        <div class="controls">
+                            <input name="isPublic" type="radio" checked="checked" id="public" value="true" class="radio-btn"><label for="public" class="bg-radiobtn label-public">@Messages("project.public")</label>
+                            <input name="isPublic" type="radio" id="private" value="false" class="radio-btn"><label for="private" class="bg-radiobtn label-private">@Messages("project.private")</label>
+                            <span class="help-inline">@Messages("project.private.notice")</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <div class="controls">
+                            <button type="submit" class="ybtn ybtn-info">@Messages("fork")</button>
+                            <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)" class="ybtn">@Messages("button.cancel")</a>
+                        </div>
+                    </div>
+                </fieldset>
+            </form>
+        </div>
 
-                <div class="control-group">
-                    <label class="control-label" for="inputOwner">@Messages("project.owner")</label>
-                    <div class="controls">
-                        <input type="text" id="inputOwner" disabled value="@forkProject.owner" />
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="inputName">@Messages("project.name")</label>
-                    <div class="controls">
-                        <input type="text" id="inputName" name="name" value="@forkProject.name" />
-                        <span class="help-inline">@Messages("project.name.alert")</span>
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label">@Messages("project.shareOption")</label>
-                    <div class="controls">
-                        <input name="isPublic" type="radio" checked="checked" id="public" value="true" class="radio-btn"><label for="public" class="bg-radiobtn label-public">@Messages("project.public")</label>
-                        <input name="isPublic" type="radio" id="private" value="false" class="radio-btn"><label for="private" class="bg-radiobtn label-private">@Messages("project.private")</label>
-                        <span class="help-inline">@Messages("project.private.notice")</span>
-                    </div>
-                </div>
-                <div class="control-group">
-                    <div class="controls">
-                        <button type="submit" class="ybtn ybtn-info">@Messages("fork")</button>
-                        <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)" class="ybtn">@Messages("button.cancel")</a>
-                    </div>
-                </div>
-            </fieldset>
-        </form>
+        } else {
+
+        <div class="error-wrap">
+            <i class="ico ico-err2"></i>
+            <p>@Messages("fork.already.exist")</p>
+            <p>
+    	        <strong class="vmiddle">@project.owner / @project.name</strong>
+    	        <i class="yobicon-right vmiddle"></i>
+    	        <a href="@routes.ProjectApp.project(forkProject.owner, forkProject.name)" class="vmiddle primary-txt">@forkProject.owner / @forkProject.name</a>
+            </p>
+        </div>
+
+        <div class="center-txt">
+            <a href="@routes.ProjectApp.project(forkProject.owner, forkProject.name)" class="ybtn ybtn-info">@Messages("fork.go")</a>
+            <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)" class="ybtn">@Messages("button.cancel")</a>
+        </div>
+        }
     </div>
-
-    } else {
-
-    <div class="error-wrap">
-        <i class="ico ico-err2"></i>
-        <p>@Messages("fork.already.exist")</p>
-        <p>
-	        <strong class="vmiddle">@project.owner / @project.name</strong>
-	        <i class="yobicon-right vmiddle"></i>
-	        <a href="@routes.ProjectApp.project(forkProject.owner, forkProject.name)" class="vmiddle primary-txt">@forkProject.owner / @forkProject.name</a>
-        </p>
-    </div>
-
-    <div class="center-txt">
-        <a href="@routes.ProjectApp.project(forkProject.owner, forkProject.name)" class="ybtn ybtn-info">@Messages("fork.go")</a>
-        <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)" class="ybtn">@Messages("button.cancel")</a>
-    </div>
-    }
 </div>
-
 <script type="text/javascript">
     $(function(){
         $('#helpMessage').hide();

@@ -24,44 +24,46 @@
 
 @projectLayout(Messages("title.branches"), project, utils.MenuType.CODE) {
 @projectMenu(project, utils.MenuType.CODE, "main-menu-only")
-<div class="project-page-wrap">
-    <div class="bubble-wrap dark-gray repo-wrap">
-        <div class="code-browse-wrap">
-            <ul class="nav nav-tabs" style="margin-bottom:20px;">
-                <li>
-                    <a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, "HEAD", "")">@Messages("code.files")</a>
-                </li>
-                <li>
-                    <a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a>
-                </li>
-                @if(project.isGit()) {
-                <li class="active">
-                    <a href="@routes.BranchApp.branches(project.owner, project.name)">@Messages("title.branches")</a>
-                </li>
-                }
-            </ul>
-
-            <table class="table branch-list-wrap">
-                <thead class="thead">
-                    <tr>
-                        <th>@Messages("title.branches")</th>
-                        <th>@Messages("code.branches.commitMsg")</th>
-                        <th>@Messages("code.branches.commitDate")</th>
-                        <th>@Messages("code.branches.pullRequest")</th>
-                        @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.DELETE) ||
-                            isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
-                            <th></th>
-                        }
-                    </tr>
-                </thead>
-                <tbody>
-                    @partial_branchrow(project, head, true)
-
-                    @for(branch <- branches.iterator()) {
-                        @partial_branchrow(project, branch, false)
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="bubble-wrap dark-gray repo-wrap">
+            <div class="code-browse-wrap">
+                <ul class="nav nav-tabs" style="margin-bottom:20px;">
+                    <li>
+                        <a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, "HEAD", "")">@Messages("code.files")</a>
+                    </li>
+                    <li>
+                        <a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a>
+                    </li>
+                    @if(project.isGit()) {
+                    <li class="active">
+                        <a href="@routes.BranchApp.branches(project.owner, project.name)">@Messages("title.branches")</a>
+                    </li>
                     }
-                </tbody>
-            </table>
+                </ul>
+
+                <table class="table branch-list-wrap">
+                    <thead class="thead">
+                        <tr>
+                            <th>@Messages("title.branches")</th>
+                            <th>@Messages("code.branches.commitMsg")</th>
+                            <th>@Messages("code.branches.commitDate")</th>
+                            <th>@Messages("code.branches.pullRequest")</th>
+                            @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.DELETE) ||
+                                isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
+                                <th></th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @partial_branchrow(project, head, true)
+
+                        @for(branch <- branches.iterator()) {
+                            @partial_branchrow(project, branch, false)
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

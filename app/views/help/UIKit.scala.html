@@ -30,293 +30,293 @@ dd { margin-left:0; }
 	<span class="gnb-logo orange">Yobi</span>
 	<span class="subtitle">User Interface Kit</span>
 </header>
+<div class="page-wrap-outer">
+    <div class="container page-wrap">
+    	<div class="page">
+    		<h3>Buttons</h5>
+    		<div>
+    			<pre>.nbtn</pre>
+    			<p>
+    				<a href="#" class="nbtn medium">Default Button</a><!--
+    			 --><button type="button" class="nbtn medium orange">Primary Button</button><!--
+    			 --><a href="#" class="nbtn medium black">Secondary Button</a><!--
+                 --><button href="#" class="nbtn medium red">Delete Button</button>
+                 </p>
+                 <p>
+    			    <a href="#" class="nbtn medium white">Action Button</a><!--
+    			 --><button href="#" class="nbtn medium green">Action Button</button><!--
+    			 --><a href="#" class="nbtn medium blue">Action Button</a><!--
+    			 --><button href="#" class="nbtn medium mint">Action Button</button>
+    			</p>
+    <xmp class="css"><a href="#" class="nbtn medium">Default Button</a>
+    <button type="button" class="nbtn medium orange">Primary Button</button>
+    <a href="#" class="nbtn medium black">Secondary Button</a>
+    <button href="#" class="nbtn medium red">Delete Button</button>
+    </xmp>
+    <hr/>
+    			<div class="btn-wrap">
+    				<div class="nbtn medium white fake-file-wrap">
+    					<i class="ico ico-plus-blue"></i>Upload
+    				    <input type="file" class="file" name="filePath" accept="image/*">
+    				</div>
+    			</div>
+    <xmp class="css"><div class="btn-wrap">
+        <div class="nbtn medium white fake-file-wrap">
+            <i class="ico ico-plus-blue"></i>Upload
+            <input type="file" class="file" name="filePath" accept="image/*">
+        </div>
+    </div>
+    </xmp>
 
-<div class="container page-wrap">
-	<div class="page">
-		<h3>Buttons</h5>
-		<div>
-			<pre>.nbtn</pre>
-			<p>
-				<a href="#" class="nbtn medium">Default Button</a><!--
-			 --><button type="button" class="nbtn medium orange">Primary Button</button><!--
-			 --><a href="#" class="nbtn medium black">Secondary Button</a><!--
-             --><button href="#" class="nbtn medium red">Delete Button</button>
-             </p>
-             <p>
-			    <a href="#" class="nbtn medium white">Action Button</a><!--
-			 --><button href="#" class="nbtn medium green">Action Button</button><!--
-			 --><a href="#" class="nbtn medium blue">Action Button</a><!--
-			 --><button href="#" class="nbtn medium mint">Action Button</button>
-			</p>
-<xmp class="css"><a href="#" class="nbtn medium">Default Button</a>
-<button type="button" class="nbtn medium orange">Primary Button</button>
-<a href="#" class="nbtn medium black">Secondary Button</a>
-<button href="#" class="nbtn medium red">Delete Button</button>
-</xmp>
-<hr/>
-			<div class="btn-wrap">
-				<div class="nbtn medium white fake-file-wrap">
-					<i class="ico ico-plus-blue"></i>Upload
-				    <input type="file" class="file" name="filePath" accept="image/*">
-				</div>
-			</div>
-<xmp class="css"><div class="btn-wrap">
-    <div class="nbtn medium white fake-file-wrap">
-        <i class="ico ico-plus-blue"></i>Upload
-        <input type="file" class="file" name="filePath" accept="image/*">
+    			<p>&nbsp;</p>
+    			<p>
+    				<a href="#" class="nbtn large orange">Create your project</a>
+    			</p>
+    			<p>
+    				<a href="#" class="nbtn small">Small button</a>
+    				<button type="button" class="nbtn medium">Medium button</button>
+    				<a href="#" class="nbtn large">Large button</a>
+    			</p>
+    		</div>
+    		<!-- // buttons -->
+    		<hr/>
+
+    		<h3>Select</h5>
+    		<div>
+    			<pre>.dropdown-toggle</pre>
+
+    			<!-- ui.dropdown -->
+    			<dl>
+    				<dt>
+    				    <span class="css">.small</span>
+                    </dt>
+    				<dd>
+    					<div class="btn-group" data-name="assigneeId">
+    						<button class="btn dropdown-toggle small" data-toggle="dropdown">
+    							<span class="d-label">전체</span>
+    							<span class="d-caret"><span class="caret"></span></span>
+    						</button>
+    						<ul class="dropdown-menu">
+    							<li data-value="" data-selected="true" class="active"><a href="javascript:void(0)">전체</a></li>
+    							<li data-value="0"><a href="javascript:void(0)">담당자 없음</a></li>
+    						</ul>
+    					</div>
+    				</dd>
+    			</dl>
+    			<!-- // ui.dropdown -->
+
+    			<!-- ui.dropdown -->
+                <dl>
+                    <dt>
+                        <span class="css">.medium</span>
+                    </dt>
+                    <dd>
+                        <div class="btn-group" data-name="assigneeId">
+                            <button class="btn dropdown-toggle medium" data-toggle="dropdown">
+                                <span class="d-label">전체</span>
+                                <span class="d-caret"><span class="caret"></span></span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li data-value="" data-selected="true" class="active"><a href="javascript:void(0)">전체</a></li>
+                                <li data-value="0"><a href="javascript:void(0)">담당자 없음</a></li>
+                            </ul>
+                        </div>
+                    </dd>
+                </dl>
+    			<!-- // ui.dropdown -->
+
+    			<!-- ui.dropdown -->
+                <dl>
+                    <dt>
+                        <span class="css">.large</span>
+                    </dt>
+                    <dd>
+                        <div class="btn-group" data-name="assigneeId">
+                            <button class="btn dropdown-toggle large" data-toggle="dropdown">
+                                <span class="d-label">전체</span>
+                                <span class="d-caret"><span class="caret"></span></span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li data-value="" data-selected="true" class="active"><a href="javascript:void(0)">전체</a></li>
+                                <li data-value="0"><a href="javascript:void(0)">담당자 없음</a></li>
+                            </ul>
+                        </div>
+                    </dd>
+                </dl>
+    			<!-- // ui.dropdown -->
+    <xmp class="css"><div class="btn-group" data-name="assigneeId">
+    	<button class="btn dropdown-toggle large" data-toggle="dropdown">
+    	    <span class="d-label">전체</span>
+    	    <span class="d-caret"><span class="caret"></span></span>
+    	</button>
+    	<ul class="dropdown-menu">
+    	    <li data-value="" data-selected="true" class="active"><a href="javascript:void(0)">전체</a></li>
+    	    <li data-value="0"><a href="javascript:void(0)">담당자 없음</a></li>
+    	</ul>
+    </div>
+    </xmp>
+    		</div>
+    		<!-- // select -->
+    		<hr/>
+    		<h3>Search Form</h3>
+    		<div>
+    			<pre>.form-search</pre>
+    			<form class="form-search">
+    				<input type="text" class="text" name="filter" placeholder="현재 프로젝트에서 검색"><!--
+    			 --><button type="button" class="btn">검색</button>
+    			</form>
+    <xmp class="css"><form class="form-search">
+        <input type="text" class="text" name="filter" placeholder="현재 프로젝트에서 검색"><!--
+     --><button type="button" class="btn">검색</button>
+    </form></xmp>
+    <hr/>
+    			<pre>.form-searchbar</pre>
+    			<form class="form-searchbar">
+    				<input type="text" class="text" name="filter"><!--
+    			 --><button type="button" class="ico ico-search"></button>
+    			</form>
+    <xmp class="css"><form class="form-searchbar">
+        <input type="text" class="text" name="filter"><!--
+     --><button type="button" class="ico ico-search"></button>
+    </form></xmp>
+    		</div>
+    		<hr/>
+    		<!-- // input -->
+    		<h3>Labels</h3>
+    		<div>
+    			<pre>.issue-label</pre>
+    			<p>
+    				<button class="issue-label">Clean</button>
+    				<button class="issue-label">Fresh</button>
+    				<button class="issue-label">Modern</button>
+    				<button class="issue-label">Unique</button>
+    			</p>
+    			<pre>.issue-label .active</pre>
+    			<p>
+    				<button class="issue-label active" style="background-color:#da5454; color:#fff;">Clean<span class="delete">&times;</span></button>
+    				<button class="issue-label active" style="background-color:#ff9933; color:#fff;">Fresh<span class="delete">&times;</span></button>
+    				<button class="issue-label active" style="background-color:#ffcc33; color:#fff;">Modern<span class="delete">&times;</span></button>
+    				<button class="issue-label active" style="background-color:#22b4b9; color:#fff;">Unique<span class="delete">&times;</span></button>
+    			</p>
+    			<pre>.issue-label .active .editable</pre>
+    			<p>
+    				<button class="issue-label active editable" style="background-color:#da5454; color:#fff;">Clean<span class="delete">&times;</span></button>
+    				<button class="issue-label active editable" style="background-color:#ff9933; color:#fff;">Fresh<span class="delete">&times;</span></button>
+    				<button class="issue-label active editable" style="background-color:#ffcc33; color:#fff;">Modern<span class="delete">&times;</span></button>
+    				<button class="issue-label active editable" style="background-color:#22b4b9; color:#fff;">Unique<span class="delete">&times;</span></button>
+    			</p>
+    		</div>
+    		<xmp class="css"><button class="issue-label">Clean</button>
+    <button class="issue-label active" style="background-color:#da5454; color:#fff;">Clean<span class="delete">&times;</span></button>
+    <button class="issue-label active editable" style="background-color:#da5454; color:#fff;">Clean<span class="delete">&times;</span></button></xmp>
+    		<!-- // labels -->
+    		<hr/>
+    		<h3>Avatar</h3>
+    		<div>
+    			<pre>.avatar-wrap</pre>
+                <dl>
+                    <dt>
+                        <span class="css">.mini (12x12)</span>
+                    </dt>
+                    <dd>
+                        <a href="#" class="avatar-wrap mini">
+                            <img src="/assets/images/default-avatar-128.png">
+                        </a>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>
+                        <span class="css">.smaller (20x20)</span>
+                    </dt>
+                    <dd>
+                        <a href="#" class="avatar-wrap smaller">
+                            <img src="/assets/images/default-avatar-128.png">
+                        </a>
+                    </dd>
+                </dl>
+    			<dl>
+    				<dt>
+    					<span class="css">.small (24x24)</span>
+    				</dt>
+    				<dd>
+    					<a href="#" class="avatar-wrap small">
+    						<img src="/assets/images/default-avatar-128.png">
+    					</a>
+    				</dd>
+    			</dl>
+    			<dl>
+    				<dt>
+    					<span class="css">.medium (32x32, default)</span>
+    				</dt>
+    				<dd>
+    					<a href="#" class="avatar-wrap medium">
+    						<img src="/assets/images/default-avatar-128.png">
+    					</a>
+    				</dd>
+    			</dl>
+                <dl>
+                    <dt>
+                        <span class="css">.mlarge (40x40)</span>
+                    </dt>
+                    <dd>
+                        <a href="#" class="avatar-wrap mlarge">
+                            <img src="/assets/images/default-avatar-128.png">
+                        </a>
+                    </dd>
+                </dl>
+    			<dl>
+    				<dt>
+    					<span class="css">.large (64x64)</span>
+    				</dt>
+    				<dd>
+    					<a href="#" class="avatar-wrap large">
+    						<img src="/assets/images/default-avatar-128.png">
+    					</a>
+    				</dd>
+    			</dl>
+    			<dl>
+    				<dt>
+    					<span class="css">.xlarge (128x128)</span>
+    				</dt>
+    				<dd>
+    					<a href="#" class="avatar-wrap xlarge">
+    						<img src="/assets/images/default-avatar-128.png">
+    					</a>
+    				</dd>
+    			</dl>
+    		</div>
+    		<!-- //avatar -->
+    		<hr/>
+    		<h3>Tabs</h3>
+    		<pre>.nav .nav-tabs</pre>
+    		<div>
+    			<ul class="nav nav-tabs">
+    				<li class="active">
+    					<a href="#">파일</a>
+    				</li>
+    				<li>
+    					<a href="#">커밋</a>
+    				</li>
+    			</ul>
+    		</div>
+
+    		<hr>
+    		<h3>Switches</h3>
+    		<xmp class="css"><input type="checkbox" data-toggle="switch"></xmp>
+    		<div>
+                <div class="switch" data-on-label="미해결" data-off-label="해결">
+                    <input type="checkbox" data-toggle="switch" checked="checked">
+                </div>
+                <div class="switch deactivate" data-on-label="미해결" data-off-label="해결">
+                    <input type="checkbox" data-toggle="switch">
+                </div>
+                <div class="switch switch-square" data-on-label="<i class='yobicon-eye-close'></i>" data-off-label="<i class='yobicon-eye-open'></i>">
+                    <input type="checkbox" data-toggle="switch">
+                </div>
+    		</div>
+    	</div>
     </div>
 </div>
-</xmp>
-
-			<p>&nbsp;</p>
-			<p>
-				<a href="#" class="nbtn large orange">Create your project</a>
-			</p>
-			<p>
-				<a href="#" class="nbtn small">Small button</a>
-				<button type="button" class="nbtn medium">Medium button</button>
-				<a href="#" class="nbtn large">Large button</a>
-			</p>
-		</div>
-		<!-- // buttons -->
-		<hr/>
-
-		<h3>Select</h5>
-		<div>
-			<pre>.dropdown-toggle</pre>
-
-			<!-- ui.dropdown -->
-			<dl>
-				<dt>
-				    <span class="css">.small</span>
-                </dt>
-				<dd>
-					<div class="btn-group" data-name="assigneeId">
-						<button class="btn dropdown-toggle small" data-toggle="dropdown">
-							<span class="d-label">전체</span>
-							<span class="d-caret"><span class="caret"></span></span>
-						</button>
-						<ul class="dropdown-menu">
-							<li data-value="" data-selected="true" class="active"><a href="javascript:void(0)">전체</a></li>
-							<li data-value="0"><a href="javascript:void(0)">담당자 없음</a></li>
-						</ul>
-					</div>
-				</dd>
-			</dl>
-			<!-- // ui.dropdown -->
-
-			<!-- ui.dropdown -->
-            <dl>
-                <dt>
-                    <span class="css">.medium</span>
-                </dt>
-                <dd>
-                    <div class="btn-group" data-name="assigneeId">
-                        <button class="btn dropdown-toggle medium" data-toggle="dropdown">
-                            <span class="d-label">전체</span>
-                            <span class="d-caret"><span class="caret"></span></span>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li data-value="" data-selected="true" class="active"><a href="javascript:void(0)">전체</a></li>
-                            <li data-value="0"><a href="javascript:void(0)">담당자 없음</a></li>
-                        </ul>
-                    </div>
-                </dd>
-            </dl>
-			<!-- // ui.dropdown -->
-
-			<!-- ui.dropdown -->
-            <dl>
-                <dt>
-                    <span class="css">.large</span>
-                </dt>
-                <dd>
-                    <div class="btn-group" data-name="assigneeId">
-                        <button class="btn dropdown-toggle large" data-toggle="dropdown">
-                            <span class="d-label">전체</span>
-                            <span class="d-caret"><span class="caret"></span></span>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li data-value="" data-selected="true" class="active"><a href="javascript:void(0)">전체</a></li>
-                            <li data-value="0"><a href="javascript:void(0)">담당자 없음</a></li>
-                        </ul>
-                    </div>
-                </dd>
-            </dl>
-			<!-- // ui.dropdown -->
-<xmp class="css"><div class="btn-group" data-name="assigneeId">
-	<button class="btn dropdown-toggle large" data-toggle="dropdown">
-	    <span class="d-label">전체</span>
-	    <span class="d-caret"><span class="caret"></span></span>
-	</button>
-	<ul class="dropdown-menu">
-	    <li data-value="" data-selected="true" class="active"><a href="javascript:void(0)">전체</a></li>
-	    <li data-value="0"><a href="javascript:void(0)">담당자 없음</a></li>
-	</ul>
-</div>
-</xmp>
-		</div>
-		<!-- // select -->
-		<hr/>
-		<h3>Search Form</h3>
-		<div>
-			<pre>.form-search</pre>
-			<form class="form-search">
-				<input type="text" class="text" name="filter" placeholder="현재 프로젝트에서 검색"><!--
-			 --><button type="button" class="btn">검색</button>
-			</form>
-<xmp class="css"><form class="form-search">
-    <input type="text" class="text" name="filter" placeholder="현재 프로젝트에서 검색"><!--
- --><button type="button" class="btn">검색</button>
-</form></xmp>
-<hr/>
-			<pre>.form-searchbar</pre>
-			<form class="form-searchbar">
-				<input type="text" class="text" name="filter"><!--
-			 --><button type="button" class="ico ico-search"></button>
-			</form>
-<xmp class="css"><form class="form-searchbar">
-    <input type="text" class="text" name="filter"><!--
- --><button type="button" class="ico ico-search"></button>
-</form></xmp>
-		</div>
-		<hr/>
-		<!-- // input -->
-		<h3>Labels</h3>
-		<div>
-			<pre>.issue-label</pre>
-			<p>
-				<button class="issue-label">Clean</button>
-				<button class="issue-label">Fresh</button>
-				<button class="issue-label">Modern</button>
-				<button class="issue-label">Unique</button>
-			</p>
-			<pre>.issue-label .active</pre>
-			<p>
-				<button class="issue-label active" style="background-color:#da5454; color:#fff;">Clean<span class="delete">&times;</span></button>
-				<button class="issue-label active" style="background-color:#ff9933; color:#fff;">Fresh<span class="delete">&times;</span></button>
-				<button class="issue-label active" style="background-color:#ffcc33; color:#fff;">Modern<span class="delete">&times;</span></button>
-				<button class="issue-label active" style="background-color:#22b4b9; color:#fff;">Unique<span class="delete">&times;</span></button>
-			</p>
-			<pre>.issue-label .active .editable</pre>
-			<p>
-				<button class="issue-label active editable" style="background-color:#da5454; color:#fff;">Clean<span class="delete">&times;</span></button>
-				<button class="issue-label active editable" style="background-color:#ff9933; color:#fff;">Fresh<span class="delete">&times;</span></button>
-				<button class="issue-label active editable" style="background-color:#ffcc33; color:#fff;">Modern<span class="delete">&times;</span></button>
-				<button class="issue-label active editable" style="background-color:#22b4b9; color:#fff;">Unique<span class="delete">&times;</span></button>
-			</p>
-		</div>
-		<xmp class="css"><button class="issue-label">Clean</button>
-<button class="issue-label active" style="background-color:#da5454; color:#fff;">Clean<span class="delete">&times;</span></button>
-<button class="issue-label active editable" style="background-color:#da5454; color:#fff;">Clean<span class="delete">&times;</span></button></xmp>
-		<!-- // labels -->
-		<hr/>
-		<h3>Avatar</h3>
-		<div>
-			<pre>.avatar-wrap</pre>
-            <dl>
-                <dt>
-                    <span class="css">.mini (12x12)</span>
-                </dt>
-                <dd>
-                    <a href="#" class="avatar-wrap mini">
-                        <img src="/assets/images/default-avatar-128.png">
-                    </a>
-                </dd>
-            </dl>
-            <dl>
-                <dt>
-                    <span class="css">.smaller (20x20)</span>
-                </dt>
-                <dd>
-                    <a href="#" class="avatar-wrap smaller">
-                        <img src="/assets/images/default-avatar-128.png">
-                    </a>
-                </dd>
-            </dl>
-			<dl>
-				<dt>
-					<span class="css">.small (24x24)</span>
-				</dt>
-				<dd>
-					<a href="#" class="avatar-wrap small">
-						<img src="/assets/images/default-avatar-128.png">
-					</a>
-				</dd>
-			</dl>
-			<dl>
-				<dt>
-					<span class="css">.medium (32x32, default)</span>
-				</dt>
-				<dd>
-					<a href="#" class="avatar-wrap medium">
-						<img src="/assets/images/default-avatar-128.png">
-					</a>
-				</dd>
-			</dl>
-            <dl>
-                <dt>
-                    <span class="css">.mlarge (40x40)</span>
-                </dt>
-                <dd>
-                    <a href="#" class="avatar-wrap mlarge">
-                        <img src="/assets/images/default-avatar-128.png">
-                    </a>
-                </dd>
-            </dl>
-			<dl>
-				<dt>
-					<span class="css">.large (64x64)</span>
-				</dt>
-				<dd>
-					<a href="#" class="avatar-wrap large">
-						<img src="/assets/images/default-avatar-128.png">
-					</a>
-				</dd>
-			</dl>
-			<dl>
-				<dt>
-					<span class="css">.xlarge (128x128)</span>
-				</dt>
-				<dd>
-					<a href="#" class="avatar-wrap xlarge">
-						<img src="/assets/images/default-avatar-128.png">
-					</a>
-				</dd>
-			</dl>
-		</div>
-		<!-- //avatar -->
-		<hr/>
-		<h3>Tabs</h3>
-		<pre>.nav .nav-tabs</pre>
-		<div>
-			<ul class="nav nav-tabs">
-				<li class="active">
-					<a href="#">파일</a>
-				</li>
-				<li>
-					<a href="#">커밋</a>
-				</li>
-			</ul>
-		</div>
-
-		<hr>
-		<h3>Switches</h3>
-		<xmp class="css"><input type="checkbox" data-toggle="switch"></xmp>
-		<div>
-            <div class="switch" data-on-label="미해결" data-off-label="해결">
-                <input type="checkbox" data-toggle="switch" checked="checked">
-            </div>
-            <div class="switch deactivate" data-on-label="미해결" data-off-label="해결">
-                <input type="checkbox" data-toggle="switch">
-            </div>
-            <div class="switch switch-square" data-on-label="<i class='yobicon-eye-close'></i>" data-off-label="<i class='yobicon-eye-open'></i>">
-                <input type="checkbox" data-toggle="switch">
-            </div>
-		</div>
-	</div>
-</div>
-
 <footer class="page-footer-outer">
 	<div class="page-footer">
 		<span class="provider">&copy; <strong>NHN Corp.</strong></span>
