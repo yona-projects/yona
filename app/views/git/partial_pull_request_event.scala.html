@@ -24,6 +24,8 @@
 @import utils.TemplateHelper._
 @import utils.TemplateHelper.DiffRenderer._
 @import utils.JodaDateUtil._
+@import models.enumeration.State
+@import org.apache.commons.lang3.StringUtils
 
 @avatarByLoginId(loginId: String, loginName: String) = {
     <a href="@routes.UserApp.userInfo(loginId)" class="usf-group" data-toggle="tooltip" data-placement="top" title="@loginId">
@@ -41,6 +43,11 @@
     }
     case _ => { Anonymous }
     }
+}
+@linkToCommit(project: models.Project, commitId: String) = {
+    <a class="link"
+         href="@routes.CodeHistoryApp.show(project.owner, project.name, commitId).url"
+         title="@Messages("code.showCommit")">@StringUtils.left(commitId, 7)</a>
 }
 @defining(User.findByLoginId(event.senderLoginId)) { user =>
     @event.eventType match {
@@ -66,7 +73,15 @@
         case EventType.PULL_REQUEST_STATE_CHANGED => {
         <li class="event" id="comment-@event.id">
             <span class="state @event.newValue">@Messages("pullRequest.event." + event.newValue)</span>
-            @Html(Messages("pullRequest.event.message." + event.newValue, linkToUser(user.loginId, user.name)))
+            @State.getValue(event.newValue) match {
+                case State.MERGED => {
+                    @Html(Messages("pullRequest.event.message." + event.newValue, linkToUser(user.loginId, user.name),
+                        linkToCommit(event.pullRequest.toProject, event.pullRequest.mergedCommitIdTo)))
+                }
+                case _ => {
+                    @Html(Messages("pullRequest.event.message." + event.newValue, linkToUser(user.loginId, user.name)))
+                }
+            }
             <span class="date">
                 <a href="#event-@event.id">@momentFromNow(event.getDate(), lang.language)</a>
             </span>
