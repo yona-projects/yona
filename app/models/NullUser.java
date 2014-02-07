@@ -46,4 +46,9 @@ public class NullUser extends User {
     public boolean isSiteManager() {
         return false;
     }
+
+    @Override
+    public void visits(Project project) {
+        // do nothing
+    }
 }

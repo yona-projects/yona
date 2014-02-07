@@ -103,6 +103,7 @@ public class GitApp extends Controller {
             return ok(RepositoryService
                     .gitAdvertise(project, service, response()));
         } else {
+            UserApp.currentUser().visits(project);
             return ok(RepositoryService
                     .gitRpc(project, service, request(), response()));
         }

@@ -293,7 +293,7 @@ public class MilestoneApp extends Controller {
 
         String paramState = request().getQueryString("state");
         State state = State.getValue(paramState);
-
+        UserApp.currentUser().visits(project);
         return ok(view.render(milestone.title, milestone, project, state));
     }
 }
