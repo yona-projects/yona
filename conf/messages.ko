@@ -434,6 +434,7 @@ project.you.want.to.be.a.member = {0} 프로젝트 멤버로 등록 요청했습
 pullRequest = 코드 보내기
 pullRequest.accept = 코드 받기
 pullRequest.accepted.code = 받은 코드
+pullRequest.additional.changes = 추가 변경 내역
 pullRequest.back.to.the.pullrequest = 코드 주고받기로 돌아가기
 pullRequest.body.required = 내용을 입력하세요.
 pullRequest.cancel = 취소

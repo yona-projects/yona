@@ -167,6 +167,11 @@ object TemplateHelper {
     }
   }
 
+  def urlToCompare(project: Project, compare: String) = {
+    val commits = compare.split(PullRequest.DELIMETER);
+    routes.CompareApp.compare(project.owner, project.name, commits(0), commits(1)).url
+  }
+
   object DiffRenderer {
 
     def removedWord(word: String) = "<span class='remove'>" + word + "</span>"

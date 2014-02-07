@@ -107,8 +107,10 @@ public class PullRequestEvent extends Model implements TimelineItem {
      * @param sender
      * @param pullRequest
      * @param commits
+     * @param oldValue
      */
-    public static void addCommitEvents(User sender, PullRequest pullRequest, List<PullRequestCommit> commits) {
+    public static void addCommitEvents(User sender, PullRequest pullRequest,
+            List<PullRequestCommit> commits, String oldValue) {
         Date createdDate = new Date();
         PullRequestEvent event = new PullRequestEvent();
         event.created = createdDate;
@@ -116,6 +118,7 @@ public class PullRequestEvent extends Model implements TimelineItem {
         event.pullRequest = pullRequest;
         event.eventType = EventType.PULL_REQUEST_COMMIT_CHANGED;
         event.newValue = StringUtils.EMPTY;
+        event.oldValue = oldValue;
 
         for (int i = 0; i < commits.size(); i++) {
             event.newValue += commits.get(i).id;
