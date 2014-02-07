@@ -3,6 +3,7 @@
 @import utils.JodaDateUtil._
 @import utils.TemplateHelper._
 @import utils.TemplateHelper.DiffRenderer._
+@import utils.JodaDateUtil
 @import utils.AccessControl._
 @import models.enumeration
 @import scala.collection.JavaConversions._
@@ -17,7 +18,10 @@
 
             <div id="commits" class="btn-group auto mt10">
                 <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                    <span class="d-label">@if(commitId == null) { All } else { @shortId(commitId) }</span>
+                    <span class="d-label">@if(commitId == null) { All } else {
+                    @shortId(commitId)
+                    @if(PullRequestCommit.getStateByCommitId(pull, commitId) == PullRequestCommit.State.PRIOR) { (Outdated) }
+                    }</span>
                     <span class="d-caret"><span class="caret"></span></span>
                 </button>
                 <ul class="dropdown-menu">
@@ -35,6 +39,39 @@
                     }
                 </ul>
             </div>
+
+            @if(commitId != null) {
+                @defining(playRepository.RepositoryService.getRepository(project).getCommit(commitId)) { commit =>
+                    <p class="commitInfo">
+                        @(commit.getAuthor, commit.getAuthorEmail, commit.getAuthorName) match {
+                            case (user: User, _, _) if !user.isAnonymous => {
+                                <a href="@routes.UserApp.userInfo(commit.getAuthor.loginId)" class="avatar-wrap">
+                                    <img src="@commit.getAuthor.avatarUrl" alt="@commit.getAuthor.name" width="32" height="32"/>
+                                </a>
+                                <strong>@commit.getAuthor.name</strong>
+                            }
+                            case (_, email, name) if email != null => {
+                                <span class="avatar-wrap">
+                                    <img src="@urlToPicture(commit.getAuthorEmail, 32)" width="32" height="32">
+                                </span>
+                                @if(name != null) {
+                                    <strong>@name</strong>
+                                }
+                            }
+                            case (_, _, name) if name != null => {
+                                <strong>@name</strong>
+                            }
+                            case (_, _, _) => {
+                                <strong>@User.anonymous.name</strong>
+                            }
+                        }
+                    <span class="ago" title="@JodaDateUtil.getDateString(commit.getAuthorDate)">
+                    @agoString(JodaDateUtil.ago(commit.getAuthorDate))
+                    </span>
+                    </p>
+                    <pre class="commitMsg">@commit.getMessage</pre>
+                }
+            }
 
             <div class="pullRequest-changes">
                 <button type="button" class="ybtn ybtn-default btn-toggle-reviewcards">
