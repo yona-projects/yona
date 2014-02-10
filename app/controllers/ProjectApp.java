@@ -644,6 +644,22 @@ public class ProjectApp extends Controller {
     }
 
     /**
+     * {@code location}을 JSON 형태로 저장하여 ok와 함께 리턴한다.
+     *
+     * Ajax 요청에 대해 redirect를 리턴하면 정상 작동하지 않음으로 ok에 redirect loation을 포함하여 리턴한다.
+     * 클라이언트에서 {@code location}을 확인하여 redirect 시킨다.
+     *
+     * @param location
+     * @return
+     */
+    private static Result okWithLocation(String location) {
+        ObjectNode result = Json.newObject();
+        result.put("location", location);
+
+        return ok(result);
+    }
+
+    /**
      * 프로젝트 멤버를 삭제한다.<p />
      *
      * {@code loginId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
@@ -666,7 +682,16 @@ public class ProjectApp extends Controller {
                 return forbidden(ErrorViews.Forbidden.render("project.member.ownerCannotLeave", project));
             }
             ProjectUser.delete(userId, project.id);
-            return redirect(routes.ProjectApp.members(loginId, projectName));
+
+            if (UserApp.currentUser().id == userId) {
+                if (project.isPublic) {
+                    return okWithLocation(routes.ProjectApp.project(project.owner, project.name).url());
+                } else {
+                    return okWithLocation(routes.Application.index().url());
+                }
+            } else {
+                return okWithLocation(routes.ProjectApp.members(loginId, projectName).url());
+            }
         } else {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
