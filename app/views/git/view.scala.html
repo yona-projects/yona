@@ -11,88 +11,91 @@
     @projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
-        @partial_info(project, pull)
-        <ul class="nav nav-tabs nm">
-            <li class="active"><a href="@routes.PullRequestApp.pullRequest(project.owner, project.name, pull.number)">@Messages("pullRequest.menu.overview")</a></li>
-            <li><a href="@routes.PullRequestApp.pullRequestChanges(project.owner, project.name, pull.number)">@Messages("pullRequest.menu.changes")</a></li>
-        </ul>
+        @partial_info(project, pull, "overview")
 
-        <div id="__info" class="mt20">
-            @**<!-- Pull Request Info -->**@
-            <div class="board-header issue" style="border-top:none;">
-                <div class="pull-right mr10 mt10">
-                    <div class="date" title="@JodaDateUtil.getDateString(pull.created)">
-                        @agoString(pull.createdAgo)
-                    </div>
-                    <span class="badge @if(pull.isConflict == true) {badge-issue-conflict} else {badge-issue-@pull.state.state.toLowerCase}">@if(pull.isConflict == true) {@Messages("pullRequest.state.conflict")} else {@Messages("pullRequest.state." + pull.state.state)}</span>
-                </div>
-                <div class="title">
-                    <strong class="board-id">#@pull.number</strong> @pull.title
-                </div>
-            </div>
-
-            <div class="board-body">
+        <div class="board-body row-fluid">
+            <div class="span9">
+                @partial_branch(pull)
                 <div class="content markdown-wrap markdown-before" markdown="true">@pull.body</div>
                 <div class="attachments" data-resourceType="@ResourceType.PULL_REQUEST" data-resourceId="@pull.id"></div>
             </div>
-
-            <div id="state">
-                @partial_state(project, pull, canDeleteBranch, canRestoreBranch)
-            </div>
-
-            <div class="board-footer board-actrow">
-                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.WATCH)) {
-                <button id="watch-button" type="button" class="pull-right ybtn @if(pull.getWatchers.contains(UserApp.currentUser())) { ybtn-watching }" data-toggle="button">
-                    @if(pull.getWatchers.contains(UserApp.currentUser())) {
-                        @Messages("project.unwatch")
-                    } else {
-                        @Messages("project.watch")
-                    }
-                </button>
-                }
-                <div id="actOnOpen" class="mr5 pull-right" style="@if(pull.isMerging == false && pull.isOpen){display:block;}else{display:none;}">
-                    @if(project.isUsingReviewerCount && isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT)) {
-                        @if(pull.isReviewedBy(UserApp.currentUser())) {
-                            <a data-request-method="post" class="ybtn" href="@routes.ReviewApp.unreview(project.owner, project.name, pull.number)">
-                            @Messages("pullRequest.unreviewed")
+            <div class="span3">
+                <div class="author-info">
+                    <dl class="author">
+                        <dt>@Messages("issue.author")</dt>
+                        <dd>
+                            <a href="@routes.UserApp.userInfo(pull.contributor.loginId)" class="usf-group">
+                                <span class="avatar-wrap smaller">
+                                    <img src="@pull.contributor.avatarUrl" width="32" height="32">
+                                </span>
+                                <strong class="name">@pull.contributor.name</strong>
+                                <span class="loginid"> <strong>@{"@"}</strong>@pull.contributor.loginId</span>
                             </a>
-                        } else {
-                            <a data-request-method="post" class="ybtn ybtn-success" href="@routes.ReviewApp.review(project.owner, project.name, pull.number)">
-                            @Messages("pullRequest.reviewed")
-                            </a>
-                        }
-                    }
-                    @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT)) {
-                        @if(pull.isReviewed || !project.isUsingReviewerCount) {
-                            <a data-request-method="post" id="btnAccept" href="@routes.PullRequestApp.accept(project.owner, project.name, pull.number)" class="ybtn ybtn-success" @if(pull.isConflict == true){style="display:none;"}>@Messages("pullRequest.accept")</a>
-                        } else {
-                            <button class="ybtn ybtn-disabled" data-toggle="tooltip" data-placement="top" title="@Messages("pullRequest.not.enough.review.point", pull.getLackingReviewerCount)">@Messages("pullRequest.accept")</button>
-                        }
-
-                    }
-                    @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.CLOSE)) {
-                        <a data-request-method="post" href="@routes.PullRequestApp.close(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.close")</a>
-                    }
-                    @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.UPDATE)) {
-                        <a href="@routes.PullRequestApp.editPullRequestForm(pull.toProject.owner, pull.toProject.name, pull.number)" class="ybtn">@Messages("button.edit")</a>
-                    }
-                </div>
-
-                <div id="actOnClosed" class="mr5 pull-right" style="@if(pull.isMerging == false && pull.isClosed) {display:block;}else{display:none;}">
-                    @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REOPEN)) {
-                        <a data-request-method="post" href="@routes.PullRequestApp.open(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.reopen")</a>
-                    }
+                        </dd>
+                    </dl>
                 </div>
             </div>
-            <div class="board-comment-wrap">
-                <hr class="nm">
-                @if(pull.getTimelineComments.size > 0) {
-                <ul class="comments" id="comments">
-                @renderEventsOnPullRequest(pull, Html(""), pull.getTimelineComments.toList)
-                </ul>
-                }
-                @common.commentForm(project, ResourceType.PULL_REQUEST_COMMENT, routes.PullRequestCommentApp.newComment(project.owner, project.name, pull.id).toString())
+        </div>
+
+        <div id="state" class="pullRequest-stateInfo">
+            @partial_state(project, pull, canDeleteBranch, canRestoreBranch)
+        </div>
+
+        <div class="board-footer board-actrow">
+            <div class="pull-left">
+                <button id="helpBtn" class="ybtn ybtn-default">@Messages("title.help")</button>
             </div>
+
+            <div id="actOnOpen" class="mr5" style="@if(pull.isMerging == false && pull.isOpen()){display:inline-block;}else{display:none;}">
+                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.CLOSE)) {
+                    <a data-request-method="post" href="@routes.PullRequestApp.close(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.close")</a>
+                }
+                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.UPDATE)) {
+                    <a href="@routes.PullRequestApp.editPullRequestForm(pull.toProject.owner, pull.toProject.name, pull.number)" class="ybtn">@Messages("button.edit")</a>
+                }
+            </div>
+
+            <div id="actOnClosed" class="mr5" style="@if(pull.isMerging == false && pull.isClosed()) {display:inline-block;}else{display:none;}">
+                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REOPEN)) {
+                    <a data-request-method="post" href="@routes.PullRequestApp.open(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.reopen")</a>
+                }
+            </div>
+
+            @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.WATCH)) {
+            <button id="watch-button" type="button" class="ybtn @if(pull.getWatchers.contains(UserApp.currentUser())) { ybtn-watching }" data-toggle="button">
+                @if(pull.getWatchers.contains(UserApp.currentUser())) {
+                    @Messages("project.unwatch")
+                } else {
+                    @Messages("project.watch")
+                }
+            </button>
+            }
+        </div>
+
+        <div id="helpMessage" class="pullreq-info" style="display:none;">
+            <div class="well">
+                <div class="row-fluid">
+                    <div class="pull-left">
+                        <img class="img-polaroid" src="@routes.Assets.at("images/fork-pull/merge.jpg")"><br>
+                    </div>
+                    <div class="pull-left help-messages">
+                        <p class="lead">@Messages("pullRequest.merge.help.1")</p>
+                        <p>@Messages("pullRequest.merge.help.2")</p>
+                        <p>@Messages("pullRequest.merge.help.3")</p>
+                        <p>@Messages("pullRequest.merge.help.4")</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="board-comment-wrap">
+            @if(pull.getTimelineComments.size > 0) {
+            <ul class="comments" id="comments">
+            @renderEventsOnPullRequest(pull, Html(""), pull.getTimelineComments.toList)
+            </ul>
+            }
         </div>
     </div>
 </div>

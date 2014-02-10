@@ -510,6 +510,7 @@ pullRequest.resolver.step9 = After the rebasing, push it forcefully.
 pullRequest.restore.branch = Restore Branch
 pullRequest.restore.frombranch.message = can be restored.
 pullRequest.reviewed = Reviewed
+pullRequest.review.participants = <strong>{0}</strong> participants
 pullRequest.select.branch = Select Branch
 pullRequest.sender = Sender
 pullRequest.sent = Sent Code

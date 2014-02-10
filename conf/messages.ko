@@ -511,6 +511,7 @@ pullRequest.resolver.step9 = rebase가 끝났다면 origin으로 코드를 강�
 pullRequest.restore.branch = 브랜치 복구
 pullRequest.restore.frombranch.message = 브랜치를 복구할 수 있습니다.
 pullRequest.reviewed = 리뷰 완료
+pullRequest.review.participants = 참여자 <strong>{0}</strong>명
 pullRequest.select.branch = 브랜치를 선택하세요.
 pullRequest.sender = 보낸 사람
 pullRequest.sent = 보낸 코드

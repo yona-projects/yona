@@ -12,24 +12,25 @@
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
         <div class="code-browse-wrap">
-            @partial_info(project, pull)
+            @partial_info(project, pull, "changes")
+            @partial_branch(pull)
 
-            <ul class="nav nav-tabs nm">
-                <li><a href="@routes.PullRequestApp.pullRequest(project.owner, project.name, pull.number)">@Messages("pullRequest.menu.overview")</a></li>
-                <li class="active"><a href="@routes.PullRequestApp.pullRequestChanges(project.owner, project.name, pull.number)">@Messages("pullRequest.menu.changes")</a></li>
-            </ul>
-
-            <div id="commits" class="btn-group">
-                <button class="btn dropdown-toggle large" data-toggle="dropdown">
+            <div id="commits" class="btn-group auto mt10">
+                <button class="btn dropdown-toggle auto" data-toggle="dropdown">
                     <span class="d-label">@if(commitId == null) { All } else { @shortId(commitId) }</span>
                     <span class="d-caret"><span class="caret"></span></span>
                 </button>
                 <ul class="dropdown-menu">
-                    <li data-value="All"><a href="@routes.PullRequestApp.pullRequestChanges(project.owner, project.name, pull.number)">All</a>
+                    <li data-value="All">
+                        <a href="@routes.PullRequestApp.pullRequestChanges(project.owner, project.name, pull.number)">All</a>
                     </li>
+                    <li class="divider"></li>
                     @for(commit <- pull.pullRequestCommits){
                     <li data-value="@commit.commitId">
-                        <a href="@routes.PullRequestApp.specificChange(project.owner, project.name, pull.number, commit.commitId)">@commit.commitShortId</a>
+                        <a href="@routes.PullRequestApp.specificChange(project.owner, project.name, pull.number, commit.commitId)">
+                            <strong class="blue-txt mr10">@commit.commitShortId</strong>
+                            <span>@commit.getCommitMessage.split("\n")(0)</span>
+                        </a>
                     </li>
                     }
                 </ul>

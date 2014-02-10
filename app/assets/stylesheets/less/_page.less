@@ -2518,7 +2518,10 @@
         padding:15px 0 0 10px;
 
         dl { margin-bottom:20px; }
-        dl.author { height:51px; overflow:hidden; }
+        dl.author {
+            height:51px; overflow:hidden;
+            dd { padding:5px 10px; }
+        }
         p {
             margin-bottom: 5px;
             line-height: 14px;
@@ -3289,20 +3292,43 @@ label.issue-item-row {
     .box-shadow(1px 1px 1px rgba(0,0,0,0.15));
 }
 
-.pullRequest-branch {
-    display:inline-block;
+.pullRequest-branchInfo {
+    padding:15px 0 0 15px;
 
     code {
         border:none;
-        background: #f7f7f7;
-        color: @secondary;
-        padding: 3px 10px;
-        text-shadow: 1px 1px rgba(255,255,255,0.5);
-        .box-shadow(1px 1px 1px rgba(0,0,0,0.15));
-        a { color: #1a4797; }
-        i { color: #1a4797; }
+        background: transparent;
+        color: @yobi-cyan-dark;
+        padding: 0;
+
+        a {
+            color: @yobi-cyan-dark;
+            &.branchName { color:@yobi-cyan; }
+        }
     }
-    i.icon-right { font-size:12px; margin:0 5px; color: #1a4797;}
+
+    i { font-size:12px; margin:0 5px; color: @yobi-cyan-dark; }
+}
+.pullRequest-stateInfo {
+    margin-top:15px;
+
+    .alert {
+        padding:15px;
+        font-size:13px;
+        font-weight:bold;
+        .border-radius(3px);
+
+        i {
+            margin-top:-2px;
+            font-size:15px;
+            vertical-align: middle;
+        }
+
+        &.alert-success { color:@yobi-green-dark; }
+        &.alert-error   { color:@yobi-red-dark;   }
+        &.alert-warning { color:@yobi-yello-dark; }
+        &.alert-info    { color:@yobi-cyan-dark;  }
+    }
 }
 
 .relative-issue {
