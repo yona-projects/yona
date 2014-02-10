@@ -347,7 +347,7 @@
          * @param {Array} aErrors
          */
         function _onFormValidate(aErrors){
-            _clearTooltips();
+            _clearPopovers();
 
             // to avoid bootstrap bug
             if (aErrors.length <= 0) {
@@ -359,7 +359,7 @@
                 welTarget = htElement.welFormPswd.find("input[name=" + htError.name + "]");
 
                 if(welTarget){
-                    _showTooltip(welTarget, htError.message);
+                    _showPopover(welTarget, htError.message);
                 }
             });
         }
@@ -372,25 +372,24 @@
          * @param {Wrapped Element} welInput
          * @param {String} sMessage
          */
-        function _showTooltip(welInput, sMessage){
-            welInput.tooltip({"trigger": "manual", "placement": "right"});
+        function _showPopover(welInput, sMessage){
+            welInput.popover({"trigger": "manual", "placement": "right"});
 
-            var oToolTip = welInput.data('tooltip');
-            oToolTip.options.placement = 'right';
-            oToolTip.options.trigger   = 'manual';
-            oToolTip.options.title     = sMessage;
-            oToolTip.options.content   = sMessage;
+            var oPopover = welInput.data('popover');
+            oPopover.options.placement = 'right';
+            oPopover.options.trigger   = 'manual';
+            oPopover.options.content   = sMessage;
 
-            welInput.tooltip('show');
+            welInput.popover('show');
         }
 
         /**
          * 폼 영역에 있는 jquery.tooltip 모두 제거하는 함수
          */
-        function _clearTooltips(){
+        function _clearPopovers(){
             try {
                 htElement.welFormPswd.find("input").each(function(i, v){
-                    $(v).tooltip("destroy");
+                    $(v).popover("destroy");
                 });
             } catch(e){} // to avoid bootstrap bug
         }
