@@ -16,12 +16,12 @@ public enum EventType {
     NEW_PULL_REQUEST_COMMENT("notification.type.new.simple.comment", 8),
     MEMBER_ENROLL_REQUEST("notification.type.member.enroll", 9),
     PULL_REQUEST_MERGED("notification.type.pullrequest.merged", 10),
-    ISSUE_REFERRED_FROM_COMMIT("notification.type.issue.referred", 11),
+    ISSUE_REFERRED_FROM_COMMIT("notification.type.issue.referred.from.commit", 11),
     PULL_REQUEST_COMMIT_CHANGED("notification.type.pullrequest.commit.changed", 12),
     NEW_COMMIT("notification.type.new.commit", 13),
     PULL_REQUEST_REVIEWED("notification.type.pullrequest.reviewed", 14),
     PULL_REQUEST_UNREVIEWED("notification.type.pullrequest.unreviewed", 15),
-    ISSUE_REFERRED_FROM_PULL_REQUEST("notification.type.issue.referred", 16);
+    ISSUE_REFERRED_FROM_PULL_REQUEST("notification.type.issue.referred.from.pullrequest", 16);
 
     private String descr;
 
