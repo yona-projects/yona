@@ -367,6 +367,29 @@ public class NotificationEvent extends Model {
     }
 
     /**
+     * 이슈와 게시물에 새 댓글을 달렸을 때 알림을 추가한다.
+     *
+     * @param comment
+     * @param urlToView
+     */
+    public static void afterNewCommentWithState(Comment comment, String urlToView, State state) {
+        AbstractPosting post = comment.getParent();
+
+        NotificationEvent notiEvent = createFromCurrentUser(comment);
+        notiEvent.title = formatReplyTitle(post);
+        notiEvent.urlToView = urlToView;
+        Set<User> receivers = getReceivers(post);
+        receivers.addAll(getMentionedUsers(comment.contents));
+        receivers.remove(UserApp.currentUser());
+        notiEvent.receivers = receivers;
+        notiEvent.eventType = EventType.NEW_COMMENT;
+        notiEvent.oldValue = null;
+        notiEvent.newValue = comment.contents + "\n" + state.state();
+
+        NotificationEvent.add(notiEvent);
+    }
+
+    /**
      * 상태 변경에 대한 알림을 추가한다.
      *
      * 등록된 notification은 사이트 메인 페이지를 통해 사용자에게 보여지며 또한

@@ -306,4 +306,38 @@
         });
     });
 </script>
+
+<script>
+    //add "comment & close" like button at comment form
+    $(function(){
+        var welEditor = $("#comment-editor");
+        var welDynamicCommentBtn = $("#dynamic-comment-btn");
+        var welCommentForm = $("#comment-form" );
+        var welWithStateTransition = $("<input type='hidden' name='withStateTransition'>");
+
+        var sNextState = "@Messages("button.nextState."+issue.nextState().toString.toLowerCase)";
+        var sCommentAndNextState = "@Html(Messages("button.commentAndNextState."+issue.nextState().toString.toLowerCase))";
+        welCommentForm.prepend(welWithStateTransition);
+        welDynamicCommentBtn.removeClass('hidden');
+        welDynamicCommentBtn.html("@Messages("button.nextState."+issue.nextState().toString.toLowerCase)")
+            .on("click", function(){
+                if(welEditor.val().length > 0){
+                    welWithStateTransition.val("true");
+                    welCommentForm.attr("action", "@routes.IssueApp.newCommentWithState(project.owner, project.name, issue.getNumber)");
+                    welCommentForm.submit();
+                } else {
+                    welWithStateTransition.val("");
+                    location.href="@routes.IssueApp.nextState(project.owner, project.name, issue.getNumber)";
+                }
+            });
+        welEditor.on("keyup", function(){
+            if(welEditor.val().length > 0){
+                welDynamicCommentBtn.html(sCommentAndNextState);
+                welDynamicCommentBtn.css()
+            } else {
+                welDynamicCommentBtn.html(sNextState);
+            }
+        });
+    });
+</script>
 }
