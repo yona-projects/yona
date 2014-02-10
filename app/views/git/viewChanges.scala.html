@@ -36,13 +36,52 @@
                 </ul>
             </div>
 
-            <div class="diff-body mt20">
-                @if(pull.isMerging == false && pull.isConflict == false){
-                    @views.html.partial_diff(pull.getDiff(commitId), pull.getCodeCommentThreadsForChanges(commitId), pull.toProject, pull.toProject)
-                } else {
-                    @partial_state(project, pull, false, false)
-                }
-                <div class="btnPop"><button type="button" class="ybtn ybtn-info ybtn-mini"><i class="yobicon-comments"></i></button></div>
+            <div class="pullRequest-changes">
+                <button type="button" class="ybtn ybtn-default btn-toggle-reviewcards">
+                    <i class="yobicon-minimize"></i>
+                    <i class="yobicon-restore"></i>
+                </button>
+
+                <div class="diffs-wrap">
+                    <div class="diff-body mt20">
+                        @if(pull.isMerging == false && pull.isConflict == false){
+                            @views.html.partial_diff(pull.getDiff(commitId), pull.getCodeCommentThreadsForChanges(commitId), pull.toProject, pull.toProject)
+                        } else {
+                            @partial_state(project, pull, false, false)
+                        }
+                        <div class="btnPop"><button type="button" class="ybtn ybtn-info ybtn-mini"><i class="yobicon-comments"></i></button></div>
+                    </div>
+
+                    @** BlockComment **@
+                    @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.PULL_REQUEST_COMMENT)){
+                        @common.reviewForm(project, ResourceType.PULL_REQUEST_COMMENT, routes.PullRequestCommentApp.newComment(project.owner, project.name, pull.id, commitId).toString())
+                    }
+                    @** // BlockComment **@
+                </div>
+
+                <div class="review-wrap">
+                    <ul class="nav nav-tabs mt20" style="margin-bottom:10px;">
+                        <li class="active"><a href="#reviewcards-open" data-toggle="tab">@Messages("issue.state.open")</a></li>
+                        <li><a href="#reviewcards-closed" data-toggle="tab">@Messages("issue.state.closed")</a></li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <div id="reviewcards-open" class="tab-pane active">
+                            @for(thread: CodeCommentThread <- pull.getCodeCommentThreadsForChanges(commitId)) {
+                            <div class="review-card @thread.state.toString().toLowerCase()">
+                                <div class="content">@thread.getFirstReviewComment().getContents()</div>
+                                <div class="date" title="@utils.JodaDateUtil.getDateString(thread.createdDate)">
+                                    @utils.JodaDateUtil.momentFromNow(thread.createdDate)
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="reviewcards-closed" class="tab-pane">
+
+                        </div>
+                    </div>
+                    }
+                </div>
             </div>
 
             @** BlockComment **@
@@ -52,7 +91,7 @@
             @** // BlockComment **@
         </div>
 
-         <div class="board-comment-wrap">
+        <div class="board-comment-wrap">
             <hr class="nm">
             @if(pull.getTimelineComments.size > 0) {
             <ul class="comments" id="comments">
@@ -100,6 +139,10 @@
 
         $("button.moreBtn").on("click", function(){
             $(this).next("pre.commitMsg.desc").toggleClass("hidden");
+        });
+
+        $("button.btn-toggle-reviewcards").on("click", function(){
+            $(".pullRequest-changes").toggleClass("diffs-only");
         });
     });
 </script>

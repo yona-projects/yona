@@ -3330,6 +3330,38 @@ label.issue-item-row {
         &.alert-info    { color:@yobi-cyan-dark;  }
     }
 }
+.pullRequest-changes {
+    position:relative;
+
+    .diffs-wrap {
+        display:block; float:left; min-height:30px; position:relative; width:75.5%;
+        .transition(width 0.5s);
+    }
+    .review-wrap {
+        display:block; float:left; min-height:30px; position:relative; width:23.5%; margin-left:1%;
+    }
+
+    .btn-toggle-reviewcards {
+        position:absolute;
+        top:20px; right:0;
+        z-index:10; zoom:1;
+        .transition(0.3s right);
+
+        .yobicon-minimize { display:block; }
+        .yobicon-restore { display:none; }
+    }
+
+    &.diffs-only {
+        .diffs-wrap { width:100%; }
+        .review-wrap { display:none; }
+        .btn-toggle-reviewcards {
+            right:-52px;
+
+            .yobicon-minimize { display:none; }
+            .yobicon-restore { display:block; }
+        }
+    }
+}
 
 .relative-issue {
     display:none;
@@ -4959,7 +4991,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         }
         .btn-thread-here {
             position:absolute;
-            right:-52px;
+            right:10px; margin-top:10px;
             display:block;
         }
     }
@@ -5028,6 +5060,35 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     background-color:rgba(0,133,255,0.25); /* blue */
     /*background-color:rgba(255,245,0,0.35); /* yellow */
     padding:4px 0;
+}
+.review-card {
+    border: 1px solid #ddd;
+    padding: 10px;
+    padding-left: 15px;
+    .border-radius(3px);
+
+    &.open {
+        .box-shadow(inset 5px 0px 0px @state-open);
+    }
+    &.closed {
+        .box-shadow(inset 5px 0px 0px @state-closed);
+    }
+
+    .content {
+        display: -webkit-box;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        text-align: justify;
+        max-height: 60px;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient:vertical;
+    }
+
+    .date {
+        color:#999;
+        text-align:right;
+        margin-top:5px;
+    }
 }
 
 .warning-none {
