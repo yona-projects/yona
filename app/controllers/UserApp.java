@@ -19,6 +19,8 @@
 
 package controllers;
 
+import actions.AnonymousCheckAction;
+
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.annotation.Transactional;
 
@@ -504,6 +506,7 @@ public class UserApp extends Controller {
      *
      * @return
      */
+    @With(AnonymousCheckAction.class)
     public static Result editUserInfoForm() {
         User user = UserApp.currentUser();
         Form<User> userForm = new Form<>(User.class);
@@ -516,6 +519,7 @@ public class UserApp extends Controller {
      *
      * @return
      */
+    @With(AnonymousCheckAction.class)
     @Transactional
     public static Result editUserInfo() {
         Form<User> userForm = new Form<>(User.class).bindFromRequest("name", "email");
