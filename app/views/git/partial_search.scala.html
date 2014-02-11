@@ -1,0 +1,141 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2013 NAVER Corp.
+* http://yobi.io
+*
+* @Author kjkmadness
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@(project: Project, page: com.avaje.ebean.Page[PullRequest],
+    condition: controllers.PullRequestApp.SearchCondition, requestType: String)
+
+@import utils.AccessControl
+@import controllers.PullRequestApp.Category
+
+@conditionForOpen = @{condition.clone.setCategory(Category.OPEN)}
+@conditionForClosed = @{condition.clone.setCategory(Category.CLOSED)}
+@conditionForAccepted = @{condition.clone.setCategory(Category.ACCEPTED)}
+@conditionForSent = @{condition.clone.setCategory(Category.SENT)}
+
+@searchFormAction(category: Category) = @{
+  category match {
+    case Category.SENT => {
+      routes.PullRequestApp.sentPullRequests(project.owner, project.name)
+    }
+    case Category.CLOSED => {
+      routes.PullRequestApp.closedPullRequests(project.owner, project.name)
+    }
+    case _ => {
+      routes.PullRequestApp.pullRequests(project.owner, project.name)
+    }
+  }
+}
+
+  <div pjax-container class="row-fluid cb">
+    <div class="span2 search-wrap">
+      <form id="search" name="search" action="@searchFormAction(condition.category)" method="get">
+        <div class="search">
+          <div class="search-bar">
+            <input name="filter" class="textbox full" type="text" value="@condition.filter">
+            <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+          </div>
+        </div>
+        @if(condition.category != Category.SENT){
+        <div id="advanced-search-form" class="srch-advanced">
+          <dl class="issue-option">
+            <dt>@Messages("pullRequest.sender")</dt>
+            <dd>
+              <div class="btn-group" data-name="contributorId">
+                <button class="btn dropdown-toggle auto" data-toggle="dropdown">
+                  <span class="d-label">@Messages("common.order.all")</span>
+                  <span class="d-caret"><span class="caret"></span></span>
+                </button>
+                <ul class="dropdown-menu">
+                  <li data-value=""><a>@Messages("common.order.all")</a></li>
+                  <li class="divider"></li>
+                  @for(contributor <- User.findPullRequestContributorsByProjectId(project.id)) {
+                  <li data-value="@contributor.id" @if(condition.contributorId != null && condition.contributorId == contributor.id){data-selected="true" class="active"}>
+                    <a class="usf-group">
+                      <span class="avatar-wrap smaller">
+                        <img src="@contributor.avatarUrl" width="20" height="20">
+                      </span>
+                      <strong class="name">@contributor.name</strong>
+                      <span class="loginid"> <strong>@{"@"}</strong>@contributor.loginId</span>
+                    </a>
+                  </li>
+                  }
+                </ul>
+              </div>
+            </dd>
+          </dl>
+        </div>
+        }
+      </form>
+    </div>
+    <div class="span10" id="span10">
+      @if(project.isForkedFromOrigin) {
+        @partial_recently_pushed_branches(project)
+      } else {
+        @defining(Project.findByOwnerAndOriginalProject(UserApp.currentUser().loginId, project)){ myForkProject =>
+          @if(myForkProject != null && AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.PULL_REQUEST)){
+            @partial_recently_pushed_branches(myForkProject)
+          }
+        }
+      }
+      <div class="pull-right">
+        <a href="@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)" class="ybtn ybtn-success">
+          <i class="yobicon-merge yobicon-large"></i>
+            @Messages("pullRequest")
+        </a>
+      </div>
+      <ul class="nav nav-tabs nm">
+        <li @if(requestType.equals("open")){class="active"}>
+          <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)@conditionForOpen.queryString" pjax-page>
+            @Messages("pullRequest.opened.code")
+            <span class="num-badge">@PullRequest.count(conditionForOpen)</span>
+          </a>
+        </li>
+        <li @if(requestType.equals("closed")){class="active"}>
+          <a href="@routes.PullRequestApp.closedPullRequests(project.owner, project.name)@conditionForClosed.queryString" pjax-page>
+            @Messages("pullRequest.accepted.code")
+            <span class="num-badge">@PullRequest.count(conditionForClosed)</span>
+          </a>
+        </li>
+        @if(project.isForkedFromOrigin()){
+        <li @if(requestType.equals("sent")){class="active"}>
+          <a href="@routes.PullRequestApp.sentPullRequests(project.owner, project.name)@conditionForSent.queryString" pjax-page>
+            @Messages("pullRequest.sent.code")
+            <span class="num-badge">@PullRequest.count(conditionForAccepted) / @PullRequest.count(conditionForSent)</span>
+          </a>
+        </li>
+        }
+    </ul>
+    <div class="tab-content" style="clear:both;padding-top:15px;">
+      <div id="list" class="row-fluid tab-pane active">
+        @partial_list(project, page)
+      </div>
+    </div>
+    </div>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            var oSearchContributor = new yobi.ui.Dropdown({
+                'elContainer': $('div[data-name="contributorId"]'),
+                'fOnChange' : function() {
+                    $('#search').submit();
+                }
+            });
+        });
+    </script>
+  </div>

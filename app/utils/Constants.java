@@ -12,4 +12,6 @@ public class Constants {
 
     public static final String DEFAULT_LANGUAGE = "en";
     public static final String NEW_LINE_DELIMETER = "\n";
+
+    public static final int DEFAULT_PAGE = 1;
 }

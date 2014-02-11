@@ -503,6 +503,7 @@ pullRequest.restore.branch = Restore Branch
 pullRequest.restore.frombranch.message = can be restored.
 pullRequest.reviewed = Reviewed
 pullRequest.select.branch = Select Branch
+pullRequest.sender = Sender
 pullRequest.sent.code = Sent Code
 pullRequest.state.closed = Closed
 pullRequest.state.conflict = Conflict

@@ -72,9 +72,7 @@
 
 <script type="text/javascript">
     $(function(){
-        $('span[data-toggle="tooltip"]').tooltip({
-            placement : "bottom"
-        });
+        $('[data-toggle="tooltip"]').tooltip();
         var welPagination = $("#pagination");
         yobi.Pagination.update(welPagination, @page.getTotalPageCount());
     });

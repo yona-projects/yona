@@ -484,11 +484,35 @@ public class User extends Model implements ResourceConvertible {
         }
     }
 
+    /**
+     * {@code projectId} 에 해당하는 project 에 이슈를 작성한 모든 사용자 조회
+     *
+     * @param projectId
+     * @return
+     */
     public static List<User> findIssueAuthorsByProjectId(long projectId) {
         String sql = "select user.id, user.name, user.login_id from issue issue, n4user user where issue.author_id = user.id group by issue.author_id";
-        RawSql rawSql = RawSqlBuilder.parse(sql).columnMapping("user.login_id", "loginId").create();
+        return createUserSearchQueryWithRawSql(sql).where()
+                .eq("issue.project_id", projectId)
+                .findList();
+    }
 
-        return User.find.setRawSql(rawSql).where().eq("issue.project_id", projectId).findList();
+    /**
+     * {@code projectId} 에 해당하는 project 에 코드-주고받기를 보낸 모든 사용자 조회
+     *
+     * @param projectId
+     * @return
+     */
+    public static List<User> findPullRequestContributorsByProjectId(long projectId) {
+        String sql = "SELECT user.id, user.name, user.login_id FROM pull_request pullrequest, n4user user WHERE pullrequest.contributor_id = user.id GROUP BY pullrequest.contributor_id";
+        return createUserSearchQueryWithRawSql(sql).where()
+                .eq("pullrequest.to_project_id", projectId)
+                .findList();
+    }
+
+    private static com.avaje.ebean.Query<User> createUserSearchQueryWithRawSql(String sql) {
+        RawSql rawSql = RawSqlBuilder.parse(sql).columnMapping("user.login_id", "loginId").create();
+        return User.find.setRawSql(rawSql);
     }
 
     /**

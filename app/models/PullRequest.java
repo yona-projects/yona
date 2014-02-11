@@ -3,8 +3,12 @@ package models;
 import actors.RelatedPullRequestMergingActor;
 import akka.actor.Props;
 import com.avaje.ebean.Expr;
+import com.avaje.ebean.Expression;
 import com.avaje.ebean.ExpressionList;
+import com.avaje.ebean.Junction;
 import com.avaje.ebean.Page;
+
+import controllers.PullRequestApp.SearchCondition;
 import controllers.UserApp;
 import controllers.routes;
 import models.enumeration.EventType;
@@ -12,6 +16,8 @@ import models.enumeration.ResourceType;
 import models.enumeration.State;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
+
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
@@ -44,7 +50,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static com.avaje.ebean.Expr.eq;
+import static com.avaje.ebean.Expr.*;
 
 @Entity
 public class PullRequest extends Model implements ResourceConvertible {
@@ -577,55 +583,78 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     /**
-     * {@code project}에서 {@code state}에 해당하는 풀리퀘 목록 중 한 페이지를 가져온다.
+     * {@code condition} 에 해당하는 코드-주고받기 목록 중 한 페이지를 가져온다.
+     * {@code SearchCondition.pageNum}은 0부터 시작하고, 한 페이지당 {@code ITEMS_PER_PAGE} 만큼 가져온다.
      *
-     * {@code pageNum}은 0부터 시작하고, 한 페이지당 {@code ITEMS_PER_PAGE} 만큼 가져온다.
-     *
-     * @param state
-     * @param project
-     * @param pageNum
+     * @param condition
      * @return
      */
-    public static Page<PullRequest> findPagingList(State state, Project project, int pageNum) {
-        return finder.where()
-                .eq("toProject", project)
-                .eq("state", state)
-                .order().desc("number")
+    public static Page<PullRequest> findPagingList(SearchCondition condition) {
+        return createSearchExpressionList(condition)
+                .order().desc(condition.category.order())
                 .findPagingList(ITEMS_PER_PAGE)
-                .getPage(pageNum);
+                .getPage(condition.pageNum - 1);
     }
 
     /**
-     * 받은 코드 목록을 반환한다.
+     * {@code condition} 에 해당하는 코드-주고받기 갯수를 가져온다.
      *
-     * 받은 코드는 닫혔(Closed)거나 병합(Merged)된 코드이다.
-     * @param project
-     * @param pageNum
+     * @param condition
      * @return
      */
-    public static Page<PullRequest> findClosedPagingList(Project project, int pageNum) {
-        return finder.where()
-                .eq("toProject",  project)
-                .or(eq("state", State.CLOSED), eq("state", State.MERGED))
-                .order().desc("received")
-                .findPagingList(ITEMS_PER_PAGE)
-                .getPage(pageNum);
+    public static int count(SearchCondition condition) {
+        return createSearchExpressionList(condition).findRowCount();
     }
-    /**
-     * {@code project}에서 보낸 풀리퀘 목록 중 한 페이지를 가져온다.
-     *
-     * {@code pageNum}은 0부터 시작하고, 한 페이지당 {@code ITEMS_PER_PAGE} 만큼 가져온다.
-     *
-     * @param project
-     * @param pageNum
-     * @return
+
+    /*
+     * 지정된 검색조건에 따라서 검색 표현식을 만든다.
      */
-    public static Page<PullRequest> findSentPullRequests(Project project, int pageNum) {
-        return finder.where()
-                .eq("fromProject", project)
-                .order().desc("created")
-                .findPagingList(ITEMS_PER_PAGE)
-                .getPage(pageNum);
+    private static ExpressionList<PullRequest> createSearchExpressionList(SearchCondition condition) {
+        ExpressionList<PullRequest> el = finder.where();
+        if (condition.project != null) {
+            el.eq(condition.category.project(), condition.project);
+        }
+        Expression state = createStateSearchExpression(condition.category.states());
+        if (state != null) {
+            el.add(state);
+        }
+        if (condition.contributorId != null) {
+            el.eq("contributor.id", condition.contributorId);
+        }
+        if (StringUtils.isNotBlank(condition.filter)) {
+            Set<Object> ids = new HashSet<>();
+            ids.addAll(el.query().copy().where()
+                    .icontains("comments.contents", condition.filter).findIds());
+            ids.addAll(el.query().copy().where()
+                    .eq("pullRequestCommits.state", PullRequestCommit.State.CURRENT)
+                    .or(
+                            icontains("pullRequestCommits.commitMessage", condition.filter),
+                            icontains("pullRequestCommits.commitId", condition.filter))
+                    .findIds());
+            Junction<PullRequest> junction = el.disjunction();
+            junction.icontains("title", condition.filter).icontains("body", condition.filter)
+                    .icontains("mergedCommitIdTo", condition.filter);
+            if (!ids.isEmpty()) {
+                junction.in("id", ids);
+            }
+            junction.endJunction();
+        }
+        return el;
+    }
+
+    /*
+     * 지정된 states 에 따라서 검색 표현식을 만든다.
+     */
+    private static Expression createStateSearchExpression(State[] states) {
+        int stateCount = ArrayUtils.getLength(states);
+        switch (stateCount) {
+            case 0:
+                return null;
+            case 1:
+                return eq("state", states[0]);
+            default:
+                return in("state", states);
+        }
     }
 
     /**
@@ -978,5 +1007,4 @@ public class PullRequest extends Model implements ResourceConvertible {
     public int getLackingReviewerCount() {
         return toProject.defaultReviewerCount - reviewers.size();
     }
-
 }
