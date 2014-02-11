@@ -50,25 +50,10 @@ yobi.LabelEditor = (function(welContainer, htOptions){
      */
     function _initVar(htOptions){
         htVar.sURLPost = htOptions.sURLPost;
-        htVar.fOnCreate = htOptions.fOnCreate || function(){};
+        htVar.fOnCreate = htOptions.fOnCreate;
 
-        htVar.aColors = htOptions.aColors || ['#999999','#da5454','#f86ca0','#ff9e9d','#ff9933','#ffcc33','#f8c86c','#99ca3c','#22b4b9','#4d68b1','#6ca6f8','#3fb8af','#9966cc','#ffffff'];
-        htVar.sTplEditor = htOptions.sTplEditor || '<div class="control-group label-editor">\
-        <strong class="control-label">${labelNew}</strong>\
-        <div id="custom-label" class="controls">\
-            <div class="row-fluid">\
-                <div>\
-                    <input type="text" name="labelCategory" class="input-small labelInput" data-provider="typeahead" autocomplete="off" placeholder="${labelCategory}">\
-                </div>\
-                <div>\
-                    <input type="text" name="labelName" class="input-small labelInput" placeholder="${labelName}" autocomplete="off">\
-                </div>\
-            </div>\
-            <div class="colors"><input type="text" name="labelColor" class="input-small labelColor" placeholder="${labelCustomColor}"></div>\
-            <div class="row-fluid">\
-                <div class="span12"><button type="button" class="nbtn medium black labelSubmit">${labelAdd}</button></div>\
-            </div>\
-        </div></div>';
+        htVar.aColors = htOptions.aColors || ['#da5454','#f86ca0','#ff9e9d','#ffcc33','#f8c86c','#ff9933','#99ca3c','#3fb8af','#22b4b9','#6ca6f8','#4d68b1','#9966cc'];
+        htVar.sTplEditor = htOptions.sTplEditor || $("#tplYobiLabelEditor").text();
         htVar.sTplBtnColor = htOptions.sTplBtnColor || '<button type="button" class="issue-label issueColor nbtn small" style="background-color:${color}">';
     }
 
@@ -101,10 +86,10 @@ yobi.LabelEditor = (function(welContainer, htOptions){
 
     /**
      * Enter 키가 눌렸을 경우 기본 이벤트 무시
-     * @returns false when enter key pressed
+     * @returns {Boolean} false on enter key has pressed
      */
-    function _preventDefaultWhenEnterPressed(eEvt) {
-        return !(eEvt.keyCode === 13);
+    function _preventDefaultWhenEnterPressed(weEvt) {
+        return !((weEvt.keyCode || weEvt.which) === 13);
     }
 
     /**
@@ -113,7 +98,7 @@ yobi.LabelEditor = (function(welContainer, htOptions){
      */
     function _preventSubmitAndMoveWhenEnterPressed(eEvt, welTarget){
         var code = eEvt.keyCode || eEvt.which;
-        if (code === 13) {
+        if(code === 13){
             welTarget.focus();
             eEvt.preventDefault();
         }
@@ -130,26 +115,47 @@ yobi.LabelEditor = (function(welContainer, htOptions){
         htElement.welCustomLabelCategory
             .keypress(_preventDefaultWhenEnterPressed);
         htElement.welCustomLabelName
+            .focus(_onFocusLabelName)
             .keypress(_preventDefaultWhenEnterPressed)
-            .keyup(function(e) {
-                if ( e.keyCode === 13){
+            .keyup(function(weEvt) {
+                if((weEvt.keyCode || weEvt.which) === 13){
                     htElement.welCustomLabelColor.focus();
-                    e.preventDefault();
+                    weEvt.preventDefault();
                     return false;
                 }
             });
         htElement.welCustomLabelColor
-            .keypress(function(e) {
-                if ( e.keyCode === 13 ){
+            .keypress(function(weEvt){
+                if((weEvt.keyCode || weEvt.which) === 13){
                     _addCustomLabel();
-                    e.preventDefault();
+                    weEvt.preventDefault();
                     return false;
                 }
             })
-            .keyup(function(e){
-                _preventSubmitAndMoveWhenEnterPressed(e, htElement.welCustomLabelName);
+            .keyup(function(weEvt){
+                _preventSubmitAndMoveWhenEnterPressed(weEvt, htElement.welCustomLabelName);
             });
         htElement.welCustomLabelColor.keyup(_onKeyupInputColorCustom);
+    }
+
+    function _onFocusLabelName(){
+        var sCategory = htElement.welCustomLabelCategory.val();
+        var sColor = htElement.welCustomLabelColor.val();
+
+        // 카테고리를 입력해야함
+        if(!sCategory.trim()){
+            return;
+        }
+
+        var welFirstItemInCategory = $('.label-group[data-category="' + sCategory + '"] > .issue-label:first');
+
+        // 그 카테고리에 적어도 하나 이상의 항목이 있으며
+        // 컬러는 입력한 값이 없는 상태라면 첫번째 항목의 색을 자동으로 선택한다
+        if(welFirstItemInCategory.length > 0 && !sColor.trim()){
+            var sColor = new RGBColor(welFirstItemInCategory.css("background-color")).toHex();
+            _updateSelectedColor(sColor);
+            htElement.welCustomLabelColor.val(sColor);
+        }
     }
 
     /**
@@ -159,11 +165,11 @@ yobi.LabelEditor = (function(welContainer, htOptions){
      */
     function _getLabelEditor(){
         // label editor HTML
-        var welEditor = $.tmpl(htVar.sTplEditor, {
+        var welEditor = $yobi.tmpl(htVar.sTplEditor, {
             "labelAdd"        : Messages("label.add"),
             "labelNew"        : Messages("label.new"),
-            "labelName"        : Messages("label.name"),
-            "labelCategory"    : Messages('label.category'),
+            "labelName"       : Messages("label.name"),
+            "labelCategory"   : Messages('label.category'),
             "labelCustomColor": Messages("label.customColor")
         });
 
@@ -173,7 +179,7 @@ yobi.LabelEditor = (function(welContainer, htOptions){
     function _makeColorTable(){
         var aColorBtns = [];
         htVar.aColors.forEach(function(sColor){
-            aColorBtns.push($.tmpl(htVar.sTplBtnColor, {"color": sColor}));
+            aColorBtns.push($yobi.tmpl(htVar.sTplBtnColor, {"color": sColor}));
         });
         htElement.welColors.prepend(aColorBtns);
         aColorBtns = null;
@@ -204,6 +210,17 @@ yobi.LabelEditor = (function(welContainer, htOptions){
             return false;
         }
 
+        // 라벨 컬러가 정상적인 컬러코드인지 확인
+        var sColor = htElement.welCustomLabelColor.val();
+        var oColor = new RGBColor(sColor);
+
+        if(!oColor.ok){
+            $yobi.alert(Messages("label.error.color", sColor));
+            return false;
+        }
+
+        htElement.welCustomLabelColor.val(oColor.toHex());
+
         // send request
         $yobi.sendForm({
             "sURL"     : htVar.sURLPost,
@@ -222,8 +239,12 @@ yobi.LabelEditor = (function(welContainer, htOptions){
                     return;
                 }
 
-                htElement.welCustomLabelCategory.data("typeahead").source.push(oRes.category);
-                htVar.fOnCreate(oRes);
+                htElement.welCustomLabelName.val("");
+                _addCategoryTypeahead(oRes.category);
+
+                if(typeof htVar.fOnCreate === "function"){
+                    htVar.fOnCreate(oRes);
+                }
             }
         });
     }
@@ -240,14 +261,14 @@ yobi.LabelEditor = (function(welContainer, htOptions){
         welTarget.addClass("active");
 
         // Get the selected color.
-        var sColor = welTarget.css('background-color');
+        var sColor = new RGBColor(welTarget.css('background-color')).toHex();
 
         // Fill the color input area with the hexadecimal value of
         // the selected color.
-        htElement.welCustomLabelColor.val(new RGBColor(sColor).toHex());
-        htElement.welCustomLabelColor.css("border-color", sColor);
         _updateSelectedColor(sColor);
-        //move caret to custom lable color input
+
+        //move caret to custom label color input
+        htElement.welCustomLabelColor.val(sColor);
         htElement.welCustomLabelColor.focus();
     }
 
@@ -259,9 +280,8 @@ yobi.LabelEditor = (function(welContainer, htOptions){
         var sColor = htElement.welCustomLabelColor.val();
         var oColor = new RGBColor(sColor);
 
-        if (oColor.ok) {
-            _updateSelectedColor(sColor);
-            htElement.welCustomLabelColor.css("border-color", sColor);
+        if(oColor.ok){
+            _updateSelectedColor(oColor.toHex());
         }
 
         oColor = null;
@@ -278,7 +298,8 @@ yobi.LabelEditor = (function(welContainer, htOptions){
         var sFgColor = $yobi.getContrastColor(sBgColor);
         htElement.welCustomLabelName.css({
             "color": sFgColor,
-            "background-color": sBgColor
+            "background-color": sBgColor,
+            "border-color": sBgColor
         });
 
         // Change also place holder's
@@ -298,6 +319,7 @@ yobi.LabelEditor = (function(welContainer, htOptions){
             } catch (e){ }
         });
 
+        htElement.welCustomLabelColor.css("border-color", sBgColor);
         aSelectors = elStyle = null;
     }
 
@@ -316,7 +338,10 @@ yobi.LabelEditor = (function(welContainer, htOptions){
      */
     function _addCategoryTypeahead(sCategory) {
         var aSource = htElement.welCustomLabelCategory.typeahead().data('typeahead').source;
-        aSource.push(sCategory);
+
+        if(aSource.indexOf(sCategory) === -1){
+            aSource.push(sCategory);
+        }
     }
 
     // 인터페이스 반환

@@ -3008,6 +3008,16 @@ div.markdown-preview {
 .label-editor {
     padding-top:10px;
     border-top:1px solid #ddd;
+
+    .colors-wrap {
+        position:relative;
+        padding-top: 32px;
+
+        .colorInput {
+            position:absolute;
+            top:0; left:0; right:0;
+        }
+    }
 }
 .content-wrap {
     .text {
@@ -3053,17 +3063,15 @@ div.markdown-preview {
         margin:0;
         line-height:30px;
 
-        .colors {
-            .labelColor {
-                border-left:22px solid;
-                padding:2px; text-align:center;
-                margin-left:5px;
-                margin-bottom:0px;
-                .box-shadow(inset 0 1px 2px rgba(0,0,0,0.15));
-            }
-        }
         .labelInput {
             width:90%;
+            .box-shadow(0px 0px 1px rgba(0,0,0,0.2));
+
+            &.labelColor {
+                width:76%;
+                border-right:25px solid;
+                margin-bottom:0px;
+            }
         }
         .labelSubmit {
             width:100%;

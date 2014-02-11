@@ -291,7 +291,12 @@ yobi.Label = (function(htOptions){
         var sDefaultCSSTarget = '.issue-label[data-labelId="' + oLabel.id + '"]';
         var sActiveCSSTarget = '.issue-label.active[data-labelId="' + oLabel.id + '"]';
 
-        var sDefaultCss = 'border-left: 3px solid ' + oLabel.color;
+        var aDefaultCss = [];
+        var sDefaultCssSkel = 'box-shadow: inset 3px 0 0px ' + oLabel.color;
+        ["", "-moz-", "-webkit"].forEach(function(sPrefix){
+            aDefaultCss.push(sPrefix + sDefaultCssSkel);
+        });
+        var sDefaultCss = aDefaultCss.join(";");
         var sActiveCss = 'background-color: ' + oLabel.color + '; color:'+$yobi.getContrastColor(oLabel.color);
 
         if(document.styleSheets[0].addRule) {
