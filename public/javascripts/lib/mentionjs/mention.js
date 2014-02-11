@@ -71,7 +71,7 @@
                     var current_delimiter = (itemProps['delimiter'] ? itemProps['delimiter'] : settings.delimiter),
                         itemKey = itemProps[settings.key].toLowerCase(),
                         q = (this.query.toLowerCase()),
-                        caratPos = this.$element[0].selectionStart,
+                        caratPos = this.$element[0].value.length,
                         lastChar = q.slice(caratPos-1,caratPos);
                     
                     // list all the usernames already in text (in lower case)
