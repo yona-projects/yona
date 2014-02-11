@@ -127,9 +127,11 @@
                             <p>@Messages("userinfo.daysAgo.prefix") @Messages("pullRequest.is.empty")</p>
                         </div>
                     }
+                    <ul class="post-list-wrap  row-fluid">
                     @for(pull <- pullRequests){
                         @partial_pullRequests(pull, pull.toProject)
                     }
+                    </ul>
                 </div>
                 <div id="milestones" class="tab-pane @isActiveTab("milestones")">
                     @if(milestones.size==0){
