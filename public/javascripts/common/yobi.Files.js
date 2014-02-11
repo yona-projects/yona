@@ -577,8 +577,6 @@ yobi.Files = (function(){
                 weEvt.preventDefault();
             }
         }
-
-        return false;
     }
 
     /**
