@@ -115,9 +115,11 @@
                             <p>@Messages("userinfo.daysAgo.prefix") @Messages("issue.is.empty")</p>
                         </div>
                     }
+                    <ul class="post-list-wrap row-fluid">
                     @for(issue <- issues){
                         @partial_issues(issue, issue.project)
                     }
+                    </ul>
                 </div>
                 <div id="pullRequests" class="tab-pane @isActiveTab("pullRequests")">
                     @if(pullRequests.size==0){
