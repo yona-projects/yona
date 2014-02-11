@@ -103,7 +103,7 @@
                             <p>@Messages("userinfo.daysAgo.prefix") @Messages("post.is.empty")</p>
                         </div>
                     }
-                    <ul class="board-list unstyled">
+                    <ul class="post-list-wrap">
                         @for(post <- postings){
                             @partial_postings(post, post.project)
                         }

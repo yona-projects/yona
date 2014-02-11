@@ -9,7 +9,7 @@
     <a href="@urlToList&labelIds=@label.id" class="label issue-label list-label" data-labelId="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>
 }
 @defining(User.findByLoginId(issue.authorLoginId)){ user =>
-<li class="post-item" id="issue-item-@issue.id">
+<li class="post-item " id="issue-item-@issue.id">
     <div class="span9">
         <a href="@routes.ProjectApp.project(project.owner, project.name)" class="avatar-wrap mlarge">
             <img src="@urlToProjectLogo(project)" alt="@project.owner / @project.name">
