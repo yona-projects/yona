@@ -142,8 +142,8 @@ yobi.LabelEditor = (function(welContainer, htOptions){
         var sCategory = htElement.welCustomLabelCategory.val();
         var sColor = htElement.welCustomLabelColor.val();
 
-        // 카테고리를 입력했고
-        if(sCategory.length < 1){
+        // 카테고리를 입력해야함
+        if(!sCategory.trim()){
             return;
         }
 
@@ -151,7 +151,7 @@ yobi.LabelEditor = (function(welContainer, htOptions){
 
         // 그 카테고리에 적어도 하나 이상의 항목이 있으며
         // 컬러는 입력한 값이 없는 상태라면 첫번째 항목의 색을 자동으로 선택한다
-        if(welFirstItemInCategory.length > 0 && sColor.length === 0){
+        if(welFirstItemInCategory.length > 0 && !sColor.trim()){
             var sColor = new RGBColor(welFirstItemInCategory.css("background-color")).toHex();
             _updateSelectedColor(sColor);
             htElement.welCustomLabelColor.val(sColor);
@@ -209,6 +209,17 @@ yobi.LabelEditor = (function(welContainer, htOptions){
             $yobi.alert(Messages("label.error.empty"));
             return false;
         }
+
+        // 라벨 컬러가 정상적인 컬러코드인지 확인
+        var sColor = htElement.welCustomLabelColor.val();
+        var oColor = new RGBColor(sColor);
+
+        if(!oColor.ok){
+            $yobi.alert(Messages("label.error.color", sColor));
+            return false;
+        }
+
+        htElement.welCustomLabelColor.val(oColor.toHex());
 
         // send request
         $yobi.sendForm({

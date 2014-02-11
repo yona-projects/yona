@@ -240,6 +240,7 @@ label.category = Category
 label.confirm.delete = Are you Sure?
 label.customColor = Custom Color
 label.dueDate = Due Date
+label.error.color = {0} cannot be label color.\nPlease type in HEX or RGB expression.
 label.error.creationFailed = Failed to create new label. It might be server error or your request is invalid.
 label.error.duplicated = Failed to create new label. It might be same label exists already.
 label.error.empty = Failed to create new label.\nCategory, Color, Name fields cannot be empty.
