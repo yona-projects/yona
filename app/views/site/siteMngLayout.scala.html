@@ -16,33 +16,35 @@
         <h3>@Messages("site.sidebar")</h3>
     </div>    
 </div>
-<div class="site-setting-wrap">
-    <div class="row-fluid">
-        <div class="span2">
-            <ul class="site-setting-nav">
-                <li class="@isActiveMenu(routes.SiteApp.userList())">
-                    <a href="@routes.SiteApp.userList()">@Messages("site.sidebar.userList")</a>
-                </li>
-                <li class="@isActiveMenu(routes.SiteApp.postList())">
-                    <a href="@routes.SiteApp.postList()">@Messages("site.sidebar.postList")</a>
-                </li>
-                <li class="@isActiveMenu(routes.SiteApp.issueList())">
-                    <a href="@routes.SiteApp.issueList()">@Messages("site.sidebar.issueList")</a>
-                </li>
-                <li class="@isActiveMenu(routes.SiteApp.projectList())">
-                    <a href="@routes.SiteApp.projectList()">@Messages("site.sidebar.projectList")</a>
-                </li>
-                <li class="@isActiveMenu(routes.SiteApp.writeMail())">
-                    <a href="@routes.SiteApp.writeMail()">@Messages("site.sidebar.mailSend")</a>
-                </li>
-                <li class="@isActiveMenu(routes.SiteApp.massMail())">
-                    <a href="@routes.SiteApp.massMail()">@Messages("site.sidebar.massMail")</a>
-                </li>
-            </ul>    
-        </div>
-        <div class="span10"> 
-            @content
-         </div>   
-    </div>   
+<div class="page-wrap-outer">
+    <div class="site-setting-wrap">
+        <div class="row-fluid">
+            <div class="span2">
+                <ul class="site-setting-nav">
+                    <li class="@isActiveMenu(routes.SiteApp.userList())">
+                        <a href="@routes.SiteApp.userList()">@Messages("site.sidebar.userList")</a>
+                    </li>
+                    <li class="@isActiveMenu(routes.SiteApp.postList())">
+                        <a href="@routes.SiteApp.postList()">@Messages("site.sidebar.postList")</a>
+                    </li>
+                    <li class="@isActiveMenu(routes.SiteApp.issueList())">
+                        <a href="@routes.SiteApp.issueList()">@Messages("site.sidebar.issueList")</a>
+                    </li>
+                    <li class="@isActiveMenu(routes.SiteApp.projectList())">
+                        <a href="@routes.SiteApp.projectList()">@Messages("site.sidebar.projectList")</a>
+                    </li>
+                    <li class="@isActiveMenu(routes.SiteApp.writeMail())">
+                        <a href="@routes.SiteApp.writeMail()">@Messages("site.sidebar.mailSend")</a>
+                    </li>
+                    <li class="@isActiveMenu(routes.SiteApp.massMail())">
+                        <a href="@routes.SiteApp.massMail()">@Messages("site.sidebar.massMail")</a>
+                    </li>
+                </ul>    
+            </div>
+            <div class="span10"> 
+                @content
+             </div>   
+        </div>   
+    </div>
 </div>
 }

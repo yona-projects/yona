@@ -61,136 +61,137 @@
 
 @projectLayout(Messages("title.commitHistory"), project, utils.MenuType.CODE) {
 @projectMenu(project, utils.MenuType.CODE, "main-menu-only")
-<div class="project-page-wrap">
-    <div class="bubble-wrap dark-gray repo-wrap">
-        <div class="code-browse-wrap">
-            @if(path != null){
-            <div id="breadcrumbs" class="code-breadcrumb-wrap">
-                <a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(selectedBranch, "UTF-8"), "")">@project.name</a>
-                @makeBreadCrumbs(path)
-            </div>
-            }
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="bubble-wrap dark-gray repo-wrap">
+            <div class="code-browse-wrap">
+                @if(path != null){
+                <div id="breadcrumbs" class="code-breadcrumb-wrap">
+                    <a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(selectedBranch, "UTF-8"), "")">@project.name</a>
+                    @makeBreadCrumbs(path)
+                </div>
+                }
 
-            @if(path == null){
-            <div id="branches" class="btn-group branches pull-right" data-name="branch" data-activate="manual">
-                <button class="btn dropdown-toggle large" data-toggle="dropdown">
-                    <span class="d-label">@if(selectedBranch){ @selectedBranch } else { HEAD }</span>
-                    <span class="d-caret"><span class="caret"></span></span>
-                </button>
-                <ul class="dropdown-menu">
-                    @defining(RepositoryService.getRepository(project).getBranches()) { branches =>
-                        @for(branch <- branches){
-                            @partial_branchitem(project, branch, "history", "")
+                @if(path == null){
+                <div id="branches" class="btn-group branches pull-right" data-name="branch" data-activate="manual">
+                    <button class="btn dropdown-toggle large" data-toggle="dropdown">
+                        <span class="d-label">@if(selectedBranch){ @selectedBranch } else { HEAD }</span>
+                        <span class="d-caret"><span class="caret"></span></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        @defining(RepositoryService.getRepository(project).getBranches()) { branches =>
+                            @for(branch <- branches){
+                                @partial_branchitem(project, branch, "history", "")
+                            }
                         }
+                    </ul>
+                </div>
+
+                <ul class="nav nav-tabs" style="margin-bottom:20px;">
+                    <li>
+                        <a href="@getFilesURL">@Messages("code.files")</a>
+                    </li>
+                    <li class="active">
+                        <a href="@getHistoryURL(path)">@Messages("code.commits")</a>
+                    </li>
+                    @if(project.isGit()) {
+                    <li>
+                        <a href="@routes.BranchApp.branches(project.owner, project.name)">@Messages("title.branches")</a>
+                    </li>
                     }
                 </ul>
-            </div>
-
-            <ul class="nav nav-tabs" style="margin-bottom:20px;">
-                <li>
-                    <a href="@getFilesURL">@Messages("code.files")</a>
-                </li>
-                <li class="active">
-                    <a href="@getHistoryURL(path)">@Messages("code.commits")</a>
-                </li>
-                @if(project.isGit()) {
-                <li>
-                    <a href="@routes.BranchApp.branches(project.owner, project.name)">@Messages("title.branches")</a>
-                </li>
                 }
-            </ul>
-            }
 
-            <div id="history" class="commit-wrap">
-                <table class="code-table commits@if(path != null){ mt10}">
-                    <thead class="thead">
-                        <tr>
-                            <td class="commit-id"><strong>@{"@"}</strong></td>
-                            <td class="messages"><strong>@Messages("code.commitMsg")</strong></td>
-                            @if(path != null){
-                            <td class="browse"></td>
-                            }
-                            <td class="date"><strong>@Messages("code.commitDate")</strong></td>
-                            <td class="author"><strong>@Messages("code.author")</strong></td>
-                        </tr>
-                    </thead>
-                    <tbody class="tbody">
-                        @if(history.isEmpty()){
-                            <tr><td colspan="5" class="warning-none">@Messages("code.nocommits")</td></tr>
-                        }
-                        @for(commit <- history.iterator()) {
-                        @defining(getShowCommitURL(project, commit, path)){ showCommitURL =>
-                        <tr>
-                            <td class="commit-id">
-                                <a href="@showCommitURL" title="@Messages("code.showCommit")">
-                                    @commit.getShortId()
-                                </a>
-                            </td>
-                            <td class="messages">
-                                @defining(CommitComment.count(project, commit.getId, path)){ numOfComment =>
-                                    @if(numOfComment > 0) {
-                                    <span class="number-of-comments"><i class="yobicon-comments"></i> @numOfComment</span>
-                                    }
+                <div id="history" class="commit-wrap">
+                    <table class="code-table commits@if(path != null){ mt10}">
+                        <thead class="thead">
+                            <tr>
+                                <td class="commit-id"><strong>@{"@"}</strong></td>
+                                <td class="messages"><strong>@Messages("code.commitMsg")</strong></td>
+                                @if(path != null){
+                                <td class="browse"></td>
                                 }
-
-                                @common.commitMsg(commit.getShortMessage(), commit.getMessage(), showCommitURL.toString())
-                            </td>
-                            @if(path != null){
-                            <td class="browse">
-                                <a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, commit.getShortId(), path)" title="@Messages("code.showCodeAtThisCommit")" class="ybtn">
-                                    @Messages("code.showCode")
-                                </a>
-                            </td>
+                                <td class="date"><strong>@Messages("code.commitDate")</strong></td>
+                                <td class="author"><strong>@Messages("code.author")</strong></td>
+                            </tr>
+                        </thead>
+                        <tbody class="tbody">
+                            @if(history.isEmpty()){
+                                <tr><td colspan="5" class="warning-none">@Messages("code.nocommits")</td></tr>
                             }
-                            <td class="date">@momentFromNow(commit.getAuthorDate(), lang.language)</td>
-                            <td class="author">
-                                @(commit.getAuthor, commit.getAuthorEmail, commit.getAuthorName) match {
-                                case (user: User, _, _) if !user.isAnonymous => {
-
-                                    <a href="@routes.UserApp.userInfo(commit.getAuthor.loginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@user.loginId">
-                                    @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){
-                                        @if(commit.getAuthorEmail != null) {
-                                            <img src="@urlToPicture(commit.getAuthorEmail, 32)">
-                                        } else {
-                                            <img src="@urlToPicture(commit.getAuthor.email, 32)">
+                            @for(commit <- history.iterator()) {
+                            @defining(getShowCommitURL(project, commit, path)){ showCommitURL =>
+                            <tr>
+                                <td class="commit-id">
+                                    <a href="@showCommitURL" title="@Messages("code.showCommit")">
+                                        @commit.getShortId()
+                                    </a>
+                                </td>
+                                <td class="messages">
+                                    @defining(CommitComment.count(project, commit.getId, path)){ numOfComment =>
+                                        @if(numOfComment > 0) {
+                                        <span class="number-of-comments"><i class="yobicon-comments"></i> @numOfComment</span>
                                         }
-                                    } else {
-                                        <img src="@commit.getAuthor.avatarUrl" alt="@commit.getAuthor.name" width="32" height="32"/>
-                                    } </a>
+                                    }
+
+                                    @common.commitMsg(commit.getShortMessage(), commit.getMessage(), showCommitURL.toString())
+                                </td>
+                                @if(path != null){
+                                <td class="browse">
+                                    <a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, commit.getShortId(), path)" title="@Messages("code.showCodeAtThisCommit")" class="ybtn">
+                                        @Messages("code.showCode")
+                                    </a>
+                                </td>
                                 }
-                                case (_, email, _) if email != null => {
-                                    <span class="avatar-wrap"  class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@commit.getAuthorEmail">
-                                        <img src="@urlToPicture(commit.getAuthorEmail, 32)">
-                                    </span>
-                                }
-                                case (_, _, name) if name != null => {
-                                    <span>@commit.getAuthorName</span>
-                                }
-                                case (_, _, _) => {
-                                    <span>@User.anonymous.name</span>
-                                }
-                                }
-                            </td>
-                        </tr>
-                        }
-                        }
-                    </tbody>
-                </table>
+                                <td class="date">@momentFromNow(commit.getAuthorDate(), lang.language)</td>
+                                <td class="author">
+                                    @(commit.getAuthor, commit.getAuthorEmail, commit.getAuthorName) match {
+                                    case (user: User, _, _) if !user.isAnonymous => {
+
+                                        <a href="@routes.UserApp.userInfo(commit.getAuthor.loginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@user.loginId">
+                                        @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){
+                                            @if(commit.getAuthorEmail != null) {
+                                                <img src="@urlToPicture(commit.getAuthorEmail, 32)">
+                                            } else {
+                                                <img src="@urlToPicture(commit.getAuthor.email, 32)">
+                                            }
+                                        } else {
+                                            <img src="@commit.getAuthor.avatarUrl" alt="@commit.getAuthor.name" width="32" height="32"/>
+                                        } </a>
+                                    }
+                                    case (_, email, _) if email != null => {
+                                        <span class="avatar-wrap"  class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@commit.getAuthorEmail">
+                                            <img src="@urlToPicture(commit.getAuthorEmail, 32)">
+                                        </span>
+                                    }
+                                    case (_, _, name) if name != null => {
+                                        <span>@commit.getAuthorName</span>
+                                    }
+                                    case (_, _, _) => {
+                                        <span>@User.anonymous.name</span>
+                                    }
+                                    }
+                                </td>
+                            </tr>
+                            }
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
 
-        <div class="actrow margin-top-20">
-            @if(page > 0) {
-            <a href="@getHistoryURL(path)?page=@(page - 1)" class="ybtn pull-left">@Messages("code.newer")</a>
-            }
+            <div class="actrow margin-top-20">
+                @if(page > 0) {
+                <a href="@getHistoryURL(path)?page=@(page - 1)" class="ybtn pull-left">@Messages("code.newer")</a>
+                }
 
-            @if(isHistoryExistAndHasParent(history)) {
-            <a href="@getHistoryURL(path)?page=@(page + 1)" class="ybtn pull-left">@Messages("code.older")</a>
-            }
+                @if(isHistoryExistAndHasParent(history)) {
+                <a href="@getHistoryURL(path)?page=@(page + 1)" class="ybtn pull-left">@Messages("code.older")</a>
+                }
+            </div>
         </div>
     </div>
 </div>
-
 <script type="text/javascript">
 $(document).ready(function(){
     $("button.moreBtn").on("click", function(){

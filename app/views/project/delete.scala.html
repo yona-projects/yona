@@ -5,42 +5,43 @@
 
 @projectLayout(message, project, utils.MenuType.PROJECT_SETTING) {
 @projectMenu(project, utils.MenuType.PROJECT_SETTING, "")
-<div class="project-page-wrap">
-    @partial_settingmenu(project)
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        @partial_settingmenu(project)
 
-    <div class="bubble-wrap gray wp">
-        <div class="cu-label">@Messages("project.delete")</div>
-        <div class="cu-desc">
-            <p><strong class="notice">@Messages("project.delete.description")</strong></p>
-            <p>
-                <input type="checkbox" class="checkbox" autocomplete="off" id="accept"><!-- 
-             --><label for="accept" class="bg-checkbox label-agreement">@Messages("project.delete.accept")</label>
-            </p>
+        <div class="bubble-wrap gray wp">
+            <div class="cu-label">@Messages("project.delete")</div>
+            <div class="cu-desc">
+                <p><strong class="notice">@Messages("project.delete.description")</strong></p>
+                <p>
+                    <input type="checkbox" class="checkbox" autocomplete="off" id="accept"><!-- 
+                 --><label for="accept" class="bg-checkbox label-agreement">@Messages("project.delete.accept")</label>
+                </p>
+            </div>
         </div>
-    </div>
-    <div class="box-wrap bottom">
-        <a id="btnDelete" href="#alertDeletion" class="ybtn ybtn-danger" data-toggle="modal" ><!-- 
-         --><i class="yobicon-database-remove"></i> @Messages("project.delete.this")</a>
-    </div>
+        <div class="box-wrap bottom">
+            <a id="btnDelete" href="#alertDeletion" class="ybtn ybtn-danger" data-toggle="modal" ><!-- 
+             --><i class="yobicon-database-remove"></i> @Messages("project.delete.this")</a>
+        </div>
 
-    @** Confirm to delete project **@
-    <div id="alertDeletion" class="modal hide">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal">×</button>
-            <h3>@Messages("project.delete.requestion")</h3>
+        @** Confirm to delete project **@
+        <div id="alertDeletion" class="modal hide">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h3>@Messages("project.delete.requestion")</h3>
+            </div>
+            <div class="modal-body">
+                <p> @Messages("project.delete.description")</p>
+                <p> @Messages("project.delete.reaccept") </p>
+            </div>
+            <div class="modal-footer">
+                <button id="btnDeleteExec" type="button" class="ybtn ybtn-danger">@Messages("button.yes")</button>
+                <button type="button" class="ybtn" data-dismiss="modal">@Messages("button.no")</button>
+            </div>
         </div>
-        <div class="modal-body">
-            <p> @Messages("project.delete.description")</p>
-            <p> @Messages("project.delete.reaccept") </p>
-        </div>
-        <div class="modal-footer">
-            <button id="btnDeleteExec" type="button" class="ybtn ybtn-danger">@Messages("button.yes")</button>
-            <button type="button" class="ybtn" data-dismiss="modal">@Messages("button.no")</button>
-        </div>
+        @** // -- // **@
     </div>
-    @** // -- // **@
 </div>
-
 <script type="text/javascript">
     $(document).ready(function(){
         $yobi.loadModule("project.Delete", {

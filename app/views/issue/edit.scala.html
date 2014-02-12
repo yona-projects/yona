@@ -9,156 +9,157 @@
 
 @projectLayout(Messages(title), project, utils.MenuType.ISSUE) {
 @projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
-<div class="project-page-wrap">
-    <div class="content-wrap frm-wrap">
-    @form(action = routes.IssueApp.editIssue(project.owner, project.name, issue.getNumber), 'id -> "issue-form", 'enctype -> "multipart/form-data") {
-    <input type="hidden" name="authorId" value="@issue.authorId">
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="content-wrap frm-wrap">
+        @form(action = routes.IssueApp.editIssue(project.owner, project.name, issue.getNumber), 'id -> "issue-form", 'enctype -> "multipart/form-data") {
+        <input type="hidden" name="authorId" value="@issue.authorId">
 
-    <div class="row-fluid">
-        <div class="span12">
-            <dl>
-                <dt>
-                    <label for="title"><strong class="secondary-txt">#@issue.getNumber</strong></label>
-                </dt>
-                <dd>
-                	@defining(issueForm.errors().get("title")) { errors =>
-                    <input type="text" id="title" name="title" value="@issue.title" class="zen-mode text title @if(errors != null) {error}" maxlength="250" tabindex="1" placeholder="@Messages("title.text")">
-	                    @if(errors != null) {
-							<div class="message">
-							@for(error <- errors) {
-								<div>@Messages(error.message)</div>
-							}
-							</div>
-						}
-					}
-                </dd>
-            </dl>
-        </div>
         <div class="row-fluid">
-            <div class="span9">
+            <div class="span12">
                 <dl>
-                    <dd style="position: relative;">
-                        <div id="mode-select">
-                            <input type="radio" name="edit-mode" id="edit-mode" value="edit" checked="checked" class="radio-btn">
-                            <label for="edit-mode" style="margin-right:3px;">Edit</label>
-                            <input type="radio" name="edit-mode" id="preview-mode" value="preview" class="radio-btn">
-                            <label for="preview-mode">Preview</label>
-                        </div>
-                        <a href="#" class="go-zen"><i class="s s--zen">Edit in Zen Mode</i></a>
-                        @help.markdown()
-                        <div class="textarea-box">
-                            <textarea id="body" name="body" markdown="true" class="zen-mode content nm" tabindex="2">@issue.body</textarea>
-                        </div>
+                    <dt>
+                        <label for="title"><strong class="secondary-txt">#@issue.getNumber</strong></label>
+                    </dt>
+                    <dd>
+                    	@defining(issueForm.errors().get("title")) { errors =>
+                        <input type="text" id="title" name="title" value="@issue.title" class="zen-mode text title @if(errors != null) {error}" maxlength="250" tabindex="1" placeholder="@Messages("title.text")">
+    	                    @if(errors != null) {
+    							<div class="message">
+    							@for(error <- errors) {
+    								<div>@Messages(error.message)</div>
+    							}
+    							</div>
+    						}
+    					}
                     </dd>
                 </dl>
-
-                @** fileUploader **@
-                @if(!UserApp.currentUser.isAnonymous) {
-                    @common.fileUploader(ResourceType.ISSUE_POST, issue.id)
-                }
-                @** end of fileUploader **@
-
-                <div class=" actrow right-txt">
-                    <button type="submit" class="ybtn ybtn-info">@Messages("button.save")</button><!--
-                 --><a href="javascript:history.back();" class="ybtn">@Messages("button.cancel")</a>
-                </div>
             </div>
+            <div class="row-fluid">
+                <div class="span9">
+                    <dl>
+                        <dd style="position: relative;">
+                            <div id="mode-select">
+                                <input type="radio" name="edit-mode" id="edit-mode" value="edit" checked="checked" class="radio-btn">
+                                <label for="edit-mode" style="margin-right:3px;">Edit</label>
+                                <input type="radio" name="edit-mode" id="preview-mode" value="preview" class="radio-btn">
+                                <label for="preview-mode">Preview</label>
+                            </div>
+                            <a href="#" class="go-zen"><i class="s s--zen">Edit in Zen Mode</i></a>
+                            @help.markdown()
+                            <div class="textarea-box">
+                                <textarea id="body" name="body" markdown="true" class="zen-mode content nm" tabindex="2">@issue.body</textarea>
+                            </div>
+                        </dd>
+                    </dl>
 
-            <div class="span3">
-                @if(isAllowed(UserApp.currentUser(), issue.stateAsResource(), Operation.UPDATE)){
-                <dl class="issue-option">
-                    <dt>@Messages("issue.state")</dt>
-                    <dd>
-                        <div id="state" class="btn-group auto" data-name="state">
-                            <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                                <span class="d-label">@Messages("issue.state")</span>
-                                <span class="d-caret"><span class="caret"></span></span>
-                            </button>
-                            <ul class="dropdown-menu">
-                                <li data-value="@State.OPEN.name" @if(issue.state == State.OPEN){data-selected="true" class="active"}><a>@Messages("issue.state.open")</a></li>
-                                <li data-value="@State.CLOSED.name" @if(issue.state == State.CLOSED){data-selected="true" class="active"}><a>@Messages("issue.state.closed")</a></li>
-                            </ul>
-                        </div>
-                    </dd>
-                </dl>
-                }
+                    @** fileUploader **@
+                    @if(!UserApp.currentUser.isAnonymous) {
+                        @common.fileUploader(ResourceType.ISSUE_POST, issue.id)
+                    }
+                    @** end of fileUploader **@
 
-                @if(isAllowed(UserApp.currentUser(), issue.assigneeAsResource(), Operation.UPDATE)){
-                <dl class="issue-option">
-                     <dt>@Messages("issue.assignee")</dt>
-                     <dd>
-                        <div id="assignee" class="btn-group auto" data-name="assignee.user.id">
-                            <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                                <span class="d-label">@Messages("issue.assignee.selectDefault")</span>
-                                <span class="d-caret"><span class="caret"></span></span>
-                            </button>
-                            <ul class="dropdown-menu">
-                                <li data-value="" @if(issue.assignee == null){data-selected="true" class="active"}><a href="javascript:void(0)">@Messages("issue.noAssignee")</a></li>
-                                @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
-                                <li data-value="@UserApp.currentUser().id"><a>@Messages("issue.assignToMe")</a></li>
-                                }
-                                <li class="divider"></li>
-                                @for(member <- project.members()) {
-                                <li data-value="@member.user.id" @if(issue.assignee != null && issue.assignee.user.loginId == member.user.loginId){data-selected="true" class="active"}>
-                                    <a href="javascript:void(0)" class="usf-group">
-                                        <span class="avatar-wrap smaller">
-                                            <img src="@User.findByLoginId(member.user.loginId).avatarUrl" width="20" height="20">
-                                        </span>
-                                        <strong class="name">@member.user.name</strong>
-                                        <span class="loginid"> <strong>@@</strong>@member.user.loginId</span>
-                                    </a>
-                                </li>
-                                }
-                            </ul>
-                        </div>
-                     </dd>
-                </dl>
-                }
+                    <div class=" actrow right-txt">
+                        <button type="submit" class="ybtn ybtn-info">@Messages("button.save")</button><!--
+                     --><a href="javascript:history.back();" class="ybtn">@Messages("button.cancel")</a>
+                    </div>
+                </div>
 
-                @if(isAllowed(UserApp.currentUser(), issue.milestoneAsResource(), Operation.UPDATE)){
-                <dl id="milestoneOption" class="issue-option">
-                    <dt>@Messages("milestone")</dt>
-                    <dd>
-                    @defining(Milestone.options(project.id)){ milestones =>
-                        @if(milestones.isEmpty()) {
-                            <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" target="_blank" class="ybtn ybtn-success ybtn-small">@Messages("milestone.menu.new")</a>
-                        } else {
-                            <div id="milestoneId" class="btn-group auto" data-name="milestoneId">
+                <div class="span3">
+                    @if(isAllowed(UserApp.currentUser(), issue.stateAsResource(), Operation.UPDATE)){
+                    <dl class="issue-option">
+                        <dt>@Messages("issue.state")</dt>
+                        <dd>
+                            <div id="state" class="btn-group auto" data-name="state">
                                 <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                                    <span class="d-label">@Messages("issue.milestone.selectDefault")</span>
+                                    <span class="d-label">@Messages("issue.state")</span>
                                     <span class="d-caret"><span class="caret"></span></span>
                                 </button>
                                 <ul class="dropdown-menu">
-                                    <li data-value="" @if(issue.milestone == null){data-selected="true" class="active"}><a>@Messages("common.none")</a></li>
-                                    @milestones.map{ v =>
-                                    <li data-value="@v._1" @if(issue.milestone != null && issue.milestone.id.toString() == v._1){data-selected="true" class="active"}><a>@v._2</a></li>
+                                    <li data-value="@State.OPEN.name" @if(issue.state == State.OPEN){data-selected="true" class="active"}><a>@Messages("issue.state.open")</a></li>
+                                    <li data-value="@State.CLOSED.name" @if(issue.state == State.CLOSED){data-selected="true" class="active"}><a>@Messages("issue.state.closed")</a></li>
+                                </ul>
+                            </div>
+                        </dd>
+                    </dl>
+                    }
+
+                    @if(isAllowed(UserApp.currentUser(), issue.assigneeAsResource(), Operation.UPDATE)){
+                    <dl class="issue-option">
+                         <dt>@Messages("issue.assignee")</dt>
+                         <dd>
+                            <div id="assignee" class="btn-group auto" data-name="assignee.user.id">
+                                <button class="btn dropdown-toggle auto" data-toggle="dropdown">
+                                    <span class="d-label">@Messages("issue.assignee.selectDefault")</span>
+                                    <span class="d-caret"><span class="caret"></span></span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li data-value="" @if(issue.assignee == null){data-selected="true" class="active"}><a href="javascript:void(0)">@Messages("issue.noAssignee")</a></li>
+                                    @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
+                                    <li data-value="@UserApp.currentUser().id"><a>@Messages("issue.assignToMe")</a></li>
+                                    }
+                                    <li class="divider"></li>
+                                    @for(member <- project.members()) {
+                                    <li data-value="@member.user.id" @if(issue.assignee != null && issue.assignee.user.loginId == member.user.loginId){data-selected="true" class="active"}>
+                                        <a href="javascript:void(0)" class="usf-group">
+                                            <span class="avatar-wrap smaller">
+                                                <img src="@User.findByLoginId(member.user.loginId).avatarUrl" width="20" height="20">
+                                            </span>
+                                            <strong class="name">@member.user.name</strong>
+                                            <span class="loginid"> <strong>@@</strong>@member.user.loginId</span>
+                                        </a>
+                                    </li>
                                     }
                                 </ul>
                             </div>
-                        }
+                         </dd>
+                    </dl>
                     }
-                    </dd>
-                </dl>
-                }
 
-                <dl id="labels" class="issue-option">
-                    <dt>
-                        @Messages("label.select")
-                        @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
-                        <button id="manage-label-link" type="button" class="btn-transparent"><i class="yobicon-cog"></i></button>
+                    @if(isAllowed(UserApp.currentUser(), issue.milestoneAsResource(), Operation.UPDATE)){
+                    <dl id="milestoneOption" class="issue-option">
+                        <dt>@Messages("milestone")</dt>
+                        <dd>
+                        @defining(Milestone.options(project.id)){ milestones =>
+                            @if(milestones.isEmpty()) {
+                                <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" target="_blank" class="ybtn ybtn-success ybtn-small">@Messages("milestone.menu.new")</a>
+                            } else {
+                                <div id="milestoneId" class="btn-group auto" data-name="milestoneId">
+                                    <button class="btn dropdown-toggle auto" data-toggle="dropdown">
+                                        <span class="d-label">@Messages("issue.milestone.selectDefault")</span>
+                                        <span class="d-caret"><span class="caret"></span></span>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li data-value="" @if(issue.milestone == null){data-selected="true" class="active"}><a>@Messages("common.none")</a></li>
+                                        @milestones.map{ v =>
+                                        <li data-value="@v._1" @if(issue.milestone != null && issue.milestone.id.toString() == v._1){data-selected="true" class="active"}><a>@v._2</a></li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
                         }
-                    </dt>
-                    <dd>
-                        <fieldset class="labels issue-form-labels"></fieldset>
-                    </dd>
-                </dl>
+                        </dd>
+                    </dl>
+                    }
+
+                    <dl id="labels" class="issue-option">
+                        <dt>
+                            @Messages("label.select")
+                            @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
+                            <button id="manage-label-link" type="button" class="btn-transparent"><i class="yobicon-cog"></i></button>
+                            }
+                        </dt>
+                        <dd>
+                            <fieldset class="labels issue-form-labels"></fieldset>
+                        </dd>
+                    </dl>
+                </div>
             </div>
         </div>
-    </div>
-    } @** end of form **@
+        } @** end of form **@
+        </div>
     </div>
 </div>
-
 @common.markdown(project)
 @common.issueLabel()
 

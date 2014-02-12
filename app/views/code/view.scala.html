@@ -31,54 +31,55 @@
 
 @projectLayout(Messages("menu.code"), project, utils.MenuType.CODE){
 @projectMenu(project, utils.MenuType.CODE, "main-menu-only")
-<div class="project-page-wrap">
-    <div class="code-browse-wrap">
-        @if(fieldText(recursiveData{0}, "type").eq("folder")){
-        <ul class="nav nav-tabs">
-            @if(path.lastIndexOf("/") > 0){
-            <li class="active"><a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), path.substring(0, path.lastIndexOf("/")))">@Messages("code.files")</a></li>
-            } else {
-            <li class="active"><a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), path)">@Messages("code.files")</a></li>
-            }
-            @if(branch.eq("HEAD")){
-            <li><a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a></li>
-            } else {
-            <li><a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), null)">@Messages("code.commits")</a></li>
-            }
-            @if(project.isGit()) {
-            <li>
-                <a href="@routes.BranchApp.branches(project.owner, project.name)">@Messages("title.branches")</a>
-            </li>
-            }
-        </ul>
-        }
-
-        <div class="code-browse-header">
-            <div id="branches" class="btn-group branches pull-left @if(fieldText(recursiveData{0}, "type").eq("file")){mb10}" data-name="branch" data-activate="manual">
-                <button class="btn dropdown-toggle large" data-toggle="dropdown">
-                    <span class="d-label">@branch</span>
-                    <span class="d-caret"><span class="caret"></span></span>
-                </button>
-                <ul class="dropdown-menu">
-                @for(branch <- branches){
-                    @partial_branchitem(project, branch, "code", path)
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="code-browse-wrap">
+            @if(fieldText(recursiveData{0}, "type").eq("folder")){
+            <ul class="nav nav-tabs">
+                @if(path.lastIndexOf("/") > 0){
+                <li class="active"><a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), path.substring(0, path.lastIndexOf("/")))">@Messages("code.files")</a></li>
+                } else {
+                <li class="active"><a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), path)">@Messages("code.files")</a></li>
                 }
-                </ul>
-            </div>
-            <div id="breadcrumbs" class="code-breadcrumb-wrap ml10 pull-left">
-                <a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), "")">@project.name</a>
-                @makeBreadCrumbs(path)
-            </div>
-        </div>
-
-        <div class="code-viewer-wrap">
-            <div id="spin" style="position:fixed; top:50%; left:50%"></div>
-            @for(fileInfo <- recursiveData){
-                @parseFileInfo(fileInfo)
+                @if(branch.eq("HEAD")){
+                <li><a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a></li>
+                } else {
+                <li><a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), null)">@Messages("code.commits")</a></li>
+                }
+                @if(project.isGit()) {
+                <li>
+                    <a href="@routes.BranchApp.branches(project.owner, project.name)">@Messages("title.branches")</a>
+                </li>
+                }
+            </ul>
             }
-        </div>
-    </div>
 
+            <div class="code-browse-header">
+                <div id="branches" class="btn-group branches pull-left @if(fieldText(recursiveData{0}, "type").eq("file")){mb10}" data-name="branch" data-activate="manual">
+                    <button class="btn dropdown-toggle large" data-toggle="dropdown">
+                        <span class="d-label">@branch</span>
+                        <span class="d-caret"><span class="caret"></span></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                    @for(branch <- branches){
+                        @partial_branchitem(project, branch, "code", path)
+                    }
+                    </ul>
+                </div>
+                <div id="breadcrumbs" class="code-breadcrumb-wrap ml10 pull-left">
+                    <a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), "")">@project.name</a>
+                    @makeBreadCrumbs(path)
+                </div>
+            </div>
+
+            <div class="code-viewer-wrap">
+                <div id="spin" style="position:fixed; top:50%; left:50%"></div>
+                @for(fileInfo <- recursiveData){
+                    @parseFileInfo(fileInfo)
+                }
+            </div>
+        </div>
+    </div>    
 </div>
 
 <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/dynatree/skin/ui.dynatree.css")" />

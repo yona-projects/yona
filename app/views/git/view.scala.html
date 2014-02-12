@@ -9,7 +9,7 @@
 
 @projectLayout(Messages("menu.pullRequest"), project, utils.MenuType.PULL_REQUEST) {
     @projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
-
+<div class="page-wrap-outer">
     <div class="project-page-wrap">
         @partial_info(project, pull)
         <ul class="nav nav-tabs nm">
@@ -97,7 +97,7 @@
             </div>
         </div>
     </div>
-
+</div>
 @common.markdown(project)
 @common.mergely()
 

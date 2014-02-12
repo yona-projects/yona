@@ -28,11 +28,13 @@
 
 @projectLayout(title, project, utils.MenuType.NONE) {
 @projectMenu(project, getMenuType(targetType), "")
-<div class="project-page-wrap">
-    <div class="error-wrap">
-        <i class="ico ico-err2"></i>
-        <p>@getMessage(targetType)</p>
-        <a href="@getReturnURL(targetType)" class="ybtn ybtn-primary">@Messages("button.list")</a>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="error-wrap">
+            <i class="ico ico-err2"></i>
+            <p>@getMessage(targetType)</p>
+            <a href="@getReturnURL(targetType)" class="ybtn ybtn-primary">@Messages("button.list")</a>
+        </div>
     </div>
 </div>
 }

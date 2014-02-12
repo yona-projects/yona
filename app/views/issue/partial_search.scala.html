@@ -31,7 +31,7 @@
 @getTabLinkByState(state:State) = {@routes.IssueApp.issues(project.owner, project.name, state.state)@if(param.assigneeId != null){?assigneeId=@param.assigneeId}@if(param.authorId != null){&authorId=@param.authorId}@if(param.milestoneId != null){&milestoneId=@param.milestoneId}}
 
     <div pjax-container class="row-fluid issue-list-wrap">
-        <div class="span2 search-wrap">
+        <div class="span2">
             <ul class="lst-stacked unstyled">
                 <li @if(param.assigneeId == null && param.authorId == null){class="active"}>
                     <a pjax-filter href="#" authorId="" assigneeId="" milestoneId="@param.milestoneId">@Messages("issue.list.all")

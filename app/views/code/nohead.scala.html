@@ -18,39 +18,39 @@
 
 @projectLayout(Messages("title.commitHistory"), project, utils.MenuType.CODE) {
 @projectMenu(project, utils.MenuType.CODE, "main-menu-only")
-
-<div class="project-page-wrap">
-	<div class="row-fluid">
-		<div class="span12">
-			@Html(Messages("code.nohead"))
-@if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
-            <h5>@Messages("code.nohead.clone", Messages("app.name"))</h5>
-			<pre><code>git clone @getCodeURL(project)
-cd @project.name/
-echo "# @project.name" > README.md
-git add README.md
-git commit -m "Hello @Messages("app.name")"
-git push origin master</code></pre>
-            <h5>@Messages("code.nohead.init", Messages("app.name"))</h5>
-            <pre><code>mkdir @project.name
-cd @project.name/
-echo "# @project.name" > README.md
-git init
-git add README.md
-git commit -m "Hello @Messages("app.name")"
-git remote add origin @getCodeURL(project)
-git push origin master</code></pre>
-            <h5>@Messages("code.nohead.remote", Messages("app.name"))</h5>
-            <pre><code>git remote add origin @getCodeURL(project)
-git push origin master</code></pre>
-            <h5>@Messages("code.nohead.pull.push")</h5>
-            <pre><code>git pull origin master
-git push origin master</code></pre>
-}
-		</div>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+    	<div class="row-fluid">
+    		<div class="span12">
+    			@Html(Messages("code.nohead"))
+    @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
+                <h5>@Messages("code.nohead.clone", Messages("app.name"))</h5>
+    			<pre><code>git clone @getCodeURL(project)
+    cd @project.name/
+    echo "# @project.name" > README.md
+    git add README.md
+    git commit -m "Hello @Messages("app.name")"
+    git push origin master</code></pre>
+                <h5>@Messages("code.nohead.init", Messages("app.name"))</h5>
+                <pre><code>mkdir @project.name
+    cd @project.name/
+    echo "# @project.name" > README.md
+    git init
+    git add README.md
+    git commit -m "Hello @Messages("app.name")"
+    git remote add origin @getCodeURL(project)
+    git push origin master</code></pre>
+                <h5>@Messages("code.nohead.remote", Messages("app.name"))</h5>
+                <pre><code>git remote add origin @getCodeURL(project)
+    git push origin master</code></pre>
+                <h5>@Messages("code.nohead.pull.push")</h5>
+                <pre><code>git pull origin master
+    git push origin master</code></pre>
+    }
+    		</div>
+        </div>
     </div>
 </div>
-
 <script type="text/javascript">
     $(document).ready(function(){
         $yobi.loadModule("code.Nohead", {

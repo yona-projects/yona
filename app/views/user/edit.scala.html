@@ -10,165 +10,166 @@
         <h3>@Messages("userinfo.accountSetting")</h3>
     </div>    
 </div>
-<div class="page-wrap">
-    <h1 class="page-title">
-        <span class="gray">@Messages("app.name")/</span>@user.loginId
-    </h1>
+<div class="page-wrap-outer">
+    <div class="page-wrap">
+        <h1 class="page-title">
+            <span class="gray">@Messages("app.name")/</span>@user.loginId
+        </h1>
 
-    <ul id="editUserinfo" class="nav nav-tabs">
-        <li class="active"><a href="#profile" data-toggle="tab">@Messages("userinfo.editProfile")</a></li>
-        <li><a href="#changePassword" data-toggle="tab">@Messages("userinfo.changePassword")</a></li>
-        <li><a href="#avatar" data-toggle="tab">@Messages("userinfo.changeAvatar")</a></li>
-        <li><a href="#watch" data-toggle="tab">@Messages("userinfo.changeNotifications")</a></li>
-        <li><a href="#email" data-toggle="tab">@Messages("userinfo.changeEmails")</a></li>
-    </ul>
+        <ul id="editUserinfo" class="nav nav-tabs">
+            <li class="active"><a href="#profile" data-toggle="tab">@Messages("userinfo.editProfile")</a></li>
+            <li><a href="#changePassword" data-toggle="tab">@Messages("userinfo.changePassword")</a></li>
+            <li><a href="#avatar" data-toggle="tab">@Messages("userinfo.changeAvatar")</a></li>
+            <li><a href="#watch" data-toggle="tab">@Messages("userinfo.changeNotifications")</a></li>
+            <li><a href="#email" data-toggle="tab">@Messages("userinfo.changeEmails")</a></li>
+        </ul>
 
-    <div class="tab-content">
-        <div id="profile" class="tab-pane active">
-            @helper.form(action=routes.UserApp.editUserInfo(), 'id->"frmBasic"){
-            <dl>
-                <dt>@Messages("user.name")</dt>
-                <dd><input type="text" name="name" class="text" value="@user.name" /></dd>
-                <dt>@Messages("user.email")</dt>
-                <dd><input type="email" name="email" class="text" value="@user.email" /></dd>
-                <dd>
-                    <button type="submit" class="ybtn ybtn-success">@Messages("userinfo.editProfile")</button>
-                </dd>
-            </dl>
-            }
-        </div>
+        <div class="tab-content">
+            <div id="profile" class="tab-pane active">
+                @helper.form(action=routes.UserApp.editUserInfo(), 'id->"frmBasic"){
+                <dl>
+                    <dt>@Messages("user.name")</dt>
+                    <dd><input type="text" name="name" class="text" value="@user.name" /></dd>
+                    <dt>@Messages("user.email")</dt>
+                    <dd><input type="email" name="email" class="text" value="@user.email" /></dd>
+                    <dd>
+                        <button type="submit" class="ybtn ybtn-success">@Messages("userinfo.editProfile")</button>
+                    </dd>
+                </dl>
+                }
+            </div>
 
-        <div id="changePassword" class="tab-pane">
-            @helper.form(action=routes.UserApp.resetUserPassword(), 'id->"frmPassword"){
-            <input type="hidden" name="loginId" value="@user.loginId" />
-            <dl>
-                <dt>@Messages("user.currentPassword")</dt>
-                <dd><input type="password" name="oldPassword" value="" autocomplete="off" /></dd>
-                <dt>@Messages("user.newPassword")</dt>
-                <dd><input type="password" id="password" name="password" value="" autocomplete="off" /></dd>
-                <dt>@Messages("validation.retypePassword")</dt>
-                <dd><input type="password" id="retypedPassword" name="retypedPassword" value="" autocomplete="off" /></dd>
-                <dd>
-                    <button type="submit" class="ybtn ybtn-success">@Messages("userinfo.changePassword")</button>
-                </dd>
-            </dl>
-            }
-        </div>
+            <div id="changePassword" class="tab-pane">
+                @helper.form(action=routes.UserApp.resetUserPassword(), 'id->"frmPassword"){
+                <input type="hidden" name="loginId" value="@user.loginId" />
+                <dl>
+                    <dt>@Messages("user.currentPassword")</dt>
+                    <dd><input type="password" name="oldPassword" value="" autocomplete="off" /></dd>
+                    <dt>@Messages("user.newPassword")</dt>
+                    <dd><input type="password" id="password" name="password" value="" autocomplete="off" /></dd>
+                    <dt>@Messages("validation.retypePassword")</dt>
+                    <dd><input type="password" id="retypedPassword" name="retypedPassword" value="" autocomplete="off" /></dd>
+                    <dd>
+                        <button type="submit" class="ybtn ybtn-success">@Messages("userinfo.changePassword")</button>
+                    </dd>
+                </dl>
+                }
+            </div>
 
-        <div id="avatar" class="tab-pane">
-            @helper.form(action=routes.UserApp.editUserInfo(), 'id->"frmAvatar"){
-            <input type="hidden" name="name" value="@user.name">
-            <input type="hidden" name="email" value="@user.email">
-            <div class="avatar-frm">
-                <div id="avatarWrap" class="avatar-wrap xlarge">
-                    <img src="@user.avatarUrl" style="width:128px; max-width:none;" />
-                    <div class="progress"></div>
-                </div>
-                <div style="position:relative; margin:10px 0;">
-                    <img id="avatarImgCrop" style="width:500px; display:none;">
-                </div>
-                <div class="btn-wrap">
-                    <div id="btnUploadFile" class="ybtn ybtn-success fake-file-wrap">
-                        @Messages("userinfo.changeAvatar")<!--
-                    --> <input id="avatarFile" type="file" class="file" name="filePath" accept="image/*">
+            <div id="avatar" class="tab-pane">
+                @helper.form(action=routes.UserApp.editUserInfo(), 'id->"frmAvatar"){
+                <input type="hidden" name="name" value="@user.name">
+                <input type="hidden" name="email" value="@user.email">
+                <div class="avatar-frm">
+                    <div id="avatarWrap" class="avatar-wrap xlarge">
+                        <img src="@user.avatarUrl" style="width:128px; max-width:none;" />
+                        <div class="progress"></div>
+                    </div>
+                    <div style="position:relative; margin:10px 0;">
+                        <img id="avatarImgCrop" style="width:500px; display:none;">
+                    </div>
+                    <div class="btn-wrap">
+                        <div id="btnUploadFile" class="ybtn ybtn-success fake-file-wrap">
+                            @Messages("userinfo.changeAvatar")<!--
+                        --> <input id="avatarFile" type="file" class="file" name="filePath" accept="image/*">
+                        </div>
+                    </div>
+                    <div class="btn-wrap">
+                        <button id="btnSubmitCrop" type="button" class="ybtn ybtn-success" style="display:none; padding:4px 29px;">@Messages("userinfo.changeAvatar")</button>
                     </div>
                 </div>
-                <div class="btn-wrap">
-                    <button id="btnSubmitCrop" type="button" class="ybtn ybtn-success" style="display:none; padding:4px 29px;">@Messages("userinfo.changeAvatar")</button>
-                </div>
+
+                }
+                <canvas id="avatarCrop" width="128" height="128" style="display:none;"></canvas>
             </div>
 
-            }
-            <canvas id="avatarCrop" width="128" height="128" style="display:none;"></canvas>
-        </div>
-
-        <div id="watch" class="tab-pane">
-            @defining(UserProjectNotification.getProjectNotifications(user)) { notiMap =>
-            <ul class="unstyled lst-stacked span3" style="margin-right: 20px;">
-                @defining(Watch.findBy(user, ResourceType.PROJECT)) { watches =>
-                    @if(watches.size > 0) {
-                        @for(i <- 0 until watches.size) {
-                            @defining(Project.find.byId(watches.get(i).resourceId.toLong)) { project =>
-                                <li @if(i == 0){class="active"}><a href="#@project.id" data-toggle="tab">@project.owner / @project.name</a></li>
-                            }
-                        }
-                    }
-                }
-            </ul>
-            <div class="tab-content">
-                @defining(Watch.findBy(user, ResourceType.PROJECT)) { watches =>
-                    @if(watches.size > 0) {
-                        @for(i <- 0 until watches.size) {
-                            @defining(Project.find.byId(watches.get(i).resourceId.toLong)) { project =>
-                            <div class="tab-pane @if(i == 0){active}" id="@project.id">
-                                <table class="table table-striped table-bordered">
-                                @for(notiType <- models.enumeration.EventType.notiTypes) {
-                                    <tr>
-                                        <th>@notiType.getDescr()</th>
-                                        <td>
-                                            <div class="switch" data-on-label="On" data-off-label="Off">
-                                                <input class="notiUpdate" data-href="@routes.WatchProjectApp.toggle(project.id, notiType.name())" type="checkbox" data-toggle="switch" @if(UserProjectNotification.isEnabledNotiType(notiMap, project, notiType)){ checked="checked" }>
-                                            </div>
-                                        </td>
-                                    </tr>
+            <div id="watch" class="tab-pane">
+                @defining(UserProjectNotification.getProjectNotifications(user)) { notiMap =>
+                <ul class="unstyled lst-stacked span3" style="margin-right: 20px;">
+                    @defining(Watch.findBy(user, ResourceType.PROJECT)) { watches =>
+                        @if(watches.size > 0) {
+                            @for(i <- 0 until watches.size) {
+                                @defining(Project.find.byId(watches.get(i).resourceId.toLong)) { project =>
+                                    <li @if(i == 0){class="active"}><a href="#@project.id" data-toggle="tab">@project.owner / @project.name</a></li>
                                 }
-                                </table>
-                            </div>
                             }
                         }
                     }
+                </ul>
+                <div class="tab-content">
+                    @defining(Watch.findBy(user, ResourceType.PROJECT)) { watches =>
+                        @if(watches.size > 0) {
+                            @for(i <- 0 until watches.size) {
+                                @defining(Project.find.byId(watches.get(i).resourceId.toLong)) { project =>
+                                <div class="tab-pane @if(i == 0){active}" id="@project.id">
+                                    <table class="table table-striped table-bordered">
+                                    @for(notiType <- models.enumeration.EventType.notiTypes) {
+                                        <tr>
+                                            <th>@notiType.getDescr()</th>
+                                            <td>
+                                                <div class="switch" data-on-label="On" data-off-label="Off">
+                                                    <input class="notiUpdate" data-href="@routes.WatchProjectApp.toggle(project.id, notiType.name())" type="checkbox" data-toggle="switch" @if(UserProjectNotification.isEnabledNotiType(notiMap, project, notiType)){ checked="checked" }>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                    </table>
+                                </div>
+                                }
+                            }
+                        }
+                    }
+                </div>
                 }
             </div>
-            }
-        </div>
 
-        <div id="email" class="tab-pane">
-            <div class="well well-small">
-                <legend>@Messages("emails.main.email")</legend>
-                <p>@Messages("emails.main.email.descr")</p>
-                <img src="@getAvatar(user.email, 40)" />
-                @user.email
-            </div>
-            <div class="well well-small">
-                <legend>@Messages("emails.sub.emails")</legend>
-                <p>@Messages("emails.sub.email.descr")</p>
-                <div>
-                    <form class="form-inline" action="@routes.UserApp.addEmail()" method="post">
-                        <input type="text" placeholder="새 이메일" name="email">
-                        <button type="submit" class="ybtn ybtn-success">@Messages("button.add")</button>
-                    </form>
+            <div id="email" class="tab-pane">
+                <div class="well well-small">
+                    <legend>@Messages("emails.main.email")</legend>
+                    <p>@Messages("emails.main.email.descr")</p>
+                    <img src="@getAvatar(user.email, 40)" />
+                    @user.email
                 </div>
-                <table class="table table-bordered">
-                    @for(mail <- user.emails) {
-                    <tr>
-                        <td>
-                            <img src="@getAvatar(mail.email, 40)" width="40px" height="40px" />
-                        </td>
-                        <td>
-                            @mail.email
-                        </td>
-                        <td>
-                            @if(mail.valid) {
-                            <button type="button" data-request-method="put" href="@routes.UserApp.setAsMainEmail(mail.id)" class="ybtn ybtn-success">
-                                @Messages("emails.set.as.main")
-                            </button>
-                            } else {
-                            <button type="button" data-request-method="post" href="@routes.UserApp.sendValidationEmail(mail.id)" class="ybtn ybtn-info">
-                                @Messages("emails.send.validatino.mail")
-                            </button>
-                            }
-                            <button type="button" data-request-method="delete" data-request-uri="@routes.UserApp.deleteEmail(mail.id)" class="ybtn ybtn-danger">
-                                @Messages("button.delete")
-                            </button>
-                        </td>
-                    </tr>
-                    }
-                </table>
+                <div class="well well-small">
+                    <legend>@Messages("emails.sub.emails")</legend>
+                    <p>@Messages("emails.sub.email.descr")</p>
+                    <div>
+                        <form class="form-inline" action="@routes.UserApp.addEmail()" method="post">
+                            <input type="text" placeholder="새 이메일" name="email">
+                            <button type="submit" class="ybtn ybtn-success">@Messages("button.add")</button>
+                        </form>
+                    </div>
+                    <table class="table table-bordered">
+                        @for(mail <- user.emails) {
+                        <tr>
+                            <td>
+                                <img src="@getAvatar(mail.email, 40)" width="40px" height="40px" />
+                            </td>
+                            <td>
+                                @mail.email
+                            </td>
+                            <td>
+                                @if(mail.valid) {
+                                <button type="button" data-request-method="put" href="@routes.UserApp.setAsMainEmail(mail.id)" class="ybtn ybtn-success">
+                                    @Messages("emails.set.as.main")
+                                </button>
+                                } else {
+                                <button type="button" data-request-method="post" href="@routes.UserApp.sendValidationEmail(mail.id)" class="ybtn ybtn-info">
+                                    @Messages("emails.send.validatino.mail")
+                                </button>
+                                }
+                                <button type="button" data-request-method="delete" data-request-uri="@routes.UserApp.deleteEmail(mail.id)" class="ybtn ybtn-danger">
+                                    @Messages("button.delete")
+                                </button>
+                            </td>
+                        </tr>
+                        }
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 </div>
-
 <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/jcrop/jquery.Jcrop.css")" />
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery/jquery.Jcrop.min.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/canvas-to-blob.js")"></script>

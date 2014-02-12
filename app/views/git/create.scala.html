@@ -31,108 +31,109 @@
 
 @projectLayout(title, project, utils.MenuType.PULL_REQUEST) {
 @projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
-<div class="project-page-wrap">
-    <div class="content-wrap frm-wrap">
-        @helper.form(action=routes.PullRequestApp.newPullRequest(project.owner, project.name), 'enctype -> "multipart/form-data", 'class->"nm"){
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="content-wrap frm-wrap">
+            @helper.form(action=routes.PullRequestApp.newPullRequest(project.owner, project.name), 'enctype -> "multipart/form-data", 'class->"nm"){
 
-            <legend>
-                @Messages(title)
-                <span class="pull-right">
-                    <button id="helpBtn" class="ybtn ybtn-inverse">
-                        <i class="yobicon-question-sign yobicon-large"></i> @Messages("title.help")
-                    </button>
-                </span>
-            </legend>
-            <div class="well" id="helpMessage" style="margin-bottom: 10px; display:none;">
-                <div class="row-fluid">
-                    <div class="pull-left">
-                        <img class="img-polaroid" src="@routes.Assets.at("images/fork-pull/pull-request.jpg")"><br>
-                    </div>
-                    <div class="pull-left help-messages">
-                        <p class="lead">@Messages("pullRequest.help.message.1")</p>
-                        <p>@Messages("pullRequest.help.message.2")</p>
-                        <p>@Messages("pullRequest.help.message.3")</p>
+                <legend>
+                    @Messages(title)
+                    <span class="pull-right">
+                        <button id="helpBtn" class="ybtn ybtn-inverse">
+                            <i class="yobicon-question-sign yobicon-large"></i> @Messages("title.help")
+                        </button>
+                    </span>
+                </legend>
+                <div class="well" id="helpMessage" style="margin-bottom: 10px; display:none;">
+                    <div class="row-fluid">
+                        <div class="pull-left">
+                            <img class="img-polaroid" src="@routes.Assets.at("images/fork-pull/pull-request.jpg")"><br>
+                        </div>
+                        <div class="pull-left help-messages">
+                            <p class="lead">@Messages("pullRequest.help.message.1")</p>
+                            <p>@Messages("pullRequest.help.message.2")</p>
+                            <p>@Messages("pullRequest.help.message.3")</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="pull-request-wrap">
-                <div class="option request-from">
-                    <div class="option-label">@Messages("pullRequest.from"):
-                        <div class="btn-group branches" data-name="fromProjectId">
-                            <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                                <span class="d-label">@Messages("pullRequest.select.branch")</span>
-                                <span class="d-caret"><span class="caret"></span></span>
-                            </button>
-                            <ul class="dropdown-menu">
-                                @for(repo <- projects) {
-                                    @if(ProjectUser.isMember(UserApp.currentUser().id, repo.id)) {
-                                    <li data-value="@repo.id" @if(repo.id == fromProject.id) {data-selected="true"}>
-                                        <a href="#"><span class="label">repo</span>@repo.owner/@repo.name</a>
-                                    </li>
+                <div class="pull-request-wrap">
+                    <div class="option request-from">
+                        <div class="option-label">@Messages("pullRequest.from"):
+                            <div class="btn-group branches" data-name="fromProjectId">
+                                <button class="btn dropdown-toggle auto" data-toggle="dropdown">
+                                    <span class="d-label">@Messages("pullRequest.select.branch")</span>
+                                    <span class="d-caret"><span class="caret"></span></span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    @for(repo <- projects) {
+                                        @if(ProjectUser.isMember(UserApp.currentUser().id, repo.id)) {
+                                        <li data-value="@repo.id" @if(repo.id == fromProject.id) {data-selected="true"}>
+                                            <a href="#"><span class="label">repo</span>@repo.owner/@repo.name</a>
+                                        </li>
+                                        }
                                     }
-                                }
-                            </ul>
-                        </div>
+                                </ul>
+                            </div>
 
+                        </div>
+                        <div class="option-desc mt5">
+                            <div class="btn-group branches" data-name="fromBranch">
+                                <button class="btn dropdown-toggle auto" data-toggle="dropdown">
+                                    <span class="d-label">@Messages("pullRequest.select.branch")</span>
+                                    <span class="d-caret"><span class="caret"></span></span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    @for(branch <- fromBranches) {
+                                        @makeBranchItem(branch.getName, pullRequest.fromBranch)
+                                    }
+                                </ul>
+                            </div>
+                        </div>
                     </div>
-                    <div class="option-desc mt5">
-                        <div class="btn-group branches" data-name="fromBranch">
-                            <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                                <span class="d-label">@Messages("pullRequest.select.branch")</span>
-                                <span class="d-caret"><span class="caret"></span></span>
-                            </button>
-                            <ul class="dropdown-menu">
-                                @for(branch <- fromBranches) {
-                                    @makeBranchItem(branch.getName, pullRequest.fromBranch)
-                                }
-                            </ul>
+
+                    <div class="arrow">
+                       <i class="yobicon-right"></i>
+                    </div>
+
+                    <div class="option request-to">
+                        <div class="option-label">@Messages("pullRequest.to"):
+                            <div class="btn-group branches" data-name="toProjectId">
+                                <button class="btn dropdown-toggle auto" data-toggle="dropdown">
+                                    <span class="d-label">@Messages("pullRequest.select.branch")</span>
+                                    <span class="d-caret"><span class="caret"></span></span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    @for(repo <- projects) {
+                                        <li data-value="@repo.id" @if(repo.id == toProject.id) {data-selected="true"}>
+                                            <a href="#"><span class="label">repo</span>@repo.owner/@repo.name</a>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="option-desc mt5">
+                            <div class="btn-group branches" data-name="toBranch">
+                                <button class="btn dropdown-toggle auto" data-toggle="dropdown">
+                                    <span class="d-label">@Messages("pullRequest.select.branch")</span>
+                                    <span class="d-caret"><span class="caret"></span></span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    @for(branch <- toBranches) {
+                                        @makeBranchItem(branch.getName, pullRequest.toBranch)
+                                    }
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="arrow">
-                   <i class="yobicon-right"></i>
+                <div id="frmWrap">
+                @views.html.git.partial_diff(form, project, pullRequest, mergeResult)
                 </div>
-
-                <div class="option request-to">
-                    <div class="option-label">@Messages("pullRequest.to"):
-                        <div class="btn-group branches" data-name="toProjectId">
-                            <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                                <span class="d-label">@Messages("pullRequest.select.branch")</span>
-                                <span class="d-caret"><span class="caret"></span></span>
-                            </button>
-                            <ul class="dropdown-menu">
-                                @for(repo <- projects) {
-                                    <li data-value="@repo.id" @if(repo.id == toProject.id) {data-selected="true"}>
-                                        <a href="#"><span class="label">repo</span>@repo.owner/@repo.name</a>
-                                    </li>
-                                }
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="option-desc mt5">
-                        <div class="btn-group branches" data-name="toBranch">
-                            <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                                <span class="d-label">@Messages("pullRequest.select.branch")</span>
-                                <span class="d-caret"><span class="caret"></span></span>
-                            </button>
-                            <ul class="dropdown-menu">
-                                @for(branch <- toBranches) {
-                                    @makeBranchItem(branch.getName, pullRequest.toBranch)
-                                }
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="frmWrap">
-            @views.html.git.partial_diff(form, project, pullRequest, mergeResult)
-            </div>
-        }
+            }
+        </div>
     </div>
 </div>
-
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mentionjs/mention.css")">
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/mentionjs/mention.js")"></script>
 <script type="text/javascript">

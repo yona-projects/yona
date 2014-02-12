@@ -6,62 +6,63 @@
 
 @projectLayout(title, project, utils.MenuType.MILESTONE) {
 @projectMenu(project, utils.MenuType.MILESTONE, "")
-<div class="project-page-wrap">
-    <div class="form-wrap milestone frm-wrap">
-        <form class="nm" action="@routes.MilestoneApp.editMilestone(project.owner, project.name, milestoneId)" method="post">
-        <div class="inner left">
-            <div class="title-wrap">
-                <label for="title">@Messages("milestone.form.title")</label>
-                @helper.input(form("title")){(id, name, value, args) =>
-                <input type="text" name="@name" id="@id" placeholder="" value="@value">
-                }
-            </div>
-            <div class="content-wrap">
-                <label for="contents">@Messages("milestone.form.content")</label>
-                @helper.input(form("contents")){(id, name, value, args) =>
-                <div style="position: relative;">
-                    <div id="mode-select">
-                        <input type="radio" name="edit-mode" id="edit-mode" value="edit" checked="checked" class="radio-btn">
-                        <label for="edit-mode" style="margin-right:3px;">Edit</label>
-                        <input type="radio" name="edit-mode" id="preview-mode" value="preview" class="radio-btn">
-                        <label for="preview-mode">Preview</label>
-                    </div>
-                    <a href="#" class="go-zen"><i class="s s--zen">Edit in Zen Mode</i></a>
-                    @help.markdown()
-                    <div class="textarea-box">
-                        <textarea id="contents" class="content" id="@id" name="@name" markdown="true">@value</textarea>
-                    </div>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="form-wrap milestone frm-wrap">
+            <form class="nm" action="@routes.MilestoneApp.editMilestone(project.owner, project.name, milestoneId)" method="post">
+            <div class="inner left">
+                <div class="title-wrap">
+                    <label for="title">@Messages("milestone.form.title")</label>
+                    @helper.input(form("title")){(id, name, value, args) =>
+                    <input type="text" name="@name" id="@id" placeholder="" value="@value">
+                    }
                 </div>
-                }
+                <div class="content-wrap">
+                    <label for="contents">@Messages("milestone.form.content")</label>
+                    @helper.input(form("contents")){(id, name, value, args) =>
+                    <div style="position: relative;">
+                        <div id="mode-select">
+                            <input type="radio" name="edit-mode" id="edit-mode" value="edit" checked="checked" class="radio-btn">
+                            <label for="edit-mode" style="margin-right:3px;">Edit</label>
+                            <input type="radio" name="edit-mode" id="preview-mode" value="preview" class="radio-btn">
+                            <label for="preview-mode">Preview</label>
+                        </div>
+                        <a href="#" class="go-zen"><i class="s s--zen">Edit in Zen Mode</i></a>
+                        @help.markdown()
+                        <div class="textarea-box">
+                            <textarea id="contents" class="content" id="@id" name="@name" markdown="true">@value</textarea>
+                        </div>
+                    </div>
+                    }
+                </div>
+                    
+                @common.fileUploader(ResourceType.MILESTONE, milestoneId)
+                    
+                <div class="actions mt20">
+                    <button type="submit" class="ybtn ybtn-info">@Messages("button.save")</button>
+                    <a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="ybtn">@Messages("button.cancel")</a>
+                </div>
             </div>
-                
-            @common.fileUploader(ResourceType.MILESTONE, milestoneId)
-                
-            <div class="actions mt20">
-                <button type="submit" class="ybtn ybtn-info">@Messages("button.save")</button>
-                <a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="ybtn">@Messages("button.cancel")</a>
-            </div>
-        </div>
 
-        <div class="inner right bubble-wrap gray">
-            <p>@Messages("milestone.form.state")</p>
-            <div>
-                <input type="radio" name="state" value="@State.OPEN" id="milestone-open" class="radio-btn" @if(form("state").value.equals(State.OPEN.name)) { checked="checked" }><label for="milestone-open" class="bold">@Messages("milestone.state.open")</label>&nbsp;
-                <input type="radio" name="state" value="@State.CLOSED" id="milestone-close" class="radio-btn" @if(form("state").value.equals(State.CLOSED.name)) { checked="checked" }><label for="milestone-close" class="bold">@Messages("milestone.state.closed")</label>
+            <div class="inner right bubble-wrap gray">
+                <p>@Messages("milestone.form.state")</p>
+                <div>
+                    <input type="radio" name="state" value="@State.OPEN" id="milestone-open" class="radio-btn" @if(form("state").value.equals(State.OPEN.name)) { checked="checked" }><label for="milestone-open" class="bold">@Messages("milestone.state.open")</label>&nbsp;
+                    <input type="radio" name="state" value="@State.CLOSED" id="milestone-close" class="radio-btn" @if(form("state").value.equals(State.CLOSED.name)) { checked="checked" }><label for="milestone-close" class="bold">@Messages("milestone.state.closed")</label>
+                </div>
+                <hr/>
+                <p>@Messages("milestone.form.dueDate")</p>
+                <label for="dueDate">
+                    @helper.input(form("dueDate")){(id, name, value, args) =>
+                    <input type="text" name="@name" id="@id" class="validate due-date" value="@value">
+                    }
+                </label>
+                <div id="datepicker" class="date-picker"></div>
             </div>
-            <hr/>
-            <p>@Messages("milestone.form.dueDate")</p>
-            <label for="dueDate">
-                @helper.input(form("dueDate")){(id, name, value, args) =>
-                <input type="text" name="@name" id="@id" class="validate due-date" value="@value">
-                }
-            </label>
-            <div id="datepicker" class="date-picker"></div>
+            </form>
         </div>
-        </form>
     </div>
 </div>
-
 @common.markdown(project)
 
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mentionjs/mention.css")">
