@@ -193,6 +193,7 @@ issue.assignToMe = Assign to me
 issue.assignee = Assignee
 issue.assignee.selectDefault= --Select an Assignee --
 issue.author = Author
+issue.can.not.be.deleted = Can't delete because there are others' comments
 issue.comment.delete.confirm = If this is deleted, then it cannot be recovered. Is it okay and go through?
 issue.comment.delete.window = Delete Issue Comment
 issue.createdDate = Created Date

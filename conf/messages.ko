@@ -193,6 +193,7 @@ issue.assignToMe = 나에게 할당하기
 issue.assignee = 담당자
 issue.assignee.selectDefault= --담당자 선택--
 issue.author = 등록자
+issue.can.not.be.deleted = 다른 사용자의 댓글이 있어 삭제할 수 없습니다.
 issue.comment.delete.confirm = 해당 이슈의 댓글을 삭제하시겠습니까?
 issue.comment.delete.window = 이슈 댓글 삭제
 issue.createdDate = 작성일

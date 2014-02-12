@@ -207,8 +207,12 @@
                 <a href="@urlToIssues" class="ybtn" data-button="historyBack">@Messages("button.list")</a>
             </div>
 
-            @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.DELETE)) {
-            <a href="#deleteConfirm" data-toggle="modal" class="ybtn ybtn-danger">@Messages("button.delete")</a>
+            @if(issue.canBeDeleted) {
+                @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.DELETE)) {
+                <a href="#deleteConfirm" data-toggle="modal" class="ybtn ybtn-danger">@Messages("button.delete")</a>
+                }
+            } else {
+            <button class="ybtn ybtn-disabled" data-toggle="tooltip" data-placement="top" title="@Messages("issue.can.not.be.deleted")">@Messages("button.delete")</button>
             }
 
             @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {

@@ -471,4 +471,23 @@ public class Issue extends AbstractPosting implements LabelOwner {
         Collections.sort(timelineItems, TimelineItem.ASC);
         return timelineItems;
     }
+
+    /**
+     * 댓글이 하나도 없거나, 이슈 본문 작성자와 다른 유저가 작성한 댓글이 없는 경우에만 해당 이슈를 삭제할 수 있다.
+     *
+     * @return 이슈를 삭제할 수 있을 때에는 true, 아니면 false
+     */
+    public boolean canBeDeleted() {
+        if(this.comments == null || this.comments.isEmpty()) {
+            return true;
+        }
+
+        for(IssueComment comment : comments) {
+            if(!comment.authorLoginId.equals(this.authorLoginId)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
