@@ -180,6 +180,9 @@
     		                @if(isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)){
     		                <a href="@routes.ProjectApp.members(project.owner, project.name)" class="ybtn ybtn-minimum" id="member-add-link"><i class="yobicon-addfriend"></i> @Messages("button.add")</a>
     		                }
+    		                @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.LEAVE)){
+    		                <button type="button" class="ybtn ybtn-minimum ybtn-danger pull-right" id="projectLeaveBtn" data-href="@routes.ProjectApp.deleteMember(project.owner, project.name, UserApp.currentUser().id)">@Messages("project.member.leave")</button>
+    		                }
     		            </header>
     		            <div class="member-wrap">
     		                <ul class="project-members">
@@ -197,6 +200,20 @@
     		            </div>
     		        </div>
     		    </div>
+            </div>
+        </div>
+        @** Confirm to leave the project **@
+        <div id="alertLeave" class="modal hide">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h3>@Messages("project.member.leave")</h3>
+            </div>
+            <div class="modal-body">
+                <p>@Messages("project.member.leaveConfirm")</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="ybtn ybtn-info ybtn-mini" id="leaveBtn">@Messages("button.yes")</button>
+                <button type="button" class="ybtn ybtn-mini" data-dismiss="modal">@Messages("button.no")</button>
             </div>
         </div>
     </div>

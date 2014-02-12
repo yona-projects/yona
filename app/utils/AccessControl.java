@@ -112,6 +112,13 @@ public class AccessControl {
             }
         }
 
+        if (operation == Operation.LEAVE) {
+            if (resource.getType() == ResourceType.PROJECT) {
+                Project project = Project.find.byId(Long.valueOf(resource.getId()));
+                return project != null && !project.isOwner(user) && ProjectUser.isMember(user.id, project.id);
+            }
+        }
+
         // UPDATE, DELETE
         switch(resource.getType()){
         case USER:
