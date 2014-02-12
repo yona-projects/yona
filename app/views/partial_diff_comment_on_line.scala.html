@@ -24,7 +24,7 @@
                         <span class="ago"><a href="#comment-@comment.id">@utils.TemplateHelper.agoString(utils.JodaDateUtil.ago(comment.createdDate))</a></span>
                         @if(utils.AccessControl.isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
                         <span class="edit pull-right">
-                            <button class="btn-transparent pull-right close" data-request-method="delete" data-request-uri="@routes.CommentApp.delete(comment.asResource.getType.resource, comment.asResource.getId)"><i class="yobicon-trash"></i></button>
+                            <button class="btn-transparent pull-right close" data-toggle="comment-delete" data-request-uri="@routes.CommentApp.delete(comment.asResource.getType.resource, comment.asResource.getId)" title="@Messages("common.comment.delete")"><i class="yobicon-trash"></i></button>
                         </span>
                         }
                     </div>

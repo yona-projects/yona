@@ -30,7 +30,7 @@
 @projectLayout(Messages("menu.pullRequest"), pull.toProject, utils.MenuType.PULL_REQUEST) {
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
-        <div class="code-browse-wrap">
+        <div id="code-browse-wrap" class="code-browse-wrap">
             <div class="actrow">
                 <a href="@routes.PullRequestApp.pullRequestCommits(pull.toProject.owner, pull.toProject.name, pull.number)" class="ybtn">
                     <i class="yobicon-arrow-right"></i> @Messages("pullRequest.back.to.the.pullrequest")
@@ -79,52 +79,52 @@
             <div class="diff-body">
             @views.html.partial_diff(diff, comments, pull.fromProject, pull.toProject)
             </div>
-        </div>
 
-        @** Comment **@
-        <div class="board-comment-wrap">
-            @defining(comments.filter(v => v.line == null)) { comments =>
-            @if(comments.size > 0) {
-            <ul class="comments">
-                @for(comment <- comments){
-                <li id="comment-@comment.id" data-path="@comment.path" data-side="@comment.side" data-line="@comment.line" class="comment">
-                    <div class="comment-avatar">
-                        <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
-                            <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
-                        </a>
-                    </div>
-                    <div class="media-body">
-                        <div class="meta-info">
-                            <span class="comment_author pull-left">
-                                <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
-                                    <strong>@comment.authorLoginId </strong>
-                                </a>
-                            </span>
-                            <span class="ago" title="@JodaDateUtil.getDateString(comment.createdDate)">
-                                <a href="#comment-@comment.id">
-                                    @agoString(JodaDateUtil.ago(comment.createdDate))
-                                </a>
-                            </span>
-                            @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
-                            <span class="edit pull-right">
-                                <button class="btn-transparent pull-right close" data-request-method="delete" data-request-uri="@routes.CodeHistoryApp.deleteComment(pull.fromProject.owner, pull.fromProject.name, commit.getId, comment.id)"><i class="yobicon-trash"></i></button>
-                            </span>
-                            }
+            @** Comment **@
+            <div class="board-comment-wrap">
+                @defining(comments.filter(v => v.line == null)) { comments =>
+                @if(comments.size > 0) {
+                <ul class="comments">
+                    @for(comment <- comments){
+                    <li id="comment-@comment.id" data-path="@comment.path" data-side="@comment.side" data-line="@comment.line" class="comment">
+                        <div class="comment-avatar">
+                            <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+                                <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
+                            </a>
                         </div>
+                        <div class="media-body">
+                            <div class="meta-info">
+                                <span class="comment_author pull-left">
+                                    <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+                                        <strong>@comment.authorLoginId </strong>
+                                    </a>
+                                </span>
+                                <span class="ago" title="@JodaDateUtil.getDateString(comment.createdDate)">
+                                    <a href="#comment-@comment.id">
+                                        @agoString(JodaDateUtil.ago(comment.createdDate))
+                                    </a>
+                                </span>
+                                @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
+                                <span class="edit pull-right">
+                                    <button class="btn-transparent pull-right close" data-toggle="comment-delete" data-request-uri="@routes.CodeHistoryApp.deleteComment(pull.fromProject.owner, pull.fromProject.name, commit.getId, comment.id)" title="@Messages("common.comment.delete")"><i class="yobicon-trash"></i></button>
+                                </span>
+                                }
+                            </div>
 
-                        <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
+                            <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
 
-                        <div class="attachments" data-resourceType="@ResourceType.COMMIT_COMMENT" data-resourceId="@comment.id"></div>
-                    </div>
-                </li>
+                            <div class="attachments" data-resourceType="@ResourceType.COMMIT_COMMENT" data-resourceId="@comment.id"></div>
+                        </div>
+                    </li>
+                    }
+                </ul>
                 }
-            </ul>
-            }
-            }
+                }
 
-            @common.commentForm(pull.fromProject, ResourceType.COMMIT_COMMENT, routes.CodeHistoryApp.newComment(pull.fromProject.owner, pull.fromProject.name, commit.getId).toString())
+                @common.commentForm(pull.fromProject, ResourceType.COMMIT_COMMENT, routes.CodeHistoryApp.newComment(pull.fromProject.owner, pull.fromProject.name, commit.getId).toString())
+            </div>
+            @** // Comment **@
         </div>
-        @** // Comment **@
 
         <div id="minimap" class="minimap-outer">
             <div class="minimap-wrap">
@@ -136,6 +136,7 @@
 </div>
 @common.markdown(pull.fromProject)
 @common.mergely()
+@common.commentDeleteModal("#code-browse-wrap")
 
 <script type="text/x-jquery-tmpl" id="comment-icon-template">
     <i class="yobicon-comments"></i>

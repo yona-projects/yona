@@ -89,7 +89,7 @@
                             <a href="#comment-@comment.id" class="ago">@utils.TemplateHelper.agoString(comment.ago())</a>
                             @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
                             <span class="edit pull-right">
-                                <button type="button" class="btn-transparent close" data-request-method="delete" data-request-uri="@routes.BoardApp.deleteComment(project.owner, project.name, post.getNumber, comment.id)"><i class="yobicon-trash"></i></button>
+                                <button type="button" class="btn-transparent close" data-toggle="comment-delete" data-request-uri="@routes.BoardApp.deleteComment(project.owner, project.name, post.getNumber, comment.id)" title="@Messages("common.comment.delete")"><i class="yobicon-trash"></i></button>
                             </span>
                             }
                         </div>
@@ -130,6 +130,7 @@
 </div>
 
 @common.markdown(project)
+@common.commentDeleteModal()
 
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mentionjs/mention.css")">
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/mentionjs/mention.js")"></script>

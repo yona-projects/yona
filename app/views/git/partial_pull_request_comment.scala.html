@@ -60,7 +60,7 @@
 
             @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE) && !isLineComment(comment)){
             <span class="edit pull-right">
-                <button type="button" class="btn-transparent close" data-request-method="delete" data-request-uri="@routes.PullRequestCommentApp.deleteComment(comment.id)"><i class="yobicon-trash"></i></button>
+                <button type="button" class="btn-transparent close" data-toggle="comment-delete" data-request-uri="@routes.PullRequestCommentApp.deleteComment(comment.id)" title="@Messages("common.comment.delete")"><i class="yobicon-trash"></i></button>
             </span>
             }
         </div>
