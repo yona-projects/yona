@@ -2,34 +2,40 @@
 @import utils.JodaDateUtil
 @import utils.TemplateHelper._
 
-<li class="board" style="padding:10px 0;">
-    <div class="pull-left">
-        <a href="@routes.ProjectApp.project(project.owner, project.name)" class="avatar-wrap mlarge">
-            <img src="@urlToProjectLogo(project)" alt="@project.owner / @project.name"/>
+@defining(User.findByLoginId(post.authorLoginId)){ user =>
+<li class="post-item">
+    <a href="@routes.ProjectApp.project(project.owner, project.name)" class="avatar-wrap mlarge">
+        <img src="@urlToProjectLogo(project)" alt="@project.owner / @project.name"/>
+    </a>
+    <div class="title-wrap">
+        <a href="@routes.ProjectApp.project(project.owner, project.name)" class="title project">
+            @post.project.name
         </a>
-        <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="avatar-wrap mlarge">
-            <img src="@User.findByLoginId(post.authorLoginId).avatarUrl" alt="@post.authorName">
+        <span class="post-id">@post.getNumber</span>
+        @if(post.notice == true){<span class="label label-notice">@Messages("post.notice")</span>&nbsp;}
+        <a href="@routes.BoardApp.post(project.owner, project.name, post.getNumber)" class="title">
+            @post.title
         </a>
     </div>
-
-    <div class="contents">
-        <p class="title">
-            <a href="@routes.BoardApp.post(project.owner, project.name, post.getNumber)">
-                @if(post.notice == true){<span class="label label-notice">@Messages("post.notice")</span>&nbsp;}
-                @post.title 
-                @if(Attachment.findByContainer(post.asResource).size > 0){ <i class="yobicon-paperclip yobicon-middle"></i> }
+    <div class="infos">
+        @if(user.name){
+            <a href="@routes.UserApp.userInfo(user.loginId)" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="top" title="@user.loginId">
+                @user.name
             </a>
-        </p>
-        <p class="infos nm">
-            <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author">@post.authorName</a>
-            <span class="date">@JodaDateUtil.momentFromNow(post.createdDate.getTime(), lang.language)</span>
-        </p>
-    </div>
-    <div class="right-panel">
-        <div class="comment-wrap">
-            @if(post.numOfComments > 0){
-            <i class="yobicon-comments"></i><span class="num">@post.numOfComments</span>
-            }
-        </div>
-    </div>
+        } else {
+            <span class="infos-item">@Messages("post.noAuthor")</span>
+        }
+
+        <span class="infos-item" title="@JodaDateUtil.getDateString(post.createdDate)">
+            @agoString(post.ago)
+        </span>
+
+        @if(post.numOfComments >0){
+            <a href="@routes.BoardApp.post(project.owner, project.name, post.getNumber)#comments" class="infos-item infos-icon-link">
+                <i class="yobicon-comments"></i>
+                <span class="size">@post.numOfComments</span>
+            </a>
+        }
+    </div>   
 </li>
+}
