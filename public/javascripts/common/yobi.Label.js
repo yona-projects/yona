@@ -186,7 +186,7 @@ yobi.Label = (function(htOptions){
         var welDeleteDivider = htElement.welDeleteLabels.find('li[data-category="'+oLabel.category+'"].divider');
         
         if(welAttachDivider.length === 0) {
-            sLabel = $yobi.tmpl(htVar.sTplLabelCatetoryItem, oLabel);
+            sLabel = $yobi.tmpl(htVar.sTplLabelCategoryItem, oLabel);
             htElement.welAttachLabels.prepend(sLabel);
             htElement.welDeleteLabels.prepend(sLabel);
         } else {
