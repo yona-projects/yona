@@ -32,7 +32,8 @@
             htVar.nTotalPages = htOptions.nTotalPages || 1;
             htVar.sIssueCheckBoxesSelector = htOptions.sIssueCheckBoxesSelector;
             htVar.sIssueCheckedBoxesSelector = htVar.sIssueCheckBoxesSelector + ':checked';
-            
+            htVar.sActionURL = htOptions.sURL;
+
             htVar.oState     = new yobi.ui.Dropdown({"elContainer": htOptions.welState});
             htVar.oAssignee  = new yobi.ui.Dropdown({"elContainer": htOptions.welAssignee});
             htVar.oMilestone = new yobi.ui.Dropdown({"elContainer": htOptions.welMilestone});
@@ -59,7 +60,6 @@
             htElement.welBtnDetachingLabel = $(htOptions.welDetachingLabel).find("button"); // 라벨 제거 버튼
             htElement.welAttachLabels = $('#attach-label-list');  // 라벨 추가 <ul>
             htElement.welDetachLabels = $('#delete-label-list');  // 라벨 제거 <ul>
-            
         }
 
         /**
@@ -90,6 +90,13 @@
                     $(htElement.weAllCheckbox).trigger('click');
                     return false;
                 }
+            });
+
+            htElement.welMassUpdateForm.on("submit", function(weEvt){
+                $.pjax.submit(weEvt, "div[pjax-container]", {
+                    "fragment": "div[pjax-container]",
+                    "timeout" : 3000
+                });
             });
         }
 
@@ -280,7 +287,15 @@
         function _onChangeUpdateField(){
             var nCnt = 0;
             var welForm = htElement.welMassUpdateForm;
+            var sItemId = _getCurrentItemIdByScrollTop();
 
+            // 어떤 항목을 보고 있었다는걸 확인할 수 있다면
+            // 폼 ActionURL 뒤에 Hash 를 붙여 최대한 그 위치에 가깝게 다시 돌아오게 만든다
+            if(sItemId){
+                welForm.attr("action", htVar.sActionURL + "#" + sItemId);
+            }
+
+            // 적용할 이슈 항목들을 폼 필드로 추가
             $(htVar.sIssueCheckedBoxesSelector).each(function(){
                 _addFormField(
                     welForm,
@@ -288,39 +303,46 @@
                     $(this).data('issue-id')
                 );
             });
-            
+
             welForm.submit();
         }
 
         /**
-         * update Label color
+         * 현재 스크롤 높이를 기준으로 현재 보고 있는 이슈 항목(.post-item)의 ID를 추측하여 반환한다
+         * 첫번째 항목이 화면에 보이고 있는 경우 undefined 가 반환될 수 있다
+         *
+         * @returns {*|jQuery}
+         * @private
          */
-        function _setLabelColor(){
-            var welLabel, sColor;
-            
-            htElement.waLabels.each(function(){
-                welLabel = $(this);
-                sColor = welLabel.data("color");
-                welLabel.css("background-color", sColor);
-                welLabel.css("color", $yobi.getContrastColor(sColor));
-            });
-            
-            welLabel = sColor = null;
+        function _getCurrentItemIdByScrollTop(){
+            var nScrollTop = $(window).scrollTop();
+            var sItemId = $(".post-item").filter(function(i,el){
+                return ($(el).offset().top > nScrollTop);
+            }).first().prev().attr("id");
+
+            return sItemId;
         }
-        
+
         /**
          * 일괄 업데이트 폼이 스크롤해도 계속 따라다니도록 설정하는 함수
          */
         function _setMassUpdateFormAffixed(){
-            htVar.nMassUpdateTop = htElement.welMassUpdateForm.offset().top + (htElement.welMassUpdateForm.height() / 2);
+            htVar.nMassUpdateTop = htElement.welMassUpdateForm.offset().top + (htElement.welMassUpdateForm.height() / 2) - 20;
 
-            $(window).on("scroll", function(){
-                if($(window).scrollTop() > htVar.nMassUpdateTop){
-                    htElement.welMassUpdateForm.addClass("fixed");
-                } else {
-                    htElement.welMassUpdateForm.removeClass("fixed");
-                }
-            });
+            _updateMassUpdateFormFixation();
+            $(window).on("scroll", _updateMassUpdateFormFixation);
+        }
+
+        /**
+         * 현재 스크롤 높이에 따라 일괄 업데이트 폼의 고정 여부를 업데이트 한다
+         * @private
+         */
+        function _updateMassUpdateFormFixation(){
+            if($(window).scrollTop() > htVar.nMassUpdateTop){
+                htElement.welMassUpdateForm.addClass("fixed");
+            } else {
+                htElement.welMassUpdateForm.removeClass("fixed");
+            }
         }
 
         _init(htOptions);

@@ -100,9 +100,10 @@
         function _setFormValue(welTarget){
             var sFieldValue = welTarget.attr("data-value");
             var sFieldName  = htElement.welContainer.attr("data-name");
+            htVar.sName     = sFieldName;
             htVar.sValue    = sFieldValue;
 
-            if(typeof sFieldName == "undefined"){
+            if(typeof sFieldName === "undefined"){
                 return;
             }
 
