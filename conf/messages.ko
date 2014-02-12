@@ -460,6 +460,7 @@ pullRequest.event.message.merged = {0} 님이 이 코드를 병합했습니다. 
 pullRequest.event.message.open = {0} 님이 이 요청을 열었습니다.
 pullRequest.event.message.rejected = {0} 님이  이 코드를 보류했습니다.
 pullRequest.event.message.resolved = 보낸 코드의 충돌이 해결되었습니다.
+pullRequest.event.message.commit = {0} 님이 코드를 커밋했습니다.
 pullRequest.event.open = 열림
 pullRequest.event.rejected = 보류
 pullRequest.event.resolved = 충돌 해결

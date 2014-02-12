@@ -99,49 +99,38 @@
         }
 
         case EventType.PULL_REQUEST_COMMIT_CHANGED => {
-        <li class="comment @isAuthorComment(event.senderLoginId)" id="comment-@event.id">
-            <div class="comment-avatar">
-                <a href="@routes.UserApp.userInfo(event.senderLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@User.findByLoginId(event.senderLoginId).name">
-                    <img src="@User.findByLoginId(event.senderLoginId).avatarUrl" width="32" height="32" alt="@User.findByLoginId(event.senderLoginId).name">
-                </a>
-            </div>
-            <div class="media-body">
-                <div class="meta-info">
-                    <span class="comment_author pull-left">
-                        <a href="@routes.UserApp.userInfo(event.senderLoginId)" data-toggle="tooltip" data-placement="top" title="@User.findByLoginId(event.senderLoginId).name">
-                            <strong>@event.senderLoginId @Messages("pullRequest.event.commit")</strong>
-                        </a>
-                    </span>
-                    <span class="ago">@momentFromNow(event.created, lang.language)</span>
-                    @if(event.oldValue != null) {
-                    <span>
-                      <a class="ybtn ybtn-mini" href="@urlToCompare(pull.toProject, event.oldValue)">@Messages("pullRequest.additional.changes")</a>
-                    </span>
-                    }
-                </div>
-                <ul class="commit-list">
-                @for(commit <- event.getPullRequestCommits) {
-                    <li class="comment-body commit-info @if(commit.state == PullRequestCommit.State.PRIOR){ outdated }">
-                    @defining(User.findByEmail(commit.authorEmail)) { author =>
-                        <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.commitId)" class="commit-id">
-                            @commit.commitShortId
-                        </a>
-                        @if(!author.isAnonymous()) {
-                        <a href="@routes.UserApp.userInfo(author.loginId)" class="avatar-wrap small" data-toggle="tooltip" data-placement="top" title="@User.findByLoginId(author.loginId).name">
-                            <img src="@author.avatarUrl"  alt="@author.name"> @commit.authorEmail
-                        </a>
-                        <div class="date">@utils.TemplateHelper.agoString(ago(commit.authorDate))</div>
-                        } else {
-                            <img src="@urlToPicture(commit.getAuthorEmail, 32)" class="avatar-wrap small">
-                        }
+        <li class="event" id="comment-@event.id">
+            <span class="state changed">@Messages("pullRequest.event.commit")</span>
+            @Html(Messages("pullRequest.event.message.commit", linkToUser(user.loginId, user.name)))
+            <span class="date">
+                <a href="#event-@event.id">@momentFromNow(event.getDate(), lang.language)</a>
+            </span>
+            @if(event.oldValue != null) {
+            <a href="@urlToCompare(pull.toProject, event.oldValue)" class="ybtn ybtn-mini">@Messages("pullRequest.additional.changes")</a>
+            }
 
-                        @common.commitMsg(commit.commitMessage.split("\n")(0), commit.commitMessage,
-                            routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.commitId).toString)
+            <ul class="commit-list">
+            @for(commit <- event.getPullRequestCommits) {
+                <li class="comment-body commit-info @if(commit.state == PullRequestCommit.State.PRIOR){ outdated }">
+                @defining(User.findByEmail(commit.authorEmail)) { author =>
+                    <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.commitId)" class="commit-id">
+                        @commit.commitShortId
+                    </a>
+                    @if(!author.isAnonymous()) {
+                    <a href="@routes.UserApp.userInfo(author.loginId)" class="avatar-wrap small" data-toggle="tooltip" data-placement="top" title="@User.findByLoginId(author.loginId).name">
+                        <img src="@author.avatarUrl"  alt="@author.name"> @commit.authorEmail
+                    </a>
+                    <div class="date">@utils.TemplateHelper.agoString(ago(commit.authorDate))</div>
+                    } else {
+                        <img src="@urlToPicture(commit.getAuthorEmail, 32)" class="avatar-wrap small">
                     }
-                    </li>
+
+                    @common.commitMsg(commit.commitMessage.split("\n")(0), commit.commitMessage,
+                        routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.commitId).toString)
                 }
-                </ul>
-            </div>
+                </li>
+            }
+            </ul>
         </li>
         }
         case _ => {
