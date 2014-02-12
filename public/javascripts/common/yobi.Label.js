@@ -186,7 +186,7 @@ yobi.Label = (function(htOptions){
         var welDeleteDivider = htElement.welDeleteLabels.find('li[data-category="'+oLabel.category+'"].divider');
         
         if(welAttachDivider.length === 0) {
-            sLabel = $yobi.tmpl(htVar.sTplLabelCatetoryItem, oLabel);
+            sLabel = $yobi.tmpl(htVar.sTplLabelCategoryItem, oLabel);
             htElement.welAttachLabels.prepend(sLabel);
             htElement.welDeleteLabels.prepend(sLabel);
         } else {
@@ -385,24 +385,18 @@ yobi.Label = (function(htOptions){
      * @param {String} sLabelId
      */
     function _removeLabel(sLabelId) {
-        var welLabel = $('[data-labelId=' + sLabelId + ']');
+        var welEditorLabel = $('.issue-form-labels').find('[data-labelId=' + sLabelId + ']');
+        var welSettingLabel = htElement.welAttachLabels.find('li[data-value="'+sLabelId+'"]');
 
-        if (welLabel.siblings().size() > 0) {
-            welLabel.remove();
-            // setting menu 의 리스트 에서도 제거
-            $('li[data-value="'+sLabelId+'"]').remove();
-            return;
-        }
-
-        var sCategory = $(welLabel.parents('div').get(0)).attr('data-category');
-        $('[data-category="' + sCategory + '"]').parent().remove();
-
-        // 라벨 에디터의 분류 자동완성에서도 제거
-        if(htVar.bEditable){
+        if(welEditorLabel.siblings().length ===0) {
+            var sCategory = welSettingLabel.data('category');
+            welEditorLabel.parents('div.control-group').remove();
+            htElement.welAttachLabels.find('li[data-category="'+sCategory+'"]').remove();
             yobi.LabelEditor.removeCategory(sCategory);
+        } else {
+            welEditorLabel.remove();
+            welSettingLabel.remove();
         }
-        // setting menu 의 리스트 에서도 제거
-        $('li[data-value="'+sLabelId+'"]').remove();
     }
 
     /**
