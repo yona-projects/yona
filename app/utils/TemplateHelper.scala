@@ -262,8 +262,8 @@ object TemplateHelper {
 
     @tailrec def _renderLines(progress: String, lines: List[DiffLine], comments: Map[String, List[CodeComment]], isEndOfLineMissing: DiffLine => Boolean): String =
       lines match {
-        case Nil => ""
-        case first::Nil => renderLine(first, comments, isEndOfLineMissing)
+        case Nil => progress
+        case first::Nil => progress + renderLine(first, comments, isEndOfLineMissing)
         case first::second::tail => _renderLines(progress + renderTwoLines(first, second, comments, isEndOfLineMissing), tail, comments, isEndOfLineMissing)
       }
 
