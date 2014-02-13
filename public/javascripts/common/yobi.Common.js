@@ -262,6 +262,27 @@ $yobi = yobi.Common = (function(){
     }
 
     /**
+     * Show confirm dialog
+     * @param {String} sMessage Message string
+     * @param {Function} fCallback Call this function after click button
+     * @param {Array} aButtonLabels Specifying button labels (optional)
+     * @param {Array} aButtonStyles Specifying button CSS Class names (optional)
+     */
+    function showConfirm(sMessage, fCallback, aButtonLabels, aButtonStyles){
+        if(!htVar.oConfirmDialog){
+            htVar.oConfirmDialog = new yobi.ui.Dialog("#yobiDialog");
+        }
+
+        aButtonLabels = aButtonLabels || [Messages("button.cancel"), Messages("button.confirm")];
+
+        htVar.oConfirmDialog.show(sMessage, {
+           "fOnClickButton": fCallback,
+           "aButtonLabels" : aButtonLabels,
+           "aButtonStyles" : aButtonStyles
+        });
+    }
+
+    /**
      * Show notification message using Toast PopUp
      * @param {String} sMessage
      * @param {Number} nDuration
@@ -371,6 +392,7 @@ $yobi = yobi.Common = (function(){
         "getTrim"   : getTrim,
         "showAlert" : showAlert,
         "alert"     : showAlert,
+        "confirm"   : showConfirm,
         "notify"    : notify,
         "nl2br"     : nl2br,
         "tmpl"      : processTpl,
