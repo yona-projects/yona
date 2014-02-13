@@ -2598,63 +2598,6 @@
 
                 }
 
-                /** pullRequest view **/
-                .commit-list {
-                    list-style:none;
-                    padding:0;
-                    margin:0;
-
-                    .commit-info {
-                        padding:10px 5px;
-
-                        .commit-id {
-                            float:left;
-                            color:#51aacc;
-                            width: 70px;
-                            text-align: center;
-                        }
-
-                        .commitMsg {
-                            &.short {
-                                margin:0;
-                                vertical-align: middle;
-                                padding:5px;
-                            }
-                            &.desc {
-                                margin-left:80px;
-                            }
-                        }
-
-                        &:nth-child(even) {
-                            border-top:1px solid #BDC3C7;
-                            border-bottom:1px solid #BDC3C7;
-                        }
-
-                        &:last-child {
-                            border-bottom:0;
-                        }
-
-                    }
-
-                    .outdated {
-                        text-decoration:line-through;
-
-                        a { text-decoration:line-through;}
-                    }
-
-                    .avatar-wrap {
-                        margin-top:-2px;
-                        float:right;
-                        margin-right:5px;
-                    }
-
-                    .date {
-                        float:right;
-                        margin-right:15px;
-                        margin-top:3px;
-                    }
-                }
-
                 .comment-body {
                     font-size: 13px;
                     padding:0 15px;
@@ -2735,6 +2678,66 @@
             .date {
                 font-size: 11px;
                 color: #aaa;
+            }
+
+            /** pullRequest view **/
+            .commit-list {
+                list-style:none;
+                padding:0;
+                margin:10px 0 0 102px;
+                border:1px solid #ddd;
+                background:#fdfdfd;
+                .border-radius(3px);
+
+                .commit-info {
+                    padding:10px 5px;
+
+                    .commit-id {
+                        float:left;
+                        color:#51aacc;
+                        width: 70px;
+                        text-align: center;
+                    }
+
+                    .commitMsg {
+                        &.short {
+                            margin:0;
+                            vertical-align: middle;
+                            padding:5px;
+                        }
+                        &.desc {
+                            margin-left:80px;
+                        }
+                    }
+
+                    &:nth-child(even) {
+                        border-top:1px solid #eee;
+                        border-bottom:1px solid #eee;
+                    }
+
+                    &:last-child {
+                        border-bottom:0;
+                    }
+
+                }
+
+                .outdated {
+                    text-decoration:line-through;
+
+                    a { text-decoration:line-through;}
+                }
+
+                .avatar-wrap {
+                    margin-top:-2px;
+                    float:right;
+                    margin-right:5px;
+                }
+
+                .date {
+                    float:right;
+                    margin-right:15px;
+                    margin-top:3px;
+                }
             }
         }
     }
