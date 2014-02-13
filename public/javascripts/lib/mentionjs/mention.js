@@ -207,7 +207,8 @@
                 this.$element
                     .val(this.updater(val, delimiter))
                     .change()
-                return this.hide()
+                this.$menu.hide();
+                return;
             }
             $.fn.typeahead.Constructor.prototype.updater = function (item, delimiter) {
                 return item
