@@ -2,21 +2,14 @@ package models;
 
 import actors.RelatedPullRequestMergingActor;
 import akka.actor.Props;
-import com.avaje.ebean.Expr;
-import com.avaje.ebean.Expression;
-import com.avaje.ebean.ExpressionList;
-import com.avaje.ebean.Junction;
-import com.avaje.ebean.Page;
-
+import com.avaje.ebean.*;
 import controllers.PullRequestApp.SearchCondition;
 import controllers.UserApp;
-import controllers.routes;
 import models.enumeration.EventType;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.Git;
@@ -26,14 +19,10 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.joda.time.Duration;
-
-import play.api.templates.HtmlFormat;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
-import play.i18n.Messages;
 import play.libs.Akka;
-
 import playRepository.FileDiff;
 import playRepository.GitCommit;
 import playRepository.GitConflicts;
@@ -42,7 +31,6 @@ import playRepository.GitRepository.AfterCloneAndFetchOperation;
 import playRepository.GitRepository.CloneAndFetch;
 import utils.Constants;
 import utils.JodaDateUtil;
-import utils.TemplateHelper;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
@@ -398,11 +386,8 @@ public class PullRequest extends Model implements ResourceConvertible {
             public void invoke(CloneAndFetch cloneAndFetch) throws IOException, GitAPIException {
                 Repository cloneRepository = cloneAndFetch.getRepository();
                 String srcToBranchName = pullRequest.toBranch;
-                String destToBranchName = cloneAndFetch.getDestToBranchName();
+                String mergeBranchName = cloneAndFetch.getMergingBranchName();
                 User sender = message.getSender();
-
-                // 코드를 받을 브랜치(toBranch)로 이동(checkout)한다.
-                GitRepository.checkout(cloneRepository, cloneAndFetch.getDestToBranchName());
 
                 String mergedCommitIdFrom;
                 MergeResult mergeResult;
@@ -425,8 +410,8 @@ public class PullRequest extends Model implements ResourceConvertible {
                             mergedCommitIdFrom, mergedCommitIdTo);
 
                     // 코드 받을 프로젝트의 코드 받을 브랜치(srcToBranchName)로 clone한 프로젝트의
-                    // merge 한 브랜치(destToBranchName)의 코드를 push 한다.
-                    GitRepository.push(cloneRepository, GitRepository.getGitDirectoryURL(pullRequest.toProject), destToBranchName, srcToBranchName);
+                    // merge 브랜치(mergeBranchName)의 코드를 push 한다.
+                    GitRepository.push(cloneRepository, GitRepository.getGitDirectoryURL(pullRequest.toProject), mergeBranchName, srcToBranchName);
 
                     // 풀리퀘스트 완료
                     pullRequest.state = State.MERGED;
@@ -844,13 +829,11 @@ public class PullRequest extends Model implements ResourceConvertible {
                 Repository clonedRepository = cloneAndFetch.getRepository();
 
                 List<GitCommit> commitList = GitRepository.diffCommits(clonedRepository,
-                    cloneAndFetch.getDestFromBranchName(), cloneAndFetch.getDestToBranchName());
+                    cloneAndFetch.getDestFromBranchName(), cloneAndFetch.getMergingBranchName());
 
                 for (GitCommit gitCommit : commitList) {
                     commits.add(gitCommit);
                 }
-
-                GitRepository.checkout(clonedRepository, cloneAndFetch.getDestToBranchName());
 
                 String mergedCommitIdFrom = clonedRepository
                         .getRef(org.eclipse.jgit.lib.Constants.HEAD).getObjectId().getName();
