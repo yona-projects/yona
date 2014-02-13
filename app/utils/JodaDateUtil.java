@@ -41,6 +41,10 @@ public class JodaDateUtil {
         return new DateTime(today()).minusDays(days).toDate();
     }
 
+    public static Date beforeByMillis(long millis){
+        return new DateTime(today()).minus(millis).toDate();
+    }
+
     public static String momentFromNow(Long time) {
         return momentFromNow(time, Constants.DEFAULT_LANGUAGE);
     }

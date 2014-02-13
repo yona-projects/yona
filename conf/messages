@@ -331,6 +331,7 @@ post.notice = notice
 post.notice.label = Set this post to notice
 post.popup.fileAttach.contents = Please, select file to attach
 post.popup.fileAttach.title = Select file
+post.popup.fileAttach.hasMissing = There are {0} missing attachment files. It may caused by server keep time of temporary upload file ({1} min). Please upload again.
 post.unwatch.start = Notifications of this post has muted
 post.update.error = Errors on Input Value
 post.watch.start = You will receive notifications of this post

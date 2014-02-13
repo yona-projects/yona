@@ -5,10 +5,13 @@ import models.enumeration.Direction;
 import models.enumeration.Operation;
 import models.resource.Resource;
 
+import org.apache.commons.lang3.StringUtils;
 import play.data.Form;
 import play.db.ebean.Model;
+import play.i18n.Messages;
 import play.mvc.Call;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
 import utils.*;
 
@@ -65,7 +68,7 @@ public class AbstractPostingApp extends Controller {
         comment.save();
 
         // Attach all of the files in the current user's temporary storage.
-        Attachment.moveAll(UserApp.currentUser().asResource(), comment.asResource());
+        attachUploadFilesToPost(comment.asResource());
 
         String urlToView = toView + "#comment-" + comment.id;
         NotificationEvent.afterNewComment(comment, urlToView);
@@ -141,9 +144,41 @@ public class AbstractPostingApp extends Controller {
         posting.updateProperties();
 
         // Attach the files in the current user's temporary storage.
-        Attachment.moveAll(UserApp.currentUser().asResource(), original.asResource());
+        attachUploadFilesToPost(original.asResource());
 
         return redirect(redirectTo);
     }
 
+    /**
+     * 특정 리소스(게시글이나 댓글)에 사용자가 이전 폼에서 업로드한 임시파일을 첨부시킨다
+     *
+     * when: 이슈등록/수정, 게시판에 글 등록/수정, 댓글쓰기 등에서 업로드한 파일을 해당 리소스에 연결할 때
+     *
+     * {code AttachmentApp.TAG_NAME_FOR_TEMPORARY_UPLOAD_FILES}에 지정된 이름의 input tag에
+     * 업로드한 임시파일의 file id 값이 ,(comma) separator로 구분되어 들어가 있다.
+     *
+     * @param resource 이슈글,게시판글,댓글
+     */
+    protected static void attachUploadFilesToPost(Resource resource) {
+        final String[] temporaryUploadFiles = getTemporaryFileListFromHiddenForm();
+        if(StringUtils.isNotBlank(temporaryUploadFiles[0])){
+            int attachedFileCount = Attachment.moveOnlySelected(UserApp.currentUser().asResource(), resource,
+                    temporaryUploadFiles);
+            if( attachedFileCount != temporaryUploadFiles.length){
+                flash("failed", Messages.get("post.popup.fileAttach.hasMissing",
+                        temporaryUploadFiles.length - attachedFileCount, getTemporaryFilesServerKeepUpTimeOfMinuntes()));
+            }
+        }
+    }
+
+    private static long getTemporaryFilesServerKeepUpTimeOfMinuntes() {
+        return AttachmentApp.TEMPORARYFILES_KEEPUP_TIME_MILLIS/(60*1000l);
+    }
+
+    private static String[] getTemporaryFileListFromHiddenForm() {
+        Http.MultipartFormData body = request().body().asMultipartFormData();
+        final String CSV_DELEMETER = ",";
+        return body.asFormUrlEncoded()
+            .get(AttachmentApp.TAG_NAME_FOR_TEMPORARY_UPLOAD_FILES)[0].split(CSV_DELEMETER);
+    }
 }

@@ -18,6 +18,7 @@ import models.enumeration.ResourceType;
 import org.codehaus.jackson.JsonNode;
 
 import org.h2.util.StringUtils;
+import play.Configuration;
 import play.Logger;
 import play.mvc.Controller;
 import play.mvc.Http.MultipartFormData.FilePart;
@@ -26,6 +27,11 @@ import utils.AccessControl;
 import utils.HttpUtil;
 
 public class AttachmentApp extends Controller {
+
+    public static final String TAG_NAME_FOR_TEMPORARY_UPLOAD_FILES = "temporaryUploadFiles";
+    //사용자 임시 첨부 파일의 서버내 보관시간. 임시파일은 글 작성시 파일은 업로드 한 파일 중 글 작성이 완료 되지 않은 상태의 파일을 말한다.
+    public static final long TEMPORARYFILES_KEEPUP_TIME_MILLIS = Configuration.root()
+            .getMilliseconds("application.temporaryfiles.keep-up.time", 24 * 60 * 60 * 1000L);
 
     /**
      * 사용자 첨부파일로 업로드한다
@@ -255,13 +261,6 @@ public class AttachmentApp extends Controller {
     public static Result getFileList() {
         Map<String, List<Map<String, String>>> files =
                 new HashMap<>();
-
-        // Get files from the user's area.
-        List<Map<String, String>> userFiles = new ArrayList<>();
-        for (Attachment attach : Attachment.findByContainer(UserApp.currentUser().asResource())) {
-            userFiles.add(extractFileMetaDataFromAttachementAsMap(attach));
-        }
-        files.put("tempFiles", userFiles);
 
         // Get attached files only if the user has permission to read it.
         Map<String, String[]> query = request().queryString();

@@ -11,7 +11,8 @@ import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
-import org.apache.commons.lang.StringUtils;
+import models.resource.Resource;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.Tika;
 import org.codehaus.jackson.node.ObjectNode;
 import play.data.Form;
@@ -527,8 +528,7 @@ public class IssueApp extends AbstractPostingApp {
 
         newIssue.save();
 
-        // Attach all of the files in the current user's temporary storage.
-        Attachment.moveAll(UserApp.currentUser().asResource(), newIssue.asResource());
+        attachUploadFilesToPost(newIssue.asResource());
 
         NotificationEvent.afterNewIssue(newIssue);
 
@@ -599,7 +599,7 @@ public class IssueApp extends AbstractPostingApp {
      * @param number 이슈 번호
      * @return
      * @throws IOException
-     * @see {@link AbstractPostingApp#editPosting(models.AbstractPosting, models.AbstractPosting, play.data.Form}
+     * @see {@link AbstractPostingApp#editPosting}
      */
     @With(NullProjectCheckAction.class)
     public static Result editIssue(String ownerName, String projectName, Long number) {

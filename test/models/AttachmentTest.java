@@ -40,6 +40,31 @@ public class AttachmentTest extends ModelTest<Attachment> {
         assertThat(new String(b, 0, length)).isEqualTo(new String("Hello"));
     }
 
+    @Test
+    public void testMoveOnlySelected() throws Exception {
+        // Given
+        File foo = createFileWithContents("foo.txt", "Hello".getBytes());
+        File bar = createFileWithContents("bar.html", "<p>Bye</p>".getBytes());
+        Issue issue = Issue.finder.byId(1L);
+        User user = User.findByLoginId("doortts");
+
+        Attachment thisOne = new Attachment();
+        Attachment notThis = new Attachment();
+        thisOne.store(foo, "foo.txt", user.asResource());
+        notThis.store(bar, "bar.html", user.asResource());
+        String[] selectedFileIds = {thisOne.id + ""};
+
+        // When
+        Attachment.moveOnlySelected(user.asResource(), issue.asResource(), selectedFileIds);
+
+        // Then
+        List<Attachment> attachedFiles = Attachment.findByContainer(issue.asResource());
+        List<Attachment> unattachedFiles = Attachment.findByContainer(user.asResource());
+
+        assertThat(attachedFiles.size()).isEqualTo(1);
+        assertThat(unattachedFiles.size()).isEqualTo(1);
+    }
+
     public void testAttachFiles() throws IOException, NoSuchAlgorithmException {
         // Given
         File foo = createFileWithContents("foo.txt", "Hello".getBytes());

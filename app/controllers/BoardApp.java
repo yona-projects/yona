@@ -141,8 +141,7 @@ public class BoardApp extends AbstractPostingApp {
 
         post.save();
 
-        // Attach all of the files in the current user's temporary storage.
-        Attachment.moveAll(UserApp.currentUser().asResource(), post.asResource());
+        attachUploadFilesToPost(post.asResource());
 
         NotificationEvent.afterNewPost(post);
 

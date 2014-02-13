@@ -332,6 +332,7 @@ post.notice = 공지
 post.notice.label = 이 글을 공지사항으로 설정합니다
 post.popup.fileAttach.contents = 첨부할 파일을 선택해주세요.
 post.popup.fileAttach.title = 첨부파일 선택
+post.popup.fileAttach.hasMissing = 첨부되지 못한 파일이 {0}개 있습니다. (첨부 파일 업로드 후 일정기간({1}분)을 초과 할때까지 글 작성을 완료하지 않았을 경우 발생할 수 있습니다. 다시 파일을 첨부해 주세요.)
 post.unwatch.start = 이제 이 글에 관한 알림을 받지 않습니다
 post.update.error = 입력값 오류
 post.watch.start = 이제 이 글에 관한 알림을 받습니다

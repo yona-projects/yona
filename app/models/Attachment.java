@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.Formatter;
 import java.util.List;
 
@@ -28,11 +30,13 @@ import play.data.validation.*;
 import play.db.ebean.Model;
 import scalax.file.NotDirectoryException;
 import utils.FileUtil;
+import utils.JodaDateUtil;
 
 @Entity
 public class Attachment extends Model implements ResourceConvertible {
     private static final long serialVersionUID = 7856282252495067924L;
     public static final Finder<Long, Attachment> find = new Finder<>(Long.class, Attachment.class);
+    public static final int NOTHING_TO_ATTACH = 0;
     private static String uploadDirectory = "uploads";
     @Id
     public Long id;
@@ -47,10 +51,10 @@ public class Attachment extends Model implements ResourceConvertible {
     public ResourceType containerType;
 
     public String mimeType;
-
     public Long size;
-
     public String containerId;
+
+    private Date createdDate;
 
     /**
      * 주어진 {@code attach}와 내용이 같은 첨부 파일을 찾는다.
@@ -139,6 +143,29 @@ public class Attachment extends Model implements ResourceConvertible {
     }
 
     /**
+     * {@code from}에 첨부된 파일중 파일 아이디가{@code selectedFileIds}에 해당하는 첨부 파일을 {@code to}로 옮긴다.
+     *
+     * when: 업로드 직후 일시적으로 사용자에게 첨부되었던 첨부 파일들을, 특정 리소스(이슈, 게시물 등)으로 옮기려 할 때
+     *
+     * @param from 첨부 파일이 원래 있었던 리소스
+     * @param to 첨부 파일이 새로 옮겨질 리소스
+     * @return
+     */
+    public static int moveOnlySelected(Resource from, Resource to, String[] selectedFileIds) {
+        if(selectedFileIds.length == 0){
+            return NOTHING_TO_ATTACH;
+        }
+        List<Attachment> attachments = Attachment.find.where().idIn(Arrays.asList(selectedFileIds)).findList();
+        for (Attachment attachment : attachments) {
+            if(attachment.containerId.equals(from.getId())
+                    && attachment.containerType == from.getType()){
+                attachment.moveTo(to);
+            }
+        }
+        return attachments.size();
+    }
+
+    /**
      * 이 첨부 파일을 {@code to}로 옮긴다.
      *
      * @param to 첨부 파일이 새로 옮겨질 리소스
@@ -222,6 +249,7 @@ public class Attachment extends Model implements ResourceConvertible {
         // metadata - containerType, containerId, size and hash - in Database.
         this.containerType = container.getType();
         this.containerId = container.getId();
+        this.createdDate = JodaDateUtil.now();
 
         if (name == null) {
             this.name = file.getName();
