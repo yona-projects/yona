@@ -175,8 +175,9 @@
         /**
          * 멤버 삭제 요청이 성공했을때
          */
-        function _onSuccessDeleteMember(){
-            document.location.reload();
+        function _onSuccessDeleteMember(sResult){
+            var htData = $.parseJSON(sResult);
+            document.location.replace(htData.location);
         }
 
         /**
