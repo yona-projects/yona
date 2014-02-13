@@ -16,7 +16,7 @@ Yobi offers many features to increase productivity and quality of your software:
 
 License
 --
-Copyright 2013 NAVER Corp, under the Apache 2.0 license.
+Copyright 2014 NAVER Corp, under the Apache 2.0 license.
 
 ## Installation
 
@@ -65,13 +65,20 @@ You can also make your own yobi directory in any other place. But in that case, 
 Required files will be download automatically. In the first time, it may take about 10 min or more.
 
 
-### type run command in console
+### type start command in console
 
-    run
+    start -DapplyEvolutions.default=true -Dhttp.port=9000
 
 It will downloaded addtional files and compile sources.
 
-If you want to run yobi in production mode, use **start** , not **run**.
+If you want to run yobi in development mode, use **run**. You can see more detailed errors and can use dynamic compilation.
+
+Also, you can configure start options.
+If your system's memory is over than 4G, we recommend to use follow options.
+
+>
+> _JAVA_OPTIONS="-Xmx2048m -Xms1024m" play "start -DapplyEvolutions.default=true -Dhttp.port=9000"
+>
 
 ### connect with browser
 
@@ -92,7 +99,7 @@ see [http://www.playframework.com/documentation/2.1.1/Production](http://www.pla
 Yobi
 ===========
 
-협업 개발 플랫폼 (현재 개발중이며 아직 공식 버전 넘버링이 안 된 상태입니다.)
+협업 개발 플랫폼
 
 Official Site: [http://yobi.io](http://yobi.io)
 
@@ -148,12 +155,19 @@ java 7(1.7) 이상이어야 합니다.
 
 실행하면 필요한 파일들을 web에서 내려받습니다. 첫 실행시 네트워크 상황에 따라 10여분 가까이 소요될 수 있습니다.
 
-### 콘솔이 뜨면 run 명령어로 기동
+### 콘솔이 뜨면 start 명령어로 기동
 
-    run
+    start -DapplyEvolutions.default=true -Dhttp.port=9000
 
-추가로 필요한 파일들을 web에서 내려받은 다음 소스 파일들을 컴파일 후 개발 모드로 실행합니다.
-운영 모드(production mode)로 실행하고자 할 경우에는 **run** 명령어 대신에 **start** 명령어로 실행합니다.
+추가로 필요한 파일들을 web에서 내려받은 다음 소스 파일들을 컴파일 후 운영 모드(production mode)로 실행합니다.
+개발 모드(development mode)로 실행하고자 할 경우에는 **start** 명령어 대신에 **run** 명령어로 실행합니다.
+
+시작 옵션은 조정가능합니다. 만약 시스템 메모리가 4기가 이상이라면
+아래 옵션으로 실행하는걸 권장합니다.
+
+>
+> _JAVA_OPTIONS="-Xmx2048m -Xms1024m" play "start -DapplyEvolutions.default=true -Dhttp.port=9000"
+>
 
 ### 브라우저로 접속
 
