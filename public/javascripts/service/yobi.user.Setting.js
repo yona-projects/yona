@@ -92,7 +92,6 @@
                 return false;
             }
         }
-
         /**
          * 알림 On/Off 스위치 변경
          */
@@ -233,7 +232,7 @@
         function _sendCroppedImage(){
             var elImage = new Image();
             var sTmpImageURL = htElement.welImgCrop.attr("src");
-            
+
             // 원본 이미지 크기를 알아내기 위해 새 객체로 불러온다
             // 브라우저 캐시를 사용하므로 네트워크 호출 없음
             elImage.onload = function(){
@@ -255,7 +254,7 @@
                 if(htEnv.bXHR2){
                     // 임시 업로드 상태의 현재 파일은 삭제
                     yobi.Files.deleteFile({"sURL": sTmpImageURL});
-                    
+
                     // 캔버스를 이용해 Crop 이미지 데이터로 업로드
                     var elCanvas = document.getElementById("avatarCrop"); // canvas
                     var oContext = elCanvas.getContext("2d");
@@ -336,19 +335,19 @@
                 {"name": 'retypedPassword', "rules": 'required|matches[password]'}
             ];
 
-            htVar.oValidator = new FormValidator('passwordReset', aRules, _onFormValidate);
+            htVar.oValidator = new FormValidator('frmPassword', aRules, _onFormValidate);
+
             htVar.oValidator.setMessage('required',   Messages("validation.required"));
             htVar.oValidator.setMessage('min_length', Messages("validation.tooShortPassword"));
             htVar.oValidator.setMessage('matches',    Messages("validation.passwordMismatch"));
         }
-
         /**
          * on validate form
          *
          * @param {Array} aErrors
          */
         function _onFormValidate(aErrors){
-            _clearTooltips();
+            _clearPopovers();
 
             // to avoid bootstrap bug
             if (aErrors.length <= 0) {
@@ -360,7 +359,7 @@
                 welTarget = htElement.welFormPswd.find("input[name=" + htError.name + "]");
 
                 if(welTarget){
-                    _showTooltip(welTarget, htError.message);
+                    _showPopover(welTarget, htError.message);
                 }
             });
         }
@@ -373,25 +372,24 @@
          * @param {Wrapped Element} welInput
          * @param {String} sMessage
          */
-        function _showTooltip(welInput, sMessage){
-            welInput.tooltip({"trigger": "manual", "placement": "right"});
+        function _showPopover(welInput, sMessage){
+            welInput.popover({"trigger": "manual", "placement": "right"});
 
-            var oToolTip = welInput.data('tooltip');
-            oToolTip.options.placement = 'right';
-            oToolTip.options.trigger   = 'manual';
-            oToolTip.options.title     = sMessage;
-            oToolTip.options.content   = sMessage;
+            var oPopover = welInput.data('popover');
+            oPopover.options.placement = 'right';
+            oPopover.options.trigger   = 'manual';
+            oPopover.options.content   = sMessage;
 
-            welInput.tooltip('show');
+            welInput.popover('show');
         }
 
         /**
          * 폼 영역에 있는 jquery.tooltip 모두 제거하는 함수
          */
-        function _clearTooltips(){
+        function _clearPopovers(){
             try {
                 htElement.welFormPswd.find("input").each(function(i, v){
-                    $(v).tooltip("destroy");
+                    $(v).popover("destroy");
                 });
             } catch(e){} // to avoid bootstrap bug
         }
