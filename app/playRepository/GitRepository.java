@@ -594,7 +594,7 @@ public class GitRepository implements PlayRepository {
 
         RevCommit parent = null;
         if (commit.getParentCount() > 0) {
-            parent = commit.getParent(0);
+            parent = parseCommit(commit.getParent(0));
         }
 
         return getPatch(parent, commit);
@@ -1814,6 +1814,13 @@ public class GitRepository implements PlayRepository {
      */
     private RevCommit getRevCommit(String revstr) throws IOException {
         ObjectId objectId = getObjectId(revstr);
+        return parseCommit(objectId);
+    }
+
+    /*
+     * AnyObjectId 를 이용해서 RevCommit 객체를 얻는다
+     */
+    private RevCommit parseCommit(AnyObjectId objectId) throws IOException {
         if (objectId == null) {
             return null;
         }
