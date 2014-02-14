@@ -334,10 +334,20 @@ object TemplateHelper {
       // Scala source files.
       // See http://www.playframework.com/documentation/2.2.x/JavaEbean
       (thread match {
-        case (t: CodeCommentThread) if t.pullRequest != null && t.commitId != null =>
+        case (t: CodeCommentThread) if t.isOnAllChangesOfPullRequest =>
+          thread.pullRequest.refresh()
+          routes.PullRequestApp.specificChange(
+              project.owner,
+              project.name,
+              t.pullRequest.number,
+              t.isOutdated match {
+                case true => t.commitId // This link may occur 404 Not Found because the repository does not have the commit matches with the given commitId.
+                case false => ""
+              })
+        case (t: CodeCommentThread) if t.isOnChangesOfPullRequest =>
           thread.pullRequest.refresh()
           routes.PullRequestApp.specificChange(project.owner, project.name, t.pullRequest.number, t.commitId)
-        case (t: CodeCommentThread) if t.pullRequest != null && t.commitId == null =>
+        case (t: CodeCommentThread) if t.isOnPullRequest =>
           thread.pullRequest.refresh()
           routes.PullRequestApp.pullRequestChanges(project.owner, project.name, t.pullRequest.number)
         case (t: CodeCommentThread) =>
