@@ -56,6 +56,7 @@
             this.$menu.html(items);
             return this;
         }
+
         /**
          * typeahead의 updater를 재정의
          * 
@@ -79,11 +80,11 @@
             } else {
                 htVar.htData.query = sQuery;
                 $yobi.sendForm({
-                    "sURL"        : htVar.sActionURL,
-                    "htOptForm"    : {"method":"get"},
+                    "sURL"      : htVar.sActionURL,
+                    "htOptForm" : {"method":"get"},
                     "htData"    : htVar.htData,
                     "sDataType" : "json",
-                    "fOnLoad"    : function(oData, oStatus, oXHR){
+                    "fOnLoad"   : function(oData, oStatus, oXHR){
                         var sContentRange = oXHR.getResponseHeader('Content-Range');
 
                         htVar.bIsLastRangeEntire = _isEntireRange(sContentRange);
@@ -124,9 +125,6 @@
             htElement.waBtns = $(".btns");
             htElement.enrollAcceptBtns = $(".enrollAcceptBtn");
             htElement.memberListWrap = $('.members');
-
-            // 멤버 삭제 확인 대화창
-            htElement.welAlertDelete = $("#alertDeletion");
         }
 
         /**
@@ -160,17 +158,18 @@
         function _onClickDelete(){
             var sURL = $(this).attr("data-href");
 
-            // DELETE 메소드로 AJAX 호출
-            $("#deleteBtn").click(function(){
-                $.ajax(sURL, {
-                    "method"  : "delete",
-                    "dataType": "html",
-                    "success" : _onSuccessDeleteMember,
-                    "error"   : _onErrorDeleteMember
-                });
-            });
-
-            _showConfirmDeleteMember(sURL);
+            $yobi.confirm(Messages("project.member.deleteConfirm"), function(htData){
+                if(htData.nButtonIndex === 1){
+                    $.ajax(sURL, {
+                        "method"  : "delete",
+                        "dataType": "html",
+                        "success" : _onSuccessDeleteMember,
+                        "error"   : _onErrorDeleteMember
+                    });
+                }
+            },
+            [Messages("button.no"), Messages("button.yes")],
+            ["ybtn-default", "ybtn-danger"]);
         }
 
         /**
@@ -204,14 +203,6 @@
             }
 
             $yobi.alert(sErrorMsg);
-        }
-
-        /**
-         * 멤버 삭제 확인 표시
-         * @param {String} sURL
-         */
-        function _showConfirmDeleteMember(sURL){
-            htElement.welAlertDelete.modal();
         }
 
         /**
