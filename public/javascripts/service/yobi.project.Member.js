@@ -138,6 +138,8 @@
             htElement.memberListWrap.on('click','[data-action="delete"]',_onClickDelete);
             
             htElement.enrollAcceptBtns.click(_onClickEnrollAcceptBtns);
+
+            $('#loginId').focus();
         }
 
         /**
