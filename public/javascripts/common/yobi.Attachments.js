@@ -321,8 +321,9 @@ yobi.Attachments = function(htOptions) {
             "#" + htData.nSubmitId,
             '.attached-file[data-id="' + htData.oRes.id + '"]'
         ];
+
         var welFileItem = $(aFileItemQuery.join(", "));
-        var sTempLink = _getTempLinkText(htData.oRes.name);
+        var sTempLink = _getTempLinkText(htData.nSubmitId);
         var sRealLink = _getLinkText(welFileItem);
         _replaceLinkInTextarea(sTempLink, sRealLink);
     }
@@ -556,7 +557,7 @@ yobi.Attachments = function(htOptions) {
      * @private
      */
     function _onPasteFile(htData){
-        _insertLinkToTextarea(_getTempLinkText(htData.oFile.name));
+        _insertLinkToTextarea(_getTempLinkText(htData.nSubmitId));
     }
 
     /**
@@ -571,7 +572,7 @@ yobi.Attachments = function(htOptions) {
 
         if(elTarget.tagName.toLowerCase() === "textarea"){
             for(var i =0; i < nLength; i++){
-                _insertLinkToTextarea(_getTempLinkText(oFiles[i].name));
+                _insertLinkToTextarea(_getTempLinkText(oFiles[i].nSubmitId));
             }
         }
     }
