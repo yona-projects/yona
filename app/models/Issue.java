@@ -346,6 +346,8 @@ public class Issue extends AbstractPosting implements LabelOwner {
         if (assignee != null) {
             baseWatchers.add(assignee.user);
         }
+        baseWatchers.addAll(this.voters);
+
         return super.getWatchers(baseWatchers);
     }
 

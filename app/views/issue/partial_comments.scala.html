@@ -119,6 +119,8 @@
                         @Html(Messages("issue.event.referred",linkToUser(user.loginId, user.name),linkToPullRequest(pull)))
                     }
                 }
+                case EventType.ISSUE_BODY_CHANGED => {
+                }
                 case _ => {
                     @event.newValue by @linkToUser(user.loginId, user.name)
                 }

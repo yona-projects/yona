@@ -108,6 +108,7 @@ public class NotificationEvent extends Model {
             case NEW_PULL_REQUEST:
             case NEW_PULL_REQUEST_COMMENT:
             case NEW_COMMIT:
+            case ISSUE_BODY_CHANGED:
                 return newValue;
             case PULL_REQUEST_STATE_CHANGED:
                 if (State.OPEN.state().equals(newValue)) {
@@ -457,6 +458,20 @@ public class NotificationEvent extends Model {
         notiEvent.newValue = issue.body;
 
         NotificationEvent.add(notiEvent);
+    }
+
+    public static NotificationEvent afterIssueBodyChanged(String oldBody, Issue issue, String urlToView) {
+        NotificationEvent notiEvent = createFromCurrentUser(issue);
+        notiEvent.title = formatReplyTitle(issue);
+        notiEvent.urlToView = urlToView;
+        notiEvent.receivers = getReceivers(issue);
+        notiEvent.eventType = EventType.ISSUE_BODY_CHANGED;
+        notiEvent.oldValue = oldBody;
+        notiEvent.newValue = issue.body;
+
+        NotificationEvent.add(notiEvent);
+
+        return notiEvent;
     }
 
     public static void afterNewPost(Posting post) {

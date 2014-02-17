@@ -307,6 +307,7 @@ notification.type.issue.assignee.changed = 이슈 담당자 변경
 notification.type.issue.referred.from.commit = 커밋에서의 이슈 언급
 notification.type.issue.referred.from.pullrequest = 코드 주고받기에서의 이슈 언급
 notification.type.issue.state.changed = 이슈 상태 변경
+notification.type.issue.body.changed = 이슈 본문 변경
 notification.type.member.enroll = 멤버 등록 요청
 notification.type.new.comment = 게시물과 이슈 새 댓글 등록
 notification.type.new.commit = 새 커밋

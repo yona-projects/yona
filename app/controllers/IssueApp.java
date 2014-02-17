@@ -607,6 +607,15 @@ public class IssueApp extends AbstractPostingApp {
         }
     }
 
+    private static void addBodyChangedNotification(Issue modifiedIssue, Issue originalIssue, Call redirectTo) {
+        if (!modifiedIssue.body.equals(originalIssue.body)) {
+            Issue updatedIssue = Issue.finder.byId(originalIssue.id);
+            NotificationEvent notiEvent = NotificationEvent.afterIssueBodyChanged(originalIssue.body, updatedIssue,
+                    redirectTo.absoluteURL(request()));
+            IssueEvent.addFromNotificationEvent(notiEvent, modifiedIssue, UserApp.currentUser().loginId);
+        }
+    }
+
     /**
      * 이슈 수정
      *
@@ -656,6 +665,7 @@ public class IssueApp extends AbstractPostingApp {
 
         addAssigneeChangedNotification(issue, originalIssue, redirectTo);
         addStateChangedNotification(issue, originalIssue, redirectTo);
+        addBodyChangedNotification(issue, originalIssue, redirectTo);
 
         Result result = editPosting(originalIssue, issue, issueForm, redirectTo, updateIssueBeforeSave);
 

@@ -307,6 +307,7 @@ notification.type.issue.assignee.changed = Changed Issue's Assignee
 notification.type.issue.referred.from.commit = Issue Referred from Commit
 notification.type.issue.referred.from.pullrequest = Issue Referred from PullRequest
 notification.type.issue.state.changed = Changed Issue's State
+notification.type.issue.body.changed = Changed Issue's Body
 notification.type.member.enroll = Requests for joining projects
 notification.type.new.comment = New Comment on a Posting or a Issue
 notification.type.new.commit = New Commits on a Project
