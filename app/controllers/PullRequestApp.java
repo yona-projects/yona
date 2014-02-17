@@ -433,7 +433,7 @@ public class PullRequestApp extends Controller {
         boolean canDeleteBranch = false;
         boolean canRestoreBranch = false;
 
-        if (pullRequest.isClosed()) {
+        if (pullRequest.isMerged()) {
             canDeleteBranch = GitRepository.canDeleteFromBranch(pullRequest);
             canRestoreBranch = GitRepository.canRestoreBranch(pullRequest);
         }
@@ -443,6 +443,7 @@ public class PullRequestApp extends Controller {
             requestState.put("id", pullRequestNumber);
             requestState.put("isOpen",     pullRequest.isOpen());
             requestState.put("isClosed",   pullRequest.isClosed());
+            requestState.put("isMerged",   pullRequest.isMerged());
             requestState.put("isMerging",  pullRequest.isMerging);
             requestState.put("isConflict", pullRequest.isConflict);
             requestState.put("canDeleteBranch", canDeleteBranch);
