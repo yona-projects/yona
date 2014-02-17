@@ -98,8 +98,10 @@
                             if(q.trim().toLowerCase().substring(1)==itemProps[settings.key].toLowerCase())
                                 return false
                             for (var j = 0; j < usernames.length; j++) {
+                                // remove sqaure brackets in item
+                                var modifiedItem = item.replace(new RegExp("\\[.*?\\]","g"),"");
                                 var username = (usernames[j].substring(1)).toLowerCase(),
-                                    re = new RegExp(current_delimiter + item, "g"),
+                                    re = new RegExp(current_delimiter + modifiedItem, "g"),
                                     used = ((q.toLowerCase()).match(re));
                                 if (item.indexOf(username) != -1 && used === null && usernames.indexOf(current_delimiter+itemProps[settings.key].toLowerCase()) == -1) {
                                     return true;
