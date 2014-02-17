@@ -34,12 +34,14 @@
                 }
             </div>
 
-            <div class="pull-right"><button type="button" class="ybtn ybtn-default" data-toggle="close">X</button></div>
+            <div class="pull-right"><button type="button" class="ybtn ybtn-default" data-toggle="close">&times;</button></div>
         </div>
-        <div class="write-comment-box">
+        <div class="write-comment-box nm">
             <div class="write-comment-wrap">
                 @help.markdown()
-                <textarea name="contents" class="text comment" markdown="true"></textarea>
+                <div class="textarea-box">
+                    <textarea name="contents" class="text comment" markdown="true"></textarea>
+                </div>
 
                 @** fileUploader **@
                 @if(!UserApp.currentUser.isAnonymous){

@@ -4,7 +4,7 @@
 @import utils.TemplateHelper._
 @import utils.TemplateHelper.DiffRenderer._
 
-<div id="thread-@thread.id" class="comment-thread-wrap"
+<div id="thread-@thread.id" class="comment-thread-wrap @thread.state.toString().toLowerCase()"
      @thread match {
          case (t: CodeCommentThread) => {
               data-toggle="CodeCommentThread" data-range-path="@t.codeRange.path"
@@ -14,16 +14,8 @@
          case _ => {}
      }
 >
-    <div class="thread-header">
-        @if(thread.state == CommentThread.ThreadState.OPEN) {
-        <button type="button" data-request-method="post" data-request-uri="@routes.CommentThreadApp.close(thread.id)" class="ybtn ybtn-watching ybtn-small">@Messages("commentThread.close")</button>
-        } else {
-        <button type="button" data-request-method="post" data-request-uri="@routes.CommentThreadApp.open(thread.id)" class="ybtn ybtn-watching ybtn-small">@Messages("commentThread.open")</button>
-        }
-        <button type="button" class="ybtn ybtn-default ybtn-small btn-thread-minimize"><i class="yobicon-minimize"></i></button>
-    </div>
     <div class="btn-thread-here btn-thread-minimize">
-        <button type="button" class="ybtn ybtn-default"><i class="yobicon-comments"></i></button>
+        <button type="button" class="ybtn ybtn-default ybtn-small"><i class="yobicon-comments"></i></button>
     </div>
     <ul class="comments">
         @for(comment: ReviewComment <- thread.reviewComments) {
@@ -56,6 +48,18 @@
         }
     </ul>
     <p class="thread-actrow">
+        <button type="button" class="ybtn ybtn-default ybtn-small btn-thread-minimize"><i class="yobicon-minimize"></i></button>
+
+        @if(utils.AccessControl.isAllowed(UserApp.currentUser(), thread.asResource(), Operation.UPDATE)){
+            @if(thread.state == CommentThread.ThreadState.OPEN) {
+            <button type="button" data-request-method="post" data-request-uri="@routes.CommentThreadApp.close(thread.id)" class="ybtn ybtn-default ybtn-small">@Messages("commentThread.close")</button>
+            } else {
+            <button type="button" data-request-method="post" data-request-uri="@routes.CommentThreadApp.open(thread.id)" class="ybtn ybtn-default ybtn-small">@Messages("commentThread.open")</button>
+            }
+        }
+
+        @if(utils.AccessControl.isProjectResourceCreatable(UserApp.currentUser(), thread.project, ResourceType.REVIEW_COMMENT)){
         <button type="button" class="ybtn ybtn-default ybtn-small btn-thread" data-thread-id="@thread.id">@Messages("button.comment.new")</button>
+        }
     </p>
 </div>

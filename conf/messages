@@ -454,6 +454,7 @@ pullRequest.close = Close
 pullRequest.code.commented.from = commented from {0}
 pullRequest.code.commented.on.from = commented on {1} from {0}
 pullRequest.code.replied = replied
+pullRequest.changes.all = All Changes
 pullRequest.conflict.files = Conflicted Files
 pullRequest.delete.branch = Delete Branch
 pullRequest.delete.frombranch.message = can be deleted.

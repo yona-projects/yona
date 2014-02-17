@@ -455,6 +455,7 @@ pullRequest.close = 닫기
 pullRequest.code.commented.from = {0} 에 댓글을 작성했습니다.
 pullRequest.code.commented.on.from = {0} 의 {1} 에 댓글을 작성했습니다.
 pullRequest.code.replied = 답글을 작성했습니다.
+pullRequest.changes.all = 모든 커밋의 변경내역
 pullRequest.conflict.files = 충돌난 파일
 pullRequest.delete.branch = 브랜치 삭제
 pullRequest.delete.frombranch.message = 브랜치를 삭제할 수 있습니다.

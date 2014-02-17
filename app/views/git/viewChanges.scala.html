@@ -16,84 +16,103 @@
             @partial_info(project, pull, "changes")
             @partial_branch(pull)
 
-            <div id="commits" class="btn-group auto mt10">
-                <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                    <span class="d-label">@if(commitId == null) { All } else {
-                    @PullRequestCommit.getByCommitId(pull, commitId) match {
-                        case (commit: PullRequestCommit) => {
-                            @commit.state match {
-                                case PullRequestCommit.State.PRIOR => { @shortId(commitId) (Outdated) }
-                                case _ => { @shortId(commitId) }
-                            }
-                        }
-                        case null => { All (Outdated - @shortId(commitId)) }
-                    }
-                    }</span>
-                    <span class="d-caret"><span class="caret"></span></span>
-                </button>
-                <ul class="dropdown-menu">
-                    <li data-value="All">
-                        <a href="@routes.PullRequestApp.pullRequestChanges(project.owner, project.name, pull.number)">All</a>
-                    </li>
-                    <li class="divider"></li>
-                    @for(commit <- pull.pullRequestCommits if commit.state == PullRequestCommit.State.CURRENT){
-                    <li data-value="@commit.commitId">
-                        <a href="@routes.PullRequestApp.specificChange(project.owner, project.name, pull.number, commit.commitId)">
-                            <strong class="blue-txt mr10">@commit.commitShortId</strong>
-                            <span>@commit.getCommitMessage.split("\n")(0)</span>
-                        </a>
-                    </li>
-                    }
-                </ul>
-            </div>
-
-            @if(commitId != null) {
-                @defining(playRepository.RepositoryService.getRepository(project).getCommit(commitId)) { commit =>
-                    <p class="commitInfo">
-                        @(commit.getAuthor, commit.getAuthorEmail, commit.getAuthorName) match {
-                            case (user: User, _, _) if !user.isAnonymous => {
-                                <a href="@routes.UserApp.userInfo(commit.getAuthor.loginId)" class="avatar-wrap">
-                                    <img src="@commit.getAuthor.avatarUrl" alt="@commit.getAuthor.name" width="32" height="32"/>
-                                </a>
-                                <strong>@commit.getAuthor.name</strong>
-                            }
-                            case (_, email, name) if email != null => {
-                                <span class="avatar-wrap">
-                                    <img src="@urlToPicture(commit.getAuthorEmail, 32)" width="32" height="32">
-                                </span>
-                                @if(name != null) {
-                                    <strong>@name</strong>
-                                }
-                            }
-                            case (_, _, name) if name != null => {
-                                <strong>@name</strong>
-                            }
-                            case (_, _, _) => {
-                                <strong>@User.anonymous.name</strong>
-                            }
-                        }
-                    <span class="ago" title="@JodaDateUtil.getDateString(commit.getAuthorDate)">
-                    @agoString(JodaDateUtil.ago(commit.getAuthorDate))
-                    </span>
-                    </p>
-                    <pre class="commitMsg">@commit.getMessage</pre>
-                }
-            }
-
-            <div class="pullRequest-changes">
+            <div class="pullRequest-changes mt10">
                 <button type="button" class="ybtn ybtn-default btn-toggle-reviewcards">
                     <i class="yobicon-minimize"></i>
                     <i class="yobicon-restore"></i>
                 </button>
 
                 <div class="diffs-wrap">
-                    <div class="diff-body mt20">
+                    <div id="commits" class="btn-group auto mb10">
+                        <button class="btn dropdown-toggle auto" data-toggle="dropdown">
+                            <span class="d-label">
+                            @if(commitId == null) {
+                                @Messages("pullRequest.changes.all")
+                            } else {
+                                @PullRequestCommit.getByCommitId(pull, commitId) match {
+                                    case (commit: PullRequestCommit) => {
+                                        @commit.state match {
+                                            case PullRequestCommit.State.PRIOR => {
+                                                <strong class="blue-txt mr10">@shortId(commitId)</strong>
+                                                <span>@commit.getCommitMessage.split("\n")(0) (Outdated)</span>
+                                            }
+                                            case _ => {
+                                                <strong class="blue-txt mr10">@shortId(commitId)</strong>
+                                                <span>@commit.getCommitMessage.split("\n")(0)</span>
+                                            }
+                                        }
+                                    }
+                                    case null => {
+                                        @Messages("pullRequest.changes.all") (Outdated - <strong class="blue-txt mr10">@shortId(commitId)</strong>)
+                                    }
+                                }
+                            }
+                            </span>
+                            <span class="d-caret"><span class="caret"></span></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li data-value="All">
+                                <a href="@routes.PullRequestApp.pullRequestChanges(project.owner, project.name, pull.number)">@Messages("pullRequest.changes.all")</a>
+                            </li>
+                            <li class="divider"></li>
+                            @for(commit <- pull.pullRequestCommits if commit.state == PullRequestCommit.State.CURRENT){
+                            <li data-value="@commit.commitId">
+                                <a href="@routes.PullRequestApp.specificChange(project.owner, project.name, pull.number, commit.commitId)">
+                                    <strong class="blue-txt mr10">@commit.commitShortId</strong>
+                                    <span>@commit.getCommitMessage.split("\n")(0)</span>
+                                </a>
+                            </li>
+                            }
+                        </ul>
+                    </div>
+
+                    @if(commitId != null) {
+                    @defining(playRepository.RepositoryService.getRepository(project).getCommit(commitId)) { commit =>
+                    <p class="commitInfo">
+                        @(commit.getAuthor, commit.getAuthorEmail, commit.getAuthorName) match {
+                        case (user: User, _, _) if !user.isAnonymous => {
+                            <a href="@routes.UserApp.userInfo(commit.getAuthor.loginId)" class="avatar-wrap smaller">
+                                <img src="@commit.getAuthor.avatarUrl" alt="@commit.getAuthor.name" width="32" height="32"/>
+                            </a>
+                            <strong>@commit.getAuthor.name</strong>
+                        }
+                        case (_, email, name) if email != null => {
+                            <span class="avatar-wrap">
+                                <img src="@urlToPicture(commit.getAuthorEmail, 32)" width="32" height="32">
+                            </span>
+                            @if(name != null) {
+                            <strong>@name</strong>
+                            }
+                        }
+                        case (_, _, name) if name != null => {
+                            <strong>@name</strong>
+                        }
+                        case (_, _, _) => {
+                            <strong>@User.anonymous.name</strong>
+                        }
+                        }
+                        <span class="ago" title="@JodaDateUtil.getDateString(commit.getAuthorDate)">
+                            @agoString(JodaDateUtil.ago(commit.getAuthorDate))
+                        </span>
+                    </p>
+                    <pre class="commitMsg mt5">@commit.getMessage</pre>
+                    }
+                    }
+
+                    <div class="diff-body diffs-wrap-scroll">
                         @if(pull.isMerging == false && pull.isConflict == false){
                             @views.html.partial_diff(pull.getDiff(commitId), pull.getCodeCommentThreadsForChanges(commitId), pull.toProject, pull.toProject)
                         } else {
                             @partial_state(project, pull, false, false)
                         }
                         <div class="btnPop"><button type="button" class="ybtn ybtn-info ybtn-mini"><i class="yobicon-comments"></i></button></div>
+                    </div>
+
+                    <div class="board-comment-wrap">
+                        <div class="non-ranged-threads-wrap">
+                            @renderNonRangedThreads(pull.commentThreads.toList, commitId, Html(""))
+                        </div>
+                        @common.commentForm(project, ResourceType.REVIEW_COMMENT, routes.PullRequestApp.newComment(project.owner, project.name, pull.id, commitId).toString())
                     </div>
 
                     @** BlockComment **@
@@ -104,49 +123,53 @@
                 </div>
 
                 <div class="review-wrap">
-                    <ul class="nav nav-tabs mt20" style="margin-bottom:10px;">
+                    <ul class="nav nav-tabs" style="margin-bottom:10px;">
                         <li class="active"><a href="#reviewcards-open" data-toggle="tab">@Messages("issue.state.open")</a></li>
                         <li><a href="#reviewcards-closed" data-toggle="tab">@Messages("issue.state.closed")</a></li>
                     </ul>
 
-                    <div class="tab-content">
+                    <div class="tab-content review-wrap-scroll">
                         <div id="reviewcards-open" class="tab-pane active">
                             @for(thread: CodeCommentThread <- pull.getCodeCommentThreadsForChanges(commitId)) {
-                            <div class="review-card @thread.state.toString().toLowerCase()">
-                                <div class="content">@thread.getFirstReviewComment().getContents()</div>
-                                <div class="date" title="@utils.JodaDateUtil.getDateString(thread.createdDate)">
+                            @if(thread.state == CommentThread.ThreadState.OPEN){
+                            <a href="#thread-@thread.id" class="review-card @thread.state.toString().toLowerCase()">
+                                <p class="content">@thread.getFirstReviewComment().getContents()</p>
+                                <span class="date" title="@utils.JodaDateUtil.getDateString(thread.createdDate)">
                                     @utils.JodaDateUtil.momentFromNow(thread.createdDate)
-                                </div>
-                            </div>
+                                </span>
+                            </a>
+                            }
+                            }
                         </div>
 
                         <div id="reviewcards-closed" class="tab-pane">
-
+                            @for(thread: CodeCommentThread <- pull.getCodeCommentThreadsForChanges(commitId)) {
+                            @if(thread.state == CommentThread.ThreadState.CLOSED){
+                            <a href="#thread-@thread.id" class="review-card @thread.state.toString().toLowerCase()">
+                                <p class="content">@thread.getFirstReviewComment().getContents()</p>
+                                <span class="date" title="@utils.JodaDateUtil.getDateString(thread.createdDate)">
+                                    @utils.JodaDateUtil.momentFromNow(thread.createdDate)
+                                </span>
+                            </a>
+                            }
+                            }
                         </div>
                     </div>
-                    }
                 </div>
+
+                @** BlockComment **@
+                @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.REVIEW_COMMENT)){
+                    @common.reviewForm(project, ResourceType.REVIEW_COMMENT, routes.PullRequestApp.newComment(project.owner, project.name, pull.id, commitId).toString())
+                }
+                @** // BlockComment **@
             </div>
 
-            @** BlockComment **@
-            @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.REVIEW_COMMENT)){
-                @common.reviewForm(project, ResourceType.REVIEW_COMMENT, routes.PullRequestApp.newComment(project.owner, project.name, pull.id, commitId).toString())
-            }
-            @** // BlockComment **@
-        </div>
-
-        <div class="board-comment-wrap">
-            <hr class="nm">
-            <ul class="comments" id="comments">
-            @renderNonRangedThreads(pull.commentThreads.toList, commitId, Html(""))
-            </ul>
-            @common.commentForm(project, ResourceType.REVIEW_COMMENT, routes.PullRequestApp.newComment(project.owner, project.name, pull.id, commitId).toString())
-        </div>
-
-        <div id="minimap" class="minimap-outer">
-            <div class="minimap-wrap">
-                <div class="minimap-curr"></div>
-                <div class="minimap-links"></div>
+            <div class="board-comment-wrap">
+                <hr class="nm">
+                <ul class="comments" id="comments">
+                @renderNonRangedThreads(pull.commentThreads.toList, commitId, Html(""))
+                </ul>
+                @common.commentForm(project, ResourceType.REVIEW_COMMENT, routes.PullRequestApp.newComment(project.owner, project.name, pull.id, commitId).toString())
             </div>
         </div>
     </div>

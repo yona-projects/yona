@@ -3334,16 +3334,40 @@ label.issue-item-row {
     position:relative;
 
     .diffs-wrap {
-        display:block; float:left; min-height:30px; position:relative; width:75.5%;
+        position:relative; width:75%;
+        display:block; float:left;
         .transition(width 0.5s);
+
+        .diff-body {
+            position:relative;
+            border:1px solid #ddd;
+            .border-radius(3px);
+            min-height:30px;
+        }
+
+        .diff-partial-outer { border:none; }
     }
     .review-wrap {
-        display:block; float:left; min-height:30px; position:relative; width:23.5%; margin-left:1%;
+        position:relative; width:23.5%;
+        display:block; float:left;
+        min-height:30px; margin-left:1%;
+    }
+    .diffs-wrap-scroll {
+        position:relative;
+        border:1px solid #ddd;
+        min-height:30px;
+        /*max-height:1000px;
+        overflow:auto;*/
+    }
+    .review-wrap-scroll {
+        /* .diffs-wrap-scroll - 50px(ul.tab-tabs) */
+        max-height:950px;
+        overflow:auto;
     }
 
     .btn-toggle-reviewcards {
         position:absolute;
-        top:20px; right:0;
+        top:0px; right:0;
         z-index:10; zoom:1;
         .transition(0.3s right);
 
@@ -3354,11 +3378,26 @@ label.issue-item-row {
     &.diffs-only {
         .diffs-wrap { width:100%; }
         .review-wrap { display:none; }
-        .btn-toggle-reviewcards {
-            right:-52px;
 
-            .yobicon-minimize { display:none; }
-            .yobicon-restore { display:block; }
+        .btn-hide-reviewcards {
+            display: none;
+        }
+        .btn-show-reviewcards {
+            display:block;
+            position:absolute;
+            top:0; right:-52px;
+            z-index:10;
+        }
+    }
+
+    .non-ranged-threads-wrap {
+        margin-top:20px;
+
+        .btn-thread-minimize { display:none; }
+        .comment-thread-wrap {
+            border-right:1px solid #ddd;
+            border-left:1px solid #ddd;
+            .border-radius(0 3px 3px 0);
         }
     }
 }
@@ -4957,13 +4996,9 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 .comment-thread-wrap {
     border:1px solid #e5e5e5;
     border-width:1px 0px;
-    padding:0 5px;
+    padding:5px;
+    padding-bottom:0;
     background-color:#fefefe;
-
-    .thread-header {
-        text-align:right;
-        padding:5px; margin-top:5px;
-    }
 
     .comments {
         margin:0 5px;
@@ -4980,6 +5015,17 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         padding:5px 5px 10px;
     }
 
+    &.open {
+        .box-shadow(inset 5px 0 0 @state-open);
+    }
+
+    &.closed {
+        .box-shadow(inset 5px 0 0 @state-closed);
+        .comments {
+            .opacity(50);
+        }
+    }
+
     &.fold {
         padding:0; margin:0;
         background: transparent;
@@ -4990,23 +5036,29 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
             display:none;
         }
         .btn-thread-here {
-            position:absolute;
-            right:10px; margin-top:10px;
+            position:absolute; z-index:99;
+            right:10px; margin-top:-25px;
             display:block;
+        }
+
+        &.open .btn-thread-here button {
+            border-left:3px solid @state-open;
+        }
+        &.closed .btn-thread-here button {
+            border-left:3px solid @state-closed;
         }
     }
 }
 .comment-thread-wrap + .comment-thread-wrap {
-    margin-top:20px;
+    margin-top:10px;
 }
 .comment-thread-wrap.fold + .comment-thread-wrap {
     margin-top:0;
-    .btn-thread-here { margin-top:20px; }
 }
 
 .review-form {
     position:absolute; display: none;
-    z-index:99; top:0px; left:2px; right:2px;
+    z-index:99; top:0px; left:0px; right:0px;
     padding: 15px 15px 10px;
     background: #fff;
     border:1px solid #ccc;
@@ -5062,11 +5114,19 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     padding:4px 0;
 }
 .review-card {
+    display:block;
     border: 1px solid #ddd;
     padding: 10px;
     padding-left: 15px;
-    .border-radius(3px);
+    margin-bottom: 5px;
+    .border-radius(0 3px 3px 0);
 
+    &:last-of-type { margin-bottom:0; }
+    &:hover {
+        text-decoration:none;
+        background-color:#fafafa;
+    }
+    
     &.open {
         .box-shadow(inset 5px 0px 0px @state-open);
     }
@@ -5075,6 +5135,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     }
 
     .content {
+        display: box;
         display: -webkit-box;
         overflow:hidden;
         text-overflow:ellipsis;
@@ -5082,12 +5143,15 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         max-height: 60px;
         -webkit-line-clamp: 3;
         -webkit-box-orient:vertical;
+        word-break:break-all;
+        line-height:130%;
     }
 
     .date {
         color:#999;
         text-align:right;
         margin-top:5px;
+        display:block;
     }
 }
 
