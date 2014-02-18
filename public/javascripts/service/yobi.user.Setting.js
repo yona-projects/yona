@@ -351,7 +351,7 @@
 
             // to avoid bootstrap bug
             if (aErrors.length <= 0) {
-                return _clearTooltips();
+                return _clearPopovers();
             }
 
             var welTarget;
