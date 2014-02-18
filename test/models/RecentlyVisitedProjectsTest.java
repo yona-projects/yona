@@ -109,7 +109,7 @@ public class RecentlyVisitedProjectsTest extends ModelTest<RecentlyVisitedProjec
         doortts.visits(cubrid);
 
         // When
-        List<ProjectVisitation> projects = doortts.getVisitedProjects();
+        List<ProjectVisitation> projects = doortts.getVisitedProjects(2);
 
         // Then
         assertThat(projects.size()).isEqualTo(2);
@@ -127,7 +127,7 @@ public class RecentlyVisitedProjectsTest extends ModelTest<RecentlyVisitedProjec
         doortts.visits(yobi);
 
         // When
-        List<ProjectVisitation> projects = doortts.getVisitedProjects();
+        List<ProjectVisitation> projects = doortts.getVisitedProjects(2);
 
         // Then
         assertThat(projects.size()).isEqualTo(2);
