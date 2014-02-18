@@ -680,6 +680,9 @@ public class IssueApp extends AbstractPostingApp {
     public static Result deleteIssue(String ownerName, String projectName, Long number) {
         Project project = ProjectApp.getProject(ownerName, projectName);
         Issue issue = Issue.findByNumber(project, number);
+        if(!issue.canBeDeleted()) {
+            return badRequest(ErrorViews.BadRequest.render());
+        }
         Call redirectTo =
             routes.IssueApp.issues(project.owner, project.name, State.OPEN.state(), "html", 1);
 
