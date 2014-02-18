@@ -21,7 +21,7 @@ public class AccessControl {
      * @param user
      * @return user가 해당 resourceType을 생성할 수 있는지 여부
      */
-    public static boolean isCreatable(User user) {
+    public static boolean isGlobalResourceCreatable(User user) {
         return !user.isAnonymous();
     }
 
