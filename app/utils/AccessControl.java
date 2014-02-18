@@ -147,7 +147,7 @@ public class AccessControl {
      * @return
      */
     private static boolean isProjectResourceAllowed(User user, Project project, Resource resource, Operation operation) {
-        if (ProjectUser.isManager(user.id, project.id)) {
+        if (user.isSiteManager() || ProjectUser.isManager(user.id, project.id)) {
             return true;
         }
 
