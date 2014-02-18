@@ -131,23 +131,23 @@
                     <div class="tab-content review-wrap-scroll">
                         <div id="reviewcards-open" class="tab-pane active">
                         @for(thread: CommentThread <- pull.getCommentThreadsByState(CommentThread.ThreadState.OPEN)) {
-                            <a href="#thread-@thread.id" class="review-card @thread.state.toString().toLowerCase()">
-                                <p class="content">@thread.getFirstReviewComment().getContents()</p>
-                                <span class="date" title="@utils.JodaDateUtil.getDateString(thread.createdDate)">
-                                @utils.JodaDateUtil.momentFromNow(thread.createdDate)
-                                </span>
-                            </a>
+                        <a href="#thread-@thread.id" class="review-card @thread.state.toString().toLowerCase()">
+                            <p class="content">@thread.getFirstReviewComment().getContents()</p>
+                            <span class="date" title="@utils.JodaDateUtil.getDateString(thread.createdDate)">
+                                @utils.JodaDateUtil.momentFromNow(thread.createdDate, lang.language)
+                            </span>
+                        </a>
                         }
                         </div>
 
                         <div id="reviewcards-closed" class="tab-pane">
                         @for(thread: CommentThread <- pull.getCommentThreadsByState(CommentThread.ThreadState.CLOSED)) {
-                            <a href="#thread-@thread.id" class="review-card @thread.state.toString().toLowerCase()">
-                                <p class="content">@thread.getFirstReviewComment().getContents()</p>
-                                <span class="date" title="@utils.JodaDateUtil.getDateString(thread.createdDate)">
-                                @utils.JodaDateUtil.momentFromNow(thread.createdDate)
-                                </span>
-                            </a>
+                        <a href="#thread-@thread.id" class="review-card @thread.state.toString().toLowerCase()">
+                            <p class="content">@thread.getFirstReviewComment().getContents()</p>
+                            <span class="date" title="@utils.JodaDateUtil.getDateString(thread.createdDate)">
+                                @utils.JodaDateUtil.momentFromNow(thread.createdDate, lang.language)
+                            </span>
+                        </a>
                         }
                         </div>
                     </div>
