@@ -283,6 +283,20 @@ $yobi = yobi.Common = (function(){
     }
 
     /**
+     * Show confirm before send ajax.
+     *
+     * @param {String} sMessage confirm message
+     * @param {Hash Table} htAjaxOptions jQuery.ajax settings
+     */
+    function ajaxConfirm(sMessage, htAjaxOptions){
+        showConfirm(sMessage, function(htData){
+            if(htData.nButtonIndex === 1){
+                $.ajax(htAjaxOptions);
+            }
+        });
+    }
+
+    /**
      * Show notification message using Toast PopUp
      * @param {String} sMessage
      * @param {Number} nDuration
@@ -393,6 +407,7 @@ $yobi = yobi.Common = (function(){
         "showAlert" : showAlert,
         "alert"     : showAlert,
         "confirm"   : showConfirm,
+        "ajaxConfirm": ajaxConfirm,
         "notify"    : notify,
         "nl2br"     : nl2br,
         "tmpl"      : processTpl,
