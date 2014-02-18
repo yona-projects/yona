@@ -5,6 +5,7 @@ import models.enumeration.Direction;
 import models.enumeration.Operation;
 import models.resource.Resource;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import play.data.Form;
 import play.db.ebean.Model;
@@ -161,7 +162,7 @@ public class AbstractPostingApp extends Controller {
      */
     protected static void attachUploadFilesToPost(Resource resource) {
         final String[] temporaryUploadFiles = getTemporaryFileListFromHiddenForm();
-        if(StringUtils.isNotBlank(temporaryUploadFiles[0])){
+        if(isTemporaryFilesExist(temporaryUploadFiles)){
             int attachedFileCount = Attachment.moveOnlySelected(UserApp.currentUser().asResource(), resource,
                     temporaryUploadFiles);
             if( attachedFileCount != temporaryUploadFiles.length){
@@ -177,8 +178,18 @@ public class AbstractPostingApp extends Controller {
 
     private static String[] getTemporaryFileListFromHiddenForm() {
         Http.MultipartFormData body = request().body().asMultipartFormData();
+        if (body == null) {
+            return new String[] {};
+        }
         final String CSV_DELEMETER = ",";
         return body.asFormUrlEncoded()
             .get(AttachmentApp.TAG_NAME_FOR_TEMPORARY_UPLOAD_FILES)[0].split(CSV_DELEMETER);
+    }
+
+    private static boolean isTemporaryFilesExist(String[] files) {
+        if (ArrayUtils.getLength(files) == 0) {
+            return false;
+        }
+        return StringUtils.isNotBlank(files[0]);
     }
 }
