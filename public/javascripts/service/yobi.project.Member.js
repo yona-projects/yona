@@ -127,7 +127,6 @@
 
             // 멤버 삭제 확인 대화창
             htElement.welAlertDelete = $("#alertDeletion");
-            htElement.welBtnConfirmDelete = htElement.welAlertDelete.find(".btnDelete");
         }
 
         /**
@@ -212,7 +211,6 @@
          * @param {String} sURL
          */
         function _showConfirmDeleteMember(sURL){
-            htElement.welBtnConfirmDelete.attr("href", sURL);
             htElement.welAlertDelete.modal();
         }
 

@@ -85,6 +85,8 @@
 
             htElement.welLabelBoard.append(htElement.welNewCategory);
             
+            htElement.welAlertLeave = $("#alertLeave");
+
             /*
             htElement.welHome = $(".project-home");
             htElement.welHomeLogo = htElement.welHome.find(".logo");
@@ -157,6 +159,40 @@
                         $("#project-description").text(sDescription);
                 }).fail(function(err){
                         console.log("err>> ", err);
+                });
+            });
+            $('#projectLeaveBtn').on('click',function(){
+                htElement.welAlertLeave.modal();
+
+                var sURL = $(this).attr("data-href");
+
+                $("#leaveBtn").click(function(){
+
+                    $.ajax(sURL, {
+                        "method": "delete",
+                        "dataType": "html"
+                    }).done(function(sResult){
+                        var htData = $.parseJSON(sResult);
+                        document.location.replace(htData.location);
+                    }).fail(function(oXHR){
+                        var sErrorMsg;
+
+                        switch(oXHR.status){
+                            case 403: // 삭제하려는 멤버가 존재하지 않음
+                                sErrorMsg = Messages("project.member.notExist");
+                                break;
+
+                            case 404: // 프로젝트 찾을 수 없음
+                                sErrorMsg = Messages("project.is.empty");
+                                break;
+
+                            default:  // 그 이외의 기본 오류
+                                sErrorMsg = Messages("error.badrequest");
+                                break;
+                        }
+
+                        $yobi.alert(sErrorMsg);
+                    });
                 });
             });
         }
