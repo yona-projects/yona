@@ -104,6 +104,7 @@
     $(document).ready(function(){
 	    //issueList
         $yobi.loadModule("issue.MassUpdate", {
+            "sURL": "@routes.IssueApp.massUpdate(project.owner, project.name)",
             "welMassUpdateForm": $('#mass-update-form'),
 		    "welMassUpdateButtons": $('#mass-update-form button'),
 		    "welState": $("#state"),
