@@ -416,6 +416,7 @@ project.private.notice = 비공개 프로젝트도 프로젝트 이름,설명,�
 project.projects = 프로젝트
 project.public = 공개
 project.readme = 프로젝트에 대한 설명을 README.md 파일로 작성해서 코드저장소 루트 디렉토리에 추가하면 이 곳에 나타납니다.
+project.recently.visited = 최근 방문한 프로젝트
 project.reviewer.count.description = 명이 리뷰를 완료하면 코드를 받을 수 있습니다.
 project.reviewer.count.disable = 사용 안함
 project.reviewer.count.enable = 사용

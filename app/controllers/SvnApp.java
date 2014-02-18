@@ -78,6 +78,7 @@ public class SvnApp extends Controller {
         int status = response.waitAndGetStatus();
 
         // Send the response.
+        UserApp.currentUser().visits(project);
         return sendResponse(status, response.getInputStream());
     }
 

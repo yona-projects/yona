@@ -46,45 +46,25 @@
                     @Messages("title.logout")
                 </a>
             </li>
-            @defining(UserApp.currentUser.getWatchingProjects()){ watchingProjects =>
+            @defining(UserApp.currentUser.getVisitedProjects(5)){ visitedProjects =>
                 <li class="title">
-                    @Messages("project.watchingproject")
-                    <span class="numberic">@watchingProjects.size</span>
+                    @Messages("project.recently.visited")
+                    <span class="numberic">@visitedProjects.size</span>
                 </li>
-                @if(watchingProjects.length > 0) {
-                    @for(project <- watchingProjects){
-                        <li><a href="@routes.ProjectApp.project(project.owner, project.name)"><span class="gray">@project.owner / </span><span class="bold">@project.name</span></a></li>
+                @if(visitedProjects.length > 0) {
+                    @for(pv <- visitedProjects){
+                        <li><a href="@routes.ProjectApp.project(pv.project.owner, pv.project.name)"><span class="gray">@pv.project.owner / </span><span class="bold">@pv.project.name</span></a></li>
                     }
                 } else {
-                    <li class="empty">@Messages("project.is.empty")</li>
-                }
-            }
-
-            @defining(Project.findProjectsCreatedByUser(UserApp.currentUser.loginId, orderString)) { myProjects =>
-                <li class="title">
-                    @Messages("project.createdByMe")
-                    <span class="numberic">@myProjects.size</span>
-                </li>
-                @if(myProjects.length > 0) {
-                    @for(project <- myProjects){
-                        <li><a href="@routes.ProjectApp.project(project.owner, project.name)"><span class="gray">@project.owner / </span><span class="bold">@project.name</span></a></li>
+                    @defining(Project.findProjectsCreatedByUser(UserApp.currentUser.loginId, orderString)) { myProjects =>
+                        @if(myProjects.length > 0) {
+                            @for(project <- myProjects){
+                                <li><a href="@routes.ProjectApp.project(project.owner, project.name)"><span class="gray">@project.owner / </span><span class="bold">@project.name</span></a></li>
+                            }
+                        } else {
+                            <li class="empty">@Messages("project.is.empty")</li>
+                        }
                     }
-                } else {
-                    <li class="empty">@Messages("project.is.empty")</li>
-                }
-            }
-
-            @defining(Project.findProjectsJustMemberAndNotOwner(UserApp.currentUser, orderString)) { memberProjects =>
-                <li class="title">
-                    @Messages("project.default.group.member")
-                    <span class="numberic">@memberProjects.size</span>
-                </li>
-                @if(memberProjects.length > 0) {
-                    @for(project <- memberProjects){
-                        <li><a href="@routes.ProjectApp.project(project.owner, project.name)"><span class="gray">@project.owner / </span><span class="bold">@project.name</span></a></li>
-                    }
-                } else {
-                    <li class="empty">@Messages("project.is.empty")</li>
                 }
             }
         </ul>

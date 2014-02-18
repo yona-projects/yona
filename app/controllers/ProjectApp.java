@@ -140,7 +140,7 @@ public class ProjectApp extends Controller {
         List<PullRequest> pullRequests = PullRequest.findRecentlyReceived(project, RECENT_PULL_REQUEST_SHOW_LIMIT);
 
         List<History> histories = History.makeHistory(loginId, project, commits, issues, postings, pullRequests);
-
+        UserApp.currentUser().visits(project);
         return ok(overview.render("title.projectHome", project, histories));
     }
 

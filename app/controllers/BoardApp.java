@@ -176,6 +176,7 @@ public class BoardApp extends AbstractPostingApp {
             return ok(json);
         }
 
+        UserApp.currentUser().visits(project);
         Form<PostingComment> commentForm = new Form<>(PostingComment.class);
         return ok(view.render(post, commentForm, project));
     }

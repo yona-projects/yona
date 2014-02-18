@@ -412,7 +412,7 @@ public class PullRequestApp extends Controller {
                 comments.add(comment);
             }
         }
-
+        UserApp.currentUser().visits(project);
         return ok(view.render(project, pullRequest, comments, canDeleteBranch, canRestoreBranch));
     }
 

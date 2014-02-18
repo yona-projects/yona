@@ -143,6 +143,9 @@ public class User extends Model implements ResourceConvertible {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     public List<Email> emails;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    public RecentlyVisitedProjects recentlyVisitedProjects;
+
     public User() {
     }
 
@@ -556,5 +559,19 @@ public class User extends Model implements ResourceConvertible {
         }
 
         return anonymous;
+    }
+
+    public void visits(Project project) {
+        this.recentlyVisitedProjects = RecentlyVisitedProjects.addNewVisitation(this, project);
+        this.update();
+    }
+
+
+    public List<ProjectVisitation> getVisitedProjects(int size) {
+        if(size < 1 || this.recentlyVisitedProjects == null) {
+            return new ArrayList<>();
+        }
+
+        return this.recentlyVisitedProjects.findRecentlyVisitedProjects(size);
     }
 }
