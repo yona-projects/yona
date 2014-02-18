@@ -946,6 +946,24 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     /**
+     * 주어진 {@code state} 상태의 댓글 스레드 목록을 얻는다
+     *
+     * @param state
+     * @return
+     */
+    public List<CommentThread> getCommentThreadsByState(CommentThread.ThreadState state){
+        List<CommentThread> result = new ArrayList<>();
+
+        for (CommentThread commentThread : commentThreads) {
+            if(commentThread.state == state){
+                result.add(commentThread);
+            }
+        }
+
+        return result;
+    }
+
+    /**
      * 주어진 {@commitId}의 변경내역을 돌려준다.
      *
      * @param commitId
