@@ -29,9 +29,7 @@
                 <div class="date" title="@JodaDateUtil.getDateString(issue.createdDate)">
                     @agoString(issue.ago)
                 </div>
-                <div class="switch @if(!isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)){ deactivate }" data-on-label="@Messages("issue.state.open")" data-off-label="@Messages("issue.state.closed")">
-                    <input id="issueOpen" type="checkbox" data-toggle="switch" @if(issue.state == State.OPEN){ checked="checked" } @if(!isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)){disabled="disabled"}>
-                </div>
+                <span class="badge badge-issue-@issue.state.state.toLowerCase">@Messages("issue.state." + issue.state.state)</span>
             </div>
             <div class="title">
                 <strong class="board-id">#@issue.getNumber</strong> @issue.title
