@@ -21,6 +21,13 @@ roles:
     - !!models.Role
         name:           member
         active:         true
+    - !!models.Role
+        name:           org_admin
+        active:         true
+    - !!models.Role
+        name:           org_participant
+        active:         true
+
 
 # Labels
 labels:

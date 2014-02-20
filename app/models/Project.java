@@ -4,6 +4,7 @@ import com.avaje.ebean.Ebean;
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
 import controllers.routes;
+import models.enumeration.ProjectScope;
 import models.enumeration.RequestState;
 import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
@@ -116,6 +117,12 @@ public class Project extends Model implements LabelOwner {
     public Integer defaultReviewerCount = 1;
 
     public boolean isUsingReviewerCount;
+
+    @ManyToOne
+    public Organization organization;
+
+    @Enumerated(EnumType.STRING)
+    public ProjectScope projectScope;
 
     /**
      * 신규 프로젝트를 생성한다.
