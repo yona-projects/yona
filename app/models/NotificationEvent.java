@@ -19,6 +19,7 @@ import play.i18n.Messages;
 import play.libs.Akka;
 import playRepository.*;
 import scala.concurrent.duration.Duration;
+import utils.RouteUtil;
 
 import javax.persistence.*;
 import javax.servlet.ServletException;
@@ -30,6 +31,8 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static models.enumeration.EventType.*;
 
 @Entity
 public class NotificationEvent extends Model {
@@ -59,8 +62,6 @@ public class NotificationEvent extends Model {
 
     @Temporal(TemporalType.TIMESTAMP)
     public Date created;
-
-    public String urlToView;
 
     @Enumerated(EnumType.STRING)
     public ResourceType resourceType;
@@ -244,17 +245,30 @@ public class NotificationEvent extends Model {
      * @return
      * @see {@link controllers.PullRequestApp#newPullRequest(String, String)}
      */
-    public static NotificationEvent afterNewPullRequest(User sender, String urlToView, PullRequest pullRequest) {
+    public static NotificationEvent afterNewPullRequest(User sender, PullRequest pullRequest) {
         NotificationEvent notiEvent = createFrom(sender, pullRequest);
-        notiEvent.title = formatNewTitle(pullRequest);;
-        notiEvent.urlToView = urlToView;
+        notiEvent.title = formatNewTitle(pullRequest);
         notiEvent.receivers = getReceiversWithRelatedAuthors(sender, pullRequest);
-        notiEvent.eventType = EventType.NEW_PULL_REQUEST;
+        notiEvent.eventType = NEW_PULL_REQUEST;
         notiEvent.oldValue = null;
         notiEvent.newValue = pullRequest.body;
         NotificationEvent.add(notiEvent);
         return notiEvent;
     }
+
+    public String getUrlToView() {
+        switch(eventType) {
+            case MEMBER_ENROLL_REQUEST:
+                return routes.ProjectApp.members(
+                        getProject().owner, getProject().name).url();
+            case NEW_COMMIT:
+                return routes.CodeHistoryApp.historyUntilHead(
+                        getProject().owner, getProject().name).url();
+            default:
+                return RouteUtil.getUrl(resourceType, resourceId);
+        }
+    }
+
 
     /**
      * 보낸코드의 상태가 변경되었을때의 알림을 추가한다.
@@ -268,12 +282,11 @@ public class NotificationEvent extends Model {
      * @see {@link models.PullRequest#merge(models.PullRequestEventMessage)}
      * @see {@link controllers.PullRequestApp#addNotification(models.PullRequest, play.api.mvc.Call, models.enumeration.State, models.enumeration.State)}
      */
-    public static NotificationEvent afterPullRequestUpdated(User sender, String urlToView, PullRequest pullRequest, State oldState, State newState) {
+    public static NotificationEvent afterPullRequestUpdated(User sender, PullRequest pullRequest, State oldState, State newState) {
         NotificationEvent notiEvent = createFrom(sender, pullRequest);
         notiEvent.title = formatReplyTitle(pullRequest);
-        notiEvent.urlToView = urlToView;
         notiEvent.receivers = getReceivers(sender, pullRequest);
-        notiEvent.eventType = EventType.PULL_REQUEST_STATE_CHANGED;
+        notiEvent.eventType = PULL_REQUEST_STATE_CHANGED;
         notiEvent.oldValue = oldState.state();
         notiEvent.newValue = newState.state();
         NotificationEvent.add(notiEvent);
@@ -293,9 +306,8 @@ public class NotificationEvent extends Model {
     public static NotificationEvent afterMerge(User sender, PullRequest pullRequest, GitConflicts conflicts, State state) {
         NotificationEvent notiEvent = createFrom(sender, pullRequest);
         notiEvent.title = formatReplyTitle(pullRequest);
-        notiEvent.urlToView = urlToView(pullRequest);
         notiEvent.receivers = state == State.MERGED ? getReceiversWithRelatedAuthors(sender, pullRequest) : getReceivers(sender, pullRequest);
-        notiEvent.eventType = EventType.PULL_REQUEST_MERGED;
+        notiEvent.eventType = PULL_REQUEST_MERGED;
         notiEvent.newValue = state.state();
         if (conflicts != null) {
             notiEvent.oldValue = StringUtils.join(conflicts.conflictFiles, "\n");
@@ -310,18 +322,16 @@ public class NotificationEvent extends Model {
      * @param sender
      * @param pullRequest
      * @param newComment
-     * @param urlToView
      * @see {@link controllers.PullRequestCommentApp#newComment(String, String, Long)}
      */
-    public static void afterNewComment(User sender, PullRequest pullRequest, PullRequestComment newComment, String urlToView) {
+    public static void afterNewComment(User sender, PullRequest pullRequest, PullRequestComment newComment) {
         NotificationEvent notiEvent = createFrom(sender, newComment);
         notiEvent.title = formatReplyTitle(pullRequest);
-        notiEvent.urlToView = urlToView;
         Set<User> receivers = getMentionedUsers(newComment.contents);
         receivers.addAll(getReceivers(sender, pullRequest));
         receivers.remove(User.findByLoginId(newComment.authorLoginId));
         notiEvent.receivers = receivers;
-        notiEvent.eventType = EventType.NEW_PULL_REQUEST_COMMENT;
+        notiEvent.eventType = NEW_PULL_REQUEST_COMMENT;
         notiEvent.oldValue = null;
         notiEvent.newValue = newComment.contents;
 
@@ -329,38 +339,28 @@ public class NotificationEvent extends Model {
     }
 
     public static NotificationEvent afterNewPullRequest(PullRequest pullRequest) {
-        return afterNewPullRequest(UserApp.currentUser(), urlToView(pullRequest), pullRequest);
-    }
-
-    public static NotificationEvent afterPullRequestUpdated(User sender, PullRequest pullRequest, State oldState, State newState) {
-        return afterPullRequestUpdated(sender, urlToView(pullRequest), pullRequest, oldState, newState);
-    }
-
-    public static NotificationEvent afterPullRequestUpdated(String urlToView, PullRequest pullRequest, State oldState, State newState) {
-        return afterPullRequestUpdated(UserApp.currentUser(), urlToView, pullRequest, oldState, newState);
+        return afterNewPullRequest(UserApp.currentUser(), pullRequest);
     }
 
     public static NotificationEvent afterPullRequestUpdated(PullRequest pullRequest, State oldState, State newState) {
-        return afterPullRequestUpdated(urlToView(pullRequest), pullRequest, oldState, newState);
+        return afterPullRequestUpdated(UserApp.currentUser(), pullRequest, oldState, newState);
     }
 
     /**
      * 이슈와 게시물에 새 댓글을 달렸을 때 알림을 추가한다.
      *
      * @param comment
-     * @param urlToView
      */
-    public static void afterNewComment(Comment comment, String urlToView) {
+    public static void afterNewComment(Comment comment) {
         AbstractPosting post = comment.getParent();
 
         NotificationEvent notiEvent = createFromCurrentUser(comment);
         notiEvent.title = formatReplyTitle(post);
-        notiEvent.urlToView = urlToView;
         Set<User> receivers = getReceivers(post);
         receivers.addAll(getMentionedUsers(comment.contents));
         receivers.remove(UserApp.currentUser());
         notiEvent.receivers = receivers;
-        notiEvent.eventType = EventType.NEW_COMMENT;
+        notiEvent.eventType = NEW_COMMENT;
         notiEvent.oldValue = null;
         notiEvent.newValue = comment.contents;
 
@@ -371,21 +371,21 @@ public class NotificationEvent extends Model {
      * 이슈와 게시물에 새 댓글을 달렸을 때 알림을 추가한다.
      *
      * @param comment
-     * @param urlToView
      */
-    public static void afterNewCommentWithState(Comment comment, String urlToView, State state) {
+    public static void afterNewCommentWithState(Comment comment, State state) {
         AbstractPosting post = comment.getParent();
 
         NotificationEvent notiEvent = createFromCurrentUser(comment);
         notiEvent.title = formatReplyTitle(post);
-        notiEvent.urlToView = urlToView;
         Set<User> receivers = getReceivers(post);
         receivers.addAll(getMentionedUsers(comment.contents));
         receivers.remove(UserApp.currentUser());
         notiEvent.receivers = receivers;
-        notiEvent.eventType = EventType.NEW_COMMENT;
+        notiEvent.eventType = NEW_COMMENT;
         notiEvent.oldValue = null;
         notiEvent.newValue = comment.contents + "\n" + state.state();
+        notiEvent.resourceType = comment.asResource().getType();
+        notiEvent.resourceId = comment.asResource().getId();
 
         NotificationEvent.add(notiEvent);
     }
@@ -398,14 +398,12 @@ public class NotificationEvent extends Model {
      *
      * @param oldState
      * @param issue
-     * @param urlToView
      */
-    public static NotificationEvent afterStateChanged(State oldState, Issue issue, String urlToView) {
+    public static NotificationEvent afterStateChanged(State oldState, Issue issue) {
         NotificationEvent notiEvent = createFromCurrentUser(issue);
         notiEvent.title = formatReplyTitle(issue);
-        notiEvent.urlToView = urlToView;
         notiEvent.receivers = getReceivers(issue);
-        notiEvent.eventType = EventType.ISSUE_STATE_CHANGED;
+        notiEvent.eventType = ISSUE_STATE_CHANGED;
         notiEvent.oldValue = oldState != null ? oldState.state() : null;
         notiEvent.newValue = issue.state.state();
 
@@ -422,9 +420,8 @@ public class NotificationEvent extends Model {
      *
      * @param oldAssignee
      * @param issue
-     * @param urlToView
      */
-    public static NotificationEvent afterAssigneeChanged(User oldAssignee, Issue issue, String urlToView) {
+    public static NotificationEvent afterAssigneeChanged(User oldAssignee, Issue issue) {
         NotificationEvent notiEvent = createFromCurrentUser(issue);
 
         Set<User> receivers = getReceivers(issue);
@@ -440,8 +437,7 @@ public class NotificationEvent extends Model {
         }
         notiEvent.title = formatReplyTitle(issue);
         notiEvent.receivers = receivers;
-        notiEvent.urlToView = urlToView;
-        notiEvent.eventType = EventType.ISSUE_ASSIGNEE_CHANGED;
+        notiEvent.eventType = ISSUE_ASSIGNEE_CHANGED;
 
         NotificationEvent.add(notiEvent);
 
@@ -452,18 +448,16 @@ public class NotificationEvent extends Model {
         NotificationEvent notiEvent = createFromCurrentUser(issue);
         notiEvent.title = formatNewTitle(issue);
         notiEvent.receivers = getReceivers(issue);
-        notiEvent.urlToView = getUrlToView(issue);
-        notiEvent.eventType = EventType.NEW_ISSUE;
+        notiEvent.eventType = NEW_ISSUE;
         notiEvent.oldValue = null;
         notiEvent.newValue = issue.body;
 
         NotificationEvent.add(notiEvent);
     }
 
-    public static NotificationEvent afterIssueBodyChanged(String oldBody, Issue issue, String urlToView) {
+    public static NotificationEvent afterIssueBodyChanged(String oldBody, Issue issue) {
         NotificationEvent notiEvent = createFromCurrentUser(issue);
         notiEvent.title = formatReplyTitle(issue);
-        notiEvent.urlToView = urlToView;
         notiEvent.receivers = getReceivers(issue);
         notiEvent.eventType = EventType.ISSUE_BODY_CHANGED;
         notiEvent.oldValue = oldBody;
@@ -478,15 +472,14 @@ public class NotificationEvent extends Model {
         NotificationEvent notiEvent = createFromCurrentUser(post);
         notiEvent.title = formatNewTitle(post);
         notiEvent.receivers = getReceivers(post);
-        notiEvent.urlToView = getUrlToView(post);
-        notiEvent.eventType = EventType.NEW_POSTING;
+        notiEvent.eventType = NEW_POSTING;
         notiEvent.oldValue = null;
         notiEvent.newValue = post.body;
 
         NotificationEvent.add(notiEvent);
     }
 
-    public static void afterNewCommitComment(Project project, CommitComment codeComment, String urlToView) throws IOException, SVNException, ServletException {
+    public static void afterNewCommitComment(Project project, CommitComment codeComment) throws IOException, SVNException, ServletException {
         Commit commit = RepositoryService.getRepository(project).getCommit(codeComment.commitId);
         Set<User> watchers = commit.getWatchers(project);
         watchers.addAll(getMentionedUsers(codeComment.contents));
@@ -495,8 +488,7 @@ public class NotificationEvent extends Model {
         NotificationEvent notiEvent = createFromCurrentUser(codeComment);
         notiEvent.title = formatReplyTitle(project, commit);
         notiEvent.receivers = watchers;
-        notiEvent.urlToView = urlToView;
-        notiEvent.eventType = EventType.NEW_COMMENT;
+        notiEvent.eventType = NEW_COMMENT;
         notiEvent.oldValue = null;
         notiEvent.newValue = codeComment.contents;
 
@@ -509,14 +501,12 @@ public class NotificationEvent extends Model {
      * @param project
      * @param user
      * @param state
-     * @param urlToView
      */
-    public static void afterMemberRequest(Project project, User user, RequestState state, String urlToView) {
+    public static void afterMemberRequest(Project project, User user, RequestState state) {
         NotificationEvent notiEvent = createFromCurrentUser(project);
-        notiEvent.eventType = EventType.MEMBER_ENROLL_REQUEST;
+        notiEvent.eventType = MEMBER_ENROLL_REQUEST;
         notiEvent.receivers = getReceivers(project);
         notiEvent.newValue = state.name();
-        notiEvent.urlToView = urlToView;
         if (state == RequestState.ACCEPT || state == RequestState.REJECT) {
             notiEvent.receivers.remove(UserApp.currentUser());
             notiEvent.receivers.add(user);
@@ -528,6 +518,8 @@ public class NotificationEvent extends Model {
             notiEvent.title = formatReplyTitle(project, user);
             notiEvent.oldValue = RequestState.REQUEST.name();
         }
+        notiEvent.resourceType = project.asResource().getType();
+        notiEvent.resourceId = project.asResource().getId();
         NotificationEvent.add(notiEvent);
     }
 
@@ -545,10 +537,11 @@ public class NotificationEvent extends Model {
         NotificationEvent notiEvent = createFrom(sender, project);
         notiEvent.title = title;
         notiEvent.receivers = watchers;
-        notiEvent.urlToView = getUrlToHistoryView(project);
-        notiEvent.eventType = EventType.NEW_COMMIT;
+        notiEvent.eventType = NEW_COMMIT;
         notiEvent.oldValue = null;
         notiEvent.newValue = newCommitsMessage(commits, refNames, project);
+        notiEvent.resourceType = project.asResource().getType();
+        notiEvent.resourceId = project.asResource().getId();
         NotificationEvent.add(notiEvent);
     }
 
@@ -560,7 +553,7 @@ public class NotificationEvent extends Model {
      * @param eventType
      * @return
      */
-    public static NotificationEvent afterReviewed(Call call, PullRequest pullRequest, EventType eventType) {
+    public static NotificationEvent afterReviewed(PullRequest pullRequest, EventType eventType) {
         String title = formatReplyTitle(pullRequest);
         Resource resource = pullRequest.asResource();
         Set<User> receivers = pullRequest.getWatchers();
@@ -573,7 +566,6 @@ public class NotificationEvent extends Model {
         notiEvent.title = title;
         notiEvent.senderId = reviewer.id;
         notiEvent.receivers = receivers;
-        notiEvent.urlToView = call.url();
         notiEvent.resourceId = resource.getId();
         notiEvent.resourceType = resource.getType();
         notiEvent.eventType = eventType;
@@ -582,10 +574,6 @@ public class NotificationEvent extends Model {
         add(notiEvent);
 
         return notiEvent;
-    }
-
-    private static String getUrlToHistoryView(Project project) {
-        return routes.CodeHistoryApp.historyUntilHead(project.owner, project.name).url();
     }
 
     private static String newCommitsMessage(List<RevCommit> commits, List<String> refNames, Project project) {
@@ -656,14 +644,6 @@ public class NotificationEvent extends Model {
         return receivers;
     }
 
-    private static String getUrlToView(Issue issue) {
-        return routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.getNumber()).url();
-    }
-
-    private static String getUrlToView(Posting post) {
-        return routes.BoardApp.post(post.project.owner, post.project.name, post.getNumber()).url();
-    }
-
     /**
      * {@code posting}의 번호를 반환하되, 이슈라면 앞에 "#"을 붙인다.
      *
@@ -691,11 +671,6 @@ public class NotificationEvent extends Model {
     private static String formatReplyTitle(Project project, Commit commit) {
         return String.format("Re: [%s] %s (%s)",
                 project.name, commit.getShortMessage(), commit.getShortId());
-    }
-
-    private static String urlToView(PullRequest pullRequest) {
-        Project toProject = pullRequest.toProject;
-        return routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, pullRequest.number).url();
     }
 
     private static Set<User> getReceivers(User sender, PullRequest pullRequest) {

@@ -11,7 +11,6 @@ import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
-import models.resource.Resource;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.Tika;
 import org.codehaus.jackson.node.ObjectNode;
@@ -459,14 +458,12 @@ public class IssueApp extends AbstractPostingApp {
             updatedItems++;
 
             Issue updatedIssue = Issue.finder.byId(issue.id);
-            String urlToView = routes.IssueApp.issue(issue.project.owner, issue.project.name,
-                    issue.getNumber()).url();
             if(assigneeChanged) {
-                NotificationEvent notiEvent = NotificationEvent.afterAssigneeChanged(oldAssignee, updatedIssue, urlToView);
+                NotificationEvent notiEvent = NotificationEvent.afterAssigneeChanged(oldAssignee, updatedIssue);
                 IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
             }
             if(stateChanged) {
-                NotificationEvent notiEvent = NotificationEvent.afterStateChanged(oldState, updatedIssue, urlToView);
+                NotificationEvent notiEvent = NotificationEvent.afterStateChanged(oldState, updatedIssue);
                 IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
             }
         }
@@ -581,7 +578,7 @@ public class IssueApp extends AbstractPostingApp {
 
         Call redirectTo = routes.IssueApp.issue(project.owner, project.name, number);
         issue.toNextState();
-        NotificationEvent notiEvent = NotificationEvent.afterStateChanged(issue.previousState(), issue, redirectTo.url());
+        NotificationEvent notiEvent = NotificationEvent.afterStateChanged(issue.previousState(), issue);
         IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
         return redirect(redirectTo);
     }
@@ -593,7 +590,7 @@ public class IssueApp extends AbstractPostingApp {
             if(originalIssue.assignee != null) {
                 oldAssignee = originalIssue.assignee.user;
             }
-            NotificationEvent notiEvent = NotificationEvent.afterAssigneeChanged(oldAssignee, updatedIssue, redirectTo.absoluteURL(request()));
+            NotificationEvent notiEvent = NotificationEvent.afterAssigneeChanged(oldAssignee, updatedIssue);
             IssueEvent.addFromNotificationEvent(notiEvent, modifiedIssue, UserApp.currentUser().loginId);
         }
     }
@@ -601,8 +598,7 @@ public class IssueApp extends AbstractPostingApp {
     private static void addStateChangedNotification(Issue modifiedIssue, Issue originalIssue, Call redirectTo) {
         if(modifiedIssue.state != originalIssue.state) {
             Issue updatedIssue = Issue.finder.byId(originalIssue.id);
-            NotificationEvent notiEvent = NotificationEvent.afterStateChanged(originalIssue.state, updatedIssue,
-                    redirectTo.absoluteURL(request()));
+            NotificationEvent notiEvent = NotificationEvent.afterStateChanged(originalIssue.state, updatedIssue);
             IssueEvent.addFromNotificationEvent(notiEvent, modifiedIssue, UserApp.currentUser().loginId);
         }
     }
@@ -610,8 +606,7 @@ public class IssueApp extends AbstractPostingApp {
     private static void addBodyChangedNotification(Issue modifiedIssue, Issue originalIssue, Call redirectTo) {
         if (!modifiedIssue.body.equals(originalIssue.body)) {
             Issue updatedIssue = Issue.finder.byId(originalIssue.id);
-            NotificationEvent notiEvent = NotificationEvent.afterIssueBodyChanged(originalIssue.body, updatedIssue,
-                    redirectTo.absoluteURL(request()));
+            NotificationEvent notiEvent = NotificationEvent.afterIssueBodyChanged(originalIssue.body, updatedIssue);
             IssueEvent.addFromNotificationEvent(notiEvent, modifiedIssue, UserApp.currentUser().loginId);
         }
     }
@@ -778,10 +773,10 @@ public class IssueApp extends AbstractPostingApp {
         // Attach all of the files in the current user's temporary storage.
         Attachment.moveAll(UserApp.currentUser().asResource(), comment.asResource());
 
-        String urlToView = routes.IssueApp.issue(project.owner, project.name, number) + "#comment-" + comment.id;
-        NotificationEvent.afterNewComment(comment, urlToView);
+        String urlToView = RouteUtil.getUrl(comment);
+        NotificationEvent.afterNewComment(comment);
         IssueEvent.addFromNotificationEvent(
-                NotificationEvent.afterStateChanged(issue.previousState(), issue, urlToView),
+                NotificationEvent.afterStateChanged(issue.previousState(), issue),
                 issue, UserApp.currentUser().loginId);
         return redirect(urlToView);
     }
