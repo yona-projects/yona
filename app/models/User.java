@@ -577,4 +577,20 @@ public class User extends Model implements ResourceConvertible {
 
         return this.recentlyVisitedProjects.findRecentlyVisitedProjects(size);
     }
+
+    public void createOrganization(Organization organization) {
+        OrganizationUser ou = new OrganizationUser();
+        ou.user = this;
+        ou.organization = organization;
+        ou.role = Role.findByRoleType(RoleType.ORG_ADMIN);
+        ou.save();
+
+        this.add(ou);
+        organization.add(ou);
+        this.update();
+    }
+
+    private void add(OrganizationUser ou) {
+        this.organizationUsers.add(ou);
+    }
 }

@@ -31,6 +31,9 @@ alter table project add constraint ck_project_project_scope check (project_scope
 
 update project set project_scope = 'PUBLIC' where is_public = true;
 update project set project_scope = 'PRIVATE' where is_public = false;
+
+insert into role (id, name, active) values (6, 'org_admin', true);
+insert into role (id, name, active) values (7, 'org_member', true);
 # --- !Downs
 alter table project drop constraint if exists ck_project_project_scope;
 alter table project drop column project_scope;
@@ -47,3 +50,6 @@ drop table if exists organization_user;
 
 drop sequence if exists organization_seq;
 drop table if exists organization;
+
+delete from role where id = 6;
+delete from role where id = 7;
