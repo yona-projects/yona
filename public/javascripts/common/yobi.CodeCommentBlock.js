@@ -357,7 +357,9 @@ yobi.CodeCommentBlock = (function(){
      * @private
      */
     function _onUnwrapAllCodeCommentBlock(){
-        htElement.welButtonOnBlock.hide();
+        if(htElement.welButtonOnBlock){
+            htElement.welButtonOnBlock.hide();
+        }
     }
 
     /**

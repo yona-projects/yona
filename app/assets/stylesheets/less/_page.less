@@ -3346,11 +3346,17 @@ label.issue-item-row {
         }
 
         .diff-partial-outer { border:none; }
+        .write-comment-box { padding:0; margin-top:20px; }
     }
     .review-wrap {
-        position:relative; width:23.5%;
+        /*position:relative;*/ width:23.5%;
         display:block; float:left;
         min-height:30px; margin-left:1%;
+
+        &.fixed {
+            position:fixed;
+            top:0; background:#fff;
+        }
     }
     .diffs-wrap-scroll {
         position:relative;
@@ -3361,8 +3367,8 @@ label.issue-item-row {
     }
     .review-wrap-scroll {
         /* .diffs-wrap-scroll - 50px(ul.tab-tabs) */
-        max-height:950px;
-        overflow:auto;
+        /*max-height:950px;
+        overflow:auto;*/
     }
 
     .btn-toggle-reviewcards {
@@ -3398,6 +3404,17 @@ label.issue-item-row {
             border-right:1px solid #ddd;
             border-left:1px solid #ddd;
             .border-radius(0 3px 3px 0);
+        }
+    }
+
+    .non-ranged-threads-wrap {
+        margin-top:20px;
+
+        .btn-thread-minimize { display:none; }
+        .comment-thread-wrap {
+            border-right:1px solid #ddd;
+            border-left:1px solid #ddd;
+            .border-radius(3px);
         }
     }
 }

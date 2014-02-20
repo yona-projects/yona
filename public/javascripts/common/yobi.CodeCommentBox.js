@@ -135,12 +135,7 @@ yobi.CodeCommentBox = (function(){
         var sArrowPlacement = htVar.htArrowPlacement[sPlacement];
         var nAdjustmentTop = (sPlacement === "bottom") ? (welTr.height() + 10)
                                : -1 * (htElement.welCommentWrap.height() + 30);
-
-        // 기존 스레드에 댓글을 추가하는 버튼인 경우
-        // [댓글입력] 버튼을 덮는 위치에 오도록 그 버튼 높이+여백만큼(30px) 보정한다
-        if(typeof sThreadId !== "undefined"){
-            nAdjustmentTop -= 30;
-        }
+        nAdjustmentTop += (htOptions.nAdjustmentTop || 0);
 
         var nTop = welTr.position().top + nAdjustmentTop;
 
