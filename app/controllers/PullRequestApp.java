@@ -554,7 +554,7 @@ public class PullRequestApp extends Controller {
         }));
     }
 
-    private static void addNotification(PullRequest pullRequest, Call call, State from, State to) {
+    private static void addNotification(PullRequest pullRequest, State from, State to) {
         NotificationEvent notiEvent = NotificationEvent.afterPullRequestUpdated(pullRequest, from, to);
         PullRequestEvent.addEvent(notiEvent, pullRequest);
     }
@@ -578,7 +578,7 @@ public class PullRequestApp extends Controller {
         pullRequest.close();
 
         Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
-        addNotification(pullRequest, call, beforeState, State.CLOSED);
+        addNotification(pullRequest, beforeState, State.CLOSED);
 
         return redirect(call);
     }
@@ -608,7 +608,7 @@ public class PullRequestApp extends Controller {
         pullRequest.reopen();
 
         Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
-        addNotification(pullRequest, call, beforeState, State.OPEN);
+        addNotification(pullRequest, beforeState, State.OPEN);
 
         PullRequestEventMessage message = new PullRequestEventMessage(
                 UserApp.currentUser(), request(), pullRequest);
