@@ -3334,9 +3334,9 @@ label.issue-item-row {
     position:relative;
 
     .diffs-wrap {
-        position:relative; width:75%;
-        display:block; float:left;
-        .transition(width 0.5s);
+        position:relative;
+        display:block;
+        margin-right:282px;
 
         .diff-body {
             position:relative;
@@ -3348,37 +3348,37 @@ label.issue-item-row {
         .diff-partial-outer { border:none; }
         .write-comment-box { padding:0; margin-top:20px; }
     }
+
     .review-wrap {
-        /*position:relative;*/ width:23.5%;
-        display:block; float:left;
-        min-height:30px; margin-left:1%;
+        position:absolute;
+        display:block;
+        width:260px;
+        min-height:30px;
+        top:0; right:0;
 
         &.fixed {
-            position:fixed;
-            top:0; background:#fff;
+            .review-container {
+                position:fixed;
+                top:2px; bottom:60px;
+                background:#fff;
+            }
+
+            .review-list {
+                height:100%;
+                overflow:auto;
+            }
+
+            .nav-tabs {
+                width:260px;
+            }
         }
     }
-    .diffs-wrap-scroll {
-        position:relative;
-        border:1px solid #ddd;
-        min-height:30px;
-        /*max-height:1000px;
-        overflow:auto;*/
-    }
-    .review-wrap-scroll {
-        /* .diffs-wrap-scroll - 50px(ul.tab-tabs) */
-        /*max-height:950px;
-        overflow:auto;*/
-    }
 
-    .btn-toggle-reviewcards {
-        position:absolute;
-        top:0px; right:0;
-        z-index:10; zoom:1;
-        .transition(0.3s right);
-
-        .yobicon-minimize { display:block; }
-        .yobicon-restore { display:none; }
+    .btn-hide-reviewcards {
+        float:right;
+    }
+    .btn-show-reviewcards {
+        display:none;
     }
 
     &.diffs-only {
@@ -3538,7 +3538,7 @@ label.issue-item-row {
     display: none;
     position: fixed;
     width: 15px; height: 400px;
-    right: 0.5%; top:192px;
+    right: 1%; top:192px;
     border: 1px solid rgba(0,0,0,0.3);
     background: rgba(0,0,0,0.5);
     z-index: 999;

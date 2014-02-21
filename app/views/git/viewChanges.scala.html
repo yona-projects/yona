@@ -17,8 +17,7 @@
             @partial_branch(pull)
 
             <div class="pullRequest-changes mt10">
-                <button type="button" class="ybtn ybtn-default btn-toggle-reviewcards">
-                    <i class="yobicon-minimize"></i>
+                <button type="button" class="ybtn ybtn-default btn-show-reviewcards">
                     <i class="yobicon-restore"></i>
                 </button>
 
@@ -123,49 +122,41 @@
                 </div>
 
                 <div class="review-wrap">
-                    <ul class="nav nav-tabs" style="margin-bottom:10px;">
-                        <li class="active"><a href="#reviewcards-open" data-toggle="tab">@Messages("issue.state.open")</a></li>
-                        <li><a href="#reviewcards-closed" data-toggle="tab">@Messages("issue.state.closed")</a></li>
-                    </ul>
+                    <div class="review-container">
+                        <button type="button" class="ybtn ybtn-default btn-hide-reviewcards">
+                            <i class="yobicon-minimize"></i>
+                        </button>
 
-                    <div class="tab-content review-wrap-scroll">
-                        <div id="reviewcards-open" class="tab-pane active">
-                        @for(thread: CommentThread <- pull.getCommentThreadsByState(CommentThread.ThreadState.OPEN)) {
-                        <a href="#thread-@thread.id" class="review-card @thread.state.toString().toLowerCase()">
-                            <p class="content">@thread.getFirstReviewComment().getContents()</p>
-                            <span class="date" title="@utils.JodaDateUtil.getDateString(thread.createdDate)">
-                                @utils.JodaDateUtil.momentFromNow(thread.createdDate, lang.language)
-                            </span>
-                        </a>
-                        }
-                        </div>
+                        <ul class="nav nav-tabs" style="margin-bottom:10px;">
+                            <li class="active"><a href="#reviewcards-open" data-toggle="tab">@Messages("issue.state.open")</a></li>
+                            <li><a href="#reviewcards-closed" data-toggle="tab">@Messages("issue.state.closed")</a></li>
+                        </ul>
 
-                        <div id="reviewcards-closed" class="tab-pane">
-                        @for(thread: CommentThread <- pull.getCommentThreadsByState(CommentThread.ThreadState.CLOSED)) {
-                        <a href="#thread-@thread.id" class="review-card @thread.state.toString().toLowerCase()">
-                            <p class="content">@thread.getFirstReviewComment().getContents()</p>
-                            <span class="date" title="@utils.JodaDateUtil.getDateString(thread.createdDate)">
-                                @utils.JodaDateUtil.momentFromNow(thread.createdDate, lang.language)
-                            </span>
-                        </a>
-                        }
+                        <div class="tab-content review-list">
+                            <div id="reviewcards-open" class="tab-pane active">
+                                @for(thread: CommentThread <- pull.getCommentThreadsByState(CommentThread.ThreadState.OPEN)) {
+                                <a href="#thread-@thread.id" class="review-card @thread.state.toString().toLowerCase()">
+                                    <p class="content">@thread.getFirstReviewComment().getContents()</p>
+                                    <span class="date" title="@utils.JodaDateUtil.getDateString(thread.createdDate)">
+                                        @utils.JodaDateUtil.momentFromNow(thread.createdDate, lang.language)
+                                    </span>
+                                </a>
+                                }
+                            </div>
+
+                            <div id="reviewcards-closed" class="tab-pane">
+                                @for(thread: CommentThread <- pull.getCommentThreadsByState(CommentThread.ThreadState.CLOSED)) {
+                                <a href="#thread-@thread.id" class="review-card @thread.state.toString().toLowerCase()">
+                                    <p class="content">@thread.getFirstReviewComment().getContents()</p>
+                                    <span class="date" title="@utils.JodaDateUtil.getDateString(thread.createdDate)">
+                                        @utils.JodaDateUtil.momentFromNow(thread.createdDate, lang.language)
+                                    </span>
+                                </a>
+                                }
+                            </div>
                         </div>
                     </div>
                 </div>
-
-                @** BlockComment **@
-                @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.REVIEW_COMMENT)){
-                    @common.reviewForm(project, ResourceType.REVIEW_COMMENT, routes.PullRequestApp.newComment(project.owner, project.name, pull.id, commitId).toString())
-                }
-                @** // BlockComment **@
-            </div>
-
-            <div class="board-comment-wrap">
-                <hr class="nm">
-                <ul class="comments" id="comments">
-                @renderNonRangedThreads(pull.commentThreads.toList, commitId, Html(""))
-                </ul>
-                @common.commentForm(project, ResourceType.REVIEW_COMMENT, routes.PullRequestApp.newComment(project.owner, project.name, pull.id, commitId).toString())
             </div>
         </div>
     </div>
@@ -194,16 +185,12 @@
 
         // code.Diff
         $yobi.loadModule("code.Diff", {
-            "welDiff"      : $("#pull-request-changes"),
             "bCommentable" : @isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.REVIEW_COMMENT)
         });
 
+        // commit message
         $("button.moreBtn").on("click", function(){
             $(this).next("pre.commitMsg.desc").toggleClass("hidden");
-        });
-
-        $("button.btn-toggle-reviewcards").on("click", function(){
-            $(".pullRequest-changes").toggleClass("diffs-only");
         });
     });
 </script>

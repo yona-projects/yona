@@ -27,6 +27,7 @@
             _initFileDownloader();
             _initToggleCommentsButton();
             _initCodeComment();
+            _initReviewWrapAffixed();
             _initMiniMap();
 
             _scrollToHash();
@@ -55,10 +56,17 @@
          * initialize element
          */
         function _initElement(){
+            htElement.welContainer = $(".pullRequest-changes");
+
             // 변경내역
-            htElement.welDiffWrap = $("div.diffs-wrap");
+            htElement.welDiffWrap = htElement.welContainer.find("div.diffs-wrap");
             htElement.welDiffBody = htElement.welDiffWrap.find(".diff-body");
             htElement.waDiffContainers = htElement.welDiffWrap.find(".diff-container");
+
+            // 리뷰영역
+            htElement.welReviewWrap = htElement.welContainer.find("div.review-wrap");
+            htElement.welReviewList = htElement.welReviewWrap.find("div.review-wrap-scroll");
+            htElement.waBtnToggleReviewWrap = htElement.welContainer.find("button.btn-show-reviewcards,button.btn-hide-reviewcards");
 
             // 전체 댓글 (Non-Ranged comment thread)
             htElement.welUploader = $("#upload");
@@ -82,8 +90,15 @@
             htElement.welBtnWatch.on("click", _onClickBtnWatchToggle);
 
             // 미니맵
-            $(window).on("resize", _initMiniMap);
-            $(window).on("scroll", _updateMiniMapCurr);
+            $(window).on({
+                "resize": _initMiniMap,
+                "scroll": _updateMiniMapCurr
+            });
+
+            // 리뷰목록 토글
+            htElement.waBtnToggleReviewWrap.on("click", function(){
+                htElement.welContainer.toggleClass("diffs-only");
+            });
         }
 
         /**
@@ -117,6 +132,32 @@
                 if(welTarget.length > 0){
                     window.scrollTo(0, welTarget.offset().top);
                 }
+            }
+        }
+
+        /**
+         * 리뷰 목록이 존재하면 스크롤에 따라 일정한 위치에 고정되도록 설정
+         * @private
+         */
+        function _initReviewWrapAffixed(){
+            if(!htElement.welReviewWrap.length){
+                return;
+            }
+
+            htVar.nAffixTop = htElement.welReviewWrap.offset().top - 25;
+            _updateReviewWrapAffixed();
+            $(window).on("scroll", _updateReviewWrapAffixed);
+        }
+
+        /**
+         * 스크롤에 따라 리뷰 목록 위치 고정 여부 처리
+         * @private
+         */
+        function _updateReviewWrapAffixed(){
+            if($(window).scrollTop() > htVar.nAffixTop){
+                htElement.welReviewWrap.addClass("fixed");
+            } else {
+                htElement.welReviewWrap.removeClass("fixed");
             }
         }
 
