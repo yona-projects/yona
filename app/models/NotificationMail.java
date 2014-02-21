@@ -125,7 +125,7 @@ public class NotificationMail extends Model {
 
         try {
             email.setFrom(Config.getEmailFromSmtp(), event.getSender().name);
-            email.addTo(Config.getEmailFromSmtp(), "Yobi");
+            email.addTo(Config.getEmailFromSmtp(), utils.Config.getSiteName());
 
             for (User receiver : receivers) {
                 email.addBcc(receiver.email, receiver.name);
@@ -171,7 +171,7 @@ public class NotificationMail extends Model {
 
         if (urlToView != null) {
             doc.body().append(String.format("<hr><a href=\"%s\">%s</a>", urlToView,
-                    "View it on Yobi"));
+                    "View it on " + utils.Config.getSiteName()));
         }
 
         return doc.html();

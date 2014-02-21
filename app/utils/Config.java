@@ -1,6 +1,7 @@
 
 package utils;
 
+import org.apache.commons.lang3.ObjectUtils;
 import play.Configuration;
 import play.mvc.Http;
 
@@ -9,6 +10,11 @@ import java.util.Enumeration;
 
 public class Config {
     public static final String DEFAULT_SCHEME = "http";
+
+    public static String getSiteName() {
+        return ObjectUtils.defaultIfNull(
+                play.Configuration.root().getString("application.siteName"), "Yobi");
+    }
 
     public static String getHostport(String defaultValue) {
         play.Configuration config = play.Configuration.root();

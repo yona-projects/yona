@@ -34,7 +34,7 @@
     <div class="container page-wrap">
         <div class="page">
             <div class="secret-wrap">
-                <a href="@routes.Application.index()" class="logo"><span>@Messages("app.name")</span></a>
+                <a href="@routes.Application.index()" class="logo"><span>@utils.Config.getSiteName</span></a>
 
                 <h3>@Messages("app.restart.welcome")</h3>
                 <p class="secret-box txt-center">
@@ -46,7 +46,7 @@
 </div>
 <footer class="page-footer-outer">
     <div class="page-footer">
-        <span class="provider">Powered by <strong>@Messages("app.name")</strong></span>
+        <span class="provider">Powered by <strong>@utils.Config.getSiteName</strong></span>
     </div>
 </footer>
 </body>

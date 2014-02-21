@@ -11,7 +11,7 @@
         </div>
         <div class="signup-btn">
             <a href="@routes.UserApp.signupForm()" class="ybtn ybtn-success ybtn-padding">
-                @Messages("button.signup",Messages("app.name"))
+                @Messages("button.signup",utils.Config.getSiteName)
             </a>
         </div>
     </div>
@@ -69,7 +69,7 @@
             <img src="/assets/images/sample-image.jpg" >
         </div>
         <div class="get-started">
-            <h2>@Html(Messages("title.gettingStarted",Messages("app.name")))</h2>
+            <h2>@Html(Messages("title.gettingStarted",utils.Config.getSiteName))</h2>
 
             <a href="@routes.ProjectApp.newProjectForm()" class="ybtn ybtn-success ybtn-padding">
                 <i class="yobicon-database-add"></i> @Messages("button.newProject")
