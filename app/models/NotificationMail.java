@@ -11,7 +11,9 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import play.Configuration;
 import play.Logger;
+import play.api.i18n.Lang;
 import play.db.ebean.Model;
+import play.i18n.Messages;
 import play.libs.Akka;
 import scala.concurrent.duration.Duration;
 import utils.Config;
@@ -23,10 +25,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Entity
@@ -121,37 +120,57 @@ public class NotificationMail extends Model {
             return;
         }
 
-        final HtmlEmail email = new HtmlEmail();
+        HashMap<String, List<User>> usersByLang = new HashMap<>();
 
-        try {
-            email.setFrom(Config.getEmailFromSmtp(), event.getSender().name);
-            email.addTo(Config.getEmailFromSmtp(), utils.Config.getSiteName());
+        for (User receiver : receivers) {
+            String lang = receiver.lang;
 
-            for (User receiver : receivers) {
-                email.addBcc(receiver.email, receiver.name);
+            if (lang == null) {
+                lang = Locale.getDefault().getLanguage();
             }
 
-            String message = event.getMessage();
-            String urlToView = Url.create(event.getUrlToView());
-            String reference = Url.removeFragment(event.getUrlToView());
+            if (usersByLang.containsKey(lang)) {
+                usersByLang.get(lang).add(receiver);
+            } else {
+                usersByLang.put(lang, new ArrayList<User>(Arrays.asList(receiver)));
+            }
+        }
 
-            email.setSubject(event.title);
-            email.setHtmlMsg(getHtmlMessage(message, urlToView));
-            email.setTextMsg(getPlainMessage(message, urlToView));
-            email.setCharset("utf-8");
-            email.addHeader("References", "<" + reference + "@" + Config.getHostname() + ">");
-            email.setSentDate(event.created);
-            Mailer.send(email);
-            String escapedTitle = email.getSubject().replace("\"", "\\\"");
-            String logEntry = String.format("\"%s\" %s", escapedTitle, email.getBccAddresses());
-            play.Logger.of("mail").info(logEntry);
-        } catch (Exception e) {
-            Logger.warn("Failed to send a notification: "
-                    + email + "\n" + ExceptionUtils.getStackTrace(e));
+        for (String langCode : usersByLang.keySet()) {
+            final HtmlEmail email = new HtmlEmail();
+
+            try {
+                email.setFrom(Config.getEmailFromSmtp(), event.getSender().name);
+                email.addTo(Config.getEmailFromSmtp(), utils.Config.getSiteName()); 
+
+                for (User receiver : usersByLang.get(langCode)) {
+                    email.addBcc(receiver.email, receiver.name);
+                }
+
+                Lang lang = Lang.apply(langCode);
+
+                String message = event.getMessage(lang);
+                String urlToView = Url.create(event.getUrlToView());
+                String reference = Url.removeFragment(event.getUrlToView());
+
+                email.setSubject(event.title);
+                email.setHtmlMsg(getHtmlMessage(lang, message, urlToView));
+                email.setTextMsg(getPlainMessage(lang, message, urlToView));
+                email.setCharset("utf-8");
+                email.addHeader("References", "<" + reference + "@" + Config.getHostname() + ">");
+                email.setSentDate(event.created);
+                Mailer.send(email);
+                String escapedTitle = email.getSubject().replace("\"", "\\\"");
+                String logEntry = String.format("\"%s\" %s", escapedTitle, email.getBccAddresses());
+                play.Logger.of("mail").info(logEntry);
+            } catch (Exception e) {
+                Logger.warn("Failed to send a notification: "
+                        + email + "\n" + ExceptionUtils.getStackTrace(e));
+            }
         }
     }
 
-    private static String getHtmlMessage(String message, String urlToView) {
+    private static String getHtmlMessage(Lang lang, String message, String urlToView) {
         Document doc = Jsoup.parse(Markdown.render(message));
 
         String[] attrNames = {"src", "href"};
@@ -171,18 +190,18 @@ public class NotificationMail extends Model {
 
         if (urlToView != null) {
             doc.body().append(String.format("<hr><a href=\"%s\">%s</a>", urlToView,
-                    "View it on " + utils.Config.getSiteName()));
+                    Messages.get(lang, "notification.linkToView", utils.Config.getSiteName())));
         }
 
         return doc.html();
     }
 
-    private static String getPlainMessage(String message, String urlToView) {
+    private static String getPlainMessage(Lang lang, String message, String urlToView) {
         String msg = message;
         String url = urlToView;
 
         if (url != null) {
-            msg += String.format("\n\n--\nView it on %s", url);
+            msg += String.format("\n\n--\n" + Messages.get(lang, "notification.linkToView", url));
         }
 
         return msg;

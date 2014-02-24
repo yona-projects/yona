@@ -295,6 +295,7 @@ notification.issue.assigned = Issue has been assigned to {0}
 notification.issue.closed  = Issue has been closed
 notification.issue.reopened = Issue has been reopened
 notification.issue.unassigned = Issue has been unassigned
+notification.linkToView = View it on {0}
 notification.member.enroll.accept = Joined as a member.
 notification.member.enroll.cancel = The request for joining your project has been canceled.
 notification.member.enroll.request = Received a request for joining your project.

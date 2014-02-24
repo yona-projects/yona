@@ -20,36 +20,30 @@
 package controllers;
 
 import actions.AnonymousCheckAction;
-
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.annotation.Transactional;
-
 import models.*;
 import models.enumeration.Operation;
 import models.enumeration.UserState;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.crypto.RandomNumberGenerator;
 import org.apache.shiro.crypto.SecureRandomNumberGenerator;
 import org.apache.shiro.crypto.hash.Sha256Hash;
 import org.apache.shiro.util.ByteSource;
-
+import org.codehaus.jackson.node.ObjectNode;
 import play.Configuration;
 import play.Logger;
+import play.Play;
 import play.data.Form;
 import play.i18n.Messages;
+import play.libs.Json;
 import play.mvc.*;
 import play.mvc.Http.Cookie;
-import utils.AccessControl;
-import utils.Constants;
-import utils.HttpUtil;
-import utils.ReservedWordsValidator;
-import utils.ErrorViews;
-import views.html.user.*;
-
-import org.codehaus.jackson.node.ObjectNode;
-
-import play.libs.Json;
+import utils.*;
+import views.html.user.edit;
+import views.html.user.login;
+import views.html.user.signup;
+import views.html.user.view;
 
 import java.util.*;
 
@@ -183,6 +177,9 @@ public class UserApp extends Controller {
             if (sourceUser.rememberMe) {
                 setupRememberMe(authenticate);
             }
+
+            authenticate.lang = play.mvc.Http.Context.current().lang().code();
+            authenticate.update();
 
             if (StringUtils.isEmpty(redirectUrl)) {
                 return redirect(routes.Application.index());
@@ -848,5 +845,32 @@ public class UserApp extends Controller {
         session(SESSION_USERID, String.valueOf(user.id));
         session(SESSION_LOGINID, user.loginId);
         session(SESSION_USERNAME, user.name);
+    }
+
+    /**
+     * 현재 사용자가 선호하는 언어를 갱신한다.
+     *
+     * 쿠키나 Accept-Language HTTP 헤더에 선호하는 언어가 설정되어 있는 경우, 그것을 현재 로그인한 사용자가
+     * 선호하는 언어로 설정한다.
+     */
+    public static void updatePreferredLanguage() {
+        Http.Request request = Http.Context.current().request();
+        User user = UserApp.currentUser();
+
+        if (user.isAnonymous()) {
+            return;
+        }
+
+        if (request.acceptLanguages().isEmpty() &&
+                request.cookie(Play.langCookieName()) == null) {
+            return;
+        }
+
+        String code = StringUtils.left(Http.Context.current().lang().code(), 255);
+
+        if (!code.equals(user.lang)) {
+            user.lang = code;
+            user.update();
+        }
     }
 }
