@@ -1,6 +1,9 @@
 package utils;
+import controllers.UserApp;
 import models.Project;
+import models.User;
 import play.api.templates.Html;
+import views.html.index.index;
 
 
 /**
@@ -16,6 +19,14 @@ public enum ErrorViews {
         @Override
         public Html render(String messageKey, Project project) {
             return views.html.error.forbidden.render(messageKey, project);
+        }
+
+        public Html render(String messageKey, String returnUrl) {
+            if(UserApp.currentUser() == User.anonymous){
+                return views.html.user.login.render("error.fobidden", null, returnUrl);
+            } else {
+                return views.html.error.forbidden_default.render(messageKey);
+            }
         }
 
         @Deprecated
@@ -137,4 +148,7 @@ public enum ErrorViews {
      */
     public abstract Html render(String messageKey, Project project, String target);
 
+    public Html render(String messageKey, String returnUrl) {
+        return index.render(UserApp.currentUser());
+    };
 }
