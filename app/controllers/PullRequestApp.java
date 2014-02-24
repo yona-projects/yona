@@ -51,6 +51,8 @@ import views.html.git.*;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -184,7 +186,7 @@ public class PullRequestApp extends Controller {
         } catch (Exception e) {
             play.Logger.error(MessageFormat.format("Failed to fork \"{0}\"", originalProject), e);
             result.put(status, failed);
-            result.put(url, routes.PullRequestApp.pullRequests(originalProject.owner, originalProject.name, 1).url());
+            result.put(url, routes.PullRequestApp.pullRequests(originalProject.owner, originalProject.name).url());
             return ok(result);
         }
     }
@@ -350,10 +352,8 @@ public class PullRequestApp extends Controller {
      * @return
      */
     @IsAllowed(Operation.READ)
-    public static Result pullRequests(String userName, String projectName, int pageNum) {
-        Project project = Project.findByOwnerAndProjectName(userName, projectName);
-        Page<PullRequest> page = PullRequest.findPagingList(State.OPEN, project, pageNum - 1);
-        return ok(list.render(project, page, "opened"));
+    public static Result pullRequests(String userName, String projectName) {
+        return pullRequests(userName, projectName, Category.OPEN);
     }
 
     /**
@@ -364,10 +364,8 @@ public class PullRequestApp extends Controller {
      * @return
      */
     @IsAllowed(Operation.READ)
-    public static Result closedPullRequests(String userName, String projectName, int pageNum) {
-        Project project = Project.findByOwnerAndProjectName(userName, projectName);
-        Page<PullRequest> page = PullRequest.findClosedPagingList(project, pageNum - 1);
-        return ok(list.render(project, page, "closed"));
+    public static Result closedPullRequests(String userName, String projectName) {
+        return pullRequests(userName, projectName, Category.CLOSED);
     }
 
     /**
@@ -378,10 +376,28 @@ public class PullRequestApp extends Controller {
      * @return
      */
     @IsAllowed(Operation.READ)
-    public static Result sentPullRequests(String userName, String projectName, int pageNum) {
+    public static Result sentPullRequests(String userName, String projectName) {
+        return pullRequests(userName, projectName, Category.SENT);
+    }
+
+    /**
+     * 코드-주고받기 목록을 조회한다.
+     *
+     * @param userName
+     * @param projectName
+     * @param category
+     * @return
+     */
+    private static Result pullRequests(String userName, String projectName, Category category) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
-        Page<PullRequest> page = PullRequest.findSentPullRequests(project, pageNum - 1);
-        return ok(list.render(project, page, "sent"));
+        SearchCondition condition = Form.form(SearchCondition.class).bindFromRequest().get();
+        condition.setProject(project).setCategory(category);
+        Page<PullRequest> page = PullRequest.findPagingList(condition);
+        if (HttpUtil.isPJAXRequest(request())) {
+            return ok(partial_search.render(project, page, condition, category.code));
+        } else {
+            return ok(list.render(project, page, condition, category.code));
+        }
     }
 
     /**
@@ -790,5 +806,107 @@ public class PullRequestApp extends Controller {
             return result;
         }
 
+    }
+
+    /**
+     * 코드-주고받기 검색 조건
+     */
+    public static class SearchCondition {
+        public Project project;
+        public String filter;
+        public Long contributorId;
+        public int pageNum = Constants.DEFAULT_PAGE;
+        public Category category;
+
+        public SearchCondition setProject(Project project) {
+            this.project = project;
+            return this;
+        }
+
+        public SearchCondition setFilter(String filter) {
+            this.filter = filter;
+            return this;
+        }
+
+        public SearchCondition setContributorId(Long contributorId) {
+            this.contributorId = contributorId;
+            return this;
+        }
+
+        public SearchCondition setPageNum(int pageNum) {
+            this.pageNum = pageNum;
+            return this;
+        }
+
+        public SearchCondition setCategory(Category category) {
+            this.category = category;
+            return this;
+        }
+
+        @Override
+        public SearchCondition clone() throws CloneNotSupportedException {
+            SearchCondition clone = new SearchCondition();
+            clone.project = this.project;
+            clone.filter = this.filter;
+            clone.contributorId = this.contributorId;
+            clone.pageNum = this.pageNum;
+            clone.category = this.category;
+            return clone;
+        }
+
+        public String queryString() throws UnsupportedEncodingException {
+            List<String> queryStrings = new ArrayList<>();
+            if (StringUtils.isNotBlank(filter)) {
+                queryStrings.add("filter=" + URLEncoder.encode(filter, "UTF-8"));
+            }
+            if (category != Category.SENT && contributorId != null) {
+                queryStrings.add("contributorId=" + contributorId);
+            }
+            if (pageNum != Constants.DEFAULT_PAGE) {
+                queryStrings.add("pageNum=" + pageNum);
+            }
+            if (queryStrings.isEmpty()) {
+                return StringUtils.EMPTY;
+            }
+            return "?" + StringUtils.join(queryStrings, "&");
+        }
+    }
+
+    /**
+     * 코드-주고받기 카테고리
+     */
+    public enum Category {
+        OPEN("open", "toProject", "number", State.OPEN),
+        CLOSED("closed", "toProject", "received", State.CLOSED, State.MERGED),
+        SENT("sent", "fromProject", "created"),
+        ACCEPTED("accepted", "fromProject", "created", State.MERGED);
+
+        private Category(String code, String project, String order, State... states) {
+            this.code = code;
+            this.project = project;
+            this.order = order;
+            this.states = states;
+        }
+
+        private String code;
+        private String project;
+        private String order;
+        private State[] states;
+
+        public String code() {
+            return code;
+        }
+
+        public String project() {
+            return project;
+        }
+
+        public String order() {
+            return order;
+        }
+
+        public State[] states() {
+            return states;
+        }
     }
 }

@@ -1,59 +1,42 @@
-@(project: Project, page: com.avaje.ebean.Page[PullRequest], requestType: String)
-@import utils.AccessControl
+@(project: Project, page: com.avaje.ebean.Page[PullRequest],
+    condition: controllers.PullRequestApp.SearchCondition, requestType: String)
 
 @projectLayout(Messages("menu.pullRequest"), project, utils.MenuType.PULL_REQUEST) {
 @projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
-        @if(project.isForkedFromOrigin) {
-            @partial_recently_pushed_branches(project)
-        } else {
-            @defining(Project.findByOwnerAndOriginalProject(UserApp.currentUser().loginId, project)){ myForkProject =>
-                @if(myForkProject != null && AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.PULL_REQUEST)){
-                    @partial_recently_pushed_branches(myForkProject)
-                }
-            }
-        }
-        <div class="pull-right">
-            <a href="@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)" class="ybtn ybtn-success">
-                <i class="yobicon-merge yobicon-large"></i>
-                @Messages("pullRequest")
-            </a>
-        </div>
-        <ul class="nav nav-tabs nm">
-            <li @if(requestType.equals("opened")){class="active"}>
-                <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)">
-                    @Messages("pullRequest.opened.code")
-                    <span class="num-badge">@PullRequest.findOpendPullRequests(project).size</span>
-                </a>
-            </li>
-            <li @if(requestType.equals("closed")){class="active"}>
-                <a href="@routes.PullRequestApp.closedPullRequests(project.owner, project.name)">
-                    @Messages("pullRequest.accepted.code")
-                    <span class="num-badge">@PullRequest.findClosedPullRequests(project).size</span>
-                </a>
-            </li>
-        @if(project.isForkedFromOrigin()){
-            <li @if(requestType.equals("sent")){class="active"}>
-                <a href="@routes.PullRequestApp.sentPullRequests(project.owner, project.name)">
-                    @Messages("pullRequest.sent.code")
-                    <span class="num-badge">@PullRequest.findAcceptedPullRequests(project).size / @PullRequest.findSentPullRequests(project).size</span>
-                </a>
-            </li>
-            }
-        </ul>
-
-        <div class="tab-content" style="clear:both;padding-top:15px;">
-            <div id="list" class="row-fluid tab-pane active">
-                @partial_list(project, page)
-            </div>
-        </div>
+    @views.html.git.partial_search(project, page, condition, requestType)
     </div>
 </div>
 <script type="text/javascript">
-    $(function(){
-        $('span[data-toggle="tooltip"]').tooltip({
-            placement : "bottom"
+    $(document).ready(function(){
+        var htPjaxOptions = {
+            "fragment": "div[pjax-container]",
+            "timeout" : 3000
+        };
+
+        if($.support.pjax) {
+            $.pjax.defaults.maxCacheLength = 0;
+        }
+
+        // on click pagination
+        $(document).on("click", "a[pjax-page]", function(weEvt) {
+            $.pjax.click(weEvt, "div[pjax-container]", htPjaxOptions);
+        });
+
+        // on submit search form
+        $(document).on("submit", "form[name='search']", function(weEvt) {
+            $.pjax.submit(weEvt, "div[pjax-container]", htPjaxOptions);
+        });
+
+        // show spinners
+        $(document).on({
+            "pjax:send": function(){
+                yobi.ui.Spinner.show();
+            },
+            "pjax:complete": function(){
+                yobi.ui.Spinner.hide();
+            }
         });
     });
 </script>
