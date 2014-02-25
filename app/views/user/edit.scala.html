@@ -13,7 +13,8 @@
 <div class="page-wrap-outer">
     <div class="page-wrap">
         <h1 class="page-title">
-            <span class="gray">@Messages("app.name")/</span>@user.loginId
+            <span class="gray">@Messages("app.name") / </span>
+            <a href="@routes.UserApp.userInfo(session.get("loginId"))" style="vertical-align:top;">@user.loginId</a>
         </h1>
 
         <ul id="editUserinfo" class="nav nav-tabs">
