@@ -7,6 +7,14 @@
 }
 
 @layout(Messages(title))(""){
+    <div class="unsupported">
+        <div class="unsupported-inner">
+            <p id="unsupported-content">
+                <i class="yobicon-alert"></i>
+                @Html(Messages("error.unsupported.ie"))
+            </p>
+        </div>
+    </div>
     <header class="gnb-outer">
         <div class="gnb-inner">
             <a href="@routes.Application.index()" class="logo"><h1 class="blind">@Messages("app.name")</h1></a>
