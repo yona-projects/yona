@@ -41,7 +41,8 @@ object ApplicationBuild extends Build {
       "com.github.julienrf" %% "play-jsmessages" % "1.4.1",
       "commons-collections" % "commons-collections" % "3.2.1",
       "org.jsoup" % "jsoup" % "1.7.2",
-      "com.googlecode.juniversalchardet" % "juniversalchardet" % "1.0.3"
+      "com.googlecode.juniversalchardet" % "juniversalchardet" % "1.0.3",
+      "org.mockito" % "mockito-all" % "1.9.0" % "test"
   )
 
     val projectSettings = Seq(
