@@ -182,6 +182,7 @@ error.unauthorized = Login required
 error.validation = Input validation check error
 error.wrong.format = Wrong format
 error.failedTo = Failed to {0}<br>({1} {2})
+error.unsupported.ie = Please note that you're using an unsupported version of Internet Expolorer.<br>we recommend the <a href="http://www.google.com/chrome/" target="_blank">Google Chrome</a> or 10+ version of Internet Expolorer web browser.
 fork = Fork
 fork.already.exist = There is already forked the same project.
 fork.failed = Failed to fork the project.

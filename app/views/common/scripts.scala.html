@@ -133,6 +133,11 @@
             welTarget.popover("hide");
         });
 
+          
+        if(navigator.userAgent.match(/MSIE ([0-9])\./)){
+           $('.unsupported').show();
+        }
+        
         // notify flash messages
         @for(key <- flash.keys) {
             $yobi.notify("@Messages(flash.get(key))", 3000);
