@@ -35,15 +35,6 @@ roles:
         id:             5
         name:           guest
         active:         true
-    - !!models.Role
-        id:             6
-        name:           org_admin
-        active:         true
-    - !!models.Role
-        id:             7
-        name:           org_participant
-        active:         true
-
 
 # Labels
 labels:
