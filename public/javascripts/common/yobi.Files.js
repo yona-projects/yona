@@ -170,7 +170,7 @@ yobi.Files = (function(){
         var welForm = $('<form method="post" enctype="multipart/form-data" style="display:none">');
 
         welInputFileClone.insertAfter(welInputFile); // 예전 input 뒤에 끼워넣고
-        welInputFileClone.change(_onChangeFile);     // 이벤트 핸들러
+        welInputFileClone.on("change", $.proxy(_onChangeFile, this, sNamespace)); // 이벤트 핸들러
         htElement.welInputFile = welInputFileClone; // 레퍼런스 교체
 
         welForm.attr('action', htVar.sUploadURL);
@@ -233,7 +233,7 @@ yobi.Files = (function(){
         }
 
         // clear inputFile
-        if(sNamespace && htElements[sNamespace].welInputFile){
+        if(sNamespace && htElements[sNamespace] && htElements[sNamespace].welInputFile){
             htElements[sNamespace].welInputFile.val("");
         }
 
