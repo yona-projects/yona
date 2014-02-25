@@ -2,9 +2,11 @@ package controllers;
 
 import actions.AnonymousCheckAction;
 import actions.NullProjectCheckAction;
+
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Junction;
 import com.avaje.ebean.Page;
+
 import controllers.annotation.IsAllowed;
 import models.*;
 import models.Project.State;
@@ -12,6 +14,7 @@ import models.enumeration.Operation;
 import models.enumeration.RequestState;
 import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonNode;
@@ -19,6 +22,7 @@ import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.tmatesoft.svn.core.SVNException;
+
 import play.data.Form;
 import play.data.validation.ValidationError;
 import play.db.ebean.Transactional;
@@ -41,6 +45,7 @@ import views.html.project.overview;
 import views.html.project.setting;
 
 import javax.servlet.ServletException;
+
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -54,6 +59,8 @@ import static play.libs.Json.toJson;
  *
  */
 public class ProjectApp extends Controller {
+
+    private static final int ISSUE_MENTION_SHOW_LIMIT = 1000;
 
     private static final int LOGO_FILE_LIMIT_SIZE = 1024*1000*5; //5M
 
@@ -413,10 +420,39 @@ public class ProjectApp extends Controller {
         collectAuthorAndCommenter(project, number, userList, resourceType);
         addProjectMemberList(project, userList);
         userList.remove(UserApp.currentUser());
+        List<Issue> issueList = getMentionIssueList(project);
 
         List<Map<String, String>> mentionList = new ArrayList<>();
         collectedUsersToMap(mentionList, userList);
+        collectedIssuesToMap(mentionList, issueList);
         return ok(toJson(mentionList));
+    }
+
+    private static void collectedIssuesToMap(List<Map<String, String>> mentionList,
+            List<Issue> issueList) {
+        for (Issue issue : issueList) {
+            Map<String, String> projectIssueMap = new HashMap<>();
+            projectIssueMap.put("username", issue.getNumber().toString());
+            projectIssueMap.put("name", issue.title);
+            projectIssueMap.put("delimiter",  "#");
+            mentionList.add(projectIssueMap);
+        }
+    }
+
+    /**
+     * 멘션에 노출될 이슈 목록
+     *
+     * {@code state}와 {@code createdDate} 내림차순으로 정렬하여 {@code ISSUE_MENTION_SHOW_LIMIT} 만큼 가져온다.
+     *
+     * @param project
+     * @return
+     */
+    private static List<Issue> getMentionIssueList(Project project) {
+        return Issue.finder.where()
+                        .eq("project", project)
+                        .orderBy("state desc, createdDate desc")
+                        .setMaxRows(ISSUE_MENTION_SHOW_LIMIT)
+                        .findList();
     }
 
     /**
@@ -457,9 +493,11 @@ public class ProjectApp extends Controller {
         addCodeCommenters(commitId, fromProject.id, userList);
         addProjectMemberList(project, userList);
         userList.remove(UserApp.currentUser());
+        List<Issue> issueList = getMentionIssueList(project);
 
         List<Map<String, String>> mentionList = new ArrayList<>();
         collectedUsersToMap(mentionList, userList);
+        collectedIssuesToMap(mentionList, issueList);
         return ok(toJson(mentionList));
     }
 
@@ -504,9 +542,11 @@ public class ProjectApp extends Controller {
         }
 
         userList.remove(UserApp.currentUser());
+        List<Issue> issueList = getMentionIssueList(project);
 
         List<Map<String, String>> mentionList = new ArrayList<>();
         collectedUsersToMap(mentionList, userList);
+        collectedIssuesToMap(mentionList, issueList);
         return ok(toJson(mentionList));
     }
 

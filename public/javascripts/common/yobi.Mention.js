@@ -30,7 +30,7 @@ yobi.Mention = function(htOptions) {
     function _initVar(htOptions) {
         htVar = htOptions || {}; // set htVar as htOptions
 
-        htVar.htMemberList = {
+        htVar.htMentionList = {
             "emptyQuery": true,
             "typeaheadOpts": {
                 "items": 15
@@ -62,15 +62,17 @@ yobi.Mention = function(htOptions) {
     function _onKeyInput(eEvt){
         eEvt = eEvt || window.event;
 
-        if(eEvt.which === 64){ // 64 = at
-            _findUserList();
+        if(eEvt.which === 64 || eEvt.which === 35){ // 64 = @ or 35 = #
+            if(htVar.htMentionList.users.length == 0) {
+                _findMentionList();
+            }
         }
     }
 
     /**
      * Find Userlist
      */
-    function _findUserList(){
+    function _findMentionList(){
         $.ajax({
             "url"        : htVar.url,
             "type"       : "get",
@@ -80,8 +82,8 @@ yobi.Mention = function(htOptions) {
     }
 
     function _onLoadUserList(aData){
-        htVar.htMemberList.users = aData;
-        htElement.welTarget.mention(htVar.htMemberList);
+        htVar.htMentionList.users = aData;
+        htElement.welTarget.mention(htVar.htMentionList);
     }
 
     _init(htOptions || {});
