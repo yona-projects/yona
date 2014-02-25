@@ -73,6 +73,14 @@ public class Issue extends AbstractPosting implements LabelOwner {
     @OneToMany(cascade = CascadeType.ALL, mappedBy="issue")
     public List<IssueEvent> events;
 
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "issue_voter",
+            joinColumns = @JoinColumn(name = "issue_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    public List<User> voters = new ArrayList<>();
+
     /**
      * @return
      * @see models.AbstractPosting#computeNumOfComments()
@@ -328,9 +336,9 @@ public class Issue extends AbstractPosting implements LabelOwner {
     }
 
     /**
-     * 이 이슈를 지켜보고 있는 모든 사용자들을 얻는다.
+     * 이 이슈를 지켜보고 있는 모든 사용자와 이슈에 투표를 한 모든 사용자를 얻는다.
      *
-     * @return 이 이슈를 지켜보고 있는 모든 사용자들의 집합
+     * @return 이 이슈를 지켜보고 있는 모든 사용자와 이슈에 투표를 한 모든 사용자의 집합.
      */
     @Transient
     public Set<User> getWatchers() {
@@ -338,6 +346,8 @@ public class Issue extends AbstractPosting implements LabelOwner {
         if (assignee != null) {
             baseWatchers.add(assignee.user);
         }
+        baseWatchers.addAll(this.voters);
+
         return super.getWatchers(baseWatchers);
     }
 
@@ -490,4 +500,35 @@ public class Issue extends AbstractPosting implements LabelOwner {
 
         return true;
     }
+
+    /**
+     * {@code user}를 투표자로 추가한다.
+     *
+     * @param user
+     */
+    public void addVoter(User user) {
+        this.voters.add(user);
+        this.update();
+    }
+
+    /**
+     * {@code user}의 투표를 취소한다.
+     *
+     * @param user
+     */
+    public void removeVoter(User user) {
+        this.voters.remove(user);
+        this.update();
+    }
+
+    /**
+     * {@code user}의 투표 여부를 반환한다.
+     *
+     * @param user
+     * @return 투표를 했으면 true, 아니면 false.
+     */
+    public boolean isVotedBy(User user) {
+        return this.voters.contains(user);
+    }
+
 }

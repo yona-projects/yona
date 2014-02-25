@@ -21,7 +21,7 @@ public class AccessControl {
      * @param user
      * @return user가 해당 resourceType을 생성할 수 있는지 여부
      */
-    public static boolean isCreatable(User user) {
+    public static boolean isGlobalResourceCreatable(User user) {
         return !user.isAnonymous();
     }
 
@@ -147,7 +147,7 @@ public class AccessControl {
      * @return
      */
     private static boolean isProjectResourceAllowed(User user, Project project, Resource resource, Operation operation) {
-        if (ProjectUser.isManager(user.id, project.id)) {
+        if (user.isSiteManager() || ProjectUser.isManager(user.id, project.id)) {
             return true;
         }
 

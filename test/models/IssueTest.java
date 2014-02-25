@@ -50,6 +50,39 @@ public class IssueTest extends ModelTest<Issue> {
     }
 
     @Test
+    public void vote() {
+        // when
+        issue.addVoter(admin);
+        issue.addVoter(manager);
+
+        // then
+        assertThat(issue.voters.size()).isEqualTo(2);
+    }
+
+    @Test
+    public void unvote() {
+        // given
+        issue.addVoter(admin);
+        issue.addVoter(manager);
+
+        // when
+        issue.removeVoter(admin);
+
+        // then
+        assertThat(issue.voters.size()).isEqualTo(1);
+    }
+
+    @Test
+    public void watchersAfterVoting() {
+        // when
+        issue.addVoter(member);
+        issue.addVoter(manager);
+
+        // then
+        assertThat(issue.getWatchers().size()).isEqualTo(3);
+    }
+
+    @Test
     public void unwatchByDefault() {
         // given
         assertThat(issue.getWatchers().contains(admin)).isFalse();

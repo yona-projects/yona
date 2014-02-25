@@ -191,7 +191,7 @@ public class ProjectApp extends Controller {
      */
     @Transactional
     public static Result newProject() throws Exception {
-        if( !AccessControl.isCreatable(UserApp.currentUser()) ){
+        if( !AccessControl.isGlobalResourceCreatable(UserApp.currentUser()) ){
            return forbidden(ErrorViews.Forbidden.render("'" + UserApp.currentUser().name + "' has no permission"));
         }
         Form<Project> filledNewProjectForm = form(Project.class).bindFromRequest();

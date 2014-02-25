@@ -586,6 +586,36 @@ public class IssueApp extends AbstractPostingApp {
         return redirect(redirectTo);
     }
 
+    private static void addAssigneeChangedNotification(Issue modifiedIssue, Issue originalIssue, Call redirectTo) {
+        if(!originalIssue.assignedUserEquals(modifiedIssue.assignee)) {
+            Issue updatedIssue = Issue.finder.byId(originalIssue.id);
+            User oldAssignee = null;
+            if(originalIssue.assignee != null) {
+                oldAssignee = originalIssue.assignee.user;
+            }
+            NotificationEvent notiEvent = NotificationEvent.afterAssigneeChanged(oldAssignee, updatedIssue, redirectTo.absoluteURL(request()));
+            IssueEvent.addFromNotificationEvent(notiEvent, modifiedIssue, UserApp.currentUser().loginId);
+        }
+    }
+
+    private static void addStateChangedNotification(Issue modifiedIssue, Issue originalIssue, Call redirectTo) {
+        if(modifiedIssue.state != originalIssue.state) {
+            Issue updatedIssue = Issue.finder.byId(originalIssue.id);
+            NotificationEvent notiEvent = NotificationEvent.afterStateChanged(originalIssue.state, updatedIssue,
+                    redirectTo.absoluteURL(request()));
+            IssueEvent.addFromNotificationEvent(notiEvent, modifiedIssue, UserApp.currentUser().loginId);
+        }
+    }
+
+    private static void addBodyChangedNotification(Issue modifiedIssue, Issue originalIssue, Call redirectTo) {
+        if (!modifiedIssue.body.equals(originalIssue.body)) {
+            Issue updatedIssue = Issue.finder.byId(originalIssue.id);
+            NotificationEvent notiEvent = NotificationEvent.afterIssueBodyChanged(originalIssue.body, updatedIssue,
+                    redirectTo.absoluteURL(request()));
+            IssueEvent.addFromNotificationEvent(notiEvent, modifiedIssue, UserApp.currentUser().loginId);
+        }
+    }
+
     /**
      * 이슈 수정
      *
@@ -624,29 +654,20 @@ public class IssueApp extends AbstractPostingApp {
         Runnable updateIssueBeforeSave = new Runnable() {
             @Override
             public void run() {
+                // Below addAll() method is needed to avoid the exception, 'Timeout trying to lock table ISSUE'.
+                // This is just workaround and the cause of the exception is not figured out yet.
+                // Do not replace it to 'issue.comments = originalIssue.comments;'
+                issue.voters.addAll(originalIssue.voters);
                 issue.comments = originalIssue.comments;
                 addLabels(issue, request());
             }
         };
 
+        addAssigneeChangedNotification(issue, originalIssue, redirectTo);
+        addStateChangedNotification(issue, originalIssue, redirectTo);
+        addBodyChangedNotification(issue, originalIssue, redirectTo);
+
         Result result = editPosting(originalIssue, issue, issueForm, redirectTo, updateIssueBeforeSave);
-
-        if(!originalIssue.assignedUserEquals(issue.assignee)) {
-            Issue updatedIssue = Issue.finder.byId(originalIssue.id);
-            User oldAssignee = null;
-            if(originalIssue.assignee != null) {
-                oldAssignee = originalIssue.assignee.user;
-            }
-            NotificationEvent notiEvent = NotificationEvent.afterAssigneeChanged(oldAssignee, updatedIssue, redirectTo.absoluteURL(request()));
-            IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
-        }
-
-        if(issue.state != originalIssue.state) {
-            Issue updatedIssue = Issue.finder.byId(originalIssue.id);
-            NotificationEvent notiEvent = NotificationEvent.afterStateChanged(originalIssue.state, updatedIssue,
-                    redirectTo.absoluteURL(request()));
-            IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
-        }
 
         return result;
     }
