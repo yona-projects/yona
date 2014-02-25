@@ -702,7 +702,7 @@ public class Project extends Model implements LabelOwner {
         }
         for(User user : acceptedUsers) {
             user.cancelEnroll(this);
-            NotificationEvent.afterMemberRequest(this, user, RequestState.ACCEPT, routes.ProjectApp.project(owner, name).url());
+            NotificationEvent.afterMemberRequest(this, user, RequestState.ACCEPT);
         }
     }
 

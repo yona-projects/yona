@@ -25,6 +25,7 @@ import playRepository.RepositoryService;
 import utils.ErrorViews;
 import utils.HttpUtil;
 import utils.PullRequestCommit;
+import utils.RouteUtil;
 import views.html.code.diff;
 import views.html.code.history;
 import views.html.code.nohead;
@@ -196,12 +197,12 @@ public class CodeHistoryApp extends Controller {
         Call toView = routes.CodeHistoryApp.show(project.owner, project.name, commitId);
         toView = backToThePullRequestCommitView(toView);
 
-        String urlToView = toView + "#comment-" + codeComment.id;
-        NotificationEvent.afterNewCommitComment(project, codeComment, urlToView);
-        return redirect(urlToView);
+        NotificationEvent.afterNewCommitComment(project, codeComment);
+
+        return redirect(RouteUtil.getUrl(codeComment));
     }
 
-    private static Call backToThePullRequestCommitView(Call toView) {
+    public static Call backToThePullRequestCommitView(Call toView) {
         String referer = request().getHeader("Referer");
         if(PullRequestCommit.isValid(referer)) {
             PullRequestCommit prc = new PullRequestCommit(referer);

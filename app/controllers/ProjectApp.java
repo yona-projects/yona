@@ -676,7 +676,7 @@ public class ProjectApp extends Controller {
         } else if (!ProjectUser.isMember(user.id, project.id)){
             ProjectUser.assignRole(user.id, project.id, RoleType.MEMBER);
             project.cleanEnrolledUsers();
-            NotificationEvent.afterMemberRequest(project, user, RequestState.ACCEPT, routes.ProjectApp.project(loginId, projectName).url());
+            NotificationEvent.afterMemberRequest(project, user, RequestState.ACCEPT);
         } else{
             flash(Constants.WARNING, "project.member.alreadyMember");
         }

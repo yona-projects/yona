@@ -38,7 +38,7 @@ public class EnrollProjectApp extends Controller {
 
         if (!User.enrolled(project)) {
             user.enroll(project);
-            NotificationEvent.afterMemberRequest(project, user, RequestState.REQUEST, routes.ProjectApp.members(loginId, projectName).url());
+            NotificationEvent.afterMemberRequest(project, user, RequestState.REQUEST);
         }
 
         return ok();
@@ -64,7 +64,7 @@ public class EnrollProjectApp extends Controller {
 
         if (User.enrolled(project)) {
             user.cancelEnroll(project);
-            NotificationEvent.afterMemberRequest(project, user, RequestState.CANCEL, routes.ProjectApp.members(loginId, proejctName).url());
+            NotificationEvent.afterMemberRequest(project, user, RequestState.CANCEL);
         }
 
         return ok();

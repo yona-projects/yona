@@ -132,8 +132,8 @@ public class NotificationMail extends Model {
             }
 
             String message = event.getMessage();
-            String urlToView = Url.create(event.urlToView);
-            String reference = Url.removeFragment(event.urlToView);
+            String urlToView = Url.create(event.getUrlToView());
+            String reference = Url.removeFragment(event.getUrlToView());
 
             email.setSubject(event.title);
             email.setHtmlMsg(getHtmlMessage(message, urlToView));

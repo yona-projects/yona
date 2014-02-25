@@ -50,7 +50,7 @@ public class ReviewApp extends Controller {
         pullRequest.addReviewer(UserApp.currentUser());
 
         Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
-        addNotification(pullRequest, call, EventType.PULL_REQUEST_REVIEWED);
+        addNotification(pullRequest, EventType.PULL_REQUEST_REVIEWED);
 
         return redirect(call);
     }
@@ -64,13 +64,13 @@ public class ReviewApp extends Controller {
         pullRequest.removeReviewer(UserApp.currentUser());
 
         Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
-        addNotification(pullRequest, call, EventType.PULL_REQUEST_UNREVIEWED);
+        addNotification(pullRequest, EventType.PULL_REQUEST_UNREVIEWED);
 
         return redirect(call);
     }
 
-    private static void addNotification(PullRequest pullRequest, Call call, EventType eventType) {
-        NotificationEvent notiEvent = NotificationEvent.afterReviewed(call, pullRequest, eventType);
+    private static void addNotification(PullRequest pullRequest, EventType eventType) {
+        NotificationEvent notiEvent = NotificationEvent.afterReviewed(pullRequest, eventType);
         PullRequestEvent.addEvent(notiEvent, pullRequest);
     }
 
