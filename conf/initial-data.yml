@@ -16,15 +16,31 @@ siteAdmins:
 # Role
 roles:
     - !!models.Role
+        id:             1
         name:           manager
         active:         true
     - !!models.Role
+        id:             2
         name:           member
         active:         true
     - !!models.Role
+        id:             3
+        name:           sitemanager
+        active:         true
+    - !!models.Role
+        id:             4
+        name:           anonymous
+        active:         true
+    - !!models.Role
+        id:             5
+        name:           guest
+        active:         true
+    - !!models.Role
+        id:             6
         name:           org_admin
         active:         true
     - !!models.Role
+        id:             7
         name:           org_participant
         active:         true
 

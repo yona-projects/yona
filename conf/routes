@@ -22,6 +22,11 @@ GET            /UIKit                                                           
 GET            /import                                                                controllers.ImportApp.importForm()
 POST           /import                                                                controllers.ImportApp.newProject()
 
+# Organization
+GET            /organizations/new                                                     controllers.OrganizationApp.newForm()
+POST           /organizations/new                                                     controllers.OrganizationApp.newOrganization()
+GET            /organizations/:name                                                   controllers.OrganizationApp.organization(name: String)
+
 # Notification
 POST           /noti/toggle/:projectId/:notiType                                      controllers.WatchProjectApp.toggle(projectId: Long, notiType)
 
@@ -242,6 +247,7 @@ POST           /:user/:project/pullRequest/:number/unreview                     
 
 # Compare
 GET            /:user/:project/compare/:revA..:revB                                             controllers.CompareApp.compare(user, project, revA, revB)
+
 
 # remove trailing slash - must be the bottom of this file
 GET            /*paths                                                                controllers.Application.removeTrailer(paths)
