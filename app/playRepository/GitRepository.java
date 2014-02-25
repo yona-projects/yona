@@ -11,6 +11,7 @@ import models.resource.Resource;
 import models.support.ModelLock;
 
 import org.apache.commons.collections.IteratorUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.Tika;
 import org.apache.tika.metadata.Metadata;
@@ -25,8 +26,8 @@ import org.eclipse.jgit.diff.Edit.Type;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.lib.RefUpdate.Result;
-import org.eclipse.jgit.patch.FileHeader;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevSort;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.WindowCacheConfig;
@@ -973,56 +974,159 @@ public class GitRepository implements PlayRepository {
     }
 
     /**
-     * {@code cloneAndFetch} 에서 변경되는 코드의 원작자들을 얻는다.
+     * {@code revA} 와 {@code revB} 를 비교하여 변경되는 코드의 원작자들을 얻는다.
+     * 원작자는 변경된 line 을 마지막으로 수정한 사람의 email 을 이용해서 yobi 사용자를 찾은 결과이다.
      *
-     * 원작자는 변경된 line 을 마지막으로 수정한 사람의 email 을 이용해서
-     * yobi 사용자를 찾은 결과이다.
-     *
-     * @param cloneAndFetch
+     * @param repository
+     * @param revA
+     * @param revB
      * @return
      * @throws IOException
      * @throws GitAPIException
      */
-    public static Set<User> getRelatedAuthors(CloneAndFetch cloneAndFetch) throws IOException, GitAPIException {
+    public static Set<User> getRelatedAuthors(Repository repository, String revA, String revB)
+            throws IOException, GitAPIException {
         Set<User> authors = new HashSet<>();
-        Repository repo = cloneAndFetch.getRepository();
-        List<RevCommit> commits = diffRevCommits(repo, cloneAndFetch.getDestFromBranchName(), cloneAndFetch.getDestToBranchName());
-        for (RevCommit revCommit: commits) {
-            findAuthors(revCommit, repo, authors);
+        RevWalk revWalk = null;
+
+        try {
+            revWalk = new RevWalk(repository);
+            RevCommit commitA = revWalk.parseCommit(repository.resolve(revA));
+            RevCommit commitB = revWalk.parseCommit(repository.resolve(revB));
+            List<DiffEntry> diffs = getDiffEntries(repository, commitA, commitB);
+
+            for (DiffEntry diff : diffs) {
+                if (isTypeMatching(diff.getChangeType(), MODIFY, DELETE)) {
+                    authors.addAll(getAuthorsFromDiffEntry(repository, diff, commitA));
+                }
+                if (isTypeMatching(diff.getChangeType(), RENAME)) {
+                    authors.add(getAuthorFromFirstCommit(repository, diff.getOldPath(), commitA));
+                }
+            }
+        } finally {
+            if (revWalk != null) {
+                revWalk.dispose();
+            }
+        }
+
+        authors.remove(User.anonymous);
+        return authors;
+    }
+
+    /**
+     * {@code commitA} 와 {@code commitB} 를 비교하여 차이점을 {@link DiffEntry} 의 목록으로 반환한다.
+     *
+     * @param repository
+     * @param commitA
+     * @param commitB
+     * @return
+     * @throws IOException
+     */
+    private static List<DiffEntry> getDiffEntries(Repository repository, RevCommit commitA,
+            RevCommit commitB) throws IOException {
+        DiffFormatter diffFormatter = new DiffFormatter(NullOutputStream.INSTANCE);
+        try {
+            diffFormatter.setRepository(repository);
+            diffFormatter.setDetectRenames(true);
+            return diffFormatter.scan(commitA, commitB);
+        } finally {
+            diffFormatter.release();
+        }
+    }
+
+    /**
+     * {@code type} 이 {@code types} 에 포함되는지 확인한다.
+     *
+     * @param type
+     * @param types
+     * @return
+     */
+    private static boolean isTypeMatching(Object type, Object... types) {
+        return ArrayUtils.contains(types, type);
+    }
+
+    /**
+     * 파일 변경 내용에서 원작자를 git-blame 을 이용하여 추출한다.
+     *
+     * @param repository
+     * @param diff 파일 변경 내용
+     * @param start blame 시작 commit
+     * @return
+     * @throws GitAPIException
+     * @throws IOException
+     */
+    private static Set<User> getAuthorsFromDiffEntry(Repository repository, DiffEntry diff,
+            RevCommit start) throws GitAPIException, IOException {
+        DiffFormatter diffFormatter = new DiffFormatter(NullOutputStream.INSTANCE);
+        try {
+            diffFormatter.setRepository(repository);
+            EditList edits = diffFormatter.toFileHeader(diff).toEditList();
+            BlameResult blameResult = new Git(repository).blame()
+                    .setFilePath(diff.getOldPath())
+                    .setFollowFileRenames(true)
+                    .setStartCommit(start).call();
+            return getAuthorsFromBlameResult(edits, blameResult);
+        } finally {
+            diffFormatter.release();
+        }
+    }
+
+    /**
+     * 편집 정보와 blame 결과를 이용해서 수정되거나 삭제된 줄의 원작자를 추출한다.
+     *
+     * @param edits 편집 정보
+     * @param blameResult blame 결과
+     * @return
+     */
+    private static Set<User> getAuthorsFromBlameResult(EditList edits, BlameResult blameResult) {
+        Set<User> authors = new HashSet<>();
+        for (Edit edit : edits) {
+            if (isTypeMatching(edit.getType(), Type.REPLACE, Type.DELETE)) {
+                for (int i = edit.getBeginA(); i < edit.getEndA(); i++) {
+                    authors.add(findAuthorByPersonIdent(blameResult.getSourceAuthor(i)));
+                }
+            }
         }
         return authors;
     }
 
-    private static void findAuthors(RevCommit commit, Repository repository, Set<User> authors) throws IOException, GitAPIException {
-        RevCommit[] parents = commit.getParents();
-        for (RevCommit parent : parents) {
-            TreeWalk treeWalk = new TreeWalk(repository);
-            treeWalk.setRecursive(true);
-            treeWalk.addTree(parent.getTree());
-            treeWalk.addTree(commit.getTree());
-            List<DiffEntry> diffs = DiffEntry.scan(treeWalk);
-            for (DiffEntry diff : diffs) {
-                DiffFormatter diffFormatter = new DiffFormatter(NullOutputStream.INSTANCE);
-                diffFormatter.setRepository(repository);
-                FileHeader fileHeader = diffFormatter.toFileHeader(diff);
-                EditList edits = fileHeader.toEditList();
-                BlameResult blameResult = new Git(repository).blame()
-                        .setFilePath(diff.getOldPath())
-                        .setFollowFileRenames(true)
-                        .setStartCommit(parent).call();
-                for (Edit edit : edits) {
-                    if (edit.getType() != Type.INSERT && edit.getType() != Type.EMPTY) {
-                        for (int i = edit.getBeginA(); i < edit.getEndA(); i++) {
-                            PersonIdent personIdent = blameResult.getSourceAuthor(i);
-                            if (personIdent != null) {
-                                authors.add(User.findByCommitterEmail(personIdent.getEmailAddress()));
-                            }
-                        }
-                    }
-                }
+    /**
+     * 기준 commit 포함 이전 commit 들 중, 지정된 경로에 해당하는 파일을 생성한 commit 의 원작자를 찾는다.
+     *
+     * @param repository
+     * @param path 경로
+     * @param start 기준 commit
+     * @return
+     * @throws IOException
+     */
+    private static User getAuthorFromFirstCommit(Repository repository, String path, RevCommit start)
+            throws IOException {
+        RevWalk revWalk = null;
+        try {
+            revWalk = new RevWalk(repository);
+            revWalk.markStart(start);
+            revWalk.setTreeFilter(PathFilter.create(path));
+            revWalk.sort(RevSort.REVERSE);
+            RevCommit commit = revWalk.next();
+            return findAuthorByPersonIdent(commit.getAuthorIdent());
+        } finally {
+            if (revWalk != null) {
+                revWalk.dispose();
             }
         }
-        authors.remove(User.anonymous);
+    }
+
+    /**
+     * {@link PersonIdent} 를 이용해서 {@link User} 를 찾는다.
+     *
+     * @param personIdent
+     * @return
+     */
+    private static User findAuthorByPersonIdent(PersonIdent personIdent) {
+        if (personIdent == null) {
+            return User.anonymous;
+        }
+        return User.findByCommitterEmail(personIdent.getEmailAddress());
     }
 
     /**
