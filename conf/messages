@@ -421,6 +421,8 @@ project.new.vcsType.subversion = Subversion
 project.onmember = <i class="yobicon-friends yobicon-middle"></i><strong>{0}</strong>
 project.onwatching = <strong>{0}</strong>
 project.owner = Owner Name
+project.owner.placeholder = Please select project ownership 
+project.owner.invalidate = Owner information is not valid.
 project.private = PRIVATE
 project.private.notice = Basic information (name, description, etc.) is exposed to all users, even thought it is a private project.
 project.projects = projects

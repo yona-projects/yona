@@ -1,4 +1,4 @@
-@(title:String, newProjectForm:Form[Project])
+@(title:String, newProjectForm:Form[Project], orgUserList:List[OrganizationUser])
 
 @import utils.TemplateHelper._
 @import playRepository.RepositoryService
@@ -14,23 +14,41 @@
                         <small>@Messages("project.import.or") &nbsp </small><a href="@routes.ProjectApp.newProjectForm()" class="btn btn-small"><strong>@Messages("title.newProject")</strong></a>
                     </span>
                 </legend>
-                <div class="n-alert" data-errType="name">
-
-                    <div class="orange-txt">
-                        @if(flash.get("warning") != null) {
-                        <span class="warning">@Messages(flash.get("warning"))</span>
-                        }
-                        <span class="msg wrongName" style="display:none;">@Messages("project.wrongName")</span>
-                    </div>
-                </div>
                 <dl>
                     <dt>
-                        <label>@Messages("project.git.repository.url")</label>
+                      <div class="n-alert" data-errType="url">
+                          <div class="orange-txt">
+                              @if(newProjectForm.error("url") != null) { <span class="warning">@Messages(newProjectForm.error("url").message())</span> }
+                          </div>
+                      </div>
+                      <label>@Messages("project.git.repository.url")</label>
                     </dt>
                     <dd>
                         <input type="text" name="url" class="text" placeholder="@Messages("project.git.url.alert")">
                     </dd>
                     <dt>
+                      <div class="n-alert" data-errType="owner">
+                          <div class="orange-txt">
+                              @if(newProjectForm.error("owner") != null) { <span class="warning">@Messages(newProjectForm.error("owner").message())</span> }
+                          </div>
+                      </div>
+                      <label for="ownership">@Messages("project.owner.placeholder")</label>
+                    </dt>
+                    <dd>
+                      <select name="owner">
+                          <option value="@UserApp.currentUser().loginId">@UserApp.currentUser().loginId</option>
+                          @for(orgUser <- orgUserList) {
+                              <option value="@orgUser.organization.name">@orgUser.organization.name</option>
+                          }
+                      </select>
+                    </dd>
+                    <dt>
+                        <div class="n-alert" data-errType="name">
+                            <div class="orange-txt">
+                                @if(newProjectForm.error("name") != null) { <span class="warning">@Messages(newProjectForm.error("name").message())</span> }
+                                <span class="msg wrongName" style="display:none;">@Messages("project.wrongName")</span>
+                            </div>
+                        </div>
                         <label for="project-name">@Messages("project.name.placeholder")</label>
                     </dt>
                     <dd>

@@ -773,22 +773,4 @@ public class PullRequestApp extends Controller {
 
         return new ValidationResult(result, hasError);
     }
-
-    static class ValidationResult {
-        private Result result;
-        private boolean hasError;
-
-        ValidationResult(Result result, boolean hasError) {
-            this.result = result;
-            this.hasError = hasError;
-        }
-
-        public boolean hasError(){
-            return hasError;
-        }
-        public Result getResult() {
-            return result;
-        }
-
-    }
 }
