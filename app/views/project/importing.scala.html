@@ -24,7 +24,7 @@
                       <label>@Messages("project.git.repository.url")</label>
                     </dt>
                     <dd>
-                        <input type="text" name="url" class="text" placeholder="@Messages("project.git.url.alert")">
+                        <input type="text" name="url" class="text" placeholder="@Messages("project.git.url.alert")" value="@newProjectForm.field("url").value">
                     </dd>
                     <dt>
                       <div class="n-alert" data-errType="owner">
@@ -38,7 +38,7 @@
                       <select name="owner">
                           <option value="@UserApp.currentUser().loginId">@UserApp.currentUser().loginId</option>
                           @for(orgUser <- orgUserList) {
-                              <option value="@orgUser.organization.name">@orgUser.organization.name</option>
+                              <option value="@orgUser.organization.name" @if(newProjectForm.field("owner").value == orgUser.organization.name) { selected }>@orgUser.organization.name</option>
                           }
                       </select>
                     </dd>
@@ -52,13 +52,13 @@
                         <label for="project-name">@Messages("project.name.placeholder")</label>
                     </dt>
                     <dd>
-                        <input id="project-name" type="text" name="name" class="text" placeholder="@Messages("project.name.alert")" maxlength="250">
+                        <input id="project-name" type="text" name="name" class="text" placeholder="@Messages("project.name.alert")" maxlength="250" value="@newProjectForm.field("name").value">
                     </dd>
                     <dt>
                         <label for="description">@Messages("project.description.placeholder")</label>
                     </dt>
                     <dd>
-                        <textarea id="description" name="overview" class="text textarea.span4" style="resize:vertical;"></textarea>
+                        <textarea id="description" name="overview" class="text textarea.span4" style="resize:vertical;">@newProjectForm.field("overview").value</textarea>
                     </dd>
                 </dl>
 
@@ -66,8 +66,8 @@
                     <li class="option">
                         <div class="option-label">@Messages("project.shareOption")</div>
                         <div class="option-desc">
-                            <input name="isPublic" type="radio" checked="checked" id="public" value="true" class="radio-btn"><label for="public" class="bg-radiobtn label-public">@Messages("project.public")</label>
-                            <input name="isPublic" type="radio" id="private" value="false" class="radio-btn"><label for="private" class="bg-radiobtn label-private">@Messages("project.private")</label>
+                            <input name="isPublic" type="radio" checked="checked" @if(newProjectForm.field("isPublic").value == "true"){ checked="checked" }id="public" value="true" class="radio-btn"><label for="public" class="bg-radiobtn label-public">@Messages("project.public")</label>
+                            <input name="isPublic" type="radio" @if(newProjectForm.field("isPublic").value == "false"){ checked="checked" }id="private" value="false" class="radio-btn"><label for="private" class="bg-radiobtn label-private">@Messages("project.private")</label>
                             <span class="note">@Messages("project.private.notice")</span>
                         </div>
                     </li>

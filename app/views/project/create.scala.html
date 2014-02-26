@@ -25,7 +25,7 @@
             <select name="owner">
                 <option value="@UserApp.currentUser().loginId">@UserApp.currentUser().loginId</option>
                 @for(orgUser <- orgUserList) {
-                    <option value="@orgUser.organization.name">@orgUser.organization.name</option>
+                    <option value="@orgUser.organization.name" @if(newProjectForm.field("owner").value == orgUser.organization.name) { selected }>@orgUser.organization.name</option>
                 }
             </select>
           </dd>
@@ -39,14 +39,14 @@
             <label for="project-name">@Messages("project.name.placeholder")</label>
           </dt>
           <dd>
-            <input id="project-name" type="text" name="name" class="text" placeholder="" maxlength="250">
+            <input id="project-name" type="text" name="name" class="text" placeholder="" maxlength="250" value="@newProjectForm.field("name").value">
           </dd>
 
           <dt>
             <label for="description">@Messages("project.description.placeholder")</label>
           </dt>
           <dd>
-            <textarea id="description" name="overview" class="text textarea.span4" style="resize: vertical;"></textarea>
+            <textarea id="description" name="overview" class="text textarea.span4" style="resize: vertical;">@newProjectForm.field("overview").value</textarea>
           </dd>
         </dl>
 
@@ -54,7 +54,8 @@
           <li class="option">
             <div class="option-label">@Messages("project.shareOption")</div>
             <div class="option-desc">
-              <input name="isPublic" type="radio" checked="checked" id="public" value="true" class="radio-btn"><label for="public" class="bg-radiobtn label-public">@Messages("project.public")</label> <input name="isPublic" type="radio" id="private" value="false" class="radio-btn"><label for="private" class="bg-radiobtn label-private">@Messages("project.private")</label> <span class="note">@Messages("project.private.notice")</span>
+              <input name="isPublic" type="radio" checked="checked" @if(newProjectForm.field("isPublic").value == "true"){ checked="checked" }id="public" value="true" class="radio-btn"><label for="public" class="bg-radiobtn label-public">@Messages("project.public")</label> 
+              <input name="isPublic" type="radio" @if(newProjectForm.field("isPublic").value == "false"){ checked="checked" }id="private" value="false" class="radio-btn"><label for="private" class="bg-radiobtn label-private">@Messages("project.private")</label> <span class="note">@Messages("project.private.notice")</span>
             </div>
           </li>
           <li id="vcs_dropdown" class="option">
@@ -66,11 +67,11 @@
                 </button>
                 <ul class="dropdown-menu">
                   @RepositoryService.vcsTypes.map{ v =>
-                  <li data-value="@v._1" @if(v._1== "GIT"){ data-selected="true" class="active"}><a href="javascript:void(0)">@Messages(v._2)</a></li> }
+                  <li data-value="@v._1" @if(newProjectForm.field("vcs").value == null && v._1== "GIT"){ data-selected="true" class="active"} @if(newProjectForm.field("vcs").value == v._1){ data-selected="true" class="active" }><a href="javascript:void(0)">@Messages(v._2)</a></li> }
                 </ul>
               </div>
 
-              <span id="svn" class="note" style="display: none;">@Messages("project.svn.warning")</span>
+              <span id="svn" class="note" @if(newProjectForm.field("vcs").value == "GIT"){style="display: none;"}>@Messages("project.svn.warning")</span>
             </div>
           </li>
         </ul>
