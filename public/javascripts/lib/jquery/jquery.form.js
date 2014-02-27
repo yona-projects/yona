@@ -55,7 +55,8 @@
  */
 var feature = {};
 feature.fileapi = $("<input type='file'/>").get(0).files !== undefined;
-feature.formdata = window.FormData !== undefined;
+feature.formdata = (window.FormData !== undefined) &&
+                   (navigator.userAgent.toLowerCase().indexOf("trident") === -1);
 
 /**
  * ajaxSubmit() provides a mechanism for immediately submitting

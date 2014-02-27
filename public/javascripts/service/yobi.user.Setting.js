@@ -319,8 +319,11 @@
          * 일반적으로 서버 연결에 실패했을 때 이 상황이 발생한다.
          * ajaxForm 의 error 이벤트 핸들러.
          */
-        function _onAvatarUploadError(sMessage){
-            $yobi.alert(sMessage || Messages("user.avatar.uploadError"));
+        function _onAvatarUploadError(vParam){
+            var sMessage = (vParam.oRes) ? Messages("user.avatar.uploadError") +
+                "<br>(" + vParam.oRes.status + " " + vParam.oRes.statusText + ")" : vParam;
+
+            $yobi.alert(sMessage);
             _setAvatarProgressBar(0);
         }
 

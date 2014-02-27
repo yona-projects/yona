@@ -21,7 +21,6 @@
  *     - errorUpload   : 업로드 실패
  */
 yobi.Files = (function(){
-
     var htVar = {};
     var htElements = {};
     var htHandlers = {};
@@ -41,12 +40,22 @@ yobi.Files = (function(){
         htVar.sUploadURL   = htOptions.sUploadURL;
         htVar.htUploadOpts = htOptions.htUploadOpts || {"dataType": "json"};
 
-        htVar.bXHR2 = (typeof FormData != "undefined");                   // XMLHttpRequest 2 required
-        htVar.bDroppable = (typeof window.File != "undefined");           // HTML5 FileAPI required
-        htVar.bPastable = (typeof document.onpaste != "undefined") && htVar.bXHR2 // onpaste & XHR2 required
+        // XMLHttpRequest2 file upload
+        // The FileReader API is not actually used, but works as feature detection.
+        // Check for window.ProgressEvent instead to detect XHR2 file upload capability
+        // ref: http://blueimp.github.io/jQuery-File-Upload
+        htVar.bXHR2 = !!(window.ProgressEvent && window.FileReader) && !!window.FormData
+                      && (navigator.userAgent.toLowerCase().indexOf("trident") === -1);
+
+        // HTML5 FileAPI required
+        htVar.bDroppable = (typeof window.File != "undefined");
+
+        // onpaste & XHR2 required
+        htVar.bPastable = (typeof document.onpaste != "undefined") && htVar.bXHR2
                        && (navigator.userAgent.indexOf("FireFox") === -1); // and not FireFox
 
-        htVar.nMaxFileSize = 2147483454; // maximum filesize (<= 2,147,483,454 bytes)
+        // maximum filesize (<= 2,147,483,454 bytes = 2Gb)
+        htVar.nMaxFileSize = 2147483454;
     }
 
     /**
@@ -360,6 +369,10 @@ yobi.Files = (function(){
         htElements[sNamespace].welTextarea  = $(htOptions.elTextarea);
         htElements[sNamespace].welInputFile = htElements[sNamespace].welContainer.find("input[type=file]");
         htElements[sNamespace].welContainer.attr("data-namespace", sNamespace);
+
+        if(!htVar.bXHR2){
+            htElements[sNamespace].welInputFile.attr("multiple", null);
+        }
     }
 
     /**
