@@ -1,7 +1,11 @@
 package utils;
 
 import controllers.UserApp;
+import play.api.mvc.AsyncResult;
 import play.api.mvc.PlainResult;
+import play.libs.Akka;
+import play.libs.F.Callback;
+import play.libs.F.Promise;
 import play.mvc.Http;
 import play.mvc.Result;
 
@@ -63,16 +67,31 @@ public class AccessLogger {
      * @param startTimeMillis 요청을 처음 받은 시간 (밀리초 단위)
      * @see <a href="http://httpd.apache.org/docs/2.2/logs.html">Log Files - Apache HTTP Server</a>
      */
-    public static Result log(Http.Request request, Result result, Long startTimeMillis) {
-        if (!(result.getWrappedResult() instanceof play.api.mvc.PlainResult)) {
-            return result;
+    public static Result log(final Http.Request request, final Result result,
+            final Long startTimeMillis) {
+        if (result.getWrappedResult() instanceof PlainResult) {
+            int status = ((PlainResult) result.getWrappedResult()).header().status();
+            log(request, UserApp.currentUser().loginId, status, startTimeMillis);
+        } else if (result.getWrappedResult() instanceof AsyncResult) {
+            AsyncResult asyncResult = (AsyncResult) result.getWrappedResult();
+            Promise<play.api.mvc.Result> promise = Akka.asPromise(asyncResult.result());
+            promise.onRedeem(new Callback<play.api.mvc.Result>() {
+                @Override
+                public void invoke(final play.api.mvc.Result result) throws Throwable {
+                    log(request, wrapResult(result), startTimeMillis);
+                }
+            });
         }
-
-        int status = ((PlainResult) result.getWrappedResult()).header().status();
-
-        log(request, UserApp.currentUser().loginId, status, startTimeMillis);
-
         return result;
+    }
+
+    private static Result wrapResult(final play.api.mvc.Result result) {
+        return new Result() {
+            @Override
+            public play.api.mvc.Result getWrappedResult() {
+                return result;
+            }
+        };
     }
 
     /**
