@@ -43,10 +43,18 @@ public class OrganizationUser extends Model {
                     .findList();
     }
     public static boolean isAdmin(Long organizationId, Long userId) {
+        return contains(organizationId, userId, RoleType.ORG_ADMIN);
+    }
+
+    public static boolean isMember(Long organizationId, Long userId) {
+        return contains(organizationId, userId, RoleType.ORG_MEMBER);
+    }
+
+    private static boolean contains(Long organizationId, Long userId, RoleType roleType) {
         int rowCount = find.where().eq("organization.id", organizationId)
-                            .eq("user.id", userId)
-                            .eq("role.id", Role.findByRoleType(RoleType.ORG_ADMIN).id)
-                            .findRowCount();
+                .eq("user.id", userId)
+                .eq("role.id", Role.findByRoleType(roleType).id)
+                .findRowCount();
         return rowCount > 0;
     }
 }
