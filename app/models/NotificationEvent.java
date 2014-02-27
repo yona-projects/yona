@@ -259,11 +259,19 @@ public class NotificationEvent extends Model {
     public String getUrlToView() {
         switch(eventType) {
             case MEMBER_ENROLL_REQUEST:
-                return routes.ProjectApp.members(
-                        getProject().owner, getProject().name).url();
+                if (getProject() == null) {
+                    return null;
+                } else {
+                    return routes.ProjectApp.members(
+                            getProject().owner, getProject().name).url();
+                }
             case NEW_COMMIT:
-                return routes.CodeHistoryApp.historyUntilHead(
-                        getProject().owner, getProject().name).url();
+                if (getProject() == null) {
+                    return null;
+                } else {
+                    return routes.CodeHistoryApp.historyUntilHead(
+                            getProject().owner, getProject().name).url();
+                }
             default:
                 return RouteUtil.getUrl(resourceType, resourceId);
         }
