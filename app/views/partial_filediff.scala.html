@@ -24,6 +24,7 @@
     <tr><td class="linenum"><div class="line-number" data-line-num="@diff.oldMode"></div><span class="hidden">@diff.oldMode</span></td><td class="linenum"><div class="line-number" data-line-num="@diff.newMode"></div><span class="hidden">@diff.newMode</span></td><td class="isBinary">@Messages("code.fileModeChanged")</td></tr>
   }
   @diff.getHunks match {
+    case null => { <tr><td colspan=3>@Messages("code.skipDiff")</td></tr> }
     case hunks: FileDiff.SizeExceededHunks => { <tr><td colspan=3>@Messages("code.tooBigDiff")</td></tr> }
     case hunks if (hunks.size <= 0) => {
       @diff.isFileModeChanged match {
