@@ -2,9 +2,11 @@ package controllers;
 
 import actions.AnonymousCheckAction;
 import actions.NullProjectCheckAction;
+
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Junction;
 import com.avaje.ebean.Page;
+
 import controllers.annotation.IsAllowed;
 import models.*;
 import models.Project.State;
@@ -12,6 +14,7 @@ import models.enumeration.Operation;
 import models.enumeration.RequestState;
 import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonNode;
@@ -19,6 +22,7 @@ import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.tmatesoft.svn.core.SVNException;
+
 import play.data.Form;
 import play.data.validation.ValidationError;
 import play.db.ebean.Transactional;
@@ -41,6 +45,7 @@ import views.html.project.overview;
 import views.html.project.setting;
 
 import javax.servlet.ServletException;
+
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -78,8 +83,6 @@ public class ProjectApp extends Controller {
     private static final String HTML = "text/html";
 
     private static final String JSON = "application/json";
-
-
 
     /**
      * getProject
@@ -157,7 +160,8 @@ public class ProjectApp extends Controller {
             flash(Constants.WARNING, "user.login.alert");
             return redirect(routes.UserApp.loginForm());
         } else {
-            return ok(create.render("title.newProject", form(Project.class)));
+            List<OrganizationUser> orgUserList = OrganizationUser.findByAdmin(UserApp.currentUser().id);
+            return ok(create.render("title.newProject", form(Project.class), orgUserList));
         }
     }
 
@@ -191,30 +195,72 @@ public class ProjectApp extends Controller {
      */
     @Transactional
     public static Result newProject() throws Exception {
-        if( !AccessControl.isCreatable(UserApp.currentUser()) ){
+        if(!AccessControl.isCreatable(UserApp.currentUser())){
            return forbidden(ErrorViews.Forbidden.render("'" + UserApp.currentUser().name + "' has no permission"));
         }
         Form<Project> filledNewProjectForm = form(Project.class).bindFromRequest();
 
-        if (Project.exists(UserApp.currentUser().loginId, filledNewProjectForm.field("name").value())) {
-            flash(Constants.WARNING, "project.name.duplicate");
-            filledNewProjectForm.reject("name");
-            return badRequest(create.render("title.newProject", filledNewProjectForm));
-        } else if (filledNewProjectForm.hasErrors()) {
-            ValidationError error = filledNewProjectForm.error("name");
-            flash(Constants.WARNING, RestrictedValidator.message.equals(error.message()) ?
-                    "project.name.reserved.alert" : "project.name.alert");
-            filledNewProjectForm.reject("name");
-            return badRequest(create.render("title.newProject", filledNewProjectForm));
-        } else {
-            Project project = filledNewProjectForm.get();
-            project.owner = UserApp.currentUser().loginId;
-            ProjectUser.assignRole(UserApp.currentUser().id, Project.create(project), RoleType.MANAGER);
+        String owner = filledNewProjectForm.field("owner").value();
+        Organization organization = Organization.findByName(owner);
+        User user = User.findByLoginId(owner);
 
-            RepositoryService.createRepository(project);
-
-            return redirect(routes.ProjectApp.project(project.owner, project.name));
+        ValidationResult validation = validateForm(filledNewProjectForm, organization, user);
+        if (validation.hasError()) {
+            return validation.getResult();
         }
+
+        Project project = filledNewProjectForm.get();
+        if (Organization.isNameExist(owner)) {
+            project.organization = organization;
+        } else {
+            ProjectUser.assignRole(UserApp.currentUser().id, Project.create(project), RoleType.MANAGER);
+        }
+        Project.create(project);
+        RepositoryService.createRepository(project);
+        return redirect(routes.ProjectApp.project(project.owner, project.name));
+    }
+
+    private static ValidationResult validateForm(Form<Project> newProjectForm, Organization organization, User user) {
+        Result result = null;
+        boolean hasError = false;
+        List<OrganizationUser> orgUserList = OrganizationUser.findByAdmin(UserApp.currentUser().id);
+
+        String owner = newProjectForm.field("owner").value();
+        String name = newProjectForm.field("name").value();
+        boolean ownerIsUser = User.isLoginIdExist(owner);
+        boolean ownerIsOrganization = Organization.isNameExist(owner);
+
+        if (!ownerIsUser && !ownerIsOrganization) {
+            newProjectForm.reject("owner", "project.owner.invalidate");
+            hasError = true;
+            result = badRequest(create.render("title.newProject", newProjectForm, orgUserList));
+        }
+
+        if (ownerIsUser && UserApp.currentUser().id != user.id) {
+            newProjectForm.reject("owner", "project.owner.invalidate");
+            hasError = true;
+            result = badRequest(create.render("title.newProject", newProjectForm, orgUserList));
+        }
+
+        if (ownerIsOrganization && !OrganizationUser.isAdmin(organization.id, UserApp.currentUser().id)) {
+            hasError = true;
+            result = forbidden(ErrorViews.Forbidden.render("'" + UserApp.currentUser().name + "' has no permission"));
+        }
+
+        if (Project.exists(owner, name)) {
+            newProjectForm.reject("name", "project.name.duplicate");
+            hasError = true;
+            result = badRequest(create.render("title.newProject", newProjectForm, orgUserList));
+        }
+
+        if (newProjectForm.hasErrors()) {
+            ValidationError error = newProjectForm.error("name");
+            newProjectForm.reject("name", RestrictedValidator.message.equals(error.message()) ?
+                    "project.name.reserved.alert" : "project.name.alert");
+            hasError = true;
+            result = badRequest(create.render("title.newProject", newProjectForm, orgUserList));
+        }
+        return new ValidationResult(result, hasError);
     }
 
     /**

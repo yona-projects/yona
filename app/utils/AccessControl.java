@@ -43,6 +43,11 @@ public class AccessControl {
             return true;
         }
 
+        // project가 조직에 속하고 사용자가 Admin 이면 true
+        /*if (project.organization != null && project.organization.isAdmin(user)) {
+            return true;
+        }*/
+
         if (ProjectUser.isMember(user.id, project.id)) {
             // Project members can create anything.
             return true;
@@ -108,7 +113,7 @@ public class AccessControl {
         if (operation == Operation.WATCH) {
             if (resource.getType() == ResourceType.PROJECT) {
                 Project project = Project.find.byId(Long.valueOf(resource.getId()));
-                return project != null && project.isPublic ? !user.isAnonymous() : ProjectUser.isMember(user.id, project.id); 
+                return project != null && project.isPublic ? !user.isAnonymous() : ProjectUser.isMember(user.id, project.id);
             }
         }
 
