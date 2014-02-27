@@ -21,13 +21,13 @@
     <div class="page-wrap">
         <section class="user-box">
             <div class="user-info-box">
-                <div class="whoami-wrap" style="background-image:url('@user.avatarUrl')">
-                    <div class="whoami">
-                        <span class="uname">@user.name</span>
-                    </div>
+                <div class="whoami-wrap" style="background-image:url('@user.avatarUrl')"></div>
+                <div class="whoami usf-group">
+                    <span class="name">@user.name</span>
+                    <span class="loginid">@{"@"}@user.loginId</span>
                     @if(user != null && session != null && user.loginId == session.get("loginId")){
                     <div class="edit">
-                        <a href="@routes.UserApp.editUserInfoForm()"><i class="yobicon-edit"></i> @Messages("userinfo.editProfile")</a>
+                        <a href="@routes.UserApp.editUserInfoForm()" class="ybtn ybtn-default ybtn-mini"><i class="yobicon-edit"></i> @Messages("userinfo.editProfile")</a>
                     </div>
                     }
                 </div>
