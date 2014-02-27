@@ -363,7 +363,10 @@ public class UserApp extends Controller {
     }
 
     /**
-     * 사용자 정보 조회
+     * 사용자 또는 그룹 정보 조회
+     *
+     * {@code loginId}에 해당하는 그룹이 있을 때는 그룹을 보여주고 해당하는
+     * 그룹이 없을 경우에는 {@code loginId}에 해당하는 사용자 페이지를 보여준다.
      *
      * when: 사용자 로그인 아이디나 아바타를 클릭할 때 사용한다.
      *
@@ -375,6 +378,11 @@ public class UserApp extends Controller {
      * @return
      */
     public static Result userInfo(String loginId, String groups, int daysAgo, String selected) {
+        Organization org = Organization.findByName(loginId);
+        if(org != null) {
+            return redirect(routes.OrganizationApp.organization(org.name));
+        }
+
         if (daysAgo == UNDEFINED) {
             Cookie cookie = request().cookie(DAYS_AGO_COOKIE);
             if (cookie != null) {
