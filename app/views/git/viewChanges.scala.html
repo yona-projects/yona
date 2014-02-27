@@ -16,7 +16,7 @@
             @partial_info(project, pull, "changes")
             @partial_branch(pull)
 
-            <div class="pullRequest-changes mt10">
+            <div class="codediff-wrap mt10">
                 <button type="button" class="ybtn ybtn-default btn-show-reviewcards">
                     <i class="yobicon-restore"></i>
                 </button>
@@ -76,7 +76,7 @@
                             <strong>@commit.getAuthor.name</strong>
                         }
                         case (_, email, name) if email != null => {
-                            <span class="avatar-wrap">
+                            <span class="avatar-wrap smaller">
                                 <img src="@urlToPicture(commit.getAuthorEmail, 32)" width="32" height="32">
                             </span>
                             @if(name != null) {

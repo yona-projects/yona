@@ -3330,7 +3330,7 @@ label.issue-item-row {
         &.alert-info    { color:@yobi-cyan-dark;  }
     }
 }
-.pullRequest-changes {
+.codediff-wrap {
     position:relative;
 
     .diffs-wrap {
@@ -3649,12 +3649,20 @@ label.issue-item-row {
     /** diff **/
     /** code/diff.scala.html **/
     .commitId {
-        color:#999;
+        color:@secondary;
         margin-top:5px;
     }
     .commitInfo {
-        .avatar-wrap { margin-right:5px; }
         .ago { margin-left:5px; color:#bbb; }
+        .commitAuthor {
+            float:right; margin-top:5px;
+            .avatar-wrap { margin-right:5px; }
+        }
+        .commitMsg-wrap {
+            .commitMsg.short { font-size:18px; white-space:normal; }
+            .commitMsg.desc  { margin:5px; }
+        }
+        .commitId-wrap { padding:10px 5px; }
     }
     .diff-wrap {
         width:100%; overflow:auto; margin-bottom:20px;

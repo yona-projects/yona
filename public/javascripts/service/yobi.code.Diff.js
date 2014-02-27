@@ -56,7 +56,7 @@
          * initialize element
          */
         function _initElement(){
-            htElement.welContainer = $(".pullRequest-changes");
+            htElement.welContainer = $(".codediff-wrap");
 
             // 변경내역
             htElement.welDiffWrap = htElement.welContainer.find("div.diffs-wrap");

@@ -18,7 +18,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(shortMessage:String, commitMsg:String, linkURL:String)
+@(shortMessage:String, commitMsg:String, linkURL:String = "", forceExpand:Boolean = false)
 
 @import org.apache.commons.lang3.StringUtils
 
@@ -31,6 +31,6 @@
 }
 
 @if(commitMsg.split("\n").length > 1){
-    <button type="button" class="commitMsg moreBtn"><span>&hellip;</span></button>
-    <pre class="commitMsg desc hidden">@commitMsg.replace(commitMsg.split("\n")(0)+"\n", "")</pre>
+    @if(!forceExpand){<button type="button" class="commitMsg moreBtn"><span>&hellip;</span></button>}
+    <pre class="commitMsg desc @if(!forceExpand){hidden}">@commitMsg.replace(commitMsg.split("\n")(0)+"\n", "")</pre>
 }
