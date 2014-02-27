@@ -32,7 +32,7 @@
 @paramForParticipant = { @CommentThread.countReviewsBy(project.id, param.clone.setAuthorId(null).setParticipationId(UserApp.currentUser().id)) }
 @paramForAuthor = { @CommentThread.countReviewsBy(project.id, param.clone.setParticipationId(null).setAuthorId(UserApp.currentUser().id)) }
 
-@projectLayout("Review", project, utils.MenuType.PROJECT_REVIEW) {
+@projectLayout(Messages("menu.review"), project, utils.MenuType.PROJECT_REVIEW) {
     @projectMenu(project, utils.MenuType.PROJECT_REVIEW, "")
 
 <div class="project-page-wrap">

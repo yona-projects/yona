@@ -33,7 +33,6 @@
             _initElement();
             _attachEvent();
             _initPagination();
-            _setLabelColor();
         }
 
         function _initVar(htOptions) {

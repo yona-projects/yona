@@ -347,9 +347,12 @@ object TemplateHelper {
         case (t: CodeCommentThread) if t.isOnChangesOfPullRequest =>
           thread.pullRequest.refresh()
           routes.PullRequestApp.specificChange(project.owner, project.name, t.pullRequest.number, t.commitId)
-        case (t: CodeCommentThread) if t.isOnPullRequest =>
+        case (t: CommentThread) if t.isOnPullRequest =>
           thread.pullRequest.refresh()
           routes.PullRequestApp.pullRequestChanges(project.owner, project.name, t.pullRequest.number)
+        case (t: models.NonRangedCodeCommentThread) if t.isOnChangesOfPullRequest =>
+          thread.pullRequest.refresh()
+          routes.PullRequestApp.specificChange(project.owner, project.name, t.pullRequest.number, t.commitId)
         case (t: CodeCommentThread) =>
           routes.CodeHistoryApp.show(project.owner, project.name, t.commitId)
         case _ => ""

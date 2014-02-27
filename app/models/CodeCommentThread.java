@@ -48,10 +48,6 @@ public class CodeCommentThread extends CommentThread {
         return String.format("Expected '%s' or '%s', but '%s'", A, B, side);
     }
 
-    public boolean isOnPullRequest() {
-        return pullRequest != null;
-    }
-
     public boolean isOnChangesOfPullRequest() {
         return isOnPullRequest() && StringUtils.isNotEmpty(commitId);
     }

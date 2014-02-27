@@ -47,6 +47,10 @@ public class CommentThread extends Model implements ResourceConvertible {
     @ManyToOne
     public PullRequest pullRequest;
 
+    public boolean isOnPullRequest() {
+        return pullRequest != null;
+    }
+
     public static List<CommentThread> findByCommitId(String commitId) {
         return find.where()
                 .eq("commitId", commitId)
