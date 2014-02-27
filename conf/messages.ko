@@ -164,6 +164,7 @@ error.auth.unauthorized.waringMessage = 권한이 없거나 로그인을 하지 
 error.badrequest = 잘못된 요청입니다
 error.badrequest.only.available.for.git = GIT 프로젝트에서만 지원하는 요청입니다.
 error.forbidden = 권한이 없습니다
+error.forbidden.or.notfound = 권한이 없거나 존재하지 않는 프로젝트입니다.
 error.internalServerError = 서버 오류가 발생하여 서비스를 이용할 수 없습니다
 error.notfound = 페이지를 찾을 수 없습니다
 error.notfound.board_post = 존재하지 않는 글입니다
