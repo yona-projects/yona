@@ -55,32 +55,34 @@
                 <div class="attachments" data-resourceType="@ResourceType.MILESTONE" data-resourceId="@milestone.id"></div>
             </div>
 
-        	<ul class="nav nav-tabs">
-            @for(state <- Array(State.OPEN, State.CLOSED, State.ALL)) {
-                <li @if(issueState == state) { class="active" }>
-                    <a href="@getTabLinkByState(state)">
-                        @Messages("issue.state." + state.name.toLowerCase())
-                        <span class="num-badge">@Issue.countIssuesBy(project.id, new SearchCondition().setState(state).setMilestoneId(milestone.id))</span>
-                    </a>
-                </li>
-            }
-            </ul>
-
-        	<div class="issues">
-        	    <div class="filter-wrap">
-        		@issue.partial_massupdate(project, new SearchCondition())
-        		</div>
-                @{
-        	        if(issueState == State.OPEN) {
-        			issue.partial_list(project, milestone.sortedByNumberOfOpenIssue(), new SearchCondition(),0,0)
-        	        } else if(issueState == State.CLOSED) {
-        			issue.partial_list(project, milestone.sortedByNumberOfClosedIssue(), new SearchCondition(),0,0)
-        	        } else {
-        			issue.partial_list(project, milestone.sortedByNumberOfIssue(), new SearchCondition(),0,0)
-        	        }
+            <div id="issues">
+                <ul class="nav nav-tabs">
+                @for(state <- Array(State.OPEN, State.CLOSED, State.ALL)) {
+                    <li @if(issueState == state) { class="active" }>
+                        <a href="@getTabLinkByState(state)#issues">
+                            @Messages("issue.state." + state.name.toLowerCase())
+                            <span class="num-badge">@Issue.countIssuesBy(project.id, new SearchCondition().setState(state).setMilestoneId(milestone.id))</span>
+                        </a>
+                    </li>
                 }
+                </ul>
 
-        	</div>
+                <div class="issues">
+                    <div class="filter-wrap">
+                    @issue.partial_massupdate(project, new SearchCondition())
+                    </div>
+                    @{
+                        issueState match {
+                            case State.OPEN =>
+                                issue.partial_list(project, milestone.sortedByNumberOfOpenIssue(), new SearchCondition(),0,0)
+                            case State.CLOSED =>
+                                issue.partial_list(project, milestone.sortedByNumberOfClosedIssue(), new SearchCondition(),0,0)
+                            case _ =>
+                                issue.partial_list(project, milestone.sortedByNumberOfIssue(), new SearchCondition(),0,0)
+                        }
+                    }
+                </div>
+            </div>
 
             <div class="actrow right-txt" style="padding: 15px 0; clear:both;">
                 @if(isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.DELETE)){
