@@ -306,7 +306,7 @@
                var welComment = $(waComments[i]);
                
                if (sPath == welComment.data('path')
-                       && nLinenum == waComments.data('line')
+                       && nLinenum == welComment.data('line')
                        && sSide == welComment.data('side')) {
                     welUl.append(welComment);
                }
