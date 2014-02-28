@@ -30,52 +30,72 @@ public class RouteUtil {
     public static String getUrl(ResourceType resourceType, String resourceId) {
         Long longId = Long.valueOf(resourceId);
 
-        switch(resourceType) {
-            case ISSUE_POST:
-                return getUrl(Issue.finder.byId(longId));
-            case ISSUE_COMMENT:
-                return getUrl(IssueComment.find.byId(longId));
-            case NONISSUE_COMMENT:
-                return getUrl(PostingComment.find.byId(longId));
-            case BOARD_POST:
-                return getUrl(Posting.finder.byId(longId));
-            case COMMIT_COMMENT:
-                return getUrl(CommitComment.find.byId(longId));
-            case PULL_REQUEST:
-                return getUrl(PullRequest.finder.byId(longId));
-            case PULL_REQUEST_COMMENT:
-                return getUrl(PullRequestComment.find.byId(longId));
-            default:
-                throw new IllegalArgumentException(
-                        Resource.getInvalidResourceTypeMessage(resourceType));
+        try {
+            switch(resourceType) {
+                case ISSUE_POST:
+                    return getUrl(Issue.finder.byId(longId));
+                case ISSUE_COMMENT:
+                    return getUrl(IssueComment.find.byId(longId));
+                case NONISSUE_COMMENT:
+                    return getUrl(PostingComment.find.byId(longId));
+                case BOARD_POST:
+                    return getUrl(Posting.finder.byId(longId));
+                case COMMIT_COMMENT:
+                    return getUrl(CommitComment.find.byId(longId));
+                case PULL_REQUEST:
+                    return getUrl(PullRequest.finder.byId(longId));
+                case PULL_REQUEST_COMMENT:
+                    return getUrl(PullRequestComment.find.byId(longId));
+                default:
+                    throw new IllegalArgumentException(
+                            Resource.getInvalidResourceTypeMessage(resourceType));
+            }
+        } catch (Exception e) {
+            play.Logger.error("Failed to get a url to the resource", e);
         }
+
+        return null;
     }
 
     public static String getUrl(Issue issue) {
+        if (issue == null) return null;
+        issue.refresh();
+
         return controllers.routes.IssueApp.issue(
                 issue.project.owner, issue.project.name, issue.getNumber()).url();
     }
 
     public static String getUrl(Posting post) {
+        if (post == null) return null;
+        post.refresh();
+
         return controllers.routes.BoardApp.post(
                 post.project.owner, post.project.name, post.getNumber()).url();
     }
 
     public static String getUrl(IssueComment comment) {
+        if (comment == null) return null;
+
         return getUrl(comment.issue) + "#comment-" + comment.id;
     }
 
     public static String getUrl(PostingComment comment) {
+        if (comment == null) return null;
+
         return getUrl(comment.posting) + "#comment-" + comment.id;
     }
 
     public static String getUrl(PullRequest pullRequest) {
+        if (pullRequest == null) return null;
+
         Project toProject = pullRequest.toProject;
         return controllers.routes.PullRequestApp.pullRequest(
                 toProject.owner, toProject.name, pullRequest.number).url();
     }
 
     public static String getUrl(CommitComment comment) {
+        if (comment == null) return null;
+
         play.mvc.Call toView = controllers.routes.CodeHistoryApp.show(
                 comment.project.owner, comment.project.name, comment.commitId);
         toView = CodeHistoryApp.backToThePullRequestCommitView(toView);
@@ -83,6 +103,8 @@ public class RouteUtil {
     }
 
     public static String getUrl(Comment comment) {
+        if (comment == null) return null;
+
         if (comment instanceof IssueComment) {
             return getUrl((IssueComment) comment);
         } else if (comment instanceof PostingComment) {
@@ -93,6 +115,8 @@ public class RouteUtil {
     }
 
     public static String getUrl(PullRequestComment newComment) {
+        if (newComment == null) return null;
+
         return getUrl(newComment.pullRequest) + "#comment-" + newComment.id;
     }
 }

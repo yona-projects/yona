@@ -64,7 +64,14 @@
                 <img src="@routes.Assets.at("images/default-avatar-64.png")" width="42" height="42">
             </div>
             }
-            <div class="title"><a href="@noti.getUrlToView">@noti.title</a></div>
+            <div class="title">
+                @defining(noti.getUrlToView){ url =>
+                    @url match {
+                        case null => { @noti.title }
+                        case _ => { <a href="@noti.getUrlToView">@noti.title</a> }
+                    }
+                }
+            </div>
             <div class="message-wrap nowrap" id="message-@noti.id">
                 <div class="message">@noti.getMessage</div>
             </div>
