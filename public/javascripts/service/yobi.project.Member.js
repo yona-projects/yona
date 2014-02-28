@@ -158,18 +158,19 @@
         function _onClickDelete(){
             var sURL = $(this).attr("data-href");
 
-            $yobi.confirm(Messages("project.member.deleteConfirm"), function(htData){
-                if(htData.nButtonIndex === 1){
-                    $.ajax(sURL, {
-                        "method"  : "delete",
-                        "dataType": "html",
-                        "success" : _onSuccessDeleteMember,
-                        "error"   : _onErrorDeleteMember
-                    });
-                }
-            },
-            [Messages("button.no"), Messages("button.yes")],
-            ["ybtn-default", "ybtn-danger"]);
+            $yobi.ajaxConfirm(Messages("project.member.deleteConfirm"),
+                {
+                    "url"     : sURL,
+                    "method"  : "delete",
+                    "dataType": "html",
+                    "success" : _onSuccessDeleteMember,
+                    "error"   : _onErrorDeleteMember
+                },
+                "",
+                {
+                    "aButtonLabels": [Messages("button.no"), Messages("button.yes")],
+                    "aButtonStyles": ["ybtn-default", "ybtn-danger"]
+                });
         }
 
         /**

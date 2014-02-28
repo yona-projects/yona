@@ -55,6 +55,7 @@
         function _initElement(sContainer){
             htElement.welContainer = $(sContainer).clone();
             htElement.welMessage = htElement.welContainer.find(".msg");
+            htElement.welDescription = htElement.welContainer.find(".desc");
             htElement.welButtons = htElement.welContainer.find(".buttons");
             htElement.welContainer.modal({
                 "show": false
@@ -74,7 +75,7 @@
          * 메시지 출력
          * @param {String} sMessage
          */
-        function showDialog(sMessage, htOptions){
+        function showDialog(sMessage, sDescription, htOptions){
             htVar.fOnAfterShow = htOptions.fOnAfterShow;
             htVar.fOnAfterHide = htOptions.fOnAfterHide;
             htVar.fOnClickButton = htOptions.fOnClickButton;
@@ -85,6 +86,7 @@
 
             htElement.welButtons.html(sButtonHTML);
             htElement.welMessage.html($yobi.nl2br(sMessage));
+            htElement.welDescription.html($yobi.nl2br(sDescription || ""));
             htElement.welContainer.modal("show");
         }
 
