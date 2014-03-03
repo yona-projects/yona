@@ -30,7 +30,7 @@ public class Assignee extends Model {
     @Required
     public Project project;
 
-    @OneToMany(mappedBy = "assignee", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "assignee")
     public Set<Issue> issues;
 
     public static final Model.Finder<Long, Assignee> finder = new Finder<>(Long.class, Assignee.class);

@@ -740,10 +740,6 @@ public class Project extends Model implements LabelOwner {
             }
         }
 
-        for (Assignee assignee : assignees) {
-            assignee.delete();
-        }
-
         for (Label label : labels) {
             label.delete(this);
             label.update();
@@ -755,6 +751,10 @@ public class Project extends Model implements LabelOwner {
 
         for(Issue issue : issues) {
             issue.delete();
+        }
+
+        for (Assignee assignee : assignees) {
+            assignee.delete();
         }
 
         for(Posting posting : posts) {
