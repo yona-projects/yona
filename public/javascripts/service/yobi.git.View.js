@@ -111,9 +111,11 @@
                 });
             }
 
-            htElement.welBtnAccept.data("requestAs").on("beforeRequest", function(){
-                yobi.ui.Spinner.show({"bUseDimmer": true});
-            });
+            if(htElement.welBtnAccept.length > 0 && htElement.welBtnAccept.data("requestAs")){
+                htElement.welBtnAccept.data("requestAs").on("beforeRequest", function(){
+                    yobi.ui.Spinner.show({"bUseDimmer": true});
+                });
+            }
         }
 
         /**
