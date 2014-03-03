@@ -761,6 +761,11 @@ public class Project extends Model implements LabelOwner {
             posting.delete();
         }
 
+        for (ProjectVisitation visit :
+                ProjectVisitation.find.where().eq("project", this).findList()) {
+            visit.delete();
+        }
+
         super.delete();
     }
 
