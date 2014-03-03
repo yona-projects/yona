@@ -295,6 +295,7 @@ notification.issue.assigned = {0}에게 이슈 할당됨
 notification.issue.closed  = 이슈 닫힘
 notification.issue.reopened = 이슈 다시 열림
 notification.issue.unassigned = 이슈 담당자 없음
+notification.linkToView = {0}에서 보기
 notification.member.enroll.accept = 멤버로 등록됨
 notification.member.enroll.cancel = 멤버 등록 요청이 취소됨
 notification.member.enroll.request = 멤버 등록 요청을 받음

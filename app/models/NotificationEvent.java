@@ -13,21 +13,22 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.joda.time.DateTime;
 import org.tmatesoft.svn.core.SVNException;
 import play.Configuration;
+import play.api.i18n.Lang;
 import play.api.mvc.Call;
 import play.db.ebean.Model;
 import play.i18n.Messages;
 import play.libs.Akka;
-import playRepository.*;
+import playRepository.Commit;
+import playRepository.GitCommit;
+import playRepository.GitConflicts;
+import playRepository.RepositoryService;
 import scala.concurrent.duration.Duration;
 import utils.RouteUtil;
 
 import javax.persistence.*;
 import javax.servlet.ServletException;
 import java.io.IOException;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -86,6 +87,11 @@ public class NotificationEvent extends Model {
 
     @Transient
     public String getMessage() {
+        return getMessage(Lang.defaultLang());
+    }
+
+    @Transient
+    public String getMessage(Lang lang) {
         if (message != null) {
             return message;
         }
@@ -93,15 +99,15 @@ public class NotificationEvent extends Model {
         switch (eventType) {
             case ISSUE_STATE_CHANGED:
                 if (newValue.equals(State.CLOSED.state())) {
-                    return Messages.get("notification.issue.closed");
+                    return Messages.get(lang, "notification.issue.closed");
                 } else {
-                    return Messages.get("notification.issue.reopened");
+                    return Messages.get(lang, "notification.issue.reopened");
                 }
             case ISSUE_ASSIGNEE_CHANGED:
                 if (newValue == null) {
-                    return Messages.get("notification.issue.unassigned");
+                    return Messages.get(lang, "notification.issue.unassigned");
                 } else {
-                    return Messages.get("notification.issue.assigned", newValue);
+                    return Messages.get(lang, "notification.issue.assigned", newValue);
                 }
             case NEW_ISSUE:
             case NEW_POSTING:
@@ -113,26 +119,26 @@ public class NotificationEvent extends Model {
                 return newValue;
             case PULL_REQUEST_STATE_CHANGED:
                 if (State.OPEN.state().equals(newValue)) {
-                    return Messages.get("notification.pullrequest.reopened");
+                    return Messages.get(lang, "notification.pullrequest.reopened");
                 } else {
-                    return Messages.get("notification.pullrequest." + newValue);
+                    return Messages.get(lang, "notification.pullrequest." + newValue);
                 }
             case PULL_REQUEST_COMMIT_CHANGED:
                 return newValue;
             case PULL_REQUEST_MERGED:
-                return Messages.get("notification.type.pullrequest.merged." + newValue) + "\n" + StringUtils.defaultString(oldValue, StringUtils.EMPTY);
+                return Messages.get(lang, "notification.type.pullrequest.merged." + newValue) + "\n" + StringUtils.defaultString(oldValue, StringUtils.EMPTY);
             case MEMBER_ENROLL_REQUEST:
                 if (RequestState.REQUEST.name().equals(newValue)) {
-                    return Messages.get("notification.member.enroll.request");
+                    return Messages.get(lang, "notification.member.enroll.request");
                 } else  if (RequestState.ACCEPT.name().equals(newValue)) {
-                    return Messages.get("notification.member.enroll.accept");
+                    return Messages.get(lang, "notification.member.enroll.accept");
                 } else {
-                    return Messages.get("notification.member.enroll.cancel");
+                    return Messages.get(lang, "notification.member.enroll.cancel");
                 }
             case PULL_REQUEST_REVIEWED:
-                return Messages.get("notification.pullrequest.reviewed", newValue);
+                return Messages.get(lang, "notification.pullrequest.reviewed", newValue);
             case PULL_REQUEST_UNREVIEWED:
-                return Messages.get("notification.pullrequest.unreviewed", newValue);
+                return Messages.get(lang, "notification.pullrequest.unreviewed", newValue);
             default:
                 return null;
         }
