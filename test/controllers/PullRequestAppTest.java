@@ -78,7 +78,7 @@ public class PullRequestAppTest {
                 .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
               );
 
-        assertThat(status(result)).isEqualTo(NOT_FOUND);
+        assertThat(status(result)).isEqualTo(FORBIDDEN);
     }
 
     @Test
@@ -239,7 +239,7 @@ public class PullRequestAppTest {
                 .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
               );
 
-        assertThat(status(result)).isEqualTo(NOT_FOUND);
+        assertThat(status(result)).isEqualTo(FORBIDDEN);
     }
 
     @Test

@@ -57,7 +57,7 @@ public class EnrollProjectAppTest {
                 fakeRequest(POST, routes.EnrollProjectApp.enroll(loginId, projectName).url()));
 
         // Then
-        assertThat(status(result)).isEqualTo(Http.Status.NOT_FOUND);
+        assertThat(status(result)).isEqualTo(Http.Status.FORBIDDEN);
     }
 
     @Test
@@ -125,7 +125,7 @@ public class EnrollProjectAppTest {
                 fakeRequest(POST, routes.EnrollProjectApp.cancelEnroll(loginId, projectName).url()));
 
         // Then
-        assertThat(status(result)).isEqualTo(Http.Status.NOT_FOUND);
+        assertThat(status(result)).isEqualTo(Http.Status.FORBIDDEN);
     }
 
     @Test

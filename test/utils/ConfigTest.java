@@ -74,10 +74,10 @@ public class ConfigTest {
         Helpers.stop(app);
 
         // The default is "Yobi".
-        additionalConfiguration.put("application.scheme", null);
+        additionalConfiguration.put("application.siteName", null);
         app = support.Helpers.makeTestApplication(additionalConfiguration);
         Helpers.start(app);
-        assertThat(Config.getScheme("https")).isEqualTo("Yobi");
+        assertThat(Config.getSiteName()).isEqualTo("Yobi");
         Helpers.stop(app);
     }
 }

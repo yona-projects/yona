@@ -45,7 +45,7 @@ public class WatchProjectAppTest {
                 );
 
         //then
-        assertThat(status(result)).isEqualTo(Http.Status.NOT_FOUND);
+        assertThat(status(result)).isEqualTo(Http.Status.FORBIDDEN);
     }
 
     @Test
@@ -93,7 +93,7 @@ public class WatchProjectAppTest {
                 );
 
         //then
-        assertThat(status(result)).isEqualTo(Http.Status.NOT_FOUND);
+        assertThat(status(result)).isEqualTo(Http.Status.FORBIDDEN);
     }
 
     @Test
