@@ -1,6 +1,11 @@
 # This is the main configuration file for the application.
 # ~~~~~
 
+# Site Name
+# ~~~~~~~~~
+# The name of your website
+application.siteName="Yobi"
+
 # Notification
 # ~~~~~
 # Notfication email is delivered by default.

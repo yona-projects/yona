@@ -62,4 +62,22 @@ public class ConfigTest {
         Helpers.stop(app);
     }
 
+    @Test
+    public void getSiteName() {
+        FakeApplication app;
+        Map<String, String> additionalConfiguration = support.Helpers.makeTestConfig();
+
+        additionalConfiguration.put("application.siteName", "my site");
+        app = support.Helpers.makeTestApplication(additionalConfiguration);
+        Helpers.start(app);
+        assertThat(Config.getSiteName()).isEqualTo("my site");
+        Helpers.stop(app);
+
+        // The default is "Yobi".
+        additionalConfiguration.put("application.scheme", null);
+        app = support.Helpers.makeTestApplication(additionalConfiguration);
+        Helpers.start(app);
+        assertThat(Config.getScheme("https")).isEqualTo("Yobi");
+        Helpers.stop(app);
+    }
 }

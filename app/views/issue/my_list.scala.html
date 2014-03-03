@@ -1,7 +1,7 @@
 @(title: String, currentPage: com.avaje.ebean.Page[Issue], param:
 models.support.SearchCondition, project:Project)
 
-@siteLayout("app.name", utils.MenuType.SITE_HOME) {
+@siteLayout(utils.Config.getSiteName, utils.MenuType.SITE_HOME) {
     <div>
         <button class="btn-transparent" id="toggleIntro"></button>
     </div>

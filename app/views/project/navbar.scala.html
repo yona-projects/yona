@@ -9,7 +9,7 @@
 </div>
 <header class="gnb-outer">
     <div class="gnb-inner">
-        <a href="@routes.Application.index()" class="logo"><h1 class="blind">@Messages("app.name")</h1></a>
+        <a href="@routes.Application.index()" class="logo"><h1 class="blind">@utils.Config.getSiteName</h1></a>
         <ul class="gnb-nav">
             <li>
                 <a href="@routes.ProjectApp.projects()">@Messages("title.projectList")</a>

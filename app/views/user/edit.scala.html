@@ -13,7 +13,7 @@
 <div class="page-wrap-outer">
     <div class="page-wrap">
         <h1 class="page-title">
-            <span class="gray">@Messages("app.name") / </span>
+            <span class="gray">@utils.Config.getSiteName / </span>
             <a href="@routes.UserApp.userInfo(session.get("loginId"))" style="vertical-align:top;">@user.loginId</a>
         </h1>
 

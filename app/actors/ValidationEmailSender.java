@@ -46,9 +46,9 @@ public class ValidationEmailSender extends UntypedActor {
         final HtmlEmail htmlEmail = new HtmlEmail();
 
         try {
-            htmlEmail.setFrom(Config.getEmailFromSmtp(), Messages.get("app.name"));
+            htmlEmail.setFrom(Config.getEmailFromSmtp(), utils.Config.getSiteName());
             htmlEmail.addTo(email.email, email.user.name);
-            htmlEmail.setSubject(Messages.get("emails.validation.email.title"));
+            htmlEmail.setSubject(Messages.get("emails.validation.email.title", utils.Config.getSiteName()));
             htmlEmail.setHtmlMsg(getMessage(email.confirmUrl));
             htmlEmail.setCharset("utf-8");
             Mailer.send(htmlEmail);
