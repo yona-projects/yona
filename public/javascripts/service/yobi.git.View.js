@@ -110,6 +110,10 @@
                     welDiff: htOptions.htDiff
                 });
             }
+
+            htElement.welBtnAccept.data("requestAs").on("beforeRequest", function(){
+                yobi.ui.Spinner.show({"bUseDimmer": true});
+            });
         }
 
         /**
