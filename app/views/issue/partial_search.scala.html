@@ -78,7 +78,7 @@
                     <dl class="issue-option">
                         <dt>@Messages("issue.author")</dt>
                         <dd>
-                            <select id="authorId" name="authorId">
+                            <select id="authorId" name="authorId" data-toggle="select2" data-format="user">
                                 <option value="">@Messages("common.order.all")</option>
                                 @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
                                 <option value="@UserApp.currentUser().id">@Messages("issue.list.authoredByMe")</option>
@@ -100,11 +100,12 @@
                     <dl class="issue-option">
                         <dt>@Messages("issue.assignee")</dt>
                         <dd>
-                            <select id="assigneeId" name="assigneeId">
+                            <select id="assigneeId" name="assigneeId" data-toggle="select2" data-format="user">
                                 <option value="">@Messages("common.order.all")</option>
                                 <option value="@User.anonymous.id" @if(param.assigneeId != null && param.assigneeId == User.anonymous.id){ selected }>@Messages("issue.noAssignee")</option>
                                 @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
-                                <option value="@UserApp.currentUser().id">@Messages("issue.list.assignedToMe")</a></option>}
+                                <option value="@UserApp.currentUser().id">@Messages("issue.list.assignedToMe")</a></option>
+                                }
                                 @for(member <- project.members) {
                                     <option value="@member.user.id"
                                     @if(param.assigneeId != null
@@ -123,7 +124,7 @@
                     <dl class="issue-option">
                         <dt>@Messages("milestone")</dt>
                         <dd>
-                            <select id="milestoneId" name="milestoneId">
+                            <select id="milestoneId" name="milestoneId" data-toggle="select2">
                                 <option value="">@Messages("milestone.state.all")</option>
                                 @if(param.milestoneId != null
                                     && param.milestoneId == Milestone.NULL_MILESTONE_ID){
@@ -190,7 +191,6 @@
             @partial_list(project, currentPage.getList, param, currentPage.getPageIndex, currentPage.getTotalPageCount)
             
             <div class="pull-left" style="padding:10px;">
-
                 <a href="@addQueryString(removeQueryString(request.uri, "pageNum"), "format=xls")" class="ybtn small"><i class="yobicon-file-excel"></i> @Messages("issue.downloadAsExcel")</a>
             </div>
             @help.keymap("issueList", project)
@@ -208,72 +208,34 @@
 
         <script type="text/javascript">
             $(document).ready(function(){
-                $("#assigneeId, #authorId")
-                    .select2({
-                        formatResult: format,
-                        formatSelection: format,
-                        width: "resolve"
-                    })
-                    .on("change", function(e){
-                        $("form[name='search']" ).submit();
-                    });
+                // Label
+				        yobi.Label.init({
+                    "bRefresh"     : true,
+                    "sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)",
+                    "sURLPost"     : "@routes.IssueLabelApp.newLabel(project.owner, project.name)",
+                    "aSelectedLabels": [@if(param.labelIds != null){@StringUtils.join(param.labelIds, ",")}]
+                });
 
-                $("#milestoneId")
-                    .select2({
-                        width: "resolve"
-                    })
-                    .on("change", function(e){
-                        $("form[name='search']").submit();
-                    });
+                // issue.List
+                $yobi.loadModule("issue.List", {
+                    "welSearchOrder": $("a[orderBy]"),
+                    "welSearchState": $("a[state]"),
+                    "welSearchForm" : $("form[name='search']"),
+                    "welFilter"     : $("a[pjax-filter]"),
+                    "elPagination"  : $("#pagination"),
+                    "nTotalPages"   : @currentPage.getTotalPageCount()
+                });
 
-                /**
-                 * select box list customization using select2
-                 *
-                 */
-                function format(state) {
-                    var originalOption = state.element;
-                    if($(originalOption).data('avatar-url')){
-                        return "<img src='"+$(originalOption).data('avatar-url') +"'  width='20' height='20'>"
-                            + "<span style='font-weight: bold'>" + state.text + "</span>"
-                            +"<span style='color: gray'>@{"@"}" + $(originalOption).data('login-id') + "</span>";
-                    } else {
-                        return state.text;
-                    }
-                }
-            });
-        </script>
-        <script type="text/javascript">
-            $(document).ready(function(){
-				yobi.Label.init({
-				    "sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)",
-				    "sURLPost"     : "@routes.IssueLabelApp.newLabel(project.owner, project.name)",
-				    "bRefresh"     : true
-				    @if(param.labelIds != null){
-				    , "aSelectedLabels" : [@StringUtils.join(param.labelIds, ",")]
-				    } else {
-				    , "aSelectedLabels" : []
-				    }
-				});
-
-				$yobi.loadModule("issue.List", {
-				"welSearchOrder": $("a[orderBy]"),
-		   	        "welSearchState": $("a[state]"),
-		   	        "welSearchMilestone": $("div[data-name='milestoneId']"),
-		   	        "welSearchForm":$("form[name='search']"),
-		   	        "welFilter": $("a[pjax-filter]"),
-		   		    "elPagination": $("#pagination"),
-		   		    "nTotalPages" : @currentPage.getTotalPageCount()
-			   	});
-
+                // ShortcutKey
                 yobi.ShortcutKey.setKeymapLink({
-                   "N": "@routes.IssueApp.newIssueForm(project.owner, project.name)"
-                   @if(currentPage.getPageIndex > 0){
-                  ,"A": "@getPageListUrl(currentPage.getPageIndex - 1)"
-                   }
-                   @if(currentPage.getTotalPageCount > 1 && (currentPage.getPageIndex + 1 != currentPage.getTotalPageCount)){
-                  ,"S": "@getPageListUrl(currentPage.getPageIndex + 1)"
-                   }
+                    "N": "@routes.IssueApp.newIssueForm(project.owner, project.name)"
+                    @if(currentPage.getPageIndex > 0){
+                    ,"A": "@getPageListUrl(currentPage.getPageIndex - 1)"
+                    }
+                    @if(currentPage.getTotalPageCount > 1 && (currentPage.getPageIndex + 1 != currentPage.getTotalPageCount)){
+                   ,"S": "@getPageListUrl(currentPage.getPageIndex + 1)"
+                    }
                 });
             });
         </script>
-    </div>
+        </div>

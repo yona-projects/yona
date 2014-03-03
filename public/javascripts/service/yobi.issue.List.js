@@ -31,18 +31,12 @@
          */
         function _initVar(htOptions){
             htVar.nTotalPages = htOptions.nTotalPages || 1;
-
-            htVar.oSearchAuthor    = new yobi.ui.Dropdown({"elContainer": htOptions.welSearchAuthor});
-            htVar.oSearchAssignee  = new yobi.ui.Dropdown({"elContainer": htOptions.welSearchAssignee});
-            htVar.oSearchMilestone = new yobi.ui.Dropdown({"elContainer": htOptions.welSearchMilestone});
-
         }
         
         /**
          * initialize element
          */
         function _initElement(htOptions){
-            
             htElement.welSearchForm = htOptions.welSearchForm;
             htElement.welFilter = htOptions.welFilter;
 
@@ -60,16 +54,23 @@
             htElement.welDeleteButton = htOptions.welDeleteButton;
             htElement.waCheckboxes = $(htVar.sIssueCheckBoxesSelector);
 
-            htElement.welIssueWrap = $('.issue-list-wrap');   
+            htElement.welIssueWrap = $('.issue-list-wrap');
+
+            htElement.welSearchAuthorId = $("#authorId");
+            htElement.welSearchAssigneeId = $("#assigneeId");
+            htElement.welSearchMilestoneId = $("#milestoneId");
+            yobi.ui.Select2(htElement.welSearchAuthorId);
+            yobi.ui.Select2(htElement.welSearchAssigneeId);
+            yobi.ui.Select2(htElement.welSearchMilestoneId);
         }
 
         /**
          * attach event handlers
          */
         function _attachEvent(){
-            htVar.oSearchAuthor.onChange(_onChangeSearchField);
-            htVar.oSearchAssignee.onChange(_onChangeSearchField);
-            htVar.oSearchMilestone.onChange(_onChangeSearchField);
+            htElement.welSearchAuthorId.on("change", _onChangeSearchField);
+            htElement.welSearchAssigneeId.on("change", _onChangeSearchField);
+            htElement.welSearchMilestoneId.on("change", _onChangeSearchField);
 
             htElement.welSearchOrder.each(function(i, el) {
                 $(el).click(_onChangeSearchOrder);
@@ -83,12 +84,13 @@
                 $(el).click(_onChangeSearchLabel);
             });
             
-            if(htElement.welFilter) htElement.welFilter.each(function(i, el) {
-                $(el).click(_onClickSearchFilter);
-            });
+            if(htElement.welFilter){
+                htElement.welFilter.each(function(i, el) {
+                    $(el).click(_onClickSearchFilter);
+                });
+            }
 
             htElement.welIssueWrap.on('change','[data-toggle="issue-checkbox"]',_onChangeIssueCheckBox);
-
         }
 
         function _onChangeIssueCheckBox() {
@@ -120,11 +122,17 @@
             htElement.welSearchForm.submit();
         }
 
-        function _onClickSearchFilter(event) {
-            event.preventDefault();
-            $("#authorId").val($(this).attr("authorId"));
-            $("#assigneeId").val($(this).attr("assigneeId"));
-            $("#milestoneId").val($(this).attr("milestoneId"));
+        /**
+         *
+         * @param weEvt
+         * @private
+         */
+        function _onClickSearchFilter(weEvt) {
+            weEvt.preventDefault();
+
+            htElement.welSearchAuthorId.val($(this).attr("authorId"));
+            htElement.welSearchAssigneeId.val($(this).attr("assigneeId"));
+            htElement.welSearchMilestoneId.val($(this).attr("milestoneId"));
             htElement.welSearchForm.submit();
         }
 
