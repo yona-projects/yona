@@ -64,6 +64,7 @@ public class UserApp extends Controller {
     public static final int MAX_AGE = 30*24*60*60;
     public static final String DEFAULT_AVATAR_URL
             = routes.Assets.at("images/default-avatar-128.png").url();
+    private static final int AVATAR_FILE_LIMIT_SIZE = 1024*1000*1; //1M
     public static final int MAX_FETCH_USERS = 1000;
     private static final int HASH_ITERATIONS = 1024;
     public static final int DAYS_AGO = 7;
@@ -547,6 +548,11 @@ public class UserApp extends Controller {
             if (avatarId != null) {
                 Attachment attachment = Attachment.find.byId(avatarId);
                 String primary = attachment.mimeType.split("/")[0].toLowerCase();
+
+                if (attachment.size > AVATAR_FILE_LIMIT_SIZE){
+                    userForm.reject("avatarId", "user.avatar.fileSizeAlert");
+                }
+
                 if (primary.equals("image")) {
                     Attachment.deleteAll(currentUser().avatarAsResource());
                     attachment.moveTo(currentUser().avatarAsResource());

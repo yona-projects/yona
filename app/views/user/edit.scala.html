@@ -62,26 +62,33 @@
                 <input type="hidden" name="name" value="@user.name">
                 <input type="hidden" name="email" value="@user.email">
                 <div class="avatar-frm">
-                    <div id="avatarWrap" class="avatar-wrap xlarge">
+                    <div class="avatar-wrap xlarge">
                         <img src="@user.avatarUrl" style="width:128px; max-width:none;" />
                         <div class="progress"></div>
                     </div>
-                    <div style="position:relative; margin:10px 0;">
-                        <img id="avatarImgCrop" style="width:500px; display:none;">
-                    </div>
-                    <div class="btn-wrap">
-                        <div id="btnUploadFile" class="ybtn ybtn-success fake-file-wrap">
+                    <div class="btn-wrap mt10">
+                        <div class="ybtn ybtn-success fake-file-wrap btnUploadAvatar">
                             @Messages("userinfo.changeAvatar")<!--
                         --> <input id="avatarFile" type="file" class="file" name="filePath" accept="image/*">
                         </div>
                     </div>
-                    <div class="btn-wrap">
-                        <button id="btnSubmitCrop" type="button" class="ybtn ybtn-success" style="display:none; padding:4px 29px;">@Messages("userinfo.changeAvatar")</button>
+                </div>
+                }
+                <div id="avatarCropWrap" class="modal hide" role="dialog" data-backdrop="static">
+                    <div class="modal-header center-txt">
+                        <div class="avatar-wrap xlarge">
+                            <img style="width:128px; max-width:none;"/>
+                        </div>
+                    </div>
+                    <div class="modal-body">
+                        <img style="max-width:500px;">
+                        <canvas width="128" height="128" class="hide"></canvas>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="ybtn ybtn-default" data-dismiss="modal">@Messages("button.cancel")</button>
+                        <button type="button" class="ybtn ybtn-success btnSubmitCrop">@Messages("button.save")</button>
                     </div>
                 </div>
-
-                }
-                <canvas id="avatarCrop" width="128" height="128" style="display:none;"></canvas>
             </div>
 
             <div id="watch" class="tab-pane">

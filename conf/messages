@@ -642,6 +642,7 @@ title.yobi.feedback = Feedback
 title.zenmode = zen mode
 user.avatar.onlyImage = Only an image is allowed.
 user.avatar.uploadError = Upload failed. Ask to Site admin
+user.avatar.fileSizeAlert = The size of an image should be less than 1MB.
 user.confirmPassword = Confirm Password
 user.confirmPassword.alert = Password doesn't match the confirmation
 user.currentPassword = Current Password

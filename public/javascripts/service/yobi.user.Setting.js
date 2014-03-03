@@ -24,6 +24,7 @@
             _attachEvent();
 
             _initFormValidator();
+            _initAvatarUploader();
         }
 
         /**
@@ -36,14 +37,17 @@
 
             // 아바타
             htElement.welFormAvatar = $("#frmAvatar");
-            htElement.welAvatarWrap = $("#avatarWrap");
+            htElement.welBtnUploadAvatar = htElement.welFormAvatar.find(".btnUploadAvatar");
+            htElement.welAvatarWrap = htElement.welFormAvatar.find(".avatar-wrap");
             htElement.welAvatarImage = htElement.welAvatarWrap.find("img");
             htElement.welAvatarProgress = htElement.welAvatarWrap.find(".progress");
             htVar.nProgressHeight = htElement.welAvatarWrap.height();
 
-            htElement.welBtnUploadFile = $("#btnUploadFile");
-            htElement.welBtnSubmitCrop = $("#btnSubmitCrop");
-            htElement.welImgCrop = $("#avatarImgCrop");
+            htElement.welAvatarCropWrap = $("#avatarCropWrap");
+            htElement.welAvatarCropImg = htElement.welAvatarCropWrap.find(".modal-body > img");
+            htElement.welAvatarCropPreviewImg = htElement.welAvatarCropWrap.find(".avatar-wrap > img");
+            htElement.elAvatarCropCanvas = htElement.welAvatarCropWrap.find("canvas").get(0);
+            htElement.welBtnSubmitCrop = htElement.welAvatarCropWrap.find("button.btnSubmitCrop");
 
             // 비밀번호 변경
             htElement.welFormPswd = $("#frmPassword");
@@ -65,7 +69,16 @@
             htElement.welInputPassword.focusout(_onBlurInputPassword);
             htElement.welInputRetypedPassword.focusout(_onBlurInputPassword);
 
-            // 아바타 업로드 설정
+            // 알림 설정 변경
+            htElement.welChkNotiSwtich.change(_onChangeNotiSwitch);
+        }
+
+        /**
+         * 아바타 업로더 설정
+         * @private
+         */
+        function _initAvatarUploader(){
+            // 아바타 기본 업로더 설정
             yobi.Files.attach({
                 "beforeUpload"  : _onAvatarBeforeUpload,
                 "successUpload" : _onAvatarUploaded,
@@ -74,8 +87,23 @@
             });
             yobi.Files.getUploader(".avatar-frm");
 
-            // 알림 설정 변경
-            htElement.welChkNotiSwtich.change(_onChangeNotiSwitch);
+            // jCrop 을 사용할 수 없는 환경을 위한 최대 파일 크기 제한
+            htVar.nMaxFileSizeInNoCrop = 1024 * 1000 * 1; // 1Mb
+
+            // XHR2 를 사용가능한 환경에서만 jCrop 기능을 제공한다
+            htVar.bUseJCrop = yobi.Files.getEnv().bXHR2;
+
+            if(htVar.bUseJCrop){
+                htElement.welBtnSubmitCrop.on("click", _onClickBtnSubmitCrop);
+                htElement.welAvatarCropImg.on("load", _onAvatarCropImageLoad);
+                htElement.welAvatarCropWrap.on("hidden", _clearJcrop);
+
+                // jCrop 결과물 업로드 이벤트 설정
+                yobi.Files.attach({
+                   "successUpload": _onAvatarCroppedImageUploaded,
+                   "errorUpload"  : _onAvatarUploadError
+                }, "jCropUpload");
+            }
         }
 
         /**
@@ -91,27 +119,6 @@
                 _onAvatarUploadError(Messages("user.avatar.onlyImage"));
                 return false;
             }
-        }
-        /**
-         * 알림 On/Off 스위치 변경
-         */
-        function _onChangeNotiSwitch(){
-            var welTarget  = $(this);
-            var bChecked   = welTarget.prop("checked");
-            var url        = $(this).attr("data-href");
-
-            $.ajax(url, {
-                "method" : "post",
-                "success": function(data){
-                    welTarget.prop("checked", bChecked);
-                },
-                "error"  : function(oRes){
-                    welTarget.prop("checked", !bChecked);
-                    $yobi.alert(Messages("error.failedTo",
-                                Messages("userinfo.changeNotifications"),
-                                oRes.status, oRes.statusText));
-                }
-            })
         }
 
         /**
@@ -130,59 +137,95 @@
                 return false;
             }
 
-            htElement.welAvatarImage.attr("src", oRes.url);
-
-            // 설정 폼에 avatarId 설정
-            var welAvatarId = htElement.welFormAvatar.find("input[name=avatarId]");
-            if(welAvatarId.length === 0){ // 없으면 새로 설정하고
-                welAvatarId = htElement.welFormAvatar.append($("<input>").attr({
-                    "type": "hidden",
-                    "name": "avatarId",
-                    "value": oRes.id
-                }));
-            } else { // 이미 있으면 값만 수정
-                welAvatarId.attr("value", oRes.id);
-            }
-
+            // 업로드 진행 상태 100%
             _setAvatarProgressBar(100);
 
-            // Crop 후에 업로드 인지, 처음 업로드인지 구분
-            if(!htVar.oJcrop){
-                _setJcrop(oRes); // jCrop 설정
-            } else {
-                htElement.welFormAvatar.submit();
+            // jCrop 을 사용가능한 환경에서만 관련 화면을 표시한다
+            if(htVar.bUseJCrop){
+                _showJcrop(oRes);
+                return;
             }
+
+            // 그렇지 않으면 아바타 설정 폼을 submit 한다
+            // Crop 처리하지 않은 파일은 크기를 확인해서
+            // 용량이 너무 크면 (> 1MB) 오류 표시하고 파일을 삭제한다
+            if(oRes.size > htVar.nMaxFileSizeInNoCrop){
+                _onAvatarUploadError(Messages("user.avatar.fileSizeAlert"));
+                yobi.Files.deleteFile({"sURL": oRes.url});
+                return false;
+            }
+
+            // 설정 폼에 avatarId 설정하고 submit
+            _setAvatarIdOnForm(oRes.id);
+            htElement.welFormAvatar.submit();
         }
 
         /**
-         * jCrop 설정
+         * 지정한 값 (아바타 이미지 파일 ID) 으로 필드 값을 설정한다
+         * 필요한 필드(input)가 폼 내에 존재하지 않으면 생성하여 붙인다
+         *
+         * @param nAvatarId
+         * @private
+         */
+        function _setAvatarIdOnForm(nAvatarId){
+            var welAvatarId = htElement.welFormAvatar.find("input[name=avatarId]");
+
+            // 폼에 해당하는 필드가 없으면 생성하여 붙인다
+            if(welAvatarId.length === 0){
+                welAvatarId = $('<input type="hidden" name="avatarId">');
+                htElement.welFormAvatar.append(welAvatarId);
+            }
+
+            welAvatarId.val(nAvatarId);
+        }
+
+        /**
+         * 지정한 파일 정보를 바탕으로 jCrop UI를 표시한다
          *
          * @param {Object} oRes 파일 정보
          */
-        function _setJcrop(oRes){
-            htElement.welImgCrop.on("load", function(){
-                htVar.oJcrop = null;
+        function _showJcrop(oRes){
+            _clearJcrop();
 
-                htElement.welImgCrop.Jcrop({
-                    "aspectRatio": 1,
-                    "minSize"  : [128, 128],
-                    "bgColor"  : "#fff",
-                    "setSelect": [0, 0, 128, 128],
-                    "onSelect" : _onAvatarImageCrop,
-                    "onChange" : _onAvatarImageCrop,
-                    "onRelease": _onAvatarImageCropCancel
-                }, function(){
-                    htVar.oJcrop = this;
-                });
+            htElement.welAvatarCropImg.attr("src", oRes.url);
+            htElement.welAvatarCropPreviewImg.attr("src", oRes.url);
+            htElement.welAvatarCropWrap.modal("show");
+        }
+
+        /**
+         * jCrop 적용할 이미지(welAvatarCropImg)가 로딩 완료되었을 때 이벤트 핸들러
+         * 이벤트 핸들러 설정은 _initAvatarUploader 에서 한다
+         *
+         * @private
+         */
+        function _onAvatarCropImageLoad(){
+            htElement.welAvatarCropImg.Jcrop({
+                "aspectRatio": 1,
+                "minSize"  : [32, 32],
+                "bgColor"  : "#fff",
+                "setSelect": [0, 0, 128, 128],
+                "onSelect" : _onAvatarImageCrop,
+                "onChange" : _onAvatarImageCrop,
+                "onRelease": _onAvatarImageCropCancel
+            }, function(){
+                htVar.oJcrop = this; // "this" means jCrop object
             });
-            htElement.welImgCrop.show();
-            htElement.welImgCrop.attr("src", oRes.url);
+        }
 
-            // 파일 업로드 버튼은 감추고, 크롭 이미지 전송 버튼 활성화
+        /**
+         * 기존에 설정된 jCrop 관련 객체, 이미지 정보를 비운다
+         * 이미지 변경시를 위해 필요함
+         *
+         * @private
+         */
+        function _clearJcrop(){
+            htElement.welAvatarCropImg.attr("src", "");
+            htElement.welAvatarCropPreviewImg.attr("src", "");
 
-            htElement.welBtnUploadFile.hide();
-            htElement.welBtnSubmitCrop.show();
-            htElement.welBtnSubmitCrop.click(_sendCroppedImage);
+            if(htVar.oJcrop){
+                htVar.oJcrop.destroy();
+                htVar.oJcrop = null;
+            }
         }
 
         /**
@@ -198,11 +241,11 @@
             var nRx = 128 / htData.w;
             var nRy = 128 / htData.h;
 
-            var nWidth = htElement.welImgCrop.width();
-            var nHeight = htElement.welImgCrop.height();
+            var nWidth = htElement.welAvatarCropImg.width();
+            var nHeight = htElement.welAvatarCropImg.height();
 
             // 미리보기 표시
-            htElement.welAvatarImage.css({
+            htElement.welAvatarCropPreviewImg.css({
                 "width"     : Math.round(nRx * nWidth) + "px",
                 "height"    : Math.round(nRy * nHeight) + "px",
                 "marginLeft": "-" + Math.round(nRx * htData.x) + "px",
@@ -214,7 +257,8 @@
 
         /**
          * jCrop 취소시 이벤트 핸들러
-         * 완전하게 취소할 수 없고 늘 128x128 이상의 이미지 영역을 갖도록
+         * 완전하게 취소(= 전혀 영역을 선택하지 않은 상태)는 할 수 없고
+         * 최소한 기본 영역(128x128) 이상의 이미지 영역을 선택한 상태로 한다
          */
         function _onAvatarImageCropCancel(){
             if(htVar.oJcrop){
@@ -225,20 +269,17 @@
         }
 
         /**
-         * jCrop 의 결과와 canvas 를 이용해서
-         * 잘라낸 이미지를 서버에 전송하는 함수
-         * #btnSubmitCrop 버튼을 클릭했을 때 실행된다
+         * jCrop 화면에서의 아바타 변경 버튼(welBtnSubmitCrop) 클릭시 이벤트 핸들러
+         * 잘라낸 이미지를 파일(Blob)로 서버에 전송한다
          */
-        function _sendCroppedImage(){
-            var elImage = new Image();
-            var sTmpImageURL = htElement.welImgCrop.attr("src");
-
+        function _onClickBtnSubmitCrop(){
             // 원본 이미지 크기를 알아내기 위해 새 객체로 불러온다
-            // 브라우저 캐시를 사용하므로 네트워크 호출 없음
+            var elImage = new Image();
+
             elImage.onload = function(){
                 // 실제 이미지 크기와 jCrop 영역의 비율 계산
                 var htData = htVar.htLastCrop;
-                var nWidth = htElement.welImgCrop.width();
+                var nWidth = htElement.welAvatarCropImg.width();
                 var nRealWidth  = elImage.width;
                 var nRw = nRealWidth / nWidth;
                 var htCropData = {
@@ -248,28 +289,29 @@
                     "h": (htData.h * nRw)
                 };
 
-                var htEnv = yobi.Files.getEnv();
+                // 캔버스에 Crop 이미지 데이터 생성
+                var oContext = htElement.elAvatarCropCanvas.getContext("2d");
+                oContext.drawImage(elImage, htCropData.x, htCropData.y, htCropData.w, htCropData.h, 0, 0, 128, 128);
 
-                // blob 전송이 가능한 환경이면
-                if(htEnv.bXHR2){
-                    // 임시 업로드 상태의 현재 파일은 삭제
-                    yobi.Files.deleteFile({"sURL": sTmpImageURL});
-
-                    // 캔버스를 이용해 Crop 이미지 데이터로 업로드
-                    var elCanvas = document.getElementById("avatarCrop"); // canvas
-                    var oContext = elCanvas.getContext("2d");
-                    oContext.drawImage(elImage, htCropData.x, htCropData.y, htCropData.w, htCropData.h, 0, 0, 128, 128);
-
-                    // canvas-to-blob.js
-                    elCanvas.toBlob(function(oFile){
-                        yobi.Files.uploadFile(oFile);
-                    }, 'image/jpeg', 100);
-                } else {
-                    // TODO: 아니면 서버에 Crop 데이터만 전송한다 (for IE)
-                    htElement.welFormAvatar.submit();
-                }
+                // canvas-to-blob.js
+                // 캔버스 이미지 데이터를 Blob 으로 변환하여 업로드
+                htElement.elAvatarCropCanvas.toBlob(function(oFile){
+                    yobi.Files.uploadFile(oFile, "jCropUpload");
+                }, "image/jpeg", 100);
             };
-            elImage.src = sTmpImageURL;
+
+            elImage.src = htElement.welAvatarCropImg.attr("src");
+        }
+
+        /**
+         * Crop 처리된 아바타 이미지 업로드가 완료된 후 이벤트 핸들러
+         *
+         * @param {Hash Table} htData 업로드 된 파일의 정보
+         */
+        function _onAvatarCroppedImageUploaded(htData){
+            // 설정 폼에 avatarId 설정하고 submit
+            _setAvatarIdOnForm(htData.oRes.id);
+            htElement.welFormAvatar.submit();
         }
 
         /**
@@ -277,8 +319,11 @@
          * 일반적으로 서버 연결에 실패했을 때 이 상황이 발생한다.
          * ajaxForm 의 error 이벤트 핸들러.
          */
-        function _onAvatarUploadError(sMessage){
-            $yobi.alert(sMessage || Messages("user.avatar.uploadError"));
+        function _onAvatarUploadError(vParam){
+            var sMessage = (vParam.oRes) ? Messages("user.avatar.uploadError") +
+                "<br>(" + vParam.oRes.status + " " + vParam.oRes.statusText + ")" : vParam;
+
+            $yobi.alert(sMessage);
             _setAvatarProgressBar(0);
         }
 
@@ -310,7 +355,6 @@
                 htElement.welAvatarProgress.css("opacity", 0);
 
                 setTimeout(function(){
-                    //htElement.welFormBasic.submit();
                     _setAvatarProgressBar(0);
                 }, 1000);
             }
@@ -392,6 +436,28 @@
                     $(v).popover("destroy");
                 });
             } catch(e){} // to avoid bootstrap bug
+        }
+
+        /**
+         * 알림 On/Off 스위치 변경
+         */
+        function _onChangeNotiSwitch(){
+            var welTarget  = $(this);
+            var bChecked   = welTarget.prop("checked");
+            var url        = $(this).attr("data-href");
+
+            $.ajax(url, {
+                "method" : "post",
+                "success": function(data){
+                    welTarget.prop("checked", bChecked);
+                },
+                "error"  : function(oRes){
+                    welTarget.prop("checked", !bChecked);
+                    $yobi.alert(Messages("error.failedTo",
+                        Messages("userinfo.changeNotifications"),
+                        oRes.status, oRes.statusText));
+                }
+            })
         }
 
         _init(htOptions || {});
