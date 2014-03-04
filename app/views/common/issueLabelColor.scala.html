@@ -48,7 +48,7 @@
         )
     }
 
-    def getDefaultRGB():Map[String,Int] = {
+    def getDefaultRGB: Map[String,Int] = {
         scala.collection.Map("R" -> 255, "G" -> 255, "B" -> 255)
     }
 
@@ -57,7 +57,7 @@
     val RGB = bgColor.toLowerCase() match {
         case s if s.startsWith("rgb") => parseFromRGB(s)
         case s if s.matches("^[#]*[0-9a-z]+$") => parseFromHex(s)
-        case _ => getDefaultRGB()
+        case _ => getDefaultRGB
     }
 
     val colorSpace = (RGB.get("R") * 0.21) + (RGB.get("G") * 0.72) + (RGB.get("B") * 0.07)
