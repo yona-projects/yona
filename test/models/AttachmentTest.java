@@ -3,7 +3,6 @@ package models;
 import static org.fest.assertions.Assertions.assertThat;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -86,7 +85,7 @@ public class AttachmentTest extends ModelTest<Attachment> {
         assertThat(attachedFiles.get(1).mimeType).isEqualTo("text/html");
     }
 
-    public File createFileWithContents(String name, byte[] contents) throws IOException, FileNotFoundException {
+    public File createFileWithContents(String name, byte[] contents) throws IOException {
         File tempFile = java.io.File.createTempFile(name, null);
         tempFile.deleteOnExit();
         FileOutputStream os = new FileOutputStream(tempFile);
