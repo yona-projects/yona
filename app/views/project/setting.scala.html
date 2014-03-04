@@ -51,8 +51,8 @@
                 <div class="box-wrap middle">
                     <div class="cu-label">@Messages("project.shareOption")</div>
                     <div class="cu-desc">
-                        <input name="isPublic" type="radio" @if(project.isPublic == true){checked="checked"} id="public" value="true" class="radio-btn"><label for="public" class="bg-radiobtn label-public">@Messages("project.public")</label>
-                        <input name="isPublic" type="radio" @if(project.isPublic == false){checked="checked"} id="private" value="false" class="radio-btn"><label for="private" class="bg-radiobtn label-private">@Messages("project.private")</label>
+                        <input name="isPublic" type="radio" @if(project.isPublic){checked="checked"} id="public" value="true" class="radio-btn"><label for="public" class="bg-radiobtn label-public">@Messages("project.public")</label>
+                        <input name="isPublic" type="radio" @if(!project.isPublic){checked="checked"} id="private" value="false" class="radio-btn"><label for="private" class="bg-radiobtn label-private">@Messages("project.private")</label>
                         <span class="note">@Messages("project.private.notice")</span>
                     </div>
                 </div>
@@ -60,9 +60,9 @@
                 <div class="box-wrap middle reviewer-count-wrap">
                     <div class="cu-label vmiddle">@Messages("project.reviewer.count")</div>
                     <div class="cu-desc">
-                        <input name="isUsingReviewerCount" data-toggle="reviewer-count" data-action="show" type="radio" @if(project.isUsingReviewerCount == true){checked="checked"} id="reviewerCountEnable" value="true" class="radio-btn">
+                        <input name="isUsingReviewerCount" data-toggle="reviewer-count" data-action="show" type="radio" @if(project.isUsingReviewerCount){checked="checked"} id="reviewerCountEnable" value="true" class="radio-btn">
                         <label for="reviewerCountEnable" class="bg-radiobtn label-public">@Messages("project.reviewer.count.enable")</label>
-                        <input name="isUsingReviewerCount" data-toggle="reviewer-count" data-action="hide" type="radio" @if(project.isUsingReviewerCount == false){checked="checked"} id="reviewerCountDisable" value="false" class="radio-btn">
+                        <input name="isUsingReviewerCount" data-toggle="reviewer-count" data-action="hide" type="radio" @if(!project.isUsingReviewerCount){checked="checked"} id="reviewerCountDisable" value="false" class="radio-btn">
                         <label for="reviewerCountDisable" class="bg-radiobtn label-private">@Messages("project.reviewer.count.disable")</label>
 
                         <div id="welReviewerCount" data-value="@project.isUsingReviewerCount" class="hide">
