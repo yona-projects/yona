@@ -132,7 +132,7 @@ public class NotificationMail extends Model {
             if (usersByLang.containsKey(lang)) {
                 usersByLang.get(lang).add(receiver);
             } else {
-                usersByLang.put(lang, new ArrayList<User>(Arrays.asList(receiver)));
+                usersByLang.put(lang, new ArrayList<>(Arrays.asList(receiver)));
             }
         }
 

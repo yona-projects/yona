@@ -28,8 +28,8 @@ public class Files {
         if (file.isDirectory()) {
             File[] list = file.listFiles();
             assert list != null;
-            for(int i = 0; i < list.length; i++){
-                rm_rf(list[i]);
+            for (File file : list) {
+                rm_rf(file);
             }
         }
         System.gc();

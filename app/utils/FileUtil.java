@@ -1,11 +1,11 @@
 package utils;
 
 import org.apache.commons.lang.StringUtils;
+import org.mozilla.universalchardet.UniversalDetector;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import org.mozilla.universalchardet.UniversalDetector;
 
 public class FileUtil {
 
@@ -14,8 +14,8 @@ public class FileUtil {
     public static void rm_rf(File file){
         if(file.isDirectory()){
             File[] list = file.listFiles();
-            for(int i = 0; i < list.length; i++) {
-                rm_rf(list[i]);
+            for (File f : list) {
+                rm_rf(f);
             }
             file.delete();
         } else {

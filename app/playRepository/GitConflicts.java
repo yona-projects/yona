@@ -38,19 +38,19 @@ public class GitConflicts {
         Map<String, int[][]> allConflicts = mergeResult.getConflicts();
         for (String path : allConflicts.keySet()) {
             conflictFiles.add(path);
-            int[][] c = allConflicts.get(path);
-            for (int i = 0; i < c.length; ++i) {
+            int[][] conflicts = allConflicts.get(path);
+            for (int[] c : conflicts) {
                 Conflict conflict = new Conflict();
                 conflict.fileName = path;
-                for (int j = 0; j < (c[i].length) - 1; ++j) {
-                    if (c[i][j] >= 0) {
+                for (int j = 0; j < (c.length) - 1; ++j) {
+                    if (c[j] >= 0) {
                         ObjectId objectId = mergeResult.getMergedCommits()[j];
                         RevWalk revWalk = new RevWalk(repository);
 
                         CommitAndLine commitAndLine = new CommitAndLine();
                         try {
                             commitAndLine.gitCommit = new GitCommit(revWalk.parseCommit(objectId));
-                            commitAndLine.lineNumber = c[i][j];
+                            commitAndLine.lineNumber = c[j];
                             conflict.commitAndLines.add(commitAndLine);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
