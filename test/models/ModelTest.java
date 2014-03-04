@@ -6,8 +6,6 @@ import play.test.FakeApplication;
 import play.test.Helpers;
 //import support.EbeanUtil;
 
-import static play.test.Helpers.callAction;
-import static play.test.Helpers.fakeRequest;
 
 public class ModelTest<T> {
     protected static FakeApplication app;

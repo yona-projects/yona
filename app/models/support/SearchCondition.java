@@ -4,7 +4,6 @@ import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Junction;
 
 import controllers.AbstractPostingApp;
-import controllers.IssueApp;
 import models.*;
 import models.enumeration.State;
 import org.apache.commons.collections.CollectionUtils;
