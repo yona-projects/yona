@@ -184,7 +184,7 @@
 <script type="text/javascript">
     $(document).ready(function(){
         $yobi.loadModule("user.Setting", {
-            "sURLUpload": "@routes.AttachmentApp.uploadFile",
+            "sURLUpload": "@routes.AttachmentApp.uploadFile()",
             "sURLFiles" : "@routes.AttachmentApp.getFileList()"
         });
     });

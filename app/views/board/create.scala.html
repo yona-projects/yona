@@ -75,7 +75,7 @@ $(document).ready(function(){
 	$yobi.loadModule("board.Write", {
 		"sMode"			 : "new",
 		"elTextarea"	 : $("#body"),
-		"sUploaderAction": "@routes.AttachmentApp.uploadFile"
+		"sUploaderAction": "@routes.AttachmentApp.uploadFile()"
 	});
 
 	$("#title").focus();
