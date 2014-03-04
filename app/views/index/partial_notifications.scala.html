@@ -65,11 +65,9 @@
             </div>
             }
             <div class="title">
-                @defining(noti.getUrlToView){ url =>
-                    @url match {
-                        case null => { @noti.title }
-                        case _ => { <a href="@noti.getUrlToView">@noti.title</a> }
-                    }
+                @noti.getUrlToView match {
+                    case null => { @noti.title }
+                    case url => { <a href="@url">@noti.title</a> }
                 }
             </div>
             <div class="message-wrap nowrap" id="message-@noti.id">
