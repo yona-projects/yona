@@ -46,7 +46,7 @@
                 }
 
                 // Template text
-                var sTplUserItem = '<div class="usf-group">' +
+                var sTplUserItem = $("#tplSelect2FormatUser").text() || '<div class="usf-group">' +
                     '<span class="avatar-wrap smaller"><img src="${avatarURL}" width="20" height="20"></span>' +
                     '<strong class="name">${name}</strong>' +
                     '<span class="loginid">${loginId}</span></div>';

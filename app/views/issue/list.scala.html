@@ -8,8 +8,7 @@ models.support.SearchCondition, project:Project)
     	@views.html.issue.partial_search(title, currentPage, param, project)
     </div>
 </div>
-<script src="@routes.Assets.at("javascripts/lib/select2/select2.js")"></script>
-<script src="@routes.Assets.at("javascripts/common/yobi.ui.Select2.js")"></script>
+@common.select2()
 <script type="text/javascript">
     $(document).ready(function(){
         var htPjaxOptions = {
