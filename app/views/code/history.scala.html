@@ -24,11 +24,11 @@
 }
 @getShowCommitURL(project:Project, commit:playRepository.Commit, path:String) = @{
     if(selectedBranch){
-        var queryString = "?branch=" + URLEncoder.encode(selectedBranch, "UTF-8");
+        var queryString = "?branch=" + URLEncoder.encode(selectedBranch, "UTF-8")
         if(path != null) {
-            queryString += "&path=" + path + "#" + path.replace("/", "-").replace(".", "-");
+            queryString += "&path=" + path + "#" + path.replace("/", "-").replace(".", "-")
         }
-        routes.CodeHistoryApp.show(project.owner, project.name, commit.getId()) + queryString;
+        routes.CodeHistoryApp.show(project.owner, project.name, commit.getId()) + queryString
     } else {
         routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())
     }

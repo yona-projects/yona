@@ -25,18 +25,18 @@
 @import java.net.URLEncoder
 
 @getShowCommitURL(gitBranch:playRepository.GitBranch) = @{
-    var queryString = "?branch=" + URLEncoder.encode(gitBranch.getName, "UTF-8");
-    routes.CodeHistoryApp.show(project.owner, project.name, gitBranch.getHeadCommit.getId) + queryString;
+    var queryString = "?branch=" + URLEncoder.encode(gitBranch.getName, "UTF-8")
+    routes.CodeHistoryApp.show(project.owner, project.name, gitBranch.getHeadCommit.getId) + queryString
 }
 
 @deleteBranchURL(branch:String) =@{
-    var branchName = URLEncoder.encode(branch, "UTF-8");
-    routes.BranchApp.deleteBranch(project.owner, project.name, branchName);
+    var branchName = URLEncoder.encode(branch, "UTF-8")
+    routes.BranchApp.deleteBranch(project.owner, project.name, branchName)
 }
 
 @goToBranchURL(branch:String) =@{
-    var branchName = URLEncoder.encode(branch, "UTF-8");
-    routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, branchName, "");
+    var branchName = URLEncoder.encode(branch, "UTF-8")
+    routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, branchName, "")
 }
 
 @getCommiterAvatar(gitBranch:playRepository.GitBranch) = {
