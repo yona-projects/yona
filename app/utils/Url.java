@@ -100,7 +100,6 @@ public class Url {
 
     public static String removeFragment(String url) {
         int index = url.indexOf('#');
-        String result = index >= 0 ? url.substring(0, index) : url;
-        return result;
+        return index >= 0 ? url.substring(0, index) : url;
     }
 }
