@@ -183,7 +183,7 @@ error.unauthorized = 로그인 해야 합니다
 error.validation = 입력값 유효성검사 오류
 error.wrong.format = 잘못된 형식의 값 입니다.
 error.failedTo = {0}에 실패했습니다.<br>({1} {2})
-error.unsupported.ie = 현재 사용중이신 Internet Expolorer 는 공식 지원이 되는 버전이 아닙니다.<br><a href="http://www.google.com/chrome/" target="_blank">Google Chrome</a> 또는 Internet Expolorer 10+ 버전의 웹 브라우저 사용을 권장 합니다. 
+error.unsupported.ie = 현재 사용중이신 Internet Expolorer 는 공식 지원이 되는 버전이 아닙니다.<br><a href="http://www.google.com/chrome/" target="_blank">Google Chrome</a> 또는 Internet Expolorer 10+ 버전의 웹 브라우저 사용을 권장 합니다.
 fork = 프로젝트 복사
 fork.already.exist = 동일한 원본 프로젝트를 복사한 프로젝트가 있습니다.
 fork.failed = 프로젝트를 복사하지 못했습니다.

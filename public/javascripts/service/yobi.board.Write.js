@@ -3,7 +3,7 @@
  *
  * Copyright NHN Corporation.
  * Released under the MIT license
- * 
+ *
  * http://yobi.dev.naver.com/license
  */
 
@@ -85,7 +85,7 @@
          */
         function _initFileUploader(){
             var oUploader = yobi.Files.getUploader(htElement.welUploader, htElement.welTextarea);
-            
+
             if(oUploader){
                 (new yobi.Attachments({
                     "elContainer"  : htElement.welUploader,

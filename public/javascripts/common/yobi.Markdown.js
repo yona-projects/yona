@@ -17,7 +17,7 @@ yobi.Markdown = (function(htOptions){
      */
     function _init(htOptions){
         htOptions = htOptions || {};
-        
+
         _initVar(htOptions);
         _enableMarkdown(htOptions.aTarget);
     }
@@ -53,7 +53,7 @@ yobi.Markdown = (function(htOptions){
 
     /**
      * Render as Markdown document
-     * 
+     *
      * @require showdown.js
      * @require hljs.js
      * @param {String} sText
@@ -65,7 +65,7 @@ yobi.Markdown = (function(htOptions){
 
     /**
      * marked.js hooks function
-     * 
+     *
      * @require marked.js
      * @param {String} sSrc
      * @param {String} sType
@@ -78,7 +78,7 @@ yobi.Markdown = (function(htOptions){
 
         // define rxGfmLinkRules once
         htVar = htVar || {};
-        
+
         if(typeof htVar.rxGfmLinkRules === "undefined"){
             htVar.rxWord = /\w/;
             var rxUser = /\[user\]/g;
@@ -95,15 +95,15 @@ yobi.Markdown = (function(htOptions){
 
             htVar.rxGfmLinkRules = new RegExp(sGfmLinkRules,'gm');
         }
-        
+
         sSrc = sSrc.replace(htVar.rxGfmLinkRules, function(sMatch, sProjectGroup, sProjectPath, sUserName, sTargetGoup, sIssue, sAt, sShar1, sMention, nMatchIndex){
             var aIgnores,
                 rxIgnoreRules = /<(?:a|code)(?:\s+[^>]*)*\s*>[\s\S]*<\/(?:a|code)>|(?:\S+)\s*=\s*["'][^"']*["']/igm;
-                
+
             while(aIgnores = rxIgnoreRules.exec(sSrc)){
                 if(nMatchIndex > aIgnores.index && nMatchIndex < aIgnores.index + aIgnores[0].length){
                     return sMatch;
-                }   
+                }
             }
 
             if(htVar.rxWord.test(sSrc[nMatchIndex-1]) || htVar.rxWord.test(sSrc[nMatchIndex+sMatch.length])){
@@ -111,13 +111,13 @@ yobi.Markdown = (function(htOptions){
             }
             return _makeLink(sMatch, sProjectGroup, sProjectPath, sUserName, sTargetGoup, sIssue, sAt, sShar1, sMention);
         });
-        
+
         return sSrc;
     }
-    
+
     /**
      * make hyperlink automatically with patterns.
-     * 
+     *
      * @param {String} sMatch
      * @param {String} sProjectGroup
      * @param {String} sProjectPath
@@ -156,7 +156,7 @@ yobi.Markdown = (function(htOptions){
         } else if(sShar1 && sAt) {
             // SHA1 @be6a8cc1c1ecfe9489fb51e4869af15a13fc2cd2
             sRef = [sOwner, sProject, 'commit' , sMatch.slice(1)].join("/");
-            sTitle = sMatch.slice(1,7);    
+            sTitle = sMatch.slice(1,7);
         } else if(sProjectGroup && sUserName && sShar1 && sAt && !sProjectPath ) {
             // User@SHA1 nforge@be6a8cc1c1ecfe9489fb51e4869af15a13fc2cd2
             sRef = [sUserName, sProject, 'commit' , sShar1].join("/");
@@ -177,14 +177,14 @@ yobi.Markdown = (function(htOptions){
 
     /**
      * set Markdown Editor
-     * 
+     *
      * @param {Wrapped Element} welTextarea
      */
     function _setEditor(welTextarea) {
         // create new preview area
         var welPreview = $('<div class="markdown-preview markdown-wrap">');
         var welTextareaBox = $('.textarea-box');
-        
+
         welPreview.css({
             "display"   : "none",
             "min-height": welTextarea.height() + 'px'
@@ -205,7 +205,7 @@ yobi.Markdown = (function(htOptions){
 
     /**
      * set Markdown Viewer
-     * 
+     *
      * @param {Wrapped Element} welTarget is not <textarea> or <input>
      */
     function _setViewer(welTarget) {
@@ -215,21 +215,21 @@ yobi.Markdown = (function(htOptions){
     }
 
     /**
-     * enableMarkdown on target elements 
-     * 
+     * enableMarkdown on target elements
+     *
      * @param {String} sQuery Selector string for targets
      */
     function _enableMarkdown(sQuery){
         var waTarget = $(sQuery || "[markdown]"); // TODO: markdown=true
-        
+
         waTarget.each(function(nIndex, elTarget){
             _isEditableElement(elTarget) ? _setEditor($(elTarget)) : _setViewer($(elTarget));
         });
     }
-    
+
     /**
      * Returns that specifieid element is editable
-     * 
+     *
      * @param {HTMLElement} elTarget
      * @return {Boolean}
      */

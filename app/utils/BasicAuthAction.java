@@ -85,7 +85,7 @@ public class BasicAuthAction extends Action<Object> {
     public Result call(Context context) throws Throwable {
         User user;
         try {
-            
+
             user = authenticate(context.request());
         } catch (MalformedCredentialsException error) {
             return AccessLogger.log(context.request()

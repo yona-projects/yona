@@ -56,7 +56,7 @@ public class PasswordResetTest extends ModelTest<PasswordReset> {
         assertThat(result).isTrue();
         assertThat(getHashString(userId)).isNull();
     }
-    
+
     @Test
     public void testIsHashExists() {
         //Given

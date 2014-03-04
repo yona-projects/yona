@@ -54,13 +54,13 @@
         }
 
     	@if(notices != null && notices.size > 0) {
-       
+
     	<ul class="post-list-wrap notice-wrap">
     	@for(post <- notices) {
             @partial_list(post, project)
     	}
         </ul>
-    	
+
     	}
 
     	<ul class="post-list-wrap">

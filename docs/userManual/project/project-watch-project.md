@@ -36,10 +36,10 @@ Notifications will be displayed on Yobi main page and sent to your email. You ca
 
 You can turn on and off notifications in more detail or for each projects.
 
-1. Go to the project in which you want to change notification setting 
+1. Go to the project in which you want to change notification setting
 2. Click `Account Setting`
 3. Click `You are not watching the project`
- 
+
 <그림 삽입>
 
 <a name="korean"></a>

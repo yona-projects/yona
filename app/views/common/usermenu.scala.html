@@ -14,14 +14,14 @@
         <a href="@routes.ProjectApp.newProjectForm()" data-toggle="tooltip" title="@Messages("button.newProject")" data-placement="bottom" class="ybtn ybtn-success">
             <i class="yobicon-database-add"></i>
         </a>
-    </li>  
+    </li>
     @if(session.get("userId").equals("1")) {
     <li class="gnb-usermenu-item">
         <a href="@routes.SiteApp.userList()" data-toggle="tooltip" title="@Messages("menu.siteAdmin")" data-placement="bottom">
             <i class="yobicon-wrench"></i>
         </a>
     </li>
-    }  
+    }
     <li class="gnb-usermenu-dropdown">
         <a href="javascript:void(0);" class="gnb-dropdown-toggle" data-toggle="dropdown">
             <span class="avatar-wrap smaller">
@@ -68,7 +68,7 @@
                 }
             }
         </ul>
-    </li> 
+    </li>
     } else {
     <li>
         <a href="@routes.UserApp.signupForm()" class="ybtn ybtn-success" data-toggle="tooltip" title="@Messages("title.signup")" data-placement="bottom">

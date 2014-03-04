@@ -40,12 +40,12 @@
             <div class="span2 listitem-col">
                 <button class="ybtn ybtn-danger" data-project-name="@project.owner/@project.name" data-toggle="delete-project" data-href="@routes.SiteApp.deleteProject(project.id)">@Messages("button.delete")</button>
             </div>
-        </li>    
+        </li>
         }
     </ul>
 
     <div id="pagination"></div>
-    
+
     @** Confirm to delete project **@
     <div id="alertDeletionWrap" class="modal fade">
         <div class="modal-header">
@@ -70,8 +70,8 @@
               .data("requestMethod","delete")
               .requestAs();
 
-            $('#project-name').html($(this).data('projectName'));  
-              
+            $('#project-name').html($(this).data('projectName'));
+
             $('#alertDeletionWrap').modal('show');
 
             console.log($(this).data('href'));

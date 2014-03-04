@@ -34,10 +34,10 @@
             <div class="post-meta-wrap">
                 <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap">
                     @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){
-                        <img src="@urlToPicture(user.email, 16)">       
+                        <img src="@urlToPicture(user.email, 16)">
                     } else {
                         <img src="@user.avatarUrl" alt="@user.name" width="16" height="16"/>
-                    } 
+                    }
                 </a>
                 <a href="@routes.UserApp.userInfo(user.loginId)" class="post-meta-item">
                     @user.name
@@ -47,21 +47,21 @@
                 </span>
                 <span class="post-comments post-meta-item">
                     <a href="@routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.getNumber)#comments">
-                        <i class="yobicon-comments"></i> 
+                        <i class="yobicon-comments"></i>
                         @issue.numOfComments
-                    </a>    
+                    </a>
                 </span>
             </div>
         </li>
         }
         }
     </ul>
-    
+
     <div id="pagination"></div>
 
     <script type="text/javascript">
     $(function(){
         yobi.Pagination.update($("#pagination"), @currentPage.getTotalPageCount);
     });
-    </script>    
+    </script>
 }

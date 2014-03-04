@@ -35,9 +35,9 @@
                     </div>
                     }
                 </div>
-                    
+
                 @common.fileUploader(ResourceType.MILESTONE, milestoneId)
-                    
+
                 <div class="actions mt20">
                     <button type="submit" class="ybtn ybtn-info">@Messages("button.save")</button>
                     <a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="ybtn">@Messages("button.cancel")</a>
@@ -78,7 +78,7 @@
             "elDueDate"   : $("#dueDate"),
             "elDatePicker": $("#datepicker")
         });
-        
+
         // yobi.Mention
         yobi.Mention({
             "target": "contents",

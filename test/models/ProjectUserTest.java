@@ -46,7 +46,7 @@ public class ProjectUserTest extends ModelTest<ProjectUser> {
         // When
         Long userIdCase1 = 2l;
         Long userIdCase2 = 5l;
-        
+
         // Then
         assertThat(ProjectUser.checkOneMangerPerOneProject(userIdCase1, 3l)).isEqualTo(true);
         assertThat(ProjectUser.checkOneMangerPerOneProject(userIdCase2, 3l)).isEqualTo(false);

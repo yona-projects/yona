@@ -3,18 +3,18 @@
  *
  * Copyright NHN Corporation.
  * Released under the MIT license
- * 
+ *
  * http://yobi.dev.naver.com/license
  */
 
 (function(ns){
-    
+
     var oNS = $yobi.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
-        
+
         var htVar = {};
         var htElement = {};
-        
+
         /**
          * initialize
          */
@@ -22,12 +22,12 @@
             _initElement(htOptions);
             _attachEvent(htOptions);
         }
-        
+
         /**
          * initialize element variables
          */
         function _initElement(htOptions){
-            htElement.welChkAccept    = $("#accept");            
+            htElement.welChkAccept    = $("#accept");
             htElement.welBtnDeletePop = $("#btnDelete");
             htElement.welBtnDeletePrj = $("#btnDeleteExec");
         }
@@ -47,7 +47,7 @@
                 }
             });
         }
-        
+
         /**
          * 프로젝트 삭제 버튼 클릭시 이벤트 핸들러
          * 데이터 영구 삭제 동의에 체크했는지 확인하고
@@ -63,5 +63,5 @@
 
         _init(htOptions || {});
     };
-    
+
 })("yobi.project.Delete");

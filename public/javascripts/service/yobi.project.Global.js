@@ -36,19 +36,19 @@
          * initialize normal variables
          */
         function _initVar(htOptions){
-            
+
         }
 
         /**
          * 엘리먼트 변수 초기화
          * initialize element variables
          */
-        function _initElement() {            
+        function _initElement() {
             htElement.welBtnWatch   = $(".watchBtn, #btnWatch");
             htElement.welBtnEnroll  = $("#enrollBtn");
 
             htElement.welForkedFrom = $("#forkedFrom");
-            htElement.weBtnHeaderToggle = $('.project-header-toggle-btn');                
+            htElement.weBtnHeaderToggle = $('.project-header-toggle-btn');
         }
 
         /**

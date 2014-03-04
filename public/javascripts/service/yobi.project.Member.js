@@ -59,7 +59,7 @@
 
         /**
          * typeahead의 updater를 재정의
-         * 
+         *
          * 사용자목록 선택시 loginId가 반환된다.
          */
         function _updater(item) {
@@ -133,7 +133,7 @@
         function _attachEvent(){
             htElement.memberListWrap.on('click','[data-action="apply"]',_onClickApply);
             htElement.memberListWrap.on('click','[data-action="delete"]',_onClickDelete);
-            
+
             htElement.enrollAcceptBtns.click(_onClickEnrollAcceptBtns);
 
             $('#loginId').focus();

@@ -60,7 +60,7 @@
                 }
             </ul>
         </div>
-        
+
         @if(UserApp.currentUser().equals(pull.contributor)){
         <div>
             <h5>@Messages("pullRequest.resolve.conflict")</h5>
@@ -103,6 +103,6 @@
         <code>@pull.fromBranch</code> @Messages("pullRequest.restore.frombranch.message")
         <a data-request-method="post" href="@routes.PullRequestApp.restoreFromBranch(project.owner, project.name, pull.number)" class="ybtn ybtn-info ybtn-mini pull-right">@Messages("pullRequest.restore.branch")</a>
         }
-    }    
+    }
 </div>
 }

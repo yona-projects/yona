@@ -3,18 +3,18 @@
  *
  * Copyright NHN Corporation.
  * Released under the MIT license
- * 
+ *
  * http://yobi.dev.naver.com/license
  */
 
 (function(ns){
-    
+
     var oNS = $yobi.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
-        
+
         var htVar = {};
         var htElement = {};
-        
+
         /**
          * 초기화
          * initialize
@@ -24,7 +24,7 @@
             _initVar(htOptions || {});
             _attachEvent();
             _initFileUploader();
-            
+
             // 제목 입력란에 포커스
             htElement.welInputTitle.focus();
 
@@ -44,7 +44,7 @@
             htVar.sTplFileItem = htOptions.sTplFileItem || htElement.welTplFileItem.text();
             htVar.bUnloadEvent = false;
         }
-        
+
         /**
          * 엘리먼트 변수 초기화
          * initialize element variable
@@ -66,7 +66,7 @@
         function _attachEvent(){
             $("form").submit(_onSubmitForm);
             htElement.welIssueOptions.on("click", htElement.welMilestoneRefresh, _onReloadMilestone);
-            
+
             htElement.welTextarea.on({
                 "focus": function(){
                     if(htVar.bUnloadEvent === false){
@@ -85,7 +85,7 @@
                 return Messages("issue.error.beforeunload");
             }
         }
-        
+
         /**
          * 마일스톤 정보 새로고침
          */
@@ -97,14 +97,14 @@
                 (new yobi.ui.Dropdown({"elContainer":"#milestoneId"}));
             });
         }
-        
+
         /**
          * 파일 업로더 초기화
          * initialize fileUploader
          */
         function _initFileUploader(){
             var oUploader = yobi.Files.getUploader(htElement.welUploader, htElement.welTextarea);
-            
+
             if(oUploader){
                 (new yobi.Attachments({
                     "elContainer"  : htElement.welUploader,
@@ -114,7 +114,7 @@
                 }));
             }
         }
-        
+
         /**
          * 폼 전송시 유효성 검사 함수
          */
@@ -128,7 +128,7 @@
                 });
                 return false;
             }
-                        
+
             $(window).off("beforeunload", _onBeforeUnload);
             return true;
         }

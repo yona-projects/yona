@@ -10,7 +10,7 @@ There are two kinds of authroization, member and manager. Please refer `Authoriz
 1. Go to the project
 2. Click `Administrator` > `Member` tab.
 
-## Modifying member authroization 
+## Modifying member authroization
 
 1. Click the drop down list for the member of which you want to change and choose the one.
 2. Click `Apply`.
@@ -35,10 +35,10 @@ There are two kinds of authroization, member and manager. Please refer `Authoriz
 멤버의 권한은 관리자와 참여자 두 가지가 있습니다. 각 권한별 설명은 `권한`을 참고하시면 됩니다.
 
 ## 멤버 권한을 수정하기
-  
+
 1. 프로젝트로 이동하여 `프로젝트 설정` > `멤버` 탭을 클릭합니다.
 2. 수정을 원하는 멤버의 드롭다운 리스트를 클릭하여 권한을 수정합니다.
-3. 적용 버튼을 클릭합니다. 
+3. 적용 버튼을 클릭합니다.
 
 <그림 삽입>
 

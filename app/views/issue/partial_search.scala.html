@@ -189,7 +189,7 @@
                 }
             </div>
             @partial_list(project, currentPage.getList, param, currentPage.getPageIndex, currentPage.getTotalPageCount)
-            
+
             <div class="pull-left" style="padding:10px;">
                 <a href="@addQueryString(removeQueryString(request.uri, "pageNum"), "format=xls")" class="ybtn small"><i class="yobicon-file-excel"></i> @Messages("issue.downloadAsExcel")</a>
             </div>

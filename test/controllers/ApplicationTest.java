@@ -8,7 +8,7 @@ import static play.mvc.Http.Status.OK;
 import static play.test.Helpers.*;
 
 public class ApplicationTest {
-	
+
     @Test
     public void callIndex() {
 	running(support.Helpers.makeTestApplication(), new Runnable() {

@@ -3,7 +3,7 @@
 
 # Receiving Notifications
 
-Use `Watching` to receive notifications through Yobi main page and email when projects are changed. 
+Use `Watching` to receive notifications through Yobi main page and email when projects are changed.
 
 ## Watching
 
@@ -13,7 +13,7 @@ Use `Watching` to receive notifications through Yobi main page and email when pr
 * Articles on board
 * Each commits of `Code` and `Pull Request`
 * Items of `Pull Requests`
-* Items of `Issues` 
+* Items of `Issues`
 
 You have to have access authorization to use `Watching`.  While everyone can use `Watching` on public projects, private projects are only allowed for members.
 
@@ -53,12 +53,12 @@ Individual watching is available below.
 * Commits of `Code` and `Pull Request`
 
 Below are an example for watching indivisual items of `Issues`.
- 
+
 * Go to the `Issues` and click the item you want.
 * Click `Watch`
-* You will get notifications about modification of the item.   
+* You will get notifications about modification of the item.
 
-<그림 삽입> 
+<그림 삽입>
 
 ## Unwatching
 
@@ -131,19 +131,19 @@ To unwatch individual items :
 
 ### 세부 지켜보기
 
-프로젝트의 전체 변경사항에 대한 알림이 아닌 세부 항목에 대해 지켜보기가 가능합니다. 
+프로젝트의 전체 변경사항에 대한 알림이 아닌 세부 항목에 대해 지켜보기가 가능합니다.
 
 * `게시판`의 각 게시글
 * `이슈`와 `코드주고 받기`의 각 아이템
 * `코드`와 `코드주고받기`의 각 커밋
 
-아래는 이슈에 대한 지켜보기 설명입니다. 
+아래는 이슈에 대한 지켜보기 설명입니다.
 
-1. `이슈`로 이동하여 원하는 항목을 클릭합니다. 
+1. `이슈`로 이동하여 원하는 항목을 클릭합니다.
 2. 페이지 전환 이후 `지켜보기` 버튼을 클릭 합니다.
 3. 해당 이슈에 대한 변경 사항을 알림 받을 수 있습니다.
 
-<그림 삽입> 
+<그림 삽입>
 
 ## 그만 지켜보기
 
@@ -157,7 +157,7 @@ To unwatch individual items :
 
 ### 게시판, 이슈, 코드주고받기 그만 지켜보기
 
-1. 지켜 보고 있던 게시글이나 이슈, 코드주고받기 항목으로 이동합니다. 
+1. 지켜 보고 있던 게시글이나 이슈, 코드주고받기 항목으로 이동합니다.
 2. `그만 지켜보기` 버튼을 클릭
 
 <그림 삽입>

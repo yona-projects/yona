@@ -116,7 +116,7 @@ public class User extends Model implements ResourceConvertible {
 
     /**
      * 프로젝트에서 사용자의 역할을 나타내는 값
-     * 
+     *
      * 해당 프로젝트의 관리자 혹은 멤버일 수 있다.
      */
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
@@ -135,9 +135,9 @@ public class User extends Model implements ResourceConvertible {
 
     /**
      * 사용자로 인식할 수 있는 추가 이메일
-     * 
+     *
      * 한 사용자가 여러 이메일을 사용할 경우, 해당 이메일로도 사용자를 인식할 때 사용한다. {@link #email}은 대표 이메일로 사용한다.
-     * 
+     *
      * 추가 이메일 목록 중에 하나를 {@link #email}로 설정할 수 있으며 그때는 {@link #emails}에서 빠지고 {@link #email}로 바뀐다.
      */
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
@@ -161,9 +161,9 @@ public class User extends Model implements ResourceConvertible {
 
     /**
      * 완료일을 yyyy-MM-dd 형식의 문자열로 변환한다.
-     * 
+     *
      * view에서 노출하기 위한 용도로 사용한다.
-     * 
+     *
      * @return
      */
     public String getDateString() {
@@ -173,7 +173,7 @@ public class User extends Model implements ResourceConvertible {
 
     /**
      * 자신이 속한 프로젝트 목록을 반환한다.
-     * 
+     *
      * @return
      */
     public List<Project> myProjects(String orderString) {
@@ -182,9 +182,9 @@ public class User extends Model implements ResourceConvertible {
 
     /**
      * 사용자를 추가한다.
-     * 
+     *
      * 사용자 추가시 생성일을 설정하고 PK를 반환한다.
-     * 
+     *
      * @param user
      * @return
      */
@@ -196,9 +196,9 @@ public class User extends Model implements ResourceConvertible {
 
     /**
      * 로그인 아이디로 사용자를 조회한다.
-     * 
+     *
      * 사용자가 없으면 {@link #anonymous} 객체를 반환한다.
-     * 
+     *
      * @param loginId
      * @return
      */
@@ -214,9 +214,9 @@ public class User extends Model implements ResourceConvertible {
 
     /**
      * email로 사용자를 조회한다.
-     * 
+     *
      * 사용자가 없으면 {@link #anonymous}객체에 email을 할당하고 반환한다.
-     * 
+     *
      * @param email
      * @return
      */
@@ -233,7 +233,7 @@ public class User extends Model implements ResourceConvertible {
 
     /**
      * 로그인아이디로 존재하는 사용자인지를 확인한다.
-     * 
+     *
      * @param loginId
      * @return 사용자 존재여부
      */
@@ -244,7 +244,7 @@ public class User extends Model implements ResourceConvertible {
 
     /**
      * 전체 사용자 PK와 이름을 반환한다.
-     * 
+     *
      * @return
      */
     public static Map<String, String> options() {
@@ -257,7 +257,7 @@ public class User extends Model implements ResourceConvertible {
 
     /**
      * 익명사용자와 사이트 관리자를 제외한 사이트에 가입된 사용자 목록을 로그인 아이디로 정렬하여 Page객체로 반환한다.
-     * 
+     *
      * @param pageNum 해당 페이지
      * @param query {@code query}가 null이 아니면 {@code query}를 포함하고 있는 사용자 목록을 검색한다.
      * @return
@@ -279,7 +279,7 @@ public class User extends Model implements ResourceConvertible {
 
     /**
      * 사이트 관리자를 제외한 특정 프로젝트에 속한 사용자 목록을 반환한다.
-     * 
+     *
      * @param projectId
      * @return
      */
@@ -306,9 +306,9 @@ public class User extends Model implements ResourceConvertible {
 
     /**
      * 기존에 존재하는 email인지 확인한다.
-     * 
+     *
      * {@link Email}에 검증된 보조 이메일로 존재하는지 확인한다.
-     * 
+     *
      * @param emailAddress
      * @return email이 있으면 true / 없으면 false
      */
@@ -327,7 +327,7 @@ public class User extends Model implements ResourceConvertible {
 
     /**
      * 로그인 아이디로 사용자를 조회하고 새 비밀번호를 암호화하여 설정한다.
-     * 
+     *
      * @param loginId
      * @param newPassword {@link User.passwordSalt}로 암호화하여 설정할 새 비밀번호
      */
@@ -340,9 +340,9 @@ public class User extends Model implements ResourceConvertible {
 
     /**
      * 모델을 리소스 객체로 반환한다.
-     * 
+     *
      * 권한검사와 첨부파일 정보를 포함한다.
-     * 
+     *
      * @return
      */
     @Override
@@ -421,7 +421,7 @@ public class User extends Model implements ResourceConvertible {
 
     /**
      * {@code project}에 멤버 등록 요청을 추가한다.
-     * 
+     *
      * @param project
      */
     public void enroll(Project project) {
@@ -431,7 +431,7 @@ public class User extends Model implements ResourceConvertible {
 
     /**
      * {@code project}에 보낸 멤버 등록 요청을 삭제한다.
-     * 
+     *
      * @param project
      */
     public void cancelEnroll(Project project) {
@@ -441,7 +441,7 @@ public class User extends Model implements ResourceConvertible {
 
     /**
      * 현재 사용자가 {@code project}에 멤버 등록 요청을 보냈는지 확인한다.
-     * 
+     *
      * @param project
      * @return
      */
@@ -526,7 +526,7 @@ public class User extends Model implements ResourceConvertible {
 
     /**
      * {@code projectId} 에 해당하는 프로젝트에서 {@code roleType} 역할을 가지고 있는 사용자 목록을 조회한다.
-     * 
+     *
      * @param projectId
      * @param roleType
      * @return
@@ -538,7 +538,7 @@ public class User extends Model implements ResourceConvertible {
 
     /**
      * 사용자가 가진 보조 이메일에 새로운 이메일 추가한다.
-     * 
+     *
      * @param email
      */
     public void addEmail(Email email) {
@@ -548,7 +548,7 @@ public class User extends Model implements ResourceConvertible {
 
     /**
      * 사용자가 가진 보조 이메일 중에 {@code newEmail}값에 해당하는 이메일이 있는지 확인한다.
-     * 
+     *
      * @param newEmail
      * @return
      */
@@ -563,7 +563,7 @@ public class User extends Model implements ResourceConvertible {
 
     /**
      * 사용자가 가진 보조 이메일에서 {@code email}을 삭제한다.
-     * 
+     *
      * @param email
      */
     public void removeEmail(Email email) {
@@ -573,7 +573,7 @@ public class User extends Model implements ResourceConvertible {
 
     /**
      * {@code committerEmail}에 해당하는 User를 찾아 반환한다.
-     * 
+     *
      * @param committerEmail
      * @return
      */

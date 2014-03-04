@@ -5,7 +5,7 @@
  * http://yobi.io
  *
  * @Author Wansoon Park, Keesun Baek
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,7 +31,7 @@ import utils.Constants;
 
 /**
  * 현재 사용자가 anonymouse이면 로그인 페이지로 리다이렉트 한다.
- * 
+ *
  * @author Wansoon Park, Keesun Beak
  *
  */

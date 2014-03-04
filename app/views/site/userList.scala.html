@@ -49,17 +49,17 @@
             <div class="span3 listitem-col">
                 <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap list-avatar">
                     @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){
-                        <img src="@urlToPicture(user.email, 32)">       
+                        <img src="@urlToPicture(user.email, 32)">
                     } else {
                         <img src="@user.avatarUrl" alt="@user.name" width="32" height="32"/>
-                    } 
+                    }
                 </a>
                 <a href="@routes.UserApp.userInfo(user.loginId)" class="user-name">
                     @user.name
-                </a>   
+                </a>
                 <a href="@routes.UserApp.userInfo(user.loginId)" class="user-id">
                     @{"@"}@user.loginId
-                </a>                 
+                </a>
             </div>
             <div class="span4 listitem-col">
                 @user.email
@@ -81,10 +81,10 @@
                 @user.lastStateModifiedDate
             </div>
             }
-        </li>    
+        </li>
         }
     </ul>
-    
+
     <div id="pagination"></div>
 
     <div id="alertDeletionWrap" class="modal fade">

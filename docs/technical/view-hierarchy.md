@@ -25,7 +25,7 @@ Yobi의 view hierarchy를 각 기능별로 정리한 문서입니다.
     * views.siteLayout.scala.html
         * views.common.usermenu.scala.html
         * views.common.alert.scala.html
-        * **views.user.login.scala.html**  
+        * **views.user.login.scala.html**
 
 ### 회원가입
 
@@ -42,7 +42,7 @@ Yobi의 view hierarchy를 각 기능별로 정리한 문서입니다.
 * views.layout.scala.html
     * views.siteLayout.scala.html
         * views.common.usermenu.scala.html
-        * views.common.alert.scala.html 
+        * views.common.alert.scala.html
         * **views.user.view.scala.html**
             * views.user.partial_projectlist.scala.html
             * views.user.partial_postings.scala.html
@@ -56,7 +56,7 @@ Yobi의 view hierarchy를 각 기능별로 정리한 문서입니다.
 * views.layout.scala.html
     * views.siteLayout.scala.html
         * views.common.usermenu.scala.html
-        * views.common.alert.scala.html 
+        * views.common.alert.scala.html
         * **views.user.edit.scala.html**
 
 ## 도움말
@@ -76,7 +76,7 @@ Yobi의 view hierarchy를 각 기능별로 정리한 문서입니다.
 * views.layout.scala.html
     * views.siteLayout.scala.html
         * views.common.usermenu.scala.html
-        * views.common.alert.scala.html 
+        * views.common.alert.scala.html
         * **views.project.list.scala.html**
 
 ### 새 프로젝트 만들기
@@ -116,7 +116,7 @@ Yobi의 view hierarchy를 각 기능별로 정리한 문서입니다.
 * views.layout.scala.html
     * views.projectLayout.scala.html
         * views.project.navbar.scala.html
-        * views.project.header.scala.html 
+        * views.project.header.scala.html
         * **views.board.list.scala.html**
             * views.projectMenu.scala.html
             * views.board.partial_list.scala.html
@@ -146,7 +146,7 @@ Yobi의 view hierarchy를 각 기능별로 정리한 문서입니다.
         * **views.board.view.scala.html**
             * views.projectMenu.scala.html
             * views.common.commentForm.scala.html
-                * views.help.markdown.scala.html 
+                * views.help.markdown.scala.html
                 * if
                     * views.common.fileUploader.scala.html
             * views.help.keymap.scala.html
@@ -162,7 +162,7 @@ Yobi의 view hierarchy를 각 기능별로 정리한 문서입니다.
         * **views.board.edit.scala.html**
             * views.projectMenu.scala.html
             * views.common.commentForm.scala.html
-                * views.help.markdown.scala.html 
+                * views.help.markdown.scala.html
                 * if
                     * views.common.fileUploader.scala.html
             * views.common.markdown.scala.html
@@ -211,11 +211,11 @@ Yobi의 view hierarchy를 각 기능별로 정리한 문서입니다.
             * **views.code.svnDiff.scala.html**
             * views.projectMenu.scala.html
             * views.common.commentForm.scala.html
-                * views.help.markdown.scala.html 
+                * views.help.markdown.scala.html
                 * if
                     * views.common.fileUploader.scala.html
-            * views.common.markdown.scala.html  
-        * else 
+            * views.common.markdown.scala.html
+        * else
             * **views.code.diff.scala.html**
             * views.projectMenu.scala.html
             * views.code.partial_branchitem.scala.html
@@ -223,7 +223,7 @@ Yobi의 view hierarchy를 각 기능별로 정리한 문서입니다.
                 * views.partial_filediff.scala.html
                 * views.common.mergely.scala.html
             * views.common.commentForm.scala.html
-                * views.help.markdown.scala.html 
+                * views.help.markdown.scala.html
                 * if
                     * views.common.fileUploader.scala.html
             * views.common.markdown.scala.html
@@ -252,11 +252,11 @@ Yobi의 view hierarchy를 각 기능별로 정리한 문서입니다.
             * **views.code.svnDiff.scala.html**
             * views.projectMenu.scala.html
             * views.common.commentForm.scala.html
-                * views.help.markdown.scala.html 
+                * views.help.markdown.scala.html
                 * if
                     * views.common.fileUploader.scala.html
-            * views.common.markdown.scala.html  
-        * else 
+            * views.common.markdown.scala.html
+        * else
             * **views.code.diff.scala.html**
             * views.projectMenu.scala.html
             * views.code.partial_branchitem.scala.html
@@ -264,11 +264,11 @@ Yobi의 view hierarchy를 각 기능별로 정리한 문서입니다.
                 * views.partial_filediff.scala.html
                 * views.common.mergely.scala.html
             * views.common.commentForm.scala.html
-                * views.help.markdown.scala.html 
+                * views.help.markdown.scala.html
                 * if
                     * views.common.fileUploader.scala.html
             * views.common.markdown.scala.html
-            * views.common.mergely.scala.html  
+            * views.common.mergely.scala.html
 
 ## 코드주고받기
 
@@ -313,7 +313,7 @@ Yobi의 view hierarchy를 각 기능별로 정리한 문서입니다.
             * views.git.partial_info.scala.html
             * views.git.partial_state.scala.html
             * views.common.commentForm.scala.html
-                * views.help.markdown.scala.html 
+                * views.help.markdown.scala.html
                 * if
                     * views.common.fileUploader.scala.html
             * views.common.markdown.scala.html
@@ -342,12 +342,12 @@ Yobi의 view hierarchy를 각 기능별로 정리한 문서입니다.
                 * views.partial_filediff.scala.html
                 * views.common.mergely.scala.html
             * views.common.commentForm.scala.html
-                * views.help.markdown.scala.html 
+                * views.help.markdown.scala.html
                 * if
                     * views.common.fileUploader.scala.html
             * views.common.markdown.scala.html
             * views.common.mergely.scala.html
- 		 
+
 ### 코드주고받기 > 항목선택 > 변경내역
 
 * *http://[Yobi URL]/[ProjectCreator]/[ProjectName]/pullRequest/[id]/changes*
@@ -365,12 +365,12 @@ Yobi의 view hierarchy를 각 기능별로 정리한 문서입니다.
             * else
                 * views.git.partial_state.scala.html
             * views.common.commentForm.scala.html
-                * views.help.markdown.scala.html 
+                * views.help.markdown.scala.html
                 * if
-                    * views.common.fileUploader.scala.html 
+                    * views.common.fileUploader.scala.html
             * views.common.markdown.scala.html
             * views.common.mergely.scala.html
- 
+
 ## 이슈
 
 ### 이슈 홈
@@ -416,9 +416,9 @@ Yobi의 view hierarchy를 각 기능별로 정리한 문서입니다.
         * **views.issue.view.scala.html**
             * views.projectMenu.scala.html
             * views.common.commentForm.scala.html
-                * views.help.markdown.scala.html 
+                * views.help.markdown.scala.html
                 * if
-                    * views.common.fileUploader.scala.html 
+                    * views.common.fileUploader.scala.html
             * views.help.keymap.scala.html
             * views.common.markdown.scala.html
 

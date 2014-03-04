@@ -141,7 +141,7 @@ public class NotificationMail extends Model {
 
             try {
                 email.setFrom(Config.getEmailFromSmtp(), event.getSender().name);
-                email.addTo(Config.getEmailFromSmtp(), utils.Config.getSiteName()); 
+                email.addTo(Config.getEmailFromSmtp(), utils.Config.getSiteName());
 
                 for (User receiver : usersByLang.get(langCode)) {
                     email.addBcc(receiver.email, receiver.name);

@@ -108,7 +108,7 @@ public class AccessControl {
         if (operation == Operation.WATCH) {
             if (resource.getType() == ResourceType.PROJECT) {
                 Project project = Project.find.byId(Long.valueOf(resource.getId()));
-                return project != null && project.isPublic ? !user.isAnonymous() : ProjectUser.isMember(user.id, project.id); 
+                return project != null && project.isPublic ? !user.isAnonymous() : ProjectUser.isMember(user.id, project.id);
             }
         }
 

@@ -33,7 +33,7 @@
             _initVar(htOptions);
             _initElement();
             _attachEvent();
-            
+
             // in loading, click previously selected tab
             if(htOptions.sTabSelected){
                 $('a[href=#' + htOptions.sTabSelected + '][data-toggle=tab]').trigger('click');
@@ -42,7 +42,7 @@
 
         /**
          * 변수 초기화
-         * 
+         *
          * @param {Hash Table} htOptions
          */
         function _initVar(htOptions){
@@ -50,7 +50,7 @@
             htVar.sTabSelected = htOptions.sTabSelected;
             htVar.aDaysAgoTargets = ['#postings','#pullRequests','#issues'];
         }
-        
+
         /**
          * 엘리먼트 변수 초기화
          * initialize elements
@@ -75,7 +75,7 @@
 
         /**
          * Watch 버튼 클릭시 이벤트 핸들러
-         * 
+         *
          * @param {Wrapped Event} weEvt
          */
         function _onClickBtnWatch(weEvt){
@@ -101,12 +101,12 @@
 
         /**
          * 프로젝트 탈퇴 버튼 클릭시 이벤트 핸들러
-         * 
+         *
          * @param {Wrapped Event}
          */
         function _onClickBtnLeaveProject(weEvt){
             var sProjectName = $(this).attr("data-projectName");
-            
+
             if(confirm(Messages("userinfo.leaveProject.confirm", sProjectName)) === false){
                 weEvt.preventDefault();
                 weEvt.stopPropagation();
@@ -116,7 +116,7 @@
 
         /**
          * 최근 n일 입력창에서 keypress 이벤트 발생시 핸들러
-         * 
+         *
          * @param {Wrapped Event}
          */
         function _onKeypressDaysAgo(weEvt){
@@ -126,17 +126,17 @@
                 return false;
             }
         }
-        
+
         /**
          * 탭 링크 클릭시 이벤트 핸들러
-         * 
+         *
          * @param {Wrapped Event}
          */
         function _onClickTabs(weEvt){
             // get href link and remove '#' from #link from 'href' value
             var sHref = $(this).attr('href');
             _rememberCurrentTab(sHref.substr(sHref.indexOf("#") + 1));
-    
+
             // postings, pullRequests, issues 탭이 아닐경우에는 daysAgo input 을 disabled 시킨다.
             ($.inArray($(this).attr('href'), htVar.aDaysAgoTargets) === -1) ? _disableDaysAgo() : _enableDaysAgo();
         }
@@ -149,7 +149,7 @@
             htElement.welDaysAgo.css('color','');
             htElement.welDaysAgo.blur();
         }
-        
+
         /**
          * daysAgo INPUT 을 입력할 수 없는 상태로 만든다
          */
@@ -157,10 +157,10 @@
             htElement.welDaysAgo.prop('disabled', true);
             htElement.welDaysAgo.css('color','#eee');
         }
-        
+
         /**
          * 지정한 탭을 선택했다는 것을 기억한다
-         * 
+         *
          * @param {String} sTabSelected
          */
         function _rememberCurrentTab(sTabSelected){
@@ -172,14 +172,14 @@
 
         /**
          * 탭 선택값을 포함한 QueryString 을 반환한다
-         * 
+         *
          * @return {String}
          */
         function _getTabQueryString(){
             var oURI = parseUri(document.location.href);
             var sDaysAgo = htElement.welDaysAgo.val();
             var sOptGroups = (oURI.queryKey.groups) ? "&groups=" + oURI.queryKey.groups : "";
-            
+
             return 'daysAgo=' + sDaysAgo + '&selected=' + htVar.sTabSelected + sOptGroups;
         }
 

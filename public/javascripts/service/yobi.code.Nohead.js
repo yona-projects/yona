@@ -3,7 +3,7 @@
  *
  * Copyright NHN Corporation.
  * Released under the MIT license
- * 
+ *
  * http://yobi.dev.naver.com/license
  */
 
@@ -28,7 +28,7 @@
          * @param {Hash Table} htOptions
          */
         function _initVar(htOptions){
-            htVar.sPath = 'code/HEAD/!/';          
+            htVar.sPath = 'code/HEAD/!/';
             htVar.nInterval = htOptions.nInterval || 5000; // ms
             htVar.nTimer = null;
         }

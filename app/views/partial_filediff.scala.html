@@ -143,7 +143,7 @@
 
 @**
  * 파일 헤더를 포함한 변경점 렌더링
- * 
+ *
  * @param diff
  * @param fileHeader
  * @param renderedLines
@@ -175,7 +175,7 @@
           @if(diff.commitA && diff.commitB && diff.pathA && diff.pathB){
               <button type="button" class="ybtn ybtn-small" data-toggle="mergely"
                 data-pathA="@diff.pathA" data-pathB="@diff.pathB" data-commitA="@diff.commitA" data-commitB="@diff.commitB"
-                data-rawA="@routes.CodeApp.showRawFile(projectA.owner, projectA.name, diff.commitA, diff.pathA)" 
+                data-rawA="@routes.CodeApp.showRawFile(projectA.owner, projectA.name, diff.commitA, diff.pathA)"
                 data-rawB="@routes.CodeApp.showRawFile(projectB.owner, projectB.name, diff.commitB, diff.pathB)"
               >@Messages("code.fullDiff")</button>
           }

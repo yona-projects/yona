@@ -129,7 +129,7 @@ yobi.Files = (function(){
                 "statusText": Messages("error.toolargefile", humanize.filesize(htVar.nMaxFileSize))
             }, sNamespace);
         }
-        
+
         var oData = new FormData();
         oData.append("filePath", oFile, oFile.name);
 
@@ -156,7 +156,7 @@ yobi.Files = (function(){
                         }
                     }, false);
                 }
-                
+
                 return oXHR;
             }
         });
