@@ -14,7 +14,7 @@
                 <a href="@routes.UserApp.userInfo(project.owner)" class="owner-name-small">@project.owner</a> / <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">@project.name</a>
                 @if(!project.isPublic){ <i class="yobicon-lock yobicon-small"></i> }
             </div>
-            @if(project.isForkedFromOrigin()){
+            @if(project.isForkedFromOrigin){
             <div class="forked label">
                 <i class="yobicon-split yobicon-white vmiddle"></i>
                 @Messages("fork.original")
@@ -24,13 +24,13 @@
             }
             <div class="desc tag">
                 @for(label <- project.labels) {
-                <span class="project-label @label.category.toLowerCase()">@label.name</span>
+                <span class="project-label @label.category.toLowerCase">@label.name</span>
                 }
             </div>
             <div class="desc">@project.overview</div>
             <div class="name-tag">
                 @Messages("project.create") <strong>@JodaDateUtil.momentFromNow(project.createdDate, lang.language)</strong>
-                @if(project.lastPushedDateAgo() != null) {, @Messages("project.codeUpdate") <strong>@JodaDateUtil.momentFromNow(project.lastPushedDate.getTime(), lang.language)}</strong>
+                @if(project.lastPushedDateAgo() != null) {, @Messages("project.codeUpdate") <strong>@JodaDateUtil.momentFromNow(project.lastPushedDate.getTime, lang.language)}</strong>
             </div>
         </div>
     </div>

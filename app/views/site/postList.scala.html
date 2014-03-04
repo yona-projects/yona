@@ -8,7 +8,7 @@
         <h2 class="pull-left">@Messages("site.sidebar.postList")</h2>
     </div>
     <ul class="post-list-wrap">
-        @for(post <- currentPage.getList()) {
+        @for(post <- currentPage.getList) {
         @defining(User.findByLoginId(post.authorLoginId)){ user =>
         <li class="row-fluid listitem">
             <a href="@routes.ProjectApp.project(post.project.owner, post.project.name)" class="avatar-wrap list-avatar">
@@ -53,7 +53,7 @@
 
     <script type="text/javascript">
     $(function(){
-        yobi.Pagination.update($("#pagination"), @currentPage.getTotalPageCount());
+        yobi.Pagination.update($("#pagination"), @currentPage.getTotalPageCount);
     });
     </script>
 }

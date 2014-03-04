@@ -7,8 +7,8 @@
     branch.replace("refs/heads/", "")
 }
 <ul class="post-list-wrap">
-@if(page.getList().size()> 0){
-    @for(req <- page.getList().iterator()) {
+@if(page.getList.size()> 0){
+    @for(req <- page.getList.iterator()) {
     @defining(User.findByLoginId(req.contributor.loginId)){ user =>
         <li class="post-item">
             <div class="span10">
@@ -74,6 +74,6 @@
     $(function(){
         $('[data-toggle="tooltip"]').tooltip();
         var welPagination = $("#pagination");
-        yobi.Pagination.update(welPagination, @page.getTotalPageCount());
+        yobi.Pagination.update(welPagination, @page.getTotalPageCount);
     });
 </script>

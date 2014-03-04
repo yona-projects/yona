@@ -35,7 +35,7 @@
                     <li>
                         <a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a>
                     </li>
-                    @if(project.isGit()) {
+                    @if(project.isGit) {
                     <li class="active">
                         <a href="@routes.BranchApp.branches(project.owner, project.name)">@Messages("title.branches")</a>
                     </li>

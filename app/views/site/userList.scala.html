@@ -44,7 +44,7 @@
         }
     </div>
     <ul class="user-list-wrap">
-        @for(user <- currentPage.getList()) {
+        @for(user <- currentPage.getList) {
         <li class="row-fluid listitem">
             <div class="span3 listitem-col">
                 <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap list-avatar">
@@ -115,7 +115,7 @@
             $('#alertDeletionWrap').modal('show');
         });
 
-        yobi.Pagination.update($("#pagination"), @currentPage.getTotalPageCount());
+        yobi.Pagination.update($("#pagination"), @currentPage.getTotalPageCount);
     });
     </script>
 }

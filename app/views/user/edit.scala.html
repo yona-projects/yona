@@ -113,7 +113,7 @@
                                     <table class="table table-striped table-bordered">
                                     @for(notiType <- models.enumeration.EventType.notiTypes) {
                                         <tr>
-                                            <th>@notiType.getDescr()</th>
+                                            <th>@notiType.getDescr</th>
                                             <td>
                                                 <div class="switch" data-on-label="On" data-off-label="Off">
                                                     <input class="notiUpdate" data-href="@routes.WatchProjectApp.toggle(project.id, notiType.name())" type="checkbox" data-toggle="switch" @if(UserProjectNotification.isEnabledNotiType(notiMap, project, notiType)){ checked="checked" }>

@@ -58,7 +58,7 @@
     </td>
     <td class="commitMessage">
         @getCommiterAvatar(branch)
-        @common.commitMsg(branch.getHeadCommit.getShortMessage(),
+        @common.commitMsg(branch.getHeadCommit.getShortMessage,
                           branch.getHeadCommit.getMessage,
                           getShowCommitURL(branch))
     </td>
@@ -68,7 +68,7 @@
     <td class="pullRequest">
     @if(branch.getPullRequest != null) {
         <a href="@routes.PullRequestApp.pullRequest(branch.getPullRequest.toProject.owner, branch.getPullRequest.toProject.name, branch.getPullRequest.number)"
-           class="blue-txt pullrequest-state @branch.getPullRequest.state.toString().toLowerCase()">
+           class="blue-txt pullrequest-state @branch.getPullRequest.state.toString().toLowerCase">
            pullRequest-@branch.getPullRequest.number
         </a>
     } else {
@@ -80,11 +80,11 @@
         isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
     <td class="actions">
         @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)){
-            @if(branch.getName() != project.defaultBranch()){
+            @if(branch.getName != project.defaultBranch()){
                 <button type="button"
                         class="ybtn ybtn-default"
                         data-request-method="post"
-                        data-request-uri="@routes.BranchApp.setAsDefault(project.owner, project.name, URLEncoder.encode(branch.getName(), "UTF-8"))">
+                        data-request-uri="@routes.BranchApp.setAsDefault(project.owner, project.name, URLEncoder.encode(branch.getName, "UTF-8"))">
                     @Messages("code.branches.setAsDefault")
                 </button>
             }

@@ -52,7 +52,7 @@
                     <strong>@comment.authorLoginId</strong>
                 </a>
             </span>
-            <a href="#comment-@comment.id" class="ago">@momentFromNow(comment.getDate(), lang.language)</a>
+            <a href="#comment-@comment.id" class="ago">@momentFromNow(comment.getDate, lang.language)</a>
 
             @if(isLineComment(comment) && comment.isOutdated) {
             <span class="outdated-message" style="color: red">@Messages("code.outdatedDiff")</span>

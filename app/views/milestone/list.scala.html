@@ -51,7 +51,7 @@
             </ul>
         </div>
 
-    	@if(milestones == null || milestones.isEmpty()){
+	@if(milestones == null || milestones.isEmpty){
 
     	<div class="error-wrap">
     		<i class="ico ico-err1"></i>
@@ -85,7 +85,7 @@
                         @if(milestone.state != State.CLOSED) {
                             @if(milestone.dueDate != null) {
                             <span class="sp">|</span>
-                            <span class="due-date @if(milestone.isOverDueDate()){over}">
+                            <span class="due-date @if(milestone.isOverDueDate){over}">
                                 @Messages("label.dueDate")
                                 <strong>@milestone.getDueDateString</strong>
                                 <span class="date">

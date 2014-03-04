@@ -33,8 +33,8 @@
                     @for(commit <- pull.getCurrentCommits) {
                     <tr>
                         <td class="commit-id">
-                            <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.getCommitId())">
-                                @commit.getCommitShortId()
+                            <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.getCommitId)">
+                                @commit.getCommitShortId
                             </a>
                         </td>
 
@@ -46,14 +46,14 @@
                                 }
                             }
 
-                            @defining(commit.getCommitMessage()){ commitMsg =>
+                            @defining(commit.getCommitMessage){ commitMsg =>
                                 @common.commitMsg(commitMsg.split("\n")(0),
                                     commitMsg,
-                                    routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.getCommitId()).toString())
+                                    routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.getCommitId).toString())
                             }
                         </td>
                         <td class="date" title="@JodaDateUtil.getDateString(commit.getAuthorDate)">
-                            @agoString(JodaDateUtil.ago(commit.getAuthorDate()))
+                            @agoString(JodaDateUtil.ago(commit.getAuthorDate))
                         </td>
                         <td class="author @commit.getAuthorEmail">
                             @defining(User.find.where.eq("email", commit.getAuthorEmail).findUnique) { user =>
@@ -63,7 +63,7 @@
                             </a>
                             } else {
                             <div class="avatar-wrap">
-                                <img src="@urlToPicture(commit.getAuthorEmail(), 32)" width="32" height="32"/>
+                                <img src="@urlToPicture(commit.getAuthorEmail, 32)" width="32" height="32"/>
                             </div>
                             }
                             }

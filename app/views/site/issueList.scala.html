@@ -16,7 +16,7 @@
         <li class="@isActiveTabMenu(State.CLOSED)"><a href="@routes.SiteApp.issueList()?state=@State.CLOSED.name.toLowerCase()">@Messages("issue.state." + State.CLOSED.name.toLowerCase())</a></li>
     </ul>
     <ul class="post-list-wrap">
-        @for(issue <- currentPage.getList()) {
+        @for(issue <- currentPage.getList) {
         @defining(User.findByLoginId(issue.authorLoginId)){ user =>
         <li class="row-fluid listitem">
             <a href="@routes.ProjectApp.project(issue.project.owner, issue.project.name)" class="avatar-wrap list-avatar">
@@ -61,7 +61,7 @@
 
     <script type="text/javascript">
     $(function(){
-        yobi.Pagination.update($("#pagination"), @currentPage.getTotalPageCount());
+        yobi.Pagination.update($("#pagination"), @currentPage.getTotalPageCount);
     });
     </script>    
 }

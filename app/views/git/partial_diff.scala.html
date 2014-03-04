@@ -51,11 +51,11 @@
 
 <div id="diff">
 @if(result != null) {
-    @if(result.getGitCommits().isEmpty()) {
+    @if(result.getGitCommits().isEmpty) {
         <h4>@Messages("pullRequest.diff.noChanges")</h4>
     } else {
         <div style="margin-top:20px;">
-            @if(result.getGitConflicts() == null){
+            @if(result.getGitConflicts == null){
             <div class="alert alert-success">
                 <h5>@Messages("pullRequest.is.safe")</h5>
             </div>
@@ -82,11 +82,11 @@
                         </tr>
                         </thead>
                         <tbody class="tbody">
-                        @for(commit <- result.getGitCommits()) {
+                        @for(commit <- result.getGitCommits) {
                         <tr>
                             <td class="commit-id">
-                                <a href="@routes.CodeHistoryApp.show(pullRequest.fromProject.owner, pullRequest.fromProject.name, commit.getId())">
-                                    @commit.getShortId()
+                                <a href="@routes.CodeHistoryApp.show(pullRequest.fromProject.owner, pullRequest.fromProject.name, commit.getId)">
+                                    @commit.getShortId
                                     <i class="yobicon-right"></i>
                                 </a>
                             </td>
@@ -96,14 +96,14 @@
                                     <span class="number-of-comments"><i class="yobicon-comments"></i> @numOfComment</span>
                                     }
                                 }
-                                @defining(commit.getMessage()){ commitMsg =>
+                                @defining(commit.getMessage){ commitMsg =>
                                     @common.commitMsg(commitMsg.split("\n")(0),
                                         commitMsg,
-                                        routes.CodeHistoryApp.show(pullRequest.fromProject.owner, pullRequest.fromProject.name, commit.getId()).toString())
+                                        routes.CodeHistoryApp.show(pullRequest.fromProject.owner, pullRequest.fromProject.name, commit.getId).toString())
                                 }
                             </td>
                             <td class="date" title="@JodaDateUtil.getDateString(commit.getAuthorDate)">
-                                @agoString(JodaDateUtil.ago(commit.getAuthorDate()))
+                                @agoString(JodaDateUtil.ago(commit.getAuthorDate))
                             </td>
                             <td class="author @commit.getAuthorEmail">
                                 @defining(User.find.where.eq("email", commit.getAuthorEmail).findUnique) { user =>
@@ -113,7 +113,7 @@
                                 </a>
                                 } else {
                                 <div class="avatar-wrap">
-                                    <img src="@urlToPicture(commit.getAuthorEmail(), 32)" width="32" height="32"/>
+                                    <img src="@urlToPicture(commit.getAuthorEmail, 32)" width="32" height="32"/>
                                 </div>
                                 }
                                 }
