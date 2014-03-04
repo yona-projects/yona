@@ -57,7 +57,7 @@ public abstract class AbstractProjectCheckAction<T> extends Action<T> {
             if (UserApp.currentUser() == User.anonymous){
                 flash("failed", Messages.get("error.auth.unauthorized.waringMessage"));
                 return AccessLogger.log(context.request(),
-                        forbidden(ErrorViews.Forbidden.render("error.forbidden.or.notfound", context.request().path().toString())), null);
+                        forbidden(ErrorViews.Forbidden.render("error.forbidden.or.notfound", context.request().path())), null);
             }
             return AccessLogger.log(context.request(),
                     forbidden(ErrorViews.NotFound.render("error.forbidden.or.notfound")), null);
@@ -66,7 +66,7 @@ public abstract class AbstractProjectCheckAction<T> extends Action<T> {
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             flash("failed", Messages.get("error.auth.unauthorized.waringMessage"));
             return AccessLogger.log(context.request(),
-                    forbidden(ErrorViews.Forbidden.render("error.forbidden.or.notfound", context.request().path().toString())), null);
+                    forbidden(ErrorViews.Forbidden.render("error.forbidden.or.notfound", context.request().path())), null);
         }
 
         return call(project, context, parser);
