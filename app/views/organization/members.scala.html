@@ -1,0 +1,79 @@
+@(organization:Organization, roles: List[Role])
+
+@memberRole(userRole: String, loginId: String, userId: Long) = {
+@for(role <- roles){
+    <li data-value="@role.id" @if(role.name.equals(userRole)){ data-selected="true" class="active" }><a href="javascript:void(0)" data-action="apply" data-href="@routes.OrganizationApp.editMember(organization.name, userId)" data-loginId="@loginId">@Messages("user.role." + role.name)</a></li>
+}
+}
+
+@siteLayout(organization.name, utils.MenuType.NONE) {
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="site-breadcrumb-outer">
+            <div class="site-breadcrumb-inner">
+                <h3>@organization.name <small>@organization.descr</small></h3>
+            </div>
+        </div>
+
+        <div class="inner-bubble">
+            <form class="nm" action="@routes.OrganizationApp.addMember(organization.name)" method="post" id="addNewMember">
+                <input type="text" class="text uname" id="loginId" name="loginId"
+                data-provider="typeahead" autocomplete="off"
+                placeholder="@Messages("project.members.addMember")"
+                pattern="^[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*$" title="@Messages("user.wrongloginId.alert")" /><!--
+            --><button type="submit" class="ybtn ybtn-success"><i class="yobicon-addfriend"></i> @Messages("button.add")</button>
+            </form>
+        </div>
+
+        <ul class="members project row-fluid">
+        @for(member <- organization.users){
+            @if(member.user != null){
+                <li class="member span6">
+                    <a href="@routes.UserApp.userInfo(member.user.loginId)" class="avatar-wrap mlarge pull-left mr10">
+                        <img src="@User.findByLoginId(member.user.loginId).avatarUrl" width="64" height="64">
+                    </a>
+                    <div class="member-name">@member.user.name</div>
+                    <div class="member-id">@{"@"}@member.user.loginId</div>
+                    <div class="member-setting">
+                        <div class="btn-group" data-name="roleof-@member.user.loginId">
+                            <button class="btn dropdown-toggle large" data-toggle="dropdown">
+                                <span class="d-label">@Messages("user.role." + member.role.name)</span>
+                                <span class="d-caret"><span class="caret"></span></span>
+                            </button>
+                            <ul class="dropdown-menu">@memberRole(member.role.name, member.user.loginId, member.user.id)</ul>
+                        </div>
+                        <a href="javascript:void(0)" data-action="delete" data-href="@routes.OrganizationApp.deleteMember(organization.name, member.user.id)" class="ybtn ybtn-danger ybtn-small">
+                        @Messages("button.delete")
+                        </a>
+                    </div>
+                </li>
+            }
+        }
+        </ul>
+
+        @** Confirm to delete member **@
+        <div id="alertDeletion" class="modal hide">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h3>@Messages("organization.member.delete")</h3>
+            </div>
+            <div class="modal-body">
+                <p>@Messages("organization.member.deleteConfirm")</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="ybtn ybtn-info ybtn-mini" id="deleteBtn">@Messages("button.yes")</button>
+                <button type="button" class="ybtn ybtn-mini" data-dismiss="modal">@Messages("button.no")</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" type="text/css" media="screen" href="/assets/javascripts/lib/mentionjs/mention.css">
+<script type="text/javascript">
+$(document).ready(function(){
+    $yobi.loadModule("organization.Member", {
+    "sActionURL": "@routes.UserApp.users()"
+    });
+});
+</script>
+}

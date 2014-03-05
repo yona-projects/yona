@@ -22,6 +22,9 @@ package models;
 
 import models.enumeration.ProjectScope;
 import models.enumeration.RoleType;
+import models.enumeration.ResourceType;
+import models.resource.GlobalResource;
+import models.resource.Resource;
 import play.data.format.Formats;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
@@ -101,4 +104,33 @@ public class Organization extends Model {
         return result;
     }
 
+    public static Organization findByOrganizationName(String organizationName) {
+        return find.where().ieq("name", organizationName).findUnique();
+    }
+
+    /**
+     * As resource.
+     *
+     * @return the resource
+     */
+    public Resource asResource() {
+        return new GlobalResource() {
+
+            @Override
+            public String getId() {
+                return id.toString();
+            }
+
+            @Override
+            public ResourceType getType() {
+                return ResourceType.ORGANIZATION;
+            }
+
+        };
+    }
+
+    public List<OrganizationUser> getAdmins() {
+        return OrganizationUser.findAdminsOf(this);
+    }
 }
+

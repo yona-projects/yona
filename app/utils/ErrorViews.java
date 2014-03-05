@@ -1,4 +1,5 @@
 package utils;
+import models.Organization;
 import models.Project;
 import play.api.templates.Html;
 
@@ -16,6 +17,11 @@ public enum ErrorViews {
         @Override
         public Html render(String messageKey, Project project) {
             return views.html.error.forbidden.render(messageKey, project);
+        }
+
+        @Override
+        public Html render(String messageKey, Organization organization) {
+            return views.html.error.forbidden_organization.render(messageKey, organization);
         }
 
         @Deprecated
@@ -38,6 +44,12 @@ public enum ErrorViews {
         @Override
         public Html render(String messageKey, Project project) {
             return render(messageKey, project, null);
+        }
+
+        @Override
+        public Html render(String messageKey, Organization organization) {
+            // TODO : make notfound view for organization
+            return views.html.error.notfound_default.render(messageKey);
         }
 
         @Override
@@ -67,6 +79,11 @@ public enum ErrorViews {
         }
 
         @Override
+        public Html render(String messageKey, Organization organization) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public Html render(String messageKey, Project project, String target) {
             throw new UnsupportedOperationException();
         }
@@ -80,6 +97,12 @@ public enum ErrorViews {
         @Override
         public Html render(String messageKey, Project project) {
             return views.html.error.badrequest.render(messageKey, project);
+        }
+
+        @Override
+        public Html render(String messageKey, Organization organization) {
+            // TODO : make badrequest view for organization
+            return views.html.error.badrequest_default.render(messageKey);
         }
 
         @Deprecated
@@ -125,6 +148,16 @@ public enum ErrorViews {
      * @return
      */
     public abstract Html render(String messageKey, Project project);
+
+    /**
+     * 오류페이지 HTML을 레더링 한다.
+     * 메세지는 파라미터로 전달되는 messageKey를 사용하고 레이아웃은 그룹레벨이 된다.
+     *
+     * @param messageKey 메세지키
+     * @param organization 그룹 정보
+     * @return
+     */
+    public abstract Html render(String messageKey, Organization organization);
 
     /**
      * 오류페이지 HTML을 레더링 한다.

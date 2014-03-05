@@ -57,4 +57,41 @@ public class OrganizationUser extends Model {
                 .findRowCount();
         return rowCount > 0;
     }
+
+    public static void assignRole(Long userId, Long organizationId, Long roleId) {
+        OrganizationUser organizationUser = OrganizationUser.findByOrganizationIdAndUserId(organizationId, userId);
+
+        if (organizationUser == null) {
+            OrganizationUser.create(userId, organizationId, roleId);
+        } else {
+            Role role = Role.findById(roleId);
+
+            if (role != null) {
+                organizationUser.role = role;
+                organizationUser.update();
+            }
+        }
+    }
+
+    public static OrganizationUser findByOrganizationIdAndUserId(Long organizationId, Long userId) {
+        return find.where().eq("user.id", userId)
+                .eq("organization.id", organizationId)
+                .findUnique();
+    }
+
+    public static void create(Long userId, Long organizationId, Long roleId) {
+        OrganizationUser organizationUser = new OrganizationUser();
+        organizationUser.user = User.find.byId(userId);
+        organizationUser.organization = Organization.find.byId(organizationId);
+        organizationUser.role = Role.findById(roleId);
+        organizationUser.save();
+    }
+
+    public static void delete(Long organizationId, Long userId) {
+        OrganizationUser organizationUser = OrganizationUser.findByOrganizationIdAndUserId(organizationId, userId);
+
+        if (organizationUser != null) {
+            organizationUser.delete();
+        }
+    }
 }
