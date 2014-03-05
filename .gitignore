@@ -28,3 +28,4 @@ Thumbs.db\:encryptable
 conf/application.user.conf
 conf/application.conf
 *.log
+conf/generated.keystore
