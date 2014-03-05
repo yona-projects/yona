@@ -85,6 +85,7 @@
         , keydown: function (e) {
             this.suppressKeyPressRepeat = ~$.inArray(e.keyCode, [40,38,9,13,27]);
 
+            this.cachedKeyCode = e.KeyCode;
             // Added tab handler. Tabbing out of the input (thus blurring).
             if (e.keyCode === 9) { // tab
                 if (!this.shown) return;
@@ -105,7 +106,24 @@
 
                 // Moved tab handler to keydown.
                 case 13: // enter
-                    if (!this.shown) return;
+                    /**
+                     * If you type the Enter key while Hangul(other unfinished character) input in MacOS IME, 
+                     * there is a problem that is occurring twice keyup (13) event .
+                     * 
+                     * - Mac
+                     * keydown : 229
+                     * keyup : 13
+                     * keydown : 13
+                     * keyup : 13
+                     * 
+                     * - Windows
+                     * keydown : 229
+                     * keydown : 13
+                     * keyup : 13
+                     * 
+                     * In order to solve this problem , keyCode(13) after keyCode(229) ignore.
+                     */
+                    if (!this.shown && this.cachedKeyCode != 229) return;
                     this.select();
                     break;
 
