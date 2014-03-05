@@ -3,9 +3,11 @@ package playRepository;
 import static play.test.Helpers.*;
 import models.Project;
 import models.PullRequest;
+import models.User;
 
 import org.apache.commons.io.FileUtils;
 import org.codehaus.jackson.node.ObjectNode;
+import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoFilepatternException;
@@ -28,6 +30,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.assertions.Fail.fail;
@@ -378,6 +381,11 @@ public class GitRepositoryTest {
     }
 
     private RevCommit newCommit(Project project, Repository repository, String fileName, String content, String message) throws IOException, GitAPIException {
+        return newCommit(project, repository, fileName, content, message, null);
+    }
+
+    private RevCommit newCommit(Project project, Repository repository, String fileName,
+            String content, String message, User author) throws IOException, GitAPIException {
         String workingTreePath = GitRepository.getDirectoryForMerging(project.owner, project.name);
         String testFilePath = workingTreePath + "/" + fileName;
         BufferedWriter out = new BufferedWriter(new FileWriter(testFilePath));
@@ -387,7 +395,13 @@ public class GitRepositoryTest {
 
         Git git = new Git(repository);
         git.add().addFilepattern(fileName).call();
-        return git.commit().setMessage(message).call();
+        CommitCommand commitCommand = git.commit().setMessage(message);
+        if (author != null) {
+            commitCommand
+                .setAuthor(author.loginId, author.email)
+                .setCommitter(author.loginId, author.email);
+        }
+        return commitCommand.call();
     }
 
     @Test
@@ -557,6 +571,37 @@ public class GitRepositoryTest {
         assertThat(gitBranches.size()).isEqualTo(1);
         assertThat(gitBranches.get(0).getShortName()).isEqualTo(branchName);
 
+        Helpers.stop(app);
+    }
+
+    @Test
+    public void getRelatedAuthors() throws IOException, GitAPIException {
+        FakeApplication app = support.Helpers.makeTestApplication();
+        Helpers.start(app);
+
+        Project project = createProject("yobi", "test");
+        PullRequest pullRequest = createPullRequest(project);
+        GitRepository gitRepository = new GitRepository(project);
+        gitRepository.create();
+        Repository repository = GitRepository.buildMergingRepository(pullRequest);
+
+        // Given
+        User yobi = User.findByLoginId("yobi");
+        User laziel = User.findByLoginId("laziel");
+        User doortts = User.findByLoginId("doortts");
+        User nori = User.findByLoginId("nori");
+        RevCommit from = newCommit(project, repository, "README.md", "hello", "1st commit", yobi);
+        newCommit(project, repository, "test.txt", "text file", "2nd commit", laziel);
+        newCommit(project, repository, "test.txt", "edited text file", "3rd commit", doortts);
+        RevCommit to = newCommit(project, repository, "README.md", "hello, world!", "4th commit", nori);
+
+        // When
+        Set<User> authors = GitRepository.getRelatedAuthors(repository, from.getName(), to.getName());
+
+        // Then
+        assertThat(authors).containsOnly(yobi);
+
+        gitRepository.close();
         Helpers.stop(app);
     }
 

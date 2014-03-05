@@ -413,14 +413,16 @@ public class PullRequest extends Model implements ResourceConvertible {
                 // 코드를 보낸 브랜치(fromBranch)의 코드를 merge 한다.
                 mergeResult = GitRepository.merge(cloneRepository, cloneAndFetch.getDestFromBranchName());
 
-                // 코드 보내기에서 변경한 코드의 원작자를 설정한다.
-                pullRequest.relatedAuthors = GitRepository.getRelatedAuthors(cloneAndFetch);
-
                 if (mergeResult.getMergeStatus().isSuccessful()) {
                     // merge 커밋 메시지 수정
                     RevCommit mergeCommit = writeMergeCommitMessage(cloneRepository, sender);
+                    String mergedCommitIdTo = mergeCommit.getId().getName();
                     pullRequest.mergedCommitIdFrom = mergedCommitIdFrom;
-                    pullRequest.mergedCommitIdTo = mergeCommit.getId().getName();
+                    pullRequest.mergedCommitIdTo = mergedCommitIdTo;
+
+                    // 코드 보내기에서 변경한 코드의 원작자를 설정한다.
+                    pullRequest.relatedAuthors = GitRepository.getRelatedAuthors(cloneRepository,
+                            mergedCommitIdFrom, mergedCommitIdTo);
 
                     // 코드 받을 프로젝트의 코드 받을 브랜치(srcToBranchName)로 clone한 프로젝트의
                     // merge 한 브랜치(destToBranchName)의 코드를 push 한다.
@@ -848,8 +850,6 @@ public class PullRequest extends Model implements ResourceConvertible {
                     commits.add(gitCommit);
                 }
 
-                pullRequest.relatedAuthors = GitRepository.getRelatedAuthors(cloneAndFetch);
-
                 GitRepository.checkout(clonedRepository, cloneAndFetch.getDestToBranchName());
 
                 String mergedCommitIdFrom = clonedRepository
@@ -860,8 +860,11 @@ public class PullRequest extends Model implements ResourceConvertible {
                 if (mergeResult.getMergeStatus() == MergeResult.MergeStatus.CONFLICTING) {
                     conflicts[0] = new GitConflicts(clonedRepository, mergeResult);
                 } else if (mergeResult.getMergeStatus().isSuccessful()) {
+                    String mergedCommitIdTo = mergeResult.getNewHead().getName();
                     pullRequest.mergedCommitIdFrom = mergedCommitIdFrom;
-                    pullRequest.mergedCommitIdTo = mergeResult.getNewHead().getName();
+                    pullRequest.mergedCommitIdTo = mergedCommitIdTo;
+                    pullRequest.relatedAuthors = GitRepository.getRelatedAuthors(clonedRepository,
+                            mergedCommitIdFrom, mergedCommitIdTo);
                 }
             }
         });
