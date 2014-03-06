@@ -96,7 +96,7 @@ public class AbstractPostingApp extends Controller {
 
         // XHR 호출에 의한 경우라면 204 No Content 와 Location 헤더로 응답한다
         if(HttpUtil.isRequestedWithXHR(request())){
-            response().setHeader("Location", redirectTo.absoluteURL(request()));
+            response().setHeader("Location", redirectTo.url());
             return status(204);
         }
 

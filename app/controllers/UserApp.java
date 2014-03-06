@@ -115,7 +115,7 @@ public class UserApp extends Controller {
      */
     public static Result loginForm() {
         String redirectUrl = request().getQueryString("redirectUrl");
-        String loginFormUrl = routes.UserApp.loginForm().absoluteURL(request());
+        String loginFormUrl = routes.UserApp.loginForm().url();
         String referer = request().getHeader("Referer");
         if(StringUtils.isEmpty(redirectUrl) && !StringUtils.equals(loginFormUrl, referer)) {
             redirectUrl = request().getHeader("Referer");
@@ -156,7 +156,7 @@ public class UserApp extends Controller {
         Map<String, String[]> params = request().body().asFormUrlEncoded();
         String redirectUrl = HttpUtil.getFirstValueFromQuery(params, "redirectUrl");
 
-        String loginFormUrl = routes.UserApp.loginForm().absoluteURL(request());
+        String loginFormUrl = routes.UserApp.loginForm().url();
         loginFormUrl += "?redirectUrl=" + redirectUrl;
 
         if (isUseSignUpConfirm()) {
