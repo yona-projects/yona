@@ -98,8 +98,8 @@ yobi.Markdown = (function(htOptions){
         
         sSrc = sSrc.replace(htVar.rxGfmLinkRules, function(sMatch, sProjectGroup, sProjectPath, sUserName, sTargetGoup, sIssue, sAt, sShar1, sMention, nMatchIndex){
             var aIgnores,
-                rxIgnoreRules = /<(?:a|code)(?:\s+[^>]*)*\s*>[^\n]*<\/(?:a|code)>|(?:\S+)\s*=\s*["'][^"']*["']/igm;
-            
+                rxIgnoreRules = /<(?:a|code)(?:\s+[^>]*)*\s*>[\s\S]*<\/(?:a|code)>|(?:\S+)\s*=\s*["'][^"']*["']/igm;
+                
             while(aIgnores = rxIgnoreRules.exec(sSrc)){
                 if(nMatchIndex > aIgnores.index && nMatchIndex < aIgnores.index + aIgnores[0].length){
                     return sMatch;
@@ -109,7 +109,6 @@ yobi.Markdown = (function(htOptions){
             if(htVar.rxWord.test(sSrc[nMatchIndex-1]) || htVar.rxWord.test(sSrc[nMatchIndex+sMatch.length])){
                 return sMatch;
             }
-
             return _makeLink(sMatch, sProjectGroup, sProjectPath, sUserName, sTargetGoup, sIssue, sAt, sShar1, sMention);
         });
         
