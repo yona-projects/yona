@@ -54,21 +54,6 @@
             }
         </ul>
         
-        @** Confirm to delete member **@
-        <div id="alertDeletion" class="modal hide">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">×</button>
-                <h3>@Messages("project.member.delete")</h3>
-            </div>
-            <div class="modal-body">
-                <p>@Messages("project.member.deleteConfirm")</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="ybtn ybtn-info ybtn-mini" id="deleteBtn">@Messages("button.yes")</button>
-                <button type="button" class="ybtn ybtn-mini" data-dismiss="modal">@Messages("button.no")</button>
-            </div>
-        </div>
-
         @** Enrolled Users **@
         @if(project.enrolledUsers.size > 0) {
         <legend>

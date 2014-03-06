@@ -250,15 +250,57 @@ $yobi = yobi.Common = (function(){
      * Show alert dialog
      * @param {String} sMessage Message string
      * @param {Function} fOnAfterHide Call this function after hidden dialog (optional)
+     * @param {String} sDescription Description string (optional)
      */
-    function showAlert(sMessage, fOnAfterHide){
+    function showAlert(sMessage, fOnAfterHide, sDescription){
         if(!htVar.oAlertDialog){
             htVar.oAlertDialog = new yobi.ui.Dialog("#yobiDialog");
         }
 
-        htVar.oAlertDialog.show(sMessage, {
+        htVar.oAlertDialog.show(sMessage, sDescription, {
             "fOnAfterHide": fOnAfterHide
         });
+    }
+
+    /**
+     * Show confirm dialog
+     * @param {String} sMessage Message string
+     * @param {Function} fCallback Call this function after click button
+     * @param {String} sDescription Description string (optional)
+     * @param {Hash Table} htOptions
+     * @param {Array} htOptions.aButtonLabels Specifying button labels (optional)
+     * @param {Array} htOptions.aButtonStyles Specifying button CSS Class names (optional)
+     */
+    function showConfirm(sMessage, fCallback, sDescription, htOptions){
+        if(!htVar.oConfirmDialog){
+            htVar.oConfirmDialog = new yobi.ui.Dialog("#yobiDialog");
+        }
+
+        htOptions = htOptions || {};
+        var aButtonStyles = htOptions.aButtonStyles;
+        var aButtonLabels = htOptions.aButtonLabels || [Messages("button.cancel"), Messages("button.confirm")];
+
+        htVar.oConfirmDialog.show(sMessage, sDescription, {
+           "fOnClickButton": fCallback,
+           "aButtonLabels" : aButtonLabels,
+           "aButtonStyles" : aButtonStyles
+        });
+    }
+
+    /**
+     * Show confirm before send ajax.
+     *
+     * @param {String} sMessage confirm message
+     * @param {Hash Table} htAjaxOptions jQuery.ajax settings
+     * @param {String} sDescription Description string (optional)
+     * @param {Hash Table} htConfirmOptions showConfirm options (optional)
+     */
+    function ajaxConfirm(sMessage, htAjaxOptions, sDescription, htConfirmOptions){
+        showConfirm(sMessage, function(htData){
+            if(htData.nButtonIndex === 1){
+                $.ajax(htAjaxOptions);
+            }
+        }, sDescription, htConfirmOptions);
     }
 
     /**
@@ -372,6 +414,8 @@ $yobi = yobi.Common = (function(){
         "getTrim"   : getTrim,
         "showAlert" : showAlert,
         "alert"     : showAlert,
+        "confirm"   : showConfirm,
+        "ajaxConfirm": ajaxConfirm,
         "notify"    : notify,
         "nl2br"     : nl2br,
         "tmpl"      : processTpl,

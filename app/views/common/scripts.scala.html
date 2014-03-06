@@ -3,13 +3,16 @@
 
 @**<!-- yobi.ui.Dialog -->**@
 <div id="yobiDialog" class="modal hide fade yobiDialog" tabindex="-1" role="dialog" aria-hidden="true">
-	<div class="btn-dismiss"><button type="button" class="btn-transparent" data-dismiss="modal">&times;</button></div>
-	<div class="message">
-		<p class="center-text msg"></p>
-		<p class="center-txt">
-			<button type="submit" class="ybtn ybtn-info" data-dismiss="modal">@Messages("button.confirm")</button>
-		</p>
-	</div>
+    <div class="btn-dismiss"><button type="button" class="btn-transparent" data-dismiss="modal">&times;</button></div>
+    <div class="message">
+        <div class="center-text">
+            <p class="msg"></p>
+            <p class="desc"></p>
+        </div>
+        <div class="center-txt buttons">
+            <button type="button" class="ybtn ybtn-info" data-dismiss="modal">@Messages("button.confirm")</button>
+        </div>
+    </div>
 </div>
 @**<!-- //yobi.ui.Dialog -->**@
 
@@ -20,7 +23,7 @@
 	<div class="btn-dismiss"><button type="button" class="btn-transparent">&times;</button></div>
 	<div class="center-text">
         <span class="v"></span>
-        <p class="msg"></p>
+        <div class="msg"></div>
     </div>
 </div>
 </script>
