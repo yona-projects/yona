@@ -96,27 +96,26 @@
       }
       <div class="pull-right">
         <a href="@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)" class="ybtn ybtn-success">
-          <i class="yobicon-merge yobicon-large"></i>
-            @Messages("pullRequest")
+            @Messages("pullRequest.new")
         </a>
       </div>
       <ul class="nav nav-tabs nm">
         <li @if(requestType.equals("open")){class="active"}>
           <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)@conditionForOpen.queryString" pjax-page>
-            @Messages("pullRequest.opened.code")
+            @Messages("pullRequest.state.open")
             <span class="num-badge">@PullRequest.count(conditionForOpen)</span>
           </a>
         </li>
         <li @if(requestType.equals("closed")){class="active"}>
           <a href="@routes.PullRequestApp.closedPullRequests(project.owner, project.name)@conditionForClosed.queryString" pjax-page>
-            @Messages("pullRequest.accepted.code")
+            @Messages("pullRequest.state.closed")
             <span class="num-badge">@PullRequest.count(conditionForClosed)</span>
           </a>
         </li>
         @if(project.isForkedFromOrigin()){
         <li @if(requestType.equals("sent")){class="active"}>
           <a href="@routes.PullRequestApp.sentPullRequests(project.owner, project.name)@conditionForSent.queryString" pjax-page>
-            @Messages("pullRequest.sent.code")
+            @Messages("pullRequest.sent")
             <span class="num-badge">@PullRequest.count(conditionForAccepted) / @PullRequest.count(conditionForSent)</span>
           </a>
         </li>
