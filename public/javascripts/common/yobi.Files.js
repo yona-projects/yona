@@ -44,8 +44,13 @@ yobi.Files = (function(){
         // The FileReader API is not actually used, but works as feature detection.
         // Check for window.ProgressEvent instead to detect XHR2 file upload capability
         // ref: http://blueimp.github.io/jQuery-File-Upload
-        htVar.bXHR2 = !!(window.ProgressEvent && window.FileReader) && !!window.FormData
-                      && (navigator.userAgent.toLowerCase().indexOf("trident") === -1);
+        htVar.bXHR2 = !!(window.ProgressEvent && window.FileReader) && !!window.FormData;
+
+        // HTTPS connection is required for XHR upload on MSIE Browsers
+        // even if FormData feature available.
+        if(htVar.bXHR2 && navigator.userAgent.toLowerCase().indexOf("trident") > -1){
+            htVar.bXHR2 = htVar.bXHR2 && (location.protocol.toLowerCase().indexOf("https") > -1);
+        }
 
         // HTML5 FileAPI required
         htVar.bDroppable = (typeof window.File != "undefined");

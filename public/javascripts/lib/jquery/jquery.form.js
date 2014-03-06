@@ -55,8 +55,16 @@
  */
 var feature = {};
 feature.fileapi = $("<input type='file'/>").get(0).files !== undefined;
-feature.formdata = (window.FormData !== undefined) &&
-                   (navigator.userAgent.toLowerCase().indexOf("trident") === -1);
+feature.formdata = (window.FormData !== undefined);
+
+// HTTPS connection is required for XHR upload on MSIE Browsers
+// even if FormData feature available.
+// modified: kim.jihan@navercorp.com (2014-03-05)
+if(feature.formdata && navigator.userAgent.toLowerCase().indexOf("trident") > -1){
+    feature.formdata = feature.formdata &&
+                      (location.protocol.toLowerCase().indexOf("https") > -1);
+}
+// -- //
 
 /**
  * ajaxSubmit() provides a mechanism for immediately submitting
