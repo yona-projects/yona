@@ -113,6 +113,7 @@ code.showCommit = View Commit
 code.showcomments = Show Comments
 code.skipDiff = This diff is skipped because others are too many.
 code.tooBigDiff = This diff is too big to show.
+code.unknownError = Unknown error
 common.attach.attachIfYouSave = will be attached when you save
 common.attach.clickToPost = Click to post
 common.attach.clickbutton = click Upload button
