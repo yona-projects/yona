@@ -394,6 +394,7 @@ public class PullRequestApp extends Controller {
         condition.setProject(project).setCategory(category);
         Page<PullRequest> page = PullRequest.findPagingList(condition);
         if (HttpUtil.isPJAXRequest(request())) {
+            response().setHeader("Cache-Control", "no-cache, no-store");
             return ok(partial_search.render(project, page, condition, category.code));
         } else {
             return ok(list.render(project, page, condition, category.code));
