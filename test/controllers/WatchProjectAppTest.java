@@ -61,7 +61,7 @@ public class WatchProjectAppTest {
 
         // then
         assertThat(status(result)).isEqualTo(Http.Status.SEE_OTHER);
-        assertThat(redirectLocation(result)).isEqualTo("http://" + routes.UserApp.loginForm().url() + "?redirectUrl=" + url);
+        assertThat(redirectLocation(result)).isEqualTo(routes.UserApp.loginForm().url() + "?redirectUrl=" + url);
     }
 
     @Test
@@ -109,7 +109,7 @@ public class WatchProjectAppTest {
 
         // then
         assertThat(status(result)).isEqualTo(Http.Status.SEE_OTHER);
-        assertThat(redirectLocation(result)).isEqualTo("http://" + routes.UserApp.loginForm().url() + "?redirectUrl=" + url);
+        assertThat(redirectLocation(result)).isEqualTo(routes.UserApp.loginForm().url() + "?redirectUrl=" + url);
     }
 
     @Test
