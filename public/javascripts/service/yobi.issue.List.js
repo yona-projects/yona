@@ -31,21 +31,14 @@
          */
         function _initVar(htOptions){
             htVar.nTotalPages = htOptions.nTotalPages || 1;
-            
-            htVar.oSearchAuthor    = new yobi.ui.Dropdown({"elContainer": htOptions.welSearchAuthor});
-            htVar.oSearchAssignee  = new yobi.ui.Dropdown({"elContainer": htOptions.welSearchAssignee});
-            htVar.oSearchMilestone = new yobi.ui.Dropdown({"elContainer": htOptions.welSearchMilestone});
-
         }
         
         /**
          * initialize element
          */
         function _initElement(htOptions){
-            
-            htElement.welSearchForm = htOptions.welSearchForm;
             htElement.welFilter = htOptions.welFilter;
-
+            htElement.welSearchForm = htOptions.welSearchForm;
             htElement.welSearchOrder = htOptions.welSearchOrder;
             htElement.welSearchState = htOptions.welSearchState;
             
@@ -53,78 +46,122 @@
             htElement.welBtnAdvance = $(".btn-advanced");        
             htElement.welPagination = $(htOptions.elPagination || "#pagination");
 
-            htElement.waLabels      = $("a.issue-label[data-color]"); // 목록 > 라벨
+            htElement.waLabels = $("a.issue-label[data-color]"); // 목록 > 라벨
 
             htElement.welMassUpdateForm = htOptions.welMassUpdateForm;
             htElement.welMassUpdateButtons = htOptions.welMassUpdateButtons;
             htElement.welDeleteButton = htOptions.welDeleteButton;
             htElement.waCheckboxes = $(htVar.sIssueCheckBoxesSelector);
 
-            htElement.welIssueWrap = $('.issue-list-wrap');   
+            htElement.welIssueWrap = $('.issue-list-wrap');
+
+            htElement.welSearchAuthorId = $("#authorId");
+            htElement.welSearchAssigneeId = $("#assigneeId");
+            htElement.welSearchMilestoneId = $("#milestoneId");
+            yobi.ui.Select2(htElement.welSearchAuthorId);
+            yobi.ui.Select2(htElement.welSearchAssigneeId);
+            yobi.ui.Select2(htElement.welSearchMilestoneId);
         }
 
         /**
          * attach event handlers
          */
         function _attachEvent(){
-            htVar.oSearchAuthor.onChange(_onChangeSearchField);
-            htVar.oSearchAssignee.onChange(_onChangeSearchField);
-            htVar.oSearchMilestone.onChange(_onChangeSearchField);
+            htElement.welSearchAuthorId.on("change", _onChangeSearchField);
+            htElement.welSearchAssigneeId.on("change", _onChangeSearchField);
+            htElement.welSearchMilestoneId.on("change", _onChangeSearchField);
 
-            htElement.welSearchOrder.each(function(i, el) {
-                $(el).click(_onChangeSearchOrder);
-            });
-            
-            htElement.welSearchState.each(function(i, el) {
-                $(el).click(_onChangeSearchState);
-            });
-            
-            htElement.waLabels.each(function(i, el) {
-                $(el).click(_onChangeSearchLabel);
-            });
-            
-            if(htElement.welFilter) htElement.welFilter.each(function(i, el) {
-                $(el).click(_onClickSearchFilter);
-            });
+            htElement.welSearchOrder.on("click", _onChangeSearchOrder);
+            htElement.welSearchState.on("click", _onChangeSearchState);
+            htElement.welFilter.on("click", _onClickSearchFilter);
+            htElement.waLabels.on("click", _onChangeSearchLabel);
 
             htElement.welIssueWrap.on('change','[data-toggle="issue-checkbox"]',_onChangeIssueCheckBox);
-
         }
 
+        /**
+         * 이슈 목록에서 체크박스 선택시
+         * @private
+         */
         function _onChangeIssueCheckBox() {
-            var welItemWrap = $('#issue-item-'+$(this).data('issueId'));
-            if($(this).is(':checked')) welItemWrap.addClass('active');
-            else welItemWrap.removeClass('active');
+            var welCheckBox = $(this)
+            var welItemWrap = $('#issue-item-' + welCheckBox.data('issueId'));
+
+            if(welCheckBox.is(':checked')){
+                welItemWrap.addClass('active');
+            } else {
+                welItemWrap.removeClass('active');
+            }
         }
 
-        function _onChangeSearchOrder(event) {
-            event.preventDefault();
+        /**
+         * 이슈 목록 정렬 기준 클릭시
+         * 변경순, 날짜순, 댓글순... 등
+         *
+         * @param weEvt
+         * @private
+         */
+        function _onChangeSearchOrder(weEvt) {
+            weEvt.preventDefault();
+
             $("input[name=orderBy]").val($(this).attr("orderBy"));
             $("input[name=orderDir]").val($(this).attr("orderDir"));
+
             htElement.welSearchForm.submit();
         }
-        
-        function _onChangeSearchState(event) {
-            event.preventDefault();
+
+        /**
+         * 이슈 목록 상단의 열림/닫힘 탭 클릭시
+         * 선택한 상태값으로 이슈 검색
+         *
+         * @param weEvt
+         * @private
+         */
+        function _onChangeSearchState(weEvt) {
+            weEvt.preventDefault();
+
             $("input[name=state]").val($(this).attr("state"));
+
             htElement.welSearchForm.submit();
         }
-        
-        function _onChangeSearchLabel(event) {
-            event.preventDefault();
+
+        /**
+         * 이슈 검색 폼에서 라벨 선택시 선택한 라벨로 검색
+         * @param event
+         * @private
+         */
+        function _onChangeSearchLabel(weEvt) {
+            weEvt.preventDefault();
+
             yobi.Label.resetLabel($(this).attr('data-labelId'));
+
             htElement.welSearchForm.submit();
         }
-        
+
+        /**
+         * 이슈 검색 항목 변경시 이벤트 핸들러
+         * 등록자, 담당자, 마일스톤 select 의 change 이벤트 발생시
+         *
+         * @private
+         */
         function _onChangeSearchField() {
             htElement.welSearchForm.submit();
         }
 
-        function _onClickSearchFilter(event) {
-            event.preventDefault();
-            htVar.oSearchAuthor.selectByValue($(this).attr("authorId"));
-            htVar.oSearchAssignee.selectByValue($(this).attr("assigneeId"));
-            htVar.oSearchMilestone.selectByValue($(this).attr("milestoneId"));
+        /**
+         * 검색필터 링크 클릭시 이벤트 핸들러
+         * 이슈 목록 좌측 상단의 전체이슈, 나에게 할당된 이슈, 내가 작성한 이슈 링크
+         *
+         * @param weEvt
+         * @private
+         */
+        function _onClickSearchFilter(weEvt) {
+            weEvt.preventDefault();
+
+            htElement.welSearchAuthorId.val($(this).attr("authorId"));
+            htElement.welSearchAssigneeId.val($(this).attr("assigneeId"));
+            htElement.welSearchMilestoneId.val($(this).attr("milestoneId"));
+
             htElement.welSearchForm.submit();
         }
 
