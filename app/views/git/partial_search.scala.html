@@ -44,7 +44,7 @@
 }
 
   <div pjax-container class="row-fluid cb">
-    <div class="span2 search-wrap">
+    <div class="span2 search-wrap" style="padding-top:0;">
       <form id="search" name="search" action="@searchFormAction(condition.category)" method="get">
         <div class="search">
           <div class="search-bar">
@@ -64,8 +64,12 @@
                 </button>
                 <ul class="dropdown-menu">
                   <li data-value=""><a>@Messages("common.order.all")</a></li>
+                  @defining(User.findPullRequestContributorsByProjectId(project.id)){ contributors =>
+                  @if(contributors.contains(UserApp.currentUser)){
+                    <li data-value="@UserApp.currentUser().id"><a>@Messages("pullRequest.sentByMe")</a></li>
+                  }
                   <li class="divider"></li>
-                  @for(contributor <- User.findPullRequestContributorsByProjectId(project.id)) {
+                  @for(contributor <- contributors){
                   <li data-value="@contributor.id" @if(condition.contributorId != null && condition.contributorId == contributor.id){data-selected="true" class="active"}>
                     <a class="usf-group">
                       <span class="avatar-wrap smaller">
@@ -75,6 +79,7 @@
                       <span class="loginid"> <strong>@{"@"}</strong>@contributor.loginId</span>
                     </a>
                   </li>
+                  }
                   }
                 </ul>
               </div>
@@ -96,27 +101,26 @@
       }
       <div class="pull-right">
         <a href="@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)" class="ybtn ybtn-success">
-          <i class="yobicon-merge yobicon-large"></i>
-            @Messages("pullRequest")
+            @Messages("pullRequest.new")
         </a>
       </div>
       <ul class="nav nav-tabs nm">
         <li @if(requestType.equals("open")){class="active"}>
           <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)@conditionForOpen.queryString" pjax-page>
-            @Messages("pullRequest.opened.code")
+            @Messages("pullRequest.state.open")
             <span class="num-badge">@PullRequest.count(conditionForOpen)</span>
           </a>
         </li>
         <li @if(requestType.equals("closed")){class="active"}>
           <a href="@routes.PullRequestApp.closedPullRequests(project.owner, project.name)@conditionForClosed.queryString" pjax-page>
-            @Messages("pullRequest.accepted.code")
+            @Messages("pullRequest.state.closed")
             <span class="num-badge">@PullRequest.count(conditionForClosed)</span>
           </a>
         </li>
         @if(project.isForkedFromOrigin()){
         <li @if(requestType.equals("sent")){class="active"}>
           <a href="@routes.PullRequestApp.sentPullRequests(project.owner, project.name)@conditionForSent.queryString" pjax-page>
-            @Messages("pullRequest.sent.code")
+            @Messages("pullRequest.sent")
             <span class="num-badge">@PullRequest.count(conditionForAccepted) / @PullRequest.count(conditionForSent)</span>
           </a>
         </li>
