@@ -87,7 +87,7 @@
             // Send a request contains project names to get email addresses and
             // launch user's mail client with them using mailto scheme.
             htElement.welBtnWriteEmail.button('loading');
-            
+
             $yobi.sendForm({
                 "sURL"      : htVar.sURLMailList,
                 "htOptForm": {"method":"POST"},

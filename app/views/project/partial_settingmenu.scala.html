@@ -8,7 +8,7 @@
 @isActiveSubMenu(calls: Call*) = @{
     var menuState = ""
     for(call <- calls) {
-        if(call.toString().equals(request().path().toString())) {
+        if(call.toString().equals(request().path())) {
             menuState = "active"
         }
     }

@@ -12,7 +12,7 @@ Project log, name, description, share option and member can be configured.
 
 ## Logo
 
-The Project logo is displayed on home page and top of the project when setting is done. 
+The Project logo is displayed on home page and top of the project when setting is done.
 
 <그림 삽입>
 
@@ -41,7 +41,7 @@ Setting to public allows all users to access and watch all items. Setting to pri
 
 # 프로젝트 설정하기
 
-자신이 프로젝트 관리자로 등록되어 있는 프로젝트가 있다면 해당 프로젝트의 설정을 변경 할 수 있습니다. 
+자신이 프로젝트 관리자로 등록되어 있는 프로젝트가 있다면 해당 프로젝트의 설정을 변경 할 수 있습니다.
 
 프로젝트 로고, 이름, 설명, 공개 여부, 멤버 관리 및 프로젝트 삭제가 가능합니다.
 
@@ -55,7 +55,7 @@ Setting to public allows all users to access and watch all items. Setting to pri
 
 ## 로고
 
-프로젝트 로고를 설정하여 화면에 나타나게 할 수 있습니다. 설정한 로고는 프로젝트의 상단과 프로젝트 홈화면에 표시됩니다. 
+프로젝트 로고를 설정하여 화면에 나타나게 할 수 있습니다. 설정한 로고는 프로젝트의 상단과 프로젝트 홈화면에 표시됩니다.
 
 <그림 삽입>
 
@@ -68,12 +68,12 @@ Setting to public allows all users to access and watch all items. Setting to pri
 
 ## 설명
 
-프로젝트 설명을 변경하면 `프로젝트 목록` 화면에 표시되는 프로젝트 설명이 변경됩니다. 
+프로젝트 설명을 변경하면 `프로젝트 목록` 화면에 표시되는 프로젝트 설명이 변경됩니다.
 
 <그림 삽입>
 
 ## 공개 여부
 
-프로젝트의 공개 여부를 변경 할 수 있습니다. 
+프로젝트의 공개 여부를 변경 할 수 있습니다.
 
 공개로 설정하면 누구라도 프로젝트의 각 항목 읽기와 지켜보기가 가능합니다. 하지만 비공개로 설정하면 멤버만이 읽기와 지켜보기를 할 수 있습니다.

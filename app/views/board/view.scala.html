@@ -6,7 +6,7 @@
 @import models.enumeration._
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
-@urlToPostings = @{ urlToList(request.getHeader("Referer"), routes.BoardApp.posts(project.owner, project.name).toString) }
+@urlToPostings = @{ urlToList(request.getHeader("Referer"), routes.BoardApp.posts(project.owner, project.name).toString()) }
 
 @isAuthorComment(commentId: String) = @{
     if(commentId == UserApp.currentUser().loginId) {"author"}
@@ -153,7 +153,7 @@
         // yobi.Mention
         yobi.Mention({
             "target": "comment-editor",
-            "url"   : "@Html(routes.ProjectApp.mentionList(project.owner, project.name, post.getNumber, post.asResource().getType().resource()).toString())"
+            "url"   : "@Html(routes.ProjectApp.mentionList(project.owner, project.name, post.getNumber, post.asResource().getType.resource()).toString())"
         });
 	});
 </script>

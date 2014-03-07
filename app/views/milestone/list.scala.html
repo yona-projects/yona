@@ -51,7 +51,7 @@
             </ul>
         </div>
 
-    	@if(milestones == null || milestones.isEmpty()){
+	@if(milestones == null || milestones.isEmpty){
 
     	<div class="error-wrap">
     		<i class="ico ico-err1"></i>
@@ -85,7 +85,7 @@
                         @if(milestone.state != State.CLOSED) {
                             @if(milestone.dueDate != null) {
                             <span class="sp">|</span>
-                            <span class="due-date @if(milestone.isOverDueDate()){over}">
+                            <span class="due-date @if(milestone.isOverDueDate){over}">
                                 @Messages("label.dueDate")
                                 <strong>@milestone.getDueDateString</strong>
                                 <span class="date">
@@ -117,7 +117,7 @@
     					<div class="progress @if(milestone.getCompletionRate==0){empty}">
     						<div class="progress-bar" style="width: @milestone.getCompletionRate%;"></div>
     					</div>
-                        
+
     					<div class="progress-label">
                             @if(milestone.getNumOpenIssues + milestone.getNumClosedIssues > 0) {
     						<div class="pull-left">
@@ -130,10 +130,10 @@
                                 <div class="empty-issue">@Messages("issue.is.empty")</div>
                             }
     					</div>
-                       
+
     				</div>
                 </div>
-                
+
                 <div class="completion-rate @if(milestone.getCompletionRate == 100){done}">
                     @if(milestone.getNumOpenIssues + milestone.getNumClosedIssues > 0) {
                     @milestone.getCompletionRate
@@ -142,7 +142,7 @@
                         -
                     }
     			</div>
-                
+
             </li>
             }
         </ul>

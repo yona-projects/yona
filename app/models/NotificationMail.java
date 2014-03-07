@@ -132,7 +132,7 @@ public class NotificationMail extends Model {
             if (usersByLang.containsKey(lang)) {
                 usersByLang.get(lang).add(receiver);
             } else {
-                usersByLang.put(lang, new ArrayList<User>(Arrays.asList(receiver)));
+                usersByLang.put(lang, new ArrayList<>(Arrays.asList(receiver)));
             }
         }
 
@@ -141,7 +141,7 @@ public class NotificationMail extends Model {
 
             try {
                 email.setFrom(Config.getEmailFromSmtp(), event.getSender().name);
-                email.addTo(Config.getEmailFromSmtp(), utils.Config.getSiteName()); 
+                email.addTo(Config.getEmailFromSmtp(), utils.Config.getSiteName());
 
                 for (User receiver : usersByLang.get(langCode)) {
                     email.addBcc(receiver.email, receiver.name);

@@ -3,7 +3,7 @@
  *
  * Copyright {AuthorName}.
  * Released under {License}
- * 
+ *
  */
 
 (function(ns){
@@ -48,7 +48,7 @@
         function _onDocumentReady(){
             // ...
         }
-        
+
 
         /**
          * ...
@@ -67,7 +67,7 @@
             // free memory
             htVar = htElement = null;
         }
-        
+
         _init();
     };
 

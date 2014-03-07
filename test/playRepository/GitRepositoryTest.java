@@ -82,7 +82,7 @@ public class GitRepositoryTest {
     }
 
     @Test
-    public void getPatch() throws IOException, NoFilepatternException, GitAPIException {
+    public void getPatch() throws IOException, GitAPIException {
         // given
         String userName = "yobi";
         String projectName = "testProject";
@@ -117,7 +117,7 @@ public class GitRepositoryTest {
     }
 
     @Test
-    public void getHistory() throws IOException, NoFilepatternException, GitAPIException {
+    public void getHistory() throws IOException, GitAPIException {
         // given
         String userName = "yobi";
         String projectName = "testProject";

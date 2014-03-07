@@ -60,7 +60,7 @@
             htElement.welActOnOpen = $("#actOnOpen");
             htElement.welActOnClosed = $("#actOnClosed");
             htElement.welBtnAccept = $("#btnAccept");
-            
+
             // tooltip
             $('span[data-toggle="tooltip"]').tooltip({
                 placement : "bottom"
@@ -88,7 +88,7 @@
                     }
                 });
             });
-            
+
             $("button.more").click(function(){
                 $(this).next("pre").toggleClass("hidden");
             });
@@ -123,7 +123,7 @@
          */
         function _initFileUploader(){
             var oUploader = yobi.Files.getUploader(htElement.welUploader, htElement.welTextarea);
-            
+
             if(oUploader){
                 (new yobi.Attachments({
                     "elContainer"  : htElement.welUploader,
@@ -146,7 +146,7 @@
                 }
             });
         }
-        
+
         /**
          * update pullRequest state
          */
@@ -154,18 +154,18 @@
             if(htVar.bStateUpdating){
                 return;
             }
-            
+
             htVar.bStateUpdating = true;
 
             $.get(htVar.sStateUrl, function(oRes){
                 var sResult = oRes.html;
-                
+
                 // update state only HTML has changed
-                if(sResult != htVar.sStateHTML){ 
+                if(sResult != htVar.sStateHTML){
                     htVar.sStateHTML = sResult;
                     htElement.welState.html(sResult);
                 }
-                
+
                 // update visiblitity of actrow buttons
                 htElement.welActOnOpen.css("display", !oRes.isMerging && oRes.isOpen ? "block" : "none");
                 htElement.welActOnClosed.css("display", !oRes.isMerging && oRes.isClosed ? "block" : "none");
@@ -174,9 +174,9 @@
                 htVar.bStateUpdating = false;
             });
         }
-        
+
         /**
-         * update current state of pullRequest automatically 
+         * update current state of pullRequest automatically
          * with interval timer
          */
         function _setStateUpdateTimer(){
@@ -184,7 +184,7 @@
                 yobi.Interval.clear(htVar.nStateUpdateTimer);
                 htVar.nStateUpdateTimer = null;
             }
-            
+
             htVar.nStateUpdateTimer = yobi.Interval.set(function(){
                 if(htVar.bStateUpdating !== true){
                     _updateState();

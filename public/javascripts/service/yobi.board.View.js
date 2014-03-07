@@ -3,7 +3,7 @@
  *
  * Copyright NHN Corporation.
  * Released under the MIT license
- * 
+ *
  * http://yobi.dev.naver.com/license
  */
 
@@ -56,7 +56,7 @@
             htElement.welBtnWatch.click(function(weEvt) {
                 var welTarget = $(weEvt.target);
                 var bWatched = (welTarget.attr("data-watching") == "true") ? true : false;
-                
+
                 $yobi.sendForm({
                     "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
                     "fOnLoad": function(){
@@ -73,7 +73,7 @@
          */
         function _initFileUploader(){
             var oUploader = yobi.Files.getUploader(htElement.welUploader, htElement.welTextarea);
-            
+
             if(oUploader){
                 (new yobi.Attachments({
                     "elContainer"  : htElement.welUploader,
@@ -94,7 +94,7 @@
                 }
             });
         }
-        
+
         _init(htOptions);
     };
 

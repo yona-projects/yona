@@ -8,7 +8,7 @@
         <h2 class="pull-left">@Messages("site.sidebar.postList")</h2>
     </div>
     <ul class="post-list-wrap">
-        @for(post <- currentPage.getList()) {
+        @for(post <- currentPage.getList) {
         @defining(User.findByLoginId(post.authorLoginId)){ user =>
         <li class="row-fluid listitem">
             <a href="@routes.ProjectApp.project(post.project.owner, post.project.name)" class="avatar-wrap list-avatar">
@@ -26,10 +26,10 @@
                 <div class="post-meta-wrap">
                     <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap">
                         @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){
-                            <img src="@urlToPicture(user.email, 16)">       
+                            <img src="@urlToPicture(user.email, 16)">
                         } else {
                             <img src="@user.avatarUrl" alt="@user.name" width="16" height="16"/>
-                        } 
+                        }
                     </a>
                     <a href="@routes.UserApp.userInfo(user.loginId)" class="post-meta-item">
                         @user.name
@@ -39,21 +39,21 @@
                     </span>
                     <span class="post-comments post-meta-item">
                         <a href="@routes.BoardApp.post(post.project.owner, post.project.name, post.getNumber)#comments">
-                            <i class="yobicon-comments"></i> 
+                            <i class="yobicon-comments"></i>
                             @post.numOfComments
-                        </a>    
+                        </a>
                     </span>
                 </div>
         </li>
         }
         }
     </ul>
-    
+
     <div id="pagination"></div>
 
     <script type="text/javascript">
     $(function(){
-        yobi.Pagination.update($("#pagination"), @currentPage.getTotalPageCount());
+        yobi.Pagination.update($("#pagination"), @currentPage.getTotalPageCount);
     });
     </script>
 }

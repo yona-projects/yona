@@ -77,7 +77,7 @@
             @for(state <- Array(State.OPEN, State.CLOSED)) {
                 <li @if(param.state == state.state) { class="active" } data-pjax>
                     <a href="#" state="@state.state">
-                        @Messages("issue.state." + state.name.toLowerCase())
+                        @Messages("issue.state." + state.name.toLowerCase)
                         <span class="num-badge">@Issue.countIssuesBy(param.clone.setState(state))</span>
                     </a>
                 </li>
@@ -85,9 +85,9 @@
             </ul>
 
 
-        @if(currentPage.getList().size() > 0){
+        @if(currentPage.getList.size() > 0){
 		<div class="filter-wrap small-heights">
-                @if(currentPage.getList().size() > 1){
+                @if(currentPage.getList.size() > 1){
 			<div class="filters pull-right">
 				@makeFilterLink("updatedDate", param.orderBy, param.orderDir, Messages("common.order.updatedDate"))
 				@makeFilterLink("createdDate", param.orderBy, param.orderDir, Messages("common.order.date"))
@@ -124,7 +124,7 @@
                 "welSearchForm":$("form[name='search']"),
                 "welFilter": $("a[pjax-filter]"),
                 "elPagination": $("#pagination"),
-                "nTotalPages" : @currentPage.getTotalPageCount()
+                "nTotalPages" : @currentPage.getTotalPageCount
 				});
 			});
 		</script>

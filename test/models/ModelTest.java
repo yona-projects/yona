@@ -6,8 +6,6 @@ import play.test.FakeApplication;
 import play.test.Helpers;
 //import support.EbeanUtil;
 
-import static play.test.Helpers.callAction;
-import static play.test.Helpers.fakeRequest;
 
 public class ModelTest<T> {
     protected static FakeApplication app;
@@ -30,7 +28,7 @@ public class ModelTest<T> {
 
     /**
      * Returns the first user. (id : 2 / name : yobi)
-     * 
+     *
      * @return User
      */
     protected User getTestUser() {
@@ -39,7 +37,7 @@ public class ModelTest<T> {
 
     /**
      * Returns user.
-     * 
+     *
      * @param userId
      * @return
      */
@@ -49,7 +47,7 @@ public class ModelTest<T> {
 
     /**
      * Returns the first project. (id : 1 / name : nForge4java)
-     * 
+     *
      * @return Project
      */
     protected Project getTestProject() {
@@ -58,7 +56,7 @@ public class ModelTest<T> {
 
     /**
      * Returns project.
-     * 
+     *
      * @return Project
      */
     protected Project getTestProject(Long projectId) {

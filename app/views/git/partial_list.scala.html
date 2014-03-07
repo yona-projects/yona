@@ -7,17 +7,17 @@
     branch.replace("refs/heads/", "")
 }
 <ul class="post-list-wrap">
-@if(page.getList().size()> 0){
-    @for(req <- page.getList().iterator()) {
+@if(page.getList.size()> 0){
+    @for(req <- page.getList.iterator()) {
     @defining(User.findByLoginId(req.contributor.loginId)){ user =>
         <li class="post-item">
             <div class="span10">
                 <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap mlarge" data-toggle="tooltip" data-placement="top" title="@user.loginId">
                     @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){
-                        <img src="@urlToPicture(user.email, 32)">       
+                        <img src="@urlToPicture(user.email, 32)">
                     } else {
                         <img src="@user.avatarUrl" alt="@user.name" width="32" height="32"/>
-                    } 
+                    }
                 </a>
                 <div class="title-wrap">
                     <span class="post-id">@req.number</span>
@@ -74,6 +74,6 @@
     $(function(){
         $('[data-toggle="tooltip"]').tooltip();
         var welPagination = $("#pagination");
-        yobi.Pagination.update(welPagination, @page.getTotalPageCount());
+        yobi.Pagination.update(welPagination, @page.getTotalPageCount);
     });
 </script>

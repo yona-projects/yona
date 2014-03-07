@@ -22,7 +22,7 @@ public class BasicAuthActionTest {
         // user-pass = userid ":" password
         // userid = *<TEXT excluding ":">
         // password = *TEXT
-        
+
         // ok
         String userpass = "hello:world";
         String basicCredentials = new String(Base64.encodeBase64(userpass.getBytes()));
@@ -35,7 +35,7 @@ public class BasicAuthActionTest {
         } catch (MalformedCredentialsException e) {
             fail();
         }
-        
+
         // ok
         userpass = ":";
         basicCredentials = new String(Base64.encodeBase64(userpass.getBytes()));
@@ -48,7 +48,7 @@ public class BasicAuthActionTest {
         } catch (MalformedCredentialsException e) {
             fail();
         }
-        
+
         // malformed credentials.
         String malformedUserpass = "helloworld";
         String malformedCredentials = new String(Base64.encodeBase64(malformedUserpass.getBytes()));
@@ -60,7 +60,7 @@ public class BasicAuthActionTest {
         } catch (MalformedCredentialsException e) {
             // success
         }
-        
+
         // username and password decoded by only ISO-8859-1
         // NOTE: UnsupportedEncodingException is NOT thrown here. It should be thrown
         // if and only if the Server does not support ISO-8859-1.
@@ -76,5 +76,5 @@ public class BasicAuthActionTest {
             fail();
         }
     }
-    
+
 }

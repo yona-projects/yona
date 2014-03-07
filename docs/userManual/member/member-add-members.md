@@ -3,9 +3,9 @@
 
 # Member registration
 
-You can collaborate with members once you are registered as a member of a project. 
+You can collaborate with members once you are registered as a member of a project.
 
-In order to see each permission refer to the `Authorization`. 
+In order to see each permission refer to the `Authorization`.
 
 ## Requesting registration
 
@@ -69,7 +69,7 @@ To cancel requesting registration :
 
 ## 등록 요청 취소하기
 
-등록 요청을 취소하려면 
+등록 요청을 취소하려면
 
 1. 요청한 프로젝트로 이동합니다.
 2. `멤버 등록` 아이콘을 클릭 합니다.

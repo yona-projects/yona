@@ -19,11 +19,10 @@
 
 package utils;
 
-import play.mvc.*;
-import play.mvc.Http.*;
+import play.mvc.Http;
+import play.mvc.Http.Response;
 
 import javax.servlet.*;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.*;
 import java.io.*;
 import java.util.*;

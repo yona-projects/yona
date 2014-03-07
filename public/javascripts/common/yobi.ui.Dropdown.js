@@ -108,7 +108,7 @@
             }
 
             var welInput = htElement.welContainer.find("input[name='" + sFieldName +"']");
-            
+
             if(welInput.length === 0){
                 welInput = $('<input type="hidden" name="' + sFieldName + '">');
                 htElement.welContainer.append(welInput);

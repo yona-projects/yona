@@ -184,7 +184,7 @@ yobi.Label = (function(htOptions){
         var sLabel;
         var welAttachDivider = htElement.welAttachLabels.find('li[data-category="'+oLabel.category+'"].divider');
         var welDeleteDivider = htElement.welDeleteLabels.find('li[data-category="'+oLabel.category+'"].divider');
-        
+
         if(welAttachDivider.length === 0) {
             sLabel = $yobi.tmpl(htVar.sTplLabelCategoryItem, oLabel);
             htElement.welAttachLabels.prepend(sLabel);

@@ -13,7 +13,7 @@
             <div class="project-header-avatar">
                 <img src="@urlToProjectLogo(project)" />
             </div>
-            <div class="project-breadcrumb-wrap @if(project.isForkedFromOrigin()){fork}">
+            <div class="project-breadcrumb-wrap @if(project.isForkedFromOrigin){fork}">
                 <div class="project-breadcrumb">
                     <span class="project-author"><a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a></span>
                     <span class="project-separator">/</span>
@@ -24,13 +24,13 @@
                     </span>
                     }
                 </div>
-                @if(project.isForkedFromOrigin()){
+                @if(project.isForkedFromOrigin){
                 <div class="project-origin">
                     <span class="project-origin-title">@Messages("fork.original")</span>
                     <a href="@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)" class="project-origin-name">
                         @project.originalProject.owner / @project.originalProject.name
                     </a>
-                </div>    
+                </div>
                 }
             </div>
             <div class="project-util-wrap">
@@ -70,7 +70,7 @@
                             </div>
                         </div>
                         }
-                    </li> 
+                    </li>
                     }
                     @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.WATCH)) {
                     <li>
@@ -124,7 +124,7 @@
                     </li>
                     }
                 </ul>
-            </div>    
-        </div>    
+            </div>
+        </div>
     </div>
 </div>

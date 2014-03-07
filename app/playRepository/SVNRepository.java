@@ -121,14 +121,14 @@ public class SVNRepository implements PlayRepository {
 
     /**
      * SVN repository의 {@code branch}에서 {@code path}의 정보를 JSON으로 반환한다.
-     * 
+     *
      * {@code branch}의 값으로 HEAD만 유효하며 그 외 다른 값이라면 null을 반환환다.
      * HEAD에서 {@code path}가 디렉토리일 경우에는 해당 디렉토리에 들어있는 파일과 디렉토리 목록을 JSON으로 반환하고,
      * 파일일 경우에는 해당 파일 정보를 JSON으로 반환한다. 그 외 디렉토리도 아니고 파일도 아니라면 null을 반환한다.
      *
      * @param branch
      * @param path
-     * @return  
+     * @return
      * @throws IOException
      * @throws SVNException
      */

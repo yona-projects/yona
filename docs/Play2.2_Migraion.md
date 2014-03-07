@@ -29,7 +29,7 @@ sbt plugin 의 groupId 와 version 값을 수정한다.
 
 ### applicafion.default.conf, application.conf
 
-event-handlers 설정은 deprecated 되었다. 대신 loggers 를 사용한다. 
+event-handlers 설정은 deprecated 되었다. 대신 loggers 를 사용한다.
 
     loggers = ["akka.event.Logging$DefaultLogger", "akka.event.slf4j.Slf4jLogger"]
 
@@ -112,9 +112,9 @@ JsMessages class 의 generate method 는 더 이상 static method 가 아니다.
 play 2.1 에서 사용하던 코드 중, 아래와 같은 구조의 코드는 play 2.2 에서 정상적으로 compile 은 되지만, runtime 시 ```java.lang.VerifyError``` 를 발생시킨다.
 
 	TestObject object = new TestObject();
-	
+
 	object.name = "test";  // get or set string value
-	
+
 	try { // in try
 	    object.id = 100L;  // get or set long value
 	    String name = object.name;  // get or set string value

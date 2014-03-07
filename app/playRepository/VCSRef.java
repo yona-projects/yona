@@ -2,7 +2,7 @@ package playRepository;
 
 public class VCSRef {
     protected String name;
-    
+
     public VCSRef(String name) {
         this.name = name;
     }
@@ -14,7 +14,7 @@ public class VCSRef {
     public String canonicalName() {
         return name;
     }
-    
+
     @Override
     public String toString() {
         return name();

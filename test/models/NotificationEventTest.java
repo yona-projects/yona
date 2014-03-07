@@ -2,7 +2,6 @@ package models;
 
 import models.enumeration.EventType;
 import models.enumeration.ResourceType;
-import models.enumeration.State;
 import org.junit.Test;
 
 

@@ -3,7 +3,7 @@
 
 # Pull Request
 
-By using `Pull Request` you can let the members of the original project know about the changes of your codes to be reviewed for alterations. Also, the project can be discussed with other group members and your codes can be merged when code review is complete. 
+By using `Pull Request` you can let the members of the original project know about the changes of your codes to be reviewed for alterations. Also, the project can be discussed with other group members and your codes can be merged when code review is complete.
 
 `Pull Request`, however, is only available for projects using git repository.
 
@@ -18,12 +18,12 @@ Before you begin, you must do the following:
 ## Pull Request
 
 `Pull Request` allows members of original project know about your alterations which can be reviewed.
- 
+
 * Go to the forked project
 * Click `Pull Request` <그림 삽입>
 * Once screen is changed, click `Pull Request`<그림 삽입>
 
-Or 
+Or
 
 * Click `Pull Request` on the original project.
 * Click `New Pull Request` <그림 삽입>
@@ -43,7 +43,7 @@ Although these conflicts are not solved `Pull Request` can be used. But you have
 ## Code Review
 
 The original project members, can review codes. They are able to let others give feedback and discuss with other people.
- 
+
 The target for review are that items are categorized as `Opened Code` in the original project.
 
 <그림 삽입>
@@ -65,7 +65,7 @@ The commit tab shows comit logs.
 You can review by using comments. Here are two ways to use comments.
 
 First of all, use comments in overview tab.
- 
+
 <그림 삽입>
 
 Second way is the following
@@ -84,7 +84,7 @@ You can merge the source codes reviewed with the original repository through `Ac
 To use `Accept` :
 
 * Choose the request in `Pull Request` menu.
-* Click `Accept`.  
+* Click `Accept`.
 
 <그림 삽입>
 
@@ -178,7 +178,7 @@ The requests postponed will be seen within `Postpone Code tab` in original proje
 
 ### 댓글
 
-댓글을 이용하여 리뷰가 가능합니다. 댓글은 두가지 방법으로 사용 가능합니다. 
+댓글을 이용하여 리뷰가 가능합니다. 댓글은 두가지 방법으로 사용 가능합니다.
 
 첫째는, `코드주고받기`에서 `개요` 탭의 댓글을 이용하는 방법입니다.
 

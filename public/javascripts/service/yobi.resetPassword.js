@@ -3,7 +3,7 @@
  *
  * Copyright NHN Corporation.
  * Released under the MIT license
- * 
+ *
  * http://yobi.dev.naver.com/license
  */
 
@@ -122,7 +122,7 @@
 
         function hideErrorMessage(welInput){
             welInput.tooltip("hide");
-            
+
             try{
                 welInput.tooltip("destroy");
             } catch(e){} // to avoid bootstrap bug

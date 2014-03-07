@@ -21,12 +21,12 @@ public class ProjectTest extends ModelTest<Project> {
         Project.create(project);
         // Then
         Project actualProject = Project.find.byId(project.id);
-        
+
         assertThat(actualProject).isNotNull();
         assertThat(actualProject.name).isEqualTo("prj_test");
         assertThat(actualProject.siteurl).isEqualTo("http://localhost:9000/prj_test");
     }
-    
+
     @Test
     public void findMilestonesById() throws Exception {
         // Given
@@ -35,7 +35,7 @@ public class ProjectTest extends ModelTest<Project> {
         // Then
         assertThat(sut.milestones.size()).isEqualTo(2);
     }
-    
+
     @Test
     public void findIssueById() throws Exception {
         // Given
@@ -57,7 +57,7 @@ public class ProjectTest extends ModelTest<Project> {
         assertThat(Issue.finder.byId(1l)).isNull();
         assertThat(Milestone.findById(1l)).isNull();
     }
-    
+
     @Test
     public void findById() throws Exception {
         // Given
@@ -69,9 +69,9 @@ public class ProjectTest extends ModelTest<Project> {
         assertThat(project.isPublic).isEqualTo(true);
         assertThat(project.vcs).isEqualTo("GIT");
         assertThat(project.siteurl).isEqualTo("http://localhost:9000/projectYobi");
-      
+
     }
-    
+
     @Test
     public void isOnlyManager() throws Exception {
         // Given

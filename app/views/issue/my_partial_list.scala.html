@@ -15,10 +15,10 @@
         <div class="span9">
             <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap mlarge" data-toggle="tooltip" data-placement="top" title="@user.loginId">
                 @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){
-                    <img src="@urlToPicture(user.email, 32)">       
+                    <img src="@urlToPicture(user.email, 32)">
                 } else {
                     <img src="@user.avatarUrl" alt="@user.name" width="32" height="32"/>
-                } 
+                }
             </a>
             <div class="title-wrap">
                 <a href="@routes.ProjectApp.project(issue.project.owner,issue.project.name)" class="title project">

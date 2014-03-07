@@ -168,7 +168,7 @@ object TemplateHelper {
   }
 
   def urlToCompare(project: Project, compare: String) = {
-    val commits = compare.split(PullRequest.DELIMETER);
+    val commits = compare.split(PullRequest.DELIMETER)
     routes.CompareApp.compare(project.owner, project.name, commits(0), commits(1)).url
   }
 
@@ -297,10 +297,9 @@ object TemplateHelper {
       val remains = comments.head match {
         case (comment: PullRequestComment) if isLineComment(comment) =>
           threadAndRemains(comment, comments) match {
-            case (thread, remains) => {
+            case (thread, remains) =>
               html += partial_pull_request_comment(pull, comment, thread)
               remains
-            }
           }
         case (comment: PullRequestComment) =>
           html += partial_pull_request_comment(pull, comment)

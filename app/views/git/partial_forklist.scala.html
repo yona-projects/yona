@@ -2,7 +2,7 @@
 @import utils.TemplateHelper._
 
 
-@if(project.hasForks()) {
+@if(project.hasForks) {
     <div id="forks" class="tab-pane">
         <ul class="all-projects">
             @for(fork <- project.forkingProjects) {
@@ -14,7 +14,7 @@
                         </a>&nbsp;
                         @if(!fork.isPublic){ <i class="yobicon-lock yobicon-small"></i> }
                         @for(label <- fork.labels) {
-                        <span class="project-label @label.category.toLowerCase()">@label.name</span>
+                        <span class="project-label @label.category.toLowerCase">@label.name</span>
                         }
                     </div>
                     <div style="float:left">
@@ -22,7 +22,7 @@
                             <a href="@routes.ProjectApp.project(fork.owner, fork.name)" class="black">@fork.name</a>
                             @if(!fork.isPublic){ <i class="yobicon-lock yobicon-small"></i> }
                             @for(label <- fork.labels) {
-                            <span class="project-label @label.category.toLowerCase()">@label.name</span>
+                            <span class="project-label @label.category.toLowerCase">@label.name</span>
                             }
                         </div>
                         <div class="desc">

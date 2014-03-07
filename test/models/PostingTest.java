@@ -60,7 +60,6 @@ public class PostingTest extends ModelTest<Posting> {
         post.save();
 
         // Then
-        List<Posting> postings = Ebean.find(Posting.class).findList();
         Posting actual = Posting.finder.byId(post.id);
         assertThat(post.id).isGreaterThan(0);
         assertThat(actual.title).isEqualTo(post.title);

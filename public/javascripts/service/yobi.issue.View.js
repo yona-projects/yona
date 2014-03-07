@@ -3,7 +3,7 @@
  *
  * Copyright NHN Corporation.
  * Released under the MIT license
- * 
+ *
  * http://yobi.dev.naver.com/license
  */
 
@@ -27,7 +27,7 @@
             _initFileUploader();
             _initFileDownloader();
             _setLabelTextColor();
-            
+
             _setTimelineUpdateTimer();
         }
 
@@ -80,7 +80,7 @@
         function _attachEvent(){
             // 지켜보기
             htElement.welBtnWatch.click(_onClickBtnWatch);
-            
+
             // 이슈 정보 업데이트
             htElement.welChkIssueOpen.change(_onChangeIssueOpen);
             htVar.oMilestone.onChange(_onChangeMilestone);
@@ -113,13 +113,13 @@
 
         /**
          * 지켜보기 버튼 클릭시 이벤트 핸들러
-         * 
+         *
          * @param {Wrapped Event} weEvt
          */
         function _onClickBtnWatch(weEvt){
             var welTarget = $(weEvt.target);
             var bWatched = (welTarget.attr("data-watching") == "true") ? true : false;
-            
+
             $yobi.sendForm({
                 "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
                 "fOnLoad": function(){
@@ -129,7 +129,7 @@
                 }
             });
         }
-        
+
         /**
          * 이슈 해결/미해결 스위치 변경시
          */
@@ -137,7 +137,7 @@
             var welTarget  = $(this);
             var bChecked   = welTarget.prop("checked");
             var sNextState = bChecked ? "OPEN" : "CLOSED";
-            
+
             _requestUpdateIssue({
                "htData" : {"state": sNextState},
                "fOnLoad": function(){
@@ -150,10 +150,10 @@
                }
             });
         }
-        
+
         /**
          * 담당자 변경시
-         * 
+         *
          * @param {String} sValue 선택된 항목의 값
          */
         function _onChangeAssignee(sValue){
@@ -169,10 +169,10 @@
                }
             });
         }
-        
+
         /**
          * 마일스톤 변경시
-         * 
+         *
          * @param {String} sValue 선택된 항목의 값
          */
         function _onChangeMilestone(sValue){
@@ -186,10 +186,10 @@
                }
             });
         }
-        
+
         /**
          * 이슈 정보 업데이트 AJAX 호출
-         * 
+         *
          * @param {Hash Table} htOptions
          */
         function _requestUpdateIssue(htOptions){
@@ -197,7 +197,7 @@
             for(var sKey in htOptions.htData){
                 htReqData[sKey] = htOptions.htData[sKey];
             }
-            
+
             $.ajax(htVar.sIssuesUrl, {
                 "method"  : "post",
                 "dataType": "json",
@@ -206,7 +206,7 @@
                 "error"   : htOptions.fOnError
             });
         }
-        
+
         /**
          * 이슈 정보 업데이트 호출 실패시
          *
@@ -217,7 +217,7 @@
         function _onErrorRequest(sMessage, oRes){
             $yobi.notify(Messages("error.failedTo", sMessage, oRes.status, oRes.statusText));
         }
-        
+
         /**
          * initialize fileUploader
          */
@@ -263,7 +263,7 @@
 
             welLabel = null;
         }
-        
+
         /**
          * update IssueTimeline
          */
@@ -273,7 +273,7 @@
             }
 
             htVar.bTimelineUpdating = true;
-            
+
             $.get(htVar.sTimelineUrl, _onLoadTimeline).always(function(){
                 htVar.bTimelineUpdating = false;
             });
@@ -355,7 +355,7 @@
         }
 
         /**
-         * update IssueTimeline automatically 
+         * update IssueTimeline automatically
          * with interval timer
          */
         function _setTimelineUpdateTimer(){

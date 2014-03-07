@@ -17,13 +17,13 @@
 
         /**
          * 코드브라우저 초기화
-         * 
+         *
          * @param {Hash Table} htOptions
          */
         function _init(htOptions){
             _initVar(htOptions);
             _initElement(htOptions);
-            
+
             if(htElement.welFileView.length > 0){
                 // 파일 보기
                 _initShowFile();
@@ -31,15 +31,15 @@
                 // 폴더 목록
                 _initDepthedList();
                 _attachEvent();
-                
+
                 $(window).trigger("hashchange");
             }
         }
-        
+
         /**
          * 변수 초기화
          * initialize variables
-         * 
+         *
          * @param {Hash Table} htOptions
          */
         function _initVar(htOptions){
@@ -53,7 +53,7 @@
             htVar.sPath = htOptions.sInitialPath;
             htVar.nFontSize = 12;
             htVar.aPathQueue = [];
-            
+
             // Spinner Option
             htVar.htOptSpinner = {
                 lines: 10,    // The number of lines to draw
@@ -74,7 +74,7 @@
                 left: 'auto' // Left position relative to parent in px
             };
         }
-        
+
         /**
          * 엘리먼트 변수 초기화
          * initialize element variables
@@ -87,34 +87,34 @@
             htElement.welBreadCrumbs = $("#breadcrumbs");
             htElement.elSpinTarget = document.getElementById('spin');
         }
-        
+
         /**
          * 첫 페이지 로딩 때 현재 페이지의 list-wrap 목록들을 계층단위로 맞추어 배치하는 함수
          * code/view.scala.html 에서 상위 경로부터 순서대로 파일 목록을 표시하는 구조임
          * 목록 페이지 로딩때 처음 한 번만 호출한다
-         * 
+         *
          * 예: app/models/resource 경로를 표현하는 경우
          * 1. [app] 목록, [app/models] 목록, [app/models/resource] 목록을 각각 만든 뒤
-         * 
-         * 2. [app/models] 목록을 [app] 목록의 
+         *
+         * 2. [app/models] 목록을 [app] 목록의
          *    data-path="app/models" 항목 바로 다음에 위치하도록 만들고
-         * 
-         * 3. [app/models/resource] 목록을 [app/models] 목록의 
+         *
+         * 3. [app/models/resource] 목록을 [app/models] 목록의
          *    data-path="app/models/resource" 항목 바로 다음에 위치하도록 만드는 것이다
          */
         function _initDepthedList(){
             var waFileWrap = $("div.list-wrap[data-listpath]");
-            
+
             waFileWrap.each(function(i, elList){
                 var welList = $(elList);
                 var sListPath = welList.data("listpath");
                 var welTarget = $('[data-path="' + sListPath + '"]');
-                
+
                 welList.data("content", sListPath); // 목록이 표시하고 있는 경로
                 welList.data("depth", i+1);         // indent 정보
                 welList.addClass("depth-" + (i+1)); // indent CSS
                 _setIndentByDepth(i+1);              // indent CSS 설정
-                
+
                 // 목록의 위치 이동
                 welTarget.after(welList);
             });
@@ -123,7 +123,7 @@
             // 현재 페이지 주소와 일치하는 항목을 강조표시
             _setCurrentPathBold(htVar.sPath);
         }
-        
+
         /**
          * 이벤트 핸들러 설정
          */
@@ -131,23 +131,23 @@
             $('.code-viewer-wrap').click(_onClickWrap);
             $(window).on("hashchange", _onHashChange);
         }
-        
+
         /**
          * 코드 목록 영역을 클릭했을 때의 이벤트 핸들러
          * - 각 항목에 핸들러를 거는 것 보다 메모리 절약
-         * 
+         *
          * @param {Wrapped Event} weEvt
          */
         function _onClickWrap(weEvt){
             var elTarget = weEvt.target;
             var welTarget = $(elTarget);
-            
+
             /// 폴더 링크 클릭시
             if(elTarget.tagName.toLowerCase() === 'a' && welTarget.data("type") === "folder"){
                 var sPreviousHash = document.location.hash;
                 var sTargetPath = welTarget.data("targetpath");
                 document.location.hash = sTargetPath;
-                
+
                 if(document.location.hash === sPreviousHash){
                     $(window).trigger("hashchange");
                 }
@@ -157,7 +157,7 @@
                 return false;
             }
         }
-        
+
         /**
          * HashChange 이벤트 핸들러
          * 하위 폴더 목록을 동적으로 취급하기 위한 함수
@@ -166,7 +166,7 @@
             if(document.location.hash.length < 1){
                 return false;
             }
-            
+
             var sTargetPath = document.location.hash.substr(1);
             var welList = $('[data-listpath="' + sTargetPath + '"]');
 
@@ -189,7 +189,7 @@
             }
 
         }
-        
+
         /**
          * htVar.aPathQueue 변수를 이용해서
          * 순서대로 폴더 목록을 가져오기 위해 필요한 함수
@@ -202,7 +202,7 @@
                 });
                 return false;
             }
-            
+
             var sTargetPath = htVar.aPathQueue.shift();
             var welTarget = $('[data-targetpath="' + sTargetPath + '"]');
             var welList = $('[data-listpath="' + sTargetPath + '"]');
@@ -215,10 +215,10 @@
                 _requestFolderList();
             }
         }
-        
+
         /**
          * 지정한 경로의 목록을 생성하여 적절한 위치에 붙인다
-         * 
+         *
          * @param {Wrapped Element} welTarget
          * @param {String} sTargetPath
          */
@@ -227,7 +227,7 @@
             var nParentDepth = welTarget.closest(".list-wrap").data("depth") || 0; // 부모 경로의 depth
             var nNewDepth = nParentDepth + 1; // 지정한 경로의 depth 판단
             _setIndentByDepth(nNewDepth); // CSS Rule 먼저 추가해 놓고
-            
+
             // AJAX 호출로 데이터 요청
             _startSpinner();
             $.ajax(sURL, {
@@ -235,7 +235,7 @@
                     var aHTML = _getListHTML(oRes.data, sTargetPath);
                     var welTargetItem = $('.listitem[data-path="' + sTargetPath + '"]');
                     var welList = $('<div class="list-wrap" data-listPath="' + sTargetPath + '"></div>');
-                    
+
                     welList.data("depth", nNewDepth);
                     welList.addClass("depth-" + nNewDepth);
                     welList.css("display", "none");
@@ -259,21 +259,21 @@
                 }
             });
         }
-        
+
         /**
          * 경로 내 목록 데이터를 템플릿과 결합해서 HTML 문자열을 담은 배열로 반환한다
-         * 
+         *
          * @param {Hash Table} htData
          * @param {String} sTargetPath
          * @return {Array}
          */
         function _getListHTML(htData, sTargetPath){
             var aHTML = [];
-            
+
             // 폴더 먼저/ 파일 나중 순으로 만들기
             var htSortedData = _getSortedList(htData);
             var aProcessOrder = ["folder", "file"];
-            
+
             aProcessOrder.forEach(function(sType){
                 if(htSortedData[sType] instanceof Array){
                     htSortedData[sType].forEach(function(htFile){
@@ -284,40 +284,40 @@
             });
            return aHTML;
         }
-        
+
         /**
          * 목록 데이터를 타입별로 정리해서 반환
-         * 
+         *
          * @param {Hash Table} htData
          * @return {Hash Table}
          */
         function _getSortedList(htData){
             var sType;
             var htListByType = {};
-            
+
             // 타입별로 정리
             for(var sFileName in htData){
                 htFileInfo = htData[sFileName];
                 htFileInfo.fileName = sFileName;
                 sType = htFileInfo.type;
-                
+
                 htListByType[sType] = htListByType[sType] || [];
                 htListByType[sType].push(htData[sFileName]);
             }
 
             return htListByType;
         }
-        
+
         /**
          * 템플릿 처리를 위한 파일 정보 가공
          * _getListHTML 에서 호출한다
-         * 
+         *
          * @param {Hash Table} htFile
          * @param {String} sTargetPath
          */
         function _getFileInfoForTpl(htFile, sTargetPath){
             var sAuthorURL = (htFile.userLoginId) ? '/'+ htFile.userLoginId : 'javascript:void(0); return false;';
-            
+
             htFile.commitDate = (typeof htFile.createdDate !=='undefined') ? (moment(new Date(htFile.createdDate)).fromNow()) : '';
             htFile.fileClass = (htFile.fileName ==='..') ? 'updir' : (htFile.type === "folder" ? 'dynatree-ico-cf' : 'dynatree-ico-c');
             htFile.avatarImg = (typeof htFile.avatar !== 'undefined') ? '<a href="'+ sAuthorURL + '" class="avatar-wrap smaller"><img src="' + htFile.avatar + '"></a>' : '';
@@ -325,18 +325,18 @@
             htFile.listPath = sTargetPath;
             htFile.targetPath = _getCorrectedPath(sTargetPath, htFile.fileName);
             htFile.path = _getCorrectedPath(htVar.sBasePathURL, htFile.targetPath);
-            
+
             if(htFile.type === "folder"){
                 htFile.path += ("#cb-" + sTargetPath + htFile.fileName);
             }
 
             return htFile;
         }
-        
+
         /**
          * 경로 끝에 파일명을 바르게 붙여서 반환해준다
          * - path//filename 이 아니라 path/filename 이 되도록
-         * 
+         *
          * @param {String} sPath
          * @param {String} sFileName
          * @return {String}
@@ -344,46 +344,46 @@
         function _getCorrectedPath(sPath, sFileName){
             return sPath + (sPath.substr(-1) === "/" ? "" : "/") + sFileName;
         }
-        
+
         /**
          * 현재 경로와 일치하는 항목을 강조 표시한다
-         * 
+         *
          * @param {String} sPath
          */
         function _setCurrentPathBold(sPath){
             var welCurrent = $('[data-path="' + sPath + '"]');
-            
+
             if(welCurrent.length > 0){
                 $(".currentPath").removeClass("currentPath");
                 welCurrent.addClass("currentPath");
             }
         }
-        
+
         /**
          * 지정한 depth 를 표현하는 indent 스타일 규칙을 추가한다
-         * 
+         *
          * @param {Number} nDepth
          */
         function _setIndentByDepth(nDepth){
             nDepth = parseInt(nDepth, 10);
             htVar.aAddedDepth = htVar.aAddedDepth || [];
-            
+
             // 중복 방지용
             if(htVar.aAddedDepth.indexOf(nDepth) === -1){
                 htVar.aAddedDepth.push(nDepth);
                 _addCSSRule('.depth-' + nDepth + ' .filename', 'padding-left:' + (20 * nDepth) + 'px');
             }
         }
-        
+
         /**
          * 동적으로 CSS 스타일 규칙을 추가하기 위한 함수
-         * 
+         *
          * @param {String} sSelector
          * @param {String} sRule
          */
         function _addCSSRule(sSelector, sRule){
             var elStyle = htVar.elStyle;
-            
+
             if(elStyle.addRule){ // Chrome, IE
                 elStyle.addRule(sSelector, sRule);
             } else if(htVar.elStyle.insertRule){ // Firefox
@@ -405,8 +405,8 @@
 
         /**
          * 파일 보기 화면일 때 파일 크기를 읽기 좋게 변환해준다
-         * 
-         * @require humanize.js 
+         *
+         * @require humanize.js
          */
         function _beautifyFileSize(){
             htElement.welShowfile.find(".filesize").each(function(i, el){
@@ -440,7 +440,7 @@
         /**
          * aceEditor 객체 초기화해서 반환
          * 에디터 초기화 할 때 한번만 사용
-         * 
+         *
          * @param {String} sContainer
          * @return {Object}
          */
@@ -453,8 +453,8 @@
             oAce.setShowPrintMargin(false);
 
             // EditSession
-            htVar.oSession = oAce.getSession(); 
-            
+            htVar.oSession = oAce.getSession();
+
             return oAce;
         }
 
@@ -467,16 +467,16 @@
             var sExt = getExt(basename(sPath));
             return ext2mode(sExt);
         }
-        
+
         /**
          * 확장자를 aceEditor mode 로 변환
-         * 
+         *
          * @param {String} sExt
          * @return {Variant} 지원 가능한 형식이면 해당 모드의 문자열(String), 그 이외에는 false(Boolean)
          */
         function ext2mode(sExt){
             sExt = sExt.toLowerCase();
-            
+
             htVar.htExtMap = htVar.htExtMap || {
                 "actionscript": ["as", "actionscript"],
                 "assembly_x86": ["a", "a86"],
@@ -510,18 +510,18 @@
                 "text": ["txt", "gitignore", "sbt"],
                 "vbscript": ["vbs"],
                 "xml": ["xml"],
-                "yaml": ["yaml", "yml"] 
+                "yaml": ["yaml", "yml"]
             };
-            
+
             for(var sMode in htVar.htExtMap){
                 if(htVar.htExtMap[sMode].indexOf(sExt) > -1){
                     return sMode;
                 }
             }
-            
+
             return false;
         }
-        
+
        /**
          * 경로명에서 파일명만 추출해서 반환
          * @param {String} sPath
@@ -530,17 +530,17 @@
         function basename(sPath){
             return sPath.split("/").pop();
         }
-        
+
         /**
          * 파일명에서 확장자만 추출해서 반환
-         * 
+         *
          * @param {String} sFilename
          * @return {String}
          */
         function getExt(sFilename){
             return htVar.rxScala.test(sFilename) ? "scala" : sFilename.split(".").pop();
         }
-        
+
         /**
          * aceEditor 높이를 내용에 맞게 키우는 함수
          */
@@ -552,7 +552,7 @@
             htElement.welShowCode.height(newHeight);
             htVar.oEditor.resize();
         }
-        
+
         /**
          * Spinner 시작
          */
@@ -560,7 +560,7 @@
             htVar.oSpinner = htVar.oSpinner || new Spinner(htVar.htOptSpinner);
             htVar.oSpinner.spin(htElement.elSpinTarget);
         }
-        
+
         /**
          * Spinner 종료
          */
@@ -573,7 +573,7 @@
 
         /**
          * 현재 파일/폴더 경로 표시
-         * 
+         *
          * @param {Array} aPathQueue
          */
         function _updateBreadcrumbs(aPathQueue){
@@ -588,7 +588,7 @@
 
             htElement.welBreadCrumbs.html(aCrumbs.join(""));
         }
-        
+
         _init(htOptions || {});
     };
 })("yobi.code.Browser");

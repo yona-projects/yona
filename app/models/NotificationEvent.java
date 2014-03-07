@@ -288,13 +288,12 @@ public class NotificationEvent extends Model {
      * 보낸코드의 상태가 변경되었을때의 알림을 추가한다.
      *
      * @param sender this parameter is nullable, If this parameter is null, UserApp().currentUser() is used.
-     * @param urlToView
      * @param pullRequest
      * @param oldState
      * @param newState
      * @return
      * @see {@link models.PullRequest#merge(models.PullRequestEventMessage)}
-     * @see {@link controllers.PullRequestApp#addNotification(models.PullRequest, play.api.mvc.Call, models.enumeration.State, models.enumeration.State)}
+     * @see {@link controllers.PullRequestApp#addNotification(models.PullRequest, models.enumeration.State, models.enumeration.State)}
      */
     public static NotificationEvent afterPullRequestUpdated(User sender, PullRequest pullRequest, State oldState, State newState) {
         NotificationEvent notiEvent = createFrom(sender, pullRequest);
@@ -562,7 +561,6 @@ public class NotificationEvent extends Model {
     /**
      * 코드 보내기 리뷰 완료 또는 리뷰 완료 취소할 때 알림을 추가한다.
      *
-     * @param call
      * @param pullRequest
      * @param eventType
      * @return

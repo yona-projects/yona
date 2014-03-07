@@ -32,7 +32,7 @@
                     <div style="float:left">
                         <div class="header">
                             <a href="@routes.ProjectApp.project(project.owner, project.name)" class="black">@project.name</a>
-                            @if(project.isForkedFromOrigin()){
+                            @if(project.isForkedFromOrigin){
                                 <span class="small-font blue-txt">
                                     <a class="origin-title" href='@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)'>
                                         <i class="yobicon-split"></i>
@@ -43,7 +43,7 @@
 
                             @if(!project.isPublic){ <i class="yobicon-lock yobicon-small"></i> }
                             @for(label <- project.labels) {
-                                <a class="project-label @label.category.toLowerCase()" href="@routes.ProjectApp.projects()?labelIds=@label.id">@label.name</a>
+                                <a class="project-label @label.category.toLowerCase" href="@routes.ProjectApp.projects()?labelIds=@label.id">@label.name</a>
                             }
                         </div>
                         <div class="desc">

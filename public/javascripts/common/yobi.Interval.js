@@ -18,12 +18,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-yobi = yobi || {}; 
+yobi = yobi || {};
 yobi.Interval = (function(htOptions){
-    
+
     var htVar = {};
     var htTimers = {};
-    
+
     /**
      * Initialize yobi.Interval
      */
@@ -40,10 +40,10 @@ yobi.Interval = (function(htOptions){
             _watchUserInput();
         }
     }
-    
+
     /**
      * wrapper of window.setInterval
-     * 
+     *
      * @param {Function} fRunner
      * @param {Number} nInterval
      * @return {Number} nTimerId
@@ -56,20 +56,20 @@ yobi.Interval = (function(htOptions){
             "nInterval": nInterval,
             "bActive"  : true
         };
-        
+
         return nTimerId;
     }
-    
+
     /**
      * wrapper of window.clearInterval
-     * 
+     *
      * @param {Number} nTimerId
      */
     function _clearInterval(nTimerId){
         clearInterval(nTimerId);
         delete htTimers[nTimerId];
     }
-    
+
     /**
      * add listeners to window object
      */
@@ -82,7 +82,7 @@ yobi.Interval = (function(htOptions){
             "beforeunload": _destroy
         });
     }
-    
+
     /**
      * remove listeners to window object
      */
@@ -94,23 +94,23 @@ yobi.Interval = (function(htOptions){
             "keypress" : _onUserInput,
         });
     }
-    
+
     /**
      * activate timers
      */
     function _activateTimers(){
         var htTimer;
-        
+
         for(var nTimerId in htTimers){
             htTimer = htTimers[nTimerId];
-            
+
             if(htTimer.bActive === false){
                 _setInterval(htTimer.fRunner, htTimer.nInterval);
                 delete htTimers[nTimerId];
             }
         }
     }
-    
+
     /**
      * deactivate timers
      */
@@ -127,7 +127,7 @@ yobi.Interval = (function(htOptions){
     function _onUserInput(weEvt){
         htVar.nLastInput = weEvt.timeStamp;
     }
-    
+
     /**
      * start to watch userInput
      * deactivate all timers automatically if no user input in 60sec,
@@ -159,14 +159,14 @@ yobi.Interval = (function(htOptions){
         clearInterval(htVar.nTimerInput);
         htVar.nTimerInput = null;
     }
-    
+
     /**
      * set lastInput to now
      */
     function _updateLastInput(){
         htVar.nLastInput = new Date().getTime();
     }
-    
+
     /**
      * deactivate all timers beforeunload
      */
@@ -174,15 +174,15 @@ yobi.Interval = (function(htOptions){
         _unwatchUserInput();
         _deactivateTimers();
         _detachEvent();
-        
+
         htTimers = htVar = null;
     }
-    
+
     _init(htOptions || {});
-    
+
     /**
      * pubilc interface
-     * 
+     *
      * set/clear method
      * and timers hashTable for debug
      */
@@ -191,5 +191,5 @@ yobi.Interval = (function(htOptions){
         "clear" : _clearInterval,
         "timers": htTimers
     };
-    
+
 })({"bCaffeine": false});

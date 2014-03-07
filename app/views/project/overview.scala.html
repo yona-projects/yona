@@ -7,22 +7,22 @@
 @import models.enumeration._
 
 @userPageUrlOnHistory(history:History) = @{
-	if(history.getUserPageUrl() != null) {
-		history.getUserPageUrl()
+	if(history.getUserPageUrl != null) {
+		history.getUserPageUrl
 	} else {
 		"#"
 	}
 }
 @userAvatarUrlOnHistory(history:History) = @{
-	if(history.getUserAvatarUrl() != null){
-		history.getUserAvatarUrl()
+	if(history.getUserAvatarUrl != null){
+		history.getUserAvatarUrl
 	} else {
 		routes.Assets.at("images/default-avatar-64.png")
 	}
 }
-@makeHistoryWho(history:History)  = {<a href="@userPageUrlOnHistory(history)" class="actor">@history.getWho()</a>}
-@makeHistoryHow(history:History)  = {<span class="whereis"><a href="@history.getUrl()" class="where">@history.getShortTitle()</a> <a href="@history.getUrl()" class="title">@history.getHow()</a></span> }
-@makeHistoryWhat(history:History) = {@Messages("project.history.type." + history.getWhat())}
+@makeHistoryWho(history:History)  = {<a href="@userPageUrlOnHistory(history)" class="actor">@history.getWho</a>}
+@makeHistoryHow(history:History)  = {<span class="whereis"><a href="@history.getUrl" class="where">@history.getShortTitle</a> <a href="@history.getUrl" class="title">@history.getHow</a></span> }
+@makeHistoryWhat(history:History) = {@Messages("project.history.type." + history.getWhat)}
 
 @projectLayout(message, project, utils.MenuType.PROJECT_HOME) {
 @projectMenu(project, utils.MenuType.PROJECT_HOME, "")
@@ -44,9 +44,9 @@
                     </form>
                 </div>
             </div>
-            <div class="project-clone-wrap span3">          
+            <div class="project-clone-wrap span3">
                 <input type="text" class="project-clone-url" id="cloneURL" readonly="readonly" value="@if(project.isGit){ @CodeApp.getURLWithLoginId(project) } else { @CodeApp.getURL(project) }">
-                <button class="ybtn project-clone-button" id="cloneURLBtn">@Messages("code.copyUrl")</button>     
+                <button class="ybtn project-clone-button" id="cloneURLBtn">@Messages("code.copyUrl")</button>
             </div>
         </div>
         <div class="row-fluid">
@@ -99,8 +99,8 @@
     	                                        ))
     	                                    </p>
     	                                    <p class="others" style="padding-left:0;">
-    	                                        <span class="date" style="margin-left:0;" title="@JodaDateUtil.getDateString(history.getWhen())">
-                                                    @agoString(JodaDateUtil.ago(history.getWhen()))
+	                                        <span class="date" style="margin-left:0;" title="@JodaDateUtil.getDateString(history.getWhen)">
+                                                    @agoString(JodaDateUtil.ago(history.getWhen))
                                                 </span>
     	                                    </p>
     	                                </div>

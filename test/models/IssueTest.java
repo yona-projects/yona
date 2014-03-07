@@ -5,7 +5,6 @@ import static org.fest.assertions.Assertions.assertThat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,10 +13,6 @@ import models.enumeration.State;
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Test;
 import org.junit.Before;
-
-import com.avaje.ebean.Page;
-import play.Logger;
-import play.data.validation.Validation;
 
 public class IssueTest extends ModelTest<Issue> {
     private User admin;

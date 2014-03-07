@@ -24,7 +24,7 @@
         </div>
     </div>
     <ul class="project-list-wrap">
-        @for(project <- currentPage.getList()) {
+        @for(project <- currentPage.getList) {
         <li class="row-fluid listitem">
             <div class="span5 listitem-col">
                 <a href="@routes.ProjectApp.project(project.owner,project.name)" class="avatar-wrap list-avatar">
@@ -40,12 +40,12 @@
             <div class="span2 listitem-col">
                 <button class="ybtn ybtn-danger" data-project-name="@project.owner/@project.name" data-toggle="delete-project" data-href="@routes.SiteApp.deleteProject(project.id)">@Messages("button.delete")</button>
             </div>
-        </li>    
+        </li>
         }
     </ul>
 
     <div id="pagination"></div>
-    
+
     @** Confirm to delete project **@
     <div id="alertDeletionWrap" class="modal fade">
         <div class="modal-header">
@@ -70,14 +70,14 @@
               .data("requestMethod","delete")
               .requestAs();
 
-            $('#project-name').html($(this).data('projectName'));  
-              
+            $('#project-name').html($(this).data('projectName'));
+
             $('#alertDeletionWrap').modal('show');
 
             console.log($(this).data('href'));
         });
 
-        yobi.Pagination.update($("#pagination"), @currentPage.getTotalPageCount());
+        yobi.Pagination.update($("#pagination"), @currentPage.getTotalPageCount);
     });
     </script>
 }

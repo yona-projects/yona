@@ -51,7 +51,7 @@
                     }
                 </button>
                 }
-                <div id="actOnOpen" class="mr5 pull-right" style="@if(pull.isMerging == false && pull.isOpen()){display:block;}else{display:none;}">
+                <div id="actOnOpen" class="mr5 pull-right" style="@if(pull.isMerging == false && pull.isOpen){display:block;}else{display:none;}">
                     @if(project.isUsingReviewerCount && isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT)) {
                         @if(pull.isReviewedBy(UserApp.currentUser())) {
                             <a data-request-method="post" class="ybtn" href="@routes.ReviewApp.unreview(project.owner, project.name, pull.number)">
@@ -67,7 +67,7 @@
                         @if(pull.isReviewed || !project.isUsingReviewerCount) {
                             <a data-request-method="post" id="btnAccept" href="@routes.PullRequestApp.accept(project.owner, project.name, pull.number)" class="ybtn ybtn-success" @if(pull.isConflict == true){style="display:none;"}>@Messages("pullRequest.accept")</a>
                         } else {
-                            <button class="ybtn ybtn-disabled" data-toggle="tooltip" data-placement="top" title="@Messages("pullRequest.not.enough.review.point", pull.getLackingReviewerCount())">@Messages("pullRequest.accept")</button>
+                            <button class="ybtn ybtn-disabled" data-toggle="tooltip" data-placement="top" title="@Messages("pullRequest.not.enough.review.point", pull.getLackingReviewerCount)">@Messages("pullRequest.accept")</button>
                         }
 
                     }
@@ -79,7 +79,7 @@
                     }
                 </div>
 
-                <div id="actOnClosed" class="mr5 pull-right" style="@if(pull.isMerging == false && pull.isClosed()) {display:block;}else{display:none;}">
+                <div id="actOnClosed" class="mr5 pull-right" style="@if(pull.isMerging == false && pull.isClosed) {display:block;}else{display:none;}">
                     @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REOPEN)) {
                         <a data-request-method="post" href="@routes.PullRequestApp.open(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.reopen")</a>
                     }
@@ -121,10 +121,10 @@
 
         yobi.Mention({
             target:'comment-editor',
-            @if(pull.getCurrentCommits.isEmpty()) {
-                url : "@Html(routes.ProjectApp.mentionListAtPullRequest(pull.toProject.owner, pull.toProject.name, "", pull.id).toString)"
+            @if(pull.getCurrentCommits.isEmpty) {
+                url : "@Html(routes.ProjectApp.mentionListAtPullRequest(pull.toProject.owner, pull.toProject.name, "", pull.id).toString())"
             } else {
-                url : "@Html(routes.ProjectApp.mentionListAtPullRequest(pull.toProject.owner, pull.toProject.name, pull.getCurrentCommits.get(0).getCommitId, pull.id).toString)"
+                url : "@Html(routes.ProjectApp.mentionListAtPullRequest(pull.toProject.owner, pull.toProject.name, pull.getCurrentCommits.get(0).getCommitId, pull.id).toString())"
             }
         });
 

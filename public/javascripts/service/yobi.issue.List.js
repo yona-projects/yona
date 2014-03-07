@@ -3,18 +3,18 @@
  *
  * Copyright NHN Corporation.
  * Released under the MIT license
- * 
+ *
  * http://yobi.dev.naver.com/license
  */
 
 (function(ns){
-    
+
     var oNS = $yobi.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
         var htVar = {};
         var htElement = {};
-        
+
         /**
          * initialize
          */
@@ -25,14 +25,14 @@
             _initPagination();
             _setLabelColor();
         }
-        
+
         /**
          * initialize variables except element
          */
         function _initVar(htOptions){
             htVar.nTotalPages = htOptions.nTotalPages || 1;
         }
-        
+
         /**
          * initialize element
          */
@@ -41,9 +41,9 @@
             htElement.welSearchForm = htOptions.welSearchForm;
             htElement.welSearchOrder = htOptions.welSearchOrder;
             htElement.welSearchState = htOptions.welSearchState;
-            
+
             htElement.welContainer  = $(".inner");
-            htElement.welBtnAdvance = $(".btn-advanced");        
+            htElement.welBtnAdvance = $(".btn-advanced");
             htElement.welPagination = $(htOptions.elPagination || "#pagination");
 
             htElement.waLabels = $("a.issue-label[data-color]"); // 목록 > 라벨
@@ -172,24 +172,24 @@
         function _initPagination(){
             yobi.Pagination.update(htElement.welPagination, htVar.nTotalPages);
         }
-        
+
         /**
          * update Label color
          */
         function _setLabelColor(){
             var welLabel, sColor;
-            
+
             htElement.waLabels.each(function(){
                 welLabel = $(this);
                 sColor = welLabel.data("color");
                 welLabel.css("background-color", sColor);
                 welLabel.css("color", $yobi.getContrastColor(sColor));
             });
-            
+
             welLabel = sColor = null;
         }
 
         _init(htOptions);
     };
-    
+
 })("yobi.issue.List");

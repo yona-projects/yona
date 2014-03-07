@@ -17,7 +17,7 @@
 
 @isFirstState(state:State) = {@if(issue.state.state == Issue.availableStates.get(0).state()){dirty}}
 
-@urlToIssues = @{ urlToList(request.getHeader("Referer"), routes.IssueApp.issues(project.owner, project.name, "open").toString) }
+@urlToIssues = @{ urlToList(request.getHeader("Referer"), routes.IssueApp.issues(project.owner, project.name, "open").toString()) }
 
 @projectLayout(getTitle(issue), project, utils.MenuType.ISSUE){
 @projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
@@ -322,7 +322,7 @@
 
         yobi.Mention({
             target:'comment-editor',
-            url : "@Html(routes.ProjectApp.mentionList(project.owner, project.name, issue.getNumber, issue.asResource().getType().resource()).toString())"
+            url : "@Html(routes.ProjectApp.mentionList(project.owner, project.name, issue.getNumber, issue.asResource().getType.resource()).toString())"
         });
     });
 </script>

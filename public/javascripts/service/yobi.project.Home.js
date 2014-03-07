@@ -3,7 +3,7 @@
  *
  * Copyright NHN Corporation.
  * Released under the MIT license
- * 
+ *
  * http://yobi.dev.naver.com/license
  */
 
@@ -21,7 +21,7 @@
             _initElement(htOptions);
             _attachEvent();
             _initLabels();
-            
+
 //            _resizeProjectInfo();
         }
 
@@ -42,7 +42,7 @@
             var welBtnPlus = $('#plus-button-template').tmpl();
 
             htElement.welRepoURL = $("#repositoryURL");
-            
+
             // clone url
             htElement.welBtnClone   = $('[data-toggle="cloneURL"]');
 
@@ -84,7 +84,7 @@
                 .append(htElement.welBtnPlusCategory);
 
             htElement.welLabelBoard.append(htElement.welNewCategory);
-            
+
             htElement.welAlertLeave = $("#alertLeave");
 
             /*
@@ -92,7 +92,7 @@
             htElement.welHomeLogo = htElement.welHome.find(".logo");
             htElement.welHomeInfo = htElement.welHome.find(".project-info");
             htElement.welHomeMember = htElement.welHome.find(".member-info");
-            */            
+            */
         }
 
         /**
@@ -151,10 +151,10 @@
                     "data": JSON.stringify(overview),
                     "contentType":"application/json"
                 }).done(function(data){
-                        var sDescription = (data.overview) 
-                                            ? data.overview 
+                        var sDescription = (data.overview)
+                                            ? data.overview
                                             : $("#project-description-input").attr('placeholder');
-                                            
+
                         $('[data-toggle="project-description-tab"]').toggleClass('hidden');
                         $("#project-description").text(sDescription);
                 }).fail(function(err){

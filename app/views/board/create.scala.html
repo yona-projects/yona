@@ -39,7 +39,7 @@
     				 <div class="textarea-box">
                         <textarea id="body" name="body" class="zen-mode content" markdown="true" tabindex="2" data-label="@Messages("post.error.emptyBody")"></textarea>
                     </div>
-                    
+
     			</dd>
 
     			@if(isAllowedToNotice){
@@ -75,7 +75,7 @@ $(document).ready(function(){
 	$yobi.loadModule("board.Write", {
 		"sMode"			 : "new",
 		"elTextarea"	 : $("#body"),
-		"sUploaderAction": "@routes.AttachmentApp.uploadFile"
+		"sUploaderAction": "@routes.AttachmentApp.uploadFile()"
 	});
 
 	$("#title").focus();
