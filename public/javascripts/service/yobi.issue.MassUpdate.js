@@ -91,13 +91,6 @@
                     return false;
                 }
             });
-
-            htElement.welMassUpdateForm.on("submit", function(weEvt){
-                $.pjax.submit(weEvt, "div[pjax-container]", {
-                    "fragment": "div[pjax-container]",
-                    "timeout" : 3000
-                });
-            });
         }
 
         /**
