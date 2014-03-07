@@ -1165,44 +1165,62 @@ public class GitRepository implements PlayRepository {
     /**
      * 풀리퀘스트 기능 구현에 필요한 기본 작업을 수행하는 템플릿 메서드
      *
-     * when: {@link models.PullRequest#merge}, {@link models.PullRequest#attemptMerge()} 등
-     * {@code pullRequest}의 toProject에 해당하는 저장소를 Clone 하고 fromBranch와 toBranch를
-     * Fetch 한 다음 {@code operation}을 호출하여 이후 작업을 진행한다.
+     * when: {@link models.PullRequest#merge}, {@link models.PullRequest#attemptMerge()}에서 사용한다.
+     *
+     * 1. merge용 저장소를 성성한다.
+     *   {@code pullRequest}의 toProject에 해당하는 저장소를 clone.
+     * 2. 코드 보내는 브랜치를 가져온다.
+     *   {@code pullRequest}의 fromProject 저장소에서 fromBranch fetch.
+     * 3. 코드 받을 브랜치를 가져온다.
+     *   {@code pullRequest}의 toProject 저장소에서 toBranch fetch.
+     * 4. 코드 받을 브랜치에서 merge할 때 사용할 새로운 브랜치를 생성한다.
+     *   git checkout -b 현재시간 destToBranchName
      *
      * @param pullRequest
      * @param operation
+     * @see models.PullRequest#attemptMerge()
+     * @see models.PullRequest#merge(models.PullRequestEventMessage)
      */
     public static void cloneAndFetch(PullRequest pullRequest, AfterCloneAndFetchOperation operation) {
         Repository cloneRepository = null;
+        String mergingBranch = null;
+        String destFromBranchName = null;
         try {
             synchronized (PROJECT_LOCK.get(pullRequest.toProject)) {
                 cloneRepository = buildMergingRepository(pullRequest);
 
                 String srcToBranchName = pullRequest.toBranch;
-                String destToBranchName = srcToBranchName + "-to-" + pullRequest.id;
+                String destToBranchName = makeDestToBranchName(pullRequest);
                 String srcFromBranchName = pullRequest.fromBranch;
-                String destFromBranchName = srcFromBranchName + "-from-" + pullRequest.id;
+                destFromBranchName = makeDestFromBranchName(pullRequest);
+                mergingBranch = "" + System.currentTimeMillis();
 
+                // 코드를 보내는 브랜치를 가져온다.
+                new Git(cloneRepository).fetch()
+                        .setRemote(GitRepository.getGitDirectoryURL(pullRequest.fromProject))
+                        .setRefSpecs(new RefSpec("+" + srcFromBranchName + ":" + destFromBranchName))
+                        .call();
+
+                // 코드 받을 브랜치를 가져온다.
+                new Git(cloneRepository).fetch()
+                        .setRemote(GitRepository.getGitDirectoryURL(pullRequest.toProject))
+                        .setRefSpecs(new RefSpec("+" + srcToBranchName + ":" + destToBranchName))
+                        .call();
+
+                // 현재 위치 정리.
                 new Git(cloneRepository).reset().setMode(ResetCommand.ResetType.HARD).setRef(Constants.HEAD).call();
                 new Git(cloneRepository).clean().setIgnore(true).setCleanDirectories(true).call();
-                checkout(cloneRepository, pullRequest.toProject.defaultBranch());
 
-                // 코드를 받아오면서 생성될 브랜치를 미리 삭제한다.
-                deleteBranch(cloneRepository, destToBranchName);
-                deleteBranch(cloneRepository, destFromBranchName);
+                // mergingBranch 생성 및 이동
+                new Git(cloneRepository).checkout()
+                        .setCreateBranch(true)
+                        .setName(mergingBranch)
+                        .setStartPoint(destToBranchName)
+                        .call();
 
-                // 코드를 받을 브랜치에 해당하는 코드를 fetch 한다.
-                fetch(cloneRepository, pullRequest.toProject, srcToBranchName, destToBranchName);
-                // 코드를 보내는 브랜치에 해당하는 코드를 fetch 한다.
-                fetch(cloneRepository, pullRequest.fromProject, srcFromBranchName, destFromBranchName);
-
-                CloneAndFetch cloneAndFetch = new CloneAndFetch(cloneRepository, destToBranchName, destFromBranchName);
+                // Operation 실행. (현재 위치는 mergingBranch)
+                CloneAndFetch cloneAndFetch = new CloneAndFetch(cloneRepository, destToBranchName, destFromBranchName, mergingBranch);
                 operation.invoke(cloneAndFetch);
-
-                // master로 이동
-                new Git(cloneRepository).reset().setMode(ResetCommand.ResetType.HARD).setRef(Constants.HEAD).call();
-                new Git(cloneRepository).clean().setIgnore(true).setCleanDirectories(true).call();
-                checkout(cloneRepository, pullRequest.toProject.defaultBranch());
             }
         } catch (GitAPIException e) {
             throw new IllegalStateException(e);
@@ -1210,9 +1228,36 @@ public class GitRepository implements PlayRepository {
             throw new IllegalStateException(e);
         } finally {
             if(cloneRepository != null) {
+                try {
+                    if(destFromBranchName != null) {
+                        // 코드 보내는 브랜치로 이동
+                        new Git(cloneRepository).checkout().setName(destFromBranchName).call();
+                    }
+                    if(mergingBranch != null) {
+                        // merge 브랜치 삭제
+                        new Git(cloneRepository).branchDelete().setForce(true).setBranchNames(mergingBranch).call();
+                    }
+                } catch (GitAPIException e) {
+                    Logger.error("failed to delete merging branch", e);
+                }
+
                 cloneRepository.close();
             }
         }
+    }
+
+    private static String makeDestToBranchName(PullRequest pullRequest) {
+        return Constants.R_REMOTES +
+            pullRequest.toProject.owner + "/" +
+            pullRequest.toProject.name + "/" +
+            pullRequest.toBranch.replaceFirst(Constants.R_HEADS, "");
+    }
+
+    private static String makeDestFromBranchName(PullRequest pullRequest) {
+        return Constants.R_REMOTES +
+            pullRequest.fromProject.owner + "/" +
+            pullRequest.fromProject.name + "/" +
+            pullRequest.fromBranch.replaceFirst(Constants.R_HEADS, "");
     }
 
     /**
@@ -1800,6 +1845,12 @@ public class GitRepository implements PlayRepository {
          */
         private String destFromBranchName;
 
+        /**
+         * 코드 받을 브랜치에서 생성한 브랜치로 실제 merge를 수행할 브랜치 이름
+         * 겹치지 않도록 현재 시간을 이름으로 사용한다.
+         */
+        private String mergingBranchName;
+
         public Repository getRepository() {
             return repository;
         }
@@ -1812,10 +1863,15 @@ public class GitRepository implements PlayRepository {
             return destFromBranchName;
         }
 
-        private CloneAndFetch(Repository repository, String destToBranchName, String destFromBranchName) {
+        public String getMergingBranchName() {
+            return mergingBranchName;
+        }
+
+        private CloneAndFetch(Repository repository, String destToBranchName, String destFromBranchName, String mergingBranchName) {
             this.repository = repository;
             this.destToBranchName = destToBranchName;
             this.destFromBranchName = destFromBranchName;
+            this.mergingBranchName = Constants.R_HEADS + mergingBranchName;
         }
     }
 

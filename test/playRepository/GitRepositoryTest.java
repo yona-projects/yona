@@ -605,6 +605,64 @@ public class GitRepositoryTest {
         Helpers.stop(app);
     }
 
+    @Test
+    public void testCloneAndFetch() throws IOException, GitAPIException {
+        // Given
+        Project original = createProject("keesun", "test");
+        GitRepository gitRepository = new GitRepository(original);
+        gitRepository.create();
+
+        // original master에 커밋 하나를 push한다.
+        Repository noneBareClone = GitRepository.buildMergingRepository(original);
+        newCommit(original, noneBareClone, "README.md", "hello", "first commit");
+        GitRepository.push(noneBareClone, GitRepository.getGitDirectoryURL(original), Constants.MASTER, Constants.MASTER);
+
+        // feature 브랜치를 만들고 feature 브랜치로 이동해서 두번째 커밋을 작성하고 original의 feature 브랜치로 push한다.
+        String featureBranchName = "feature";
+        new Git(noneBareClone).branchCreate().setName(featureBranchName).setForce(true).call();
+        final String branchName = Constants.R_HEADS + featureBranchName;
+        new Git(noneBareClone).checkout().setName(branchName).call();
+        newCommit(original, noneBareClone, "README.md", "world", "second commit");
+        GitRepository.push(noneBareClone, GitRepository.getGitDirectoryURL(original), featureBranchName, featureBranchName);
+
+        // feature 브랜치에서 master 브랜치로 코드를 보낸다.
+        final PullRequest pullRequest = createPullRequest(original);
+        pullRequest.toProject = original;
+        pullRequest.fromProject = original;
+        pullRequest.toBranch = Constants.R_HEADS + Constants.MASTER;
+        pullRequest.fromBranch = branchName;
+
+        // When && Then
+        GitRepository.cloneAndFetch(pullRequest, new GitRepository.AfterCloneAndFetchOperation() {
+            @Override
+            public void invoke(GitRepository.CloneAndFetch cloneAndFetch) throws IOException, GitAPIException {
+                Repository repo = cloneAndFetch.getRepository();
+                // 현재 위치가 코드를 merging하는 브랜치 인지 확인한다.
+                String fullBranch = repo.getFullBranch();
+                assertThat(fullBranch).isEqualTo(cloneAndFetch.getMergingBranchName());
+
+                List<Ref> refs = new Git(repo).branchList().call();
+                String fromBranchObjectId = null;
+                String toBranchObjectId = null;
+                for (Ref branchRef : refs) {
+                    String name = branchRef.getObjectId().getName();
+                    if (branchRef.getName().equals(pullRequest.fromBranch)) {
+                        fromBranchObjectId = name;
+                    }
+                    if (branchRef.getName().equals(pullRequest.toBranch)) {
+                        toBranchObjectId = name;
+                    }
+                }
+
+                // from 브랜치와 to 브랜치를 fetch 받았는지 확인한다.
+                ObjectId fromObjectId = repo.resolve(cloneAndFetch.getDestFromBranchName());
+                ObjectId toObjectId = repo.resolve(cloneAndFetch.getDestToBranchName());
+                assertThat(fromObjectId.getName()).isEqualTo(fromBranchObjectId);
+                assertThat(toObjectId.getName()).isEqualTo(toBranchObjectId);
+            }
+        });
+    }
+
     private Project createProject(String owner, String name) {
         Project project = new Project();
         project.owner = owner;
