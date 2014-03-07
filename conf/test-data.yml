@@ -36,6 +36,13 @@ users:
         passwordSalt:   '[B@737aa47f'
         email:          alecsiel@nhn.com
         createdDate:           2013-11-18 13:30:00
+    - !!models.User
+        name:           kjkmadness
+        loginId:        kjkmadness
+        password:       ckJUVVaOHhRDNqwbeF+j4RNqXzodXO95+aQRIbJnDK4=
+        passwordSalt:   '[B@737aa47f'
+        email:          kjkmadness@nhn.com
+        createdDate:           2014-03-06 13:30:00
 
 # Projects
 projects:
