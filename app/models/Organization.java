@@ -20,14 +20,15 @@
  */
 package models;
 
+import models.enumeration.ProjectScope;
+import models.enumeration.RoleType;
 import play.data.format.Formats;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import utils.ReservedWordsValidator;
 
 import javax.persistence.*;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Entity
 public class Organization extends Model {
@@ -67,4 +68,37 @@ public class Organization extends Model {
         int findRowCount = find.where().ieq("name", name).findRowCount();
         return (findRowCount != 0);
     }
+
+    public List<Project> getVisiableProjects(User user) {
+        List<Project> result = new ArrayList<>();
+        if(OrganizationUser.isAdmin(this.id, user.id)) {
+            // 모든 프로젝트
+            result.addAll(this.projects);
+        } else if(OrganizationUser.isMember(this.id, user.id)) {
+            // private 프로젝트를 제외한 모든 프로젝트와 자신이 멤버로 속한 프로젝트
+            for(Project p : this.projects) {
+                if(p.projectScope != ProjectScope.PRIVATE || ProjectUser.isMember(user.id, p.id)) {
+                    result.add(p);
+                }
+            }
+        } else {
+            // public 프로젝트와 자신이 멤버로 속한 프로젝트
+            for(Project p : this.projects) {
+                if(p.projectScope == ProjectScope.PUBLIC || ProjectUser.isMember(user.id, p.id)) {
+                    result.add(p);
+                }
+            }
+        }
+
+        // 정렬
+        Collections.sort(result, new Comparator<Project>() {
+            @Override
+            public int compare(Project p1, Project p2) {
+                return p1.name.compareTo(p2.name);
+            }
+        });
+
+        return result;
+    }
+
 }
