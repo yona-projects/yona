@@ -133,13 +133,13 @@ public class AttachmentApp extends Controller {
         String dispositionType = StringUtils.equals(action, "download") ? "attachment" : "inline";
 
         if (attachment == null) {
-            return notFound();
+            return notFound("The file does not exist.");
         }
 
         String eTag = "\"" + attachment.hash + "-" + dispositionType + "\"";
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), attachment.asResource(), Operation.READ)) {
-            return forbidden();
+            return forbidden("You have no permission to get the file.");
         }
 
         String ifNoneMatchValue = request().getHeader("If-None-Match");
