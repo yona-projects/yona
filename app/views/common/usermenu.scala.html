@@ -10,13 +10,26 @@
         </form>
     </li>
     @if(session.contains("loginId")){
-    <li>
-        <a href="@routes.ProjectApp.newProjectForm()" data-toggle="tooltip" title="@Messages("button.newProject")" data-placement="bottom" class="ybtn ybtn-success">
-            <i class="yobicon-database-add"></i>
+    <li class="gnb-usermenu-dropdown">
+        <a href="javascript:void(0);" class="gnb-dropdown-toggle" data-toggle="dropdown">
+            <i class="yobicon-plus"></i>
+            <span class="caret"></span>
         </a>
+        <ul class="dropdown-menu flat right">
+            <li>
+                <a href="@routes.ProjectApp.newProjectForm()">
+                    @Messages("button.newProject")
+                </a>
+            </li>
+            <li>
+                <a href="@routes.OrganizationApp.newForm()">
+                    @Messages("title.newOrganization")
+                </a>
+            </li>
+        </ul>
     </li>  
     @if(session.get("userId").equals("1")) {
-    <li class="gnb-usermenu-item">
+    <li class="gnb-usermenu-dropdown">
         <a href="@routes.SiteApp.userList()" data-toggle="tooltip" title="@Messages("menu.siteAdmin")" data-placement="bottom">
             <i class="yobicon-wrench"></i>
         </a>
@@ -29,7 +42,7 @@
             </span>
             <span class="caret"></span>
         </a>
-        <ul class="dropdown-menu flat right maximum">
+        <ul class="dropdown-menu flat right">
             <li class="title">
                 @User.findByLoginId(session.get("loginId")).name <span class="disabled">@{"@"}@session.get("loginId")</span>
             </li>
