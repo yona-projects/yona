@@ -142,7 +142,7 @@ public class ReviewSearchConditionTest extends ModelTest<ReviewSearchCondition> 
         // given
         Project project = ProjectApp.getProject("yobi", "projectYobi");
         ReviewSearchCondition searchCondition = new ReviewSearchCondition();
-        searchCondition.participationId = User.findByLoginId("admin").id;
+        searchCondition.participantId = User.findByLoginId("admin").id;
         searchCondition.state = CommentThread.ThreadState.OPEN.name();
 
         // when

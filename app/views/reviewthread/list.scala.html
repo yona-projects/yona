@@ -23,34 +23,21 @@
 @import utils.TemplateHelper._
 @import utils.JodaDateUtil
 
-@buildPath(state:String, sortField:String, orderDir:String, authorId:Long) = @{
-    var path = "?state=" + state + "&orderBy=" + sortField + "&orderDir=" + orderDir
-    if (authorId != null) {
-        path = path + "&authorId=" + authorId
-    }
-    path
-}
 @makeSortLink(sortField:String, sortFieldString:String) = {
     @if(param.orderBy == sortField) {
-        @if(param.orderDir == "asc") {
-            <a href="@routes.ReviewThreadApp.reviewThreads(project.owner, project.name)@buildPath(param.state, sortField, "desc", param.authorId)" class="filter">
-                <i class="ico btn-gray-arrow"></i>@sortFieldString
-            </a>
-        } else {
-            <a href="@routes.ReviewThreadApp.reviewThreads(project.owner, project.name)@buildPath(param.state, sortField, "asc", param.authorId)" class="filter">
-                <i class="ico btn-gray-arrow down"></i>@sortFieldString
-            </a>
-        }
+        <a href="#" data-field="@sortField" data-value="@if(param.orderDir == "asc") {desc} else {asc}" class="filter" data-toggle="order">
+            <i class="ico btn-gray-arrow @if(param.orderDir == "desc") {down}"></i>@sortFieldString
+        </a>
     } else {
-        <a href="@routes.ReviewThreadApp.reviewThreads(project.owner, project.name)@buildPath(param.state, sortField, "desc", param.authorId)" class="filter">
+        <a href="#"  data-field="@sortField" data-value="desc" class="filter" data-toggle="order">
             <i class="ico btn-gray-arrow down"></i>@sortFieldString
         </a>
     }
 }
 
-@paramForEveryone = { @CommentThread.countReviewsBy(project.id, param.clone.setAuthorId(null).setParticipationId(null)) }
-@paramForParticipant = { @CommentThread.countReviewsBy(project.id, param.clone.setAuthorId(null).setParticipationId(UserApp.currentUser().id)) }
-@paramForAuthor = { @CommentThread.countReviewsBy(project.id, param.clone.setParticipationId(null).setAuthorId(UserApp.currentUser().id)) }
+@paramForEveryone = { @CommentThread.countReviewsBy(project.id, param.clone.setAuthorId(null).setParticipantId(null)) }
+@paramForParticipant = { @CommentThread.countReviewsBy(project.id, param.clone.setAuthorId(null).setParticipantId(UserApp.currentUser().id)) }
+@paramForAuthor = { @CommentThread.countReviewsBy(project.id, param.clone.setParticipantId(null).setAuthorId(UserApp.currentUser().id)) }
 
 @projectLayout(Messages("menu.review"), project, utils.MenuType.PROJECT_REVIEW) {
     @projectMenu(project, utils.MenuType.PROJECT_REVIEW, "")
@@ -60,28 +47,28 @@
         <div class="span2 search-wrap">
             <div class="inner advanced">
                 <ul class="lst-stacked unstyled">
-                    <li @if(param.participationId == null && param.authorId == null){class="active"}>
-                        <a href="@routes.ReviewThreadApp.reviewThreads(project.owner, project.name)">
+                    <li @if(param.participantId == null && param.authorId == null){class="active"}>
+                        <a href="#" data-toggle="filter">
                             @Messages("review.allReview")
                             <span class="num-badge pull-right">@paramForEveryone</span>
                         </a>
                     </li>
-                    <li @if(param.participationId == UserApp.currentUser().id){class="active"}>
-                        <a href="@routes.ReviewThreadApp.reviewThreads(project.owner, project.name)?participationId=@UserApp.currentUser().id">
+                    <li @if(param.participantId == UserApp.currentUser().id){class="active"}>
+                        <a href="#" data-toggle="filter" data-type="participantId" data-value="@UserApp.currentUser().id">
                             @Messages("review.involvingYou")
                             <span class="num-badge pull-right">@paramForParticipant</span>
                         </a>
                     </li>
                     <li @if(param.authorId == UserApp.currentUser().id){class="active"}>
-                        <a href="@routes.ReviewThreadApp.reviewThreads(project.owner, project.name)?authorId=@UserApp.currentUser().id">
+                        <a href="#" data-toggle="filter" data-type="authorId" data-value="@UserApp.currentUser().id">
                             @Messages("review.createdByYou")
                             <span class="num-badge pull-right">@paramForAuthor</span>
                         </a>
                     </li>
                 </ul>
-                @form(routes.ReviewThreadApp.reviewThreads(project.owner, project.name)) {
+                <form id="search" name="search" action="@routes.ReviewThreadApp.reviewThreads(project.owner, project.name)" method="get">
                     <input type="hidden" name="authorId" value="@param.authorId">
-                    <input type="hidden" name="participationId" value="@param.participationId">
+                    <input type="hidden" name="participantId" value="@param.participantId">
                     <input type="hidden" name="orderDir" value="@param.orderDir">
                     <input type="hidden" name="orderBy" value="@param.orderBy">
                     <input type="hidden" name="state" value="@param.state">
@@ -90,7 +77,7 @@
                         <input name="filter" class="textbox full" type="text" value="@param.filter">
                         <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
                     </div>
-                }
+                </form>
             </div>
         </div>
         <div class="span10">
@@ -100,7 +87,7 @@
             <ul class="nav nav-tabs nm">
                 @for(state <- Array(State.OPEN, State.CLOSED)) {
                 <li  @if(param.state == state.name) { class="active"}>
-                    <a href="@routes.ReviewThreadApp.reviewThreads(project.owner, project.name)?pageNum=1&state=@state.name&authorId=@param.authorId&participationId=@param.participationId">
+                    <a href="#" data-type="state" data-value="@state.name" data-toggle="filter">
                         @Messages("issue.state." + state.name.toLowerCase())
                         <span class="num-badge">@CommentThread.countReviewsBy(project.id, param.clone.setState(state.name))</span>
                     </a>
@@ -166,7 +153,8 @@
     $(function(){
         $yobi.loadModule("review.List", {
             "elPagination": $("#pagination"),
-            "nTotalPages" : @page.getTotalPageCount()
+            "nTotalPages" : @page.getTotalPageCount(),
+            "welSearchForm": $("form[name='search']")
         });
     });
 </script>

@@ -35,7 +35,7 @@ import org.apache.commons.lang.StringUtils;
 public class ReviewSearchCondition extends AbstractPostingApp.SearchCondition {
     public String state;
     public Long authorId;
-    public Long participationId;
+    public Long participantId;
 
     public ReviewSearchCondition() {
         state = CommentThread.ThreadState.OPEN.name();
@@ -54,8 +54,8 @@ public class ReviewSearchCondition extends AbstractPostingApp.SearchCondition {
             el.eq("author.id", authorId);
         }
 
-        if (participationId != null) {
-            List<Object> ids = ReviewComment.find.where().eq("author.id", participationId).findIds();
+        if (participantId != null) {
+            List<Object> ids = ReviewComment.find.where().eq("author.id", participantId).findIds();
             el.in("reviewComments.id", ids);
         }
 
@@ -86,7 +86,7 @@ public class ReviewSearchCondition extends AbstractPostingApp.SearchCondition {
         one.pageNum = this.pageNum;
         one.state = this.state;
         one.authorId = this.authorId;
-        one.participationId = this.participationId;
+        one.participantId = this.participantId;
         return one;
     }
 
@@ -100,8 +100,8 @@ public class ReviewSearchCondition extends AbstractPostingApp.SearchCondition {
         return this;
     }
 
-    public ReviewSearchCondition setParticipationId(Long participationId) {
-        this.participationId = participationId;
+    public ReviewSearchCondition setParticipantId(Long participantId) {
+        this.participantId = participantId;
         return this;
     }
 
