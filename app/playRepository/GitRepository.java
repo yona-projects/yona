@@ -1721,8 +1721,7 @@ public class GitRepository implements PlayRepository {
             }
 
             if (size > DIFF_SIZE_LIMIT || lines > DIFF_LINE_LIMIT) {
-                fileDiff.a = new RawText(new byte[0]);
-                fileDiff.b = new RawText(new byte[0]);
+                fileDiff.setError(FileDiff.Error.OTHERS_SIZE_EXCEEDED);
                 result.add(fileDiff);
                 continue;
             }

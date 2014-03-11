@@ -17,6 +17,8 @@ import java.util.*;
 public class FileDiff {
     public static final int SIZE_LIMIT = 500 * 1024;
     public static final int LINE_LIMIT = 5000;
+    private Error error;
+    public enum Error {A_SIZE_EXCEEDED, B_SIZE_EXCEEDED, DIFF_SIZE_EXCEEDED, OTHERS_SIZE_EXCEEDED }
     public RawText a;
     public RawText b;
     public EditList editList;
@@ -222,5 +224,23 @@ public class FileDiff {
             return false;
         }
         return oldMode.getBits() != newMode.getBits();
+    }
+
+    public void setError(Error error) {
+        this.error = error;
+    }
+
+    public Error getError() {
+        if (error != null) {
+            return error;
+        } else if (a != null && isRawTextSizeExceeds(a)) {
+            return Error.A_SIZE_EXCEEDED;
+        } else if (b != null && isRawTextSizeExceeds(b)) {
+            return Error.B_SIZE_EXCEEDED;
+        } else if (getHunks() instanceof SizeExceededHunks) {
+            return Error.DIFF_SIZE_EXCEEDED;
+        } else {
+            return null;
+        }
     }
 }
