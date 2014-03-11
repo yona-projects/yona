@@ -325,6 +325,7 @@ notification.will.help = 프로젝트를 지켜보면 다음 이벤트가 발생
 organization.create = 그룹 만들기
 organization.description.placeholder = 그룹 설명을 입력해주세요
 organization.name.alert = 그룹 이름은 URL로 사용할 수 있는 글자(영문자,숫자,-'하이픈')만 허용합니다
+organization.member = 그룹 멤버
 organization.name.duplicate = 같은 이름을 가진 그룹 또는 사용자가 있습니다. 다른 이름을 사용하세요.
 organization.name.placeholder = 그룹 이름을 입력해주세요.
 post.author = 글쓴이
