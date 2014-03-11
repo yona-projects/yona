@@ -2,6 +2,7 @@ package utils;
 
 import controllers.UserApp;
 import models.Project;
+import models.ProjectTransfer;
 import models.ProjectUser;
 import models.User;
 import models.OrganizationUser;
@@ -157,6 +158,15 @@ public class AccessControl {
     private static boolean isProjectResourceAllowed(User user, Project project, Resource resource, Operation operation) {
         if (ProjectUser.isManager(user.id, project.id)) {
             return true;
+        }
+
+        // If the resource is a project_transfer, only new owner can accept the request.
+        if(resource.getType() == ResourceType.PROJECT_TRANSFER) {
+            switch (operation) {
+                case ACCEPT:
+                    ProjectTransfer pt = ProjectTransfer.find.byId(Long.parseLong(resource.getId()));
+                    return user.loginId.equals(pt.to.loginId);
+            }
         }
 
         // If the resource is an attachment, the permission depends on its container.

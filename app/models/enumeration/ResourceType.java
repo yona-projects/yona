@@ -30,6 +30,7 @@ public enum ResourceType {
     PULL_REQUEST_COMMENT("pull_request_comment"),
     COMMIT("commit"),
     ORGANIZATION("organization"),
+    PROJECT_TRANSFER("project_transfer"),
     NOT_A_RESOURCE("");
 
     private String resource;

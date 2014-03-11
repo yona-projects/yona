@@ -123,6 +123,9 @@ POST           /:user/:project/members                                          
 POST           /:user/:project/member/:id/edit                                        controllers.ProjectApp.editMember(user, project, id:Long)
 DELETE         /:user/:project/member/:id/delete                                      controllers.ProjectApp.deleteMember(user, project, id:Long)
 DELETE         /:user/:project/pushedBranch/:id/delete                                controllers.ProjectApp.deletePushedBranch(user, project, id:Long)
+GET            /:user/:project/transfer                                               controllers.ProjectApp.transferForm(user, project)
+PUT            /:user/:project/transfer                                               controllers.ProjectApp.transferProject(user, project)
+GET            /project/transfer/:id/:key                                             controllers.ProjectApp.acceptTransfer(id: Long, key)
 
 # Milestones
 GET            /:user/:project/milestones                                             controllers.MilestoneApp.milestones(user, project)
