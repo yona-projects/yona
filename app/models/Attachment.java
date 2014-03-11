@@ -4,7 +4,6 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -192,26 +191,28 @@ public class Attachment extends Model implements ResourceConvertible {
             throws NoSuchAlgorithmException, IOException {
         // Compute sha1 checksum.
         MessageDigest algorithm = MessageDigest.getInstance("SHA1");
-        DigestInputStream dis = new DigestInputStream(
-                new BufferedInputStream(new FileInputStream(file)), algorithm);
-        while (dis.read() != -1);
+        byte buf[] = new byte[10240];
+        FileInputStream fis = new FileInputStream(file);
+        while(fis.read(buf) > 0) {
+            algorithm.update(buf);
+        }
         Formatter formatter = new Formatter();
         for (byte b : algorithm.digest()) {
             formatter.format("%02x", b);
         }
         String hash = formatter.toString();
+        formatter.close();
+        fis.close();
 
         // Store the file.
         // Before do that, create upload directory if it doesn't exist.
         File uploads = new File(uploadDirectory);
         uploads.mkdirs();
         if (!uploads.isDirectory()) {
-            formatter.close();
-            dis.close();
             throw new NotDirectoryException(
                     "'" + file.getAbsolutePath() + "' is not a directory.");
         }
-        File attachedFile = new File(uploadDirectory, formatter.toString());
+        File attachedFile = new File(uploadDirectory, hash);
         boolean isMoved = file.renameTo(attachedFile);
 
         if(!isMoved){
@@ -220,8 +221,6 @@ public class Attachment extends Model implements ResourceConvertible {
         }
 
         // Close all resources.
-        formatter.close();
-        dis.close();
 
         return hash;
     }
