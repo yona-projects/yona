@@ -37,12 +37,12 @@
 
         // Customized formats
         var htFormat = {
-            "user": function(oState){
-                var welItem = $(oState.element);
+            "user": function(oItem){
+                var welItem = $(oItem.element);
                 var sAvatarURL = welItem.data("avatarUrl");
 
                 if(!sAvatarURL){
-                    return '<div>' + oState.text + '</div>';
+                    return '<div>' + oItem.text + '</div>';
                 }
 
                 // Template text
@@ -53,8 +53,29 @@
 
                 var sText = $yobi.tmpl(sTplUserItem, {
                     "avatarURL": sAvatarURL,
-                    "name"     : oState.text,
+                    "name"     : oItem.text,
                     "loginId"  : "@" + welItem.data("loginId")
+                });
+
+                return sText;
+            },
+            "milestone": function(oItem){
+                var welItem = $(oItem.element);
+                var sMilestoneState = welItem.data("state");
+
+                if(!sMilestoneState){
+                    return oItem.text;
+                }
+
+                sMilestoneState = sMilestoneState.toLowerCase();
+                var sMilestoneStateLabel = Messages("milestone.state." + sMilestoneState);
+                var sTplMilestoneItem = $("#tplSElect2FormatMilestone").text()
+                                    || '<span class="label milestone-state ${state}">${stateLabel}</span> ${name}';
+
+                var sText = $yobi.tmpl(sTplMilestoneItem, {
+                    "name" : oItem.text,
+                    "state": sMilestoneState,
+                    "stateLabel": sMilestoneStateLabel
                 });
 
                 return sText;
