@@ -57,6 +57,7 @@
             htElement.welBtnManageLabel = $(htOptions.welBtnManageLabel || "#manage-label-link");
             htElement.welMilestoneRefresh = $(htOptions.elMilestoneRefresh || ".icon-refresh");
             htElement.welTplFileItem = $('#tplAttachedFile');
+            htElement.welAssignee = $("#assignee");
         }
 
         /**
@@ -74,6 +75,10 @@
                         htVar.bUnloadEvent = true;
                     }
                 }
+            });
+
+            htElement.welAssignee.on("change", function(weEvt){
+                htElement.welAssignee.select2("val", weEvt.val);
             });
         }
 

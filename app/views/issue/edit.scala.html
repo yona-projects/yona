@@ -88,30 +88,26 @@
                     <dl class="issue-option">
                          <dt>@Messages("issue.assignee")</dt>
                          <dd>
-                            <div id="assignee" class="btn-group auto" data-name="assignee.user.id">
-                                <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                                    <span class="d-label">@Messages("issue.assignee.selectDefault")</span>
-                                    <span class="d-caret"><span class="caret"></span></span>
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li data-value="" @if(issue.assignee == null){data-selected="true" class="active"}><a href="javascript:void(0)">@Messages("issue.noAssignee")</a></li>
-                                    @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
-                                    <li data-value="@UserApp.currentUser().id"><a>@Messages("issue.assignToMe")</a></li>
-                                    }
-                                    <li class="divider"></li>
-                                    @for(member <- project.members()) {
-                                    <li data-value="@member.user.id" @if(issue.assignee != null && issue.assignee.user.loginId == member.user.loginId){data-selected="true" class="active"}>
-                                        <a href="javascript:void(0)" class="usf-group">
-                                            <span class="avatar-wrap smaller">
-                                                <img src="@User.findByLoginId(member.user.loginId).avatarUrl" width="20" height="20">
-                                            </span>
-                                            <strong class="name">@member.user.name</strong>
-                                            <span class="loginid"> <strong>@@</strong>@member.user.loginId</span>
-                                        </a>
-                                    </li>
-                                    }
-                                </ul>
-                            </div>
+                            <select id="assignee" name="assignee.user.id"
+                                    data-toggle="select2" data-format="user"
+                                    data-placeholder="@Messages("issue.assignee.selectDefault")">
+                                <option></option>
+                                <option value="@User.anonymous.id" @if(issue.assignee == null){selected}>@Messages("issue.noAssignee")</option>
+                                @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
+                                <option value="@UserApp.currentUser().id">@Messages("issue.assignToMe")</option>
+                                }
+                                @for(member <- project.members()){
+                                    <option value="@member.user.id"
+                                      data-avatar-url="@User.findByLoginId(member.user.loginId).avatarUrl"
+                                      data-login-id="@member.user.loginId"
+                                      @if(issue.assignee != null && issue.assignee.user.loginId == member.user.loginId){
+                                        selected
+                                      }
+                                    >
+                                    @member.user.name
+                                    </option>
+                                }
+                            </select>
                          </dd>
                     </dl>
                     }
@@ -120,22 +116,22 @@
                     <dl id="milestoneOption" class="issue-option">
                         <dt>@Messages("milestone")</dt>
                         <dd>
-                        @defining(Milestone.options(project.id)){ milestones =>
+                        @defining(Milestone.findByProjectId(project.id)) { milestones =>
                             @if(milestones.isEmpty()) {
                                 <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" target="_blank" class="ybtn ybtn-success ybtn-small">@Messages("milestone.menu.new")</a>
                             } else {
-                                <div id="milestoneId" class="btn-group auto" data-name="milestoneId">
-                                    <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                                        <span class="d-label">@Messages("issue.milestone.selectDefault")</span>
-                                        <span class="d-caret"><span class="caret"></span></span>
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li data-value="" @if(issue.milestone == null){data-selected="true" class="active"}><a>@Messages("common.none")</a></li>
-                                        @milestones.map{ v =>
-                                        <li data-value="@v._1" @if(issue.milestone != null && issue.milestone.id.toString() == v._1){data-selected="true" class="active"}><a>@v._2</a></li>
+                                <select id="milestoneId" name="milestoneId"
+                                            data-toggle="select2" data-format="milestone"
+                                            data-placeholder="@Messages("issue.milestone.selectDefault")">
+                                        <option></option>
+                                        <option value="-1" @if(issue.milestone == null){selected}>@Messages("issue.noMilestone")</option>
+                                        @for(milestone <- milestones){
+                                        <option value="@milestone.id" data-state="@milestone.state"
+                                            @if(issue.milestone != null && issue.milestone.id == milestone.id){selected}>
+                                            @milestone.title
+                                        </option>
                                         }
-                                    </ul>
-                                </div>
+                                </select>
                             }
                         }
                         </dd>
@@ -144,9 +140,9 @@
 
                     <dl id="labels" class="issue-option">
                         <dt>
-                            @Messages("label.select")
+                            @Messages("label")
                             @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
-                            <button id="manage-label-link" type="button" class="btn-transparent"><i class="yobicon-cog"></i></button>
+                            <button id="manage-label-link" type="button" class="ybtn ybtn-default ybtn-mini pull-right"><i class="yobicon-cog"></i></button>
                             }
                         </dt>
                         <dd>
@@ -162,7 +158,7 @@
 </div>
 @common.markdown(project)
 @common.issueLabel()
-
+@common.select2()
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mentionjs/mention.css")">
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/mentionjs/mention.js")"></script>
 <script type="text/javascript">
