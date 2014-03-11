@@ -41,6 +41,8 @@
             htElement.welLabels = $('.issue-label');
             htElement.welBtnWatch = $('#watch-button');
 
+            htElement.welAssignee = htOptions.welAssignee || $("#assignee");
+            htElement.welMilestone = htOptions.welMilestone || $("#milestone");
             htElement.welIssueUpdateForm = htOptions.welIssueUpdateForm;
             htElement.sIssueCheckBoxesSelector = htOptions.sIssueCheckBoxesSelector;
 
@@ -62,9 +64,6 @@
             htVar.sUnwatchUrl = htOptions.sUnwatchUrl;
             htVar.sTimelineUrl = htOptions.sTimelineUrl;
 
-            htVar.oAssignee  = new yobi.ui.Dropdown({"elContainer": htOptions.welAssignee});
-            htVar.oMilestone = new yobi.ui.Dropdown({"elContainer": htOptions.welMilestone});
-
             // for auto-update
             htVar.bTimelineUpdating = false;
             htVar.nTimelineUpdateTimer = null;
@@ -83,8 +82,8 @@
 
             // 이슈 정보 업데이트
             htElement.welChkIssueOpen.change(_onChangeIssueOpen);
-            htVar.oMilestone.onChange(_onChangeMilestone);
-            htVar.oAssignee.onChange(_onChangeAssignee);
+            htElement.welAssignee.on("change", _onChangeAssignee);
+            htElement.welMilestone.on("change", _onChangeMilestone);
 
             // 타임라인 자동업데이트를 위한 정보
             if(htElement.welTextarea.length > 0){
@@ -154,14 +153,14 @@
         /**
          * 담당자 변경시
          *
-         * @param {String} sValue 선택된 항목의 값
+         * @param {Wrapped Event} weEvt "change" 이벤트
          */
-        function _onChangeAssignee(sValue){
+        function _onChangeAssignee(weEvt){
             _requestUpdateIssue({
-               "htData"  : {"assignee.id": sValue},
+               "htData"  : {"assignee.id": weEvt.val},
                "fOnLoad" : function(){
                    $yobi.notify(Messages("issue.update.assignee"), 3000);
-                   htVar.oAssignee.selectItem("li[data-id=" + sValue + "]");
+                   htElement.welAssignee.select2("val", weEvt.val);
                    _updateTimeline();
                },
                "fOnError": function(oRes){
@@ -173,11 +172,11 @@
         /**
          * 마일스톤 변경시
          *
-         * @param {String} sValue 선택된 항목의 값
+         * @param {Wrapped Event} weEvt "change" 이벤트
          */
-        function _onChangeMilestone(sValue){
+        function _onChangeMilestone(weEvt){
             _requestUpdateIssue({
-               "htData"  : {"milestone.id": sValue},
+               "htData"  : {"milestone.id": weEvt.val},
                "fOnLoad" : function(){
                    $yobi.notify(Messages("issue.update.milestone"), 3000);
                },
