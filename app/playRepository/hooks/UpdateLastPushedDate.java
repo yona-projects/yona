@@ -41,7 +41,10 @@ public class UpdateLastPushedDate implements PostReceiveHook {
 
     @Override
     public void onPostReceive(ReceivePack receivePack, Collection<ReceiveCommand> commands) {
-        project.lastPushedDate = new Date();
-        project.save();
+        synchronized(project) {
+            project.refresh();
+            project.lastPushedDate = new Date();
+            project.save();
+        }
     }
 }
