@@ -1,5 +1,6 @@
 /** override select2.css **/
 @select2-border-radius: 3px;
+@select2-image-path: "../javascripts/lib/select2";
 
 .select2-container {
     .avatar-wrap { margin-top:0; }
@@ -144,10 +145,10 @@
 
     input {
         border: 1px solid rgba(0,0,0,0.15);
-        background: #fff url('select2.png') no-repeat 100% -22px;
+        background: #fff url('@{select2-image-path}/select2.png') no-repeat 100% -22px;
 
         &.select2-active {
-            background: #fff url('select2-spinner.gif') no-repeat 100%;
+            background: #fff url('@{select2-image-path}/select2-spinner.gif') no-repeat 100%;
         }
     }
 }
