@@ -12,8 +12,11 @@
         }
     </a>
     <div class="title-wrap">
-        <span class="post-id">@post.getNumber</span>
-        @if(post.notice){<span class="label label-notice">@Messages("post.notice")</span>&nbsp;}
+        @if(post.notice){
+            <span class="label label-notice">@Messages("post.notice")</span>&nbsp;
+        } else {
+            <span class="post-id">@post.getNumber</span>
+        }
         <a href="@routes.BoardApp.post(project.owner, project.name, post.getNumber)" class="title">
             @post.title
         </a>
