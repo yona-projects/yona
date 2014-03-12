@@ -79,6 +79,7 @@ code.commitMsg.empty = No commit message
 code.commits = Commits
 code.copiedPath = {1} (Copied from {0})
 code.copyUrl = Copy URL
+code.copyUrl.copied = Url copied
 code.deletedPath = {0} (Deleted)
 code.eolMissing = No newline at end of file
 code.fileDiffLimitExceeded = Up to {0} files are shown.

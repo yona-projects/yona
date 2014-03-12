@@ -128,7 +128,7 @@
                 "path": htVar.sURLZeroClipboard,
                 "copy": htElement.welInputCloneURL.val(),
                 "afterCopy": function(){
-                    yobi.Common.notify("Url copied", 1000);
+                    yobi.Common.notify(Messages("code.copyUrl.copied"), 1000);
                 }
             });
 

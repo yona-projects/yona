@@ -79,6 +79,7 @@ code.commitMsg.empty = No commit message
 code.commits = 커밋
 code.copiedPath = {1} ({0}로부터 복사됨)
 code.copyUrl = 주소 복사
+code.copyUrl.copied = 주소가 복사 되었습니다. 
 code.deletedPath = {0} (삭제됨)
 code.eolMissing = 파일 끝에 줄바꿈 문자 없음
 code.fileDiffLimitExceeded = 최대 {0}개의 파일까지만 보여드립니다.
