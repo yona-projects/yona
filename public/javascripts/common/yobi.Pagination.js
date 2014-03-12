@@ -205,3 +205,7 @@ yobi.Pagination = (function(window, document) {
         "update" : updatePagination
     };
 })(window, document);
+
+$(document).on('click.pagination.number-api','input[name="pageNum"][type="number"]',function() {
+    $(this).select();
+});
