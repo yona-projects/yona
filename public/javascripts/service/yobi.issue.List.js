@@ -58,9 +58,13 @@
             htElement.welSearchAuthorId = $("#authorId");
             htElement.welSearchAssigneeId = $("#assigneeId");
             htElement.welSearchMilestoneId = $("#milestoneId");
-            yobi.ui.Select2(htElement.welSearchAuthorId);
-            yobi.ui.Select2(htElement.welSearchAssigneeId);
-            yobi.ui.Select2(htElement.welSearchMilestoneId);
+
+            // ui.Select2.js required
+            if(typeof yobi.ui.Select2 === "function"){
+                yobi.ui.Select2(htElement.welSearchAuthorId);
+                yobi.ui.Select2(htElement.welSearchAssigneeId);
+                yobi.ui.Select2(htElement.welSearchMilestoneId);
+            }
         }
 
         /**
