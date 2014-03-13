@@ -1,4 +1,7 @@
 @(project:Project)
+@appFeedbackUrl() = @{
+    play.Configuration.root().getString("application.feedback.url")
+}
 <div class="unsupported">
     <div class="unsupported-inner">
         <p id="unsupported-content">
@@ -17,9 +20,11 @@
             <li>
                 <a href="@routes.HelpApp.help()">@Messages("title.help")</a>
             </li>
-            <li>
-                <a href="https://github.com/nforge/yobi/issues?state=open" target="_blank">@Messages("title.yobi.feedback")</a>
-            </li>
+            @if(appFeedbackUrl){
+                <li>
+                    <a href="@appFeedbackUrl" target="_blank">@Messages("title.yobi.feedback")</a>
+                </li>
+            }
         </ul>
         @common.usermenu(null)
     </div>
