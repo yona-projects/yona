@@ -6,6 +6,10 @@
     if(m_type == menuType){ "active" }
 }
 
+@appFeedbackUrl() = @{
+    play.Configuration.root().getString("application.feedback.url")
+}
+
 @layout(Messages(title))(""){
     <div class="unsupported">
         <div class="unsupported-inner">
@@ -25,9 +29,11 @@
                 <li class="@isActiveMenu(MenuType.HELP)">
                     <a href="@routes.HelpApp.help()">@Messages("title.help")</a>
                 </li>
+                @if(appFeedbackUrl){
                 <li>
-                    <a href="https://github.com/nforge/yobi/issues?state=open" target="_blank">@Messages("title.yobi.feedback")</a>
+                    <a href="@appFeedbackUrl" target="_blank">@Messages("title.yobi.feedback")</a>
                 </li>
+                }
             </ul>
             @common.usermenu(null)
         </div>

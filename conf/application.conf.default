@@ -83,6 +83,9 @@ application.scheme="http"
 # application.hostname="www.yourdomain.com"
 # application.port="8080"
 
+# Application feedback url at top layout menu. You can remove feedback menu by commenting it.
+application.feedback.url="https://github.com/nforge/yobi/issues"
+
 # Mailer
 # ~~~~~~
 # You have to configure SMTP to send mails.
