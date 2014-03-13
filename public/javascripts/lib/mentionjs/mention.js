@@ -75,7 +75,7 @@
                         lastChar = q.slice(caratPos-1,caratPos);
                     
                     // list all the usernames already in text (in lower case)
-                    var usernames = (q.toLowerCase().match(new RegExp(current_delimiter + '\[^\\t]', "g"))||[]).map(function(b){ return b.toLowerCase(); })
+                    var usernames = (q.toLowerCase().match(new RegExp(current_delimiter + '\[^\\t]+', "g"))||[]).map(function(b){ return b.toLowerCase(); })
 
                     // query only the word between cursor and the first space/delimiter behind it
                     var q = (q.substring(0, caratPos).match(new RegExp('([^ '+settings.delimiters+']+)$')) || [''])[0]
