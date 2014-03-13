@@ -2103,7 +2103,13 @@
         }
     }
 }
+.label.milestone-state {
+    margin:0; padding:2px 0px; margin-right:3px;
+    width:40px; text-align:center; font-size:11px;
 
+    &.open { background-color:@state-open; }
+    &.closed { background-color:@state-closed; }
+}
 
 //-- new milestone
 .form-wrap {
