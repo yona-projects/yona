@@ -15,9 +15,9 @@ import utils.Constants;
 import utils.ErrorViews;
 
 import java.io.IOException;
+import java.net.URL;
 
 import controllers.annotation.IsCreatable;
-import utils.RouteUtil;
 
 /**
  * {@link models.PullRequestComment} CRUD 컨트롤러
@@ -51,7 +51,7 @@ public class PullRequestCommentApp extends Controller {
         // Attach all of the files in the current user's temporary storage to this comment.
         Attachment.moveAll(UserApp.currentUser().asResource(), newComment.asResource());
 
-        String url = RouteUtil.getUrl(newComment);
+        String url = new URL(referer).getPath() + "#comment-" + newComment.id;
         NotificationEvent.afterNewComment(UserApp.currentUser(), pullRequest, newComment);
         return redirect(url);
     }
