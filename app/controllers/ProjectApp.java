@@ -388,7 +388,7 @@ public class ProjectApp extends Controller {
         project.cleanEnrolledUsers();
         return ok(views.html.project.members.render("title.projectMembers",
                 ProjectUser.findMemberListByProject(project.id), project,
-                Role.getActiveRoles()));
+                Role.findProjectRoles()));
     }
 
     /**
