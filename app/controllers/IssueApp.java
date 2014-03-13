@@ -416,7 +416,7 @@ public class IssueApp extends AbstractPostingApp {
             boolean assigneeChanged = false;
             User oldAssignee = null;
             if (issueMassUpdate.assignee != null) {
-                if(issue.assignee != null) {
+                if(hasAssignee(issue)) {
                     oldAssignee = issue.assignee.user;
                 }
                 Assignee newAssignee = null;
@@ -535,9 +535,17 @@ public class IssueApp extends AbstractPostingApp {
     }
 
     private static void removeAnonymousAssignee(Issue issue) {
-        if(issue.assignee.user != null && issue.assignee.user.id == User.anonymous.id){
+        if(hasAssignee(issue) && isAnonymousAssignee(issue)){
             issue.assignee = null;
         }
+    }
+
+    private static boolean isAnonymousAssignee(Issue issue) {
+        return issue.assignee.user != null && issue.assignee.user.id == User.anonymous.id;
+    }
+
+    private static boolean hasAssignee(Issue issue) {
+        return issue.assignee != null;
     }
 
     /**
@@ -594,7 +602,7 @@ public class IssueApp extends AbstractPostingApp {
         if(!originalIssue.assignedUserEquals(modifiedIssue.assignee)) {
             Issue updatedIssue = Issue.finder.byId(originalIssue.id);
             User oldAssignee = null;
-            if(originalIssue.assignee != null) {
+            if(hasAssignee(originalIssue)) {
                 oldAssignee = originalIssue.assignee.user;
             }
             NotificationEvent notiEvent = NotificationEvent.afterAssigneeChanged(oldAssignee, updatedIssue);
