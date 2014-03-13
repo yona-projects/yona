@@ -508,6 +508,7 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         final Issue newIssue = issueForm.get();
+        removeAnonymousAssignee(newIssue);
 
         if (newIssue.body == null) {
             return status(REQUEST_ENTITY_TOO_LARGE,
@@ -531,6 +532,12 @@ public class IssueApp extends AbstractPostingApp {
         NotificationEvent.afterNewIssue(newIssue);
 
         return redirect(routes.IssueApp.issue(project.owner, project.name, newIssue.getNumber()));
+    }
+
+    private static void removeAnonymousAssignee(Issue issue) {
+        if(issue.assignee.user != null && issue.assignee.user.id == User.anonymous.id){
+            issue.assignee = null;
+        }
     }
 
     /**
@@ -638,6 +645,7 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         final Issue issue = issueForm.get();
+        removeAnonymousAssignee(issue);
         setMilestone(issueForm, issue);
 
         final Issue originalIssue = Issue.findByNumber(project, number);
