@@ -89,12 +89,6 @@
 
 		yobi.ShortcutKey.setKeymapLink({
 		   "N": "@routes.BoardApp.newPostForm(project.owner, project.name)"
-		   @if(page.getPageIndex > 0){
-           ,"A": "@getPageListUrl(page.getPageIndex - 1)"
-		   }
-		   @if(page.getTotalPageCount > 1 && (page.getPageIndex + 1 != page.getTotalPageCount)){
-		   ,"S": "@getPageListUrl(page.getPageIndex + 1)"
-		   }
 		});
 	});
 </script>

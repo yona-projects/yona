@@ -144,7 +144,7 @@
         // yobi.ShortcutKey
         yobi.ShortcutKey.setKeymapLink({
             "N": "@routes.BoardApp.newPostForm(project.owner, project.name)",
-            "L": "@routes.BoardApp.posts(project.owner, project.name)"
+            "L": "@urlToPostings"
             @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){
            ,"E": "@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)"
             }

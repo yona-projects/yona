@@ -112,7 +112,7 @@ yobi.ShortcutKey = (function(htOptions){
      * @param {String} sKey
      * @param {String} fHandler
      */
-    function detachHandler(sKeyInput, fHandler){
+    function detachHandler(sKeyInput){
         var sKey = _normalizeKeyString(sKeyInput);
         delete htHandlers[sKey];
     }
@@ -180,12 +180,19 @@ yobi.ShortcutKey = (function(htOptions){
      * });
      */
     function setKeymapLink(htKeyMap){
-        for(var sKey in htKeyMap){
-            attachHandler(sKey, function(htInfo){
-                if(!htInfo.bFormInput){
-                    document.location.href = htKeyMap[htInfo.sKeyInput];
-                }
-            });
+        var sKey;
+        var fHandler = function(htInfo){
+            if(!htInfo.bFormInput){
+                document.location.href = htKeyMap[htInfo.sKeyInput];
+            }
+        };
+
+        for(sKey in htKeyMap){
+            if(htKeyMap[sKey]){
+                attachHandler(sKey, fHandler);
+            } else {
+                detachHandler(sKey);
+            }
         }
     }
 
