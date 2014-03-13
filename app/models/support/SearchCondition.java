@@ -26,6 +26,8 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
     public Long assigneeId;
     public Project project;
 
+    public Long mentionId;
+
     public SearchCondition clone() {
         SearchCondition one = new SearchCondition();
         one.orderBy = this.orderBy;
@@ -38,6 +40,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
         one.labelIds = new HashSet<>(this.labelIds);
         one.authorId = this.authorId;
         one.assigneeId = this.assigneeId;
+        one.mentionId = this.mentionId;
         return one;
     }
 
@@ -101,6 +104,11 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
         return this;
     }
 
+    public SearchCondition setMentionId(Long mentionId) {
+        this.mentionId = mentionId;
+        return this;
+    }
+
     public SearchCondition() {
         super();
         milestoneId = null;
@@ -127,6 +135,20 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
 
         if (authorId != null) {
             el.eq("authorId", authorId);
+        }
+
+        if (mentionId != null) {
+            User mentionUser = User.find.byId(mentionId);
+            if(!mentionUser.isAnonymous()) {
+                Junction<Issue> junction = el.disjunction();
+                junction.icontains("body", "@" + mentionUser.loginId);
+                List<Object> ids = Issue.finder.where()
+                        .icontains("comments.contents", "@" + mentionUser.loginId).findIds();
+                if (!ids.isEmpty()) {
+                    junction.idIn(ids);
+                }
+                junction.endJunction();
+            }
         }
 
         if (StringUtils.isNotBlank(filter)) {

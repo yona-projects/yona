@@ -57,7 +57,7 @@ public class IssueApp extends AbstractPostingApp {
         // SearchCondition from param
         Form<models.support.SearchCondition> issueParamForm = new Form<>(models.support.SearchCondition.class);
         models.support.SearchCondition searchCondition = issueParamForm.bindFromRequest().get();
-        if( searchCondition.assigneeId == null &&  searchCondition.authorId == null) {
+        if (hasNotConditions(searchCondition)) {
             searchCondition.assigneeId = UserApp.currentUser().id;
         }
         searchCondition.pageNum = pageNum - 1;
@@ -85,6 +85,10 @@ public class IssueApp extends AbstractPostingApp {
             default:
                 return issuesAsHTML(project, issues, searchCondition);
         }
+    }
+
+    private static boolean hasNotConditions(models.support.SearchCondition searchCondition) {
+        return searchCondition.assigneeId == null && searchCondition.authorId == null && searchCondition.mentionId == null;
     }
 
     /**
@@ -540,7 +544,7 @@ public class IssueApp extends AbstractPostingApp {
     }
 
     private static void removeAnonymousAssignee(Issue issue) {
-        if(hasAssignee(issue) && isAnonymousAssignee(issue)){
+        if(hasAssignee(issue) && isAnonymousAssignee(issue)) {
             issue.assignee = null;
         }
     }

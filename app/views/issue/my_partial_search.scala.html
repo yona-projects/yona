@@ -14,10 +14,6 @@
 @paramForIssuesAssignedToMe = @{ param.clone().setState(param.state).setAssigneeId(UserApp.currentUser().id).setAuthorId(null) }
 @paramForIssuesAuthoredByMe = @{ param.clone().setState(param.state).setAssigneeId(null).setAuthorId(UserApp.currentUser().id) }
 
-@urlAssignedToMe = {@routes.IssueApp.userIssues(param.state, "html", 1)&assigneeId=@User.findByLoginId(session.get("loginId")).id&milestoneId=@param.milestoneId}
-
-@urlAuthoredByMe = {@routes.IssueApp.userIssues(param.state, "html", 1)&authorId=@User.findByLoginId(session.get("loginId")).id&milestoneId=@param.milestoneId}
-
 @getPageListUrl(pageIndex:Integer) = {@routes.IssueApp.userIssues(param.state, "html", pageIndex + 1)}
 
 @makeFilterLink(fieldName:String, orderBy:String, orderDir:String, fieldText:String) = {
@@ -34,13 +30,17 @@
         <div class="span2">
             <div class="inner advanced">
                 <ul class="lst-stacked unstyled">
-                    @if(UserApp.currentUser().id != -1l){
+                    @if(!UserApp.currentUser().isAnonymous()){
                     <li @if(param.assigneeId == UserApp.currentUser().id){ class="active"}>
-                        <a pjax-filter href="#" authorId="" assigneeId="@User.findByLoginId(session.get("loginId")).id" milestoneId="@param.milestoneId">@Messages("issue.list.assignedToMe")
+                        <a pjax-filter href="#" mentionId="" authorId="" assigneeId="@User.findByLoginId(session.get("loginId")).id" milestoneId="@param.milestoneId">@Messages("issue.list.assignedToMe")
                         </a>
                     </li>
                     <li @if(param.authorId == UserApp.currentUser().id){ class="active"}>
-                        <a pjax-filter href="#" authorId="@User.findByLoginId(session.get("loginId")).id" assigneeId="" milestoneId="@param.milestoneId">@Messages("issue.list.authoredByMe")
+                        <a pjax-filter href="#" mentionId="" authorId="@User.findByLoginId(session.get("loginId")).id" assigneeId="" milestoneId="@param.milestoneId">@Messages("issue.list.authoredByMe")
+                        </a>
+                    </li>
+                    <li @if(param.mentionId == UserApp.currentUser().id){ class="active"}>
+                        <a pjax-filter href="#" mentionId="@User.findByLoginId(session.get("loginId")).id" authorId="" assigneeId="" milestoneId="@param.milestoneId">@Messages("issue.list.mentionedOfMe")
                         </a>
                     </li>
                     }
@@ -61,7 +61,7 @@
                     <input type="hidden" name="state" value="@param.state">
                     <input type="hidden" name="authorId" value="@param.authorId">
                     <input type="hidden" name="assigneeId" value="@param.assigneeId">
-
+                    <input type="hidden" name="mentionId" value="@param.mentionId">
                     <hr>
                     <div class="search">
                         <div class="search-bar">
@@ -113,6 +113,7 @@
                 $("a[pjax-filter]" ).bind("click",function(){
                     $("input[name='authorId']").val($(this).attr("authorId"));
                     $("input[name='assigneeId']").val($(this).attr("assigneeId"));
+                    $("input[name='mentionId']").val($(this).attr("mentionId"));
                     $("#search" ).submit();
                 });
 				$yobi.loadModule("issue.List", {
