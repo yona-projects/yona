@@ -60,7 +60,7 @@
 }
 
 @linkToCommit(commitId: String) ={
-    <strong>@Messages("code.commits") <a href="@routes.CodeHistoryApp.show(project.owner, project.name, commitId)," class="link">@@@commitId</a></strong>
+    <strong>@Messages("code.commits") <a href="@routes.CodeHistoryApp.show(project.owner, project.name, commitId)" class="link">@{"@"}@commitId</a></strong>
 }
 
 <div class="comment-header"><i class="yobicon-comments"></i> <strong>@Messages("common.comment")</strong> <strong class="num">@issue.comments.size</strong></div>
