@@ -137,7 +137,14 @@ public class CodeHistoryApp extends Controller {
             SVNException {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         PlayRepository repository = RepositoryService.getRepository(project);
-        Commit commit = repository.getCommit(commitId);
+
+        Commit commit = null;
+
+        try {
+            commit = repository.getCommit(commitId);
+        } catch (org.eclipse.jgit.errors.MissingObjectException e) {
+            return notFound(ErrorViews.NotFound.render("error.notfound.commit", project));
+        }
 
         if(commit == null) {
             return notFound(ErrorViews.NotFound.render("error.notfound.commit", project));
