@@ -1,7 +1,7 @@
 package models.enumeration;
 
 public enum RoleType {
-    MANAGER(1l), MEMBER(2l), SITEMANAGER(3l), ANONYMOUS(4l), GUEST(5l);
+    MANAGER(1l), MEMBER(2l), SITEMANAGER(3l);
 
     private Long roleType;
 

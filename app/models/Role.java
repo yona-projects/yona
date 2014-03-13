@@ -1,5 +1,6 @@
 package models;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -38,15 +39,6 @@ public class Role extends Model {
     }
 
     /**
-     * 프로젝트와 관련된 롤들의 목록을 반환합니다.
-     *
-     * @return
-     */
-    public static List<Role> getActiveRoles() {
-        return find.where().eq("active", true).findList();
-    }
-
-    /**
      * 해당 유저가 해당 프로젝트에서 가지고 있는 롤을 제공합니다.
      *
      * @param userId
@@ -57,5 +49,20 @@ public class Role extends Model {
         return find.where()
                 .eq("projectUsers.user.id", userId)
                 .eq("projectUsers.project.id", projectId).findUnique();
+    }
+
+    /**
+     * 프로젝트와 관련된 롤들의 목록을 반환합니다.
+     *
+     * @return
+     */
+    public static List<Role> findProjectRoles() {
+        List<Long> projectRoleIds = new ArrayList<>();
+        projectRoleIds.add(RoleType.MANAGER.roleType());
+        projectRoleIds.add(RoleType.MEMBER.roleType());
+
+        return find.where()
+                .in("id", projectRoleIds)
+                .findList();
     }
 }
