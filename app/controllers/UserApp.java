@@ -114,6 +114,10 @@ public class UserApp extends Controller {
      * @return
      */
     public static Result loginForm() {
+        if(!UserApp.currentUser().isAnonymous()) {
+            return redirect(routes.Application.index());
+        }
+
         String redirectUrl = request().getQueryString("redirectUrl");
         String loginFormUrl = routes.UserApp.loginForm().url();
         String referer = request().getHeader("Referer");
@@ -253,6 +257,10 @@ public class UserApp extends Controller {
      * @return
      */
     public static Result signupForm() {
+        if(!UserApp.currentUser().isAnonymous()) {
+            return redirect(routes.Application.index());
+        }
+
         return ok(signup.render("title.signup", form(User.class)));
     }
 
