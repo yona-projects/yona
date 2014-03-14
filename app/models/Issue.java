@@ -135,10 +135,16 @@ public class Issue extends AbstractPosting implements LabelOwner {
 
     @Override
     public void updateProperties() {
+        HashSet<String> updateProps = new HashSet<>();
         // update null milestone explicitly
         if(this.milestone == null) {
-            HashSet<String> updateProps = new HashSet<>();
             updateProps.add("milestone");
+        }
+        // update null assignee explicitly
+        if(this.assignee == null) {
+            updateProps.add("assignee");
+        }
+        if(!updateProps.isEmpty()) {
             Ebean.update(this, updateProps);
         }
     }
