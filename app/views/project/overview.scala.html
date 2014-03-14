@@ -45,7 +45,7 @@
                 </div>
             </div>
             <div class="project-clone-wrap span3">
-                <input type="text" class="project-clone-url" id="cloneURL" readonly="readonly" value="@if(project.isGit){ @CodeApp.getURLWithLoginId(project) } else { @CodeApp.getURL(project) }">
+                <input type="text" class="project-clone-url" id="cloneURL" readonly="readonly" value="@if(project.isGit){@CodeApp.getURLWithLoginId(project)} else {@CodeApp.getURL(project)}">
                 <button class="ybtn project-clone-button" id="cloneURLBtn">@Messages("code.copyUrl")</button>
             </div>
         </div>
