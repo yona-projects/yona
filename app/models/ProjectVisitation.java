@@ -66,4 +66,10 @@ public class ProjectVisitation extends Model {
                 .setMaxRows(size)
                 .findList();
     }
+
+    public static List<ProjectVisitation> findByProject(Project project) {
+        return find.where()
+                .eq("project", project)
+                .findList();
+    }
 }

@@ -1,9 +1,6 @@
 package controllers;
 
-import models.Label;
-import models.Project;
-import models.PushedBranch;
-import models.User;
+import models.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonNode;
@@ -341,6 +338,20 @@ public class ProjectAppTest {
         // When
         // Then
         testProjectSearch(anonymous, project, acceptJson, contains(project.owner + "/" + project.name));
+    }
+
+    @Test
+    public void delete() {
+        // Given
+        User member = User.find.byId(2L);
+        Project project = Project.findByOwnerAndProjectName("yobi", "projectYobi");
+        RecentlyVisitedProjects.addNewVisitation(member, project);
+
+        // When
+        project.delete();
+
+        // Then
+        assertThat(Project.findByOwnerAndProjectName("yobi", "projectYobi")).isNull();
     }
 
     private void testProjectSearch(User user, Project project, String accept, Condition<String> condition) {
