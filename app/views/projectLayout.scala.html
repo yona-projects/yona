@@ -3,14 +3,11 @@
 @import utils._
 
 @layout(Messages(title) + " (" + project.name + ")")("prj") {
-    @views.html.project.navbar(project)
+    @common.navbar(menuType)
+    
     @views.html.project.header(project)
 
     @content
 
-    <footer class="page-footer-outer">
-        <div class="page-footer">
-            <span class="provider">Copyright © <a href="http://navercorp.com/" target="_blank">NAVER Corp.</a> Supported by <a href="http://developer.naver.com/wiki/pages/techSupport" target="_blank" class="d2-program"><span class="d2">D2</span><span class="program"> Program</span></a></span>
-        </div>
-    </footer>
+    @common.footer()
 }

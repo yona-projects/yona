@@ -2,42 +2,8 @@
 
 @import utils._
 
-@isActiveMenu(m_type:MenuType) = @{
-    if(m_type == menuType){ "active" }
-}
-
-@appFeedbackUrl() = @{
-    play.Configuration.root().getString("application.feedback.url")
-}
-
 @layout(Messages(title))(""){
-    <div class="unsupported">
-        <div class="unsupported-inner">
-            <p id="unsupported-content">
-                <i class="yobicon-alert"></i>
-                @Html(Messages("error.unsupported.ie"))
-            </p>
-        </div>
-    </div>
-    <header class="gnb-outer">
-        <div class="gnb-inner">
-            <a href="@routes.Application.index()" class="logo"><h1 class="blind">@utils.Config.getSiteName</h1></a>
-            <ul class="gnb-nav">
-                <li class="@isActiveMenu(MenuType.PROJECTS)">
-                    <a href="@routes.ProjectApp.projects()">@Messages("title.projectList")</a>
-                </li>
-                <li class="@isActiveMenu(MenuType.HELP)">
-                    <a href="@routes.HelpApp.help()">@Messages("title.help")</a>
-                </li>
-                @if(appFeedbackUrl){
-                <li>
-                    <a href="@appFeedbackUrl" target="_blank">@Messages("title.yobi.feedback")</a>
-                </li>
-                }
-            </ul>
-            @common.usermenu(null)
-        </div>
-    </header>
+    @common.navbar(menuType)
 
     @if(menuType == utils.MenuType.SITE_HOME && UserApp.currentUser.isAnonymous){
         @index.partial_intro()
@@ -45,9 +11,5 @@
         @content
     }
 
-    <footer class="page-footer-outer">
-        <div class="page-footer">
-            <span class="provider">Copyright © <a href="http://navercorp.com/" target="_blank">NAVER Corp.</a> Supported by <a href="http://developer.naver.com/wiki/pages/techSupport" target="_blank" class="d2-program"><span class="d2">D2</span><span class="program"> Program</span></a></span>
-        </div>
-    </footer>
+    @common.footer()
 }

@@ -1,7 +1,15 @@
-@(project:Project)
+@(menuType:utils.MenuType)
+
+@import utils._
+
+@isActiveMenu(m_type:MenuType) = @{
+    if(m_type == menuType){ "active" }
+}
+
 @appFeedbackUrl() = @{
     play.Configuration.root().getString("application.feedback.url")
 }
+
 <div class="unsupported">
     <div class="unsupported-inner">
         <p id="unsupported-content">
@@ -14,16 +22,16 @@
     <div class="gnb-inner">
         <a href="@routes.Application.index()" class="logo"><h1 class="blind">@utils.Config.getSiteName</h1></a>
         <ul class="gnb-nav">
-            <li>
+            <li class="@isActiveMenu(MenuType.PROJECTS)">
                 <a href="@routes.ProjectApp.projects()">@Messages("title.projectList")</a>
             </li>
-            <li>
+            <li class="@isActiveMenu(MenuType.HELP)">
                 <a href="@routes.HelpApp.help()">@Messages("title.help")</a>
             </li>
             @if(appFeedbackUrl){
-                <li>
-                    <a href="@appFeedbackUrl" target="_blank">@Messages("title.yobi.feedback")</a>
-                </li>
+            <li>
+                <a href="@appFeedbackUrl" target="_blank">@Messages("title.yobi.feedback")</a>
+            </li>
             }
         </ul>
         @common.usermenu(null)
