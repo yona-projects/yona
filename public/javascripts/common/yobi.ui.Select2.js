@@ -82,15 +82,33 @@
             }
         };
 
+        // Custom matchers
+        var htMatchers = {
+            "user": function(sTerm, sText, welItem){
+                sTerm = sTerm.toLowerCase();
+                sText = sText.toLowerCase();
+
+                var sLoginId = welItem.data("loginId");
+                sLoginId = (typeof sLoginId !== "undefined") ? sLoginId.toLowerCase() : "";
+
+                return (sLoginId.indexOf(sTerm) > -1) || (sText.indexOf(sTerm) > -1);
+            }
+        };
+
         // Use customized format if specified format exists
         var sFormatName = welSelect.data("format");
         var fFormat = sFormatName ? htFormat[sFormatName.toLowerCase()] : null;
+        var fMatcher = sFormatName ? htMatchers[sFormatName.toLowerCase()] : null;
 
         if(typeof fFormat === "function"){
             htOpt = $.extend(htOpt, {
                 "formatResult"   : fFormat,
                 "formatSelection": fFormat
             });
+        }
+
+        if(typeof fMatcher === "function"){
+            htOpt.matcher = fMatcher;
         }
 
         return welSelect.select2(htOpt);
