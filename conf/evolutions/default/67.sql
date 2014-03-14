@@ -9,5 +9,8 @@ update issue set assignee_id = null where id in ( select id from issue where ass
 
 delete from assignee where user_id is null;
 
+alter table n4user alter column login_id set not null;
+
 # --- !Downs
 
+alter table n4user alter column login_id drop not null;

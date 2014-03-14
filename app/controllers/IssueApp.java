@@ -541,7 +541,7 @@ public class IssueApp extends AbstractPostingApp {
     }
 
     private static boolean isAnonymousAssignee(Issue issue) {
-        return issue.assignee.user != null && issue.assignee.user.id == User.anonymous.id;
+        return issue.assignee.user != null && issue.assignee.user.isAnonymous();
     }
 
     private static boolean hasAssignee(Issue issue) {
