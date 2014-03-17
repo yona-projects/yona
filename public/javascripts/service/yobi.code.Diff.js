@@ -310,6 +310,10 @@
                 "sPlacement": htBlockInfo.bIsReversed ? "top" : "bottom",
                 "nAdjustmentTop": htElement.welDiffBody.position().top
             });
+
+            if(!htBlockInfo.bIsReversed){
+                window.scrollTo(0, welTR.offset().top - 50);
+            }
         }
 
         /**
