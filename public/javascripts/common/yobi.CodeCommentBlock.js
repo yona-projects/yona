@@ -150,7 +150,10 @@ yobi.CodeCommentBlock = (function(){
         // detect whether is reversed
         var nAnchorIndex = welAnchor.index();
         var nFocusIndex = welFocus.index();
-        var bIsReversed = (nAnchorIndex > nFocusIndex);
+        var nAnchorOffset = oSelection.anchorOffset;
+        var nFocusOffset = oSelection.focusOffset;
+        var bIsReversed = (nAnchorIndex > nFocusIndex) ||
+                          (nAnchorIndex === nFocusIndex && nAnchorOffset > nFocusOffset);
         var welStartLine = bIsReversed ? welFocus : welAnchor;
         var welEndLine = bIsReversed ? welAnchor : welFocus;
 
@@ -158,11 +161,11 @@ yobi.CodeCommentBlock = (function(){
             "bIsReversed" : bIsReversed,
             "nStartLine"  : welStartLine.data("line"),
             "sStartType"  : welStartLine.data("type"),
-            "sStartSide"  : welStartLine.data("type") == 'remove' ? 'A' : 'B',
+            "sStartSide"  : welStartLine.data("type") === 'remove' ? 'A' : 'B',
             "nStartColumn": bIsReversed ? oSelection.focusOffset  : oSelection.anchorOffset,
             "nEndLine"    : welEndLine.data("line"),
             "sEndType"    : welEndLine.data("type"),
-            "sEndSide"    : welEndLine.data("type") == 'remove' ? 'A' : 'B',
+            "sEndSide"    : welEndLine.data("type") === 'remove' ? 'A' : 'B',
             "nEndColumn"  : bIsReversed ? oSelection.anchorOffset : oSelection.focusOffset,
             "sPathA"      : welTable.data("pathA"),
             "sPathB"      : welTable.data("pathB"),
