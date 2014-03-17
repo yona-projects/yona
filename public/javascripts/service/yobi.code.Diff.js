@@ -64,8 +64,9 @@
             htElement.waDiffContainers = htElement.welDiffWrap.find(".diff-container");
 
             // 리뷰영역
+            htElement.welCommentWrap = htElement.welContainer.find("div.board-comment-wrap");
             htElement.welReviewWrap = htElement.welContainer.find("div.review-wrap");
-            htElement.welReviewList = htElement.welReviewWrap.find("div.review-wrap-scroll");
+            htElement.welReviewContainer = htElement.welReviewWrap.find("div.review-container");
             htElement.waBtnToggleReviewWrap = htElement.welContainer.find("button.btn-show-reviewcards,button.btn-hide-reviewcards");
 
             // 전체 댓글 (Non-Ranged comment thread)
@@ -144,9 +145,13 @@
                 return;
             }
 
-            htVar.nAffixTop = htElement.welReviewWrap.offset().top - 25;
+            htVar.nAffixTop = htElement.welReviewWrap.offset().top;
             _updateReviewWrapAffixed();
-            $(window).on("scroll", _updateReviewWrapAffixed);
+
+            $(window).on({
+                "scroll": _updateReviewWrapAffixed,
+                "resize": _updateReviewWrapAffixed
+            });
         }
 
         /**
@@ -154,10 +159,28 @@
          * @private
          */
         function _updateReviewWrapAffixed(){
-            if($(window).scrollTop() > htVar.nAffixTop){
+            var welWindow = $(window);
+            var nScrollTop = welWindow.scrollTop();
+            var nWindowHeight = welWindow.height();
+
+            if(nScrollTop > htVar.nAffixTop){
                 htElement.welReviewWrap.addClass("fixed");
             } else {
                 htElement.welReviewWrap.removeClass("fixed");
+            }
+
+            // 스크롤이 댓글 폼 아래로 내려가면
+            // 리뷰 목록은 댓글 폼 높이까지만 표시되도록 bottom 값을 조절한다
+            if(htElement.welReviewWrap.hasClass("fixed")){
+                var nEndOfScroll = nScrollTop + nWindowHeight;
+                var nTargetOffsetTop = htElement.welCommentWrap.offset().top + htElement.welCommentWrap.height();
+                var nReviewWrapFromBottom = nEndOfScroll - nTargetOffsetTop;
+
+                if(nReviewWrapFromBottom > 0){
+                    htElement.welReviewContainer.css("bottom", nReviewWrapFromBottom + 90);
+                } else {
+                    htElement.welReviewContainer.css("bottom", 50);
+                }
             }
         }
 
