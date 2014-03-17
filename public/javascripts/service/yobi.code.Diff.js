@@ -245,6 +245,7 @@
                 "fOnAfterHide": function(){
                     _updateMiniMap();
                     yobi.CodeCommentBlock.unblock();
+                    htVar.htBlockInfo = null;
                 },
                 "sTplFileItem": htVar.sTplFileItem
             });
@@ -283,6 +284,7 @@
             htElement.welDiffBody.on("mousedown", ":not(.btnPop)", function(){
                 if(document.getSelection().toString().length === 0){
                     yobi.CodeCommentBox.hide();
+                    htVar.htBlockInfo = null;
                 }
             });
         }
@@ -314,6 +316,8 @@
             if(!htBlockInfo.bIsReversed){
                 window.scrollTo(0, welTR.offset().top - 50);
             }
+
+            htVar.htBlockInfo = htBlockInfo;
         }
 
         /**
@@ -406,6 +410,10 @@
          */
         function _onMouseLeaveCodeCommentThread(){
             yobi.CodeCommentBlock.unblock();
+
+            if(yobi.CodeCommentBox.isVisible() && htVar.htBlockInfo){
+                yobi.CodeCommentBlock.block(htVar.htBlockInfo);
+            }
         }
 
         /**
