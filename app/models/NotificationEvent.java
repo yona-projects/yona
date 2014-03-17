@@ -817,7 +817,7 @@ public class NotificationEvent extends Model {
         return Messages.get("notification.member.request.accept.title", project.name, user.loginId);
     }
 
-    private static Set<User> getMentionedUsers(String body) {
+    public static Set<User> getMentionedUsers(String body) {
         Matcher matcher = Pattern.compile("@" + User.LOGIN_ID_PATTERN).matcher(body);
         Set<User> users = new HashSet<>();
         while(matcher.find()) {

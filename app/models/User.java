@@ -146,6 +146,9 @@ public class User extends Model implements ResourceConvertible {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     public RecentlyVisitedProjects recentlyVisitedProjects;
 
+    @OneToMany(mappedBy = "user")
+    public List<Mention> mentions;
+
     /**
      * The user's preferred language code which can be recognized by {@link play.api.i18n.Lang#get},
      * such as "ko", "en-US" or "ja". This field is used as a language for notification mail.
