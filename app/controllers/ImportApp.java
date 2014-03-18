@@ -13,6 +13,7 @@ import utils.Constants;
 import utils.FileUtil;
 import views.html.project.importing;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.errors.*;
 import java.io.IOException;
 
@@ -50,8 +51,8 @@ public class ImportApp extends Controller {
 
         Form<Project> filledNewProjectForm = form(Project.class).bindFromRequest();
 
-        String gitUrl = filledNewProjectForm.data().get("url");
-        if(gitUrl == null || gitUrl.trim().isEmpty()) {
+        String gitUrl = StringUtils.trim(filledNewProjectForm.data().get("url"));
+        if(StringUtils.isBlank(gitUrl)) {
             flash(Constants.WARNING, "project.import.error.empty.url");
             return badRequest(importing.render("title.newProject", filledNewProjectForm));
         }
