@@ -600,28 +600,25 @@ public class IssueApp extends AbstractPostingApp {
 
     private static void addAssigneeChangedNotification(Issue modifiedIssue, Issue originalIssue) {
         if(!originalIssue.assignedUserEquals(modifiedIssue.assignee)) {
-            Issue updatedIssue = Issue.finder.byId(originalIssue.id);
             User oldAssignee = null;
             if(hasAssignee(originalIssue)) {
                 oldAssignee = originalIssue.assignee.user;
             }
-            NotificationEvent notiEvent = NotificationEvent.afterAssigneeChanged(oldAssignee, updatedIssue);
+            NotificationEvent notiEvent = NotificationEvent.afterAssigneeChanged(oldAssignee, modifiedIssue);
             IssueEvent.addFromNotificationEvent(notiEvent, modifiedIssue, UserApp.currentUser().loginId);
         }
     }
 
     private static void addStateChangedNotification(Issue modifiedIssue, Issue originalIssue) {
         if(modifiedIssue.state != originalIssue.state) {
-            Issue updatedIssue = Issue.finder.byId(originalIssue.id);
-            NotificationEvent notiEvent = NotificationEvent.afterStateChanged(originalIssue.state, updatedIssue);
+            NotificationEvent notiEvent = NotificationEvent.afterStateChanged(originalIssue.state, modifiedIssue);
             IssueEvent.addFromNotificationEvent(notiEvent, modifiedIssue, UserApp.currentUser().loginId);
         }
     }
 
     private static void addBodyChangedNotification(Issue modifiedIssue, Issue originalIssue) {
         if (!modifiedIssue.body.equals(originalIssue.body)) {
-            Issue updatedIssue = Issue.finder.byId(originalIssue.id);
-            NotificationEvent notiEvent = NotificationEvent.afterIssueBodyChanged(originalIssue.body, updatedIssue);
+            NotificationEvent notiEvent = NotificationEvent.afterIssueBodyChanged(originalIssue.body, modifiedIssue);
             IssueEvent.addFromNotificationEvent(notiEvent, modifiedIssue, UserApp.currentUser().loginId);
         }
     }
@@ -660,9 +657,9 @@ public class IssueApp extends AbstractPostingApp {
 
         Call redirectTo = routes.IssueApp.issue(project.owner, project.name, number);
 
-        // updateIssueBeforeSave.run would be called just before this issue is saved.
+        // preUpdateHook.run would be called just before this issue is updated.
         // It updates some properties only for issues, such as assignee or labels, but not for non-issues.
-        Runnable updateIssueBeforeSave = new Runnable() {
+        Runnable preUpdateHook = new Runnable() {
             @Override
             public void run() {
                 // Below addAll() method is needed to avoid the exception, 'Timeout trying to lock table ISSUE'.
@@ -671,16 +668,14 @@ public class IssueApp extends AbstractPostingApp {
                 issue.voters.addAll(originalIssue.voters);
                 issue.comments = originalIssue.comments;
                 addLabels(issue, request());
+
+                addAssigneeChangedNotification(issue, originalIssue);
+                addStateChangedNotification(issue, originalIssue);
+                addBodyChangedNotification(issue, originalIssue);
             }
         };
 
-        Result result = editPosting(originalIssue, issue, issueForm, redirectTo, updateIssueBeforeSave);
-
-        addAssigneeChangedNotification(issue, originalIssue);
-        addStateChangedNotification(issue, originalIssue);
-        addBodyChangedNotification(issue, originalIssue);
-
-        return result;
+        return editPosting(originalIssue, issue, issueForm, redirectTo, preUpdateHook);
     }
 
     /*
