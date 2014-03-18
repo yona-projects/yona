@@ -46,14 +46,14 @@
                 }
 
                 // Template text
-                var sTplUserItem = $("#tplSelect2FormatUser").text() || '<div class="usf-group">' +
+                var sTplUserItem = $("#tplSelect2FormatUser").text() || '<div class="usf-group" title="${name} ${loginId}">' +
                     '<span class="avatar-wrap smaller"><img src="${avatarURL}" width="20" height="20"></span>' +
                     '<strong class="name">${name}</strong>' +
                     '<span class="loginid">${loginId}</span></div>';
 
                 var sText = $yobi.tmpl(sTplUserItem, {
                     "avatarURL": sAvatarURL,
-                    "name"     : oItem.text,
+                    "name"     : oItem.text.trim(),
                     "loginId"  : "@" + welItem.data("loginId")
                 });
 
@@ -70,10 +70,10 @@
                 sMilestoneState = sMilestoneState.toLowerCase();
                 var sMilestoneStateLabel = Messages("milestone.state." + sMilestoneState);
                 var sTplMilestoneItem = $("#tplSElect2FormatMilestone").text()
-                                    || '<span class="label milestone-state ${state}">${stateLabel}</span> ${name}';
+                                    || '<div title="${name}"><span class="label milestone-state ${state}">${stateLabel}</span> ${name}</div>';
 
                 var sText = $yobi.tmpl(sTplMilestoneItem, {
-                    "name" : oItem.text,
+                    "name" : oItem.text.trim(),
                     "state": sMilestoneState,
                     "stateLabel": sMilestoneStateLabel
                 });
