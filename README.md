@@ -5,7 +5,7 @@ Yobi
 [![Build Status](https://travis-ci.org/nforge/yobi.png?branch=master)](https://travis-ci.org/nforge/yobi)
 
 
-Yobi, collaborative SW development platform.<br/>(Currently, 0.4 - work in progress)
+Yobi, collaborative SW development platform.<br/>(Currently, 0.4a - work in progress)
 
 
 What is Yobi?
@@ -62,7 +62,7 @@ You can also make your own yobi directory in any other place. But in that case, 
 
     ../play
 
-or (windows)
+or (for windows)
 
     ..\play
 
@@ -157,7 +157,7 @@ java 7(1.7) 이상이어야 합니다.
 
     ../play
 
-또는 (윈도우 사용자일 경우)
+혹은 (MS윈도우즈 사용자일 경우)
 
     ..\play
 
