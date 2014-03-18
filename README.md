@@ -1,4 +1,4 @@
-<a name="english"></a>
+﻿<a name="english"></a>
 [[한국어]](#korean)
 Yobi
 =======
@@ -61,6 +61,10 @@ You can also make your own yobi directory in any other place. But in that case, 
 ### run play framework
 
     ../play
+
+or (windows)
+
+    ..\play
 
 Required files will be download automatically. In the first time, it may take about 10 min or more.
 
@@ -152,6 +156,10 @@ java 7(1.7) 이상이어야 합니다.
 ### 상단에 있는 play 실행파일 실행
 
     ../play
+
+또는 (윈도우 사용자일 경우)
+
+    ..\play
 
 실행하면 필요한 파일들을 web에서 내려받습니다. 첫 실행시 네트워크 상황에 따라 10여분 가까이 소요될 수 있습니다.
 
