@@ -70,7 +70,7 @@
                 sMilestoneState = sMilestoneState.toLowerCase();
                 var sMilestoneStateLabel = Messages("milestone.state." + sMilestoneState);
                 var sTplMilestoneItem = $("#tplSElect2FormatMilestone").text()
-                                    || '<div title="${name}"><span class="label milestone-state ${state}">${stateLabel}</span> ${name}</div>';
+                                    || '<div title="[${stateLabel}] ${name}">${name}</div>';
 
                 var sText = $yobi.tmpl(sTplMilestoneItem, {
                     "name" : oItem.text.trim(),

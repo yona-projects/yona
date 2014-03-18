@@ -92,7 +92,7 @@
                         <dl id="milestoneOption" class="issue-option">
                             <dt>@Messages("milestone")</dt>
                             <dd>
-                            @defining(Milestone.findByProjectId(project.id)) { milestones =>
+                            @defining(Milestone.findOpenMilestones(project.id)) { milestones =>
                                 @if(milestones.isEmpty()) {
                                     <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" target="_blank" class="ybtn ybtn-success ybtn-small">@Messages("milestone.menu.new")</a>
                                 } else {
