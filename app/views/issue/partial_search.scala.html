@@ -132,7 +132,16 @@
                                         @Messages("issue.noMilestone")
                                     </option>
                                 }
-                                @for(milestone <- Milestone.findByProjectId(project.id)) {
+                                @for(milestone <- Milestone.findMilestones(project.id, State.OPEN, "dueDate", Direction.DESC)){
+                                    <option value="@milestone.id"
+                                            data-state="@milestone.state"
+                                    @if(param.milestoneId != null && param.milestoneId == milestone.id){
+                                        selected
+                                    }>
+                                        @milestone.title
+                                    </option>
+                                }
+                                @for(milestone <- Milestone.findMilestones(project.id, State.CLOSED, "dueDate", Direction.DESC)){
                                     <option value="@milestone.id"
                                             data-state="@milestone.state"
                                     @if(param.milestoneId != null && param.milestoneId == milestone.id){

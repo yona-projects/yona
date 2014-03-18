@@ -95,34 +95,10 @@
             }
         };
 
-        var htSorters = {
-            "milestone": function(aResults){
-                aResults.sort(function(a,b){
-                    var sTextA = a.text.trim();
-                    var sTextB = b.text.trim();
-                    var sStateA = $(a.element).data("state");
-                    var sStateB = $(b.element).data("state");
-
-                    if(!(sStateA && sStateB)){
-                        return 0;
-                    }
-
-                    // 기본적으로는 상태순 정렬
-                    // 상태가 같은 항목끼리는 이름 알파벳 순으로
-                    return (sStateA === sStateB) ?
-                            (sTextA < sTextB ? -1 : 1) :
-                            (sStateB < sStateA ? -1 : 1);
-                });
-
-                return aResults;
-            }
-        };
-
         // Use customized format if specified format exists
         var sFormatName = welSelect.data("format");
         var fFormat = sFormatName ? htFormat[sFormatName.toLowerCase()] : null;
         var fMatcher = sFormatName ? htMatchers[sFormatName.toLowerCase()] : null;
-        var fSorter = sFormatName ? htSorters[sFormatName.toLowerCase()] : null;
 
         if(typeof fFormat === "function"){
             htOpt = $.extend(htOpt, {
