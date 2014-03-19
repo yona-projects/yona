@@ -26,14 +26,12 @@ import play.mvc.Http.Context;
 import play.mvc.Result;
 
 /**
- * /{user.loginId}/{project.name}/** 패턴의 요청에 해당하는 프로젝트가 존재하는지 확인하는 액션.
- * - URL에 해당하는 프로젝트가 없을 때 404 Not Found로 응답한다.
- * - URL에 해당하는 프로젝트가 있을 때 요청 처리한다.
+ * {@code AbstractProjectCheckAction}에서 제공하는 기능만을 실행하는 액션.
  *
  * @see {@link AbstractProjectCheckAction}
  * @author Keesun Baik
  */
-public class NullProjectCheckAction extends AbstractProjectCheckAction<Void> {
+public class DefaultProjectCheckAction extends AbstractProjectCheckAction<Void> {
     @Override
     protected Result call(Project project, Context context, PathParser parser) throws Throwable {
         return this.delegate.call(context);

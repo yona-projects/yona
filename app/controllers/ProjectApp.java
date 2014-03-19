@@ -1,7 +1,7 @@
 package controllers;
 
 import actions.AnonymousCheckAction;
-import actions.NullProjectCheckAction;
+import actions.DefaultProjectCheckAction;
 
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Junction;
@@ -655,7 +655,7 @@ public class ProjectApp extends Controller {
      * @return 프로젝트, 멤버목록, Role 목록
      */
     @Transactional
-    @With(NullProjectCheckAction.class)
+    @With(DefaultProjectCheckAction.class)
     public static Result newMember(String loginId, String projectName) {
         // TODO change into view validation
         Form<User> addMemberForm = form(User.class).bindFromRequest();
@@ -712,7 +712,7 @@ public class ProjectApp extends Controller {
      * @return the result
      */
     @Transactional
-    @With(NullProjectCheckAction.class)
+    @With(DefaultProjectCheckAction.class)
     public static Result deleteMember(String loginId, String projectName, Long userId) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
@@ -925,7 +925,7 @@ public class ProjectApp extends Controller {
      * @return the result
      */
     @Transactional
-    @With(NullProjectCheckAction.class)
+    @With(DefaultProjectCheckAction.class)
     public static Result attachLabel(String ownerName, String projectName) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
@@ -996,7 +996,7 @@ public class ProjectApp extends Controller {
      * @return the result
      */
     @Transactional
-    @With(NullProjectCheckAction.class)
+    @With(DefaultProjectCheckAction.class)
     public static Result detachLabel(String ownerName, String projectName, Long id) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 

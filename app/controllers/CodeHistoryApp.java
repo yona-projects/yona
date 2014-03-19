@@ -1,6 +1,6 @@
 package controllers;
 
-import actions.NullProjectCheckAction;
+import actions.DefaultProjectCheckAction;
 import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
 import models.Attachment;
@@ -59,7 +59,7 @@ public class CodeHistoryApp extends Controller {
      * @throws GitAPIException
      * @throws SVNException
      */
-    @With(NullProjectCheckAction.class)
+    @With(DefaultProjectCheckAction.class)
     public static Result historyUntilHead(String ownerName, String projectName) throws IOException,
             UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
@@ -218,7 +218,7 @@ public class CodeHistoryApp extends Controller {
         return toView;
     }
 
-    @With(NullProjectCheckAction.class)
+    @With(DefaultProjectCheckAction.class)
     @IsAllowed(value = Operation.DELETE, resourceType = ResourceType.COMMIT_COMMENT)
     public static Result deleteComment(String ownerName, String projectName, String commitId,
                                        Long id) {

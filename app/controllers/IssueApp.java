@@ -1,6 +1,6 @@
 package controllers;
 
-import actions.NullProjectCheckAction;
+import actions.DefaultProjectCheckAction;
 import actions.AnonymousCheckAction;
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
@@ -278,7 +278,7 @@ public class IssueApp extends AbstractPostingApp {
      * @param number 이슈 번호
      * @return
      */
-    @With(NullProjectCheckAction.class)
+    @With(DefaultProjectCheckAction.class)
     public static Result issue(String ownerName, String projectName, Long number) {
         Project project = ProjectApp.getProject(ownerName, projectName);
 
@@ -380,7 +380,7 @@ public class IssueApp extends AbstractPostingApp {
      * @throws IOException
      */
     @Transactional
-    @With(NullProjectCheckAction.class)
+    @With(DefaultProjectCheckAction.class)
     public static Result massUpdate(String ownerName, String projectName) {
         Form<IssueMassUpdate> issueMassUpdateForm
                 = new Form<>(IssueMassUpdate.class).bindFromRequest();
@@ -642,7 +642,7 @@ public class IssueApp extends AbstractPostingApp {
      * @throws IOException
      * @see {@link AbstractPostingApp#editPosting}
      */
-    @With(NullProjectCheckAction.class)
+    @With(DefaultProjectCheckAction.class)
     public static Result editIssue(String ownerName, String projectName, Long number) {
         Form<Issue> issueForm = new Form<>(Issue.class).bindFromRequest();
 
@@ -842,7 +842,7 @@ public class IssueApp extends AbstractPostingApp {
      * @see {@link AbstractPostingApp#delete(play.db.ebean.Model, models.resource.Resource, Call)}
      */
     @Transactional
-    @With(NullProjectCheckAction.class)
+    @With(DefaultProjectCheckAction.class)
     public static Result deleteComment(String ownerName, String projectName, Long issueNumber,
             Long commentId) {
         Comment comment = IssueComment.find.byId(commentId);
