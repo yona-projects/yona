@@ -93,7 +93,7 @@
     <a href="@routes.UserApp.userInfo(pull.receiver.loginId)" class="avatar-wrap small">
         <img src="@pull.receiver.avatarUrl" width="25" height="25">
     </a>
-    <a href="@routes.UserApp.userInfo(pull.receiver.loginId)">@pull.receiver.name</a>@Messages("pullRequest.merged.the.pullrequest")
+    @Html(Messages("pullRequest.merged.the.pullrequest", pull.receiver.name, routes.UserApp.userInfo(pull.receiver.loginId)))
     @if(UserApp.currentUser().equals(pull.contributor)) {
         @if(canDeleteBranch) {
         <code>@pull.fromBranch</code> @Messages("pullRequest.delete.frombranch.message")
