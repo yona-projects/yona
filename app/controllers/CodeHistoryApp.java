@@ -1,6 +1,7 @@
 package controllers;
 
 import actions.DefaultProjectCheckAction;
+import actions.NullProjectCheckAction;
 import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
 import models.Attachment;
@@ -22,6 +23,7 @@ import playRepository.Commit;
 import playRepository.FileDiff;
 import playRepository.PlayRepository;
 import playRepository.RepositoryService;
+import utils.AccessControl;
 import utils.ErrorViews;
 import utils.HttpUtil;
 import utils.PullRequestCommit;
@@ -176,7 +178,7 @@ public class CodeHistoryApp extends Controller {
         }
     }
 
-    @IsCreatable(ResourceType.COMMIT_COMMENT)
+    @With(NullProjectCheckAction.class)
     public static Result newComment(String ownerName, String projectName, String commitId)
             throws IOException, ServletException, SVNException {
         Form<CommitComment> codeCommentForm = new Form<>(CommitComment.class)
@@ -188,8 +190,15 @@ public class CodeHistoryApp extends Controller {
             return badRequest(ErrorViews.BadRequest.render("error.validation", project));
         }
 
-        if (RepositoryService.getRepository(project).getCommit(commitId) == null) {
+        Commit commit = RepositoryService.getRepository(project).getCommit(commitId);
+
+        if (commit == null) {
             return notFound(notfound.render("error.notfound", project, request().path()));
+        }
+
+        if (!AccessControl.isResourceCreatable(
+                    UserApp.currentUser(), commit.asResource(project), ResourceType.COMMIT_COMMENT)) {
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         CommitComment codeComment = codeCommentForm.get();

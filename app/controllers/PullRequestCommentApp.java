@@ -1,5 +1,6 @@
 package controllers;
 
+import actions.NullProjectCheckAction;
 import models.Attachment;
 import models.NotificationEvent;
 import models.PullRequest;
@@ -10,6 +11,7 @@ import play.data.Form;
 import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Result;
+import play.mvc.With;
 import utils.AccessControl;
 import utils.Constants;
 import utils.ErrorViews;
@@ -26,12 +28,17 @@ import controllers.annotation.IsCreatable;
 public class PullRequestCommentApp extends Controller {
 
     @Transactional
-    @IsCreatable(ResourceType.PULL_REQUEST_COMMENT)
+    @With(NullProjectCheckAction.class)
     public static Result newComment(String ownerName, String projectName, Long pullRequestId) throws IOException {
         PullRequest pullRequest = PullRequest.findById(pullRequestId);
 
         if (pullRequest == null) {
             return notFound();
+        }
+
+        if (!AccessControl.isResourceCreatable(
+                    UserApp.currentUser(), pullRequest.asResource(), ResourceType.PULL_REQUEST_COMMENT)) {
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", pullRequest.toProject));
         }
 
         String referer = request().getHeader("Referer");

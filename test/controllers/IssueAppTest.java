@@ -29,6 +29,7 @@ public class IssueAppTest {
 
     private String projectOwner = "yobi";
     private String projectName = "projectYobi";
+    private Project project;
 
     @BeforeClass
     public static void beforeClass() {
@@ -42,7 +43,9 @@ public class IssueAppTest {
         app = support.Helpers.makeTestApplication();
         Helpers.start(app);
 
-        Project project = Project.findByOwnerAndProjectName(projectOwner, projectName);
+        project = Project.findByOwnerAndProjectName(projectOwner, projectName);
+        project.setIsPublic(false);
+
         admin = User.findByLoginId("admin");
         manager = User.findByLoginId("yobi");
         member = User.findByLoginId("laziel");
@@ -59,10 +62,10 @@ public class IssueAppTest {
 
         assertThat(this.admin.isSiteManager()).describedAs("admin is Site Admin.").isTrue();
         assertThat(ProjectUser.isManager(manager.id, project.id)).describedAs("manager is a manager").isTrue();
-        assertThat(ProjectUser.isManager(member.id, project.id)).describedAs("member is not a manager").isFalse();
+        assertThat(ProjectUser.isManager(member.id, project.id)).describedAs("member is a manager").isFalse();
         assertThat(ProjectUser.isMember(member.id, project.id)).describedAs("member is a member").isTrue();
-        assertThat(ProjectUser.isMember(author.id, project.id)).describedAs("author is not a member").isFalse();
-        assertThat(project.isPublic).isTrue();
+        assertThat(ProjectUser.isMember(author.id, project.id)).describedAs("author is a member").isFalse();
+        assertThat(project.isPublic).describedAs("project is public").isFalse();
     }
 
     @After
@@ -127,6 +130,10 @@ public class IssueAppTest {
 
     @Test
     public void editByNonmember() {
+        // Given
+        project.setIsPublic(true);
+        project.update();
+
         // When
         Result result = editBy(nonmember);
 
@@ -174,6 +181,10 @@ public class IssueAppTest {
 
     @Test
     public void deleteByNonmember() {
+        // Given
+        project.setIsPublic(true);
+        project.update();
+
         // When
         Result result = deleteBy(nonmember);
 
@@ -221,6 +232,10 @@ public class IssueAppTest {
 
     @Test
     public void postByAnonymous() {
+        // Given
+        project.setIsPublic(true);
+        project.update();
+
         // When
         Result result = postBy(anonymous);
 
@@ -230,6 +245,10 @@ public class IssueAppTest {
 
     @Test
     public void postByNonmember() {
+        // Given
+        project.setIsPublic(true);
+        project.update();
+
         // When
         Result result = postBy(nonmember);
 
@@ -266,6 +285,10 @@ public class IssueAppTest {
 
     @Test
     public void commentByAnonymous() {
+        // Given
+        project.setIsPublic(true);
+        project.update();
+
         // When
         Result result = commentBy(anonymous);
 
@@ -275,6 +298,10 @@ public class IssueAppTest {
 
     @Test
     public void commentByNonmember() {
+        // Given
+        project.setIsPublic(true);
+        project.update();
+
         // When
         Result result = commentBy(nonmember);
 
@@ -320,6 +347,8 @@ public class IssueAppTest {
     public void watch() {
         // Given
         Resource resource = issue.asResource();
+        project.setIsPublic(true);
+        project.update();
 
         // When
         Result result = callAction(
@@ -336,7 +365,46 @@ public class IssueAppTest {
     }
 
     @Test
+    public void watchByAuthor() {
+        // Given
+        Resource resource = issue.asResource();
+
+        // When
+        Result result = callAction(
+                controllers.routes.ref.WatchApp.watch(resource.asParameter()),
+                fakeRequest()
+                        .withSession(UserApp.SESSION_USERID, author.id.toString())
+        );
+
+        // Then
+        issue.refresh();
+        assertThat(status(result)).isEqualTo(OK);
+    }
+
+    @Test
     public void unwatch() {
+        // Given
+        Resource resource = issue.asResource();
+        project.setIsPublic(true);
+        project.update();
+
+
+        // When
+        Result result = callAction(
+                controllers.routes.ref.WatchApp.unwatch(resource.asParameter()),
+                fakeRequest()
+                        .withSession(UserApp.SESSION_USERID, nonmember.id.toString())
+        );
+
+        // Then
+        issue.refresh();
+        assertThat(status(result)).isEqualTo(OK);
+        assertThat(issue.getWatchers().contains(nonmember))
+            .describedAs("A user becomes a unwatcher if the user explictly choose not to watch the issue.").isFalse();
+    }
+
+    @Test
+    public void unwatchByAuthor() {
         // Given
         Resource resource = issue.asResource();
 
@@ -350,7 +418,5 @@ public class IssueAppTest {
         // Then
         issue.refresh();
         assertThat(status(result)).isEqualTo(OK);
-        assertThat(issue.getWatchers().contains(author))
-            .describedAs("A user becomes a unwatcher if the user explictly choose not to watch the issue.").isFalse();
     }
 }

@@ -140,6 +140,7 @@ public abstract class Resource {
     abstract public ResourceType getType();
     public Resource getContainer() { return null; }
     public Long getAuthorId() { return null; }
+    public boolean isAuthoredBy(User user) { return getAuthorId() != null && getAuthorId().equals(user.id); }
     public void delete() { throw new UnsupportedOperationException(); }
 
     /**

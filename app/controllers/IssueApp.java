@@ -1,6 +1,7 @@
 package controllers;
 
 import actions.DefaultProjectCheckAction;
+import actions.NullProjectCheckAction;
 import actions.AnonymousCheckAction;
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
@@ -278,7 +279,7 @@ public class IssueApp extends AbstractPostingApp {
      * @param number 이슈 번호
      * @return
      */
-    @With(DefaultProjectCheckAction.class)
+    @With(NullProjectCheckAction.class)
     public static Result issue(String ownerName, String projectName, Long number) {
         Project project = ProjectApp.getProject(ownerName, projectName);
 
@@ -380,7 +381,7 @@ public class IssueApp extends AbstractPostingApp {
      * @throws IOException
      */
     @Transactional
-    @With(DefaultProjectCheckAction.class)
+    @With(NullProjectCheckAction.class)
     public static Result massUpdate(String ownerName, String projectName) {
         Form<IssueMassUpdate> issueMassUpdateForm
                 = new Form<>(IssueMassUpdate.class).bindFromRequest();
@@ -560,11 +561,15 @@ public class IssueApp extends AbstractPostingApp {
      * @param number 이슈 번호
      * @return
      */
-    @With(AnonymousCheckAction.class)
-    @IsAllowed(resourceType = ResourceType.ISSUE_POST, value = Operation.UPDATE)
+    @With(NullProjectCheckAction.class)
     public static Result editIssueForm(String ownerName, String projectName, Long number) {
         Project project = ProjectApp.getProject(ownerName, projectName);
         Issue issue = Issue.findByNumber(project, number);
+
+        if (!AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
+        }
+
         Form<Issue> editForm = new Form<>(Issue.class).fill(issue);
 
         return ok(edit.render("title.editIssue", editForm, issue, project));
@@ -639,7 +644,7 @@ public class IssueApp extends AbstractPostingApp {
      * @throws IOException
      * @see {@link AbstractPostingApp#editPosting}
      */
-    @With(DefaultProjectCheckAction.class)
+    @With(NullProjectCheckAction.class)
     public static Result editIssue(String ownerName, String projectName, Long number) {
         Form<Issue> issueForm = new Form<>(Issue.class).bindFromRequest();
 
@@ -704,7 +709,7 @@ public class IssueApp extends AbstractPostingApp {
      * @ see {@link AbstractPostingApp#delete(play.db.ebean.Model, models.resource.Resource, Call)}
      */
     @Transactional
-    @IsAllowed(value = Operation.DELETE, resourceType = ResourceType.ISSUE_POST)
+    @With(NullProjectCheckAction.class)
     public static Result deleteIssue(String ownerName, String projectName, Long number) {
         Project project = ProjectApp.getProject(ownerName, projectName);
         Issue issue = Issue.findByNumber(project, number);
@@ -732,12 +737,17 @@ public class IssueApp extends AbstractPostingApp {
      * @see {@link AbstractPostingApp#newComment(models.Comment, play.data.Form}
      */
     @Transactional
-    @IsCreatable(ResourceType.ISSUE_COMMENT)
+    @With(NullProjectCheckAction.class)
     public static Result newComment(String ownerName, String projectName, Long number) throws IOException {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         final Issue issue = Issue.findByNumber(project, number);
         Call redirectTo = routes.IssueApp.issue(project.owner, project.name, number);
         Form<IssueComment> commentForm = new Form<>(IssueComment.class).bindFromRequest();
+
+        if (!AccessControl.isResourceCreatable(
+                    UserApp.currentUser(), issue.asResource(), ResourceType.ISSUE_COMMENT)) {
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
+        }
 
         if (commentForm.hasErrors()) {
             return badRequest(ErrorViews.BadRequest.render("error.validation", project));
@@ -837,7 +847,7 @@ public class IssueApp extends AbstractPostingApp {
      * @see {@link AbstractPostingApp#delete(play.db.ebean.Model, models.resource.Resource, Call)}
      */
     @Transactional
-    @With(DefaultProjectCheckAction.class)
+    @With(NullProjectCheckAction.class)
     public static Result deleteComment(String ownerName, String projectName, Long issueNumber,
             Long commentId) {
         Comment comment = IssueComment.find.byId(commentId);

@@ -86,6 +86,17 @@ public abstract class Commit {
             public ResourceType getType() {
                 return ResourceType.COMMIT;
             }
+
+            @Override
+            public Long getAuthorId() {
+                User author = getAuthor();
+
+                if (author != null) {
+                    return getAuthor().id;
+                } else {
+                    return null;
+                }
+            }
         };
     }
 }

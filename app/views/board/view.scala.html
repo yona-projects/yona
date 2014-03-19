@@ -102,7 +102,7 @@
     	    }
     		</ul>
 
-            @common.commentForm(project, ResourceType.NONISSUE_COMMENT, routes.BoardApp.newComment(project.owner, project.name, post.getNumber).toString())
+            @common.commentForm(post.asResource(), ResourceType.NONISSUE_COMMENT, routes.BoardApp.newComment(project.owner, project.name, post.getNumber).toString())
     	</div>
 
     	@help.keymap("boardDetail", project)

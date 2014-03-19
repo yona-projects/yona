@@ -293,8 +293,8 @@ public class Issue extends AbstractPosting implements LabelOwner {
             }
 
             @Override
-            public Long getAuthorId() {
-                return authorId;
+            public Resource getContainer() {
+                return Issue.this.asResource();
             }
         };
     }
