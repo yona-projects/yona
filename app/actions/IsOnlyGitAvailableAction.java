@@ -29,6 +29,7 @@ import utils.AccessLogger;
 import utils.ErrorViews;
 
 /**
+ * {@link actions.AbstractProjectCheckAction}의 추가작업으로,
  * 프로젝트가 Git 프로젝트인지 확인한다.
  *
  * @see {@link AbstractProjectCheckAction}

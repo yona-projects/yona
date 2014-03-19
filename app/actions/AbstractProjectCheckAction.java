@@ -37,10 +37,9 @@ import static play.mvc.Controller.flash;
 
 /**
  * /{user.loginId}/{project.name}/** 패턴의 요청에 해당하는 프로젝트가 존재하는지 확인하는 액션.
- * - URL에 해당하는 프로젝트가 없을 때 404 Not Found 로 응답한다.
- * - 현재 사용자가 URL에 해당하는 프로젝트에 읽기 권한이 없을 경우 404 Not Found 로 응답한다.
+ * - URL에 해당하는 프로젝트가 없거나 현재 사용자가 읽기 권한이 없을 때 403 Forbidden으로 응답한다.
  * - URL에 해당하는 프로젝트가 있을 때 {@link AbstractProjectCheckAction#call(Project, Context)} 을
- *   호출하여 이후 검증 과정을 수행한다.
+ *   호출하여 이후에 추가 검증 과정을 수행한다.
  *
  * @author Keesun Baik, kjkmadness
  */
