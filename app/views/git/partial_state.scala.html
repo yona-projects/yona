@@ -90,8 +90,7 @@
         <strong class="name">@pull.receiver.name</strong>
         <span class="loginid"> <strong>@{"@"}</strong>@pull.receiver.loginId</span>
     </a>
-    <span>@Messages("pullRequest.merged.the.pullrequest")</span>
-
+    @Html(Messages("pullRequest.merged.the.pullrequest", pull.receiver.name, routes.UserApp.userInfo(pull.receiver.loginId)))
     @if(UserApp.currentUser().equals(pull.contributor)) {
         @if(canDeleteBranch) {
         <code>@pull.fromBranch</code> @Messages("pullRequest.delete.frombranch.message")
