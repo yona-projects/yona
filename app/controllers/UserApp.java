@@ -25,7 +25,9 @@ import com.avaje.ebean.annotation.Transactional;
 import models.*;
 import models.enumeration.Operation;
 import models.enumeration.UserState;
-import org.apache.commons.lang.StringUtils;
+
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.crypto.RandomNumberGenerator;
 import org.apache.shiro.crypto.SecureRandomNumberGenerator;
 import org.apache.shiro.crypto.hash.Sha256Hash;
@@ -55,6 +57,8 @@ public class UserApp extends Controller {
     public static final String SESSION_LOGINID = "loginId";
     public static final String SESSION_USERNAME = "userName";
     public static final String TOKEN = "yobi.token";
+    public static final String TOKEN_SEPARATOR = ":";
+    public static final int TOKEN_LENGTH = 2;
     public static final int MAX_AGE = 30*24*60*60;
     public static final String DEFAULT_AVATAR_URL
             = routes.Assets.at("images/default-avatar-128.png").url();
@@ -66,6 +70,7 @@ public class UserApp extends Controller {
     public static final String DAYS_AGO_COOKIE = "daysAgo";
     public static final String DEFAULT_GROUP = "own";
     public static final String DEFAULT_SELECTED_TAB = "projects";
+    public static final String TOKEN_USER = "TOKEN_USER";
 
     /**
      * ajax 를 이용한 사용자 검색
@@ -177,7 +182,7 @@ public class UserApp extends Controller {
 
         User authenticate = authenticateWithPlainPassword(sourceUser.loginId, sourceUser.password);
 
-        if (authenticate != null) {
+        if (!authenticate.isAnonymous()) {
             addUserInfoToSession(authenticate);
             if (sourceUser.rememberMe) {
                 setupRememberMe(authenticate);
@@ -200,55 +205,27 @@ public class UserApp extends Controller {
     /**
      * loginId 와 hash 값을 이용해서 사용자 인증.
      * 인증에 성공하면 DB 에서 조회된 사용자 정보를 리턴
-     * 인증에 실패하면 null 리턴
+     * 인증에 실패하면 {@code User.anonymous} 리턴
      *
      * @param loginId 로그인ID
      * @param password hash된 비밀번호
      * @return
      */
     public static User authenticateWithHashedPassword(String loginId, String password) {
-        User user = User.findByLoginId(loginId);
-        return authenticate(user, password);
+        return authenticate(loginId, password, true);
     }
 
     /**
      * loginId 와 plain password 를 이용해서 사용자 인증
      * 인증에 성공하면 DB 에서 조회된 사용자 정보를 리턴
-     * 인증에 실패하면 null 리턴
+     * 인증에 실패하면 {@code User.anonymous} 리턴
      *
      * @param loginId 로그인ID
      * @param password 입력받은 비밀번호
      * @return
      */
     public static User authenticateWithPlainPassword(String loginId, String password) {
-        User user = User.findByLoginId(loginId);
-        if(user == User.anonymous) {
-            return null;
-        }
-        return authenticate(user, hashedPassword(password, user.passwordSalt));
-    }
-
-    /**
-     * 로그인 유지기능 사용 여부
-     * 로그인 유지 기능이 사용중이면 로그인쿠키를 생성하고 true 를 리턴
-     * 사용중이지 않으면 false 리턴
-     *
-     * @return 로그인 유지기능 사용 여부
-     */
-    public static boolean isRememberMe() {
-        // Remember Me
-        Cookie cookie = request().cookies().get(TOKEN);
-        if (cookie != null) {
-            String[] subject = cookie.value().split(":");
-            Logger.debug(cookie.value());
-            if(subject.length < 2) return false;
-            User user = authenticateWithHashedPassword(subject[0], subject[1]);
-            if (user != null) {
-                addUserInfoToSession(user);
-            }
-            return true;
-        }
-        return false;
+        return authenticate(loginId, password, false);
     }
 
     /**
@@ -350,22 +327,108 @@ public class UserApp extends Controller {
     }
 
     /**
-     * 세션에 저장된 정보를 이용해서 사용자 객체를 생성한다
-     * 세션에 저장된 정보가 없다면 anonymous 객체가 리턴된다
-     *
-     * @return 세션 정보 기준 조회된 사용자 객체
+     * 세션에 저장된 정보를 이용해서 사용자 객체를 생성한다.
+     * 세션에 저장된 정보가 없다면 토큰 정보를 이용해서 사용자 객체를 생성한다.
+     * 세션과 토큰 쿠키에 저장된 정보가 없다면 anonymous 객체가 리턴된다.
+     * @return
      */
     public static User currentUser() {
+        User user = getUserFromSession();
+        if (!user.isAnonymous()) {
+            return user;
+        }
+        return getUserFromContext();
+    }
+
+    /**
+     * 세션 정보를 이용해서 사용자 객체를 가져온다.
+     * 세션 정보가 없거나 잘못된 정보라면 anonymous 객체를 반환한다.
+     * 잘못된 정보의 경우 세션 정보를 삭제한다.
+     * @return
+     */
+    private static User getUserFromSession() {
         String userId = session().get(SESSION_USERID);
-        if (StringUtils.isEmpty(userId) || !StringUtils.isNumeric(userId)) {
+        if (userId == null) {
             return User.anonymous;
         }
-        User foundUser = User.find.byId(Long.valueOf(userId));
-        if (foundUser == null) {
-            processLogout();
+        if (!StringUtils.isNumeric(userId)) {
+            return invalidSession();
+        }
+        User user = User.find.byId(Long.valueOf(userId));
+        if (user == null) {
+            return invalidSession();
+        }
+        return user;
+    }
+
+    /**
+     * {@link Http.Context#args} 에 저장된 사용자 객체를 가져온다.
+     * 저장된 객체가 없을 경우 {@link UserApp#initTokenUser()} 를 호출해서 객체를 생성, 저장한뒤 가져온다.
+     * @return
+     * @see UserApp#initTokenUser()
+     */
+    private static User getUserFromContext() {
+        Object cached = Http.Context.current().args.get(TOKEN_USER);
+        if (cached instanceof User) {
+            return (User) cached;
+        }
+        initTokenUser();
+        return (User) Http.Context.current().args.get(TOKEN_USER);
+    }
+
+    /**
+     * 토큰 정보를 이용해 생성한 사용자 객체를 {@link Http.Context#args} 에 저장한다.
+     * 생성된 사용자가 {@link User#anonymous} 가 아니고 존재하는 세션 정보가 없다면 세션 정보를 생성한다.
+     * @see UserApp#getUserFromToken()
+     */
+    public static void initTokenUser() {
+        User user = getUserFromToken();
+        Http.Context.current().args.put(TOKEN_USER, user);
+        if (!user.isAnonymous() && getUserFromSession().isAnonymous()) {
+            addUserInfoToSession(user);
+        }
+    }
+
+    /**
+     * 토큰 정보를 이용해서 사용자 객체를 가져온다.
+     * 토큰 정보가 없거나 잘못된 정보라면 anonymous 객체를 반환한다.
+     * 잘못된 정보의 경우 토큰 정보를 삭제한다.
+     * @return
+     */
+    private static User getUserFromToken() {
+        Cookie cookie = request().cookies().get(TOKEN);
+        if (cookie == null) {
             return User.anonymous;
         }
-        return foundUser;
+        String[] subject =  StringUtils.split(cookie.value(), TOKEN_SEPARATOR);
+        if (ArrayUtils.getLength(subject) != TOKEN_LENGTH) {
+            return invalidToken();
+        }
+        User user = authenticateWithHashedPassword(subject[0], subject[1]);
+        if (user.isAnonymous()) {
+            return invalidToken();
+        }
+        return user;
+    }
+
+    /**
+     * 세션 정보가 존재하지만 잘못된 정보일 경우
+     * 정보를 삭제하고 anonymous 를 반환
+     * @return
+     */
+    private static User invalidSession() {
+        session().clear();
+        return User.anonymous;
+    }
+
+    /**
+     * 토큰 정보가 존재하지만 잘못된 정보 일 경우
+     * 정보를 삭제하고 anonymous 를 반환
+     * @return
+     */
+    private static User invalidToken() {
+        response().discardCookie(TOKEN);
+        return User.anonymous;
     }
 
     /**
@@ -769,13 +832,16 @@ public class UserApp extends Controller {
      *
      * 사용자 객체와 hash 값을 이용
      */
-    private static User authenticate(User user, String password) {
-        if (!user.isAnonymous()) {
-            if (user.password.equals(password)) {
-                return user;
-            }
+    private static User authenticate(String loginId, String password, boolean hashed) {
+        User user = User.findByLoginId(loginId);
+        if (user.isAnonymous()) {
+            return user;
         }
-        return null;
+        String hashedPassword = hashed ? password : hashedPassword(password, user.passwordSalt);
+        if (StringUtils.equals(user.password, hashedPassword)) {
+            return user;
+        }
+        return User.anonymous;
     }
 
     /*

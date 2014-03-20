@@ -2,17 +2,43 @@ package utils;
 
 import static org.junit.Assert.*;
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.assertions.MapAssert.entry;
+import static org.mockito.Mockito.*;
+
+import static play.test.Helpers.*;
+
+import static support.Helpers.*;
 
 import java.io.UnsupportedEncodingException;
 
 import models.User;
 
 import org.apache.commons.codec.binary.Base64;
-import org.junit.Test;
+import org.junit.*;
 
+import controllers.UserApp;
+
+import play.mvc.Action;
+import play.mvc.Http;
+import play.mvc.Http.*;
+import play.test.FakeApplication;
+
+import support.ContextTest;
 import utils.BasicAuthAction;
 
-public class BasicAuthActionTest {
+public class BasicAuthActionTest extends ContextTest {
+    private FakeApplication application;
+
+    @Before
+    public void before() {
+        application = makeTestApplication();
+        start(application);
+    }
+
+    @After
+    public void after() {
+        stop(application);
+    }
 
     @Test
     public void parseCredentials() {
@@ -77,4 +103,41 @@ public class BasicAuthActionTest {
         }
     }
 
+    @Test
+    public void call() throws Throwable {
+        // Given
+        String loginId = "kjkmadness";
+        String password = "pass";
+        String credential = "Basic "
+                + new String(Base64.encodeBase64((loginId + ":" + password).getBytes("UTF-8")));
+        User user = User.findByLoginId(loginId);
+        Context context = context().withHeader(Http.HeaderNames.AUTHORIZATION, credential);
+        BasicAuthAction action = new BasicAuthAction();
+        action.delegate = mock(Action.class);
+
+        // When
+        action.call(context);
+
+        // Then
+        assertThat(context.session()).includes(
+                entry(UserApp.SESSION_USERID, String.valueOf(user.id)),
+                entry(UserApp.SESSION_LOGINID, user.loginId),
+                entry(UserApp.SESSION_USERNAME, user.name));
+        verify(action.delegate).call(context);
+    }
+
+    @Test
+    public void callAnonymous() throws Throwable {
+        // Given
+        Context context = context();
+        BasicAuthAction action = new BasicAuthAction();
+        action.delegate = mock(Action.class);
+
+        // When
+        action.call(context);
+
+        // Then
+        assertThat(context.session()).isEmpty();
+        verify(action.delegate).call(context);
+    }
 }
