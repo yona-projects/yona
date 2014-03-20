@@ -12,6 +12,7 @@
 @import scala.collection.immutable.List
 @import scala.collection.JavaConversions._
 @import org.apache.commons.lang.StringEscapeUtils.escapeHtml;
+@import FileDiff.Error._
 
 @**
  * 변경 내용(Diff) 표시
@@ -23,10 +24,12 @@
   @if(diff.isFileModeChanged) {
     <tr><td class="linenum"><div class="line-number" data-line-num="@diff.oldMode"></div><span class="hidden">@diff.oldMode</span></td><td class="linenum"><div class="line-number" data-line-num="@diff.newMode"></div><span class="hidden">@diff.newMode</span></td><td class="isBinary">@Messages("code.fileModeChanged")</td></tr>
   }
-  @diff.getError match {
-    case FileDiff.Error.OTHERS_SIZE_EXCEEDED => { <tr><td colspan=3>@Messages("code.skipDiff")</td></tr> }
-    case FileDiff.Error.DIFF_SIZE_EXCEEDED => { <tr><td colspan=3>@Messages("code.tooBigDiff")</td></tr> }
-    case null => {
+  @null match {
+    case _ if diff.hasError(OTHERS_SIZE_EXCEEDED) => { <tr><td colspan=3>@Messages("code.skipDiff")</td></tr> }
+    case _ if diff.hasAnyError(A_SIZE_EXCEEDED, B_SIZE_EXCEEDED) => { <tr><td colspan=3>@Messages("code.tooBigFile")</td></tr> }
+    case _ if diff.hasError(DIFF_SIZE_EXCEEDED) => { <tr><td colspan=3>@Messages("code.tooBigDiff")</td></tr> }
+    case _ if diff.hasError => { <tr><td colspan=3>@Messages("code.unknownError")</td></tr> }
+    case _ => {
       @diff.getHunks match {
         case hunks if (hunks.size <= 0) => {
           @diff.isFileModeChanged match {
@@ -42,7 +45,6 @@
         }
       }
     }
-    case _ => { <tr><td colspan=3>@Messages("code.unknownError")</td></tr> }
   }
 }
 
@@ -96,14 +98,14 @@
  * @param isBinaryOverwritten 기존 데이터가 바이너리인 경우 true
 **@
 @renderAddedLines(diff: FileDiff, comments:Map[String, List[_ <: CodeComment]], isBinaryOverwritten: Boolean = false) = {
-  @diff.getError match {
-    case FileDiff.Error.OTHERS_SIZE_EXCEEDED => { <tr><td colspan=3>@Messages("code.skipDiff")</td></tr> }
-    case FileDiff.Error.B_SIZE_EXCEEDED => { <tr><td colspan=3>@Messages("code.tooBigDiff")</td></tr> }
+  @null match {
+    case _ if diff.hasError(OTHERS_SIZE_EXCEEDED) => { <tr><td colspan=3>@Messages("code.skipDiff")</td></tr> }
+    case _ if diff.hasError(B_SIZE_EXCEEDED) => { <tr><td colspan=3>@Messages("code.tooBigFile")</td></tr> }
+    case _ if diff.hasError => { <tr><td colspan=3>@Messages("code.unknownError")</td></tr> }
     case null => { <tr class="range"><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="hunk">@@@@ -0,0 +1,@diff.b.size @@@@</td></tr>
       @if(isBinaryOverwritten ) { @renderCodeIsBinary("remove", "-") }
       @renderRawFile("add", diff.pathB, diff.b, CodeComment.Side.B, "+", comments)
     }
-    case _ => { <tr><td colspan=3>@Messages("code.unknownError")</td></tr> }
   }
 }
 
@@ -115,14 +117,14 @@
  * @param isOverwrittenByBinary 새 데이터가 바이너리인 경우 true
 **@
 @renderRemovedLines(diff: FileDiff, comments:Map[String, List[_ <: CodeComment]], isOverwrittenByBinary: Boolean = false) = {
-  @diff.getError match {
-    case FileDiff.Error.OTHERS_SIZE_EXCEEDED => { <tr><td colspan=3>@Messages("code.skipDiff")</td></tr> }
-    case FileDiff.Error.A_SIZE_EXCEEDED => { <tr><td colspan=3>@Messages("code.tooBigDiff")</td></tr> }
-    case null => { <tr class="range"><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="hunk">@@@@ -1,@diff.a.size +0,0 @@@@</td></tr>
+  @null match {
+    case _ if diff.hasError(OTHERS_SIZE_EXCEEDED) => { <tr><td colspan=3>@Messages("code.skipDiff")</td></tr> }
+    case _ if diff.hasError(A_SIZE_EXCEEDED) => { <tr><td colspan=3>@Messages("code.tooBigFile")</td></tr> }
+    case _ if diff.hasError => { <tr><td colspan=3>@Messages("code.unknownError")</td></tr> }
+    case _ => { <tr class="range"><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="hunk">@@@@ -1,@diff.a.size +0,0 @@@@</td></tr>
       @renderRawFile("remove", diff.pathA, diff.a, CodeComment.Side.A, "-", comments)
       @if(isOverwrittenByBinary) { @renderCodeIsBinary("add", "+") }
     }
-    case _ => { <tr><td colspan=3>@Messages("code.unknownError")</td></tr> }
   }
 }
 

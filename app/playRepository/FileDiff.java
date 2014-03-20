@@ -17,7 +17,7 @@ import java.util.*;
 public class FileDiff {
     public static final int SIZE_LIMIT = 500 * 1024;
     public static final int LINE_LIMIT = 5000;
-    private Error error;
+    private Set<Error> errors = new HashSet<>();
     public enum Error {A_SIZE_EXCEEDED, B_SIZE_EXCEEDED, DIFF_SIZE_EXCEEDED, OTHERS_SIZE_EXCEEDED }
     public RawText a;
     public RawText b;
@@ -226,21 +226,44 @@ public class FileDiff {
         return oldMode.getBits() != newMode.getBits();
     }
 
-    public void setError(Error error) {
-        this.error = error;
+    public void addError(Error error) {
+        this.errors.add(error);
     }
 
-    public Error getError() {
-        if (error != null) {
-            return error;
-        } else if (a != null && isRawTextSizeExceeds(a)) {
-            return Error.A_SIZE_EXCEEDED;
-        } else if (b != null && isRawTextSizeExceeds(b)) {
-            return Error.B_SIZE_EXCEEDED;
-        } else if (getHunks() instanceof SizeExceededHunks) {
-            return Error.DIFF_SIZE_EXCEEDED;
-        } else {
-            return null;
+    public boolean hasAnyError(Error ... errors) {
+        refreshErrors();
+
+        for (Error error : errors) {
+            if (this.errors.contains(error)) {
+                return true;
+            }
         }
+
+        return false;
+    }
+
+    private void refreshErrors() {
+        if (getHunks() instanceof SizeExceededHunks) {
+            addError(Error.DIFF_SIZE_EXCEEDED);
+        }
+
+        // If editList is already produced, there is no need to concern about
+        // the size of the raw text a or b
+        if (editList == null && a != null && isRawTextSizeExceeds(a)) {
+            addError(Error.A_SIZE_EXCEEDED);
+        }
+        if (editList == null && b != null && isRawTextSizeExceeds(b)) {
+            addError(Error.B_SIZE_EXCEEDED);
+        }
+    }
+
+    public boolean hasError(Error error) {
+        refreshErrors();
+        return this.errors.contains(error);
+    }
+
+    public boolean hasError() {
+        refreshErrors();
+        return !this.errors.isEmpty();
     }
 }

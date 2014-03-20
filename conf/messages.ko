@@ -110,6 +110,7 @@ code.showCommit = 이 커밋 보기
 code.showcomments = 댓글 표시하기
 code.skipDiff = 다른 파일의 변경내역이 너무 많아서 이 파일의 변경내역은 생략합니다.
 code.tooBigDiff = 이 파일의 변경내역은 너무 커서 보여드릴 수 없습니다.
+code.tooBigFile = 이 파일은 너무 커서 보여드릴 수 없습니다.
 code.unknownError = 알 수 없는 에러가 발생하였습니다.
 common.attach.attachIfYouSave = 표시된 파일은 글을 저장하면 첨부됩니다.
 common.attach.clickToPost = 본문에 넣기
