@@ -73,11 +73,7 @@ public class BasicAuthAction extends Action<Object> {
         if (authUser != null) {
             return UserApp.authenticateWithPlainPassword(authUser.loginId, authUser.password);
         } else {
-            if (isAnonymousSupported) {
-                return User.anonymous;
-            } else {
-                return null;
-            }
+            return User.anonymous;
         }
     }
 
@@ -85,7 +81,6 @@ public class BasicAuthAction extends Action<Object> {
     public Result call(Context context) throws Throwable {
         User user;
         try {
-
             user = authenticate(context.request());
         } catch (MalformedCredentialsException error) {
             return AccessLogger.log(context.request()
@@ -97,13 +92,11 @@ public class BasicAuthAction extends Action<Object> {
                     , null);
         }
 
-        if (user == null) {
-            return AccessLogger.log(context.request()
-                    , unauthorized(context.response())
-                    , null);
-        }
-
-        if (!user.isAnonymous()) {
+        if (user.isAnonymous()) {
+            if (!isAnonymousSupported) {
+                return AccessLogger.log(context.request(), unauthorized(context.response()), null);
+            }
+        } else {
             UserApp.addUserInfoToSession(user);
         }
 

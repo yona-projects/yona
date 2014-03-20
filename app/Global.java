@@ -210,12 +210,8 @@ public class Global extends GlobalSettings {
         final long start = System.currentTimeMillis();
         return new Action.Simple() {
             public Result call(Http.Context ctx) throws Throwable {
-                if (ctx.session().get(UserApp.SESSION_USERID) == null) {
-                    UserApp.isRememberMe();
-                } else {
-                    UserApp.updatePreferredLanguage();
-                }
-
+                UserApp.initTokenUser();
+                UserApp.updatePreferredLanguage();
                 ctx.response().setHeader("Date", DateUtils.formatDate(new Date()));
                 ctx.response().setHeader("Cache-Control", "no-cache");
                 Result result = delegate.call(ctx);
