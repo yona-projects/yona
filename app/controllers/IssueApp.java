@@ -598,7 +598,7 @@ public class IssueApp extends AbstractPostingApp {
         return redirect(redirectTo);
     }
 
-    private static void addAssigneeChangedNotification(Issue modifiedIssue, Issue originalIssue, Call redirectTo) {
+    private static void addAssigneeChangedNotification(Issue modifiedIssue, Issue originalIssue) {
         if(!originalIssue.assignedUserEquals(modifiedIssue.assignee)) {
             Issue updatedIssue = Issue.finder.byId(originalIssue.id);
             User oldAssignee = null;
@@ -610,7 +610,7 @@ public class IssueApp extends AbstractPostingApp {
         }
     }
 
-    private static void addStateChangedNotification(Issue modifiedIssue, Issue originalIssue, Call redirectTo) {
+    private static void addStateChangedNotification(Issue modifiedIssue, Issue originalIssue) {
         if(modifiedIssue.state != originalIssue.state) {
             Issue updatedIssue = Issue.finder.byId(originalIssue.id);
             NotificationEvent notiEvent = NotificationEvent.afterStateChanged(originalIssue.state, updatedIssue);
@@ -618,7 +618,7 @@ public class IssueApp extends AbstractPostingApp {
         }
     }
 
-    private static void addBodyChangedNotification(Issue modifiedIssue, Issue originalIssue, Call redirectTo) {
+    private static void addBodyChangedNotification(Issue modifiedIssue, Issue originalIssue) {
         if (!modifiedIssue.body.equals(originalIssue.body)) {
             Issue updatedIssue = Issue.finder.byId(originalIssue.id);
             NotificationEvent notiEvent = NotificationEvent.afterIssueBodyChanged(originalIssue.body, updatedIssue);
@@ -676,9 +676,9 @@ public class IssueApp extends AbstractPostingApp {
 
         Result result = editPosting(originalIssue, issue, issueForm, redirectTo, updateIssueBeforeSave);
 
-        addAssigneeChangedNotification(issue, originalIssue, redirectTo);
-        addStateChangedNotification(issue, originalIssue, redirectTo);
-        addBodyChangedNotification(issue, originalIssue, redirectTo);
+        addAssigneeChangedNotification(issue, originalIssue);
+        addStateChangedNotification(issue, originalIssue);
+        addBodyChangedNotification(issue, originalIssue);
 
         return result;
     }
