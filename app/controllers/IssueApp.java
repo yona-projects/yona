@@ -674,11 +674,11 @@ public class IssueApp extends AbstractPostingApp {
             }
         };
 
+        Result result = editPosting(originalIssue, issue, issueForm, redirectTo, updateIssueBeforeSave);
+
         addAssigneeChangedNotification(issue, originalIssue, redirectTo);
         addStateChangedNotification(issue, originalIssue, redirectTo);
         addBodyChangedNotification(issue, originalIssue, redirectTo);
-
-        Result result = editPosting(originalIssue, issue, issueForm, redirectTo, updateIssueBeforeSave);
 
         return result;
     }
