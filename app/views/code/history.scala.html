@@ -123,6 +123,10 @@
                             @defining(getShowCommitURL(project, commit, path)){ showCommitURL =>
                             <tr>
                                 <td class="commit-id">
+                                    <button type="button" class="ybtn ybtn-mini btn-copy-commitId"
+                                            title="@Messages("code.copyCommitId")" data-commitId="@commit.getId()">
+                                        <i class="yobicon-copy"></i>
+                                    </button>
                                     <a href="@showCommitURL" title="@Messages("code.showCommit")">
                                         @commit.getShortId()
                                     </a>
@@ -196,6 +200,28 @@
 $(document).ready(function(){
     $("button.moreBtn").on("click", function(){
         $(this).next("pre.commitMsg.desc").toggleClass("hidden");
+    });
+
+    // Copy CommitId
+    $("#history").find(".btn-copy-commitId").each(function(i, el){
+        var welBtnCopy = $(el);
+
+        // zclip() works only in visible element
+        welBtnCopy.on("mouseenter", function(){
+            if(!welBtnCopy.data("zclipped")){
+                welBtnCopy.data("zclipped", true);
+
+                $(this).zclip({
+                    "path": "@routes.Assets.at("javascripts/lib/jquery/ZeroClipboard.swf")",
+                    "copy": function(){
+                        return $(this).data("commitid");
+                    },
+                    "afterCopy": function(){
+                        $yobi.notify("@Messages("code.copyCommitId.copied")", 1000);
+                    }
+                });
+            }
+        });
     });
 
     var htKeyMap = {};
