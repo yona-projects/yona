@@ -26,10 +26,12 @@ import utils.RouteUtil;
 import views.html.code.diff;
 import views.html.code.history;
 import views.html.code.nohead;
+import views.html.code.svnDiff;
 import views.html.error.notfound;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 public class CodeHistoryApp extends Controller {
@@ -159,9 +161,13 @@ public class CodeHistoryApp extends Controller {
                 return notFound(ErrorViews.NotFound.render("error.notfound", project));
             }
 
-            // Handling for svn will be added after implementing of review
-            // feature for git is done.
-            throw new UnsupportedOperationException();
+            List<CommitComment> comments = CommitComment.find.where()
+                .eq("commitId", commitId)
+                .eq("project.id", project.id)
+                .order("createdDate")
+                .findList();
+
+            return ok(svnDiff.render(project, commit, parentCommit, patch, comments, selectedBranch, path));
         } else {
             List<FileDiff> fileDiffs = repository.getDiff(commitId);
 
@@ -174,6 +180,35 @@ public class CodeHistoryApp extends Controller {
         }
     }
 
+    public static Result newSVNComment(String ownerName, String projectName, String commitId)
+            throws IOException, ServletException, SVNException {
+        Form<CommitComment> codeCommentForm = new Form<>(CommitComment.class)
+                .bindFromRequest();
+
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+
+        if (codeCommentForm.hasErrors()) {
+            return badRequest(ErrorViews.BadRequest.render("error.validation", project));
+        }
+
+        if (RepositoryService.getRepository(project).getCommit(commitId) == null) {
+            return notFound(notfound.render("error.notfound", project, request().path()));
+        }
+
+        CommitComment codeComment = codeCommentForm.get();
+        codeComment.project = project;
+        codeComment.commitId = commitId;
+        codeComment.createdDate = new Date();
+        codeComment.setAuthor(UserApp.currentUser());
+        codeComment.save();
+
+        Attachment.moveAll(UserApp.currentUser().asResource(), codeComment.asResource());
+
+        NotificationEvent.afterNewSVNCommitComment(project, codeComment);
+
+        return redirect(RouteUtil.getUrl(codeComment));
+    }
+
     @IsCreatable(ResourceType.COMMIT_COMMENT)
     public static Result newComment(String ownerName, String projectName, String commitId)
             throws IOException, ServletException, SVNException {
@@ -183,6 +218,10 @@ public class CodeHistoryApp extends Controller {
                 .bindFromRequest();
 
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+
+        if(project.vcs.equals(RepositoryService.VCS_SUBVERSION)) {
+            return newSVNComment(ownerName, projectName, commitId);
+        }
 
         if (reviewCommentForm.hasErrors()) {
             return badRequest(ErrorViews.BadRequest.render("error.validation", project));

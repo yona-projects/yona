@@ -512,6 +512,22 @@ public class NotificationEvent extends Model {
         NotificationEvent.add(notiEvent);
     }
 
+    public static void afterNewSVNCommitComment(Project project, CommitComment codeComment) throws IOException, SVNException, ServletException {
+        Commit commit = RepositoryService.getRepository(project).getCommit(codeComment.commitId);
+        Set<User> watchers = commit.getWatchers(project);
+        watchers.addAll(getMentionedUsers(codeComment.contents));
+        watchers.remove(UserApp.currentUser());
+
+        NotificationEvent notiEvent = createFromCurrentUser(codeComment);
+        notiEvent.title = formatReplyTitle(project, commit);
+        notiEvent.receivers = watchers;
+        notiEvent.eventType = NEW_COMMENT;
+        notiEvent.oldValue = null;
+        notiEvent.newValue = codeComment.contents;
+
+        NotificationEvent.add(notiEvent);
+    }
+
     /**
      * 멤버 등록 요청에 관련된 알림을 보낸다.
      *
