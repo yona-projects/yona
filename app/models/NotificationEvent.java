@@ -737,7 +737,7 @@ public class NotificationEvent extends Model {
     }
 
     private static String formatReplyTitle(Project project, User user) {
-        return String.format("Re: [%s] @%s wants to join your project", project.name, user.loginId);
+        return String.format("Re: [%s] @%s is accepted as a member", project.name, user.loginId);
     }
 
     private static Set<User> getMentionedUsers(String body) {
