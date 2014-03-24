@@ -2,13 +2,13 @@ package controllers;
 
 import models.CommentThread;
 import models.enumeration.Operation;
-import models.resource.Resource;
 import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.AccessControl;
 
-import static models.enumeration.ResourceType.getValue;
+import static models.CommentThread.ThreadState.CLOSED;
+import static models.CommentThread.ThreadState.OPEN;
 
 public class CommentThreadApp extends Controller {
 
@@ -20,7 +20,20 @@ public class CommentThreadApp extends Controller {
             return notFound();
         }
 
-        if (!AccessControl.isAllowed(UserApp.currentUser(), thread.asResource(), Operation.REOPEN)) {
+        Operation operation;
+
+        switch(state) {
+            case OPEN:
+                operation = Operation.REOPEN;
+                break;
+            case CLOSED:
+                operation = Operation.CLOSE;
+                break;
+            default:
+                throw new UnsupportedOperationException();
+        }
+
+        if (!AccessControl.isAllowed(UserApp.currentUser(), thread.asResource(), operation)) {
             return forbidden();
         }
 
@@ -31,10 +44,10 @@ public class CommentThreadApp extends Controller {
     }
 
     public static Result open(Long id) {
-        return updateState(id, CommentThread.ThreadState.OPEN);
+        return updateState(id, OPEN);
     }
 
     public static Result close(Long id) {
-        return updateState(id, CommentThread.ThreadState.CLOSED);
+        return updateState(id, CLOSED);
     }
 }
