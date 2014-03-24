@@ -1108,6 +1108,13 @@ public class GitRepository implements PlayRepository {
             revWalk.setTreeFilter(PathFilter.create(path));
             revWalk.sort(RevSort.REVERSE);
             RevCommit commit = revWalk.next();
+            // 어떤 파일이 처음 생성된 commit 은 반드시 존재해야 한다.
+            // 하지만 어떤 이유에선지 위와 같이 RevWalk 를 이용했을 때 그 commit 을 찾지 못할 때가 있다.
+            // 아래 commit 이 null 일 경우의 처리는 임시적인 것이며 추후 원인을 분석해서 특정 path 의
+            // 파일이 생성된 commit 을 항상 찾도록 고쳐야 한다.
+            if (commit == null) {
+                return User.anonymous;
+            }
             return findAuthorByPersonIdent(commit.getAuthorIdent());
         } finally {
             if (revWalk != null) {
