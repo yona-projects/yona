@@ -56,6 +56,7 @@
     	            @if(histories.size > 0) {
     	            <li><a href="#recent" data-toggle="tab">@Messages("project.history.recent") (@if(histories.size > 0) {@agoString(JodaDateUtil.ago(histories.get(0).getWhen))})</a></li>
     	            }
+                  <li><a href="#overview" data-toggle="tab">@Messages("project.overview")</a></li>
     	        </ul>
 
     	        <div class="tab-content">
@@ -111,6 +112,12 @@
     	                </div>
     	            </div>
     	            }
+
+                  <div id="overview" class="tab-pane">
+                      <div class="content-container nm">
+                          @partial_projectoverview(project)
+                      </div>
+                  </div>
     	        </div>
             </div>
 

@@ -274,6 +274,15 @@ public class PullRequest extends Model implements ResourceConvertible {
                 .getList();
     }
 
+    public static List<PullRequest> findRecentlyReceivedOpen(Project project, int size) {
+        return finder.where()
+                .eq("toProject", project)
+                .eq("state", State.OPEN)
+                .order().desc("created")
+                .findPagingList(size).getPage(0)
+                .getList();
+    }
+
     public static int countOpenedPullRequests(Project project) {
         return finder.where()
                 .eq("toProject", project)

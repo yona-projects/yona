@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
 import com.avaje.ebean.Page;
+
+import play.data.Form;
 /**
  * 이슈
  */
@@ -187,10 +189,17 @@ public class Issue extends AbstractPosting implements LabelOwner {
         return cond.asExpressionList(Project.find.byId(projectId)).findRowCount();
     }
 
-
     public static int countIssuesBy(SearchCondition cond) {
         return cond.asExpressionList().findRowCount();
     }
+
+    public static int countIssuesBy(Long projectId, Map paramMap) {
+        Form<SearchCondition> paramForm = new Form<>(SearchCondition.class);
+        SearchCondition cond = paramForm.bind(paramMap).get();
+
+        return Issue.countIssuesBy(projectId, cond);
+    }
+
     /**
      * Generate a Microsoft Excel file in byte array from the given issue list,
      * using JXL.

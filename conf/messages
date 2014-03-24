@@ -417,6 +417,12 @@ project.new.vcsType.git = Git
 project.new.vcsType.subversion = Subversion
 project.onmember = <i class="yobicon-friends yobicon-middle"></i><strong>{0}</strong>
 project.onwatching = <strong>{0}</strong>
+project.overview = Overview
+project.overview.more = See <strong>{0}</strong> more
+project.overview.pullRequests = Pull Requests in Open
+project.overview.openIssuesByAssignee = Issues in Open: By Assignee
+project.overview.openIssuesByLabel = Issues in Open: By Label
+project.overview.openIssuesByMilestone = Issues in Open: By Milestone
 project.owner = Owner Name
 project.private = PRIVATE
 project.private.notice = Basic information (name, description, etc.) is exposed to all users, even thought it is a private project.
