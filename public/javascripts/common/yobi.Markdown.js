@@ -45,8 +45,9 @@ yobi.Markdown = (function(htOptions){
             "langPrefix": '',
             "breaks"    : htVar.bBreaks,
             "hook"      : _markedHooks,
-            "highlight" : function(sCode, sLang){
-                return (!sLang) ? sCode : hljs(sCode, sLang).value;
+            "highlight" : function(sCode) {
+                return hljs.highlightAuto(sCode).value;
+
             }
         };
     }
