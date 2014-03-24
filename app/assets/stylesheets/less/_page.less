@@ -2202,16 +2202,9 @@
     }
 
     .project-clone-wrap {
-        position: absolute;
-        top:0;
-        right: 0;
+        position: relative;
         padding:5px 0;
         .border-radius(6px);
-
-        .project-clone {
-            position: relative;
-            float:right;
-        }
 
         .project-clone-url {
             text-align: right;
@@ -2225,6 +2218,8 @@
             cursor: pointer;
             .border-radius(3px 0 0 3px);
             .transition(width .15s);
+            position:absolute;
+            right:86px;
 
             &:focus {
                 width:450px;
@@ -2233,6 +2228,10 @@
 
         .project-clone-button {
             margin-left:0;
+            position:absolute;
+            right:0;
+            width:86px;
+            padding:4px 0 !important;
             .border-radius(0 3px 3px 0);
             float:left;
         }
