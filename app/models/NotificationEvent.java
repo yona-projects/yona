@@ -14,7 +14,6 @@ import org.joda.time.DateTime;
 import org.tmatesoft.svn.core.SVNException;
 import play.Configuration;
 import play.api.i18n.Lang;
-import play.api.mvc.Call;
 import play.db.ebean.Model;
 import play.i18n.Messages;
 import play.libs.Akka;
@@ -525,10 +524,10 @@ public class NotificationEvent extends Model {
             notiEvent.receivers.add(user);
         }
         if (state == RequestState.REQUEST) {
-            notiEvent.title = formatNewTitle(project, user);
+            notiEvent.title = formatMemberRequestTitle(project, user);
             notiEvent.oldValue = RequestState.CANCEL.name();
         } else {
-            notiEvent.title = formatReplyTitle(project, user);
+            notiEvent.title = formatMemberAcceptTitle(project, user);
             notiEvent.oldValue = RequestState.REQUEST.name();
         }
         notiEvent.resourceType = project.asResource().getType();
@@ -732,12 +731,12 @@ public class NotificationEvent extends Model {
         return receivers;
     }
 
-    private static String formatNewTitle(Project project, User user) {
-        return String.format("[%s] @%s wants to join your project", project.name, user.loginId);
+    private static String formatMemberRequestTitle(Project project, User user) {
+        return Messages.get("notification.member.request.title", project.name, user.loginId);
     }
 
-    private static String formatReplyTitle(Project project, User user) {
-        return String.format("Re: [%s] @%s wants to join your project", project.name, user.loginId);
+    private static String formatMemberAcceptTitle(Project project, User user) {
+        return Messages.get("notification.member.request.accept.title", project.name, user.loginId);
     }
 
     private static Set<User> getMentionedUsers(String body) {
