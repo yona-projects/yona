@@ -258,12 +258,9 @@ public class CodeHistoryApp extends Controller {
 
         Attachment.moveAll(UserApp.currentUser().asResource(), comment.asResource());
 
-        Call toView = routes.CodeHistoryApp.show(project.owner, project.name, commitId);
+        NotificationEvent.afterNewCommitComment(project, comment, commitId);
 
-        // The below lines should be refactored using RouteUtil.
-        String urlToView = toView + "#comment-" + comment.id;
-        NotificationEvent.afterNewCommitComment(project, comment, commitId, urlToView);
-        return redirect(urlToView);
+        return redirect(RouteUtil.getUrl(comment));
     }
 
     @With(NullProjectCheckAction.class)

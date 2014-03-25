@@ -495,7 +495,7 @@ public class NotificationEvent extends Model {
     }
 
     public static void afterNewCommitComment(Project project, ReviewComment comment,
-                                             String commitId, String urlToView) throws
+                                             String commitId) throws
             IOException, SVNException, ServletException {
         Commit commit = RepositoryService.getRepository(project).getCommit(commitId);
         Set<User> watchers = commit.getWatchers(project);
