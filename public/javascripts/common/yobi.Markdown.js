@@ -201,6 +201,17 @@ yobi.Markdown = (function(htOptions){
 
         welPreviewSwitch.change(fOnChangeSwitch);
         welTextareaBox.before(welPreview);
+
+        var fOnPressTab = function(e){
+            if(e.keyCode === 9){ //tab
+                e.preventDefault();
+                var start = this.selectionStart;
+                var end = this.selectionEnd;
+                this.value = this.value.substring(0, start) + "\t" + this.value.substring(end);
+                this.selectionEnd = start + 1;
+            }
+        };
+        welTextarea.on("keydown", fOnPressTab);
     }
 
     /**
