@@ -3476,22 +3476,37 @@ label.issue-item-row {
     .commit-wrap {
         background-color: @white;
 
-        .commit-id { text-align:center; vertical-align: top; }
+        .commit-id { text-align:center; vertical-align: top; padding:0; }
 
         .tbody {
             td { padding:10px 15px 10px 5px; }
+
             .messages { /* see .commitMsg */ }
 
             .commit-id {
-                width: 70px; text-align:center;
+                position:relative;
+                text-align:center;
                 vertical-align:top;
-                padding-top:15px;
-                font-family:Consolas;
+                padding:12px 3px;
+                font-family:@fixed-font-family;
                 font-size:12px;
 
                 a {
                     color:@secondary;
                     &:hover { color:@link-hover-color; text-decoration:underline; }
+                }
+
+                .btn-copy-commitId {
+                    display:none;
+                    &.hover { background:#f1f1f1; }
+                }
+
+                &:hover {
+                    .btn-copy-commitId {
+                        position:absolute; display:block;
+                        top:15px; left:-15px;
+                        color:@secondary;
+                    }
                 }
             }
             .messages { vertical-align:top;}
