@@ -26,6 +26,10 @@ import models.*;
 import models.enumeration.ResourceType;
 import models.resource.Resource;
 
+import models.SimpleCommentThread;
+import models.NonRangedCodeCommentThread;
+import models.CodeCommentThread;
+
 public class RouteUtil {
     public static String getUrl(ResourceType resourceType, String resourceId) {
         Long longId = Long.valueOf(resourceId);
@@ -113,9 +117,41 @@ public class RouteUtil {
         throw new IllegalArgumentException();
     }
 
-    public static String getUrl(ReviewComment newComment) {
-        if (newComment == null) return null;
+    public static String getUrl(ReviewComment comment) {
+        if (comment == null) return null;
 
-        return getUrl(newComment.thread.pullRequest) + "#comment-" + newComment.id;
+        Project project = comment.thread.project;
+
+        if (comment.thread instanceof SimpleCommentThread) {
+            throw new UnsupportedOperationException();
+        }
+
+        String prevCommitId = null;
+        String commitId = null;
+
+        if (comment.thread instanceof NonRangedCodeCommentThread) {
+            commitId = ((NonRangedCodeCommentThread) comment.thread).commitId;
+        } else if (comment.thread instanceof CodeCommentThread) {
+            prevCommitId = ((CodeCommentThread) comment.thread).prevCommitId;
+            commitId = ((CodeCommentThread) comment.thread).commitId;
+        }
+
+        play.mvc.Call toView;
+        PullRequest pullRequest = comment.thread.pullRequest;
+
+        if (pullRequest == null) {
+            toView = controllers.routes.CodeHistoryApp.show(
+                    project.owner, project.name, commitId);
+        } else {
+            if (prevCommitId != null) {
+                toView = controllers.routes.PullRequestApp.pullRequestChanges(
+                        project.owner, project.name, pullRequest.id);
+            } else {
+                toView = controllers.routes.PullRequestApp.specificChange(
+                        project.owner, project.name, pullRequest.id, commitId);
+            }
+        }
+
+        return toView + "#comment-" + comment.id;
     }
 }
