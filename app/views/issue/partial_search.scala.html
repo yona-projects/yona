@@ -126,21 +126,32 @@
                         <dd>
                             <select id="milestoneId" name="milestoneId" data-toggle="select2" data-format="milestone">
                                 <option value="">@Messages("milestone.state.all")</option>
-                                @if(param.milestoneId != null
-                                    && param.milestoneId == Milestone.NULL_MILESTONE_ID){
-                                    <option value="@Milestone.NULL_MILESTONE_ID">
-                                        @Messages("issue.noMilestone")
-                                    </option>
-                                }
-                                @for(milestone <- Milestone.findByProjectId(project.id)) {
-                                    <option value="@milestone.id"
-                                            data-state="@milestone.state"
+                                <option value="@Milestone.NULL_MILESTONE_ID"
+                                    @if(param.milestoneId != null && param.milestoneId == Milestone.NULL_MILESTONE_ID){
+                                    selected
+                                }>
+                                    @Messages("issue.noMilestone")
+                                </option>
+                                <optgroup label="@Messages("milestone.state.open")">
+                                @for(milestone <- Milestone.findOpenMilestones(project.id)){
+                                    <option value="@milestone.id" data-state="@milestone.state"
                                     @if(param.milestoneId != null && param.milestoneId == milestone.id){
                                         selected
                                     }>
                                         @milestone.title
                                     </option>
                                 }
+                                </optgroup>
+                                <optgroup label="@Messages("milestone.state.closed")">
+                                @for(milestone <- Milestone.findClosedMilestones(project.id)){
+                                    <option value="@milestone.id" data-state="@milestone.state"
+                                    @if(param.milestoneId != null && param.milestoneId == milestone.id){
+                                        selected
+                                    }>
+                                        @milestone.title
+                                    </option>
+                                }
+                                </optgroup>
                             </select>
                         </dd>
                     </dl>

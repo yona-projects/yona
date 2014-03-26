@@ -34,9 +34,14 @@
 }
 
 <script id="tplSelect2FormatUser" type="text/x-jquery-tmpl">
-<div class="usf-group">
+<div class="usf-group" title="${name} ${loginId}">
     <span class="avatar-wrap smaller"><img src="${avatarURL}" width="20" height="20"></span>
     <strong class="name">${name}</strong>
     <span class="loginid">${loginId}</span>
+</div>
+</script>
+<script id="tplSelect2FormatMilestone" type="text/x-jquery-tmpl">
+<div title="[${stateLabel}] ${name}">
+    ${name}
 </div>
 </script>

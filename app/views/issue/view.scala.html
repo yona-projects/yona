@@ -146,27 +146,44 @@
                         <dl>
                             <dt>@Messages("milestone")</dt>
                             <dd style="padding:5px 10px;">
-                            @defining(issue.milestone != null) { hasMilestone =>
-                                @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
-                                <select id="milestone" name="milestone.id" data-toggle="select2" data-format="milestone">
-                                    <option value="-1" @if(!hasMilestone){ selected }>@Messages("issue.noMilestone")</option>
-                                    @for(milestone <- Milestone.findByProjectId(project.id)){
-                                    <option value="@milestone.id"
-                                        @if(hasMilestone && issue.milestone.id == milestone.id){
-                                            selected
+                            @if(Milestone.findByProjectId(project.id).isEmpty()){
+                                <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" target="_blank" class="ybtn ybtn-success ybtn-small">@Messages("milestone.menu.new")</a>
+                            } else {
+                                @defining(issue.milestone != null) { hasMilestone =>
+                                    @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+                                    <select id="milestone" name="milestone.id" data-toggle="select2" data-format="milestone">
+                                        <option value="@Milestone.NULL_MILESTONE_ID" @if(!hasMilestone){ selected }>
+                                            @Messages("issue.noMilestone")
+                                        </option>
+                                        <optgroup label="@Messages("milestone.state.open")">
+                                        @for(milestone <- Milestone.findOpenMilestones(project.id)){
+                                            <option value="@milestone.id" data-state="@milestone.state"
+                                            @if(hasMilestone && issue.milestone.id == milestone.id){
+                                                selected
+                                            }>
+                                                @milestone.title
+                                            </option>
                                         }
-                                        data-state="@milestone.state">
-                                        @milestone.title
-                                    </option>
-                                    }
-                                </select>
-                                } else {
-                                    @if(hasMilestone){
-                                        <a href="@routes.MilestoneApp.milestone(project.owner, project.name, issue.milestone.id)">
-                                            @issue.milestone.title
-                                        </a>
+                                        </optgroup>
+                                        <optgroup label="@Messages("milestone.state.closed")">
+                                        @for(milestone <- Milestone.findClosedMilestones(project.id)){
+                                            <option value="@milestone.id" data-state="@milestone.state"
+                                            @if(hasMilestone && issue.milestone.id == milestone.id){
+                                                selected
+                                            }>
+                                                @milestone.title
+                                            </option>
+                                        }
+                                        </optgroup>
+                                    </select>
                                     } else {
-                                        @Messages("issue.noMilestone")
+                                        @if(hasMilestone){
+                                            <a href="@routes.MilestoneApp.milestone(project.owner, project.name, issue.milestone.id)">
+                                                @issue.milestone.title
+                                            </a>
+                                        } else {
+                                            @Messages("issue.noMilestone")
+                                        }
                                     }
                                 }
                             }
@@ -177,7 +194,7 @@
                         @**<!-- voters -->**@
                         <dl>
                             <dt>@Messages("issue.vote")</dt>
-                            <dd>
+                            <dd style="padding:5px 10px;">
                                 @if(isProjectResourceCreatable(User.findByLoginId(session.get("loginId")), project, ResourceType.ISSUE_COMMENT)) {
                                     @if(issue.isVotedBy(UserApp.currentUser())) {
                                         <a href="@routes.VoteApp.unvote(project.owner, project.name, issue.getNumber)" data-request-method="post" class="ybtn ybtn-success"  data-toggle="tooltip" data-placement="right" data-original-title="@Messages("issue.unvote.description")">+@issue.voters.size</a>
@@ -222,7 +239,6 @@
 
             @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.WATCH)) {
             <button id="watch-button" type="button" class="ybtn" data-toggle="button" data-watching="@if(issue.getWatchers.contains(UserApp.currentUser())){true}else{false}">
-
                 @if(issue.getWatchers.contains(UserApp.currentUser())) {
                     @Messages("project.unwatch")
                 } else {
