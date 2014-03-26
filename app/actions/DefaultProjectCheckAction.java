@@ -4,7 +4,7 @@
  * Copyright 2013 NAVER Corp.
  * http://yobi.io
  *
- * @Author Wansoon Park, Keesun Baek
+ * @Author Keesun Baik
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,35 +20,20 @@
  */
 package actions;
 
+import actions.support.PathParser;
 import models.Project;
-import models.User;
 import play.mvc.Http.Context;
 import play.mvc.Result;
-import utils.AccessControl;
-import utils.AccessLogger;
-import utils.ErrorViews;
-import actions.support.PathParser;
-import controllers.UserApp;
-import controllers.annotation.IsCreatable;
 
 /**
- * {@link actions.AbstractProjectCheckAction}의 추가작업으로,
- * 프로젝트에 특정 타입의 리소스를 생성할 수 있는지 확인한다.
+ * {@link AbstractProjectCheckAction}에서 제공하는 기능만을 실행하는 액션.
  *
- * @author Wansoon Park, Keesun Baik
  * @see {@link AbstractProjectCheckAction}
- * @see {@link controllers.annotation.IsCreatable}
+ * @author Keesun Baik
  */
-public class IsCreatableAction extends AbstractProjectCheckAction<IsCreatable> {
+public class DefaultProjectCheckAction extends AbstractProjectCheckAction<Void> {
     @Override
     protected Result call(Project project, Context context, PathParser parser) throws Throwable {
-        User currentUser = UserApp.currentUser();
-        if (!AccessControl.isProjectResourceCreatable(currentUser, project, this.configuration.value())) {
-            return AccessLogger.log(context.request()
-                    , forbidden(ErrorViews.Forbidden.render("error.forbidden", project))
-                    , null);
-        }
-
         return this.delegate.call(context);
     }
 }

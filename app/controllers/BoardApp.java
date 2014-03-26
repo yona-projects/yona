@@ -2,7 +2,7 @@
 package controllers;
 
 import actions.AnonymousCheckAction;
-import actions.NullProjectCheckAction;
+import actions.DefaultProjectCheckAction;
 
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
@@ -220,7 +220,7 @@ public class BoardApp extends AbstractPostingApp {
      * @see AbstractPostingApp#editPosting(models.AbstractPosting, models.AbstractPosting, play.data.Form
      */
     @Transactional
-    @With(NullProjectCheckAction.class)
+    @With(DefaultProjectCheckAction.class)
     public static Result editPost(String userName, String projectName, Long number) {
         Form<Posting> postForm = new Form<>(Posting.class).bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
@@ -321,7 +321,7 @@ public class BoardApp extends AbstractPostingApp {
      * @see controllers.AbstractPostingApp#delete(play.db.ebean.Model, models.resource.Resource, play.mvc.Call)
      */
     @Transactional
-    @With(NullProjectCheckAction.class)
+    @With(DefaultProjectCheckAction.class)
     public static Result deleteComment(String userName, String projectName, Long number, Long commentId) {
         Comment comment = PostingComment.find.byId(commentId);
         Project project = comment.asResource().getProject();

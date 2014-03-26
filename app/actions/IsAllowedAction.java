@@ -35,6 +35,7 @@ import utils.AccessLogger;
 import utils.ErrorViews;
 
 /**
+ * {@link actions.AbstractProjectCheckAction}의 추가작업으로,
  * 1. 특정 타입의 리소스가 존재하는지 확인한다.
  * 2. 특정 타입의 리소스에 권한이 있는지 확인한다.
  *
