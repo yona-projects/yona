@@ -1,0 +1,73 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2013 NAVER Corp.
+* http://yobi.io
+*
+* @Author Jihan Kim
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@(histories: List[models.History])
+
+@import org.apache.commons.lang.StringUtils
+@import utils.JodaDateUtil
+@import utils.TemplateHelper._
+@import utils.AccessControl._
+@import models.enumeration._
+
+@userPageUrlOnHistory(history:History) = @{
+	if(history.getUserPageUrl != null) {
+		history.getUserPageUrl
+	} else {
+		"#"
+	}
+}
+@userAvatarUrlOnHistory(history:History) = @{
+	if(history.getUserAvatarUrl != null){
+		history.getUserAvatarUrl
+	} else {
+		routes.Assets.at("images/default-avatar-64.png")
+	}
+}
+@makeHistoryWho(history:History)  = {<a href="@userPageUrlOnHistory(history)" class="actor">@history.getWho</a>}
+@makeHistoryHow(history:History)  = {<span class="whereis"><a href="@history.getUrl" class="where">@history.getShortTitle</a> <a href="@history.getUrl" class="title">@history.getHow</a></span> }
+@makeHistoryWhat(history:History) = {@Messages("project.history.type." + history.getWhat)}
+
+<div class="content-container nm">
+  <div class="main-stream" style="width:100%;">
+    <ul class="activity-streams unstyled">
+      @for(history <- histories.iterator()) {
+      <li class="activity-stream">
+        <a href="@userPageUrlOnHistory(history)" class="avatar-wrap pull-left mr10">
+          <img src="@userAvatarUrlOnHistory(history)" width="32" height="32">
+        </a>
+        <div class="activity-desc">
+          <p class="header-text" style="margin-bottom:5px;">
+              @Html(Messages("project.history.item",
+                  makeHistoryWho(history),
+                  makeHistoryWhat(history),
+                  makeHistoryHow(history)
+              ))
+          </p>
+          <p class="others" style="padding-left:0;">
+            <span class="date" style="margin-left:0;" title="@JodaDateUtil.getDateString(history.getWhen)">
+              @agoString(JodaDateUtil.ago(history.getWhen))
+            </span>
+          </p>
+        </div>
+      </li>
+      }
+    </ul>
+  </div>
+</div>

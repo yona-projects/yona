@@ -193,7 +193,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
         return cond.asExpressionList().findRowCount();
     }
 
-    public static int countIssuesBy(Long projectId, Map paramMap) {
+    public static int countIssuesBy(Long projectId, Map<String, String> paramMap) {
         Form<SearchCondition> paramForm = new Form<>(SearchCondition.class);
         SearchCondition cond = paramForm.bind(paramMap).get();
 

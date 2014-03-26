@@ -1,0 +1,57 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2013 NAVER Corp.
+* http://yobi.io
+*
+* @Author Jihan Kim
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@(project:Project)
+
+@import utils.TemplateHelper._
+
+@defining(Issue.countIssues(project.id, State.OPEN)) { openIssues =>
+<div class="content-container nm">
+    <div class="project-overview-home row-fluid">
+        <div class="span6">
+            <h5>@Messages("project.dashboard.openIssuesByAssignee")</h5>
+            <div class="overview-assignee">
+                @partial_dashboard_issuesbyassignee(project, openIssues)
+            </div>
+
+            <hr>
+
+            <h5>@Messages("project.dashboard.openIssuesByMilestone")</h5>
+            <div class="overview-milestone">
+                @partial_dashboard_issuesbymilestone(project, openIssues)
+            </div>
+
+            @if(project.isGit){
+            <hr>
+
+            <h5>@Messages("project.dashboard.pullRequests")</h5>
+            <div class="overview-pullrequest">
+                @partial_dashboard_pullrequests(project)
+            </div>
+            }
+        </div>
+
+        <div class="span6">
+            <h5>@Messages("project.dashboard.openIssuesByLabel")</h5>
+            @partial_dashboard_issuesbylabel(project)
+        </div>
+    </div>
+</div>
+}

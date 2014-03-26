@@ -1,0 +1,75 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2013 NAVER Corp.
+* http://yobi.io
+*
+* @Author Jihan Kim
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@(project:Project, totalIssues:Double)
+
+@import utils.TemplateHelper._
+@import scala.collection.mutable._
+
+@for(member <- project.members) {
+    @defining(countOpenIssuesBy(project, Map("assigneeId"->member.user.id.toString))) { assignedIssues =>
+    @defining(getPercent(assignedIssues, totalIssues)){ assignedPerc =>
+        @if(assignedIssues > 0){
+            <div class="row-fluid">
+                <div class="span6">
+                    <a href="@makeIssuesLink(project, scala.collection.immutable.Map("assigneeId"->member.user.id.toString))"
+                    class="usf-group" title="@member.user.name (@{"@"}@member.user.loginId)">
+                        <span class="avatar-wrap smaller">
+                            <img src="@member.user.avatarUrl" width="20" height="20">
+                        </span>
+                        <strong class="name">@member.user.name</strong>
+                        <span class="loginid"> <strong>@{"@"}</strong>@member.user.loginId</span>
+                    </a>
+                </div>
+                <div class="span3 num">
+                    <strong>@assignedIssues</strong>
+                    <small>(@assignedPerc%)</small>
+                </div>
+                <div class="span3 nm">
+                    <div class="progress progress-warning @if(assignedPerc==0){empty}">
+                        <div class="bar" style="width: @assignedPerc%;"></div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    }
+}
+
+@defining(countOpenIssuesBy(project, Map("assigneeId"->User.anonymous.id.toString))) { notAssignedIssues =>
+    @defining(getPercent(notAssignedIssues, totalIssues)) { notAssignedPerc =>
+        <div class="row-fluid">
+            <div class="span6">
+                <a href="@makeIssuesLink(project, scala.collection.immutable.Map("assigneeId"->User.anonymous.id.toString))">
+                @Messages("issue.noAssignee")
+                </a>
+            </div>
+            <div class="span3 num">
+                <strong>@notAssignedIssues</strong>
+                <small>(@notAssignedPerc%)</small>
+            </div>
+            <div class="span3 nm">
+                <div class="progress progress-warning @if(notAssignedPerc==0){empty}">
+                    <div class="bar" style="width: @notAssignedPerc%;"></div>
+                </div>
+            </div>
+        </div>
+    }
+}

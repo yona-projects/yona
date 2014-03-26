@@ -41,7 +41,7 @@ import utils.*;
 import validation.ExConstraints.RestrictedValidator;
 import views.html.project.create;
 import views.html.project.delete;
-import views.html.project.overview;
+import views.html.project.home;
 import views.html.project.setting;
 
 import javax.servlet.ServletException;
@@ -114,7 +114,7 @@ public class ProjectApp extends Controller {
     }
 
     /**
-     * 프로젝트 Overview 페이지를 처리한다.<p />
+     * 프로젝트 Home 페이지를 처리한다.<p />
      *
      * {@code loginId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
      * 읽기 권한이 없을 경우는 unauthorized로 응답한다.<br />
@@ -122,24 +122,62 @@ public class ProjectApp extends Controller {
      *
      * @param loginId
      * @param projectName
-     * @return 프로젝트, 히스토리 정보
+     * @return 프로젝트 정보
      * @throws IOException Signals that an I/O exception has occurred.
      * @throws ServletException the servlet exception
      * @throws SVNException the svn exception
      * @throws GitAPIException the git api exception
      */
     @IsAllowed(Operation.READ)
-    public static Result project(String loginId, String projectName) throws IOException, ServletException, SVNException, GitAPIException {
+    public static Result project(String loginId, String projectName)
+            throws IOException, ServletException, SVNException, GitAPIException {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+        List<History> histories = getProjectHistory(loginId, project);
+
+        UserApp.currentUser().visits(project);
+
+        String tabId = StringUtils.defaultIfBlank(request().getQueryString("tabId"), "readme");
+        String titleMessage;
+
+        switch(tabId) {
+            case "history":
+                titleMessage = "project.history.recent";
+                break;
+            case "dashboard":
+                titleMessage = "title.projectDashboard";
+                break;
+            default:
+            case "readme":
+                titleMessage = "title.projectHome";
+                break;
+        }
+
+        return ok(home.render(titleMessage, project, histories, tabId));
+    }
+
+    /**
+     * {@code project}의 최근 커밋, 이슈, 포스팅 목록을 가져와서 히스토리를 만든다
+     *
+     * @param loginId
+     * @param project
+     * @return 프로젝트 히스토리 정보
+     * @throws IOException Signals that an I/O exception has occurred.
+     * @throws ServletException the servlet exception
+     * @throws SVNException the svn exception
+     * @throws GitAPIException the git api exception
+     */
+    private static List<History> getProjectHistory(String loginId, Project project)
+            throws IOException, ServletException, SVNException, GitAPIException {
         project.fixInvalidForkData();
 
         PlayRepository repository = RepositoryService.getRepository(project);
 
         List<Commit> commits = null;
+
         try {
             commits = repository.getHistory(COMMIT_HISTORY_PAGE, COMMIT_HISTORY_SHOW_LIMIT, null, null);
         } catch (NoHeadException e) {
-        // NOOP
+            // NOOP
         }
 
         List<Issue> issues = Issue.findRecentlyCreated(project, RECENLTY_ISSUE_SHOW_LIMIT);
@@ -147,8 +185,8 @@ public class ProjectApp extends Controller {
         List<PullRequest> pullRequests = PullRequest.findRecentlyReceived(project, RECENT_PULL_REQUEST_SHOW_LIMIT);
 
         List<History> histories = History.makeHistory(loginId, project, commits, issues, postings, pullRequests);
-        UserApp.currentUser().visits(project);
-        return ok(overview.render("title.projectHome", project, histories));
+
+        return histories;
     }
 
     /**

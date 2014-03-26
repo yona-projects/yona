@@ -1,28 +1,15 @@
-@(message: String, project: Project, histories: List[models.History] )
+@(message: String, project: Project, histories: List[models.History], tabId: String)
 @import org.apache.commons.lang.StringUtils
 
 @import utils.JodaDateUtil
 @import utils.TemplateHelper._
 @import utils.AccessControl._
 @import models.enumeration._
+@import scala.collection.immutable._
 
-@userPageUrlOnHistory(history:History) = @{
-	if(history.getUserPageUrl != null) {
-		history.getUserPageUrl
-	} else {
-		"#"
-	}
+@isActiveTab(tab:String) = @{
+    if (tab == tabId) {"active"}
 }
-@userAvatarUrlOnHistory(history:History) = @{
-	if(history.getUserAvatarUrl != null){
-		history.getUserAvatarUrl
-	} else {
-		routes.Assets.at("images/default-avatar-64.png")
-	}
-}
-@makeHistoryWho(history:History)  = {<a href="@userPageUrlOnHistory(history)" class="actor">@history.getWho</a>}
-@makeHistoryHow(history:History)  = {<span class="whereis"><a href="@history.getUrl" class="where">@history.getShortTitle</a> <a href="@history.getUrl" class="title">@history.getHow</a></span> }
-@makeHistoryWhat(history:History) = {@Messages("project.history.type." + history.getWhat)}
 
 @projectLayout(message, project, utils.MenuType.PROJECT_HOME) {
 @projectMenu(project, utils.MenuType.PROJECT_HOME, "")
@@ -51,73 +38,44 @@
         </div>
         <div class="row-fluid">
             <div class="span9">
-    	        <ul id="homeTabs" class="nav nav-tabs">
-    	            <li class="active"><a href="#readme" data-toggle="tab">README</a></li>
-    	            @if(histories.size > 0) {
-    	            <li><a href="#recent" data-toggle="tab">@Messages("project.history.recent") (@if(histories.size > 0) {@agoString(JodaDateUtil.ago(histories.get(0).getWhen))})</a></li>
+                 <ul class="nav nav-tabs">
+                    <li class="@isActiveTab("readme")">
+                        <a href="@routes.ProjectApp.project(project.owner, project.name)">README</a>
+                    </li>
+
+                    @if(histories.size > 0) {
+                    <li class="@isActiveTab("history")">
+                        <a href="@buildQueryString(routes.ProjectApp.project(project.owner, project.name), Map("tabId"->"history"))">
+                            @Messages("project.history.recent")
+
+                            @defining(JodaDateUtil.ago(histories.get(0).getWhen)){ latestHistoryDuration =>
+                                <span class="historyAgo old">@agoString(latestHistoryDuration)</span>
+                            }
+                        </a>
+                    </li>
     	            }
-                  <li><a href="#overview" data-toggle="tab">@Messages("project.overview")</a></li>
+
+                    <li class="@isActiveTab("dashboard")">
+                        <a href="@buildQueryString(routes.ProjectApp.project(project.owner, project.name), Map("tabId"->"dashboard"))">
+                            @Messages("project.dashboard")
+                        </a>
+                    </li>
     	        </ul>
 
     	        <div class="tab-content">
-    	            <div id="readme" class="tab-pane active">
-    	                <div class="bubble-wrap gray readme">
-    	                @if(project.readme == null){
-    	                    <p class="default">
-    	                       <span class="v"></span>
-                                @if(project.vcs.equals("GIT")) {
-                                    <span>@Messages("project.readme")</span>
-                                } else {
-                                    <span>@Messages("project.svn.readme")</span>
-                                }
-    	                    </p>
-    	                } else {
-    	                    <div class="readme-wrap">
-    	                        <header><i class="yobicon-book-open"></i><strong> @project.getReadmeFileName</strong></header>
-    	                        <div class="readme-body markdown-wrap markdown-before" markdown="true">@project.readme</div>
-    	                    </div>
-    	                }
-    	                @common.markdown(project)
-    	                </div>
+    	            <div class="tab-pane active">
+                    @tabId match {
+                      case "readme" => {
+                        @partial_readme(project)
+                      }
+                      case "history" => {
+                        @partial_history(histories)
+                      }
+                      case "dashboard" => {
+                        @partial_dashboard(project)
+                      }
+                    }
     	            </div>
-
-    	            @if(histories.size > 0) {
-    	            <div id="recent" class="tab-pane">
-    	                <div class="content-container" style="margin:0;">
-    	                    <div class="main-stream" style="width:100%;">
-    	                        <ul class="activity-streams unstyled">
-    	                            @for(history <- histories.iterator()) {
-    	                            <li class="activity-stream">
-    	                                <a href="@userPageUrlOnHistory(history)" class="avatar-wrap pull-left mr10">
-    	                                    <img src="@userAvatarUrlOnHistory(history)" width="32" height="32">
-    	                                </a>
-    	                                <div class="activity-desc">
-    	                                    <p class="header-text" style="margin-bottom:5px;">
-    	                                        @Html(Messages("project.history.item",
-    	                                            makeHistoryWho(history),
-    	                                            makeHistoryWhat(history),
-    	                                            makeHistoryHow(history)
-    	                                        ))
-    	                                    </p>
-    	                                    <p class="others" style="padding-left:0;">
-	                                        <span class="date" style="margin-left:0;" title="@JodaDateUtil.getDateString(history.getWhen)">
-                                                    @agoString(JodaDateUtil.ago(history.getWhen))
-                                                </span>
-    	                                    </p>
-    	                                </div>
-    	                            </li>
-    	                            }
-    	                        </ul>
-    	                    </div>
-    	                </div>
-    	            </div>
-    	            }
-
-                  <div id="overview" class="tab-pane">
-                      <div class="content-container nm">
-                          @partial_projectoverview(project)
-                      </div>
-                  </div>
     	        </div>
             </div>
 
