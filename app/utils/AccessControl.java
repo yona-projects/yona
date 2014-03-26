@@ -4,6 +4,7 @@ import controllers.UserApp;
 import models.Project;
 import models.ProjectUser;
 import models.User;
+import models.OrganizationUser;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import models.resource.GlobalResource;
@@ -131,6 +132,8 @@ public class AccessControl {
             return user.id.toString().equals(resource.getId());
         case PROJECT:
             return ProjectUser.isManager(user.id, Long.valueOf(resource.getId()));
+        case ORGANIZATION:
+            return OrganizationUser.isAdmin(Long.valueOf(resource.getId()), user.id);
         case PULL_REQUEST_COMMENT:
             return user.isSiteManager() || isEditableAsAuthor(user, resource);
         default:

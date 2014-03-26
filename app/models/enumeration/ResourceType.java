@@ -29,6 +29,7 @@ public enum ResourceType {
     PULL_REQUEST("pull_request"),
     PULL_REQUEST_COMMENT("pull_request_comment"),
     COMMIT("commit"),
+    ORGANIZATION("organization"),
     NOT_A_RESOURCE("");
 
     private String resource;
