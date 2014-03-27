@@ -28,13 +28,15 @@ public enum EventType {
 
     private int order;
 
+    private String messageKey;
+
     EventType(String messageKey, int order) {
-        this.descr = Messages.get(messageKey);
+        this.messageKey = messageKey;
         this.order = order;
     }
 
     public String getDescr() {
-        return descr;
+        return Messages.get(messageKey);
     }
 
     public int getOrder() {
