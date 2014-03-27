@@ -228,6 +228,10 @@ public class NotificationEvent extends Model {
             @Override
             public boolean evaluate(Object obj) {
                 User receiver = (User) obj;
+                if(receiver.loginId == null) {
+                    return false;
+                }
+
                 if (!Watch.isWatching(receiver, resource)) {
                     return true;
                 }
