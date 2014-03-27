@@ -116,10 +116,10 @@ public class AbstractPostingApp extends Controller {
      * @param posting
      * @param postingForm
      * @param redirectTo
-     * @param updatePosting
+     * @param preUpdateHook
      * @return
      */
-    protected static Result editPosting(AbstractPosting original, AbstractPosting posting, Form<? extends AbstractPosting> postingForm, Call redirectTo, Runnable updatePosting) {
+    protected static Result editPosting(AbstractPosting original, AbstractPosting posting, Form<? extends AbstractPosting> postingForm, Call redirectTo, Runnable preUpdateHook) {
         if (postingForm.hasErrors()) {
             return badRequest(ErrorViews.BadRequest.render("error.validation", original.project));
         }
@@ -140,7 +140,7 @@ public class AbstractPostingApp extends Controller {
         posting.authorLoginId = original.authorLoginId;
         posting.authorName = original.authorName;
         posting.project = original.project;
-        updatePosting.run();
+        preUpdateHook.run();
         posting.update();
         posting.updateProperties();
 
