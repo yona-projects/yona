@@ -63,7 +63,7 @@
 
                         @**<!-- author  -->**@
                         <dl class="author">
-                            <dt>@Messages("issue.author")</dt>
+                            <dt>@Messages("igitssue.author")</dt>
                             <dd style="padding:5px 10px;">
                                 <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="usf-group">
                                     <span class="avatar-wrap smaller">
@@ -283,24 +283,18 @@
     	</div>
     </div>
 </div>
+
 @common.markdown(project)
-@common.issueLabel()
 @common.commentDeleteModal()
 @common.select2()
+
+<link rel="stylesheet" type="text/css" media="screen" href="@routes.IssueLabelApp.labelStyles(project.owner, project.name)">
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mentionjs/mention.css")">
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/mentionjs/mention.js")"></script>
 <script type="text/javascript">
     $(document).ready(function(){
-        // yobi.Label
-        var htOptLabel = {
-            "bEditable"    : false,
-            "sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)",
-            "sURLPost"     : "@routes.IssueLabelApp.newLabel(project.owner, project.name)"
-        };
-
         // yobi.issue.View
         $yobi.loadModule("issue.View", {
-            "htOptLabel"    : htOptLabel,
             "sWatchUrl"     : "@routes.WatchApp.watch(issue.asResource.asParameter)",
             "sUnwatchUrl"   : "@routes.WatchApp.unwatch(issue.asResource.asParameter)",
             "sIssuesUrl"    : "@routes.IssueApp.massUpdate(project.owner, project.name)",

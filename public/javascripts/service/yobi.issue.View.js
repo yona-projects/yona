@@ -26,7 +26,6 @@
 
             _initFileUploader();
             _initFileDownloader();
-            _setLabelTextColor();
 
             _setTimelineUpdateTimer();
 
@@ -40,13 +39,11 @@
             htElement.welUploader = $("#upload");
             htElement.welTextarea = $("#comment-editor");
 
-            htElement.welLabels = $('.issue-label');
             htElement.welBtnWatch = $('#watch-button');
 
             htElement.welAssignee = htOptions.welAssignee || $("#assignee");
             htElement.welMilestone = htOptions.welMilestone || $("#milestone");
             htElement.welIssueUpdateForm = htOptions.welIssueUpdateForm;
-            htElement.sIssueCheckBoxesSelector = htOptions.sIssueCheckBoxesSelector;
 
             htElement.welChkIssueOpen = $("#issueOpen");
             htElement.welTimelineWrap = $("#timeline");
@@ -251,23 +248,6 @@
                     (new yobi.Attachments({"elContainer": elContainer}));
                 }
             });
-        }
-
-        /**
-         * set Labels foreground color as contrast to background color
-         */
-        function _setLabelTextColor(){
-            var welLabel;
-            var sBgColor, sColor;
-
-            htElement.welLabels.each(function(nIndex, elLabel){
-                welLabel = $(elLabel);
-                sBgColor = welLabel.css("background-color");
-                sColor = $yobi.getContrastColor(sBgColor);
-                welLabel.css("color", sColor);
-            });
-
-            welLabel = null;
         }
 
         /**
