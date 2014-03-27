@@ -24,6 +24,7 @@ yobi.ShortcutKey = (function(htOptions){
      */
     function _initVar(){
         htVar.rxTrim = /\s+/g;
+        htVar.aFormTags = ["INPUT", "TEXTAREA"];
         htVar.aCombinationKeys = ["CTRL", "ALT", "SHIFT"];
         htVar.htKeycodeMap = {
             '13':'ENTER', '38':'UP', '40':'DOWN', '37':'LEFT', '39':'RIGHT', '13':'ENTER', '27':'ESC',
@@ -40,13 +41,17 @@ yobi.ShortcutKey = (function(htOptions){
      * add event listener
      */
     function _attachEvent(){
-        $(window).bind("keydown", _onKeyDown);
-        $(window).bind("beforeunload", destroy); // free memory
+        $(window).on({
+            "keydown"     : _onKeyDown,
+            "beforeunload": destroy // free memory
+        });
     }
 
     function _detachEvent(){
-        $(window).unbind("keydown", _onKeyDown);
-        $(window).unbind("beforeunload", destroy);
+        $(window).off({
+            "keydown"     : _onKeyDown,
+            "beforeunload": destroy // free memory
+        });
     }
 
     /**
@@ -54,24 +59,25 @@ yobi.ShortcutKey = (function(htOptions){
      */
     function _onKeyDown(weEvt){
         var sKeyInput = _getKeyString(weEvt);
-        var aHandlers = htHandlers[sKeyInput] || [];
+        var fHandler = htHandlers[sKeyInput];
 
-        _runEventHandler(aHandlers, weEvt, sKeyInput);
+        if(typeof fHandler === "function"){
+            _runEventHandler(fHandler, weEvt, sKeyInput);
+        }
     }
 
-    function _runEventHandler(aHandlers, weEvt, sKeyInput){
+    function _runEventHandler(fHandler, weEvt, sKeyInput){
+        var sTagName = weEvt.target.tagName.toUpperCase();
         var htInfo = {
             "weEvt"     : weEvt,
             "welTarget" : $(weEvt.target),
-            "sTagName"  : weEvt.target.tagName,
+            "sTagName"  : sTagName,
             "sKeyInput" : sKeyInput,
-            "bFormInput": (weEvt.target.tagName == "INPUT" || weEvt.target.tagName == "TEXTAREA")
+            "bFormInput": (htVar.aFormTags.indexOf(sTagName) > -1)
         };
 
         try {
-            aHandlers.forEach(function(fHandler){
-                fHandler(htInfo);
-            });
+            fHandler(htInfo);
         }catch(e){} finally {
             htInfo = null;
         }
@@ -85,25 +91,20 @@ yobi.ShortcutKey = (function(htOptions){
      * @param {Hash Table} vKey {"keyCombination:function(){}, "key":function(){}}
      */
     function attachHandler(vKey, fHandler){
-        if(typeof vKey == "string"){
-            return _addHandler(vKey, fHandler);
+        if(typeof vKey === "string"){
+            return _setHandler(vKey, fHandler);
         }
 
-        var fHandler;
-        for(var sKey in vKey){
+        var fHandler, sKey;
+        for(sKey in vKey){
             fHandler = vKey[sKey];
-            _addHandler(sKey, fHandler);
+            _setHandler(sKey, fHandler);
         }
     }
 
-    function _addHandler(sKey, fHandler){
+    function _setHandler(sKey, fHandler){
         sKey = _normalizeKeyString(sKey);
-
-        if(!(htHandlers[sKey] instanceof Array)){
-            htHandlers[sKey] = [];
-        }
-
-        htHandlers[sKey].push(fHandler);
+        htHandlers[sKey] = fHandler;
     }
 
     /**
@@ -111,14 +112,9 @@ yobi.ShortcutKey = (function(htOptions){
      * @param {String} sKey
      * @param {String} fHandler
      */
-    function detachHandler(sKeyInput, fHandler){
+    function detachHandler(sKeyInput){
         var sKey = _normalizeKeyString(sKeyInput);
-        var aHandlers = htHandlers[sKey];
-
-        if(aHandlers instanceof Array){
-            aHandlers.splice(aHandlers.indexOf(fHandler), 1);
-            htHandlers[sKey] = aHandlers;
-        }
+        delete htHandlers[sKey];
     }
 
     /**
@@ -127,7 +123,7 @@ yobi.ShortcutKey = (function(htOptions){
      */
     function _getKeyString(weEvt){
         var sMainKey = htVar.htKeycodeMap[weEvt.keyCode];
-        if(typeof sMainKey == "undefined"){ // ignore event if not on keyMap
+        if(typeof sMainKey === "undefined"){ // ignore event if not on keyMap
             return;
         }
 
@@ -184,12 +180,19 @@ yobi.ShortcutKey = (function(htOptions){
      * });
      */
     function setKeymapLink(htKeyMap){
-        for(var sKey in htKeyMap){
-            attachHandler(sKey, function(htInfo){
-                if(!htInfo.bFormInput){
-                    document.location.href = htKeyMap[htInfo.sKeyInput];
-                }
-            });
+        var sKey;
+        var fHandler = function(htInfo){
+            if(!htInfo.bFormInput){
+                document.location.href = htKeyMap[htInfo.sKeyInput];
+            }
+        };
+
+        for(sKey in htKeyMap){
+            if(htKeyMap[sKey]){
+                attachHandler(sKey, fHandler);
+            } else {
+                detachHandler(sKey);
+            }
         }
     }
 

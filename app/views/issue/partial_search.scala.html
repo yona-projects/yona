@@ -241,12 +241,6 @@
                 // ShortcutKey
                 yobi.ShortcutKey.setKeymapLink({
                     "N": "@routes.IssueApp.newIssueForm(project.owner, project.name)"
-                    @if(currentPage.getPageIndex > 0){
-                    ,"A": "@getPageListUrl(currentPage.getPageIndex - 1)"
-                    }
-                    @if(currentPage.getTotalPageCount > 1 && (currentPage.getPageIndex + 1 != currentPage.getTotalPageCount)){
-                   ,"S": "@getPageListUrl(currentPage.getPageIndex + 1)"
-                    }
                 });
             });
         </script>

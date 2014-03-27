@@ -1,5 +1,7 @@
 @(section:String, project:Project)
 
+@ctrl = @{if(request.headers.get("User-Agent")(0).contains("Macintosh")){"⌘"}else{"CTRL"}}
+
 <div class="pull-right" style="padding:10px 0;">
     <a href="#helpKeys" data-toggle="modal" class="ybtn ybtn-inverse ybtn-mini">
         <i class="yobicon-info-sign"></i> @Messages("title.keymap")
@@ -7,7 +9,7 @@
 
     <div id="helpKeys" class="modal hide fade keymap-help" tabindex="-1" role="dialog">
         <div class="row-fluid">
-            <div class="span4">
+            <div class="span3">
                 <h5>@Messages("project.projects")</h5>
 	            <span class="ybtn ybtn-small">H</span>
 	            <span class="help-inline">@Messages("menu.home")</span><br>
@@ -69,20 +71,20 @@
 	            }
 
                 @if(section == "issueList"){
-                <span class="ybtn ybtn-small">CTRL</span>+ <span class="ybtn ybtn-small">A</span>
+                <span class="ybtn ybtn-small">@ctrl</span>+ <span class="ybtn ybtn-small">A</span>
                 <span class="help-inline">@Messages("button.selectAll")</span><br>
                 }
             </div>
 
-            <div class="span4">
+            <div class="span5">
 	            <h5>@Messages("site")</h5>
 	            <span class="ybtn ybtn-small">P</span>
 	            <span class="help-inline">@Messages("userinfo.profile")</span><br>
 
-                <span class="ybtn ybtn-small">ALT</span>+ <span class="ybtn ybtn-small">S</span>
+                <span class="ybtn ybtn-small">ALT</span> + <span class="ybtn ybtn-small">S</span>
                 <span class="help-inline">@Messages("site.search")</span><br>
 
-	            <span class="ybtn ybtn-small">CTRL</span>+ <span class="ybtn ybtn-small">ENTER</span>
+	            <span class="ybtn ybtn-small">@ctrl</span> + <span class="ybtn ybtn-small">ENTER</span>
 	            <span class="help-inline">@Messages("button.submitForm")</span><br>
             </div>
         </div>
