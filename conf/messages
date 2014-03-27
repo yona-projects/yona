@@ -237,6 +237,7 @@ issue.unwatch.start = Notifications of this issue has muted
 issue.update.assignee = Update assignee
 issue.update.attachLabel = Attach label
 issue.update.detachLabel = Detach label
+issue.update.label = Update label
 issue.update.milestone = Update milestone
 issue.update.state = Update state
 issue.vote = Sympathy

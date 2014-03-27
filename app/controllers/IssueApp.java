@@ -446,11 +446,15 @@ public class IssueApp extends AbstractPostingApp {
             }
 
             if (issueMassUpdate.attachingLabel != null) {
-                issue.labels.add(issueMassUpdate.attachingLabel);
+                for (IssueLabel label : issueMassUpdate.attachingLabel) {
+                    issue.labels.add(label);
+                }
             }
 
             if (issueMassUpdate.detachingLabel != null) {
-                issue.labels.remove(issueMassUpdate.detachingLabel);
+                for (IssueLabel label : issueMassUpdate.detachingLabel) {
+                    issue.labels.remove(label);
+                }
             }
 
             issue.updatedDate = JodaDateUtil.now();

@@ -33,7 +33,10 @@
         var welSelect = $(elSelect);
 
         // Select2.js default options
-        var htOpt = $.extend({"width": "resolve"}, htOptions);
+        var htOpt = $.extend({
+            "width": "resolve",
+            "containerCssClass": welSelect.data("containercssclass")
+        }, htOptions);
 
         // Customized formats
         var htFormat = {
@@ -79,6 +82,16 @@
                 });
 
                 return sText;
+            },
+            "issuelabel": function(oItem){
+                var welItem = $(oItem.element);
+                var sLabelId = welItem.val();
+
+                if(!sLabelId){
+                    return '<span>' + oItem.text.trim() + '</span>';
+                }
+
+                return '<a class="label issue-label active static" data-labelid="' + sLabelId + '">' + oItem.text.trim() + '</a>';
             }
         };
 
