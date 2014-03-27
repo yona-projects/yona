@@ -1,0 +1,67 @@
+@(message: String)(projectForm: Form[Project], project:Project)
+
+@import helper._
+@import utils.TemplateHelper._
+
+@projectLayout(message, project, utils.MenuType.PROJECT_SETTING) {
+@projectMenu(project, utils.MenuType.PROJECT_SETTING, "")
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        @partial_settingmenu(project)
+        <div class="bubble-wrap gray wp">
+            <div class="row-fluid">
+                <div class="cu-label">@Messages("project.transfer.new.owner")</div>
+                <div class="cu-desc">
+                    <p>
+                        <input type="text" id="owner" name="owner" />
+                    </p>
+                </div>
+            </div>
+            <div class="row-fluid">
+                <div class="cu-label">@Messages("project.transfer")</div>
+                <div class="cu-desc">
+                    <ul>
+                        <li class="notice"><strong>@Messages("project.transfer.description1")</strong></li>
+                        <li class="notice"><strong>@Messages("project.transfer.description2")</strong></li>
+                        <li class="notice"><strong>@Messages("project.transfer.description3")</strong></li>
+                        <li class="notice"><strong>@Messages("project.transfer.description4")</strong></li>
+                        <li class="notice"><strong>@Messages("project.transfer.description5")</strong></li>
+                    </ul>
+                    <p>
+                        <input type="checkbox" class="checkbox" autocomplete="off" id="accept"><!--
+                 --><label for="accept" class="bg-checkbox label-agreement">@Messages("project.transfer.accept")</label>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="box-wrap bottom">
+            <a id="btnTransfer" href="#alertTransfer" class="ybtn ybtn-danger" data-toggle="modal" ><!--
+             --><i class="yobicon-database"></i> @Messages("project.transfer.this")</a>
+        </div>
+
+        @** Confirm to transfer project **@
+        <div id="alertTransfer" class="modal hide">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h3>@Messages("project.transfer.requestion")</h3>
+            </div>
+            <div class="modal-body">
+                <p> @Messages("project.transfer.description")</p>
+                <p> @Messages("project.transfer.reaccept") </p>
+            </div>
+            <div class="modal-footer">
+                <button id="btnTransferExec" type="button" class="ybtn ybtn-danger">@Messages("button.yes")</button>
+                <button type="button" class="ybtn" data-dismiss="modal">@Messages("button.no")</button>
+            </div>
+        </div>
+        @** // -- // **@
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function(){
+        $yobi.loadModule("project.Transfer", {
+            "sTransferURL": "@routes.ProjectApp.transferProject(project.owner, project.name)"
+        });
+    });
+</script>
+}

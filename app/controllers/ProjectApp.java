@@ -8,6 +8,7 @@ import com.avaje.ebean.Junction;
 import com.avaje.ebean.Page;
 
 import controllers.annotation.IsAllowed;
+import info.schleichardt.play2.mailplugin.Mailer;
 import models.*;
 import models.Project.State;
 import models.enumeration.Operation;
@@ -16,16 +17,21 @@ import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.mail.HtmlEmail;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
+import org.jsoup.Jsoup;
 import org.tmatesoft.svn.core.SVNException;
 
+import play.Logger;
 import play.data.Form;
 import play.data.validation.ValidationError;
 import play.db.ebean.Transactional;
+import play.i18n.Messages;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http;
@@ -43,6 +49,7 @@ import views.html.project.create;
 import views.html.project.delete;
 import views.html.project.overview;
 import views.html.project.setting;
+import views.html.project.transfer;
 
 import javax.servlet.ServletException;
 
@@ -566,6 +573,110 @@ public class ProjectApp extends Controller {
             userList.add(commenter);
         }
         Collections.reverse(userList);
+    }
+
+    @IsAllowed(Operation.DELETE)
+    public static Result transferForm(String loginId, String projectName) {
+        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+        Form<Project> projectForm = form(Project.class).fill(project);
+        return ok(transfer.render("title.projectTransfer", projectForm, project));
+    }
+
+    @Transactional
+    @IsAllowed(Operation.DELETE)
+    public static Result transferProject(String loginId, String projectName) throws Exception {
+        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+        String newOwnerLoginId = request().getQueryString("owner");
+
+        User newOwner = User.findByLoginId(newOwnerLoginId);
+        if(newOwner.isAnonymous()) {
+            return badRequest(ErrorViews.BadRequest.render());
+        }
+
+        ProjectTransfer pt = ProjectTransfer.requestNewTransfer(project, UserApp.currentUser(), newOwner);
+        sendTransferRequestMail(pt);
+
+        // XHR 호출에 의한 경우라면 204 No Content 와 Location 헤더로 응답한다
+        String url = routes.ProjectApp.project(loginId, projectName).url();
+        if(HttpUtil.isRequestedWithXHR(request())){
+            response().setHeader("Location", url);
+            return status(204);
+        }
+
+        return redirect(url);
+    }
+
+    @Transactional
+    @With(AnonymousCheckAction.class)
+    public static synchronized Result acceptTransfer(Long id, String confirmKey) throws IOException, ServletException {
+        ProjectTransfer pt = ProjectTransfer.findValidOne(id);
+        if(pt == null) {
+            return notFound(ErrorViews.NotFound.render());
+        }
+        if(confirmKey == null || !pt.confirmKey.equals(confirmKey)) {
+            return badRequest(ErrorViews.BadRequest.render());
+        }
+
+        if(!AccessControl.isAllowed(UserApp.currentUser(), pt.asResource(), Operation.ACCEPT)) {
+            return forbidden(ErrorViews.Forbidden.render());
+        }
+
+        Project project = pt.project;
+
+        // 프로젝트 이름 및 저장소 변경
+        String newProjectName = Project.newProjectName(pt.to.loginId, project.name);
+        PlayRepository repository = RepositoryService.getRepository(project);
+        repository.move(pt.from.loginId, project.name, pt.to.loginId, newProjectName);
+
+        // 프로젝트 정보 변경
+        project.owner = pt.to.loginId;
+        project.name = newProjectName;
+        project.update();
+
+        // 프로젝트 매니저를 새 오너로 변경, 기존 오너는 멤버로 변경
+        ProjectUser.assignRole(pt.to.id, project.id, RoleType.MANAGER);
+        ProjectUser.assignRole(pt.from.id, project.id, RoleType.MEMBER);
+
+        // 이관 요청 수락으로 변경.
+        pt.newProjectName = newProjectName;
+        pt.accepted = true;
+        pt.update();
+
+        // 반대쪽 이관 요청 삭제
+        ProjectTransfer.deleteExisting(project, pt.to, pt.from);
+
+        return redirect(routes.ProjectApp.project(project.owner, project.name));
+    }
+
+    private static void sendTransferRequestMail(ProjectTransfer pt) {
+        HtmlEmail email = new HtmlEmail();
+
+        try {
+            String acceptUrl = pt.getAcceptUrl();
+            String message = Messages.get("transfer.message.hello", pt.to.loginId) + "\n\n"
+                    + Messages.get("transfer.message.detail", pt.project.name, pt.newProjectName, pt.from.loginId, pt.to.loginId) + "\n"
+                    + Messages.get("transfer.message.link") + "\n\n"
+                    + acceptUrl + "\n\n"
+                    + Messages.get("transfer.message.deadline") + "\n\n"
+                    + Messages.get("transfer.message.thank");
+
+            email.setFrom(Config.getEmailFromSmtp(), pt.from.name);
+            email.addTo(Config.getEmailFromSmtp(), "Yobi");
+            email.addBcc(pt.to.email, pt.to.name);
+            email.setSubject(String.format("[%s] @%s wants to transfer project", pt.project.name, pt.from.loginId));
+            email.setHtmlMsg(Markdown.render(message));
+            email.setTextMsg(message);
+            email.setCharset("utf-8");
+            email.addHeader("References", "<" + acceptUrl + "@" + Config.getHostname() + ">");
+            email.setSentDate(pt.requested);
+            Mailer.send(email);
+            String escapedTitle = email.getSubject().replace("\"", "\\\"");
+            String logEntry = String.format("\"%s\" %s", escapedTitle, email.getBccAddresses());
+            play.Logger.of("mail").info(logEntry);
+        } catch (Exception e) {
+            Logger.warn("Failed to send a notification: "
+                    + email + "\n" + ExceptionUtils.getStackTrace(e));
+        }
     }
 
     private static void addCodeCommenters(String commitId, Long projectId, List<User> userList) {

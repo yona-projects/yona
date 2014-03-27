@@ -1740,16 +1740,7 @@ public class GitRepository implements PlayRepository {
      */
     @Override
     public boolean renameTo(String projectName) {
-
-        repository.close();
-        WindowCacheConfig config = new WindowCacheConfig();
-        config.install();
-        File src = new File(getGitDirectory(this.ownerName, this.projectName));
-        File dest = new File(getGitDirectory(this.ownerName, projectName));
-
-        src.setWritable(true);
-
-        return src.renameTo(dest);
+        return move(this.ownerName, this.projectName, this.ownerName, projectName);
     }
 
     @Override
@@ -1826,5 +1817,17 @@ public class GitRepository implements PlayRepository {
         }
         RevWalk revWalk = new RevWalk(repository);
         return revWalk.parseCommit(objectId);
+    }
+
+    public boolean move(String fromUserLoginId, String fromProjectName, String toUserLoginId, String toProjectName) {
+        repository.close();
+        WindowCacheConfig config = new WindowCacheConfig();
+        config.install();
+        File src = new File(getGitDirectory(fromUserLoginId, fromProjectName));
+        File dest = new File(getGitDirectory(toUserLoginId, toProjectName));
+
+        src.setWritable(true);
+
+        return src.renameTo(dest);
     }
 }

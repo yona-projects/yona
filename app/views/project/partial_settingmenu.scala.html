@@ -19,4 +19,5 @@
     @makeSubMenu(routes.ProjectApp.settingForm(project.owner, project.name),  Messages("project.setting"), 0)
     @makeSubMenu(routes.ProjectApp.members(project.owner, project.name),      Messages("project.member"), project.enrolledUsers.size)
     @makeSubMenu(routes.ProjectApp.deleteForm(project.owner, project.name),   Messages("project.delete"), 0)
+    @makeSubMenu(routes.ProjectApp.transferForm(project.owner, project.name),   Messages("project.transfer"), 0)
 </ul>

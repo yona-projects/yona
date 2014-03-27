@@ -736,6 +736,7 @@ public class Project extends Model implements LabelOwner {
      */
     @Override
     public void delete() {
+        deleteProjectTransfer();
         deleteFork();
         deletePullRequests();
 
@@ -771,6 +772,13 @@ public class Project extends Model implements LabelOwner {
         super.delete();
     }
 
+    private void deleteProjectTransfer() {
+        List<ProjectTransfer> pts = ProjectTransfer.findByProject(this);
+        for(ProjectTransfer pt : pts) {
+            pt.delete();
+        }
+    }
+
     private void deleteOriginal() {
         this.originalProject = null;
     }
@@ -802,7 +810,7 @@ public class Project extends Model implements LabelOwner {
      * @param projectName
      * @return
      */
-    private static String newProjectName(String loginId, String projectName) {
+    public static String newProjectName(String loginId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
         if(project == null) {
             return projectName;
