@@ -608,7 +608,7 @@ public class ProjectApp extends Controller {
 
     @Transactional
     @With(AnonymousCheckAction.class)
-    public static Result acceptTransfer(Long id, String confirmKey) throws IOException, ServletException {
+    public static synchronized Result acceptTransfer(Long id, String confirmKey) throws IOException, ServletException {
         ProjectTransfer pt = ProjectTransfer.findValidOne(id);
         if(pt == null) {
             return notFound(ErrorViews.NotFound.render());
