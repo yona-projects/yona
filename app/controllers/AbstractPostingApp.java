@@ -140,6 +140,7 @@ public class AbstractPostingApp extends Controller {
         posting.authorLoginId = original.authorLoginId;
         posting.authorName = original.authorName;
         posting.project = original.project;
+        posting.setNumber(original.getNumber());
         preUpdateHook.run();
         posting.update();
         posting.updateProperties();
