@@ -34,7 +34,7 @@
                 </small>
             </h4>
 
-            <div class="progress progress-success progress-striped @if(milestone.state == State.OPEN) {active}">
+            <div class="progress progress-success @if(milestone.state == State.OPEN) {progress-striped active}">
                 <div class="bar" style="width: @milestone.getCompletionRate%;"></div>
             </div>
             <div class="milestone-desc">
