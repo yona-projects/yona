@@ -88,6 +88,10 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
         return number;
     }
 
+    public void setNumber(Long number) {
+        this.number = number;
+    }
+
     /**
      * 저장할 때 번호가 설정되어 있지 않다면 번호를 저장하고 댓글 개수를 설정한다.
      *
