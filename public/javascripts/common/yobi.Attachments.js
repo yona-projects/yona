@@ -203,6 +203,12 @@ yobi.Attachments = function(htOptions) {
         return nFileSize;
     }
 
+    function _showMimetypeIcon(welFileItem, sMimeType) {
+        if (isHtml5Video(htFile.mimeType)) {
+            welFileItem.children('i.mimetype').addClass('yobicon-video2').show();
+        }
+    }
+
     /**
      * 파일 목록에 추가할 수 있는 LI 엘리먼트를 반환하는 함수
      * Create uploaded file item HTML element using template string
@@ -221,6 +227,8 @@ yobi.Attachments = function(htOptions) {
             "fileSizeReadable": humanize.filesize(htFile.size),
             "mimeType": htFile.mimeType
         });
+
+        showMimetypeIcon(welItem, htFile.mimeType);
 
         // 임시 파일 표시
         if(bTemp){
@@ -326,6 +334,8 @@ yobi.Attachments = function(htOptions) {
         var sTempLink = _getTempLinkText(htData.nSubmitId);
         var sRealLink = _getLinkText(welFileItem);
         _replaceLinkInTextarea(sTempLink, sRealLink);
+
+        showMimetypeIcon(welFileItem, htData.oRes.mimeType);
     }
 
     /**
@@ -449,6 +459,23 @@ yobi.Attachments = function(htOptions) {
     }
 
     /**
+     * @return {Boolean} true if sMimeType is supported by HTML5 video element
+     */
+    function isHtml5Video(sMimeType) {
+        return ["video/mp4", "video/ogg", "video/webm"]
+            .indexOf($.trim(sMimeType).toLowerCase()) >= 0;
+    }
+
+    /**
+     * Show a icon matches sMimeType on welFileItem
+     */
+    function _showMimetypeIcon(welFileItem, sMimeType) {
+        if (isHtml5Video(htFile.mimeType)) {
+            welFileItem.children('i.mimetype').addClass('yobicon-video2').show();
+        }
+    }
+
+    /**
      * 파일 아이템으로부터 링크 텍스트를 생성하여 반환하는 함수
      *
      * @param {Wrapped Element} welItem 템플릿 htVar.sTplFileItem 에 의해 생성된 첨부 파일 아이템
@@ -461,7 +488,18 @@ yobi.Attachments = function(htOptions) {
 
         var sLinkText = '[' + sFileName + '](' + sFilePath + ')\n';
 
-        return  (sMimeType.substr(0,5) === "image") ? '!'+sLinkText : sLinkText;
+        if (sMimeType.substr(0,5) === "image") {
+            return '!' + sLinkText;
+        } else if (isHtml5Video(sMimeType)) {
+            return $('<div>').append(
+                    $('<video>').attr('controls', true)
+                    .append($('<source>').attr('src', sFilePath))
+                    .append(sLinkText)
+                   ).html();
+
+        } else {
+            return sLinkText;
+        }
     }
 
     /**
