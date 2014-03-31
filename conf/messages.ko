@@ -21,7 +21,7 @@
 # - userinfo
 # - validation
 #
-app.description = 웹기반 소프트웨어 개발 플랫폼.
+app.description = 웹기반 소프트웨어 개발 플랫폼
 app.name = Yobi
 app.restart.notice = 서버를 재시작해야합니다.
 app.restart.welcome = 환영합니다!
@@ -587,6 +587,7 @@ title.issueList = 이슈 목록
 title.issueTracker = 이슈 트래커
 title.keymap = 단축키 안내
 title.login = 로그인
+title.loginFor = <span class="highlight">{0}</span> 로그인
 title.logout = 로그아웃
 title.markdown.help = 마크다운 도움말
 title.massMail = 대량 메일 발송
@@ -603,9 +604,11 @@ title.projectMembers = 프로젝트 멤버
 title.projectSetting = 프로젝트 설정
 title.rememberMe = 로그인 유지하기
 title.resetPassword = 비밀번호 재설정
+title.resetPasswordFor = <span class="highlight">{0}</span> 비밀번호 재설정
 title.search = 검색
 title.sendMail = 메일 발송
 title.signup = 회원 가입
+title.signupFor = <span class="highlight">{0}</span> 회원가입
 title.siteSetting = 사이트 설정
 title.text = 제목
 title.unlimitedProjects = 제한 없는 프로젝트 생성

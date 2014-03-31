@@ -581,28 +581,24 @@
             }
         }
         &.login {
-            /*margin-top: 25px;*/
            padding-top:40px;
            margin-top:0px;
         }
         .title {
-            font-size: 3.3em; /*52px;*/
-            line-height:42px; /*line-height: 1.3;*/
+            font-size: 3.3em;
+            line-height:42px;
             font-weight: normal;
+            font-family:@base-font-family;
             .inline-block;
-            /*.helvetic-light;*/
-            .high-light {
-                color: @yobi-primary;
 
+            .highlight {
+                color: @yobi-primary;
             }
-            /*font-family:'Myriad Pro Light', 'Droid Sans', Tahoma, sans-serif;*/
-           font-family:@base-font-family;
         }
         .tag-line {
-            font-size: 1.2em; /*16px;*/
-            color: #7c7c7c; /*@gray-52;*/
-            /*font-family:"Myriad Pro";*/
-
+            font-size: 1.2em;
+            color: #7c7c7c;
+            margin-top:10px;
             span { color:@gray-52; }
         }
     }
@@ -1312,25 +1308,21 @@
             margin-bottom: 15px;
         }
     }
+
+    .alert h4 { font-size:15px; }
 }
 .login-form-wrap {
     margin-top: 54px;
     width: 400px;
     .center-block;
+
     .act-row {
         margin-bottom: 42px;
         line-height:22px;
+        .checkbox { margin-top:4px !important; }
     }
     .forgot-password {
-        vertical-align: top;
-        color: #5C5C5C;
-        margin-left: 5px;
-        padding-left: 5px;
-        border-left: 1px solid #eee;
-
-        &:hover {
-            color: #010101;
-        }
+        float:left; margin:0;
     }
 
     .btns-row {

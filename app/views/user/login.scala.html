@@ -4,9 +4,9 @@
 <div class="page full">
   <div class="center-wrap tag-line-wrap login">
     <h1 class="title">
-      Log In for <span class="high-light">@utils.Config.getSiteName</span>
+      @Html(Messages("title.loginFor", utils.Config.getSiteName))
     </h1>
-    <p class="tag-line">Software development platform for Open Source project.</p>
+    <p class="tag-line">@Messages("app.description")</p>
   </div>
   <div class="login-form-wrap frm-wrap">
     <form action="@routes.UserApp.login()" method="POST">
@@ -28,8 +28,10 @@
 
       <div class="act-row right-txt">
         <input id="remember-me" type="checkbox" name="rememberMe" class="checkbox" autocomplete="off">
-        <!-- -->
-        <label for="remember-me" class="bg-checkbox">@Messages("title.rememberMe")</label> <a href="@routes.PasswordResetApp.lostPassword()" class="forgot-password"> <span class="ybtn ybtn-mini ybtn-danger">@Messages("title.forgotpassword")</span>
+        <label for="remember-me" class="bg-checkbox">@Messages("title.rememberMe")</label>
+
+        <a href="@routes.PasswordResetApp.lostPassword()" class="ybtn ybtn-mini ybtn-danger forgot-password">
+          @Messages("title.forgotpassword")
         </a>
       </div>
 
