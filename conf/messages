@@ -460,6 +460,7 @@ project.transfer.description2 = New owner will be new owner of this project.
 project.transfer.description3 = When it's done, project's current owner will be changed to a member of this project.
 project.transfer.description4 = The URL of all resources including issues, postings and others of this project will be changed.
 project.transfer.description5 = The URL of the repository of this project will be changed.
+project.transfer.error = Not available user. Please check whether the user's login id is correct.
 project.transfer.new.owner = New owner
 project.transfer.reaccept = Are you sure?
 project.transfer.requestion = Do you want to transfer this project?
