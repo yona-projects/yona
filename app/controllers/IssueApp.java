@@ -753,12 +753,23 @@ public class IssueApp extends AbstractPostingApp {
             return badRequest(ErrorViews.BadRequest.render("error.validation", project));
         }
         final IssueComment comment = commentForm.get();
-        return newComment(comment, commentForm, redirectTo, new Runnable() {
+
+        IssueComment existingComment = IssueComment.find.where().eq("id", comment.id).findUnique();
+        if( existingComment != null){
+            existingComment.contents = comment.contents;
+            return saveComment(existingComment, commentForm, redirectTo, getContainerUpdater(issue, comment));
+        } else {
+            return saveComment(comment, commentForm, redirectTo, getContainerUpdater(issue, comment));
+        }
+    }
+
+    private static Runnable getContainerUpdater(final Issue issue, final IssueComment comment) {
+        return new Runnable() {
             @Override
             public void run() {
                 comment.issue = issue;
             }
-        });
+        };
     }
 
     /**
@@ -773,7 +784,7 @@ public class IssueApp extends AbstractPostingApp {
      * @param number 이슈 번호
      * @return
      * @throws IOException
-     * @see {@link AbstractPostingApp#newComment(Comment, Form, Call, Runnable)}
+     * @see {@link AbstractPostingApp#saveComment(Comment, Form, Call, Runnable)}
      */
     @Transactional
     @IsCreatable(ResourceType.ISSUE_COMMENT)
@@ -804,12 +815,7 @@ public class IssueApp extends AbstractPostingApp {
 
     private static void commentSave(final IssueComment comment, final Issue issue) {
         comment.setAuthor(UserApp.currentUser());
-        new Runnable() {
-            @Override
-            public void run() {
-                comment.issue = issue;
-            }
-        }.run();
+        getContainerUpdater(issue, comment).run();
         comment.save();
     }
 
