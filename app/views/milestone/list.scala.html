@@ -82,9 +82,8 @@
                             </span>
                             }
                         } else {
-                            <span class="sp">|</span>
-                            <span class="state closed">@Messages("milestone.state." + milestone.state.state)</span>
                             @if(milestone.dueDate != null) {
+                            <span class="sp">|</span>
                             <span class="due-date ml5">
                                 @Messages("label.dueDate")
                                 <strong>@milestone.getDueDateString</strong>
