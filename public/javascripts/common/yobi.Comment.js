@@ -44,6 +44,16 @@ yobi.Comment = (function(){
      */
     function _attachEvent() {
         htElement.welContainer.on('click', '[data-toggle="comment-delete"]', _openDeleteModal);
+        htElement.welContainer.on('click', '[data-toggle="comment-edit"]', function _editFormShowToggle(){
+            var editformId = $(this).data('comment-editform-id');
+            $('#' + editformId).toggle();
+            $(this).parents('.media-body').toggle();
+        });
+        htElement.welContainer.on('click', '.ybtn-cancel', function _hideEditForm(){
+            $(this).parents('.comment-update-form').toggle();
+            var commentBodyId = $(this).data('comment-body-id');
+            $('#' + commentBodyId).toggle();
+        });
     }
 
     /**

@@ -183,17 +183,17 @@ yobi.Markdown = (function(htOptions){
     function _setEditor(welTextarea) {
         // create new preview area
         var welPreview = $('<div class="markdown-preview markdown-wrap">');
-        var welTextareaBox = $('.textarea-box');
+        var welTextareaBox = welTextarea.parents('.write-comment-wrap').find('.textarea-box');
 
         welPreview.css({
             "display"   : "none",
             "min-height": welTextarea.height() + 'px'
         });
 
-        var welPreviewSwitch = $('input[name="edit-mode"]');
+        var welPreviewSwitch = welTextarea.parents('.write-comment-wrap').find('input[name="edit-mode"]');
 
         var fOnChangeSwitch = function() {
-            var bPreview = ($("input:radio[name=edit-mode]:checked").val() == "preview");
+            var bPreview = (welTextarea.parents('.write-comment-wrap').find("input:radio[name=edit-mode]:checked").val() == "preview");
             welPreview.html(_renderMarkdown(welTextarea.val()));
             (bPreview ? welPreview: welTextareaBox).show();
             (bPreview ? welTextareaBox: welPreview).hide();
