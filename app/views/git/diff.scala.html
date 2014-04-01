@@ -121,7 +121,7 @@
                 }
                 }
 
-                @common.commentForm(pull.fromProject, ResourceType.COMMIT_COMMENT, routes.CodeHistoryApp.newComment(pull.fromProject.owner, pull.fromProject.name, commit.getId).toString())
+                @common.commentForm(pull.asResource(), ResourceType.COMMIT_COMMENT, routes.CodeHistoryApp.newComment(pull.fromProject.owner, pull.fromProject.name, commit.getId).toString())
             </div>
             @** // Comment **@
         </div>

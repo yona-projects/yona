@@ -93,7 +93,7 @@
                 @renderCommentsOnPullRequest(pull, Html(""), pull.getTimelineComments.toList)
                 </ul>
                 }
-                @common.commentForm(project, ResourceType.PULL_REQUEST_COMMENT, routes.PullRequestCommentApp.newComment(project.owner, project.name, pull.id).toString())
+                @common.commentForm(pull.asResource(), ResourceType.PULL_REQUEST_COMMENT, routes.PullRequestCommentApp.newComment(project.owner, project.name, pull.id).toString())
             </div>
         </div>
     </div>

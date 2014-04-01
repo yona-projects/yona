@@ -194,8 +194,9 @@
                         @**<!-- voters -->**@
                         <dl>
                             <dt>@Messages("issue.vote")</dt>
+                            <dd>
                             <dd style="padding:5px 10px;">
-                                @if(isProjectResourceCreatable(User.findByLoginId(session.get("loginId")), project, ResourceType.ISSUE_COMMENT)) {
+                                @if(isResourceCreatable(User.findByLoginId(session.get("loginId")), issue.asResource(), ResourceType.ISSUE_COMMENT)) {
                                     @if(issue.isVotedBy(UserApp.currentUser())) {
                                         <a href="@routes.VoteApp.unvote(project.owner, project.name, issue.getNumber)" data-request-method="post" class="ybtn ybtn-success"  data-toggle="tooltip" data-placement="right" data-original-title="@Messages("issue.unvote.description")">+@issue.voters.size</a>
                                     } else {
@@ -255,7 +256,7 @@
                 @partial_comments(project, issue)
                 </div>
             </div>
-            @common.commentForm(project, ResourceType.ISSUE_COMMENT, routes.IssueApp.newComment(project.owner, project.name, issue.getNumber).toString())
+            @common.commentForm(issue.asResource(), ResourceType.ISSUE_COMMENT, routes.IssueApp.newComment(project.owner, project.name, issue.getNumber).toString())
         </div>
         @** // Comment **@
 
