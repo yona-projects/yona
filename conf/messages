@@ -323,6 +323,7 @@ notification.watch = Watch
 notification.will.help = You can receive next notifications.
 organization.create = Create Organization
 organization.description.placeholder = input organization's description
+organization.member = group member
 organization.name.alert = Wrong organization name. (Characters which can be used in URL are allowed)
 organization.name.duplicate = Already existing user's login id or existing organization's name.
 organization.name.placeholder = input organization's name

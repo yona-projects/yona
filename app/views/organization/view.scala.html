@@ -4,15 +4,16 @@
 @import utils.JodaDateUtil
 
 @siteLayout(org.name, utils.MenuType.NONE) {
-<div class="site-breadcrumb-outer">
-    <div class="site-breadcrumb-inner">
-        <h3>@org.name <small>@org.descr</small></h3>
-    </div>
-</div>
+@header(org)
+@menu(org)
+
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
-        <div class="row-fluid">
+        <div class="project-home-header row-fluid">
             <div class="span9">
+                <div class="project-overview">
+                    <h3><span id="project-description">@org.descr</span></h3>
+                </div>
                 <ul class="all-projects">
                     @for(project <- org.getVisiableProjects(UserApp.currentUser())) {
                     <li class="project">
@@ -73,15 +74,30 @@
                 </ul>
             </div>
             <div class="span3">
-                <ul class="unstyled">
-                @for(ou <- org.users) {
-                <li>
-                    <img src="@ou.user.avatarUrl" height="45" width="45" class="img-circle"/>
-                    @ou.user.name (@ou.user.loginId)
-                    <span class="label label-info">@Messages("user.role." + ou.role.name)</span>
-                </li>
-                }
-                </ul>
+                <div class="bubble-wrap gray project-home">
+                    <div class="inner member-info">
+                        <header>
+                            <h3>@Messages("organization.member")</h3>
+                        </header>
+                    </div>
+                    <div class="member-wrap">
+                        <ul class="unstyled">
+                        @for(ou <- org.users) {
+                        <li>
+                            <span class="pull-left">
+                                <a href="@routes.UserApp.userInfo(ou.user.loginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@ou.user.loginId">
+                                    <img src="@ou.user.avatarUrl" height="45" width="45" />
+                                </a>
+                                <a href="@routes.UserApp.userInfo(ou.user.loginId)" data-toggle="tooltip" data-placement="top" title="@ou.user.loginId">
+                                @ou.user.name
+                                </a>
+                            </span>
+                            <span class="label label-info pull-right mt10">@Messages("user.role." + ou.role.name)</span>
+                        </li>
+                        }
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
