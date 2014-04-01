@@ -43,9 +43,7 @@ public class Config {
     }
 
     /**
-     * 시스템의 기본 IP 주소를 알아낸다.
-     *
-     * @return
+     * @return the default IP address
      * @throws SocketException
      * @throws UnknownHostException
      */
@@ -64,12 +62,13 @@ public class Config {
     }
 
     /**
-     * 사용자의 설정에서 호스트이름을 얻는다.
+     * Detect the hostname.
      *
-     * application.hostname 값을 읽어서 반환하되, 만약 그 값이 없다면 {@link #getDefaultAddress()}를
-     * 이용해 시스템의 기본 IP 주소를 알아낸 뒤, 그 주소에서 호스트이름을 알아내어 반환한다.
+     * Return {@code application.hostname} from the Yobi's configuration if
+     * available or the hostname from the IP address from
+     * {@link #getDefaultAddress()}.
      *
-     * @return 호스트이름
+     * @return the hostname
      */
     public static String getHostname() {
         play.Configuration config = play.Configuration.root();
