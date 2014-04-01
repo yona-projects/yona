@@ -1,7 +1,0 @@
-@(project:Project, branch:String, viewType:String, path:String)
-
-@import utils.TemplateHelper._
-
-@defining(branchItemName(branch)){ branchName =>
-    <li data-value="@branch"><a href="@getBranchURL(project, branchName, viewType, path)">@Html(branchInHTML(branch))</a></li>
-}

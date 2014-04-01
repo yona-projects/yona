@@ -2,6 +2,7 @@
 
 @import helper._
 @import utils.TemplateHelper._
+@import utils.TemplateHelper.Branches._
 
 @projectLayout(message, project, utils.MenuType.PROJECT_SETTING) {
 @projectMenu(project, utils.MenuType.PROJECT_SETTING, "")
@@ -91,10 +92,8 @@
                                 <span class="d-caret"><span class="caret"></span></span>
                             </button>
                             <ul class="dropdown-menu">
-                                @for(branch <- branches if branchItemType(branch) == "branch"){
-                                @defining(branchItemName(branch)){ branchName =>
-                                <li data-value="@branch"><a>@Html(branchName)</a></li>
-                                }
+                                @for(branch <- branches if Branches.itemType(branch).equals("branch")){
+                                    @common.branchItem("projectSetting", project, branch, null, false)
                                 }
                             </ul>
                         </div>

@@ -20,14 +20,17 @@
          */
         function _init(htOptions){
             _initVar(htOptions);
-            _initElement(htOptions);
+            _initElement();
             _attachEvent();
-            _render();
 
             _initFileUploader();
             _initFileDownloader();
             _initToggleCommentsButton();
+            _initCodeComment();
+            _initReviewWrapAffixed();
             _initMiniMap();
+
+            _scrollToHash();
         }
 
         /**
@@ -52,21 +55,22 @@
         /**
          * initialize element
          */
-        function _initElement(htOptions){
+        function _initElement(){
+            htElement.welContainer = $(".codediff-wrap");
+
+            // 변경내역
+            htElement.welDiffWrap = htElement.welContainer.find("div.diffs-wrap");
+            htElement.welDiffBody = htElement.welDiffWrap.find(".diff-body");
+            htElement.waDiffContainers = htElement.welDiffWrap.find(".diff-container");
+
+            // 리뷰영역
+            htElement.welReviewWrap = htElement.welContainer.find("div.review-wrap");
+            htElement.welReviewList = htElement.welReviewWrap.find("div.review-wrap-scroll");
+            htElement.waBtnToggleReviewWrap = htElement.welContainer.find("button.btn-show-reviewcards,button.btn-hide-reviewcards");
+
+            // 전체 댓글 (Non-Ranged comment thread)
             htElement.welUploader = $("#upload");
             htElement.welTextarea = $("#comment-editor");
-
-            var welHidden = $('<input>').attr('type', 'hidden');
-
-            htElement.welDiff = htOptions.welDiff || $('#commit');
-            htElement.welEmptyCommentForm = $('#comment-form')
-                .append(welHidden.clone().attr('name', 'path'))
-                .append(welHidden.clone().attr('name', 'line'))
-                .append(welHidden.clone().attr('name', 'side'))
-                .append(welHidden.clone().attr('name', 'commitA'))
-                .append(welHidden.clone().attr('name', 'commitB'))
-                .append(welHidden.clone().attr('name', 'commitId'));
-            htElement.welComments = $('ul.comments');
 
             // 지켜보기
             htElement.welBtnWatch = $('#watch-button');
@@ -82,69 +86,45 @@
          * attach event handler
          */
         function _attachEvent(){
-            if (htElement.welBtnWatch == null) {
-                return;
-            }
+            // 지켜보기
+            htElement.welBtnWatch.on("click", _onClickBtnWatchToggle);
 
-            htElement.welBtnWatch.click(function(weEvt) {
-                var welTarget = $(weEvt.target);
-                var bWatched = welTarget.hasClass("active");
-
-                $yobi.sendForm({
-                    "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
-                    "fOnLoad": function(){
-                        welTarget.toggleClass("active ybtn-watching");
-                    }
-                });
+            // 미니맵
+            $(window).on({
+                "resize": _initMiniMap,
+                "scroll": _updateMiniMapCurr
             });
 
-            $(window).on("resize", _initMiniMap);
-            $(window).on("scroll", _updateMiniMapCurr);
-            $('div.diff-body[data-outdated!="true"] tr .linenum:first-child').click(_onClickLineNumA);
-
-            _attachCommentBoxToggleEvent();
+            // 리뷰목록 토글
+            htElement.waBtnToggleReviewWrap.on("click", function(){
+                htElement.welContainer.toggleClass("diffs-only");
+            });
         }
 
         /**
-         * Render diff and comments
+         * 지켜보기 버튼 클릭시 이벤트 핸들러
+         *
+         * @param weEvt
+         * @private
          */
-        function _render() {
+        function _onClickBtnWatchToggle(weEvt){
+            var welTarget = $(weEvt.target);
+            var bWatched = welTarget.hasClass("active");
 
-            if(!htVar.bCommentable) {
-                $(".diff-body .icon-comment").css("display", "none");
-            }
-
-            var waComments = htElement.welComments.children('li.comment');
-            var aComment = [];
-
-            for(var i = 0; i < waComments.length; i++) {
-                var welComment = $(waComments[i]);
-                var linenum = welComment.data('line');
-                var side = welComment.data('side');
-                var path = welComment.data('path');
-                var sSelector;
-                var welCommentList;
-
-                if (welComment.data('outdated') == false && welComment.data('path')) {
-                    sSelector = 'table[data-path="' + welComment.data('path') + '"] tr[data-line="' + welComment.data('line') + '"][data-type="' + welComment.data('side') + '"]'
-                    if (aComment[sSelector] == undefined) {
-                        aComment[sSelector] = [];
-                    }
-                    aComment[sSelector].push(welComment);
+            $yobi.sendForm({
+                "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
+                "fOnLoad": function(){
+                    welTarget.toggleClass("active ybtn-watching");
                 }
-            }
+            });
+        }
 
-            for (var sSelector in aComment) {
-                welCommentList = $('<ul>').addClass("comments");
-                for (var j = 0; j < aComment[sSelector].length; j++) {
-                    welCommentList.append(aComment[sSelector][j]);
-                }
-            }
-
-            htElement.welComments.show(); // Show the remain comments
-
-            // Diff 중에서 특정 파일을 #path 로 지정한 경우
-            // Diff render 완료 후 해당 파일 위치로 스크롤 이동
+        /**
+         * Diff 중에서 특정 파일을 #path 로 지정한 경우
+         * Diff render 완료 후 해당 파일 위치로 스크롤 이동
+         * @private
+         */
+        function _scrollToHash(){
             if(document.location.hash){
                 var sTargetId = document.location.hash.substr(1).replace(htVar.rxSlashes, "-");
                 var welTarget = $(document.getElementById(sTargetId));
@@ -152,6 +132,32 @@
                 if(welTarget.length > 0){
                     window.scrollTo(0, welTarget.offset().top);
                 }
+            }
+        }
+
+        /**
+         * 리뷰 목록이 존재하면 스크롤에 따라 일정한 위치에 고정되도록 설정
+         * @private
+         */
+        function _initReviewWrapAffixed(){
+            if(!htElement.welReviewWrap.length){
+                return;
+            }
+
+            htVar.nAffixTop = htElement.welReviewWrap.offset().top - 25;
+            _updateReviewWrapAffixed();
+            $(window).on("scroll", _updateReviewWrapAffixed);
+        }
+
+        /**
+         * 스크롤에 따라 리뷰 목록 위치 고정 여부 처리
+         * @private
+         */
+        function _updateReviewWrapAffixed(){
+            if($(window).scrollTop() > htVar.nAffixTop){
+                htElement.welReviewWrap.addClass("fixed");
+            } else {
+                htElement.welReviewWrap.removeClass("fixed");
             }
         }
 
@@ -188,41 +194,122 @@
          * 댓글 표시하기 토글
          * initialize toggle comments button
          */
-        function _initToggleCommentsButton() {
-            $('#toggle-comments').on('click',function() {
-                $('.diff-container').toggleClass('show-comments');
-                $("#minimap").toggle();
+        function _initToggleCommentsButton(){
+            $('#toggle-comments').on('click', function(){
+                htElement.waDiffContainers.toggleClass('show-comments');
+                htElement.welMiniMap.toggle();
             });
         }
 
         /**
-         * diff에서 얻은 변경된 라인들을 welTable에 새 row들로 추가한다.
+         * 코드 댓글 관련 초기화 함수
+         * 작성 권한이 있다면 댓글 폼을 활성화 시키고
+         * 작성 권한이 없으면 사용하지 않을 화면 요소를 감춘다
          *
-         * 만약 변경된 라인들이 정확하게 삭제된 라인 1줄, 추가된 라인
-         * 1줄이라면 단어 단위 하이라이팅을 적용한다.
-         *
-         * @param {Object} welTable
-         * @param {Object} htDiff
+         * @private
          */
-        function _flushChangedLines(welTable, htDiff) {
-            if (htDiff.aRemoved.length == 1 && htDiff.aAdded.length == 1) {
-                _appendChangedLinesWithWordHighlight(welTable, htDiff);
+        function _initCodeComment(){
+            // 댓글 작성 권한 유무에 따른 처리
+            if(htVar.bCommentable){
+                // 블록 댓글 기능 초기화
+                _initCodeCommentBox();
+                _initCodeCommentBlock();
+
+                // 줄번호 클릭으로 댓글 작성 (예전 댓글 기능)
+                $('div.diff-body[data-outdated!="true"] tr .linenum:first-child').on("click", _onClickLineNumA);
+
+                // 스레드에 댓글 추가 버튼
+                htElement.welDiffWrap.on("click", "button.btn-thread", _onClickBtnReplyOnThread);
             } else {
-                _appendChangedLinesWithoutWordHighlight(welTable, htDiff);
+                htElement.welDiffBody.find(".linenum > .yobicon-comments").hide();
             }
 
-            htDiff.aRemoved = [];
-            htDiff.aAdded = [];
+            // 스레드 접기 토글 버튼
+            htElement.welDiffBody.on("click", ".btn-thread-minimize", _onClickBtnFoldThread);
+
+            // block/unblock with thread range with mouseenter/leave event
+            $('div[data-toggle="CodeCommentThread"]').on({
+                "mouseenter": _onMouseOverCodeCommentThread,
+                "mouseleave": _onMouseLeaveCodeCommentThread
+            });
         }
 
-        function _attachCommentBoxToggleEvent() {
-            if (htVar.bCommentable) {
-                yobi.CodeCommentBox.init({
-                    fCallbackAfterShowCommentBox: _updateMiniMap,
-                    fCallbackAfterHideCommentbox: _updateMiniMap,
-                    welDiff: htOptions.htDiff
-                });
-            }
+        /**
+         * 댓글 상자 초기화
+         *
+         * @private
+         */
+        function _initCodeCommentBox() {
+            yobi.CodeCommentBox.init({
+                "fOnAfterShow": _updateMiniMap,
+                "fOnAfterHide": function(){
+                    _updateMiniMap();
+                    yobi.CodeCommentBlock.unblock();
+                },
+                "sTplFileItem": htVar.sTplFileItem
+            });
+        }
+
+        /**
+         * 스레드의 [댓글 입력] 버튼을 클릭했을 때의 이벤트 핸들러
+         *
+         * @param weEvt
+         * @private
+         */
+        function _onClickBtnReplyOnThread(weEvt){
+            // 댓글 박스가 [댓글입력] 버튼을 덮는 위치에 오도록
+            // 그 버튼 높이+여백만큼 top 값을 보정한다
+            var welButton = $(weEvt.currentTarget);
+            var nGap = (htElement.welDiffBody.has(welButton).length > 0) ? htElement.welDiffBody.position().top : 0;
+            var nAdjustmentTop = (-1 * welButton.outerHeight()) + nGap - 4;
+
+            yobi.CodeCommentBox.show(welButton, {
+                "nAdjustmentTop": nAdjustmentTop
+            });
+        }
+
+        /**
+         * 블록댓글 기능 초기화
+         * 변경내역 영역에서 블록을 지정하면 댓글 버튼을 표시하기 위해서 사용한다.
+         * @private
+         */
+        function _initCodeCommentBlock(){
+            yobi.CodeCommentBlock.init({
+                "welContainer"    : htElement.welDiffBody,
+                "welButtonOnBlock": htElement.welDiffBody.find(".btnPop")
+            });
+
+            htElement.welDiffBody.on("click", ".btnPop", _onClickBtnAddBlockComment);
+            htElement.welDiffBody.on("mousedown", ":not(.btnPop)", function(){
+                if(document.getSelection().toString().length === 0){
+                    yobi.CodeCommentBox.hide();
+                }
+            });
+        }
+
+        /**
+         * 변경내역 영역에서 블록을 지정하고 댓글작성 버튼을 클릭했을 때 이벤트 핸들러.
+         * 선택한 블록의 영역을 yobi.CodeCommentBlock 를 이용해 표시하고, 정보를 얻어서
+         * 적절한 위치에 yobi.CodeCommentBox 를 이용해 댓글 작성 폼을 표시해준다
+         *
+         * @private
+         */
+        function _onClickBtnAddBlockComment(){
+            // 블록 정보를 얻어서 블록 표시
+            var htBlockInfo = yobi.CodeCommentBlock.getData();
+            yobi.CodeCommentBlock.block(htBlockInfo);
+
+            // 댓글을 표시할 줄을 찾아 CodeCommentBox 호출
+            var sLineNum = htBlockInfo.bIsReversed ? htBlockInfo.nStartLine : htBlockInfo.nEndLine;
+            var sLineType = htBlockInfo.bIsReversed ? htBlockInfo.sStartType : htBlockInfo.sEndType;
+            var welContainer = $('.diff-container[data-file-path="' + htBlockInfo.sFilePath + '"]');
+            var welTR = welContainer.find('tr[data-line="' + sLineNum + '"][data-type="' + sLineType + '"]');
+            welTR.data("blockInfo", htBlockInfo); // 블록정보
+
+            yobi.CodeCommentBox.show(welTR, {
+                "sPlacement": htBlockInfo.bIsReversed ? "top" : "bottom",
+                "nAdjustmentTop": htElement.welDiffBody.position().top
+            });
         }
 
         /**
@@ -240,15 +327,81 @@
          *
          * @param {Event} weEvt
          */
-        function _onClickLineNumA(weEvt) {
-            var commentForm =
-                $(weEvt.target).closest('tr').next().find('#comment-form');
+        function _onClickLineNumA(weEvt){
+            // 기존의 Selection 제거하고
+            window.getSelection().removeAllRanges();
 
-            if (commentForm.length > 0) {
-                yobi.CodeCommentBox.hide();
-            } else {
-                yobi.CodeCommentBox.show($(weEvt.target).closest("tr"));
+            var welTarget = $(weEvt.target).closest("tr").find("td.code pre");
+            var oNode = welTarget.get(0).childNodes[0];
+            var oRange = document.createRange();
+
+            // 클릭한 줄을 전부 선택한 것으로 취급해서
+            oRange.setStart(oNode, 0);
+            oRange.setEnd(oNode, oNode.length);
+            window.getSelection().addRange(oRange);
+
+            // 블록 댓글 작성 폼을 띄운다
+            welTarget.trigger("mouseup");
+            _onClickBtnAddBlockComment();
+        }
+
+        /**
+         * On Click fold/unfold thread toggle button
+         * @param weEvt
+         * @private
+         */
+        function _onClickBtnFoldThread(weEvt){
+            var welThread = $(weEvt.currentTarget).closest(".comment-thread-wrap");
+            var welButton = welThread.find(".btn-thread-here");
+            var nMarginWidth = welButton.width() + 7;
+            var nMarginHeight = welButton.height() - 7;
+            var nPaddingRight = 10;
+            welThread.toggleClass("fold");
+
+            // set unfold button right
+            welButton.css("right", ((welThread.index() * nMarginWidth) + nPaddingRight) + "px");
+
+            // set unfold button top
+            // find target line with thread
+            var sEndLineQuery = 'tr[data-line="' + welThread.data("range-endline") + '"]' +
+                '[data-side="' + welThread.data("range-endside") + '"]';
+            var welEndLine = welThread.closest("tr").prev(sEndLineQuery);
+
+            if(welEndLine.length > 0){
+                welButton.css("top", welEndLine.position().top + nMarginHeight + "px");
             }
+        }
+
+        /**
+         * On MouseEnter event fired from CodeCommentThread
+         * @param weEvt
+         * @private
+         */
+        function _onMouseOverCodeCommentThread(weEvt){
+            // only no mouse button clicked
+            if(weEvt.which !== 0){
+                return;
+            }
+
+            var welThread = $(weEvt.currentTarget);
+            var htBlockInfo = {
+                "sPath"       : welThread.data("range-path"),
+                "sStartSide"  : welThread.data("range-startside"),
+                "nStartLine"  : parseInt(welThread.data("range-startline"), 10),
+                "nStartColumn": parseInt(welThread.data("range-startcolumn"), 10),
+                "sEndSide"    : welThread.data("range-endside"),
+                "nEndLine"    : parseInt(welThread.data("range-endline"), 10),
+                "nEndColumn"  : parseInt(welThread.data("range-endcolumn"), 10)
+            };
+            yobi.CodeCommentBlock.block(htBlockInfo);
+        }
+
+        /**
+         * On MouseLeave event fired from CodeCommentThread
+         * @private
+         */
+        function _onMouseLeaveCodeCommentThread(){
+            yobi.CodeCommentBlock.unblock();
         }
 
         /**

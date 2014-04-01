@@ -67,8 +67,13 @@ public class PullRequestCommit extends Model implements TimelineItem {
         return created;
     }
 
+    public static PullRequestCommit getByCommitId(PullRequest pullRequest, String commitId) {
+        return find.select("state").where().eq("pullRequest", pullRequest).eq("commitId",
+                commitId).findUnique();
+    }
+
     public static State getStateByCommitId(PullRequest pullRequest, String commitId) {
-        return find.select("state").where().eq("pullRequest", pullRequest).eq("commitId", commitId).findUnique().state;
+        return getByCommitId(pullRequest, commitId).state;
     }
 
     public static PullRequestCommit findById(String id) {

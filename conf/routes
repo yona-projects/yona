@@ -71,8 +71,7 @@ POST           /files/:id/?                                                     
 POST           /files/:id                                                             controllers.AttachmentApp.deleteFile(id: Long)
 
 # Pull Request Comment
-POST           /:ownerName/:project/pullRequest/:pullRequestId/comments               controllers.PullRequestCommentApp.newComment(ownerName, project, pullRequestId: Long)
-DELETE         /comment/:id/delete                                                    controllers.PullRequestCommentApp.deleteComment(id: Long)
+POST           /:ownerName/:project/pullRequest/:pullRequestId/comments               controllers.PullRequestApp.newComment(ownerName, project, pullRequestId: Long, commitId: String ?= null)
 
 # Boards
 GET            /:user/:project/posts                                                  controllers.BoardApp.posts(user, project, pageNum: Int ?= 1)
@@ -114,6 +113,9 @@ POST           /:user/:project/members                                          
 POST           /:user/:project/member/:id/edit                                        controllers.ProjectApp.editMember(user, project, id:Long)
 DELETE         /:user/:project/member/:id/delete                                      controllers.ProjectApp.deleteMember(user, project, id:Long)
 DELETE         /:user/:project/pushedBranch/:id/delete                                controllers.ProjectApp.deletePushedBranch(user, project, id:Long)
+
+# Project Review Menu
+GET            /:user/:project/reviews                                                controllers.ReviewThreadApp.reviewThreads(user, project)
 
 # Milestones
 GET            /:user/:project/milestones                                             controllers.MilestoneApp.milestones(user, project)
@@ -161,8 +163,8 @@ GET            /:ownerName/:project/pullRequests                                
 GET            /:ownerName/:project/closedPullRequests                                controllers.PullRequestApp.closedPullRequests(ownerName, project)
 GET            /:ownerName/:project/sentPullRequests                                  controllers.PullRequestApp.sentPullRequests(ownerName, project)
 GET            /:ownerName/:project/pullRequest/:id                                   controllers.PullRequestApp.pullRequest(ownerName, project, id: Long)
-GET            /:ownerName/:project/pullRequest/:id/commits                           controllers.PullRequestApp.pullRequestCommits(ownerName, project, id: Long)
 GET            /:ownerName/:project/pullRequest/:id/changes                           controllers.PullRequestApp.pullRequestChanges(ownerName, project, id: Long)
+GET            /:ownerName/:project/pullRequest/:id/changes/:commitId                 controllers.PullRequestApp.specificChange(ownerName, project, id: Long, commitId: String)
 GET            /:ownerName/:project/pullRequest/:id/state                             controllers.PullRequestApp.pullRequestState(ownerName, project, id: Long)
 GET            /:ownerName/:project/newPullRequestForm                                controllers.PullRequestApp.newPullRequestForm(ownerName:String, project:String)
 POST           /:ownerName/:project/pullRequests                                      controllers.PullRequestApp.newPullRequest(ownerName, project)
@@ -173,8 +175,6 @@ GET            /:ownerName/:project/pullRequest/:id/editform                    
 POST           /:ownerName/:project/pullRequest/:id/edit                              controllers.PullRequestApp.editPullRequest(ownerName, project, id: Long)
 DELETE         /:ownerName/:project/pullRequest/:id/deletefrombranch                  controllers.PullRequestApp.deleteFromBranch(ownerName, project, id: Long)
 POST           /:ownerName/:project/pullRequest/:id/restorefrombranch                 controllers.PullRequestApp.restoreFromBranch(ownerName, project, id: Long)
-GET            /:ownerName/:project/pullRequest/:id/commit/:commitId                  controllers.PullRequestApp.commitView(ownerName, project, id: Long, commitId)
-
 
 # SVN
 HEAD           /svn/*path                                                             controllers.SvnApp.serviceWithPath(path:String)
@@ -241,11 +241,15 @@ POST           /:user/:project/pullRequest/:number/review                       
 POST           /:user/:project/pullRequest/:number/unreview                           controllers.ReviewApp.unreview(user, project, number: Long)
 
 # Compare
-GET            /:user/:project/compare/:revA..:revB                                             controllers.CompareApp.compare(user, project, revA, revB)
+GET            /:user/:project/compare/:revA..:revB                                   controllers.CompareApp.compare(user, project, revA, revB)
 
 # Vote
 POST           /:user/:project/issue/:number/vote                                     controllers.VoteApp.vote(user, project, number: Long)
 POST           /:user/:project/issue/:number/unvote                                   controllers.VoteApp.unvote(user, project, number: Long)
+
+# Comment Thread
+POST           /threads/:id/open                                                      controllers.CommentThreadApp.open(id: Long)
+POST           /threads/:id/close                                                     controllers.CommentThreadApp.close(id: Long)
 
 # remove trailing slash - must be the bottom of this file
 GET            /*paths                                                                controllers.Application.removeTrailer(paths)

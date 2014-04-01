@@ -22,10 +22,7 @@ package controllers;
 
 import actions.AnonymousCheckAction;
 import controllers.annotation.IsAllowed;
-import models.NotificationEvent;
-import models.Project;
-import models.PullRequest;
-import models.PullRequestEvent;
+import models.*;
 import models.enumeration.EventType;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;

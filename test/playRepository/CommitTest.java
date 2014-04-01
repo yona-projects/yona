@@ -56,7 +56,7 @@ public class CommitTest extends ModelTest<Commit> {
     }
 
     @Test
-    public void getWatchers_with_commet() {
+    public void getWatchers_with_commet_git() {
         // Given
         User author = getTestUser(2L);
         String commitId = "test";
@@ -64,6 +64,30 @@ public class CommitTest extends ModelTest<Commit> {
 
         User commentUser = getTestUser(3L);
         Project project = getTestProject();
+        ReviewComment comment = new ReviewComment();
+        CodeCommentThread thread = new CodeCommentThread();
+        thread.project = project;
+        thread.commitId = commitId;
+        comment.thread = thread;
+        comment.author = new UserIdent(commentUser);
+        comment.save();
+
+        // When
+        Set<User> watchers = commit.getWatchers(project);
+
+        // Then
+        assertThat(watchers).containsOnly(author, commentUser);
+    }
+
+    @Test
+    public void getWatchers_with_comment_svn() {
+        // Given
+        User author = getTestUser(4L);
+        String commitId = "1";
+        Commit commit = createTestCommit(commitId, author);
+
+        User commentUser = getTestUser(3L);
+        Project project = Project.find.byId(3l);
         CommitComment comment = new CommitComment();
         comment.project = project;
         comment.commitId = commitId;

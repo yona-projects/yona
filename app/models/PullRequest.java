@@ -11,14 +11,20 @@ import models.enumeration.State;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevTree;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.treewalk.TreeWalk;
 import org.joda.time.Duration;
+
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
@@ -146,9 +152,6 @@ public class PullRequest extends Model implements ResourceConvertible {
 
     public String conflictFiles;
 
-    @OneToMany(mappedBy = "pullRequest")
-    public List<PullRequestComment> comments;
-
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
         name = "pull_request_reviewers",
@@ -164,6 +167,9 @@ public class PullRequest extends Model implements ResourceConvertible {
         inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     public Set<User> relatedAuthors = new HashSet<>();
+
+    @OneToMany(mappedBy = "pullRequest")
+    public List<CommentThread> commentThreads = new ArrayList<>();
 
     public static PullRequest createNewPullRequest(Project fromProject, Project toProject, String fromBranch, String toBranch) {
         PullRequest pullRequest = new PullRequest();
@@ -436,10 +442,12 @@ public class PullRequest extends Model implements ResourceConvertible {
         Set<User> actualWatchers = new HashSet<>();
 
         actualWatchers.add(this.contributor);
-        for (PullRequestComment c : comments) {
-            User user = User.find.byId(c.authorId);
-            if (user != null) {
-                actualWatchers.add(user);
+        for (CommentThread thread : commentThreads) {
+            for (ReviewComment c : thread.reviewComments) {
+                User user = User.find.byId(c.author.id);
+                if (user != null) {
+                    actualWatchers.add(user);
+                }
             }
         }
 
@@ -708,112 +716,6 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     /**
-     * pull request의 모든 코멘트 정보를 가져오고 시간순으로 정렬 후 반환한다. (코멘트 + 코드코멘트 + 이벤트 )
-     *
-     * @return
-     */
-    @Transient
-    public List<TimelineItem> getTimelineComments() {
-        List<CommitComment> commitComment
-                        = computeCommitCommentReplies(getCommitComments());
-
-        List<TimelineItem> timelineComments = new ArrayList<>();
-        timelineComments.addAll(comments);
-        timelineComments.addAll(commitComment);
-        timelineComments.addAll(pullRequestEvents);
-
-        Collections.sort(timelineComments, TimelineItem.ASC);
-
-        return timelineComments;
-    }
-
-    /**
-     * 전체 코멘트중 부모글과 답글 정보를 재할당한다.
-     * @param commitComments
-     * @return
-     */
-    private List<CommitComment> computeCommitCommentReplies(
-            List<CommitComment> commitComments) {
-        return reAssignReplyComments(sameTopicCommentGroups(commitComments));
-    }
-
-    /**
-     * 답글목록을 부모글의 필드로 재할당한다.
-     *
-     * commentGroup은 등록일순으로 오름차순 정렬되어 있는 상태이며
-     * 목록의 첫번째 코멘트를 부모글로 판단한다.
-     *
-     * @param commentGroup
-     * @return
-     */
-    private List<CommitComment> reAssignReplyComments(
-            Map<String, List<CommitComment>> commentGroup) {
-        List<CommitComment> parentCommitComments = new ArrayList<>();
-
-        for (List<CommitComment> commitComments : commentGroup.values()) {
-            CommitComment parentComment = commitComments.get(0);
-            if (hasReply(commitComments)) {
-                parentComment.replies = replies(commitComments);
-            }
-            parentCommitComments.add(parentComment);
-        }
-        return parentCommitComments;
-    }
-
-    /**
-     * 답글 목록을 반환한다.
-     * @param commitComments
-     * @return
-     */
-    private List<CommitComment> replies(List<CommitComment> commitComments) {
-        return commitComments.subList(1, commitComments.size());
-    }
-
-    /**
-     * 답글 유무를 체크한다.
-     * @param commitComments
-     * @return
-     */
-    private boolean hasReply(List<CommitComment> commitComments) {
-        return commitComments.size() > 1;
-    }
-
-    /**
-     * groupKey를 통해 같은 코멘트그룹 목록을 반환한다.
-     * (같은 커밋, 같은 파일, 같은 라인의 댓글들)
-     * @param commitComments
-     * @return
-     */
-    private Map<String, List<CommitComment>> sameTopicCommentGroups(
-            List<CommitComment> commitComments) {
-        Map<String, List<CommitComment>> commentGroup = new HashMap<>();
-        for (CommitComment commitComment : commitComments) {
-            commentGroup.put(
-                    commitComment.groupKey(),
-                    commitCommentsGroupByKey(commitComment.groupKey(),
-                            commitComments));
-        }
-        return commentGroup;
-    }
-
-    /**
-     * groupKey를 통해 같은 코멘트그룹을 반환한다.
-     * @param groupKey
-     * @param codeComments
-     * @return
-     */
-    private List<CommitComment> commitCommentsGroupByKey(String groupKey,
-            List<CommitComment> codeComments) {
-        List<CommitComment> commitCommentGroups = new ArrayList<>();
-        for (CommitComment commitComment : codeComments) {
-            if (commitComment.groupKey().equals(groupKey)) {
-                commitCommentGroups.add(commitComment);
-            }
-        }
-        return commitCommentGroups;
-    }
-
-    /**
      * 보낸 코드를 병합해보고 결과 정보를 반환한다.
      *
      * @return
@@ -992,5 +894,128 @@ public class PullRequest extends Model implements ResourceConvertible {
 
     public int getLackingReviewerCount() {
         return toProject.defaultReviewerCount - reviewers.size();
+    }
+
+    /**
+     * 변경내역에 달린 댓글들을 얻는다.
+     *
+     * @return
+     * @throws IOException
+     * @throws GitAPIException
+     */
+    public List<CodeCommentThread> getCodeCommentThreadsForChanges(String commitId) throws
+            IOException, GitAPIException {
+        List<CodeCommentThread> result = new ArrayList<>();
+        for(CommentThread commentThread : commentThreads) {
+            // Include CodeCommentThread only
+            if (!(commentThread instanceof CodeCommentThread)) {
+                continue;
+            }
+
+            CodeCommentThread codeCommentThread = (CodeCommentThread) commentThread;
+
+            if (commitId != null) {
+                if (codeCommentThread.commitId.equals(commitId)) {
+                    result.add(codeCommentThread);
+                }
+            } else {
+                // Exclude threads on specific commit
+                if (codeCommentThread.isCommitComment()) {
+                    continue;
+                }
+
+                // Include threads which are not outdated certainly.
+                if (mergedCommitIdFrom.equals(codeCommentThread.prevCommitId) && mergedCommitIdTo
+                        .equals(codeCommentThread.commitId)) {
+                    result.add(codeCommentThread);
+                    continue;
+                }
+
+                // Include the other non-outdated threads
+                Repository mergedRepository = getMergedRepository();
+                if (noChangesBetween(mergedRepository,
+                        mergedCommitIdFrom, mergedRepository, codeCommentThread.prevCommitId,
+                        codeCommentThread.codeRange.path) && noChangesBetween(mergedRepository,
+                        mergedCommitIdTo, mergedRepository, codeCommentThread.commitId,
+                        codeCommentThread.codeRange.path)) {
+                    result.add(codeCommentThread);
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 주어진 {@code state} 상태의 댓글 스레드 목록을 얻는다
+     *
+     * @param state
+     * @return
+     */
+    public List<CommentThread> getCommentThreadsByState(CommentThread.ThreadState state){
+        List<CommentThread> result = new ArrayList<>();
+
+        for (CommentThread commentThread : commentThreads) {
+            if(commentThread.state == state){
+                result.add(commentThread);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * 주어진 {@commitId}의 변경내역을 돌려준다.
+     *
+     * @param commitId
+     * @return
+     * @throws IOException
+     */
+    public List<FileDiff> getDiff(String commitId) throws IOException {
+        if (commitId == null) {
+            return getDiff();
+        }
+        return GitRepository.getDiff(getMergedRepository(), commitId);
+    }
+
+    public void removeCommentThread(CommentThread commentThread) {
+        this.commentThreads.remove(commentThread);
+        commentThread.pullRequest = null;
+    }
+
+    public void addCommentThread(CommentThread thread) {
+        this.commentThreads.add(thread);
+        thread.pullRequest = this;
+    }
+
+    /**
+     * 저장소 {@code gitRepo}에서, {@code path}가 {@code rev1}과 {@code rev2}사이에서 아무
+     * 변화가 없었는지
+     *
+     * @param repoA
+     * @param rev1
+     * @param repoB
+     * @param rev2
+     * @param path
+     * @return
+     * @throws IOException
+     */
+    static public boolean noChangesBetween(Repository repoA, String rev1,
+                                           Repository repoB, String rev2,
+                                           String path) throws IOException {
+        ObjectId a = getBlobId(repoA, rev1, path);
+        ObjectId b = getBlobId(repoB, rev2, path);
+        return ObjectUtils.equals(a, b);
+    }
+
+    static private ObjectId getBlobId(Repository repo, String rev, String path) throws IOException {
+        if (StringUtils.isEmpty(rev)) {
+            throw new IllegalArgumentException("rev must not be empty");
+        }
+        RevTree tree = new RevWalk(repo).parseTree(repo.resolve(rev));
+        TreeWalk tw = TreeWalk.forPath(repo, path, tree);
+        if (tw == null) {
+            return null;
+        }
+        return tw.getObjectId(0);
     }
 }

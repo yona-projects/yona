@@ -36,7 +36,7 @@
                     <span class="infos-item" title="@JodaDateUtil.getDateString(req.created)">
                         @agoString(req.createdAgo())
                     </span>
-                    @defining(req.comments.size + CommitComment.countByCommits(req.fromProject, req.pullRequestCommits)) { count =>
+                    @defining(req.commentThreads.size) { count =>
                         @if(count > 0) {
                             <a href="@routes.PullRequestApp.pullRequest(req.toProject.owner, req.toProject.name, req.number)#comments" class="infos-item infos-icon-link">
                                 <i class="yobicon-comments"></i>

@@ -38,7 +38,7 @@
                 </a>
             </li>
             @if(project.vcs.equals("GIT")){
-            <li class="@isActiveMenu(MenuType.PULL_REQUEST)">
+                <li class="@isActiveMenu(MenuType.PULL_REQUEST)">
                 <a href="@getPullRequestURL(project)">
                     @Messages("menu.pullRequest")
                     @if(PullRequest.countOpenedPullRequests(project) > 0){
@@ -47,6 +47,11 @@
                 </a>
             </li>
             }
+            <li class="@isActiveMenu(MenuType.PROJECT_REVIEW)">
+                <a href="@routes.ReviewThreadApp.reviewThreads(project.owner, project.name)">
+                @Messages("menu.review")
+                </a>
+            </li>
             <li class="@isActiveMenu(MenuType.MILESTONE)">
                 <a href="@routes.MilestoneApp.milestones(project.owner, project.name)">
                     @Messages("milestone")

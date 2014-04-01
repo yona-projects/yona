@@ -2502,7 +2502,10 @@
         padding:15px 0 0 10px;
 
         dl { margin-bottom:20px; }
-        dl.author { height:51px; overflow:hidden; }
+        dl.author {
+            height:51px; overflow:hidden;
+            dd { padding:5px 10px; }
+        }
         p {
             margin-bottom: 5px;
             line-height: 14px;
@@ -3275,20 +3278,131 @@ label.issue-item-row {
     .box-shadow(1px 1px 1px rgba(0,0,0,0.15));
 }
 
-.pullRequest-branch {
-    display:inline-block;
+.pullRequest-branchInfo {
+    padding:15px 0 0 15px;
 
     code {
         border:none;
-        background: #f7f7f7;
-        color: @secondary;
-        padding: 3px 10px;
-        text-shadow: 1px 1px rgba(255,255,255,0.5);
-        .box-shadow(1px 1px 1px rgba(0,0,0,0.15));
-        a { color: #1a4797; }
-        i { color: #1a4797; }
+        background: transparent;
+        color: @yobi-cyan-dark;
+        padding: 0;
+
+        a {
+            color: @yobi-cyan-dark;
+            &.branchName { color:@yobi-cyan; }
+        }
     }
-    i.icon-right { font-size:12px; margin:0 5px; color: #1a4797;}
+
+    i { font-size:12px; margin:0 5px; color: @yobi-cyan-dark; }
+}
+.pullRequest-stateInfo {
+    margin-top:15px;
+
+    .alert {
+        padding:15px;
+        font-size:13px;
+        font-weight:bold;
+        .border-radius(3px);
+
+        i {
+            margin-top:-2px;
+            font-size:15px;
+            vertical-align: middle;
+        }
+
+        &.alert-success { color:@yobi-green-dark; }
+        &.alert-error   { color:@yobi-red-dark;   }
+        &.alert-warning { color:@yobi-yello-dark; }
+        &.alert-info    { color:@yobi-cyan-dark;  }
+    }
+}
+.codediff-wrap {
+    position:relative;
+
+    .diffs-wrap {
+        position:relative;
+        display:block;
+        margin-right:282px;
+
+        .diff-body {
+            position:relative;
+            border:1px solid #ddd;
+            .border-radius(3px);
+            min-height:30px;
+        }
+
+        .diff-partial-outer { border:none; }
+        .write-comment-box { padding:0; margin-top:20px; }
+    }
+
+    .review-wrap {
+        position:absolute;
+        display:block;
+        width:260px;
+        min-height:30px;
+        top:0; right:0;
+
+        &.fixed {
+            .review-container {
+                position:fixed;
+                top:2px; bottom:60px;
+                background:#fff;
+            }
+
+            .review-list {
+                height:100%;
+                overflow:auto;
+            }
+
+            .nav-tabs {
+                width:260px;
+            }
+        }
+    }
+
+    .btn-hide-reviewcards {
+        float:right;
+    }
+    .btn-show-reviewcards {
+        display:none;
+    }
+
+    &.diffs-only {
+        .diffs-wrap { width:100%; }
+        .review-wrap { display:none; }
+
+        .btn-hide-reviewcards {
+            display: none;
+        }
+        .btn-show-reviewcards {
+            display:block;
+            position:absolute;
+            top:0; right:-52px;
+            z-index:10;
+        }
+    }
+
+    .non-ranged-threads-wrap {
+        margin-top:20px;
+
+        .btn-thread-minimize { display:none; }
+        .comment-thread-wrap {
+            border-right:1px solid #ddd;
+            border-left:1px solid #ddd;
+            .border-radius(0 3px 3px 0);
+        }
+    }
+
+    .non-ranged-threads-wrap {
+        margin-top:20px;
+
+        .btn-thread-minimize { display:none; }
+        .comment-thread-wrap {
+            border-right:1px solid #ddd;
+            border-left:1px solid #ddd;
+            .border-radius(3px);
+        }
+    }
 }
 
 .relative-issue {
@@ -3410,7 +3524,7 @@ label.issue-item-row {
     display: none;
     position: fixed;
     width: 15px; height: 400px;
-    right: 0.5%; top:192px;
+    right: 1%; top:192px;
     border: 1px solid rgba(0,0,0,0.3);
     background: rgba(0,0,0,0.5);
     z-index: 999;
@@ -3442,6 +3556,8 @@ label.issue-item-row {
 }
 
 .code-browse-wrap {
+    position:relative;
+
     .code-browse-header {
       margin-top:10px;
       margin-bottom:10px;
@@ -3535,12 +3651,20 @@ label.issue-item-row {
     /** diff **/
     /** code/diff.scala.html **/
     .commitId {
-        color:#999;
+        color:@secondary;
         margin-top:5px;
     }
     .commitInfo {
-        .avatar-wrap { margin-right:5px; }
         .ago { margin-left:5px; color:#bbb; }
+        .commitAuthor {
+            float:right; margin-top:5px;
+            .avatar-wrap { margin-right:5px; }
+        }
+        .commitMsg-wrap {
+            .commitMsg.short { font-size:18px; white-space:normal; }
+            .commitMsg.desc  { margin:5px; }
+        }
+        .commitId-wrap { padding:10px 5px; }
     }
     .diff-wrap {
         width:100%; overflow:auto; margin-bottom:20px;
@@ -3559,8 +3683,8 @@ label.issue-item-row {
 
     .write-comment-box {
         font-family:@base-font-family;
-        background-color: #f5f5f5;
         margin-bottom:15px;
+        padding:5px;
     }
 
     /** view **/
@@ -3823,6 +3947,8 @@ label.issue-item-row {
         background-color: #F7F7F7;
         border-right: 1px solid #EEE;
         width: 22px;
+        .user-select-none;
+
         > a {
             color: #AAA;
         }
@@ -4043,6 +4169,8 @@ label.issue-item-row {
         border-right: 1px solid #EEEEEE;
         font-size: 12px;
         line-height: 1.5;
+        .user-select-none;
+
         > a {
             color: #AAA;
         }
@@ -4709,6 +4837,7 @@ label.issue-item-row {
     font-family: "monospace", Consolas, Tahoma;
 
     .isBinary { color:#bbb; text-shadow:-1px -1px #fff; padding:5px 10px; }
+    .btnPop { position:absolute; display:none; }
 
     .diff-partial-outer {
         border: 1px solid #bbb;
@@ -4780,6 +4909,15 @@ label.issue-item-row {
                                         display: block;
                                     }
                                 }
+
+                                .yobicon-comments {
+                                    position:absolute;
+                                    cursor: pointer;
+                                    .opacity(0);
+                                    margin-left: -84px;
+                                    width: 25px;
+                                    margin-top:2px;
+                                }
                             }
 
                             &.code {
@@ -4805,7 +4943,9 @@ label.issue-item-row {
 
                                 .write-comment-box {
                                     background-color: #f5f5f5;
+                                    padding:15px 0 15px 50px;
                                     margin:0;
+
                                     .write-comment-wrap {
                                         max-width: 1070px;
                                     }
@@ -4839,14 +4979,12 @@ label.issue-item-row {
                         &.comments {
                             display: none;
                             td {
-                                border:1px solid #e5e5e5;
-                                border-left: none;
-                                border-right: none;
-                                padding:10px 5px;
+                                padding:0;
 
                                 li {
                                     max-width: 1150px;
                                 }
+                                /* see .comment-thread-wrap */
                             }
                         }
                     }
@@ -4858,25 +4996,15 @@ label.issue-item-row {
                     }
                 }
 
-                .icon-comment {
-                    position:absolute;
-                    cursor: pointer;
-                    .opacity(0);
-                    margin-left: -75px;
-                    width: 25px;
-                    margin-top:2px;
-
-                }
-
                 tr.add:hover, tr.remove:hover,tr.context:hover{
                     background-color: #CCE9FF !important;
 
-                    .icon-comment {
+                    .yobicon-comments {
                         .opacity(100);
                     }
                 }
 
-                .linenum:hover .icon-comment {
+                .linenum:hover .yobicon-comments {
                     opacity: 1.0;
                 }
 
@@ -4892,6 +5020,168 @@ label.issue-item-row {
 
 div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     visibility: hidden;
+}
+
+.comment-thread-wrap {
+    border:1px solid #e5e5e5;
+    border-width:1px 0px;
+    padding:5px;
+    padding-bottom:0;
+    background-color:#fefefe;
+
+    .comments {
+        margin:0 5px;
+        .comment { padding: 2px 0; }
+        .media-body { background: #fff; }
+    }
+
+    .btn-thread-here {
+        display:none;
+    }
+
+    .thread-actrow {
+        text-align:right;
+        padding:5px 5px 10px;
+    }
+
+    &.open {
+        .box-shadow(inset 5px 0 0 @state-open);
+    }
+
+    &.closed {
+        .box-shadow(inset 5px 0 0 @state-closed);
+        .comments {
+            .opacity(50);
+        }
+    }
+
+    &.fold {
+        padding:0; margin:0;
+        background: transparent;
+        border: none;
+        .box-shadow(none);
+
+        .thread-header, .thread-actrow, .comments {
+            display:none;
+        }
+        .btn-thread-here {
+            position:absolute; z-index:99;
+            right:10px; margin-top:-25px;
+            display:block;
+        }
+
+        &.open .btn-thread-here button {
+            border-left:3px solid @state-open;
+        }
+        &.closed .btn-thread-here button {
+            border-left:3px solid @state-closed;
+        }
+    }
+}
+.comment-thread-wrap + .comment-thread-wrap {
+    margin-top:10px;
+}
+.comment-thread-wrap.fold + .comment-thread-wrap {
+    margin-top:0;
+}
+
+.review-form {
+    position:absolute; display: none;
+    z-index:99; top:0px; left:0px; right:0px;
+    padding: 15px 15px 10px;
+    background: #fff;
+    border:1px solid #ccc;
+    font-family:@base-font-family;
+    .border-radius(6px);
+
+    label { display:inline-block; } /* for Markdown Edit/Preview radio button */
+
+    /*&.arrow-left:before,*/
+    &.arrow-top:before,
+    &.arrow-bottom:before {
+        content: ' ';
+        position: absolute;
+        width : 12px;
+        height: 12px;
+        left: 50%;
+        border-color:#ccc;
+        border-style:solid;
+        background-color: #fff;
+        .rotate(45deg);
+    }
+    /*
+    &.arrow-left:before {
+        top: 23px; left: 0px;
+        border-width:0px 0px 1px 1px; margin-left: -7px;
+    }
+    */
+    &.arrow-top:before  {
+        top: -7px;
+        border-width:1px 0px 0px 1px;
+    }
+    &.arrow-bottom:before {
+        bottom: -7px;
+        border-width:0px 1px 1px 0px;
+    }
+
+    .author-info-wrap {
+        padding: 0px; margin-bottom: 10px;
+        display: block; clear: both;
+        height: 35px;
+    }
+
+    .markdown-help { right:0; }
+
+    .write-comment-box {
+        padding:0;
+    }
+}
+.review-block { /** ref: yobi.CodeCommentBlock.js **/
+    /*background-color:rgba(133,246,150,0.25);*/ /* green */
+    background-color:rgba(0,133,255,0.25); /* blue */
+    /*background-color:rgba(255,245,0,0.35); /* yellow */
+    padding:4px 0;
+}
+.review-card {
+    display:block;
+    border: 1px solid #ddd;
+    padding: 10px;
+    padding-left: 15px;
+    margin-bottom: 5px;
+    .border-radius(0 3px 3px 0);
+
+    &:last-of-type { margin-bottom:0; }
+    &:hover {
+        text-decoration:none;
+        background-color:#fafafa;
+    }
+    
+    &.open {
+        .box-shadow(inset 5px 0px 0px @state-open);
+    }
+    &.closed {
+        .box-shadow(inset 5px 0px 0px @state-closed);
+    }
+
+    .content {
+        display: box;
+        display: -webkit-box;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        text-align: justify;
+        max-height: 60px;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient:vertical;
+        word-break:break-all;
+        line-height:130%;
+    }
+
+    .date {
+        color:#999;
+        text-align:right;
+        margin-top:5px;
+        display:block;
+    }
 }
 
 .warning-none {
@@ -5000,5 +5290,56 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     &:hover {
         color:@yobi-link;
         text-decoration: none;
+    }
+}
+
+.review-list-wrap {
+    ul {
+        list-style: none;
+        padding:15px 0;
+
+        .review-item {
+            border-bottom:1px solid #ddd;
+            clear:both;
+            padding:10px 0;
+
+            .review-number {
+                float:left;
+                width: 62px;
+                text-align: center;
+                font-size: 13px;
+                color:#51aacc;
+                font-weight: bold;
+                line-height: 42px;
+            }
+
+            .review-avatar {
+                float:left;
+            }
+
+            .review-content {
+                margin-left:115px;
+
+                .review-comment {
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    font-size: 14px;
+                }
+
+                .review-meta {
+                    font-size: 12px;
+                    color:#999;
+
+                    .author {
+
+                    }
+
+                    .date {
+                        margin-left:10px;
+                    }
+                }
+            }
+        }
     }
 }

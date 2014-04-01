@@ -1,33 +1,8 @@
 @(title:String, form: Form[PullRequest], project: Project, projects: List[Project] , fromProject:Project, toProject:Project, fromBranches: List[playRepository.GitBranch], toBranches: List[playRepository.GitBranch], pullRequest:models.PullRequest, mergeResult:models.PullRequestMergeResult)
 
 @import utils.TemplateHelper._
+@import utils.TemplateHelper.Branches._
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
-
-@branchItemType(itemType:String) = @{
-    if(itemType == "heads"){
-        "branch"
-    } else if(itemType == "tags") {
-        "tag"
-    } else {
-        itemType
-    }
-}
-
-@makeBranchItem(branch:String, selectedBranch:String) = {
-    @defining(branch.split('/')){ names =>
-        @if(names(0).equals("refs")){
-            <li data-value="@branch" @if(branch.equals(selectedBranch)) { data-selected="true" }>
-                <a href="#">
-                    <span class="label @branchItemType(names(1))">@branchItemType(names(1))</span>
-                    @branch.replace("refs/" + names(1) + "/", "")
-                </a>
-            </li>
-        } else {
-            <li data-value="@branch"><a href="#">@branch</a></li>
-        }
-    }
-}
-
 
 @projectLayout(title, project, utils.MenuType.PULL_REQUEST) {
 @projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
@@ -84,7 +59,8 @@
                                 </button>
                                 <ul class="dropdown-menu">
                                     @for(branch <- fromBranches) {
-                                        @makeBranchItem(branch.getName, pullRequest.fromBranch)
+                                        @common.branchItem("pullRequest", null, branch.getName, null,
+                                            utils.TemplateHelper.equals(pullRequest.fromBranch, branch.getName))
                                     }
                                 </ul>
                             </div>
@@ -119,7 +95,8 @@
                                 </button>
                                 <ul class="dropdown-menu">
                                     @for(branch <- toBranches) {
-                                        @makeBranchItem(branch.getName, pullRequest.toBranch)
+                                        @common.branchItem("pullRequest", null, branch.getName, null,
+                                            utils.TemplateHelper.equals(pullRequest.toBranch, branch.getName))
                                     }
                                 </ul>
                             </div>

@@ -113,7 +113,7 @@
             @for(commit <- event.getPullRequestCommits) {
                 <li class="comment-body commit-info @if(commit.state == PullRequestCommit.State.PRIOR){ outdated }">
                 @defining(User.findByEmail(commit.authorEmail)) { author =>
-                    <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.commitId)" class="commit-id">
+                    <a href="@routes.PullRequestApp.specificChange(pull.toProject.owner, pull.toProject.name, pull.number, commit.commitId)" class="commit-id">
                         @commit.commitShortId
                     </a>
                     @if(!author.isAnonymous()) {
@@ -126,7 +126,7 @@
                     }
 
                     @common.commitMsg(commit.commitMessage.split("\n")(0), commit.commitMessage,
-                        routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.commitId).toString)
+                        routes.PullRequestApp.specificChange(pull.toProject.owner, pull.toProject.name, pull.number, commit.commitId).toString)
                 }
                 </li>
             }

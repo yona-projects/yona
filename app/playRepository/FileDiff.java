@@ -1,6 +1,6 @@
 package playRepository;
 
-import models.CodeComment;
+import models.CodeRange;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.Edit;
 import org.eclipse.jgit.diff.EditList;
@@ -31,7 +31,7 @@ public class FileDiff {
     public boolean isBinaryB = false;
     public DiffEntry.ChangeType changeType;
     public Integer interestLine = null;
-    public CodeComment.Side interestSide = null;
+    public CodeRange.Side interestSide = null;
     public FileMode oldMode;
     public FileMode newMode;
     private Hunks hunks;
@@ -98,11 +98,11 @@ public class FileDiff {
                     aCur++;
                     bCur++;
                 } else if (aCur < curEdit.getEndA()) {
-                    hunk.lines.add(new DiffLine(this, DiffLineType.REMOVE, aCur, bCur,
+                    hunk.lines.add(new DiffLine(this, DiffLineType.REMOVE, aCur, null,
                             a.getString(aCur)));
                     aCur++;
                 } else if (bCur < curEdit.getEndB()) {
-                    hunk.lines.add(new DiffLine(this, DiffLineType.ADD, aCur, bCur,
+                    hunk.lines.add(new DiffLine(this, DiffLineType.ADD, null, bCur,
                             b.getString(bCur)));
                     bCur++;
                 }
@@ -266,4 +266,48 @@ public class FileDiff {
         refreshErrors();
         return !this.errors.isEmpty();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        FileDiff fileDiff = (FileDiff) o;
+
+        if (commitA != null ? !commitA.equals(fileDiff.commitA) : fileDiff.commitA != null)
+            return false;
+        if (commitB != null ? !commitB.equals(fileDiff.commitB) : fileDiff.commitB != null)
+            return false;
+        if (editList != null ? !editList.equals(fileDiff.editList) : fileDiff.editList != null)
+            return false;
+        if (pathA != null ? !pathA.equals(fileDiff.pathA) : fileDiff.pathA != null) return false;
+        if (pathB != null ? !pathB.equals(fileDiff.pathB) : fileDiff.pathB != null) return false;
+        if (changeType != null ? !changeType.equals(fileDiff.changeType) : fileDiff.changeType != null)
+            return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = editList != null ? editList.hashCode() : 0;
+        result = 31 * result + (commitA != null ? commitA.hashCode() : 0);
+        result = 31 * result + (commitB != null ? commitB.hashCode() : 0);
+        result = 31 * result + (pathA != null ? pathA.hashCode() : 0);
+        result = 31 * result + (pathB != null ? pathB.hashCode() : 0);
+        result = 31 * result + (changeType != null ? changeType.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "FileDiff{" +
+                "commitA='" + commitA + '\'' +
+                ", commitB='" + commitB + '\'' +
+                ", pathA='" + pathA + '\'' +
+                ", pathB='" + pathB + '\'' +
+                ", changeType=" + changeType +
+                '}';
+    }
+
 }

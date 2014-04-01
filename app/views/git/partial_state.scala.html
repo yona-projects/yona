@@ -26,54 +26,46 @@
 @import models.enumeration
 @import scala.collection.JavaConversions._
 
-@branchName(branch:String) = @{
-    branch.replace("refs/heads/", "")
-}
-
 @getCodeURL(project: Project) = @{
-    if(session == null){
-        CodeApp.getURL(project.owner, project.name)
+    if(ProjectUser.isMember(project.id, UserApp.currentUser().id)){
+        CodeApp.getURL(project.owner, project.name).replace("://", "://" + session.get("loginId") + "@")
     } else {
-        defining(ProjectUser.roleOf(session.get("loginId"), project)) { role =>
-            if(role == "manager" || role == "member"){
-                CodeApp.getURL(project.owner, project.name).replace("://", "://" + session.get("loginId") + "@")
-            } else {
-                CodeApp.getURL(project.owner, project.name)
-            }
-        }
+        CodeApp.getURL(project.owner, project.name)
     }
 }
 
 @if(pull.isMerging == false && !pull.isClosed && !pull.isMerged){
     @if(pull.isConflict == false){
     <div class="alert alert-success">
-        <h5>@Messages("pullRequest.is.safe")</h5>
+        <i class="yobicon-check-circle-alt mr5"></i>
+        <span>@Messages("pullRequest.is.safe")</span>
     </div>
     } else {
     <div class="alert alert-error">
-        <h5>@Messages("pullRequest.is.not.safe")</h5>
+        <i class="yobicon-error mr5"></i>
+        <span>@Messages("pullRequest.is.not.safe")</span>
         <div>
-            <h5>@Messages("pullRequest.conflict.files")</h5>
+            <span>@Messages("pullRequest.conflict.files")</span>
             <ul class="unstyled conflict-files">
                 @for(file <- pull.getConflictFiles) {
-                <li><i class="yobicon-file"></i> @file</li>
+                <li>@file</li>
                 }
             </ul>
         </div>
 
         @if(UserApp.currentUser().equals(pull.contributor)){
         <div>
-            <h5>@Messages("pullRequest.resolve.conflict")</h5>
+            <span>@Messages("pullRequest.resolve.conflict")</span>
             <ol>
-                <li>@Messages("pullRequest.resolver.step1") <code>git checkout @branchName(pull.fromBranch)</code></li>
+                <li>@Messages("pullRequest.resolver.step1") <code>git checkout @branchItemName(pull.fromBranch)</code></li>
                 <li>@Messages("pullRequest.resolver.step2") <code>git remote add upstream @getCodeURL(pull.toProject)</code></li>
                 <li>@Messages("pullRequest.resolver.step3") <code>git fetch upstream</code></li>
-                <li>@Messages("pullRequest.resolver.step4") <code>git rebase upstream/@branchName(pull.toBranch)</code></li>
+                <li>@Messages("pullRequest.resolver.step4") <code>git rebase upstream/@branchItemName(pull.toBranch)</code></li>
                 <li>@Messages("pullRequest.resolver.step5") </li>
                 <li>@Messages("pullRequest.resolver.step6") <code>git add resolved_file</code></li>
                 <li>@Messages("pullRequest.resolver.step7") <code>git rebase --continue</code></li>
                 <li>@Messages("pullRequest.resolver.step8") </li>
-                <li>@Messages("pullRequest.resolver.step9") <code>git push -f origin @branchName(pull.fromBranch)</code></li>
+                <li>@Messages("pullRequest.resolver.step9") <code>git push -f origin @branchItemName(pull.fromBranch)</code></li>
                 <li>@Messages("pullRequest.resolver.step10") <a href="@routes.PullRequestApp.pullRequest(project.owner, project.name, pull.number)" class="ybtn ybtn-info ybtn-small">@Messages("button.page.refresh")</a>@Messages("pullRequest.resolver.step11")</li>
             </ol>
         </div>
@@ -84,14 +76,19 @@
 
 @if(pull.isMerging == true){
     <div class="alert alert-warnning">
-        <h5>@Messages("pullRequest.is.merging")</h5>
+        <i class="yobicon-supportrequest mr5"></i>
+        <span>@Messages("pullRequest.is.merging")</span>
     </div>
 }
 
 @if(pull.isMerged){
 <div class="alert alert-info">
-    <a href="@routes.UserApp.userInfo(pull.receiver.loginId)" class="avatar-wrap small">
-        <img src="@pull.receiver.avatarUrl" width="25" height="25">
+    <a href="@routes.UserApp.userInfo(pull.receiver.loginId)" class="usf-group">
+        <span class="avatar-wrap smaller">
+            <img src="@pull.receiver.avatarUrl" width="25" height="25">
+        </span>
+        <strong class="name">@pull.receiver.name</strong>
+        <span class="loginid"> <strong>@{"@"}</strong>@pull.receiver.loginId</span>
     </a>
     @Html(Messages("pullRequest.merged.the.pullrequest", pull.receiver.name, routes.UserApp.userInfo(pull.receiver.loginId)))
     @if(UserApp.currentUser().equals(pull.contributor)) {
@@ -101,7 +98,7 @@
         }
         @if(canRestoreBranch) {
         <code>@pull.fromBranch</code> @Messages("pullRequest.restore.frombranch.message")
-        <a data-request-method="post" href="@routes.PullRequestApp.restoreFromBranch(project.owner, project.name, pull.number)" class="ybtn ybtn-info ybtn-mini pull-right">@Messages("pullRequest.restore.branch")</a>
+        <a href="@routes.PullRequestApp.restoreFromBranch(project.owner, project.name, pull.number)" class="ybtn ybtn-info ybtn-mini pull-right" data-request-method="post">@Messages("pullRequest.restore.branch")</a>
         }
     }
 </div>

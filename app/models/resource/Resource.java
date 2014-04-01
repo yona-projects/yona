@@ -51,8 +51,8 @@ public abstract class Resource {
             case PULL_REQUEST:
                 finder = PullRequest.finder;
                 break;
-            case PULL_REQUEST_COMMENT:
-                finder = PullRequestComment.find;
+            case REVIEW_COMMENT:
+                finder = ReviewComment.find;
                 break;
             case COMMIT:
                 try {
@@ -120,10 +120,10 @@ public abstract class Resource {
                 break;
             case PULL_REQUEST:
                 return PullRequest.finder.byId(longId).asResource();
-            case PULL_REQUEST_COMMENT:
-                return PullRequestComment.find.byId(longId).asResource();
             case USER_AVATAR:
                 return User.find.byId(longId).avatarAsResource();
+            case REVIEW_COMMENT:
+                return ReviewComment.find.byId(longId).asResource();
             default:
                 throw new IllegalArgumentException(getInvalidResourceTypeMessage(resourceType));
         }

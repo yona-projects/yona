@@ -112,7 +112,7 @@ public class NotificationEvent extends Model {
             case NEW_POSTING:
             case NEW_COMMENT:
             case NEW_PULL_REQUEST:
-            case NEW_PULL_REQUEST_COMMENT:
+            case NEW_REVIEW_COMMENT:
             case NEW_COMMIT:
             case ISSUE_BODY_CHANGED:
                 return newValue;
@@ -338,18 +338,20 @@ public class NotificationEvent extends Model {
      * @param sender
      * @param pullRequest
      * @param newComment
-     * @see {@link controllers.PullRequestCommentApp#newComment(String, String, Long)}
+     * @param urlToView
+     * @see {@link controllers.PullRequestApp#newComment(String, String, Long, String)}
      */
-    public static void afterNewComment(User sender, PullRequest pullRequest, PullRequestComment newComment) {
+    public static void afterNewComment(User sender, PullRequest pullRequest,
+                                       ReviewComment newComment, String urlToView) {
         NotificationEvent notiEvent = createFrom(sender, newComment);
         notiEvent.title = formatReplyTitle(pullRequest);
-        Set<User> receivers = getMentionedUsers(newComment.contents);
+        Set<User> receivers = getMentionedUsers(newComment.getContents());
         receivers.addAll(getReceivers(sender, pullRequest));
-        receivers.remove(User.findByLoginId(newComment.authorLoginId));
+        receivers.remove(User.findByLoginId(newComment.author.loginId));
         notiEvent.receivers = receivers;
-        notiEvent.eventType = NEW_PULL_REQUEST_COMMENT;
+        notiEvent.eventType = NEW_REVIEW_COMMENT;
         notiEvent.oldValue = null;
-        notiEvent.newValue = newComment.contents;
+        notiEvent.newValue = newComment.getContents();
 
         NotificationEvent.add(notiEvent);
     }
@@ -495,7 +497,25 @@ public class NotificationEvent extends Model {
         NotificationEvent.add(notiEvent);
     }
 
-    public static void afterNewCommitComment(Project project, CommitComment codeComment) throws IOException, SVNException, ServletException {
+    public static void afterNewCommitComment(Project project, ReviewComment comment,
+                                             String commitId) throws
+            IOException, SVNException, ServletException {
+        Commit commit = RepositoryService.getRepository(project).getCommit(commitId);
+        Set<User> watchers = commit.getWatchers(project);
+        watchers.addAll(getMentionedUsers(comment.getContents()));
+        watchers.remove(UserApp.currentUser());
+
+        NotificationEvent notiEvent = createFromCurrentUser(comment);
+        notiEvent.title = formatReplyTitle(project, commit);
+        notiEvent.receivers = watchers;
+        notiEvent.eventType = NEW_COMMENT;
+        notiEvent.oldValue = null;
+        notiEvent.newValue = comment.getContents();
+
+        NotificationEvent.add(notiEvent);
+    }
+
+    public static void afterNewSVNCommitComment(Project project, CommitComment codeComment) throws IOException, SVNException, ServletException {
         Commit commit = RepositoryService.getRepository(project).getCommit(codeComment.commitId);
         Set<User> watchers = commit.getWatchers(project);
         watchers.addAll(getMentionedUsers(codeComment.contents));

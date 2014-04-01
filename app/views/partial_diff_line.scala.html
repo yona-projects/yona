@@ -2,9 +2,9 @@
 
 @import utils.TemplateHelper.DiffRenderer._
 
-<tr class="@klass" data-line="@num" data-type="@klass">
+<tr class="@klass" data-line="@num" data-type="@klass" data-side="@if(klass.equals("remove")){A}else{B}">
     <td class="linenum">
-        <i class="icon-comment"></i>
+        <i class="yobicon-comments"></i>
         <div class="line-number" data-line-num="@Option(numA).getOrElse("")"></div>
         <span class="hidden">@Option(numA).getOrElse("")</span>
     </td>
