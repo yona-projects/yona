@@ -34,8 +34,9 @@ import utils.ErrorViews;
 import static play.mvc.Controller.flash;
 
 /**
- * /{user.loginId}/{project.name}/** 패턴의 요청에 해당하는 프로젝트가 존재하는지 확인하는 액션.
- * - URL에 해당하는 프로젝트가 없을 때 403 Forbidden으로 응답한다.
+ * Checks if the project which meets the request of a pattern,
+ * /{user.loginId}/{project.name}/**, exits.
+ * - If the project doesn't exist and current user has no permission to read, the response will be with 403 Forbidden.
  *
  * @author Keeun Baik
  */

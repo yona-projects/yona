@@ -26,7 +26,8 @@ import play.mvc.Http.Context;
 import play.mvc.Result;
 
 /**
- * {@link AbstractProjectCheckAction}에서 제공하는 기능만을 실행하는 액션.
+ * Default implementation of {@link AbstractProjectCheckAction}.
+ * Just execute what {@link AbstractProjectCheckAction} provides.
  *
  * @see {@link AbstractProjectCheckAction}
  * @author Keesun Baik

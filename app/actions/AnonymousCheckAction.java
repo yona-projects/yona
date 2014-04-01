@@ -30,8 +30,8 @@ import utils.AccessLogger;
 import utils.Constants;
 
 /**
- * {@link actions.AbstractProjectCheckAction}의 추가작업으로,
- * 현재 사용자가 anonymouse이면 로그인 페이지로 리다이렉트 한다.
+ * After execute {@link actions.AbstractProjectCheckAction},
+ * If current user is anonymous, redirect to the login page.
  *
  * @author Wansoon Park, Keesun Beak
  *
