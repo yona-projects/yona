@@ -175,7 +175,11 @@ public class SiteApp extends Controller {
             if (Project.isOnlyManager(userId)) {
                 flash(Constants.WARNING, "site.userList.deleteAlert");
             } else {
-                User.find.byId(userId).changeState(UserState.DELETED);
+                User user = User.find.byId(userId);
+                for (ProjectUser projectUser : user.projectUser) {
+                    projectUser.delete();
+                }
+                user.changeState(UserState.DELETED);
             }
         } else {
             flash(Constants.WARNING, "error.auth.unauthorized.waringMessage");

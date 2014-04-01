@@ -101,7 +101,7 @@ List[playRepository.FileDiff],path:String)
                         }
                         </div>
 
-                        @common.commentForm(project, ResourceType.COMMIT_COMMENT, routes.CodeHistoryApp.newComment(project.owner, project.name, commit.getId).toString())
+                        @common.commentForm(commit.asResource(project), ResourceType.COMMIT_COMMENT, routes.CodeHistoryApp.newComment(project.owner, project.name, commit.getId).toString())
                     </div>
 
                     @** BlockComment **@

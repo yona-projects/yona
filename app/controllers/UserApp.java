@@ -906,7 +906,7 @@ public class UserApp extends Controller {
      */
     private static User createNewUser(User user) {
         RandomNumberGenerator rng = new SecureRandomNumberGenerator();
-        user.passwordSalt = Arrays.toString(rng.nextBytes().getBytes());
+        user.passwordSalt = rng.nextBytes().toBase64();
         user.password = hashedPassword(user.password, user.passwordSalt);
         User.create(user);
         if (isUseSignUpConfirm()) {

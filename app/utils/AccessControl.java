@@ -1,6 +1,5 @@
 package utils;
 
-import controllers.UserApp;
 import models.Project;
 import models.ProjectUser;
 import models.User;
@@ -30,6 +29,9 @@ public class AccessControl {
      *
      * 자신이 프로젝트 멤버일 경우에는 프로젝트에 속하는 모든 리소스에 대한 생성권한을 갖고
      * 로그인 유저일 경우에는 이슈와 게시물에 한해서만 생성할 수 있다.
+     *
+     * 주의: 어떤 리소스의 저자이기 때문에 그 리소스에 속한 리소스를 생성할 수 있는지에 대한
+     * 여부는 검사하지 않는다.
      *
      * @param user
      * @param project
@@ -69,6 +71,21 @@ public class AccessControl {
             }
 
             return false;
+        }
+    }
+
+    public static boolean isResourceCreatable(User user, Resource container, ResourceType resourceType) {
+        if (isAllowedIfAuthor(user, container)) {
+            return true;
+        }
+
+        Project project = (container.getType() == ResourceType.PROJECT) ?
+            Project.find.byId(Long.valueOf(container.getId())) : container.getProject();
+
+        if (project == null) {
+            return isGlobalResourceCreatable(user);
+        } else {
+            return isProjectResourceCreatable(user, project, resourceType);
         }
     }
 
@@ -145,26 +162,31 @@ public class AccessControl {
      * @return
      */
     private static boolean isProjectResourceAllowed(User user, Project project, Resource resource, Operation operation) {
-        if (user.isSiteManager() || ProjectUser.isManager(user.id, project.id)) {
+        if (user.isSiteManager()
+                || ProjectUser.isManager(user.id, project.id)
+                || isAllowedIfAuthor(user, resource)) {
             return true;
         }
 
-        // If the resource is an attachment, the permission depends on its container.
-        if (resource.getType() == ResourceType.ATTACHMENT) {
-            switch(operation) {
-                case READ:
-                    return isAllowed(user, resource.getContainer(), Operation.READ);
-                case UPDATE:
-                case DELETE:
-                    return isAllowed(user, resource.getContainer(), Operation.UPDATE);
-            }
+        // Some resource's permission depends on their container.
+        switch(resource.getType()) {
+            case ISSUE_STATE:
+            case ISSUE_ASSIGNEE:
+            case ISSUE_MILESTONE:
+            case ATTACHMENT:
+                switch(operation) {
+                    case READ:
+                        return isAllowed(user, resource.getContainer(), Operation.READ);
+                    case UPDATE:
+                    case DELETE:
+                        return isAllowed(user, resource.getContainer(), Operation.UPDATE);
+                }
         }
 
         // Access Control for members, nonmembers and anonymous.
         // - Anyone can read public project's resource.
         // - Members can update anything and delete anything except code repository.
         // - Nonmember can update or delete a resource if only
-        //     * the user is the author of the resource,
         //     * the resource is not a code repository,
         //     * and the project to which the resource belongs is public.
         // See docs/technical/access-control.md for more information.
@@ -174,28 +196,25 @@ public class AccessControl {
         case UPDATE:
             if (ProjectUser.isMember(user.id, project.id)) {
                 return true;
-            }
-
-            if (resource.getType() == ResourceType.CODE) {
-                // Nonmember cannot update the repository.
-                return false;
             } else {
-                return project.isPublic && isEditableAsAuthor(user, resource);
+                return false;
             }
         case DELETE:
             if (resource.getType() == ResourceType.CODE) {
                 return false;
             } else {
-                return ProjectUser.isMember(user.id, project.id) ||
-                        (project.isPublic && isEditableAsAuthor(user, resource));
+                return ProjectUser.isMember(user.id, project.id);
             }
         case ACCEPT:
-            return ProjectUser.isMember(user.id, project.id);
         case CLOSE:
         case REOPEN:
-            return ProjectUser.isMember(user.id, project.id) || isEditableAsAuthor(user, resource);
+            return ProjectUser.isMember(user.id, project.id);
         case WATCH:
-            return project.isPublic ? !user.isAnonymous() : ProjectUser.isMember(user.id, project.id);
+            if (project.isPublic) {
+                return !user.isAnonymous();
+            } else {
+                return ProjectUser.isMember(user.id, project.id);
+            }
         default:
             // undefined
             return false;
@@ -233,28 +252,29 @@ public class AccessControl {
     }
 
     /**
-     * {@code user}가 {@code project}의 {@code resource}에 대해 저자로서의
-     * 수정 권한을 갖는지의 여부를 반환한다.
+     * {@code user}가 {@code resource}에 대해 저자로서의 읽기, 수정,
+     * 삭제 권한을 갖는지의 여부를 반환한다.
      *
-     * 현재는 이슈 및 게시물과 그것들의 댓글에 대해서만 동작한다.
+     * 다음의 두 조건이 모두 참인 경우에만 참을 반환한다.
+     * - {@code resource}가 저자에게 읽기, 수정, 삭제 권한을
+     *   부여하는 리소스인가
+     * - {@code user}가 저자인가
      *
      * @param user
      * @param resource
-     * @return {@code user}가 {@code project}의 {@code resource}에
-     *         대해 저자로서의 수정 권한을 갖는지의 여부를 반환한다.
+     * @return {@code user}가 {@code resource}에 대해 저자로서의
+    *          읽기, 수정, 삭제 권한을 갖는지의 여부
      */
-    private static boolean isEditableAsAuthor(User user, Resource resource) {
+    private static boolean isAllowedIfAuthor(User user, Resource resource) {
         switch (resource.getType()) {
         case ISSUE_POST:
-        case ISSUE_STATE:
-        case ISSUE_ASSIGNEE:
         case ISSUE_COMMENT:
         case NONISSUE_COMMENT:
         case BOARD_POST:
         case COMMIT_COMMENT:
         case COMMENT_THREAD:
         case REVIEW_COMMENT:
-            return resource.getAuthorId().equals(user.id);
+            return resource.isAuthoredBy(user);
         default:
             return false;
         }

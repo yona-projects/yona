@@ -1,6 +1,6 @@
 package controllers;
 
-import actions.NullProjectCheckAction;
+import actions.DefaultProjectCheckAction;
 import controllers.annotation.IsAllowed;
 import models.Project;
 import models.enumeration.Operation;
@@ -21,7 +21,6 @@ import views.html.code.view;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -75,7 +74,7 @@ public class CodeApp extends Controller {
      * @param branch 브랜치 이름
      * @param path 파일 경로
      */
-    @With(NullProjectCheckAction.class)
+    @With(DefaultProjectCheckAction.class)
     public static Result codeBrowserWithBranch(String userName, String projectName, String branch, String path)
         throws UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException {
         Project project = ProjectApp.getProject(userName, projectName);
@@ -110,7 +109,7 @@ public class CodeApp extends Controller {
      * @param projectName 프로젝트 이름
      * @param path 파일 또는 폴더의 경로
      */
-    @With(NullProjectCheckAction.class)
+    @With(DefaultProjectCheckAction.class)
     public static Result ajaxRequest(String userName, String projectName, String path) throws Exception{
         PlayRepository repository = RepositoryService.getRepository(userName, projectName);
         ObjectNode fileInfo = repository.getMetaDataFromPath(path);
@@ -130,7 +129,7 @@ public class CodeApp extends Controller {
      * @param branch 브랜치 이름
      * @param path 파일 또는 폴더의 경로
      */
-    @With(NullProjectCheckAction.class)
+    @With(DefaultProjectCheckAction.class)
     public static Result ajaxRequestWithBranch(String userName, String projectName, String branch, String path)
             throws UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException{
         CodeApp.hostName = request().host();
@@ -152,7 +151,7 @@ public class CodeApp extends Controller {
      * @param revision
      * @param path
      */
-    @With(NullProjectCheckAction.class)
+    @With(DefaultProjectCheckAction.class)
     public static Result showRawFile(String userName, String projectName, String revision, String path) throws Exception{
         byte[] fileAsRaw = RepositoryService.getFileAsRaw(userName, projectName, revision, path);
         if(fileAsRaw == null){
@@ -168,7 +167,7 @@ public class CodeApp extends Controller {
      * @param projectName
      * @param path
      */
-    @With(NullProjectCheckAction.class)
+    @With(DefaultProjectCheckAction.class)
     public static Result showImageFile(String userName, String projectName, String revision, String path) throws Exception{
         final byte[] fileAsRaw = RepositoryService.getFileAsRaw(userName, projectName, revision, path);
         String mimeType = tika.detect(fileAsRaw);

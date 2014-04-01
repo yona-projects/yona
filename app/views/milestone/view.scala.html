@@ -34,22 +34,9 @@
                 </small>
             </h4>
 
-            <div class="progress @if(milestone.getCompletionRate==0){empty}">
-                <div class="progress-bar" style="width: @milestone.getCompletionRate%;"></div>
+            <div class="progress progress-success @if(milestone.state == State.OPEN) {progress-striped active}">
+                <div class="bar" style="width: @milestone.getCompletionRate%;"></div>
             </div>
-            <div class="progress-label clearfix">
-                @if(milestone.getNumOpenIssues + milestone.getNumClosedIssues > 0) {
-                <div class="pull-left">
-                    <a href="@makeIssuesLink(milestone.id,"closed")">@Messages("issue.state.closed") <strong>@milestone.getCompletionRate%</strong></a>
-                </div>
-                <div class="pull-right">
-                    <a href="@makeIssuesLink(milestone.id,"open")">@Messages("issue.state.open") <strong>@{100 - milestone.getCompletionRate}%</strong></a>
-                </div>
-                } else {
-                    <div class="empty-issue">@Messages("issue.is.empty")</div>
-                }
-            </div>
-
             <div class="milestone-desc">
                 <div markdown="true" class="markdown-wrap">@milestone.contents</div>
                 <div class="attachments" data-resourceType="@ResourceType.MILESTONE" data-resourceId="@milestone.id"></div>

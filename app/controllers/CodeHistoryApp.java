@@ -1,5 +1,6 @@
 package controllers;
 
+import actions.DefaultProjectCheckAction;
 import actions.NullProjectCheckAction;
 import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
@@ -19,6 +20,7 @@ import playRepository.Commit;
 import playRepository.FileDiff;
 import playRepository.PlayRepository;
 import playRepository.RepositoryService;
+import utils.AccessControl;
 import utils.ErrorViews;
 import utils.HttpUtil;
 import utils.PullRequestCommit;
@@ -56,7 +58,7 @@ public class CodeHistoryApp extends Controller {
      * @throws GitAPIException
      * @throws SVNException
      */
-    @With(NullProjectCheckAction.class)
+    @With(DefaultProjectCheckAction.class)
     public static Result historyUntilHead(String ownerName, String projectName) throws IOException,
             UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
@@ -180,6 +182,7 @@ public class CodeHistoryApp extends Controller {
         }
     }
 
+    @With(NullProjectCheckAction.class)
     public static Result newSVNComment(String ownerName, String projectName, String commitId)
             throws IOException, ServletException, SVNException {
         Form<CommitComment> codeCommentForm = new Form<>(CommitComment.class)
@@ -191,8 +194,15 @@ public class CodeHistoryApp extends Controller {
             return badRequest(ErrorViews.BadRequest.render("error.validation", project));
         }
 
-        if (RepositoryService.getRepository(project).getCommit(commitId) == null) {
+        Commit commit = RepositoryService.getRepository(project).getCommit(commitId);
+
+        if (commit == null) {
             return notFound(notfound.render("error.notfound", project, request().path()));
+        }
+
+        if (!AccessControl.isResourceCreatable(
+                    UserApp.currentUser(), commit.asResource(project), ResourceType.COMMIT_COMMENT)) {
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         CommitComment codeComment = codeCommentForm.get();
@@ -263,7 +273,7 @@ public class CodeHistoryApp extends Controller {
         return redirect(RouteUtil.getUrl(comment));
     }
 
-    @With(NullProjectCheckAction.class)
+    @With(DefaultProjectCheckAction.class)
     @IsAllowed(value = Operation.DELETE, resourceType = ResourceType.COMMIT_COMMENT)
     public static Result deleteComment(String ownerName, String projectName, String commitId,
                                        Long id) {

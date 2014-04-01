@@ -46,14 +46,14 @@
                 }
 
                 // Template text
-                var sTplUserItem = $("#tplSelect2FormatUser").text() || '<div class="usf-group">' +
+                var sTplUserItem = $("#tplSelect2FormatUser").text() || '<div class="usf-group" title="${name} ${loginId}">' +
                     '<span class="avatar-wrap smaller"><img src="${avatarURL}" width="20" height="20"></span>' +
                     '<strong class="name">${name}</strong>' +
                     '<span class="loginid">${loginId}</span></div>';
 
                 var sText = $yobi.tmpl(sTplUserItem, {
                     "avatarURL": sAvatarURL,
-                    "name"     : oItem.text,
+                    "name"     : oItem.text.trim(),
                     "loginId"  : "@" + welItem.data("loginId")
                 });
 
@@ -70,10 +70,10 @@
                 sMilestoneState = sMilestoneState.toLowerCase();
                 var sMilestoneStateLabel = Messages("milestone.state." + sMilestoneState);
                 var sTplMilestoneItem = $("#tplSElect2FormatMilestone").text()
-                                    || '<span class="label milestone-state ${state}">${stateLabel}</span> ${name}';
+                                    || '<div title="[${stateLabel}] ${name}">${name}</div>';
 
                 var sText = $yobi.tmpl(sTplMilestoneItem, {
-                    "name" : oItem.text,
+                    "name" : oItem.text.trim(),
                     "state": sMilestoneState,
                     "stateLabel": sMilestoneStateLabel
                 });
@@ -95,34 +95,10 @@
             }
         };
 
-        var htSorters = {
-            "milestone": function(aResults){
-                aResults.sort(function(a,b){
-                    var sTextA = a.text.trim();
-                    var sTextB = b.text.trim();
-                    var sStateA = $(a.element).data("state");
-                    var sStateB = $(b.element).data("state");
-
-                    if(!(sStateA && sStateB)){
-                        return 0;
-                    }
-
-                    // 기본적으로는 상태순 정렬
-                    // 상태가 같은 항목끼리는 이름 알파벳 순으로
-                    return (sStateA === sStateB) ?
-                            (sTextA < sTextB ? -1 : 1) :
-                            (sStateB < sStateA ? -1 : 1);
-                });
-
-                return aResults;
-            }
-        };
-
         // Use customized format if specified format exists
         var sFormatName = welSelect.data("format");
         var fFormat = sFormatName ? htFormat[sFormatName.toLowerCase()] : null;
         var fMatcher = sFormatName ? htMatchers[sFormatName.toLowerCase()] : null;
-        var fSorter = sFormatName ? htSorters[sFormatName.toLowerCase()] : null;
 
         if(typeof fFormat === "function"){
             htOpt = $.extend(htOpt, {

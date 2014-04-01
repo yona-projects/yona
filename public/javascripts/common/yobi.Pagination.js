@@ -16,6 +16,8 @@
 yobi.Pagination = (function(window, document) {
     var htRegEx = {};
     var rxDigit = /^.[0-9]*$/;
+    // $.isNumeric determines hex, point or negative numbers as numeric.
+    // but, rxDigit finds only positive decimal integer numbers
 
     /**
      * getQuery
@@ -88,102 +90,189 @@ yobi.Pagination = (function(window, document) {
     }
 
     /**
-     * window.updatePagination
+     * Update pagination
+     *
+     * @param {HTMLElement} elTarget
+     * @param {Number} nTotalPages
+     * @param {Hash Table} htOpt
      */
-    window.updatePagination = function(target, totalPages, options) {
-        if (totalPages <= 0){
+    function updatePagination(elTarget, nTotalPages, htOptions) {
+        if (nTotalPages <= 0){
             return;
         }
 
-        var target = $(target);
-        var linkToPrev, linkToNext, urlToPrevPage, urlToNextPage;
-        var options = options || {};
+        var welTarget = $(elTarget);
+        var htData = htOptions || {};
 
-        options.url = options.url || document.URL;
-        options.firstPage = options.firstPage || 1;
+        htData.url = htData.url || document.URL;
+        htData.firstPage = htData.firstPage || 1;
+        htData.totalPages = nTotalPages;
+        htData.paramNameForPage = htData.paramNameForPage || 'pageNum';
+        htData.current = !rxDigit.test(htData.current) ? _getPageNumFromUrl(htData) : htData.current;
+        htData.hasPrev = (typeof htData.hasPrev === "undefined") ? htData.current > htData.firstPage : htData.hasPrev;
+        htData.hasNext = (typeof htData.hasNext === "undefined") ? htData.current < htData.totalPages : htData.hasNext;
 
-        var pageNumFromUrl;
-        var paramNameForPage = options.paramNameForPage || 'pageNum';
+        validateOptions(htData);
 
-        if (!$.isNumeric(options.current)) {
-            query = getQuery(options.url);
-            pageNumFromUrl  = parseInt(valueFromQuery(paramNameForPage, query));
-            options.current = pageNumFromUrl || options.firstPage;
-        }
+        welTarget.html('');
+        welTarget.addClass('page-navigation-wrap');
 
-        options.hasPrev = (typeof options.hasPrev == "undefined") ? options.current > options.firstPage : options.hasPrev;
-        options.hasNext = (typeof options.hasNext == "undefined") ? options.current < totalPages : options.hasNext;
-
-        validateOptions(options);
-
-        target.html('');
-        target.addClass('page-navigation-wrap');
-
-        // previous page exists
-        var welPagePrev;
-        if (options.hasPrev) {
-            linkToPrev = $('<a pjax-page>').append($('<i class="ico btn-pg-prev">')).append($('<span>').text('PREV'));
-
-            if (typeof (options.submit) == 'function') {
-                linkToPrev.attr('href', 'javascript: void(0);').click(function(e) {
-                    options.submit(options.current - 1);
-                });
-            } else {
-                urlToPrevPage = urlWithPageNum(options.url, options.current - 1, paramNameForPage);
-                linkToPrev.attr('href', urlToPrevPage);
-            }
-
-            welPagePrev = $('<li class="page-num ikon">').append(linkToPrev);
-        } else {
-            welPagePrev = $('<li class="page-num ikon">').append($('<i class="ico btn-pg-prev off">')).append($('<span class="off">').text('PREV'));
-        }
-
-        // on submit event handler
-        if (typeof (options.submit) == 'function') {
-            var keydownOnInput = function(e) {
-                if(validateInputNum($(target), options.current)){
-                    options.submit($(target).val());
-                }
-            };
-        } else {
-            var keydownOnInput = function(e) {
-                var welTarget = $(e.target || e.srcElement);
-                if (e.which == 13 && validateInputNum(welTarget, options.current)) {
-                    document.location.href = urlWithPageNum(options.url, welTarget.val(), paramNameForPage);
-                }
-            }
-        }
+        // prev/next link
+        var welPagePrev = _getPrevPageLink(htData);
+        var welPageNext = _getNextPageLink(htData);
 
         // page input box
-        var elInput = $('<input name="pageNum" type="number" pattern="[0-9]*" min="1" max="' + totalPages + '" class="input-mini" value="' + options.current + '">').keydown(keydownOnInput);
-        var welPageInputContainer = $('<li class="page-num">').append(elInput);
+        var welPageInput = _getPageInputBox(htData);
+        var welPageInputWrap = $('<li class="page-num">').append(welPageInput);
         var welDelimiter = $('<li class="page-num delimiter">').text('/');
-        var welTotalPages = $('<li class="page-num">').text(totalPages);
-
-        // next page exists
-        var welPageNext;
-        if (options.hasNext) {
-            linkToNext = $('<a pjax-page>').append($('<span>').text('NEXT')).append($('<i class="ico btn-pg-next">'));
-
-            if (typeof (options.submit) == 'function') {
-                linkToNext.attr('href', 'javascript: void(0);').click(function(e) { options.submit(options.current + 1);});
-            } else {
-                urlToNextPage = urlWithPageNum(options.url, options.current + 1, paramNameForPage);
-                linkToNext.attr('href', urlToNextPage);
-            }
-
-            welPageNext = $('<li class="page-num ikon">').append(linkToNext);
-        } else {
-            welPageNext = $('<li class="page-num ikon">').append($('<span class="off">').text('NEXT').append('<i class="ico btn-pg-next off">'));
-        }
+        var welTotalPages = $('<li class="page-num">').text(nTotalPages);
 
         // fill #pagination
-        var welPageList = $('<ul class="page-nums">').append([welPagePrev, welPageInputContainer, welDelimiter, welTotalPages, welPageNext]);
-        target.append(welPageList);
-    };
+        var welPageList = $('<ul class="page-nums">');
+        welPageList.append([welPagePrev, welPageInputWrap, welDelimiter, welTotalPages, welPageNext]);
+        welTarget.append(welPageList);
+    }
+
+    /**
+     * Get current page number from QueryString
+     *
+     * @param htData
+     * @returns {Number}
+     * @private
+     */
+    function _getPageNumFromUrl(htData){
+        var sQuery = getQuery(htData.url);
+        var nPageNumFromUrl  = parseInt(valueFromQuery(htData.paramNameForPage, sQuery), 10);
+        return nPageNumFromUrl || htData.firstPage;
+    }
+
+    /**
+     * Get PageNum INPUT element
+     *
+     * @param htData
+     * @returns {Wrapped Element}
+     * @private
+     */
+    function _getPageInputBox(htData){
+        var welPageInput = $('<input type="number" pattern="[0-9]*" class="input-mini">');
+
+        welPageInput.prop({
+            "name" : htData.paramNameForPage,
+            "max"  : htData.totalPages,
+            "min"  : 1
+        });
+
+        welPageInput.val(htData.current);
+
+        welPageInput.on("keydown", function(weEvt){
+            if(!isValidInputNum(welPageInput, htData.current)){
+                return;
+            }
+
+            var nCurrentValue = welPageInput.val();
+
+            if(typeof htData.submit === "function"){
+                htData.submit(nCurrentValue);
+            } else if(weEvt.which === 13){
+                document.location.href = urlWithPageNum(htData.url, nCurrentValue, htData.paramNameForPage);
+            }
+        });
+
+        return welPageInput;
+    }
+
+    /**
+     * Get previous page link
+     *
+     * @param htData
+     * @returns {Wrapped Element}
+     * @private
+     */
+    function _getPrevPageLink(htData){
+        var sLinkText = Messages("button.prevPage") || 'PREV';
+        var sLinkHTMLOn = '<i class="ico btn-pg-prev"></i><span>' + sLinkText + '</span>';
+        var sLinkHTMLOff = '<i class="ico btn-pg-prev off"></i><span class="off">' + sLinkText + '</span>';
+
+        var htOptions = $.extend(htData, {
+            "bActive"  : htData.hasPrev,
+            "sLinkHref": htData.hasPrev ? urlWithPageNum(htData.url, htData.current - 1, htData.paramNameForPage) : "",
+            "sLinkHTMLOn"   : sLinkHTMLOn,
+            "sLinkHTMLOff"  : sLinkHTMLOff,
+            "sShortcutKey"  : "A",
+            "nSubmitPageNum": htData.current - 1
+        });
+
+        var welPagePrev = _buildPageLink(htOptions);
+
+        return welPagePrev;
+    }
+
+    /**
+     * Get next page link
+     *
+     * @param htData
+     * @returns {Wrapped Element}
+     * @private
+     */
+    function _getNextPageLink(htData){
+        var sLinkText = Messages("button.nextPage") || 'NEXT';
+        var sLinkHTMLOn = '<span>' + sLinkText + '</span><i class="ico btn-pg-next"></i>';
+        var sLinkHTMLOff = '<span class="off">' + sLinkText + '</span><i class="ico btn-pg-next off"></i>';
+
+        var htOptions = $.extend(htData, {
+            "bActive"  : htData.hasNext,
+            "sLinkHref": htData.hasNext ? urlWithPageNum(htData.url, htData.current + 1, htData.paramNameForPage) : "",
+            "sLinkHTMLOn"   : sLinkHTMLOn,
+            "sLinkHTMLOff"  : sLinkHTMLOff,
+            "sShortcutKey"  : "S",
+            "nSubmitPageNum": htData.current + 1
+        });
+
+        var welPageNext = _buildPageLink(htOptions);
+
+        return welPageNext;
+    }
+
+    /**
+     * Build prev/next page link
+     *
+     * @param htData
+     * @returns {Wrapped Element}
+     * @private
+     */
+    function _buildPageLink(htData){
+        var welPageLink = $('<li class="page-num ikon">');
+
+        if(htData.bActive){
+            var welLink = $('<a pjax-page>');
+            welLink.html(htData.sLinkHTMLOn);
+
+            if(typeof htData.submit === 'function'){
+                welLink.attr("href", "javascript: void(0);");
+                welLink.on("click", function(){
+                    htData.submit(htData.nSubmitPageNum);
+                });
+            } else {
+                welLink.attr("href", htData.sLinkHref);
+            }
+
+            welPageLink.append(welLink);
+        } else {
+            welPageLink.html(htData.sLinkHTMLOff);
+        }
+
+        // if yobi.ShortcutKey exists
+        if(yobi.ShortcutKey){
+            var htKeyOpt = {};
+            htKeyOpt[htData.sShortcutKey] = htData.sLinkHref;
+            yobi.ShortcutKey.setKeymapLink(htKeyOpt);
+        }
+
+        return welPageLink;
+    }
 
     // validate number range
-    function validateInputNum(welTarget, nCurrentPageNum){
+    function isValidInputNum(welTarget, nCurrentPageNum){
         if(rxDigit.test(welTarget.val()) === false){
             welTarget.val(nCurrentPageNum);
             return false;

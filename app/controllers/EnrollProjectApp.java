@@ -1,7 +1,7 @@
 package controllers;
 
 import actions.AnonymousCheckAction;
-import actions.NullProjectCheckAction;
+import actions.DefaultProjectCheckAction;
 import models.NotificationEvent;
 import models.Project;
 import models.ProjectUser;
@@ -27,7 +27,7 @@ public class EnrollProjectApp extends Controller {
      * @return
      */
     @Transactional
-    @With(NullProjectCheckAction.class)
+    @With(DefaultProjectCheckAction.class)
     public static Result enroll(String loginId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
@@ -53,7 +53,7 @@ public class EnrollProjectApp extends Controller {
      * @return
      */
     @Transactional
-    @With(NullProjectCheckAction.class)
+    @With(DefaultProjectCheckAction.class)
     public static Result cancelEnroll(String loginId, String proejctName) {
         Project project = Project.findByOwnerAndProjectName(loginId, proejctName);
 

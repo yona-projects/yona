@@ -29,6 +29,8 @@
             _setLabelTextColor();
 
             _setTimelineUpdateTimer();
+
+            _setBtnCommentAndClose();
         }
 
         /**
@@ -71,6 +73,11 @@
             htVar.sTimelineHTML = htElement.welTimelineList.html();
             htVar.nTimelineItems = _countTimelineItems(); // 타임라인 항목 갯수
             htVar.bOnFocusTextarea = false; // 댓글 작성폼에 포커스가 있는지 여부
+
+            // for comment-and-close
+            htVar.sNextState = htOptions.sNextState;
+            htVar.sNextStateUrl = htOptions.sNextStateUrl;
+            htVar.sCommentWithStateUrl = htOptions.sCommentWithStateUrl;
         }
 
         /**
@@ -388,6 +395,51 @@
          */
         function _countTimelineItems(){
             return htElement.welTimelineList.find("ul.comments > li").length;
+        }
+
+        /**
+         * Add "comment & close" like button at comment form
+         * @private
+         */
+        function _setBtnCommentAndClose(){
+            var welEditor = $("#comment-editor");
+            var welDynamicCommentBtn = $("#dynamic-comment-btn");
+            var welCommentForm = $("#comment-form");
+            var welWithStateTransition = $("<input type='hidden' name='withStateTransition'>");
+
+            var sNextState = Messages("button.nextState." + htVar.sNextState);
+            var sCommentAndNextState = Messages("button.commentAndNextState." + htVar.sNextState);
+
+            welCommentForm.prepend(welWithStateTransition);
+            welDynamicCommentBtn.removeClass('hidden');
+            welDynamicCommentBtn.html(Messages("button.nextState." + htVar.sNextState));
+            welDynamicCommentBtn.on("click", function(){
+                if(welEditor.val().length > 0){
+                    welWithStateTransition.val("true");
+                    welCommentForm.attr("action", htVar.sCommentWithStateUrl);
+                    welCommentForm.submit();
+                } else {
+                    welWithStateTransition.val("");
+                    location.href = htVar.sNextStateUrl;
+                }
+            });
+
+            welEditor.on("keyup", function(){
+                if(welEditor.val().length > 0){
+                    welDynamicCommentBtn.html(sCommentAndNextState);
+                } else {
+                    welDynamicCommentBtn.html(sNextState);
+                }
+            });
+
+            // if yobi.ShortcutKey exists
+            if(yobi.ShortcutKey){
+                yobi.ShortcutKey.attach("CTRL+SHIFT+ENTER", function(htInfo){
+                    if(htInfo.welTarget.is(welEditor)){
+                        welDynamicCommentBtn.click();
+                    }
+                });
+            }
         }
 
         // initialize

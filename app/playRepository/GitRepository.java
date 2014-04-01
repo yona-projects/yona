@@ -687,6 +687,16 @@ public class GitRepository implements PlayRepository {
         return getFileDiffs(repository, repository, commitIdA, commit.getId());
     }
 
+    public static List<FileDiff> getDiff(Repository repository, RevCommit commit) throws IOException {
+        ObjectId commitIdA = null;
+        if (commit.getParentCount() > 0) {
+            commitIdA = commit.getParent(0).getId();
+        }
+
+        return getFileDiffs(repository, repository, commitIdA, commit.getId());
+    }
+
+
     /**
      * {@code untilRevName}에 해당하는 리비전까지의 커밋 목록을 반환한다.
      * {@code untilRevName}이 null이면 HEAD 까지의 커밋 목록을 반환한다.
@@ -1117,6 +1127,13 @@ public class GitRepository implements PlayRepository {
             revWalk.setTreeFilter(PathFilter.create(path));
             revWalk.sort(RevSort.REVERSE);
             RevCommit commit = revWalk.next();
+            // 어떤 파일이 처음 생성된 commit 은 반드시 존재해야 한다.
+            // 하지만 어떤 이유에선지 위와 같이 RevWalk 를 이용했을 때 그 commit 을 찾지 못할 때가 있다.
+            // 아래 commit 이 null 일 경우의 처리는 임시적인 것이며 추후 원인을 분석해서 특정 path 의
+            // 파일이 생성된 commit 을 항상 찾도록 고쳐야 한다.
+            if (commit == null) {
+                return User.anonymous;
+            }
             return findAuthorByPersonIdent(commit.getAuthorIdent());
         } finally {
             if (revWalk != null) {
@@ -1698,17 +1715,15 @@ public class GitRepository implements PlayRepository {
                     && Arrays.asList(DELETE, MODIFY, RENAME, COPY).contains(diff.getChangeType())) {
                 TreeWalk t1 = TreeWalk.forPath(repositoryA, pathA, treeA);
                 ObjectId blobA = t1.getObjectId(0);
+                fileDiff.pathA = pathA;
 
                 try {
                     rawA = repositoryA.open(blobA).getBytes();
+                    fileDiff.isBinaryA = RawText.isBinary(rawA);
+                    fileDiff.a = fileDiff.isBinaryA ? null : new RawText(rawA);
                 } catch (org.eclipse.jgit.errors.LargeObjectException e) {
-                    result.add(fileDiff);
-                    continue;
+                    fileDiff.addError(FileDiff.Error.A_SIZE_EXCEEDED);
                 }
-
-                fileDiff.isBinaryA = RawText.isBinary(rawA);
-                fileDiff.a = fileDiff.isBinaryA ? null : new RawText(rawA);
-                fileDiff.pathA = pathA;
             }
 
             byte[] rawB = null;
@@ -1716,26 +1731,28 @@ public class GitRepository implements PlayRepository {
                     && Arrays.asList(ADD, MODIFY, RENAME, COPY).contains(diff.getChangeType())) {
                 TreeWalk t2 = TreeWalk.forPath(repositoryB, pathB, treeB);
                 ObjectId blobB = t2.getObjectId(0);
+                fileDiff.pathB = pathB;
 
                 try {
                     rawB = repositoryB.open(blobB).getBytes();
+                    fileDiff.isBinaryB = RawText.isBinary(rawB);
+                    fileDiff.b = fileDiff.isBinaryB ? null : new RawText(rawB);
                 } catch (org.eclipse.jgit.errors.LargeObjectException e) {
-                    result.add(fileDiff);
-                    continue;
+                    fileDiff.addError(FileDiff.Error.B_SIZE_EXCEEDED);
                 }
-
-                fileDiff.isBinaryB = RawText.isBinary(rawB);
-                fileDiff.b = fileDiff.isBinaryB ? null : new RawText(rawB);
-                fileDiff.pathB = pathB;
             }
 
             if (size > DIFF_SIZE_LIMIT || lines > DIFF_LINE_LIMIT) {
-                fileDiff.setError(FileDiff.Error.OTHERS_SIZE_EXCEEDED);
+                fileDiff.addError(FileDiff.Error.OTHERS_SIZE_EXCEEDED);
                 result.add(fileDiff);
                 continue;
             }
 
-            if (!(fileDiff.isBinaryA || fileDiff.isBinaryB) && Arrays.asList(MODIFY, RENAME).contains(diff.getChangeType())) {
+            // Get diff if necessary
+            if (fileDiff.a != null
+                    && fileDiff.b != null
+                    && !(fileDiff.isBinaryA || fileDiff.isBinaryB)
+                    && Arrays.asList(MODIFY, RENAME).contains(diff.getChangeType())) {
                 DiffAlgorithm diffAlgorithm = DiffAlgorithm.getAlgorithm(
                         repositoryB.getConfig().getEnum(
                                 ConfigConstants.CONFIG_DIFF_SECTION, null,
@@ -1747,16 +1764,19 @@ public class GitRepository implements PlayRepository {
                 lines += fileDiff.getHunks().lines;
             }
 
-            if (!fileDiff.isBinaryB && diff.getChangeType().equals(ADD)) {
+            // update lines and sizes
+            if (fileDiff.b != null && !fileDiff.isBinaryB && diff.getChangeType().equals(ADD)) {
                 lines += fileDiff.b.size();
                 size += rawB.length;
             }
 
-            if (!fileDiff.isBinaryA && diff.getChangeType().equals(DELETE)) {
+            // update lines and sizes
+            if (fileDiff.a != null && !fileDiff.isBinaryA && diff.getChangeType().equals(DELETE)) {
                 lines += fileDiff.a.size();
-                 size += rawA.length;
+                size += rawA.length;
             }
 
+            // Stop if exceeds the limit for total number of files
             if (result.size() > DIFF_FILE_LIMIT) {
                 break;
             }

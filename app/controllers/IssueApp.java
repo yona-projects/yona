@@ -1,5 +1,6 @@
 package controllers;
 
+import actions.DefaultProjectCheckAction;
 import actions.NullProjectCheckAction;
 import actions.AnonymousCheckAction;
 import com.avaje.ebean.ExpressionList;
@@ -560,11 +561,15 @@ public class IssueApp extends AbstractPostingApp {
      * @param number 이슈 번호
      * @return
      */
-    @With(AnonymousCheckAction.class)
-    @IsAllowed(resourceType = ResourceType.ISSUE_POST, value = Operation.UPDATE)
+    @With(NullProjectCheckAction.class)
     public static Result editIssueForm(String ownerName, String projectName, Long number) {
         Project project = ProjectApp.getProject(ownerName, projectName);
         Issue issue = Issue.findByNumber(project, number);
+
+        if (!AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
+        }
+
         Form<Issue> editForm = new Form<>(Issue.class).fill(issue);
 
         return ok(edit.render("title.editIssue", editForm, issue, project));
@@ -598,30 +603,27 @@ public class IssueApp extends AbstractPostingApp {
         return redirect(redirectTo);
     }
 
-    private static void addAssigneeChangedNotification(Issue modifiedIssue, Issue originalIssue, Call redirectTo) {
+    private static void addAssigneeChangedNotification(Issue modifiedIssue, Issue originalIssue) {
         if(!originalIssue.assignedUserEquals(modifiedIssue.assignee)) {
-            Issue updatedIssue = Issue.finder.byId(originalIssue.id);
             User oldAssignee = null;
             if(hasAssignee(originalIssue)) {
                 oldAssignee = originalIssue.assignee.user;
             }
-            NotificationEvent notiEvent = NotificationEvent.afterAssigneeChanged(oldAssignee, updatedIssue);
+            NotificationEvent notiEvent = NotificationEvent.afterAssigneeChanged(oldAssignee, modifiedIssue);
             IssueEvent.addFromNotificationEvent(notiEvent, modifiedIssue, UserApp.currentUser().loginId);
         }
     }
 
-    private static void addStateChangedNotification(Issue modifiedIssue, Issue originalIssue, Call redirectTo) {
+    private static void addStateChangedNotification(Issue modifiedIssue, Issue originalIssue) {
         if(modifiedIssue.state != originalIssue.state) {
-            Issue updatedIssue = Issue.finder.byId(originalIssue.id);
-            NotificationEvent notiEvent = NotificationEvent.afterStateChanged(originalIssue.state, updatedIssue);
+            NotificationEvent notiEvent = NotificationEvent.afterStateChanged(originalIssue.state, modifiedIssue);
             IssueEvent.addFromNotificationEvent(notiEvent, modifiedIssue, UserApp.currentUser().loginId);
         }
     }
 
-    private static void addBodyChangedNotification(Issue modifiedIssue, Issue originalIssue, Call redirectTo) {
+    private static void addBodyChangedNotification(Issue modifiedIssue, Issue originalIssue) {
         if (!modifiedIssue.body.equals(originalIssue.body)) {
-            Issue updatedIssue = Issue.finder.byId(originalIssue.id);
-            NotificationEvent notiEvent = NotificationEvent.afterIssueBodyChanged(originalIssue.body, updatedIssue);
+            NotificationEvent notiEvent = NotificationEvent.afterIssueBodyChanged(originalIssue.body, modifiedIssue);
             IssueEvent.addFromNotificationEvent(notiEvent, modifiedIssue, UserApp.currentUser().loginId);
         }
     }
@@ -660,9 +662,9 @@ public class IssueApp extends AbstractPostingApp {
 
         Call redirectTo = routes.IssueApp.issue(project.owner, project.name, number);
 
-        // updateIssueBeforeSave.run would be called just before this issue is saved.
+        // preUpdateHook.run would be called just before this issue is updated.
         // It updates some properties only for issues, such as assignee or labels, but not for non-issues.
-        Runnable updateIssueBeforeSave = new Runnable() {
+        Runnable preUpdateHook = new Runnable() {
             @Override
             public void run() {
                 // Below addAll() method is needed to avoid the exception, 'Timeout trying to lock table ISSUE'.
@@ -671,16 +673,14 @@ public class IssueApp extends AbstractPostingApp {
                 issue.voters.addAll(originalIssue.voters);
                 issue.comments = originalIssue.comments;
                 addLabels(issue, request());
+
+                addAssigneeChangedNotification(issue, originalIssue);
+                addStateChangedNotification(issue, originalIssue);
+                addBodyChangedNotification(issue, originalIssue);
             }
         };
 
-        addAssigneeChangedNotification(issue, originalIssue, redirectTo);
-        addStateChangedNotification(issue, originalIssue, redirectTo);
-        addBodyChangedNotification(issue, originalIssue, redirectTo);
-
-        Result result = editPosting(originalIssue, issue, issueForm, redirectTo, updateIssueBeforeSave);
-
-        return result;
+        return editPosting(originalIssue, issue, issueForm, redirectTo, preUpdateHook);
     }
 
     /*
@@ -709,7 +709,7 @@ public class IssueApp extends AbstractPostingApp {
      * @ see {@link AbstractPostingApp#delete(play.db.ebean.Model, models.resource.Resource, Call)}
      */
     @Transactional
-    @IsAllowed(value = Operation.DELETE, resourceType = ResourceType.ISSUE_POST)
+    @With(NullProjectCheckAction.class)
     public static Result deleteIssue(String ownerName, String projectName, Long number) {
         Project project = ProjectApp.getProject(ownerName, projectName);
         Issue issue = Issue.findByNumber(project, number);
@@ -737,12 +737,17 @@ public class IssueApp extends AbstractPostingApp {
      * @see {@link AbstractPostingApp#newComment(models.Comment, play.data.Form}
      */
     @Transactional
-    @IsCreatable(ResourceType.ISSUE_COMMENT)
+    @With(NullProjectCheckAction.class)
     public static Result newComment(String ownerName, String projectName, Long number) throws IOException {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         final Issue issue = Issue.findByNumber(project, number);
         Call redirectTo = routes.IssueApp.issue(project.owner, project.name, number);
         Form<IssueComment> commentForm = new Form<>(IssueComment.class).bindFromRequest();
+
+        if (!AccessControl.isResourceCreatable(
+                    UserApp.currentUser(), issue.asResource(), ResourceType.ISSUE_COMMENT)) {
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
+        }
 
         if (commentForm.hasErrors()) {
             return badRequest(ErrorViews.BadRequest.render("error.validation", project));

@@ -1,9 +1,9 @@
-@(project:Project, resourceType:ResourceType, action:String)
+@(container: models.resource.Resource, resourceType:ResourceType, action:String)
 
 @import models.enumeration.ResourceType
 @import utils.AccessControl._
 
-@if(isProjectResourceCreatable(User.findByLoginId(session.get("loginId")), project, resourceType)){
+@if(isResourceCreatable(User.findByLoginId(session.get("loginId")), container, resourceType)){
 
     <form id="comment-form" action="@action" method="post" enctype="multipart/form-data">
         <div class="write-comment-box">

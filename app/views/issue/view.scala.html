@@ -146,27 +146,44 @@
                         <dl>
                             <dt>@Messages("milestone")</dt>
                             <dd style="padding:5px 10px;">
-                            @defining(issue.milestone != null) { hasMilestone =>
-                                @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
-                                <select id="milestone" name="milestone.id" data-toggle="select2" data-format="milestone">
-                                    <option value="-1" @if(!hasMilestone){ selected }>@Messages("issue.noMilestone")</option>
-                                    @for(milestone <- Milestone.findByProjectId(project.id)){
-                                    <option value="@milestone.id"
-                                        @if(hasMilestone && issue.milestone.id == milestone.id){
-                                            selected
+                            @if(Milestone.findByProjectId(project.id).isEmpty()){
+                                <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" target="_blank" class="ybtn ybtn-success ybtn-small">@Messages("milestone.menu.new")</a>
+                            } else {
+                                @defining(issue.milestone != null) { hasMilestone =>
+                                    @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+                                    <select id="milestone" name="milestone.id" data-toggle="select2" data-format="milestone">
+                                        <option value="@Milestone.NULL_MILESTONE_ID" @if(!hasMilestone){ selected }>
+                                            @Messages("issue.noMilestone")
+                                        </option>
+                                        <optgroup label="@Messages("milestone.state.open")">
+                                        @for(milestone <- Milestone.findOpenMilestones(project.id)){
+                                            <option value="@milestone.id" data-state="@milestone.state"
+                                            @if(hasMilestone && issue.milestone.id == milestone.id){
+                                                selected
+                                            }>
+                                                @milestone.title
+                                            </option>
                                         }
-                                        data-state="@milestone.state">
-                                        @milestone.title
-                                    </option>
-                                    }
-                                </select>
-                                } else {
-                                    @if(hasMilestone){
-                                        <a href="@routes.MilestoneApp.milestone(project.owner, project.name, issue.milestone.id)">
-                                            @issue.milestone.title
-                                        </a>
+                                        </optgroup>
+                                        <optgroup label="@Messages("milestone.state.closed")">
+                                        @for(milestone <- Milestone.findClosedMilestones(project.id)){
+                                            <option value="@milestone.id" data-state="@milestone.state"
+                                            @if(hasMilestone && issue.milestone.id == milestone.id){
+                                                selected
+                                            }>
+                                                @milestone.title
+                                            </option>
+                                        }
+                                        </optgroup>
+                                    </select>
                                     } else {
-                                        @Messages("issue.noMilestone")
+                                        @if(hasMilestone){
+                                            <a href="@routes.MilestoneApp.milestone(project.owner, project.name, issue.milestone.id)">
+                                                @issue.milestone.title
+                                            </a>
+                                        } else {
+                                            @Messages("issue.noMilestone")
+                                        }
                                     }
                                 }
                             }
@@ -178,7 +195,8 @@
                         <dl>
                             <dt>@Messages("issue.vote")</dt>
                             <dd>
-                                @if(isProjectResourceCreatable(User.findByLoginId(session.get("loginId")), project, ResourceType.ISSUE_COMMENT)) {
+                            <dd style="padding:5px 10px;">
+                                @if(isResourceCreatable(User.findByLoginId(session.get("loginId")), issue.asResource(), ResourceType.ISSUE_COMMENT)) {
                                     @if(issue.isVotedBy(UserApp.currentUser())) {
                                         <a href="@routes.VoteApp.unvote(project.owner, project.name, issue.getNumber)" data-request-method="post" class="ybtn ybtn-success"  data-toggle="tooltip" data-placement="right" data-original-title="@Messages("issue.unvote.description")">+@issue.voters.size</a>
                                     } else {
@@ -222,7 +240,6 @@
 
             @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.WATCH)) {
             <button id="watch-button" type="button" class="ybtn" data-toggle="button" data-watching="@if(issue.getWatchers.contains(UserApp.currentUser())){true}else{false}">
-
                 @if(issue.getWatchers.contains(UserApp.currentUser())) {
                     @Messages("project.unwatch")
                 } else {
@@ -239,7 +256,7 @@
                 @partial_comments(project, issue)
                 </div>
             </div>
-            @common.commentForm(project, ResourceType.ISSUE_COMMENT, routes.IssueApp.newComment(project.owner, project.name, issue.getNumber).toString())
+            @common.commentForm(issue.asResource(), ResourceType.ISSUE_COMMENT, routes.IssueApp.newComment(project.owner, project.name, issue.getNumber).toString())
         </div>
         @** // Comment **@
 
@@ -293,13 +310,16 @@
             "welMilestone"  : $("#milestone"),
             "welAssignee"   : $("#assignee"),
             "welIssueUpdateForm": $("#issueUpdateForm"),
-            "sIssueCheckBoxesSelector": "[type=checkbox][name=checked-issue]"
+            "sIssueCheckBoxesSelector": "[type=checkbox][name=checked-issue]",
+            "sNextState"    : "@issue.nextState().toString.toLowerCase",
+            "sNextStateUrl" : "@routes.IssueApp.nextState(project.owner, project.name, issue.getNumber)",
+            "sCommentWithStateUrl": "@routes.IssueApp.newCommentWithState(project.owner, project.name, issue.getNumber)"
         });
 
         // yobi.ShortcutKey
         yobi.ShortcutKey.setKeymapLink({
             "N": "@routes.IssueApp.newIssueForm(project.owner, project.name)",
-            "L": "@routes.IssueApp.issues(project.owner, project.name,"open")"
+            "L": "@urlToIssues"
             @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
            ,"E": "@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)"
             }
@@ -308,39 +328,6 @@
         yobi.Mention({
             target:'comment-editor',
             url : "@Html(routes.ProjectApp.mentionList(project.owner, project.name, issue.getNumber, issue.asResource().getType.resource()).toString())"
-        });
-    });
-</script>
-
-<script>
-    //add "comment & close" like button at comment form
-    $(function(){
-        var welEditor = $("#comment-editor");
-        var welDynamicCommentBtn = $("#dynamic-comment-btn");
-        var welCommentForm = $("#comment-form" );
-        var welWithStateTransition = $("<input type='hidden' name='withStateTransition'>");
-
-        var sNextState = "@Messages("button.nextState."+issue.nextState().toString.toLowerCase)";
-        var sCommentAndNextState = "@Html(Messages("button.commentAndNextState."+issue.nextState().toString.toLowerCase))";
-        welCommentForm.prepend(welWithStateTransition);
-        welDynamicCommentBtn.removeClass('hidden');
-        welDynamicCommentBtn.html("@Messages("button.nextState."+issue.nextState().toString.toLowerCase)")
-            .on("click", function(){
-                if(welEditor.val().length > 0){
-                    welWithStateTransition.val("true");
-                    welCommentForm.attr("action", "@routes.IssueApp.newCommentWithState(project.owner, project.name, issue.getNumber)");
-                    welCommentForm.submit();
-                } else {
-                    welWithStateTransition.val("");
-                    location.href="@routes.IssueApp.nextState(project.owner, project.name, issue.getNumber)";
-                }
-            });
-        welEditor.on("keyup", function(){
-            if(welEditor.val().length > 0){
-                welDynamicCommentBtn.html(sCommentAndNextState);
-            } else {
-                welDynamicCommentBtn.html(sNextState);
-            }
         });
     });
 </script>

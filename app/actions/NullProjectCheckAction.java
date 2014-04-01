@@ -4,7 +4,7 @@
  * Copyright 2013 NAVER Corp.
  * http://yobi.io
  *
- * @Author Keesun Baik
+ * @Author Wansoon Park, Keesun Baek
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,21 +21,44 @@
 package actions;
 
 import actions.support.PathParser;
+import controllers.UserApp;
 import models.Project;
-import play.mvc.Http.Context;
+import models.User;
+import play.i18n.Messages;
+import play.mvc.Action;
+import play.mvc.Http;
 import play.mvc.Result;
+import utils.AccessLogger;
+import utils.ErrorViews;
+
+import static play.mvc.Controller.flash;
 
 /**
  * /{user.loginId}/{project.name}/** 패턴의 요청에 해당하는 프로젝트가 존재하는지 확인하는 액션.
- * - URL에 해당하는 프로젝트가 없을 때 404 Not Found로 응답한다.
- * - URL에 해당하는 프로젝트가 있을 때 요청 처리한다.
+ * - URL에 해당하는 프로젝트가 없을 때 403 Forbidden으로 응답한다.
  *
- * @see {@link AbstractProjectCheckAction}
- * @author Keesun Baik
+ * @author Keeun Baik
  */
-public class NullProjectCheckAction extends AbstractProjectCheckAction<Void> {
+public class NullProjectCheckAction extends Action<Void> {
+
     @Override
-    protected Result call(Project project, Context context, PathParser parser) throws Throwable {
+    public Result call(Http.Context context) throws Throwable {
+        PathParser parser = new PathParser(context);
+        String ownerLoginId = parser.getOwnerLoginId();
+        String projectName = parser.getProjectName();
+
+        Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
+
+        if (project == null) {
+            if (UserApp.currentUser() == User.anonymous){
+                flash("failed", Messages.get("error.auth.unauthorized.waringMessage"));
+                return AccessLogger.log(context.request(),
+                        forbidden(ErrorViews.Forbidden.render("error.forbidden.or.notfound", context.request().path())), null);
+            }
+            return AccessLogger.log(context.request(),
+                    forbidden(ErrorViews.NotFound.render("error.forbidden.or.notfound")), null);
+        }
+
         return this.delegate.call(context);
     }
 }

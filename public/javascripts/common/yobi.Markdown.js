@@ -45,8 +45,8 @@ yobi.Markdown = (function(htOptions){
             "langPrefix": '',
             "breaks"    : htVar.bBreaks,
             "hook"      : _markedHooks,
-            "highlight" : function(sCode, sLang){
-                return (!sLang) ? sCode : hljs(sCode, sLang).value;
+            "highlight" : function(sCode, sLang) {
+                return (sLang) ? hljs.highlight(sLang, sCode).value : sCode;
             }
         };
     }
@@ -201,6 +201,16 @@ yobi.Markdown = (function(htOptions){
 
         welPreviewSwitch.change(fOnChangeSwitch);
         welTextareaBox.before(welPreview);
+
+        welTextarea.on("keydown.tabkey-event-handler", function(e) {
+            if(e.keyCode === 9){ //tab
+                e.preventDefault();
+                var start = this.selectionStart;
+                var end = this.selectionEnd;
+                this.value = this.value.substring(0, start) + "\t" + this.value.substring(end);
+                this.selectionEnd = start + 1;
+            }
+        });
     }
 
     /**
