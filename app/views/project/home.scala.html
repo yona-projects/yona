@@ -53,17 +53,17 @@
                             }
                         </a>
                     </li>
-    	            }
+                    }
 
                     <li class="@isActiveTab("dashboard")">
                         <a href="@buildQueryString(routes.ProjectApp.project(project.owner, project.name), Map("tabId"->"dashboard"))">
                             @Messages("project.dashboard")
                         </a>
                     </li>
-    	        </ul>
+                </ul>
 
-    	        <div class="tab-content">
-    	            <div class="tab-pane active">
+                <div class="tab-content">
+                    <div class="tab-pane active">
                     @tabId match {
                       case "readme" => {
                         @partial_readme(project)
@@ -75,8 +75,8 @@
                         @partial_dashboard(project)
                       }
                     }
-    	            </div>
-    	        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="span3">
@@ -99,72 +99,72 @@
                         }
                     }
 
-    		        <div class="inner project-info">
-    		            <header>
-    		                <h3>@Messages("project.info")</h3>
-    		                @if(isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)){
-    		                <button type="button" class="ybtn ybtn-minimum" data-toggle="button" id="label-editor-toggle"><i class="yobicon-edit"></i> @Messages("button.edit")</button>
-    		                }
-    		            </header>
-    		            <ul class="infos" id="label-board">
-    		                <!-- labels are added here by yobi.project.Home.js -->
-    		            </ul>
+                    <div class="inner project-info">
+                        <header>
+                            <h3>@Messages("project.info")</h3>
+                            @if(isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)){
+                            <button type="button" class="ybtn ybtn-minimum" data-toggle="button" id="label-editor-toggle"><i class="yobicon-edit"></i> @Messages("button.edit")</button>
+                            }
+                        </header>
+                        <ul class="infos" id="label-board">
+                            <!-- labels are added here by yobi.project.Home.js -->
+                        </ul>
 
-    		            <script id="label-delete-button-template" type="text/x-jquery-tmpl">
-                    <a href="javascript:void(0)">&times;</a>
-                </script>
+                        <script id="label-delete-button-template" type="text/x-jquery-tmpl">
+                            <a href="javascript:void(0)">&times;</a>
+                        </script>
 
-    		            <script id="label-template" type="text/x-jquery-tmpl">
-                    <span class="label">${name}</span>
-                </script>
+                        <script id="label-template" type="text/x-jquery-tmpl">
+                            <span class="label">${name}</span>
+                        </script>
 
-    		            <script id="category-template" type="text/x-jquery-tmpl">
-                    <li class="info" data-category="${category}">
-                        <strong>${category} : </strong>
-                        <span class="label-list"></span>
-                    </li>
-                </script>
+                        <script id="category-template" type="text/x-jquery-tmpl">
+                            <li class="info" data-category="${category}">
+                                <strong>${category} : </strong>
+                                <span class="label-list"></span>
+                            </li>
+                        </script>
 
-    		            <script id="plus-button-template" type="text/x-jquery-tmpl">
-                    <button class="ybtn ybtn-minimum">
-                        <i class="yobicon-plus"></i>
-                    </button>
-                </script>
+                        <script id="plus-button-template" type="text/x-jquery-tmpl">
+                            <button class="ybtn ybtn-minimum">
+                                <i class="yobicon-plus"></i>
+                            </button>
+                        </script>
 
-    		            <script id="label-input-template" type="text/x-jquery-tmpl">
-                    <input type="text" autocomplete="off" class="text" style="margin-bottom: 0px;">
-                </script>
+                        <script id="label-input-template" type="text/x-jquery-tmpl">
+                            <input type="text" autocomplete="off" class="text" style="margin-bottom: 0px;">
+                        </script>
 
-    		            <script id="label-submit-template" type="text/x-jquery-tmpl">
-                    <button type="button" class="ybtn ybtn-mini">@Messages("button.add")</button>
-                </script>
-    		        </div>
-    		        <div class="inner member-info">
-    		            <header>
-    		                <h3>@Messages("project.members")</h3>
-    		                @if(isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)){
-    		                <a href="@routes.ProjectApp.members(project.owner, project.name)" class="ybtn ybtn-minimum" id="member-add-link"><i class="yobicon-addfriend"></i> @Messages("button.add")</a>
-    		                }
-    		                @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.LEAVE)){
-    		                <button type="button" class="ybtn ybtn-minimum ybtn-danger pull-right" id="projectLeaveBtn" data-href="@routes.ProjectApp.deleteMember(project.owner, project.name, UserApp.currentUser().id)">@Messages("project.member.leave")</button>
-    		                }
-    		            </header>
-    		            <div class="member-wrap">
-    		                <ul class="project-members">
-    		                    @for(member <- User.findUsersByProject(project.id)){
-    		                    <li class="member">
-    		                        <a href="@routes.UserApp.userInfo(member.loginId)" class="avatar-wrap img-rounded pull-left small">
-    		                            <img src="@member.avatarUrl" alt="@member.loginId" width="24" height="24">
-    		                        </a>
-    		                        <a href="@routes.UserApp.userInfo(member.loginId)" class="name">
-    		                            <strong>@member.name (@member.loginId)</strong>
-    		                        </a>
-    		                    </li>
-    		                    }
-    		                </ul>
-    		            </div>
-    		        </div>
-    		    </div>
+                        <script id="label-submit-template" type="text/x-jquery-tmpl">
+                            <button type="button" class="ybtn ybtn-mini">@Messages("button.add")</button>
+                        </script>
+                    </div>
+                    <div class="inner member-info">
+                        <header>
+                            <h3>@Messages("project.members")</h3>
+                            @if(isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)){
+                            <a href="@routes.ProjectApp.members(project.owner, project.name)" class="ybtn ybtn-minimum" id="member-add-link"><i class="yobicon-addfriend"></i> @Messages("button.add")</a>
+                            }
+                            @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.LEAVE)){
+                            <button type="button" class="ybtn ybtn-minimum ybtn-danger pull-right" id="projectLeaveBtn" data-href="@routes.ProjectApp.deleteMember(project.owner, project.name, UserApp.currentUser().id)">@Messages("project.member.leave")</button>
+                            }
+                        </header>
+                        <div class="member-wrap">
+                            <ul class="project-members">
+                                @for(member <- User.findUsersByProject(project.id)){
+                                <li class="member">
+                                    <a href="@routes.UserApp.userInfo(member.loginId)" class="avatar-wrap img-rounded pull-left small">
+                                        <img src="@member.avatarUrl" alt="@member.loginId" width="24" height="24">
+                                    </a>
+                                    <a href="@routes.UserApp.userInfo(member.loginId)" class="name">
+                                        <strong>@member.name (@member.loginId)</strong>
+                                    </a>
+                                </li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         @** Confirm to leave the project **@
@@ -185,7 +185,7 @@
 </div>
 <script type="text/javascript">
 $(document).ready(function(){
-	$yobi.loadModule("project.Home", {
+    $yobi.loadModule("project.Home", {
         "sURLProjectLabels": "@routes.ProjectApp.labels(project.owner, project.name)",
         "sURLLabels"       : "@routes.LabelApp.labels()",
         "sURLLabelCategories": "@routes.LabelApp.categories()",
