@@ -83,12 +83,12 @@ SELECT
     created_date,
     'non_ranged',
     commit_a,
-    project_id,
+    pull_request.to_project_id,
     pull_request_id,
     'OPEN',
-    id
-FROM pull_request_comment
-WHERE line IS null;
+    pull_request_comment.id
+FROM pull_request_comment, pull_request
+WHERE line IS null AND pull_request.id = pull_request_id AND pull_request.to_project_id IS NOT null;
 
 INSERT INTO review_comment (
     id,
