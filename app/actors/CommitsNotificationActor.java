@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * 새로운 커밋 알림을 생성한다.
+ * Creates new commit notifications.
  *
  * @author Keesun Baik
  */

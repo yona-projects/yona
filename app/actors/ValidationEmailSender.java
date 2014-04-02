@@ -30,8 +30,7 @@ import play.i18n.Messages;
 import utils.Config;
 
 /**
- * 보조 이메일을 확인하는 이메일을 발송하는 Actor.
- *
+ * This actor validates whether the additional emails are valid or not.
  */
 public class ValidationEmailSender extends UntypedActor {
 
