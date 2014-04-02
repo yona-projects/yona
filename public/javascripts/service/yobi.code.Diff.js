@@ -100,6 +100,46 @@
             htElement.waBtnToggleReviewWrap.on("click", function(){
                 htElement.welContainer.toggleClass("diffs-only");
             });
+
+            // 리뷰카드 링크 클릭시
+            htElement.welReviewWrap.on("click", "a.review-card", _onClickReviewCardLink);
+        }
+
+        /**
+         * 리뷰카드 링크 클릭시 이벤트 핸들러
+         *
+         * 기본적으로 리뷰카드는 링크이기 때문에 달리 대응할 필요가 없지만
+         * 접어놓은 스레드인 경우 알아보기 힘들어서 그에 맞는 조치를 위한 핸들러 함수이다
+         *
+         * @param weEvt
+         * @returns {boolean}
+         * @private
+         */
+        function _onClickReviewCardLink(weEvt){
+            var welTarget = $(weEvt.currentTarget);
+
+            // 클릭한 링크의 href 속성에서 # 해시 이후의 값을 이용해
+            // 해당하는 스레드를 찾는다
+            var sLink = welTarget.attr("href");
+            var sHash = sLink.split("#").pop();
+            var welThread = $("#" + sHash);
+
+            // 링크에 맞는 스레드가 페이지 내에 존재하는 경우에만
+            if(welThread.length === 0) {
+                return;
+            }
+
+            window.scrollTo(0, welThread.offset().top - 50);
+
+            // 스레드가 접혀있는 경우
+            if(welThread.hasClass("fold")) {
+                welThread.find(".btn-thread-here").effect("bounce", {"easing": "easeOutBounce"});
+            } else { // 펼쳐져 있는 경우
+                welThread.effect("highlight");
+            }
+
+            weEvt.preventDefault();
+            return false;
         }
 
         /**
