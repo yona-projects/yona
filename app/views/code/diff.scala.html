@@ -1,5 +1,5 @@
 @(project: Project, commit:playRepository.Commit,
-parentCommit:playRepository.Commit, threads:List[CodeCommentThread], selectedBranch:String, diff:
+parentCommit:playRepository.Commit, threads:List[CommentThread], selectedBranch:String, diff:
 List[playRepository.FileDiff],path:String)
 
 @import playRepository.RepositoryService
@@ -88,16 +88,22 @@ List[playRepository.FileDiff],path:String)
                     </div>
 
                     <div class="diff-body">
-                        @views.html.partial_diff(diff, threads, project, project)
+                        @views.html.partial_diff(diff, threads flatMap {
+                            case (t: CodeCommentThread) => Some(t)
+                            case _ => None
+                        }, project, project)
                         <div class="btnPop"><button type="button" class="ybtn ybtn-info ybtn-mini"><i class="yobicon-comments"></i></button></div>
                     </div>
 
                     <div class="board-comment-wrap">
                         <div class="non-ranged-threads-wrap">
-                        @defining(threads.filter(v => v.codeRange == null)) { threads =>
-                        @for(thread: CodeCommentThread <- threads) {
-                            @partial_nonrange_codecomment_thread(thread)
-                        }
+                        @for(thread: CommentThread <- threads.sortBy(_.createdDate)) {
+                            @thread match {
+                                case (thread: NonRangedCodeCommentThread) => {
+                                    @partial_nonrange_codecomment_thread(thread)
+                                }
+                                case _ => { }
+                            }
                         }
                         </div>
 
