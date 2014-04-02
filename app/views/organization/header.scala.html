@@ -3,17 +3,17 @@
 @import utils.TemplateHelper._
 @import utils.JodaDateUtil
 
-<div class="project-header-outer" style="background-image:url()">
+<div class="project-header-outer" style="background-image:url('@urlToOrganizationLogo(org)')">
     <div class="project-header-inner">
         <div class="project-header-wrap">
             <div class="project-header-avatar">
-                <img src="" />
+                <img src="@urlToOrganizationLogo(org)" />
             </div>
             <div class="project-breadcrumb-wrap">
                 <div class="project-breadcrumb">
-                    <span class="project-author"><a href="">@org.name</a></span>
+                    <span class="project-author"><a href="@routes.OrganizationApp.organization(org.name)">@org.name</a></span>
                 </div>
-            </div>                        
-        </div>    
+            </div>
+        </div>
     </div>
 </div>

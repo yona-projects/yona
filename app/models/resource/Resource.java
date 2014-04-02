@@ -54,6 +54,9 @@ public abstract class Resource {
             case PULL_REQUEST_COMMENT:
                 finder = PullRequestComment.find;
                 break;
+            case ORGANIZATION:
+                finder = Organization.find;
+                break;
             case COMMIT:
                 try {
                     String[] pair = id.split(":");
@@ -124,6 +127,9 @@ public abstract class Resource {
                 return PullRequestComment.find.byId(longId).asResource();
             case USER_AVATAR:
                 return User.find.byId(longId).avatarAsResource();
+            case ORGANIZATION:
+                resource = Organization.find.byId(longId).asResource();
+                break;
             default:
                 throw new IllegalArgumentException(getInvalidResourceTypeMessage(resourceType));
         }

@@ -19,6 +19,7 @@ import views.html.partial_diff_line
 import views.html.git.partial_pull_request_comment
 import views.html.git.partial_pull_request_event
 import views.html.git.partial_commit_comment
+import models.Organization
 import models.PullRequestComment
 import models.CommitComment
 import models.PullRequestEvent
@@ -162,6 +163,13 @@ object TemplateHelper {
 
   def urlToProjectLogo(project: Project) = {
     models.Attachment.findByContainer(project.asResource) match {
+      case files if files.size > 0 => routes.AttachmentApp.getFile(files.head.id)
+      case _ => routes.Assets.at("images/bg-default-project.jpg")
+    }
+  }
+
+  def urlToOrganizationLogo(organization: Organization) = {
+    models.Attachment.findByContainer(organization.asResource) match {
       case files if files.size > 0 => routes.AttachmentApp.getFile(files.head.id)
       case _ => routes.Assets.at("images/bg-default-project.jpg")
     }

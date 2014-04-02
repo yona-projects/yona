@@ -26,6 +26,8 @@ POST           /import                                                          
 GET            /organizations/new                                                     controllers.OrganizationApp.newForm()
 POST           /organizations/new                                                     controllers.OrganizationApp.newOrganization()
 GET            /organizations/:name                                                   controllers.OrganizationApp.organization(name: String)
+POST           /organizations/:organizationName/setting                               controllers.OrganizationApp.updateOrganizationInfo(organizationName: String)
+GET            /organizations/:organizationName/settingform                               controllers.OrganizationApp.settingForm(organizationName: String)
 GET            /organizations/:organizationName/members                               controllers.OrganizationApp.members(organizationName: String)
 POST           /organizations/:organizationName/members                               controllers.OrganizationApp.addMember(organizationName: String)
 POST           /organizations/:organizationName/member/:userId/edit                   controllers.OrganizationApp.editMember(organizationName: String, userId: Long)

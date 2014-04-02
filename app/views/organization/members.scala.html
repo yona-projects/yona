@@ -7,14 +7,13 @@
 }
 
 @siteLayout(organization.name, utils.MenuType.NONE) {
+@header(organization)
+@menu(organization)
+
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
-        <div class="site-breadcrumb-outer">
-            <div class="site-breadcrumb-inner">
-                <h3>@organization.name <small>@organization.descr</small></h3>
-            </div>
-        </div>
-
+        @partial_settingmenu(organization)
+        
         <div class="inner-bubble">
             <form class="nm" action="@routes.OrganizationApp.addMember(organization.name)" method="post" id="addNewMember">
                 <input type="text" class="text uname" id="loginId" name="loginId"

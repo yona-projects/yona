@@ -328,9 +328,10 @@ $yobi = yobi.Common = (function(){
      * @returns {Boolean|Null}
      */
     function isImageFile(vFile){
-        // if vFile is File Object
-        if(typeof window.File !== "undefined" && vFile instanceof window.File){
-            return (vFile.type.indexOf("image/") !== 0);
+        // if vFile is File or Blob Object
+        if((typeof window.File !== "undefined" && vFile instanceof window.File) ||
+            (typeof window.Blob !== "undefined" && vFile instanceof window.Blob)){
+            return (vFile.type.toLowerCase().indexOf("image/") === 0);
         }
 
         // if vFile is HTMLElement
