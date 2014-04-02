@@ -928,4 +928,8 @@ public class Project extends Model implements LabelOwner {
         return Watch.countBy(resource.getType(), resource.getId());
     }
 
+    public boolean hasGroup() {
+        return this.organization != null;
+    }
+
 }

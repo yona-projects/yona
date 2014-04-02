@@ -1817,12 +1817,13 @@ public class GitRepository implements PlayRepository {
         return revWalk.parseCommit(objectId);
     }
 
-    public boolean move(String fromUserLoginId, String fromProjectName, String toUserLoginId, String toProjectName) {
+    public boolean move(String srcProjectOwner, String srcProjectName, String desrProjectOwner, String destProjectName) {
         repository.close();
         WindowCacheConfig config = new WindowCacheConfig();
         config.install();
-        File src = new File(getGitDirectory(fromUserLoginId, fromProjectName));
-        File dest = new File(getGitDirectory(toUserLoginId, toProjectName));
+        File src = new File(getGitDirectory(srcProjectOwner, srcProjectName));
+        File dest = new File(getGitDirectory(desrProjectOwner, destProjectName));
+
         src.setWritable(true);
 
         try {

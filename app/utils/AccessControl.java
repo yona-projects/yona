@@ -1,11 +1,7 @@
 package utils;
 
 import controllers.UserApp;
-import models.Project;
-import models.ProjectTransfer;
-import models.ProjectUser;
-import models.User;
-import models.OrganizationUser;
+import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import models.resource.GlobalResource;
@@ -132,7 +128,17 @@ public class AccessControl {
         case USER_AVATAR:
             return user.id.toString().equals(resource.getId());
         case PROJECT:
-            return ProjectUser.isManager(user.id, Long.valueOf(resource.getId()));
+            // allow to managers of the project.
+            boolean isManager = ProjectUser.isManager(user.id, Long.valueOf(resource.getId()));
+            if(isManager) {
+                return true;
+            }
+            // allow to admins of the group of the project.
+            Project project = Project.find.byId(Long.valueOf(resource.getId()));
+            if(project.hasGroup()) {
+                return OrganizationUser.isAdmin(project.organization.id, user.id);
+            }
+            return false;
         case ORGANIZATION:
             return OrganizationUser.isAdmin(Long.valueOf(resource.getId()), user.id);
         case PULL_REQUEST_COMMENT:
@@ -156,6 +162,11 @@ public class AccessControl {
      * @return
      */
     private static boolean isProjectResourceAllowed(User user, Project project, Resource resource, Operation operation) {
+        Organization org = project.organization;
+        if(org != null && OrganizationUser.isAdmin(org.id, user.id)) {
+            return true;
+        }
+
         if (ProjectUser.isManager(user.id, project.id)) {
             return true;
         }
@@ -165,7 +176,13 @@ public class AccessControl {
             switch (operation) {
                 case ACCEPT:
                     ProjectTransfer pt = ProjectTransfer.find.byId(Long.parseLong(resource.getId()));
-                    return user.loginId.equals(pt.to.loginId);
+                    User to = User.findByLoginId(pt.destination);
+                    if(!to.isAnonymous()) {
+                        return user.loginId.equals(pt.destination);
+                    } else {
+                        Organization receivingOrg = Organization.findByName(pt.destination);
+                        return receivingOrg != null && OrganizationUser.isAdmin(receivingOrg.id, user.id);
+                    }
             }
         }
 

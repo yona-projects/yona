@@ -51,11 +51,16 @@ public class ProjectTransfer extends Model implements ResourceConvertible {
     @Id
     public Long id;
 
+    // who requested this transfer.
     @ManyToOne
-    public User from;
+    public User sender;
 
-    @ManyToOne
-    public User to;
+    /**
+     * Destination can be either an user or an organization.
+     * If you want to transfer to an user, then destination have to be set with the user's loginId.
+     * If you want to transfer to an organization, then destination have to be set with the organization's name.
+     */
+    public String destination;
 
     @ManyToOne
     public Project project;
@@ -69,11 +74,11 @@ public class ProjectTransfer extends Model implements ResourceConvertible {
 
     public String newProjectName;
 
-    public static ProjectTransfer requestNewTransfer(Project project, User from, User to) {
+    public static ProjectTransfer requestNewTransfer(Project project, User sender, String destination) {
         ProjectTransfer pt = find.where()
                 .eq("project", project)
-                .eq("from", from)
-                .eq("to", to)
+                .eq("sender", sender)
+                .eq("destination", destination)
                 .findUnique();
 
         if(pt != null) {
@@ -83,11 +88,11 @@ public class ProjectTransfer extends Model implements ResourceConvertible {
         } else {
             pt = new ProjectTransfer();
             pt.project = project;
-            pt.from = from;
-            pt.to = to;
+            pt.sender = sender;
+            pt.destination = destination;
             pt.requested = new Date();
             pt.confirmKey = RandomStringUtils.randomAlphanumeric(50);
-            pt.newProjectName = Project.newProjectName(to.loginId, project.name);
+            pt.newProjectName = Project.newProjectName(destination, project.name);
             pt.save();
         }
 
@@ -114,11 +119,11 @@ public class ProjectTransfer extends Model implements ResourceConvertible {
                 .findUnique();
     }
 
-    public static void deleteExisting(Project project, User from, User to) {
+    public static void deleteExisting(Project project, User sender, String destination) {
         ProjectTransfer pt = find.where()
                 .eq("project", project)
-                .eq("from", from)
-                .eq("to", to)
+                .eq("sender", sender)
+                .eq("destination", destination)
                 .findUnique();
 
         if(pt != null) {
