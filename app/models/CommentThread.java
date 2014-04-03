@@ -195,7 +195,7 @@ public class CommentThread extends Model implements ResourceConvertible {
         List<CommentThread> threads = find.where()
                 .eq("commitId", commitId)
                 .eq("project.id", project.id)
-                .eq("pullrequest.id", null)
+                .eq("pullRequest.id", null)
                 .order().desc("createdDate")
                 .findList();
 
