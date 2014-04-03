@@ -129,9 +129,13 @@
                                     <span class="date">
                                         @agoString(JodaDateUtil.ago(thread.createdDate))
                                     </span>
-                                    <span>
-                                        <i class="yobicon-comment"></i> @defining(thread.reviewComments.size()-1) { numberOfComments => @numberOfComments }
+                                    @defining(thread.reviewComments.size()-1) { numberOfComments =>
+                                    @if(numberOfComments > 0) {
+                                    <span class="comments">
+                                        <i class="yobicon-comments"></i> @numberOfComments
                                     </span>
+                                    }
+                                    }
                                 </div>
                             </div>
                         </li>
