@@ -460,6 +460,7 @@ project.owner.invalidate = Owner information is not valid.
 project.private = PRIVATE
 project.private.notice = Basic information (name, description, etc.) is exposed to all users, even thought it is a private project.
 project.projects = projects
+project.protected = GROUP PUBLIC
 project.public = PUBLIC
 project.recently.visited = Recently visited
 project.readme = You can see README.md here if you add it into the code repository''s root directory.

@@ -1,8 +1,5 @@
 package utils;
 
-import models.Project;
-import models.ProjectUser;
-import models.User;
 import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
@@ -36,41 +33,34 @@ public class AccessControl {
      * @return true if the user has the permission
      */
     public static boolean isProjectResourceCreatable(User user, Project project, ResourceType resourceType) {
-        if (user == null) return false;
-        if (user.isSiteManager()) {
+        // Anonymous user cannot create anything.
+        if (user == null || user.isAnonymous()) {
+            return false;
+        }
+
+        // Site manager, Group admin, Project members can create anything.
+        if (user.isSiteManager()
+            || OrganizationUser.isAdmin(project.organization, user)
+            || ProjectUser.isMember(user.id, project.id)) {
             return true;
         }
 
-        // project가 조직에 속하고 사용자가 Admin 이면 true
-        /*if (project.organization != null && project.organization.isAdmin(user)) {
+        // If the project is not public, nonmembers cannot create anything.
+        if (!project.isPublic()) {
+            return false;
+        }
+
+        // If the project is public, login users can create issues and posts.
+        switch (resourceType) {
+        case ISSUE_POST:
+        case BOARD_POST:
+        case ISSUE_COMMENT:
+        case NONISSUE_COMMENT:
+        case FORK:
+        case COMMIT_COMMENT:
+        case REVIEW_COMMENT:
             return true;
-        }*/
-
-        if (ProjectUser.isMember(user.id, project.id)) {
-            // Project members can create anything.
-            return true;
-        } else {
-            // If the project is private, nonmembers cannot create anything.
-            if (!project.isPublic) {
-                return false;
-            }
-
-            // If the project is public, login users can create issues and posts.
-            if (!user.isAnonymous()) {
-                switch(resourceType){
-                case ISSUE_POST:
-                case BOARD_POST:
-                case ISSUE_COMMENT:
-                case NONISSUE_COMMENT:
-                case FORK:
-                case COMMIT_COMMENT:
-                case REVIEW_COMMENT:
-                    return true;
-                default:
-                    return false;
-                }
-            }
-
+        default:
             return false;
         }
     }
@@ -114,7 +104,18 @@ public class AccessControl {
         if (operation == Operation.READ) {
             if (resource.getType() == ResourceType.PROJECT) {
                 Project project = Project.find.byId(Long.valueOf(resource.getId()));
-                return project != null && (project.isPublic || ProjectUser.isMember(user.id, project.id));
+                if (project == null) {
+                    return false;
+                }
+                if (project.isPublic()
+                    || ProjectUser.isMember(user.id, project.id)
+                    || OrganizationUser.isAdmin(project.organization, user)) {
+                    return true;
+                }
+                if (project.isProtected()) {
+                    return OrganizationUser.isMember(project.organization, user);
+                }
+                return false;
             }
 
             // anyone can read any resource which is not a project.
@@ -124,7 +125,20 @@ public class AccessControl {
         if (operation == Operation.WATCH) {
             if (resource.getType() == ResourceType.PROJECT) {
                 Project project = Project.find.byId(Long.valueOf(resource.getId()));
-                return project != null && project.isPublic ? !user.isAnonymous() : ProjectUser.isMember(user.id, project.id);
+                if (project == null) {
+                    return false;
+                }
+                if (project.isPublic()) {
+                    return !user.isAnonymous();
+                }
+                if (ProjectUser.isMember(user.id, project.id)
+                    || OrganizationUser.isAdmin(project.organization, user)) {
+                    return true;
+                }
+                if (project.isProtected()) {
+                    return OrganizationUser.isMember(project.organization, user);
+                }
+                return false;
             }
         }
 
@@ -141,17 +155,15 @@ public class AccessControl {
         case USER_AVATAR:
             return user.id.toString().equals(resource.getId());
         case PROJECT:
-            // allow to managers of the project.
-            boolean isManager = ProjectUser.isManager(user.id, Long.valueOf(resource.getId()));
-            if(isManager) {
+            if(ProjectUser.isManager(user.id, Long.valueOf(resource.getId()))) {
                 return true;
             }
             // allow to admins of the group of the project.
             Project project = Project.find.byId(Long.valueOf(resource.getId()));
-            if(project.hasGroup()) {
-                return OrganizationUser.isAdmin(project.organization.id, user.id);
+            if (project == null) {
+                return false;
             }
-            return false;
+            return OrganizationUser.isAdmin(project.organization, user);
         case ORGANIZATION:
             return OrganizationUser.isAdmin(Long.valueOf(resource.getId()), user.id);
         default:
@@ -173,8 +185,7 @@ public class AccessControl {
      * @return true if the user has the permission
      */
     private static boolean isProjectResourceAllowed(User user, Project project, Resource resource, Operation operation) {
-        Organization org = project.organization;
-        if(org != null && OrganizationUser.isAdmin(org.id, user.id)) {
+        if (OrganizationUser.isAdmin(project.organization, user)) {
             return true;
         }
 
@@ -196,6 +207,8 @@ public class AccessControl {
                         Organization receivingOrg = Organization.findByName(pt.destination);
                         return receivingOrg != null && OrganizationUser.isAdmin(receivingOrg.id, user.id);
                     }
+                default:
+                    return false;
             }
         }
 
@@ -214,8 +227,9 @@ public class AccessControl {
                 }
         }
 
-        // Access Control for members, nonmembers and anonymous.
+        // Access Control for members, group members, nonmembers and anonymous.
         // - Anyone can read public project's resource.
+        // - Group members can read protected projects' resource.
         // - Members can update anything and delete anything except code repository.
         // - Nonmember can update or delete a resource if only
         //     * the resource is not a code repository,
@@ -223,7 +237,16 @@ public class AccessControl {
         // See docs/technical/access-control.md for more information.
         switch(operation) {
         case READ:
-            return project.isPublic || ProjectUser.isMember(user.id, project.id);
+            if (project.isPublic()) {
+                return true;
+            }
+            if (ProjectUser.isMember(user.id, project.id)) {
+                return true;
+            }
+            if (project.isProtected()) {
+                return OrganizationUser.isMember(project.organization, user);
+            }
+            return false;
         case UPDATE:
             if (ProjectUser.isMember(user.id, project.id)) {
                 return true;
@@ -241,11 +264,16 @@ public class AccessControl {
         case REOPEN:
             return ProjectUser.isMember(user.id, project.id);
         case WATCH:
-            if (project.isPublic) {
+            if (project.isPublic()) {
                 return !user.isAnonymous();
-            } else {
-                return ProjectUser.isMember(user.id, project.id);
             }
+            if (ProjectUser.isMember(user.id, project.id)) {
+                return true;
+            }
+            if (project.isProtected()) {
+                return OrganizationUser.isMember(project.organization, user);
+            }
+            return false;
         default:
             // undefined
             return false;

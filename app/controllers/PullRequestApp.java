@@ -27,6 +27,7 @@ import com.avaje.ebean.Page;
 import controllers.annotation.*;
 import models.*;
 import models.enumeration.Operation;
+import models.enumeration.ProjectScope;
 import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
 import models.enumeration.State;
@@ -126,7 +127,7 @@ public class PullRequestApp extends Controller {
         Project forkProject = Project.copy(originalProject, currentUser);
         Project projectFromForm = forkProjectForm.get();
         forkProject.name = projectFromForm.name;
-        forkProject.isPublic = projectFromForm.isPublic;
+        forkProject.projectScope = projectFromForm.projectScope;
         originalProject.addFork(forkProject);
 
         return ok(clone.render("fork", forkProject));
@@ -139,12 +140,12 @@ public class PullRequestApp extends Controller {
      * @param userName
      * @param projectName
      * @param name
-     * @param isPublic
+     * @param scope
      * @return
      */
     @Transactional
     @IsCreatable(ResourceType.FORK)
-    public static Result doClone(String userName, String projectName, String name, Boolean isPublic) {
+    public static Result doClone(String userName, String projectName, String name, String scope) {
         String status = "status";
         String failed = "failed";
         String url = "url";
@@ -170,8 +171,9 @@ public class PullRequestApp extends Controller {
         if(name != null && !name.isEmpty()) {
             forkProject.name = name;
         }
-        if(isPublic != null) {
-            forkProject.isPublic = isPublic;
+        ProjectScope projectScope = ProjectScope.valueOf(scope);
+        if (projectScope != null) {
+            forkProject.projectScope = projectScope;
         }
 
         originalProject.addFork(forkProject);

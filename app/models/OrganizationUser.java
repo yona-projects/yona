@@ -42,12 +42,31 @@ public class OrganizationUser extends Model {
                     .eq("user.id", userId)
                     .findList();
     }
+
+    public static boolean isAdmin(Organization organization, User user) {
+        return contains(organization, user, RoleType.ORG_ADMIN);
+    }
+
     public static boolean isAdmin(Long organizationId, Long userId) {
         return contains(organizationId, userId, RoleType.ORG_ADMIN);
     }
 
+    public static boolean isMember(Organization organization, User user) {
+        return contains(organization, user, RoleType.ORG_MEMBER);
+    }
+
     public static boolean isMember(Long organizationId, Long userId) {
         return contains(organizationId, userId, RoleType.ORG_MEMBER);
+    }
+
+    private static boolean contains(Organization organization, User user, RoleType roleType) {
+        if (organization == null) {
+            return false;
+        }
+        if (user == null || user.isAnonymous()) {
+            return false;
+        }
+        return contains(organization.id, user.id, roleType);
     }
 
     private static boolean contains(Long organizationId, Long userId, RoleType roleType) {

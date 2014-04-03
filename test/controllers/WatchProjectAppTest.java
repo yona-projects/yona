@@ -9,6 +9,8 @@ import models.User;
 import models.UserProjectNotification;
 import models.Watch;
 import models.enumeration.EventType;
+import models.enumeration.ProjectScope;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -203,7 +205,7 @@ public class WatchProjectAppTest {
         String eventTypeValue = "NEW_ISSUE";
 
         Project project = Project.find.byId(projectId);
-        assertThat(project.isPublic).isFalse();
+        assertThat(project.projectScope).isEqualTo(ProjectScope.PRIVATE);
 
         FakeRequest request = fakeRequest("POST", "/noti/toggle/" + projectId + "/" + eventTypeValue)
                 .withSession(UserApp.SESSION_USERID, String.valueOf(userId));

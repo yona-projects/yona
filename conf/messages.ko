@@ -462,6 +462,7 @@ project.owner.invalidate = 소유자 정보가 유효하지 않습니다
 project.private = 비공개
 project.private.notice = 비공개 프로젝트도 프로젝트 이름,설명,로고 등은 모든 사용자가 볼 수 있습니다
 project.projects = 프로젝트
+project.protected = 그룹 공개
 project.public = 공개
 project.readme = 프로젝트에 대한 설명을 README.md 파일로 작성해서 코드저장소 루트 디렉토리에 추가하면 이 곳에 나타납니다.
 project.recently.visited = 최근 방문한 프로젝트

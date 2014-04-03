@@ -26,6 +26,7 @@ import org.junit.Before;
 import utils.JodaDateUtil;
 import utils.AccessControl;
 import models.enumeration.Operation;
+import models.enumeration.ProjectScope;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,7 +67,7 @@ public class CommentThreadTest extends ModelTest<CommentThread>  {
         assertThat(ProjectUser.isManager(member.id, project.id)).describedAs("member is not a manager").isFalse();
         assertThat(ProjectUser.isMember(member.id, project.id)).describedAs("member is a member").isTrue();
         assertThat(ProjectUser.isMember(author.id, project.id)).describedAs("author is not a member").isFalse();
-        assertThat(project.isPublic).isTrue();
+        assertThat(project.projectScope).isEqualTo(ProjectScope.PUBLIC);
     }
 
     @Test

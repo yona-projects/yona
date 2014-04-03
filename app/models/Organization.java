@@ -20,7 +20,6 @@
  */
 package models;
 
-import models.enumeration.ProjectScope;
 import models.enumeration.ResourceType;
 import models.resource.GlobalResource;
 import models.resource.Resource;
@@ -78,16 +77,16 @@ public class Organization extends Model {
             result.addAll(this.projects);
         } else if(OrganizationUser.isMember(this.id, user.id)) {
             // private 프로젝트를 제외한 모든 프로젝트와 자신이 멤버로 속한 프로젝트
-            for(Project p : this.projects) {
-                if(p.projectScope != ProjectScope.PRIVATE || ProjectUser.isMember(user.id, p.id)) {
-                    result.add(p);
+            for(Project project : this.projects) {
+                if(!project.isPrivate() || ProjectUser.isMember(user.id, project.id)) {
+                    result.add(project);
                 }
             }
         } else {
             // public 프로젝트와 자신이 멤버로 속한 프로젝트
-            for(Project p : this.projects) {
-                if(p.projectScope == ProjectScope.PUBLIC || ProjectUser.isMember(user.id, p.id)) {
-                    result.add(p);
+            for(Project project : this.projects) {
+                if(project.isPublic() || ProjectUser.isMember(user.id, project.id)) {
+                    result.add(project);
                 }
             }
         }

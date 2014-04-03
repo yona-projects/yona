@@ -9,7 +9,7 @@
         <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> /
         }
         <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">
-            <strong>@project.name @if(!project.isPublic){ <i class="yobicon-lock yobicon-small"></i> }</strong>
+            <strong>@project.name @if(project.isPrivate){ <i class="yobicon-lock yobicon-small"></i> }</strong>
         </a>
     </li>
 }
@@ -23,7 +23,7 @@
         <a href="@routes.UserApp.userInfo(pv.project.owner)">@pv.project.owner</a> /
         }
         <a href="@routes.ProjectApp.project(pv.project.owner, pv.project.name)" class="project-name">
-            <strong>@pv.project.name @if(!pv.project.isPublic){ <i class="yobicon-lock yobicon-small"></i> }</strong>
+            <strong>@pv.project.name @if(pv.project.isPrivate){ <i class="yobicon-lock yobicon-small"></i> }</strong>
         </a>
     </li>
 }

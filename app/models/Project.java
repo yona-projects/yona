@@ -52,8 +52,6 @@ public class Project extends Model implements LabelOwner {
     public String siteurl;
     /** 프로젝트 관리자 loginId */
     public String owner;
-    /** 프로젝트 공개여부(공개면 true) */
-    public boolean isPublic;
 
     public Date createdDate;
 
@@ -832,7 +830,7 @@ public class Project extends Model implements LabelOwner {
         copyProject.overview = project.overview;
         copyProject.vcs = project.vcs;
         copyProject.owner = user.loginId;
-        copyProject.isPublic = project.isPublic;
+        copyProject.projectScope = project.projectScope;
         return copyProject;
     }
 
@@ -922,4 +920,15 @@ public class Project extends Model implements LabelOwner {
         return this.organization != null;
     }
 
+    public boolean isPublic() {
+        return projectScope == ProjectScope.PUBLIC;
+    }
+
+    public boolean isProtected() {
+        return projectScope == ProjectScope.PROTECTED;
+    }
+
+    public boolean isPrivate() {
+        return projectScope == ProjectScope.PRIVATE;
+    }
 }

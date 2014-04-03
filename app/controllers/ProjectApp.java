@@ -12,6 +12,7 @@ import info.schleichardt.play2.mailplugin.Mailer;
 import models.*;
 import models.Project.State;
 import models.enumeration.Operation;
+import models.enumeration.ProjectScope;
 import models.enumeration.RequestState;
 import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
@@ -934,7 +935,7 @@ public class ProjectApp extends Controller {
             ProjectUser.delete(userId, project.id);
 
             if (UserApp.currentUser().id == userId) {
-                if (project.isPublic) {
+                if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
                     return okWithLocation(routes.ProjectApp.project(project.owner, project.name).url());
                 } else {
                     return okWithLocation(routes.Application.index().url());
@@ -997,17 +998,12 @@ public class ProjectApp extends Controller {
             return status(Http.Status.NOT_ACCEPTABLE);
         }
 
-        State state = State.PUBLIC;
-        if (UserApp.currentUser().isSiteManager()) {
-            state = State.ALL;
-        }
-
         response().setHeader("Vary", "Accept");
 
         if (prefer.equals(JSON)) {
-            return getProjectsToJSON(query, state);
+            return getProjectsToJSON(query);
         } else {
-            return getPagingProjects(query, state, pageNum);
+            return getPagingProjects(query, pageNum);
         }
     }
 
@@ -1024,9 +1020,9 @@ public class ProjectApp extends Controller {
      * @param pageNum 페이지번호
      * @return 프로젝트명 또는 관리자 로그인 아이디가 {@code query}를 포함하고 공개여부가 @{code state} 인 프로젝트 목록
      */
-    private static Result getPagingProjects(String query, State state, int pageNum) {
+    private static Result getPagingProjects(String query, int pageNum) {
 
-        ExpressionList<Project> el = createProjectSearchExpressionList(query, state);
+        ExpressionList<Project> el = createProjectSearchExpressionList(query);
 
         Set<Long> labelIds = LabelSearchUtil.getLabelIds(request());
         if (CollectionUtils.isNotEmpty(labelIds)) {
@@ -1049,9 +1045,9 @@ public class ProjectApp extends Controller {
      * @param state state 프로젝트 상태(공개/비공개/전체)
      * @return JSON 형태의 프로젝트 목록
      */
-    private static Result getProjectsToJSON(String query, State state) {
+    private static Result getProjectsToJSON(String query) {
 
-        ExpressionList<Project> el = createProjectSearchExpressionList(query, state);
+        ExpressionList<Project> el = createProjectSearchExpressionList(query);
 
         int total = el.findRowCount();
         if (total > MAX_FETCH_PROJECTS) {
@@ -1067,7 +1063,7 @@ public class ProjectApp extends Controller {
         return ok(toJson(projectNames));
     }
 
-    private static ExpressionList<Project> createProjectSearchExpressionList(String query, State state) {
+    private static ExpressionList<Project> createProjectSearchExpressionList(String query) {
         ExpressionList<Project> el = Project.find.where();
 
         if (StringUtils.isNotBlank(query)) {
@@ -1082,10 +1078,8 @@ public class ProjectApp extends Controller {
             junction.endJunction();
         }
 
-        if (state == Project.State.PUBLIC) {
-            el.eq("isPublic", true);
-        } else if (state == Project.State.PRIVATE) {
-            el.eq("isPublic", false);
+        if (!UserApp.currentUser().isSiteManager()) {
+            el.eq("projectScope", ProjectScope.PUBLIC);
         }
 
         return el;

@@ -35,7 +35,7 @@
                                 </span>
                                     }
 
-                                    @if(!project.isPublic){ <i class="yobicon-lock yobicon-small"></i> }
+                                    @if(project.isPrivate){ <i class="yobicon-lock yobicon-small"></i> }
                                     @for(label <- project.labels) {
                                     <a class="project-label @label.category.toLowerCase()" href="@routes.ProjectApp.projects()?labelIds=@label.id">@label.name</a>
                                     }
