@@ -139,7 +139,7 @@ WHERE
 UPDATE comment_thread
 SET comment_thread.state = 'CLOSED'
 WHERE comment_thread.id IN (
-    SELECT comment_thread.id
+    SELECT t.id
     FROM comment_thread t, pull_request pr
     WHERE t.pull_request_id = pr.id AND pr.state IN (2, 3));
 
