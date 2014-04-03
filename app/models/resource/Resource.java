@@ -1,7 +1,6 @@
 package models.resource;
 
 import actions.support.PathParser;
-import controllers.routes;
 import models.*;
 import models.enumeration.ResourceType;
 import play.db.ebean.Model;

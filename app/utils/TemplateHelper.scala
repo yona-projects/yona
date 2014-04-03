@@ -5,7 +5,6 @@ import org.joda.time.DateTimeConstants
 import play.i18n.Messages
 import controllers.routes
 import controllers.UserApp
-import java.security.MessageDigest
 import views.html._
 import java.net.URI
 import playRepository.DiffLine
@@ -13,7 +12,6 @@ import playRepository.DiffLineType
 import models.CodeComment
 import models.CodeComment.Side
 import scala.collection.JavaConversions._
-import org.apache.commons.lang3.StringEscapeUtils.escapeHtml4
 import views.html.partial_diff_comment_on_line
 import views.html.partial_diff_line
 import views.html.git.partial_pull_request_comment
