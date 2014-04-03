@@ -9,7 +9,6 @@ import models.User;
 import models.enumeration.ResourceType;
 import models.resource.Resource;
 import models.support.ModelLock;
-
 import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.Tika;
@@ -39,7 +38,6 @@ import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.jgit.util.FileUtils;
 import org.eclipse.jgit.util.io.NullOutputStream;
 import org.tmatesoft.svn.core.SVNException;
-
 import play.Logger;
 import play.libs.Json;
 import utils.FileUtil;
@@ -1825,9 +1823,14 @@ public class GitRepository implements PlayRepository {
         config.install();
         File src = new File(getGitDirectory(fromUserLoginId, fromProjectName));
         File dest = new File(getGitDirectory(toUserLoginId, toProjectName));
-
         src.setWritable(true);
 
-        return src.renameTo(dest);
+        try {
+            org.apache.commons.io.FileUtils.moveDirectory(src, dest);
+            return true;
+        } catch (IOException e) {
+            play.Logger.error("Move Failed", e);
+            return false;
+        }
     }
 }
