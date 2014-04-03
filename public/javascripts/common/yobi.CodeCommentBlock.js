@@ -178,7 +178,7 @@ yobi.CodeCommentBlock = (function(){
 
     /**
      * CodeCommentBlock 에서 wrap 이벤트 발생시
-     * 사용자가 어떤 영역을 선택하면 그 근처에 댓글작 버튼을 표시
+     * 사용자가 어떤 영역을 선택하면 그 근처에 댓글작성 버튼을 표시
      *
      * @private
      */
@@ -204,7 +204,31 @@ yobi.CodeCommentBlock = (function(){
                 "top" : nTop +"px",
                 "left": nLeft+"px"
             });
+
+            _setSelectionWatcher();
         }
+    }
+
+    /**
+     * 사용자가 어떤 영역을 선택해서 welButtonOnBlock 이 표시된 이후에
+     * 계속 Selection 이 존재하는지를 확인해서 없어지면 welButtonOnBlock 을 감추고
+     * 더 이상 감시하지 않는다
+     *
+     * @private
+     */
+    function _setSelectionWatcher(){
+        if(htVar.nSelectionWatcher){
+            clearInterval(htVar.nSelectionWatcher);
+            htVar.nSelectionWatcher = null;
+        }
+
+        htVar.nSelectionWatcher = setInterval(function(){
+            if(document.getSelection().toString().length === 0){
+                htElement.welButtonOnBlock.hide();
+                clearInterval(htVar.nSelectionWatcher);
+                htVar.nSelectionWatcher = null;
+            }
+        }, 50);
     }
 
     /**
