@@ -46,7 +46,7 @@
                     @Messages("title.logout")
                 </a>
             </li>
-            @defining(UserApp.currentUser.getVisitedProjects(5)){ visitedProjects =>
+            @defining(UserApp.currentUser.getVisitedProjects(10)){ visitedProjects =>
                 <li class="title">
                     @Messages("project.recently.visited")
                     <span class="numberic">@visitedProjects.size</span>
