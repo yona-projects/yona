@@ -279,7 +279,7 @@
                 _initCodeCommentBlock();
 
                 // 줄번호 클릭으로 댓글 작성 (예전 댓글 기능)
-                $('div.diff-body[data-outdated!="true"] tr .linenum:first-child').on("click", _onClickLineNumA);
+                $('div.diff-body[data-outdated!="true"]').on("click", "tr[data-line] .linenum", _onClickLineNumA);
 
                 // 스레드에 댓글 추가 버튼
                 htElement.welDiffWrap.on("click", "button.btn-thread", _onClickBtnReplyOnThread);
