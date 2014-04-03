@@ -108,6 +108,18 @@ public class Organization extends Model {
     }
 
     /**
+     * Find organizations which contains {@code userLoginId} as member.
+     *
+     * @param userLoginId
+     * @return
+     */
+    public static List<Organization> findOrganizationsByUserLoginId(String userLoginId) {
+        return find.where().eq("users.user.loginId", userLoginId)
+                .orderBy("created DESC")
+                .findList();
+    }
+
+    /**
      * As resource.
      *
      * @return the resource

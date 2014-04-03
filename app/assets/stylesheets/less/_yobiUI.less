@@ -461,6 +461,65 @@ span.issue-label {
     }
 }
 
+.tab-box {
+    border:1px solid #ececec;
+    border-top:none;
+    .border-radius(0 0 4px 4px);
+}
+
+.tab-box-content {
+    display:none;
+
+    &.active {
+        display:block;
+    }
+}
+
+.tab-searchbox {
+    padding:5px 15px;
+}
+
+.subtab-wrap {
+    padding:5px 15px;
+}
+
+.nav-subtab {
+    li {
+        display: inline-block;
+        margin-left:10px;
+        
+        &:first-child {
+            margin-left:0;
+        }
+
+        a {
+            display: block;
+            padding:3px; 
+
+            &:hover {
+                text-decoration: none;
+                border-bottom:2px solid @primary;
+            }
+        }
+
+        &.active {
+            a {
+                border-bottom:2px solid @primary;
+                font-weight: bold;
+            }
+        }
+    }
+}
+
+.my-project-item {
+    li {
+        padding:5px 15px;
+        border-top : 1px solid #ececec;
+        font-size: 14px;
+    }
+}
+
+
 /** alert **/
 .yobiDialog {
     .border-radius(none);
