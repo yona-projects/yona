@@ -578,6 +578,17 @@ public class User extends Model implements ResourceConvertible {
         return this.recentlyVisitedProjects.findRecentlyVisitedProjects(size);
     }
 
+    public List<Organization> getOrganizations(int size) {
+        if(size < 1) {
+            throw new IllegalArgumentException("the size should be bigger then 0");
+        }
+        List<Organization> orgs = new ArrayList<>();
+        for(OrganizationUser ou : OrganizationUser.findByUser(this, size)) {
+            orgs.add(ou.organization);
+        }
+        return orgs;
+    }
+
     public void createOrganization(Organization organization) {
         OrganizationUser ou = new OrganizationUser();
         ou.user = this;
