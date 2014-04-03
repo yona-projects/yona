@@ -155,7 +155,7 @@ public class CommentThread extends Model implements ResourceConvertible {
             return list.get(0);
         }
 
-        throw new IllegalStateException("This thread have not ReviewComment.");
+        throw new IllegalStateException("This thread has no ReviewComment.");
     }
 
     /**
