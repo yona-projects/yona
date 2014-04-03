@@ -302,26 +302,6 @@ public class Project extends Model implements LabelOwner {
 
         return Ebean.filter(Project.class).sort(orderString).filter(userProjectList);
     }
-    /**
-     * {@code state} 별 프로젝트 카운트를 반환한다.
-     *
-     * all(모든) / public(공개) / private(비공개) 외의 조건이 들어여몬 0을 반환한다.
-     *
-     * @param state 프로젝트 상태(all/public/private)
-     * @return 프로젝트 카운트
-     */
-    public static int countByState(String state) {
-        switch (state) {
-            case "all":
-                return find.findRowCount();
-            case "public":
-                return find.where().eq("isPublic", true).findRowCount();
-            case "private":
-                return find.where().eq("isPublic", false).findRowCount();
-            default:
-                return 0;
-        }
-    }
 
     /**
      * 프로젝트의 마지막 업데이트일을 반환한다.
