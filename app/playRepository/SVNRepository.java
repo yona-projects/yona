@@ -7,6 +7,7 @@ import models.Project;
 import models.User;
 import models.enumeration.ResourceType;
 import models.resource.Resource;
+import org.apache.commons.io.FileUtils;
 import org.apache.tika.Tika;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -435,6 +436,12 @@ public class SVNRepository implements PlayRepository {
         File dest = new File(getRepoPrefix() + toUserLoginId + "/" + toProjectName);
         src.setWritable(true);
 
-        return src.renameTo(dest);
+        try {
+            FileUtils.moveDirectory(src, dest);
+            return true;
+        } catch (IOException e) {
+            play.Logger.error("Move Failed", e);
+            return false;
+        }
     }
 }
