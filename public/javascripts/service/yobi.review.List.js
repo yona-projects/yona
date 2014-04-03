@@ -45,13 +45,45 @@
          */
         function _initElement(){
             htElement.welPagination = $(htVar.elPagination || "#pagination");
+            htElement.welIssueListWrap = $('.issue-list-wrap');
+            htElement.welSearchForm = htVar.welSearchForm;
         }
 
         /**
          * attach event handlers
          */
         function _attachEvent(){
+            htElement.welIssueListWrap.on('click','[data-toggle="filter"]', _onChangeFilter);
+            htElement.welIssueListWrap.on('click','[data-toggle="order"]', _onChangeOrder);
+        }
 
+        function _onChangeFilter(weEvent) {
+            weEvent.preventDefault();
+
+            var welElement = $(this);
+            if(welElement.data('type') === 'state') {
+                $("input[name='state']").val(welElement.data('value'));
+            } else {
+                var sAuthorId = (welElement.data('type') === 'authorId') ? welElement.data('value') : '';
+                var sParticipantId = (welElement.data('type') ==='participantId') ? welElement.data('value') : '';
+
+                $("input[name='authorId']").val(sAuthorId);
+                $("input[name='participantId']").val(sParticipantId);
+            }
+
+            htElement.welSearchForm.submit();
+        }
+
+        function _onChangeOrder(weEvent) {
+            weEvent.preventDefault();
+
+            var welElement = $(this);
+            var sOrderField = welElement.data('field');
+            var sOrderValue = welElement.data('value');
+
+            $("input[name='orderBy']").val(sOrderField);
+            $("input[name='orderDir']").val(sOrderValue);
+            htElement.welSearchForm.submit();
         }
 
         /**
