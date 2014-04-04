@@ -4,8 +4,8 @@
 @import utils.TemplateHelper.Branches._
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
-@projectLayout(title, project.originalProject, utils.MenuType.PULL_REQUEST) {
-@projectMenu(project.originalProject, utils.MenuType.PULL_REQUEST, "main-menu-only")
+@projectLayout(title, pull.toProject, utils.MenuType.PULL_REQUEST) {
+@projectMenu(pull.toProject, utils.MenuType.PULL_REQUEST, "main-menu-only")
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
         <div class="content-wrap frm-wrap">
