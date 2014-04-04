@@ -13,6 +13,6 @@ public class IssueMassUpdate {
 
     @Constraints.Required
     public List<Issue> issues;
-    public IssueLabel attachingLabel;
-    public IssueLabel detachingLabel;
+    public List<IssueLabel> attachingLabel;
+    public List<IssueLabel> detachingLabel;
 }

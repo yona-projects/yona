@@ -194,21 +194,43 @@
 }
 
 .select2-container-multi {
-
     .select2-choices {
-        border: 1px solid rgba(0,0,0,0.15);
+        background: none;
+        filter: none;
+        border: none;
 
         .select2-search-choice {
-            border: 1px solid rgba(0,0,0,0.15);
+            border: none;
             background-image:none;
             filter:none;
+        }
+    }
+
+    &.issue-labels {
+        width:auto !important;
+        min-width:220px;
+
+        .select2-choices {
+            .select2-search-choice {
+                background:transparent;
+                filter:none;
+                border:none;
+                .box-shadow(none);
+            }
+
+            .select2-search-choice-close {
+                top:6px;
+            }
         }
     }
 
     &.select2-container-active {
         .select2-choices {
             border: 1px solid rgba(0,0,0,0.15);
+            border-bottom:0;
             background-image:none;
+            outline:none;
+            .box-shadow(none);
         }
     }
 }

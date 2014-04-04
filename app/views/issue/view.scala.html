@@ -40,14 +40,35 @@
         <!--board-body-->
         <div class="board-body row-fluid">
             <div class="span9">
+                @if(IssueLabel.findByProject(project).size > 0){
                 <div class="pull-right" style="padding:20px;">
                     @**<!-- labels -->**@
                     <p class="labels-wrap">
-                    @for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
-                        <a href='@routes.IssueApp.issues(project.owner, project.name, issue.state.state(), "html", 1)&labelIds=@label.id' class="label issue-label" data-labelId="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>
+                    @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+                      <select id="issueLabels" multiple="multiple" data-placeholder="@Messages("label.select")"
+                              data-toggle="select2" data-format="issuelabel" data-containerCSSClass="issue-labels">
+                      <option></option>
+                      @IssueLabel.findByProject(project).groupBy(_.category).map {
+                        case (category, labels) => {
+                          <optgroup label="@category">
+                          @labels.map { label =>
+                            <option value="@label.id" data-category="@category" @if(issue.labels.contains(label)){ selected }>
+                              @label.name
+                            </option>
+                          }
+                          </optgroup>
+                        }
+                      }
+                      </select>
+                    } else {
+                      @for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
+                        <a href='@routes.IssueApp.issues(project.owner, project.name, issue.state.state(), "html", 1)&labelIds=@label.id' class="label issue-label active static" data-labelId="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>
+                      }
                     }
                     </p>
                 </div>
+                }
+
                 @if(StringUtils.isEmpty(issue.body)){
                 <div class="content empty-content"></div>
                 } else {
@@ -284,24 +305,18 @@
     	</div>
     </div>
 </div>
+
 @common.markdown(project)
-@common.issueLabel()
 @common.commentDeleteModal()
 @common.select2()
+
+<link rel="stylesheet" type="text/css" media="screen" href="@routes.IssueLabelApp.labelStyles(project.owner, project.name)">
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mentionjs/mention.css")">
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/mentionjs/mention.js")"></script>
 <script type="text/javascript">
     $(document).ready(function(){
-        // yobi.Label
-        var htOptLabel = {
-            "bEditable"    : false,
-            "sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)",
-            "sURLPost"     : "@routes.IssueLabelApp.newLabel(project.owner, project.name)"
-        };
-
         // yobi.issue.View
         $yobi.loadModule("issue.View", {
-            "htOptLabel"    : htOptLabel,
             "sWatchUrl"     : "@routes.WatchApp.watch(issue.asResource.asParameter)",
             "sUnwatchUrl"   : "@routes.WatchApp.unwatch(issue.asResource.asParameter)",
             "sIssuesUrl"    : "@routes.IssueApp.massUpdate(project.owner, project.name)",

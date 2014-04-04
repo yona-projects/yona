@@ -239,6 +239,7 @@ issue.unwatch.start = 이제 이 이슈에 관한 알림을 받지 않습니다
 issue.update.assignee = 담당자 변경
 issue.update.attachLabel = 라벨 추가
 issue.update.detachLabel = 라벨 제거
+issue.update.label = 라벨 변경
 issue.update.milestone = 마일스톤 변경
 issue.update.state = 상태 변경
 issue.vote = 공감
