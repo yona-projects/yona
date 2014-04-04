@@ -36,8 +36,8 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Receive 이후에 후처리 작업을 비동기적으로 추가할 때 사용한다.
- * 이 클래스를 상속받아 할일을 구현하고 Akka를 사용하여 실행한다.
+ * This abstract implementation can be used to add after-receive jobs.
+ * To add a post hook, extends this classs and execute it with Akka
  *
  * @author Keesun Baik
  * @see IssueReferredFromCommitEventActor

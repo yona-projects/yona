@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * 커밋에서 언급한 이슈에 이슈 참조 이벤트를 생성한다.
+ * Creates new events to tell that an issue is referred from a commit.
  *
  * @author Keesun Baik
  */
