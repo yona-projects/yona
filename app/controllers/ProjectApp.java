@@ -219,10 +219,8 @@ public class ProjectApp extends Controller {
         Project project = filledNewProjectForm.get();
         if (Organization.isNameExist(owner)) {
             project.organization = organization;
-            Project.create(project);
-        } else {
-            ProjectUser.assignRole(UserApp.currentUser().id, Project.create(project), RoleType.MANAGER);
         }
+        ProjectUser.assignRole(UserApp.currentUser().id, Project.create(project), RoleType.MANAGER);
         RepositoryService.createRepository(project);
         return redirect(routes.ProjectApp.project(project.owner, project.name));
     }
