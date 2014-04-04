@@ -130,6 +130,7 @@ public class RouteUtil {
         String commitId = null;
 
         if (comment.thread instanceof NonRangedCodeCommentThread) {
+            prevCommitId = ((NonRangedCodeCommentThread) comment.thread).prevCommitId;
             commitId = ((NonRangedCodeCommentThread) comment.thread).commitId;
         } else if (comment.thread instanceof CodeCommentThread) {
             prevCommitId = ((CodeCommentThread) comment.thread).prevCommitId;
@@ -145,10 +146,10 @@ public class RouteUtil {
         } else {
             if (prevCommitId != null) {
                 toView = controllers.routes.PullRequestApp.pullRequestChanges(
-                        project.owner, project.name, pullRequest.id);
+                        project.owner, project.name, pullRequest.number);
             } else {
                 toView = controllers.routes.PullRequestApp.specificChange(
-                        project.owner, project.name, pullRequest.id, commitId);
+                        project.owner, project.name, pullRequest.number, commitId);
             }
         }
 
