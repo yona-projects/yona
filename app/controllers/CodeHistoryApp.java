@@ -150,8 +150,8 @@ public class CodeHistoryApp extends Controller {
         }
 
         Commit parentCommit = repository.getParentCommitOf(commitId);
-        List<CodeCommentThread> threads
-                = CodeCommentThread.findByCommitId(CodeCommentThread.find, project, commitId);
+        List<CommentThread> threads
+                = CommentThread.findByCommitId(CommentThread.find, project, commitId);
 
         String selectedBranch = StringUtils.defaultIfBlank(request().getQueryString("branch"), "HEAD");
         String path = StringUtils.defaultIfBlank(request().getQueryString("path"), "");

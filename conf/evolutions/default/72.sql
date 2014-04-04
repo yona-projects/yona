@@ -3,6 +3,7 @@
 -- Migrate PullRequestComment to ReviewComment and CommentThread
 
 ALTER TABLE comment_thread ADD COLUMN tmp_pull_request_comment_id bigint;
+ALTER TABLE comment_thread ADD COLUMN tmp_commit_comment_id bigint;
 
 INSERT INTO comment_thread (
     id,
@@ -215,7 +216,8 @@ INSERT INTO comment_thread (
     dtype,
     project_id,
     pull_request_id,
-    state
+    state,
+    tmp_commit_comment_id
 )
 SELECT
     nextval('comment_thread_seq'),
@@ -227,7 +229,8 @@ SELECT
     'non_ranged',
     c.project_id,
     null,
-    'OPEN'
+    'OPEN',
+    c.id
 FROM commit_comment c, project p
 WHERE c.project_id = p.id AND p.vcs = 'GIT' AND c.line IS null;
 
@@ -249,13 +252,14 @@ SELECT
     c.created_date,
     t.id
 FROM commit_comment c, comment_thread t
-WHERE t.pull_request_id IS null AND c.commit_id = t.commit_id AND c.path = t.path AND c.line = t.start_line;
+WHERE t.pull_request_id IS null AND c.commit_id = t.commit_id AND ((c.path = t.path AND c.line = t.start_line) OR tmp_commit_comment_id = c.id);
 
 DELETE FROM commit_comment WHERE id IN (
     SELECT c.id FROM commit_comment c, project p WHERE c.project_id = p.id AND p.vcs = 'GIT'
 );
 
 ALTER TABLE comment_thread DROP COLUMN IF EXISTS tmp_pull_request_comment_id;
+ALTER TABLE comment_thread DROP COLUMN IF EXISTS tmp_commit_comment_id;
 
 ALTER TABLE watch DROP CONSTRAINT IF EXISTS ck_watch_resource_type;
 UPDATE watch SET resource_type='REVIEW_COMMENT' WHERE resource_type='PULL_REQUEST_COMMENT';
