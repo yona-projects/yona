@@ -1821,13 +1821,17 @@ public class GitRepository implements PlayRepository {
         repository.close();
         WindowCacheConfig config = new WindowCacheConfig();
         config.install();
-        File src = new File(getGitDirectory(srcProjectOwner, srcProjectName));
-        File dest = new File(getGitDirectory(desrProjectOwner, destProjectName));
 
-        src.setWritable(true);
+        File srcGitDirectory = new File(getGitDirectory(srcProjectOwner, srcProjectName));
+        File destGitDirectory = new File(getGitDirectory(desrProjectOwner, destProjectName));
+        File srcGitDirectoryForMerging = new File(getDirectoryForMerging(srcProjectOwner, srcProjectName));
+        File destGitDirectoryForMerging = new File(getDirectoryForMerging(desrProjectOwner, destProjectName));
+        srcGitDirectory.setWritable(true);
+        srcGitDirectoryForMerging.setWritable(true);
 
         try {
-            org.apache.commons.io.FileUtils.moveDirectory(src, dest);
+            org.apache.commons.io.FileUtils.moveDirectory(srcGitDirectory, destGitDirectory);
+            org.apache.commons.io.FileUtils.moveDirectory(srcGitDirectoryForMerging, destGitDirectoryForMerging);
             return true;
         } catch (IOException e) {
             play.Logger.error("Move Failed", e);
