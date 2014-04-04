@@ -150,7 +150,7 @@ public class OrganizationApp extends Controller {
             return redirect(routes.OrganizationApp.members(organizationName));
         }
 
-        if (OrganizationUser.isMember(organization.id, userToBeAdded.id)) {
+        if (OrganizationUser.exist(organization.id, userToBeAdded.id)) {
             flash(Constants.WARNING, "organization.member.alreadyMember");
             return redirect(routes.OrganizationApp.members(organizationName));
         }
@@ -195,7 +195,7 @@ public class OrganizationApp extends Controller {
             return notFound(ErrorViews.NotFound.render("organization.member.unknownOrganization", organization));
         }
 
-        if (!OrganizationUser.isMember(organization.id, userId)) {
+        if (!OrganizationUser.exist(organization.id, userId)) {
             flash(Constants.WARNING, "organization.member.isNotAMember");
             return okWithLocation(routes.OrganizationApp.members(organizationName).url());
         }
@@ -255,7 +255,7 @@ public class OrganizationApp extends Controller {
             return notFound(ErrorViews.NotFound.render("organization.member.unknownOrganization", organization));
         }
 
-        if (!OrganizationUser.isMember(organization.id, userId)) {
+        if (!OrganizationUser.exist(organization.id, userId)) {
             flash(Constants.WARNING, "organization.member.isNotAMember");
             return okWithLocation(routes.OrganizationApp.members(organizationName).url());
         }
@@ -287,7 +287,7 @@ public class OrganizationApp extends Controller {
 
         Organization organization = Organization.findByOrganizationName(organizationName);
 
-        return ok(views.html.organization.members.render(organization, Role.getActiveRoles()));
+        return ok(views.html.organization.members.render(organization, Role.findOrganizationRoles()));
     }
 
     /**

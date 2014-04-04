@@ -1,5 +1,6 @@
 package models;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -57,5 +58,20 @@ public class Role extends Model {
         return find.where()
                 .eq("projectUsers.user.id", userId)
                 .eq("projectUsers.project.id", projectId).findUnique();
+    }
+
+    /**
+     * 그룹과 관련된 롤들의 목록을 반환합니다.
+     *
+     * @return
+     */
+    public static List<Role> findOrganizationRoles() {
+        List<Long> organizationRoleIds = new ArrayList<>();
+        organizationRoleIds.add(RoleType.ORG_ADMIN.roleType());
+        organizationRoleIds.add(RoleType.ORG_MEMBER.roleType());
+
+        return find.where()
+                .in("id", organizationRoleIds)
+                .findList();
     }
 }

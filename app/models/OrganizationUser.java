@@ -94,4 +94,8 @@ public class OrganizationUser extends Model {
             organizationUser.delete();
         }
     }
+
+    public static boolean exist(Long organizationId, Long userId) {
+        return findByOrganizationIdAndUserId(organizationId, userId) != null;
+    }
 }
