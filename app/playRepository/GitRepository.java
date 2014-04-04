@@ -361,7 +361,7 @@ public class GitRepository implements PlayRepository {
         listData.putAll(new ObjectFinder(basePath, treeWalk, untilCommitId).find());
         result.put("type", "folder");
         result.put("data", listData);
-        return result;
+        return (listData.size() == 0) ? null : result;
     }
 
     public class ObjectFinder {
