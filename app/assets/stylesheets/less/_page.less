@@ -2437,6 +2437,71 @@
     }
 }
 
+.project-overview-home {
+    h5 {
+        margin-bottom:20px;
+        border-left: 3px solid @yobi-primary;
+        padding-left: 10px;
+    }
+    small {
+        color:#999;
+        margin-left:3px;
+        width:35px;
+        display:inline-block;
+    }
+    .progress { margin-top:7px; width:100px; height:7px; }
+    .num {
+        text-align:right;
+        padding-right:15px;
+    }
+    .empty {
+        text-align:center;
+        p { margin-bottom:15px; color:#999; font-size:13px; }
+    }
+
+    .overview-label {
+        border-bottom:1px solid #eee;
+        padding:5px 0;
+
+        dt { width:120px; line-height:30px; }
+        dd { margin-left:140px; line-height:30px; }
+
+        &:first-of-type { padding-top:0; }
+        &:last-of-type { border-bottom:none; }
+    }
+
+    .overview-assignee {
+        .usf-group {
+            display:block;
+            white-space: nowrap;
+            overflow:hidden;
+            .text-overflow();
+        }
+    }
+
+    .overview-pullrequest {
+        .title {
+            white-space: nowrap;
+            display:inline-block;
+            .text-overflow();
+        }
+
+        .review {
+            text-align:right;
+            &.disabled { color:#ddd; }
+        }
+    }
+}
+.historyAgo {
+    font-size:11px;
+    font-weight:normal;
+    margin-left:3px;
+    color:@secondary;
+
+    &.new { color:@primary; }
+    &.old { color:#777; }
+}
+
 .write-btn-wrap {
     margin: 20px 0;
     text-align: right;

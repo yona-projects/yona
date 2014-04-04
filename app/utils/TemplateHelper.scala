@@ -20,6 +20,7 @@ import models.PullRequestEvent
 import models.PullRequest
 import models.TimelineItem
 import models.Project
+import models.Issue
 import java.net.URLEncoder
 import scala.annotation.tailrec
 import playRepository.FileDiff
@@ -197,6 +198,22 @@ object TemplateHelper {
   def urlToCompare(project: Project, compare: String) = {
     val commits = compare.split(PullRequest.DELIMETER)
     routes.CompareApp.compare(project.owner, project.name, commits(0), commits(1)).url
+  }
+
+  def getPercent(unit:Double, total:Double) = {
+    ((unit / total) * 100).toInt
+  }
+
+  def makeIssuesLink(project:Project, param:Map[String,String]) = {
+      buildQueryString(
+          routes.IssueApp.issues(project.owner, project.name, "open"),
+          param
+      )
+  }
+
+  def countOpenIssuesBy(project:Project, cond:java.util.Map[String,String]) = {
+    cond += ("state"->models.enumeration.State.OPEN.toString)
+    Issue.countIssuesBy(project.id, cond)
   }
 
   object DiffRenderer {

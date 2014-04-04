@@ -1,0 +1,55 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2013 NAVER Corp.
+* http://yobi.io
+*
+* @Author Jihan Kim
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@(project:Project)
+
+@import utils.TemplateHelper._
+
+@defining(models.PullRequest.findRecentlyReceivedOpen(project, 5)) { pullRequests =>
+    @if(pullRequests.size > 0){
+        @for(pullRequest <- pullRequests){
+            <div class="row-fluid">
+                <div class="@if(project.isUsingReviewerCount){span8}else{span10} title">
+                    <a href="@routes.PullRequestApp.pullRequest(pullRequest.toProject.owner, pullRequest.toProject.name, pullRequest.number)">@pullRequest.title</a>
+                </div>
+                @if(project.isUsingReviewerCount){
+                    <div class="span2 review @if(!pullRequest.isReviewed){disabled}">
+                        @Messages("pullRequest.reviewed") <strong>@pullRequest.reviewers.size</strong>
+                    </div>
+                }
+                <div class="span2 num">
+                    <small>@agoString(pullRequest.createdAgo())</small>
+                </div>
+            </div>
+        }
+        <div class="right-txt mt5" style="margin-right:17px;">
+            <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)">
+            @Html(Messages("project.dashboard.more", models.PullRequest.countOpenedPullRequests(project)))
+            </a>
+        </div>
+    } else {
+        <div class="empty">
+            <p>@Messages("pullRequest.is.empty")</p>
+            <a href="@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)" target="_blank" class="ybtn ybtn-small">
+            @Messages("pullRequest.new")
+            </a>
+        </div>
+    }
+}
