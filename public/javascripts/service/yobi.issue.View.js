@@ -438,7 +438,9 @@
 
             htVar.nTimelineItems = _countTimelineItems();
             htVar.nTimelineUpdateTimer = setInterval(function(){
-                if(htVar.bTimelineUpdating !== true){
+                var bEditing = (htElement.welTimelineWrap.find(".comment-update-form:visible").length > 0);
+
+                if(htVar.bTimelineUpdating !== true && !bEditing){
                     _updateTimeline();
                 }
             }, htVar.nTimelineUpdatePeriod);
