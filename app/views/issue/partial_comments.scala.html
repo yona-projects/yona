@@ -77,7 +77,8 @@
                 <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
             </a>
         </div>
-        <div class="media-body">
+        @common.commentUpdateForm(project, ResourceType.ISSUE_COMMENT, comment.id, routes.IssueApp.newComment(project.owner, project.name, issue.getNumber).toString(), comment.contents)
+        <div class="media-body" id="comment-body-@comment.id">
             <div class="meta-info">
                 <span class="comment_author pull-left">
                     <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
@@ -89,14 +90,17 @@
                 <span class="edit pull-right">
                     <button type="button" class="btn-transparent close" data-toggle="comment-delete" data-request-uri="@routes.IssueApp.deleteComment(project.owner, project.name, issue.getNumber, comment.id)" title="@Messages("common.comment.delete")"><i class="yobicon-trash"></i></button>
                 </span>
+                <span class="pull-right">
+                    <button type="button" class="btn-transparent close" data-toggle="comment-edit" data-comment-editform-id="comment-editform-@comment.id" title="@Messages("common.comment.edit")"><i class="yobicon-edit-2"></i></button>
+                </span>
                 }
             </div>
 
             <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
-
             <div class="attachments pull-right" data-resourceType="@ResourceType.ISSUE_COMMENT" data-resourceId="@comment.id"></div>
         </div>
     </li>
+
     }
     case (event: IssueEvent) => {
         @if(event.eventType != EventType.ISSUE_BODY_CHANGED) {

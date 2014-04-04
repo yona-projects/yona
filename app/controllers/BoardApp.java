@@ -285,7 +285,7 @@ public class BoardApp extends AbstractPostingApp {
      * @param number 게시물number
      * @return
      * @throws IOException
-     * @see controllers.AbstractPostingApp#newComment(models.Comment, play.data.Form, play.mvc.Call, Runnable)
+     * @see controllers.AbstractPostingApp#saveComment(models.Comment, play.data.Form, play.mvc.Call, Runnable)
      */
     @Transactional
     @IsAllowed(value = Operation.READ, resourceType = ResourceType.BOARD_POST)
@@ -307,15 +307,23 @@ public class BoardApp extends AbstractPostingApp {
         }
 
         final PostingComment comment = commentForm.get();
+        PostingComment existingComment = PostingComment.find.where().eq("id", comment.id).findUnique();
+        if( existingComment != null){
+            existingComment.contents = comment.contents;
+            return saveComment(existingComment, commentForm, redirectTo, getContainerUpdater(posting, comment));
+        } else {
+            return saveComment(comment, commentForm, redirectTo, getContainerUpdater(posting, comment));
+        }
+    }
 
-        return newComment(comment, commentForm, redirectTo, new Runnable() {
+    private static Runnable getContainerUpdater(final Posting posting, final PostingComment comment) {
+        return new Runnable() {
             @Override
             public void run() {
                 comment.posting = posting;
             }
-        });
+        };
     }
-
     /**
      * 댓글 삭제
      *

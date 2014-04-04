@@ -8,11 +8,17 @@
     <form id="comment-form" action="@action" method="post" enctype="multipart/form-data">
         <div class="write-comment-box">
             <div class="write-comment-wrap">
-                <div id="mode-select">
-                    <input type="radio" name="edit-mode" id="edit-mode" value="edit" checked="checked" class="radio-btn">
-                    <label for="edit-mode" style="margin-right:3px;">Edit</label>
-                    <input type="radio" name="edit-mode" id="preview-mode" value="preview" class="radio-btn">
-                    <label for="preview-mode">Preview</label>
+                <div id="mode-select" data-toggle="buttons">
+                    <ul class="nav nav-tabs">
+                        <li class="active">
+                            <input type="radio" name="edit-mode" id="edit-mode" value="edit" checked="checked" class="radio-btn">
+                            <a href="#" data-toggle="tab" onclick="$('#edit-mode').trigger('click')">Edit</a>
+                        </li>
+                        <li>
+                            <input type="radio" name="edit-mode" id="preview-mode" value="preview" class="radio-btn">
+                            <a href="#" onclick="$('#preview-mode').trigger('click')" data-toggle="tab">Preview</a>
+                        </li>
+                    </ul>
                 </div>
                 @help.markdown()
                 <div class="textarea-box">

@@ -58,15 +58,20 @@ public class AbstractPostingApp extends Controller {
      * @return
      * @throws IOException
      */
-    public static Result newComment(final Comment comment, Form<? extends Comment> commentForm, final Call toView, Runnable containerUpdater) {
+    public static Result saveComment(final Comment comment, Form<? extends Comment> commentForm, final Call toView, Runnable containerUpdater) {
         if (commentForm.hasErrors()) {
             flash(Constants.WARNING, "post.comment.empty");
             return redirect(toView);
         }
 
-        comment.setAuthor(UserApp.currentUser());
         containerUpdater.run(); // this updates comment.issue or comment.posting;
-        comment.save();
+        if(comment.id != null && AccessControl.isAllowed(UserApp.currentUser(), comment.asResource(), Operation.UPDATE)) {
+            comment.update();
+        } else {
+            comment.setAuthor(UserApp.currentUser());
+            comment.save();
+        }
+
 
         // Attach all of the files in the current user's temporary storage.
         attachUploadFilesToPost(comment.asResource());

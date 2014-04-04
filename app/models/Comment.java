@@ -2,6 +2,8 @@ package models;
 
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.Duration;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
@@ -120,5 +122,42 @@ abstract public class Comment extends Model implements TimelineItem, ResourceCon
 
     public Date getDate() {
         return createdDate;
+    }
+
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        if (obj.getClass() != getClass()) {
+            return false;
+        }
+        Comment rhs = (Comment) obj;
+        return new EqualsBuilder()
+                .appendSuper(super.equals(obj))
+                .append(this.id, rhs.id)
+                .append(this.contents, rhs.contents)
+                .append(this.createdDate, rhs.createdDate)
+                .append(this.authorId, rhs.authorId)
+                .append(this.authorLoginId, rhs.authorLoginId)
+                .append(this.authorName, rhs.authorName)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+                .appendSuper(super.hashCode())
+                .append(id)
+                .append(contents)
+                .append(createdDate)
+                .append(authorId)
+                .append(authorLoginId)
+                .append(authorName)
+                .toHashCode();
     }
 }
