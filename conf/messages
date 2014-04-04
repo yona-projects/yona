@@ -21,7 +21,7 @@
 # - userinfo
 # - validation
 #
-app.description = Web-based collaborative platform for software development.
+app.description = Web-based collaborative platform for software development
 app.name = Yobi
 app.restart.notice = The server needs to be restarted.
 app.restart.welcome = Welcome!
@@ -603,6 +603,7 @@ title.issueList = Issue List
 title.issueTracker = Issue Tracker
 title.keymap = Keyboard shortcuts
 title.login = Log in
+title.loginFor = Log in for <span class="highlight">{0}</span>
 title.logout = Log out
 title.markdown.help = Markdown help
 title.massMail = Send Massive Mail
@@ -620,9 +621,11 @@ title.projectMembers = Member List
 title.projectSetting = Project Settings
 title.rememberMe = Remember Me
 title.resetPassword = Reset Password
+title.resetPasswordFor = Reset Password for <span class="highlight">{0}</span>
 title.search = Search
 title.sendMail = Send Mail
 title.signup = Sign Up
+title.signupFor = Log in for <span class="highlight">{0}</span>
 title.siteSetting = Site Setting
 title.text = Title
 title.unlimitedProjects = Unlimited Project Creation

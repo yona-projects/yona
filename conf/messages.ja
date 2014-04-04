@@ -21,7 +21,7 @@
 # - userinfo
 # - validation
 #
-app.description = Web-based collaborative platform for software development.
+app.description = ウェブ基盤のソフト開発プラットフォーム
 app.name = Yobi
 app.restart.notice = サーバの再始動が必要です
 app.restart.welcome = ようこそ！
@@ -535,6 +535,7 @@ title.issueList = イシュー目録
 title.issueTracker = イシュートラッカー
 title.keymap = ホットキー
 title.login = ログイン
+title.signupFor = <span class="highlight">{0}</span> ログイン
 title.logout = ログアウト
 title.massMail = 大量メール送信
 title.milestoneList = マイルストーン目録
@@ -550,9 +551,11 @@ title.projectMembers = メンバー 目録
 title.projectSetting = プロジェクト設定
 title.rememberMe = ログインしたままにする
 title.resetPassword = パスワード再設定
+title.resetPasswordFor = <span class="highlight">{0}</span> パスワード再設定
 title.search = 検索
 title.sendMail = メール送信
 title.signup = 新規取得
+title.signupFor = <span class="highlight">{0}</span> 新規取得
 title.siteSetting = サイト設定
 title.text = タイトル
 title.unlimitedProjects = 無制限のプロジェクト作成
