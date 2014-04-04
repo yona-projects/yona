@@ -203,12 +203,6 @@ yobi.Attachments = function(htOptions) {
         return nFileSize;
     }
 
-    function _showMimetypeIcon(welFileItem, sMimeType) {
-        if (isHtml5Video(htFile.mimeType)) {
-            welFileItem.children('i.mimetype').addClass('yobicon-video2').show();
-        }
-    }
-
     /**
      * 파일 목록에 추가할 수 있는 LI 엘리먼트를 반환하는 함수
      * Create uploaded file item HTML element using template string
@@ -228,7 +222,7 @@ yobi.Attachments = function(htOptions) {
             "mimeType": htFile.mimeType
         });
 
-        showMimetypeIcon(welItem, htFile.mimeType);
+        _showMimetypeIcon(welItem, htFile.mimeType);
 
         // 임시 파일 표시
         if(bTemp){
@@ -335,7 +329,7 @@ yobi.Attachments = function(htOptions) {
         var sRealLink = _getLinkText(welFileItem);
         _replaceLinkInTextarea(sTempLink, sRealLink);
 
-        showMimetypeIcon(welFileItem, htData.oRes.mimeType);
+        _showMimetypeIcon(welFileItem, htData.oRes.mimeType);
     }
 
     /**
@@ -470,7 +464,7 @@ yobi.Attachments = function(htOptions) {
      * Show a icon matches sMimeType on welFileItem
      */
     function _showMimetypeIcon(welFileItem, sMimeType) {
-        if (isHtml5Video(htFile.mimeType)) {
+        if (isHtml5Video(sMimeType)) {
             welFileItem.children('i.mimetype').addClass('yobicon-video2').show();
         }
     }
