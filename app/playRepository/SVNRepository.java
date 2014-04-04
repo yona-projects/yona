@@ -431,9 +431,9 @@ public class SVNRepository implements PlayRepository {
         }
     }
 
-    public boolean move(String fromUserLoginId, String fromProjectName, String toUserLoginId, String toProjectName) {
-        File src = new File(getRepoPrefix() + fromUserLoginId + "/" + fromProjectName);
-        File dest = new File(getRepoPrefix() + toUserLoginId + "/" + toProjectName);
+    public boolean move(String srcProjectOwner, String srcProjectName, String desrProjectOwner, String destProjectName) {
+        File src = new File(getRepoPrefix() + srcProjectOwner + "/" + srcProjectName);
+        File dest = new File(getRepoPrefix() + desrProjectOwner + "/" + destProjectName);
         src.setWritable(true);
 
         try {

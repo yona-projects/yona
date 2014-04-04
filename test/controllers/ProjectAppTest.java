@@ -381,8 +381,8 @@ public class ProjectAppTest {
 
         ProjectTransfer pt = ProjectTransfer.find.where()
                 .eq("project", project)
-                .eq("from", oldOwner)
-                .eq("to", newOwner)
+                .eq("sender", oldOwner)
+                .eq("destination", newOwner.loginId)
                 .findUnique();
 
         assertThat(pt).isNotNull();
@@ -419,10 +419,10 @@ public class ProjectAppTest {
         Project project = Project.findByOwnerAndProjectName("yobi", "projectYobi");
         RepositoryService.createRepository(project);
 
-        User oldOwner = User.findByLoginId("yobi");
+        User sender = User.findByLoginId("yobi");
         User newOwner = User.findByLoginId("doortts");
 
-        ProjectTransfer pt = ProjectTransfer.requestNewTransfer(project, oldOwner, newOwner);
+        ProjectTransfer pt = ProjectTransfer.requestNewTransfer(project, sender, newOwner.loginId);
         assertThat(pt.confirmKey).isNotNull();
 
         //When
@@ -445,10 +445,10 @@ public class ProjectAppTest {
         Project project = Project.findByOwnerAndProjectName("yobi", "projectYobi");
         RepositoryService.createRepository(project);
 
-        User oldOwner = User.findByLoginId("yobi");
+        User sender = User.findByLoginId("yobi");
         User newOwner = User.findByLoginId("doortts");
 
-        ProjectTransfer pt = ProjectTransfer.requestNewTransfer(project, oldOwner, newOwner);
+        ProjectTransfer pt = ProjectTransfer.requestNewTransfer(project, sender, newOwner.loginId);
         assertThat(pt.confirmKey).isNotNull();
 
         //When

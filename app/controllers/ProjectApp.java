@@ -586,17 +586,26 @@ public class ProjectApp extends Controller {
     @IsAllowed(Operation.DELETE)
     public static Result transferProject(String loginId, String projectName) throws Exception {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
-        String newOwnerLoginId = request().getQueryString("owner");
+        String destination = request().getQueryString("owner");
 
-        User newOwner = User.findByLoginId(newOwnerLoginId);
-        if(newOwner.isAnonymous()) {
+        User destOwner = User.findByLoginId(destination);
+        Organization destOrg = Organization.findByName(destination);
+        if(destOwner.isAnonymous() && destOrg == null) {
             return badRequest(ErrorViews.BadRequest.render());
         }
 
-        ProjectTransfer pt = ProjectTransfer.requestNewTransfer(project, UserApp.currentUser(), newOwner);
+        ProjectTransfer pt = null;
+        // make a request to move to an user
+        if(!destOwner.isAnonymous()) {
+            pt = ProjectTransfer.requestNewTransfer(project, UserApp.currentUser(), destOwner.loginId);
+        }
+        // make a request to move to an group
+        if(destOrg != null) {
+            pt = ProjectTransfer.requestNewTransfer(project, UserApp.currentUser(), destOrg.name);
+        }
         sendTransferRequestMail(pt);
 
-        // XHR 호출에 의한 경우라면 204 No Content 와 Location 헤더로 응답한다
+        // if the request is sent by XHR, response with 204 204 No Content and Location header.
         String url = routes.ProjectApp.project(loginId, projectName).url();
         if(HttpUtil.isRequestedWithXHR(request())){
             response().setHeader("Location", url);
@@ -623,47 +632,69 @@ public class ProjectApp extends Controller {
 
         Project project = pt.project;
 
-        // 프로젝트 이름 및 저장소 변경
-        String newProjectName = Project.newProjectName(pt.to.loginId, project.name);
+        // Change the project's name and move the repository.
+        String newProjectName = Project.newProjectName(pt.destination, project.name);
         PlayRepository repository = RepositoryService.getRepository(project);
-        repository.move(pt.from.loginId, project.name, pt.to.loginId, newProjectName);
+        repository.move(pt.sender.loginId, project.name, pt.destination, newProjectName);
 
-        // 프로젝트 정보 변경
-        project.owner = pt.to.loginId;
+        User newOwnerUser = User.findByLoginId(pt.destination);
+        Organization newOwnerOrg = Organization.findByName(pt.destination);
+
+        // Change the project's information.
+        project.owner = pt.destination;
         project.name = newProjectName;
+        if(newOwnerOrg != null) {
+            project.organization = newOwnerOrg;
+        }
         project.update();
 
-        // 프로젝트 매니저를 새 오너로 변경, 기존 오너는 멤버로 변경
-        ProjectUser.assignRole(pt.to.id, project.id, RoleType.MANAGER);
-        ProjectUser.assignRole(pt.from.id, project.id, RoleType.MEMBER);
+        // Change roles.
+        if(!newOwnerUser.isAnonymous()) {
+            ProjectUser.assignRole(newOwnerUser.id, project.id, RoleType.MANAGER);
+        }
+        if(ProjectUser.isManager(pt.sender.id, project.id)) {
+            ProjectUser.assignRole(pt.sender.id, project.id, RoleType.MEMBER);
+        }
 
-        // 이관 요청 수락으로 변경.
+        // Change the tranfer's status to be accepted.
         pt.newProjectName = newProjectName;
         pt.accepted = true;
         pt.update();
 
-        // 반대쪽 이관 요청 삭제
-        ProjectTransfer.deleteExisting(project, pt.to, pt.from);
+        // If the opposite request is exists, delete it.
+        ProjectTransfer.deleteExisting(project, pt.sender, pt.destination);
 
         return redirect(routes.ProjectApp.project(project.owner, project.name));
     }
 
     private static void sendTransferRequestMail(ProjectTransfer pt) {
         HtmlEmail email = new HtmlEmail();
-
         try {
             String acceptUrl = pt.getAcceptUrl();
-            String message = Messages.get("transfer.message.hello", pt.to.loginId) + "\n\n"
-                    + Messages.get("transfer.message.detail", pt.project.name, pt.newProjectName, pt.from.loginId, pt.to.loginId) + "\n"
+            String message = Messages.get("transfer.message.hello", pt.destination) + "\n\n"
+                    + Messages.get("transfer.message.detail", pt.project.name, pt.newProjectName, pt.project.owner, pt.destination) + "\n"
                     + Messages.get("transfer.message.link") + "\n\n"
                     + acceptUrl + "\n\n"
                     + Messages.get("transfer.message.deadline") + "\n\n"
                     + Messages.get("transfer.message.thank");
 
-            email.setFrom(Config.getEmailFromSmtp(), pt.from.name);
+            email.setFrom(Config.getEmailFromSmtp(), pt.sender.name);
             email.addTo(Config.getEmailFromSmtp(), "Yobi");
-            email.addBcc(pt.to.email, pt.to.name);
-            email.setSubject(String.format("[%s] @%s wants to transfer project", pt.project.name, pt.from.loginId));
+
+            User to = User.findByLoginId(pt.destination);
+            if(!to.isAnonymous()) {
+                email.addBcc(to.email, to.name);
+            }
+
+            Organization org = Organization.findByName(pt.destination);
+            if(org != null) {
+                List<OrganizationUser> admins = OrganizationUser.findAdminsOf(org);
+                for(OrganizationUser admin : admins) {
+                    email.addBcc(admin.user.email, admin.user.name);
+                }
+            }
+
+            email.setSubject(String.format("[%s] @%s wants to transfer project", pt.project.name, pt.sender.loginId));
             email.setHtmlMsg(Markdown.render(message));
             email.setTextMsg(message);
             email.setCharset("utf-8");

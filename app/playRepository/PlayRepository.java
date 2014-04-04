@@ -160,11 +160,11 @@ public interface PlayRepository {
     /**
      * 저장소를 옮긴다.
      *
-     * @param fromUserLoginId
-     * @param fromProjectName
-     * @param toUserLoginId
-     * @param toProjectName
+     * @param srcProjectOwner
+     * @param srcProjectName
+     * @param desrProjectOwner
+     * @param destProjectName
      * @return
      */
-    boolean move(String fromUserLoginId, String fromProjectName, String toUserLoginId, String toProjectName);
+    boolean move(String srcProjectOwner, String srcProjectName, String desrProjectOwner, String destProjectName);
 }
