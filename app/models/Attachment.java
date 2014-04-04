@@ -18,6 +18,7 @@ import models.resource.Resource;
 import models.resource.ResourceConvertible;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.tika.Tika;
 
 import models.enumeration.ResourceType;
@@ -264,6 +265,10 @@ public class Attachment extends Model implements ResourceConvertible {
             this.mimeType = mediaType.toString();
             if (mediaType.getType().toLowerCase().equals("text")) {
                 this.mimeType += "; charset=" + FileUtil.detectCharset(new FileInputStream(file));
+            } else if (mediaType.equals(MediaType.audio("ogg"))
+                    && FilenameUtils.getExtension(name).toLowerCase().equals("ogv")) {
+                // This fixes Tika's misjudge of media type for ogg videos.
+                this.mimeType = "video/ogg";
             }
         }
 
