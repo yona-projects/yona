@@ -40,12 +40,16 @@ import models.*;
 import models.enumeration.RoleType;
 import views.html.organization.create;
 import views.html.organization.view;
+import views.html.organization.setting;
 
 import javax.validation.ConstraintViolation;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Set;
 
 import static play.data.Form.form;
+import static utils.LogoUtil.*;
 
 /**
  * @author Keeun Baik
@@ -280,7 +284,7 @@ public class OrganizationApp extends Controller {
      * @return
      */
     public static Result members(String organizationName) {
-        Result result = validateForMembers(organizationName);
+        Result result = validateForSetting(organizationName);
         if (result != null) {
             return result;
         }
@@ -291,12 +295,29 @@ public class OrganizationApp extends Controller {
     }
 
     /**
+     * 그룹 페이지 안에있는 그룹 관리 페이지로 이동한다.
+     *
+     * @param organizationName
+     * @return
+     */
+    public static Result settingForm(String organizationName) {
+        Result result = validateForSetting(organizationName);
+        if (result != null) {
+            return result;
+        }
+
+        Organization organization = Organization.findByOrganizationName(organizationName);
+
+        return ok(views.html.organization.setting.render(organization));
+    }
+
+    /**
      * {@link #members(String)}를 위해 사용되는 변수의 유효성 검사를 한다.
      *
      * @param organizationName
      * @return
      */
-    private static Result validateForMembers(String organizationName) {
+    private static Result validateForSetting(String organizationName) {
         Organization organization = Organization.findByOrganizationName(organizationName);
         if (organization == null) {
             return notFound(ErrorViews.NotFound.render("organization.member.unknownOrganization", organization));
@@ -324,5 +345,48 @@ public class OrganizationApp extends Controller {
         result.put("location", location);
 
         return ok(result);
+    }
+
+    private static Result validateForupdateOrganizationInfo(String organizationName) {
+        Result result = validateForSetting(organizationName);
+
+        if (result == null) {
+            Form<Organization> organizationForm = form(Organization.class).bindFromRequest();
+            if (organizationForm.hasErrors()) {
+                Organization organization = Organization.findByOrganizationName(organizationName);
+                return badRequest(setting.render(organization));
+            }
+        }
+
+        return result;
+    }
+
+    public static Result updateOrganizationInfo(String organizationName) throws IOException, NoSuchAlgorithmException {
+        Result result = validateForupdateOrganizationInfo(organizationName);
+        if (result != null) {
+            return result;
+        }
+
+        Form<Organization> organizationForm = form(Organization.class).bindFromRequest();
+        Organization organization = organizationForm.get();
+        Http.MultipartFormData body = request().body().asMultipartFormData();
+        Http.MultipartFormData.FilePart filePart = body.getFile("logoPath");
+
+        if (!isEmptyFilePart(filePart)) {
+            if(!isImageFile(filePart.getFilename())) {
+                flash(Constants.WARNING, "project.logo.alert");
+                organizationForm.reject("logoPath");
+            } else if (filePart.getFile().length() > LOGO_FILE_LIMIT_SIZE) {
+                flash(Constants.WARNING, "project.logo.fileSizeAlert");
+                organizationForm.reject("logoPath");
+            } else {
+                Attachment.deleteAll(organization.asResource());
+                new Attachment().store(filePart.getFile(), filePart.getFilename(), organization.asResource());
+            }
+        }
+
+        organization.update();
+
+        return redirect(routes.OrganizationApp.settingForm(organizationName));
     }
 }

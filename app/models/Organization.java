@@ -21,7 +21,6 @@
 package models;
 
 import models.enumeration.ProjectScope;
-import models.enumeration.RoleType;
 import models.enumeration.ResourceType;
 import models.resource.GlobalResource;
 import models.resource.Resource;

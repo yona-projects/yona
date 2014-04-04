@@ -1,0 +1,20 @@
+@(organization:Organization)
+
+@isActiveSubMenu(calls: Call*) = @{
+    var menuState = ""
+    for(call <- calls) {
+        if(call.toString().equals(request().path().toString())) {
+            menuState = "active"
+        }
+    }
+    menuState
+}
+
+<ul class="nav nav-tabs">
+    <li class="@isActiveSubMenu(routes.OrganizationApp.settingForm(organization.name))">
+        <a href="@routes.OrganizationApp.settingForm(organization.name)">@Messages("organization.settingFrom")</a>
+    </li>
+    <li class="@isActiveSubMenu(routes.OrganizationApp.members(organization.name))">
+        <a href="@routes.OrganizationApp.members(organization.name)">@Messages("organization.member")</a>
+    </li>
+</ul>
