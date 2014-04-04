@@ -274,6 +274,8 @@ UPDATE notification_event SET resource_type='REVIEW_COMMENT' WHERE resource_type
 UPDATE notification_event SET event_type='NEW_REVIEW_COMMENT' WHERE event_type='NEW_PULL_REQUEST_COMMENT';
 ALTER TABLE notification_event ADD constraint ck_notification_event_resource_type check (resource_type in ('ISSUE_POST','ISSUE_ASSIGNEE','ISSUE_STATE','ISSUE_CATEGORY','ISSUE_MILESTONE','ISSUE_LABEL','BOARD_POST','BOARD_CATEGORY','BOARD_NOTICE','CODE','MILESTONE','WIKI_PAGE','PROJECT_SETTING','SITE_SETTING','USER','USER_AVATAR','PROJECT','ATTACHMENT','ISSUE_COMMENT','NONISSUE_COMMENT','LABEL','PROJECT_LABELS','FORK','COMMIT_COMMENT','PULL_REQUEST','REVIEW_COMMENT'));
 
+UPDATE user_project_notification SET notification_type='NEW_REVIEW_COMMENT' WHERE notification_type='NEW_PULL_REQUEST_COMMENT';
+
 # --- !Downs
 
 CREATE TABLE IF NOT EXISTS pull_request_comment (
