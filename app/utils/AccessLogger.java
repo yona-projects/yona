@@ -16,10 +16,10 @@ import java.util.Locale;
 public class AccessLogger {
 
     /**
-     * {@code value}가 null이면 "-"을, 아니면 그대로 반환한다.
+     * Return "-" if the given string is null or return itself.
      *
-     * @param value
-     * @return {@code value}가 null이면 {@code "-"}, 그렇지 않다면 {@code value}와 같은 문자열
+     * @param value - the String to be checked
+     * @return the String itself, {@code "-"} if null String input
      */
     static private String orHyphen(String value) {
         if (value == null || value.isEmpty()) {
@@ -30,10 +30,10 @@ public class AccessLogger {
     }
 
     /**
-     * {@code value}가 null이면 "-"을, 아니면 그대로 반환한다.
+     * Double-quote the given string or return "-" if it is null.
      *
-     * @param value
-     * @return {@code value}가 null이면 {@code "-"}, 그렇지 않다면 {@code value}를 큰따옴표로 감싼 문자열
+     * @param value - the String to be double-quoted
+     * @return the double-quoted string, {@code "-"} if null String input
      */
     static private String quotedOrHyphen(String value) {
         if (value == null) {
@@ -44,28 +44,29 @@ public class AccessLogger {
     }
 
     /**
-     * Access Log를 남긴다.
+     * Log a message for an HTTP request.
      *
-     * when: 매 HTTP 요청이 있을 때 마다 수행되는 {@link Global#onRequest(play.mvc.Http.Request,
-     * java.lang.reflect.Method)}에서, 요청의 처리가 완료되면 이 메소드가 호출되도록 한다.
+     * This method is called by
+     * {@link Global#onRequest(play.mvc.Http.Request, java.lang.reflect.Method)}
+     * after an HTTP request is processed.
      *
-     * 로그 포맷은 다음의 예와 같이 Apache HTTP Server의 Combined Log Format을 따르나 다음의 두 가지가
-     * 다르다.
+     * The format follows Combined Log Format of Apache HTTP Server, except these:
      *
-     * 1. 세 번째 필드에는 현재 사용자의 아이디가 온다. 이 값은 HTTP 인증(Basic Authentication 등)을 통해
-     * 얻은 것이 아닐 수도 있다.
-     * 2. log entry의 끝에 요청이 처리되는데 걸린 시간이 추가된다.
+     * 1. The third field is username. The value comes from the Yobi's
+     *    authentication scheme.
+     * 2. The unit-postfixed time taken to serve the request is added at the
+     *    end of log entry.
+     * 3. The ident field and size of response in bytes is always empty with "-",
+     *    because of functional limitation of Yobi.
      *
-     * 127.0.0.1 - frank [10/Oct/2000:13:55:36 -0700] "GET /apache_pb.gif" 200 - "http://www
-     * .example.com/start.html" "Mozilla/4.08 [en] (Win98; I ;Nav)" 70ms
+     * Here is an example:
      *
-     * 또한 현재 기능상의 한계로 ident와 요청의 길이는 항상 값이 비어있는 상태로 로그가 남게 된다.
+     * 127.0.0.1 - eungjun [16/Oct/2013:18:31:31 +0900] "GET /messages.js HTTP/1.1" 200 - "http://yobi:9000/" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.95 Safari/537.36" 18ms
      *
-     * TODO: 요청의 길이는 기록할 수 있다면 유용할 것이다.
-     *
-     * @param request HTTP 요청
-     * @param startTimeMillis 요청을 처음 받은 시간 (밀리초 단위)
-     * @see <a href="http://httpd.apache.org/docs/2.2/logs.html">Log Files - Apache HTTP Server</a>
+     * @param request an HTTP request
+     * @param startTimeMillis the time in milliseconds when the request is received
+     * @see <a href="http://httpd.apache.org/docs/2.2/en/logs.html#combined">Combined Log Format - Apache HTTP Server</a>
+     * @see <a href="http://httpd.apache.org/docs/2.2/mod/mod_log_config.html#formats">Custom Log Formats - Apache HTTP Server</a>
      */
     public static Result log(final Http.Request request, final Result result,
             final Long startTimeMillis) {
@@ -95,18 +96,22 @@ public class AccessLogger {
     }
 
     /**
-     * Access Log를 남긴다.
+     * Log a message for an HTTP request.
      *
-     * when: HTTP 요청 처리 중에 오류가 발생했을 때 호출되는 {@link Global#onError(play.mvc.Http.RequestHeader,
-     * Throwable)}, {@link Global#onBadRequest(play.mvc.Http.RequestHeader, String)},
-     * {@link Global#onHandlerNotFound(play.mvc.Http.RequestHeader)} 에서 로그를 남기기 위해 이 메소드를 호출한다.
+     * This method is used by
+     * {@link Global#onError(play.mvc.Http.RequestHeader, Throwable)},
+     * {@link Global#onBadRequest(play.mvc.Http.RequestHeader, String)} and
+     * {@link Global#onHandlerNotFound(play.mvc.Http.RequestHeader)}, which are
+     * called if an error occurs while processing an HTTP request, to log a
+     * message.
      *
-     * {@link #log(play.mvc.Http.Request, play.mvc.Result, Long)}와 같지만,
-     * 응답 대신 사용자 이름과 상태코드를 받는다는 점이 다르다.
+     * This method is similar with
+     * {@link #log(play.mvc.Http.Request, play.mvc.Result, Long)}, except this
+     * requires an username and a status code instead of an HTTP response.
      *
-     * @param request HTTP 요청 헤더
-     * @param username {@link play.mvc.Http.Request#username()}를 통해 얻을 수 있는, HTTP 요청의 사용자 이름
-     * @param status HTTP 응답의 상태 코드
+     * @param request HTTP request header
+     * @param username an username of HTTP request from {@link play.mvc.Http.Request#username()}
+     * @param status HTTP status code
      * @see <a href="http://httpd.apache.org/docs/2.2/logs.html">Log Files - Apache HTTP Server</a>
      */
     public static void log(Http.RequestHeader request, String username, int status) {
@@ -114,15 +119,16 @@ public class AccessLogger {
     }
 
     /**
-     * Access Log를 남긴다.
+     * Log a message for an HTTP request.
      *
-     * when: {@link #log(play.mvc.Http.Request, play.mvc.Result, Long)}와
-     * {@link #log(play.mvc.Http.RequestHeader, String, int)}가 이 메소드를 호출해서 로그를 남긴다.
+     * This method is used by
+     * {@link #log(play.mvc.Http.Request, play.mvc.Result, Long)} and
+     * {@link #log(play.mvc.Http.RequestHeader, String, in} to log a message.
      *
-     * @param request HTTP 요청 헤더
-     * @param username {@link play.mvc.Http.Request#username()}를 통해 얻을 수 있는, HTTP 요청의 사용자 이름
-     * @param status HTTP 응답의 상태 코드
-     * @param startTimeMillis 요청을 처음 받은 시간 (밀리초 단위)
+     * @param request HTTP request header
+     * @param username an username of HTTP request from {@link play.mvc.Http.Request#username()}
+     * @param status HTTP status code
+     * @param startTimeMillis the time in milliseconds when the request is received
      * @see <a href="http://httpd.apache.org/docs/2.2/logs.html">Log Files - Apache HTTP Server</a>
      */
     private static void log(Http.RequestHeader request, String username, int status,

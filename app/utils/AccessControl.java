@@ -11,24 +11,20 @@ import models.resource.Resource;
 public class AccessControl {
 
     /**
-     * user가 주어진 resourceType을 생성할 수 있는지 여부를 반환한다.
+     * Checks if an user has a permission to create a global resource.
      *
-     * 현재는 Global Resource 중에서 Project를 생성할 때만 사용한다.
-     *
-     * 유저가 로그인하지 않았으면 생성권한이 없다고 판단한다.
+     * Currently it always returns true if the user is not anonymous.
      *
      * @param user
-     * @return user가 해당 resourceType을 생성할 수 있는지 여부
+     * @return true if the user has the permission
      */
     public static boolean isGlobalResourceCreatable(User user) {
         return !user.isAnonymous();
     }
 
     /**
-     * user가 해당 project에서 주어진 resourceType의 resource를 생성할 수 있는 여부를 반환한다.
-     *
-     * 자신이 프로젝트 멤버일 경우에는 프로젝트에 속하는 모든 리소스에 대한 생성권한을 갖고
-     * 로그인 유저일 경우에는 이슈와 게시물에 한해서만 생성할 수 있다.
+     * Checks if an user has a permission to create a resource of the given
+     * type in the given project.
      *
      * 주의: 어떤 리소스의 저자이기 때문에 그 리소스에 속한 리소스를 생성할 수 있는지에 대한
      * 여부는 검사하지 않는다.
@@ -36,9 +32,8 @@ public class AccessControl {
      * @param user
      * @param project
      * @param resourceType
-     * @return user가 해당 project에서 주어진 resourceType의 resource를 생성할 수 있는지 여부
+     * @return true if the user has the permission
      */
-
     public static boolean isProjectResourceCreatable(User user, Project project, ResourceType resourceType) {
         if (user == null) return false;
         if (user.isSiteManager()) {
@@ -90,19 +85,17 @@ public class AccessControl {
     }
 
     /**
-     * Global 리소스에 대해 주어진 리소스의 operation을 허용하는지 여부
+     * Checks if an user has a permission to do the given operation to the given
+     * resource.
      *
-     * 임시 업로드 파일은 해당 파일을 업로드한 사용자만 접근할 수 있다.
-     * 비공개 프로젝트는 해당 프로젝트의 멤버만 접근할 수 있다.
-     * 공개 프로젝트는 모든 사용자가 접근할 수 있다.
-     * 사용자 및 사용자의 아바타는 그 사용자 본인만 갱신 혹은 삭제할 수 있다.
-     * 프로젝트는 그 프로젝트의 관리자만이 갱신 혹은 삭제할 수 있다.
-     * 익명의 사용자는 지켜보기를 사용 할 수 없다. 비공개 프로젝트에서는 프로젝트 멤버만이 지켜보기를 사용 할 수 있다.
+     * See docs/technical/access-control.md for more information.
+     *
      *
      * @param user
      * @param resource
      * @param operation
-     * @return
+     * @return true if the user has the permission
+     * @see docs/technical/access-control.md
      */
     private static boolean isGlobalResourceAllowed(User user, GlobalResource resource,
                                                    Operation operation) {
@@ -150,8 +143,8 @@ public class AccessControl {
     }
 
     /**
-     * {@code user}가 프로젝트 리소스인 {@code resource}에 {@code operation}을
-     * 하는 것이 허용되는지의 여부를 반환한다.
+     * Checks if an user has a permission to do the given operation to the given
+     * resource belongs to the given project.
      *
      * See docs/technical/access-control.md for more information.
      *
@@ -159,7 +152,7 @@ public class AccessControl {
      * @param project
      * @param resource
      * @param operation
-     * @return
+     * @return true if the user has the permission
      */
     private static boolean isProjectResourceAllowed(User user, Project project, Resource resource, Operation operation) {
         if (user.isSiteManager()
@@ -223,14 +216,13 @@ public class AccessControl {
     }
 
     /**
-     * {@code user}가 {@code resource}에 {@code operation}을 하는 것이
-     * 허용되는지의 여부를 반환한다.
+     * Checks if an user has a permission to do the given operation to the given
+     * resource.
      *
      * @param user
      * @param resource
      * @param operation
-     * @return {@code user}가 {@code resource}에 {@code operation}을
-     *         하는 것이 허용되는지의 여부
+     * @return true if the user has the permission
      */
     public static boolean isAllowed(User user, Resource resource, Operation operation)
             throws IllegalStateException {
@@ -252,18 +244,16 @@ public class AccessControl {
     }
 
     /**
-     * {@code user}가 {@code resource}에 대해 저자로서의 읽기, 수정,
-     * 삭제 권한을 갖는지의 여부를 반환한다.
+     * Checks if an user has a permission to do something to the given
+     * resource as an author.
      *
-     * 다음의 두 조건이 모두 참인 경우에만 참을 반환한다.
-     * - {@code resource}가 저자에게 읽기, 수정, 삭제 권한을
-     *   부여하는 리소스인가
-     * - {@code user}가 저자인가
+     * Returns true if and only if these are all true:
+     * - {@code resource} gives permission to read, modify and delete to its author.
+     * - {@code user} is an author of the resource.
      *
      * @param user
      * @param resource
-     * @return {@code user}가 {@code resource}에 대해 저자로서의
-    *          읽기, 수정, 삭제 권한을 갖는지의 여부
+     * @return true if the user has the permission
      */
     private static boolean isAllowedIfAuthor(User user, Resource resource) {
         switch (resource.getType()) {

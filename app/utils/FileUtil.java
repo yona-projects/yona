@@ -28,12 +28,12 @@ public class FileUtil {
     }
 
     /**
-     * 문자열을 읽어들여 해당 문자열이 어떤 charset을 사용하고 있는지 알아낸다.
+     * Detect the charset used for the given byte array.
      *
-     * 실패한 경우 UTF-8을 반환한다.
+     * Return "UTF-8" if it fails.
      *
-     * @param bytes
-     * @return
+     * @param bytes - a byte array to be checked
+     * @return charset - the charset used
      * @throws IOException
      */
     public static String detectCharset(byte bytes[]) {
@@ -51,12 +51,12 @@ public class FileUtil {
     }
 
     /**
-     * 문자열을 읽어들여 해당 문자열이 어떤 charset을 사용하고 있는지 알아낸다.
+     * Detect the charset used for the given stream.
      *
-     * 실패한 경우 UTF-8을 반환한다.
+     * Return "UTF-8" if it fails.
      *
-     * @param is
-     * @return
+     * @param is - an input stream to be checked
+     * @return charset - the charset used
      * @throws IOException
      */
     public static String detectCharset(InputStream is) throws IOException {
