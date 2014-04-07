@@ -73,7 +73,8 @@
         </button>
         <ul class="dropdown-menu mass-update-list">
             <li data-value="@Milestone.NULL_MILESTONE_ID"><a>@Messages("issue.noMilestone")</a></li>
-            @for(milestone <- Milestone.findByProjectId(project.id)) {
+            <li class="divider"></li>
+            @for(milestone <- Milestone.findOpenMilestones(project.id)) {
                 <li data-value="@milestone.id"><a>@milestone.title</a></li>
             }
         </ul>
