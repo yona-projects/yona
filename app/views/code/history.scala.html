@@ -134,7 +134,12 @@
                                     </a>
                                 </td>
                                 <td class="messages">
-                                    @defining(CommentThread.count(null, commit.getId, path)){ numOfComment =>
+                                    @defining(
+                                        if(project.isGit()) {
+                                            CommentThread.count(null, commit.getId, path)
+                                        } else {
+                                            CommitComment.count(project, commit.getId, path)
+                                        }){ numOfComment =>
                                         @if(numOfComment > 0) {
                                         <span class="number-of-comments"><i class="yobicon-comments"></i> @numOfComment</span>
                                         }
