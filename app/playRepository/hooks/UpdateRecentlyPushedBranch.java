@@ -76,11 +76,19 @@ public class UpdateRecentlyPushedBranch implements PostReceiveHook {
                 pushedBranch.update();
             }
 
-            if (pushedBranch == null && PullRequest.findByFromProjectAndBranch(project, branch).isEmpty()) {
+            if (isNotExistsPushedBranch(branch, pushedBranch) && isNotTag(branch)) {
                 pushedBranch = new PushedBranch(JodaDateUtil.now(), branch, project);
                 pushedBranch.save();
             }
         }
+    }
+
+    private boolean isNotTag(String branch) {
+        return !branch.contains(org.eclipse.jgit.lib.Constants.R_TAGS);
+    }
+
+    private boolean isNotExistsPushedBranch(String branch, PushedBranch pushedBranch) {
+        return pushedBranch == null && PullRequest.findByFromProjectAndBranch(project, branch).isEmpty();
     }
 
     /*
