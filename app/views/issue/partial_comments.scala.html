@@ -86,14 +86,15 @@
                     </a>
                 </span>
                 <a href="#comment-@comment.id" class="ago" title="@JodaDateUtil.getDateString(comment.createdDate)">@utils.TemplateHelper.agoString(comment.ago())</a>
-                @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
-                <span class="edit pull-right">
-                    <button type="button" class="btn-transparent close" data-toggle="comment-delete" data-request-uri="@routes.IssueApp.deleteComment(project.owner, project.name, issue.getNumber, comment.id)" title="@Messages("common.comment.delete")"><i class="yobicon-trash"></i></button>
+                <span class="act-row pull-right">
+                    @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.UPDATE)) {
+                        <button type="button" class="btn-transparent mr10" data-toggle="comment-edit" data-comment-editform-id="comment-editform-@comment.id" title="@Messages("common.comment.edit")"><i class="yobicon-edit-2"></i></button>
+                    }
+
+                    @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)) {
+                        <button type="button" class="btn-transparent" data-toggle="comment-delete" data-request-uri="@routes.IssueApp.deleteComment(project.owner, project.name, issue.getNumber, comment.id)" title="@Messages("common.comment.delete")"><i class="yobicon-trash"></i></button>
+                    }
                 </span>
-                <span class="pull-right">
-                    <button type="button" class="btn-transparent close" data-toggle="comment-edit" data-comment-editform-id="comment-editform-@comment.id" title="@Messages("common.comment.edit")"><i class="yobicon-edit-2"></i></button>
-                </span>
-                }
             </div>
 
             <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
