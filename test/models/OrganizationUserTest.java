@@ -28,6 +28,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import play.test.Helpers;
 import play.test.FakeApplication;
+
+import java.util.List;
+
 import static org.fest.assertions.Assertions.assertThat;
 import static play.test.Helpers.callAction;
 
@@ -122,6 +125,24 @@ public class OrganizationUserTest {
         OrganizationUser.assignRole(user.id, organization.id, secondRoleType);
         organizationUser = OrganizationUser.findByOrganizationIdAndUserId(organization.id, user.id);
         assertThat(organizationUser.role.id).isEqualTo(secondRoleType);
+    }
+
+    @Test
+    public void listOrganization() {
+        // Given
+        Organization organization = createOrganization("TestOrganization");
+        User laziel = User.findByLoginId("laziel");
+        User doortts = User.findByLoginId("doortts");
+
+        // When
+        OrganizationUser.assignRole(laziel.id, organization.id, RoleType.ORG_ADMIN.roleType());
+
+        // Then
+        List<OrganizationUser> ousOfLaziel = OrganizationUser.findByUser(laziel, 5);
+        assertThat(ousOfLaziel.size()).isEqualTo(1);
+
+        List<OrganizationUser> ousOfDoortts = OrganizationUser.findByUser(doortts, 5);
+        assertThat(ousOfDoortts.size()).isEqualTo(0);
     }
 
 }

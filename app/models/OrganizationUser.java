@@ -98,4 +98,11 @@ public class OrganizationUser extends Model {
     public static boolean exist(Long organizationId, Long userId) {
         return findByOrganizationIdAndUserId(organizationId, userId) != null;
     }
+
+    public static List<OrganizationUser> findByUser(User user, int size) {
+        return find.where().eq("user", user)
+                .order().asc("organization.name")
+                .setMaxRows(size)
+                .findList();
+    }
 }

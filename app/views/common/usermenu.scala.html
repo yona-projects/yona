@@ -59,6 +59,19 @@
                     @Messages("title.logout")
                 </a>
             </li>
+            @defining(UserApp.currentUser.getOrganizations(5)) { groups =>
+                <li class="title">
+                    @Messages("title.organization")
+                    <span class="numberic">@groups.size</span>
+                </li>
+                @if(groups.length > 0) {
+                    @for(g <- groups){
+                        <li><a href="@routes.OrganizationApp.organization(g.name)"><span class="bold">@g.name</span></a></li>
+                    }
+                } else {
+                    <li class="empty">@Messages("organization.is.empty")</li>
+                }
+            }
             @defining(UserApp.currentUser.getVisitedProjects(5)){ visitedProjects =>
                 <li class="title">
                     @Messages("project.recently.visited")
