@@ -33,6 +33,7 @@ public class NonRangedCodeCommentThread extends CommentThread {
 
     private static final long serialVersionUID = -1L;
 
+    public String prevCommitId = StringUtils.EMPTY;
     public String commitId;
 
     public boolean isOnChangesOfPullRequest() {

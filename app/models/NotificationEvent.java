@@ -381,6 +381,8 @@ public class NotificationEvent extends Model {
         notiEvent.eventType = NEW_COMMENT;
         notiEvent.oldValue = null;
         notiEvent.newValue = comment.contents;
+        notiEvent.resourceType = comment.asResource().getType();
+        notiEvent.resourceId = comment.asResource().getId();
 
         NotificationEvent.add(notiEvent);
     }

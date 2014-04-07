@@ -779,7 +779,12 @@ public class PullRequestApp extends Controller {
             } else {
                 // non-range
                 NonRangedCodeCommentThread thread = new NonRangedCodeCommentThread();
-                thread.commitId = commitId;
+                if (commitId != null) {
+                    thread.commitId = commitId;
+                } else {
+                    thread.commitId = pullRequest.mergedCommitIdTo;
+                    thread.prevCommitId = pullRequest.mergedCommitIdFrom;
+                }
                 comment.thread = thread;
             }
             comment.thread.project = project;
