@@ -43,6 +43,7 @@
             htVar.sParentCommitId = htOptions.sParentCommitId;
             htVar.sCommitId = htOptions.sCommitId;
             htVar.rxSlashes = /\//g;
+            htVar.htThreadWrap = {};
 
             // 미니맵
             htVar.sQueryMiniMap = htOptions.sQueryMiniMap || "li.comment";
@@ -64,8 +65,9 @@
             htElement.waDiffContainers = htElement.welDiffWrap.find(".diff-container");
 
             // 리뷰영역
+            htElement.welCommentWrap = htElement.welContainer.find("div.board-comment-wrap");
             htElement.welReviewWrap = htElement.welContainer.find("div.review-wrap");
-            htElement.welReviewList = htElement.welReviewWrap.find("div.review-wrap-scroll");
+            htElement.welReviewContainer = htElement.welReviewWrap.find("div.review-container");
             htElement.waBtnToggleReviewWrap = htElement.welContainer.find("button.btn-show-reviewcards,button.btn-hide-reviewcards");
 
             // 전체 댓글 (Non-Ranged comment thread)
@@ -99,6 +101,55 @@
             htElement.waBtnToggleReviewWrap.on("click", function(){
                 htElement.welContainer.toggleClass("diffs-only");
             });
+
+            // 리뷰카드 링크 클릭시
+            htElement.welReviewWrap.on("click", "a.review-card", _onClickReviewCardLink);
+
+            // Diff 영역에서 스크롤시
+            // .comment-thread-wrap 의 좌우 위치를 맞춰준다
+            $(".diff-partial-code").on("scroll", function(){
+                var welPartial = $(this);
+                var sHashCode = $(this).data("hashcode");
+                htVar.htThreadWrap[sHashCode] = htVar.htThreadWrap[sHashCode] || welPartial.find(".comment-thread-wrap");
+                htVar.htThreadWrap[sHashCode].css("margin-left", welPartial.scrollLeft() + "px");
+            });
+        }
+
+        /**
+         * 리뷰카드 링크 클릭시 이벤트 핸들러
+         *
+         * 기본적으로 리뷰카드는 링크이기 때문에 달리 대응할 필요가 없지만
+         * 접어놓은 스레드인 경우 알아보기 힘들어서 그에 맞는 조치를 위한 핸들러 함수이다
+         *
+         * @param weEvt
+         * @returns {boolean}
+         * @private
+         */
+        function _onClickReviewCardLink(weEvt){
+            var welTarget = $(weEvt.currentTarget);
+
+            // 클릭한 링크의 href 속성에서 # 해시 이후의 값을 이용해
+            // 해당하는 스레드를 찾는다
+            var sLink = welTarget.attr("href");
+            var sHash = sLink.split("#").pop();
+            var welThread = $("#" + sHash);
+
+            // 링크에 맞는 스레드가 페이지 내에 존재하는 경우에만
+            if(welThread.length === 0) {
+                return;
+            }
+
+            window.scrollTo(0, welThread.offset().top - 50);
+
+            // 스레드가 접혀있는 경우
+            if(welThread.hasClass("fold")) {
+                welThread.find(".btn-thread-here").effect("bounce", {"easing": "easeOutBounce"});
+            } else { // 펼쳐져 있는 경우
+                welThread.effect("highlight");
+            }
+
+            weEvt.preventDefault();
+            return false;
         }
 
         /**
@@ -144,9 +195,13 @@
                 return;
             }
 
-            htVar.nAffixTop = htElement.welReviewWrap.offset().top - 25;
+            htVar.nAffixTop = htElement.welReviewWrap.offset().top;
             _updateReviewWrapAffixed();
-            $(window).on("scroll", _updateReviewWrapAffixed);
+
+            $(window).on({
+                "scroll": _updateReviewWrapAffixed,
+                "resize": _updateReviewWrapAffixed
+            });
         }
 
         /**
@@ -154,10 +209,28 @@
          * @private
          */
         function _updateReviewWrapAffixed(){
-            if($(window).scrollTop() > htVar.nAffixTop){
+            var welWindow = $(window);
+            var nScrollTop = welWindow.scrollTop();
+            var nWindowHeight = welWindow.height();
+
+            if(nScrollTop > htVar.nAffixTop){
                 htElement.welReviewWrap.addClass("fixed");
             } else {
                 htElement.welReviewWrap.removeClass("fixed");
+            }
+
+            // 스크롤이 댓글 폼 아래로 내려가면
+            // 리뷰 목록은 댓글 폼 높이까지만 표시되도록 bottom 값을 조절한다
+            if(htElement.welReviewWrap.hasClass("fixed")){
+                var nEndOfScroll = nScrollTop + nWindowHeight;
+                var nTargetOffsetTop = htElement.welCommentWrap.offset().top + htElement.welCommentWrap.height();
+                var nReviewWrapFromBottom = nEndOfScroll - nTargetOffsetTop;
+
+                if(nReviewWrapFromBottom > 0){
+                    htElement.welReviewContainer.css("bottom", nReviewWrapFromBottom + 90);
+                } else {
+                    htElement.welReviewContainer.css("bottom", 50);
+                }
             }
         }
 
@@ -216,7 +289,7 @@
                 _initCodeCommentBlock();
 
                 // 줄번호 클릭으로 댓글 작성 (예전 댓글 기능)
-                $('div.diff-body[data-outdated!="true"] tr .linenum:first-child').on("click", _onClickLineNumA);
+                $('div.diff-body[data-outdated!="true"]').on("click", "tr[data-line] .linenum", _onClickLineNumA);
 
                 // 스레드에 댓글 추가 버튼
                 htElement.welDiffWrap.on("click", "button.btn-thread", _onClickBtnReplyOnThread);
@@ -245,6 +318,7 @@
                 "fOnAfterHide": function(){
                     _updateMiniMap();
                     yobi.CodeCommentBlock.unblock();
+                    htVar.htBlockInfo = null;
                 },
                 "sTplFileItem": htVar.sTplFileItem
             });
@@ -283,6 +357,7 @@
             htElement.welDiffBody.on("mousedown", ":not(.btnPop)", function(){
                 if(document.getSelection().toString().length === 0){
                     yobi.CodeCommentBox.hide();
+                    htVar.htBlockInfo = null;
                 }
             });
         }
@@ -310,6 +385,12 @@
                 "sPlacement": htBlockInfo.bIsReversed ? "top" : "bottom",
                 "nAdjustmentTop": htElement.welDiffBody.position().top
             });
+
+            if(!htBlockInfo.bIsReversed){
+                window.scrollTo(0, welTR.offset().top - 50);
+            }
+
+            htVar.htBlockInfo = htBlockInfo;
         }
 
         /**
@@ -347,29 +428,55 @@
 
         /**
          * On Click fold/unfold thread toggle button
+         *
          * @param weEvt
          * @private
          */
         function _onClickBtnFoldThread(weEvt){
-            var welThread = $(weEvt.currentTarget).closest(".comment-thread-wrap");
-            var welButton = welThread.find(".btn-thread-here");
+            $(weEvt.currentTarget).closest(".comment-thread-wrap").toggleClass("fold");
+
+            htElement.welDiffBody.find(".btn-thread-here").each(function(i, el){
+                _setBtnThreadHerePosition($(el));
+            });
+        }
+
+        /**
+         * Set position of .btn-thread-here , which marks folded thread
+         *
+         * @param welButton
+         * @private
+         */
+        function _setBtnThreadHerePosition(welButton){
+            var welThread = welButton.closest(".comment-thread-wrap");
             var nMarginWidth = welButton.width() + 7;
             var nMarginHeight = welButton.height() - 7;
             var nPaddingRight = 10;
-            welThread.toggleClass("fold");
 
             // set unfold button right
             welButton.css("right", ((welThread.index() * nMarginWidth) + nPaddingRight) + "px");
 
             // set unfold button top
             // find target line with thread
-            var sEndLineQuery = 'tr[data-line="' + welThread.data("range-endline") + '"]' +
-                '[data-side="' + welThread.data("range-endside") + '"]';
-            var welEndLine = welThread.closest("tr").prev(sEndLineQuery);
+            var welEndLine = _getTargetLineByThread(welThread);
 
             if(welEndLine.length > 0){
                 welButton.css("top", welEndLine.position().top + nMarginHeight + "px");
             }
+        }
+
+        /**
+         * Get last line element in target range of comment-thread
+         *
+         * @param welThread
+         * @returns {*}
+         * @private
+         */
+        function _getTargetLineByThread(welThread){
+            var sEndLineQuery = 'tr[data-line="' + welThread.data("range-endline") + '"]' +
+                '[data-side="' + welThread.data("range-endside") + '"]';
+            var welEndLine = welThread.closest("tr").prev(sEndLineQuery);
+
+            return welEndLine;
         }
 
         /**
@@ -402,6 +509,10 @@
          */
         function _onMouseLeaveCodeCommentThread(){
             yobi.CodeCommentBlock.unblock();
+
+            if(yobi.CodeCommentBox.isVisible() && htVar.htBlockInfo){
+                yobi.CodeCommentBlock.block(htVar.htBlockInfo);
+            }
         }
 
         /**

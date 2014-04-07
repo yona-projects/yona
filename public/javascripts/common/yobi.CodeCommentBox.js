@@ -271,6 +271,16 @@ yobi.CodeCommentBox = (function(){
     }
 
     /**
+     * 댓글 상자가 표시되고 있는지를 반환
+     *
+     * @returns {boolean}
+     * @private
+     */
+    function _isVisible(){
+        return (htElement.welCommentWrap.css("display") === "block");
+    }
+
+    /**
      * 댓글 상자에 파일 업로더를 설정한다
      *
      * @private
@@ -293,6 +303,7 @@ yobi.CodeCommentBox = (function(){
         "init"  : _init,
         "show"  : _show,
         "hide"  : _hide,
-        "toggle": _toggleVisibility
+        "toggle": _toggleVisibility,
+        "isVisible": _isVisible
     };
 })();

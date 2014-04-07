@@ -3420,6 +3420,10 @@ label.issue-item-row {
         min-height:30px;
         top:0; right:0;
 
+        .review-container {
+            width:260px;
+        }
+
         &.fixed {
             .review-container {
                 position:fixed;
@@ -5106,6 +5110,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     padding:5px;
     padding-bottom:0;
     background-color:#fefefe;
+    max-width:876px;
 
     .comments {
         margin:0 5px;
@@ -5218,7 +5223,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     /*background-color:rgba(133,246,150,0.25);*/ /* green */
     background-color:rgba(0,133,255,0.25); /* blue */
     /*background-color:rgba(255,245,0,0.35); /* yellow */
-    padding:4px 0;
+    padding:2px 0;
 }
 .review-card {
     display:block;
@@ -5409,12 +5414,13 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
                     font-size: 12px;
                     color:#999;
 
-                    .author {
-
+                    .date {
+                        margin-left:8px;
                     }
 
-                    .date {
-                        margin-left:10px;
+                    .comments {
+                        margin-left:8px;
+                        i { vertical-align: middle; }
                     }
                 }
             }
