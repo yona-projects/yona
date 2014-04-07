@@ -5299,9 +5299,10 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     }
 
     .branchName {
+        min-width:200px;
         padding-top:13px;
 
-        a { color:@blue; }
+        a { color:@blue;font-family:@fixed-font-family; }
 
         .headBranch {
             color: #0088cc;
@@ -5313,22 +5314,10 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         }
     }
 
-    .commitMessage {
-        padding-top:13px;
-
-        .usf-group       { float:left; }
-        .avatar-wrap     { margin-top:0px; margin-right:10px; }
-        .commitMsg.short {
-            display:inline;
-            overflow:visible;
-            white-space: normal;
-            padding:0;
-        }
-        .commitMsg.desc  { margin-top:5px; }
-    }
-
-    .commitDate {
+    .commit {
         width:115px; padding-top:13px;
+        .commitId { font-family:@fixed-font-family; }
+        .date { font-size:11px; color:#777; margin-left:10px; }
     }
 
     .pullRequest {

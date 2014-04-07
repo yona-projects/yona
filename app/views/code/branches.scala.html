@@ -46,8 +46,7 @@
                     <thead class="thead">
                         <tr>
                             <th>@Messages("title.branches")</th>
-                            <th>@Messages("code.branches.commitMsg")</th>
-                            <th>@Messages("code.branches.commitDate")</th>
+                            <th>@Messages("code.branches.commit")</th>
                             <th>@Messages("code.branches.pullRequest")</th>
                             @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.DELETE) ||
                                 isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
