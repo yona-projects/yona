@@ -428,29 +428,55 @@
 
         /**
          * On Click fold/unfold thread toggle button
+         *
          * @param weEvt
          * @private
          */
         function _onClickBtnFoldThread(weEvt){
-            var welThread = $(weEvt.currentTarget).closest(".comment-thread-wrap");
-            var welButton = welThread.find(".btn-thread-here");
+            $(weEvt.currentTarget).closest(".comment-thread-wrap").toggleClass("fold");
+
+            htElement.welDiffBody.find(".btn-thread-here").each(function(i, el){
+                _setBtnThreadHerePosition($(el));
+            });
+        }
+
+        /**
+         * Set position of .btn-thread-here , which marks folded thread
+         *
+         * @param welButton
+         * @private
+         */
+        function _setBtnThreadHerePosition(welButton){
+            var welThread = welButton.closest(".comment-thread-wrap");
             var nMarginWidth = welButton.width() + 7;
             var nMarginHeight = welButton.height() - 7;
             var nPaddingRight = 10;
-            welThread.toggleClass("fold");
 
             // set unfold button right
             welButton.css("right", ((welThread.index() * nMarginWidth) + nPaddingRight) + "px");
 
             // set unfold button top
             // find target line with thread
-            var sEndLineQuery = 'tr[data-line="' + welThread.data("range-endline") + '"]' +
-                '[data-side="' + welThread.data("range-endside") + '"]';
-            var welEndLine = welThread.closest("tr").prev(sEndLineQuery);
+            var welEndLine = _getTargetLineByThread(welThread);
 
             if(welEndLine.length > 0){
                 welButton.css("top", welEndLine.position().top + nMarginHeight + "px");
             }
+        }
+
+        /**
+         * Get last line element in target range of comment-thread
+         *
+         * @param welThread
+         * @returns {*}
+         * @private
+         */
+        function _getTargetLineByThread(welThread){
+            var sEndLineQuery = 'tr[data-line="' + welThread.data("range-endline") + '"]' +
+                '[data-side="' + welThread.data("range-endside") + '"]';
+            var welEndLine = welThread.closest("tr").prev(sEndLineQuery);
+
+            return welEndLine;
         }
 
         /**
