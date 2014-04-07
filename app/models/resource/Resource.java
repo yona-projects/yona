@@ -63,6 +63,9 @@ public abstract class Resource {
                     play.Logger.error("Failed to determine whether the commit exists", e);
                     return false;
                 }
+            case COMMENT_THREAD:
+                finder = CommentThread.find;
+                break;
             default:
                 throw new IllegalArgumentException(getInvalidResourceTypeMessage(type));
         }
@@ -124,6 +127,8 @@ public abstract class Resource {
                 return User.find.byId(longId).avatarAsResource();
             case REVIEW_COMMENT:
                 return ReviewComment.find.byId(longId).asResource();
+            case COMMENT_THREAD:
+                return CommentThread.find.byId(longId).asResource();
             default:
                 throw new IllegalArgumentException(getInvalidResourceTypeMessage(resourceType));
         }
