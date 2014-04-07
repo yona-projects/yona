@@ -43,6 +43,7 @@
             htVar.sParentCommitId = htOptions.sParentCommitId;
             htVar.sCommitId = htOptions.sCommitId;
             htVar.rxSlashes = /\//g;
+            htVar.htThreadWrap = {};
 
             // 미니맵
             htVar.sQueryMiniMap = htOptions.sQueryMiniMap || "li.comment";
@@ -103,6 +104,15 @@
 
             // 리뷰카드 링크 클릭시
             htElement.welReviewWrap.on("click", "a.review-card", _onClickReviewCardLink);
+
+            // Diff 영역에서 스크롤시
+            // .comment-thread-wrap 의 좌우 위치를 맞춰준다
+            $(".diff-partial-code").on("scroll", function(){
+                var welPartial = $(this);
+                var sHashCode = $(this).data("hashcode");
+                htVar.htThreadWrap[sHashCode] = htVar.htThreadWrap[sHashCode] || welPartial.find(".comment-thread-wrap");
+                htVar.htThreadWrap[sHashCode].css("margin-left", welPartial.scrollLeft() + "px");
+            });
         }
 
         /**
