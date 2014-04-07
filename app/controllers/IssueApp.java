@@ -1,6 +1,5 @@
 package controllers;
 
-import actions.DefaultProjectCheckAction;
 import actions.NullProjectCheckAction;
 import actions.AnonymousCheckAction;
 import com.avaje.ebean.ExpressionList;
@@ -15,6 +14,7 @@ import models.enumeration.State;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.Tika;
 import org.codehaus.jackson.node.ObjectNode;
+import play.api.templates.Html;
 import play.data.Form;
 import play.data.validation.ValidationError;
 import play.db.ebean.Transactional;
@@ -754,8 +754,16 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         if (commentForm.hasErrors()) {
-            return badRequest(ErrorViews.BadRequest.render("error.validation", project));
+            return badRequest(commentFormValidationResult(project, commentForm));
         }
+
+        if( containsStateTransitionRequest() ){
+            toNextState(number, project);
+            IssueEvent.addFromNotificationEvent(
+                    NotificationEvent.afterStateChanged(issue.previousState(), issue),
+                    issue, UserApp.currentUser().loginId);
+        }
+
         final IssueComment comment = commentForm.get();
 
         IssueComment existingComment = IssueComment.find.where().eq("id", comment.id).findUnique();
@@ -776,47 +784,6 @@ public class IssueApp extends AbstractPostingApp {
         };
     }
 
-    /**
-     * 댓글 작성과 상태 변경을 함께 처리
-     *
-     * <p>when: 이슈 조회화면에서 댓글 작성하고 저장하면서 상태까지 변경할 때</p>
-     *
-     * 현재 사용자를 댓글 작성자로 하여 저장하고 이슈 조회화면으로 돌아간다.
-     *
-     * @param ownerName 프로젝트 소유자 이름
-     * @param projectName 프로젝트 이름
-     * @param number 이슈 번호
-     * @return
-     * @throws IOException
-     * @see {@link AbstractPostingApp#saveComment(Comment, Form, Call, Runnable)}
-     */
-    @Transactional
-    @IsCreatable(ResourceType.ISSUE_COMMENT)
-    public static Result newCommentWithState(String ownerName, String projectName, Long number) throws IOException {
-        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
-        Form<IssueComment> commentForm = new Form<>(IssueComment.class).bindFromRequest();
-        if (commentForm.hasErrors()) {
-            return commentFormValidationResult(project, commentForm);
-        }
-
-        toNextState(number, project);
-
-        final IssueComment comment = commentForm.get();
-        final Issue issue = Issue.findByNumber(project, number);
-
-        commentSave(comment, issue);
-
-        // Attach all of the files in the current user's temporary storage.
-        Attachment.moveAll(UserApp.currentUser().asResource(), comment.asResource());
-
-        String urlToView = RouteUtil.getUrl(comment);
-        NotificationEvent.afterNewComment(comment);
-        IssueEvent.addFromNotificationEvent(
-                NotificationEvent.afterStateChanged(issue.previousState(), issue),
-                issue, UserApp.currentUser().loginId);
-        return redirect(urlToView);
-    }
-
     private static void commentSave(final IssueComment comment, final Issue issue) {
         comment.setAuthor(UserApp.currentUser());
         getContainerUpdater(issue, comment).run();
@@ -824,19 +791,33 @@ public class IssueApp extends AbstractPostingApp {
     }
 
     private static void toNextState(Long number, Project project) {
-        String withStateTransition = request().body().asMultipartFormData().asFormUrlEncoded().get("withStateTransition")[0];
         final Issue issue = Issue.findByNumber(project, number);
-        if(StringUtils.isNotBlank(withStateTransition)) {
-            issue.toNextState();
-        }
+        issue.toNextState();
     }
 
-    private static Result commentFormValidationResult(Project project, Form<IssueComment> commentForm) {
+    private static boolean containsStateTransitionRequest() {
+
+        if (!isMultipartForm() || getStateTransitionFormValue() == null){
+            return false;
+        }
+
+        return StringUtils.isNotBlank(getStateTransitionFormValue()[0]);
+    }
+
+    private static String[] getStateTransitionFormValue() {
+        return request().body().asMultipartFormData().asFormUrlEncoded().get("withStateTransition");
+    }
+
+    private static boolean isMultipartForm() {
+        return request().body().asMultipartFormData() == null;
+    }
+
+    private static Html commentFormValidationResult(Project project, Form<IssueComment> commentForm) {
         Map<String,List<ValidationError>> errors = commentForm.errors();
         if( errors.get("contents") != null ){
-            return badRequest(ErrorViews.BadRequest.render("post.comment.empty", project));
+            return ErrorViews.BadRequest.render("post.comment.empty", project);
         } else {
-            return badRequest(ErrorViews.BadRequest.render("error.validation", project));
+            return ErrorViews.BadRequest.render("error.validation", project);
         }
     }
 
