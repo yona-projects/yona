@@ -24,7 +24,7 @@
 @import utils.TemplateHelper._
 @import utils.TemplateHelper.DiffRenderer._
 
-<div id="thread-@thread.id" class="comment-thread-wrap @thread.state.toString().toLowerCase()"
+<div id="thread-@thread.id" class="comment-thread-wrap @thread.state.toString().toLowerCase() @if(thread.state == CommentThread.ThreadState.CLOSED){fold}"
      @thread match {
          case (t: CodeCommentThread) => {
               data-toggle="CodeCommentThread" data-range-path="@t.codeRange.path"
