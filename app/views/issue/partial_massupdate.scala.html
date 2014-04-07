@@ -61,7 +61,15 @@
             }
             <li class="divider"></li>
             @for(member <- project.members()) {
-                <li data-value="@member.user.id"><a>@member.user.name (@member.user.loginId)</a></li>
+                <li data-value="@member.user.id">
+                    <a class="usf-group">
+                        <span class="avatar-wrap smaller">
+                            <img src="@member.user.avatarUrl" width="20" height="20">
+                        </span>
+                        <strong class="name">@member.user.name</strong>
+                        <span class="loginid"> <strong>@{"@"}</strong>@member.user.loginId</span>
+                    </a>
+                </li>
             }
         </ul>
     </div>
