@@ -35,11 +35,11 @@ import utils.AccessLogger;
 import utils.ErrorViews;
 
 /**
- * {@link actions.AbstractProjectCheckAction}의 추가작업으로,
- * 1. 특정 타입의 리소스가 존재하는지 확인한다.
- * 2. 특정 타입의 리소스에 권한이 있는지 확인한다.
+ * After {@link actions.AbstractProjectCheckAction},
+ * 1. Check if the resource of the certain type exists.
+ * 2. Check if the current user is permitted to specified operation on the resource.
  *
- * 자세한 설명은 {@link controllers.annotation.IsAllowed} 애노테이션 참고.
+ * For more specific, see {@link controllers.annotation.IsAllowed}.
  *
  * @author Keesun Baik
  * @see {@link AbstractProjectCheckAction}

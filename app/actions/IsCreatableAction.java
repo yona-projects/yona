@@ -32,8 +32,8 @@ import controllers.UserApp;
 import controllers.annotation.IsCreatable;
 
 /**
- * {@link actions.AbstractProjectCheckAction}의 추가작업으로,
- * 프로젝트에 특정 타입의 리소스를 생성할 수 있는지 확인한다.
+ * After {@link actions.AbstractProjectCheckAction},
+ * Validate whether the current user is allowed to create a resource of certain type in the project.
  *
  * @author Wansoon Park, Keesun Baik
  * @see {@link AbstractProjectCheckAction}

@@ -24,8 +24,8 @@ import org.apache.commons.lang3.StringUtils;
 import play.mvc.Http;
 
 /**
- * 프로젝트 관련 URL을 파싱한다.
- * /{user.loginId}/{project.name}/** 패턴에 해당하는 URL에서 필요한 정보를 축출한다.
+ * Parse URLs related with Project.
+ * Extracts required information from URL with specific pattern, /{user.loginId}/{project.name}/**.
  *
  * @author Wansoon Park, Keesun Baik
  */
