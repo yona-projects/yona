@@ -77,17 +77,26 @@ public class PullRequestApp extends Controller {
      */
     @With(AnonymousCheckAction.class)
     @IsCreatable(ResourceType.FORK)
-    public static Result newFork(String userName, String projectName) {
-        Project project = ProjectApp.getProject(userName, projectName);
-        User currentUser = UserApp.currentUser();
-        Project forkedProject = Project.findByOwnerAndOriginalProject(currentUser.loginId, project);
+    public static Result newFork(String userName, String projectName, String forkOwner) {
+        String destination = findDestination(forkOwner);
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
+        List<OrganizationUser> orgUserList = OrganizationUser.findByAdmin(UserApp.currentUser().id);
+        Project forkedProject = Project.findByOwnerAndOriginalProject(destination, project);
 
         if (forkedProject != null) {
-            return ok(fork.render("fork", project, forkedProject, false, new Form<>(Project.class)));
+            return ok(fork.render("fork", project, forkedProject, false, new Form<>(Project.class), orgUserList));
         } else {
-            Project forkProject = Project.copy(project, currentUser);
-            return ok(fork.render("fork", project, forkProject, true, new Form<>(Project.class)));
+            Project forkProject = Project.copy(project, destination);
+            return ok(fork.render("fork", project, forkProject, true, new Form<>(Project.class), orgUserList));
         }
+    }
+
+    private static String findDestination(String forkOwner) {
+        Organization organization = Organization.findByName(forkOwner);
+        if (OrganizationUser.isAdmin(organization, UserApp.currentUser())) {
+            return forkOwner;
+        }
+        return UserApp.currentUser().loginId;
     }
 
     /**
@@ -105,29 +114,29 @@ public class PullRequestApp extends Controller {
     @With(AnonymousCheckAction.class)
     @IsCreatable(ResourceType.FORK)
     public static Result fork(String userName, String projectName) {
+        Form<Project> forkProjectForm = new Form<>(Project.class).bindFromRequest();
+        Project projectForm = forkProjectForm.get();
+        String destination = findDestination(projectForm.owner);
         Project originalProject = Project.findByOwnerAndProjectName(userName, projectName);
-        User currentUser = UserApp.currentUser();
 
         // 이미 포크한 프로젝트가 있다면 그 프로젝트로 이동.
-        Project forkedProject = Project.findByOwnerAndOriginalProject(currentUser.loginId, originalProject);
+        Project forkedProject = Project.findByOwnerAndOriginalProject(destination, originalProject);
         if(forkedProject != null) {
             flash(Constants.WARNING, "fork.redirect.exist");
             return redirect(routes.ProjectApp.project(forkedProject.owner, forkedProject.name));
         }
 
         // 포크 프로젝트 이름 중복 검사
-        Form<Project> forkProjectForm = new Form<>(Project.class).bindFromRequest();
-        if (Project.exists(UserApp.currentUser().loginId, forkProjectForm.field("name").value())) {
+        if (Project.exists(destination, projectForm.name)) {
             flash(Constants.WARNING, "project.name.duplicate");
             forkProjectForm.reject("name");
-            return redirect(routes.PullRequestApp.newFork(originalProject.owner, originalProject.name));
+            return redirect(routes.PullRequestApp.newFork(originalProject.owner, originalProject.name, destination));
         }
 
         // 새 프로젝트 생성
-        Project forkProject = Project.copy(originalProject, currentUser);
-        Project projectFromForm = forkProjectForm.get();
-        forkProject.name = projectFromForm.name;
-        forkProject.projectScope = projectFromForm.projectScope;
+        Project forkProject = Project.copy(originalProject, destination);
+        forkProject.name = projectForm.name;
+        forkProject.projectScope = projectForm.projectScope;
         originalProject.addFork(forkProject);
 
         return ok(clone.render("fork", forkProject));
@@ -139,13 +148,15 @@ public class PullRequestApp extends Controller {
      *
      * @param userName
      * @param projectName
-     * @param name
-     * @param scope
      * @return
      */
     @Transactional
     @IsCreatable(ResourceType.FORK)
-    public static Result doClone(String userName, String projectName, String name, String scope) {
+    public static Result doClone(String userName, String projectName) {
+        Form<Project> form = new Form<>(Project.class).bindFromRequest();
+        Project projectForm = form.get();
+        String destination = findDestination(projectForm.owner);
+
         String status = "status";
         String failed = "failed";
         String url = "url";
@@ -167,15 +178,9 @@ public class PullRequestApp extends Controller {
         }
 
         // 새 프로젝트 생성
-        Project forkProject = Project.copy(originalProject, currentUser);
-        if(name != null && !name.isEmpty()) {
-            forkProject.name = name;
-        }
-        ProjectScope projectScope = ProjectScope.valueOf(scope);
-        if (projectScope != null) {
-            forkProject.projectScope = projectScope;
-        }
-
+        Project forkProject = Project.copy(originalProject, destination);
+        forkProject.name = projectForm.name;
+        forkProject.projectScope = projectForm.projectScope;
         originalProject.addFork(forkProject);
 
         // git clone으로 Git 저장소 생성하고 새 프로젝트를 만들고 권한 추가.

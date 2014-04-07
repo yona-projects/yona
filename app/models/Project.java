@@ -814,22 +814,22 @@ public class Project extends Model implements LabelOwner {
     }
 
     /**
-     * {@code project}의 {@code user}의 복사본 프로젝트를 만든다.
+     * {@code project}의 {@code owner}의 복사본 프로젝트를 만든다.
      * 이때 프로젝트의 이름은 {@link #newProjectName(String, String)}을 사용한다.
      *
      * when: 프로젝트 복사 폼과 복사 폼 처리에서 사용한다.
      *
      * @param project
-     * @param user
+     * @param owner
      * @return
      * @see #newProjectName(String, String)
      */
-    public static Project copy(Project project, User user) {
+    public static Project copy(Project project, String owner) {
         Project copyProject = new Project();
-        copyProject.name = newProjectName(user.loginId, project.name);
+        copyProject.name = newProjectName(owner, project.name);
         copyProject.overview = project.overview;
         copyProject.vcs = project.vcs;
-        copyProject.owner = user.loginId;
+        copyProject.owner = owner;
         copyProject.projectScope = project.projectScope;
         return copyProject;
     }

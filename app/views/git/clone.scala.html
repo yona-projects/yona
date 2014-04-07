@@ -45,8 +45,9 @@
         var spinner = new Spinner(opts).spin(target);
 
         setTimeout(function(){
-            var cloneUrl = "@routes.PullRequestApp.doClone(project.originalProject.owner, project.originalProject.name, project.name, project.projectScope.name)";
-            $.post(cloneUrl, function(data){
+            var cloneUrl = "@routes.PullRequestApp.doClone(project.originalProject.owner, project.originalProject.name)";
+            var cloneParam = {owner:"@project.owner", name:"@project.name", projectScope:"@project.projectScope.name"};
+            $.post(cloneUrl, cloneParam, function(data){
                 if(data.status === "failed") {
                     $yobi.showAlert('@Messages("fork.failed")', function () {
                         location.replace(data.url);
