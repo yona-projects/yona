@@ -360,6 +360,9 @@ SELECT
 FROM comment_thread t, review_comment c
 WHERE c.thread_id = t.id and t.pull_request_id IS null;
 
+DELETE FROM review_comment;
+DELETE FROM comment_thread;
+
 -- watch
 
 ALTER TABLE watch DROP CONSTRAINT IF EXISTS ck_watch_resource_type;
@@ -463,8 +466,3 @@ WHERE
     notification_event.event_type = 'NEW_COMMENT';
 
 ALTER TABLE notification_event ADD constraint ck_notification_event_resource_type check (resource_type in ('ISSUE_POST','ISSUE_ASSIGNEE','ISSUE_STATE','ISSUE_CATEGORY','ISSUE_MILESTONE','ISSUE_LABEL','BOARD_POST','BOARD_CATEGORY','BOARD_NOTICE','CODE','MILESTONE','WIKI_PAGE','PROJECT_SETTING','SITE_SETTING','USER','USER_AVATAR','PROJECT','ATTACHMENT','ISSUE_COMMENT','NONISSUE_COMMENT','LABEL','PROJECT_LABELS','FORK','COMMIT_COMMENT','PULL_REQUEST','PULL_REQUEST_COMMENT'));
-
--- Drop the tables for Review feature
-
-DROP TABLE IF EXISTS comment_thread;
-DROP TABLE IF EXISTS review_comment;
