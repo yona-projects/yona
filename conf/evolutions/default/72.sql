@@ -4,6 +4,8 @@
 
 ALTER TABLE comment_thread ADD COLUMN tmp_pull_request_comment_id bigint;
 ALTER TABLE comment_thread ADD COLUMN tmp_commit_comment_id bigint;
+ALTER TABLE review_comment ADD COLUMN tmp_pull_request_comment_id bigint;
+ALTER TABLE review_comment ADD COLUMN tmp_commit_comment_id bigint;
 
 INSERT INTO comment_thread (
     id,
@@ -98,7 +100,8 @@ INSERT INTO review_comment (
     author_name,
     contents,
     created_date,
-    thread_id
+    thread_id,
+    tmp_pull_request_comment_id
 )
 SELECT
     nextval('review_comment_seq'),
@@ -107,7 +110,8 @@ SELECT
     c.author_name,
     c.contents,
     c.created_date,
-    t.id
+    t.id,
+    c.id
 FROM pull_request_comment c, comment_thread t
 WHERE c.id = t.tmp_pull_request_comment_id;
 
@@ -118,7 +122,8 @@ INSERT INTO review_comment (
     author_name,
     contents,
     created_date,
-    thread_id
+    thread_id,
+    tmp_pull_request_comment_id
 )
 SELECT
     nextval('review_comment_seq'),
@@ -127,7 +132,8 @@ SELECT
     c.author_name,
     c.contents,
     c.created_date,
-    t.id
+    t.id,
+    c.id
 FROM
     pull_request_comment c, comment_thread t
 WHERE
@@ -241,7 +247,8 @@ INSERT INTO review_comment (
     author_name,
     contents,
     created_date,
-    thread_id
+    thread_id,
+    tmp_commit_comment_id
 )
 SELECT
     nextval('review_comment_seq'),
@@ -250,16 +257,14 @@ SELECT
     c.author_name,
     c.contents,
     c.created_date,
-    t.id
+    t.id,
+    c.id
 FROM commit_comment c, comment_thread t
 WHERE t.pull_request_id IS null AND c.commit_id = t.commit_id AND ((c.path = t.path AND c.line = t.start_line) OR tmp_commit_comment_id = c.id);
 
 DELETE FROM commit_comment WHERE id IN (
     SELECT c.id FROM commit_comment c, project p WHERE c.project_id = p.id AND p.vcs = 'GIT'
 );
-
-ALTER TABLE comment_thread DROP COLUMN IF EXISTS tmp_pull_request_comment_id;
-ALTER TABLE comment_thread DROP COLUMN IF EXISTS tmp_commit_comment_id;
 
 ALTER TABLE watch DROP CONSTRAINT IF EXISTS ck_watch_resource_type;
 UPDATE watch SET resource_type='REVIEW_COMMENT' WHERE resource_type='PULL_REQUEST_COMMENT';
@@ -270,6 +275,19 @@ UPDATE unwatch SET resource_type='REVIEW_COMMENT' WHERE resource_type='PULL_REQU
 ALTER TABLE unwatch ADD CONSTRAINT ck_unwatch_resource_type check (resource_type in ('ISSUE_POST','ISSUE_ASSIGNEE','ISSUE_STATE','ISSUE_CATEGORY','ISSUE_MILESTONE','ISSUE_LABEL','BOARD_POST','BOARD_CATEGORY','BOARD_NOTICE','CODE','MILESTONE','WIKI_PAGE','PROJECT_SETTING','SITE_SETTING','USER','USER_AVATAR','PROJECT','ATTACHMENT','ISSUE_COMMENT','NONISSUE_COMMENT','LABEL','PROJECT_LABELS','FORK','COMMIT_COMMENT','PULL_REQUEST','REVIEW_COMMENT', 'COMMIT'));
 
 ALTER TABLE attachment DROP CONSTRAINT IF EXISTS ck_attachment_container_type;
+UPDATE attachment
+SET container_type='REVIEW_COMMENT', container_id=(SELECT review_comment.id FROM review_comment WHERE attachment.container_id=review_comment.tmp_pull_request_comment_id)
+WHERE id IN (
+    SELECT a.id
+    FROM attachment a, review_comment c
+    WHERE a.container_type='PULL_REQUEST_COMMENT' AND a.container_id=c.tmp_pull_request_comment_id);
+
+UPDATE attachment
+SET container_type='REVIEW_COMMENT', container_id=(SELECT review_comment.id FROM review_comment WHERE attachment.container_id=review_comment.tmp_commit_comment_id)
+WHERE id IN (
+    SELECT a.id
+    FROM attachment a, review_comment c
+    WHERE a.container_type='COMMIT_COMMENT' AND a.container_id=c.tmp_commit_comment_id);
 UPDATE attachment SET container_type='REVIEW_COMMENT' WHERE container_type='PULL_REQUEST_COMMENT';
 ALTER TABLE attachment ADD CONSTRAINT ck_attachment_container_type check (container_type in ('ISSUE_POST','ISSUE_ASSIGNEE','ISSUE_STATE','ISSUE_CATEGORY','ISSUE_MILESTONE','ISSUE_LABEL','BOARD_POST','BOARD_CATEGORY','BOARD_NOTICE','CODE','MILESTONE','WIKI_PAGE','PROJECT_SETTING','SITE_SETTING','USER','USER_AVATAR','PROJECT','ATTACHMENT','ISSUE_COMMENT','NONISSUE_COMMENT','COMMIT_COMMENT', 'REVIEW_COMMENT', 'PULL_REQUEST'));
 
@@ -279,6 +297,11 @@ UPDATE notification_event SET event_type='NEW_REVIEW_COMMENT' WHERE event_type='
 ALTER TABLE notification_event ADD constraint ck_notification_event_resource_type check (resource_type in ('ISSUE_POST','ISSUE_ASSIGNEE','ISSUE_STATE','ISSUE_CATEGORY','ISSUE_MILESTONE','ISSUE_LABEL','BOARD_POST','BOARD_CATEGORY','BOARD_NOTICE','CODE','MILESTONE','WIKI_PAGE','PROJECT_SETTING','SITE_SETTING','USER','USER_AVATAR','PROJECT','ATTACHMENT','ISSUE_COMMENT','NONISSUE_COMMENT','LABEL','PROJECT_LABELS','FORK','COMMIT_COMMENT','PULL_REQUEST','REVIEW_COMMENT'));
 
 UPDATE user_project_notification SET notification_type='NEW_REVIEW_COMMENT' WHERE notification_type='NEW_PULL_REQUEST_COMMENT';
+
+ALTER TABLE comment_thread DROP COLUMN IF EXISTS tmp_pull_request_comment_id;
+ALTER TABLE comment_thread DROP COLUMN IF EXISTS tmp_commit_comment_id;
+ALTER TABLE review_comment DROP COLUMN IF EXISTS tmp_pull_request_comment_id;
+ALTER TABLE review_comment DROP COLUMN IF EXISTS tmp_commit_comment_id;
 
 # --- !Downs
 
