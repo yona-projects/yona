@@ -2659,12 +2659,23 @@
                     border-bottom:1px solid #BDC3C7;
 
                     .yobicon-comment {vertical-align: middle;}
-                    .yobicon-edit-2{
-                      margin-top: 1px;
-                      margin-right: 5px;
+
+                    .act-row {
+                        i {
+                            font-size: 20px;
+                            line-height: 20px;
+                            color: #000;
+                            .opacity(20);
+
+                            &.yobicon-edit-2 { margin-top:2px; }
+                            &:hover {
+                                color:@yobi-link;
+                                .opacity(100);
+                            }
+                        }
                     }
 
-                  .comment_author {font-size:13px; margin-right:5px; }
+                    .comment_author {font-size:13px; margin-right:5px; }
                     .ago {
                         color:#7F8C8D;
 
@@ -2672,7 +2683,6 @@
                             text-decoration:line-through;
                         }
                      }
-                    .edit { color: #7F8C8D;}
                 }
 
                 .attach {
