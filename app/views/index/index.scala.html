@@ -47,26 +47,108 @@
             </ul>
             <div class="page on-fold-intro">
                 <div class="row-fluid content-container">
-                    <div class="span9 main-stream">
+                    <div class="span8 main-stream">
                         <ul class="activity-streams notification-wrap unstyled">
                             @partial_notifications(0, 20)
                         </ul>
         	        </div>
-
-        	       <div class="span3">
-                        <div class="projects-wrap">
-                            @myProjectList(currentUser)
-                        </div>
+                    <div class="span4">
+                        <ul class="nav nav-tabs nm">
+                            <li class="active">
+                                <a href="#myPorjectList" data-toggle="tab">
+                                    @Messages("title.project")
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#myOrganizationList" data-toggle="tab">
+                                    @Messages("title.organization")
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="tab-content tab-box">
+                            <div class="tab-searchbox">
+                                <div class="search-bar">
+                                    <input name="mylist-filter" id="mylist-filter" class="textbox full" type="text" value="">
+                                    <button type="button" class="search-btn"><i class="yobicon-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="tab-content">
+                                <div class="tab-pane myproject-list-wrap active" id="myPorjectList">
+                                    <div class="subtab-wrap">
+                                        <ul class="nav-subtab unstyled">
+                                            <li class="active">
+                                                <a href="#recentlyVisited" data-toggle="tab">
+                                                    @Messages("title.recently.visited")
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="#createdByMe" data-toggle="tab">
+                                                    @Messages("title.createdByMe")
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="#watching" data-toggle="tab">
+                                                    @Messages("title.watching")
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="#joinmember" data-toggle="tab">
+                                                    @Messages("title.joinmember")
+                                                </a>
+                                            </li>
+                                        </ul>    
+                                    </div>
+                                    <div class="tab-content">
+                                        @myProjectList(currentUser)
+                                    </div>
+                                </div>
+                                <div class="tab-pane myorganization-list-wrap" id="myOrganizationList">
+                                    @myOrganizationList(currentUser)
+                                </div>
+                            </div>
+                        </div>     
         	       </div>
-
                 </div>
-
             </div>
         </div>
     </div>
     }
     <script type="text/javascript">
         $(document).ready(function(){
+            var oSearchTimer;
+
+            $('#mylist-filter')
+                .on('keyup.myList-search', function() {
+                    oSearchTimer = setTimeout(_searchWithFileter, 150, $(this).val(), $('.my-list-item'));
+                })
+                .on('keydown.myList-search-stop',function() {
+                    clearTimeout(oSearchTimer);
+                });
+
+            function _searchWithFileter(sFilter, oItems) {
+                if(_isEmptyString(sFilter)) {
+                    oItems.show();
+                    return ;
+                }
+
+                oItems.each(function(i, oItem) {
+                    if( _containsFilterString(sFilter, oItem)) {
+                        $(oItem).show();
+                    } else {
+                        $(oItem).hide();
+                    }
+                });
+            }
+
+            function _containsFilterString(sFilter, oItem) {
+                var sTarget= $(oItem).data('value');
+                return (sTarget.indexOf(sFilter) !== -1);
+            }
+
+            function _isEmptyString(sValue) {
+                return !($.trim(sValue));
+            }
+
             $("#toggleIntro").click(function(){
                 $(".site-guide-outer").toggleClass("hide");
                 localStorage.setItem("yobi-intro", !$(".site-guide-outer").hasClass("hide"));
