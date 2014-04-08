@@ -48,12 +48,12 @@ yobi.Files = (function(){
 
         // HTTPS connection is required for XHR upload on MSIE Browsers
         // even if FormData feature available.
-        if(htVar.bXHR2 && navigator.userAgent.toLowerCase().indexOf("trident") > -1){
+        if(navigator.userAgent.toLowerCase().indexOf("trident") > -1){
             htVar.bXHR2 = htVar.bXHR2 && (location.protocol.toLowerCase().indexOf("https") > -1);
         }
 
         // HTML5 FileAPI required
-        htVar.bDroppable = (typeof window.File != "undefined");
+        htVar.bDroppable = (typeof window.File != "undefined") && htVar.bXHR2;
 
         // onpaste & XHR2 required
         htVar.bPastable = (typeof document.onpaste != "undefined") && htVar.bXHR2
