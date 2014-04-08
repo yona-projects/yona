@@ -784,12 +784,6 @@ public class IssueApp extends AbstractPostingApp {
         };
     }
 
-    private static void commentSave(final IssueComment comment, final Issue issue) {
-        comment.setAuthor(UserApp.currentUser());
-        getContainerUpdater(issue, comment).run();
-        comment.save();
-    }
-
     private static void toNextState(Long number, Project project) {
         final Issue issue = Issue.findByNumber(project, number);
         issue.toNextState();
