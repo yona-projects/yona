@@ -1,23 +1,32 @@
 package controllers;
 
+import models.Organization;
+import models.OrganizationUser;
 import models.Project;
 import models.ProjectUser;
+import models.User;
 import models.enumeration.RoleType;
 import play.data.Form;
 import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Result;
+import play.mvc.With;
 import playRepository.GitRepository;
 import utils.AccessControl;
-import utils.Constants;
+import utils.ErrorViews;
 import utils.FileUtil;
+import utils.ValidationResult;
+import views.html.project.create;
 import views.html.project.importing;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.errors.*;
-import java.io.IOException;
 
+import actions.AnonymousCheckAction;
+
+import java.io.IOException;
 import java.io.File;
+import java.util.List;
 
 import static play.data.Form.form;
 
@@ -28,13 +37,10 @@ public class ImportApp extends Controller {
      *
      * @return
      */
+    @With(AnonymousCheckAction.class)
     public static Result importForm() {
-        if (UserApp.currentUser().isAnonymous()) {
-            flash(Constants.WARNING, "user.login.alert");
-            return redirect(routes.UserApp.loginForm());
-        } else {
-            return ok(importing.render("title.newProject", form(Project.class)));
-        }
+        List<OrganizationUser> orgUserList = OrganizationUser.findByAdmin(UserApp.currentUser().id);
+        return ok(importing.render("title.newProject", form(Project.class), orgUserList));
     }
 
     /**
@@ -48,34 +54,30 @@ public class ImportApp extends Controller {
         if( !AccessControl.isGlobalResourceCreatable(UserApp.currentUser()) ){
             return forbidden("'" + UserApp.currentUser().name + "' has no permission");
         }
-
         Form<Project> filledNewProjectForm = form(Project.class).bindFromRequest();
+        String owner = filledNewProjectForm.field("owner").value();
+        Organization organization = Organization.findByName(owner);
+        User user = User.findByLoginId(owner);
 
-        String gitUrl = StringUtils.trim(filledNewProjectForm.data().get("url"));
-        if(StringUtils.isBlank(gitUrl)) {
-            flash(Constants.WARNING, "project.import.error.empty.url");
-            return badRequest(importing.render("title.newProject", filledNewProjectForm));
+        ValidationResult result = validateForm(filledNewProjectForm, organization, user);
+        if (result.hasError()) {
+            return result.getResult();
         }
 
-        if (Project.exists(UserApp.currentUser().loginId, filledNewProjectForm.field("name").value())) {
-            flash(Constants.WARNING, "project.name.duplicate");
-            filledNewProjectForm.reject("name");
-            return badRequest(importing.render("title.newProject", filledNewProjectForm));
-        }
-
-        if (filledNewProjectForm.hasErrors()) {
-            filledNewProjectForm.reject("name");
-            flash(Constants.WARNING, "project.name.alert");
-            return badRequest(importing.render("title.newProject", filledNewProjectForm));
-        }
-
+        String gitUrl = filledNewProjectForm.data().get("url");
         Project project = filledNewProjectForm.get();
-        project.owner = UserApp.currentUser().loginId;
+
+        if (Organization.isNameExist(owner)) {
+            project.organization = organization;
+        }
         String errorMessageKey = null;
         try {
             GitRepository.cloneRepository(gitUrl, project);
             Long projectId = Project.create(project);
-            ProjectUser.assignRole(UserApp.currentUser().id, projectId, RoleType.MANAGER);
+
+            if (User.isLoginIdExist(owner)) {
+                ProjectUser.assignRole(UserApp.currentUser().id, projectId, RoleType.MANAGER);
+            }
         } catch (InvalidRemoteException e) {
             // It is not an url.
             errorMessageKey = "project.import.error.wrong.url";
@@ -87,12 +89,62 @@ public class ImportApp extends Controller {
         }
 
         if (errorMessageKey != null) {
-            flash(Constants.WARNING, errorMessageKey);
+            List<OrganizationUser> orgUserList = OrganizationUser.findByAdmin(UserApp.currentUser().id);
+            filledNewProjectForm.reject("url", errorMessageKey);
             FileUtil.rm_rf(new File(GitRepository.getGitDirectory(project)));
-            return badRequest(importing.render("title.newProject", filledNewProjectForm));
+            return badRequest(importing.render("title.newProject", filledNewProjectForm, orgUserList));
         } else {
             return redirect(routes.ProjectApp.project(project.owner, project.name));
         }
     }
 
+    private static ValidationResult validateForm(Form<Project> newProjectForm, Organization organization, User user) {
+        boolean hasError = false;
+        Result result = null;
+
+        List<OrganizationUser> orgUserList = OrganizationUser.findByAdmin(UserApp.currentUser().id);
+
+        String owner = newProjectForm.field("owner").value();
+        String name = newProjectForm.field("name").value();
+        boolean ownerIsUser = User.isLoginIdExist(owner);
+        boolean ownerIsOrganization = Organization.isNameExist(owner);
+
+        if (!ownerIsUser && !ownerIsOrganization) {
+            newProjectForm.reject("owner", "project.owner.invalidate");
+            hasError = true;
+            result = badRequest(create.render("title.newProject", newProjectForm, orgUserList));
+        }
+
+        if (ownerIsUser && UserApp.currentUser().id != user.id) {
+            newProjectForm.reject("owner", "project.owner.invalidate");
+            hasError = true;
+            result = badRequest(create.render("title.newProject", newProjectForm, orgUserList));
+        }
+
+        if (ownerIsOrganization && !OrganizationUser.isAdmin(organization.id, UserApp.currentUser().id)) {
+            hasError = true;
+            result = forbidden(ErrorViews.Forbidden.render("'" + UserApp.currentUser().name + "' has no permission"));
+        }
+
+        if (Project.exists(owner, name)) {
+            newProjectForm.reject("name", "project.name.duplicate");
+            hasError = true;
+            result = badRequest(importing.render("title.newProject", newProjectForm, orgUserList));
+        }
+
+        String gitUrl = StringUtils.trim(newProjectForm.data().get("url"));
+        if (StringUtils.isBlank(gitUrl)) {
+            newProjectForm.reject("url", "project.import.error.empty.url");
+            hasError = true;
+            result = badRequest(importing.render("title.newProject", newProjectForm, orgUserList));
+        }
+
+        if (newProjectForm.hasErrors()) {
+            newProjectForm.reject("name", "project.name.alert");
+            hasError = true;
+            result = badRequest(importing.render("title.newProject", newProjectForm, orgUserList));
+        }
+
+        return new ValidationResult(result, hasError);
+    }
 }

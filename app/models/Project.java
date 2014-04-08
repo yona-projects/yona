@@ -3,7 +3,7 @@ package models;
 import com.avaje.ebean.Ebean;
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
-import controllers.routes;
+import models.enumeration.ProjectScope;
 import models.enumeration.RequestState;
 import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
@@ -119,6 +119,12 @@ public class Project extends Model implements LabelOwner {
     public Integer defaultReviewerCount = 1;
 
     public boolean isUsingReviewerCount;
+
+    @ManyToOne
+    public Organization organization;
+
+    @Enumerated(EnumType.STRING)
+    public ProjectScope projectScope;
 
     /**
      * 신규 프로젝트를 생성한다.
@@ -733,6 +739,7 @@ public class Project extends Model implements LabelOwner {
     @Override
     public void delete() {
         deleteProjectVisitations();
+        deleteProjectTransfer();
         deleteFork();
         deletePullRequests();
 
@@ -770,8 +777,15 @@ public class Project extends Model implements LabelOwner {
 
     private void deleteProjectVisitations() {
         List<ProjectVisitation> pvs = ProjectVisitation.findByProject(this);
-        for(ProjectVisitation pv : pvs) {
+        for (ProjectVisitation pv : pvs) {
             pv.delete();
+        }
+    }
+
+    private void deleteProjectTransfer() {
+        List<ProjectTransfer> pts = ProjectTransfer.findByProject(this);
+        for(ProjectTransfer pt : pts) {
+            pt.delete();
         }
     }
 
@@ -806,7 +820,7 @@ public class Project extends Model implements LabelOwner {
      * @param projectName
      * @return
      */
-    private static String newProjectName(String loginId, String projectName) {
+    public static String newProjectName(String loginId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
         if(project == null) {
             return projectName;
@@ -922,6 +936,10 @@ public class Project extends Model implements LabelOwner {
     public int getWatchingCount() {
         Resource resource = this.asResource();
         return Watch.countBy(resource.getType(), resource.getId());
+    }
+
+    public boolean hasGroup() {
+        return this.organization != null;
     }
 
 }

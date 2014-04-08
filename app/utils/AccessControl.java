@@ -3,6 +3,7 @@ package utils;
 import models.Project;
 import models.ProjectUser;
 import models.User;
+import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import models.resource.GlobalResource;
@@ -39,6 +40,11 @@ public class AccessControl {
         if (user.isSiteManager()) {
             return true;
         }
+
+        // project가 조직에 속하고 사용자가 Admin 이면 true
+        /*if (project.organization != null && project.organization.isAdmin(user)) {
+            return true;
+        }*/
 
         if (ProjectUser.isMember(user.id, project.id)) {
             // Project members can create anything.
@@ -135,7 +141,19 @@ public class AccessControl {
         case USER_AVATAR:
             return user.id.toString().equals(resource.getId());
         case PROJECT:
-            return ProjectUser.isManager(user.id, Long.valueOf(resource.getId()));
+            // allow to managers of the project.
+            boolean isManager = ProjectUser.isManager(user.id, Long.valueOf(resource.getId()));
+            if(isManager) {
+                return true;
+            }
+            // allow to admins of the group of the project.
+            Project project = Project.find.byId(Long.valueOf(resource.getId()));
+            if(project.hasGroup()) {
+                return OrganizationUser.isAdmin(project.organization.id, user.id);
+            }
+            return false;
+        case ORGANIZATION:
+            return OrganizationUser.isAdmin(Long.valueOf(resource.getId()), user.id);
         default:
             // undefined
             return false;
@@ -155,10 +173,30 @@ public class AccessControl {
      * @return true if the user has the permission
      */
     private static boolean isProjectResourceAllowed(User user, Project project, Resource resource, Operation operation) {
+        Organization org = project.organization;
+        if(org != null && OrganizationUser.isAdmin(org.id, user.id)) {
+            return true;
+        }
+
         if (user.isSiteManager()
                 || ProjectUser.isManager(user.id, project.id)
                 || isAllowedIfAuthor(user, resource)) {
             return true;
+        }
+
+        // If the resource is a project_transfer, only new owner can accept the request.
+        if(resource.getType() == ResourceType.PROJECT_TRANSFER) {
+            switch (operation) {
+                case ACCEPT:
+                    ProjectTransfer pt = ProjectTransfer.find.byId(Long.parseLong(resource.getId()));
+                    User to = User.findByLoginId(pt.destination);
+                    if(!to.isAnonymous()) {
+                        return user.loginId.equals(pt.destination);
+                    } else {
+                        Organization receivingOrg = Organization.findByName(pt.destination);
+                        return receivingOrg != null && OrganizationUser.isAdmin(receivingOrg.id, user.id);
+                    }
+            }
         }
 
         // Some resource's permission depends on their container.
@@ -167,7 +205,7 @@ public class AccessControl {
             case ISSUE_ASSIGNEE:
             case ISSUE_MILESTONE:
             case ATTACHMENT:
-                switch(operation) {
+                switch (operation) {
                     case READ:
                         return isAllowed(user, resource.getContainer(), Operation.READ);
                     case UPDATE:

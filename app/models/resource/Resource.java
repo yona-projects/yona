@@ -1,7 +1,6 @@
 package models.resource;
 
 import actions.support.PathParser;
-import controllers.routes;
 import models.*;
 import models.enumeration.ResourceType;
 import play.db.ebean.Model;
@@ -53,6 +52,9 @@ public abstract class Resource {
                 break;
             case REVIEW_COMMENT:
                 finder = ReviewComment.find;
+                break;
+            case ORGANIZATION:
+                finder = Organization.find;
                 break;
             case COMMIT:
                 try {
@@ -124,6 +126,9 @@ public abstract class Resource {
                 return User.find.byId(longId).avatarAsResource();
             case REVIEW_COMMENT:
                 return ReviewComment.find.byId(longId).asResource();
+            case ORGANIZATION:
+                resource = Organization.find.byId(longId).asResource();
+                break;
             default:
                 throw new IllegalArgumentException(getInvalidResourceTypeMessage(resourceType));
         }

@@ -1,36 +1,35 @@
 package playRepository;
 
-import java.io.*;
-import java.util.*;
-
-import javax.servlet.*;
-
+import controllers.ProjectApp;
 import controllers.UserApp;
 import controllers.routes;
 import models.Project;
 import models.User;
 import models.enumeration.ResourceType;
 import models.resource.Resource;
-
+import org.apache.commons.io.FileUtils;
 import org.apache.tika.Tika;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.diff.RawText;
-import org.eclipse.jgit.errors.AmbiguousObjectException;
-import org.tigris.subversion.javahl.*;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
+import org.tigris.subversion.javahl.ClientException;
 import org.tmatesoft.svn.core.*;
 import org.tmatesoft.svn.core.io.SVNRepositoryFactory;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNDiffClient;
 import org.tmatesoft.svn.core.wc.SVNRevision;
-
-import controllers.ProjectApp;
 import play.libs.Json;
 import utils.FileUtil;
 import utils.GravatarUtil;
 
-import org.joda.time.format.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 public class SVNRepository implements PlayRepository {
 
@@ -387,13 +386,7 @@ public class SVNRepository implements PlayRepository {
      */
     @Override
     public boolean renameTo(String projectName) {
-
-        File src = new File(getRepoPrefix() + this.ownerName + "/" + this.projectName);
-        File dest = new File(getRepoPrefix() + this.ownerName + "/" + projectName);
-        src.setWritable(true);
-
-        return src.renameTo(dest);
-
+        return move(this.ownerName, this.projectName, this.ownerName, projectName);
     }
 
     @Override
@@ -435,6 +428,20 @@ public class SVNRepository implements PlayRepository {
             if(repository != null) {
                 repository.closeSession();
             }
+        }
+    }
+
+    public boolean move(String srcProjectOwner, String srcProjectName, String desrProjectOwner, String destProjectName) {
+        File src = new File(getRepoPrefix() + srcProjectOwner + "/" + srcProjectName);
+        File dest = new File(getRepoPrefix() + desrProjectOwner + "/" + destProjectName);
+        src.setWritable(true);
+
+        try {
+            FileUtils.moveDirectory(src, dest);
+            return true;
+        } catch (IOException e) {
+            play.Logger.error("Move Failed", e);
+            return false;
         }
     }
 }

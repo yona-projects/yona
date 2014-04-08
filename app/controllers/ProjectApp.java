@@ -8,6 +8,7 @@ import com.avaje.ebean.Junction;
 import com.avaje.ebean.Page;
 
 import controllers.annotation.IsAllowed;
+import info.schleichardt.play2.mailplugin.Mailer;
 import models.*;
 import models.Project.State;
 import models.enumeration.Operation;
@@ -16,16 +17,21 @@ import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.mail.HtmlEmail;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
+import org.jsoup.Jsoup;
 import org.tmatesoft.svn.core.SVNException;
 
+import play.Logger;
 import play.data.Form;
 import play.data.validation.ValidationError;
 import play.db.ebean.Transactional;
+import play.i18n.Messages;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http;
@@ -43,6 +49,7 @@ import views.html.project.create;
 import views.html.project.delete;
 import views.html.project.home;
 import views.html.project.setting;
+import views.html.project.transfer;
 
 import javax.servlet.ServletException;
 
@@ -52,6 +59,7 @@ import java.util.*;
 
 import static play.data.Form.form;
 import static play.libs.Json.toJson;
+import static utils.LogoUtil.*;
 
 
 /**
@@ -61,11 +69,6 @@ import static play.libs.Json.toJson;
 public class ProjectApp extends Controller {
 
     private static final int ISSUE_MENTION_SHOW_LIMIT = 1000;
-
-    private static final int LOGO_FILE_LIMIT_SIZE = 1024*1000*5; //5M
-
-    /** 프로젝트 로고로 사용할 수 있는 이미지 확장자 */
-    public static final String[] LOGO_TYPE = {"jpg", "jpeg", "png", "gif", "bmp"};
 
     /** 자동완성에서 보여줄 최대 프로젝트 개수 */
     private static final int MAX_FETCH_PROJECTS = 1000;
@@ -85,8 +88,6 @@ public class ProjectApp extends Controller {
     private static final String HTML = "text/html";
 
     private static final String JSON = "application/json";
-
-
 
     /**
      * getProject
@@ -202,7 +203,8 @@ public class ProjectApp extends Controller {
             flash(Constants.WARNING, "user.login.alert");
             return redirect(routes.UserApp.loginForm());
         } else {
-            return ok(create.render("title.newProject", form(Project.class)));
+            List<OrganizationUser> orgUserList = OrganizationUser.findByAdmin(UserApp.currentUser().id);
+            return ok(create.render("title.newProject", form(Project.class), orgUserList));
         }
     }
 
@@ -241,25 +243,65 @@ public class ProjectApp extends Controller {
         }
         Form<Project> filledNewProjectForm = form(Project.class).bindFromRequest();
 
-        if (Project.exists(UserApp.currentUser().loginId, filledNewProjectForm.field("name").value())) {
-            flash(Constants.WARNING, "project.name.duplicate");
-            filledNewProjectForm.reject("name");
-            return badRequest(create.render("title.newProject", filledNewProjectForm));
-        } else if (filledNewProjectForm.hasErrors()) {
-            ValidationError error = filledNewProjectForm.error("name");
-            flash(Constants.WARNING, RestrictedValidator.message.equals(error.message()) ?
-                    "project.name.reserved.alert" : "project.name.alert");
-            filledNewProjectForm.reject("name");
-            return badRequest(create.render("title.newProject", filledNewProjectForm));
-        } else {
-            Project project = filledNewProjectForm.get();
-            project.owner = UserApp.currentUser().loginId;
-            ProjectUser.assignRole(UserApp.currentUser().id, Project.create(project), RoleType.MANAGER);
+        String owner = filledNewProjectForm.field("owner").value();
+        Organization organization = Organization.findByName(owner);
+        User user = User.findByLoginId(owner);
 
-            RepositoryService.createRepository(project);
-
-            return redirect(routes.ProjectApp.project(project.owner, project.name));
+        ValidationResult validation = validateForm(filledNewProjectForm, organization, user);
+        if (validation.hasError()) {
+            return validation.getResult();
         }
+
+        Project project = filledNewProjectForm.get();
+        if (Organization.isNameExist(owner)) {
+            project.organization = organization;
+        }
+        ProjectUser.assignRole(UserApp.currentUser().id, Project.create(project), RoleType.MANAGER);
+        RepositoryService.createRepository(project);
+        return redirect(routes.ProjectApp.project(project.owner, project.name));
+    }
+
+    private static ValidationResult validateForm(Form<Project> newProjectForm, Organization organization, User user) {
+        Result result = null;
+        boolean hasError = false;
+        List<OrganizationUser> orgUserList = OrganizationUser.findByAdmin(UserApp.currentUser().id);
+
+        String owner = newProjectForm.field("owner").value();
+        String name = newProjectForm.field("name").value();
+        boolean ownerIsUser = User.isLoginIdExist(owner);
+        boolean ownerIsOrganization = Organization.isNameExist(owner);
+
+        if (!ownerIsUser && !ownerIsOrganization) {
+            newProjectForm.reject("owner", "project.owner.invalidate");
+            hasError = true;
+            result = badRequest(create.render("title.newProject", newProjectForm, orgUserList));
+        }
+
+        if (ownerIsUser && UserApp.currentUser().id != user.id) {
+            newProjectForm.reject("owner", "project.owner.invalidate");
+            hasError = true;
+            result = badRequest(create.render("title.newProject", newProjectForm, orgUserList));
+        }
+
+        if (ownerIsOrganization && !OrganizationUser.isAdmin(organization.id, UserApp.currentUser().id)) {
+            hasError = true;
+            result = forbidden(ErrorViews.Forbidden.render("'" + UserApp.currentUser().name + "' has no permission"));
+        }
+
+        if (Project.exists(owner, name)) {
+            newProjectForm.reject("name", "project.name.duplicate");
+            hasError = true;
+            result = badRequest(create.render("title.newProject", newProjectForm, orgUserList));
+        }
+
+        if (newProjectForm.hasErrors()) {
+            ValidationError error = newProjectForm.error("name");
+            newProjectForm.reject("name", RestrictedValidator.message.equals(error.message()) ?
+                    "project.name.reserved.alert" : "project.name.alert");
+            hasError = true;
+            result = badRequest(create.render("title.newProject", newProjectForm, orgUserList));
+        }
+        return new ValidationResult(result, hasError);
     }
 
     /**
@@ -330,37 +372,14 @@ public class ProjectApp extends Controller {
             repository.setDefaultBranch(defaultBranch);
         }
 
-        if (!repository.renameTo(updatedProject.name)) {
-            throw new FileOperationException("fail repository rename to " + project.owner + "/" + updatedProject.name);
+        if (!project.name.equals(updatedProject.name)) {
+            if (!repository.renameTo(updatedProject.name)) {
+                throw new FileOperationException("fail repository rename to " + project.owner + "/" + updatedProject.name);
+            }
         }
-
+        
         updatedProject.update();
         return redirect(routes.ProjectApp.settingForm(loginId, updatedProject.name));
-    }
-
-    /**
-     * {@code filePart} 정보가 비어있는지 확인한다.<p />
-     * @param filePart
-     * @return {@code filePart}가 null이면 true, {@code filename}이 null이면 true, {@code fileLength}가 0 이하이면 true
-     */
-    private static boolean isEmptyFilePart(FilePart filePart) {
-        return filePart == null || filePart.getFilename() == null || filePart.getFilename().length() <= 0;
-    }
-
-    /**
-     * {@code filename}의 확장자를 체크하여 이미지인지 확인한다.<p />
-     *
-     * 이미지 확장자는 {@link controllers.ProjectApp#LOGO_TYPE} 에 정의한다.
-     * @param filename the filename
-     * @return true, if is image file
-     */
-    public static boolean isImageFile(String filename) {
-        boolean isImageFile = false;
-        for(String suffix : LOGO_TYPE) {
-            if(filename.toLowerCase().endsWith(suffix))
-                isImageFile = true;
-        }
-        return isImageFile;
     }
 
     /**
@@ -600,6 +619,141 @@ public class ProjectApp extends Controller {
             }
         }
         Collections.reverse(userList);
+    }
+
+    @IsAllowed(Operation.DELETE)
+    public static Result transferForm(String loginId, String projectName) {
+        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+        Form<Project> projectForm = form(Project.class).fill(project);
+        return ok(transfer.render("title.projectTransfer", projectForm, project));
+    }
+
+    @Transactional
+    @IsAllowed(Operation.DELETE)
+    public static Result transferProject(String loginId, String projectName) throws Exception {
+        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+        String destination = request().getQueryString("owner");
+
+        User destOwner = User.findByLoginId(destination);
+        Organization destOrg = Organization.findByName(destination);
+        if(destOwner.isAnonymous() && destOrg == null) {
+            return badRequest(ErrorViews.BadRequest.render());
+        }
+
+        ProjectTransfer pt = null;
+        // make a request to move to an user
+        if(!destOwner.isAnonymous()) {
+            pt = ProjectTransfer.requestNewTransfer(project, UserApp.currentUser(), destOwner.loginId);
+        }
+        // make a request to move to an group
+        if(destOrg != null) {
+            pt = ProjectTransfer.requestNewTransfer(project, UserApp.currentUser(), destOrg.name);
+        }
+        sendTransferRequestMail(pt);
+
+        // if the request is sent by XHR, response with 204 204 No Content and Location header.
+        String url = routes.ProjectApp.project(loginId, projectName).url();
+        if(HttpUtil.isRequestedWithXHR(request())){
+            response().setHeader("Location", url);
+            return status(204);
+        }
+
+        return redirect(url);
+    }
+
+    @Transactional
+    @With(AnonymousCheckAction.class)
+    public static synchronized Result acceptTransfer(Long id, String confirmKey) throws IOException, ServletException {
+        ProjectTransfer pt = ProjectTransfer.findValidOne(id);
+        if(pt == null) {
+            return notFound(ErrorViews.NotFound.render());
+        }
+        if(confirmKey == null || !pt.confirmKey.equals(confirmKey)) {
+            return badRequest(ErrorViews.BadRequest.render());
+        }
+
+        if(!AccessControl.isAllowed(UserApp.currentUser(), pt.asResource(), Operation.ACCEPT)) {
+            return forbidden(ErrorViews.Forbidden.render());
+        }
+
+        Project project = pt.project;
+
+        // Change the project's name and move the repository.
+        String newProjectName = Project.newProjectName(pt.destination, project.name);
+        PlayRepository repository = RepositoryService.getRepository(project);
+        repository.move(pt.sender.loginId, project.name, pt.destination, newProjectName);
+
+        User newOwnerUser = User.findByLoginId(pt.destination);
+        Organization newOwnerOrg = Organization.findByName(pt.destination);
+
+        // Change the project's information.
+        project.owner = pt.destination;
+        project.name = newProjectName;
+        if(newOwnerOrg != null) {
+            project.organization = newOwnerOrg;
+        }
+        project.update();
+
+        // Change roles.
+        if(!newOwnerUser.isAnonymous()) {
+            ProjectUser.assignRole(newOwnerUser.id, project.id, RoleType.MANAGER);
+        }
+        if(ProjectUser.isManager(pt.sender.id, project.id)) {
+            ProjectUser.assignRole(pt.sender.id, project.id, RoleType.MEMBER);
+        }
+
+        // Change the tranfer's status to be accepted.
+        pt.newProjectName = newProjectName;
+        pt.accepted = true;
+        pt.update();
+
+        // If the opposite request is exists, delete it.
+        ProjectTransfer.deleteExisting(project, pt.sender, pt.destination);
+
+        return redirect(routes.ProjectApp.project(project.owner, project.name));
+    }
+
+    private static void sendTransferRequestMail(ProjectTransfer pt) {
+        HtmlEmail email = new HtmlEmail();
+        try {
+            String acceptUrl = pt.getAcceptUrl();
+            String message = Messages.get("transfer.message.hello", pt.destination) + "\n\n"
+                    + Messages.get("transfer.message.detail", pt.project.name, pt.newProjectName, pt.project.owner, pt.destination) + "\n"
+                    + Messages.get("transfer.message.link") + "\n\n"
+                    + acceptUrl + "\n\n"
+                    + Messages.get("transfer.message.deadline") + "\n\n"
+                    + Messages.get("transfer.message.thank");
+
+            email.setFrom(Config.getEmailFromSmtp(), pt.sender.name);
+            email.addTo(Config.getEmailFromSmtp(), "Yobi");
+
+            User to = User.findByLoginId(pt.destination);
+            if(!to.isAnonymous()) {
+                email.addBcc(to.email, to.name);
+            }
+
+            Organization org = Organization.findByName(pt.destination);
+            if(org != null) {
+                List<OrganizationUser> admins = OrganizationUser.findAdminsOf(org);
+                for(OrganizationUser admin : admins) {
+                    email.addBcc(admin.user.email, admin.user.name);
+                }
+            }
+
+            email.setSubject(String.format("[%s] @%s wants to transfer project", pt.project.name, pt.sender.loginId));
+            email.setHtmlMsg(Markdown.render(message));
+            email.setTextMsg(message);
+            email.setCharset("utf-8");
+            email.addHeader("References", "<" + acceptUrl + "@" + Config.getHostname() + ">");
+            email.setSentDate(pt.requested);
+            Mailer.send(email);
+            String escapedTitle = email.getSubject().replace("\"", "\\\"");
+            String logEntry = String.format("\"%s\" %s", escapedTitle, email.getBccAddresses());
+            play.Logger.of("mail").info(logEntry);
+        } catch (Exception e) {
+            Logger.warn("Failed to send a notification: "
+                    + email + "\n" + ExceptionUtils.getStackTrace(e));
+        }
     }
 
     private static void addCodeCommenters(String commitId, Long projectId, List<User> userList) {
