@@ -23,6 +23,7 @@ public class IssueAppTest {
     private User manager;
     private User member;
     private User author;
+    private User assignee;
     private User nonmember;
     private User anonymous;
     private Issue issue;
@@ -50,6 +51,7 @@ public class IssueAppTest {
         manager = User.findByLoginId("yobi");
         member = User.findByLoginId("laziel");
         author = User.findByLoginId("nori");
+        assignee = User.findByLoginId("alecsiel");
         nonmember = User.findByLoginId("doortts");
         anonymous = new NullUser();
 
@@ -58,6 +60,7 @@ public class IssueAppTest {
         issue.setTitle("hello");
         issue.setBody("world");
         issue.setAuthor(author);
+        issue.setAssignee(Assignee.add(assignee.id, project.id));
         issue.save();
 
         assertThat(this.admin.isSiteManager()).describedAs("admin is Site Admin.").isTrue();
@@ -65,6 +68,7 @@ public class IssueAppTest {
         assertThat(ProjectUser.isManager(member.id, project.id)).describedAs("member is a manager").isFalse();
         assertThat(ProjectUser.isMember(member.id, project.id)).describedAs("member is a member").isTrue();
         assertThat(ProjectUser.isMember(author.id, project.id)).describedAs("author is a member").isFalse();
+        assertThat(ProjectUser.isMember(assignee.id, project.id)).describedAs("assignee is a member").isFalse();
         assertThat(project.isPublic).describedAs("project is public").isFalse();
     }
 
@@ -151,6 +155,14 @@ public class IssueAppTest {
         assertThat(status(result)).describedAs("Author can edit own issue.").isEqualTo(SEE_OTHER);
     }
 
+    @Test
+    public void editByAssignee() {
+        // When
+        Result result = editBy(assignee);
+
+        // Then
+        assertThat(status(result)).describedAs("Assignee can edit own issue.").isEqualTo(SEE_OTHER);
+    }
 
     @Test
     public void editByAdmin() {
@@ -202,6 +214,14 @@ public class IssueAppTest {
         assertThat(status(result)).describedAs("Author can delete own issue.").isEqualTo(SEE_OTHER);
     }
 
+    @Test
+    public void deleteByAssignee() {
+        // When
+        Result result = deleteBy(assignee);
+
+        // Then
+        assertThat(status(result)).describedAs("Assignee can delete own issue.").isEqualTo(SEE_OTHER);
+    }
 
     @Test
     public void deleteByAdmin() {
@@ -382,6 +402,23 @@ public class IssueAppTest {
     }
 
     @Test
+    public void watchByAssignee() {
+        // Given
+        Resource resource = issue.asResource();
+
+        // When
+        Result result = callAction(
+                controllers.routes.ref.WatchApp.watch(resource.asParameter()),
+                fakeRequest()
+                        .withSession(UserApp.SESSION_USERID, assignee.id.toString())
+        );
+
+        // Then
+        issue.refresh();
+        assertThat(status(result)).isEqualTo(OK);
+    }
+
+    @Test
     public void unwatch() {
         // Given
         Resource resource = issue.asResource();
@@ -419,4 +456,22 @@ public class IssueAppTest {
         issue.refresh();
         assertThat(status(result)).isEqualTo(OK);
     }
+
+    @Test
+    public void unwatchByAssignee() {
+        // Given
+        Resource resource = issue.asResource();
+
+        // When
+        Result result = callAction(
+                controllers.routes.ref.WatchApp.unwatch(resource.asParameter()),
+                fakeRequest()
+                        .withSession(UserApp.SESSION_USERID, assignee.id.toString())
+        );
+
+        // Then
+        issue.refresh();
+        assertThat(status(result)).isEqualTo(OK);
+    }
+
 }
