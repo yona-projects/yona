@@ -332,10 +332,12 @@ public class ProjectApp extends Controller {
             repository.setDefaultBranch(defaultBranch);
         }
 
-        if (!repository.renameTo(updatedProject.name)) {
-            throw new FileOperationException("fail repository rename to " + project.owner + "/" + updatedProject.name);
+        if (!project.name.equals(updatedProject.name)) {
+            if (!repository.renameTo(updatedProject.name)) {
+                throw new FileOperationException("fail repository rename to " + project.owner + "/" + updatedProject.name);
+            }
         }
-
+        
         updatedProject.update();
         return redirect(routes.ProjectApp.settingForm(loginId, updatedProject.name));
     }
