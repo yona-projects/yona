@@ -328,7 +328,7 @@
             "sIssueCheckBoxesSelector": "[type=checkbox][name=checked-issue]",
             "sNextState"    : "@issue.nextState().toString.toLowerCase",
             "sNextStateUrl" : "@routes.IssueApp.nextState(project.owner, project.name, issue.getNumber)",
-            "sCommentWithStateUrl": "@routes.IssueApp.newCommentWithState(project.owner, project.name, issue.getNumber)"
+            "sCommentWithStateUrl": "@routes.IssueApp.newComment(project.owner, project.name, issue.getNumber)"
         });
 
         // yobi.ShortcutKey

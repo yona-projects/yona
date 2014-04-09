@@ -50,6 +50,8 @@ public class RouteUtil {
                     return getUrl(PullRequest.finder.byId(longId));
                 case REVIEW_COMMENT:
                     return getUrl(ReviewComment.find.byId(longId));
+                case COMMENT_THREAD:
+                    return getUrl(CommentThread.find.byId(longId));
                 default:
                     throw new IllegalArgumentException(
                             Resource.getInvalidResourceTypeMessage(resourceType));
@@ -120,25 +122,38 @@ public class RouteUtil {
     public static String getUrl(ReviewComment comment) {
         if (comment == null) return null;
 
-        Project project = comment.thread.project;
+        CommentThread thread = comment.thread;
 
-        if (comment.thread instanceof SimpleCommentThread) {
+        return getContainerUrl(thread) + "#comment-" + comment.id;
+    }
+
+    public static String getUrl(CommentThread thread) {
+        return getContainerUrl(thread) + "#thread-" + thread.id;
+    }
+
+    /**
+     * Get the url to the resource has the given thread
+     */
+    public static String getContainerUrl(CommentThread thread) {
+        Project project = thread.project;
+
+        if (thread instanceof SimpleCommentThread) {
             throw new UnsupportedOperationException();
         }
 
         String prevCommitId = null;
         String commitId = null;
 
-        if (comment.thread instanceof NonRangedCodeCommentThread) {
-            prevCommitId = ((NonRangedCodeCommentThread) comment.thread).prevCommitId;
-            commitId = ((NonRangedCodeCommentThread) comment.thread).commitId;
-        } else if (comment.thread instanceof CodeCommentThread) {
-            prevCommitId = ((CodeCommentThread) comment.thread).prevCommitId;
-            commitId = ((CodeCommentThread) comment.thread).commitId;
+        if (thread instanceof NonRangedCodeCommentThread) {
+            prevCommitId = ((NonRangedCodeCommentThread) thread).prevCommitId;
+            commitId = ((NonRangedCodeCommentThread) thread).commitId;
+        } else if (thread instanceof CodeCommentThread) {
+            prevCommitId = ((CodeCommentThread) thread).prevCommitId;
+            commitId = ((CodeCommentThread) thread).commitId;
         }
 
         play.mvc.Call toView;
-        PullRequest pullRequest = comment.thread.pullRequest;
+        PullRequest pullRequest = thread.pullRequest;
 
         if (pullRequest == null) {
             toView = controllers.routes.CodeHistoryApp.show(
@@ -153,6 +168,6 @@ public class RouteUtil {
             }
         }
 
-        return toView + "#comment-" + comment.id;
+        return toView.url();
     }
 }

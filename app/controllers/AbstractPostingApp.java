@@ -166,7 +166,7 @@ public class AbstractPostingApp extends Controller {
      *
      * @param resource 이슈글,게시판글,댓글
      */
-    protected static void attachUploadFilesToPost(Resource resource) {
+    public static void attachUploadFilesToPost(Resource resource) {
         final String[] temporaryUploadFiles = getTemporaryFileListFromHiddenForm();
         if(isTemporaryFilesExist(temporaryUploadFiles)){
             int attachedFileCount = Attachment.moveOnlySelected(UserApp.currentUser().asResource(), resource,

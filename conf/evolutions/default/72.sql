@@ -294,7 +294,7 @@ ALTER TABLE attachment ADD CONSTRAINT ck_attachment_container_type check (contai
 ALTER TABLE notification_event DROP CONSTRAINT IF EXISTS ck_notification_event_resource_type;
 UPDATE notification_event SET resource_type='REVIEW_COMMENT' WHERE resource_type='PULL_REQUEST_COMMENT';
 UPDATE notification_event SET event_type='NEW_REVIEW_COMMENT' WHERE event_type='NEW_PULL_REQUEST_COMMENT';
-ALTER TABLE notification_event ADD constraint ck_notification_event_resource_type check (resource_type in ('ISSUE_POST','ISSUE_ASSIGNEE','ISSUE_STATE','ISSUE_CATEGORY','ISSUE_MILESTONE','ISSUE_LABEL','BOARD_POST','BOARD_CATEGORY','BOARD_NOTICE','CODE','MILESTONE','WIKI_PAGE','PROJECT_SETTING','SITE_SETTING','USER','USER_AVATAR','PROJECT','ATTACHMENT','ISSUE_COMMENT','NONISSUE_COMMENT','LABEL','PROJECT_LABELS','FORK','COMMIT_COMMENT','PULL_REQUEST','REVIEW_COMMENT'));
+ALTER TABLE notification_event ADD constraint ck_notification_event_resource_type check (resource_type in ('ISSUE_POST','ISSUE_ASSIGNEE','ISSUE_STATE','ISSUE_CATEGORY','ISSUE_MILESTONE','ISSUE_LABEL','BOARD_POST','BOARD_CATEGORY','BOARD_NOTICE','CODE','MILESTONE','WIKI_PAGE','PROJECT_SETTING','SITE_SETTING','USER','USER_AVATAR','PROJECT','ATTACHMENT','ISSUE_COMMENT','NONISSUE_COMMENT','LABEL','PROJECT_LABELS','FORK','COMMIT_COMMENT','PULL_REQUEST','REVIEW_COMMENT', 'COMMENT_THREAD'));
 
 UPDATE user_project_notification SET notification_type='NEW_REVIEW_COMMENT' WHERE notification_type='NEW_PULL_REQUEST_COMMENT';
 
@@ -487,5 +487,16 @@ SET
 WHERE
     notification_event.resource_type = 'REVIEW_COMMENT' AND
     notification_event.event_type = 'NEW_COMMENT';
+
+DELETE FROM notification_event_n4user
+WHERE notification_event_id IN (
+    SELECT id
+    FROM notification_event
+    WHERE event_type = 'REVIEW_THREAD_STATE_CHANGED');
+
+DELETE FROM
+    notification_event
+WHERE
+    notification_event.event_type = 'REVIEW_THREAD_STATE_CHANGED';
 
 ALTER TABLE notification_event ADD constraint ck_notification_event_resource_type check (resource_type in ('ISSUE_POST','ISSUE_ASSIGNEE','ISSUE_STATE','ISSUE_CATEGORY','ISSUE_MILESTONE','ISSUE_LABEL','BOARD_POST','BOARD_CATEGORY','BOARD_NOTICE','CODE','MILESTONE','WIKI_PAGE','PROJECT_SETTING','SITE_SETTING','USER','USER_AVATAR','PROJECT','ATTACHMENT','ISSUE_COMMENT','NONISSUE_COMMENT','LABEL','PROJECT_LABELS','FORK','COMMIT_COMMENT','PULL_REQUEST','PULL_REQUEST_COMMENT'));

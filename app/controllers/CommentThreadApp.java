@@ -22,6 +22,7 @@ package controllers;
 
 import models.CommentThread;
 import models.enumeration.Operation;
+import models.NotificationEvent;
 import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -57,8 +58,16 @@ public class CommentThreadApp extends Controller {
             return forbidden();
         }
 
+        CommentThread.ThreadState previousState = thread.state;
         thread.state = state;
         thread.update();
+
+        try {
+            NotificationEvent.afterStateChanged(previousState, thread);
+        } catch (Exception e) {
+            play.Logger.warn(
+                    "Failed to send a notification for a change of review thread's state", e);
+        }
 
         return ok();
     }
