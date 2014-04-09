@@ -11,15 +11,12 @@ import javax.persistence.*;
 import java.util.Set;
 
 /**
- * 프로젝트에 붙일 수 있는 라벨
+ * A label to be attached to a project
  */
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"category", "name"}))
 public class Label extends Model implements ResourceConvertible {
 
-    /**
-     *
-     */
     private static final long serialVersionUID = -35487506476718498L;
     public static final Finder<Long, Label> find = new Finder<>(Long.class, Label.class);
 
@@ -36,9 +33,10 @@ public class Label extends Model implements ResourceConvertible {
     public Set<Project> projects;
 
     /**
-     * 주어진 {@code category}와 {@code name}으로 라벨를 생성한다.
-     * @param category 이 라벨가 속한 분류
-     * @param name 이 라벨의 이름
+     * Construct a label by the given {@code name} and {@code category}.
+     *
+     * @param category the category to which this label belongs
+     * @param name the name of this label
      */
     public Label(String category, String name) {
         if (category == null) {
@@ -49,9 +47,9 @@ public class Label extends Model implements ResourceConvertible {
     }
 
     /**
-     * 라벨를 삭제한다.
+     * Delete this label.
      *
-     * 모든 프로젝트에서 이 라벨를 제거한 뒤, 라벨를 삭제한다.
+     * Remove this label from every project and delete it.
      */
     @Override
     public void delete() {
@@ -64,11 +62,10 @@ public class Label extends Model implements ResourceConvertible {
 
 
     /**
-     * 라벨를 문자열로 변환하여 반환한다.
+     * Returns a string representation of this label.
      *
-     * {@link Label#category}와 {@link Label#name}을 " - "로 연결한 문자열을 반환한다.
-     *
-     * @return "{@link Label#category} - {@link Label#name}" 형식의 문자열
+     * @return a string concatenated {@link Label#category}, "-" and {@link Label#name}
+     *         e.g. "os - linux"
      */
     @Override
     public String toString() {
@@ -76,11 +73,12 @@ public class Label extends Model implements ResourceConvertible {
     }
 
     /**
-     * 라벨를 {@link Resource} 형식으로 반환한다.
+     * Returns a {@link Resource} representation of this label.
      *
-     * when: 이 라벨에 대해 접근권한이 있는지 검사하기 위해 {@link utils.AccessControl}에서 사용한다.
+     * {@link utils.AccessControl}.may use this method to check if an user has
+     * a permission to access this label.
      *
-     * @return {@link Resource}로서의 라벨
+     * @return a {@link Resource} representation of this label
      */
     @Override
     public Resource asResource() {
@@ -97,6 +95,11 @@ public class Label extends Model implements ResourceConvertible {
         };
     }
 
+    /**
+     * Remove this label from a project.
+     *
+     * @param project the project from which this label is removed
+     */
     public void delete(Project project) {
         this.projects.remove(project);
     }
