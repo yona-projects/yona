@@ -3320,11 +3320,30 @@ label.issue-item-row {
                 i {vertical-align: middle;}
 
                 .size {margin-right:3px;}
+                .total {color:#777;}
 
                 &:hover {
                     color:#3592b5;
                     text-decoration: none;
                 }
+                &.open   {
+                    color:@state-open !important;
+                }
+                &.closed {
+                    color:@state-closed !important;
+                    .total { color:inherit !important; }
+                }
+            }
+
+            .upload-progress {
+                display: inline-block;
+                width: 30px;
+                vertical-align: middle;
+                overflow: hidden;
+                margin-top: 3px;
+                .border-radius(5px);
+
+                .bar { height:100%; }
             }
         }
     }

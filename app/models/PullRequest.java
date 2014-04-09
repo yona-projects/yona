@@ -973,6 +973,24 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     /**
+     * 주어진 {@code state} 상태인 댓글 스레드 갯수를 반환한다
+     *
+     * @param state
+     * @return
+     */
+    public int countCommentThreadsByState(CommentThread.ThreadState state){
+        Integer count = 0;
+
+        for (CommentThread commentThread : commentThreads) {
+            if(commentThread.state == state){
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    /**
      * 주어진 {@commitId}의 변경내역을 돌려준다.
      *
      * @param commitId

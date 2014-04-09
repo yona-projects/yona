@@ -3,9 +3,6 @@
 @import utils.JodaDateUtil
 @import utils.TemplateHelper._
 
-@branchName(branch:String) = @{
-    branch.replace("refs/heads/", "")
-}
 <ul class="post-list-wrap">
 @if(page.getList.size()> 0){
     @for(req <- page.getList.iterator()) {
@@ -36,12 +33,22 @@
                     <span class="infos-item" title="@JodaDateUtil.getDateString(req.created)">
                         @agoString(req.createdAgo())
                     </span>
-                    @defining(req.commentThreads.size) { count =>
-                        @if(count > 0) {
-                            <a href="@routes.PullRequestApp.pullRequest(req.toProject.owner, req.toProject.name, req.number)#comments" class="infos-item infos-icon-link">
-                                <i class="yobicon-comments"></i>
-                                <span class="size">@count</span>
-                            </a>
+                    @if(!req.commentThreads.isEmpty){
+                        @defining(req.countCommentThreadsByState(CommentThread.ThreadState.OPEN)){ countOpen =>
+                        <i class="yobicon-post2 vmiddle" style="color:#777;"></i>
+                        <div class="infos-item" style="margin-right:3px">
+                            <div class="upload-progress">
+                                <div class="bar orange" style="width: @getPercent(countOpen.toDouble, req.commentThreads.size.toDouble)%;"></div>
+                            </div>
+                        </div>
+                        <a href="@routes.PullRequestApp.pullRequestChanges(req.toProject.owner, req.toProject.name, req.number)" class="infos-item"
+                           data-toggle="tooltip" title="@if(countOpen > 0){@Messages("pullRequest.review.open") / } @Messages("pullRequest.review.total")">
+                            @if(countOpen > 0){
+                                <span>@countOpen</span>
+                                <span class="gray-txt">/</span>
+                            }
+                            <span class="size total">@req.commentThreads.size</span>
+                        </a>
                         }
                     }
                 </div>
