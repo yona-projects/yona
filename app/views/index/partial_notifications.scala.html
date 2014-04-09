@@ -17,7 +17,9 @@
 @notifycationIcon(notifytype: EventType, state: String) = @{
 
     notifytype match {
-        case EventType.NEW_COMMENT | EventType.NEW_REVIEW_COMMENT => { "comments"}
+        case EventType.NEW_COMMENT
+             | EventType.NEW_REVIEW_COMMENT
+             | EventType.REVIEW_THREAD_STATE_CHANGED => { "comments"}
         case EventType.NEW_ISSUE | EventType.ISSUE_STATE_CHANGED => {
             if(state=="closed") "science closed"
             else "science"

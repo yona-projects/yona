@@ -138,6 +138,12 @@ public class NotificationEvent extends Model {
                 return Messages.get(lang, "notification.pullrequest.reviewed", newValue);
             case PULL_REQUEST_UNREVIEWED:
                 return Messages.get(lang, "notification.pullrequest.unreviewed", newValue);
+            case REVIEW_THREAD_STATE_CHANGED:
+                if (newValue.equals(CommentThread.ThreadState.CLOSED.name())) {
+                    return Messages.get(lang, "notification.reviewthread.closed");
+                } else {
+                    return Messages.get(lang, "notification.reviewthread.reopened");
+                }
             default:
                 return null;
         }
@@ -431,6 +437,52 @@ public class NotificationEvent extends Model {
 
         return notiEvent;
     }
+
+    /**
+     * 상태 변경에 대한 알림을 추가한다.
+     *
+     * 등록된 notification은 사이트 메인 페이지를 통해 사용자에게 보여지며 또한
+     * {@link models.NotificationMail#startSchedule()} 에 의해 메일로 발송된다.
+     *
+     * @param oldState
+     * @param thread
+     */
+    public static NotificationEvent afterStateChanged(
+            CommentThread.ThreadState oldState, CommentThread thread)
+            throws IOException, SVNException, ServletException {
+        NotificationEvent notiEvent = createFromCurrentUser(thread);
+
+        notiEvent.eventType = REVIEW_THREAD_STATE_CHANGED;
+        notiEvent.oldValue = oldState.name() != null ? oldState.name() : null;
+        notiEvent.newValue = thread.state.name();
+
+        // Set receivers
+        Set<User> receivers;
+        if (thread.isOnPullRequest()) {
+            PullRequest pullRequest = thread.pullRequest;
+            notiEvent.title = formatReplyTitle(pullRequest);
+            receivers = pullRequest.getWatchers();
+        } else {
+            String commitId;
+            if (thread instanceof CodeCommentThread) {
+                commitId = ((CodeCommentThread)thread).commitId;
+            } else {
+                commitId = ((NonRangedCodeCommentThread)thread).commitId;
+            }
+            Project project = thread.project;
+            Commit commit = RepositoryService.getRepository(project).getCommit(commitId);
+            notiEvent.title = formatReplyTitle(project, commit);
+            receivers = commit.getWatchers(project);
+        }
+        receivers.remove(UserApp.currentUser());
+        notiEvent.receivers = receivers;
+
+        NotificationEvent.add(notiEvent);
+
+        return notiEvent;
+    }
+
+
 
     /**
      * 담당자 변경에 대한 알림을 추가한다.
