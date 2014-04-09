@@ -324,7 +324,8 @@ public class PullRequestApp extends Controller {
         pullRequest.save();
 
         PushedBranch.removeByPullRequestFrom(pullRequest);
-        Attachment.moveAll(UserApp.currentUser().asResource(), pullRequest.asResource());
+
+        AbstractPostingApp.attachUploadFilesToPost(pullRequest.asResource());
 
         Call pullRequestCall = routes.PullRequestApp.pullRequest(pullRequest.toProject.owner, pullRequest.toProject.name, pullRequest.number);
 
@@ -614,8 +615,6 @@ public class PullRequestApp extends Controller {
         List<GitBranch> fromBranches = new GitRepository(pullRequest.fromProject).getAllBranches();
         List<GitBranch> toBranches = new GitRepository(pullRequest.toProject).getAllBranches();
 
-        Attachment.moveAll(UserApp.currentUser().asResource(), pullRequest.asResource());
-
         return ok(edit.render("title.editPullRequest", editForm, fromProject, fromBranches, toBranches, pullRequest));
     }
 
@@ -658,7 +657,8 @@ public class PullRequestApp extends Controller {
         }
 
         pullRequest.updateWith(updatedPullRequest);
-        Attachment.moveAll(UserApp.currentUser().asResource(), pullRequest.asResource());
+
+        AbstractPostingApp.attachUploadFilesToPost(pullRequest.asResource());
 
         return redirect(routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, pullRequest.number));
     }
@@ -798,7 +798,7 @@ public class PullRequestApp extends Controller {
         comment.save();
         pullRequest.update();
 
-        Attachment.moveAll(UserApp.currentUser().asResource(), comment.asResource());
+        AbstractPostingApp.attachUploadFilesToPost(comment.asResource());
 
         play.mvc.Call toView;
         if (commitId != null) {
