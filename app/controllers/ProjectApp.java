@@ -486,8 +486,12 @@ public class ProjectApp extends Controller {
      * @return
      */
     private static List<Issue> getMentionIssueList(Project project) {
+        long projectId = project.id;
+        if(project.isForkedFromOrigin()) {
+            projectId = project.originalProject.id;
+        }
         return Issue.finder.where()
-                        .eq("project", project)
+                        .eq("project.id", projectId)
                         .orderBy("state desc, createdDate desc")
                         .setMaxRows(ISSUE_MENTION_SHOW_LIMIT)
                         .findList();
