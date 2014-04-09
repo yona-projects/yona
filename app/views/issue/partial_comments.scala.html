@@ -87,7 +87,7 @@
                 <a href="#comment-@comment.id" class="ago" title="@JodaDateUtil.getDateString(comment.createdDate)">@utils.TemplateHelper.agoString(comment.ago())</a>
                 <span class="act-row pull-right">
                     @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.UPDATE)) {
-                        <button type="button" class="btn-transparent mr10" data-toggle="comment-edit" data-comment-editform-id="comment-editform-@comment.id" title="@Messages("common.comment.edit")"><i class="yobicon-edit-2"></i></button>
+                        <button type="button" class="btn-transparent mr10" data-toggle="comment-edit" data-comment-id="@comment.id" title="@Messages("common.comment.edit")"><i class="yobicon-edit-2"></i></button>
                     }
 
                     @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)) {
