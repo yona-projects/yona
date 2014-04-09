@@ -44,7 +44,7 @@ public class GitBranch {
         this.name = name;
         this.shortName = StringUtils.removeStart(name, Constants.R_HEADS);
         this.headCommit = headCommit;
-        this.user = User.findByCommitterEmail(headCommit.getCommitterEmail());
+        this.user = User.findByEmail(headCommit.getCommitterEmail());
     }
 
     public String getName() {
