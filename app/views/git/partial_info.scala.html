@@ -9,7 +9,7 @@
 <div class="board-header issue">
     <div class="pull-right mr10 mt10">
         <div class="date" title="@utils.JodaDateUtil.getDateString(pull.created)">
-            @agoString(pull.createdAgo)
+            @agoOrDateString(pull.created)
         </div>
         <span class="badge nm @if(pull.isConflict == true) {badge-issue-conflict} else {badge-issue-@pull.state.state.toLowerCase}">@if(pull.isConflict == true) {@Messages("pullRequest.state.conflict")} else {@Messages("pullRequest.state." + pull.state.state)}</span>
     </div>

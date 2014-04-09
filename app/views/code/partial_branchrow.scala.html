@@ -20,6 +20,7 @@
 **@
 @(project: Project, branch: playRepository.GitBranch, isHead: Boolean)
 
+@import utils.TemplateHelper._
 @import utils.JodaDateUtil._
 @import utils.AccessControl._
 @import java.net.URLEncoder
@@ -35,7 +36,7 @@
 
         @defining(branch.getHeadCommit.getCommitterDate) { commitDate =>
         <span class="date" data-toggle="tooltip" data-placement="top" title="@getDateString(commitDate)">
-            @momentFromNow(commitDate, lang.language)
+            @agoOrDateString(commitDate)
         </span>
         }
     </td>

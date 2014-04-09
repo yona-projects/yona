@@ -35,7 +35,7 @@
                 @Html(getAvatar(files))
                 <a href="@getUserLink(fieldText(files, "userLoginId"))" class="ml5">@fieldText(files,"author")</a>
             </span>
-            <span id="commitDate" class="commitDate">@getFileDate(files,"createdDate")</span>
+            <span id="commitDate" class="commitDate">@getFileAgoOrDate(files,"createdDate")</span>
             <span id="revisionNo" class="revision">
                 <a href="@routes.CodeHistoryApp.show(project.owner, project.name, revId)@if(branch){?branch=@URLEncoder.encode(branch, "UTF-8")}#@path">
                     @if(project.vcs.equals("GIT")){

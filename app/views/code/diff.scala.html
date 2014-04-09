@@ -76,7 +76,7 @@ List[playRepository.FileDiff],path:String)
                             }
                             }
                             <span class="ago" title="@JodaDateUtil.getDateString(commit.getAuthorDate)">
-                                @agoString(JodaDateUtil.ago(commit.getAuthorDate))
+                                @agoOrDateString(commit.getAuthorDate)
                             </span>
                         </div>
                         <div class="commitMsg-wrap">

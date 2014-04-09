@@ -42,7 +42,7 @@
                     }
 
                     <span class="infos-item" title="@JodaDateUtil.getDateString(issue.createdDate)">
-                        @agoString(issue.ago)
+                        @agoOrDateString(issue.createdDate)
                     </span>
 
                     @if(issue.comments.size()>0){
