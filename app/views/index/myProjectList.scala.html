@@ -2,49 +2,35 @@
 @import utils.TemplateHelper._
 
 @displayProjects(title:String, projects:List[Project]) = {
-
-    <div class="my-projects">
-        <div class="title">@title (@projects.size())</div>
-        <ul class="unstyled">
-        @for(project <- projects){
-            <li class="my-project">
-                <div class="my-project-header">
-                    <div class="name-wrap">
-                        @if(project.owner != currentUser.loginId) {
-                        <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> /
-                        }
-                        <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">
-                            <strong>@project.name @if(!project.isPublic){ <i class="yobicon-lock yobicon-small"></i> }</strong>
-                        </a>
-                    </div>
-                </div>
-            </li>
+<ul class="tab-pane unstyled my-project-item" id="@title">
+@for(project <- projects){
+    <li class="my-list-item" data-value="@if(project.owner != currentUser.loginId) {@project.owner / }@project.name">
+        @if(project.owner != currentUser.loginId) {
+        <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> /
         }
-        </ul>
-    </div>
+        <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">
+            <strong>@project.name @if(project.isPrivate){ <i class="yobicon-lock yobicon-small"></i> }</strong>
+        </a>
+    </li>
+}
+</ul>
 }
 @defining(currentUser.getVisitedProjects(10)){ visitedProjects =>
-    <div class="my-projects">
-        <div class="title">@Messages("project.recently.visited") (@visitedProjects.size())</div>
-        <ul class="unstyled">
-        @for(pv <- visitedProjects){
-            <li class="my-project">
-                <div class="my-project-header">
-                    <div class="name-wrap">
-                        @if(pv.project.owner != currentUser.loginId) {
-                        <a href="@routes.UserApp.userInfo(pv.project.owner)">@pv.project.owner</a> /
-                        }
-                        <a href="@routes.ProjectApp.project(pv.project.owner, pv.project.name)" class="project-name">
-                            <strong>@pv.project.name @if(!pv.project.isPublic){ <i class="yobicon-lock yobicon-small"></i> }</strong>
-                        </a>
-                    </div>
-                </div>
-            </li>
+<ul class="tab-pane unstyled my-project-item active" id="recentlyVisited">
+@for(pv <- visitedProjects){
+    <li class="my-list-item" data-value="@if(pv.project.owner != currentUser.loginId) {@pv.project.owner / }@pv.project.name">
+        @if(pv.project.owner != currentUser.loginId) {
+        <a href="@routes.UserApp.userInfo(pv.project.owner)">@pv.project.owner</a> /
         }
-        </ul>
-    </div>
+        <a href="@routes.ProjectApp.project(pv.project.owner, pv.project.name)" class="project-name">
+            <strong>@pv.project.name @if(pv.project.isPrivate){ <i class="yobicon-lock yobicon-small"></i> }</strong>
+        </a>
+    </li>
 }
+</ul>    
+}
+
 @orderString = @{"createdDate DESC"}
-@displayProjects(Messages("project.default.group.watching"), currentUser.getWatchingProjects(orderString))
-@displayProjects(Messages("project.createdByMe"), Project.findProjectsCreatedByUser(currentUser.loginId, orderString))
-@displayProjects(Messages("project.default.group.member"), Project.findProjectsJustMemberAndNotOwner(currentUser, orderString))
+@displayProjects("watching", currentUser.getWatchingProjects(orderString))
+@displayProjects("createdByMe", Project.findProjectsCreatedByUser(currentUser.loginId, orderString))
+@displayProjects("joinmember", Project.findProjectsJustMemberAndNotOwner(currentUser, orderString))

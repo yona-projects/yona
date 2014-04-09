@@ -1,0 +1,13 @@
+@(messageKey:String = "error.forbidden", organization: Organization)
+
+@siteLayout(organization.name, utils.MenuType.NONE) {
+    <div class="site-breadcrumb-outer">
+        <div class="site-breadcrumb-inner">
+            <div class="error-wrap">
+                <i class="ico ico-err2"></i>
+                <p>@Messages(messageKey)</p>
+            </div>
+        </div>
+    </div>
+}
+

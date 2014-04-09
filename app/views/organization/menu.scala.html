@@ -1,0 +1,24 @@
+@(org:Organization)
+
+<div class="project-menu-outer">
+    <div class="project-menu-inner">
+        <ul class="project-menu-nav project-menu-gruop">
+            <li >
+                <a href="@routes.OrganizationApp.organization(org.name)">
+                    @Messages("title.organizationHome")
+                </a>
+            </li>
+        </ul>
+        <div class="project-setting">
+            <ul class="project-menu-nav">
+                <li class="">
+                    <a href="@routes.OrganizationApp.settingForm(org.name)">
+                        <i class="yobicon-cog"></i>
+                        <span class="blind">@Messages("menu.admin")</span>
+                        
+                    </a>
+                <li>
+            </ul>
+        </div>
+    </div>
+</div>

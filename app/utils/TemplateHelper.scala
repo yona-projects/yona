@@ -5,20 +5,18 @@ import org.joda.time.DateTimeConstants
 import play.i18n.Messages
 import controllers.routes
 import controllers.UserApp
-import java.security.MessageDigest
 import views.html._
 import java.net.URI
 import playRepository.DiffLine
 import playRepository.DiffLineType
 import models.CodeRange.Side
 import scala.collection.JavaConversions._
-import org.apache.commons.lang3.StringEscapeUtils.escapeHtml4
 import views.html.partial_diff_comment_on_line
 import views.html.partial_diff_line
 import views.html.git.partial_pull_request_event
+import models.Organization
 import models.PullRequestEvent
 import models.PullRequest
-import models.TimelineItem
 import models.Project
 import models.Issue
 import java.net.URLEncoder
@@ -27,7 +25,6 @@ import playRepository.FileDiff
 import play.api.i18n.Lang
 import models.CodeCommentThread
 import models.CommentThread
-import javax.swing.text.html.HTML
 
 object TemplateHelper {
 
@@ -212,8 +209,15 @@ object TemplateHelper {
   }
 
   def countOpenIssuesBy(project:Project, cond:java.util.Map[String,String]) = {
-    cond += ("state"->models.enumeration.State.OPEN.toString)
+    cond += ("state" -> models.enumeration.State.OPEN.toString)
     Issue.countIssuesBy(project.id, cond)
+  }
+
+  def urlToOrganizationLogo(organization: Organization) = {
+    models.Attachment.findByContainer(organization.asResource) match {
+      case files if files.size > 0 => routes.AttachmentApp.getFile(files.head.id)
+      case _ => routes.Assets.at("images/bg-default-project.jpg")
+    }
   }
 
   object DiffRenderer {

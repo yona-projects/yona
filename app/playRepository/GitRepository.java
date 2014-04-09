@@ -9,7 +9,6 @@ import models.User;
 import models.enumeration.ResourceType;
 import models.resource.Resource;
 import models.support.ModelLock;
-
 import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -40,7 +39,6 @@ import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.jgit.util.FileUtils;
 import org.eclipse.jgit.util.io.NullOutputStream;
 import org.tmatesoft.svn.core.SVNException;
-
 import play.Logger;
 import play.libs.Json;
 import utils.FileUtil;
@@ -1928,16 +1926,7 @@ public class GitRepository implements PlayRepository {
      */
     @Override
     public boolean renameTo(String projectName) {
-
-        repository.close();
-        WindowCacheConfig config = new WindowCacheConfig();
-        config.install();
-        File src = new File(getGitDirectory(this.ownerName, this.projectName));
-        File dest = new File(getGitDirectory(this.ownerName, projectName));
-
-        src.setWritable(true);
-
-        return src.renameTo(dest);
+        return move(this.ownerName, this.projectName, this.ownerName, projectName);
     }
 
     @Override
@@ -2014,5 +2003,27 @@ public class GitRepository implements PlayRepository {
         }
         RevWalk revWalk = new RevWalk(repository);
         return revWalk.parseCommit(objectId);
+    }
+
+    public boolean move(String srcProjectOwner, String srcProjectName, String desrProjectOwner, String destProjectName) {
+        repository.close();
+        WindowCacheConfig config = new WindowCacheConfig();
+        config.install();
+
+        File srcGitDirectory = new File(getGitDirectory(srcProjectOwner, srcProjectName));
+        File destGitDirectory = new File(getGitDirectory(desrProjectOwner, destProjectName));
+        File srcGitDirectoryForMerging = new File(getDirectoryForMerging(srcProjectOwner, srcProjectName));
+        File destGitDirectoryForMerging = new File(getDirectoryForMerging(desrProjectOwner, destProjectName));
+        srcGitDirectory.setWritable(true);
+        srcGitDirectoryForMerging.setWritable(true);
+
+        try {
+            org.apache.commons.io.FileUtils.moveDirectory(srcGitDirectory, destGitDirectory);
+            org.apache.commons.io.FileUtils.moveDirectory(srcGitDirectoryForMerging, destGitDirectoryForMerging);
+            return true;
+        } catch (IOException e) {
+            play.Logger.error("Move Failed", e);
+            return false;
+        }
     }
 }

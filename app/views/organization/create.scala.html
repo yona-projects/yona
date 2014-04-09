@@ -1,0 +1,49 @@
+@(title:String, form: Form[Organization])
+
+@siteLayout("app.name", utils.MenuType.NONE) {
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="form-wrap new-project">
+            <form action="@routes.OrganizationApp.newOrganization()" method="post" name="new-org" class="frm-wrap">
+                <legend>
+                    @Messages("title.newOrganization")
+                </legend>
+                <dl>
+                    <dt>
+                        <div class="n-alert" data-errType="name">
+                            <div class="orange-txt">
+                                @if(flash.get("warning") != null) { <span class="warning">@Messages(flash.get("warning"))</span> }
+                                <span class="msg wrongName" style="display: none;">@Messages("project.wrongName")</span>
+                            </div>
+                        </div>
+                        <label for="name">@Messages("organization.name.placeholder")</label>
+                    </dt>
+                    <dd>
+                        <input id="name" type="text" name="name" class="text" placeholder="" maxlength="250" value="@form.field("name").value()" />
+                    </dd>
+
+                    <dt>
+                        <label for="descr">@Messages("organization.description.placeholder")</label>
+                    </dt>
+                    <dd>
+                        <textarea id="descr" name="descr" class="text textarea.span4" style="resize: vertical;" >@form.field("descr").value()</textarea>
+                    </dd>
+                </dl>
+                <div class="actions">
+                    <button class="ybtn ybtn-success">
+                        <i class="yobicon-friends"></i> @Messages("organization.create")
+                    </button>
+                    <a href="/" class="ybtn">@Messages("button.cancel")</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function() {
+        $yobi.loadModule("organization.New", {
+            "sFormName" : "new-org"
+        });
+    });
+</script>
+}

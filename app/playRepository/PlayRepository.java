@@ -156,4 +156,15 @@ public interface PlayRepository {
      * @return 저장소가 비어있을시 true / 비어있지 않을시 false
      */
     boolean isEmpty();
+
+    /**
+     * 저장소를 옮긴다.
+     *
+     * @param srcProjectOwner
+     * @param srcProjectName
+     * @param desrProjectOwner
+     * @param destProjectName
+     * @return
+     */
+    boolean move(String srcProjectOwner, String srcProjectName, String desrProjectOwner, String destProjectName);
 }

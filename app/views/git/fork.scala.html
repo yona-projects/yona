@@ -1,14 +1,14 @@
-@(title:String, project: Project, forkProject: Project, isNew: Boolean, form: Form[Project])
+@(title:String, project: Project, forkProject: Project, isNew: Boolean, form: Form[Project], orgUserList:List[OrganizationUser])
 
 @import utils.TemplateHelper._
+@import controllers.UserApp
+@import models.Organization
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
 @projectLayout(title, project, utils.MenuType.PULL_REQUEST) {
 @projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
-        @if(isNew) {
-
         <div class="content-wrap frm-wrap">
             <form action="@routes.PullRequestApp.fork(project.owner, project.name)" method="post" class="form-horizontal nm">
                 <input type="hidden" name="owner" value="@forkProject.owner" />
@@ -23,7 +23,7 @@
                             </span>
                         </h4>
                     </legend>
-                    <div id="helpMessage" class="well">
+                    <div id="helpMessage" class="well" style="display:none;">
                         <div class="row-fluid">
                             <div class="pull-left">
                                 <img class="img-polaroid" src="@routes.Assets.at("images/fork-pull/fork.jpg")"><br>
@@ -39,7 +39,12 @@
                     <div class="control-group">
                         <label class="control-label" for="inputOwner">@Messages("project.owner")</label>
                         <div class="controls">
-                            <input type="text" id="inputOwner" disabled value="@forkProject.owner" />
+                            <select id="project-owner" name="owner">
+                            <option data-url="@routes.PullRequestApp.newFork(project.owner, project.name, UserApp.currentUser.loginId)" value="@UserApp.currentUser.loginId">@UserApp.currentUser.loginId</option>
+                            @for(orgUser <- orgUserList) {
+                            <option data-url="@routes.PullRequestApp.newFork(project.owner, project.name, orgUser.organization.name)" value="@orgUser.organization.name" @if(forkProject.owner == orgUser.organization.name) { selected }>@orgUser.organization.name</option>
+                            }
+                            </select>
                         </div>
                     </div>
                     <div class="control-group">
@@ -49,12 +54,18 @@
                             <span class="help-inline">@Messages("project.name.alert")</span>
                         </div>
                     </div>
+                    @if(isNew){
                     <div class="control-group">
                         <label class="control-label">@Messages("project.shareOption")</label>
                         <div class="controls">
-                            <input name="isPublic" type="radio" checked="checked" id="public" value="true" class="radio-btn"><label for="public" class="bg-radiobtn label-public">@Messages("project.public")</label>
-                            <input name="isPublic" type="radio" id="private" value="false" class="radio-btn"><label for="private" class="bg-radiobtn label-private">@Messages("project.private")</label>
-                            <span class="help-inline">@Messages("project.private.notice")</span>
+                            <input name="projectScope" type="radio" id="public" value="PUBLIC" class="radio-btn" checked="checked">
+                            <label for="public" class="bg-radiobtn label-public">@Messages("project.public")</label>
+                            @if(Organization.findByName(forkProject.owner) != null){
+                            <input name="projectScope" type="radio" id="protected" value="PROTECTED" class="radio-btn">
+                            <label for="protected" class="bg-radiobtn label-protected">@Messages("project.protected")</label>
+                            }
+                            <input name="projectScope" type="radio" id="private" value="PRIVATE" class="radio-btn">
+                            <label for="private" class="bg-radiobtn label-private">@Messages("project.private")</label>
                         </div>
                     </div>
                     <div class="control-group">
@@ -63,36 +74,29 @@
                             <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)" class="ybtn">@Messages("button.cancel")</a>
                         </div>
                     </div>
+                    } else {
+                    <div class="error-wrap">
+                        <i class="ico ico-err2"></i>
+                        <p>@Messages("fork.already.exist")</p>
+                        <p>
+                            <strong class="vmiddle">@project.owner / @project.name</strong>
+                            <i class="yobicon-right vmiddle"></i>
+                            <a href="@routes.ProjectApp.project(forkProject.owner, forkProject.name)" class="vmiddle primary-txt">@forkProject.owner / @forkProject.name</a>
+                        </p>
+                    </div>
+                    <div class="center-txt">
+                        <a href="@routes.ProjectApp.project(forkProject.owner, forkProject.name)" class="ybtn ybtn-info">@Messages("fork.go")</a>
+                        <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)" class="ybtn">@Messages("button.cancel")</a>
+                    </div>
+                    }
                 </fieldset>
             </form>
         </div>
-
-        } else {
-
-        <div class="error-wrap">
-            <i class="ico ico-err2"></i>
-            <p>@Messages("fork.already.exist")</p>
-            <p>
-    	        <strong class="vmiddle">@project.owner / @project.name</strong>
-    	        <i class="yobicon-right vmiddle"></i>
-    	        <a href="@routes.ProjectApp.project(forkProject.owner, forkProject.name)" class="vmiddle primary-txt">@forkProject.owner / @forkProject.name</a>
-            </p>
-        </div>
-
-        <div class="center-txt">
-            <a href="@routes.ProjectApp.project(forkProject.owner, forkProject.name)" class="ybtn ybtn-info">@Messages("fork.go")</a>
-            <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)" class="ybtn">@Messages("button.cancel")</a>
-        </div>
-        }
     </div>
 </div>
 <script type="text/javascript">
-    $(function(){
-        $('#helpMessage').hide();
-        $('#helpBtn').click(function(e){
-            e.preventDefault();
-            $('#helpMessage').toggle();
-        });
-    });
+$(document).ready(function() {
+    $yobi.loadModule("project.Fork");
+});
 </script>
 }

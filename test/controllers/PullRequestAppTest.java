@@ -191,7 +191,7 @@ public class PullRequestAppTest {
         User currentUser = User.findByLoginId("admin");
 
         Result result = callAction(
-                controllers.routes.ref.PullRequestApp.newFork(ownerLoginId, projectName),
+                controllers.routes.ref.PullRequestApp.newFork(ownerLoginId, projectName, null),
                 fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/newFork")
                 .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
               );
@@ -205,7 +205,7 @@ public class PullRequestAppTest {
         User currentUser = User.findByLoginId("yobi");
 
         Result result = callAction(
-                controllers.routes.ref.PullRequestApp.newFork(ownerLoginId, projectName),
+                controllers.routes.ref.PullRequestApp.newFork(ownerLoginId, projectName, null),
                 fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/newFork")
                 .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
               );
@@ -220,7 +220,7 @@ public class PullRequestAppTest {
         User currentUser = User.findByLoginId("alecsiel");
 
         Result result = callAction(
-                controllers.routes.ref.PullRequestApp.newFork(ownerLoginId, projectName),
+                controllers.routes.ref.PullRequestApp.newFork(ownerLoginId, projectName, null),
                 fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/newFork")
                 .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
               );
@@ -234,7 +234,7 @@ public class PullRequestAppTest {
         User currentUser = User.findByLoginId("alecsiel");
 
         Result result = callAction(
-                controllers.routes.ref.PullRequestApp.newFork(ownerLoginId, projectName),
+                controllers.routes.ref.PullRequestApp.newFork(ownerLoginId, projectName, null),
                 fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/newFork")
                 .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
               );
@@ -247,10 +247,14 @@ public class PullRequestAppTest {
         initParameters("yobi", "projectYobi", 1L);
         User currentUser = User.findByLoginId("yobi");
 
+        Map<String,String> data = new HashMap<>();
+        data.put("name", "projectYobi-2");
+
         Result result = callAction(
                 controllers.routes.ref.PullRequestApp.fork(ownerLoginId, projectName),
                 fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/fork")
                 .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
+                .withFormUrlEncodedBody(data)
               );
 
         assertThat(status(result)).isEqualTo(SEE_OTHER);

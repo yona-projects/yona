@@ -22,12 +22,23 @@ GET            /UIKit                                                           
 GET            /import                                                                controllers.ImportApp.importForm()
 POST           /import                                                                controllers.ImportApp.newProject()
 
+# Organization
+GET            /organizations/new                                                     controllers.OrganizationApp.newForm()
+POST           /organizations/new                                                     controllers.OrganizationApp.newOrganization()
+GET            /organizations/:name                                                   controllers.OrganizationApp.organization(name: String)
+POST           /organizations/:organizationName/setting                               controllers.OrganizationApp.updateOrganizationInfo(organizationName: String)
+GET            /organizations/:organizationName/settingform                           controllers.OrganizationApp.settingForm(organizationName: String)
+GET            /organizations/:organizationName/members                               controllers.OrganizationApp.members(organizationName: String)
+POST           /organizations/:organizationName/members                               controllers.OrganizationApp.addMember(organizationName: String)
+POST           /organizations/:organizationName/member/:userId/edit                   controllers.OrganizationApp.editMember(organizationName: String, userId: Long)
+DELETE         /organizations/:organizationName/member/:userId/delete                 controllers.OrganizationApp.deleteMember(organizationName: String, userId: Long)
+
 # Notification
 POST           /noti/toggle/:projectId/:notiType                                      controllers.WatchProjectApp.toggle(projectId: Long, notiType)
 
 # User
 GET            /users                                                                 controllers.UserApp.users(query: String ?= "")
-GET            /user/issues                                                 controllers.IssueApp.userIssues(state:String ?= "", format:String ?= "html", pageNum: Int ?= 1)
+GET            /user/issues                                                           controllers.IssueApp.userIssues(state:String ?= "", format:String ?= "html", pageNum: Int ?= 1)
 GET            /users/loginform                                                       controllers.UserApp.loginForm()
 POST           /users/login                                                           controllers.UserApp.login()
 GET            /users/logout                                                          controllers.UserApp.logout()
@@ -113,6 +124,9 @@ POST           /:user/:project/members                                          
 POST           /:user/:project/member/:id/edit                                        controllers.ProjectApp.editMember(user, project, id:Long)
 DELETE         /:user/:project/member/:id/delete                                      controllers.ProjectApp.deleteMember(user, project, id:Long)
 DELETE         /:user/:project/pushedBranch/:id/delete                                controllers.ProjectApp.deletePushedBranch(user, project, id:Long)
+GET            /:user/:project/transfer                                               controllers.ProjectApp.transferForm(user, project)
+PUT            /:user/:project/transfer                                               controllers.ProjectApp.transferProject(user, project)
+GET            /project/transfer/:id/:key                                             controllers.ProjectApp.acceptTransfer(id: Long, key)
 
 # Project Review Menu
 GET            /:user/:project/reviews                                                controllers.ReviewThreadApp.reviewThreads(user, project)
@@ -155,9 +169,9 @@ GET            /:ownerName/:project/info/refs                                   
 POST           /:ownerName/:project/$service<git-upload-pack|git-receive-pack>        controllers.GitApp.serviceRpc(ownerName:String, project:String, service:String)
 
 # Fork & Pull Request
-GET            /:ownerName/:project/newFork                                           controllers.PullRequestApp.newFork(ownerName:String, project:String)
+GET            /:ownerName/:project/newFork                                           controllers.PullRequestApp.newFork(ownerName:String, project:String, forkOwner:String ?= null)
 POST           /:ownerName/:project/fork                                              controllers.PullRequestApp.fork(ownerName:String, project:String)
-POST           /:ownerName/:project/clone                                             controllers.PullRequestApp.doClone(ownerName:String, project:String, name:String, isPublic:Boolean)
+POST           /:ownerName/:project/clone                                             controllers.PullRequestApp.doClone(ownerName:String, project:String)
 GET            /:ownerName/:project/pullRequests                                      controllers.PullRequestApp.pullRequests(ownerName, project)
 
 GET            /:ownerName/:project/closedPullRequests                                controllers.PullRequestApp.closedPullRequests(ownerName, project)
