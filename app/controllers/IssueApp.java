@@ -803,7 +803,7 @@ public class IssueApp extends AbstractPostingApp {
     }
 
     private static boolean isMultipartForm() {
-        return request().body().asMultipartFormData() == null;
+        return request().body().asMultipartFormData() != null;
     }
 
     private static Html commentFormValidationResult(Project project, Form<IssueComment> commentForm) {
