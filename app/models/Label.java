@@ -49,21 +49,6 @@ public class Label extends Model implements ResourceConvertible {
     }
 
     /**
-     * 현재 인스턴스와 같은 라벨가 있는지의 여부를 반환한다.
-     *
-     * when: 사용자가 라벨를 추가하려고 했을 때, 중복 여부를 검사하고자 할 때 사용하고 있다.
-     *
-     * 이 인스턴스의 {@link Label#category}와 {@link Label#name}가 모두 같은 라벨가 DB에 존재하는지 확인한다.
-     *
-     * @return 같은 것이 존재하면 {@code true}, 아니면 {@code false}
-     */
-    @Transient
-    public boolean exists() {
-        return find.where().eq("category", category).eq("name", name)
-            .findRowCount() > 0;
-    }
-
-    /**
      * 라벨를 삭제한다.
      *
      * 모든 프로젝트에서 이 라벨를 제거한 뒤, 라벨를 삭제한다.
