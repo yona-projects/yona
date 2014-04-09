@@ -45,7 +45,7 @@ public class IssueAppTest {
         Helpers.start(app);
 
         project = Project.findByOwnerAndProjectName(projectOwner, projectName);
-        project.projectScope = ProjectScope.PRIVATE;
+        project.setProjectScope(ProjectScope.PRIVATE);
 
         admin = User.findByLoginId("admin");
         manager = User.findByLoginId("yobi");
@@ -132,7 +132,7 @@ public class IssueAppTest {
     @Test
     public void editByNonmember() {
         // Given
-        project.projectScope = ProjectScope.PUBLIC;
+        project.setProjectScope(ProjectScope.PUBLIC);
         project.update();
 
         // When
@@ -183,7 +183,7 @@ public class IssueAppTest {
     @Test
     public void deleteByNonmember() {
         // Given
-        project.projectScope = ProjectScope.PUBLIC;
+        project.setProjectScope(ProjectScope.PUBLIC);
         project.update();
 
         // When
@@ -234,7 +234,7 @@ public class IssueAppTest {
     @Test
     public void postByAnonymous() {
         // Given
-        project.projectScope = ProjectScope.PUBLIC;
+        project.setProjectScope(ProjectScope.PUBLIC);
         project.update();
 
         // When
@@ -247,7 +247,7 @@ public class IssueAppTest {
     @Test
     public void postByNonmember() {
         // Given
-        project.projectScope = ProjectScope.PUBLIC;
+        project.setProjectScope(ProjectScope.PUBLIC);
         project.update();
 
         // When
@@ -287,7 +287,7 @@ public class IssueAppTest {
     @Test
     public void commentByAnonymous() {
         // Given
-        project.projectScope = ProjectScope.PUBLIC;
+        project.setProjectScope(ProjectScope.PUBLIC);
         project.update();
 
         // When
@@ -300,7 +300,7 @@ public class IssueAppTest {
     @Test
     public void commentByNonmember() {
         // Given
-        project.projectScope = ProjectScope.PUBLIC;
+        project.setProjectScope(ProjectScope.PUBLIC);
         project.update();
 
         // When
@@ -348,7 +348,7 @@ public class IssueAppTest {
     public void watch() {
         // Given
         Resource resource = issue.asResource();
-        project.projectScope = ProjectScope.PUBLIC;
+        project.setProjectScope(ProjectScope.PUBLIC);
         project.update();
 
         // When
@@ -386,7 +386,7 @@ public class IssueAppTest {
     public void unwatch() {
         // Given
         Resource resource = issue.asResource();
-        project.projectScope = ProjectScope.PUBLIC;
+        project.setProjectScope(ProjectScope.PUBLIC);
         project.update();
 
 

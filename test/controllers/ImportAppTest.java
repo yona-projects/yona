@@ -24,6 +24,7 @@ import static org.fest.assertions.Assertions.*;
 import static play.test.Helpers.*;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,6 +37,7 @@ import org.junit.Test;
 
 import controllers.routes.ref;
 
+import play.i18n.Messages;
 import play.mvc.Result;
 import play.test.FakeApplication;
 import playRepository.GitRepository;
@@ -71,11 +73,14 @@ public class ImportAppTest {
     @Test
     public void importFormAnonymous() {
         // When
-        Result result = callAction(ref.ImportApp.importForm());
+        Result result = callAction(ref.ImportApp.importForm(),
+                fakeRequest(GET, routes.ImportApp.importForm().url()));
 
         // Then
         assertThat(status(result)).isEqualTo(SEE_OTHER);
-        assertThat(header(LOCATION, result)).isEqualTo(routes.UserApp.loginForm().url());
+        assertThat(header(LOCATION, result)).isEqualTo(
+                routes.UserApp.loginForm().url() + "?redirectUrl="
+                        + routes.ImportApp.importForm().url());
     }
 
     @Test
@@ -95,8 +100,9 @@ public class ImportAppTest {
     public void newProject() throws Exception {
         // Given
         formData.put("url", GitRepository.getGitDirectoryURL(src));
+        formData.put("owner", yobi.loginId);
         formData.put("name", dest.name);
-        formData.put("isPublic", "true");
+        formData.put("projectScope", "PUBLIC");
         formData.put("vcs", "GIT");
 
         // When
@@ -124,8 +130,9 @@ public class ImportAppTest {
     @Test
     public void newProjectNoUrl() {
         // Given
+        formData.put("owner", yobi.loginId);
         formData.put("name", dest.name);
-        formData.put("isPublic", "true");
+        formData.put("projectScope", "PUBLIC");
         formData.put("vcs", "GIT");
 
         // When
@@ -136,15 +143,16 @@ public class ImportAppTest {
 
         // Then
         assertThat(status(result)).isEqualTo(BAD_REQUEST);
-        assertThat(flash(result).get(Constants.WARNING)).isEqualTo("project.import.error.empty.url");
+        assertThat(contentAsString(result)).contains(Messages.get("project.import.error.empty.url"));
     }
 
     @Test
     public void newProjectDuplicatedName() throws Exception {
         // Given
         formData.put("url", GitRepository.getGitDirectoryURL(src));
+        formData.put("owner", yobi.loginId);
         formData.put("name", "projectYobi");
-        formData.put("isPublic", "true");
+        formData.put("projectScope", "PUBLIC");
         formData.put("vcs", "GIT");
 
         // When
@@ -155,15 +163,16 @@ public class ImportAppTest {
 
         // Then
         assertThat(status(result)).isEqualTo(BAD_REQUEST);
-        assertThat(flash(result).get(Constants.WARNING)).isEqualTo("project.name.duplicate");
+        assertThat(contentAsString(result)).contains(Messages.get("project.name.duplicate"));
     }
 
     @Test
     public void newProjectWrongName() throws Exception {
         // Given
         formData.put("url", GitRepository.getGitDirectoryURL(src));
+        formData.put("owner", yobi.loginId);
         formData.put("name", "!@#$%");
-        formData.put("isPublic", "true");
+        formData.put("projectScope", "PUBLIC");
         formData.put("vcs", "GIT");
 
         // When
@@ -174,7 +183,7 @@ public class ImportAppTest {
 
         // Then
         assertThat(status(result)).isEqualTo(BAD_REQUEST);
-        assertThat(flash(result).get(Constants.WARNING)).isEqualTo("project.name.alert");
+        assertThat(contentAsString(result)).contains(Messages.get("project.name.alert"));
     }
 
     private Project project(String owner, String name) {
