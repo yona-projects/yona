@@ -476,6 +476,10 @@ public class User extends Model implements ResourceConvertible {
             enrolledProjects.clear();
             notificationEvents.clear();
             for (Assignee assignee : Assignee.finder.where().eq("user.id", id).findList()) {
+                for (Issue issue : assignee.issues) {
+                    issue.assignee = null;
+                    issue.update();
+                }
                 assignee.delete();
             }
         }

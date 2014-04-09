@@ -158,4 +158,24 @@ public class UserTest extends ModelTest<User> {
         assertThat(project.getWatchingCount()).isEqualTo(0);
     }
 
+    @Test
+    public void changeState() {
+        // Given
+        User user = new User();
+        user.loginId = "foo";
+        user.save();
+        Project project = new Project();
+        project.save();
+        Issue issue = new Issue();
+        issue.project = project;
+        issue.assignee = new Assignee(user.id, project.id);
+        issue.save();
+
+        // When
+        user.changeState(UserState.DELETED);
+
+        // Then
+        issue.refresh();
+        assertThat(issue.assignee).isNull();
+    }
 }
