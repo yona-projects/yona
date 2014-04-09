@@ -140,7 +140,6 @@ POST           /:user/:project/issue/$number<[0-9]+>/edit                       
 GET            /:user/:project/issue/$number<[0-9]+>/nextstate                        controllers.IssueApp.nextState(user, project, number:Long)
 DELETE         /:user/:project/issue/$number<[0-9]+>/delete                           controllers.IssueApp.deleteIssue(user, project, number:Long)
 POST           /:user/:project/issue/$number<[0-9]+>/comments                         controllers.IssueApp.newComment(user, project, number:Long)
-POST           /:user/:project/issue/$number<[0-9]+>/commentsWithState                controllers.IssueApp.newCommentWithState(user, project, number:Long)
 DELETE         /:user/:project/issue/$number<[0-9]+>/comment/:commentId/delete        controllers.IssueApp.deleteComment(user, project, number:Long, commentId:Long)
 GET            /:user/:project/issue/$number<[0-9]+>/timeline                         controllers.IssueApp.timeline(user, project, number:Long)
 
