@@ -1,7 +1,5 @@
 @(project: Project = null)
 
-@import utils.TemplateHelper._
-
 <link rel="stylesheet" type="text/css" href="@routes.Assets.at("javascripts/lib/highlight/styles/default.css")" />
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/highlight/highlight.pack.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/marked.js")"></script>
@@ -9,7 +7,6 @@
 <script type="text/javascript">
 $(document).ready(function(){
     var htOptions = {
-        "sTplSwitch": $("#tplMarkdownPreview").text(),
         "bBreaks": ($('[markdown]').hasClass('readme-body')) ? false : true
     };
 
@@ -21,11 +18,4 @@ $(document).ready(function(){
     // Reusable markdown renderer
     yobi.Markdown.init(htOptions);
 });
-</script>
-
-<script type="text/x-jquery-tmpl" id="tplMarkdownPreview">
-<input type="radio" name="edit-mode" value="edit" checked="checked" class="radio-btn" />
-<label for="edit-mode" style="margin-right:3px;">Edit</label>
-<input type="radio" name="edit-mode" value="preview" class="radio-btn" />
-<label for="preview-mode">Preview</label>
 </script>

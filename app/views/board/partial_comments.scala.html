@@ -1,0 +1,71 @@
+@**
+/**
+* Yobi, Project Hosting SW
+*
+* Copyright 2013 NAVER Corp.
+* http://yobi.io
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+**@
+
+@(project:Project, post:Posting)
+
+@import utils.TemplateHelper._
+@import utils.AccessControl._
+@import utils.JodaDateUtil
+
+@isAuthorComment(commentId: String) = @{
+    if(commentId == UserApp.currentUser().loginId) {"author"}
+}
+
+
+<div class="comment-header"><i class="yobicon-comments"></i> <strong>@Messages("common.comment")</strong> <strong class="num">@post.comments.size</strong></div>
+<hr class="nm" />
+
+<ul class="comments">
+@for(comment <-post.comments){
+    <li class="comment @isAuthorComment(comment.authorLoginId)" id="comment-@comment.id">
+        <div class="comment-avatar">
+            <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+                <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
+            </a>
+        </div>
+        <div class="media-body">
+            <div class="meta-info">
+                <span class="comment_author pull-left">
+                    <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+                        <strong>@comment.authorLoginId </strong>
+                    </a>
+                </span>
+                <a href="#comment-@comment.id" class="ago" title="@JodaDateUtil.getDateString(comment.createdDate)">@utils.TemplateHelper.agoString(comment.ago())</a>
+                <span class="act-row pull-right">
+                    @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.UPDATE)) {
+                        <button type="button" class="btn-transparent mr10" data-toggle="comment-edit" data-comment-id="@comment.id" title="@Messages("common.comment.edit")"><i class="yobicon-edit-2"></i></button>
+                    }
+                    @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)) {
+                        <button type="button" class="btn-transparent" data-toggle="comment-delete" data-request-uri="@routes.BoardApp.deleteComment(project.owner, project.name, post.getNumber, comment.id)" title="@Messages("common.comment.delete")"><i class="yobicon-trash"></i></button>
+                    }
+                </span>
+            </div>
+
+            @common.commentUpdateForm(comment.id, routes.BoardApp.newComment(project.owner, project.name, post.getNumber).toString(), comment.contents)
+
+            <div id="comment-body-@comment.id">
+                <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
+                <div class="attachments pull-right" data-resourceType="@ResourceType.NONISSUE_COMMENT" data-resourceId="@comment.id"></div>
+            </div>
+        </div>
+    </li>
+}
+</ul>

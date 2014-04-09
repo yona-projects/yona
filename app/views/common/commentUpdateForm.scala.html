@@ -1,32 +1,18 @@
-@(project:Project, resourceType:ResourceType, resourceId:Long, action:String, contents:String)
+@(commentId:Long, action:String, contents:String)
 
-@import models.enumeration.ResourceType
-    <div id="comment-editform-@resourceId" class="comment-update-form">
-    <form id="comment-update-form" action="@action" method="post">
+<div id="comment-editform-@commentId" class="comment-update-form">
+    <form action="@action" method="post">
+        <input type="hidden" name="id" value="@commentId">
+
         <div class="write-comment-box">
             <div class="write-comment-wrap">
-                <div id="mode-select" data-toggle="buttons">
-                    <ul class="nav nav-tabs">
-                    <li class="active">
-                        <input type="radio" name="edit-mode" id="edit-mode-@resourceId" value="edit" checked="checked" class="radio-btn">
-                        <a href="#" data-toggle="tab" onclick="$('#edit-mode-@resourceId').trigger('click')">Edit</a>
-                    </li>
-                    <li>
-                        <input type="radio" name="edit-mode" id="preview-mode-@resourceId" value="preview" class="radio-btn">
-                        <a href="#" onclick="$('#preview-mode-@resourceId').trigger('click')" data-toggle="tab">Preview</a>
-                    </li>
-                    </ul>
-                </div>
-                @help.markdown()
-                <input type="hidden" name="id" value="@resourceId">
-                <div class="textarea-box">
-                    <textarea id="comment-editor" name="contents" class="comment comment-editor" markdown="true">@contents</textarea>
-                </div>
+                @common.editor("contents", contents)
+
                 <div class="right-txt comment-update-button">
-                    <button type="button" class="ybtn ybtn-cancel" data-comment-body-id="comment-body-@resourceId">@Messages("button.cancel")</button>
+                    <button type="button" class="ybtn ybtn-cancel" data-comment-id="@commentId">@Messages("button.cancel")</button>
                     <button type="submit" class="ybtn ybtn-info">@Messages("button.save")</button>
                 </div>
             </div>
         </div>
     </form>
-    </div>
+</div>

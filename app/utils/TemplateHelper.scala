@@ -44,6 +44,14 @@ object TemplateHelper {
     baseUrl + prefix + query.dropRight(1)
   }
 
+  def buildAttrString(attrMap: java.util.Map[String, String]): String = {
+    var attr = ""
+    attrMap.map {
+      v => attr += v._1 + "=" + v._2 + " "
+    }
+    attr.dropRight(1)
+  }
+
   def agoString(duration: org.joda.time.Duration) = {
     if (duration != null){
       val sec = duration.getMillis / DateTimeConstants.MILLIS_PER_SECOND

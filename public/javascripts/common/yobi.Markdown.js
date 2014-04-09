@@ -9,7 +9,6 @@
 yobi.Markdown = (function(htOptions){
 
     var htVar = {};
-    var htElement = {};
 
     /**
      * initialize
@@ -27,10 +26,10 @@ yobi.Markdown = (function(htOptions){
      * @param {Hash Table} htOptions
      */
     function _initVar(htOptions){
-        htVar.sTplSwitch = htOptions.sTplSwitch;
         htVar.sIssuesUrl = htOptions.sIssuesUrl;
         htVar.sProjectUrl = htOptions.sProjectUrl;
         htVar.bBreaks = htOptions.bBreaks;
+
         htVar.sUserRules = '[a-z0-9_\\-\\.]';
         htVar.sProjecRules = '[a-z0-9_\\-\\.]';
         htVar.sIssueRules = '\\d';
@@ -176,31 +175,33 @@ yobi.Markdown = (function(htOptions){
     }
 
     /**
+     * set Markdown Viewer
+     *
+     * @param {Wrapped Element} welTarget is not <textarea> or <input>
+     */
+    function _setViewer(welTarget) {
+        var sMarkdownText = welTarget.text();
+        var sContentBody  = (sMarkdownText) ? _renderMarkdown(sMarkdownText) : welTarget.html();
+        welTarget.html(sContentBody).removeClass('markdown-before');
+    }
+
+    /**
      * set Markdown Editor
      *
      * @param {Wrapped Element} welTextarea
      */
-    function _setEditor(welTextarea) {
-        // create new preview area
-        var welPreview = $('<div class="markdown-preview markdown-wrap">');
-        var welTextareaBox = welTextarea.parents('.write-comment-wrap').find('.textarea-box');
+    function _setEditor(welTextarea){
+        var elContainer = welTextarea.parents('[data-toggle="markdown-editor"]').get(0);
 
-        welPreview.css({
-            "display"   : "none",
-            "min-height": welTextarea.height() + 'px'
-        });
+        if(!elContainer){
+            return false;
+        }
 
-        var welPreviewSwitch = welTextarea.parents('.write-comment-wrap').find('input[name="edit-mode"]');
-
-        var fOnChangeSwitch = function() {
-            var bPreview = (welTextarea.parents('.write-comment-wrap').find("input:radio[name=edit-mode]:checked").val() == "preview");
+        $(elContainer).on("click", 'a[data-mode="preview"]', function(weEvt){
+            var welPreview = $(weEvt.delegateTarget).find("div.markdown-preview");
             welPreview.html(_renderMarkdown(welTextarea.val()));
-            (bPreview ? welPreview: welTextareaBox).show();
-            (bPreview ? welTextareaBox: welPreview).hide();
-        };
-
-        welPreviewSwitch.change(fOnChangeSwitch);
-        welTextareaBox.before(welPreview);
+            welPreview.css({"min-height": welTextarea.height() + 'px'});
+        });
 
         welTextarea.on("keydown.tabkey-event-handler", function(e) {
             if(e.keyCode === 9){ //tab
@@ -211,17 +212,6 @@ yobi.Markdown = (function(htOptions){
                 this.selectionEnd = start + 1;
             }
         });
-    }
-
-    /**
-     * set Markdown Viewer
-     *
-     * @param {Wrapped Element} welTarget is not <textarea> or <input>
-     */
-    function _setViewer(welTarget) {
-        var sMarkdownText = welTarget.text();
-        var sContentBody  = (sMarkdownText) ? _renderMarkdown(sMarkdownText) : welTarget.html();
-        welTarget.html(sContentBody).removeClass('markdown-before');
     }
 
     /**
@@ -238,7 +228,7 @@ yobi.Markdown = (function(htOptions){
     }
 
     /**
-     * Returns that specifieid element is editable
+     * Returns that specified element is editable
      *
      * @param {HTMLElement} elTarget
      * @return {Boolean}
