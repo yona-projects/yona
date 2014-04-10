@@ -184,7 +184,8 @@ public class AbstractPostingApp extends Controller {
 
     private static String[] getTemporaryFileListFromHiddenForm() {
         Http.MultipartFormData body = request().body().asMultipartFormData();
-        if (body == null) {
+        String [] temporaryUploadFiles = body.asFormUrlEncoded().get(AttachmentApp.TAG_NAME_FOR_TEMPORARY_UPLOAD_FILES);
+        if (body == null ||  temporaryUploadFiles == null) {
             return new String[] {};
         }
         final String CSV_DELEMETER = ",";
