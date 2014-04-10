@@ -1,48 +1,60 @@
-소개
-----
+Abstract
+--------
 
-Yobi는 라벨에 대한 자동완성 API를 제공한다. URL `/labels`로 요청하면 json 포맷으로 된 라벨들의 목록을 돌려받는다.
+Yobi provides the HTTP API to get project labels, mainly for autocomplete.
+When a client send a request to a url `/labels`, Yobi returns a list of project
+labels encoded in json.
 
-요청
-----
+Request
+-------
 
-### 메소드
+A client requests project labels by using this HTTP request:
 
-    GET
+    GET /labels
 
-### URL
+### Query String
 
-    /labels
-
-### 파라메터
-
-라벨를 요청할 때 쿼리 스트링에 다음의 필드를 포함시킬 수 있다. 쿼리 스트링은 [application/x-www-form-urlencoded](http://www.w3.org/TR/REC-html40/interact/forms.html#form-content-type)에 따라 인코딩된다.
+A client can include these fields in a query string to request for project
+labels that satisfy a specific condition. The query string must be encoded
+according to application/x-www-form-urlencoded [1].
 
 #### category
 
-라벨이 속한 카테고리에 대한 검색어. 서버는 라벨의 카테고리에 이 `query`의 값이 포함된 라벨를 반환한다. 대소문자를 구분하지 않는다.
+A case-insensitive keyword for the category to which labels belong.
+
+Yobi returns a list of project labels whose category name contains the keyword.
 
 #### query
 
-라벨의 이름에 대한 검색어. 서버는 라벨의 이름에 이 `query`의 값이 포함된 라벨를 반환한다. 대소문자를 구분하지 않는다.
+A case-insensitive keyword for label names.
+
+Yobi returns a list of project labels whose name contains the keyword.
 
 #### limit
 
-돌려받을 항목의 갯수를 제한한다. 그러나 서버 역시 별도로 넘겨줄 수 있는 항목 갯수의 상한값을 가지고 있을 수 있다. 그러한 경우에는 경우에는 작은 쪽이 선택된다.
+A maximum number of items Yobi returns.
 
-응답
-----
+But Yobi may also have its own limit. In such a case, smaller one is applied.
 
-응답은 json 형식으로, 라벨 이름의 배열이 반환된다.
+Response
+--------
 
-### Content-Range 헤더
+Response is a list of project label names that match up with the given condition,
+encoded in json.
 
-서버는 항상 자동완성 후보의 목록을 남김없이 모두 둘려주는 것은 아니다. 다음의 경우 일부분만을 돌려줄 수 있다.
+### Content-Range header
 
-1. 클라이언트가 일부분만을 요청한 경우 (쿼리 스트링의 `limit` 필드를 이용했을 것이다)
-2. 서버가 항목의 최대 갯수를 제한하고 있는 경우
+Yobi returns only a part of project labels matched up with the given condition
+in some cases as follows:
 
-이러한 경우 서버는 다음과 같은 형식의 Content-Range 헤더를 포함시켜서, 몇 개의 항목 중에서 몇 개의 항목을 돌려주었는지 알려줄 수 있다. (HTTP/1.1의 bytes-range-spec과 차이가 있음에 유의하라)
+* When a client has set the max number of results returned by using `limit` field in query string.
+* when Yobi limits the max number of items to return.
+
+In that cases, Yobi includes Content-Range header in the response to tell the
+number of returned items out of total number. Note that this behavior is
+different from `bytes-range-spec` of HTTP/1.1.
+
+Here is the syntax:
 
     Content-Range     = items-unit SP number-of-items "/" complete-length
     items-unit        = "items"
@@ -50,27 +62,41 @@ Yobi는 라벨에 대한 자동완성 API를 제공한다. URL `/labels`로 요�
     complete-length   = 1*DIGIT
     SP                = <US-ASCII SP, space (32)>
 
-예를 들어 총 10개 중 8개만을 돌려주었다는 의미의 Content-Range 헤더는 다음과 같다.
+An example of a Content-Range header, saying 8 out of 10 items are returned.
 
     Content-Range: items 8/10
 
-`complete-length`는, 서버의 제약이나 클라이언트의 제한 요청이 없었을 경우 돌려주었을 항목의 갯수와 같다.
+`complete-length` is identical to the number of items Yobi returns when neither
+client nor Yobi does request or limit the number.
 
-주의: 클라이언트의 요청이 Range 요청이 아님에도 Content-Range 헤더를 포함하여 응답하는 것이므로, 응답의 상태 코드는 206 Partial Content 이어서는 안된다. 206으로 응답할 때는 반드시 요청에 Range 헤더가 포함되어 있어야 하기(MUST) 때문이다.
+Note: The status code must not be 206 Partial Content because even though the
+client didn't send a range request, its response includes Content-Range header.
+When a server returns a response with 206 Partial Content, the request MUST have
+included a Range header field [2].
 
-예외처리
---------
+Exceptions
+----------
 
-* 오로지 json으로만 응답이 가능하기 때문에, `application/json`을 받아들일 수 없는 요청이라면 406 Not Acceptable로 응답한다.
-* 필요한 파라메터가 없거나, 잘못된 파라메터가 주어진 경우에는 400 Bad Request로 응답한다.
+Yobi returns:
 
-요청과 응답의 예
-----------------
+* 406 Not Acceptable if the client cannot accept `application/json` which is
+  the only content type for this request.
+* 400 bad Request if the request does not include a mandatory field or does
+  include a malformed field.
 
-요청
+An example of an HTTP transaction
+---------------------------------
+
+request
 
     GET /labels?query=a&category=Language&limit=3
 
-응답
+response
 
     ["@Formula","A# (Axiom)","A# .NET"]
+
+References
+----------
+
+[1]: http://www.w3.org/TR/REC-html40/interact/forms.html#form-content-type
+[2]: https://tools.ietf.org/html/rfc2616#section-10.2.7
