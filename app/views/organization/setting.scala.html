@@ -1,4 +1,4 @@
-@(organization:Organization)
+@(organization:Organization, organizationForm: Form[Organization])
 
 @import utils.TemplateHelper._
 
@@ -11,7 +11,6 @@
         @partial_settingmenu(organization)
         <form id="saveSetting" method="post" action="@routes.OrganizationApp.updateOrganizationInfo(organization.name)" enctype="multipart/form-data" class="nm">
             <input type="hidden" name="id" value="@organization.id">
-            <input type="hidden" name="name" value="@organization.name">
             <div class="bubble-wrap gray">
                 <div class="box-wrap top clearfix frm-wrap" style="padding-top:20px;">
                     <div class="setting-box left">
@@ -32,6 +31,15 @@
                         </div>
                     </div>
                     <dl class="setting-box right">
+                        <dt>
+                            <label for="project-name">@Messages("organization.name.placeholder")</label>
+                        </dt>
+                        <dd>
+                            <input id="project-name" type="text" name="name" maxlength="250" value="@organization.name">
+                            <div class="orange-txt">
+                            @if(organizationForm.error("name") != null) { <span class="warning">@Messages(organizationForm.error("name").message())</span> }
+                            </div>
+                        </dd>
                         <dt>
                             <label for="project-desc">@Messages("organization.description.placeholder")</label>
                         </dt>

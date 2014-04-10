@@ -22,9 +22,12 @@ package controllers;
 
 import actions.AnonymousCheckAction;
 import models.Organization;
+import models.Project;
 import models.User;
 import models.enumeration.Operation;
+
 import org.codehaus.jackson.node.ObjectNode;
+
 import play.data.Form;
 import play.data.validation.Validation;
 import play.db.ebean.Transactional;
@@ -36,6 +39,7 @@ import play.mvc.With;
 import utils.AccessControl;
 import utils.Constants;
 import utils.ErrorViews;
+import utils.ValidationResult;
 import models.*;
 import models.enumeration.RoleType;
 import views.html.organization.create;
@@ -43,6 +47,7 @@ import views.html.organization.view;
 import views.html.organization.setting;
 
 import javax.validation.ConstraintViolation;
+
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
@@ -308,7 +313,7 @@ public class OrganizationApp extends Controller {
 
         Organization organization = Organization.findByOrganizationName(organizationName);
 
-        return ok(views.html.organization.setting.render(organization));
+        return ok(views.html.organization.setting.render(organization, form(Organization.class).fill(organization)));
     }
 
     /**
@@ -347,46 +352,74 @@ public class OrganizationApp extends Controller {
         return ok(result);
     }
 
-    private static Result validateForupdateOrganizationInfo(String organizationName) {
-        Result result = validateForSetting(organizationName);
-
-        if (result == null) {
-            Form<Organization> organizationForm = form(Organization.class).bindFromRequest();
-            if (organizationForm.hasErrors()) {
-                Organization organization = Organization.findByOrganizationName(organizationName);
-                return badRequest(setting.render(organization));
-            }
-        }
-
-        return result;
-    }
-
     public static Result updateOrganizationInfo(String organizationName) throws IOException, NoSuchAlgorithmException {
-        Result result = validateForupdateOrganizationInfo(organizationName);
-        if (result != null) {
+        Form<Organization> organizationForm = form(Organization.class).bindFromRequest();
+        Organization modifiedOrganization = organizationForm.get();
+
+        Result result = validateForUpdate(organizationForm, modifiedOrganization);
+        if(result != null) {
             return result;
         }
 
-        Form<Organization> organizationForm = form(Organization.class).bindFromRequest();
-        Organization organization = organizationForm.get();
-        Http.MultipartFormData body = request().body().asMultipartFormData();
-        Http.MultipartFormData.FilePart filePart = body.getFile("logoPath");
+        Http.MultipartFormData.FilePart filePart = request().body().asMultipartFormData()
+                .getFile("logoPath");
+        if(!isEmptyFilePart(filePart)) {
+            Attachment.deleteAll(modifiedOrganization.asResource());
+            new Attachment().store(filePart.getFile(), filePart.getFilename(), modifiedOrganization.asResource());
+        }
 
+        modifiedOrganization.update();
+
+        return redirect(routes.OrganizationApp.settingForm(modifiedOrganization.name));
+    }
+
+    private static Result validateForUpdate(Form<Organization> organizationForm,
+            Organization modifiedOrganization) {
+        Organization organization = Organization.find.byId(modifiedOrganization.id);
+        if (organization == null) {
+            return notFound(ErrorViews.NotFound.render("organization.member.unknownOrganization"));
+        }
+
+        if (isDuplicateName(organization, modifiedOrganization)) {
+            organizationForm.reject("name", "organization.name.duplicate");
+            return badRequest(setting.render(organization, organizationForm));
+        }
+
+        Http.MultipartFormData.FilePart filePart = request().body().asMultipartFormData()
+                .getFile("logoPath");
         if (!isEmptyFilePart(filePart)) {
-            if(!isImageFile(filePart.getFilename())) {
+            if (!isImageFile(filePart.getFilename())) {
                 flash(Constants.WARNING, "project.logo.alert");
                 organizationForm.reject("logoPath");
-            } else if (filePart.getFile().length() > LOGO_FILE_LIMIT_SIZE) {
+            }
+            if (filePart.getFile().length() > LOGO_FILE_LIMIT_SIZE) {
                 flash(Constants.WARNING, "project.logo.fileSizeAlert");
                 organizationForm.reject("logoPath");
-            } else {
-                Attachment.deleteAll(organization.asResource());
-                new Attachment().store(filePart.getFile(), filePart.getFilename(), organization.asResource());
             }
         }
 
-        organization.update();
+        if (organizationForm.hasErrors()) {
+            return badRequest(setting.render(organization, organizationForm));
+        }
 
-        return redirect(routes.OrganizationApp.settingForm(organizationName));
+        return null;
+    }
+
+    private static boolean isDuplicateName(Organization organization,
+            Organization modifiedOrganization) {
+        if (isNotChangedName(organization.name, modifiedOrganization.name)) {
+            return false;
+        }
+        if (User.isLoginIdExist(modifiedOrganization.name)) {
+            return true;
+        }
+        if (Organization.isNameExist(modifiedOrganization.name)) {
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean isNotChangedName(String name, String modifiedName) {
+        return name.equals(modifiedName);
     }
 }
