@@ -148,7 +148,7 @@ SET comment_thread.state = 'CLOSED'
 WHERE comment_thread.id IN (
     SELECT t.id
     FROM comment_thread t, pull_request pr
-    WHERE t.pull_request_id = pr.id AND pr.state IN (2, 3));
+    WHERE t.pull_request_id = pr.id AND pr.state IN (2, 3, 6));
 
 DROP TABLE IF EXISTS pull_request_comment;
 
