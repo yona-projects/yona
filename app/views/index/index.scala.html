@@ -41,13 +41,17 @@
             <div class="guide-toggle">
                 <button class="btn-transparent" id="toggleIntro"><i class="yobicon-resizev"></i></button>
             </div>
-            <ul class="nav nav-tabs">
-                <li class="active"><a href="@routes.Application.index()">@Messages("notification")</a></li>
-                <li><a href="@routes.IssueApp.userIssues()">@Messages("issue.myIssue")</a></li>
-            </ul>
             <div class="page on-fold-intro">
                 <div class="row-fluid content-container">
                     <div class="span8 main-stream">
+                         <ul class="nav nav-tabs">
+                            <li class="active">
+                                <a href="@routes.Application.index()">@Messages("notification")</a>
+                            </li>
+                            <li>
+                                <a href="@routes.IssueApp.userIssues()">@Messages("issue.myIssue")</a>
+                            </li>
+                        </ul>
                         <ul class="activity-streams notification-wrap unstyled">
                             @partial_notifications(0, 20)
                         </ul>
