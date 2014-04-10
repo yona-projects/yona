@@ -86,7 +86,8 @@ public class UserApp extends Controller {
             return status(Http.Status.NOT_ACCEPTABLE);
         }
 
-        ExpressionList<User> el = User.find.select("loginId, name").where().disjunction();
+        ExpressionList<User> el = User.find.select("loginId, name").where()
+            .ne("state", UserState.DELETED).disjunction();
         el.icontains("loginId", query);
         el.icontains("name", query);
         el.endJunction();
