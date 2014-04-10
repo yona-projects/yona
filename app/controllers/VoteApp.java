@@ -32,15 +32,15 @@ import models.enumeration.ResourceType;
 import controllers.annotation.IsCreatable;
 
 /**
- * 이슈에서 투표하기 위한 Controller
+ * The Controller which plays a role in voting in the issue.
  */
 @With(AnonymousCheckAction.class)
 public class VoteApp extends Controller {
 
     /**
-     * 투표하기
+     * Votes the issue.
      *
-     * 투표요청이 들어온 이슈에서 로그인 사용자의 투표가 등록된다.
+     * The vote of current user is added to the issue having {@code issueNumber}.
      *
      * @param ownerName
      * @param projectName
@@ -62,9 +62,9 @@ public class VoteApp extends Controller {
     }
 
     /**
-     * 투표 취소하기
+     * Cancels the vote.
      *
-     * 투표요청이 들어온 이슈에서 로그인 사용자의 투표가 취소된다.
+     * It is canceled that the vote of current user is in the issue having {@code issueNumber}.
      *
      * @param ownerName
      * @param projectName

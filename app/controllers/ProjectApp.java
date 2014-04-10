@@ -743,11 +743,12 @@ public class ProjectApp extends Controller {
         return redirect(routes.ProjectApp.members(loginId, projectName));
     }
 
+
     /**
-     * {@code location}을 JSON 형태로 저장하여 ok와 함께 리턴한다.
+     * Returns OK(200) with {@code location} which is represented as JSON .
      *
-     * Ajax 요청에 대해 redirect를 리턴하면 정상 작동하지 않음으로 ok에 redirect loation을 포함하여 리턴한다.
-     * 클라이언트에서 {@code location}을 확인하여 redirect 시킨다.
+     * Since returning redirect response(3xx) to Ajax request causes unexpected result, this function returns OK(200) containing redirect location.
+     * The client will check {@code location} and have a page move to the location.
      *
      * @param location
      * @return

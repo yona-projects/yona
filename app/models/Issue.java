@@ -351,9 +351,9 @@ public class Issue extends AbstractPosting implements LabelOwner {
     }
 
     /**
-     * 이 이슈를 지켜보고 있는 모든 사용자와 이슈에 투표를 한 모든 사용자를 얻는다.
+     * Returns all users watching or voting the issue.
      *
-     * @return 이 이슈를 지켜보고 있는 모든 사용자와 이슈에 투표를 한 모든 사용자의 집합.
+     * @return The set watching and voting the issue.
      */
     @Transient
     public Set<User> getWatchers() {
@@ -517,7 +517,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
     }
 
     /**
-     * {@code user}를 투표자로 추가한다.
+     * Adds {@code user} as a voter.
      *
      * @param user
      */
@@ -527,7 +527,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
     }
 
     /**
-     * {@code user}의 투표를 취소한다.
+     * Cancels the vote of {@code user}.
      *
      * @param user
      */
@@ -537,10 +537,10 @@ public class Issue extends AbstractPosting implements LabelOwner {
     }
 
     /**
-     * {@code user}의 투표 여부를 반환한다.
+     * Returns whether {@code user} has voted or not.
      *
      * @param user
-     * @return 투표를 했으면 true, 아니면 false.
+     * @return True if the user has voted, if not False
      */
     public boolean isVotedBy(User user) {
         return this.voters.contains(user);

@@ -73,7 +73,7 @@ public class Project extends Model implements LabelOwner {
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     public List<Milestone> milestones;
 
-    /** 프로젝트 알림 */
+    /** Project Notification */
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     public List<UserProjectNotification> notifications;
 

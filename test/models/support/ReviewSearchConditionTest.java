@@ -30,14 +30,14 @@ import controllers.ProjectApp;
 import static org.fest.assertions.Assertions.assertThat;
 
 /**
- * {@link models.support.ReviewSearchCondition}을 테스트
+ * The class to test {@link models.support.ReviewSearchCondition}
  */
 public class ReviewSearchConditionTest extends ModelTest<ReviewSearchCondition> {
 
     protected static FakeApplication app;
 
     /**
-     * 리뷰에서 커밋 로그 검색을 테스트
+     * Tests searching reviews having the content.
      */
     @Test
     public void filterForComment() {
@@ -56,7 +56,7 @@ public class ReviewSearchConditionTest extends ModelTest<ReviewSearchCondition> 
     }
 
     /**
-     * 리뷰에서 커밋 아이디 검색을 테스트
+     * Tests searching reviews written to the commit with commit id.
      */
     @Test
     public void filterForCommitId() {
@@ -77,7 +77,7 @@ public class ReviewSearchConditionTest extends ModelTest<ReviewSearchCondition> 
     }
 
     /**
-     * 리뷰에서 파일 패스 검색을 테스트
+     * Tests searching reviews written to the file
      */
     @Test
     public void filterForPath() {
@@ -98,7 +98,7 @@ public class ReviewSearchConditionTest extends ModelTest<ReviewSearchCondition> 
     }
 
     /**
-     * 리뷰에서 커밋로그, 커밋아이디, 파일 path 검색을 테스트
+     * Tests searching reviews for contents, commit id and file path.
      */
     @Test
     public void filterForAll() {
@@ -117,7 +117,7 @@ public class ReviewSearchConditionTest extends ModelTest<ReviewSearchCondition> 
     }
 
     /**
-     * 스레드 생성자 검색을 테스트
+     * Tests searching reviews written by the user specified.
      */
     @Test
     public void searchingAuthor() {
@@ -135,7 +135,7 @@ public class ReviewSearchConditionTest extends ModelTest<ReviewSearchCondition> 
     }
 
     /**
-     * 스레드 참여자 검색을 테스트
+     * Tests searching reviews which the user specified participated in.
      */
     @Test
     public void searchingParticipant() {
@@ -153,7 +153,7 @@ public class ReviewSearchConditionTest extends ModelTest<ReviewSearchCondition> 
     }
 
     /**
-     * 테스트를 위해 DB에 데이터 입력
+     * Adds test data.
      */
     private void addTestData() {
         User adminUser = User.findByLoginId("admin");
@@ -211,7 +211,7 @@ public class ReviewSearchConditionTest extends ModelTest<ReviewSearchCondition> 
     }
 
     /**
-     * 커맨트 생성 함수. 지정한 스레드에 캐맨트 남긴다.
+     * Creates a comment and added to {@code thread}
      * @param thread
      * @param author
      * @param contents
@@ -229,7 +229,7 @@ public class ReviewSearchConditionTest extends ModelTest<ReviewSearchCondition> 
     }
 
     /**
-     * 스레드 생성 함수.
+     * Creates a thread.
      * @param author
      * @param contents
      * @param project

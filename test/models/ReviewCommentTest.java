@@ -133,20 +133,21 @@ public class ReviewCommentTest extends ModelTest<ReviewComment> {
 
 
     /**
-     * {@code commitId}를 가지는 {@link models.NonRangedCodeCommentThread} 한 개 저장.
+     * Adds test data.
+     *
+     * A {@link models.NonRangedCodeCommentThread} having {@code commitId} is saved.
      *  - state: OPEN
-     *  - createDate: 3일전
-     * {@link models.ReviewComment} 생성하여 {@link models.NonRangedCodeCommentThread}에 추가.
-     *  - createdDate: 3일전
-     * {@link models.ReviewComment} 생성하여 {@link models.NonRangedCodeCommentThread}에 추가.
-     *  - createdDate: 2일전
-     * {@code commitId}를 가지는 {@link models.CodeCommentThread} 한 개 저장.
+     *  - createDate: 3 days ago
+     * A {@link models.ReviewComment} is created and added to the {@link models.NonRangedCodeCommentThread}.
+     *  - createdDate: 3 days ago
+     * A {@link models.ReviewComment} is created and added to the {@link models.NonRangedCodeCommentThread}.
+     *  - createdDate: 2 days ago
+     * A {@link models.CodeCommentThread} having the {@code commitId} is saved.
      *  - state: CLOSED
      *  - path: "readme.md"
-     *  - createdDate: 2일전
-     * {@code }
-     * {@link models.ReviewComment} 생성하여 {@link models.CodeCommentThread}에 추가.
-     *  - createdDate: 3일전
+     *  - createdDate: 2 days ago
+     * A {@link models.ReviewComment} is created and added to {@link models.CodeCommentThread}.
+     *  - createdDate: 3 days ago
      *
      *  @return {thread1.id, comment1.id, comment2.id, thread2.id, comment3.id}
      */

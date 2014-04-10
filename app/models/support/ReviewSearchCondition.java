@@ -30,7 +30,7 @@ import org.apache.commons.lang.StringUtils;
 
 
 /**
- * 프로젝트의 리뷰 메뉴에서 검색,정렬 및 필터를 위해 사용되는 클래스
+ * The class for searching, sorting and filtering in review menu of a project.
  */
 public class ReviewSearchCondition extends AbstractPostingApp.SearchCondition {
     public String state;
@@ -43,9 +43,12 @@ public class ReviewSearchCondition extends AbstractPostingApp.SearchCondition {
     }
 
     /**
-     * 검색, 정렬 및 필더 값으로 {@link models.support.ReviewSearchCondition} 모델에 쿼리를 하여 결과를 반환
+     * Returns the result after querying with the conditions to the model.
+     *
+     * It queries to the the model, {@link models.support.ReviewSearchCondition}, to search, sort and filter.
+     *
      * @param project
-     * @return
+     * @return The result of the query.
      */
     public ExpressionList<CommentThread> asExpressionList(Project project) {
         ExpressionList<CommentThread> el = CommentThread.find.where().eq("project.id", project.id);
