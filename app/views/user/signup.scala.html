@@ -63,7 +63,10 @@
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/validate.js")"></script>
 <script type="text/javascript">
     $(document).ready(function() {
-        $yobi.loadModule("user.SignUp");
+        $yobi.loadModule("user.SignUp", {
+            "sLogindIdCheckUrl" : "@routes.UserApp.isUsed("")",
+            "sEmailCheckUrl" : "@routes.UserApp.isEmailExist("")"
+        });
     });
 </script>
 }
