@@ -181,6 +181,9 @@ public class PullRequestApp extends Controller {
         Project forkProject = Project.copy(originalProject, destination);
         forkProject.name = projectForm.name;
         forkProject.projectScope = projectForm.projectScope;
+        if (Organization.isNameExist(destination)) {
+            forkProject.organization = Organization.findByName(destination);
+        }
         originalProject.addFork(forkProject);
 
         // git clone으로 Git 저장소 생성하고 새 프로젝트를 만들고 권한 추가.
