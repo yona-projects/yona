@@ -37,7 +37,9 @@ import org.junit.Test;
 
 import controllers.routes.ref;
 
+import play.i18n.Lang;
 import play.i18n.Messages;
+import play.mvc.Http;
 import play.mvc.Result;
 import play.test.FakeApplication;
 import playRepository.GitRepository;
@@ -139,11 +141,12 @@ public class ImportAppTest {
         Result result = callAction(ref.ImportApp.newProject(),
                 fakeRequest()
                     .withSession(UserApp.SESSION_USERID, String.valueOf(yobi.id))
-                    .withFormUrlEncodedBody(formData));
+                    .withFormUrlEncodedBody(formData)
+                    .withHeader(Http.HeaderNames.ACCEPT_LANGUAGE, Lang.defaultLang().code()));
 
         // Then
         assertThat(status(result)).isEqualTo(BAD_REQUEST);
-        assertThat(contentAsString(result)).contains(Messages.get("project.import.error.empty.url"));
+        assertThat(contentAsString(result)).contains(Messages.get(Lang.defaultLang(), "project.import.error.empty.url"));
     }
 
     @Test
@@ -159,11 +162,12 @@ public class ImportAppTest {
         Result result = callAction(ref.ImportApp.newProject(),
                 fakeRequest()
                     .withSession(UserApp.SESSION_USERID, String.valueOf(yobi.id))
-                    .withFormUrlEncodedBody(formData));
+                    .withFormUrlEncodedBody(formData)
+                    .withHeader(Http.HeaderNames.ACCEPT_LANGUAGE, Lang.defaultLang().code()));
 
         // Then
         assertThat(status(result)).isEqualTo(BAD_REQUEST);
-        assertThat(contentAsString(result)).contains(Messages.get("project.name.duplicate"));
+        assertThat(contentAsString(result)).contains(Messages.get(Lang.defaultLang(), "project.name.duplicate"));
     }
 
     @Test
@@ -179,11 +183,12 @@ public class ImportAppTest {
         Result result = callAction(ref.ImportApp.newProject(),
                 fakeRequest()
                     .withSession(UserApp.SESSION_USERID, String.valueOf(yobi.id))
-                    .withFormUrlEncodedBody(formData));
+                    .withFormUrlEncodedBody(formData)
+                    .withHeader(Http.HeaderNames.ACCEPT_LANGUAGE, Lang.defaultLang().code()));
 
         // Then
         assertThat(status(result)).isEqualTo(BAD_REQUEST);
-        assertThat(contentAsString(result)).contains(Messages.get("project.name.alert"));
+        assertThat(contentAsString(result)).contains(Messages.get(Lang.defaultLang(), "project.name.alert"));
     }
 
     private Project project(String owner, String name) {
