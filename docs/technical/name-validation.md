@@ -1,85 +1,112 @@
-URL의 path segment로 사용되는 상황에 대한 고려
+What you should consider when validating names
 ==============================================
 
-다음과 같이 URL의 path segment가 될 수 있는 이름들은,
+This is an informational document for people who want to make a rule for name
+validation.
 
-* 프로젝트 이름
-* 사용자 이름
+Considerations for names to be used as a path segment in URL
+-----------------------------------------------------------
 
-알파벳, 숫자, `-`,  `.`,  `_`,  `~` 만으로 구성하는 것을 권장한다.
+We recommend some names that can be used as path segments (e.g. project name or
+user name) consist of alphanumeric, -, ., _ and ~, as follows:
 
     name  = ALPHA / DIGIT / "-" / "." / "_" / "~"
 
-왜 그래야 하는가
-----------------
+to avoid them being percent encoded [1].
 
-path segment가 될 수 있는 이름(사용자 이름, 프로젝트 이름 등)에 `/` 이나 `?` 같은 예약된 문자를 사용하면 [percent encoding](http://tools.ietf.org/html/rfc3986#section-2.1)이 되는 것을 피할 수 없다.
-
-예를 들어 프로젝트 이름이 "요비" 라면, 프로젝트에 대한 url은 다음과 같이 만들어 질 것이다.
+Any name contains some reserved characters like `/` or `?` are always percent
+encoded if it used in URL. For example, a url to a project whose name is "요비"
+is encoded as follows:
 
     http://www.foo.com/bar/%EC%9A%94%EB%B9%84
 
-이렇게 되면 아래와 같은 단점이 있다.
+Percent encoded URL not only looks ugly, but also causes a bug easily.
 
-* Yobi에서 디코딩을 빼먹으면 버그를 유발하게 됨
-* Yobi를 이용해 뭔가를 만들어보려는 개발자 입장에서도 percent encoding이 되는 상황을 고려해야 하는 것은 불편함
-* 보기도 좋지 않음
+### An exception
 
-예외
-----
+Any characters are allowed for attached files because it is difficult for them
+to be under the control.
 
-첨부파일 이름은 통제하기 어려우니 모든 문자를 사용할 수 있도록 허용.
+Considerations in names that can be used as file or directory name
+------------------------------------------------------------------
 
-파일 이름이나 디렉토리 이름이 될 수 있는 상황에 대한 고려
-=========================================================
+Some names can be used as file or directory names as follows:
 
-다음과 같이 파일이름이나 디렉토리 이름이 될 수 있는 모든 이름들은,
+* a name of a project
+* a name of a user
 
-* 프로젝트 이름
-* 사용자 이름
+### Limitation of length
 
-길이 제한
----------
+Length of filename is limited to 255 bytes in ext file systems and 255 UTF-16
+characters in NTFS.
 
-ext 계열 파일시스템에서는 파일 이름의 길이를 255바이트, NTFS 에서는 UTF-16 255자로 제한하고 있다.
+### Characters not allowed
 
-사용해서는 안되는 글자들
-------------------------
+Filenames must not include `\0 /` in ext file systems and `\ / : * ? " < > |`
+in Microsoft Windows.
 
-ext 계열 파일시스템에서는 파일 이름에 `\0 /`를, MS 윈도에서는 `\ / : * ? " < > |`를 포함시킬 수 없다.
+### Case sensitivity
 
-case insensitive
------------------
+When displaying names, do it case-sensitively; however, when comparing names,
+do it case-insensitively.
 
-중복 방지를 위한 이름 비교시 반드시 case insensitive 하게 비교해야 한다. 대소문자를 구분하지 않는 파일시스템(HFS+ 등)에서도 잘 동작하게 하기 위함이다. 다만 대소문자를 구분해서 표현하고자 하는 사용자의 요구를 만족하기 위해, 비교할때만 case insensitive하게 비교하고, 실제로 저장하거나 사용자에게 보여줄 때는 대소문자를 구분하도록 한다.
+When Yobi compares names to prevent duplication, comparison should be case
+insensitive to make it work correctly in some file systems (e.g. HFS+). But Yobi
+should show names case-insensitively to meet users' needs. It also means that
+Yobi should store names case-insensitively..
 
-예외
-----
+### An exception
 
-MS-DOS나 Windows 3.1, Windows 95 등에서 사용하는, "FILENAME.TXT"와 같은 식의 8.3 filename(short filename)은 지원하지 않는 것으로 한다. Yobi는 Oracle JRE의 [Certified System Configurations]((http://www.oracle.com/technetwork/java/javase/config-417990.html) 이외의 구성에서는 정상 동작하는 것을 보장하지 않는다.
+Yobi does not support 8.3 filenames (short filenames), like "FILENAME.TXT",
+which is used in MS-DOS, Windows 3.1 and Windows 95. Yobi does not guarantee to
+work correctly in any system except the Certified System Configurations of
+Oracle JRE [2].
 
-기타 주의사항
--------------
+### Notes
 
-* .으로 시작하는 파일은 hidden file로 인식될 수 있다.
-* 파일 이름이 . 인 경우, 현재 디렉토리를 지칭하는 것으로 오해될 수 있다.
-* 파일 이름이 .. 인 경우, 이전 디렉토리를 지칭하는 것으로 오해될 수 있다.
-* -로 시작하는 파일은 쉘 명령에 인자로 사용될 경우 옵션으로 오해될 수 있다.
+Any file whose name:
 
-메일 주소의 local part로 사용되는 경우에 대한 고려
-==================================================
+* starts with `.` may be recognized as a hidden file.
+* starts with `-` may be misunderstood as a shell command option.
+* is `.` may be misunderstood as a symbol to indicate the current directory.
+* is `..` may be misunderstood as a symbol to indicate the parent directory.
 
-[RFC 5322](http://tools.ietf.org/html/rfc5322)에 따르며 메일 주소는 다음과 같이 local-part와 domain으로 구성되는데,
+Considerations for names to be used in the local part of email address
+----------------------------------------------------------------------
+
+According to RFC 5322 [3], a mail address consists of local-part and domain as
+follows:
 
     addr-spec       =   local-part "@" domain
 
-[`dot-atom-text` 규칙](http://tools.ietf.org/html/rfc5322#section-3.2.3)에 의하면 local-part는 `.` 으로 시작하거나 끝날 수 없다. 즉 `foo.bar@mail.com`은 허용되나, `.foo@mail.com`나 `foo.@mail.com`은 금지된다.
+According to the rule of `dot-atom-text`[4], local-part cannot start or end with
+`.`. It means that `foo.bar@mail.com` is allowed, but `.foo@mail.com` and
+`foo.@mail.com` are not allowed.
 
-다른 서비스와의 호환성에 대한 고려
-==================================
+Considerations for compatibility with other services
+---------------------------------------------------
 
-github는 사용자 이름에 대한 validation 규칙은 매우 단순하다. github 사용자 이름에는 dash 혹은 alphanumeric이 포함될 수 있으나 dash로 시작할 수 없다.
+To make it easy to import or export things from or to Yobi, Yobi's naming
+convention should be as compatible as possible with the other services like
+Github.
 
-반면 저장소 이름에 대한 규칙은 명확히 알려주지 않으므로 실험을 통해서 알아낼 수 밖에 없다. 확인해 본 결과 alphanumeric과 `-`, `_`, `.`를 사용할 수 있으며 그 이외의 문자는 `-`로 자동 변환된다. 또한 예외적으로 예약된 이름들이 있다. 예를 들어 저장소 이름을 `.`, `..` 및 `.git`라고 지을 수는 없다.
+### Github
 
-Yobi가 Github의 저장소를 import하거나 혹은 반대의 상황이 가능하도록 하려면 가급적 서로의 이름규칙이 호환되도록 하는 것이 편하다.
+Github has a very simple validation rule for usernames. Its usernames can
+contain both dash and alphanumeric, but usernames starting with a dash is not
+allowed.
+
+However, for repository names, Github does not provide any description on its
+validation rules. After many times of trying, these are what we found:
+
+Github allows alphanumeric characters such as `-`, `_` and `.`; otherwise, it
+automatically changes into `-`. Strings like `.`, `...` and `.git` can't be used
+as repository names because they are reserved.
+
+References
+----------
+
+[1]: http://tools.ietf.org/html/rfc3986#section-2.1
+[2]: http://www.oracle.com/technetwork/java/javase/config-417990.html
+[3]: http://tools.ietf.org/html/rfc5322
+[4]: http://tools.ietf.org/html/rfc5322#section-3.2.3
