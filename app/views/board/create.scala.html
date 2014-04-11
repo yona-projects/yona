@@ -68,10 +68,6 @@ $(document).ready(function(){
 		"sUploaderAction": "@routes.AttachmentApp.uploadFile()"
 	});
 
-	$("#title").focus();
-    $('.zen-mode').zenForm({theme: 'light'});
-    $('.s--zen').tooltip({delay: { show: 500, hide: 100 }, title: '@Messages("title.zenmode")', placement: 'left'});
-
     yobi.Mention({
         target:'body',
         url : "@Html(routes.ProjectApp.mentionList(project.owner, project.name).toString())"

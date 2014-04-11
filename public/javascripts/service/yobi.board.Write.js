@@ -24,6 +24,7 @@
             _attachEvent();
 
             _initFileUploader();
+            $("#title").focus();
         }
 
         /**
