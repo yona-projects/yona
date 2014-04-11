@@ -1150,7 +1150,7 @@ public class GitRepository implements PlayRepository {
         if (personIdent == null) {
             return User.anonymous;
         }
-        return User.findByCommitterEmail(personIdent.getEmailAddress());
+        return User.findByEmail(personIdent.getEmailAddress());
     }
 
     /**

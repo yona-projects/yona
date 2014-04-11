@@ -66,7 +66,7 @@ public class AccessControl {
     }
 
     public static boolean isResourceCreatable(User user, Resource container, ResourceType resourceType) {
-        if (isAllowedIfAuthor(user, container)) {
+        if (isAllowedIfAuthor(user, container) || isAllowedIfAssignee(user, container)) {
             return true;
         }
 
@@ -191,7 +191,8 @@ public class AccessControl {
 
         if (user.isSiteManager()
                 || ProjectUser.isManager(user.id, project.id)
-                || isAllowedIfAuthor(user, resource)) {
+                || isAllowedIfAuthor(user, resource)
+                || isAllowedIfAssignee(user, resource)) {
             return true;
         }
 
@@ -331,6 +332,28 @@ public class AccessControl {
         case COMMENT_THREAD:
         case REVIEW_COMMENT:
             return resource.isAuthoredBy(user);
+        default:
+            return false;
+        }
+    }
+
+    /**
+     * Checks if an user has a permission to do something to the given
+     * resource as an assignee.
+     *
+     * Returns true if and only if these are all true:
+     * - {@code resource} gives permission to read, modify and delete to its assignee.
+     * - {@code user} is an assignee of the resource.
+     *
+     * @param user
+     * @param resource
+     * @return true if the user has the permission
+     */
+    private static boolean isAllowedIfAssignee(User user, Resource resource) {
+        switch (resource.getType()) {
+        case ISSUE_POST:
+            Assignee assignee = Issue.finder.byId(Long.valueOf(resource.getId())).assignee;
+            return assignee != null && assignee.user.id.equals(user.id);
         default:
             return false;
         }

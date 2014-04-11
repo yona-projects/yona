@@ -216,22 +216,29 @@ public class User extends Model implements ResourceConvertible {
     }
 
     /**
-     * email로 사용자를 조회한다.
      *
-     * 사용자가 없으면 {@link #anonymous}객체에 email을 할당하고 반환한다.
+     * Find a user by email account.
+     * - find a user with a given email account or who has the email account  as one of sub email accounts.
+     * - If no user matched up with the given email account, then return new {@link models.NullUser}
+     * after setting the email account to the object.
      *
      * @param email
      * @return
      */
     public static User findByEmail(String email) {
         User user = find.where().eq("email", email).findUnique();
-        if (user == null) {
-            anonymous.email = email;
-            return anonymous;
-        }
-        else {
+        if (user != null) {
             return user;
         }
+
+        Email subEmail = Email.findByEmail(email, true);
+        if (subEmail != null) {
+            return subEmail.user;
+        }
+
+        User anonymous = new NullUser();
+        anonymous.email = email;
+        return anonymous;
     }
 
     /**
@@ -479,6 +486,10 @@ public class User extends Model implements ResourceConvertible {
             enrolledProjects.clear();
             notificationEvents.clear();
             for (Assignee assignee : Assignee.finder.where().eq("user.id", id).findList()) {
+                for (Issue issue : assignee.issues) {
+                    issue.assignee = null;
+                    issue.update();
+                }
                 assignee.delete();
             }
         }
@@ -572,26 +583,6 @@ public class User extends Model implements ResourceConvertible {
     public void removeEmail(Email email) {
         emails.remove(email);
         email.delete();
-    }
-
-    /**
-     * {@code committerEmail}에 해당하는 User를 찾아 반환한다.
-     *
-     * @param committerEmail
-     * @return
-     */
-    public static User findByCommitterEmail(String committerEmail) {
-        User user = find.where().eq("email", committerEmail).findUnique();
-        if (user != null) {
-            return user;
-        }
-
-        Email email = Email.findByEmail(committerEmail, true);
-        if (email != null) {
-            return email.user;
-        }
-
-        return anonymous;
     }
 
     public void visits(Project project) {
