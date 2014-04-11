@@ -216,7 +216,7 @@ public class User extends Model implements ResourceConvertible {
      *
      * Find a user by email account.
      * - find a user with a given email account or who has the email account  as one of sub email accounts.
-     * - If no user matched up with the given email account, then return the {@link #anonymous}
+     * - If no user matched up with the given email account, then return new {@link models.NullUser}
      * after setting the email account to the object.
      *
      * @param email
@@ -233,6 +233,7 @@ public class User extends Model implements ResourceConvertible {
             return subEmail.user;
         }
 
+        User anonymous = new NullUser();
         anonymous.email = email;
         return anonymous;
     }
