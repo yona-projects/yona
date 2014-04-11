@@ -77,25 +77,48 @@
                 <div class="bubble-wrap gray project-home">
                     <div class="inner member-info">
                         <header>
-                            <h3>@Messages("organization.member")</h3>
+                            <h3>@Messages("user.role.org_admin")</h3>
                         </header>
+                        <div class="member-wrap ">
+                            <ul class="project-members">
+                            @for(organizationUser <- org.users) {
+                            @if(OrganizationUser.isAdmin(organizationUser.id, organizationUser.user.id)) {
+                            <li class="member">
+                                <a href="@routes.UserApp.userInfo(organizationUser.user.loginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@organizationUser.user.loginId">
+                                    <img src="@organizationUser.user.avatarUrl" height="45" width="45" />
+                                </a>
+                                <a href="@routes.UserApp.userInfo(organizationUser.user.loginId)" data-toggle="tooltip" data-placement="top" title="@organizationUser.user.loginId">
+                                @organizationUser.user.name
+                                </a>
+                            </li>
+                            }
+                            }
+                            </ul>
+                        </div>
                     </div>
-                    <div class="member-wrap">
-                        <ul class="unstyled">
-                        @for(ou <- org.users) {
-                        <li>
-                            <span class="pull-left">
-                                <a href="@routes.UserApp.userInfo(ou.user.loginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@ou.user.loginId">
-                                    <img src="@ou.user.avatarUrl" height="45" width="45" />
+                </div>
+
+                <div class="bubble-wrap gray project-home mt10">
+                    <div class="inner member-info">
+                        <header>
+                            <h3>@Messages("user.role.org_member")</h3>
+                        </header>
+                        <div class="member-wrap">
+                            <ul class="unstyled project-members">
+                            @for(organizationUser <- org.users) {
+                            @if(!OrganizationUser.isAdmin(organizationUser.id, organizationUser.user.id)) {
+                            <li class="member">                              
+                                <a href="@routes.UserApp.userInfo(organizationUser.user.loginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@organizationUser.user.loginId">
+                                    <img src="@organizationUser.user.avatarUrl" height="45" width="45" />
                                 </a>
-                                <a href="@routes.UserApp.userInfo(ou.user.loginId)" data-toggle="tooltip" data-placement="top" title="@ou.user.loginId">
-                                @ou.user.name
+                                <a href="@routes.UserApp.userInfo(organizationUser.user.loginId)" data-toggle="tooltip" data-placement="top" title="@organizationUser.user.loginId">
+                                @organizationUser.user.name
                                 </a>
-                            </span>
-                            <span class="label label-info pull-right mt10">@Messages("user.role." + ou.role.name)</span>
-                        </li>
-                        }
-                        </ul>
+                            </li>
+                            }
+                            }
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
