@@ -63,7 +63,7 @@ public class Helpers {
         YamlUtil.insertDataFromYaml("test-data.yml", new String[] {
                 "users", "projects", "pullRequests", "milestones",
                 "issues", "issueComments", "postings",
-                "postingComments", "projectUsers" });
+                "postingComments", "projectUsers", "organization", "organizationUsers"});
         // Do numbering for issues and postings.
         for (Project project : Project.find.findList()) {
             List<Issue> issues = Issue.finder.where()

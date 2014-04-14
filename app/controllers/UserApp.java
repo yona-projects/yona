@@ -657,15 +657,19 @@ public class UserApp extends Controller {
     }
 
     /**
-     * 로그인ID 존재 여부, 로그인ID 예약어 여부
+     * check the given {@code loginId} is being used by someone else's logindId or group name,
+     * and whether {@code loginId} is a reserved word or not.
      *
-     * @param loginId 로그인ID
+     * @param name
      * @return
+     * @see User#isLoginIdExist(String)
+     * @see Organization#isNameExist(String)
+     * @see ReservedWordsValidator#isReserved(String)
      */
-    public static Result isUserExist(String loginId) {
+    public static Result isUsed(String name) {
         ObjectNode result = Json.newObject();
-        result.put("isExist", User.isLoginIdExist(loginId));
-        result.put("isReserved", ReservedWordsValidator.isReserved(loginId));
+        result.put("isExist", User.isLoginIdExist(name) || Organization.isNameExist(name));
+        result.put("isReserved", ReservedWordsValidator.isReserved(name));
         return ok(result);
     }
 
@@ -900,7 +904,8 @@ public class UserApp extends Controller {
         }
 
         // 중복된 loginId로 가입할 수 없다.
-        if (User.isLoginIdExist(newUserForm.field("loginId").value())) {
+        if (User.isLoginIdExist(newUserForm.field("loginId").value())
+            || Organization.isNameExist(newUserForm.field("loginId").value())) {
             newUserForm.reject("loginId", "user.loginId.duplicate");
         }
 

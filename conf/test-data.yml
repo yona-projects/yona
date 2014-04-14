@@ -457,3 +457,20 @@ userProjectNotification:
                             id: 1
         notificationType:   NEW_ISSUE
         allowed:            true
+
+# Organization
+organization:
+    - !!models.Organization
+        id:              1
+        name:        labs
+        created:     2014-04-10 15:00:00
+
+# OrganizationUser
+organizationUsers:
+    - !!models.OrganizationUser
+        user:                    !!models.User
+                                     id: 2
+        organization:       !!models.Organization
+                                     id: 1
+        role:                    !!models.Role
+                                     id: 6

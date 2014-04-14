@@ -10,7 +10,7 @@
 (function(ns){
 
     var oNS = $yobi.createNamespace(ns);
-    oNS.container[oNS.name] = function(){
+    oNS.container[oNS.name] = function(htOptions){
 
         var htVar = {};
         var htElement = {};
@@ -18,9 +18,9 @@
         /**
          * initialize
          */
-        function _init(){
+        function _init(htOptions){
             _initElement();
-            _initVar();
+            _initVar(htOptions);
 
             _initFormValidator();
             _attachEvent();
@@ -43,8 +43,10 @@
         /**
          * initialize variables
          */
-        function _initVar(){
+        function _initVar(htOptions){
             htVar.rxLoginId = /^[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*$/;
+            htVar.sLogindIdCheckUrl = htOptions.sLogindIdCheckUrl;
+            htVar.sEmailCheckUrl = htOptions.sEmailCheckUrl;
         }
 
         /**
@@ -72,7 +74,7 @@
             }
 
             if(sLoginId != ""){
-                doesExists($(this), "/user/isExist/");
+                doesExists($(this), htVar.sLogindIdCheckUrl);
             }
         }
 
@@ -84,7 +86,7 @@
             var welInput = $(this);
 
             if(welInput.val() !== ""){
-                doesExists(welInput, "/user/isEmailExist/");
+                doesExists(welInput, htVar.sEmailCheckUrl);
             }
         }
 
@@ -101,10 +103,6 @@
          * @param {String} sURL
          */
         function doesExists(welInput, sURL){
-            if(sURL.substr(-1) != "/"){
-                sURL += "/";
-            }
-
             $.ajax({
                 "url": sURL + welInput.val()
             }).done(function(htData){
@@ -207,6 +205,6 @@
             } catch(e){} // to avoid bootstrap bug
         }
 
-        _init();
+        _init(htOptions || {});
     };
 })("yobi.user.SignUp");
