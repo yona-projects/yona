@@ -69,7 +69,7 @@ public class IssueAppTest {
         assertThat(ProjectUser.isManager(member.id, project.id)).describedAs("member is a manager").isFalse();
         assertThat(ProjectUser.isMember(member.id, project.id)).describedAs("member is a member").isTrue();
         assertThat(ProjectUser.isMember(author.id, project.id)).describedAs("author is a member").isFalse();
-        assertThat(project.isPublic).describedAs("project is public").isFalse();
+        assertThat(project.isPublic()).describedAs("project is public").isFalse();
         assertThat(ProjectUser.isMember(assignee.id, project.id)).describedAs("assignee is a member").isFalse();
     }
 
