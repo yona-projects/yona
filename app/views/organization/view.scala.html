@@ -82,7 +82,7 @@
                         <div class="member-wrap ">
                             <ul class="project-members">
                             @for(organizationUser <- org.users) {
-                            @if(OrganizationUser.isAdmin(organizationUser.id, organizationUser.user.id)) {
+                            @if(OrganizationUser.isAdmin(org.id, organizationUser.user.id)) {
                             <li class="member">
                                 <a href="@routes.UserApp.userInfo(organizationUser.user.loginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@organizationUser.user.loginId">
                                     <img src="@organizationUser.user.avatarUrl" height="45" width="45" />
@@ -106,7 +106,7 @@
                         <div class="member-wrap">
                             <ul class="unstyled project-members">
                             @for(organizationUser <- org.users) {
-                            @if(!OrganizationUser.isAdmin(organizationUser.id, organizationUser.user.id)) {
+                            @if(!OrganizationUser.isAdmin(org.id, organizationUser.user.id)) {
                             <li class="member">                              
                                 <a href="@routes.UserApp.userInfo(organizationUser.user.loginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@organizationUser.user.loginId">
                                     <img src="@organizationUser.user.avatarUrl" height="45" width="45" />
