@@ -21,7 +21,7 @@
                     <i class="yobicon-restore"></i>
                 </button>
 
-                <div class="diffs-wrap">
+                <div id="changes" class="diffs-wrap">
                     <div id="commits" class="btn-group auto mb10">
                         <button class="btn dropdown-toggle auto" data-toggle="dropdown">
                             <span class="d-label">
@@ -164,7 +164,7 @@
 
 @common.markdown(project)
 @common.mergely()
-@common.commentDeleteModal("#__changes")
+@common.commentDeleteModal("#changes")
 
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mentionjs/mention.css")">
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/mentionjs/mention.js")"></script>
