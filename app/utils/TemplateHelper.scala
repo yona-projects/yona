@@ -125,10 +125,17 @@ object TemplateHelper {
     "<a href=\"" + userInfoURL + "\" class=\"usf-group\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"" + user.name + "\"><img src=\"" + user.avatarUrl + "\" class=\"avatar-wrap " + avatarSize + "\"></a>"
   }
 
+  def urlToProjectBG(project: Project) = {
+    models.Attachment.findByContainer(project.asResource) match {
+      case files if files.size > 0 => routes.AttachmentApp.getFile(files.head.id)
+      case _ => routes.Assets.at("images/project_default.png")
+    }
+  }
+
   def urlToProjectLogo(project: Project) = {
     models.Attachment.findByContainer(project.asResource) match {
       case files if files.size > 0 => routes.AttachmentApp.getFile(files.head.id)
-      case _ => routes.Assets.at("images/bg-default-project.jpg")
+      case _ => routes.Assets.at("images/projet_deault.png")
     }
   }
 
@@ -216,7 +223,7 @@ object TemplateHelper {
   def urlToOrganizationLogo(organization: Organization) = {
     models.Attachment.findByContainer(organization.asResource) match {
       case files if files.size > 0 => routes.AttachmentApp.getFile(files.head.id)
-      case _ => routes.Assets.at("images/bg-default-project.jpg")
+      case _ => routes.Assets.at("images/group_default.png")
     }
   }
 
