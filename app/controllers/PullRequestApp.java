@@ -82,13 +82,8 @@ public class PullRequestApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         List<OrganizationUser> orgUserList = OrganizationUser.findByAdmin(UserApp.currentUser().id);
         Project forkedProject = Project.findByOwnerAndOriginalProject(destination, project);
-
-        if (forkedProject != null) {
-            return ok(fork.render("fork", project, forkedProject, false, new Form<>(Project.class), orgUserList));
-        } else {
-            Project forkProject = Project.copy(project, destination);
-            return ok(fork.render("fork", project, forkProject, true, new Form<>(Project.class), orgUserList));
-        }
+        Project forkProject = Project.copy(project, destination);
+        return ok(fork.render("fork", project, forkProject, forkedProject, new Form<>(Project.class), orgUserList));
     }
 
     private static String findDestination(String forkOwner) {
@@ -118,13 +113,6 @@ public class PullRequestApp extends Controller {
         Project projectForm = forkProjectForm.get();
         String destination = findDestination(projectForm.owner);
         Project originalProject = Project.findByOwnerAndProjectName(userName, projectName);
-
-        // 이미 포크한 프로젝트가 있다면 그 프로젝트로 이동.
-        Project forkedProject = Project.findByOwnerAndOriginalProject(destination, originalProject);
-        if(forkedProject != null) {
-            flash(Constants.WARNING, "fork.redirect.exist");
-            return redirect(routes.ProjectApp.project(forkedProject.owner, forkedProject.name));
-        }
 
         // 포크 프로젝트 이름 중복 검사
         if (Project.exists(destination, projectForm.name)) {
