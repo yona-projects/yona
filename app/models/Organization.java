@@ -20,19 +20,22 @@
  */
 package models;
 
+import models.enumeration.RequestState;
 import models.enumeration.ResourceType;
 import models.resource.GlobalResource;
 import models.resource.Resource;
+import models.resource.ResourceConvertible;
 import play.data.format.Formats;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
+import play.db.ebean.Transactional;
 import utils.ReservedWordsValidator;
 
 import javax.persistence.*;
 import java.util.*;
 
 @Entity
-public class Organization extends Model {
+public class Organization extends Model implements ResourceConvertible {
 
     private static final long serialVersionUID = -1L;
 
@@ -55,6 +58,9 @@ public class Organization extends Model {
     @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL)
     public List<OrganizationUser> users;
 
+    @ManyToMany(mappedBy = "enrolledOrganizations")
+    public List<User> enrolledUsers;
+
     public String descr;
 
     public void add(OrganizationUser ou) {
@@ -68,6 +74,23 @@ public class Organization extends Model {
     public static boolean isNameExist(String name) {
         int findRowCount = find.where().ieq("name", name).findRowCount();
         return (findRowCount != 0);
+    }
+
+    @Transactional
+    public void cleanEnrolledUsers() {
+        List<User> enrolledUsers = this.enrolledUsers;
+        List<User> acceptedUsers = new ArrayList<>();
+        List<OrganizationUser> members = this.users;
+        for(OrganizationUser organizationUser : members) {
+            User user = organizationUser.user;
+            if(enrolledUsers.contains(user)) {
+                acceptedUsers.add(user);
+            }
+        }
+        for(User user : acceptedUsers) {
+            user.cancelEnroll(this);
+            NotificationEvent.afterOrganizationMemberRequest(this, user, RequestState.ACCEPT);
+        }
     }
 
     public List<Project> getVisiableProjects(User user) {
@@ -123,6 +146,7 @@ public class Organization extends Model {
      *
      * @return the resource
      */
+    @Override
     public Resource asResource() {
         return new GlobalResource() {
 

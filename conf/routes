@@ -33,6 +33,10 @@ POST           /organizations/:organizationName/members                         
 POST           /organizations/:organizationName/member/:userId/edit                   controllers.OrganizationApp.editMember(organizationName: String, userId: Long)
 DELETE         /organizations/:organizationName/member/:userId/delete                 controllers.OrganizationApp.deleteMember(organizationName: String, userId: Long)
 
+# Enrolling Organization
+POST           /organizations/:organizationName/enroll                                controllers.EnrollOrganizationApp.enroll(organizationName)
+POST           /organizations/:organizationName/cancel/enroll                         controllers.EnrollOrganizationApp.cancelEnroll(organizationName)
+
 # Notification
 POST           /noti/toggle/:projectId/:notiType                                      controllers.WatchProjectApp.toggle(projectId: Long, notiType)
 

@@ -9,9 +9,6 @@ import javax.persistence.ManyToOne;
 import models.enumeration.RoleType;
 import play.db.ebean.Model;
 
-/**
- * @author Keeun Baik
- */
 @Entity
 public class OrganizationUser extends Model {
 
@@ -51,12 +48,33 @@ public class OrganizationUser extends Model {
         return contains(organizationId, userId, RoleType.ORG_ADMIN);
     }
 
+    public static boolean isGuest(Organization organization, User user) {
+        return roleTypeOf(user, organization).equals(RoleType.GUEST.name());
+    }
+
     public static boolean isMember(Organization organization, User user) {
         return contains(organization, user, RoleType.ORG_MEMBER);
     }
 
     public static boolean isMember(Long organizationId, Long userId) {
         return contains(organizationId, userId, RoleType.ORG_MEMBER);
+    }
+
+    public static String roleTypeOf(User user, Organization organization) {
+        if(user == null) {
+            return RoleType.ANONYMOUS.name();
+        } else if(user.isSiteManager()) {
+            return RoleType.SITEMANAGER.name();
+        } else if(user.isAnonymous()) {
+            return RoleType.ANONYMOUS.name();
+        } else {
+            Role role = Role.findOrganizationRoleByIds(user.id, organization.id);
+            if (role == null) {
+                return RoleType.GUEST.name();
+            } else {
+                return role.name;
+            }
+        }
     }
 
     private static boolean contains(Organization organization, User user, RoleType roleType) {

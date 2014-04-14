@@ -129,6 +129,10 @@ public class User extends Model implements ResourceConvertible {
     @JoinTable(name = "user_enrolled_project", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "project_id"))
     public List<Project> enrolledProjects;
 
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(name = "user_enrolled_organization", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "organization_id"))
+    public List<Organization> enrolledOrganizations;
+
     @ManyToMany(mappedBy = "receivers")
     @OrderBy("created DESC")
     public List<NotificationEvent> notificationEvents;
@@ -402,6 +406,13 @@ public class User extends Model implements ResourceConvertible {
         return this.enrolledProjects;
     }
 
+    public List<Organization> getEnrolledOrganizations() {
+        if (this.enrolledOrganizations == null) {
+            this.enrolledOrganizations = new ArrayList<>();
+        }
+        return this.enrolledOrganizations;
+    }
+
     @Transactional
     public void addWatching(Project project) {
         Watch.watch(this, project.asResource());
@@ -442,6 +453,11 @@ public class User extends Model implements ResourceConvertible {
         this.update();
     }
 
+    public void enroll(Organization organization) {
+        getEnrolledOrganizations().add(organization);
+        this.update();
+    }
+
     /**
      * {@code project}에 보낸 멤버 등록 요청을 삭제한다.
      *
@@ -449,6 +465,11 @@ public class User extends Model implements ResourceConvertible {
      */
     public void cancelEnroll(Project project) {
         getEnrolledProjects().remove(project);
+        this.update();
+    }
+
+    public void cancelEnroll(Organization organization) {
+        getEnrolledOrganizations().remove(organization);
         this.update();
     }
 
@@ -464,6 +485,14 @@ public class User extends Model implements ResourceConvertible {
             return false;
         }
         return user.getEnrolledProjects().contains(project);
+    }
+
+    public static boolean enrolled(Organization organization) {
+        User user = UserApp.currentUser();
+        if (user.isAnonymous()) {
+            return false;
+        }
+        return user.getEnrolledOrganizations().contains(organization);
     }
 
     @Override
@@ -551,6 +580,11 @@ public class User extends Model implements ResourceConvertible {
     public static List<User> findUsersByProject(Long projectId, RoleType roleType) {
         return find.where().eq("projectUser.project.id", projectId)
                 .eq("projectUser.role.id", roleType.roleType()).orderBy().asc("name").findList();
+    }
+
+    public static List<User> findUsersByOrganization(Long organizationId, RoleType roleType) {
+        return find.where().eq("organizationUsers.organization.id", organizationId)
+                .eq("organizationUsers.role.id", roleType.roleType()).orderBy().asc("name").findList();
     }
 
     /**
