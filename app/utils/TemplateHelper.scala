@@ -139,6 +139,13 @@ object TemplateHelper {
     }
   }
 
+  def hasProjectLogo(project: Project) = {
+    models.Attachment.findByContainer(project.asResource) match {
+      case files if files.size > 0 => true
+      case _ => false
+    }
+  }
+
   /**
    * get branch item name
    * @param branch
@@ -224,6 +231,13 @@ object TemplateHelper {
     models.Attachment.findByContainer(organization.asResource) match {
       case files if files.size > 0 => routes.AttachmentApp.getFile(files.head.id)
       case _ => routes.Assets.at("images/group_default.png")
+    }
+  }
+
+  def hasOrganizationLogo(organization: Organization) = {
+    models.Attachment.findByContainer(organization.asResource) match {
+      case files if files.size > 0 => true
+      case _ => false
     }
   }
 
