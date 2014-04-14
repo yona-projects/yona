@@ -11,13 +11,15 @@
         </ul>
         <div class="project-setting">
             <ul class="project-menu-nav">
-                <li class="">
-                    <a href="@routes.OrganizationApp.settingForm(org.name)">
-                        <i class="yobicon-cog"></i>
-                        <span class="blind">@Messages("menu.admin")</span>
-                        
-                    </a>
-                <li>
+                @if(OrganizationUser.isAdmin(org, UserApp.currentUser)) {
+                    <li class="">
+                        <a href="@routes.OrganizationApp.settingForm(org.name)">
+                            <i class="yobicon-cog"></i>
+                            <span class="blind">@Messages("menu.admin")</span>
+
+                        </a>
+                    <li>
+                }
             </ul>
         </div>
     </div>
