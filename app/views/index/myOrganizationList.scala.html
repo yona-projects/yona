@@ -5,7 +5,7 @@
 @defining(Organization.findOrganizationsByUserLoginId(UserApp.currentUser.loginId)) { organizations =>
     @for(organization <- organizations){
         <li class="my-list-item" data-value="@organization.name">
-            <a href="@routes.OrganizationApp.organization(organization.name)">
+            <img src="@urlToOrganizationLogo(organization)"><a href="@routes.OrganizationApp.organization(organization.name)">
                 <span class="bold">@organization.name</span>
             </a>
         </li>
