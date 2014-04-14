@@ -16,14 +16,10 @@
                     <legend>
                         <h4 style="padding-top:10px;">
                             @project.owner / @project.name @Messages("fork")
-                            <span class="pull-right">
-                                <button id="helpBtn" class="ybtn ybtn-inverse ybtn-small">
-                                    <i class="yobicon-question-sign yobicon-large"></i> @Messages("title.help")
-                                </button>
-                            </span>
                         </h4>
                     </legend>
-                    <div id="helpMessage" class="well" style="display:none;">
+                    @if(isNew){
+                    <div id="helpMessage" class="well">
                         <div class="row-fluid">
                             <div class="pull-left">
                                 <img class="img-polaroid" src="@routes.Assets.at("images/fork-pull/fork.jpg")"><br>
@@ -54,7 +50,7 @@
                             <span class="help-inline">@Messages("project.name.alert")</span>
                         </div>
                     </div>
-                    @if(isNew){
+                    
                     <div class="control-group">
                         <label class="control-label">@Messages("project.shareOption")</label>
                         <div class="controls">
