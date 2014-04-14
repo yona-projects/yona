@@ -188,12 +188,21 @@ public class NotificationMail extends Model {
             }
         }
 
+        handleImages(doc);
+
         if (urlToView != null) {
             doc.body().append(String.format("<hr><a href=\"%s\">%s</a>", urlToView,
                     Messages.get(lang, "notification.linkToView", utils.Config.getSiteName())));
         }
 
         return doc.html();
+    }
+
+    private static void handleImages(Document doc){
+        for (Element img : doc.select("img")){
+            img.attr("style", "max-width:1024px;" + img.attr("style"));
+            img.wrap(String.format("<a href=\"%s\" target=\"_blank\" style=\"border:0;outline:0;\"></a>", img.attr("src")));
+        }
     }
 
     private static String getPlainMessage(Lang lang, String message, String urlToView) {
