@@ -490,6 +490,7 @@ project.transfer.description3 = 이관이 완료되면 현재 프로젝트 소�
 project.transfer.description4 = 프로젝트의 이슈, 게시물 등의 URL이 변경됩니다.
 project.transfer.description5 = 프로젝트의 저장소 URL이 변경됩니다.
 project.transfer.error = 해당하는 사용자 또는 그룹이 없습니다. 로그인 아이디 또는 그룹 이름을 확인해 주세요.
+project.transfer.is.requested = 이메일로 이관 요청을 보냈습니다.
 project.transfer.new.owner = 이관받을 사용자 또는 그룹
 project.transfer.reaccept = 정말로 이관하시겠습니까?
 project.transfer.requestion = 프로젝트를 이관하시겠습니까?

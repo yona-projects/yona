@@ -630,6 +630,7 @@ public class ProjectApp extends Controller {
     public static Result transferForm(String loginId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
         Form<Project> projectForm = form(Project.class).fill(project);
+
         return ok(transfer.render("title.projectTransfer", projectForm, project));
     }
 
@@ -655,6 +656,7 @@ public class ProjectApp extends Controller {
             pt = ProjectTransfer.requestNewTransfer(project, UserApp.currentUser(), destOrg.name);
         }
         sendTransferRequestMail(pt);
+        flash(Constants.INFO, "project.transfer.is.requested");
 
         // if the request is sent by XHR, response with 204 204 No Content and Location header.
         String url = routes.ProjectApp.project(loginId, projectName).url();
