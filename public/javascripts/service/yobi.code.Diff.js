@@ -100,6 +100,13 @@
             // 리뷰목록 토글
             htElement.waBtnToggleReviewWrap.on("click", function(){
                 htElement.welContainer.toggleClass("diffs-only");
+
+                // 접은 상태 쿠키에 저장
+                if (htElement.welContainer.hasClass("diffs-only")) {
+                    $.cookie("diffs-only", true, {"expire": 365});
+                } else {
+                    $.removeCookie("diffs-only");
+                }
             });
 
             // 리뷰카드 링크 클릭시

@@ -16,7 +16,7 @@
             @partial_info(project, pull, "changes")
             @partial_branch(pull)
 
-            <div class="codediff-wrap mt10">
+            <div class="codediff-wrap mt10 @if(request.cookies.get("diffs-only") != null){diffs-only}">
                 <button type="button" class="ybtn ybtn-default btn-show-reviewcards">
                     <i class="yobicon-restore"></i>
                 </button>
@@ -171,6 +171,7 @@
 <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yobi.CodeCommentBox.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yobi.CodeCommentBlock.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery/jquery-ui-1.10.4.custom.min.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery/jquery.cookie.js")"></script>
 <script type="text/javascript">
     $(document).ready(function() {
         // yobi.Mention
