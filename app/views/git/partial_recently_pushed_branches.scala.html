@@ -22,6 +22,14 @@
 @import utils.JodaDateUtil._
 @import utils.TemplateHelper._
 
+@defaultBranch(project:Project) = @{
+    if(project.originalProject != null) {
+        project.originalProject.defaultBranch()
+    } else {
+        project.defaultBranch()
+    }
+}
+
 @if(!project.getRecentlyPushedBranches.isEmpty) {
 <h5>@Messages("pullRequest.pushed.branches.title")</h5>
 <div class="alert alert-info">
@@ -30,7 +38,7 @@
             <i class="yobicon-split"></i>
             <span style="margin-left:5px;font-weight:bold;">@branch.project.owner/@branch.project.name:@branch.getShortName ( @momentFromNow(branch.pushedDate, lang.language) )</span>
             &nbsp;-&nbsp;
-            <a href="@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)?fromBranch=@branch.name&toBranch=@project.defaultBranch">@Messages("pullRequest")</a>
+            <a href="@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)?fromBranch=@branch.name&toBranch=@defaultBranch(project)">@Messages("pullRequest")</a>
             <a href="#" class="close" data-dismiss="alert" aria-hidden="true" data-request-method="delete" data-request-uri="@routes.ProjectApp.deletePushedBranch(branch.project.owner, branch.project.name, branch.id)" data-request-method="delete">&times;</a>
         </div>
     }
