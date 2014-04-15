@@ -38,8 +38,6 @@
          * initialize element variables
          */
         function _initElement(htOptions){
-            htElement.welHelpMessage = $("#helpMessage");
-            htElement.welHelpButton = $("#helpBtn");
             htElement.welInputProjectOwner = $("#project-owner");
         }
 
@@ -47,13 +45,7 @@
          * attach event handlers
          */
         function _attachEvent() {
-            htElement.welHelpButton.on("click", _onHelpButtonClick);
             htElement.welInputProjectOwner.on("change", _onChangeProjectOwner);
-        }
-
-        function _onHelpButtonClick(weEvt) {
-            weEvt.preventDefault();
-            htElement.welHelpMessage.toggle();
         }
 
         function _onChangeProjectOwner() {

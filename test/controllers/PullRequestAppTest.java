@@ -248,7 +248,9 @@ public class PullRequestAppTest {
         User currentUser = User.findByLoginId("yobi");
 
         Map<String,String> data = new HashMap<>();
+        data.put("owner", "yobi");
         data.put("name", "projectYobi-2");
+        data.put("projectScope", "PUBLIC");
 
         Result result = callAction(
                 controllers.routes.ref.PullRequestApp.fork(ownerLoginId, projectName),
@@ -257,7 +259,7 @@ public class PullRequestAppTest {
                 .withFormUrlEncodedBody(data)
               );
 
-        assertThat(status(result)).isEqualTo(SEE_OTHER);
+        assertThat(status(result)).isEqualTo(OK);
     }
 
     @Test
