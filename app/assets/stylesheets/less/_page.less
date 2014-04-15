@@ -2622,7 +2622,11 @@
             padding-right: 2px;
             margin-bottom: 10px;
           }
+          .write-comment-box {
+            padding: 10px;
+          }
         }
+
         .comment {
             padding: 10px 0px;
             position: relative;
@@ -2895,8 +2899,8 @@ div.markdown-preview {
     overflow-x:auto;
     margin:0px;
     vertical-align : middle;
-    border:3px solid #ddd;
-    padding:10px;
+    border:2px solid #ccc;
+    padding:4px 6px;
     .border-radius(0 0 3px 3px);
 
 }
@@ -3776,7 +3780,6 @@ label.issue-item-row {
     .write-comment-box {
         font-family:@base-font-family;
         padding:5px;
-        background-color: #f5f5f5;
     }
 
     /** view **/
@@ -5034,7 +5037,6 @@ label.issue-item-row {
                                 form { margin:0;}
 
                                 .write-comment-box {
-                                    background-color: #f5f5f5;
                                     padding:15px 0 15px 50px;
                                     margin:0;
 
@@ -5180,7 +5182,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 
 .review-form {
     position:absolute; display: none;
-    z-index:99; top:0px; left:0px; right:0px;
+    z-index:1000; top:0px; left:0px; right:0px;
     padding: 15px 15px 10px;
     background: #fff;
     border:1px solid #ccc;

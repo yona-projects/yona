@@ -1,5 +1,6 @@
 @(title:String, form:Form[Posting], project:Project, isAllowedToNotice:Boolean)
 
+@import scala.collection.Map
 @import utils.TemplateHelper._
 @import models.enumeration._
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
@@ -28,18 +29,7 @@
     			</dd>
 
                 <dd style="position: relative;">
-                    <div id="mode-select">
-                        <input type="radio" name="edit-mode" id="edit-mode" value="edit" checked="checked" class="radio-btn">
-                        <label for="edit-mode" style="margin-right:3px;">Edit</label>
-                        <input type="radio" name="edit-mode" id="preview-mode" value="preview" class="radio-btn">
-                        <label for="preview-mode">Preview</label>
-                    </div>
-                    <a href="#" class="go-zen"><i class="s s--zen" >Edit in Zen Mode</i></a>
-                    @help.markdown()
-    				 <div class="textarea-box">
-                        <textarea id="body" name="body" class="zen-mode content" markdown="true" tabindex="2" data-label="@Messages("post.error.emptyBody")"></textarea>
-                    </div>
-
+                    @common.editor("body", "", Map("tabindex"->"2"))
     			</dd>
 
     			@if(isAllowedToNotice){
@@ -77,10 +67,6 @@ $(document).ready(function(){
 		"elTextarea"	 : $("#body"),
 		"sUploaderAction": "@routes.AttachmentApp.uploadFile()"
 	});
-
-	$("#title").focus();
-    $('.zen-mode').zenForm({theme: 'light'});
-    $('.s--zen').tooltip({delay: { show: 500, hide: 100 }, title: '@Messages("title.zenmode")', placement: 'left'});
 
     yobi.Mention({
         target:'body',

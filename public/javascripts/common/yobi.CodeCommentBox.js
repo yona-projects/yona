@@ -85,20 +85,6 @@ yobi.CodeCommentBox = (function(){
         htElement.welCommentForm.on("click", '[data-toggle="close"]', function(){
             _hide();
         });
-
-        htElement.welCommentForm.on("submit", function(){
-            _removeEmptyFieldsOnForm();
-        });
-    }
-
-    /**
-     * Remove empty INPUT elements
-     * @private
-     */
-    function _removeEmptyFieldsOnForm(){
-        htElement.welCommentForm.find("input").filter(function(){
-            return ($(this).val().length === 0);
-        }).remove();
     }
 
     /**

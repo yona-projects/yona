@@ -5,11 +5,9 @@
 @import utils.AccessControl._
 @import models.enumeration
 @import playRepository.GitCommit
-@implicitField = @{ helper.FieldConstructor(simpleForm) }
+@import scala.collection.Map
 
-@branchName(branch:String) = @{
-    branch.replace("refs/heads/", "")
-}
+@implicitField = @{ helper.FieldConstructor(simpleForm) }
 
 @getCodeURL(project: Project) = @{
     if(session == null){
@@ -27,17 +25,7 @@
 
 <input type="text" name="title" id="title" placeholder="" maxlength="maxlength" tabindex="1" class="text" value="@pullRequest.title">
 <div style="position: relative;">
-    <div id="mode-select">
-        <input type="radio" name="edit-mode" id="edit-mode" value="edit" checked="checked" class="radio-btn">
-        <label for="edit-mode" style="margin-right:3px;">Edit</label>
-        <input type="radio" name="edit-mode" id="preview-mode" value="preview" class="radio-btn">
-        <label for="preview-mode">Preview</label>
-    </div>
-    <a href="#" class="go-zen"><i class="s s--zen">Edit in Zen Mode</i></a>
-    @help.markdown()
-    <div class="textarea-box">
-        <textarea id="body" name="body" markdown="true" class="zen-mode content" tabindex="2" >@pullRequest.body</textarea>
-    </div>
+    @common.editor("body", pullRequest.body, Map("tabindex"->"2"))
 </div>
 @common.fileUploader(ResourceType.PULL_REQUEST, null)
 @common.markdown(project)

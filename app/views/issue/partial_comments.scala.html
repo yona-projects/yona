@@ -77,8 +77,7 @@
                 <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
             </a>
         </div>
-        @common.commentUpdateForm(project, ResourceType.ISSUE_COMMENT, comment.id, routes.IssueApp.newComment(project.owner, project.name, issue.getNumber).toString(), comment.contents)
-        <div class="media-body" id="comment-body-@comment.id">
+        <div class="media-body">
             <div class="meta-info">
                 <span class="comment_author pull-left">
                     <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
@@ -88,7 +87,7 @@
                 <a href="#comment-@comment.id" class="ago" title="@JodaDateUtil.getDateString(comment.createdDate)">@utils.TemplateHelper.agoString(comment.ago())</a>
                 <span class="act-row pull-right">
                     @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.UPDATE)) {
-                        <button type="button" class="btn-transparent mr10" data-toggle="comment-edit" data-comment-editform-id="comment-editform-@comment.id" title="@Messages("common.comment.edit")"><i class="yobicon-edit-2"></i></button>
+                        <button type="button" class="btn-transparent mr10" data-toggle="comment-edit" data-comment-id="@comment.id" title="@Messages("common.comment.edit")"><i class="yobicon-edit-2"></i></button>
                     }
 
                     @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)) {
@@ -97,8 +96,12 @@
                 </span>
             </div>
 
-            <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
-            <div class="attachments pull-right" data-resourceType="@ResourceType.ISSUE_COMMENT" data-resourceId="@comment.id"></div>
+            @common.commentUpdateForm(comment.id, routes.IssueApp.newComment(project.owner, project.name, issue.getNumber).toString(), comment.contents)
+
+            <div id="comment-body-@comment.id">
+                <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
+                <div class="attachments pull-right" data-resource-type="@ResourceType.ISSUE_COMMENT" data-resource-id="@comment.id"></div>
+            </div>
         </div>
     </li>
 
