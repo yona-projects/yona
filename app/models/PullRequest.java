@@ -211,6 +211,10 @@ public class PullRequest extends Model implements ResourceConvertible {
         return this.state == State.OPEN;
     }
 
+    public boolean isAcceptable() {
+        return isOpen() && !isMerging && (isReviewed() || !toProject.isUsingReviewerCount);
+    }
+
     public static PullRequest findById(long id) {
         return finder.byId(id);
     }
