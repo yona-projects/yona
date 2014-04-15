@@ -124,12 +124,12 @@
                 <div class="review-wrap">
                     <div class="review-container">
                         <button type="button" class="ybtn ybtn-default btn-hide-reviewcards">
-                            <i class="yobicon-minimize"></i>
+                            <i class="yobicon-maximize"></i>
                         </button>
 
                         <ul class="nav nav-tabs" style="margin-bottom:10px;">
-                            <li class="active"><a href="#reviewcards-open" data-toggle="tab">@Messages("issue.state.open")</a></li>
-                            <li><a href="#reviewcards-closed" data-toggle="tab">@Messages("issue.state.closed")</a></li>
+                            <li class="active"><a href="#reviewcards-open" data-toggle="tab">@Messages("issue.state.open") @pull.getCommentThreadsByState(CommentThread.ThreadState.OPEN).size()</a></li>
+                            <li><a href="#reviewcards-closed" data-toggle="tab">@Messages("issue.state.closed") @pull.getCommentThreadsByState(CommentThread.ThreadState.CLOSED).size()</a></li>
                         </ul>
 
                         <div class="tab-content review-list">
@@ -138,7 +138,13 @@
                                 <a href="@DiffRenderer.urlToCommentThread(project, thread)" class="review-card @thread.state.toString().toLowerCase()">
                                     <p class="content">@thread.getFirstReviewComment().getContents()</p>
                                     <span class="date" title="@utils.JodaDateUtil.getDateString(thread.createdDate)">
-                                        @utils.JodaDateUtil.momentFromNow(thread.createdDate, lang.language)
+                                        <span class="comments">
+                                            @if( thread.hasChildComments ){<i class="yobicon-comments"></i> @thread.reviewComments.size()}
+                                        </span>
+                                        <span class="avatar-wrap smaller margin-right-5">
+                                            <img src="@User.findByLoginId(thread.author.loginId).avatarUrl" alt="@thread.author.name" />
+                                        </span>
+                                        @agoOrDateString(thread.createdDate)
                                     </span>
                                 </a>
                                 }
@@ -149,7 +155,13 @@
                                 <a href="@DiffRenderer.urlToCommentThread(project, thread)" class="review-card @thread.state.toString().toLowerCase()">
                                     <p class="content">@thread.getFirstReviewComment().getContents()</p>
                                     <span class="date" title="@utils.JodaDateUtil.getDateString(thread.createdDate)">
-                                        @utils.JodaDateUtil.momentFromNow(thread.createdDate, lang.language)
+                                        <span class="comments">
+                                        @if( thread.hasChildComments ){<i class="yobicon-comments"></i> @thread.reviewComments.size()}
+                                        </span>
+                                        <span class="avatar-wrap smaller margin-right-5">
+                                            <img src="@User.findByLoginId(thread.author.loginId).avatarUrl" alt="@thread.author.name" />
+                                        </span>
+                                        @agoOrDateString(thread.createdDate)
                                     </span>
                                 </a>
                                 }

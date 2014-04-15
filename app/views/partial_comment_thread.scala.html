@@ -69,7 +69,7 @@
         }
     </ul>
     <p class="thread-actrow">
-        <button type="button" class="ybtn ybtn-default ybtn-small btn-thread-minimize"><i class="yobicon-minimize"></i></button>
+        <button type="button" class="ybtn ybtn-default ybtn-small btn-thread-minimize"><i class="yobicon-maximize"></i></button>
 
         @if(utils.AccessControl.isAllowed(UserApp.currentUser(), thread.asResource(), Operation.UPDATE)){
             @if(thread.state == CommentThread.ThreadState.OPEN) {
