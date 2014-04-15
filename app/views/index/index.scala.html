@@ -72,7 +72,7 @@
                         <div class="tab-content tab-box">
                             <div class="tab-searchbox">
                                 <div class="search-bar">
-                                    <input name="mylist-filter" id="mylist-filter" class="textbox full" type="text" value="">
+                                    <input name="mylist-filter" id="mylist-filter" class="textbox full" type="text" value="" data-toggle="item-search" data-items="my-item">
                                     <button type="button" class="search-btn"><i class="yobicon-search"></i></button>
                                 </div>
                             </div>
@@ -119,40 +119,6 @@
     }
     <script type="text/javascript">
         $(document).ready(function(){
-            var oSearchTimer;
-
-            $('#mylist-filter')
-                .on('keyup.myList-search', function() {
-                    oSearchTimer = setTimeout(_searchWithFileter, 150, $(this).val(), $('.my-list-item'));
-                })
-                .on('keydown.myList-search-stop',function() {
-                    clearTimeout(oSearchTimer);
-                });
-
-            function _searchWithFileter(sFilter, oItems) {
-                if(_isEmptyString(sFilter)) {
-                    oItems.show();
-                    return ;
-                }
-
-                oItems.each(function(i, oItem) {
-                    if( _containsFilterString(sFilter, oItem)) {
-                        $(oItem).show();
-                    } else {
-                        $(oItem).hide();
-                    }
-                });
-            }
-
-            function _containsFilterString(sFilter, oItem) {
-                var sTarget= $(oItem).data('value');
-                return (sTarget.indexOf(sFilter) !== -1);
-            }
-
-            function _isEmptyString(sValue) {
-                return !($.trim(sValue));
-            }
-
             $("#toggleIntro").click(function(){
                 $(".site-guide-outer").toggleClass("hide");
                 localStorage.setItem("yobi-intro", !$(".site-guide-outer").hasClass("hide"));
