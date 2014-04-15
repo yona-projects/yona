@@ -38,7 +38,7 @@
             @Html(getAvatar(file))
             <span class="ml5"><a href="@fieldText(file, "commitUrl")">@fieldText(file, "msg")</a></span>
         </div>
-        <div class="span1 commitDate">@getFileDate(file, "createdDate")</div>
+        <div class="span1 commitDate">@getFileAgoOrDate(file, "createdDate")</div>
     </div>
     }
     }

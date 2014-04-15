@@ -66,6 +66,15 @@ object TemplateHelper {
     }
   }
 
+  def agoOrDateString(date: java.util.Date) = {
+    val ago = JodaDateUtil.ago(date)
+    if (ago.getStandardDays < 8) {
+        agoString(ago)
+    } else {
+        JodaDateUtil.getDateString(date, "yyyy-MM-dd")
+    }
+  }
+
   def plural(key: String, count: Number): String = {
     var _key = key
     if (count != 1) _key = key + "s"
@@ -439,6 +448,10 @@ object TemplateHelper {
 
     def getFileDate(file:org.codehaus.jackson.JsonNode, field:String)(implicit lang:Lang):String = {
       JodaDateUtil.momentFromNow(file.get(field).getLongValue, lang.language)
+    }
+
+    def getFileAgoOrDate(file:org.codehaus.jackson.JsonNode, field:String) = {
+      agoOrDateString(new java.util.Date(file.get(field).getLongValue))
     }
 
     def getCorrectedPath(filePath:String, fileName:String):String = {
