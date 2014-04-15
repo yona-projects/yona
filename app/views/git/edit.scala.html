@@ -97,7 +97,7 @@
 
                 <input type="text" name="title" id="title" placeholder="" maxlength="maxlength" tabindex="1" class="text" value="@pull.title">
                 <div style="position: relative;">
-                    @common.editor("body", pull.body, Map("tabindex"->"2"))
+                    @common.editor("body", pull.body, Map("tabindex"->"2","id"->"body"))
                 </div>
 
                 @common.fileUploader(ResourceType.PULL_REQUEST, pull.id)
