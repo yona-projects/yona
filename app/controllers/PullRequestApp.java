@@ -505,6 +505,10 @@ public class PullRequestApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         final PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
 
+        // change it's state to block other accept request.
+        pullRequest.isMerging = true;
+        pullRequest.update();
+
         final PullRequestEventMessage message = new PullRequestEventMessage(
                 UserApp.currentUser(), request(), project, pullRequest.toBranch);
 
@@ -516,6 +520,9 @@ public class PullRequestApp extends Controller {
             @Override
             public Void call() throws Exception {
                 pullRequest.merge(message);
+                // mark the end of the merge
+                pullRequest.endMerge();
+                pullRequest.update();
                 return null;
             }
         });

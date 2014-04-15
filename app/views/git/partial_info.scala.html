@@ -42,8 +42,8 @@
         }
     }
 
-    @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT) && pull.isOpen) {
-        @if(pull.isReviewed || !project.isUsingReviewerCount){
+    @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT)) {
+        @if(pull.isAcceptable){
             <a id="btnAccept" href="@if(pull.isConflict == true){#}else{@routes.PullRequestApp.accept(project.owner, project.name, pull.number)}" data-request-method="post"
                class="ybtn @if(pull.isConflict == true){ ybtn-disabled } else { ybtn-success }">@Messages("pullRequest.accept")</a>
         } else {
