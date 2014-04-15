@@ -14,9 +14,20 @@
                 <div class="project-overview">
                     <h3><span id="project-description">@org.descr</span></h3>
                 </div>
+                <div class="project-search-wrap row-fluid mt10">
+                    <div class="span7">
+                        <div class="search-bar">
+                            <input name="mylist-filter" id="mylist-filter" class="textbox full" type="text" value="" data-toggle="item-search" data-items="project-item">
+                            <button type="button" class="search-btn"><i class="yobicon-search"></i></button>
+                        </div>
+                    </div>
+                    <div class="span3">
+                        <a href="@routes.ProjectApp.newProjectForm()?owner=@org.name" class="ybtn ybtn-primary">@Messages("button.newProject")</a>
+                    </div>
+                </div>
                 <ul class="all-projects">
                     @for(project <- org.getVisiableProjects(UserApp.currentUser())) {
-                    <li class="project">
+                    <li class="project" data-item="project-item" data-value="@project.name">
                         <div class="info-wrap">
                             <div class="owner-avatar-wrap">
                                 <a href="@routes.ProjectApp.project(project.owner,project.name)">
@@ -125,4 +136,6 @@
         </div>
     </div>
 </div>
+
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery/jquery.search.js")"></script>
 }
