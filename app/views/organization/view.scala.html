@@ -27,7 +27,7 @@
                 </div>
                 <ul class="all-projects">
                     @for(project <- org.getVisiableProjects(UserApp.currentUser())) {
-                    <li class="project" data-item="project-item" data-value="@project.name">
+                    <li class="project" data-item="project-item" data-value="@project.name @project.overview">
                         <div class="info-wrap">
                             <div class="owner-avatar-wrap">
                                 <a href="@routes.ProjectApp.project(project.owner,project.name)">
