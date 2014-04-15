@@ -204,8 +204,10 @@ public class ProjectApp extends Controller {
             flash(Constants.WARNING, "user.login.alert");
             return redirect(routes.UserApp.loginForm());
         } else {
+            Form<Project> projectForm = form(Project.class).bindFromRequest("owner");
+            projectForm.discardErrors();
             List<OrganizationUser> orgUserList = OrganizationUser.findByAdmin(UserApp.currentUser().id);
-            return ok(create.render("title.newProject", form(Project.class), orgUserList));
+            return ok(create.render("title.newProject", projectForm, orgUserList));
         }
     }
 
