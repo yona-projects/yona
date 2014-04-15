@@ -628,7 +628,7 @@ public class PullRequest extends Model implements ResourceConvertible {
         if (StringUtils.isNotBlank(condition.filter)) {
             Set<Object> ids = new HashSet<>();
             ids.addAll(el.query().copy().where()
-                    .icontains("comments.contents", condition.filter).findIds());
+                    .icontains("commentThreads.reviewComments.contents", condition.filter).findIds());
             ids.addAll(el.query().copy().where()
                     .eq("pullRequestCommits.state", PullRequestCommit.State.CURRENT)
                     .or(
