@@ -4,7 +4,7 @@
 <ul class="unstyled my-project-item">
 @defining(Organization.findOrganizationsByUserLoginId(UserApp.currentUser.loginId)) { organizations =>
     @for(organization <- organizations){
-        <li class="my-list-item" data-value="@organization.name">
+        <li class="my-list-item" data-item="my-item" data-value="@organization.name">
             @if(hasOrganizationLogo(organization)){<img src="@urlToOrganizationLogo(organization)">}else{<span class="dummy-25px"> </span>}<a href="@routes.OrganizationApp.organization(organization.name)">
                 <span class="bold">@organization.name</span>
             </a>
