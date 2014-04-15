@@ -29,18 +29,20 @@
             }
         </div>
 
-        @if(pull.isReviewedBy(UserApp.currentUser())) {
-            <a data-request-method="post" class="ybtn ybtn-default" href="@routes.ReviewApp.unreview(project.owner, project.name, pull.number)">
-            @Messages("pullRequest.unreviewed")
-            </a>
-        } else {
-            <a data-request-method="post" class="ybtn @if(pull.isReviewed){ybtn-default}else{ybtn-success}" href="@routes.ReviewApp.review(project.owner, project.name, pull.number)">
-            @Messages("pullRequest.reviewed")
-            </a>
+        @if(pull.isOpen) {
+            @if(pull.isReviewedBy(UserApp.currentUser())) {
+                <a data-request-method="post" class="ybtn ybtn-default" href="@routes.ReviewApp.unreview(project.owner, project.name, pull.number)">
+                @Messages("pullRequest.unreviewed")
+                </a>
+            } else {
+                <a data-request-method="post" class="ybtn @if(pull.isReviewed) {ybtn-default} else {ybtn-success}" href="@routes.ReviewApp.review(project.owner, project.name, pull.number)">
+                @Messages("pullRequest.reviewed")
+                </a>
+            }
         }
     }
 
-    @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT)) {
+    @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT) && pull.isOpen) {
         @if(pull.isReviewed || !project.isUsingReviewerCount){
             <a id="btnAccept" href="@if(pull.isConflict == true){#}else{@routes.PullRequestApp.accept(project.owner, project.name, pull.number)}" data-request-method="post"
                class="ybtn @if(pull.isConflict == true){ ybtn-disabled } else { ybtn-success }">@Messages("pullRequest.accept")</a>
