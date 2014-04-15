@@ -461,7 +461,6 @@ userProjectNotification:
 # Organization
 organization:
     - !!models.Organization
-        id:              1
         name:        labs
         created:     2014-04-10 15:00:00
 
