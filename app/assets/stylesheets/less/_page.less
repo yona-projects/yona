@@ -218,7 +218,7 @@
 
 .project-header-outer {
     background-color:#ececec;
-    height:69px;
+    height:80px;
     border-bottom:1px solid #ddd;
     background-clip: padding-box;
     background-position: bottom;
@@ -1600,7 +1600,7 @@
                width:100%;
                ul {
                     display:inline-block;
-                    width:115px; max-height:71px;
+                    max-width: 920px;
                     overflow:hidden;
 
                     li {
@@ -5426,6 +5426,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
                     white-space: nowrap;
                     overflow: hidden;
                     font-size: 14px;
+                    font-weight: bold;
                 }
 
                 .review-meta {
@@ -5444,4 +5445,34 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
             }
         }
     }
+}
+
+.group-title-head{
+  color: #00bff3;
+  .border-radius(3px);
+  font-size: 12px;
+  margin-right: 5px;
+  padding: 3px;
+}
+
+.my-list-item {
+  img {
+    width: 20px;
+    height: 20px;
+    .border-radius(3px);
+    border: 1px solid #ececec;
+    margin-right: 3px;
+  }
+  .dummy-25px {
+    width: 25px;
+    display: inline-block;
+  }
+}
+
+.dropdown-menu>li {
+  .my-list-item;
+}
+
+.margin-right-15 {
+  margin-right: 15px;
 }
