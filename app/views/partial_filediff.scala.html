@@ -159,7 +159,7 @@
  * @param renderedLines
 **@
 @renderFile(diff: FileDiff, fileHeader: String, renderedLines: Html) = {
-  <div class="diff-partial-outer">
+  <div id="@getFileHeadId(diff)" class="diff-partial-outer">
     <div class="diff-partial-inner">
       <div class="diff-partial-meta">
         <div class="diff-partial-commit">

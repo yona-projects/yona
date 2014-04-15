@@ -29,7 +29,7 @@
         @if(diff.isEmpty){
           <div class="alert">@Messages("code.noChanges")</div>
         } else {
-          <div class="diff-body">
+          <div class="diff-body discommentable">
           @views.html.partial_diff(diff, null, project, project)
           </div>
         }
