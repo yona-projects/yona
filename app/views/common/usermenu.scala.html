@@ -80,13 +80,13 @@
                 </li>
                 @if(visitedProjects.length > 0) {
                     @for(visited <- visitedProjects){
-                        <li><a href="@routes.ProjectApp.project(visited.project.owner, visited.project.name)">@if(hasProjectLogo(visited.project)){<img src="@urlToProjectLogo(visited.project)">} else{<span class="dummy-25px"> </span>} <span class="bold">@visited.project.name</span> <span class="darkgray-txt small-font">of @visited.project.owner</span></a></li>
+                        <li><a href="@routes.ProjectApp.project(visited.project.owner, visited.project.name)">@if(hasProjectLogo(visited.project)){<img src="@urlToProjectLogo(visited.project)">} else{<span class="dummy-25px"> </span>} <span class="bold">@visited.project.name</span> <span class="darkgray-txt small-font margin-right-15">of @visited.project.owner</span></a></li>
                     }
                 } else {
                     @defining(Project.findProjectsCreatedByUser(UserApp.currentUser.loginId, orderString)) { myProjects =>
                         @if(myProjects.length > 0) {
                             @for(project <- myProjects){
-                                <li>@if(hasProjectLogo(project)){<img src="@urlToProjectLogo(project)">} <a href="@routes.ProjectApp.project(project.owner, project.name)"><span class="bold">@project.name</span> <span class="darkgray-txt small-font">of @project.owner</span></a></li>
+                                <li>@if(hasProjectLogo(project)){<img src="@urlToProjectLogo(project)">} <a href="@routes.ProjectApp.project(project.owner, project.name)"><span class="bold">@project.name</span> <span class="darkgray-txt small-font margin-right-15">of @project.owner</span></a></li>
                             }
                         } else {
                             <li class="empty">@Messages("project.is.empty")</li>
