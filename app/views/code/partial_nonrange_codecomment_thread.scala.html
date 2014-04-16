@@ -43,7 +43,7 @@
                             <strong>@comment.author.loginId </strong>
                         </a>
                     </span>
-                    <span class="ago"><a href="#comment-@comment.id">@utils.TemplateHelper.agoString(utils.JodaDateUtil.ago(comment.createdDate))</a></span>
+                    <span class="ago"><a href="#comment-@comment.id" title="@JodaDateUtil.getDateString(comment.createdDate)">@utils.TemplateHelper.agoOrDateString(comment.createdDate)</a></span>
 
                     @if(utils.AccessControl.isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
                     <span class="edit pull-right">
