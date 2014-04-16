@@ -27,7 +27,7 @@
 </ul>    
 }
 
-@orderString = @{"createdDate DESC"}
+@orderString = @{"name ASC"}
 @displayProjects("watching", currentUser.getWatchingProjects(orderString))
 @displayProjects("createdByMe", Project.findProjectsCreatedByUser(currentUser.loginId, orderString))
 @displayProjects("joinmember", Project.findProjectsJustMemberAndNotOwner(currentUser, orderString))
