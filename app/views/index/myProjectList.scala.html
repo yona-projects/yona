@@ -14,7 +14,7 @@
 }
 </ul>
 }
-@defining(currentUser.getVisitedProjects(10)){ visitedProjects =>
+@defining(currentUser.getVisitedProjects(20)){ visitedProjects =>
 <ul class="tab-pane unstyled my-project-item active" id="recentlyVisited">
 @for(visited <- visitedProjects){
     <li class="my-list-item" data-item="my-item" data-value="@if(visited.project.owner != currentUser.loginId) {@visited.project.owner / }@visited.project.name">
