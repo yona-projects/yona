@@ -456,7 +456,7 @@
             });
 
             if(!htBlockInfo.bIsReversed){
-                window.scrollTo(0, welTR.offset().top - 50);
+                window.scrollTo(0, yobi.CodeCommentBox.offset().top + yobi.CodeCommentBox.height() - window.innerHeight + 20);
             }
 
             htVar.htBlockInfo = htBlockInfo;
