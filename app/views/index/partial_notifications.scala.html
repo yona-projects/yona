@@ -78,7 +78,7 @@
             <div class="meta">
                 <a href="@routes.UserApp.userInfo(user.loginId)" class="author">@user.name</a> @@@user.loginId
                 <span class="ago pull-right" title="@JodaDateUtil.getDateString(noti.created)">
-                    @agoString(JodaDateUtil.ago(noti.created))
+                    @agoOrDateString(noti.created)
                 </span>
             </div>
         </div>

@@ -31,7 +31,7 @@
                 <span class="infos-item">@Messages("issue.noAuthor")</span>
             }
             <span class="infos-item" title="@JodaDateUtil.getDateString(req.created)">
-                @agoString(req.createdAgo())
+                @agoOrDateString(req.created)
             </span>
             @defining(req.commentThreads.size) { count =>
                 @if(count > 0) {

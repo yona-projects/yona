@@ -91,7 +91,7 @@
                         }
                         }
                         <span class="ago" title="@JodaDateUtil.getDateString(commit.getAuthorDate)">
-                            @agoString(JodaDateUtil.ago(commit.getAuthorDate))
+                            @agoOrDateString(commit.getAuthorDate)
                         </span>
                     </p>
                     <pre class="commitMsg mt5">@commit.getMessage</pre>

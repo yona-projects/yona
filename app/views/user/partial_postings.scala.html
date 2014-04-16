@@ -27,7 +27,7 @@
         }
 
         <span class="infos-item" title="@JodaDateUtil.getDateString(post.createdDate)">
-            @agoString(post.ago)
+            @agoOrDateString(post.createdDate)
         </span>
 
         @if(post.numOfComments >0){

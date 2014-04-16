@@ -59,7 +59,7 @@
                 }
                 }
                 <span class="ago" title="@JodaDateUtil.getDateString(commit.getAuthorDate)">
-                    @agoString(JodaDateUtil.ago(commit.getAuthorDate))
+                    @agoOrDateString(commit.getAuthorDate)
                 </span>
                 <strong class="commitId pull-right">@{"@"}@commit.getId</strong>
                 @if(comments.size > 0) {
@@ -107,7 +107,7 @@
                                 </span>
                                 <span class="ago">
                                     <a href="#comment-@comment.id" title="@JodaDateUtil.getDateString(commit.getAuthorDate)">
-                                        @agoString(JodaDateUtil.ago(comment.createdDate))
+                                        @agoOrDateString(comment.createdDate)
                                     </a>
                                 </span>
                                 @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){

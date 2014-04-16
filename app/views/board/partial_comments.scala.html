@@ -48,7 +48,7 @@
                         <strong>@comment.authorLoginId </strong>
                     </a>
                 </span>
-                <a href="#comment-@comment.id" class="ago" title="@JodaDateUtil.getDateString(comment.createdDate)">@utils.TemplateHelper.agoString(comment.ago())</a>
+                <a href="#comment-@comment.id" class="ago" title="@JodaDateUtil.getDateString(comment.createdDate)">@utils.TemplateHelper.agoOrDateString(comment.createdDate)</a>
                 <span class="act-row pull-right">
                     @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.UPDATE)) {
                         <button type="button" class="btn-transparent mr10" data-toggle="comment-edit" data-comment-id="@comment.id" title="@Messages("common.comment.edit")"><i class="yobicon-edit-2"></i></button>

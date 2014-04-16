@@ -52,7 +52,7 @@
                     <span class="infos-item">@Messages("issue.noAuthor")</span>
                 }
                 <span class="infos-item" title="@JodaDateUtil.getDateString(thread.createdDate)">
-                    @agoString(JodaDateUtil.ago(thread.createdDate))
+                    @agoOrDateString(thread.createdDate)
                 </span>
                 @defining(thread.reviewComments.size()-1) { numberOfComments =>
                     @if(numberOfComments > 0) {

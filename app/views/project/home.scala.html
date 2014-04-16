@@ -48,8 +48,8 @@
                         <a href="@buildQueryString(routes.ProjectApp.project(project.owner, project.name), Map("tabId"->"history"))">
                             @Messages("project.history.recent")
 
-                            @defining(JodaDateUtil.ago(histories.get(0).getWhen)){ latestHistoryDuration =>
-                                <span class="historyAgo old">@agoString(latestHistoryDuration)</span>
+                            @defining(histories.get(0).getWhen){ when =>
+                                <span class="historyAgo old" title="@JodaDateUtil.getDateString(when)">@agoOrDateString(when)</span>
                             }
                         </a>
                     </li>
