@@ -546,7 +546,7 @@
          */
         function _onMouseOverCodeCommentThread(weEvt){
             // only no mouse button clicked
-            if(weEvt.which !== 0){
+            if(_doesMouseButtonPressed(weEvt)){
                 return;
             }
 
@@ -561,6 +561,17 @@
                 "nEndColumn"  : parseInt(welThread.data("range-endcolumn"), 10)
             };
             yobi.CodeCommentBlock.block(htBlockInfo);
+        }
+
+        /**
+         * Returns whether any mouse button has been pressed.
+         *
+         * @param weEvt
+         * @returns {boolean}
+         * @private
+         */
+        function _doesMouseButtonPressed(weEvt){
+            return (typeof weEvt.buttons !== "undefined") ? (weEvt.buttons !== 0) : (weEvt.which !== 0);
         }
 
         /**
