@@ -14,7 +14,7 @@ import java.util.Map;
  * @author Keesun Baik
  */
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"project_id", "user_id", "notificationType"}))
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"project_id", "user_id", "notification_type"}))
 public class UserProjectNotification extends Model {
 
     private static final long serialVersionUID = 1L;
