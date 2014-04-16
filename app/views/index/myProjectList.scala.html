@@ -14,7 +14,7 @@
 }
 </ul>
 }
-@defining(currentUser.getVisitedProjects(10)){ visitedProjects =>
+@defining(currentUser.getVisitedProjects(20)){ visitedProjects =>
 <ul class="tab-pane unstyled my-project-item active" id="recentlyVisited">
 @for(visited <- visitedProjects){
     <li class="my-list-item" data-item="my-item" data-value="@if(visited.project.owner != currentUser.loginId) {@visited.project.owner / }@visited.project.name">
@@ -27,7 +27,7 @@
 </ul>    
 }
 
-@orderString = @{"createdDate DESC"}
+@orderString = @{"name ASC"}
 @displayProjects("watching", currentUser.getWatchingProjects(orderString))
 @displayProjects("createdByMe", Project.findProjectsCreatedByUser(currentUser.loginId, orderString))
 @displayProjects("joinmember", Project.findProjectsJustMemberAndNotOwner(currentUser, orderString))
