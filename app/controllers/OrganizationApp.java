@@ -22,10 +22,10 @@ package controllers;
 
 import actions.AnonymousCheckAction;
 import models.Organization;
-import models.Project;
 import models.User;
 import models.enumeration.Operation;
 
+import models.enumeration.RequestState;
 import org.codehaus.jackson.node.ObjectNode;
 
 import play.data.Form;
@@ -39,7 +39,6 @@ import play.mvc.With;
 import utils.AccessControl;
 import utils.Constants;
 import utils.ErrorViews;
-import utils.ValidationResult;
 import models.*;
 import models.enumeration.RoleType;
 import views.html.organization.create;
@@ -127,6 +126,8 @@ public class OrganizationApp extends Controller {
         User user = User.findByLoginId(addMemberForm.get().loginId);
         Organization organization = Organization.findByOrganizationName(organizationName);
         OrganizationUser.assignRole(user.id, organization.id, RoleType.ORG_MEMBER.roleType());
+        organization.cleanEnrolledUsers();
+        NotificationEvent.afterOrganizationMemberRequest(organization, user, RequestState.ACCEPT);
 
         return redirect(routes.OrganizationApp.members(organizationName));
     }

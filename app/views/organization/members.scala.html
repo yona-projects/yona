@@ -64,6 +64,30 @@
                 <button type="button" class="ybtn ybtn-mini" data-dismiss="modal">@Messages("button.no")</button>
             </div>
         </div>
+
+        @** Enrolled Users **@
+        @if(organization.enrolledUsers.size > 0) {
+        <legend>
+            <h3>@Messages("project.member.enrollment.request") (@organization.enrolledUsers.size)</h3>
+        </legend>
+        <div class="row-fluid">
+            @for(user <- organization.enrolledUsers) {
+            <div class="span2">
+                <div class="pull-left mr10">
+                    <a href="@routes.UserApp.userInfo(user.loginId)">
+                        <img src="@user.avatarUrl" height="65" width="65" class="img-circle"/>
+                    </a>
+                </div>
+                <div class="pull-left" style="width: 60px;">
+                    <span><a href="@routes.UserApp.userInfo(user.loginId)"><strong>@user.name</strong></a></span>
+                    <span>(@user.loginId)</span>
+                    <button type="button" class="ybtn ybtn-info ybtn-mini blue enrollAcceptBtn" data-loginId="@user.loginId"><i class="yobicon-addfriend"></i>@Messages("button.add")</button>
+                </div>
+            </div>
+            } @** -- end for -- **@
+        </div>
+        }
+        @** -- // -- **@
     </div>
 </div>
 

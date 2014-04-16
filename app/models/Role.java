@@ -26,6 +26,9 @@ public class Role extends Model {
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
     public List<ProjectUser> projectUsers;
 
+    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
+    public List<OrganizationUser> organizationUsers;
+
     public static Role findById(Long id) {
         return find.byId(id);
     }
@@ -36,6 +39,12 @@ public class Role extends Model {
 
     public static Role findByName(String name) {
         return find.where().eq("name", name).findUnique();
+    }
+
+    public static Role findOrganizationRoleByIds(Long userId, Long organizationId) {
+        return find.where()
+                .eq("organizationUsers.user.id", userId)
+                .eq("organizationUsers.organization.id", organizationId).findUnique();
     }
 
     /**
