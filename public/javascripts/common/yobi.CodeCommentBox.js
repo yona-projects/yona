@@ -263,7 +263,8 @@ yobi.CodeCommentBox = (function(){
      * @private
      */
     function _isVisible(){
-        return (htElement.welCommentWrap.css("display") === "block");
+        return (htElement.welCommentWrap &&
+                htElement.welCommentWrap.css("display") === "block");
     }
 
     /**
