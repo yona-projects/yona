@@ -20,7 +20,9 @@
  */
 package models;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -66,5 +68,14 @@ public class PushedBranch extends Model {
         if(pushedBranch != null){
             pushedBranch.delete();
         }
+    }
+
+    public static List<PushedBranch> findByOwnerAndOriginalProject(User owner, Project originalProject) {
+        List<PushedBranch> branches = new ArrayList<>();
+        List<Project> forkedProjects = Project.findByOwnerAndOriginalProject(owner.loginId, originalProject);
+        for (Project forkedProject : forkedProjects) {
+            branches.addAll(forkedProject.getRecentlyPushedBranches());
+        }
+        return branches;
     }
 }

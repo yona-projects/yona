@@ -622,11 +622,11 @@ public class Project extends Model implements LabelOwner {
      * @param originalProject
      * @return
      */
-    public static Project findByOwnerAndOriginalProject(String loginId, Project originalProject) {
+    public static List<Project> findByOwnerAndOriginalProject(String loginId, Project originalProject) {
         return find.where()
                 .eq("originalProject", originalProject)
                 .eq("owner", loginId)
-                .findUnique();
+                .findList();
     }
 
     /**

@@ -18,7 +18,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(project: Project)
+@(pushedBranches: List[PushedBranch])
 @import utils.JodaDateUtil._
 @import utils.TemplateHelper._
 
@@ -30,15 +30,15 @@
     }
 }
 
-@if(!project.getRecentlyPushedBranches.isEmpty) {
+@if(!pushedBranches.isEmpty) {
 <h5>@Messages("pullRequest.pushed.branches.title")</h5>
 <div class="alert alert-info">
-    @for(branch <- project.getRecentlyPushedBranches){
+    @for(branch <- pushedBranches){
         <div>
             <i class="yobicon-split"></i>
             <span style="margin-left:5px;font-weight:bold;">@branch.project.owner/@branch.project.name:@branch.getShortName ( @momentFromNow(branch.pushedDate, lang.language) )</span>
             &nbsp;-&nbsp;
-            <a href="@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)?fromBranch=@branch.name&toBranch=@defaultBranch(project)">@Messages("pullRequest")</a>
+            <a href="@routes.PullRequestApp.newPullRequestForm(branch.project.owner, branch.project.name)?fromBranch=@branch.name&toBranch=@defaultBranch(branch.project)">@Messages("pullRequest")</a>
             <a href="#" class="close" data-dismiss="alert" aria-hidden="true" data-request-method="delete" data-request-uri="@routes.ProjectApp.deletePushedBranch(branch.project.owner, branch.project.name, branch.id)" data-request-method="delete">&times;</a>
         </div>
     }

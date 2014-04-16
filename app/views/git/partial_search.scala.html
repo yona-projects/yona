@@ -23,6 +23,7 @@
 
 @import utils.AccessControl
 @import controllers.PullRequestApp.Category
+@import models.PushedBranch
 
 @conditionForOpen = @{condition.clone.setCategory(Category.OPEN)}
 @conditionForClosed = @{condition.clone.setCategory(Category.CLOSED)}
@@ -91,12 +92,10 @@
     </div>
     <div class="span10" id="span10">
       @if(project.isForkedFromOrigin) {
-        @partial_recently_pushed_branches(project)
+        @partial_recently_pushed_branches(project.getRecentlyPushedBranches)
       } else {
-        @defining(Project.findByOwnerAndOriginalProject(UserApp.currentUser().loginId, project)){ myForkProject =>
-          @if(myForkProject != null && AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.PULL_REQUEST)){
-            @partial_recently_pushed_branches(myForkProject)
-          }
+        @if(AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.PULL_REQUEST)) {
+          @partial_recently_pushed_branches(PushedBranch.findByOwnerAndOriginalProject(UserApp.currentUser, project))
         }
       }
       <div class="pull-right">
