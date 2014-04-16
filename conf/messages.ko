@@ -224,6 +224,7 @@ issue.is.empty = 등록된 이슈가 없습니다.
 issue.list.all = 전체 이슈
 issue.list.assignedToMe = 나에게 할당된 이슈
 issue.list.authoredByMe = 내가 작성한 이슈
+issue.list.mentionedOfMe = 나를 언급한 이슈
 issue.menu.new = 새 이슈
 issue.milestone.selectDefault= --마일스톤 선택--
 issue.myIssue = 내 이슈

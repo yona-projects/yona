@@ -111,6 +111,7 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
 
         try {
             super.save();
+            updateMention();
         } catch (PersistenceException e) {
             Long oldNumber = number;
             fixLastNumber();
@@ -131,9 +132,11 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
     /**
      * 갱신할 때 댓글 개수를 설정한다.
      */
+    @Transactional
     public void update() {
         numOfComments = computeNumOfComments();
         super.update();
+        updateMention();
     }
 
 
@@ -261,5 +264,11 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
         }
 
         return Watch.findActualWatchers(actualWatchers, asResource());
+    }
+
+    protected void updateMention() {
+        if (this.body != null) {
+            Mention.add(this.asResource(), NotificationEvent.getMentionedUsers(this.body));
+        }
     }
 }

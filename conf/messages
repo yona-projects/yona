@@ -224,6 +224,7 @@ issue.is.empty = There is no Issue.
 issue.list.all = All Issues
 issue.list.assignedToMe = Assigned to me
 issue.list.authoredByMe = Created by me
+issue.list.mentionedOfMe = Mentioned of me
 issue.menu.new = New
 issue.milestone.selectDefault= --Select a Milestone--
 issue.myIssue = My Issues

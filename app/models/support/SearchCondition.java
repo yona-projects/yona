@@ -2,18 +2,19 @@ package models.support;
 
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Junction;
-
 import controllers.AbstractPostingApp;
 import models.*;
 import models.enumeration.State;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-
 import utils.LabelSearchUtil;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import static models.enumeration.ResourceType.*;
 
 public class SearchCondition extends AbstractPostingApp.SearchCondition {
     public String state;
@@ -25,6 +26,8 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
 
     public Long assigneeId;
     public Project project;
+
+    public Long mentionId;
 
     public SearchCondition clone() {
         SearchCondition one = new SearchCondition();
@@ -38,6 +41,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
         one.labelIds = new HashSet<>(this.labelIds);
         one.authorId = this.authorId;
         one.assigneeId = this.assigneeId;
+        one.mentionId = this.mentionId;
         return one;
     }
 
@@ -101,6 +105,11 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
         return this;
     }
 
+    public SearchCondition setMentionId(Long mentionId) {
+        this.mentionId = mentionId;
+        return this;
+    }
+
     public SearchCondition() {
         super();
         milestoneId = null;
@@ -129,6 +138,22 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
             el.eq("authorId", authorId);
         }
 
+        // TODO: access control
+        if (mentionId != null) {
+            User mentionUser = User.find.byId(mentionId);
+            if(!mentionUser.isAnonymous()) {
+                List<Long> ids = getMentioningIssueIds(mentionUser);
+
+                if (ids.isEmpty()) {
+                    // No need to progress because the query matches nothing.
+                    ids.add(-1l);
+                    return el.idIn(ids);
+                } else {
+                    el.idIn(ids);
+                }
+            }
+        }
+
         if (StringUtils.isNotBlank(filter)) {
             Junction<Issue> junction = el.disjunction();
             junction.icontains("title", filter)
@@ -155,6 +180,39 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
         }
 
         return el;
+    }
+
+    private List<Long> getMentioningIssueIds(User mentionUser) {
+        Set<Long> ids = new HashSet<>();
+        Set<Long> commentIds = new HashSet<>();
+
+        for (Mention mention : Mention.find.where()
+                .eq("user", mentionUser)
+                .in("resourceType", ISSUE_POST, ISSUE_COMMENT)
+                .findList()) {
+
+            switch (mention.resourceType) {
+                case ISSUE_POST:
+                    ids.add(Long.valueOf(mention.resourceId));
+                    break;
+                case ISSUE_COMMENT:
+                    commentIds.add(Long.valueOf(mention.resourceId));
+                    break;
+                default:
+                    play.Logger.warn("'" + mention.resourceType + "' is not supported.");
+                    break;
+            }
+        }
+
+        if (!commentIds.isEmpty()) {
+            for (IssueComment comment : IssueComment.find.where()
+                    .idIn(new ArrayList<>(commentIds))
+                    .findList()) {
+                ids.add(comment.issue.id);
+            }
+        }
+
+        return new ArrayList<>(ids);
     }
 
     /**

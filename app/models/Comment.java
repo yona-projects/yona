@@ -1,5 +1,6 @@
 package models;
 
+import com.avaje.ebean.annotation.Transactional;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -94,9 +95,15 @@ abstract public class Comment extends Model implements TimelineItem, ResourceCon
      *
      * <p>그 후 이 댓글을 갖고 게시글도 갱신한다.</p>
      */
+    @Transactional
     public void save() {
         super.save();
+        updateMention();
         getParent().update();
+    }
+
+    protected void updateMention() {
+        Mention.add(this.asResource(), NotificationEvent.getMentionedUsers(this.contents));
     }
 
     /**
