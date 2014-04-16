@@ -25,20 +25,19 @@
 
 <div id="review-form" class="review-form">
     <form action="@action" method="post" enctype="multipart/form-data">
-        <div class="author-info-wrap">
-            <div class="author-info pull-left">
+        <div class="author-info-wrap pull-left">
+            <div class="author-info">
                 @defining(UserApp.currentUser()){ currentUser =>
-                <a href="@routes.UserApp.userInfo(currentUser.loginId)" class="avatar-wrap small" data-toggle="tooltip" data-placement="top" title="" data-original-title="@currentUser.name">
-                    <img src="@currentUser.avatarUrl" width="24" height="244">
+                <a href="@routes.UserApp.userInfo(currentUser.loginId)" class="avatar-wrap medium" data-toggle="tooltip" data-placement="top" title="" data-original-title="@currentUser.name">
+                    <img src="@currentUser.avatarUrl" width="32" height="32">
                 </a>
-                <strong class="ml5">@currentUser.loginId</strong>
                 }
             </div>
-
-            <div class="pull-right"><button type="button" class="ybtn ybtn-default" data-toggle="close">&times;</button></div>
         </div>
-        <div class="write-comment-box nm">
+        <div class="write-comment-box">
             <div class="write-comment-wrap">
+                <div class="pull-right"><button type="button" class="ybtn ybtn-default ybtn-small" data-toggle="close">&times;</button></div>
+
                 @common.editor("contents", "", Map("id"->"review-editor"))
 
                 @** fileUploader **@
