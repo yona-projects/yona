@@ -45,7 +45,7 @@
         <i class="yobicon-error mr5"></i>
         <span>@Messages("pullRequest.is.not.safe")</span>
         <div>
-            <span>@Messages("pullRequest.conflict.files")</span>
+            <h6>@Messages("pullRequest.conflict.files")</h6>
             <ul class="unstyled conflict-files">
                 @for(file <- pull.getConflictFiles) {
                 <li>@file</li>
@@ -54,20 +54,22 @@
         </div>
 
         @if(UserApp.currentUser().equals(pull.contributor)){
-        <div>
-            <span>@Messages("pullRequest.resolve.conflict")</span>
-            <ol>
-                <li>@Messages("pullRequest.resolver.step1") <code>git checkout @branchItemName(pull.fromBranch)</code></li>
-                <li>@Messages("pullRequest.resolver.step2") <code>git remote add upstream @getCodeURL(pull.toProject)</code></li>
-                <li>@Messages("pullRequest.resolver.step3") <code>git fetch upstream</code></li>
-                <li>@Messages("pullRequest.resolver.step4") <code>git rebase upstream/@branchItemName(pull.toBranch)</code></li>
-                <li>@Messages("pullRequest.resolver.step5") </li>
-                <li>@Messages("pullRequest.resolver.step6") <code>git add resolved_file</code></li>
-                <li>@Messages("pullRequest.resolver.step7") <code>git rebase --continue</code></li>
-                <li>@Messages("pullRequest.resolver.step8") </li>
-                <li>@Messages("pullRequest.resolver.step9") <code>git push -f origin @branchItemName(pull.fromBranch)</code></li>
-                <li>@Messages("pullRequest.resolver.step10") <a href="@routes.PullRequestApp.pullRequest(project.owner, project.name, pull.number)" class="ybtn ybtn-info ybtn-small">@Messages("button.page.refresh")</a>@Messages("pullRequest.resolver.step11")</li>
-            </ol>
+        <div class="howto-resolve-conflict">
+            <h6>@Messages("pullRequest.resolve.conflict")</h6>
+            <div class="help">
+                <ol>
+                    <li>@Messages("pullRequest.resolver.step1") <code>git checkout @branchItemName(pull.fromBranch)</code></li>
+                    <li>@Messages("pullRequest.resolver.step2") <code>git remote add upstream @getCodeURL(pull.toProject)</code></li>
+                    <li>@Messages("pullRequest.resolver.step3") <code>git fetch upstream</code></li>
+                    <li>@Messages("pullRequest.resolver.step4") <code>git rebase upstream/@branchItemName(pull.toBranch)</code></li>
+                    <li>@Messages("pullRequest.resolver.step5") </li>
+                    <li>@Messages("pullRequest.resolver.step6") <code>git add resolved_file</code></li>
+                    <li>@Messages("pullRequest.resolver.step7") <code>git rebase --continue</code></li>
+                    <li>@Messages("pullRequest.resolver.step8") </li>
+                    <li>@Messages("pullRequest.resolver.step9") <code>git push -f origin @branchItemName(pull.fromBranch)</code></li>
+                    <li>@Messages("pullRequest.resolver.step10") <a href="@routes.PullRequestApp.pullRequest(project.owner, project.name, pull.number)" class="ybtn ybtn-mini ybtn-primary">@Messages("button.page.refresh")</a>@Messages("pullRequest.resolver.step11")</li>
+                </ol>
+            </div>
         </div>
         }
     </div>
