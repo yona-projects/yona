@@ -1245,6 +1245,10 @@ public class GitRepository implements PlayRepository {
                 // Operation 실행. (현재 위치는 mergingBranch)
                 CloneAndFetch cloneAndFetch = new CloneAndFetch(cloneRepository, destToBranchName, destFromBranchName, mergingBranch);
                 operation.invoke(cloneAndFetch);
+
+                // 코드 받을 브랜치로 이동하고 mergingBranch 삭제
+                new Git(cloneRepository).checkout().setName(destToBranchName).call();
+                new Git(cloneRepository).branchDelete().setForce(true).setBranchNames(mergingBranch).call();
             }
         } catch (GitAPIException e) {
             throw new IllegalStateException(e);
