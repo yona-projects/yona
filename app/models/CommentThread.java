@@ -210,4 +210,20 @@ public class CommentThread extends Model implements ResourceConvertible {
 
         return count;
     }
+
+    public String getChildCommentsSizeToString(){
+        if(this.reviewComments.size() > 1) {
+            return String.valueOf(this.reviewComments.size() - 1);
+        } else {
+            return "";
+        }
+    }
+
+    public boolean hasChildComments(){
+        if(this.reviewComments.size() > 1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
