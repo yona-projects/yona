@@ -34,19 +34,17 @@
                         @agoOrDateString(req.created)
                     </span>
                     @if(!req.commentThreads.isEmpty){
-                        @defining(req.countCommentThreadsByState(CommentThread.ThreadState.OPEN)){ countOpen =>
+                        @defining(req.countCommentThreadsByState(CommentThread.ThreadState.CLOSED)){ countClosed =>
                         <i class="yobicon-post2 vmiddle" style="color:#777;"></i>
                         <div class="infos-item" style="margin-right:3px">
                             <div class="upload-progress">
-                                <div class="bar orange" style="width: @getPercent(countOpen.toDouble, req.commentThreads.size.toDouble)%;"></div>
+                                <div class="bar orange" style="width: @getPercent(countClosed.toDouble, req.commentThreads.size.toDouble)%;"></div>
                             </div>
                         </div>
                         <a href="@routes.PullRequestApp.pullRequestChanges(req.toProject.owner, req.toProject.name, req.number)" class="infos-item"
-                           data-toggle="tooltip" title="@if(countOpen > 0){@Messages("pullRequest.review.open") / } @Messages("pullRequest.review.total")">
-                            @if(countOpen > 0){
-                                <span>@countOpen</span>
+                           data-toggle="tooltip" title="@Messages("pullRequest.review.closed") / @Messages("pullRequest.review.total")">
+                                <span>@countClosed</span>
                                 <span class="gray-txt">/</span>
-                            }
                             <span class="size total">@req.commentThreads.size</span>
                         </a>
                         }
