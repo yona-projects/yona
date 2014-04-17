@@ -38,7 +38,7 @@
             </a>
             <div class="title-wrap">
                 <span class="post-id">@thread.id</span>
-                <a href="@DiffRenderer.urlToCommentThread(project, thread)" class="title">
+                <a href="@DiffRenderer.urlToCommentThread(thread)" class="title">
                    @thread.getFirstReviewComment.getContents()
                 </a>
             </div>
@@ -56,7 +56,7 @@
                 </span>
                 @defining(thread.reviewComments.size()-1) { numberOfComments =>
                     @if(numberOfComments > 0) {
-                    <a href="@DiffRenderer.urlToCommentThread(project, thread))" class="infos-item infos-icon-link">
+                    <a href="@DiffRenderer.urlToCommentThread(thread))" class="infos-item infos-icon-link">
                         <i class="yobicon-comments"></i>
                         <span class="size">@numberOfComments</span>
                     </a>
