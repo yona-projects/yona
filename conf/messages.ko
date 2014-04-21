@@ -307,6 +307,7 @@ notification.member.enroll.cancel = 멤버 등록 요청이 취소됨
 notification.member.enroll.request = 멤버 등록 요청을 받음
 notification.member.request.title = [{0}] {1} 님이 멤버 요청을 보냈습니다.
 notification.member.request.accept.title = [{0}] {1} 님을 멤버로 등록했습니다.
+notification.member.request.cancel.title = [{0}] {1} 님이 멤버 요청을 취소하였습니다.
 notification.none = 알림 메시지가 없습니다.
 notification.organization.member.enroll.accept = 멤버로 등록됨
 notification.organization.member.enroll.cancel = 멤버 등록 요청이 취소됨
