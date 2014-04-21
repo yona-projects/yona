@@ -56,7 +56,7 @@
             }
 
             @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.WATCH)){
-            <button id="watch-button" type="button" class="ybtn" data-toggle="button" data-watching="@if(post.getWatchers.contains(UserApp.currentUser())){true}else{false}">
+            <button id="watch-button" type="button" class="ybtn @if(post.getWatchers.contains(UserApp.currentUser())){ybtn-watching}" data-toggle="button" data-watching="@if(post.getWatchers.contains(UserApp.currentUser())){true}else{false}">
                 @if(post.getWatchers.contains(UserApp.currentUser())) { @Messages("project.unwatch") } else { @Messages("project.watch") }
             </button>
             }

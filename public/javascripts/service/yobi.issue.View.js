@@ -124,13 +124,16 @@
          */
         function _onClickBtnWatch(weEvt){
             var welTarget = $(weEvt.target);
-            var bWatched = (welTarget.attr("data-watching") == "true") ? true : false;
+            var bWatched = (welTarget.attr("data-watching") === "true");
 
             $yobi.sendForm({
                 "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
                 "fOnLoad": function(){
-                    welTarget.attr("data-watching", !bWatched);
-                    welTarget.html(Messages(!bWatched ? "project.unwatch" : "project.watch"));
+                    welTarget
+                        .attr("data-watching", !bWatched)
+                        .toggleClass('ybtn-watching')
+                        .html(Messages(!bWatched ? "project.unwatch" : "project.watch"));
+                        
                     $yobi.notify(Messages(bWatched ? "issue.unwatch.start" : "issue.watch.start"), 3000);
                 }
             });

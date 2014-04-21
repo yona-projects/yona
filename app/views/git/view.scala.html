@@ -62,7 +62,7 @@
             </div>
 
             @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.WATCH)) {
-            <button id="watch-button" type="button" class="ybtn @if(pull.getWatchers.contains(UserApp.currentUser())) { ybtn-watching }" data-toggle="button">
+            <button id="watch-button" type="button" class="ybtn @if(pull.getWatchers.contains(UserApp.currentUser())) { ybtn-watching }" data-toggle="button" data-watching="@if(pull.getWatchers.contains(UserApp.currentUser())){true}else{false}">
                 @if(pull.getWatchers.contains(UserApp.currentUser())) {
                     @Messages("project.unwatch")
                 } else {

@@ -78,13 +78,17 @@
 
             htElement.welBtnWatch.click(function(weEvt) {
                 var welTarget = $(weEvt.target);
-                var bWatched = welTarget.hasClass("active");
+                var bWatched = (welTarget.attr("data-watching") === "true");
 
                 $yobi.sendForm({
                     "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
                     "fOnLoad": function(){
-                        welTarget.toggleClass("active");
-                        welTarget.html(Messages(welTarget.hasClass("active") ? "project.unwatch" : "project.watch"));
+                        welTarget
+                            .attr("data-watching", !bWatched)
+                            .toggleClass('ybtn-watching')
+                            .html(Messages(!bWatched ? "project.unwatch" : "project.watch"));
+                            
+                        $yobi.notify(Messages(bWatched ? "pullRequest.unwatch.start" : "pullRequest.watch.start"), 3000);
                     }
                 });
             });
