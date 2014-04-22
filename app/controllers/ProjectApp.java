@@ -690,7 +690,7 @@ public class ProjectApp extends Controller {
         // Change the project's name and move the repository.
         String newProjectName = Project.newProjectName(pt.destination, project.name);
         PlayRepository repository = RepositoryService.getRepository(project);
-        repository.move(pt.sender.loginId, project.name, pt.destination, newProjectName);
+        repository.move(project.owner, project.name, pt.destination, newProjectName);
 
         User newOwnerUser = User.findByLoginId(pt.destination);
         Organization newOwnerOrg = Organization.findByName(pt.destination);
