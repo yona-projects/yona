@@ -816,7 +816,7 @@ public class ProjectApp extends Controller {
     public static Result editMember(String loginId, String projectName, Long userId) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
         if (project.isOwner(User.find.byId(userId))) {
-            return forbidden(ErrorViews.Forbidden.render("project.member.ownerMustBeAManager", project));
+            return badRequest(ErrorViews.Forbidden.render("project.member.ownerMustBeAManager", project));
         }
         ProjectUser.assignRole(userId, project.id, form(Role.class).bindFromRequest().get().id);
         return status(Http.Status.NO_CONTENT);
