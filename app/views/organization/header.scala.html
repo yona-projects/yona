@@ -26,6 +26,9 @@
 @getPopupTitle = { @if(User.enrolled(org)) { @Messages("organization.you.want.to.be.a.member", org.name) } else { @Messages("organization.you.may.want.to.be.a.member", org.name) } }
 @getRequestUrl = { @if(User.enrolled(org)) { @routes.EnrollOrganizationApp.cancelEnroll(org.name) } else { @routes.EnrollOrganizationApp.enroll(org.name) } }
 @getClassName = { @if(User.enrolled(org)) { yobicon-removefriend } else { yobicon-addfriend } }
+@getEnrollmentButtonTitle = { @if(User.enrolled(org)) { @Messages("button.cancel.enrollment") } else { @Messages("button.new.enrollment") } }
+@getEnrollmentHelp = { @if(User.enrolled(org)) { @Messages("organization.member.enrollment.help.after") } else { @Messages("organization.member.enrollment.help.before") } }
+
 
 <div class="project-header-outer" style="background-image:url('@urlToOrganizationLogo(org)')">
     <div class="project-header-inner">
@@ -42,17 +45,17 @@
             <div class="project-util-wrap">
                 <ul class="project-util">
                     <button class="ybtn ybtn-small @if(User.enrolled(org)) { ybtn-info } dropdown-toggle" type="button" data-toggle="dropdown">
-                        <i class="yobicon-addfriend"></i>
+                        <i class="yobicon-addfriend"> @Messages("organization.member.enrollment.title") </i>
                     </button>
                     <div class="dropdown-menu flat right title">
                         <div class="pop-title">@getPopupTitle</div>
                         <div class="pop-content">
-                            @Messages("organization.member.enrollment.help")
+                            @getEnrollmentHelp
                         </div>
                         <div class="pop-content btn-wrap">
                             <a class="ybtn @if(!User.enrolled(org)) { ybtn-info } enrollBtn" href="@getRequestUrl" id="enrollBtn">
                                 <i class="@getClassName"></i>
-                                @Messages("button.cancel.enrollment")
+                                @getEnrollmentButtonTitle
                             </a>
                         </div>
                     </div>
