@@ -1,4 +1,4 @@
-@(title:String, project: Project, forkProject: Project, forkedProject: Project, form: Form[Project], orgUserList:List[OrganizationUser])
+@(title:String, project: Project, forkProject: Project, forkedProjects: List[Project], form: Form[Project], orgUserList:List[OrganizationUser])
 
 @import utils.TemplateHelper._
 @import controllers.UserApp
@@ -20,7 +20,7 @@
                     </legend>
                     <div id="helpMessage" class="well">
                         <div class="row-fluid">
-                        @if(forkedProject == null){
+                        @if(forkedProjects.isEmpty){
                             <div class="pull-left">
                                 <img class="img-polaroid" src="@routes.Assets.at("images/fork-pull/fork.jpg")"><br>
                             </div>
@@ -33,11 +33,13 @@
                             <div class="help-messages center-txt">
                                 <i class="ico ico-err2"></i>
                                 <p>@Messages("fork.already.exist")</p>
+                                @for(forkedProject <- forkedProjects) {
                                 <p>
                                     <strong class="vmiddle">@project.owner / @project.name</strong>
                                     <i class="yobicon-right vmiddle"></i>
                                     <a href="@routes.ProjectApp.project(forkedProject.owner, forkedProject.name)" class="vmiddle primary-txt">@forkedProject.owner / @forkedProject.name</a>
                                 </p>
+                                }
                             </div>
                         }
                         </div>

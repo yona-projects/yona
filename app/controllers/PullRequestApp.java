@@ -81,9 +81,9 @@ public class PullRequestApp extends Controller {
         String destination = findDestination(forkOwner);
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         List<OrganizationUser> orgUserList = OrganizationUser.findByAdmin(UserApp.currentUser().id);
-        Project forkedProject = Project.findByOwnerAndOriginalProject(destination, project);
+        List<Project> forkedProjects = Project.findByOwnerAndOriginalProject(destination, project);
         Project forkProject = Project.copy(project, destination);
-        return ok(fork.render("fork", project, forkProject, forkedProject, new Form<>(Project.class), orgUserList));
+        return ok(fork.render("fork", project, forkProject, forkedProjects, new Form<>(Project.class), orgUserList));
     }
 
     private static String findDestination(String forkOwner) {
