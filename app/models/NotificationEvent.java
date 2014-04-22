@@ -645,13 +645,22 @@ public class NotificationEvent extends Model {
             notiEvent.receivers.remove(UserApp.currentUser());
             notiEvent.receivers.add(user);
         }
-        if (state == RequestState.REQUEST) {
-            notiEvent.title = formatMemberRequestTitle(project, user);
-            notiEvent.oldValue = RequestState.CANCEL.name();
-        } else {
-            notiEvent.title = formatMemberAcceptTitle(project, user);
-            notiEvent.oldValue = RequestState.REQUEST.name();
+
+        switch (state) {
+            case REQUEST:
+                notiEvent.title = formatMemberRequestTitle(project, user);
+                notiEvent.oldValue = RequestState.CANCEL.name();
+                break;
+            case CANCEL:
+                notiEvent.title = formatMemberRequestCancelTitle(project, user);
+                notiEvent.oldValue = RequestState.REQUEST.name();
+                break;
+            case ACCEPT:
+                notiEvent.title = formatMemberAcceptTitle(project, user);
+                notiEvent.oldValue = RequestState.REQUEST.name();
+                break;
         }
+
         notiEvent.resourceType = project.asResource().getType();
         notiEvent.resourceId = project.asResource().getId();
         NotificationEvent.add(notiEvent);
@@ -667,15 +676,19 @@ public class NotificationEvent extends Model {
             notiEvent.receivers.add(user);
         }
 
-        if (state == RequestState.REQUEST) {
-            notiEvent.title = formatMemberRequestTitle(organization, user);
-            notiEvent.oldValue = RequestState.CANCEL.name();
-        } else if (state == RequestState.ACCEPT) {
-            notiEvent.title = formatMemberAcceptTitle(organization, user);
-            notiEvent.oldValue = RequestState.REQUEST.name();
-        } else if (state == RequestState.CANCEL) {
-            notiEvent.title = "Re: " + formatMemberRequestTitle(organization, user);
-            notiEvent.oldValue = RequestState.REQUEST.name();
+        switch (state) {
+            case REQUEST:
+                notiEvent.title = formatMemberRequestTitle(organization, user);
+                notiEvent.oldValue = RequestState.CANCEL.name();
+                break;
+            case CANCEL:
+                notiEvent.title = formatMemberRequestCancelTitle(organization, user);
+                notiEvent.oldValue = RequestState.REQUEST.name();
+                break;
+            case ACCEPT:
+                notiEvent.title = formatMemberAcceptTitle(organization, user);
+                notiEvent.oldValue = RequestState.REQUEST.name();
+                break;
         }
 
         notiEvent.resourceType = organization.asResource().getType();
@@ -889,6 +902,14 @@ public class NotificationEvent extends Model {
 
     private static String formatMemberRequestTitle(Project project, User user) {
         return Messages.get("notification.member.request.title", project.name, user.loginId);
+    }
+
+    private static String formatMemberRequestCancelTitle(Project project, User user) {
+        return Messages.get("notification.member.request.cancel.title", project.name, user.loginId);
+    }
+
+    private static String formatMemberRequestCancelTitle(Organization organization, User user) {
+        return Messages.get("notification.member.request.cancel.title", organization.name, user.loginId);
     }
 
     private static String formatMemberRequestTitle(Organization organization, User user) {

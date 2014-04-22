@@ -307,6 +307,7 @@ notification.member.enroll.cancel = The request for joining your project has bee
 notification.member.enroll.request = Received a request for joining your project.
 notification.member.request.title = [{0}] {1} wants to join your project
 notification.member.request.accept.title = Re: [{0}] {1} is accepted as a member
+notification.member.request.cancel.title = [{0}] {1} cancels the request to be a member.
 notification.none = There is no notification message.
 notification.organization.member.enroll.accept = Joined as a member.
 notification.organization.member.enroll.cancel = The request for joining your group has been canceled.
