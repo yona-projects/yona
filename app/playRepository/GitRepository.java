@@ -2035,6 +2035,11 @@ public class GitRepository implements PlayRepository {
         config.install();
 
         File srcGitDirectory = new File(getGitDirectory(srcProjectOwner, srcProjectName));
+        if(!srcGitDirectory.exists()) {
+            play.Logger.warn("[Transfer] Nothing To Move: " + srcGitDirectory.getAbsolutePath());
+            return true;
+        }
+
         File destGitDirectory = new File(getGitDirectory(desrProjectOwner, destProjectName));
         File srcGitDirectoryForMerging = new File(getDirectoryForMerging(srcProjectOwner, srcProjectName));
         File destGitDirectoryForMerging = new File(getDirectoryForMerging(desrProjectOwner, destProjectName));
@@ -2046,7 +2051,7 @@ public class GitRepository implements PlayRepository {
             org.apache.commons.io.FileUtils.moveDirectory(srcGitDirectoryForMerging, destGitDirectoryForMerging);
             return true;
         } catch (IOException e) {
-            play.Logger.error("Move Failed", e);
+            play.Logger.error("[Transfer] Move Failed", e);
             return false;
         }
     }
