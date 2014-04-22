@@ -204,11 +204,16 @@
             background-image:none;
             filter:none;
         }
+
+        .select2-search-field input {
+            font-family:@base-font-family !important;
+        }
     }
 
     &.issue-labels {
         width:auto !important;
-        min-width:220px;
+        border:none;
+        .box-shadow(none);
 
         .select2-choices {
             .select2-search-choice {
@@ -220,7 +225,28 @@
 
             .select2-search-choice-close {
                 top:6px;
+                .opacity(0);
             }
+        }
+
+        &:hover,
+        &.select2-container-active {
+            border:none;
+            background:transparent;
+
+            .select2-choices {
+                border:none;
+            }
+            .select2-choices .select2-search-choice-close {
+                .opacity(100);
+            }
+
+            .select2-search-choice:hover {
+                background:#e6e6e6;
+            }
+        }
+        .select2-search-choice-focus .select2-search-choice-close {
+            .opacity(100);
         }
     }
 
@@ -234,4 +260,10 @@
         }
     }
 }
+.select2-drop.issue-labels {
+    min-width:240px;
 
+    .select2-results {
+        min-width: 220px;
+    }
+}

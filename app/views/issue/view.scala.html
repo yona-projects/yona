@@ -60,13 +60,12 @@
         <!--board-body-->
         <div class="board-body row-fluid">
             <div class="span9">
-                @if(IssueLabel.findByProject(project).size > 0){
+                @if(!IssueLabel.findByProject(project).isEmpty){
                 <div class="pull-right" style="padding:20px;">
-                    @**<!-- labels -->**@
                     <p class="labels-wrap">
                     @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
-                      <select id="issueLabels" multiple="multiple" data-placeholder="@Messages("label.select")"
-                              data-toggle="select2" data-format="issuelabel" data-containerCSSClass="issue-labels">
+                      <select id="issueLabels" multiple="multiple" data-toggle="select2" data-format="issuelabel"
+                              data-dropdown-css-class="issue-labels" data-container-css-class="issue-labels">
                       <option></option>
                       @IssueLabel.findByProject(project).groupBy(_.category).map {
                         case (category, labels) => {
@@ -80,6 +79,7 @@
                         }
                       }
                       </select>
+                      <button type="button" class="ybtn ybtn-mini edit-button"><i class="yobicon-edit vmiddle"></i> @Messages("label.select")</button>
                     } else {
                       @for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
                         <a href='@routes.IssueApp.issues(project.owner, project.name, issue.state.state(), "html", 1)&labelIds=@label.id' class="label issue-label active static" data-labelId="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>

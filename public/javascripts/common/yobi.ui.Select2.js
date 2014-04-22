@@ -35,7 +35,8 @@
         // Select2.js default options
         var htOpt = $.extend({
             "width": "resolve",
-            "containerCssClass": welSelect.data("containercssclass")
+            "dropdownCssClass" : welSelect.data("dropdownCssClass"),
+            "containerCssClass": welSelect.data("containerCssClass")
         }, htOptions);
 
         // Customized formats
