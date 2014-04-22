@@ -1,3 +1,23 @@
+/**
+ * Yobi, Project Hosting SW
+ *
+ * Copyright 2013 NAVER Corp.
+ * http://yobi.io
+ *
+ * @Author Yi EungJun
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package models;
 
 import controllers.UserApp;
@@ -625,13 +645,22 @@ public class NotificationEvent extends Model {
             notiEvent.receivers.remove(UserApp.currentUser());
             notiEvent.receivers.add(user);
         }
-        if (state == RequestState.REQUEST) {
-            notiEvent.title = formatMemberRequestTitle(project, user);
-            notiEvent.oldValue = RequestState.CANCEL.name();
-        } else {
-            notiEvent.title = formatMemberAcceptTitle(project, user);
-            notiEvent.oldValue = RequestState.REQUEST.name();
+
+        switch (state) {
+            case REQUEST:
+                notiEvent.title = formatMemberRequestTitle(project, user);
+                notiEvent.oldValue = RequestState.CANCEL.name();
+                break;
+            case CANCEL:
+                notiEvent.title = formatMemberRequestCancelTitle(project, user);
+                notiEvent.oldValue = RequestState.REQUEST.name();
+                break;
+            case ACCEPT:
+                notiEvent.title = formatMemberAcceptTitle(project, user);
+                notiEvent.oldValue = RequestState.REQUEST.name();
+                break;
         }
+
         notiEvent.resourceType = project.asResource().getType();
         notiEvent.resourceId = project.asResource().getId();
         NotificationEvent.add(notiEvent);
@@ -647,15 +676,19 @@ public class NotificationEvent extends Model {
             notiEvent.receivers.add(user);
         }
 
-        if (state == RequestState.REQUEST) {
-            notiEvent.title = formatMemberRequestTitle(organization, user);
-            notiEvent.oldValue = RequestState.CANCEL.name();
-        } else if (state == RequestState.ACCEPT) {
-            notiEvent.title = formatMemberAcceptTitle(organization, user);
-            notiEvent.oldValue = RequestState.REQUEST.name();
-        } else if (state == RequestState.CANCEL) {
-            notiEvent.title = "Re: " + formatMemberRequestTitle(organization, user);
-            notiEvent.oldValue = RequestState.REQUEST.name();
+        switch (state) {
+            case REQUEST:
+                notiEvent.title = formatMemberRequestTitle(organization, user);
+                notiEvent.oldValue = RequestState.CANCEL.name();
+                break;
+            case CANCEL:
+                notiEvent.title = formatMemberRequestCancelTitle(organization, user);
+                notiEvent.oldValue = RequestState.REQUEST.name();
+                break;
+            case ACCEPT:
+                notiEvent.title = formatMemberAcceptTitle(organization, user);
+                notiEvent.oldValue = RequestState.REQUEST.name();
+                break;
         }
 
         notiEvent.resourceType = organization.asResource().getType();
@@ -869,6 +902,14 @@ public class NotificationEvent extends Model {
 
     private static String formatMemberRequestTitle(Project project, User user) {
         return Messages.get("notification.member.request.title", project.name, user.loginId);
+    }
+
+    private static String formatMemberRequestCancelTitle(Project project, User user) {
+        return Messages.get("notification.member.request.cancel.title", project.name, user.loginId);
+    }
+
+    private static String formatMemberRequestCancelTitle(Organization organization, User user) {
+        return Messages.get("notification.member.request.cancel.title", organization.name, user.loginId);
     }
 
     private static String formatMemberRequestTitle(Organization organization, User user) {

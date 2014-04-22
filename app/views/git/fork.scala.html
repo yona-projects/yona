@@ -1,4 +1,24 @@
-@(title:String, project: Project, forkProject: Project, forkedProject: Project, form: Form[Project], orgUserList:List[OrganizationUser])
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2013 NAVER Corp.
+* http://yobi.io
+*
+* @Author Keesun Baik
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@(title:String, project: Project, forkProject: Project, forkedProjects: List[Project], form: Form[Project], orgUserList:List[OrganizationUser])
 
 @import utils.TemplateHelper._
 @import controllers.UserApp
@@ -20,7 +40,7 @@
                     </legend>
                     <div id="helpMessage" class="well">
                         <div class="row-fluid">
-                        @if(forkedProject == null){
+                        @if(forkedProjects.isEmpty){
                             <div class="pull-left">
                                 <img class="img-polaroid" src="@routes.Assets.at("images/fork-pull/fork.jpg")"><br>
                             </div>
@@ -33,11 +53,13 @@
                             <div class="help-messages center-txt">
                                 <i class="ico ico-err2"></i>
                                 <p>@Messages("fork.already.exist")</p>
+                                @for(forkedProject <- forkedProjects) {
                                 <p>
                                     <strong class="vmiddle">@project.owner / @project.name</strong>
                                     <i class="yobicon-right vmiddle"></i>
                                     <a href="@routes.ProjectApp.project(forkedProject.owner, forkedProject.name)" class="vmiddle primary-txt">@forkedProject.owner / @forkedProject.name</a>
                                 </p>
+                                }
                             </div>
                         }
                         </div>

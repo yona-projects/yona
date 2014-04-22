@@ -1,3 +1,23 @@
+/**
+ * Yobi, Project Hosting SW
+ *
+ * Copyright 2012 NAVER Corp.
+ * http://yobi.io
+ *
+ * @Author Hwi Ahn
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package models;
 
 import com.avaje.ebean.Ebean;
@@ -622,11 +642,11 @@ public class Project extends Model implements LabelOwner {
      * @param originalProject
      * @return
      */
-    public static Project findByOwnerAndOriginalProject(String loginId, Project originalProject) {
+    public static List<Project> findByOwnerAndOriginalProject(String loginId, Project originalProject) {
         return find.where()
                 .eq("originalProject", originalProject)
                 .eq("owner", loginId)
-                .findUnique();
+                .findList();
     }
 
     /**

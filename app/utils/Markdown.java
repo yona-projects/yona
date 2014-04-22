@@ -1,19 +1,10 @@
-package utils;
-
-import javax.script.Invocable;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-
 /**
  * Yobi, Project Hosting SW
  *
  * Copyright 2013 NAVER Corp.
  * http://yobi.io
  *
- * @Author Yi EungJun
+ * @Author Keesun Baik
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +18,15 @@ import java.io.Reader;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package utils;
+
+import javax.script.Invocable;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+
 public class Markdown {
 
     private static final String XSS_JS_FILE = "public/javascripts/lib/xss.js";

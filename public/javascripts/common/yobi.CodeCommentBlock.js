@@ -288,7 +288,7 @@ yobi.CodeCommentBlock = (function(){
             }
 
             oRange.setStart(welRowNode, nStartColumn);
-            oRange.setEnd(welRowNode, nEndColumn);
+            oRange.setEnd(welRowNode, Math.min(nEndColumn, nNodeLength));
             oRange.surroundContents(elBlock);
         });
 

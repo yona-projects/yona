@@ -1,3 +1,23 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2012 NAVER Corp.
+* http://yobi.io
+*
+* @Author Yi EungJun
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
 @(project: Project, commit:playRepository.Commit, parentCommit:playRepository.Commit, patch: String, comments:List[CommitComment], selectedBranch:String, path:String)
 
 @import playRepository.RepositoryService
@@ -59,7 +79,7 @@
                 }
                 }
                 <span class="ago" title="@JodaDateUtil.getDateString(commit.getAuthorDate)">
-                    @agoString(JodaDateUtil.ago(commit.getAuthorDate))
+                    @agoOrDateString(commit.getAuthorDate)
                 </span>
                 <strong class="commitId pull-right">@{"@"}@commit.getId</strong>
                 @if(comments.size > 0) {
@@ -107,7 +127,7 @@
                                 </span>
                                 <span class="ago">
                                     <a href="#comment-@comment.id" title="@JodaDateUtil.getDateString(commit.getAuthorDate)">
-                                        @agoString(JodaDateUtil.ago(comment.createdDate))
+                                        @agoOrDateString(comment.createdDate)
                                     </a>
                                 </span>
                                 @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){

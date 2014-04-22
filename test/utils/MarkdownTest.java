@@ -1,16 +1,10 @@
-package utils;
-
-import org.junit.Test;
-
-import static org.fest.assertions.Assertions.assertThat;
-
 /**
  * Yobi, Project Hosting SW
  *
  * Copyright 2013 NAVER Corp.
  * http://yobi.io
  *
- * @Author Yi EungJun
+ * @Author Wansoon Park
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +18,12 @@ import static org.fest.assertions.Assertions.assertThat;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package utils;
+
+import org.junit.Test;
+
+import static org.fest.assertions.Assertions.assertThat;
+
 public class MarkdownTest {
 
     @Test

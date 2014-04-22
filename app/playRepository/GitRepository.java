@@ -1,3 +1,23 @@
+/**
+ * Yobi, Project Hosting SW
+ *
+ * Copyright 2012 NAVER Corp.
+ * http://yobi.io
+ *
+ * @Author Ahn Hyeok Jun
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package playRepository;
 
 import controllers.ProjectApp;
@@ -1245,6 +1265,10 @@ public class GitRepository implements PlayRepository {
                 // Operation 실행. (현재 위치는 mergingBranch)
                 CloneAndFetch cloneAndFetch = new CloneAndFetch(cloneRepository, destToBranchName, destFromBranchName, mergingBranch);
                 operation.invoke(cloneAndFetch);
+
+                // 코드 받을 브랜치로 이동하고 mergingBranch 삭제
+                new Git(cloneRepository).checkout().setName(destToBranchName).call();
+                new Git(cloneRepository).branchDelete().setForce(true).setBranchNames(mergingBranch).call();
             }
         } catch (GitAPIException e) {
             throw new IllegalStateException(e);
@@ -2011,6 +2035,11 @@ public class GitRepository implements PlayRepository {
         config.install();
 
         File srcGitDirectory = new File(getGitDirectory(srcProjectOwner, srcProjectName));
+        if(!srcGitDirectory.exists()) {
+            play.Logger.warn("[Transfer] Nothing To Move: " + srcGitDirectory.getAbsolutePath());
+            return true;
+        }
+
         File destGitDirectory = new File(getGitDirectory(desrProjectOwner, destProjectName));
         File srcGitDirectoryForMerging = new File(getDirectoryForMerging(srcProjectOwner, srcProjectName));
         File destGitDirectoryForMerging = new File(getDirectoryForMerging(desrProjectOwner, destProjectName));
@@ -2022,7 +2051,7 @@ public class GitRepository implements PlayRepository {
             org.apache.commons.io.FileUtils.moveDirectory(srcGitDirectoryForMerging, destGitDirectoryForMerging);
             return true;
         } catch (IOException e) {
-            play.Logger.error("Move Failed", e);
+            play.Logger.error("[Transfer] Move Failed", e);
             return false;
         }
     }

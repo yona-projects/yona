@@ -53,7 +53,7 @@
                             <strong>@comment.author.loginId </strong>
                         </a>
                     </span>
-                    <span class="ago"><a href="#comment-@comment.id">@utils.TemplateHelper.agoString(utils.JodaDateUtil.ago(comment.createdDate))</a></span>
+                    <span class="ago"><a href="#comment-@comment.id" title="@JodaDateUtil.getDateString(comment.createdDate)">@utils.TemplateHelper.agoOrDateString(comment.createdDate)</a></span>
 
                     @if(utils.AccessControl.isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
                     <span class="edit pull-right">
@@ -80,7 +80,7 @@
         }
 
         @if(utils.AccessControl.isProjectResourceCreatable(UserApp.currentUser(), thread.project, ResourceType.REVIEW_COMMENT)){
-        <button type="button" class="ybtn ybtn-default ybtn-small btn-thread" data-thread-id="@thread.id">@Messages("button.comment.new")</button>
+        <button type="button" class="ybtn ybtn-info ybtn-small btn-thread" data-thread-id="@thread.id">@Messages("button.comment.open")</button>
         }
     </p>
 </div>

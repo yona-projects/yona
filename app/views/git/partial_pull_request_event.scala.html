@@ -120,7 +120,7 @@
                     <a href="@routes.UserApp.userInfo(author.loginId)" class="avatar-wrap small" data-toggle="tooltip" data-placement="top" title="@User.findByLoginId(author.loginId).name">
                         <img src="@author.avatarUrl"  alt="@author.name"> @commit.authorEmail
                     </a>
-                    <div class="date">@utils.TemplateHelper.agoString(ago(commit.authorDate))</div>
+                    <div class="date">@utils.TemplateHelper.agoOrDateString(commit.authorDate)</div>
                     } else {
                         <img src="@urlToPicture(commit.getAuthorEmail, 32)" class="avatar-wrap small">
                     }

@@ -21,6 +21,7 @@
 @(project:Project)
 
 @import utils.TemplateHelper._
+@import utils.JodaDateUtil
 
 @defining(models.PullRequest.findRecentlyReceivedOpen(project, 5)) { pullRequests =>
     @if(pullRequests.size > 0){
@@ -34,8 +35,8 @@
                         @Messages("pullRequest.reviewed") <strong>@pullRequest.reviewers.size</strong>
                     </div>
                 }
-                <div class="span2 num">
-                    <small>@agoString(pullRequest.createdAgo())</small>
+                <div class="span2 num" title="@JodaDateUtil.getDateString(pullRequest.created)">
+                    <small>@agoOrDateString(pullRequest.created)</small>
                 </div>
             </div>
         }

@@ -152,7 +152,7 @@ object TemplateHelper {
   def urlToProjectLogo(project: Project) = {
     models.Attachment.findByContainer(project.asResource) match {
       case files if files.size > 0 => routes.AttachmentApp.getFile(files.head.id)
-      case _ => routes.Assets.at("images/project_default.png")
+      case _ => routes.Assets.at("images/project_default_logo.png")
     }
   }
 
@@ -387,17 +387,22 @@ object TemplateHelper {
     def renderEventsOnPullRequest(pull: PullRequest) =
       _renderEventsOnPullRequest(pull, pull.pullRequestEvents.toList, play.api.templates.Html(""))
 
-    def urlToCommentThread(project: Project, thread: CommentThread) = {
-      // Before access any field in thread.pullRequest, refresh() should be
-      // called because lazy loading does not work for direct field access from
-      // Scala source files.
+    def urlToCommentThread(thread: CommentThread) = {
+        urlToContainer(thread) + "#thread-" + thread.id
+    }
+
+    def urlToContainer(thread: CommentThread) = {
+      // Before access any field in thread.pullRequest and thread.project,
+      // refresh() should be called because lazy loading does not work for
+      // direct field access from Scala source files.
       // See http://www.playframework.com/documentation/2.2.x/JavaEbean
-      (thread match {
+      thread.project.refresh()
+      thread match {
         case (t: CodeCommentThread) if t.isOnAllChangesOfPullRequest =>
           thread.pullRequest.refresh()
           routes.PullRequestApp.specificChange(
-              project.owner,
-              project.name,
+              thread.project.owner,
+              thread.project.name,
               t.pullRequest.number,
               t.isOutdated match {
                 case true => t.commitId // This link may occur 404 Not Found because the repository does not have the commit matches with the given commitId.
@@ -405,19 +410,19 @@ object TemplateHelper {
               })
         case (t: CodeCommentThread) if t.isOnChangesOfPullRequest =>
           thread.pullRequest.refresh()
-          routes.PullRequestApp.specificChange(project.owner, project.name, t.pullRequest.number, t.commitId)
+          routes.PullRequestApp.specificChange(thread.project.owner, thread.project.name, t.pullRequest.number, t.commitId)
         case (t: CommentThread) if t.isOnPullRequest =>
           thread.pullRequest.refresh()
-          routes.PullRequestApp.pullRequestChanges(project.owner, project.name, t.pullRequest.number)
+          routes.PullRequestApp.pullRequestChanges(thread.project.owner, thread.project.name, t.pullRequest.number)
         case (t: models.NonRangedCodeCommentThread) if t.isOnChangesOfPullRequest =>
           thread.pullRequest.refresh()
-          routes.PullRequestApp.specificChange(project.owner, project.name, t.pullRequest.number, t.commitId)
+          routes.PullRequestApp.specificChange(thread.project.owner, thread.project.name, t.pullRequest.number, t.commitId)
         case (t: models.NonRangedCodeCommentThread) if !t.isOnChangesOfPullRequest =>
-          routes.CodeHistoryApp.show(project.owner, project.name, t.commitId)
+          routes.CodeHistoryApp.show(thread.project.owner, thread.project.name, t.commitId)
         case (t: CodeCommentThread) =>
-          routes.CodeHistoryApp.show(project.owner, project.name, t.commitId)
+          routes.CodeHistoryApp.show(thread.project.owner, thread.project.name, t.commitId)
         case _ => ""
-      }) + "#thread-" + thread.id
+      }
     }
   }
 
