@@ -211,6 +211,10 @@ public class PullRequest extends Model implements ResourceConvertible {
         return this.state == State.OPEN;
     }
 
+    public boolean isAcceptable() {
+        return isOpen() && !isMerging && (isReviewed() || !toProject.isUsingReviewerCount);
+    }
+
     public static PullRequest findById(long id) {
         return finder.byId(id);
     }
@@ -628,7 +632,7 @@ public class PullRequest extends Model implements ResourceConvertible {
         if (StringUtils.isNotBlank(condition.filter)) {
             Set<Object> ids = new HashSet<>();
             ids.addAll(el.query().copy().where()
-                    .icontains("comments.contents", condition.filter).findIds());
+                    .icontains("commentThreads.reviewComments.contents", condition.filter).findIds());
             ids.addAll(el.query().copy().where()
                     .eq("pullRequestCommits.state", PullRequestCommit.State.CURRENT)
                     .or(
@@ -970,6 +974,24 @@ public class PullRequest extends Model implements ResourceConvertible {
         }
 
         return result;
+    }
+
+    /**
+     * 주어진 {@code state} 상태인 댓글 스레드 갯수를 반환한다
+     *
+     * @param state
+     * @return
+     */
+    public int countCommentThreadsByState(CommentThread.ThreadState state){
+        Integer count = 0;
+
+        for (CommentThread commentThread : commentThreads) {
+            if(commentThread.state == state){
+                count++;
+            }
+        }
+
+        return count;
     }
 
     /**

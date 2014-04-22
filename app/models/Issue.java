@@ -135,6 +135,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
         super.update();
     }
 
+
     @Override
     public void updateProperties() {
         HashSet<String> updateProps = new HashSet<>();

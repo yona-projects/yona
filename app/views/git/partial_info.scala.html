@@ -9,7 +9,7 @@
 <div class="board-header issue">
     <div class="pull-right mr10 mt10">
         <div class="date" title="@utils.JodaDateUtil.getDateString(pull.created)">
-            @agoString(pull.createdAgo)
+            @agoOrDateString(pull.created)
         </div>
         <span class="badge nm @if(pull.isConflict == true) {badge-issue-conflict} else {badge-issue-@pull.state.state.toLowerCase}">@if(pull.isConflict == true) {@Messages("pullRequest.state.conflict")} else {@Messages("pullRequest.state." + pull.state.state)}</span>
     </div>
@@ -29,20 +29,22 @@
             }
         </div>
 
-        @if(pull.isReviewedBy(UserApp.currentUser())) {
-            <a data-request-method="post" class="ybtn ybtn-default" href="@routes.ReviewApp.unreview(project.owner, project.name, pull.number)">
-            @Messages("pullRequest.unreviewed")
-            </a>
-        } else {
-            <a data-request-method="post" class="ybtn @if(pull.isReviewed){ybtn-default}else{ybtn-success}" href="@routes.ReviewApp.review(project.owner, project.name, pull.number)">
-            @Messages("pullRequest.reviewed")
-            </a>
+        @if(pull.isOpen) {
+            @if(pull.isReviewedBy(UserApp.currentUser())) {
+                <a data-request-method="post" class="ybtn ybtn-default" href="@routes.ReviewApp.unreview(project.owner, project.name, pull.number)">
+                @Messages("pullRequest.unreviewed")
+                </a>
+            } else {
+                <a data-request-method="post" class="ybtn @if(pull.isReviewed) {ybtn-default} else {ybtn-success}" href="@routes.ReviewApp.review(project.owner, project.name, pull.number)">
+                @Messages("pullRequest.reviewed")
+                </a>
+            }
         }
     }
 
     @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT)) {
-        @if(pull.isReviewed || !project.isUsingReviewerCount){
-            <a id="btnAccept" href="@if(pull.isConflict == true){#}else{routes.PullRequestApp.accept(project.owner, project.name, pull.number)}" data-request-method="post"
+        @if(pull.isAcceptable){
+            <a id="btnAccept" href="@if(pull.isConflict == true){#}else{@routes.PullRequestApp.accept(project.owner, project.name, pull.number)}" data-request-method="post"
                class="ybtn @if(pull.isConflict == true){ ybtn-disabled } else { ybtn-success }">@Messages("pullRequest.accept")</a>
         } else {
             <button class="ybtn ybtn-disabled" data-toggle="tooltip" data-placement="top" title="@Messages("pullRequest.not.enough.review.point", pull.getLackingReviewerCount())">@Messages("pullRequest.accept")</button>

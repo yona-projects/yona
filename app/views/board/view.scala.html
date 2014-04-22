@@ -8,10 +8,6 @@
 
 @urlToPostings = @{ urlToList(request.getHeader("Referer"), routes.BoardApp.posts(project.owner, project.name).toString()) }
 
-@isAuthorComment(commentId: String) = @{
-    if(commentId == UserApp.currentUser().loginId) {"author"}
-}
-
 @projectLayout(post.title, project, utils.MenuType.BOARD){
 @projectMenu(project, utils.MenuType.BOARD, "main-menu-only")
 <div class="page-wrap-outer">
@@ -20,7 +16,7 @@
         <div class="board-header issue">
             <div class="pull-right mr10 mt10">
                 <div class="date" title="@JodaDateUtil.getDateString(post.createdDate)">
-                    @agoString(post.ago)
+                    @agoOrDateString(post.createdDate)
                 </div>
             </div>
             <div class="title">
@@ -44,7 +40,7 @@
     			</div>
     		</div>
     		<div class="content markdown-wrap markdown-before" markdown="true">@post.body</div>
-    		<div class="attachments" id="attachments" data-resourceType="@ResourceType.BOARD_POST" data-resourceId="@post.id"></div>
+            <div class="attachments" id="attachments" data-resource-type="@ResourceType.BOARD_POST" data-resource-id="@post.id"></div>
     	</div>
     	<div class="board-footer board-actrow">
     	    <div class="pull-left">
@@ -68,43 +64,7 @@
 
     	@** Comment **@
     	<div id="comments" class="board-comment-wrap">
-    		<div class="comment-header"><i class="yobicon-comments"></i> <strong>@Messages("common.comment")</strong> <strong class="num">@post.comments.size</strong></div>
-    	    <hr class="nm" />
-
-    	    <ul class="comments">
-    	    @for(comment <-post.comments){
-    			<li class="comment @isAuthorComment(comment.authorLoginId)" id="comment-@comment.id">
-                    <div class="comment-avatar">
-                        <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
-                            <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
-                        </a>
-                    </div>
-                    @common.commentUpdateForm(project, ResourceType.NONISSUE_COMMENT, comment.id, routes.BoardApp.newComment(project.owner, project.name, post.getNumber).toString(), comment.contents)
-                    <div class="media-body" id="comment-body-@comment.id">
-                        <div class="meta-info">
-                            <span class="comment_author pull-left">
-                                <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
-                                    <strong>@comment.authorLoginId </strong>
-                                </a>
-                            </span>
-                            <a href="#comment-@comment.id" class="ago" title="@JodaDateUtil.getDateString(comment.createdDate)">@utils.TemplateHelper.agoString(comment.ago())</a>
-                            <span class="act-row pull-right">
-                                @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.UPDATE)) {
-                                    <button type="button" class="btn-transparent mr10" data-toggle="comment-edit" data-comment-editform-id="comment-editform-@comment.id" title="@Messages("common.comment.edit")"><i class="yobicon-edit-2"></i></button>
-                                }
-                                @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)) {
-                                    <button type="button" class="btn-transparent" data-toggle="comment-delete" data-request-uri="@routes.BoardApp.deleteComment(project.owner, project.name, post.getNumber, comment.id)" title="@Messages("common.comment.delete")"><i class="yobicon-trash"></i></button>
-                                }
-                            </span>
-                        </div>
-
-                        <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
-
-                        <div class="attachments pull-right" data-resourceType="@ResourceType.NONISSUE_COMMENT" data-resourceId="@comment.id"></div>
-                    </div>
-                </li>
-    	    }
-    		</ul>
+            @partial_comments(project, post)
 
             @common.commentForm(post.asResource(), ResourceType.NONISSUE_COMMENT, routes.BoardApp.newComment(project.owner, project.name, post.getNumber).toString())
     	</div>

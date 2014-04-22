@@ -1,0 +1,139 @@
+@(org:Organization)
+
+@import utils.TemplateHelper._
+@import utils.JodaDateUtil
+
+@siteLayout(org.name, utils.MenuType.NONE) {
+@header(org)
+@menu(org)
+
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="project-home-header row-fluid">
+            <div class="span9">
+                <div class="project-overview">
+                    <h3><span id="project-description">@org.descr</span></h3>
+                </div>
+                <div class="project-search-wrap row-fluid mt10">
+                    <div class="span7">
+                        <div class="search-bar">
+                            <input name="mylist-filter" id="mylist-filter" class="textbox full" type="text" value="" data-toggle="item-search" data-items="project-item">
+                            <button type="button" class="search-btn"><i class="yobicon-search"></i></button>
+                        </div>
+                    </div>
+                    <div class="span3">
+                        <a href="@routes.ProjectApp.newProjectForm()?owner=@org.name" class="ybtn ybtn-primary">@Messages("button.newProject")</a>
+                    </div>
+                </div>
+                <ul class="all-projects">
+                    @for(project <- org.getVisiableProjects(UserApp.currentUser())) {
+                    <li class="project" data-item="project-item" data-value="@project.name @project.overview">
+                        <div class="info-wrap">
+                            <div class="owner-avatar-wrap">
+                                <a href="@routes.ProjectApp.project(project.owner,project.name)">
+                                    <img src="@urlToProjectLogo(project)" alt="@project.name"/>
+                                </a>
+                            </div>
+                            <div style="float:left">
+                                <div class="header">
+                                    <a href="@routes.ProjectApp.project(project.owner, project.name)" class="black">@project.name</a>
+                                    @if(project.isForkedFromOrigin()){
+                                <span class="small-font blue-txt">
+                                    <a class="origin-title" href='@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)'>
+                                        <i class="yobicon-split"></i>
+                                        @project.originalProject.owner / @project.originalProject.name
+                                    </a>
+                                </span>
+                                    }
+
+                                    @if(project.isPrivate){ <i class="yobicon-lock yobicon-small"></i> }
+                                    @for(label <- project.labels) {
+                                    <a class="project-label @label.category.toLowerCase()" href="@routes.ProjectApp.projects()?labelIds=@label.id">@label.name</a>
+                                    }
+                                </div>
+                                <div class="desc">
+                                    @project.overview
+                                </div>
+                                <p class="name-tag">by <a href="@routes.UserApp.userInfo(project.owner)" class="owner-name-small">@project.owner</a>
+                                    at <strong title="@JodaDateUtil.getDateString(project.createdDate)">@agoString(JodaDateUtil.ago(project.createdDate))</strong> <span class="small-font">@if(project.lastPushedDateAgo() != null) {, @Messages("project.codeUpdate") <strong>@agoString(project.lastPushedDateAgo())}</strong></span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="stats-wrap pull-right">
+                            @if(project.isPublic){
+                            <div class="members">
+                                <ul class="unstyled">
+                                    @for(member <- User.findUsersByProject(project.id)){
+                                    @if(member.loginId != project.owner){
+                                    <li>
+                                        <a href="@routes.UserApp.userInfo(member.loginId)" class="avatar-wrap">
+                                            <img src="@member.avatarUrl" alt="@member.name">
+                                        </a>
+                                    </li>
+                                    }
+                                    }
+                                </ul>
+                                <p>
+                                    @Html(Messages("project.onmember", User.findUsersByProject(project.id).length))
+                                    <i class="yobicon-eye yobicon-middle"></i> @Html(Messages("project.onwatching", project.getWatchingCount))
+                                </p>
+                            </div>
+                            }
+                        </div>
+                    </li>
+                    }
+                </ul>
+            </div>
+            <div class="span3">
+                <div class="bubble-wrap gray project-home">
+                    <div class="inner member-info">
+                        <header>
+                            <h3>@Messages("user.role.org_admin")</h3>
+                        </header>
+                        <div class="member-wrap ">
+                            <ul class="project-members">
+                            @for(organizationUser <- org.users) {
+                            @if(OrganizationUser.isAdmin(org.id, organizationUser.user.id)) {
+                            <li class="member">
+                                <a href="@routes.UserApp.userInfo(organizationUser.user.loginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@organizationUser.user.loginId">
+                                    <img src="@organizationUser.user.avatarUrl" height="45" width="45" />
+                                </a>
+                                <a href="@routes.UserApp.userInfo(organizationUser.user.loginId)" data-toggle="tooltip" data-placement="top" title="@organizationUser.user.loginId">
+                                @organizationUser.user.name
+                                </a>
+                            </li>
+                            }
+                            }
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bubble-wrap gray project-home mt10">
+                    <div class="inner member-info">
+                        <header>
+                            <h3>@Messages("user.role.org_member")</h3>
+                        </header>
+                        <div class="member-wrap">
+                            <ul class="unstyled project-members">
+                            @for(organizationUser <- org.users) {
+                            @if(!OrganizationUser.isAdmin(org.id, organizationUser.user.id)) {
+                            <li class="member">                              
+                                <a href="@routes.UserApp.userInfo(organizationUser.user.loginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@organizationUser.user.loginId">
+                                    <img src="@organizationUser.user.avatarUrl" height="45" width="45" />
+                                </a>
+                                <a href="@routes.UserApp.userInfo(organizationUser.user.loginId)" data-toggle="tooltip" data-placement="top" title="@organizationUser.user.loginId">
+                                @organizationUser.user.name
+                                </a>
+                            </li>
+                            }
+                            }
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+}

@@ -16,9 +16,11 @@ siteAdmins:
 # Role
 roles:
     - !!models.Role
+        id:             1
         name:           manager
         active:         true
     - !!models.Role
+        id:             2
         name:           member
         active:         true
 

@@ -52,8 +52,11 @@
                 <div class="box-wrap middle">
                     <div class="cu-label">@Messages("project.shareOption")</div>
                     <div class="cu-desc">
-                        <input name="isPublic" type="radio" @if(project.isPublic){checked="checked"} id="public" value="true" class="radio-btn"><label for="public" class="bg-radiobtn label-public">@Messages("project.public")</label>
-                        <input name="isPublic" type="radio" @if(!project.isPublic){checked="checked"} id="private" value="false" class="radio-btn"><label for="private" class="bg-radiobtn label-private">@Messages("project.private")</label>
+                        <input name="projectScope" type="radio" @if(project.isPublic){checked="checked"} id="public" value="PUBLIC" class="radio-btn"><label for="public" class="bg-radiobtn label-public">@Messages("project.public")</label>
+                        @if(project.hasGroup){
+                        <input name="projectScope" type="radio" @if(project.isProtected){checked="checked"} id="protected" value="PROTECTED" class="radio-btn"><label for="protected" class="bg-radiobtn label-protected">@Messages("project.protected")</label>
+                        }
+                        <input name="projectScope" type="radio" @if(project.isPrivate){checked="checked"} id="private" value="PRIVATE" class="radio-btn"><label for="private" class="bg-radiobtn label-private">@Messages("project.private")</label>
                         <span class="note">@Messages("project.private.notice")</span>
                     </div>
                 </div>

@@ -21,6 +21,8 @@
 package models;
 
 import models.enumeration.Operation;
+import models.enumeration.ProjectScope;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -230,7 +232,7 @@ public class ReviewCommentTest extends ModelTest<ReviewComment> {
         assertThat(ProjectUser.isMember(member.id, project.id)).describedAs("member is a member").isTrue();
         assertThat(ProjectUser.isMember(author.id, project.id)).describedAs("author is not a member").isFalse();
         assertThat(ProjectUser.isMember(threadAuthor.id, project.id)).describedAs("threadAuthor is not a member").isFalse();
-        assertThat(project.isPublic).isTrue();
+        assertThat(project.projectScope).isEqualTo(ProjectScope.PUBLIC);
     }
 
     @Test

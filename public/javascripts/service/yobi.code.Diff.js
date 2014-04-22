@@ -42,7 +42,6 @@
             htVar.sUnwatchUrl = htOptions.sUnwatchUrl;
             htVar.sParentCommitId = htOptions.sParentCommitId;
             htVar.sCommitId = htOptions.sCommitId;
-            htVar.rxSlashes = /\//g;
             htVar.htThreadWrap = {};
 
             // 미니맵
@@ -100,6 +99,13 @@
             // 리뷰목록 토글
             htElement.waBtnToggleReviewWrap.on("click", function(){
                 htElement.welContainer.toggleClass("diffs-only");
+
+                // 접은 상태 쿠키에 저장
+                if (htElement.welContainer.hasClass("diffs-only")) {
+                    $.cookie("diffs-only", true, {"expire": 365});
+                } else {
+                    $.removeCookie("diffs-only");
+                }
             });
 
             // 리뷰카드 링크 클릭시
@@ -113,6 +119,8 @@
                 htVar.htThreadWrap[sHashCode] = htVar.htThreadWrap[sHashCode] || welPartial.find(".comment-thread-wrap");
                 htVar.htThreadWrap[sHashCode].css("margin-left", welPartial.scrollLeft() + "px");
             });
+
+            $(window).on("hashchange", _onHashChange);
         }
 
         /**
@@ -126,30 +134,98 @@
          * @private
          */
         function _onClickReviewCardLink(weEvt){
-            var welTarget = $(weEvt.currentTarget);
+            var sThreadId = _getHashFromLinkString($(weEvt.currentTarget).attr("href"));
 
-            // 클릭한 링크의 href 속성에서 # 해시 이후의 값을 이용해
-            // 해당하는 스레드를 찾는다
-            var sLink = welTarget.attr("href");
-            var sHash = sLink.split("#").pop();
-            var welThread = $("#" + sHash);
-
-            // 링크에 맞는 스레드가 페이지 내에 존재하는 경우에만
-            if(welThread.length === 0) {
+            // 해당되는 스레드가 페이지 내에 존재하지 않으면 보통의 링크로 동작한다
+            if(!_isThreadExistOnCurrentPage(sThreadId)){
                 return;
             }
 
-            window.scrollTo(0, welThread.offset().top - 50);
+            // 해시 변경으로 hashchange 이벤트가 발생한다
+            // 대상 스레드 강조 효과는 onHashChange 이벤트 핸들러가 처리한다
+            var sPreviousHash = location.hash;
+            location.hash = sThreadId;
 
-            // 스레드가 접혀있는 경우
-            if(welThread.hasClass("fold")) {
-                welThread.find(".btn-thread-here").effect("bounce", {"easing": "easeOutBounce"});
-            } else { // 펼쳐져 있는 경우
-                welThread.effect("highlight");
+            // 강조 효과를 위해 해시 값이 변하지 않아도 hashchange 이벤트를 발생시킨다
+            if(sPreviousHash === location.hash) {
+                $(window).trigger("hashchange");
             }
 
             weEvt.preventDefault();
             return false;
+        }
+
+        /**
+         * 주어진 문자열에서 # 이후의 값을 반환하는 함수
+         *
+         * @param sLink
+         * @returns {*}
+         * @private
+         */
+        function _getHashFromLinkString(sLink){
+            return sLink.split("#").pop();
+        }
+
+        /**
+         * Hash 에 해당하는 스레드가 현재 페이지 내에 존재하는지 여부를 반환한다
+         *
+         * @param sHash
+         * @returns {boolean}
+         * @private
+         */
+        function _isThreadExistOnCurrentPage(sHash){
+            return ($("#" + sHash).length > 0);
+        }
+
+        /**
+         * window.onhashchange 이벤트 핸들러
+         * location.hash 값에 해당하는 엘리먼트를 찾아 이동하고 강조효과
+         *
+         * @private
+         */
+        function _onHashChange(){
+            if(location.hash) {
+                _scrollToAndHighlight($(location.hash));
+            }
+        }
+
+        /**
+         * 지정한 엘리먼트 위치로 이동하여 강조 효과를 적용한다
+         *
+         * @param welTarget
+         * @private
+         */
+        function _scrollToAndHighlight(welTarget){
+            window.scrollTo(0, welTarget.offset().top - 50);
+
+            // 주어진 엘리먼트가 접혀있는 스레드라면
+            if(_isFoldedThread(welTarget)){
+                welTarget.find(".btn-thread-here").effect("bounce", {"easing": "easeOutBounce"});
+            } else { // 그 외의 경우
+                welTarget.effect("highlight");
+            }
+        }
+
+        /**
+         * 대상이 접혀있는 댓글 스레드인지 여부를 반환
+         *
+         * @param welTarget
+         * @returns {boolean}
+         * @private
+         */
+        function _isFoldedThread(welTarget){
+            return welTarget.hasClass("fold") && (welTarget.find(".btn-thread-here").length > 0);
+        }
+
+        /**
+         * Diff 중에서 특정 파일을 #path 로 지정한 경우
+         * Diff render 완료 후 해당 파일 위치로 스크롤 이동
+         * @private
+         */
+        function _scrollToHash(){
+            if(location.hash){
+                $(window).trigger("hashchange");
+            }
         }
 
         /**
@@ -168,22 +244,6 @@
                     welTarget.toggleClass("active ybtn-watching");
                 }
             });
-        }
-
-        /**
-         * Diff 중에서 특정 파일을 #path 로 지정한 경우
-         * Diff render 완료 후 해당 파일 위치로 스크롤 이동
-         * @private
-         */
-        function _scrollToHash(){
-            if(document.location.hash){
-                var sTargetId = document.location.hash.substr(1).replace(htVar.rxSlashes, "-");
-                var welTarget = $(document.getElementById(sTargetId));
-
-                if(welTarget.length > 0){
-                    window.scrollTo(0, welTarget.offset().top);
-                }
-            }
         }
 
         /**

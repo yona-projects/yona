@@ -27,9 +27,6 @@
 
             // 제목 입력란에 포커스
             htElement.welInputTitle.focus();
-
-            // zenForm
-            _initZenForm();
         }
 
         /**
@@ -136,19 +133,6 @@
 
             $(window).off("beforeunload", _onBeforeUnload);
             return true;
-        }
-
-        /**
-         * ZenForm 초기화
-         * initialize zenForm
-         */
-        function _initZenForm(){
-            $(".zen-mode").zenForm({"theme": "light"});
-            $(".s--zen").tooltip({
-                "delay": {"show": 500, "hide": 100},
-                "title": Messages("title.zenmode"),
-                "placement": "left"
-            });
         }
 
         _init(htOptions);

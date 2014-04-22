@@ -39,17 +39,7 @@
                 <div class="span9">
                     <dl>
                         <dd style="position: relative;">
-                            <div id="mode-select">
-                                <input type="radio" name="edit-mode" id="edit-mode" value="edit" checked="checked" class="radio-btn">
-                                <label for="edit-mode" style="margin-right:3px;">Edit</label>
-                                <input type="radio" name="edit-mode" id="preview-mode" value="preview" class="radio-btn">
-                                <label for="preview-mode">Preview</label>
-                            </div>
-                            <a href="#" class="go-zen"><i class="s s--zen">Edit in Zen Mode</i></a>
-                            @help.markdown()
-                            <div class="textarea-box">
-                                <textarea id="body" name="body" markdown="true" class="zen-mode content nm" tabindex="2">@issue.body</textarea>
-                            </div>
+                            @common.editor("body", issue.body, Map("tabindex"->"2","id"->"body"))
                         </dd>
                     </dl>
 

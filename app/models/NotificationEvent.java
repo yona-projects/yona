@@ -134,6 +134,14 @@ public class NotificationEvent extends Model {
                 } else {
                     return Messages.get(lang, "notification.member.enroll.cancel");
                 }
+            case ORGANIZATION_MEMBER_ENROLL_REQUEST:
+                if (RequestState.REQUEST.name().equals(newValue)) {
+                    return Messages.get(lang, "notification.organization.member.enroll.request");
+                } else  if (RequestState.ACCEPT.name().equals(newValue)) {
+                    return Messages.get(lang, "notification.organization.member.enroll.accept");
+                } else {
+                    return Messages.get(lang, "notification.organization.member.enroll.cancel");
+                }
             case PULL_REQUEST_REVIEWED:
                 return Messages.get(lang, "notification.pullrequest.reviewed", newValue);
             case PULL_REQUEST_UNREVIEWED:
@@ -174,6 +182,15 @@ public class NotificationEvent extends Model {
                 } else {
                     return null;
                 }
+        }
+    }
+
+    public Organization getOrganization() {
+        switch (resourceType) {
+            case ORGANIZATION:
+                return Organization.find.byId(Long.valueOf(resourceId));
+            default:
+                return null;
         }
     }
 
@@ -280,6 +297,13 @@ public class NotificationEvent extends Model {
                     return routes.ProjectApp.members(
                             getProject().owner, getProject().name).url();
                 }
+            case ORGANIZATION_MEMBER_ENROLL_REQUEST:
+                Organization organization = getOrganization();
+                if (organization == null) {
+                    return null;
+                }
+                return routes.OrganizationApp.members(organization.name).url();
+
             case NEW_COMMIT:
                 if (getProject() == null) {
                     return null;
@@ -613,6 +637,32 @@ public class NotificationEvent extends Model {
         NotificationEvent.add(notiEvent);
     }
 
+    public static void afterOrganizationMemberRequest(Organization organization, User user, RequestState state) {
+        NotificationEvent notiEvent = createFromCurrentUser(organization);
+        notiEvent.eventType = ORGANIZATION_MEMBER_ENROLL_REQUEST;
+        notiEvent.receivers = getReceivers(organization);
+        notiEvent.newValue = state.name();
+        if (state == RequestState.ACCEPT || state == RequestState.REJECT) {
+            notiEvent.receivers.remove(UserApp.currentUser());
+            notiEvent.receivers.add(user);
+        }
+
+        if (state == RequestState.REQUEST) {
+            notiEvent.title = formatMemberRequestTitle(organization, user);
+            notiEvent.oldValue = RequestState.CANCEL.name();
+        } else if (state == RequestState.ACCEPT) {
+            notiEvent.title = formatMemberAcceptTitle(organization, user);
+            notiEvent.oldValue = RequestState.REQUEST.name();
+        } else if (state == RequestState.CANCEL) {
+            notiEvent.title = "Re: " + formatMemberRequestTitle(organization, user);
+            notiEvent.oldValue = RequestState.REQUEST.name();
+        }
+
+        notiEvent.resourceType = organization.asResource().getType();
+        notiEvent.resourceId = organization.asResource().getId();
+        NotificationEvent.add(notiEvent);
+    }
+
     /**
      * 새 커밋이 있을 때 알림을 추가한다.
      *
@@ -809,15 +859,31 @@ public class NotificationEvent extends Model {
         return receivers;
     }
 
+    private static Set<User> getReceivers(Organization organization) {
+        Set<User> receivers = new HashSet<>();
+        List<User> managers = User.findUsersByOrganization(organization.id, RoleType.ORG_ADMIN);
+        receivers.addAll(managers);
+
+        return receivers;
+    }
+
     private static String formatMemberRequestTitle(Project project, User user) {
         return Messages.get("notification.member.request.title", project.name, user.loginId);
+    }
+
+    private static String formatMemberRequestTitle(Organization organization, User user) {
+        return Messages.get("notification.organization.member.request.title", organization.name, user.loginId);
     }
 
     private static String formatMemberAcceptTitle(Project project, User user) {
         return Messages.get("notification.member.request.accept.title", project.name, user.loginId);
     }
 
-    private static Set<User> getMentionedUsers(String body) {
+    private static String formatMemberAcceptTitle(Organization organization, User user) {
+        return Messages.get("notification.member.request.accept.title", organization.name, user.loginId);
+    }
+
+    public static Set<User> getMentionedUsers(String body) {
         Matcher matcher = Pattern.compile("@" + User.LOGIN_ID_PATTERN).matcher(body);
         Set<User> users = new HashSet<>();
         while(matcher.find()) {

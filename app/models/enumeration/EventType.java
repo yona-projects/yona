@@ -23,7 +23,8 @@ public enum EventType {
     PULL_REQUEST_UNREVIEWED("notification.type.pullrequest.unreviewed", 15),
     ISSUE_BODY_CHANGED("notification.type.issue.body.changed", 17),
     ISSUE_REFERRED_FROM_PULL_REQUEST("notification.type.issue.referred.from.pullrequest", 16),
-    REVIEW_THREAD_STATE_CHANGED("notification.type.review.state.changed", 18);
+    REVIEW_THREAD_STATE_CHANGED("notification.type.review.state.changed", 18),
+    ORGANIZATION_MEMBER_ENROLL_REQUEST("notification.organization.type.member.enroll",19);
 
     private String descr;
 

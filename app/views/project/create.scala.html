@@ -1,7 +1,8 @@
-@(title:String, newProjectForm:Form[Project])
+@(title:String, newProjectForm:Form[Project], orgUserList:List[OrganizationUser])
 
 @import utils.TemplateHelper._
 @import playRepository.RepositoryService
+@import models.Organization
 
 @siteLayout(title, utils.MenuType.NEW_PROJECT){
 <div class="page-wrap-outer">
@@ -14,22 +15,39 @@
         </legend>
         <dl>
           <dt>
+            <div class="n-alert" data-errType="owner">
+              <div class="orange-txt">
+                @if(newProjectForm.error("owner") != null) { <span class="warning">@Messages(newProjectForm.error("owner").message())</span> }
+              </div>
+            </div>
+            <label for="ownership">@Messages("project.owner.placeholder")</label>
+          </dt>
+          <dd>
+            <select id="project-owner" name="owner">
+                <option data-type="user" value="@UserApp.currentUser().loginId">@UserApp.currentUser().loginId</option>
+                @for(orgUser <- orgUserList) {
+                    <option data-type="group" value="@orgUser.organization.name" @if(newProjectForm.field("owner").value == orgUser.organization.name) { selected }>@orgUser.organization.name</option>
+                }
+            </select>
+          </dd>
+          <dt>
             <div class="n-alert" data-errType="name">
               <div class="orange-txt">
-                @if(flash.get("warning") != null) { <span class="warning">@Messages(flash.get("warning"))</span> } <span class="msg wrongName" style="display: none;">@Messages("project.wrongName")</span>
+                @if(newProjectForm.error("name") != null) { <span class="warning">@Messages(newProjectForm.error("name").message())</span> }
+                <span class="msg wrongName" style="display: none;">@Messages("project.wrongName")</span>
               </div>
             </div>
             <label for="project-name">@Messages("project.name.placeholder")</label>
           </dt>
           <dd>
-            <input id="project-name" type="text" name="name" class="text" placeholder="" maxlength="250">
+            <input id="project-name" type="text" name="name" class="text" placeholder="" maxlength="250" value="@newProjectForm.field("name").value">
           </dd>
 
           <dt>
             <label for="description">@Messages("project.description.placeholder")</label>
           </dt>
           <dd>
-            <textarea id="description" name="overview" class="text textarea.span4" style="resize: vertical;"></textarea>
+            <textarea id="description" name="overview" class="text textarea.span4" style="resize: vertical;">@newProjectForm.field("overview").value</textarea>
           </dd>
         </dl>
 
@@ -37,7 +55,12 @@
           <li class="option">
             <div class="option-label">@Messages("project.shareOption")</div>
             <div class="option-desc">
-              <input name="isPublic" type="radio" checked="checked" id="public" value="true" class="radio-btn"><label for="public" class="bg-radiobtn label-public">@Messages("project.public")</label> <input name="isPublic" type="radio" id="private" value="false" class="radio-btn"><label for="private" class="bg-radiobtn label-private">@Messages("project.private")</label> <span class="note">@Messages("project.private.notice")</span>
+              <input name="projectScope" type="radio" @if(newProjectForm.field("projectScope").value == "PUBLIC" || newProjectForm.field("projectScope").value == null){ checked="checked" }id="public" value="PUBLIC" class="radio-btn">
+              <label for="public" class="bg-radiobtn label-public">@Messages("project.public")</label>
+              <input name="projectScope" type="radio" @if(newProjectForm.field("projectScope").value == "PROTECTED"){ checked="checked" }id="protected" value="PROTECTED" class="radio-btn"@if(!Organization.isNameExist(newProjectForm.field("owner").value)){ style="display:none;"}>
+              <label for="protected" class="bg-radiobtn label-protected"@if(!Organization.isNameExist(newProjectForm.field("owner").value)){ style="display:none;"}>@Messages("project.protected")</label>
+              <input name="projectScope" type="radio" @if(newProjectForm.field("projectScope").value == "PRIVATE"){ checked="checked" }id="private" value="PRIVATE" class="radio-btn">
+              <label for="private" class="bg-radiobtn label-private">@Messages("project.private")</label>
             </div>
           </li>
           <li id="vcs_dropdown" class="option">
@@ -49,11 +72,11 @@
                 </button>
                 <ul class="dropdown-menu">
                   @RepositoryService.vcsTypes.map{ v =>
-                  <li data-value="@v._1" @if(v._1== "GIT"){ data-selected="true" class="active"}><a href="javascript:void(0)">@Messages(v._2)</a></li> }
+                  <li data-value="@v._1" @if(newProjectForm.field("vcs").value == null && v._1== "GIT"){ data-selected="true" class="active"} @if(newProjectForm.field("vcs").value == v._1){ data-selected="true" class="active" }><a href="javascript:void(0)">@Messages(v._2)</a></li> }
                 </ul>
               </div>
 
-              <span id="svn" class="note" style="display: none;">@Messages("project.svn.warning")</span>
+              <span id="svn" class="note" @if(newProjectForm.field("vcs").value == "GIT"){style="display: none;"}>@Messages("project.svn.warning")</span>
             </div>
           </li>
         </ul>

@@ -36,7 +36,7 @@ public class UserAppTest extends ContextTest {
 
                 //When
                 Result result = callAction(
-                        controllers.routes.ref.UserApp.isUserExist("nekure"),
+                        controllers.routes.ref.UserApp.isUsed("nekure"),
                         fakeRequest().withFormUrlEncodedBody(data)
                 );  // fakeRequest doesn't need here, but remains for example
 
@@ -59,9 +59,28 @@ public class UserAppTest extends ContextTest {
 
                 //When
                 Result result = callAction(
-                        controllers.routes.ref.UserApp.isUserExist("yobi"),
+                        controllers.routes.ref.UserApp.isUsed("yobi"),
                         fakeRequest().withFormUrlEncodedBody(data)
                 ); // fakeRequest doesn't need here, but remains for example
+
+                //Then
+                assertThat(status(result)).isEqualTo(OK);
+                assertThat(contentAsString(result)).contains("\"isExist\":true");
+                assertThat(contentType(result)).contains("json");
+            }
+        });
+    }
+
+    @Test
+    public void findById_alreadyExistGroupName() {
+        running(support.Helpers.makeTestApplication(), new Runnable() {
+            @Override
+            public void run() {
+                //Given
+                String loginId = "labs";
+
+                //When
+                Result result = callAction(controllers.routes.ref.UserApp.isUsed(loginId));
 
                 //Then
                 assertThat(status(result)).isEqualTo(OK);
@@ -124,6 +143,30 @@ public class UserAppTest extends ContextTest {
     }
 
     @Test
+    public void newUser_AlreadyExistGroupName() {
+        running(support.Helpers.makeTestApplication(), new Runnable() {
+            @Override
+            public void run() {
+                //Given
+                Map<String, String> data = new HashMap<>();
+                data.put("loginId", "labs");
+                data.put("password", "somefakepassword");
+                data.put("email", "labs@fake.com");
+                data.put("name", "labs");
+
+                //When
+                Result result = callAction(
+                        controllers.routes.ref.UserApp.newUser(),
+                        fakeRequest().withFormUrlEncodedBody(data)
+                );
+
+                //Then
+                assertThat(status(result)).describedAs("result status should '400 bad request'").isEqualTo(BAD_REQUEST);
+            }
+        });
+    }
+
+    @Test
     public void newUser_confirmSignUpMode() {
         Map<String, String> config = support.Helpers.makeTestConfig();
         config.put("signup.require.confirm", "true");
@@ -161,7 +204,7 @@ public class UserAppTest extends ContextTest {
                 data.put("loginId", "messages.js");
 
                 //When
-                Result result = callAction(controllers.routes.ref.UserApp.isUserExist("messages.js"));
+                Result result = callAction(controllers.routes.ref.UserApp.isUsed("messages.js"));
 
                 //Then
                 assertThat(status(result)).isEqualTo(OK);

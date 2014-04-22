@@ -41,6 +41,8 @@
             htElement.aVCSItems = $("#vcs_dropdown li a");
             htElement.svnWarning = $("#svn");
             htElement.welInputProjectName = $("#project-name");
+            htElement.welInputProjectOwner = $("#project-owner");
+            htElement.welProtected = $("#protected, .label-protected");
 
             htElement.welInputProjectName.focus();
         }
@@ -50,6 +52,7 @@
          */
         function _attachEvent(){
             htElement.aVCSItems.click(_onSelectVCSItem);
+            htElement.welInputProjectOwner.on("change", _onChangeProjectOwner);
         }
 
         function _onSelectVCSItem(){
@@ -63,6 +66,18 @@
                 htElement.svnWarning.show();
             } else {
                 htElement.svnWarning.hide();
+            }
+        }
+
+        function _onChangeProjectOwner() {
+            var sType = $("#project-owner option:selected").data("type");
+            if (sType == "user") {
+                if ($("#protected").is(":checked")) {
+                    $("#public").prop("checked", true);
+                }
+                htElement.welProtected.hide();
+            } else {
+                htElement.welProtected.show();
             }
         }
 

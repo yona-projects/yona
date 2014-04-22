@@ -5,20 +5,18 @@ import org.joda.time.DateTimeConstants
 import play.i18n.Messages
 import controllers.routes
 import controllers.UserApp
-import java.security.MessageDigest
 import views.html._
 import java.net.URI
 import playRepository.DiffLine
 import playRepository.DiffLineType
 import models.CodeRange.Side
 import scala.collection.JavaConversions._
-import org.apache.commons.lang3.StringEscapeUtils.escapeHtml4
 import views.html.partial_diff_comment_on_line
 import views.html.partial_diff_line
 import views.html.git.partial_pull_request_event
+import models.Organization
 import models.PullRequestEvent
 import models.PullRequest
-import models.TimelineItem
 import models.Project
 import models.Issue
 import java.net.URLEncoder
@@ -27,7 +25,6 @@ import playRepository.FileDiff
 import play.api.i18n.Lang
 import models.CodeCommentThread
 import models.CommentThread
-import javax.swing.text.html.HTML
 
 object TemplateHelper {
 
@@ -44,6 +41,14 @@ object TemplateHelper {
     baseUrl + prefix + query.dropRight(1)
   }
 
+  def buildAttrString(attrMap: java.util.Map[String, String]): String = {
+    var attr = ""
+    attrMap.map {
+      v => attr += v._1 + "=" + v._2 + " "
+    }
+    attr.dropRight(1)
+  }
+
   def agoString(duration: org.joda.time.Duration) = {
     if (duration != null){
       val sec = duration.getMillis / DateTimeConstants.MILLIS_PER_SECOND
@@ -58,6 +63,15 @@ object TemplateHelper {
       }
     } else {
       ""
+    }
+  }
+
+  def agoOrDateString(date: java.util.Date) = {
+    val ago = JodaDateUtil.ago(date)
+    if (ago.getStandardDays < 8) {
+        agoString(ago)
+    } else {
+        JodaDateUtil.getDateString(date, "yyyy-MM-dd")
     }
   }
 
@@ -128,10 +142,24 @@ object TemplateHelper {
     "<a href=\"" + userInfoURL + "\" class=\"usf-group\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"" + user.name + "\"><img src=\"" + user.avatarUrl + "\" class=\"avatar-wrap " + avatarSize + "\"></a>"
   }
 
+  def urlToProjectBG(project: Project) = {
+    models.Attachment.findByContainer(project.asResource) match {
+      case files if files.size > 0 => routes.AttachmentApp.getFile(files.head.id)
+      case _ => routes.Assets.at("images/project_default.png")
+    }
+  }
+
   def urlToProjectLogo(project: Project) = {
     models.Attachment.findByContainer(project.asResource) match {
       case files if files.size > 0 => routes.AttachmentApp.getFile(files.head.id)
-      case _ => routes.Assets.at("images/bg-default-project.jpg")
+      case _ => routes.Assets.at("images/project_default.png")
+    }
+  }
+
+  def hasProjectLogo(project: Project) = {
+    models.Attachment.findByContainer(project.asResource) match {
+      case files if files.size > 0 => true
+      case _ => false
     }
   }
 
@@ -212,8 +240,22 @@ object TemplateHelper {
   }
 
   def countOpenIssuesBy(project:Project, cond:java.util.Map[String,String]) = {
-    cond += ("state"->models.enumeration.State.OPEN.toString)
+    cond += ("state" -> models.enumeration.State.OPEN.toString)
     Issue.countIssuesBy(project.id, cond)
+  }
+
+  def urlToOrganizationLogo(organization: Organization) = {
+    models.Attachment.findByContainer(organization.asResource) match {
+      case files if files.size > 0 => routes.AttachmentApp.getFile(files.head.id)
+      case _ => routes.Assets.at("images/group_default.png")
+    }
+  }
+
+  def hasOrganizationLogo(organization: Organization) = {
+    models.Attachment.findByContainer(organization.asResource) match {
+      case files if files.size > 0 => true
+      case _ => false
+    }
   }
 
   object DiffRenderer {
@@ -427,6 +469,10 @@ object TemplateHelper {
 
     def getFileDate(file:org.codehaus.jackson.JsonNode, field:String)(implicit lang:Lang):String = {
       JodaDateUtil.momentFromNow(file.get(field).getLongValue, lang.language)
+    }
+
+    def getFileAgoOrDate(file:org.codehaus.jackson.JsonNode, field:String) = {
+      agoOrDateString(new java.util.Date(file.get(field).getLongValue))
     }
 
     def getCorrectedPath(filePath:String, fileName:String):String = {

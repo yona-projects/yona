@@ -3,7 +3,7 @@ package models;
 import com.avaje.ebean.Ebean;
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
-import controllers.routes;
+import models.enumeration.ProjectScope;
 import models.enumeration.RequestState;
 import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
@@ -52,8 +52,6 @@ public class Project extends Model implements LabelOwner {
     public String siteurl;
     /** 프로젝트 관리자 loginId */
     public String owner;
-    /** 프로젝트 공개여부(공개면 true) */
-    public boolean isPublic;
 
     public Date createdDate;
 
@@ -119,6 +117,12 @@ public class Project extends Model implements LabelOwner {
     public Integer defaultReviewerCount = 1;
 
     public boolean isUsingReviewerCount;
+
+    @ManyToOne
+    public Organization organization;
+
+    @Enumerated(EnumType.STRING)
+    public ProjectScope projectScope;
 
     /**
      * 신규 프로젝트를 생성한다.
@@ -295,26 +299,6 @@ public class Project extends Model implements LabelOwner {
         }
 
         return Ebean.filter(Project.class).sort(orderString).filter(userProjectList);
-    }
-    /**
-     * {@code state} 별 프로젝트 카운트를 반환한다.
-     *
-     * all(모든) / public(공개) / private(비공개) 외의 조건이 들어여몬 0을 반환한다.
-     *
-     * @param state 프로젝트 상태(all/public/private)
-     * @return 프로젝트 카운트
-     */
-    public static int countByState(String state) {
-        switch (state) {
-            case "all":
-                return find.findRowCount();
-            case "public":
-                return find.where().eq("isPublic", true).findRowCount();
-            case "private":
-                return find.where().eq("isPublic", false).findRowCount();
-            default:
-                return 0;
-        }
     }
 
     /**
@@ -733,6 +717,7 @@ public class Project extends Model implements LabelOwner {
     @Override
     public void delete() {
         deleteProjectVisitations();
+        deleteProjectTransfer();
         deleteFork();
         deletePullRequests();
 
@@ -770,8 +755,15 @@ public class Project extends Model implements LabelOwner {
 
     private void deleteProjectVisitations() {
         List<ProjectVisitation> pvs = ProjectVisitation.findByProject(this);
-        for(ProjectVisitation pv : pvs) {
+        for (ProjectVisitation pv : pvs) {
             pv.delete();
+        }
+    }
+
+    private void deleteProjectTransfer() {
+        List<ProjectTransfer> pts = ProjectTransfer.findByProject(this);
+        for(ProjectTransfer pt : pts) {
+            pt.delete();
         }
     }
 
@@ -806,7 +798,7 @@ public class Project extends Model implements LabelOwner {
      * @param projectName
      * @return
      */
-    private static String newProjectName(String loginId, String projectName) {
+    public static String newProjectName(String loginId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
         if(project == null) {
             return projectName;
@@ -822,23 +814,23 @@ public class Project extends Model implements LabelOwner {
     }
 
     /**
-     * {@code project}의 {@code user}의 복사본 프로젝트를 만든다.
+     * {@code project}의 {@code owner}의 복사본 프로젝트를 만든다.
      * 이때 프로젝트의 이름은 {@link #newProjectName(String, String)}을 사용한다.
      *
      * when: 프로젝트 복사 폼과 복사 폼 처리에서 사용한다.
      *
      * @param project
-     * @param user
+     * @param owner
      * @return
      * @see #newProjectName(String, String)
      */
-    public static Project copy(Project project, User user) {
+    public static Project copy(Project project, String owner) {
         Project copyProject = new Project();
-        copyProject.name = newProjectName(user.loginId, project.name);
+        copyProject.name = newProjectName(owner, project.name);
         copyProject.overview = project.overview;
         copyProject.vcs = project.vcs;
-        copyProject.owner = user.loginId;
-        copyProject.isPublic = project.isPublic;
+        copyProject.owner = owner;
+        copyProject.projectScope = project.projectScope;
         return copyProject;
     }
 
@@ -924,4 +916,19 @@ public class Project extends Model implements LabelOwner {
         return Watch.countBy(resource.getType(), resource.getId());
     }
 
+    public boolean hasGroup() {
+        return this.organization != null;
+    }
+
+    public boolean isPublic() {
+        return projectScope == ProjectScope.PUBLIC;
+    }
+
+    public boolean isProtected() {
+        return projectScope == ProjectScope.PROTECTED;
+    }
+
+    public boolean isPrivate() {
+        return projectScope == ProjectScope.PRIVATE;
+    }
 }

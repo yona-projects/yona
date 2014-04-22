@@ -244,21 +244,27 @@ public class CodeHistoryApp extends Controller {
         ReviewComment comment = reviewCommentForm.get();
         comment.author = new UserIdent(UserApp.currentUser());
         if (comment.thread == null) {
-            CodeCommentThread thread = new CodeCommentThread();
-            thread.project = project;
-            thread.state = CommentThread.ThreadState.OPEN;
-            thread.commitId = commitId;
-            thread.prevCommitId = null;
             if (codeRangeForm.errors().isEmpty()) {
-                CodeRange codeRange = codeRangeForm.get();
-                User codeAuthor
-                        = RepositoryService.getRepository(project).getCommit(commitId).getAuthor();
+                CodeCommentThread thread = new CodeCommentThread();
+                thread.commitId = commitId;
+                thread.prevCommitId = null;
+                User codeAuthor = RepositoryService
+                        .getRepository(project)
+                        .getCommit(commitId)
+                        .getAuthor();
                 if (!codeAuthor.isAnonymous()) {
                     thread.codeAuthors.add(codeAuthor);
                 }
-                thread.codeRange = codeRange;
+                thread.codeRange = codeRangeForm.get();
+                comment.thread = thread;
+            } else {
+                NonRangedCodeCommentThread thread = new NonRangedCodeCommentThread();
+                thread.commitId = commitId;
+                thread.prevCommitId = null;
+                comment.thread = thread;
             }
-            comment.thread = thread;
+            comment.thread.project = project;
+            comment.thread.state = CommentThread.ThreadState.OPEN;
             comment.thread.createdDate = comment.createdDate;
             comment.thread.author = comment.author;
         } else {

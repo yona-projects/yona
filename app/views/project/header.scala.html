@@ -18,7 +18,7 @@
                     <span class="project-author"><a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a></span>
                     <span class="project-separator">/</span>
                     <span class="project-name"><a href="@routes.ProjectApp.project(project.owner, project.name)">@project.name</a></span>
-                    @if(!project.isPublic){
+                    @if(project.isPrivate){
                     <span class="project-private">
                         <i class="yobicon-lock"></i>
                     </span>

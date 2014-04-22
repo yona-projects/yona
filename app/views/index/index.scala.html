@@ -41,26 +41,78 @@
             <div class="guide-toggle">
                 <button class="btn-transparent" id="toggleIntro"><i class="yobicon-resizev"></i></button>
             </div>
-            <ul class="nav nav-tabs">
-                <li class="active"><a href="@routes.Application.index()">@Messages("notification")</a></li>
-                <li><a href="@routes.IssueApp.userIssues()">@Messages("issue.myIssue")</a></li>
-            </ul>
             <div class="page on-fold-intro">
                 <div class="row-fluid content-container">
-                    <div class="span9 main-stream">
+                    <div class="span8 main-stream">
+                         <ul class="nav nav-tabs">
+                            <li class="active">
+                                <a href="@routes.Application.index()">@Messages("notification")</a>
+                            </li>
+                            <li>
+                                <a href="@routes.IssueApp.userIssues()">@Messages("issue.myIssue")</a>
+                            </li>
+                        </ul>
                         <ul class="activity-streams notification-wrap unstyled">
                             @partial_notifications(0, 20)
                         </ul>
         	        </div>
-
-        	       <div class="span3">
-                        <div class="projects-wrap">
-                            @myProjectList(currentUser)
-                        </div>
+                    <div class="span4">
+                        <ul class="nav nav-tabs nm">
+                            <li class="active">
+                                <a href="#myPorjectList" data-toggle="tab">
+                                    @Messages("title.project")
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#myOrganizationList" data-toggle="tab">
+                                    @Messages("title.organization")
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="tab-content tab-box">
+                            <div class="tab-searchbox">
+                                <div class="search-bar">
+                                    <input name="mylist-filter" id="mylist-filter" class="textbox full" type="text" value="" data-toggle="item-search" data-items="my-item">
+                                    <button type="button" class="search-btn"><i class="yobicon-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="tab-content">
+                                <div class="tab-pane myproject-list-wrap active" id="myPorjectList">
+                                    <div class="subtab-wrap">
+                                        <ul class="nav-subtab unstyled">
+                                            <li class="active">
+                                                <a href="#recentlyVisited" data-toggle="tab">
+                                                    @Messages("title.recently.visited")
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="#createdByMe" data-toggle="tab">
+                                                    @Messages("title.createdByMe")
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="#watching" data-toggle="tab">
+                                                    @Messages("title.watching")
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="#joinmember" data-toggle="tab">
+                                                    @Messages("title.joinmember")
+                                                </a>
+                                            </li>
+                                        </ul>    
+                                    </div>
+                                    <div class="tab-content">
+                                        @myProjectList(currentUser)
+                                    </div>
+                                </div>
+                                <div class="tab-pane myorganization-list-wrap" id="myOrganizationList">
+                                    @myOrganizationList(currentUser)
+                                </div>
+                            </div>
+                        </div>     
         	       </div>
-
                 </div>
-
             </div>
         </div>
     </div>

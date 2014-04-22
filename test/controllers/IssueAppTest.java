@@ -1,6 +1,7 @@
 package controllers;
 
 import models.*;
+import models.enumeration.ProjectScope;
 import models.resource.Resource;
 import org.junit.After;
 import org.junit.Before;
@@ -45,7 +46,7 @@ public class IssueAppTest {
         Helpers.start(app);
 
         project = Project.findByOwnerAndProjectName(projectOwner, projectName);
-        project.setIsPublic(false);
+        project.setProjectScope(ProjectScope.PRIVATE);
 
         admin = User.findByLoginId("admin");
         manager = User.findByLoginId("yobi");
@@ -68,8 +69,8 @@ public class IssueAppTest {
         assertThat(ProjectUser.isManager(member.id, project.id)).describedAs("member is a manager").isFalse();
         assertThat(ProjectUser.isMember(member.id, project.id)).describedAs("member is a member").isTrue();
         assertThat(ProjectUser.isMember(author.id, project.id)).describedAs("author is a member").isFalse();
+        assertThat(project.isPublic()).describedAs("project is public").isFalse();
         assertThat(ProjectUser.isMember(assignee.id, project.id)).describedAs("assignee is a member").isFalse();
-        assertThat(project.isPublic).describedAs("project is public").isFalse();
     }
 
     @After
@@ -135,7 +136,7 @@ public class IssueAppTest {
     @Test
     public void editByNonmember() {
         // Given
-        project.setIsPublic(true);
+        project.setProjectScope(ProjectScope.PUBLIC);
         project.update();
 
         // When
@@ -194,7 +195,7 @@ public class IssueAppTest {
     @Test
     public void deleteByNonmember() {
         // Given
-        project.setIsPublic(true);
+        project.setProjectScope(ProjectScope.PUBLIC);
         project.update();
 
         // When
@@ -253,7 +254,7 @@ public class IssueAppTest {
     @Test
     public void postByAnonymous() {
         // Given
-        project.setIsPublic(true);
+        project.setProjectScope(ProjectScope.PUBLIC);
         project.update();
 
         // When
@@ -266,7 +267,7 @@ public class IssueAppTest {
     @Test
     public void postByNonmember() {
         // Given
-        project.setIsPublic(true);
+        project.setProjectScope(ProjectScope.PUBLIC);
         project.update();
 
         // When
@@ -306,7 +307,7 @@ public class IssueAppTest {
     @Test
     public void commentByAnonymous() {
         // Given
-        project.setIsPublic(true);
+        project.setProjectScope(ProjectScope.PUBLIC);
         project.update();
 
         // When
@@ -319,7 +320,7 @@ public class IssueAppTest {
     @Test
     public void commentByNonmember() {
         // Given
-        project.setIsPublic(true);
+        project.setProjectScope(ProjectScope.PUBLIC);
         project.update();
 
         // When
@@ -367,7 +368,7 @@ public class IssueAppTest {
     public void watch() {
         // Given
         Resource resource = issue.asResource();
-        project.setIsPublic(true);
+        project.setProjectScope(ProjectScope.PUBLIC);
         project.update();
 
         // When
@@ -422,7 +423,7 @@ public class IssueAppTest {
     public void unwatch() {
         // Given
         Resource resource = issue.asResource();
-        project.setIsPublic(true);
+        project.setProjectScope(ProjectScope.PUBLIC);
         project.update();
 
 

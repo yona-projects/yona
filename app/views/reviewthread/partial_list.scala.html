@@ -1,0 +1,75 @@
+@**
+ * Yobi, Project Hosting SW
+ *
+ * Copyright 2014 NAVER Corp.
+ * http://yobi.io
+ *
+ * @Author insanehong
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ **@
+
+@(project:Project, page:com.avaje.ebean.Page[CommentThread], param:models.support.ReviewSearchCondition)
+
+@import utils.TemplateHelper._
+@import utils.JodaDateUtil
+
+@if(page.getList().size() > 0){
+<ul class="post-list-wrap">
+    @for(thread <- page.getList())  {
+        @defining(User.find.byId(thread.getFirstReviewComment.author.id)){ user =>
+        <li class="post-item">
+            <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap mlarge" data-toggle="tooltip" data-placement="top" title="@user.loginId">
+                @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){
+                    <img src="@urlToPicture(user.email, 32)">
+                } else {
+                    <img src="@user.avatarUrl" alt="@user.name" width="32" height="32"/>
+                }
+            </a>
+            <div class="title-wrap">
+                <span class="post-id">@thread.id</span>
+                <a href="@DiffRenderer.urlToCommentThread(project, thread)" class="title">
+                   @thread.getFirstReviewComment.getContents()
+                </a>
+            </div>
+            
+           <div class="infos">
+                @if(user.name){
+                    <a href="@routes.UserApp.userInfo(user.loginId)" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="top" title="@user.loginId">
+                        @user.name
+                    </a>
+                } else {
+                    <span class="infos-item">@Messages("issue.noAuthor")</span>
+                }
+                <span class="infos-item" title="@JodaDateUtil.getDateString(thread.createdDate)">
+                    @agoString(JodaDateUtil.ago(thread.createdDate))
+                </span>
+                @defining(thread.reviewComments.size()-1) { numberOfComments =>
+                    @if(numberOfComments > 0) {
+                    <a href="@DiffRenderer.urlToCommentThread(project, thread))" class="infos-item infos-icon-link">
+                        <i class="yobicon-comments"></i>
+                        <span class="size">@numberOfComments</span>
+                    </a>
+                    }
+                }
+            </div>
+        </li>
+        }
+    }
+</ul>
+} else {
+<div class="error-wrap">
+    <i class="ico ico-err1"></i>
+    <p>@Messages("review.is.empty")</p>
+</div>
+}

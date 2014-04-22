@@ -1,0 +1,50 @@
+@(org:Organization)
+
+@import utils.TemplateHelper._
+@import utils.JodaDateUtil
+
+@getPopupTitle = { @if(User.enrolled(org)) { @Messages("organization.you.want.to.be.a.member", org.name) } else { @Messages("organization.you.may.want.to.be.a.member", org.name) } }
+@getRequestUrl = { @if(User.enrolled(org)) { @routes.EnrollOrganizationApp.cancelEnroll(org.name) } else { @routes.EnrollOrganizationApp.enroll(org.name) } }
+@getClassName = { @if(User.enrolled(org)) { yobicon-removefriend } else { yobicon-addfriend } }
+
+<div class="project-header-outer" style="background-image:url('@urlToOrganizationLogo(org)')">
+    <div class="project-header-inner">
+        <div class="project-header-wrap">
+            <div class="project-header-avatar">
+                <img src="@urlToOrganizationLogo(org)" />
+            </div>
+            <div class="project-breadcrumb-wrap">
+                <div class="project-breadcrumb">
+                    <span class="project-author"><span class="group-title-head">group</span><a href="@routes.OrganizationApp.organization(org.name)">@org.name</a></span>
+                </div>
+            </div>
+            @if(OrganizationUser.isGuest(org, UserApp.currentUser)) {
+            <div class="project-util-wrap">
+                <ul class="project-util">
+                    <button class="ybtn ybtn-small @if(User.enrolled(org)) { ybtn-info } dropdown-toggle" type="button" data-toggle="dropdown">
+                        <i class="yobicon-addfriend"></i>
+                    </button>
+                    <div class="dropdown-menu flat right title">
+                        <div class="pop-title">@getPopupTitle</div>
+                        <div class="pop-content">
+                            @Messages("organization.member.enrollment.help")
+                        </div>
+                        <div class="pop-content btn-wrap">
+                            <a class="ybtn @if(!User.enrolled(org)) { ybtn-info } enrollBtn" href="@getRequestUrl" id="enrollBtn">
+                                <i class="@getClassName"></i>
+                                @Messages("button.cancel.enrollment")
+                            </a>
+                        </div>
+                    </div>
+                </ul>
+            </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script language="javascript">
+    $(function() {
+        $yobi.loadModule("organization.Global")
+    })
+</script>

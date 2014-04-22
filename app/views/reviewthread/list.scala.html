@@ -95,59 +95,7 @@
                }
             </ul>
             <div class="review-list-wrap">
-                @if(page.getList().size() > 0){
-                <ul>
-                    @for(thread <- page.getList())  {
-                        @defining(User.find.byId(thread.getFirstReviewComment.author.id)){ user =>
-                        <li class="review-item">
-                            <div class="review-number">
-                                <a href="@DiffRenderer.urlToCommentThread(project, thread)">#@thread.id</a>
-                            </div>
-                            <div class="review-avatar">
-                                @if(user != null){
-                                <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap mlarge">
-                                    <img src="@user.avatarUrl" alt="@@thread.getFirstReviewComment.author.authorName">
-                                </a>
-                                } else {
-                                <div class="avatar-wrap mlarge">
-                                    <img src="@routes.Assets.at("images/default-avatar-64.png")" width="42" height="42">
-                                </div>
-                                }
-                            </div>
-                            <div class="review-content">
-                                <div class="review-comment">
-                                    <a href="@DiffRenderer.urlToCommentThread(project, thread)">
-                                        @thread.getFirstReviewComment.getContents()
-                                    </a>
-                                </div>
-                                <div class="review-meta">
-                                    <span class="author">
-                                        <a href="@routes.UserApp.userInfo(user.loginId)" class="author">
-                                            @user.name
-                                        </a>
-                                    </span>
-                                    <span class="date">
-                                        @agoString(JodaDateUtil.ago(thread.createdDate))
-                                    </span>
-                                    @defining(thread.reviewComments.size()-1) { numberOfComments =>
-                                    @if(numberOfComments > 0) {
-                                    <span class="comments">
-                                        <i class="yobicon-comments"></i> @numberOfComments
-                                    </span>
-                                    }
-                                    }
-                                </div>
-                            </div>
-                        </li>
-                        }
-                    }
-                </ul>
-                } else {
-                <div class="error-wrap">
-                    <i class="ico ico-err1"></i>
-                    <p>@Messages("review.is.empty")</p>
-                </div>
-                }
+                @partial_list(project, page, param)
             </div>
             <div id="pagination"></div>
         </div>

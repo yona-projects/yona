@@ -12,7 +12,7 @@
         <div class="pull-left" style="margin-left: 10px;">
             <div class="header">
                 <a href="@routes.UserApp.userInfo(project.owner)" class="owner-name-small">@project.owner</a> / <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">@project.name</a>
-                @if(!project.isPublic){ <i class="yobicon-lock yobicon-small"></i> }
+                @if(project.isPrivate){ <i class="yobicon-lock yobicon-small"></i> }
             </div>
             @if(project.isForkedFromOrigin){
             <div class="forked label">

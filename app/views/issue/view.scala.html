@@ -27,7 +27,7 @@
         <div class="board-header issue">
             <div class="pull-right mr10 mt10">
                 <div class="date" title="@JodaDateUtil.getDateString(issue.createdDate)">
-                    @agoString(issue.ago)
+                    @agoOrDateString(issue.createdDate)
                 </div>
                 <span class="badge badge-issue-@issue.state.state.toLowerCase">@Messages("issue.state." + issue.state.state)</span>
             </div>
@@ -74,7 +74,7 @@
                 } else {
                 <div class="content markdown-wrap markdown-before" markdown="true">@issue.body</div>
                 }
-                <div class="attachments" id="attachments" data-resourceType="@ResourceType.ISSUE_POST" data-resourceId="@issue.id"></div>
+                <div class="attachments" id="attachments" data-resource-type="@ResourceType.ISSUE_POST" data-resource-id="@issue.id"></div>
             </div>
 
             <div class="span3 mb20">

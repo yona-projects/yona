@@ -1,0 +1,52 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2014 NAVER Corp.
+* http://yobi.io
+*
+* @Author JiHan Kim
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@(editorName:String = "contents", textValue:String="", textareaAttr:Map[String,String]=null)
+
+@import org.apache.commons.lang3.RandomStringUtils._
+@import utils.TemplateHelper._
+
+@defining(randomAlphabetic(8)){ wrapId =>
+<div data-toggle="markdown-editor" class="mt10">
+    <ul class="nav nav-tabs nm small">
+        <li class="active">
+            <a href="#edit-@wrapId" data-toggle="tab" data-mode="edit">@Messages("common.editor.edit")</a>
+        </li>
+        <li>
+            <a href="#preview-@wrapId" data-toggle="tab" data-mode="preview">@Messages("common.editor.preview")</a>
+        </li>
+    </ul>
+
+    <div class="tab-content" style="position:relative;overflow: visible;">
+        @help.markdown()
+
+        <div id="edit-@wrapId" class="tab-pane active">
+            <div class="textarea-box">
+                <textarea name="@editorName" class="content comment nm" markdown="true"
+                    @if(textareaAttr != null){ @buildAttrString(textareaAttr) }>@textValue</textarea>
+            </div>
+        </div>
+
+        <div id="preview-@wrapId" class="tab-pane">
+            <div class="markdown-preview markdown-wrap"></div>
+        </div>
+    </div>
+</div>
+}

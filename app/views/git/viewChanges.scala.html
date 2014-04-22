@@ -16,12 +16,12 @@
             @partial_info(project, pull, "changes")
             @partial_branch(pull)
 
-            <div class="codediff-wrap mt10">
+            <div class="codediff-wrap mt10 @if(request.cookies.get("diffs-only") != null){diffs-only}">
                 <button type="button" class="ybtn ybtn-default btn-show-reviewcards">
                     <i class="yobicon-restore"></i>
                 </button>
 
-                <div class="diffs-wrap">
+                <div id="changes" class="diffs-wrap">
                     <div id="commits" class="btn-group auto mb10">
                         <button class="btn dropdown-toggle auto" data-toggle="dropdown">
                             <span class="d-label">
@@ -124,12 +124,12 @@
                 <div class="review-wrap">
                     <div class="review-container">
                         <button type="button" class="ybtn ybtn-default btn-hide-reviewcards">
-                            <i class="yobicon-minimize"></i>
+                            <i class="yobicon-maximize"></i>
                         </button>
 
                         <ul class="nav nav-tabs" style="margin-bottom:10px;">
-                            <li class="active"><a href="#reviewcards-open" data-toggle="tab">@Messages("issue.state.open")</a></li>
-                            <li><a href="#reviewcards-closed" data-toggle="tab">@Messages("issue.state.closed")</a></li>
+                            <li class="active"><a href="#reviewcards-open" data-toggle="tab">@Messages("issue.state.open") @pull.getCommentThreadsByState(CommentThread.ThreadState.OPEN).size()</a></li>
+                            <li><a href="#reviewcards-closed" data-toggle="tab">@Messages("issue.state.closed") @pull.getCommentThreadsByState(CommentThread.ThreadState.CLOSED).size()</a></li>
                         </ul>
 
                         <div class="tab-content review-list">
@@ -138,7 +138,13 @@
                                 <a href="@DiffRenderer.urlToCommentThread(project, thread)" class="review-card @thread.state.toString().toLowerCase()">
                                     <p class="content">@thread.getFirstReviewComment().getContents()</p>
                                     <span class="date" title="@utils.JodaDateUtil.getDateString(thread.createdDate)">
-                                        @utils.JodaDateUtil.momentFromNow(thread.createdDate, lang.language)
+                                        <span class="comments">
+                                            @if( thread.hasChildComments ){<i class="yobicon-comments"></i> @thread.reviewComments.size()}
+                                        </span>
+                                        <span class="avatar-wrap smaller margin-right-5">
+                                            <img src="@User.findByLoginId(thread.author.loginId).avatarUrl" alt="@thread.author.name" />
+                                        </span>
+                                        @agoOrDateString(thread.createdDate)
                                     </span>
                                 </a>
                                 }
@@ -149,7 +155,13 @@
                                 <a href="@DiffRenderer.urlToCommentThread(project, thread)" class="review-card @thread.state.toString().toLowerCase()">
                                     <p class="content">@thread.getFirstReviewComment().getContents()</p>
                                     <span class="date" title="@utils.JodaDateUtil.getDateString(thread.createdDate)">
-                                        @utils.JodaDateUtil.momentFromNow(thread.createdDate, lang.language)
+                                        <span class="comments">
+                                        @if( thread.hasChildComments ){<i class="yobicon-comments"></i> @thread.reviewComments.size()}
+                                        </span>
+                                        <span class="avatar-wrap smaller margin-right-5">
+                                            <img src="@User.findByLoginId(thread.author.loginId).avatarUrl" alt="@thread.author.name" />
+                                        </span>
+                                        @agoOrDateString(thread.createdDate)
                                     </span>
                                 </a>
                                 }
@@ -164,13 +176,14 @@
 
 @common.markdown(project)
 @common.mergely()
-@common.commentDeleteModal("#__changes")
+@common.commentDeleteModal("#changes")
 
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mentionjs/mention.css")">
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/mentionjs/mention.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yobi.CodeCommentBox.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yobi.CodeCommentBlock.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery/jquery-ui-1.10.4.custom.min.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery/jquery.cookie.js")"></script>
 <script type="text/javascript">
     $(document).ready(function() {
         // yobi.Mention

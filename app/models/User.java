@@ -129,6 +129,10 @@ public class User extends Model implements ResourceConvertible {
     @JoinTable(name = "user_enrolled_project", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "project_id"))
     public List<Project> enrolledProjects;
 
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(name = "user_enrolled_organization", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "organization_id"))
+    public List<Organization> enrolledOrganizations;
+
     @ManyToMany(mappedBy = "receivers")
     @OrderBy("created DESC")
     public List<NotificationEvent> notificationEvents;
@@ -146,11 +150,17 @@ public class User extends Model implements ResourceConvertible {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     public RecentlyVisitedProjects recentlyVisitedProjects;
 
+    @OneToMany(mappedBy = "user")
+    public List<Mention> mentions;
+
     /**
      * The user's preferred language code which can be recognized by {@link play.api.i18n.Lang#get},
      * such as "ko", "en-US" or "ja". This field is used as a language for notification mail.
      */
     public String lang;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    public List<OrganizationUser> organizationUsers;
 
     public User() {
     }
@@ -396,6 +406,13 @@ public class User extends Model implements ResourceConvertible {
         return this.enrolledProjects;
     }
 
+    public List<Organization> getEnrolledOrganizations() {
+        if (this.enrolledOrganizations == null) {
+            this.enrolledOrganizations = new ArrayList<>();
+        }
+        return this.enrolledOrganizations;
+    }
+
     @Transactional
     public void addWatching(Project project) {
         Watch.watch(this, project.asResource());
@@ -436,6 +453,11 @@ public class User extends Model implements ResourceConvertible {
         this.update();
     }
 
+    public void enroll(Organization organization) {
+        getEnrolledOrganizations().add(organization);
+        this.update();
+    }
+
     /**
      * {@code project}에 보낸 멤버 등록 요청을 삭제한다.
      *
@@ -443,6 +465,11 @@ public class User extends Model implements ResourceConvertible {
      */
     public void cancelEnroll(Project project) {
         getEnrolledProjects().remove(project);
+        this.update();
+    }
+
+    public void cancelEnroll(Organization organization) {
+        getEnrolledOrganizations().remove(organization);
         this.update();
     }
 
@@ -458,6 +485,14 @@ public class User extends Model implements ResourceConvertible {
             return false;
         }
         return user.getEnrolledProjects().contains(project);
+    }
+
+    public static boolean enrolled(Organization organization) {
+        User user = UserApp.currentUser();
+        if (user.isAnonymous()) {
+            return false;
+        }
+        return user.getEnrolledOrganizations().contains(organization);
     }
 
     @Override
@@ -547,6 +582,11 @@ public class User extends Model implements ResourceConvertible {
                 .eq("projectUser.role.id", roleType.roleType()).orderBy().asc("name").findList();
     }
 
+    public static List<User> findUsersByOrganization(Long organizationId, RoleType roleType) {
+        return find.where().eq("organizationUsers.organization.id", organizationId)
+                .eq("organizationUsers.role.id", roleType.roleType()).orderBy().asc("name").findList();
+    }
+
     /**
      * 사용자가 가진 보조 이메일에 새로운 이메일 추가한다.
      *
@@ -594,5 +634,32 @@ public class User extends Model implements ResourceConvertible {
         }
 
         return this.recentlyVisitedProjects.findRecentlyVisitedProjects(size);
+    }
+
+    public List<Organization> getOrganizations(int size) {
+        if(size < 1) {
+            throw new IllegalArgumentException("the size should be bigger then 0");
+        }
+        List<Organization> orgs = new ArrayList<>();
+        for(OrganizationUser ou : OrganizationUser.findByUser(this, size)) {
+            orgs.add(ou.organization);
+        }
+        return orgs;
+    }
+
+    public void createOrganization(Organization organization) {
+        OrganizationUser ou = new OrganizationUser();
+        ou.user = this;
+        ou.organization = organization;
+        ou.role = Role.findByRoleType(RoleType.ORG_ADMIN);
+        ou.save();
+
+        this.add(ou);
+        organization.add(ou);
+        this.update();
+    }
+
+    private void add(OrganizationUser ou) {
+        this.organizationUsers.add(ou);
     }
 }
