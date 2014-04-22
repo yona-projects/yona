@@ -41,7 +41,6 @@
                         </div>
                         <div class="span3 num">
                             <strong>@milestoneIssues</strong>
-                            <small>(@getPercent(milestoneIssues, totalIssues)%)</small>
                         </div>
                         <div class="span3 nm">
                             <div class="progress progress-success @if(milestoneIssues == 0){ empty }">
@@ -62,7 +61,6 @@
                 </div>
                 <div class="span3 num">
                     <strong>@notAssignedIssues</strong>
-                    @if(notAssignedIssues > 0){<small>(@getPercent(notAssignedIssues, totalIssues)%)</small>}
                 </div>
                 <div class="span3 nm"></div>
             </div>
