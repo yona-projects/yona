@@ -30,7 +30,11 @@ import models.SimpleCommentThread;
 import models.NonRangedCodeCommentThread;
 import models.CodeCommentThread;
 
+import utils.TemplateHelper.DiffRenderer$;
+
 public class RouteUtil {
+    public static DiffRenderer$ diffRenderer = new DiffRenderer$();
+
     public static String getUrl(ResourceType resourceType, String resourceId) {
         Long longId = Long.valueOf(resourceId);
 
@@ -124,50 +128,10 @@ public class RouteUtil {
 
         CommentThread thread = comment.thread;
 
-        return getContainerUrl(thread) + "#comment-" + comment.id;
+        return diffRenderer.urlToContainer(thread) + "#comment-" + comment.id;
     }
 
     public static String getUrl(CommentThread thread) {
-        return getContainerUrl(thread) + "#thread-" + thread.id;
-    }
-
-    /**
-     * Get the url to the resource has the given thread
-     */
-    public static String getContainerUrl(CommentThread thread) {
-        Project project = thread.project;
-
-        if (thread instanceof SimpleCommentThread) {
-            throw new UnsupportedOperationException();
-        }
-
-        String prevCommitId = null;
-        String commitId = null;
-
-        if (thread instanceof NonRangedCodeCommentThread) {
-            prevCommitId = ((NonRangedCodeCommentThread) thread).prevCommitId;
-            commitId = ((NonRangedCodeCommentThread) thread).commitId;
-        } else if (thread instanceof CodeCommentThread) {
-            prevCommitId = ((CodeCommentThread) thread).prevCommitId;
-            commitId = ((CodeCommentThread) thread).commitId;
-        }
-
-        play.mvc.Call toView;
-        PullRequest pullRequest = thread.pullRequest;
-
-        if (pullRequest == null) {
-            toView = controllers.routes.CodeHistoryApp.show(
-                    project.owner, project.name, commitId);
-        } else {
-            if (prevCommitId != null) {
-                toView = controllers.routes.PullRequestApp.pullRequestChanges(
-                        project.owner, project.name, pullRequest.number);
-            } else {
-                toView = controllers.routes.PullRequestApp.specificChange(
-                        project.owner, project.name, pullRequest.number, commitId);
-            }
-        }
-
-        return toView.url();
+        return diffRenderer.urlToContainer(thread) + "#thread-" + thread.id;
     }
 }

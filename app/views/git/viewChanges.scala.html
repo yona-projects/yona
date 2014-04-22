@@ -155,7 +155,7 @@
                         <div class="tab-content review-list">
                             <div id="reviewcards-open" class="tab-pane active">
                                 @for(thread: CommentThread <- pull.getCommentThreadsByState(CommentThread.ThreadState.OPEN)) {
-                                <a href="@DiffRenderer.urlToCommentThread(project, thread)" class="review-card @thread.state.toString().toLowerCase()">
+                                <a href="@DiffRenderer.urlToCommentThread(thread)" class="review-card @thread.state.toString().toLowerCase()">
                                     <p class="content">@thread.getFirstReviewComment().getContents()</p>
                                     <span class="date" title="@utils.JodaDateUtil.getDateString(thread.createdDate)">
                                         <span class="comments">
@@ -172,7 +172,7 @@
 
                             <div id="reviewcards-closed" class="tab-pane">
                                 @for(thread: CommentThread <- pull.getCommentThreadsByState(CommentThread.ThreadState.CLOSED)) {
-                                <a href="@DiffRenderer.urlToCommentThread(project, thread)" class="review-card @thread.state.toString().toLowerCase()">
+                                <a href="@DiffRenderer.urlToCommentThread(thread)" class="review-card @thread.state.toString().toLowerCase()">
                                     <p class="content">@thread.getFirstReviewComment().getContents()</p>
                                     <span class="date" title="@utils.JodaDateUtil.getDateString(thread.createdDate)">
                                         <span class="comments">
