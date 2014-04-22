@@ -60,6 +60,7 @@ public class ReservedWordsValidator extends Validator<String> {
                 RESERVED_WORDS.add(matcher.group(1));
             }
         }
+        RESERVED_WORDS.add("new");
     }
 
     /**
