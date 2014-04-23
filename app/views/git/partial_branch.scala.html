@@ -21,6 +21,7 @@
 @(pull: PullRequest)
 
 @import utils.TemplateHelper._
+@import java.net.URLEncoder
 
 <div class="pullRequest-branchInfo">
     <i class="yobicon-branch ml0"></i>
@@ -28,7 +29,7 @@
     <code class="from" data-toggle="tooltip" data-original-title="@Messages("pullRequest.from")">
         <a href="@routes.UserApp.userInfo(pull.fromProject.owner)">@pull.fromProject.owner</a><span>/</span><!--
      --><a href="@routes.ProjectApp.project(pull.fromProject.owner, pull.fromProject.name)">@pull.fromProject.name</a>:
-        <a href="@routes.CodeApp.codeBrowserWithBranch(pull.fromProject.owner, pull.fromProject.name, pull.fromBranch, "")" class="branchName">@branchItemName(pull.fromBranch)</a>
+        <a href="@routes.CodeApp.codeBrowserWithBranch(pull.fromProject.owner, pull.fromProject.name, URLEncoder.encode(pull.fromBranch, "UTF-8"), "")" class="branchName">@branchItemName(pull.fromBranch)</a>
     </code>
 
     <i class="yobicon-right-2 ml10"></i>
@@ -36,6 +37,6 @@
     <code class="to" data-toggle="tooltip" data-original-title="@Messages("pullRequest.to")">
         <a href="@routes.UserApp.userInfo(pull.toProject.owner)">@pull.toProject.owner</a><span>/</span><!--
      --><a href="@routes.ProjectApp.project(pull.toProject.owner, pull.toProject.name)">@pull.toProject.name</a>:
-        <a href="@routes.CodeApp.codeBrowserWithBranch(pull.toProject.owner, pull.toProject.name, pull.toBranch, "")" class="branchName">@branchItemName(pull.toBranch)</a>
+        <a href="@routes.CodeApp.codeBrowserWithBranch(pull.toProject.owner, pull.toProject.name, URLEncoder.encode(pull.toBranch, "UTF-8"), "")" class="branchName">@branchItemName(pull.toBranch)</a>
     </code>
 </div>
