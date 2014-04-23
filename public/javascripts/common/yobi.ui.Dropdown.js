@@ -59,6 +59,47 @@
             // ul.dropdown-menu 전체에 설정하는 것이 메모리 절약
 
             htElement.welList.on("click", "li", _onClickItem);
+            htElement.welList.on("mousewheel", _onScrollList);
+        }
+
+        /**
+         * 목록 영역에서 스크롤 할 때의 이벤트 핸들러 (mousewheel)
+         *
+         * 최상단에서 위쪽으로 스크롤 하려 하거나,
+         * 최하단에서 아래쪽으로 스크롤 하려 하는 경우
+         * 브라우저의 기본 동작을 막고 이벤트를 취소한다
+         *
+         * @param weEvt
+         * @returns {boolean}
+         * @private
+         */
+        function _onScrollList(weEvt){
+            if((weEvt.originalEvent.deltaY > 0 && _isScrollEndOfList()) ||
+               (weEvt.originalEvent.deltaY < 0 && _isScrollTopOfList())){
+                weEvt.preventDefault();
+                weEvt.stopPropagation();
+                return false;
+            }
+        }
+
+        /**
+         * 목록 영역의 스크롤 위치가 최상단인지의 여부를 반환한다
+         *
+         * @returns {boolean}
+         * @private
+         */
+        function _isScrollTopOfList(){
+            return (htElement.welList.scrollTop() === 0);
+        }
+
+        /**
+         * 목록 영역의 스크롤 위치가 최하단인지의 여부를 반환한다
+         *
+         * @returns {boolean}
+         * @private
+         */
+        function _isScrollEndOfList(){
+            return (htElement.welList.scrollTop() + htElement.welList.height() === htElement.welList.get(0).scrollHeight);
         }
 
         /**
