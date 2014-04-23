@@ -61,7 +61,8 @@ public class AccessControl {
         // Site manager, Group admin, Project members can create anything.
         if (user.isSiteManager()
             || OrganizationUser.isAdmin(project.organization, user)
-            || ProjectUser.isMember(user.id, project.id)) {
+            || ProjectUser.isMember(user.id, project.id)
+            || isAllowedIfGroupMember(project, user)) {
             return true;
         }
 
@@ -83,6 +84,19 @@ public class AccessControl {
         default:
             return false;
         }
+    }
+
+    /**
+     * If the project that is belong to a group and is protected or public,
+     * then allow the operation to the member of the group.
+     * @param project
+     * @param user
+     * @return
+     */
+    private static boolean isAllowedIfGroupMember(Project project, User user) {
+        return project.hasGroup()
+                && (project.isPublic() || project.isProtected())
+                && OrganizationUser.isMember(project.organization, user);
     }
 
     public static boolean isResourceCreatable(User user, Resource container, ResourceType resourceType) {
@@ -127,15 +141,10 @@ public class AccessControl {
                 if (project == null) {
                     return false;
                 }
-                if (project.isPublic()
+                return project.isPublic()
                     || ProjectUser.isMember(user.id, project.id)
-                    || OrganizationUser.isAdmin(project.organization, user)) {
-                    return true;
-                }
-                if (project.isProtected()) {
-                    return OrganizationUser.isMember(project.organization, user);
-                }
-                return false;
+                    || OrganizationUser.isAdmin(project.organization, user)
+                    || isAllowedIfGroupMember(project, user);
             }
 
             // anyone can read any resource which is not a project.
@@ -148,17 +157,10 @@ public class AccessControl {
                 if (project == null) {
                     return false;
                 }
-                if (project.isPublic()) {
-                    return !user.isAnonymous();
-                }
-                if (ProjectUser.isMember(user.id, project.id)
-                    || OrganizationUser.isAdmin(project.organization, user)) {
-                    return true;
-                }
-                if (project.isProtected()) {
-                    return OrganizationUser.isMember(project.organization, user);
-                }
-                return false;
+                return (project.isPublic() && !user.isAnonymous())
+                        || (ProjectUser.isMember(user.id, project.id)
+                        || OrganizationUser.isAdmin(project.organization, user))
+                        || isAllowedIfGroupMember(project, user);
             }
         }
 
@@ -212,7 +214,8 @@ public class AccessControl {
         if (user.isSiteManager()
                 || ProjectUser.isManager(user.id, project.id)
                 || isAllowedIfAuthor(user, resource)
-                || isAllowedIfAssignee(user, resource)) {
+                || isAllowedIfAssignee(user, resource)
+                || isAllowedIfGroupMember(project, user)) {
             return true;
         }
 
@@ -258,43 +261,27 @@ public class AccessControl {
         // See docs/technical/access-control.md for more information.
         switch(operation) {
         case READ:
-            if (project.isPublic()) {
-                return true;
-            }
-            if (ProjectUser.isMember(user.id, project.id)) {
-                return true;
-            }
-            if (project.isProtected()) {
-                return OrganizationUser.isMember(project.organization, user);
-            }
-            return false;
+            return project.isPublic()
+                    || ProjectUser.isMember(user.id, project.id)
+                    || isAllowedIfGroupMember(project, user);
         case UPDATE:
-            if (ProjectUser.isMember(user.id, project.id)) {
-                return true;
-            } else {
-                return false;
-            }
+            return ProjectUser.isMember(user.id, project.id)
+                    || isAllowedIfGroupMember(project, user);
         case DELETE:
             if (resource.getType() == ResourceType.CODE) {
                 return false;
-            } else {
-                return ProjectUser.isMember(user.id, project.id);
             }
+            return ProjectUser.isMember(user.id, project.id)
+                    || isAllowedIfGroupMember(project, user);
         case ACCEPT:
         case CLOSE:
         case REOPEN:
-            return ProjectUser.isMember(user.id, project.id);
+            return ProjectUser.isMember(user.id, project.id)
+                    || isAllowedIfGroupMember(project, user);
         case WATCH:
-            if (project.isPublic()) {
-                return !user.isAnonymous();
-            }
-            if (ProjectUser.isMember(user.id, project.id)) {
-                return true;
-            }
-            if (project.isProtected()) {
-                return OrganizationUser.isMember(project.organization, user);
-            }
-            return false;
+            return (project.isPublic() && !user.isAnonymous())
+                    || (ProjectUser.isMember(user.id, project.id))
+                    || isAllowedIfGroupMember(project, user);
         default:
             // undefined
             return false;
