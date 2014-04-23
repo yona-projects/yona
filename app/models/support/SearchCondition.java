@@ -29,6 +29,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import utils.LabelSearchUtil;
 
+import javax.persistence.Transient;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -65,22 +66,22 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
         return one;
     }
 
-    public SearchCondition setOrderBy(String orderBy) {
+    public SearchCondition updateOrderBy(String orderBy) {
         this.orderBy = orderBy;
         return this;
     }
 
-    public SearchCondition setOrderDir(String orderDir) {
+    public SearchCondition updateOrderDir(String orderDir) {
         this.orderDir = orderDir;
         return this;
     }
 
-    public SearchCondition setFilter(String filter) {
+    public SearchCondition updateFilter(String filter) {
         this.filter = filter;
         return this;
     }
 
-    public SearchCondition setPageNum(int pageNum) {
+    public SearchCondition updatePageNum(int pageNum) {
         this.pageNum = pageNum;
         return this;
     }
