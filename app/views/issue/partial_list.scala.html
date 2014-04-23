@@ -65,6 +65,12 @@
                         @agoOrDateString(issue.createdDate)
                     </span>
 
+                    @if(issue.voters.size() > 0) {
+                    <div class="infos-item infos-sympathy">
+                        @Messages("issue.vote") +@issue.voters.size()
+                    </div>
+                    }
+
                     @if(issue.comments.size()>0){
                         <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)#comments" class="infos-item infos-icon-link">
                             <i class="yobicon-comments"></i>
