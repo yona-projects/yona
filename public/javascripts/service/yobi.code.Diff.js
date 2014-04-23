@@ -81,6 +81,9 @@
             htElement.welMiniMapWrap = htElement.welMiniMap.find(".minimap-wrap");
             htElement.welMiniMapCurr = htElement.welMiniMapWrap.find(".minimap-curr");
             htElement.welMiniMapLinks = htElement.welMiniMapWrap.find(".minimap-links");
+
+            // 코드받기
+            htElement.welBtnAccept = $("#btnAccept");
         }
 
         /**
@@ -121,6 +124,12 @@
             });
 
             $(window).on("hashchange", _onHashChange);
+
+            if(htElement.welBtnAccept.length > 0 && htElement.welBtnAccept.data("requestAs")){
+                htElement.welBtnAccept.data("requestAs").on("beforeRequest", function(){
+                    yobi.ui.Spinner.show({"bUseDimmer": true});
+                });
+            }
         }
 
         /**
