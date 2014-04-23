@@ -85,7 +85,7 @@
                         </ul>
                     </div>
 
-                    @if(commitId != null) {
+                    @if(commitId != null && PullRequestCommit.getByCommitId(pull, commitId) != null) {
                     @defining(playRepository.RepositoryService.getRepository(project).getCommit(commitId)) { commit =>
                     <p class="commitInfo">
                         @(commit.getAuthor, commit.getAuthorEmail, commit.getAuthorName) match {
