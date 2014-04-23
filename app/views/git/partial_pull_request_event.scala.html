@@ -56,7 +56,7 @@
             <span class="state changed">@Messages("pullRequest.reviewed")</span>
             @Html(Messages("notification.pullrequest.reviewed",linkToUser(user.loginId, user.name)))
             <span class="date">
-                <a href="#event-@event.id">@agoOrDateString(event.getDate())</a>
+                <a href="#event-@event.id" title="@getDateString(event.getDate())">@agoOrDateString(event.getDate())</a>
             </span>
         </li>
         }
@@ -66,7 +66,7 @@
             <span class="state changed">@Messages("pullRequest.unreviewed")</span>
             @Html(Messages("notification.pullrequest.unreviewed", linkToUser(user.loginId, user.name)))
             <span class="date">
-                <a href="#event-@event.id">@agoOrDateString(event.getDate())</a>
+                <a href="#event-@event.id" title="@getDateString(event.getDate())">@agoOrDateString(event.getDate())</a>
             </span>
         </li>
         }
@@ -83,7 +83,7 @@
                 }
             }
             <span class="date">
-                <a href="#event-@event.id">@agoOrDateString(event.getDate())</a>
+                <a href="#event-@event.id" title="@getDateString(event.getDate())">@agoOrDateString(event.getDate())</a>
             </span>
         </li>
         }
@@ -93,7 +93,7 @@
             <span class="state @event.newValue">@Messages("pullRequest.event." + event.newValue)</span>
             @Html(Messages("pullRequest.event.message." + event.newValue, linkToUser(user.loginId, user.name)))
             <span class="date">
-                <a href="#event-@event.id">@agoOrDateString(event.getDate())</a>
+                <a href="#event-@event.id" title="@getDateString(event.getDate())">@agoOrDateString(event.getDate())</a>
             </span>
         </li>
         }
@@ -103,7 +103,7 @@
             <span class="state changed">@Messages("pullRequest.event.commit")</span>
             @Html(Messages("pullRequest.event.message.commit", linkToUser(user.loginId, user.name)))
             <span class="date">
-                <a href="#event-@event.id">@agoOrDateString(event.getDate())</a>
+                <a href="#event-@event.id" title="@getDateString(event.getDate())">@agoOrDateString(event.getDate())</a>
             </span>
             @if(event.oldValue != null) {
             <a href="@urlToCompare(pull.toProject, event.oldValue)" class="ybtn ybtn-mini">@Messages("pullRequest.additional.changes")</a>
@@ -120,7 +120,7 @@
                     <a href="@routes.UserApp.userInfo(author.loginId)" class="avatar-wrap small" data-toggle="tooltip" data-placement="top" title="@User.findByLoginId(author.loginId).name">
                         <img src="@author.avatarUrl"  alt="@author.name"> @commit.authorEmail
                     </a>
-                    <div class="date">@utils.TemplateHelper.agoOrDateString(commit.authorDate)</div>
+                    <div class="date" title="@getDateString(commit.authorDate)">@utils.TemplateHelper.agoOrDateString(commit.authorDate)</div>
                     } else {
                         <img src="@urlToPicture(commit.getAuthorEmail, 32)" class="avatar-wrap small">
                     }

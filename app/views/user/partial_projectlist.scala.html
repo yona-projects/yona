@@ -19,7 +19,7 @@
 * limitations under the License.
 **@
 @(project:Project, user:User)
-@import utils.JodaDateUtil
+@import utils.JodaDateUtil._
 @import utils.TemplateHelper._
 
 <li class="project">
@@ -49,8 +49,8 @@
             </div>
             <div class="desc">@project.overview</div>
             <div class="name-tag">
-                @Messages("project.create") <strong>@agoOrDateString(project.createdDate)</strong>
-                @if(project.lastPushedDateAgo() != null) {, @Messages("project.codeUpdate") <strong>@agoOrDateString(project.lastPushedDate)}</strong>
+                @Messages("project.create") <strong title="@getDateString(project.createdDate)">@agoOrDateString(project.createdDate)</strong>
+                @if(project.lastPushedDateAgo() != null) {, @Messages("project.codeUpdate") <strong title="@getDateString(project.lastPushedDate)">@agoOrDateString(project.lastPushedDate)}</strong>
             </div>
         </div>
     </div>
