@@ -34,7 +34,7 @@ object ApplicationBuild extends Build {
       "commons-codec" % "commons-codec" % "1.2",
       // apache-mails
       "org.apache.commons" % "commons-email" % "1.2",
-      "info.schleichardt" %% "play-2-mailplugin" % "0.9.1",
+      "info.schleichardt" %% "play-2-mail" % "1.0.0" exclude("com.typesafe.play", "play_2.10"),
       "commons-lang" % "commons-lang" % "2.6",
       "org.apache.tika" % "tika-core" % "1.2",
       "commons-io" % "commons-io" % "2.4",
