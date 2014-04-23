@@ -59,8 +59,7 @@ object ApplicationBuild extends Build {
       scalacOptions ++= Seq("-feature")
     )
 
-  val main = play.Project(appName, appVersion, appDependencies).settings(
-    projectSettings: _*
-  )
-
+  val main = play.Project(appName, appVersion, appDependencies)
+    .settings(projectSettings: _*)
+    .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
 }
