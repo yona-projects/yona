@@ -198,12 +198,11 @@
         function _scrollToAndHighlight(welTarget){
             window.scrollTo(0, welTarget.offset().top - 50);
 
-            // 주어진 엘리먼트가 접혀있는 스레드라면
+            // 주어진 엘리먼트가 접혀있는 스레드라면 펼침
             if(_isFoldedThread(welTarget)){
-                welTarget.find(".btn-thread-here").effect("bounce", {"easing": "easeOutBounce"});
-            } else { // 그 외의 경우
-                welTarget.effect("highlight");
+                welTarget.removeClass("fold");
             }
+            welTarget.effect("highlight");
         }
 
         /**
