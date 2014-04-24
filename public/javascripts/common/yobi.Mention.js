@@ -81,6 +81,9 @@ yobi.Mention = function(htOptions) {
     function _onLoadUserList(aData){
         htVar.atConfig.data = aData;
 
+        // on-key event fix for FF on Korean input
+        var keyFix = new beta.fix(htVar.target);
+
         $inputor = htElement.welTarget.atwho(htVar.atConfig);
         $inputor.caret("pos", 47);
         $inputor.focus().atwho("run");

@@ -173,6 +173,11 @@ App = (function() {
           return;
         }
         e.preventDefault();
+
+        // fix the caret problem on korean input
+        var event = jQuery.Event("keyup");
+        event.keyCode = 18;
+        this.$inputor.trigger(event);
         view.choose();
         break;
       default:
@@ -493,9 +498,10 @@ View = (function() {
       return $(e.currentTarget).addClass('cur');
     }).on('click', (function(_this) {
       return function(e) {
-          /*$("#body").focus();
-         var e = jQuery.Event("keydown", {keyCode:65});
-         $("#body").trigger(e);*/
+        // fix the caret problem on korean input
+        var event = jQuery.Event("keyup");
+        event.keyCode = 18;
+        $inputor.trigger(event);
         _this.choose();
         return e.preventDefault();
       };
