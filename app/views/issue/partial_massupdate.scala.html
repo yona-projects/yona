@@ -52,86 +52,87 @@
 <li class="divider" data-category="${category}"></li>
 </script>
 
-<form id="mass-update-form" class="mass-update-form pull-left" action="@routes.IssueApp.massUpdate(project.owner, project.name)" method="post">
-    <div class="btn-group check-all">
-        <label for="check-all">
-            <input type="checkbox" id="check-all" data-target="checked-issue"/>
-        </label>
-    </div>
-    <div id="state" class="btn-group" data-name="state">
-        <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
-            <span class="d-label">@Messages("issue.update.state")</span>
-            <span class="d-caret"><span class="caret"></span></span>
-        </button>
-        <ul class="dropdown-menu mass-update-list">
-            <li data-value="@State.OPEN.name"><a>@Messages("issue.state.open")</a></li>
-            <li data-value="@State.CLOSED.name"><a>@Messages("issue.state.closed")</a></li>
-        </ul>
-    </div>
+<div class="mass-update-wrap">
+    <form id="mass-update-form" class="mass-update-form pull-left" action="@routes.IssueApp.massUpdate(project.owner, project.name)" method="post">
+        <div class="btn-group check-all">
+            <label for="check-all">
+                <input type="checkbox" id="check-all" data-target="checked-issue"/>
+            </label>
+        </div>
+        <div id="state" class="btn-group" data-name="state">
+            <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
+                <span class="d-label">@Messages("issue.update.state")</span>
+                <span class="d-caret"><span class="caret"></span></span>
+            </button>
+            <ul class="dropdown-menu mass-update-list">
+                <li data-value="@State.OPEN.name"><a>@Messages("issue.state.open")</a></li>
+                <li data-value="@State.CLOSED.name"><a>@Messages("issue.state.closed")</a></li>
+            </ul>
+        </div>
 
-    <div id="assignee" class="btn-group" data-name="assignee.id">
-        <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
-            <span class="d-label">@Messages("issue.update.assignee")</span>
-            <span class="d-caret"><span class="caret"></span></span>
-        </button>
-        <ul class="dropdown-menu mass-update-list">
-            <li data-value="@User.anonymous.id"><a>@Messages("issue.noAssignee")</a></li>
-            @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
-                <li data-value="@UserApp.currentUser().id"><a>@Messages("issue.assignToMe")</a></li>
-            }
-            <li class="divider"></li>
-            @for(member <- project.members()) {
-                <li data-value="@member.user.id">
-                    <a class="usf-group">
-                        <span class="avatar-wrap smaller">
-                            <img src="@member.user.avatarUrl" width="20" height="20">
-                        </span>
-                        <strong class="name">@member.user.name</strong>
-                        <span class="loginid"> <strong>@{"@"}</strong>@member.user.loginId</span>
-                    </a>
-                </li>
-            }
-        </ul>
-    </div>
+        <div id="assignee" class="btn-group" data-name="assignee.id">
+            <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
+                <span class="d-label">@Messages("issue.update.assignee")</span>
+                <span class="d-caret"><span class="caret"></span></span>
+            </button>
+            <ul class="dropdown-menu mass-update-list">
+                <li data-value="@User.anonymous.id"><a>@Messages("issue.noAssignee")</a></li>
+                @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
+                    <li data-value="@UserApp.currentUser().id"><a>@Messages("issue.assignToMe")</a></li>
+                }
+                <li class="divider"></li>
+                @for(member <- project.members()) {
+                    <li data-value="@member.user.id">
+                        <a class="usf-group">
+                            <span class="avatar-wrap smaller">
+                                <img src="@member.user.avatarUrl" width="20" height="20">
+                            </span>
+                            <strong class="name">@member.user.name</strong>
+                            <span class="loginid"> <strong>@{"@"}</strong>@member.user.loginId</span>
+                        </a>
+                    </li>
+                }
+            </ul>
+        </div>
 
-    <div id="milestone" class="btn-group" data-name="milestone.id">
-        <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
-            <span class="d-label">@Messages("issue.update.milestone")</span>
-            <span class="d-caret"><span class="caret"></span></span>
-        </button>
-        <ul class="dropdown-menu mass-update-list">
-            <li data-value="@Milestone.NULL_MILESTONE_ID"><a>@Messages("issue.noMilestone")</a></li>
-            <li class="divider"></li>
-            @for(milestone <- Milestone.findOpenMilestones(project.id)) {
-                <li data-value="@milestone.id"><a>@milestone.title</a></li>
-            }
-        </ul>
-    </div>
+        <div id="milestone" class="btn-group" data-name="milestone.id">
+            <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
+                <span class="d-label">@Messages("issue.update.milestone")</span>
+                <span class="d-caret"><span class="caret"></span></span>
+            </button>
+            <ul class="dropdown-menu mass-update-list">
+                <li data-value="@Milestone.NULL_MILESTONE_ID"><a>@Messages("issue.noMilestone")</a></li>
+                <li class="divider"></li>
+                @for(milestone <- Milestone.findOpenMilestones(project.id)) {
+                    <li data-value="@milestone.id"><a>@milestone.title</a></li>
+                }
+            </ul>
+        </div>
 
-    <div id="attaching-label" class="btn-group" data-name="attachingLabel[0].id">
-        <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
-            <span class="d-label">@Messages("issue.update.attachLabel")</span>
-            <span class="d-caret"><span class="caret"></span></span>
-        </button>
-        <ul id="attach-label-list" class="dropdown-menu mass-update-list">
-            @labelList(project)
-        </ul>
-    </div>
+        <div id="attaching-label" class="btn-group" data-name="attachingLabel[0].id">
+            <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
+                <span class="d-label">@Messages("issue.update.attachLabel")</span>
+                <span class="d-caret"><span class="caret"></span></span>
+            </button>
+            <ul id="attach-label-list" class="dropdown-menu mass-update-list">
+                @labelList(project)
+            </ul>
+        </div>
 
-    <div id="detaching-label" class="btn-group" data-name="detachingLabel[0].id">
-        <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
-            <span class="d-label">@Messages("issue.update.detachLabel")</span>
-            <span class="d-caret"><span class="caret"></span></span>
-        </button>
-        <ul id="delete-label-list" class="dropdown-menu mass-update-list">
-            @labelList(project)
-        </ul>
-    </div>
-</form>
-
+        <div id="detaching-label" class="btn-group" data-name="detachingLabel[0].id">
+            <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
+                <span class="d-label">@Messages("issue.update.detachLabel")</span>
+                <span class="d-caret"><span class="caret"></span></span>
+            </button>
+            <ul id="delete-label-list" class="dropdown-menu mass-update-list">
+                @labelList(project)
+            </ul>
+        </div>
+    </form>
+</div>
 <script type="text/javascript">
     $(document).ready(function(){
-	    //issueList
+        //issueList
         $yobi.loadModule("issue.MassUpdate", {
             "sURL": "@routes.IssueApp.massUpdate(project.owner, project.name)",
             "welMassUpdateForm": $('#mass-update-form'),

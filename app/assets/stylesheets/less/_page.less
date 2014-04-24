@@ -4621,16 +4621,20 @@ label.issue-item-row {
         text-align:center;
     }
 }
+
+.mass-update-wrap {
+    &.affix {
+        top:0;
+        padding:15px 0;
+        border-bottom:1px solid rgba(0, 0, 0, 0.1);
+        width:100%;
+        background: #fff;
+    }
+}
+
 .mass-update-form {
    position:relative;
    -webkit-transition:padding 0.5s;
-
-   &.fixed {
-       position:fixed; width:100%;
-       top:0; background:#fff;
-       padding:10px 0;
-       border-bottom:1px solid rgba(0,0,0,0.1);
-   }
 
    .mass-update-list {
         max-height: 350px;

@@ -320,23 +320,10 @@
          * 일괄 업데이트 폼이 스크롤해도 계속 따라다니도록 설정하는 함수
          */
         function _setMassUpdateFormAffixed(){
-            htVar.nMassUpdateTop = htElement.welMassUpdateForm.offset().top + (htElement.welMassUpdateForm.height() / 2) - 20;
-
-            _updateMassUpdateFormFixation();
-            $(window).on("scroll", _updateMassUpdateFormFixation);
-        }
-
-        /**
-         * 현재 스크롤 높이에 따라 일괄 업데이트 폼의 고정 여부를 업데이트 한다
-         * @private
-         */
-        function _updateMassUpdateFormFixation(){
-            if($(window).scrollTop() > htVar.nMassUpdateTop){
-                htElement.welMassUpdateForm.addClass("fixed");
-            } else {
-                htElement.welMassUpdateForm.removeClass("fixed");
-            }
-        }
+            $('.mass-update-wrap').affix({
+                offset: {top:$('.mass-update-wrap').offset().top - 15}
+            });
+         }
 
         _init(htOptions);
     };
