@@ -99,6 +99,10 @@
                    "blur" : _onBlurCommentTextarea
                 });
             }
+
+            $(".labels-wrap").on("click", ".edit-button", function(){
+                $("#issueLabels").data("select2").open();
+            });
         }
 
         /**
