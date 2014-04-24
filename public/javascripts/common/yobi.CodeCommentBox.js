@@ -102,7 +102,7 @@ yobi.CodeCommentBox = (function(){
         if(typeof sThreadId !== "undefined"){
             _setReviewFormFields({
                 "thread.id": sThreadId
-            }, true);
+            });
         } else {
             if(typeof welTarget.data("line") === "undefined"){
                 welTarget = welTr.prevUntil("tr[data-line]");
@@ -176,15 +176,10 @@ yobi.CodeCommentBox = (function(){
      * @param htData
      * @private
      */
-    function _setReviewFormFields(htData, bForceClean){
+    function _setReviewFormFields(htData){
         var aInput = [];
         var welField, elField, sFieldName;
         var welForm = htElement.welCommentForm;
-
-        // 기존에 있던 hidden field 제거하는 경우
-        if(bForceClean === true){
-            welForm.find('input[type="hidden"]').remove();
-        }
 
         // 필드가 없으면 만들고, 있으면 값 지정
         for(sFieldName in htData){
