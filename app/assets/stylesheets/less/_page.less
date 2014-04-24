@@ -3446,12 +3446,11 @@ label.issue-item-row {
 
         .diff-body {
             position:relative;
-            border:1px solid #ddd;
             .border-radius(3px);
             min-height:30px;
         }
 
-        .diff-partial-outer { border:none; }
+       
         .write-comment-box { padding:0; margin-top:20px; }
     }
 
@@ -4971,6 +4970,7 @@ label.issue-item-row {
                 background-color: #eee;
                 border-bottom: 1px solid #bbb;
                 height: 30px;
+                position:relative;
 
                 .diff-partial-commit {
                     float:left;
@@ -4986,13 +4986,19 @@ label.issue-item-row {
                 }
 
                 .diff-partial-file {
-                    float: left;
                     padding:5px 10px;
                     font-weight: bold;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                    word-break : break-all;
+                    margin-right: 115px;
                 }
 
                 .diff-partial-utility {
-                    float:right;
+                    position:absolute;
+                    top:0;
+                    right:0;
                     padding:2px 5px;
                 }
             }
