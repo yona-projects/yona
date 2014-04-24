@@ -29,15 +29,12 @@ yobi.Mention = function(htOptions) {
      */
     function _initVar(htOptions) {
         htVar = htOptions || {}; // set htVar as htOptions
-
-        htVar.htMentionList = {
-            "emptyQuery": true,
-            "typeaheadOpts": {
-                "items": 15
-            },
-            "users": [],
-            "queryBy": ["username", "name"]
-        };
+        htVar.atConfig = {
+            at: "@",
+            data: [],
+            tpl: "<li data-value='@${loginid}'><img style='width:20px;height:20px;' src='${image}'> ${username} <small>${loginid}</small></li>",
+            show_the_at: true
+        }
     }
 
     /**
@@ -62,8 +59,8 @@ yobi.Mention = function(htOptions) {
     function _onKeyInput(eEvt){
         eEvt = eEvt || window.event;
 
-        if(eEvt.which === 64 || eEvt.which === 35){ // 64 = @ or 35 = #
-            if(htVar.htMentionList.users.length == 0) {
+        if(eEvt.which === 64) { // 64 = @
+            if(htVar.atConfig.data.length == 0) {
                 _findMentionList();
             }
         }
@@ -82,8 +79,11 @@ yobi.Mention = function(htOptions) {
     }
 
     function _onLoadUserList(aData){
-        htVar.htMentionList.users = aData;
-        htElement.welTarget.mention(htVar.htMentionList);
+        htVar.atConfig.data = aData;
+
+        $inputor = htElement.welTarget.atwho(htVar.atConfig);
+        $inputor.caret("pos", 47);
+        $inputor.focus().atwho("run");
     }
 
     _init(htOptions || {});

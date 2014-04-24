@@ -500,11 +500,9 @@ public class ProjectApp extends Controller {
         collectAuthorAndCommenter(project, number, userList, resourceType);
         addProjectMemberList(project, userList);
         userList.remove(UserApp.currentUser());
-        List<Issue> issueList = getMentionIssueList(project);
 
         List<Map<String, String>> mentionList = new ArrayList<>();
         collectedUsersToMap(mentionList, userList);
-        collectedIssuesToMap(mentionList, issueList);
         return ok(toJson(mentionList));
     }
 
@@ -862,8 +860,9 @@ public class ProjectApp extends Controller {
         for(User user: userList) {
             Map<String, String> projectUserMap = new HashMap<>();
             if(!user.loginId.equals(Constants.ADMIN_LOGIN_ID) && user != null){
-                projectUserMap.put("username", user.loginId);
-                projectUserMap.put("name", user.name);
+                projectUserMap.put("loginid", user.loginId);
+                projectUserMap.put("username", user.name);
+                projectUserMap.put("name", user.name + user.loginId);
                 projectUserMap.put("image", user.avatarUrl());
                 users.add(projectUserMap);
             }

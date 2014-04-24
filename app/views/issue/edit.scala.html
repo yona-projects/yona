@@ -29,6 +29,7 @@
 
 @projectLayout(Messages(title), project, utils.MenuType.ISSUE) {
 @projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
+
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
         <div class="content-wrap frm-wrap">
@@ -185,8 +186,11 @@
 @common.markdown(project)
 @common.issueLabel()
 @common.select2()
-<link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mentionjs/mention.css")">
-<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/mentionjs/mention.js")"></script>
+<link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.css")">
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.caret.min.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.browser.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.firefox.keyfix.js")"></script>
 <script type="text/javascript">
     $(document).ready(function(){
         // yobi.Label
