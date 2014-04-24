@@ -5,7 +5,7 @@ Yobi
 [![Build Status](https://travis-ci.org/nforge/yobi.png?branch=master)](https://travis-ci.org/nforge/yobi)
 
 
-Yobi, collaborative SW development platform.<br/>(Currently, 0.5 - work in progress)
+Yobi, collaborative SW development platform.<br/>
 
 
 What is Yobi?
