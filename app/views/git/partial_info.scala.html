@@ -77,6 +77,13 @@
         <a href="@routes.PullRequestApp.pullRequest(project.owner, project.name, pull.number)">@Messages("pullRequest.menu.overview")</a>
     </li>
     <li @if(menuType.equals("changes")){class="active"}>
-        <a href="@routes.PullRequestApp.pullRequestChanges(project.owner, project.name, pull.number)">@Messages("pullRequest.menu.changes")</a>
+        <a href="@routes.PullRequestApp.pullRequestChanges(project.owner, project.name, pull.number)">
+            @Messages("pullRequest.menu.changes")
+            @defining(pull.countCommentThreadsByState(CommentThread.ThreadState.OPEN)) { countOpenThreads =>
+                @if(countOpenThreads > 0) {
+                    <span class="num-badge">@countOpenThreads</span>
+                }
+            }
+        </a>
     </li>
 </ul>

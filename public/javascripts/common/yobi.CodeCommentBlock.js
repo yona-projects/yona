@@ -65,9 +65,24 @@ yobi.CodeCommentBlock = (function(){
      *
      * @private
      */
-    function _onMouseDownOnDiff(){
+    function _onMouseDownOnDiff(weEvt){
+        if(!_isMouseLeftButtonPressed(weEvt)){
+            return;
+        }
+
         _unwrapAll();
         window.getSelection().removeAllRanges(); // 기존의 Selection 정보를 지워야 함
+    }
+
+    /**
+     * 주어진 마우스 이벤트가 왼쪽 버튼을 누른 것인지 여부를 반환
+     *
+     * @param weEvt
+     * @returns {boolean}
+     * @private
+     */
+    function _isMouseLeftButtonPressed(weEvt){
+        return (weEvt.which === 1);
     }
 
     /**

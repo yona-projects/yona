@@ -530,7 +530,7 @@
                 var nLine = (nLineB==null) ? nLineA : nLineB;
                 welCellCode.addClass('code');
                 welRow.attr('data-line',nLine).attr('data-type',sRowType);
-                welCellLineA.append($('<i/>',{class:'icon-comment'}));
+                welCellLineA.append($('<i/>',{class:'yobicon-comments'}));
                 welCellCode.append(welCode);
             }
 
