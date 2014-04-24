@@ -371,11 +371,20 @@ yobi.CodeCommentBlock = (function(){
      * @private
      */
     function _unwrapAll(){
-        $('[data-toggle="comment-block"]').each(function(){
-            this.outerHTML = this.innerHTML;
-        });
+        $('[data-toggle="comment-block"]').each(_unwrapCommentBlock);
 
         _onUnwrapAllCodeCommentBlock();
+    }
+
+    /**
+     * Unwrap each comment block
+     * @private
+     */
+    function _unwrapCommentBlock(){
+        var parent = $(this).parents("pre");
+        var unwrappedHTML = parent.html().replace(this.outerHTML, this.innerHTML);
+
+        parent.html(unwrappedHTML);
     }
 
     /**
