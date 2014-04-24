@@ -643,8 +643,10 @@ public class User extends Model implements ResourceConvertible {
     }
 
     public void visits(Project project) {
-        this.recentlyVisitedProjects = RecentlyVisitedProjects.addNewVisitation(this, project);
-        this.update();
+        synchronized (this) {
+            this.recentlyVisitedProjects = RecentlyVisitedProjects.addNewVisitation(this, project);
+            this.update();
+        }
     }
 
 
