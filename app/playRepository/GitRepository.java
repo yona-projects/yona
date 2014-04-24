@@ -2035,11 +2035,6 @@ public class GitRepository implements PlayRepository {
         config.install();
 
         File srcGitDirectory = new File(getGitDirectory(srcProjectOwner, srcProjectName));
-        if(!srcGitDirectory.exists()) {
-            play.Logger.warn("[Transfer] Nothing To Move: " + srcGitDirectory.getAbsolutePath());
-            return true;
-        }
-
         File destGitDirectory = new File(getGitDirectory(desrProjectOwner, destProjectName));
         File srcGitDirectoryForMerging = new File(getDirectoryForMerging(srcProjectOwner, srcProjectName));
         File destGitDirectoryForMerging = new File(getDirectoryForMerging(desrProjectOwner, destProjectName));
@@ -2047,8 +2042,21 @@ public class GitRepository implements PlayRepository {
         srcGitDirectoryForMerging.setWritable(true);
 
         try {
-            org.apache.commons.io.FileUtils.moveDirectory(srcGitDirectory, destGitDirectory);
-            org.apache.commons.io.FileUtils.moveDirectory(srcGitDirectoryForMerging, destGitDirectoryForMerging);
+            if(srcGitDirectory.exists()) {
+                org.apache.commons.io.FileUtils.moveDirectory(srcGitDirectory, destGitDirectory);
+                play.Logger.debug("[Transfer] Move from: " + srcGitDirectory.getAbsolutePath()
+                        + "to " + destGitDirectory);
+            } else {
+                play.Logger.warn("[Transfer] Nothing to move from: " + srcGitDirectory.getAbsolutePath());
+            }
+
+            if(srcGitDirectoryForMerging.exists()) {
+                org.apache.commons.io.FileUtils.moveDirectory(srcGitDirectoryForMerging, destGitDirectoryForMerging);
+                play.Logger.debug("[Transfer] Move from: " + srcGitDirectoryForMerging.getAbsolutePath()
+                        + "to " + destGitDirectoryForMerging);
+            } else {
+                play.Logger.warn("[Transfer] Nothing to move from: " + srcGitDirectoryForMerging.getAbsolutePath());
+            }
             return true;
         } catch (IOException e) {
             play.Logger.error("[Transfer] Move Failed", e);

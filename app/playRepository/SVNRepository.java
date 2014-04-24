@@ -457,7 +457,9 @@ public class SVNRepository implements PlayRepository {
         src.setWritable(true);
 
         try {
-            FileUtils.moveDirectory(src, dest);
+            if(src.exists()) {
+                FileUtils.moveDirectory(src, dest);
+            }
             return true;
         } catch (IOException e) {
             play.Logger.error("Move Failed", e);
