@@ -207,15 +207,14 @@
 <script type="text/javascript">
     $(document).ready(function() {
         // yobi.Mention
-        @defining(ifElse(pull.getCurrentCommits.isEmpty,
-            routes.ProjectApp.mentionListAtPullRequest(pull.toProject.owner, pull.toProject.name, "", pull.id).toString(),
-            routes.ProjectApp.mentionListAtPullRequest(pull.toProject.owner, pull.toProject.name, pull.getCurrentCommits.get(0).getCommitId, pull.id).toString()
-        )){ mentionURL =>
         yobi.Mention({
             target:'comment-editor',
-            url   : "@Html(mentionURL)"
+            @if(pull.getCurrentCommits.isEmpty) {
+                url : "@Html(routes.ProjectApp.mentionListAtPullRequest(pull.toProject.owner, pull.toProject.name, "", pull.id).toString())"
+            } else {
+                url : "@Html(routes.ProjectApp.mentionListAtPullRequest(pull.toProject.owner, pull.toProject.name, pull.getCurrentCommits.get(0).getCommitId, pull.id).toString())"
+            }
         });
-        }
 
         // code.Diff
         $yobi.loadModule("code.Diff", {
