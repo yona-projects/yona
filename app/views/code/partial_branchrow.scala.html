@@ -43,7 +43,8 @@
     <td class="pullRequest">
     @if(branch.getPullRequest != null) {
         <a href="@routes.PullRequestApp.pullRequest(branch.getPullRequest.toProject.owner, branch.getPullRequest.toProject.name, branch.getPullRequest.number)"
-           class="blue-txt pullrequest-state @branch.getPullRequest.state.toString().toLowerCase">
+           class="blue-txt pullrequest-state @branch.getPullRequest.state.toString().toLowerCase"
+           data-toggle="tooltip" data-placement="top" title="@Messages("pullRequest.state." + branch.getPullRequest.state.toString().toLowerCase)">
            pullRequest-@branch.getPullRequest.number
         </a>
     } else {
