@@ -68,40 +68,10 @@ import static play.data.Form.form;
 import static play.mvc.Results.badRequest;
 
 public class Global extends GlobalSettings {
-    public static final String APPLICATION_CONF_DEFAULT = "application.conf.default";
-    public static final String APPLICATION_CONF = "application.conf";
-    public static final String CONFIG_DIRNAME = "conf";
     private final String DEFAULT_SECRET = "VA2v:_I=h9>?FYOH:@ZhW]01P<mWZAKlQ>kk>Bo`mdCiA>pDw64FcBuZdDh<47Ew";
 
     private boolean isRestartRequired = false;
     private boolean isValidationRequired = false;
-
-    @Override
-    public Configuration onLoadConfig(play.Configuration config, File path, ClassLoader classloader) {
-        String basePath = path.getAbsolutePath();
-        Path pathToDefaultConfig = Paths.get(basePath, CONFIG_DIRNAME, APPLICATION_CONF_DEFAULT);
-        Path pathToConfig = Paths.get(basePath, CONFIG_DIRNAME, APPLICATION_CONF);
-        File configFile = pathToConfig.toFile();
-
-        if (!configFile.exists()) {
-            try {
-                Files.copy(pathToDefaultConfig, pathToConfig);
-            } catch (IOException e) {
-                play.Logger.error("Failed to initialize configuration", e);
-                return null;
-            }
-            Config parsedConfig = ConfigFactory.parseFileAnySyntax(configFile);
-            return new Configuration(ConfigFactory.load(classloader, parsedConfig));
-        } else {
-            if (!configFile.isFile()) {
-                play.Logger.error(
-                        "Failed to initialize configuration: " + pathToConfig + " is a directory.");
-                return null;
-            }
-        }
-
-        return null;
-    }
 
     public void onStart(Application app) {
         isValidationRequired = !validateSecret();
