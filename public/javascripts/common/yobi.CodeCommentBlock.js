@@ -55,7 +55,7 @@ yobi.CodeCommentBlock = (function(){
      * @private
      */
     function _attachEvent(){
-        htElement.welContainer.on("mouseup",   "td.code pre", _onMouseUpOnDiff);
+        htElement.welContainer.on("mouseup", _onMouseUpOnDiff);
         htElement.welContainer.on("mousedown", "td.code pre", _onMouseDownOnDiff);
     }
 
