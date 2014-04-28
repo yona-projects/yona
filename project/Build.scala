@@ -8,13 +8,14 @@ import play.Project.lessEntryPoints
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.io.IOException;
+import com.typesafe.config._
 
 object ApplicationBuild extends Build {
 
   val appName         = "yobi"
-  val appVersion      = "1.0-SNAPSHOT"
   val APPLICATION_CONF_DEFAULT = "application.conf.default"
   val APPLICATION_CONF = "application.conf"
+  val VERSION_CONF = "version.conf"
   val CONFIG_DIRNAME = "conf"
 
   val appDependencies = Seq(
@@ -65,8 +66,9 @@ object ApplicationBuild extends Build {
       scalacOptions ++= Seq("-feature")
     )
 
+  def basePath = new File(System.getProperty("user.dir")).getAbsolutePath()
+
   val initConfig = {
-    val basePath = new File(System.getProperty("user.dir")).getAbsolutePath()
     val pathToDefaultConfig = Paths.get(basePath, CONFIG_DIRNAME, APPLICATION_CONF_DEFAULT)
     val pathToConfig = Paths.get(basePath, CONFIG_DIRNAME, APPLICATION_CONF)
     val configFile = pathToConfig.toFile()
@@ -86,6 +88,11 @@ object ApplicationBuild extends Build {
 
   val main = {
     initConfig
+
+    val pathToVersionConfig = Paths.get(basePath, CONFIG_DIRNAME, VERSION_CONF)
+    val versionConf = ConfigFactory.parseFile(pathToVersionConfig.toFile()).resolve()
+    val appVersion = versionConf.getString("app.version")
+
     play.Project(appName, appVersion, appDependencies)
     .settings(projectSettings: _*)
     .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
