@@ -5,11 +5,17 @@ import play.Project.javaJdbc
 import play.Project.javaEbean
 import play.Project.templatesImport
 import play.Project.lessEntryPoints
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.io.IOException;
 
 object ApplicationBuild extends Build {
 
   val appName         = "yobi"
   val appVersion      = "1.0-SNAPSHOT"
+  val APPLICATION_CONF_DEFAULT = "application.conf.default"
+  val APPLICATION_CONF = "application.conf"
+  val CONFIG_DIRNAME = "conf"
 
   val appDependencies = Seq(
     // Add your project dependencies here,
@@ -59,7 +65,29 @@ object ApplicationBuild extends Build {
       scalacOptions ++= Seq("-feature")
     )
 
-  val main = play.Project(appName, appVersion, appDependencies)
+  val initConfig = {
+    val basePath = new File(System.getProperty("user.dir")).getAbsolutePath()
+    val pathToDefaultConfig = Paths.get(basePath, CONFIG_DIRNAME, APPLICATION_CONF_DEFAULT)
+    val pathToConfig = Paths.get(basePath, CONFIG_DIRNAME, APPLICATION_CONF)
+    val configFile = pathToConfig.toFile()
+
+    if (!configFile.exists()) {
+        try {
+          Files.copy(pathToDefaultConfig, pathToConfig)
+        } catch {
+            case e: IOException => throw new Exception("Failed to initialize configuration", e)
+        }
+    } else {
+        if (!configFile.isFile()) {
+            throw new Exception("Failed to initialize configuration: '" + pathToConfig + "' is a directory.")
+        }
+    }
+  }
+
+  val main = {
+    initConfig
+    play.Project(appName, appVersion, appDependencies)
     .settings(projectSettings: _*)
     .settings(net.virtualvoid.sbt.graph.Plugin.graphSettings: _*)
+  }
 }
