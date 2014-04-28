@@ -23,8 +23,8 @@ package controllers;
 import actions.AnonymousCheckAction;
 import controllers.annotation.IsAllowed;
 import models.*;
-import models.enumeration.EventType;
 import models.enumeration.Operation;
+import models.enumeration.PullRequestReviewAction;
 import models.enumeration.ResourceType;
 import play.api.mvc.Call;
 import play.db.ebean.Transactional;
@@ -47,7 +47,7 @@ public class ReviewApp extends Controller {
         pullRequest.addReviewer(UserApp.currentUser());
 
         Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
-        addNotification(pullRequest, EventType.PULL_REQUEST_REVIEWED);
+        addNotification(pullRequest, PullRequestReviewAction.DONE);
 
         return redirect(call);
     }
@@ -61,14 +61,13 @@ public class ReviewApp extends Controller {
         pullRequest.removeReviewer(UserApp.currentUser());
 
         Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
-        addNotification(pullRequest, EventType.PULL_REQUEST_UNREVIEWED);
+        addNotification(pullRequest, PullRequestReviewAction.CANCEL);
 
         return redirect(call);
     }
 
-    private static void addNotification(PullRequest pullRequest, EventType eventType) {
-        NotificationEvent notiEvent = NotificationEvent.afterReviewed(pullRequest, eventType);
-        PullRequestEvent.addEvent(notiEvent, pullRequest);
+    private static void addNotification(PullRequest pullRequest, PullRequestReviewAction reviewAction) {
+        NotificationEvent notiEvent = NotificationEvent.afterReviewed(pullRequest, reviewAction);
+        PullRequestEvent.addFromNotificationEvent(notiEvent, pullRequest);
     }
-
 }

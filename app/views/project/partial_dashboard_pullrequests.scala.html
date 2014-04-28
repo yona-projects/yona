@@ -32,7 +32,7 @@
                 </div>
                 @if(project.isUsingReviewerCount){
                     <div class="span2 review @if(!pullRequest.isReviewed){disabled}">
-                        @Messages("pullRequest.reviewed") <strong>@pullRequest.reviewers.size</strong>
+                        @Messages("pullRequest.review") <strong>@pullRequest.reviewers.size</strong>
                     </div>
                 }
                 <div class="span2 num" title="@JodaDateUtil.getDateString(pullRequest.created)">

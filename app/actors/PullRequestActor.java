@@ -58,7 +58,7 @@ public abstract class PullRequestActor extends UntypedActor {
                 mergeResult.setMergedStateOfPullRequest(message.getSender());
                 NotificationEvent notiEvent = NotificationEvent.afterPullRequestUpdated(message.getSender(),
                         pullRequest, pullRequest.state, State.MERGED);
-                PullRequestEvent.addEvent(notiEvent, pullRequest);
+                PullRequestEvent.addFromNotificationEvent(notiEvent, pullRequest);
             }
 
             if (mergeResult.conflicts()) {

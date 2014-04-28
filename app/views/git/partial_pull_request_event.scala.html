@@ -51,24 +51,24 @@
 }
 @defining(User.findByLoginId(event.senderLoginId)) { user =>
     @event.eventType match {
-        case EventType.PULL_REQUEST_REVIEWED => {
-        <li class="event" id="comment-@event.id">
-            <span class="state changed">@Messages("pullRequest.reviewed")</span>
-            @Html(Messages("notification.pullrequest.reviewed",linkToUser(user.loginId, user.name)))
-            <span class="date">
-                <a href="#event-@event.id" title="@getDateString(event.getDate())">@agoOrDateString(event.getDate())</a>
-            </span>
-        </li>
-        }
-
-        case EventType.PULL_REQUEST_UNREVIEWED => {
-        <li class="event" id="comment-@event.id">
-            <span class="state changed">@Messages("pullRequest.unreviewed")</span>
-            @Html(Messages("notification.pullrequest.unreviewed", linkToUser(user.loginId, user.name)))
-            <span class="date">
-                <a href="#event-@event.id" title="@getDateString(event.getDate())">@agoOrDateString(event.getDate())</a>
-            </span>
-        </li>
+        case EventType.PULL_REQUEST_REVIEW_STATE_CHANGED => {
+            @if(event.newValue == PullRequestReviewAction.DONE.name) {
+            <li class="event" id="comment-@event.id">
+                <span class="state changed">@Messages("pullRequest.review")</span>
+                @Html(Messages("notification.pullrequest.reviewed",linkToUser(user.loginId, user.name)))
+                <span class="date">
+                    <a href="#event-@event.id" title="@getDateString(event.getDate())">@agoOrDateString(event.getDate())</a>
+                </span>
+            </li>
+            } else {
+            <li class="event" id="comment-@event.id">
+                <span class="state changed">@Messages("pullRequest.unreview")</span>
+                @Html(Messages("notification.pullrequest.unreviewed", linkToUser(user.loginId, user.name)))
+                <span class="date">
+                    <a href="#event-@event.id" title="@getDateString(event.getDate())">@agoOrDateString(event.getDate())</a>
+                </span>
+            </li>
+            }
         }
         case EventType.PULL_REQUEST_STATE_CHANGED => {
         <li class="event" id="comment-@event.id">

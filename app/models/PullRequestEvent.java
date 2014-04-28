@@ -28,10 +28,11 @@ import java.util.List;
 import javax.persistence.*;
 
 import org.apache.commons.lang3.StringUtils;
-import controllers.UserApp;
 import models.enumeration.EventType;
 import models.enumeration.State;
+import org.joda.time.DateTime;
 import play.db.ebean.Model;
+import utils.EventConstants;
 import utils.JodaDateUtil;
 
 /**
@@ -71,7 +72,7 @@ public class PullRequestEvent extends Model implements TimelineItem {
      * @param notiEvent
      * @param pullRequest
      */
-    public static void addEvent(NotificationEvent notiEvent, PullRequest pullRequest) {
+    public static void addFromNotificationEvent(NotificationEvent notiEvent, PullRequest pullRequest) {
         PullRequestEvent event = new PullRequestEvent();
         event.created = notiEvent.created;
         event.senderLoginId = notiEvent.getSender().loginId;
@@ -80,9 +81,35 @@ public class PullRequestEvent extends Model implements TimelineItem {
         event.oldValue = notiEvent.oldValue;
         event.newValue = notiEvent.newValue;
 
-        event.save();
+        add(event);
     }
 
+    private static void add(PullRequestEvent event) {
+        PullRequestEvent lastEvent = getLatestEventInDraftTime(event);
+        if (needToDeleteEvent(lastEvent, event)) {
+            lastEvent.delete();
+        } else {
+            event.save();
+        }
+    }
+
+    private static PullRequestEvent getLatestEventInDraftTime(PullRequestEvent event) {
+        Date draftDate = DateTime.now().minusMillis(EventConstants.DRAFT_TIME_IN_MILLIS).toDate();
+
+        return PullRequestEvent.finder.where()
+                .eq("pull_request_id", event.pullRequest.id)
+                .gt("created", draftDate)
+                .orderBy("created desc")
+                .setMaxRows(1)
+                .findUnique();
+    }
+
+    private static boolean needToDeleteEvent(PullRequestEvent lastEvent, PullRequestEvent currentEvent) {
+        return lastEvent != null &&
+                currentEvent.eventType == EventType.PULL_REQUEST_REVIEW_STATE_CHANGED &&
+                lastEvent.eventType == EventType.PULL_REQUEST_REVIEW_STATE_CHANGED &&
+                StringUtils.equals(currentEvent.senderLoginId, lastEvent.senderLoginId);
+    }
 
     public static void addStateEvent(User sender, PullRequest pullRequest, State state) {
         PullRequestEvent event = new PullRequestEvent();

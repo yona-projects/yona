@@ -32,7 +32,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.joda.time.DateTime;
 import org.tmatesoft.svn.core.SVNException;
-import play.Configuration;
 import play.api.i18n.Lang;
 import play.db.ebean.Model;
 import play.i18n.Messages;
@@ -42,6 +41,7 @@ import playRepository.GitCommit;
 import playRepository.GitConflicts;
 import playRepository.RepositoryService;
 import scala.concurrent.duration.Duration;
+import utils.EventConstants;
 import utils.RouteUtil;
 
 import javax.persistence.*;
@@ -57,13 +57,6 @@ import static models.enumeration.EventType.*;
 @Entity
 public class NotificationEvent extends Model {
     private static final long serialVersionUID = 1L;
-
-    private static final int NOTIFICATION_DRAFT_TIME_IN_MILLIS = Configuration.root()
-            .getMilliseconds("application.notification.draft-time", 30 * 1000L).intValue();
-
-    private static final int NOTIFICATION_KEEP_TIME_DEFAULT = -1;
-    private static final int NOTIFICATION_KEEP_TIME_IN_DAYS = Configuration.root().getInt(
-            "application.notification.keep-time", NOTIFICATION_KEEP_TIME_DEFAULT);
 
     @Id
     public Long id;
@@ -162,10 +155,12 @@ public class NotificationEvent extends Model {
                 } else {
                     return Messages.get(lang, "notification.organization.member.enroll.cancel");
                 }
-            case PULL_REQUEST_REVIEWED:
-                return Messages.get(lang, "notification.pullrequest.reviewed", newValue);
-            case PULL_REQUEST_UNREVIEWED:
-                return Messages.get(lang, "notification.pullrequest.unreviewed", newValue);
+            case PULL_REQUEST_REVIEW_STATE_CHANGED:
+                if (PullRequestReviewAction.DONE.name().equals(newValue)) {
+                    return Messages.get(lang, "notification.pullrequest.reviewed", User.find.byId(senderId).loginId);
+                } else {
+                    return Messages.get(lang, "notification.pullrequest.unreviewed", User.find.byId(senderId).loginId);
+                }
             case REVIEW_THREAD_STATE_CHANGED:
                 if (newValue.equals(CommentThread.ThreadState.CLOSED.name())) {
                     return Messages.get(lang, "notification.reviewthread.closed");
@@ -224,7 +219,7 @@ public class NotificationEvent extends Model {
             event.notificationMail.notificationEvent = event;
         }
 
-        Date draftDate = DateTime.now().minusMillis(NOTIFICATION_DRAFT_TIME_IN_MILLIS).toDate();
+        Date draftDate = DateTime.now().minusMillis(EventConstants.DRAFT_TIME_IN_MILLIS).toDate();
 
         NotificationEvent lastEvent = NotificationEvent.find.where()
                 .eq("resourceId", event.resourceId)
@@ -722,10 +717,10 @@ public class NotificationEvent extends Model {
      * 코드 보내기 리뷰 완료 또는 리뷰 완료 취소할 때 알림을 추가한다.
      *
      * @param pullRequest
-     * @param eventType
+     * @param reviewAction
      * @return
      */
-    public static NotificationEvent afterReviewed(PullRequest pullRequest, EventType eventType) {
+    public static NotificationEvent afterReviewed(PullRequest pullRequest, PullRequestReviewAction reviewAction) {
         String title = formatReplyTitle(pullRequest);
         Resource resource = pullRequest.asResource();
         Set<User> receivers = pullRequest.getWatchers();
@@ -740,8 +735,9 @@ public class NotificationEvent extends Model {
         notiEvent.receivers = receivers;
         notiEvent.resourceId = resource.getId();
         notiEvent.resourceType = resource.getType();
-        notiEvent.eventType = eventType;
-        notiEvent.newValue = reviewer.loginId;
+        notiEvent.eventType = EventType.PULL_REQUEST_REVIEW_STATE_CHANGED;
+        notiEvent.oldValue = reviewAction.getOppositAction().name();
+        notiEvent.newValue = reviewAction.name();
 
         add(notiEvent);
 
@@ -935,11 +931,11 @@ public class NotificationEvent extends Model {
     }
 
     /**
-     * 하루에 한번 {@code NOTIFICATION_KEEP_TIME_IN_DAYS} 보다 오래된 알림을 삭제한다.
+     * 하루에 한번 {@code KEEP_TIME_IN_DAYS} 보다 오래된 알림을 삭제한다.
      * 값이 지정되지 않았거나 양수가 아니라면 동작하지 않는다.
      */
     public static void scheduleDeleteOldNotifications() {
-        if (NOTIFICATION_KEEP_TIME_IN_DAYS > 0) {
+        if (EventConstants.KEEP_TIME_IN_DAYS > 0) {
             Akka.system()
                     .scheduler()
                     .schedule(
@@ -949,7 +945,7 @@ public class NotificationEvent extends Model {
                                 @Override
                                 public void run() {
                                     Date threshold = DateTime.now()
-                                            .minusDays(NOTIFICATION_KEEP_TIME_IN_DAYS).toDate();
+                                            .minusDays(EventConstants.KEEP_TIME_IN_DAYS).toDate();
                                     List<NotificationEvent> olds = find.where()
                                             .lt("created", threshold).findList();
                                     for (NotificationEvent old : olds) {

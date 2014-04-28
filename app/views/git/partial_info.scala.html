@@ -52,11 +52,11 @@
         @if(pull.isOpen) {
             @if(pull.isReviewedBy(UserApp.currentUser())) {
                 <a data-request-method="post" class="ybtn ybtn-default" href="@routes.ReviewApp.unreview(project.owner, project.name, pull.number)">
-                @Messages("pullRequest.unreviewed")
+                @Messages("pullRequest.unreview")
                 </a>
             } else {
                 <a data-request-method="post" class="ybtn @if(pull.isReviewed) {ybtn-default} else {ybtn-success}" href="@routes.ReviewApp.review(project.owner, project.name, pull.number)">
-                @Messages("pullRequest.reviewed")
+                @Messages("pullRequest.review")
                 </a>
             }
         }
