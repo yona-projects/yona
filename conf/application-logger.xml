@@ -73,4 +73,8 @@
         <appender-ref ref="MAIL_LOG_FILE" />
     </logger>
 
+    <logger name="info.schleichardt.play2.mail" level="DEBUG">
+        <appender-ref ref="STDOUT" />
+    </logger>
+
 </configuration>
