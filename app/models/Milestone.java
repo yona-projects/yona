@@ -135,38 +135,20 @@ public class Milestone extends Model implements ResourceConvertible {
         return find.byId(id);
     }
 
-    /**
-     * 해당 프로젝트의 전체 마일스톤들을 찾아줍니다.
-     *
-     * @param projectId
-     * @return
-     */
     public static List<Milestone> findByProjectId(Long projectId) {
         return Milestone.findMilestones(projectId, State.ALL);
     }
 
-    /**
-     * 완료된 마일스톤들을 찾아 줍니다.
-     *
-     * @param projectId
-     * @return
-     */
     public static List<Milestone> findClosedMilestones(Long projectId) {
         return Milestone.findMilestones(projectId, State.CLOSED);
     }
 
-    /**
-     * 미완료된 마일스톤들을 찾아 줍니다.
-     *
-     * @param projectId
-     * @return
-     */
     public static List<Milestone> findOpenMilestones(Long projectId) {
         return Milestone.findMilestones(projectId, State.OPEN);
     }
 
     /**
-     * 완료일을 yyyy-MM-dd 형식의 문자열로 변환시킵니다.
+     * convert mildestone due date string into yyyy-MM-dd format
      *
      * @return
      */
@@ -179,7 +161,8 @@ public class Milestone extends Model implements ResourceConvertible {
     }
 
     /**
-     * sort와 direction이 없을 때는 DEFAULT_SORTER 기준으로 오른차순으로 정렬합니다.
+     * Sort milestone list by direction. 
+     * If there is no direction, then sort with DEFAULT_SORTER.
      *
      * @param projectId
      * @param state
@@ -191,7 +174,7 @@ public class Milestone extends Model implements ResourceConvertible {
     }
 
     /**
-     * OrderParam이 있을 때는 해당 정렬 기준으로 정렬합니다.
+     * find milestone with OrderParam (string for sorting)
      *
      * @param projectId
      * @param state
@@ -243,9 +226,11 @@ public class Milestone extends Model implements ResourceConvertible {
     }
 
     /**
-     * 마일스톤의 목록을 제공합니다.
+     * get milestone list by hashmap.
+     * key: milestone id
+     * value: milestone title
      *
-     * @return
+     * @return linkedHashMap
      */
     public static Map<String, String> options(Long projectId) {
         LinkedHashMap<String, String> options = new LinkedHashMap<>();
