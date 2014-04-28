@@ -22,6 +22,8 @@ package utils;
 
 import models.*;
 
+import models.enumeration.*;
+import models.resource.Resource;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,9 +32,6 @@ import org.junit.Assert;
 import play.test.Helpers;
 
 import static org.fest.assertions.Assertions.assertThat;
-
-import models.enumeration.Operation;
-import models.enumeration.State;
 
 public class AccessControlTest extends ModelTest<Role>{
     @Test
@@ -110,5 +109,116 @@ public class AccessControlTest extends ModelTest<Role>{
             Assert.fail();
         } catch (IllegalStateException e) {
         }
+    }
+
+    @Test
+    public void isResourceCreatable_to_group_member() {
+        // Given
+        User doortts = User.findByLoginId("doortts");
+        User nori = User.findByLoginId("nori");
+        Organization organization = createOrganization("TestOrganization");
+        OrganizationUser.assignRole(doortts.id, organization.id, RoleType.ORG_MEMBER.roleType());
+        Project protectedProject = createProject("protectedProject", ProjectScope.PROTECTED, organization);
+        Project publicProject = createProject("publicProject", ProjectScope.PROTECTED, organization);
+
+        // When & Then
+        assertThat(AccessControl.isResourceCreatable(doortts, protectedProject.asResource(), ResourceType.ISSUE_POST)).describedAs("ISSUE_POST").isTrue();
+        assertThat(AccessControl.isResourceCreatable(doortts, protectedProject.asResource(), ResourceType.BOARD_POST)).describedAs("BOARD_POST").isTrue();
+        assertThat(AccessControl.isResourceCreatable(doortts, protectedProject.asResource(), ResourceType.COMMENT_THREAD)).describedAs("COMMENT_THREAD").isTrue();
+        assertThat(AccessControl.isResourceCreatable(doortts, protectedProject.asResource(), ResourceType.ATTACHMENT)).describedAs("ATTACHMENT").isTrue();
+        assertThat(AccessControl.isResourceCreatable(doortts, protectedProject.asResource(), ResourceType.COMMIT)).describedAs("COMMIT").isTrue();
+        assertThat(AccessControl.isResourceCreatable(doortts, protectedProject.asResource(), ResourceType.COMMIT_COMMENT)).describedAs("COMMIT_COMMENT").isTrue();
+        assertThat(AccessControl.isResourceCreatable(doortts, protectedProject.asResource(), ResourceType.MILESTONE)).describedAs("MILESTONE").isTrue();
+        assertThat(AccessControl.isResourceCreatable(doortts, protectedProject.asResource(), ResourceType.LABEL)).describedAs("LABEL").isTrue();
+        assertThat(AccessControl.isResourceCreatable(doortts, protectedProject.asResource(), ResourceType.CODE)).describedAs("CODE").isTrue();
+        assertThat(AccessControl.isResourceCreatable(doortts, protectedProject.asResource(), ResourceType.PULL_REQUEST)).describedAs("PULL_REQUEST").isTrue();
+        assertThat(AccessControl.isResourceCreatable(doortts, protectedProject.asResource(), ResourceType.ISSUE_COMMENT)).describedAs("ISSUE_COMMENT").isTrue();
+        assertThat(AccessControl.isResourceCreatable(doortts, protectedProject.asResource(), ResourceType.ISSUE_STATE)).describedAs("ISSUE_STATE").isTrue();
+        assertThat(AccessControl.isResourceCreatable(doortts, protectedProject.asResource(), ResourceType.ISSUE_ASSIGNEE)).describedAs("ISSUE_ASSIGNEE").isTrue();
+
+        assertThat(AccessControl.isResourceCreatable(doortts, publicProject.asResource(), ResourceType.ISSUE_POST)).describedAs("ISSUE_POST").isTrue();
+        assertThat(AccessControl.isResourceCreatable(doortts, publicProject.asResource(), ResourceType.BOARD_POST)).describedAs("BOARD_POST").isTrue();
+        assertThat(AccessControl.isResourceCreatable(doortts, publicProject.asResource(), ResourceType.COMMENT_THREAD)).describedAs("COMMENT_THREAD").isTrue();
+        assertThat(AccessControl.isResourceCreatable(doortts, publicProject.asResource(), ResourceType.ATTACHMENT)).describedAs("ATTACHMENT").isTrue();
+        assertThat(AccessControl.isResourceCreatable(doortts, publicProject.asResource(), ResourceType.COMMIT)).describedAs("COMMIT").isTrue();
+        assertThat(AccessControl.isResourceCreatable(doortts, publicProject.asResource(), ResourceType.COMMIT_COMMENT)).describedAs("COMMIT_COMMENT").isTrue();
+        assertThat(AccessControl.isResourceCreatable(doortts, publicProject.asResource(), ResourceType.MILESTONE)).describedAs("MILESTONE").isTrue();
+        assertThat(AccessControl.isResourceCreatable(doortts, publicProject.asResource(), ResourceType.LABEL)).describedAs("LABEL").isTrue();
+        assertThat(AccessControl.isResourceCreatable(doortts, publicProject.asResource(), ResourceType.CODE)).describedAs("CODE").isTrue();
+        assertThat(AccessControl.isResourceCreatable(doortts, publicProject.asResource(), ResourceType.PULL_REQUEST)).describedAs("PULL_REQUEST").isTrue();
+        assertThat(AccessControl.isResourceCreatable(doortts, publicProject.asResource(), ResourceType.ISSUE_COMMENT)).describedAs("ISSUE_COMMENT").isTrue();
+        assertThat(AccessControl.isResourceCreatable(doortts, publicProject.asResource(), ResourceType.ISSUE_STATE)).describedAs("ISSUE_STATE").isTrue();
+        assertThat(AccessControl.isResourceCreatable(doortts, publicProject.asResource(), ResourceType.ISSUE_ASSIGNEE)).describedAs("ISSUE_ASSIGNEE").isTrue();
+
+        // A user that is not a member of a group, is not allowed to create resource on the projects of the group.
+        assertThat(AccessControl.isResourceCreatable(nori, protectedProject.asResource(), ResourceType.ISSUE_POST)).describedAs("ISSUE_POST").isFalse();
+    }
+
+    @Test
+    public void isAllowed_resource_to_group_member() {
+        // Given
+        User doortts = User.findByLoginId("doortts"); // a member of the organization, not admin
+        User nori = User.findByLoginId("nori"); // not a member of the organization
+        User laziel = User.findByLoginId("laziel");
+        Organization organization = createOrganization("TestOrganization");
+        OrganizationUser.assignRole(doortts.id, organization.id, RoleType.ORG_MEMBER.roleType());
+        Project protectedProject = createProject("protectedProject", ProjectScope.PROTECTED, organization);
+        Project publicProject = createProject("publicProject", ProjectScope.PUBLIC, organization);
+        Issue protectedIssue = createIssue(protectedProject, nori);
+        Issue publicIssue = createIssue(publicProject, nori);
+
+        // When & Then
+        assertThat(AccessControl.isAllowed(doortts, protectedProject.asResource(), Operation.READ)).describedAs("doortts can read protected protectedProject").isTrue();
+        assertThat(AccessControl.isAllowed(nori, protectedProject.asResource(), Operation.READ)).describedAs("nori cann't read protected protectedProject").isFalse();
+
+        // group member is allowed
+        assertThat(AccessControl.isAllowed(doortts, protectedIssue.asResource(), Operation.UPDATE)).describedAs("doortts can update protectedIssue").isTrue();
+        assertThat(AccessControl.isAllowed(doortts, protectedIssue.asResource(), Operation.DELETE)).describedAs("doortts can delete protectedIssue").isTrue();
+        // author is allowed
+        assertThat(AccessControl.isAllowed(nori, protectedIssue.asResource(), Operation.UPDATE)).describedAs("nori can update protectedIssue").isTrue();
+        assertThat(AccessControl.isAllowed(nori, protectedIssue.asResource(), Operation.DELETE)).describedAs("nori can delete protectedIssue").isTrue();
+        // guest is not allowed
+        assertThat(AccessControl.isAllowed(laziel, protectedIssue.asResource(), Operation.UPDATE)).describedAs("laziel cann't update protectedIssue").isFalse();
+        assertThat(AccessControl.isAllowed(laziel, protectedIssue.asResource(), Operation.DELETE)).describedAs("laziel cann't delete protectedIssue").isFalse();
+
+        // group member is allowed
+        assertThat(AccessControl.isAllowed(doortts, publicIssue.asResource(), Operation.UPDATE)).describedAs("doortts can update publicIssue").isTrue();
+        assertThat(AccessControl.isAllowed(doortts, publicIssue.asResource(), Operation.DELETE)).describedAs("doortts can delete publicIssue").isTrue();
+        // author is allowed
+        assertThat(AccessControl.isAllowed(nori, publicIssue.asResource(), Operation.UPDATE)).describedAs("nori can update publicIssue").isTrue();
+        assertThat(AccessControl.isAllowed(nori, publicIssue.asResource(), Operation.DELETE)).describedAs("nori can delete publicIssue").isTrue();
+        // guest is not allowed
+        assertThat(AccessControl.isAllowed(laziel, publicIssue.asResource(), Operation.UPDATE)).describedAs("laziel cann't update publicIssue").isFalse();
+        assertThat(AccessControl.isAllowed(laziel, publicIssue.asResource(), Operation.DELETE)).describedAs("laziel cann't delete publicIssue").isFalse();
+    }
+
+    private Organization createOrganization(String name) {
+        Organization organization = new Organization();
+        organization.name = name;
+        organization.save();
+
+        return organization;
+    }
+
+    private Project createProject(String name, ProjectScope projectScope, Organization organization) {
+        Project project = new Project();
+        project.name = name;
+        project.organization = organization;
+        project.projectScope = projectScope;
+        project.vcs = "GIT";
+        Project.create(project);
+        return project;
+    }
+
+    private Issue createIssue(Project project, User author) {
+        Issue issue = new Issue();
+        issue.project = project;
+        issue.author = author;
+        issue.authorId = author.id;
+        issue.title = "hello";
+        issue.body = "world";
+        issue.state = State.OPEN;
+        issue.save();
+        return issue;
     }
 }

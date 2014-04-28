@@ -58,6 +58,13 @@ public class User extends Model implements ResourceConvertible {
 
     public static final Model.Finder<Long, User> find = new Finder<>(Long.class, User.class);
 
+    public static final Comparator<User> USER_NAME_COMPARATOR = new Comparator<User>() {
+        @Override
+        public int compare(User u1, User u2) {
+            return u1.name.compareTo(u2.name);
+        }
+    };
+
     /**
      * 한 페이지에 보여줄 사용자 개수.
      */

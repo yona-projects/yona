@@ -594,6 +594,34 @@ public class Project extends Model implements LabelOwner {
     }
 
     /**
+     * 그룹에 속한 public과 protected 프로젝트에는 그룹의 모든 멤버도 포함해서 반환한다.
+     *
+     * @return
+     */
+    public List<User> relatedUsers() {
+        Set<User> users = new HashSet<>();
+
+        // member of this project.
+        List<ProjectUser> pus = members();
+        for(ProjectUser pu : pus) {
+            users.add(pu.user);
+        }
+
+        // member of the group
+        if(hasGroup() && (isPublic() || isProtected())) {
+            List<OrganizationUser> ous = this.organization.users;
+            for(OrganizationUser ou : ous) {
+                users.add(ou.user);
+            }
+        }
+
+        // sorting
+        List<User> result = new ArrayList<>(users);
+        Collections.sort(result, User.USER_NAME_COMPARATOR);
+        return result;
+    }
+
+    /**
      * 이 프로젝트가 포크 프로젝트인지 확인한다.
      *
      * @return

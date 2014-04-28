@@ -147,22 +147,7 @@
                             <dd style="padding:5px 10px;">
                             @defining(issue.assigneeName != null) { isAssigned =>
                                 @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
-                                <select id="assignee" name="assignee.id" data-toggle="select2" data-format="user">
-                                    <option value="@User.anonymous.id">@Messages("issue.noAssignee")</option>
-                                    @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
-                                    <option value="@UserApp.currentUser().id">@Messages("issue.assignToMe")</option>
-                                    }
-                                    @for(member <- project.members()){
-                                        <option value="@member.user.id"
-                                        @if(isAssigned && issue.assignee.user.id == member.user.id){
-                                            selected
-                                        }
-                                        data-avatar-url="@User.findByLoginId(member.user.loginId).avatarUrl"
-                                        data-login-id="@member.user.loginId">
-                                        @member.user.name
-                                        </option>
-                                    }
-                                </select>
+                                    @partial_assignee(project, issue)
                                 } else {
                                     @if(isAssigned){
                                     <a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)" class="usf-group">
