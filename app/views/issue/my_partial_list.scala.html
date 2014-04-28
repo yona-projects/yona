@@ -62,12 +62,17 @@
                     @agoOrDateString(issue.createdDate)
                 </span>
 
-                @if(issue.comments.size()>0){
-                    <a href="@routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.getNumber)#comments" class="infos-item infos-icon-link">
-                        <i class="yobicon-comments"></i>
-                        <span class="size">@issue.comments.size()</span>
-                    </a>
+                @if(issue.comments.size()>0 || issue.voters.size()>0) {
+                <span class="infos-item item-count-groups">
+                    @if(issue.comments.size()>0){
+                        @countHtml("comments",routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.getNumber).toString() + "#comments", issue.comments.size() )
+                    }
+                    @if(issue.voters.size()>0){
+                        @countHtml("hearts",routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.getNumber).toString() + "#vote", issue.voters.size(), "strong" )
+                    }
+                </span>
                 }
+
                 @for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
                     <a href="@urlToList(issue.project, searchCondition.state)&labelIds=@label.id" class="label issue-label list-label" data-labelId="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>
                 }

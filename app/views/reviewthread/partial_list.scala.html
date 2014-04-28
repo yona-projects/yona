@@ -55,12 +55,12 @@
                     @agoOrDateString(thread.createdDate)
                 </span>
                 @defining(thread.reviewComments.size()-1) { numberOfComments =>
+
                     @if(numberOfComments > 0) {
-                    <a href="@DiffRenderer.urlToCommentThread(thread))" class="infos-item infos-icon-link">
-                        <i class="yobicon-comments"></i>
-                        <span class="size">@numberOfComments</span>
-                    </a>
-                    }
+                    <span class="infos-item item-count-groups">
+                        @countHtml("comments",DiffRenderer.urlToCommentThread(thread), numberOfComments)
+                    </span>
+                    }       
                 }
             </div>
         </li>
