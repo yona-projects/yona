@@ -27,10 +27,9 @@
             _initFileDownloader();
             _initToggleCommentsButton();
             _initCodeComment();
-            _initReviewWrapAffixed();
             _initMiniMap();
-
             _scrollToHash();
+            _setReviewListHeight();
         }
 
         /**
@@ -68,7 +67,7 @@
             htElement.welReviewWrap = htElement.welContainer.find("div.review-wrap");
             htElement.welReviewContainer = htElement.welReviewWrap.find("div.review-container");
             htElement.waBtnToggleReviewWrap = htElement.welContainer.find("button.btn-show-reviewcards,button.btn-hide-reviewcards");
-
+            htElement.welReviewList = htElement.welContainer.find("div.review-list");
             // 전체 댓글 (Non-Ranged comment thread)
             htElement.welUploader = $("#upload");
             htElement.welTextarea = $("#comment-editor");
@@ -109,6 +108,14 @@
                 } else {
                     $.removeCookie("diffs-only");
                 }
+
+                var positionTop =  10;
+                if(htElement.welReviewContainer.offset().top - positionTop < $(document).scrollTop()){
+                    htElement.welReviewContainer
+                        .addClass('affix-top')
+                        .removeClass('affix');
+                }
+
             });
 
             // 리뷰카드 링크 클릭시
@@ -130,6 +137,10 @@
                     yobi.ui.Spinner.show({"bUseDimmer": true});
                 });
             }
+
+            _setReviewWrapAffixed();
+
+            $(window).on('resize scroll', _setReviewListHeight);
         }
 
         /**
@@ -256,51 +267,13 @@
         }
 
         /**
-         * 리뷰 목록이 존재하면 스크롤에 따라 일정한 위치에 고정되도록 설정
-         * @private
-         */
-        function _initReviewWrapAffixed(){
-            if(!htElement.welReviewWrap.length){
-                return;
-            }
-
-            htVar.nAffixTop = htElement.welReviewWrap.offset().top;
-            _updateReviewWrapAffixed();
-
-            $(window).on({
-                "scroll": _updateReviewWrapAffixed,
-                "resize": _updateReviewWrapAffixed
-            });
-        }
-
-        /**
          * 스크롤에 따라 리뷰 목록 위치 고정 여부 처리
          * @private
          */
-        function _updateReviewWrapAffixed(){
-            var welWindow = $(window);
-            var nScrollTop = welWindow.scrollTop();
-            var nWindowHeight = welWindow.height();
-
-            if(nScrollTop > htVar.nAffixTop){
-                htElement.welReviewWrap.addClass("fixed");
-            } else {
-                htElement.welReviewWrap.removeClass("fixed");
-            }
-
-            // 스크롤이 댓글 폼 아래로 내려가면
-            // 리뷰 목록은 댓글 폼 높이까지만 표시되도록 bottom 값을 조절한다
-            if(htElement.welReviewWrap.hasClass("fixed")){
-                var nEndOfScroll = nScrollTop + nWindowHeight;
-                var nTargetOffsetTop = htElement.welCommentWrap.offset().top + htElement.welCommentWrap.height();
-                var nReviewWrapFromBottom = nEndOfScroll - nTargetOffsetTop;
-
-                if(nReviewWrapFromBottom > 0){
-                    htElement.welReviewContainer.css("bottom", nReviewWrapFromBottom + 90);
-                } else {
-                    htElement.welReviewContainer.css("bottom", 50);
-                }
-            }
+        function _setReviewWrapAffixed(){
+            htElement.welReviewContainer.affix({
+                offset : {top : htElement.welReviewContainer.offset().top-10}
+            });
         }
 
         /**
@@ -659,6 +632,27 @@
             } else {
                 htElement.welMiniMap.hide();
             }
+        }
+
+        function _setReviewListHeight() {
+            var nMaxHeight;
+            
+            if(htElement.welReviewContainer.hasClass('affix')) {
+                var nCodeDiffWrapOffsetBottom = htElement.welContainer.position().top + htElement.welContainer.height();
+                var nReviewListOffsetBottom = htElement.welReviewList.offset().top + htElement.welReviewList.height();
+                var nReviewListDefaultMarginBottom = 15;
+                var nDiffWrapBottomPadding = 90;
+
+                if(nCodeDiffWrapOffsetBottom <= nReviewListOffsetBottom + nReviewListDefaultMarginBottom) {
+                    nMaxHeight = nCodeDiffWrapOffsetBottom  - $(document).scrollTop() + nDiffWrapBottomPadding;
+                } else {
+                    nMaxHeight = $(window).height() - htElement.welReviewList.position().top - nReviewListDefaultMarginBottom;
+                }
+            } else {
+                nMaxHeight = htElement.welContainer.height() - htElement.welReviewList.position().top;
+            }
+
+            htElement.welReviewList.css({'max-height': nMaxHeight +'px'});
         }
 
         _init(htOptions || {});
