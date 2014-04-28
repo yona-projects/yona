@@ -51,11 +51,10 @@
         </span>
 
         @if(post.numOfComments >0){
-            <a href="@routes.BoardApp.post(project.owner, project.name, post.getNumber)#comments" class="infos-item infos-icon-link">
-                <i class="yobicon-comments"></i>
-                <span class="size">@post.numOfComments</span>
-            </a>
-        }
+        <span class="infos-item item-count-groups">
+            @countHtml("comments",routes.BoardApp.post(project.owner, project.name, post.getNumber).toString() + "#comments", post.numOfComments)
+        </span>
+        }       
     </div>
 </li>
 }

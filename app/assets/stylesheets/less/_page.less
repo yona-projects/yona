@@ -3314,13 +3314,49 @@ label.issue-item-row {
         color:#999;
 
         .infos-item {
-            margin-right:8px;
-            display:inline-block;
+            margin-right:12px;
+            float:left;
 
             &.infos-link-item {
                 &:hover {
                     color:#3592b5;
                     text-decoration: none;
+                }
+            }
+
+            &.item-count-groups {
+                border:1px solid #EEE;
+                .border-radius(3px);
+                line-height: 14px;
+                margin-top:2px;
+
+                .count-groups {
+                    margin:0 auto;
+                    display:inline-block;
+                    text-align: center;
+                    padding:0 5px;
+                    float: left;
+
+                    &.item-icon {
+                        background-color:#F7F7F7;
+                        color:#3592b5;
+                        font-size: 9px; 
+                        padding-top:2px;
+                        line-height: 12px;
+                        border-left:1px solid #EEE;
+
+                        &:first-child {
+                            border-left:none;
+                        }
+                        
+                        &.strong {
+                            color:@primary;
+                        }
+                    }
+
+                    &.item-count {
+                        padding:0 7px;
+                    }
                 }
             }
 
@@ -3343,6 +3379,11 @@ label.issue-item-row {
                     color:@state-closed !important;
                     .total { color:inherit !important; }
                 }
+            }
+
+            &.infos-sympathy {
+                color:@yobi-orange-dark !important;
+                font-weight: bold;
             }
 
             .upload-progress {

@@ -25,6 +25,7 @@ import playRepository.FileDiff
 import play.api.i18n.Lang
 import models.CodeCommentThread
 import models.CommentThread
+import play.api.templates.Html
 
 object TemplateHelper {
 
@@ -507,5 +508,14 @@ object TemplateHelper {
         case _ => ""
       }
     }
+  }
+
+  def countHtml(icon:String, link:String, count: Int, strong:String = "") = {
+      Html("""<span class="count-groups item-icon %s">
+        <i class="yobicon-%s"></i>
+      </span>
+      <span class="count-groups item-count">
+        <a href="%s">%d</a>
+      </span> """.format(strong, icon, link, count))
   }
 }
