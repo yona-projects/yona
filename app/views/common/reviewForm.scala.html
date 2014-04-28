@@ -21,6 +21,7 @@
 @(project:Project, resourceType:ResourceType, action:String)
 
 @import models.enumeration.ResourceType
+@import scala.collection.Map
 
 <div id="review-form" class="review-form">
     <form action="@action" method="post" enctype="multipart/form-data">
@@ -38,7 +39,7 @@
         </div>
         <div class="write-comment-box nm">
             <div class="write-comment-wrap">
-                @common.editor("contents")
+                @common.editor("contents", "", Map("id"->"review-editor"))
 
                 @** fileUploader **@
                 @if(!UserApp.currentUser.isAnonymous){
