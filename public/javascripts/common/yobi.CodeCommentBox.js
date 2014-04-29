@@ -280,12 +280,32 @@ yobi.CodeCommentBox = (function(){
         }
     }
 
+    /**
+     * 댓글 상자 영역의 높이를 반환한다
+     *
+     * @private
+     */
+    function _getWrapHeight(){
+       return htElement.welCommentWrap.height();
+    }
+
+    /**
+     * 댓글 상자 영역의 위치를 반환한다
+     *
+     * @private
+     */
+    function _getWrapOffset(){
+       return htElement.welCommentWrap.offset();
+    }
+
     // public interface
     return {
         "init"  : _init,
         "show"  : _show,
         "hide"  : _hide,
         "toggle": _toggleVisibility,
-        "isVisible": _isVisible
+        "isVisible": _isVisible,
+        "height": _getWrapHeight,
+        "offset": _getWrapOffset
     };
 })();
