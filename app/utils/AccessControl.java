@@ -129,6 +129,12 @@ public class AccessControl {
      */
     private static boolean isGlobalResourceAllowed(User user, GlobalResource resource,
                                                    Operation operation) {
+        if(operation == Operation.ASSIGN_ISSUE && resource.getType() == ResourceType.PROJECT) {
+            Project project = Project.find.byId(Long.parseLong(resource.getId()));
+            return ProjectUser.isMember(user.id, project.id)
+                    || (!project.isPrivate() && OrganizationUser.isMember(project.organization, user));
+        }
+
         // Temporary attachments are allowed only for the user who uploads them.
         if (resource.getType() == ResourceType.ATTACHMENT
                 && resource.getContainer().getType() == ResourceType.USER) {

@@ -21,7 +21,9 @@
 package models.enumeration;
 
 public enum Operation {
-    READ("read"), UPDATE("edit"), DELETE("delete"), ACCEPT("accept"), REOPEN("reopen"), CLOSE("close"), WATCH("watch"), LEAVE("leave");
+    READ("read"), UPDATE("edit"), DELETE("delete"), ACCEPT("accept"), REOPEN("reopen"), CLOSE("close"), WATCH("watch"), LEAVE("leave"),
+    // this operation means an action which assign an issue to him or her self.
+    ASSIGN_ISSUE("assign_issue");
 
     private String operation;
 
