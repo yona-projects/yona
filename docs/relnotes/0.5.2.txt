@@ -1,0 +1,26 @@
+Yobi v0.5.2 Release Note
+========================
+
+Updates since v0.5.1
+--------------------
+
+* Make the form for codereview more slim.
+* Show number of votes on each issue in issue list.
+* Group members' permission to protected and public project is same with
+  member of the project.
+* Group members can be assigned to issues of protected project in the
+  group.
+
+Fixes since v0.5.1
+------------------
+
+* An error while starting Yobi in product mode if there is no
+  conf/application.conf
+* Many bugs of Mention using '@' character
+* Many UI bugs of codereview
+* Move Failed error while transfering a project
+* Mailer did not log in mock mode
+* Incorrect numbering for new issue and posting in transferred project
+* A UI bug of project dashboard
+* Couldn't search projects by uppercase characters
+* And many minor bugs
