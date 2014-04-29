@@ -447,6 +447,9 @@ public class Project extends Model implements LabelOwner {
      */
     @Transactional
     public Long increaseLastIssueNumber() {
+        if (this.issues != null && lastIssueNumber < this.issues.size() ){
+            fixLastIssueNumber();
+        }
         lastIssueNumber++;
         update();
         return lastIssueNumber;
