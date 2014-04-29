@@ -26,7 +26,7 @@
         data-toggle="select2" data-format="user"
         data-placeholder="@Messages("issue.assignee.selectDefault")">
     <option value="@User.anonymous.id" @if(issue == null || issue.assignee == null){selected}>@Messages("issue.noAssignee")</option>
-    @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+    @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.ASSIGN_ISSUE)) {
     <option value="@UserApp.currentUser().id">@Messages("issue.assignToMe")</option>
     }
     @for(user <- project.relatedUsers){
