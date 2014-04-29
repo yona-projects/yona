@@ -486,13 +486,12 @@ public class IssueApp extends AbstractPostingApp {
             issue.update();
             updatedItems++;
 
-            Issue updatedIssue = Issue.finder.byId(issue.id);
             if(assigneeChanged) {
-                NotificationEvent notiEvent = NotificationEvent.afterAssigneeChanged(oldAssignee, updatedIssue);
+                NotificationEvent notiEvent = NotificationEvent.afterAssigneeChanged(oldAssignee, issue);
                 IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
             }
             if(stateChanged) {
-                NotificationEvent notiEvent = NotificationEvent.afterStateChanged(oldState, updatedIssue);
+                NotificationEvent notiEvent = NotificationEvent.afterStateChanged(oldState, issue);
                 IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
             }
         }
