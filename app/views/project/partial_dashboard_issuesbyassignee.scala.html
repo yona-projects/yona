@@ -23,53 +23,60 @@
 @import utils.TemplateHelper._
 @import scala.collection.mutable._
 
-@for(member <- project.members) {
-    @defining(countOpenIssuesBy(project, Map("assigneeId"->member.user.id.toString))) { assignedIssues =>
-    @defining(getPercent(assignedIssues, totalIssues)){ assignedPerc =>
-        @if(assignedIssues > 0){
+@if(Issue.countIssues(project.id, State.OPEN) == 0){
+    <div class="empty">
+        <p>@Messages("issue.is.empty")</p>
+        <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" target="_blank" class="ybtn ybtn-small">@Messages("issue.menu.new")</a>
+    </div>
+} else {
+    @for(member <- project.members) {
+        @defining(countOpenIssuesBy(project, Map("assigneeId"->member.user.id.toString))) { assignedIssues =>
+            @defining(getPercent(assignedIssues, totalIssues)){ assignedPerc =>
+                @if(assignedIssues > 0){
+                    <div class="row-fluid">
+                        <div class="span6">
+                            <a href="@makeIssuesLink(project, scala.collection.immutable.Map("assigneeId"->member.user.id.toString))"
+                            class="usf-group" title="@member.user.name (@{"@"}@member.user.loginId)">
+                                <span class="avatar-wrap smaller">
+                                    <img src="@member.user.avatarUrl" width="20" height="20">
+                                </span>
+                                <strong class="name">@member.user.name</strong>
+                                <span class="loginid"> <strong>@{"@"}</strong>@member.user.loginId</span>
+                            </a>
+                        </div>
+                        <div class="span3 num">
+                            <strong>@assignedIssues</strong>
+                            <small>(@assignedPerc%)</small>
+                        </div>
+                        <div class="span3 nm">
+                            <div class="progress progress-warning @if(assignedPerc==0){empty}">
+                                <div class="bar" style="width: @assignedPerc%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        }
+    }
+
+    @defining(countOpenIssuesBy(project, Map("assigneeId"->User.anonymous.id.toString))) { notAssignedIssues =>
+        @defining(getPercent(notAssignedIssues, totalIssues)) { notAssignedPerc =>
             <div class="row-fluid">
                 <div class="span6">
-                    <a href="@makeIssuesLink(project, scala.collection.immutable.Map("assigneeId"->member.user.id.toString))"
-                    class="usf-group" title="@member.user.name (@{"@"}@member.user.loginId)">
-                        <span class="avatar-wrap smaller">
-                            <img src="@member.user.avatarUrl" width="20" height="20">
-                        </span>
-                        <strong class="name">@member.user.name</strong>
-                        <span class="loginid"> <strong>@{"@"}</strong>@member.user.loginId</span>
+                    <a href="@makeIssuesLink(project, scala.collection.immutable.Map("assigneeId"->User.anonymous.id.toString))">
+                    @Messages("issue.noAssignee")
                     </a>
                 </div>
                 <div class="span3 num">
-                    <strong>@assignedIssues</strong>
-                    <small>(@assignedPerc%)</small>
+                    <strong>@notAssignedIssues</strong>
+                    <small>(@notAssignedPerc%)</small>
                 </div>
                 <div class="span3 nm">
-                    <div class="progress progress-warning @if(assignedPerc==0){empty}">
-                        <div class="bar" style="width: @assignedPerc%;"></div>
+                    <div class="progress progress-warning @if(notAssignedPerc==0){empty}">
+                        <div class="bar" style="width: @notAssignedPerc%;"></div>
                     </div>
                 </div>
             </div>
         }
-    }
-    }
-}
-
-@defining(countOpenIssuesBy(project, Map("assigneeId"->User.anonymous.id.toString))) { notAssignedIssues =>
-    @defining(getPercent(notAssignedIssues, totalIssues)) { notAssignedPerc =>
-        <div class="row-fluid">
-            <div class="span6">
-                <a href="@makeIssuesLink(project, scala.collection.immutable.Map("assigneeId"->User.anonymous.id.toString))">
-                @Messages("issue.noAssignee")
-                </a>
-            </div>
-            <div class="span3 num">
-                <strong>@notAssignedIssues</strong>
-                <small>(@notAssignedPerc%)</small>
-            </div>
-            <div class="span3 nm">
-                <div class="progress progress-warning @if(notAssignedPerc==0){empty}">
-                    <div class="bar" style="width: @notAssignedPerc%;"></div>
-                </div>
-            </div>
-        </div>
     }
 }
