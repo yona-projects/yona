@@ -59,6 +59,7 @@ import utils.Constants;
 import utils.JodaDateUtil;
 
 import javax.persistence.*;
+import javax.persistence.OrderBy;
 import javax.validation.constraints.Size;
 import java.io.File;
 import java.io.IOException;
@@ -132,6 +133,7 @@ public class PullRequest extends Model implements ResourceConvertible {
     public List<PullRequestCommit> pullRequestCommits;
 
     @OneToMany(cascade = CascadeType.ALL)
+    @OrderBy("created ASC")
     public List<PullRequestEvent> pullRequestEvents;
 
     /**
