@@ -228,7 +228,8 @@
                                     } else {
                                         <a href="@routes.VoteApp.vote(project.owner, project.name, issue.getNumber)" data-request-method="post" class="ybtn" data-toggle="tooltip" data-placement="right" data-original-title="@Messages("issue.vote.description")">+@issue.voters.size</a>
                                     }
-
+                                } else {
+                                    +@issue.voters.size
                                 }
                                 <div class="row-fluid mt10">
                                     <ul class="voter-list">
