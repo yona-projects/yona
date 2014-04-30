@@ -32,9 +32,6 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import play.mvc.With;
 
-/**
- * @author Keesun Baik
- */
 @With(AnonymousCheckAction.class)
 public class ReviewApp extends Controller {
 

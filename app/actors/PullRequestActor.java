@@ -25,10 +25,6 @@ import models.*;
 import models.enumeration.EventType;
 import models.enumeration.State;
 
-/**
- * @author Wansoon Park
- *
- */
 public abstract class PullRequestActor extends UntypedActor {
     /**
      * PullRequest 병합을 시도하고 병합결과를 저장한다.
