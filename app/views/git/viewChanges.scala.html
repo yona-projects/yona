@@ -20,10 +20,9 @@
 **@
 @(project: Project, pull: PullRequest, commitId: String = null)
 
-@import utils.JodaDateUtil._
+@import utils.JodaDateUtil
 @import utils.TemplateHelper._
 @import utils.TemplateHelper.DiffRenderer._
-@import utils.JodaDateUtil
 @import utils.AccessControl._
 @import models.enumeration
 @import scala.collection.JavaConversions._
@@ -154,37 +153,11 @@
 
                         <div class="tab-content review-list">
                             <div id="reviewcards-open" class="tab-pane active">
-                                @for(thread: CommentThread <- pull.getCommentThreadsByState(CommentThread.ThreadState.OPEN)) {
-                                <a href="@DiffRenderer.urlToCommentThread(thread)" class="review-card @thread.state.toString().toLowerCase()">
-                                    <p class="content">@thread.getFirstReviewComment().getContents()</p>
-                                    <span class="date" title="@utils.JodaDateUtil.getDateString(thread.createdDate)">
-                                        <span class="comments">
-                                            @if( thread.hasChildComments ){<i class="yobicon-comments"></i> @thread.reviewComments.size()}
-                                        </span>
-                                        <span class="avatar-wrap smaller margin-right-5">
-                                            <img src="@User.findByLoginId(thread.author.loginId).avatarUrl" alt="@thread.author.name" />
-                                        </span>
-                                        @agoOrDateString(thread.createdDate)
-                                    </span>
-                                </a>
-                                }
+                                @partial_reviewlist(pull.getCommentThreadsByState(CommentThread.ThreadState.OPEN))
                             </div>
 
                             <div id="reviewcards-closed" class="tab-pane">
-                                @for(thread: CommentThread <- pull.getCommentThreadsByState(CommentThread.ThreadState.CLOSED)) {
-                                <a href="@DiffRenderer.urlToCommentThread(thread)" class="review-card @thread.state.toString().toLowerCase()">
-                                    <p class="content">@thread.getFirstReviewComment().getContents()</p>
-                                    <span class="date" title="@utils.JodaDateUtil.getDateString(thread.createdDate)">
-                                        <span class="comments">
-                                        @if( thread.hasChildComments ){<i class="yobicon-comments"></i> @thread.reviewComments.size()}
-                                        </span>
-                                        <span class="avatar-wrap smaller margin-right-5">
-                                            <img src="@User.findByLoginId(thread.author.loginId).avatarUrl" alt="@thread.author.name" />
-                                        </span>
-                                        @agoOrDateString(thread.createdDate)
-                                    </span>
-                                </a>
-                                }
+                                @partial_reviewlist(pull.getCommentThreadsByState(CommentThread.ThreadState.CLOSED))
                             </div>
                         </div>
                     </div>
