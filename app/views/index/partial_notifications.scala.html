@@ -57,7 +57,7 @@
             else  "addfriend"
         }
         case EventType.NEW_COMMIT =>{"push"}
-        case EventType.PULL_REQUEST_REVIEWED | EventType.PULL_REQUEST_UNREVIEWED=>{"preview changed"}
+        case EventType.PULL_REQUEST_REVIEW_STATE_CHANGED => {"preview changed"}
         case _ => {"info"}
     }
 }

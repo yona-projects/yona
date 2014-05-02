@@ -27,7 +27,6 @@ import com.avaje.ebean.Page;
 import controllers.annotation.*;
 import models.*;
 import models.enumeration.Operation;
-import models.enumeration.ProjectScope;
 import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
 import models.enumeration.State;
@@ -328,7 +327,7 @@ public class PullRequestApp extends Controller {
         Call pullRequestCall = routes.PullRequestApp.pullRequest(pullRequest.toProject.owner, pullRequest.toProject.name, pullRequest.number);
 
         NotificationEvent notiEvent = NotificationEvent.afterNewPullRequest(pullRequest);
-        PullRequestEvent.addEvent(notiEvent, pullRequest);
+        PullRequestEvent.addFromNotificationEvent(notiEvent, pullRequest);
 
         PullRequestEventMessage message = new PullRequestEventMessage(
                 UserApp.currentUser(), request(), pullRequest);
@@ -538,7 +537,7 @@ public class PullRequestApp extends Controller {
 
     private static void addNotification(PullRequest pullRequest, State from, State to) {
         NotificationEvent notiEvent = NotificationEvent.afterPullRequestUpdated(pullRequest, from, to);
-        PullRequestEvent.addEvent(notiEvent, pullRequest);
+        PullRequestEvent.addFromNotificationEvent(notiEvent, pullRequest);
     }
 
     /**

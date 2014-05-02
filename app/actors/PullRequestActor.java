@@ -25,10 +25,6 @@ import models.*;
 import models.enumeration.EventType;
 import models.enumeration.State;
 
-/**
- * @author Wansoon Park
- *
- */
 public abstract class PullRequestActor extends UntypedActor {
     /**
      * PullRequest 병합을 시도하고 병합결과를 저장한다.
@@ -58,7 +54,7 @@ public abstract class PullRequestActor extends UntypedActor {
                 mergeResult.setMergedStateOfPullRequest(message.getSender());
                 NotificationEvent notiEvent = NotificationEvent.afterPullRequestUpdated(message.getSender(),
                         pullRequest, pullRequest.state, State.MERGED);
-                PullRequestEvent.addEvent(notiEvent, pullRequest);
+                PullRequestEvent.addFromNotificationEvent(notiEvent, pullRequest);
             }
 
             if (mergeResult.conflicts()) {
