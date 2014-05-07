@@ -450,6 +450,7 @@ public class Project extends Model implements LabelOwner {
         if (this.issues != null && lastIssueNumber < this.issues.size() ){
             fixLastIssueNumber();
         }
+
         lastIssueNumber++;
         update();
         return lastIssueNumber;
@@ -474,13 +475,22 @@ public class Project extends Model implements LabelOwner {
      */
     @Transactional
     public Long increaseLastPostingNumber() {
+        if (this.posts != null && lastPostingNumber < this.posts.size() ){
+            fixLastPostingNumber();
+        }
         lastPostingNumber++;
         update();
         return lastPostingNumber;
     }
 
     public void fixLastPostingNumber() {
-        lastPostingNumber = Posting.finder.where().eq("project.id", id).order().desc("number").findList().get(0).number;
+        Posting posting = Posting.finder.where().eq("project.id", id).order().desc("number").findList().get(0);
+        posting.refresh();
+        if (posting.number == null) {
+            lastPostingNumber = 0;
+        } else {
+            lastPostingNumber = posting.number;
+        }
     }
 
     /**
