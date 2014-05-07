@@ -57,11 +57,11 @@
         }
 
         this.items.each(function(index, item) {
-            ($this.metcher(filter, item)) ? $(item).show() : $(item).hide();
+            ($this.matcher(filter, item)) ? $(item).show() : $(item).hide();
         });
     } 
-    , metcher : function(filter, item) {
-        return ($(item).data('value').indexOf(filter) !== -1);
+    , matcher : function(filter, item) {
+        return ($(item).data('value').toLowerCase().indexOf(filter) !== -1);
     }
     
   }
