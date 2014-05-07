@@ -119,12 +119,16 @@ public class GitRepository implements PlayRepository {
      * @param ownerName
      * @param projectName
      * @throws IOException
-     * @see #buildGitRepository(String, String)
+     * @see #buildGitRepository(String, String, boolean)
      */
-    public GitRepository(String ownerName, String projectName) {
+    public GitRepository(String ownerName, String projectName, boolean alternatesMergeRepo) {
         this.ownerName = ownerName;
         this.projectName = projectName;
-        this.repository = buildGitRepository(ownerName, projectName);
+        this.repository = buildGitRepository(ownerName, projectName, alternatesMergeRepo);
+    }
+
+    public GitRepository(String ownerName, String projectName) {
+        this(ownerName, projectName, true);
     }
 
     /**
@@ -135,7 +139,7 @@ public class GitRepository implements PlayRepository {
      * @see #GitRepository(String, String)
      */
     public GitRepository(Project project) throws IOException {
-        this(project.owner, project.name);
+        this(project.owner, project.name, true);
     }
 
     /**
@@ -149,15 +153,25 @@ public class GitRepository implements PlayRepository {
      * @return
      * @throws IOException
      */
-    public static Repository buildGitRepository(String ownerName, String projectName) {
+    public static Repository buildGitRepository(String ownerName, String projectName,
+                                                boolean alternatesMergeRepo) {
         try {
-            return new RepositoryBuilder()
-                .setGitDir(new File(getGitDirectory(ownerName, projectName)))
-                .addAlternateObjectDirectory(new File(getDirectoryForMergingObjects(ownerName, projectName)))
-                .build();
+            RepositoryBuilder repo = new RepositoryBuilder()
+                    .setGitDir(new File(getGitDirectory(ownerName, projectName)));
+
+            if (alternatesMergeRepo) {
+                repo.addAlternateObjectDirectory(new File(getDirectoryForMergingObjects(ownerName,
+                        projectName)));
+            }
+
+            return repo.build();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static Repository buildGitRepository(String ownerName, String projectName) {
+        return buildGitRepository(ownerName, projectName, true);
     }
 
     /**
@@ -169,10 +183,14 @@ public class GitRepository implements PlayRepository {
      * @param project
      * @return
      * @throws IOException
-     * @see #buildGitRepository(String, String)
+     * @see #buildGitRepository(String, String, boolean)
      */
     public static Repository buildGitRepository(Project project) {
-        return buildGitRepository(project.owner, project.name);
+        return buildGitRepository(project, true);
+    }
+
+    public static Repository buildGitRepository(Project project, boolean alternatesMergeRepo) {
+        return buildGitRepository(project.owner, project.name, alternatesMergeRepo);
     }
 
     /**
