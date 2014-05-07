@@ -317,7 +317,7 @@ public class RepositoryService {
         packetLineOut.end();
         PacketLineOutRefAdvertiser packetLineOutRefAdvertiser = new PacketLineOutRefAdvertiser(packetLineOut);
 
-        Repository repository = GitRepository.createGitRepository(project);
+        Repository repository = GitRepository.buildGitRepository(project);
 
         if (service.equals("git-upload-pack")) {
             UploadPack uploadPack = new UploadPack(repository);
@@ -365,7 +365,7 @@ public class RepositoryService {
                 requestStream = new FileInputStream(raw.asFile());
             }
 
-            Repository repository = GitRepository.createGitRepository(project);
+            Repository repository = GitRepository.buildGitRepository(project);
             PipedInputStream responseStream = new PipedInputStream();
 
             switch (service) {

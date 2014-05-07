@@ -163,6 +163,9 @@ public class GitRepository implements PlayRepository {
     /**
      * {@code project}의 {@link Project#owner}와 {@link Project#name}을 사용하여 {@link Repository} 객체를 생성한다.
      *
+     * when: {@link RepositoryService#gitAdvertise(models.Project, String, play.mvc.Http.Response)}와
+     * {@link RepositoryService#gitRpc(models.Project, String, play.mvc.Http.Request, play.mvc.Http.Response)}에서 사용한다.
+     *
      * @param project
      * @return
      * @throws IOException
@@ -872,23 +875,6 @@ public class GitRepository implements PlayRepository {
     public static String getGitDirectory(String ownerName, String projectName) {
         return getRepoPrefix() + ownerName + "/" + projectName + ".git";
     }
-
-    /**
-     * {@code project}의 Git 저장소를 반환한다.
-     * <p/>
-     * when: {@link RepositoryService#gitAdvertise(models.Project, String, play.mvc.Http.Response)}와
-     * {@link RepositoryService#gitRpc(models.Project, String, play.mvc.Http.Request, play.mvc.Http.Response)}에서 사용한다.
-     * <p/>
-     * {@link GitRepository#buildGitRepository(models.Project)}를 사용하여 Git 저장소를 참조할 객체를 생성한다.
-     *
-     * @param project
-     * @return
-     * @throws IOException
-     */
-    public static Repository createGitRepository(Project project) {
-        return GitRepository.buildGitRepository(project);
-    }
-
 
     /**
      * {@code gitUrl}의 Git 저장소를 clone 하는 {@code forkingProject}의 Git 저장소를 생성한다.
