@@ -20,13 +20,11 @@
  */
 
 /**
- * 기존의 댓글 상자를 코드 댓글 상자로 만들어준다.
- *
- * 코드 주고받기 메뉴의 개요 탭에서도 코드에 댓글을 달 수
- * 있도록 하기 위해 yobi.Code.Diff.js의 일부를 뽑아내어
- * 구현하였다. 그러나 view에 의존성이 매우 크기 때문에
- * yobi.Code.Diff.js와 yobi.git.View.js이외에서 사용하려면 많은
- * 수정이 필요할 것이다.
+ * 코드 주고받기 메뉴의 개요 탭에서도 코드에 댓글을 달 수 있도록 하기 위해
+ * yobi.Code.Diff.js의 일부를 뽑아내어 구현하였다.
+ * 그러나 View 에 의존성이 매우 크기 때문에
+ * yobi.Code.Diff.js 와 yobi.git.View.js 이외에서 사용하려면
+ * 많은 수정이 필요할 것이다.
  */
 
 yobi = yobi || {};
@@ -57,13 +55,7 @@ yobi.CodeCommentBox = (function(){
      * @private
      */
     function _initVar(htOptions){
-        htVar.fOnAfterShow = htOptions.fOnAfterShow;
-        htVar.fOnAfterHide = htOptions.fOnAfterHide;
         htVar.sTplFileItem = htOptions.sTplFileItem || $('#tplAttachedFile').text();
-        htVar.htArrowPlacement = {
-            "top": "bottom",
-            "bottom": "top"
-        };
     }
 
     /**
@@ -75,6 +67,7 @@ yobi.CodeCommentBox = (function(){
         htElement.welCommentForm = htElement.welCommentWrap.find("form");
         htElement.welCommentTextarea = htElement.welCommentForm.find("textarea.comment");
         htElement.welCommentUploader = htElement.welCommentForm.find(".upload-wrap");
+        htElement.welInitialParent = htElement.welCommentWrap.parent();
     }
 
     /**
@@ -82,63 +75,110 @@ yobi.CodeCommentBox = (function(){
      * @private
      */
     function _attachEvent(){
-        htElement.welCommentForm.on("click", '[data-toggle="close"]', function(){
-            _hide();
-        });
+        htElement.welCommentForm.on("click", '[data-toggle="close"]', _hide);
     }
 
     /**
-     * welTr 을 기준으로 리뷰 작성 폼을 표시한다
+     * welTarget 을 기준으로 리뷰 작성 폼을 표시한다
      *
-     * @param {Object} welTr
+     * @param {Object} welTarget
      */
-    function _show(welTr, htOptions) {
+    function _show(welTarget, htOptions) {
         htOptions = htOptions || {};
 
-        var welTarget = welTr;
-        var sThreadId = welTarget.data("thread-id");
-
-        // 기존 스레드에 댓글을 추가하는 버튼이면
-        if(typeof sThreadId !== "undefined"){
-            _setReviewFormFields({
-                "thread.id": sThreadId
-            });
-        } else {
-            if(typeof welTarget.data("line") === "undefined"){
-                welTarget = welTr.prevUntil("tr[data-line]");
-            }
-
-            // set form field values
-            var htBlockInfo = welTarget.data("blockInfo");
-            var htData = _getFormFieldsFromBlockInfo(htBlockInfo);
-            _setReviewFormFields(htData);
-        }
-
         // show comment form
-        // sPlacement means where to show commentBox from welTr (top or bottom)
-        // sArrowPlacement means where to show arrow on commentBox (opposite side to sPlacement)
         var sPlacement = (htOptions.sPlacement || "bottom").toLowerCase();
-        var sArrowPlacement = htVar.htArrowPlacement[sPlacement];
-        var nAdjustmentTop = (sPlacement === "bottom") ? (welTr.height() + 10)
-                               : -1 * (htElement.welCommentWrap.height() + 30);
-        nAdjustmentTop += (htOptions.nAdjustmentTop || 0);
-
-        var nTop = welTr.position().top + nAdjustmentTop;
-
-        htElement.welCommentWrap.removeClass("arrow-top arrow-bottom")
-                                .addClass("arrow-" + sArrowPlacement);
-        htElement.welCommentWrap.css("top", nTop + "px");
+        _setArrowPlacement(sPlacement);
+        _placeReviewForm(welTarget, sPlacement);
         htElement.welCommentWrap.show();
         htElement.welCommentTextarea.focus();
 
-        // run callback function
-        if(typeof htOptions.fCallback === "function"){
-            htOptions.fCallback();
+        $.event.trigger("CodeCommentBox:aftershow");
+    }
+
+    /**
+     * Set arrow placement of welCommentWrap
+     * arrow will be placed on opposite side to sPlacement
+     *
+     * @param sPlacement Where to show commentBox from welTarget (top or bottom)
+     * @private
+     */
+    function _setArrowPlacement(sPlacement){
+        htVar.htArrowPlacement = htVar.htArrowPlacement || {
+            "top": "bottom",
+            "bottom": "top"
+        };
+
+        htElement.welCommentWrap.removeClass("arrow-top arrow-bottom")
+            .addClass("arrow-" + htVar.htArrowPlacement[sPlacement]);
+    }
+
+    /**
+     * Place welCommentWrap in proper position with welTarget
+     *
+     * @param welTarget
+     * @param sPlacement
+     * @private
+     */
+    function _placeReviewForm(welTarget, sPlacement){
+        var welTarget = _getReviewFormTarget(welTarget);
+        var welPlace = _getReviewFormPlace(welTarget, sPlacement);
+        _setReviewFormFields(_getReviewFormFieldData(welTarget));
+
+        welPlace.find(".write-comment-form").append(htElement.welCommentWrap);
+    }
+
+    /**
+     * Get target element to place review form
+     *
+     * @param welTarget
+     * @returns {Wrapped Element}
+     * @private
+     */
+    function _getReviewFormTarget(welTarget){
+        if(!welTarget.data("thread-id") && !welTarget.data("line")){
+            return welTarget.prevUntil("tr[data-line]");
         }
 
-        if(typeof htVar.fOnAfterShow === "function"){
-            htVar.fOnAfterShow();
+        return welTarget;
+    }
+
+    /**
+     * Get element to append review form
+     *
+     * @param welTarget
+     * @param sPlacement
+     * @returns {Wrapped Element}
+     * @private
+     */
+    function _getReviewFormPlace(welTarget, sPlacement){
+        if(welTarget.data("thread-id")){
+            return welTarget.closest(".comment-thread-wrap")
         }
+
+        var welPlace = $('<tr class="comment-form"></tr>');
+        welPlace.html('<td colspan="3" class="write-comment-form"></td>');
+
+        if(sPlacement === "top"){
+            welTarget.before(welPlace);
+        } else {
+            welTarget.after(welPlace);
+        }
+
+        return welPlace;
+    }
+
+    /**
+     * Get data for review form
+     *
+     * @param welTarget
+     * @returns {Object}
+     * @private
+     */
+    function _getReviewFormFieldData(welTarget){
+        return !welTarget.data("thread-id") ?
+                _getFormFieldsFromBlockInfo(welTarget.data("blockInfo")) :
+                {"thread.id": welTarget.data("thread-id")};
     }
 
     /**
@@ -219,21 +259,15 @@ yobi.CodeCommentBox = (function(){
     /**
      * 댓글 상자를 숨긴다.
      *
-     * @param htOptions.fCallback
      * @private
      */
-    function _hide(htOptions){
-        htOptions = htOptions || {};
+    function _hide(){
         htElement.welCommentWrap.hide();
+        var welFormWrap = htElement.welCommentWrap.closest("tr.comment-form");
+        htElement.welInitialParent.append(htElement.welCommentWrap);
+        welFormWrap.remove();
 
-        // run callback function
-        if(typeof htOptions.fCallback === "function"){
-            htOptions.fCallback();
-        }
-
-        if(typeof htVar.fOnAfterHide === "function"){
-            htVar.fOnAfterHide();
-        }
+        $.event.trigger("CodeCommentBox:afterhide");
     }
 
     /**

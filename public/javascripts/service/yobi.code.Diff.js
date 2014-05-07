@@ -126,7 +126,7 @@
             $(".diff-partial-code").on("scroll", function(){
                 var welPartial = $(this);
                 var sHashCode = $(this).data("hashcode");
-                htVar.htThreadWrap[sHashCode] = htVar.htThreadWrap[sHashCode] || welPartial.find(".comment-thread-wrap");
+                htVar.htThreadWrap[sHashCode] = htVar.htThreadWrap[sHashCode] || welPartial.find(".comment-thread-wrap,.review-form");
                 htVar.htThreadWrap[sHashCode].css("margin-left", welPartial.scrollLeft() + "px");
             });
 
@@ -355,13 +355,16 @@
          */
         function _initCodeCommentBox() {
             yobi.CodeCommentBox.init({
-                "fOnAfterShow": _updateMiniMap,
-                "fOnAfterHide": function(){
+                "sTplFileItem": htVar.sTplFileItem
+            });
+
+            $(window).on({
+                "CodeCommentBox:aftershow": _updateMiniMap,
+                "CodeCommentBox:afterhide": function(){
                     _updateMiniMap();
                     yobi.CodeCommentBlock.unblock();
                     htVar.htBlockInfo = null;
-                },
-                "sTplFileItem": htVar.sTplFileItem
+                }
             });
         }
 
@@ -372,15 +375,16 @@
          * @private
          */
         function _onClickBtnReplyOnThread(weEvt){
-            // 댓글 박스가 [댓글입력] 버튼을 덮는 위치에 오도록
-            // 그 버튼 높이+여백만큼 top 값을 보정한다
             var welButton = $(weEvt.currentTarget);
-            var nGap = (htElement.welDiffBody.has(welButton).length > 0) ? htElement.welDiffBody.position().top : 0;
-            var nAdjustmentTop = (-1 * welButton.outerHeight()) + nGap - 4;
+            var welActions = welButton.closest(".thread-actrow");
 
-            yobi.CodeCommentBox.show(welButton, {
-                "nAdjustmentTop": nAdjustmentTop
+            $(window).on("CodeCommentBox:afterhide", function(){
+                welActions.show();
+                $(window).off("CodeCommentBox:afterhide", arguments.callee);
             });
+            yobi.CodeCommentBox.show(welButton);
+
+            welActions.hide();
         }
 
         /**
@@ -395,12 +399,61 @@
             });
 
             htElement.welDiffBody.on("click", ".btnPop", _onClickBtnAddBlockComment);
-            htElement.welDiffBody.on("mousedown", ":not(.btnPop)", function(){
-                if(document.getSelection().toString().length === 0){
-                    yobi.CodeCommentBox.hide();
-                    htVar.htBlockInfo = null;
-                }
-            });
+            htElement.welDiffBody.on("mousedown", ":not(.btnPop)", _onMouseDownDiffBody);
+        }
+
+        /**
+         * .btnPop 이외의 .diff-body 영역에서의 mousedown 이벤트 핸들러
+         *
+         * @param weEvt
+         * @private
+         */
+        function _onMouseDownDiffBody(weEvt){
+            if(!_isMouseLeftButtonPressed(weEvt)){
+                return;
+            }
+
+            if(_isTargetBelongs(weEvt.target, ".comment-thread-wrap,.review-form")){
+                return;
+            }
+
+            if(!_isSelectionExists()){
+                yobi.CodeCommentBox.hide();
+                htVar.htBlockInfo = null;
+            }
+        }
+
+        /**
+         * 주어진 마우스 이벤트가 왼쪽 버튼을 누른 것인지 여부를 반환
+         *
+         * @param weEvt
+         * @returns {boolean}
+         * @private
+         */
+        function _isMouseLeftButtonPressed(weEvt){
+            return (weEvt.which === 1);
+        }
+
+        /**
+         * elTarget 이 sQuery 아래에 속하는 것인지 여부를 반환
+         *
+         * @param elTarget
+         * @param sQuery
+         * @returns {boolean}
+         * @private
+         */
+        function _isTargetBelongs(elTarget, sQuery){
+            return ($(elTarget).parents(sQuery).length > 0);
+        }
+
+        /**
+         * 문서 내에 문자열을 선택한 영역이 존재하는지 여부를 반환
+         *
+         * @returns {boolean}
+         * @private
+         */
+        function _isSelectionExists(){
+            return (document.getSelection().toString().length > 0);
         }
 
         /**
@@ -427,11 +480,25 @@
                 "nAdjustmentTop": htElement.welDiffBody.position().top
             });
 
-            if(!htBlockInfo.bIsReversed){
+            if(!htBlockInfo.bIsReversed && _doesCommentBoxOutOfWindow()){
                 window.scrollTo(0, yobi.CodeCommentBox.offset().top + yobi.CodeCommentBox.height() - window.innerHeight + 20);
             }
 
             htVar.htBlockInfo = htBlockInfo;
+        }
+
+        /**
+         * 댓글 상자 영역이 화면을 벗어나는지 여부를 반환
+         *
+         * @returns {boolean}
+         * @private
+         */
+        function _doesCommentBoxOutOfWindow(){
+            var nScrollTop = $(document.body).scrollTop();
+            var nOffsetTop = yobi.CodeCommentBox.offset().top;
+
+            return (nScrollTop + window.innerHeight < nOffsetTop) ||
+                   (nOffsetTop + yobi.CodeCommentBox.height() > nScrollTop + window.innerHeight);
         }
 
         /**
@@ -489,19 +556,16 @@
          */
         function _setBtnThreadHerePosition(welButton){
             var welThread = welButton.closest(".comment-thread-wrap");
-            var nMarginWidth = welButton.width() + 7;
-            var nMarginHeight = welButton.height() - 7;
-            var nPaddingRight = 10;
+            var nPadding = 10;
 
             // set unfold button right
-            welButton.css("right", ((welThread.index() * nMarginWidth) + nPaddingRight) + "px");
+            welButton.css("right", ((welThread.index() * welButton.width()) + nPadding) + "px");
 
             // set unfold button top
             // find target line with thread
             var welEndLine = _getTargetLineByThread(welThread);
-
             if(welEndLine.length > 0){
-                welButton.css("top", welEndLine.position().top + nMarginHeight + "px");
+                welButton.css("top", welEndLine.position().top - nPadding + "px");
             }
         }
 
