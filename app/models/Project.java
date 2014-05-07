@@ -456,7 +456,13 @@ public class Project extends Model implements LabelOwner {
     }
 
     public void fixLastIssueNumber() {
-        lastIssueNumber = Issue.finder.where().eq("project.id", id).order().desc("number").findList().get(0).number;
+        Issue issue = Issue.finder.where().eq("project.id", id).order().desc("number").findList().get(0);
+        issue.refresh();
+        if (issue.number == null) {
+            lastIssueNumber = 0;
+        } else {
+            lastIssueNumber = issue.number;
+        }
     }
 
     /**
