@@ -53,6 +53,7 @@
             htVar.sPath = htOptions.sInitialPath;
             htVar.nFontSize = 12;
             htVar.aPathQueue = [];
+            htVar.aMarkdownExtension = ['markdown', 'mdown', 'mkdn', 'mkd', 'md', 'mdwn'];
         }
 
         /**
@@ -417,19 +418,32 @@
          * @param {String} sMode
          */
         function _initCodeView(){
-            if(!htVar.oEditor){
-                htVar.oEditor = _getEditor("showCode");
+            
+            if(_isMarkdownExtension(htVar.sPath)) {
+
+                htElement.welFileView.removeClass('file-wrap');
+
+                htElement.welCodeVal
+                    .removeClass('hidden')
+                    .addClass('markdown-wrap')
+                    .html(yobi.Markdown.renderMarkdown(htElement.welCodeVal.text()));
+
+            } else {
+
+                if(!htVar.oEditor){
+                    htVar.oEditor = _getEditor("showCode");
+                }
+
+                // Use explicit MIME Type if the server told which language is used to write the source code.
+                // or the client should guess it.
+                var sMimeType = htElement.welShowCode.data("mimetype");
+                var aMatch = sMimeType.match(htVar.rxSub);
+                var sMode = (aMatch ? aMatch[1] : _getEditorModeByPath(htVar.sPath)) || "text";
+
+                htVar.oSession.setMode("ace/mode/" + sMode);
+                htVar.oSession.setValue(htElement.welCodeVal.text());
+                setTimeout(_resizeEditor, 50);
             }
-
-            // Use explicit MIME Type if the server told which language is used to write the source code.
-            // or the client should guess it.
-            var sMimeType = htElement.welShowCode.data("mimetype");
-            var aMatch = sMimeType.match(htVar.rxSub);
-            var sMode = (aMatch ? aMatch[1] : _getEditorModeByPath(htVar.sPath)) || "text";
-
-            htVar.oSession.setMode("ace/mode/" + sMode);
-            htVar.oSession.setValue(htElement.welCodeVal.text());
-            setTimeout(_resizeEditor, 50);
         }
 
         /**
@@ -451,6 +465,11 @@
             htVar.oSession = oAce.getSession();
 
             return oAce;
+        }
+
+        function _isMarkdownExtension(sPath) {
+            var sExt =  getExt(basename(htVar.sPath));
+            return ($.inArray(sExt, htVar.aMarkdownExtension) !== -1);
         }
 
         /**
