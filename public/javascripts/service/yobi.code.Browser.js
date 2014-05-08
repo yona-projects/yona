@@ -205,14 +205,13 @@
 
             var sTargetPath = htVar.aPathQueue.shift();
             var welTarget = $('[data-targetpath="' + sTargetPath + '"]');
-            var welList = $('[data-listpath="' + sTargetPath + '"]');
 
-            if(welList.length === 0){
-                // 해당 경로의 목록이 존재하지 않을 때에만 요청하고
-                _appendFolderList(welTarget, sTargetPath);
-            } else {
+            if(_isListExistsByPath(sTargetPath)){
                 // 이미 있으면 다음 경로순서로 넘어간다
                 _requestFolderList();
+            } else {
+                // 해당 경로의 목록이 존재하지 않을 때에만 요청
+                _appendFolderList(welTarget, sTargetPath);
             }
         }
 
@@ -232,6 +231,11 @@
             _startSpinner();
             $.ajax(sURL, {
                 "success": function(oRes){
+                    if(_isListExistsByPath(sTargetPath)){
+                        _stopSpinner();
+                        return;
+                    }
+
                     var aHTML = _getListHTML(oRes.data, sTargetPath);
                     var welTargetItem = $('.listitem[data-path="' + sTargetPath + '"]');
                     var welList = $('<div class="list-wrap" data-listPath="' + sTargetPath + '"></div>');
@@ -251,6 +255,7 @@
                             welList.css("display", "block");
                         });
                     }
+
                     _stopSpinner();
                 },
                 "error"  : function(){
@@ -258,6 +263,17 @@
                     _stopSpinner();
                 }
             });
+        }
+
+        /**
+         * 지정한 경로의 목록이 존재하는지 여부를 반환
+         *
+         * @param sTargetPath
+         * @returns {boolean}
+         * @private
+         */
+        function _isListExistsByPath(sTargetPath){
+            return ($('[data-listpath="' + sTargetPath + '"]').length > 0);
         }
 
         /**
