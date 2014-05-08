@@ -1,0 +1,12 @@
+Yobi v0.5.3 Release Note
+========================
+
+Updates since v0.5.2
+--------------------
+
+* Change media type of css to all from screen for print screen
+
+Fixes since v0.5.2
+------------------
+
+* Fix Mention bug, select to only first user from the list of mention
