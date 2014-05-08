@@ -53,26 +53,6 @@
             htVar.sPath = htOptions.sInitialPath;
             htVar.nFontSize = 12;
             htVar.aPathQueue = [];
-
-            // Spinner Option
-            htVar.htOptSpinner = {
-                lines: 10,    // The number of lines to draw
-                length: 8,    // The length of each line
-                width: 4,     // The line thickness
-                radius: 8,    // The radius of the inner circle
-                corners: 1,   // Corner roundness (0..1)
-                rotate: 0,    // The rotation offset
-                direction: -1, // 1: clockwise, -1: counterclockwise
-                color: '#000',  // #rgb or #rrggbb
-                speed: 1.5,     // Rounds per second
-                trail: 60,      // Afterglow percentage
-                shadow: false,  // Whether to render a shadow
-                hwaccel: false, // Whether to use hardware acceleration
-                className: 'spinner', // The CSS class to assign to the spinner
-                zIndex: 2e9, // The z-index (defaults to 2000000000)
-                top: 'auto', // Top position relative to parent in px
-                left: 'auto' // Left position relative to parent in px
-            };
         }
 
         /**
@@ -85,7 +65,6 @@
             htElement.welShowCode = $("#showCode"); // aceEditor
             htElement.welCodeVal  = $("#codeVal");
             htElement.welBreadCrumbs = $("#breadcrumbs");
-            htElement.elSpinTarget = document.getElementById('spin');
         }
 
         /**
@@ -196,7 +175,7 @@
          */
         function _requestFolderList(){
             if(htVar.aPathQueue.length === 0){
-                _stopSpinner();
+                yobi.ui.Spinner.hide();
                 htVar.aWelList.forEach(function(welList){
                     welList.css("display", "block");
                 });
@@ -228,11 +207,11 @@
             _setIndentByDepth(nNewDepth); // CSS Rule 먼저 추가해 놓고
 
             // AJAX 호출로 데이터 요청
-            _startSpinner();
+            yobi.ui.Spinner.show();
             $.ajax(sURL, {
                 "success": function(oRes){
                     if(_isListExistsByPath(sTargetPath)){
-                        _stopSpinner();
+                        yobi.ui.Spinner.hide();
                         return;
                     }
 
@@ -256,11 +235,11 @@
                         });
                     }
 
-                    _stopSpinner();
+                    yobi.ui.Spinner.hide();
                 },
                 "error"  : function(){
                     // TODO: #255 서버 응답에 맞는 오류 메시지 보여주기
-                    _stopSpinner();
+                    yobi.ui.Spinner.hide();
                 }
             });
         }
@@ -567,24 +546,6 @@
             var newHeight = (htVar.oSession.getScreenLength() * nLineHeight) + htVar.oEditor.renderer.scrollBar.getWidth();
             htElement.welShowCode.height(newHeight);
             htVar.oEditor.resize();
-        }
-
-        /**
-         * Spinner 시작
-         */
-        function _startSpinner(){
-            htVar.oSpinner = htVar.oSpinner || new Spinner(htVar.htOptSpinner);
-            htVar.oSpinner.spin(htElement.elSpinTarget);
-        }
-
-        /**
-         * Spinner 종료
-         */
-        function _stopSpinner(){
-            if(htVar.oSpinner){
-                htVar.oSpinner.stop();
-            }
-            htVar.oSpinner = null;
         }
 
         /**
