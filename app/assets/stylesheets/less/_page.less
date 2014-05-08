@@ -3575,11 +3575,34 @@ label.issue-item-row {
     }
 }
 
+.vote-wrap {
+    display:inline-block;
+    margin-left:3px;
+    font-size:@base-font-size;
+}
+.voter-list-wrap {
+    display:inline-block;
+    margin-left:10px;
+    vertical-align:middle;
+}
 .voter-list {
-  li:nth-child(7n) {
-    margin-left:0;
-    margin-top:5px;
-  }
+    display:block;
+    height:30px;
+    max-width:55px; overflow: hidden;
+
+    li {
+        float:left;
+        margin-right:3px;
+
+        &:last-of-type { margin-right:0; }
+    }
+
+    .usf-group {
+        display:inline-block;
+        width:30px; height:30px;
+
+        img { width:30px; height:30px; }
+    }
 }
 
 //---- code browse
