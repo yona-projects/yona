@@ -121,6 +121,7 @@ App = (function() {
       case KEY_CODE.DOWN:
       case KEY_CODE.UP:
       case KEY_CODE.CTRL:
+      case KEY_CODE.ALT:
         $.noop();
         break;
       case KEY_CODE.P:
@@ -180,6 +181,7 @@ App = (function() {
         this.$inputor.trigger(event);
         view.choose();
         break;
+      case KEY_CODE.ALT:
       default:
         $.noop();
     }
@@ -624,7 +626,8 @@ KEY_CODE = {
   ENTER: 13,
   CTRL: 17,
   P: 80,
-  N: 78
+  N: 78,
+  ALT: 18
 };
 
 DEFAULT_CALLBACKS = {
