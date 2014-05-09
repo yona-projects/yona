@@ -18,9 +18,9 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(section:String, project:Project)
+@(section:String, project:Project)(implicit request: play.api.mvc.RequestHeader)
 
-@ctrl = @{if(request.headers.get("User-Agent")(0).contains("Macintosh")){"⌘"}else{"CTRL"}}
+@ctrl = @{if(request.headers.get("User-Agent").getOrElse("").contains("Macintosh")){"⌘"}else{"CTRL"}}
 
 <div class="pull-right" style="padding:10px 0;">
     <a href="#helpKeys" data-toggle="modal" class="ybtn ybtn-inverse ybtn-mini">
