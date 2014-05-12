@@ -30,19 +30,25 @@ import java.util.*;
 
 public class HttpUtil {
     /**
-     * QueryString 에서 지정한 name 에 해당하는 값 중 가장 먼저 존재하는 값을 반환한다
-     * 예를 들어 key=value1&key=value2 라는 문자열일 때 key 의 값은 value1 을 반환
+     * Find the first value by given the key in the given query.
+     *
+     * This method is used to get a value from a URI query string.
+     *
      * @param query
-     * @param name
-     * @return
+     * @param key
+     * @return the value, "" if the query does not have the key.
      */
-    public static String getFirstValueFromQuery(Map<String, String[]> query, String name) {
-        String[] values = query.get(name);
+    public static String getFirstValueFromQuery(Map<String, String[]> query, String key) {
+        if (query == null) {
+            return "";
+        }
+
+        String[] values = query.get(key);
 
         if (values != null && values.length > 0) {
            return values[0];
         } else {
-            return null;
+            return "";
         }
     }
 

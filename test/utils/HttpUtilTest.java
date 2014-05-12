@@ -60,13 +60,13 @@ public class HttpUtilTest {
             String[] values = {};
             query.put("test", values);
             String actual = HttpUtil.getFirstValueFromQuery(query, "test");
-            assertThat(actual).isEqualTo(null);
+            assertThat(actual).isEqualTo("");
         }
 
         {
             HashMap<String, String[]> query = new HashMap<>();
             String actual = HttpUtil.getFirstValueFromQuery(query, "test");
-            assertThat(actual).isEqualTo(null);
+            assertThat(actual).isEqualTo("");
         }
     }
 
