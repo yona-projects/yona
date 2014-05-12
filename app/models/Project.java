@@ -786,6 +786,7 @@ public class Project extends Model implements LabelOwner {
         deleteProjectVisitations();
         deleteProjectTransfer();
         deleteFork();
+        deleteCommentThreads();
         deletePullRequests();
 
         if(this.hasForks()) {
@@ -852,6 +853,12 @@ public class Project extends Model implements LabelOwner {
         List<PullRequest> allReceivedRequests = PullRequest.allReceivedRequests(this);
         for(PullRequest pullRequest : allReceivedRequests) {
             pullRequest.delete();
+        }
+    }
+
+    private void deleteCommentThreads() {
+        for(CommentThread commentThread : this.commentThreads) {
+            commentThread.delete();
         }
     }
 
