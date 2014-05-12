@@ -45,10 +45,12 @@ yobi.Markdown = (function(htOptions){
             "breaks"    : htVar.bBreaks,
             "hook"      : _markedHooks,
             "highlight" : function(sCode, sLang) {
-                try {
-                    return hljs.highlight(sLang.toLowerCase(), sCode).value;
-                } catch(oException) {
-                    console.log(oException.message);
+                if(sLang) {
+                    try {
+                        return hljs.highlight(sLang.toLowerCase(), sCode).value;
+                    } catch(oException) {
+                        console.log(oException.message);
+                    }
                 }
             }
         };
