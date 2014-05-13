@@ -26,10 +26,10 @@
 <title>Yobi UI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.ico")">
-<link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("bootstrap/css/bootstrap.css")">
-<link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("stylesheets/yobi.css")">
-<link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("stylesheets/fontello/css/fontello.css")">
-<link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("stylesheets/fontello/css/animation.css")">
+<link rel="stylesheet" type="text/css" media="all" href="@routes.Assets.at("bootstrap/css/bootstrap.css")">
+<link rel="stylesheet" type="text/css" media="all" href="@routes.Assets.at("stylesheets/yobicon/style.css")">
+<link rel="stylesheet" type="text/css" media="all" href="@routes.Assets.at("javascripts/lib/select2/select2.css")"/>
+<link rel="stylesheet" type="text/css" media="all" href="@routes.Assets.at("stylesheets/yobi.css")">
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery/jquery-1.9.0.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("bootstrap/js/bootstrap.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("bootstrap/js/bootstrap-switch.js")"></script>
@@ -47,31 +47,32 @@ dd { margin-left:0; }
 <body>
 
 <header class="gnb-outer">
-	<span class="gnb-logo orange">Yobi</span>
-	<span class="subtitle">User Interface Kit</span>
+    <span class="subtitle">Yobi UI</span>
 </header>
 <div class="page-wrap-outer">
     <div class="container page-wrap">
     	<div class="page">
     		<h3>Buttons</h5>
     		<div>
-    			<pre>.nbtn</pre>
+    			<pre>.ybtn</pre>
     			<p>
-    				<a href="#" class="nbtn medium">Default Button</a><!--
-    			 --><button type="button" class="nbtn medium orange">Primary Button</button><!--
-    			 --><a href="#" class="nbtn medium black">Secondary Button</a><!--
-                 --><button href="#" class="nbtn medium red">Delete Button</button>
-                 </p>
-                 <p>
-    			    <a href="#" class="nbtn medium white">Action Button</a><!--
-    			 --><button href="#" class="nbtn medium green">Action Button</button><!--
-    			 --><a href="#" class="nbtn medium blue">Action Button</a><!--
-    			 --><button href="#" class="nbtn medium mint">Action Button</button>
+                    <a href="#" class="ybtn">Default</a>
+                    <button type="button" class="ybtn ybtn-primary">Primary</button>
+                    <a href="#" class="ybtn ybtn-inverse">Inverse</a>
+                    <button type="button" class="ybtn ybtn-info">Info</button>
+                    <a href="#" class="ybtn ybtn-watching">Watching</a>
+                    <button type="button" class="ybtn ybtn-warning">Warning</button>
+                    <a href="#" class="ybtn ybtn-danger">Danger</a>
+                    <button type="button" class="ybtn ybtn-disabled">Disabled</button>
     			</p>
-    <xmp class="css"><a href="#" class="nbtn medium">Default Button</a>
-    <button type="button" class="nbtn medium orange">Primary Button</button>
-    <a href="#" class="nbtn medium black">Secondary Button</a>
-    <button href="#" class="nbtn medium red">Delete Button</button>
+    <xmp class="css">
+        <a href="#" class="ybtn">Default</a>
+        <button type="button" class="ybtn ybtn-primary">Primary</button>
+        <a href="#" class="ybtn ybtn-inverse">Inverse</a>
+        <button type="button" class="ybtn ybtn-info">Info</button>
+        <a href="#" class="ybtn ybtn-watching">Watching</a>
+        <button type="button" class="ybtn ybtn-warning">Warning</button>
+        <a href="#" class="ybtn ybtn-danger">Danger</a>
     </xmp>
     <hr/>
     			<div class="btn-wrap">
@@ -87,16 +88,6 @@ dd { margin-left:0; }
         </div>
     </div>
     </xmp>
-
-    			<p>&nbsp;</p>
-    			<p>
-    				<a href="#" class="nbtn large orange">Create your project</a>
-    			</p>
-    			<p>
-    				<a href="#" class="nbtn small">Small button</a>
-    				<button type="button" class="nbtn medium">Medium button</button>
-    				<a href="#" class="nbtn large">Large button</a>
-    			</p>
     		</div>
     		<!-- // buttons -->
     		<hr/>
@@ -190,15 +181,20 @@ dd { margin-left:0; }
      --><button type="button" class="btn">검색</button>
     </form></xmp>
     <hr/>
-    			<pre>.form-searchbar</pre>
-    			<form class="form-searchbar">
-    				<input type="text" class="text" name="filter"><!--
-    			 --><button type="button" class="ico ico-search"></button>
-    			</form>
-    <xmp class="css"><form class="form-searchbar">
-        <input type="text" class="text" name="filter"><!--
-     --><button type="button" class="ico ico-search"></button>
-    </form></xmp>
+    			<pre>.search-bar</pre>
+                <div class="search">
+                    <div class="search-bar">
+                        <input name="filter" class="textbox full" type="text">
+                        <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                    </div>
+                </div>
+                <xmp class="css"><div class="search">
+                    <div class="search-bar">
+                        <input name="filter" class="textbox full" type="text">
+                        <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                    </div>
+                </div>
+                </xmp>
     		</div>
     		<hr/>
     		<!-- // input -->
@@ -339,10 +335,8 @@ dd { margin-left:0; }
 </div>
 <footer class="page-footer-outer">
 	<div class="page-footer">
-		<span class="provider">&copy; <strong>NHN Corp.</strong></span>
+		<span class="provider">&copy; <strong>NAVER Corp.</strong></span>
 	</div>
 </footer>
-<script type="text/javascript">
-</script>
 </body>
 </html>
