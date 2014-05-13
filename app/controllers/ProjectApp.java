@@ -478,6 +478,7 @@ public class ProjectApp extends Controller {
      * - 해당 프로젝트 멤버
      * - 해당 이슈/게시글 작성자
      * - 해당 이슈/게시글의 코멘트 작성자
+     * - 프로젝트가 속한 그룹의 관리자와 멤버
      *
      * @param loginId
      * @param projectName
@@ -499,6 +500,7 @@ public class ProjectApp extends Controller {
         List<User> userList = new ArrayList<>();
         collectAuthorAndCommenter(project, number, userList, resourceType);
         addProjectMemberList(project, userList);
+        addGroupMemberList(project, userList);
         userList.remove(UserApp.currentUser());
 
         List<Map<String, String>> mentionList = new ArrayList<>();
@@ -544,6 +546,7 @@ public class ProjectApp extends Controller {
      * - 프로젝트 멤버
      * - 커밋 작성자
      * - 해당 커밋에 코드 코멘트를 작성한 사람들
+     * - 프로젝트가 속한 그룹의 관리자와 멤버
      *
      * @param ownerLoginId
      * @param projectName
@@ -574,6 +577,7 @@ public class ProjectApp extends Controller {
         addCommitAuthor(commit, userList);
         addCodeCommenters(commitId, fromProject.id, userList);
         addProjectMemberList(project, userList);
+        addGroupMemberList(project, userList);
         userList.remove(UserApp.currentUser());
         List<Issue> issueList = getMentionIssueList(project);
 
@@ -591,6 +595,7 @@ public class ProjectApp extends Controller {
      * - Pull Request를 받는 프로젝트의 멤버
      * - Commit Author
      * - Pull Request 요청자
+     * - 프로젝트가 속한 그룹의 관리자와 멤버
      *
      * @param ownerLoginId
      * @param projectName
@@ -614,6 +619,7 @@ public class ProjectApp extends Controller {
 
         addCommentAuthors(pullRequestId, userList);
         addProjectMemberList(project, userList);
+        addGroupMemberList(project, userList);
         if(!commitId.isEmpty()) {
             addCommitAuthor(RepositoryService.getRepository(pullRequest.fromProject).getCommit(commitId), userList);
         }
@@ -873,6 +879,18 @@ public class ProjectApp extends Controller {
         for(ProjectUser projectUser: project.projectUser) {
             if(!userList.contains(projectUser.user)){
                 userList.add(projectUser.user);
+            }
+        }
+    }
+
+    private static void addGroupMemberList(Project project, List<User> userList) {
+        if(!project.hasGroup()) {
+            return;
+        }
+
+        for(OrganizationUser organizationUser : project.organization.users) {
+            if(!userList.contains(organizationUser.user)) {
+                userList.add(organizationUser.user);
             }
         }
     }
