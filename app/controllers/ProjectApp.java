@@ -30,7 +30,6 @@ import com.avaje.ebean.Page;
 import controllers.annotation.IsAllowed;
 import info.schleichardt.play2.mailplugin.Mailer;
 import models.*;
-import models.Project.State;
 import models.enumeration.Operation;
 import models.enumeration.ProjectScope;
 import models.enumeration.RequestState;
@@ -45,7 +44,6 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
-import org.jsoup.Jsoup;
 import org.tmatesoft.svn.core.SVNException;
 
 import play.Logger;
@@ -81,7 +79,7 @@ import java.util.*;
 import static play.data.Form.form;
 import static play.libs.Json.toJson;
 import static utils.LogoUtil.*;
-
+import static utils.TemplateHelper.*;
 
 /**
  * ProjectApp
@@ -504,8 +502,33 @@ public class ProjectApp extends Controller {
         userList.remove(UserApp.currentUser());
 
         List<Map<String, String>> mentionList = new ArrayList<>();
-        collectedUsersToMap(mentionList, userList);
+        collectedUsersToMentionList(mentionList, userList);
+        addProjectNameToMentionList(mentionList, project);
+        addOrganizationNameToMentionList(mentionList, project);
+
         return ok(toJson(mentionList));
+    }
+
+    private static void addProjectNameToMentionList(List<Map<String, String>> users, Project project) {
+        Map<String, String> projectUserMap = new HashMap<>();
+        if(project != null){
+            projectUserMap.put("loginid", project.owner+"/" + project.name);
+            projectUserMap.put("username", project.name );
+            projectUserMap.put("name", project.name);
+            projectUserMap.put("image", urlToProjectLogo(project).toString());
+            users.add(projectUserMap);
+        }
+    }
+
+    private static void addOrganizationNameToMentionList(List<Map<String, String>> users, Project project) {
+        Map<String, String> projectUserMap = new HashMap<>();
+        if(project != null && project.organization != null){
+            projectUserMap.put("loginid", project.organization.name);
+            projectUserMap.put("username", project.organization.name);
+            projectUserMap.put("name", project.organization.name);
+            projectUserMap.put("image", urlToOrganizationLogo(project.organization).toString());
+            users.add(projectUserMap);
+        }
     }
 
     private static void collectedIssuesToMap(List<Map<String, String>> mentionList,
@@ -582,7 +605,10 @@ public class ProjectApp extends Controller {
         List<Issue> issueList = getMentionIssueList(project);
 
         List<Map<String, String>> mentionList = new ArrayList<>();
-        collectedUsersToMap(mentionList, userList);
+        collectedUsersToMentionList(mentionList, userList);
+        addProjectNameToMentionList(mentionList, project);
+        addOrganizationNameToMentionList(mentionList, project);
+
         collectedIssuesToMap(mentionList, issueList);
         return ok(toJson(mentionList));
     }
@@ -633,7 +659,10 @@ public class ProjectApp extends Controller {
         List<Issue> issueList = getMentionIssueList(project);
 
         List<Map<String, String>> mentionList = new ArrayList<>();
-        collectedUsersToMap(mentionList, userList);
+        collectedUsersToMentionList(mentionList, userList);
+        addProjectNameToMentionList(mentionList, project);
+        addOrganizationNameToMentionList(mentionList, project);
+
         collectedIssuesToMap(mentionList, issueList);
         return ok(toJson(mentionList));
     }
@@ -862,7 +891,7 @@ public class ProjectApp extends Controller {
         }
     }
 
-    private static void collectedUsersToMap(List<Map<String, String>> users, List<User> userList) {
+    private static void collectedUsersToMentionList(List<Map<String, String>> users, List<User> userList) {
         for(User user: userList) {
             Map<String, String> projectUserMap = new HashMap<>();
             if(!user.loginId.equals(Constants.ADMIN_LOGIN_ID) && user != null){

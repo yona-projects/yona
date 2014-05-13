@@ -30,7 +30,7 @@ yobi.Markdown = (function(htOptions){
         htVar.sProjectUrl = htOptions.sProjectUrl;
         htVar.bBreaks = htOptions.bBreaks;
 
-        htVar.sUserRules = '[a-zA-Z0-9_\\-\\.]';
+        htVar.sUserRules = '[a-zA-Z0-9_\\-\\.\\/]';
         htVar.sProjecRules = '[a-zA-Z0-9_\\-\\.]';
         htVar.sIssueRules = '\\d';
         htVar.sSha1Rules = '[a-f0-9]{7,40}';
