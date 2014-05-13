@@ -82,6 +82,7 @@ public class GitRepository implements PlayRepository {
     public static final int DIFF_SIZE_LIMIT = 3 * FileDiff.SIZE_LIMIT;
     public static final int DIFF_LINE_LIMIT = 3 * FileDiff.LINE_LIMIT;
     public static final int DIFF_FILE_LIMIT = 2000;
+    public static final int COMMIT_HISTORY_LIMIT = 1000 * 1000;
 
     /**
      * Git 저장소 베이스 디렉토리
@@ -386,7 +387,6 @@ public class GitRepository implements PlayRepository {
         private SortedMap<String, JsonNode> found = new TreeMap<>();
         private Map<String, JsonNode> targets = new HashMap<>();
         private String basePath;
-        private AnyObjectId untilCommitId;
         private Iterator<RevCommit> commitIterator;
 
         public ObjectFinder(String basePath, TreeWalk treeWalk, AnyObjectId untilCommitId) throws IOException, GitAPIException {
@@ -397,23 +397,61 @@ public class GitRepository implements PlayRepository {
                 targets.put(path, object);
             }
             this.basePath = basePath;
-            this.untilCommitId = untilCommitId;
-            this.commitIterator = getCommitIterator();
+            this.commitIterator = getCommitIterator(untilCommitId);
         }
 
         public SortedMap<String, JsonNode> find() throws IOException {
-            while (shouldFindMore()) {
-                RevCommit commit = commitIterator.next();
-                Map<String, ObjectId> objects = findObjects(commit);
-                found(commit, objects);
+            RevCommit prev = null;
+            RevCommit curr = null;
+            int i = 0;
+
+            // Empty targets means we have found every interested objects and
+            // no need to continue.
+            for (; i < COMMIT_HISTORY_LIMIT; i++) {
+                if (targets.isEmpty()) {
+                    break;
+                }
+
+                if (!commitIterator.hasNext()) {
+                    // ** Illegal state detected! (JGit bug?) **
+                    //
+                    // If targets still remain but there is no next commit,
+                    // something is wrong because the directory contains the
+                    // targets does not have any commit modified them. Sometimes
+                    // it occurs and it seems a bug of JGit. For the bug report,
+                    // see http://dev.eclipse.org/mhonarc/lists/jgit-dev/msg02461.html
+                    try {
+                        commitIterator = getCommitIterator(curr.getId());
+                    } catch (GitAPIException e) {
+                        play.Logger.warn("An exception occurs while traversing git history", e);
+                        break;
+                    }
+                }
+
+                curr = commitIterator.next();
+
+                if (curr.equals(prev)) {
+                    break;
+                }
+
+                found(curr, findObjects(curr));
+
+                prev = curr;
             }
+
+            if (i >= COMMIT_HISTORY_LIMIT) {
+                play.Logger.warn("Stopped object traversal of '" + basePath + "' in '" +
+                        repository + "' because of reaching the limit");
+            }
+
             return found;
         }
 
         /*
          * get commit logs with untilCommitId and basePath
          */
-        private Iterator<RevCommit> getCommitIterator() throws IOException, GitAPIException {
+        private Iterator<RevCommit> getCommitIterator(AnyObjectId untilCommitId) throws
+                IOException, GitAPIException {
             Git git = new Git(repository);
             LogCommand logCommand = git.log().add(untilCommitId);
             if (StringUtils.isNotEmpty(basePath)) {
@@ -436,14 +474,6 @@ public class GitRepository implements PlayRepository {
                     return iterator.hasNext();
                 }
             };
-        }
-
-        private boolean shouldFindMore() {
-            // If targets is empty, it means we have found every interested objects and no need to continue.
-            if (targets.isEmpty()) {
-                return false;
-            }
-            return commitIterator.hasNext();
         }
 
         private Map<String, ObjectId> findObjects(RevCommit commit) throws IOException {
