@@ -31,6 +31,7 @@ yobi.Mention = function(htOptions) {
         htVar = htOptions || {}; // set htVar as htOptions
         htVar.atConfig = {
             at: "@",
+            limit: 10,
             data: [],
             tpl: "<li data-value='@${loginid}'><img style='width:20px;height:20px;' src='${image}'> ${username} <small>${loginid}</small></li>",
             show_the_at: true
