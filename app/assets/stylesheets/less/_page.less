@@ -3577,24 +3577,28 @@ label.issue-item-row {
 
 .vote-wrap {
     display:inline-block;
-    margin-left:3px;
+    margin-left:.3em;
     font-size:@base-font-size;
 }
 .voter-list-wrap {
     display:inline-block;
-    margin-left:10px;
+    margin-left:.3em;
     vertical-align:middle;
+    overflow: hidden;
 }
 .voter-list {
     display:block;
     height:30px;
-    max-width:55px; overflow: hidden;
+    list-style:none;
 
     li {
         float:left;
         margin-right:3px;
 
-        &:last-of-type { margin-right:0; }
+        &:last-of-type {
+            margin-right:0;
+            line-height:30px;
+        }
     }
 
     .usf-group {
@@ -3602,6 +3606,21 @@ label.issue-item-row {
         width:30px; height:30px;
 
         img { width:30px; height:30px; }
+    }
+}
+.voters-dialog {
+    width:340px;
+    margin-left:-170px;
+    text-align:left;
+
+    .close { margin-top:-2px; }
+
+    li {
+        margin-bottom:10px;
+
+        &:last-of-type {
+            margin-bottom:0;
+        }
     }
 }
 

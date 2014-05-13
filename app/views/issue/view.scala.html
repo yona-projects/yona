@@ -39,6 +39,24 @@
 
 @urlToIssues = @{ urlToList(request.getHeader("Referer"), routes.IssueApp.issues(project.owner, project.name, "open").toString()) }
 
+@urlToVote = @{
+    if(issue.isVotedBy(UserApp.currentUser)){
+        routes.VoteApp.unvote(project.owner, project.name, issue.getNumber).toString
+    } else {
+        routes.VoteApp.vote(project.owner, project.name, issue.getNumber).toString
+    }
+}
+
+@isVotedByCurrentUser = {@if(issue.isVotedBy(UserApp.currentUser)){ybtn-watching}}
+
+@getVoteButtonTitle = {
+    @if(issue.isVotedBy(UserApp.currentUser)){
+        @Messages("issue.unvote.description")
+    } else {
+        @Messages("issue.vote.description")
+    }
+}
+
 @projectLayout(getTitle(issue), project, utils.MenuType.ISSUE){
 @projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
 <div class="page-wrap-outer">
@@ -242,25 +260,15 @@
 
                     <div id="vote" class="vote-wrap">
                         @if(isResourceCreatable(User.findByLoginId(session.get("loginId")), issue.asResource(), ResourceType.ISSUE_COMMENT)) {
-                            @if(issue.isVotedBy(UserApp.currentUser())) {
-                                <a href="@routes.VoteApp.unvote(project.owner, project.name, issue.getNumber)" class="ybtn ybtn-watching"
-                                data-request-method="post" data-toggle="tooltip" data-placement="top" data-original-title="@Messages("issue.unvote.description")">
-                                    @Messages("issue.vote")
-                                    @if(issue.voters.size > 0) {
-                                        <strong>+@issue.voters.size</strong>
-                                    }
-                                </a>
-                            } else {
-                                <a href="@routes.VoteApp.vote(project.owner, project.name, issue.getNumber)" class="ybtn"
-                                data-request-method="post" data-toggle="tooltip" data-placement="top" data-original-title="@Messages("issue.vote.description")">
-                                    @Messages("issue.vote")
-                                    @if(issue.voters.size > 0) {
-                                        <strong>+@issue.voters.size</strong>
-                                    }
-                                </a>
-                            }
+                            <a href="@urlToVote" class="ybtn @isVotedByCurrentUser" title="@getVoteButtonTitle"
+                               data-request-method="post" data-toggle="tooltip">
+                                @Messages("issue.vote")
+                                @if(issue.voters.size > 0) {
+                                    <strong>+@issue.voters.size</strong>
+                                }
+                            </a>
                         } else {
-                            <span class="ybtn ybtn-disabled" style="color:#777;" data-toggle="tooltip" data-placement="top" data-original-title="@Messages("user.login.alert")">
+                            <span class="ybtn ybtn-disabled" style="color:#777;" data-toggle="tooltip" title="@Messages("user.login.alert")">
                                 @Messages("issue.vote")
                                 @if(issue.voters.size > 0) {
                                     <strong>+@issue.voters.size</strong>
@@ -268,14 +276,8 @@
                             </span>
                         }
 
-                        @if(issue.voters.size > 0) {
-                        <div class="voter-list-wrap">
-                            <ul class="voter-list">
-                            @for(voter <- issue.voters) {
-                                <li>@Html(getUserAvatar(voter, "medium"))</li>
-                            }
-                            </ul>
-                        </div>
+                        @if(issue.voters.size > 0){
+                            @partial_voters(issue, 3)
                         }
                     </div>
                 </div>
