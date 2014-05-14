@@ -4843,6 +4843,22 @@ label.issue-item-row {
 .diff-body.show-comments tr.comments {
     display: table-row;
 }
+.diff-body tr.comment-form {
+    td {
+        position:relative;
+        padding:0; padding-left:5px;
+        border:1px solid #ccc;
+        border-width:1px 0;
+
+        .review-form {
+            position:static;
+            max-width: 860px;
+            border:0;
+            .border-radius(0);
+        }
+    }
+}
+
 
 /*div#mode-select { text-align:right; }*/
 .pullreq-info { display:block; clear:both; padding-bottom:10px; margin-bottom:10px; }
@@ -5239,6 +5255,20 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     padding-bottom:0;
     background-color:#fefefe;
     max-width:876px;
+    position:relative;
+
+    .thread-header{
+        padding: 5px 10px 10px 10px;
+
+        .badge {
+            margin:0; padding:2px 10px;
+        }
+        .thread-info {
+            color:#999; margin:0 10px;
+            .commitId { font-family:@fixed-font-family; margin-right:5px; }
+            .comments { color:#3592b5; margin-left:10px; }
+        }
+    }
 
     .comments {
         margin:0 5px;
@@ -5248,6 +5278,10 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 
     .btn-thread-here {
         display:none;
+    }
+    .btn-thread-minimize {
+        position:absolute;
+        top:8px; right:10px;
     }
 
     .thread-actrow {
@@ -5261,12 +5295,10 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 
     &.closed {
         .box-shadow(inset 5px 0 0 @state-closed);
-        .comments {
-            .opacity(50);
-        }
     }
 
     &.fold {
+        position:static;
         padding:0; margin:0;
         background: transparent;
         border: none;
@@ -5277,8 +5309,11 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         }
         .btn-thread-here {
             position:absolute; z-index:99;
-            right:10px; margin-top:-25px;
-            display:block;
+            right:0px; margin-top:0px;
+            display:block !important;
+        }
+        .btn-thread-minimize {
+            display:none;
         }
 
         &.open .btn-thread-here button {
@@ -5297,11 +5332,8 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 }
 
 .review-form {
-    position:absolute; display: none;
-    z-index:1000; top:0px; left:0px; right:0px;
-    padding: 0px 15px;
-    background: #fff;
-    border:1px solid #ccc;
+    display: none;
+    padding: 0px 10px; padding-right:6px;
     font-family:@base-font-family;
     .border-radius(6px);
 

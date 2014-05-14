@@ -38,6 +38,23 @@
     <div class="btn-thread-here btn-thread-minimize">
         <button type="button" class="ybtn ybtn-default ybtn-small"><i class="yobicon-comments"></i></button>
     </div>
+
+    <div class="thread-header">
+        <span class="badge state @thread.state.toString().toLowerCase()">
+            @Messages("issue.state." + thread.state.toString().toLowerCase())
+        </span>
+
+        <span class="thread-info">
+            @if(!thread.reviewComments.isEmpty) {
+                <a href="#thread-@thread.id" class="comments nm">
+                    <i class="yobicon-comments vmiddle"></i> @thread.reviewComments.size
+                </a>
+            }
+        </span>
+
+        <button type="button" class="ybtn ybtn-default ybtn-small btn-thread-minimize"><i class="yobicon-maximize"></i></button>
+    </div>
+
     <ul class="comments">
         @for(comment: ReviewComment <- thread.reviewComments) {
         <li id="comment-@comment.id" class="comment">
@@ -68,9 +85,10 @@
         </li>
         }
     </ul>
-    <p class="thread-actrow">
-        <button type="button" class="ybtn ybtn-default ybtn-small btn-thread-minimize"><i class="yobicon-maximize"></i></button>
 
+    <div class="write-comment-form"></div>
+
+    <p class="thread-actrow">
         @if(utils.AccessControl.isAllowed(UserApp.currentUser(), thread.asResource(), Operation.UPDATE)){
             @if(thread.state == CommentThread.ThreadState.OPEN) {
             <button type="button" data-request-method="post" data-request-uri="@routes.CommentThreadApp.close(thread.id)" class="ybtn ybtn-default ybtn-small">@Messages("commentThread.close")</button>
