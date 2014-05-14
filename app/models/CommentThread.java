@@ -54,7 +54,7 @@ public class CommentThread extends Model implements ResourceConvertible {
     })
     public UserIdent author;
 
-    @OneToMany(mappedBy = "thread")
+    @OneToMany(mappedBy = "thread", cascade = CascadeType.REMOVE)
     public List<ReviewComment> reviewComments = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
