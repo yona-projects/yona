@@ -488,8 +488,14 @@
                 "nAdjustmentTop": htElement.welDiffBody.position().top
             });
 
+            var nMarginFromBorder = 20;
+
             if(!htBlockInfo.bIsReversed && _doesCommentBoxOutOfWindow()){
-                window.scrollTo(0, yobi.CodeCommentBox.offset().top + yobi.CodeCommentBox.height() - window.innerHeight + 20);
+                window.scrollTo(0, yobi.CodeCommentBox.offset().top + yobi.CodeCommentBox.height() - window.innerHeight + nMarginFromBorder);
+            }
+
+            if(htBlockInfo.bIsReversed && _doesCommentBoxOutOfWindow()){
+                window.scrollTo(0, yobi.CodeCommentBox.offset().top - nMarginFromBorder);
             }
 
             htVar.htBlockInfo = htBlockInfo;
