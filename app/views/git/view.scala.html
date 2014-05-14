@@ -63,7 +63,15 @@
 
         <div class="board-footer board-actrow">
             <div class="pull-left">
-                <button id="helpBtn" class="ybtn ybtn-default">@Messages("title.help")</button>
+                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.WATCH)) {
+                    <button id="watch-button" type="button" class="ybtn @if(pull.getWatchers.contains(UserApp.currentUser())) { ybtn-watching }" data-toggle="button" data-watching="@if(pull.getWatchers.contains(UserApp.currentUser())){true}else{false}">
+                    @if(pull.getWatchers.contains(UserApp.currentUser())) {
+                        @Messages("project.unwatch")
+                    } else {
+                        @Messages("project.watch")
+                    }
+                    </button>
+                }
             </div>
 
             <div id="actOnOpen" class="mr5" style="@if(pull.isMerging == false && pull.isOpen()){display:inline-block;}else{display:none;}">
@@ -80,32 +88,6 @@
                     <a data-request-method="post" href="@routes.PullRequestApp.open(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.reopen")</a>
                 }
             </div>
-
-            @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.WATCH)) {
-            <button id="watch-button" type="button" class="ybtn @if(pull.getWatchers.contains(UserApp.currentUser())) { ybtn-watching }" data-toggle="button" data-watching="@if(pull.getWatchers.contains(UserApp.currentUser())){true}else{false}">
-                @if(pull.getWatchers.contains(UserApp.currentUser())) {
-                    @Messages("project.unwatch")
-                } else {
-                    @Messages("project.watch")
-                }
-            </button>
-            }
-        </div>
-
-        <div id="helpMessage" class="pullreq-info" style="display:none;">
-            <div class="well">
-                <div class="row-fluid">
-                    <div class="pull-left">
-                        <img class="img-polaroid" src="@routes.Assets.at("images/fork-pull/merge.jpg")"><br>
-                    </div>
-                    <div class="pull-left help-messages">
-                        <p class="lead">@Messages("pullRequest.merge.help.1")</p>
-                        <p>@Messages("pullRequest.merge.help.2")</p>
-                        <p>@Messages("pullRequest.merge.help.3")</p>
-                        <p>@Messages("pullRequest.merge.help.4")</p>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <hr class="nm">
@@ -114,8 +96,33 @@
             @if(pull.pullRequestEvents.size > 0) {
             <ul class="comments" id="comments">
             @renderEventsOnPullRequest(pull)
-            </ul> 
+            </ul>
             }
+        </div>
+
+        <div class="right-txt">
+            <a href="#helpMessage" class="ybtn ybtn-inverse ybtn-mini" data-toggle="modal">@Messages("title.help")</a>
+        </div>
+
+        <div id="helpMessage" class="modal hide fade pullreq-info">
+            <div class="modal-header">
+                <h5>@Messages("pullRequest.merge.help.1")</h5>
+            </div>
+            <div class="modal-body">
+                <div class="row-fluid">
+                    <div class="pull-left">
+                        <img class="img-polaroid" src="@routes.Assets.at("images/fork-pull/merge.jpg")"><br>
+                    </div>
+                    <div class="pull-left help-messages mt10">
+                        <p>@Messages("pullRequest.merge.help.2")</p>
+                        <p>@Messages("pullRequest.merge.help.3")</p>
+                        <p>@Messages("pullRequest.merge.help.4")</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="ybtn ybtn-info ybtn-small" data-dismiss="modal">@Messages("button.confirm")</button>
+            </div>
         </div>
     </div>
 </div>

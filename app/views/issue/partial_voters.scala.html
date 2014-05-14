@@ -1,0 +1,83 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2014 NAVER Corp.
+* http://yobi.io
+*
+* @Author Jihan Kim
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@(issue:models.Issue, numToSpread:Int = 3, numToOthers:Int = 5)
+
+@import utils.TemplateHelper._
+
+@spreadIndexRange = @{
+    if(issue.isVotedBy(UserApp.currentUser)) {
+       numToSpread - 2
+    } else {
+       numToSpread - 1
+    }
+}
+
+@othersList = @{issue.voters.subList(spreadIndexRange + 1, Math.min(issue.voters.size, spreadIndexRange + 1 + numToOthers))}
+
+<div class="voter-list-wrap">
+    <ul class="voter-list">
+        @if(issue.isVotedBy(UserApp.currentUser)){
+            <li>@Html(getUserAvatar(UserApp.currentUser(), "medium"))</li>
+        }
+        @for(index <- 0 to spreadIndexRange){
+            @defining(issue.voters.get(index)) { voter =>
+                <li>@Html(getUserAvatar(voter, "medium"))</li>
+            }
+        }
+        @if(issue.voters.size() > numToSpread){
+            <li data-toggle="tooltip" data-html="true"
+                title="
+                @for(voter <- othersList) {
+                    @if(voter.id != UserApp.currentUser().id) {
+                        @voter.name<br>
+                    }
+                }
+                @if(issue.voters.size > numToSpread + numToOthers){ &hellip; }">
+                <a href="#voters" data-toggle="modal">@Messages("issue.voters.more", issue.voters.size() - numToSpread)</a>
+            </li>
+        }
+    </ul>
+</div>
+
+<div id="voters" class="modal hide voters-dialog">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h5 class="nm">@Messages("issue.voters")</h5>
+    </div>
+    <div class="modal-body">
+        <ul class="unstyled">
+        @for(voter <- issue.voters){
+            <li>
+                <a href="@routes.UserApp.userInfo(voter.loginId)" class="usf-group" target="_blank">
+                    <span class="avatar-wrap mlarge">
+                        <img src="@voter.avatarUrl" width="40" height="40">
+                    </span>
+                    <strong class="name">@voter.name</strong>
+                    <span class="loginid"> <strong>@{"@"}</strong>@voter.loginId</span>
+                </a>
+            </li>
+        }
+        </ul>
+    </div>
+    <div class="modal-footer">
+        <button class="ybtn ybtn-info ybtn-small" data-dismiss="modal" aria-hidden="true">@Messages("button.confirm")</button>
+    </div>
+</div>

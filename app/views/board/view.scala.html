@@ -64,7 +64,11 @@
     	</div>
     	<div class="board-footer board-actrow">
     	    <div class="pull-left">
-                <a href="@urlToPostings" class="ybtn">@Messages("button.list")</a>
+                @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.WATCH)){
+                    <button id="watch-button" type="button" class="ybtn @if(post.getWatchers.contains(UserApp.currentUser())){ybtn-watching}" data-toggle="button" data-watching="@if(post.getWatchers.contains(UserApp.currentUser())){true}else{false}">
+                    @if(post.getWatchers.contains(UserApp.currentUser())) { @Messages("project.unwatch") } else { @Messages("project.watch") }
+                    </button>
+                }
             </div>
 
             @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.DELETE)){
@@ -74,12 +78,6 @@
             @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){
             <a href="@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)" class="ybtn">@Messages("button.edit")</a>
             }
-
-            @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.WATCH)){
-            <button id="watch-button" type="button" class="ybtn @if(post.getWatchers.contains(UserApp.currentUser())){ybtn-watching}" data-toggle="button" data-watching="@if(post.getWatchers.contains(UserApp.currentUser())){true}else{false}">
-                @if(post.getWatchers.contains(UserApp.currentUser())) { @Messages("project.unwatch") } else { @Messages("project.watch") }
-            </button>
-            }
     	</div>
 
     	@** Comment **@
@@ -88,6 +86,8 @@
 
             @common.commentForm(post.asResource(), ResourceType.NONISSUE_COMMENT, routes.BoardApp.newComment(project.owner, project.name, post.getNumber).toString())
     	</div>
+
+        <a href="@urlToPostings" class="ybtn pull-left">@Messages("button.list")</a>
 
     	@help.keymap("boardDetail", project)
     </div>

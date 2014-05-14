@@ -1,3 +1,8 @@
+/** override bootstrap.css **/
+.modal-backdrop, .modal-backdrop.fade.in {
+    .opacity(50); /** default backdrop opacity is 80% **/
+}
+
 /** override select2.css **/
 @select2-border-radius: 3px;
 @select2-image-path: "../javascripts/lib/select2";
@@ -211,7 +216,6 @@
     }
 
     &.issue-labels {
-        width:auto !important;
         border:none;
         .box-shadow(none);
 
@@ -221,10 +225,11 @@
                 filter:none;
                 border:none;
                 .box-shadow(none);
+                padding:3px 18px 3px 5px;
             }
 
             .select2-search-choice-close {
-                top:6px;
+                top:6px; right:3px; left:auto;
                 .opacity(0);
             }
         }
@@ -262,8 +267,16 @@
 }
 .select2-drop.issue-labels {
     min-width:240px;
+    border-top:1px solid rgba(0,0,0,0.15);
+    .box-shadow(0 2px 10px rgba(0,0,0,0.2));
+    .border-radius(6px);
 
     .select2-results {
         min-width: 220px;
     }
+}
+li.select2-result-with-children:first-of-type {
+    border-top: 0;
+    margin-top: 0;
+    padding-top: 0;
 }
