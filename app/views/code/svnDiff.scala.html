@@ -93,19 +93,6 @@
             <div class="diff-wrap">
                 <div id="commit" data-commit-origin="true" class="diff-body hide">@patch</div>
             </div>
-            @** Mergely **@
-            <div id="compare" class="modal hide compare-wrap" tabindex="-1" role="dialog">
-                <h4 class="path">
-                    <span></span>
-                    <button type="button" class="ybtn pull-right" data-dismiss="modal" style="margin-right:20px;">@Messages("button.confirm")</button>
-                </h4>
-                <div class="row-fluid">
-                    <div class="span6 commitA"></div>
-                    <div class="span6 commitB"></div>
-                </div>
-                <div id="mergely" class="mergely-wrap"></div>
-            </div>
-            @** // **@
 
             @** Comment **@
             <div class="board-comment-wrap">
@@ -176,16 +163,12 @@
     <button class="ybtn medium btn-thread"></button>
 </script>
 
-<link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mergely/codemirror.css")">
-<link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mergely/mergely.css")">
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.css")">
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.caret.min.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.browser.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.firefox.keyfix.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/diff.js")"></script>
-<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/mergely/codemirror.min.js")"></script>
-<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/mergely/mergely.js")"></script>
 <script type="text/javascript">
     $(document).ready(function(){
         $yobi.loadModule("code.SvnDiff", {
