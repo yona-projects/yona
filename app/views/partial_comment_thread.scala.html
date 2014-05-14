@@ -24,7 +24,8 @@
 @import utils.TemplateHelper._
 @import utils.TemplateHelper.DiffRenderer._
 
-<div id="thread-@thread.id" class="comment-thread-wrap @thread.state.toString().toLowerCase()
+<div id="thread-@thread.id" data-state="@thread.state.toString().toLowerCase()"
+     class="comment-thread-wrap @thread.state.toString().toLowerCase()
      @if(thread.isInstanceOf[CodeCommentThread] && thread.state == CommentThread.ThreadState.CLOSED){fold}"
      @thread match {
          case (t: CodeCommentThread) => {
