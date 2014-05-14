@@ -201,15 +201,6 @@
         <div class="diff-partial-file">
           <span class="filename">@fileHeader</span>
         </div>
-        <div class="diff-partial-utility">
-          @if(diff.commitA && diff.commitB && diff.pathA && diff.pathB){
-              <button type="button" class="ybtn ybtn-small" data-toggle="mergely"
-                data-pathA="@diff.pathA" data-pathB="@diff.pathB" data-commitA="@diff.commitA" data-commitB="@diff.commitB"
-                data-rawA="@routes.CodeApp.showRawFile(projectA.owner, projectA.name, diff.commitA, diff.pathA)"
-                data-rawB="@routes.CodeApp.showRawFile(projectB.owner, projectB.name, diff.commitB, diff.pathB)"
-              >@Messages("code.fullDiff")</button>
-          }
-        </div>
       </div>
       <div class="diff-partial-code" data-hashcode="@diff.hashCode">
         <table class="diff-container show-comments"
