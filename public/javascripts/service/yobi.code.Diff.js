@@ -216,6 +216,10 @@
          * @private
          */
         function _scrollToAndHighlight(welTarget){
+            if(!welTarget || welTarget.length === 0){
+                return;
+            }
+
             window.scrollTo(0, welTarget.offset().top - 50);
 
             // 주어진 엘리먼트가 접혀있는 스레드라면 펼침
@@ -270,6 +274,10 @@
          * @private
          */
         function _setReviewWrapAffixed(){
+            if(htElement.welReviewContainer.length === 0){
+                return;
+            }
+
             htElement.welReviewContainer.affix({
                 offset : {top : htElement.welReviewContainer.offset().top-10}
             });
