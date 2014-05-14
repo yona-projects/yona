@@ -30,6 +30,7 @@
             _initMiniMap();
             _scrollToHash();
             _setReviewListHeight();
+            _setAllBtnThreadHerePosition();
         }
 
         /**
@@ -550,7 +551,15 @@
          */
         function _onClickBtnFoldThread(weEvt){
             $(weEvt.currentTarget).closest(".comment-thread-wrap").toggleClass("fold");
+            _setAllBtnThreadHerePosition();
+        }
 
+        /**
+         * Set positions of all .btn-thread-here button
+         *
+         * @private
+         */
+        function _setAllBtnThreadHerePosition(){
             htElement.welDiffBody.find(".btn-thread-here").each(function(i, el){
                 _setBtnThreadHerePosition($(el));
             });
