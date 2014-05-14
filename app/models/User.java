@@ -79,6 +79,7 @@ public class User extends Model implements ResourceConvertible {
      * 로그인ID 패턴
      */
     public static final String LOGIN_ID_PATTERN = "[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*";
+    public static final String LOGIN_ID_PATTERN_ALLOW_FORWARD_SLASH = "[a-zA-Z0-9-/]+([_.][a-zA-Z0-9-/]+)*";
 
     // TODO anonymous를 사용하는 것이아니라 향후 NullUser 패턴으로 usages들을 교체해야 함
     public static final User anonymous = new NullUser();

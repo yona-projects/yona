@@ -921,12 +921,42 @@ public class NotificationEvent extends Model {
     }
 
     public static Set<User> getMentionedUsers(String body) {
-        Matcher matcher = Pattern.compile("@" + User.LOGIN_ID_PATTERN).matcher(body);
+        Matcher matcher = Pattern.compile("@" + User.LOGIN_ID_PATTERN_ALLOW_FORWARD_SLASH).matcher(body);
         Set<User> users = new HashSet<>();
         while(matcher.find()) {
-            users.add(User.findByLoginId(matcher.group().substring(1)));
+            String mentionWord = matcher.group().substring(1);
+            users.addAll(findOrganizationMembers(mentionWord));
+            users.addAll(findProjectMembers(mentionWord));
+            users.add(User.findByLoginId(mentionWord));
         }
         users.remove(User.anonymous);
+        return users;
+    }
+
+    private static Set<User> findOrganizationMembers(String mentionWord) {
+        Set<User> users = new HashSet<>();
+        Organization org = Organization.findByName(mentionWord);
+        if (org != null) {
+            for (OrganizationUser orgUser : org.users) {
+                users.add(orgUser.user);
+            }
+        }
+        return users;
+    }
+
+    private static Set<User> findProjectMembers(String mentionWord) {
+        Set<User> users = new HashSet<>();
+        if(mentionWord.contains("/")){
+            String projectName = mentionWord.substring(mentionWord.lastIndexOf("/")+1);
+            String loginId = mentionWord.substring(0, mentionWord.lastIndexOf("/"));
+            Project mentionedProject = Project.findByOwnerAndProjectName(loginId, projectName);
+            if(mentionedProject == null) {
+                return users;
+            }
+            for(ProjectUser projectUser: mentionedProject.members() ){
+                users.add(projectUser.user);
+            }
+        }
         return users;
     }
 

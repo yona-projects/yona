@@ -31,6 +31,7 @@ yobi.Mention = function(htOptions) {
         htVar = htOptions || {}; // set htVar as htOptions
         htVar.atConfig = {
             at: "@",
+            limit: 10,
             data: [],
             tpl: "<li data-value='@${loginid}'><img style='width:20px;height:20px;' src='${image}'> ${username} <small>${loginid}</small></li>",
             show_the_at: true
@@ -59,7 +60,8 @@ yobi.Mention = function(htOptions) {
     function _onKeyInput(eEvt){
         eEvt = eEvt || window.event;
 
-        if(eEvt.which === 64) { // 64 = @
+        var charCode = eEvt.which || eEvt.keyCode;
+        if(charCode === 64 || charCode === 35) { // 64 = @, 35 = #
             if(htVar.atConfig.data.length == 0) {
                 _findMentionList();
             }
@@ -79,12 +81,19 @@ yobi.Mention = function(htOptions) {
     }
 
     function _onLoadUserList(aData){
-        htVar.atConfig.data = aData;
+        htVar.atConfig.data = aData.result;
 
         // on-key event fix for FF on Korean input
         var keyFix = new beta.fix(htVar.target);
 
-        $inputor = htElement.welTarget.atwho(htVar.atConfig);
+        $inputor = htElement.welTarget
+            .atwho(htVar.atConfig)
+            .atwho({
+                at: "#",
+                limit: 10,
+                tpl: '<li data-value="#${issueNo}"><small>#${issueNo}</small> ${title}</li>',
+                data: aData.issues
+            });
         $inputor.caret("pos", 47);
         $inputor.focus().atwho("run");
     }

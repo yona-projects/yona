@@ -30,7 +30,6 @@ import com.avaje.ebean.Page;
 import controllers.annotation.IsAllowed;
 import info.schleichardt.play2.mailplugin.Mailer;
 import models.*;
-import models.Project.State;
 import models.enumeration.Operation;
 import models.enumeration.ProjectScope;
 import models.enumeration.RequestState;
@@ -45,7 +44,6 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
-import org.jsoup.Jsoup;
 import org.tmatesoft.svn.core.SVNException;
 
 import play.Logger;
@@ -81,7 +79,7 @@ import java.util.*;
 import static play.data.Form.form;
 import static play.libs.Json.toJson;
 import static utils.LogoUtil.*;
-
+import static utils.TemplateHelper.*;
 
 /**
  * ProjectApp
@@ -89,7 +87,7 @@ import static utils.LogoUtil.*;
  */
 public class ProjectApp extends Controller {
 
-    private static final int ISSUE_MENTION_SHOW_LIMIT = 1000;
+    private static final int ISSUE_MENTION_SHOW_LIMIT = 2000;
 
     /** 자동완성에서 보여줄 최대 프로젝트 개수 */
     private static final int MAX_FETCH_PROJECTS = 1000;
@@ -503,18 +501,56 @@ public class ProjectApp extends Controller {
         addGroupMemberList(project, userList);
         userList.remove(UserApp.currentUser());
 
-        List<Map<String, String>> mentionList = new ArrayList<>();
-        collectedUsersToMap(mentionList, userList);
-        return ok(toJson(mentionList));
+        Map<String, List<Map<String, String>>> result = new HashMap<>();
+        result.put("result", getUserList(project, userList));
+        result.put("issues", getIssueList(project));
+
+        return ok(toJson(result));
+    }
+
+    private static List<Map<String, String>> getIssueList(Project project) {
+        List<Map<String, String>> mentionListOfIssues = new ArrayList<>();
+        collectedIssuesToMap(mentionListOfIssues, getMentionIssueList(project));
+        return mentionListOfIssues;
+    }
+
+    private static List<Map<String, String>> getUserList(Project project, List<User> userList) {
+        List<Map<String, String>> mentionListOfUser = new ArrayList<>();
+        collectedUsersToMentionList(mentionListOfUser, userList);
+        addProjectNameToMentionList(mentionListOfUser, project);
+        addOrganizationNameToMentionList(mentionListOfUser, project);
+        return mentionListOfUser;
+    }
+
+    private static void addProjectNameToMentionList(List<Map<String, String>> users, Project project) {
+        Map<String, String> projectUserMap = new HashMap<>();
+        if(project != null){
+            projectUserMap.put("loginid", project.owner+"/" + project.name);
+            projectUserMap.put("username", project.name );
+            projectUserMap.put("name", project.name);
+            projectUserMap.put("image", urlToProjectLogo(project).toString());
+            users.add(projectUserMap);
+        }
+    }
+
+    private static void addOrganizationNameToMentionList(List<Map<String, String>> users, Project project) {
+        Map<String, String> projectUserMap = new HashMap<>();
+        if(project != null && project.organization != null){
+            projectUserMap.put("loginid", project.organization.name);
+            projectUserMap.put("username", project.organization.name);
+            projectUserMap.put("name", project.organization.name);
+            projectUserMap.put("image", urlToOrganizationLogo(project.organization).toString());
+            users.add(projectUserMap);
+        }
     }
 
     private static void collectedIssuesToMap(List<Map<String, String>> mentionList,
             List<Issue> issueList) {
         for (Issue issue : issueList) {
             Map<String, String> projectIssueMap = new HashMap<>();
-            projectIssueMap.put("username", issue.getNumber().toString());
-            projectIssueMap.put("name", issue.title);
-            projectIssueMap.put("delimiter",  "#");
+            projectIssueMap.put("name", issue.getNumber().toString() + issue.title);
+            projectIssueMap.put("issueNo", issue.getNumber().toString());
+            projectIssueMap.put("title", issue.title);
             mentionList.add(projectIssueMap);
         }
     }
@@ -534,7 +570,7 @@ public class ProjectApp extends Controller {
         }
         return Issue.finder.where()
                         .eq("project.id", projectId)
-                        .orderBy("state desc, createdDate desc")
+                        .orderBy("createdDate desc")
                         .setMaxRows(ISSUE_MENTION_SHOW_LIMIT)
                         .findList();
     }
@@ -581,10 +617,11 @@ public class ProjectApp extends Controller {
         userList.remove(UserApp.currentUser());
         List<Issue> issueList = getMentionIssueList(project);
 
-        List<Map<String, String>> mentionList = new ArrayList<>();
-        collectedUsersToMap(mentionList, userList);
-        collectedIssuesToMap(mentionList, issueList);
-        return ok(toJson(mentionList));
+        Map<String, List<Map<String, String>>> result = new HashMap<>();
+        result.put("result", getUserList(project, userList));
+        result.put("issues", getIssueList(project));
+
+        return ok(toJson(result));
     }
 
     /**
@@ -630,12 +667,12 @@ public class ProjectApp extends Controller {
         }
 
         userList.remove(UserApp.currentUser());
-        List<Issue> issueList = getMentionIssueList(project);
 
-        List<Map<String, String>> mentionList = new ArrayList<>();
-        collectedUsersToMap(mentionList, userList);
-        collectedIssuesToMap(mentionList, issueList);
-        return ok(toJson(mentionList));
+        Map<String, List<Map<String, String>>> result = new HashMap<>();
+        result.put("result", getUserList(project, userList));
+        result.put("issues", getIssueList(project));
+
+        return ok(toJson(result));
     }
 
     private static void addCommentAuthors(Long pullRequestId, List<User> userList) {
@@ -862,7 +899,7 @@ public class ProjectApp extends Controller {
         }
     }
 
-    private static void collectedUsersToMap(List<Map<String, String>> users, List<User> userList) {
+    private static void collectedUsersToMentionList(List<Map<String, String>> users, List<User> userList) {
         for(User user: userList) {
             Map<String, String> projectUserMap = new HashMap<>();
             if(!user.loginId.equals(Constants.ADMIN_LOGIN_ID) && user != null){
