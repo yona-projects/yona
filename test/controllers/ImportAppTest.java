@@ -142,7 +142,7 @@ public class ImportAppTest {
                 fakeRequest()
                     .withSession(UserApp.SESSION_USERID, String.valueOf(yobi.id))
                     .withFormUrlEncodedBody(formData)
-                    .withHeader(Http.HeaderNames.ACCEPT_LANGUAGE, Lang.defaultLang().code()));
+                    .withHeader(Http.HeaderNames.ACCEPT_LANGUAGE, Lang.defaultLang().language()));
 
         // Then
         assertThat(status(result)).isEqualTo(BAD_REQUEST);
@@ -163,7 +163,7 @@ public class ImportAppTest {
                 fakeRequest()
                     .withSession(UserApp.SESSION_USERID, String.valueOf(yobi.id))
                     .withFormUrlEncodedBody(formData)
-                    .withHeader(Http.HeaderNames.ACCEPT_LANGUAGE, Lang.defaultLang().code()));
+                    .withHeader(Http.HeaderNames.ACCEPT_LANGUAGE, Lang.defaultLang().language()));
 
         // Then
         assertThat(status(result)).isEqualTo(BAD_REQUEST);
@@ -184,7 +184,7 @@ public class ImportAppTest {
                 fakeRequest()
                     .withSession(UserApp.SESSION_USERID, String.valueOf(yobi.id))
                     .withFormUrlEncodedBody(formData)
-                    .withHeader(Http.HeaderNames.ACCEPT_LANGUAGE, Lang.defaultLang().code()));
+                    .withHeader(Http.HeaderNames.ACCEPT_LANGUAGE, Lang.defaultLang().language()));
 
         // Then
         assertThat(status(result)).isEqualTo(BAD_REQUEST);
