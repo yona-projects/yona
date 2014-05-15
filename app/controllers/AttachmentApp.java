@@ -37,7 +37,7 @@ import models.enumeration.ResourceType;
 
 import org.codehaus.jackson.JsonNode;
 
-import org.h2.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import play.Configuration;
 import play.Logger;
 import play.mvc.Controller;
@@ -287,7 +287,7 @@ public class AttachmentApp extends Controller {
         String containerType = HttpUtil.getFirstValueFromQuery(query, "containerType");
         String containerId = HttpUtil.getFirstValueFromQuery(query, "containerId");
 
-        if (containerType != null && containerId != null) {
+        if (StringUtils.isNotEmpty(containerType) && StringUtils.isNotEmpty(containerId)) {
             List<Map<String, String>> attachments = new ArrayList<>();
             for (Attachment attach : Attachment.findByContainer(ResourceType.valueOf
                     (containerType), containerId)) {

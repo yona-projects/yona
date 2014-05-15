@@ -115,7 +115,7 @@ public class CodeHistoryApp extends Controller {
 
         String pageStr = HttpUtil.getFirstValueFromQuery(request().queryString(), "page");
         int page = 0;
-        if (pageStr != null) {
+        if (StringUtils.isNotEmpty(pageStr)) {
             page = Integer.parseInt(pageStr);
         }
 

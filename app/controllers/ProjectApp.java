@@ -389,7 +389,7 @@ public class ProjectApp extends Controller {
 
         Map<String, String[]> data = body.asFormUrlEncoded();
         String defaultBranch = HttpUtil.getFirstValueFromQuery(data, "defaultBranch");
-        if (defaultBranch != null) {
+        if (StringUtils.isNotEmpty(defaultBranch)) {
             repository.setDefaultBranch(defaultBranch);
         }
 
@@ -1223,7 +1223,7 @@ public class ProjectApp extends Controller {
         Map<String, String[]> data = request().body().asFormUrlEncoded();
         String category = HttpUtil.getFirstValueFromQuery(data, "category");
         String name = HttpUtil.getFirstValueFromQuery(data, "name");
-        if (name == null || name.length() == 0) {
+        if (StringUtils.isEmpty(name)) {
             // A label must have its name.
             return badRequest(ErrorViews.BadRequest.render("Label name is missing.", project));
         }
