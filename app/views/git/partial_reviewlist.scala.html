@@ -25,7 +25,9 @@
 @import utils.TemplateHelper.DiffRenderer._
 
 @for(thread: CommentThread <- threads){
-    <a href="@DiffRenderer.urlToCommentThread(thread)" class="review-card @thread.state.toString().toLowerCase()">
+    <a href="@DiffRenderer.urlToCommentThread(thread)" class="review-card @thread.state.toString().toLowerCase() @thread match {
+              case (t: CodeCommentThread) if t.isOutdated => { outdated }
+              case _ => { }}">
         <p class="content">
             @thread.getFirstReviewComment().getContents()
         </p>
@@ -37,6 +39,7 @@
                     </span>
                 }
             }
+            <span class="outdated-label">@Messages("review.outdated")</span>
             <span class="date" title="@JodaDateUtil.getDateString(thread.createdDate)">@agoOrDateString(thread.createdDate)</span>
             <span class="avatar-wrap smaller ml5">
                 <img src="@User.findByLoginId(thread.author.loginId).avatarUrl" alt="@thread.author.name" />
