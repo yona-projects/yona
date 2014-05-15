@@ -44,14 +44,6 @@
             @Messages("issue.state." + thread.state.toString().toLowerCase())
         </span>
 
-        <span class="thread-info">
-            @if(!thread.reviewComments.isEmpty) {
-                <a href="#thread-@thread.id" class="comments nm">
-                    <i class="yobicon-comments vmiddle"></i> @thread.reviewComments.size
-                </a>
-            }
-        </span>
-
         <button type="button" class="ybtn ybtn-default ybtn-small btn-thread-minimize"><i class="yobicon-maximize"></i></button>
     </div>
 

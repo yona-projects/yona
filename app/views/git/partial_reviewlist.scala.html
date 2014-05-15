@@ -30,10 +30,12 @@
             @thread.getFirstReviewComment().getContents()
         </p>
         <p class="info">
-            @if(thread.hasChildComments){
-                <span class="comments pull-left">
-                    <i class="yobicon-comments"></i> @thread.reviewComments.size()
-                </span>
+            @defining(thread.reviewComments.size()-1) { numberOfComments =>
+                @if(numberOfComments > 0) {
+                    <span class="comments pull-left">
+                        <i class="yobicon-comments"></i> @numberOfComments
+                    </span>
+                }
             }
             <span class="date" title="@JodaDateUtil.getDateString(thread.createdDate)">@agoOrDateString(thread.createdDate)</span>
             <span class="avatar-wrap smaller ml5">
