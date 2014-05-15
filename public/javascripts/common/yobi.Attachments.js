@@ -381,7 +381,7 @@ yobi.Attachments = function(htOptions) {
             htElements.welFileListHelp.hide();
         }
 
-        $yobi.notify(Messages("common.attach.error.upload", htData.oRes.status, htData.oRes.statusText));
+        $yobi.alert(Messages("common.attach.error.upload", htData.oRes.status, htData.oRes.statusText));
         _clearLinkInTextarea(_getTempLinkText(htData.nSubmitId + ".png"));
     }
 
