@@ -214,8 +214,8 @@ public class Attachment extends Model implements ResourceConvertible {
         MessageDigest algorithm = MessageDigest.getInstance("SHA1");
         byte buf[] = new byte[10240];
         FileInputStream fis = new FileInputStream(file);
-        while(fis.read(buf) > 0) {
-            algorithm.update(buf);
+        for (int size = 0; size >= 0; size = fis.read(buf)) {
+            algorithm.update(buf, 0, size);
         }
         Formatter formatter = new Formatter();
         for (byte b : algorithm.digest()) {
