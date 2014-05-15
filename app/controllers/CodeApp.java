@@ -24,6 +24,7 @@ import actions.DefaultProjectCheckAction;
 import controllers.annotation.IsAllowed;
 import models.Project;
 import models.enumeration.Operation;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.tika.Tika;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -35,6 +36,7 @@ import play.mvc.With;
 import playRepository.PlayRepository;
 import playRepository.RepositoryService;
 import utils.ErrorViews;
+import utils.FileUtil;
 import views.html.code.nohead;
 import views.html.code.nohead_svn;
 import views.html.code.view;
@@ -254,6 +256,6 @@ public class CodeApp extends Controller {
             return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
-        return ok(raw).as(tika.detect(raw));
+        return ok(raw).as(FileUtil.detectMediaType(raw, FilenameUtils.getName(path)));
     }
 }
