@@ -24,7 +24,9 @@ public class Constants {
     public static final String WARNING = "warning";
     public static final String INFO = "info";
     public static final String SUCCESS = "success";
-    public static final String ERROR = "error";
+
+    public static final String TITLE = "title";
+    public static final String DESCRIPTION = "description";
 
     public static final String DEFAULT_LOGO_PATH = "public/uploadFiles/";
 
