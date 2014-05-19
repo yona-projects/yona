@@ -62,6 +62,21 @@ public class NotificationMail extends Model {
             NotificationMail.class);
 
     /**
+     * when: Global의 onStart가 실행될 때 호출됩니다.
+     */
+    public static void onStart() {
+        if (notificationEnabled()) {
+            NotificationMail.startSchedule();
+        }
+    }
+
+    private static boolean notificationEnabled() {
+        play.Configuration config = play.Configuration.root();
+        Boolean notificationEnabled = config.getBoolean("notification.bymail.enabled");
+        return notificationEnabled == null || notificationEnabled;
+    }
+
+    /**
      * 알림 메일 발송에 대한 스케쥴을 등록한다.
      *
      * 애플리케이션이 시작되고 {@code application.notification.bymail.initdelay}가 경과한 후 부터,

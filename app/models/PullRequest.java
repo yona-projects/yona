@@ -221,6 +221,14 @@ public class PullRequest extends Model implements ResourceConvertible {
                 '}';
     }
 
+    /**
+     * when: Global의 onStart가 실행될 때 호출됩니다.
+     */
+    public static void onStart() {
+        regulateNumbers();
+        changeStateToClosed();
+    }
+
     public Duration createdAgo() {
         return JodaDateUtil.ago(this.created);
     }

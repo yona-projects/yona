@@ -23,6 +23,8 @@ package controllers;
 import models.Project;
 import models.User;
 import models.enumeration.Operation;
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.tmatesoft.svn.core.internal.server.dav.handlers.DAVHandlerFactory;
 import play.mvc.*;
 import playRepository.PlayRepository;
@@ -35,6 +37,32 @@ import java.io.PipedInputStream;
 import java.net.URISyntaxException;
 
 public class SvnApp extends Controller {
+    private static final String[] WEBDAV_METHODS = {
+        DAVHandlerFactory.METHOD_PROPFIND,
+        DAVHandlerFactory.METHOD_REPORT,
+        DAVHandlerFactory.METHOD_TRACE,
+        DAVHandlerFactory.METHOD_PROPPATCH,
+        DAVHandlerFactory.METHOD_COPY,
+        DAVHandlerFactory.METHOD_MOVE,
+        DAVHandlerFactory.METHOD_LOCK,
+        DAVHandlerFactory.METHOD_UNLOCK,
+        DAVHandlerFactory.METHOD_MKCOL,
+        DAVHandlerFactory.METHOD_VERSION_CONTROL,
+        DAVHandlerFactory.METHOD_MKWORKSPACE,
+        DAVHandlerFactory.METHOD_MKACTIVITY,
+        DAVHandlerFactory.METHOD_CHECKIN,
+        DAVHandlerFactory.METHOD_CHECKOUT,
+        DAVHandlerFactory.METHOD_MERGE
+    };
+
+    public static boolean isWebDavMethod(String method) {
+        for (String webDavMethod : WEBDAV_METHODS) {
+            if (StringUtils.equalsIgnoreCase(webDavMethod, method)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     @With(BasicAuthAction.class)
     @BodyParser.Of(value = BodyParser.Raw.class, maxLength = Integer.MAX_VALUE)

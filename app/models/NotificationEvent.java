@@ -966,24 +966,30 @@ public class NotificationEvent extends Model {
      */
     public static void scheduleDeleteOldNotifications() {
         if (EventConstants.KEEP_TIME_IN_DAYS > 0) {
-            Akka.system()
-                    .scheduler()
-                    .schedule(
-                            Duration.create(1, TimeUnit.MINUTES),
-                            Duration.create(1, TimeUnit.DAYS),
-                            new Runnable() {
-                                @Override
-                                public void run() {
-                                    Date threshold = DateTime.now()
-                                            .minusDays(EventConstants.KEEP_TIME_IN_DAYS).toDate();
-                                    List<NotificationEvent> olds = find.where()
-                                            .lt("created", threshold).findList();
-                                    for (NotificationEvent old : olds) {
-                                        old.delete();
-                                    }
-                                }
-                            },
-                            Akka.system().dispatcher());
+            Akka.system().scheduler().schedule(
+                Duration.create(1, TimeUnit.MINUTES),
+                Duration.create(1, TimeUnit.DAYS),
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        Date threshold = DateTime.now()
+                                .minusDays(EventConstants.KEEP_TIME_IN_DAYS).toDate();
+                        List<NotificationEvent> olds = find.where().lt("created", threshold).findList();
+
+                        for (NotificationEvent old : olds) {
+                            old.delete();
+                        }
+                    }
+                },
+                Akka.system().dispatcher()
+           );
         }
+    }
+
+    /**
+     * when: Global의 onStart가 실행될 때 호출됩니다.
+     */
+    public static void onStart() {
+        scheduleDeleteOldNotifications();
     }
 }
