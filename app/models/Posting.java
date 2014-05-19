@@ -31,11 +31,11 @@ public class Posting extends AbstractPosting {
      */
     @Override
     protected Long increaseNumber() {
-        return project.increaseLastPostingNumber();
+        return Project.increaseLastPostingNumber(project.id);
     }
 
     protected void fixLastNumber() {
-        project.fixLastPostingNumber();
+        Project.fixLastPostingNumber(project.id);
     }
 
     /**

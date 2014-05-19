@@ -156,6 +156,7 @@ public class IssueAppTest {
     @Test
     public void editByNonmember() {
         // Given
+        project.refresh();
         project.setProjectScope(ProjectScope.PUBLIC);
         project.update();
 
@@ -215,6 +216,7 @@ public class IssueAppTest {
     @Test
     public void deleteByNonmember() {
         // Given
+        project.refresh();
         project.setProjectScope(ProjectScope.PUBLIC);
         project.update();
 
@@ -274,6 +276,7 @@ public class IssueAppTest {
     @Test
     public void postByAnonymous() {
         // Given
+        project.refresh();
         project.setProjectScope(ProjectScope.PUBLIC);
         project.update();
 
@@ -287,6 +290,7 @@ public class IssueAppTest {
     @Test
     public void postByNonmember() {
         // Given
+        project.refresh();
         project.setProjectScope(ProjectScope.PUBLIC);
         project.update();
 
@@ -327,6 +331,7 @@ public class IssueAppTest {
     @Test
     public void commentByAnonymous() {
         // Given
+        project.refresh();
         project.setProjectScope(ProjectScope.PUBLIC);
         project.update();
 
@@ -340,6 +345,7 @@ public class IssueAppTest {
     @Test
     public void commentByNonmember() {
         // Given
+        project.refresh();
         project.setProjectScope(ProjectScope.PUBLIC);
         project.update();
 
@@ -388,6 +394,7 @@ public class IssueAppTest {
     public void watch() {
         // Given
         Resource resource = issue.asResource();
+        project.refresh();
         project.setProjectScope(ProjectScope.PUBLIC);
         project.update();
 
@@ -443,6 +450,7 @@ public class IssueAppTest {
     public void unwatch() {
         // Given
         Resource resource = issue.asResource();
+        project.refresh();
         project.setProjectScope(ProjectScope.PUBLIC);
         project.update();
 

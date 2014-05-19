@@ -236,4 +236,20 @@ public class IssueTest extends ModelTest<Issue> {
         event.created = DateUtils.parseDate(str, "yyyy-MM-dd");
         return event;
     }
+
+    @Test
+    public void optimisticLockException() {
+        Project project1 = Project.findByOwnerAndProjectName("yobi", "projectYobi");
+        Project project2 = Project.findByOwnerAndProjectName("yobi", "projectYobi");
+
+        issue = new Issue();
+        issue.setProject(project1);
+        issue.setTitle("a");
+        issue.save();
+
+        issue = new Issue();
+        issue.setProject(project2);
+        issue.setTitle("b");
+        issue.save();
+    }
 }

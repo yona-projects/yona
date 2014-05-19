@@ -305,45 +305,85 @@ public class Project extends Model implements LabelOwner {
         return null;
     }
 
-    @Transactional
-    public Long increaseLastIssueNumber() {
-        if (this.issues != null && lastIssueNumber < this.issues.size() ){
-            fixLastIssueNumber();
-        }
-
-        lastIssueNumber++;
-        update();
+    private Long getLastIssueNumber() {
         return lastIssueNumber;
     }
 
-    public void fixLastIssueNumber() {
-        Issue issue = Issue.finder.where().eq("project.id", id).order().desc("number").findList().get(0);
-        issue.refresh();
-        if (issue.number == null) {
-            lastIssueNumber = 0;
-        } else {
-            lastIssueNumber = issue.number;
-        }
+    private void setLastIssueNumber(Long number) {
+        lastIssueNumber = number;
     }
 
-    @Transactional
-    public Long increaseLastPostingNumber() {
-        if (this.posts != null && lastPostingNumber < this.posts.size() ){
-            fixLastPostingNumber();
-        }
-        lastPostingNumber++;
-        update();
+    private Long getLastPostingNumber() {
         return lastPostingNumber;
     }
 
-    public void fixLastPostingNumber() {
-        Posting posting = Posting.finder.where().eq("project.id", id).order().desc("number").findList().get(0);
-        posting.refresh();
-        if (posting.number == null) {
-            lastPostingNumber = 0;
-        } else {
-            lastPostingNumber = posting.number;
+    private void setLastPostingNumber(Long number) {
+        lastPostingNumber = number;
+    }
+
+    /**
+     * 마지막 이슈번호를 증가시킨다.
+     *
+     * 이슈 추가시 사용한다.
+     *
+     * @return {@code lastIssueNumber}
+     */
+    public static Long increaseLastIssueNumber(Long projectId) {
+        Project project = find.byId(projectId);
+
+        if (project.issues != null && project.lastIssueNumber < project.issues.size() ){
+            fixLastIssueNumber(projectId);
         }
+
+        project.setLastIssueNumber(project.getLastIssueNumber() + 1);
+        project.update();
+
+        return project.lastIssueNumber;
+    }
+
+    public static void fixLastIssueNumber(Long projectId) {
+        Project project = find.byId(projectId);
+        project.refresh();
+
+        Issue issue = Issue.finder.where().eq("project.id", projectId).order().desc("number").findList().get(0);
+        issue.refresh();
+
+        if (issue.number == null) {
+            project.lastIssueNumber = 0;
+        } else {
+            project.lastIssueNumber = issue.number;
+        }
+
+        project.update();
+    }
+
+    public static Long increaseLastPostingNumber(Long projectId) {
+        Project project = find.byId(projectId);
+
+        if (project.posts != null && project.lastPostingNumber < project.posts.size() ){
+            fixLastPostingNumber(projectId);
+        }
+
+        project.setLastPostingNumber(project.getLastPostingNumber() + 1);
+        project.update();
+
+        return project.lastPostingNumber;
+    }
+
+    public static void fixLastPostingNumber(Long projectId) {
+        Project project = find.byId(projectId);
+        project.refresh();
+
+        Posting posting = Posting.finder.where().eq("project.id", projectId).order().desc("number").findList().get(0);
+        posting.refresh();
+
+        if (posting.number == null) {
+            project.lastPostingNumber = 0;
+        } else {
+            project.lastPostingNumber = posting.number;
+        }
+
+        project.update();
     }
 
     public Resource labelsAsResource() {
