@@ -79,11 +79,25 @@
     .box-sizing(border-box);
   }
 
-  ul{
-     margin:10px 15px;
-     line-height:21px;
+  ul {
+     margin:0px 15px;
+     line-height:20px;
      list-style:disc;
   }
+
+   li{
+     line-height:24px;
+  }
+
+  ul ul, ol ul {
+    list-style:circle;
+  }
+
+  ul ul ul, ol ul ul, ol ol ul, ul ol ul {
+    list-style:square;
+  }
+
+  
 
   ol{
      margin:10px 15px;
