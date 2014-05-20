@@ -163,7 +163,14 @@
 
         // notify flash messages
         @for(key <- flash.keys) {
-            $yobi.notify("@Messages(flash.get(key))", 3000);
+            @if(key != utils.Constants.TITLE &&
+                key != utils.Constants.DESCRIPTION){
+                $yobi.notify("@Messages(flash.get(key))", 3000);
+            }
+            @if(key == utils.Constants.TITLE){
+                $yobi.alert("@Messages(flash.get(key))", null,
+                            "@Messages(flash.get(utils.Constants.DESCRIPTION))");
+            }
         }
 
     });

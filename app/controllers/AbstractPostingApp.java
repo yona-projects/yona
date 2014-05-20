@@ -192,8 +192,8 @@ public class AbstractPostingApp extends Controller {
             int attachedFileCount = Attachment.moveOnlySelected(UserApp.currentUser().asResource(), resource,
                     temporaryUploadFiles);
             if( attachedFileCount != temporaryUploadFiles.length){
-                flash("failed", Messages.get("post.popup.fileAttach.hasMissing",
-                        temporaryUploadFiles.length - attachedFileCount, getTemporaryFilesServerKeepUpTimeOfMinuntes()));
+                flash(Constants.TITLE, Messages.get("post.popup.fileAttach.hasMissing", temporaryUploadFiles.length - attachedFileCount));
+                flash(Constants.DESCRIPTION, Messages.get("post.popup.fileAttach.hasMissing.description", getTemporaryFilesServerKeepUpTimeOfMinuntes()));
             }
         }
     }
