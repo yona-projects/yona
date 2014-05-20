@@ -120,12 +120,16 @@ public class GitRepository implements PlayRepository {
      * @param ownerName
      * @param projectName
      * @throws IOException
-     * @see #buildGitRepository(String, String)
+     * @see #buildGitRepository(String, String, boolean)
      */
-    public GitRepository(String ownerName, String projectName) {
+    public GitRepository(String ownerName, String projectName, boolean alternatesMergeRepo) {
         this.ownerName = ownerName;
         this.projectName = projectName;
-        this.repository = buildGitRepository(ownerName, projectName);
+        this.repository = buildGitRepository(ownerName, projectName, alternatesMergeRepo);
+    }
+
+    public GitRepository(String ownerName, String projectName) {
+        this(ownerName, projectName, true);
     }
 
     /**
@@ -136,7 +140,7 @@ public class GitRepository implements PlayRepository {
      * @see #GitRepository(String, String)
      */
     public GitRepository(Project project) throws IOException {
-        this(project.owner, project.name);
+        this(project.owner, project.name, true);
     }
 
     /**
@@ -150,27 +154,44 @@ public class GitRepository implements PlayRepository {
      * @return
      * @throws IOException
      */
-    public static Repository buildGitRepository(String ownerName, String projectName) {
+    public static Repository buildGitRepository(String ownerName, String projectName,
+                                                boolean alternatesMergeRepo) {
         try {
-            return new RepositoryBuilder()
-                .setGitDir(new File(getGitDirectory(ownerName, projectName)))
-                .addAlternateObjectDirectory(new File(getDirectoryForMergingObjects(ownerName, projectName)))
-                .build();
+            RepositoryBuilder repo = new RepositoryBuilder()
+                    .setGitDir(new File(getGitDirectory(ownerName, projectName)));
+
+            if (alternatesMergeRepo) {
+                repo.addAlternateObjectDirectory(new File(getDirectoryForMergingObjects(ownerName,
+                        projectName)));
+            }
+
+            return repo.build();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
+    public static Repository buildGitRepository(String ownerName, String projectName) {
+        return buildGitRepository(ownerName, projectName, true);
+    }
+
     /**
      * {@code project}의 {@link Project#owner}와 {@link Project#name}을 사용하여 {@link Repository} 객체를 생성한다.
+     *
+     * when: {@link RepositoryService#gitAdvertise(models.Project, String, play.mvc.Http.Response)}와
+     * {@link RepositoryService#gitRpc(models.Project, String, play.mvc.Http.Request, play.mvc.Http.Response)}에서 사용한다.
      *
      * @param project
      * @return
      * @throws IOException
-     * @see #buildGitRepository(String, String)
+     * @see #buildGitRepository(String, String, boolean)
      */
     public static Repository buildGitRepository(Project project) {
-        return buildGitRepository(project.owner, project.name);
+        return buildGitRepository(project, true);
+    }
+
+    public static Repository buildGitRepository(Project project, boolean alternatesMergeRepo) {
+        return buildGitRepository(project.owner, project.name, alternatesMergeRepo);
     }
 
     /**
@@ -902,23 +923,6 @@ public class GitRepository implements PlayRepository {
     public static String getGitDirectory(String ownerName, String projectName) {
         return getRepoPrefix() + ownerName + "/" + projectName + ".git";
     }
-
-    /**
-     * {@code project}의 Git 저장소를 반환한다.
-     * <p/>
-     * when: {@link RepositoryService#gitAdvertise(models.Project, String, play.mvc.Http.Response)}와
-     * {@link RepositoryService#gitRpc(models.Project, String, play.mvc.Http.Request, play.mvc.Http.Response)}에서 사용한다.
-     * <p/>
-     * {@link GitRepository#buildGitRepository(models.Project)}를 사용하여 Git 저장소를 참조할 객체를 생성한다.
-     *
-     * @param project
-     * @return
-     * @throws IOException
-     */
-    public static Repository createGitRepository(Project project) {
-        return GitRepository.buildGitRepository(project);
-    }
-
 
     /**
      * {@code gitUrl}의 Git 저장소를 clone 하는 {@code forkingProject}의 Git 저장소를 생성한다.
