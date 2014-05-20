@@ -228,6 +228,20 @@
                 welTarget.removeClass("fold");
             }
             welTarget.effect("highlight");
+
+            _showReviewCardsTabByState(welTarget.data("state"));
+        }
+
+        /**
+         * Show review-card list tab of {@code state}
+         *
+         * @param state
+         * @private
+         */
+        function _showReviewCardsTabByState(state){
+            if(["open", "closed"].indexOf(state) > -1) {
+                $("a[href=#reviewcards-" + state + "]").tab("show");
+            }
         }
 
         /**
