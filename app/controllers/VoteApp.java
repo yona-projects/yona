@@ -21,6 +21,7 @@
 package controllers;
 
 import models.Issue;
+import models.User;
 import play.mvc.Call;
 import play.mvc.With;
 import models.Project;
@@ -30,6 +31,9 @@ import play.db.ebean.Transactional;
 import actions.AnonymousCheckAction;
 import models.enumeration.ResourceType;
 import controllers.annotation.IsCreatable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 이슈에서 투표하기 위한 Controller
@@ -83,4 +87,42 @@ public class VoteApp extends Controller {
 
         return redirect(call);
     }
+
+    public static List<User> getVotersForAvatar(List<User> voters, int size){
+        return getSubList(voters, 0, size);
+    }
+
+    public static List<User> getVotersForName(List<User> voters, int fromIndex, int size){
+        return getSubList(voters, fromIndex, fromIndex + size);
+    }
+
+    public static List<User> getVotersExceptCurrentUser(List<User> voters){
+        List<User> result = new ArrayList<User>(voters);
+
+        while(result.contains(UserApp.currentUser())){
+            result.remove(UserApp.currentUser());
+        }
+
+        return result;
+    }
+
+    /**
+     * Get subList of voters within its size.
+     *
+     * @param fromIndex
+     * @param toIndex
+     * @return
+     */
+    private static List<User> getSubList(List<User> voters, int fromIndex, int toIndex) {
+        try {
+            return voters.subList(
+                    Math.max(0, fromIndex),
+                    Math.min(voters.size(), toIndex)
+            );
+        } catch(IndexOutOfBoundsException e){
+            play.Logger.warn("Failed to get subList of voters", e);
+            return new ArrayList<User>();
+        }
+    }
+
 }

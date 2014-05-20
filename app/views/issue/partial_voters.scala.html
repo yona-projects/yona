@@ -18,41 +18,34 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(issue:models.Issue, numToSpread:Int = 3, numToOthers:Int = 5)
+@(issue:models.Issue, numOfAvatars:Int = 3, numOfNames:Int = 5)
 
 @import utils.TemplateHelper._
-
-@spreadIndexRange = @{
-    if(issue.isVotedBy(UserApp.currentUser)) {
-       numToSpread - 2
-    } else {
-       numToSpread - 1
-    }
-}
-
-@othersList = @{issue.voters.subList(spreadIndexRange + 1, Math.min(issue.voters.size, spreadIndexRange + 1 + numToOthers))}
 
 <div class="voter-list-wrap">
     <ul class="voter-list">
         @if(issue.isVotedBy(UserApp.currentUser)){
-            <li>@Html(getUserAvatar(UserApp.currentUser(), "medium"))</li>
+            <li>@Html(getUserAvatar(UserApp.currentUser, "medium"))</li>
         }
-        @for(index <- 0 to spreadIndexRange){
-            @defining(issue.voters.get(index)) { voter =>
+
+        @defining(VoteApp.getVotersExceptCurrentUser(issue.voters)) { issueVoters =>
+            @for(voter <- VoteApp.getVotersForAvatar(issueVoters, numOfAvatars)) {
                 <li>@Html(getUserAvatar(voter, "medium"))</li>
             }
-        }
-        @if(issue.voters.size() > numToSpread){
-            <li data-toggle="tooltip" data-html="true"
-                title="
-                @for(voter <- othersList) {
-                    @if(voter.id != UserApp.currentUser().id) {
-                        @voter.name<br>
+            @if(issueVoters.size > numOfAvatars) {
+                <li data-toggle="tooltip" data-html="true"
+                    title="
+                    @for(voter <- VoteApp.getVotersForName(issueVoters, numOfAvatars, numOfNames)) {
+                        @voter.name <br>
                     }
-                }
-                @if(issue.voters.size > numToSpread + numToOthers){ &hellip; }">
-                <a href="#voters" data-toggle="modal">@Messages("issue.voters.more", issue.voters.size() - numToSpread)</a>
-            </li>
+                    @if(issueVoters.size > numOfAvatars + numOfNames) {
+                            &hellip;
+                    }">
+                    <a href="#voters" data-toggle="modal">
+                        @Messages("issue.voters.more", issueVoters.size - numOfAvatars)
+                    </a>
+                </li>
+            }
         }
     </ul>
 </div>
