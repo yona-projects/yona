@@ -1,0 +1,40 @@
+Yobi v0.5.4 Release Note
+========================
+
+Updates since v0.5.3
+--------------------
+
+* Metion
+    - Add project/group mention
+    - Now, a user can mention project's whole members or whole organization members by its name for notification.
+    - Change default mention size 5 to 10
+* Issue
+    - Arrange label, vote, watch button positions
+    - Improve voters list
+    - Change dropdown style for label edit in issue view
+* UI/UX
+    - UIKit: update with recent yobiUI style
+    - Board, Git, Milestone: arrange button positions
+    - Review: change review thread icon
+    - FileUploader: show error message in notify instead of alert
+* CodeBrowser: Support rendering for markdown syntax on file browser
+* Util: Make getFirstValueFromQuery more tolerant
+* Remove mergely.js
+* Change some messages.
+* Change korean comments to english.
+* Refactor some codes.
+
+Fixes since v0.5.3
+------------------
+
+* CodeBrowser
+    - Prevent duplicated folder list
+    - Use common ui.Spinner
+    - Fix incorrect listing of files in subdirectory
+* Markdown
+    - Fix padding at first line of fence codeblock
+    - Modify autolink rules - suppoort uppercase string
+* NPE if User-Agent of HTTP request is absent
+* Config: Set the preferred language to english
+* Attachment: Fix incorrect hash computing
+* And many minor bugs
