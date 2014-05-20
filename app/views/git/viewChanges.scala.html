@@ -118,10 +118,9 @@
                     }
 
                     <div class="diff-body diffs-wrap-scroll">
-                        @if(pull.isMerging == false && pull.isConflict == false){
+                        @partial_state(project, pull, false, false)
+                        @if(pull.isConflict == false){
                             @views.html.partial_diff(pull.getDiff(commitId), pull.getCodeCommentThreadsForChanges(commitId), pull.toProject, pull.toProject)
-                        } else {
-                            @partial_state(project, pull, false, false)
                         }
                         <div class="btnPop"><button type="button" class="ybtn ybtn-info ybtn-mini"><i class="yobicon-post2"></i></button></div>
                     </div>
