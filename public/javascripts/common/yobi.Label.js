@@ -292,7 +292,7 @@ yobi.Label = (function(htOptions){
         var sActiveCSSTarget = '.issue-label.active[data-labelId="' + oLabel.id + '"]';
 
         var aDefaultCss = [];
-        var sDefaultCssSkel = 'box-shadow: inset 3px 0 0px ' + oLabel.color;
+        var sDefaultCssSkel = 'box-shadow: inset 2px 0 0px ' + oLabel.color;
         ["", "-moz-", "-webkit"].forEach(function(sPrefix){
             aDefaultCss.push(sPrefix + sDefaultCssSkel);
         });

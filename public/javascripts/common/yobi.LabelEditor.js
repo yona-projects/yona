@@ -54,7 +54,7 @@ yobi.LabelEditor = (function(welContainer, htOptions){
 
         htVar.aColors = htOptions.aColors || ['#da5454','#f86ca0','#ff9e9d','#ffcc33','#f8c86c','#ff9933','#99ca3c','#3fb8af','#22b4b9','#6ca6f8','#4d68b1','#9966cc'];
         htVar.sTplEditor = htOptions.sTplEditor || $("#tplYobiLabelEditor").text();
-        htVar.sTplBtnColor = htOptions.sTplBtnColor || '<button type="button" class="issue-label issueColor nbtn small" style="background-color:${color}">';
+        htVar.sTplBtnColor = htOptions.sTplBtnColor || '<button type="button" class="issue-label issueColor nbtn square" style="background-color:${color}">';
     }
 
     /**
