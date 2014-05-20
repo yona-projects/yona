@@ -70,7 +70,7 @@ yobi.Attachments = function(htOptions) {
         var sTagName = htOptions.sTagNameForTemporaryUploadFiles || "temporaryUploadFiles";
         htElements.welTemporaryUploadFileList = $('<input type="hidden" name="'+sTagName+'">');
         htElements.welToAttach.prepend(htElements.welTemporaryUploadFileList);
-        aTemporaryFileIds = [];
+        htVar.aTemporaryFileIds = [];
 
         // welContainer
         htElements.welContainer = $(htOptions.elContainer);
@@ -280,17 +280,17 @@ yobi.Attachments = function(htOptions) {
     }
 
     function _addUploadFileIdToListAndForm(sFileId) {
-        if( aTemporaryFileIds.indexOf(sFileId) === -1) {
-            aTemporaryFileIds.push(sFileId);
-            htElements.welTemporaryUploadFileList.val(aTemporaryFileIds.join(","));
+        if(htVar.aTemporaryFileIds.indexOf(sFileId) === -1) {
+            htVar.aTemporaryFileIds.push(sFileId);
+            htElements.welTemporaryUploadFileList.val(htVar.aTemporaryFileIds.join(","));
         }
     }
 
     function _removeDeletedFileIdFromListAndForm(sFileId) {
-        var nIndex = aTemporaryFileIds.indexOf(sFileId.toString());
+        var nIndex = htVar.aTemporaryFileIds.indexOf(sFileId.toString());
         if( nIndex !== -1){
-            aTemporaryFileIds.splice(nIndex, 1);
-            htElements.welTemporaryUploadFileList.val(aTemporaryFileIds.join(","));
+            htVar.aTemporaryFileIds.splice(nIndex, 1);
+            htElements.welTemporaryUploadFileList.val(htVar.aTemporaryFileIds.join(","));
         }
     }
 
