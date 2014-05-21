@@ -42,6 +42,7 @@ import utils.ErrorViews;
 import models.*;
 import models.enumeration.RoleType;
 import views.html.organization.create;
+import views.html.organization.members;
 import views.html.organization.view;
 import views.html.organization.setting;
 
@@ -59,12 +60,20 @@ import static utils.LogoUtil.*;
  * @author Keeun Baik
  */
 public class OrganizationApp extends Controller {
-
+    /**
+     * show New Group page
+     * @return {@link Result}
+     */
     @With(AnonymousCheckAction.class)
     public static Result newForm() {
         return ok(create.render("title.newOrganization", new Form<>(Organization.class)));
     }
 
+    /**
+     * create New Group
+     * @return {@link Result}
+     * @throws Exception
+     */
     @With(AnonymousCheckAction.class)
     public static Result newOrganization() throws Exception {
         Form<Organization> newOrgForm = form(Organization.class).bindFromRequest();
@@ -82,18 +91,10 @@ public class OrganizationApp extends Controller {
         }
     }
 
-    public static Result organization(String name) {
-        Organization org = Organization.findByName(name);
-        if(org == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound.organization"));
-        }
-        return ok(view.render(org));
-    }
-
     private static void validate(Form<Organization> newOrgForm) {
         // 조직 이름 패턴을 검사한다.
         Set<ConstraintViolation<Organization>> results = Validation.getValidator().validate(newOrgForm.get());
-        if(!results.isEmpty()) {
+        if (!results.isEmpty()) {
             newOrgForm.reject("name", "organization.name.alert");
         }
 
@@ -107,6 +108,19 @@ public class OrganizationApp extends Controller {
         if (Organization.isNameExist(name)) {
             newOrgForm.reject("name", "organization.name.duplicate");
         }
+    }
+
+    /**
+     * show specific group's main page
+     * @param organizationName group name
+     * @return {@link Result}
+     */
+    public static Result organization(String organizationName) {
+        Organization org = Organization.findByName(organizationName);
+        if (org == null) {
+            return notFound(ErrorViews.NotFound.render("error.notfound.organization"));
+        }
+        return ok(view.render(org));
     }
 
     /**
@@ -297,24 +311,7 @@ public class OrganizationApp extends Controller {
 
         Organization organization = Organization.findByOrganizationName(organizationName);
 
-        return ok(views.html.organization.members.render(organization, Role.findOrganizationRoles()));
-    }
-
-    /**
-     * 그룹 페이지 안에있는 그룹 관리 페이지로 이동한다.
-     *
-     * @param organizationName
-     * @return
-     */
-    public static Result settingForm(String organizationName) {
-        Result result = validateForSetting(organizationName);
-        if (result != null) {
-            return result;
-        }
-
-        Organization organization = Organization.findByOrganizationName(organizationName);
-
-        return ok(views.html.organization.setting.render(organization, form(Organization.class).fill(organization)));
+        return ok(members.render(organization, Role.findOrganizationRoles()));
     }
 
     /**
@@ -338,6 +335,23 @@ public class OrganizationApp extends Controller {
     }
 
     /**
+     * 그룹 페이지 안에있는 그룹 관리 페이지로 이동한다.
+     *
+     * @param organizationName
+     * @return
+     */
+    public static Result settingForm(String organizationName) {
+        Result result = validateForSetting(organizationName);
+        if (result != null) {
+            return result;
+        }
+
+        Organization organization = Organization.findByOrganizationName(organizationName);
+
+        return ok(setting.render(organization, form(Organization.class).fill(organization)));
+    }
+
+    /**
      * {@code location}을 JSON 형태로 저장하여 ok와 함께 리턴한다.
      *
      * Ajax 요청에 대해 redirect를 리턴하면 정상 작동하지 않음으로 ok에 redirect loation을 포함하여 리턴한다.
@@ -353,18 +367,25 @@ public class OrganizationApp extends Controller {
         return ok(result);
     }
 
+    /**
+     * update group's info
+     * @param organizationName group name
+     * @return {@link Result}
+     * @throws IOException
+     * @throws NoSuchAlgorithmException
+     */
     public static Result updateOrganizationInfo(String organizationName) throws IOException, NoSuchAlgorithmException {
         Form<Organization> organizationForm = form(Organization.class).bindFromRequest();
         Organization modifiedOrganization = organizationForm.get();
 
         Result result = validateForUpdate(organizationForm, modifiedOrganization);
-        if(result != null) {
+        if (result != null) {
             return result;
         }
 
         Http.MultipartFormData.FilePart filePart = request().body().asMultipartFormData()
                 .getFile("logoPath");
-        if(!isEmptyFilePart(filePart)) {
+        if (!isEmptyFilePart(filePart)) {
             Attachment.deleteAll(modifiedOrganization.asResource());
             new Attachment().store(filePart.getFile(), filePart.getFilename(), modifiedOrganization.asResource());
         }
@@ -374,8 +395,13 @@ public class OrganizationApp extends Controller {
         return redirect(routes.OrganizationApp.settingForm(modifiedOrganization.name));
     }
 
-    private static Result validateForUpdate(Form<Organization> organizationForm,
-            Organization modifiedOrganization) {
+    /**
+     * {@link #updateOrganizationInfo(String)}를 위해 사용되는 변수의 유효성 검사를 한다.
+     * @param organizationForm
+     * @param modifiedOrganization
+     * @return
+     */
+    private static Result validateForUpdate(Form<Organization> organizationForm, Organization modifiedOrganization) {
         Organization organization = Organization.find.byId(modifiedOrganization.id);
         if (organization == null) {
             return notFound(ErrorViews.NotFound.render("organization.member.unknownOrganization"));
@@ -406,8 +432,7 @@ public class OrganizationApp extends Controller {
         return null;
     }
 
-    private static boolean isDuplicateName(Organization organization,
-            Organization modifiedOrganization) {
+    private static boolean isDuplicateName(Organization organization, Organization modifiedOrganization) {
         if (isNotChangedName(organization.name, modifiedOrganization.name)) {
             return false;
         }
