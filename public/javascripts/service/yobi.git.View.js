@@ -57,8 +57,6 @@
             htElement.welBtnHelp = $('#helpBtn');
             htElement.welMsgHelp = $('#helpMessage');
             htElement.welState = $("#state");
-            htElement.welActOnOpen = $("#actOnOpen");
-            htElement.welActOnClosed = $("#actOnClosed");
             htElement.welBtnAccept = $("#btnAccept");
 
             // tooltip
@@ -171,8 +169,6 @@
                 }
 
                 // update visiblitity of actrow buttons
-                htElement.welActOnOpen.css("display", !oRes.isMerging && oRes.isOpen ? "inline-block" : "none");
-                htElement.welActOnClosed.css("display", !oRes.isMerging && oRes.isClosed ? "inline-block" : "none");
                 htElement.welBtnAccept.css("display", oRes.isConflict ? "none" : "inline-block");
             }).always(function(){
                 htVar.bStateUpdating = false;
