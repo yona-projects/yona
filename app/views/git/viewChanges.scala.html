@@ -52,7 +52,7 @@
                                         @commit.state match {
                                             case PullRequestCommit.State.PRIOR => {
                                                 <strong class="blue-txt mr10">@shortId(commitId)</strong>
-                                                <span>@commit.getCommitMessage.split("\n")(0) (Outdated)</span>
+                                                <span>@commit.getCommitMessage.split("\n")(0) (@Messages("review.outdated"))</span>
                                             }
                                             case _ => {
                                                 <strong class="blue-txt mr10">@shortId(commitId)</strong>
@@ -61,7 +61,7 @@
                                         }
                                     }
                                     case null => {
-                                        @Messages("pullRequest.changes.all") (Outdated - <strong class="blue-txt mr10">@shortId(commitId)</strong>)
+                                        @Messages("pullRequest.changes.all") (@Messages("review.outdated") - <strong class="blue-txt mr10">@shortId(commitId)</strong>)
                                     }
                                 }
                             }
