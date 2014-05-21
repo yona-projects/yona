@@ -425,7 +425,7 @@
 
                 htElement.welCodeVal
                     .removeClass('hidden')
-                    .addClass('markdown-wrap')
+                    .addClass('markdown-wrap codebrowser-markdown')
                     .html(yobi.Markdown.renderMarkdown(htElement.welCodeVal.text()));
 
             } else {
