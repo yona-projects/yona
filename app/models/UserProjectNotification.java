@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 어떤 사용자가 어떤 프로젝트의 어떤 알림 이벤트를 받고 싶어하는지 나타내는 클래스
+ * User this class when someone want to know whether a user is receiving notification alarm from the project or not
  *
  * @author Keesun Baik
  */
@@ -71,11 +71,12 @@ public class UserProjectNotification extends Model {
     }
 
     /**
-     * {@code notiMap}에서 지켜보는 중인 {@code project}의 {@code notiType}에 해당하는 알림을 받고 있는지 확인한다.
+     * Check whether the alarm which is respond to watching {@code project}'s {@code notiType}
+     * is already being received or not.
      *
-     * {@code notiMap}에 {@code project}에 대한 정보가 없거나,
-     * {@code project}의 {@code notiType}에 대한 정보가 없다면
-     * 기본적으로 알림을 받는 중으로 인식한다.
+     * If there is no information about {@code project} in {@code notiMap}
+     * or doesn't exist {@code project}'s {@code notiType},
+     * then the method judge that it is already receiving the notification alarm.
      *
      * @param notiMap
      * @param project
@@ -118,10 +119,9 @@ public class UserProjectNotification extends Model {
     }
 
     /**
-     * {@code user}가 {@code project}의 {@code notificationType}에 해당하는 알림을 받고 있는지 확인한다.
      *
-     * {@code project}의 {@code notiType}에 대한 정보가 없다면
-     * 기본적으로 알림을 받는 중으로 인식한다.
+     * Basically, if there is no information about {@code project}' {@code notiType}
+     * then it judge it is already receiving notification alarm.
      *
      * @param user
      * @param project
