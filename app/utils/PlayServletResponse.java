@@ -39,9 +39,10 @@ public class PlayServletResponse implements HttpServletResponse {
     private boolean committed;
 
     /**
-     * {@code response}의 상태 코드가 최종적으로 결정될 때 까지 기다린 다음 그 상태 코드를 가져온다.
+     * Waits until the HTTP status code of this response is given, then returns
+     * the code.
      *
-     * @return
+     * @return the HTTP status code
      * @throws InterruptedException
      */
     public int waitAndGetStatus() throws InterruptedException {
