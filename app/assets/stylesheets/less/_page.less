@@ -1008,13 +1008,15 @@
 
                     .stream-info {
 
-                        .avatar-wrap { float:left; margin-top:3px;}
+                        .avatar-wrap { float:left; margin-top:3px; margin-right:15px;}
 
                         .title {
                             color:#51aacc;
                             font-size:13px;
                             font-weight:bold;
-                            padding-left:55px;
+                            overflow:hidden;
+                            text-overflow: ellipsis;
+                            white-space: nowrap;
                         }
 
                         .meta {
@@ -1034,7 +1036,6 @@
                             margin-top:3px;
                             font-size:12px;
                             color:#888;
-                            padding-left:12px;
                             overflow:hidden;
                             line-height:20px;
                             .transition(all 0.3s ease);
