@@ -43,18 +43,6 @@
     }
 }
 
-<input type="text" name="title" id="title" placeholder="" maxlength="maxlength" tabindex="1" class="text" value="@pullRequest.title">
-<div style="position: relative;">
-    @common.editor("body", pullRequest.body, Map("tabindex"->"2", "id"->"body"))
-</div>
-@common.fileUploader(ResourceType.PULL_REQUEST, null)
-@common.markdown(project)
-
-<div class="actions">
-    <button type="submit" class="ybtn ybtn-success">@Messages("button.save")</button>
-    <a href="javascript:history.back();" class="ybtn">@Messages("button.cancel")</a>
-</div>
-
 <div id="spin" style="position: absolute; top:50%; left:50%"></div>
 
 <div id="diff">
@@ -95,7 +83,6 @@
                             <td class="commit-id">
                                 <a href="@routes.CodeHistoryApp.show(pullRequest.fromProject.owner, pullRequest.fromProject.name, commit.getId)">
                                     @commit.getShortId
-                                    <i class="yobicon-right"></i>
                                 </a>
                             </td>
                             <td class="messages">

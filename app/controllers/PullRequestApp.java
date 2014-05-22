@@ -224,24 +224,13 @@ public class PullRequestApp extends Controller {
                 , StringUtils.defaultIfBlank(request().getQueryString("fromBranch"), fromBranches.get(0).getName())
                 , StringUtils.defaultIfBlank(request().getQueryString("toBranch"), project.defaultBranch()));
 
-        Promise<PullRequestMergeResult> promise = Akka.future(new Callable<PullRequestMergeResult>() {
-            @Override
-            public PullRequestMergeResult call() throws Exception {
-                return pullRequest.getPullRequestMergeResult();
-            }
-        });
+        if (HttpUtil.isRequestedWithXHR(request())) {
+            response().setHeader("Cache-Control", "no-cache, no-store");
+            PullRequestMergeResult mergeResult = pullRequest.getPullRequestMergeResult();
+            return ok(partial_diff.render(new Form<>(PullRequest.class).fill(pullRequest), project, pullRequest, mergeResult));
+        }
 
-        return async(promise.map(new Function<PullRequestMergeResult, Result>() {
-            @Override
-            public Result apply(PullRequestMergeResult mergeResult) throws Throwable {
-                if (HttpUtil.isRequestedWithXHR(request())) {
-                    response().setHeader("Cache-Control", "no-cache, no-store");
-                    return ok(partial_diff.render(new Form<>(PullRequest.class).fill(pullRequest), project, pullRequest, mergeResult));
-                }
-
-                return ok(create.render("title.newPullRequest", new Form<>(PullRequest.class).fill(pullRequest), project, projects, fromProject, toProject, fromBranches, toBranches, pullRequest, mergeResult));
-            }
-        }));
+        return ok(create.render("title.newPullRequest", new Form<>(PullRequest.class).fill(pullRequest), project, projects, fromProject, toProject, fromBranches, toBranches, pullRequest));
     }
 
     /**
@@ -295,7 +284,7 @@ public class PullRequestApp extends Controller {
         if(form.hasErrors()) {
             List<GitBranch> fromBranches = new GitRepository(project).getAllBranches();
             List<GitBranch> toBranches = new GitRepository(project.originalProject).getAllBranches();
-            return ok(create.render("title.newPullRequest", new Form<>(PullRequest.class), project, null, null, null, fromBranches, toBranches, null, null));
+            return ok(create.render("title.newPullRequest", new Form<>(PullRequest.class), project, null, null, null, fromBranches, toBranches, null));
         }
 
         PullRequest pullRequest = form.get();
