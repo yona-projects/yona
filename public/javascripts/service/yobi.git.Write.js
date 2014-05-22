@@ -91,8 +91,8 @@
                 $('#helpMessage').toggle();
             });
 
-            $('body').on('click','button.more',function(){
-               $(this).next('pre').toggleClass("hidden");
+            $(document.body).on("click", "button.moreBtn", function(){
+                $(this).next("pre.commitMsg.desc").toggleClass("hidden");
             });
         }
 
