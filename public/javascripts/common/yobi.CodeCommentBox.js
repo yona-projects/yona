@@ -18,7 +18,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 /**
  * 코드 주고받기 메뉴의 개요 탭에서도 코드에 댓글을 달 수 있도록 하기 위해
  * yobi.Code.Diff.js의 일부를 뽑아내어 구현하였다.

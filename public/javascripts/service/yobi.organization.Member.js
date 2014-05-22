@@ -1,4 +1,4 @@
-/*
+/**
  * Yobi, Project Hosting SW
  *
  * Copyright 2013 NAVER Corp.
@@ -18,16 +18,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/**
- * @(#)yobi.organization.Member.js 2014.03.01
- *
- * Copyright NHN Corporation.
- * Released under the MIT license
- *
- * http://yobi.dev.naver.com/license
- */
-
 (function(ns){
 
     var oNS = $yobi.createNamespace(ns);
