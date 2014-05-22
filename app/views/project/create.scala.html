@@ -54,7 +54,7 @@
             <div class="n-alert" data-errType="name">
               <div class="orange-txt">
                 @if(newProjectForm.error("name") != null) { <span class="warning">@Messages(newProjectForm.error("name").message())</span> }
-                <span class="msg wrongName" style="display: none;">@Messages("project.wrongName")</span>
+                <span class="msg wrongName" style="display: none;"></span>
               </div>
             </div>
             <label for="project-name">@Messages("project.name.placeholder")</label>

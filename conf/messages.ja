@@ -391,7 +391,6 @@ project.unwatch = 見守らない
 project.vcs = コード管理システム
 project.watch = 見守る
 project.watching = 見守っている
-project.wrongName = プロジェクト名が正しくありません
 project.you.are.not.watching = {0} プロジェクトを見守っていません
 project.you.are.watching = {0} プロジェクトを見守っています
 project.you.may.want.to.be.a.member = {0} プロジェクトのメンバーに追加の申請が出来ません
