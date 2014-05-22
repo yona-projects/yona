@@ -23,7 +23,7 @@ package models;
 import javax.persistence.Embeddable;
 
 /**
- * 삭제된 유저에 대비하여
+ * This class is made for deleted user
  *
  * @author Keesun Baik
  */
