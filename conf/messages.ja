@@ -277,7 +277,6 @@ notification.type.new.issue = 新しいイシューが投稿されました
 notification.type.new.posting = 新しいスレッドが投稿されました
 notification.type.new.pullrequest = 新しいプルリクエストを受けました
 notification.type.new.simple.comment = コミットに新しいコメントが投稿されました
-notification.type.pullrequest.commit.changed = PullRequest Commit
 notification.type.pullrequest.conflicts = プルリクエストにコンフリクト発生
 notification.type.pullrequest.merged = プルリクエストがクローズ(merged)
 notification.type.pullrequest.merged.conflict = PullRequest Conflicts
