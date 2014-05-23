@@ -59,20 +59,18 @@ public class RecentlyVisitedProjects extends Model {
      */
     @Transactional
     public static RecentlyVisitedProjects addNewVisitation(User user, Project project) {
-        synchronized (user) {
-            RecentlyVisitedProjects existingOne = find.where().eq("user", user).findUnique();
-            if(existingOne != null) {
-                existingOne.add(project);
-                existingOne.update();
-                return existingOne;
-            }
-
-            RecentlyVisitedProjects newOne = new RecentlyVisitedProjects();
-            newOne.user = user;
-            newOne.add(project);
-            newOne.save();
-            return newOne;
+        RecentlyVisitedProjects existingOne = find.where().eq("user", user).findUnique();
+        if(existingOne != null) {
+            existingOne.add(project);
+            existingOne.update();
+            return existingOne;
         }
+
+        RecentlyVisitedProjects newOne = new RecentlyVisitedProjects();
+        newOne.user = user;
+        newOne.add(project);
+        newOne.save();
+        return newOne;
     }
 
     private void add(Project project) {
