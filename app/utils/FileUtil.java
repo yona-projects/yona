@@ -20,12 +20,14 @@
  */
 package utils;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.tika.Tika;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.mime.MediaType;
 import org.mozilla.universalchardet.UniversalDetector;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 public class FileUtil {
 
@@ -90,5 +92,43 @@ public class FileUtil {
         detector.dataEnd();
 
         return or(detector.getDetectedCharset(), "UTF-8");
+    }
+
+    public static String detectMediaType(File file, String name) throws IOException {
+        return detectMediaType(new FileInputStream(file), name);
+    }
+
+    public static String detectMediaType(byte[] bytes, String name) throws IOException {
+        return detectMediaType(new ByteArrayInputStream(bytes), name);
+    }
+
+    /**
+     * Detects media type of the given resource, by using Apache Tika.
+     *
+     * This method does following additional tasks besides Tika:
+     * 1. Adds a charset parameter for text resources.
+     * 2. Fixes Tika's misjudge of media type for ogg videos
+     *
+     * @param is    the input stream to read the resource
+     * @param name  the filename of the resource
+     * @return the detected media type which optionally includes a charset parameter
+     *         e.g. "text/plain; charset=utf-8"
+     * @throws IOException
+     */
+    public static String detectMediaType(InputStream is, String name) throws IOException {
+        Metadata meta = new Metadata();
+        meta.add(Metadata.RESOURCE_NAME_KEY, name);
+        MediaType mediaType = new Tika().getDetector().detect(
+                new BufferedInputStream(is), meta);
+        String mimeType = mediaType.toString();
+        if (mediaType.getType().toLowerCase().equals("text")) {
+            mimeType += "; charset=" + FileUtil.detectCharset(is);
+        } else if (mediaType.equals(MediaType.audio("ogg"))
+                && FilenameUtils.getExtension(name).toLowerCase().equals("ogv")) {
+            // This fixes Tika's misjudge of media type for ogg videos.
+            mimeType = "video/ogg";
+        }
+
+        return mimeType;
     }
 }

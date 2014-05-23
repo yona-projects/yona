@@ -278,18 +278,7 @@ public class Attachment extends Model implements ResourceConvertible {
         }
 
         if (this.mimeType == null) {
-            Metadata meta = new Metadata();
-            meta.add(Metadata.RESOURCE_NAME_KEY, this.name);
-            MediaType mediaType = new Tika().getDetector().detect(
-                    new BufferedInputStream(new FileInputStream(file)), meta);
-            this.mimeType = mediaType.toString();
-            if (mediaType.getType().toLowerCase().equals("text")) {
-                this.mimeType += "; charset=" + FileUtil.detectCharset(new FileInputStream(file));
-            } else if (mediaType.equals(MediaType.audio("ogg"))
-                    && FilenameUtils.getExtension(name).toLowerCase().equals("ogv")) {
-                // This fixes Tika's misjudge of media type for ogg videos.
-                this.mimeType = "video/ogg";
-            }
+            this.mimeType = FileUtil.detectMediaType(file, name);
         }
 
         // the size must be set before it is moved.
