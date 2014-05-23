@@ -23,7 +23,7 @@
 @import utils._
 
 @layout(Messages(title))(""){
-    @common.navbar(menuType)
+    @common.navbar(menuType, false)
 
     @if(menuType == utils.MenuType.SITE_HOME && UserApp.currentUser.isAnonymous){
         @index.partial_intro()

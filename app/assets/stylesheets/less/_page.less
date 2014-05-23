@@ -33,6 +33,21 @@
 .gnb-outer {
     height:40px;
     background-color:#1d2d46;
+
+    &.project-header {
+        background-color: rgba(0, 0, 0, 0.35);
+        position: absolute;
+        width: 100%;
+        z-index: 10000;
+
+        .gnb-inner {
+            .logo {
+                &:before, &:after {
+                    display: none;
+                }
+            }
+        }
+    }
 }
 
 .gnb-inner {
@@ -229,9 +244,8 @@
 
 .project-header-outer {
     background-color: #565656;
-    height:80px;
-    background-clip: padding-box;
-    background-position: bottom;
+    height:120px;
+    background-position: center bottom;
     background-repeat: no-repeat;
     background-size: cover;
 
