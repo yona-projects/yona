@@ -1,5 +1,22 @@
-Yobi v0.5.4 Release Note
-========================
+Yobi v0.5.4 Release Notes
+=========================
+
+Backward compatibility notes
+----------------------------
+
+It may break that push to some git repositories which have a merge-repository
+because of missing object, with an following error:
+
+    To http://yobi/you/repo1
+    ! [remote rejected] master -> master (object 97c4c34b825debd0fe76bf5d850d0891d4a93bba missing)
+    error: failed to push some refs to 'http://yobi/you/repo1'
+
+Fortunately, the repositories can be recovered by copying git objects from the
+object directory of the merge-repository. For an example in Linux:
+
+    cd yobi
+    cp repos/git-merging/you/repo1.git/.git/objects/* \
+        repos/git/you/repo1.git/objects -R
 
 Updates since v0.5.3
 --------------------
