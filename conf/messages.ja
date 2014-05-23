@@ -169,6 +169,7 @@ fork.help.title = プロジェクトのリポジトリーをコピーします
 fork.original = 原本プロジェクト
 fork.redirect.exist = 以前にフォークしていたプロジェクトに移動します
 issue.assignToMe = 私が担当する
+issue.assignToAuthor = 登録者が担当する
 issue.assignee = 担当者
 issue.assignee.selectDefault= --担当者 選択--
 issue.author = 登録者

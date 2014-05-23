@@ -566,5 +566,4 @@ public class Issue extends AbstractPosting implements LabelOwner {
     public boolean isVotedBy(User user) {
         return this.voters.contains(user);
     }
-
 }
