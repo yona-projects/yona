@@ -86,7 +86,7 @@ public class BoardApp extends AbstractPostingApp {
      */
     @IsAllowed(value = Operation.READ, resourceType = ResourceType.PROJECT)
     public static Result posts(String userName, String projectName, int pageNum) {
-        Project project = ProjectApp.getProject(userName, projectName);
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
         Form<SearchCondition> postParamForm = new Form<>(SearchCondition.class);
         SearchCondition searchCondition = postParamForm.bindFromRequest().get();
@@ -117,7 +117,7 @@ public class BoardApp extends AbstractPostingApp {
     @With(AnonymousCheckAction.class)
     @IsCreatable(ResourceType.BOARD_POST)
     public static Result newPostForm(String userName, String projectName) {
-        Project project = ProjectApp.getProject(userName, projectName);
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
         boolean isAllowedToNotice =
                 AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.BOARD_NOTICE);
@@ -140,7 +140,7 @@ public class BoardApp extends AbstractPostingApp {
     @IsCreatable(ResourceType.BOARD_POST)
     public static Result newPost(String userName, String projectName) {
         Form<Posting> postForm = new Form<>(Posting.class).bindFromRequest();
-        Project project = ProjectApp.getProject(userName, projectName);
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
         if (postForm.hasErrors()) {
             boolean isAllowedToNotice =
@@ -246,7 +246,7 @@ public class BoardApp extends AbstractPostingApp {
     @With(NullProjectCheckAction.class)
     public static Result editPost(String userName, String projectName, Long number) {
         Form<Posting> postForm = new Form<>(Posting.class).bindFromRequest();
-        Project project = ProjectApp.getProject(userName, projectName);
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
         if (postForm.hasErrors()) {
             boolean isAllowedToNotice =

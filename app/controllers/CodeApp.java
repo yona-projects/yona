@@ -58,7 +58,7 @@ public class CodeApp extends Controller {
     @IsAllowed(Operation.READ)
     public static Result codeBrowser(String userName, String projectName)
             throws IOException, UnsupportedOperationException, ServletException {
-        Project project = ProjectApp.getProject(userName, projectName);
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
         if (!RepositoryService.VCS_GIT.equals(project.vcs) && !RepositoryService.VCS_SUBVERSION.equals(project.vcs)) {
             return status(Http.Status.NOT_IMPLEMENTED, project.vcs + " is not supported!");
@@ -97,7 +97,7 @@ public class CodeApp extends Controller {
     @With(DefaultProjectCheckAction.class)
     public static Result codeBrowserWithBranch(String userName, String projectName, String branch, String path)
         throws UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException {
-        Project project = ProjectApp.getProject(userName, projectName);
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
         if (!RepositoryService.VCS_GIT.equals(project.vcs) && !RepositoryService.VCS_SUBVERSION.equals(project.vcs)) {
             return status(Http.Status.NOT_IMPLEMENTED, project.vcs + " is not supported!");
@@ -204,7 +204,7 @@ public class CodeApp extends Controller {
      * @param projectName
      */
     public static String getURL(String ownerName, String projectName) {
-        Project project = ProjectApp.getProject(ownerName, projectName);
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         return getURL(project);
     }
 

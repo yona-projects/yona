@@ -366,7 +366,7 @@ public class SVNRepository implements PlayRepository {
 
             @Override
             public Project getProject() {
-                return ProjectApp.getProject(ownerName, projectName);
+                return Project.findByOwnerAndProjectName(ownerName, projectName);
             }
 
             @Override

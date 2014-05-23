@@ -195,7 +195,7 @@ public class RepositoryService {
      */
     public static byte[] getFileAsRaw(String userName, String projectName, String revision, String path)
             throws UnsupportedOperationException, IOException, ServletException, SVNException {
-        Project project = ProjectApp.getProject(userName, projectName);
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
         return RepositoryService.getRepository(project, true).getRawFile(revision, path);
     }
 
@@ -249,7 +249,7 @@ public class RepositoryService {
      */
     public static PlayRepository getRepository(String userName, String projectName) throws IOException,
     ServletException, UnsupportedOperationException {
-        Project project = ProjectApp.getProject(userName, projectName);
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
         return RepositoryService.getRepository(project);
     }
 

@@ -42,7 +42,7 @@ public class ReviewSearchConditionTest extends ModelTest<ReviewSearchCondition> 
     @Test
     public void filterForComment() {
         // given
-        Project project = ProjectApp.getProject("yobi", "projectYobi");
+        Project project = Project.findByOwnerAndProjectName("yobi", "projectYobi");
         ReviewSearchCondition searchCondition = new ReviewSearchCondition();
         searchCondition.filter = "111";
         searchCondition.state = CommentThread.ThreadState.OPEN.name();
@@ -62,7 +62,7 @@ public class ReviewSearchConditionTest extends ModelTest<ReviewSearchCondition> 
     public void filterForCommitId() {
         // given
         String testCommitId = "300";
-        Project project = ProjectApp.getProject("yobi", "projectYobi");
+        Project project = Project.findByOwnerAndProjectName("yobi", "projectYobi");
         ReviewSearchCondition searchCondition = new ReviewSearchCondition();
         searchCondition.filter = testCommitId;
         searchCondition.state = CommentThread.ThreadState.OPEN.name();
@@ -83,7 +83,7 @@ public class ReviewSearchConditionTest extends ModelTest<ReviewSearchCondition> 
     public void filterForPath() {
         // given
         String testPath = "/app/controllers/IssueApp.java";
-        Project project = ProjectApp.getProject("yobi", "projectYobi");
+        Project project = Project.findByOwnerAndProjectName("yobi", "projectYobi");
         ReviewSearchCondition searchCondition = new ReviewSearchCondition();
         searchCondition.filter = testPath;
         searchCondition.state = CommentThread.ThreadState.OPEN.name();
@@ -104,7 +104,7 @@ public class ReviewSearchConditionTest extends ModelTest<ReviewSearchCondition> 
     public void filterForAll() {
         // given
         String testFilter = "controllers";
-        Project project = ProjectApp.getProject("yobi", "projectYobi");
+        Project project = Project.findByOwnerAndProjectName("yobi", "projectYobi");
         ReviewSearchCondition searchCondition = new ReviewSearchCondition();
         searchCondition.filter = testFilter;
         searchCondition.state = CommentThread.ThreadState.OPEN.name();
@@ -122,7 +122,7 @@ public class ReviewSearchConditionTest extends ModelTest<ReviewSearchCondition> 
     @Test
     public void searchingAuthor() {
         // given
-        Project project = ProjectApp.getProject("yobi", "projectYobi");
+        Project project = Project.findByOwnerAndProjectName("yobi", "projectYobi");
         ReviewSearchCondition searchCondition = new ReviewSearchCondition();
         searchCondition.authorId = User.findByLoginId("admin").id;
         searchCondition.state = CommentThread.ThreadState.OPEN.name();
@@ -140,7 +140,7 @@ public class ReviewSearchConditionTest extends ModelTest<ReviewSearchCondition> 
     @Test
     public void searchingParticipant() {
         // given
-        Project project = ProjectApp.getProject("yobi", "projectYobi");
+        Project project = Project.findByOwnerAndProjectName("yobi", "projectYobi");
         ReviewSearchCondition searchCondition = new ReviewSearchCondition();
         searchCondition.participantId = User.findByLoginId("admin").id;
         searchCondition.state = CommentThread.ThreadState.OPEN.name();
@@ -158,7 +158,7 @@ public class ReviewSearchConditionTest extends ModelTest<ReviewSearchCondition> 
     private void addTestData() {
         User adminUser = User.findByLoginId("admin");
         User lazielUser = User.findByLoginId("laziel");
-        Project project = ProjectApp.getProject("yobi", "projectYobi");
+        Project project = Project.findByOwnerAndProjectName("yobi", "projectYobi");
 
         addTestThread1(adminUser, lazielUser, project);
         addTestThread2(adminUser, lazielUser, project);

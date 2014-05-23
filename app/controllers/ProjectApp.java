@@ -40,7 +40,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.HtmlEmail;
-import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
@@ -54,7 +53,6 @@ import play.i18n.Messages;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http;
-import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Result;
 import play.mvc.With;
@@ -63,6 +61,7 @@ import playRepository.PlayRepository;
 import playRepository.RepositoryService;
 import scala.reflect.io.FileOperationException;
 import utils.*;
+import play.data.validation.Constraints.PatternValidator;
 import validation.ExConstraints.RestrictedValidator;
 import views.html.project.create;
 import views.html.project.delete;
@@ -108,27 +107,18 @@ public class ProjectApp extends Controller {
 
     private static final String JSON = "application/json";
 
-    /**
-     * getProject
-     * @param userName
-     * @param projectName
-     * @return
-     */
-    public static Project getProject(String userName, String projectName) {
-        return Project.findByOwnerAndProjectName(userName, projectName);
-    }
-
     @With(AnonymousCheckAction.class)
     @IsAllowed(Operation.UPDATE)
     public static Result projectOverviewUpdate(String ownerId, String projectName){
-        JsonNode json = request().body().asJson();
         Project targetProject = Project.findByOwnerAndProjectName(ownerId, projectName);
-        ObjectNode result = Json.newObject();
         if (targetProject == null) {
             return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
-        targetProject.overview = json.findPath("overview").getTextValue();
+
+        targetProject.overview = request().body().asJson().findPath("overview").getTextValue();
         targetProject.save();
+
+        ObjectNode result = Json.newObject();
         result.put("overview", targetProject.overview);
         return ok(result);
     }
@@ -136,11 +126,11 @@ public class ProjectApp extends Controller {
     /**
      * 프로젝트 Home 페이지를 처리한다.<p />
      *
-     * {@code loginId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
+     * {@code ownerId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
      * 읽기 권한이 없을 경우는 unauthorized로 응답한다.<br />
      * 해당 프로젝트의 최근 커밋, 이슈, 포스팅 목록을 가져와서 히스토리를 만든다.<br />
      *
-     * @param loginId
+     * @param ownerId
      * @param projectName
      * @return 프로젝트 정보
      * @throws IOException Signals that an I/O exception has occurred.
@@ -149,36 +139,34 @@ public class ProjectApp extends Controller {
      * @throws GitAPIException the git api exception
      */
     @IsAllowed(Operation.READ)
-    public static Result project(String loginId, String projectName)
+    public static Result project(String ownerId, String projectName)
             throws IOException, ServletException, SVNException, GitAPIException {
-        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
-        List<History> histories = getProjectHistory(loginId, project);
+        Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
+        List<History> histories = getProjectHistory(ownerId, project);
 
         UserApp.currentUser().visits(project);
 
         String tabId = StringUtils.defaultIfBlank(request().getQueryString("tabId"), "readme");
-        String titleMessage;
 
-        switch(tabId) {
+        return ok(home.render(getTitleMessage(tabId), project, histories, tabId));
+    }
+
+    private static String getTitleMessage(String tabId) {
+        switch (tabId) {
             case "history":
-                titleMessage = "project.history.recent";
-                break;
+                return "project.history.recent";
             case "dashboard":
-                titleMessage = "title.projectDashboard";
-                break;
+                return "title.projectDashboard";
             default:
             case "readme":
-                titleMessage = "title.projectHome";
-                break;
+                return "title.projectHome";
         }
-
-        return ok(home.render(titleMessage, project, histories, tabId));
     }
 
     /**
      * {@code project}의 최근 커밋, 이슈, 포스팅 목록을 가져와서 히스토리를 만든다
      *
-     * @param loginId
+     * @param ownerId
      * @param project
      * @return 프로젝트 히스토리 정보
      * @throws IOException Signals that an I/O exception has occurred.
@@ -186,7 +174,7 @@ public class ProjectApp extends Controller {
      * @throws SVNException the svn exception
      * @throws GitAPIException the git api exception
      */
-    private static List<History> getProjectHistory(String loginId, Project project)
+    private static List<History> getProjectHistory(String ownerId, Project project)
             throws IOException, ServletException, SVNException, GitAPIException {
         project.fixInvalidForkData();
 
@@ -204,9 +192,7 @@ public class ProjectApp extends Controller {
         List<Posting> postings = Posting.findRecentlyCreated(project, RECENLTY_POSTING_SHOW_LIMIT);
         List<PullRequest> pullRequests = PullRequest.findRecentlyReceived(project, RECENT_PULL_REQUEST_SHOW_LIMIT);
 
-        List<History> histories = History.makeHistory(loginId, project, commits, issues, postings, pullRequests);
-
-        return histories;
+        return History.makeHistory(ownerId, project, commits, issues, postings, pullRequests);
     }
 
     /**
@@ -217,31 +203,27 @@ public class ProjectApp extends Controller {
      *
      * @return 익명사용자이면 로그인페이지, 로그인 상태이면 프로젝트 생성페이지
      */
+    @With(AnonymousCheckAction.class)
     public static Result newProjectForm() {
-        if (UserApp.currentUser().isAnonymous()) {
-            flash(Constants.WARNING, "user.login.alert");
-            return redirect(routes.UserApp.loginForm());
-        } else {
-            Form<Project> projectForm = form(Project.class).bindFromRequest("owner");
-            projectForm.discardErrors();
-            List<OrganizationUser> orgUserList = OrganizationUser.findByAdmin(UserApp.currentUser().id);
-            return ok(create.render("title.newProject", projectForm, orgUserList));
-        }
+        Form<Project> projectForm = form(Project.class).bindFromRequest("owner");
+        projectForm.discardErrors();
+        List<OrganizationUser> orgUserList = OrganizationUser.findByAdmin(UserApp.currentUser().id);
+        return ok(create.render("title.newProject", projectForm, orgUserList));
     }
 
     /**
      * 프로젝트 설정(업데이트) 페이지로 이동한다.<p />
      *
-     * {@code loginId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
+     * {@code ownerId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
      * 업데이트 권한이 없을 경우는 unauthorized로 응답한다.<br />
      *
-     * @param loginId
+     * @param ownerId
      * @param projectName
      * @return 프로젝트 정보
      */
     @IsAllowed(Operation.UPDATE)
-    public static Result settingForm(String loginId, String projectName) throws Exception {
-        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+    public static Result settingForm(String ownerId, String projectName) throws Exception {
+        Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
         Form<Project> projectForm = form(Project.class).fill(project);
         PlayRepository repository = RepositoryService.getRepository(project);
         return ok(setting.render("title.projectSetting", projectForm, project, repository.getBranches()));
@@ -259,81 +241,74 @@ public class ProjectApp extends Controller {
      */
     @Transactional
     public static Result newProject() throws Exception {
-        if( !AccessControl.isGlobalResourceCreatable(UserApp.currentUser()) ){
-           return forbidden(ErrorViews.Forbidden.render("'" + UserApp.currentUser().name + "' has no permission"));
-        }
         Form<Project> filledNewProjectForm = form(Project.class).bindFromRequest();
-
         String owner = filledNewProjectForm.field("owner").value();
-        Organization organization = Organization.findByName(owner);
-        User user = User.findByLoginId(owner);
 
-        ValidationResult validation = validateForm(filledNewProjectForm, organization, user);
-        if (validation.hasError()) {
-            return validation.getResult();
+        User user = UserApp.currentUser();
+        Organization organization = Organization.findByName(owner);
+
+        if ((!AccessControl.isGlobalResourceCreatable(user))
+                || (Organization.isNameExist(owner) && !OrganizationUser.isAdmin(organization.id, user.id))) {
+            return forbidden(ErrorViews.Forbidden.render("'" + user.name + "' has no permission"));
+        }
+
+        if (validateWhenNew(filledNewProjectForm)) {
+            return badRequest(create.render("title.newProject",
+                    filledNewProjectForm, OrganizationUser.findByAdmin(user.id)));
         }
 
         Project project = filledNewProjectForm.get();
         if (Organization.isNameExist(owner)) {
             project.organization = organization;
         }
-        ProjectUser.assignRole(UserApp.currentUser().id, Project.create(project), RoleType.MANAGER);
+        ProjectUser.assignRole(user.id, Project.create(project), RoleType.MANAGER);
         RepositoryService.createRepository(project);
         return redirect(routes.ProjectApp.project(project.owner, project.name));
     }
 
-    private static ValidationResult validateForm(Form<Project> newProjectForm, Organization organization, User user) {
-        Result result = null;
-        boolean hasError = false;
-        List<OrganizationUser> orgUserList = OrganizationUser.findByAdmin(UserApp.currentUser().id);
-
+    private static boolean validateWhenNew(Form<Project> newProjectForm) {
         String owner = newProjectForm.field("owner").value();
         String name = newProjectForm.field("name").value();
+
+        User user = User.findByLoginId(owner);
         boolean ownerIsUser = User.isLoginIdExist(owner);
         boolean ownerIsOrganization = Organization.isNameExist(owner);
 
         if (!ownerIsUser && !ownerIsOrganization) {
             newProjectForm.reject("owner", "project.owner.invalidate");
-            hasError = true;
-            result = badRequest(create.render("title.newProject", newProjectForm, orgUserList));
         }
 
-        if (ownerIsUser && UserApp.currentUser().id != user.id) {
+        if (ownerIsUser && !UserApp.currentUser().id.equals(user.id)) {
             newProjectForm.reject("owner", "project.owner.invalidate");
-            hasError = true;
-            result = badRequest(create.render("title.newProject", newProjectForm, orgUserList));
-        }
-
-        if (ownerIsOrganization && !OrganizationUser.isAdmin(organization.id, UserApp.currentUser().id)) {
-            hasError = true;
-            result = forbidden(ErrorViews.Forbidden.render("'" + UserApp.currentUser().name + "' has no permission"));
         }
 
         if (Project.exists(owner, name)) {
             newProjectForm.reject("name", "project.name.duplicate");
-            hasError = true;
-            result = badRequest(create.render("title.newProject", newProjectForm, orgUserList));
         }
 
-        if (newProjectForm.hasErrors()) {
-            ValidationError error = newProjectForm.error("name");
-            newProjectForm.reject("name", RestrictedValidator.message.equals(error.message()) ?
-                    "project.name.reserved.alert" : "project.name.alert");
-            hasError = true;
-            result = badRequest(create.render("title.newProject", newProjectForm, orgUserList));
+        ValidationError error = newProjectForm.error("name");
+        if (error != null) {
+            if (PatternValidator.message.equals(error.message())) {
+                newProjectForm.errors().remove("name");
+                newProjectForm.reject("name", "project.name.alert");
+            } else if (RestrictedValidator.message.equals(error.message())) {
+                newProjectForm.errors().remove("name");
+                newProjectForm.reject("name", "project.name.reserved.alert");
+            }
         }
-        return new ValidationResult(result, hasError);
+
+        return newProjectForm.hasErrors();
     }
 
     /**
      * 프로젝트 설정을 업데이트한다.<p />
      *
      * 업데이트 권한이 없을 경우 경고메세지와 함께 프로젝트 설정페이지로 redirect된다.<br />
-     * {@code loginId}의 프로젝트중 변경하고자 하는 이름과 동일한 프로젝트명이 있으면 경고메세지와 함께 badRequest를 응답한다.<br />
+     * {@code ownerId}의 프로젝트중 변경하고자 하는 이름과 동일한 프로젝트명이 있으면 경고메세지와 함께 badRequest를 응답한다.<br />
      * 프로젝트 로고({@code filePart})가 이미지파일이 아니거나 제한사이즈(1MB) 보다 크다면 경고메세지와 함께 badRequest를 응답한다.<br />
      * 프로젝트 로고({@code filePart})가 이미지파일이고 제한사이즈(1MB) 보다 크지 않다면 첨부파일과 프로젝트 정보를 저장하고 프로젝트 설정(업데이트) 페이지로 이동한다.<br />
      *
-     * @param loginId user login id
+     * @param ownerId user login id
      * @param projectName the project name
      * @return
      * @throws IOException Signals that an I/O exception has occurred.
@@ -343,51 +318,27 @@ public class ProjectApp extends Controller {
      */
     @Transactional
     @IsAllowed(Operation.UPDATE)
-    public static Result settingProject(String loginId, String projectName) throws IOException, NoSuchAlgorithmException, UnsupportedOperationException, ServletException {
+    public static Result settingProject(String ownerId, String projectName)
+            throws IOException, NoSuchAlgorithmException, UnsupportedOperationException, ServletException {
         Form<Project> filledUpdatedProjectForm = form(Project.class).bindFromRequest();
-        if (filledUpdatedProjectForm.hasErrors()) {
-            ValidationError error = filledUpdatedProjectForm.error("name");
-            flash(Constants.WARNING, RestrictedValidator.message.equals(error.message()) ?
-                    "project.name.reserved.alert" : "project.name.alert");
-            filledUpdatedProjectForm.reject("name");
-            Project project = Project.find.byId(
-                            Long.valueOf(filledUpdatedProjectForm.field("id").value()));
-            PlayRepository repository = RepositoryService.getRepository(project);
+        Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
+        PlayRepository repository = RepositoryService.getRepository(project);
+
+        if (validateWhenUpdate(ownerId, filledUpdatedProjectForm)) {
             return badRequest(setting.render("title.projectSetting",
                     filledUpdatedProjectForm, project, repository.getBranches()));
         }
+
         Project updatedProject = filledUpdatedProjectForm.get();
 
-        if (!Project.projectNameChangeable(updatedProject.id, loginId, updatedProject.name)) {
-            flash(Constants.WARNING, "project.name.duplicate");
-            filledUpdatedProjectForm.reject("name");
-        }
-
-        MultipartFormData body = request().body().asMultipartFormData();
-        FilePart filePart = body.getFile("logoPath");
+        FilePart filePart = request().body().asMultipartFormData().getFile("logoPath");
 
         if (!isEmptyFilePart(filePart)) {
-            if(!isImageFile(filePart.getFilename())) {
-                flash(Constants.WARNING, "project.logo.alert");
-                filledUpdatedProjectForm.reject("logoPath");
-            } else if (filePart.getFile().length() > LOGO_FILE_LIMIT_SIZE) {
-                flash(Constants.WARNING, "project.logo.fileSizeAlert");
-                filledUpdatedProjectForm.reject("logoPath");
-            } else {
-                Attachment.deleteAll(updatedProject.asResource());
-                new Attachment().store(filePart.getFile(), filePart.getFilename(), updatedProject.asResource());
-            }
+            Attachment.deleteAll(updatedProject.asResource());
+            new Attachment().store(filePart.getFile(), filePart.getFilename(), updatedProject.asResource());
         }
 
-        Project project = Project.find.byId(updatedProject.id);
-        PlayRepository repository = RepositoryService.getRepository(project);
-
-        if (filledUpdatedProjectForm.hasErrors()) {
-            return badRequest(setting.render("title.projectSetting",
-                    filledUpdatedProjectForm, Project.find.byId(updatedProject.id), repository.getBranches()));
-        }
-
-        Map<String, String[]> data = body.asFormUrlEncoded();
+        Map<String, String[]> data = request().body().asMultipartFormData().asFormUrlEncoded();
         String defaultBranch = HttpUtil.getFirstValueFromQuery(data, "defaultBranch");
         if (StringUtils.isNotEmpty(defaultBranch)) {
             repository.setDefaultBranch(defaultBranch);
@@ -398,24 +349,61 @@ public class ProjectApp extends Controller {
                 throw new FileOperationException("fail repository rename to " + project.owner + "/" + updatedProject.name);
             }
         }
-        
+
         updatedProject.update();
-        return redirect(routes.ProjectApp.settingForm(loginId, updatedProject.name));
+        return redirect(routes.ProjectApp.settingForm(ownerId, updatedProject.name));
+    }
+
+    private static boolean validateWhenUpdate(String loginId, Form<Project> updateProjectForm) {
+        Long id = Long.parseLong(updateProjectForm.field("id").value());
+        String name = updateProjectForm.field("name").value();
+
+        if (!Project.projectNameChangeable(id, loginId, name)) {
+            flash(Constants.WARNING, "project.name.duplicate");
+            updateProjectForm.reject("name", "project.name.duplicate");
+        }
+
+        FilePart filePart = request().body().asMultipartFormData().getFile("logoPath");
+
+        if (!isEmptyFilePart(filePart)) {
+            if (!isImageFile(filePart.getFilename())) {
+                flash(Constants.WARNING, "project.logo.alert");
+                updateProjectForm.reject("logoPath", "project.logo.alert");
+            } else if (filePart.getFile().length() > LOGO_FILE_LIMIT_SIZE) {
+                flash(Constants.WARNING, "project.logo.fileSizeAlert");
+                updateProjectForm.reject("logoPath", "project.logo.fileSizeAlert");
+            }
+        }
+
+        ValidationError error = updateProjectForm.error("name");
+        if (error != null) {
+            if (PatternValidator.message.equals(error.message())) {
+                flash(Constants.WARNING, "project.name.alert");
+                updateProjectForm.errors().remove("name");
+                updateProjectForm.reject("name", "project.name.alert");
+            } else if (RestrictedValidator.message.equals(error.message())) {
+                flash(Constants.WARNING, "project.name.reserved.alert");
+                updateProjectForm.errors().remove("name");
+                updateProjectForm.reject("name", "project.name.reserved.alert");
+            }
+        }
+
+        return updateProjectForm.hasErrors();
     }
 
     /**
      * 프로젝트 삭제 페이지로 이동한다.<p />
      *
-     * {@code loginId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
+     * {@code ownerId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
      * 업데이트 권한이 없을 경우는 unauthorized로 응답한다.<br />
      *
-     * @param loginId user login id
+     * @param ownerId user login id
      * @param projectName the project name
      * @return 프로젝트폼, 프로젝트 정보
      */
     @IsAllowed(Operation.DELETE)
-    public static Result deleteForm(String loginId, String projectName) {
-        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+    public static Result deleteForm(String ownerId, String projectName) {
+        Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
         Form<Project> projectForm = form(Project.class).fill(project);
         return ok(delete.render("title.projectDelete", projectForm, project));
     }
@@ -423,23 +411,23 @@ public class ProjectApp extends Controller {
     /**
      * 프로젝트를 삭제한다.<p />
      *
-     * {@code loginId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
+     * {@code ownerId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
      * 삭제 권한이 없을 경우는 경고 메시지와 함께 설정페이지로 redirect된다. <br />
      *
-     * @param loginId the user login id
+     * @param ownerId the user login id
      * @param projectName the project name
      * @return the result
      * @throws Exception the exception
      */
     @Transactional
     @IsAllowed(Operation.DELETE)
-    public static Result deleteProject(String loginId, String projectName) throws Exception {
-        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+    public static Result deleteProject(String ownerId, String projectName) throws Exception {
+        Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
         project.delete();
         RepositoryService.deleteRepository(project);
 
         // XHR 호출에 의한 경우라면 204 No Content 와 Location 헤더로 응답한다
-        if(HttpUtil.isRequestedWithXHR(request())){
+        if (HttpUtil.isRequestedWithXHR(request())){
             response().setHeader("Location", routes.Application.index().toString());
             return status(204);
         }
@@ -564,15 +552,11 @@ public class ProjectApp extends Controller {
      * @return
      */
     private static List<Issue> getMentionIssueList(Project project) {
-        long projectId = project.id;
-        if(project.isForkedFromOrigin()) {
-            projectId = project.originalProject.id;
-        }
         return Issue.finder.where()
-                        .eq("project.id", projectId)
-                        .orderBy("createdDate desc")
-                        .setMaxRows(ISSUE_MENTION_SHOW_LIMIT)
-                        .findList();
+                .eq("project.id", project.isForkedFromOrigin() ? project.originalProject.id : project.id)
+                .orderBy("createdDate desc")
+                .setMaxRows(ISSUE_MENTION_SHOW_LIMIT)
+                .findList();
     }
 
     /**
@@ -584,7 +568,7 @@ public class ProjectApp extends Controller {
      * - 해당 커밋에 코드 코멘트를 작성한 사람들
      * - 프로젝트가 속한 그룹의 관리자와 멤버
      *
-     * @param ownerLoginId
+     * @param ownerId
      * @param projectName
      * @param commitId
      * @return
@@ -595,16 +579,17 @@ public class ProjectApp extends Controller {
      * @throws SVNException
      */
     @IsAllowed(Operation.READ)
-    public static Result mentionListAtCommitDiff(String ownerLoginId, String projectName, String commitId, Long pullRequestId)
-            throws IOException, UnsupportedOperationException, ServletException,
-            SVNException {
-        Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
+    public static Result mentionListAtCommitDiff(String ownerId, String projectName, String commitId, Long pullRequestId)
+            throws IOException, UnsupportedOperationException, ServletException, SVNException {
+        Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
 
         PullRequest pullRequest;
         Project fromProject = project;
-        if( pullRequestId != -1 ){
+        if (pullRequestId != -1) {
             pullRequest = PullRequest.findById(pullRequestId);
-            if( pullRequest != null) fromProject = pullRequest.fromProject;
+            if (pullRequest != null) {
+                fromProject = pullRequest.fromProject;
+            }
         }
 
         Commit commit = RepositoryService.getRepository(fromProject).getCommit(commitId);
@@ -634,7 +619,7 @@ public class ProjectApp extends Controller {
      * - Pull Request 요청자
      * - 프로젝트가 속한 그룹의 관리자와 멤버
      *
-     * @param ownerLoginId
+     * @param ownerId
      * @param projectName
      * @param commitId
      * @param pullRequestId
@@ -646,10 +631,9 @@ public class ProjectApp extends Controller {
      * @throws SVNException
      */
     @IsAllowed(Operation.READ)
-    public static Result mentionListAtPullRequest(String ownerLoginId, String projectName, String commitId, Long pullRequestId)
-            throws IOException, UnsupportedOperationException, ServletException,
-            SVNException {
-        Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
+    public static Result mentionListAtPullRequest(String ownerId, String projectName, String commitId, Long pullRequestId)
+            throws IOException, UnsupportedOperationException, ServletException, SVNException {
+        Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
 
         PullRequest pullRequest = PullRequest.findById(pullRequestId);
         List<User> userList = new ArrayList<>();
@@ -690,8 +674,8 @@ public class ProjectApp extends Controller {
     }
 
     @IsAllowed(Operation.DELETE)
-    public static Result transferForm(String loginId, String projectName) {
-        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+    public static Result transferForm(String ownerId, String projectName) {
+        Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
         Form<Project> projectForm = form(Project.class).fill(project);
 
         return ok(transfer.render("title.projectTransfer", projectForm, project));
@@ -699,31 +683,31 @@ public class ProjectApp extends Controller {
 
     @Transactional
     @IsAllowed(Operation.DELETE)
-    public static Result transferProject(String loginId, String projectName) throws Exception {
-        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+    public static Result transferProject(String ownerId, String projectName) {
+        Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
         String destination = request().getQueryString("owner");
 
         User destOwner = User.findByLoginId(destination);
         Organization destOrg = Organization.findByName(destination);
-        if(destOwner.isAnonymous() && destOrg == null) {
+        if (destOwner.isAnonymous() && destOrg == null) {
             return badRequest(ErrorViews.BadRequest.render());
         }
 
         ProjectTransfer pt = null;
         // make a request to move to an user
-        if(!destOwner.isAnonymous()) {
+        if (!destOwner.isAnonymous()) {
             pt = ProjectTransfer.requestNewTransfer(project, UserApp.currentUser(), destOwner.loginId);
         }
         // make a request to move to an group
-        if(destOrg != null) {
+        if (destOrg != null) {
             pt = ProjectTransfer.requestNewTransfer(project, UserApp.currentUser(), destOrg.name);
         }
         sendTransferRequestMail(pt);
         flash(Constants.INFO, "project.transfer.is.requested");
 
         // if the request is sent by XHR, response with 204 204 No Content and Location header.
-        String url = routes.ProjectApp.project(loginId, projectName).url();
-        if(HttpUtil.isRequestedWithXHR(request())){
+        String url = routes.ProjectApp.project(ownerId, projectName).url();
+        if (HttpUtil.isRequestedWithXHR(request())) {
             response().setHeader("Location", url);
             return status(204);
         }
@@ -735,14 +719,14 @@ public class ProjectApp extends Controller {
     @With(AnonymousCheckAction.class)
     public static synchronized Result acceptTransfer(Long id, String confirmKey) throws IOException, ServletException {
         ProjectTransfer pt = ProjectTransfer.findValidOne(id);
-        if(pt == null) {
+        if (pt == null) {
             return notFound(ErrorViews.NotFound.render());
         }
-        if(confirmKey == null || !pt.confirmKey.equals(confirmKey)) {
+        if (confirmKey == null || !pt.confirmKey.equals(confirmKey)) {
             return badRequest(ErrorViews.BadRequest.render());
         }
 
-        if(!AccessControl.isAllowed(UserApp.currentUser(), pt.asResource(), Operation.ACCEPT)) {
+        if (!AccessControl.isAllowed(UserApp.currentUser(), pt.asResource(), Operation.ACCEPT)) {
             return forbidden(ErrorViews.Forbidden.render());
         }
 
@@ -759,16 +743,16 @@ public class ProjectApp extends Controller {
         // Change the project's information.
         project.owner = pt.destination;
         project.name = newProjectName;
-        if(newOwnerOrg != null) {
+        if (newOwnerOrg != null) {
             project.organization = newOwnerOrg;
         }
         project.update();
 
         // Change roles.
-        if(!newOwnerUser.isAnonymous()) {
+        if (!newOwnerUser.isAnonymous()) {
             ProjectUser.assignRole(newOwnerUser.id, project.id, RoleType.MANAGER);
         }
-        if(ProjectUser.isManager(pt.sender.id, project.id)) {
+        if (ProjectUser.isManager(pt.sender.id, project.id)) {
             ProjectUser.assignRole(pt.sender.id, project.id, RoleType.MEMBER);
         }
 
@@ -798,12 +782,12 @@ public class ProjectApp extends Controller {
             email.addTo(Config.getEmailFromSmtp(), "Yobi");
 
             User to = User.findByLoginId(pt.destination);
-            if(!to.isAnonymous()) {
+            if (!to.isAnonymous()) {
                 email.addBcc(to.email, to.name);
             }
 
             Organization org = Organization.findByName(pt.destination);
-            if(org != null) {
+            if (org != null) {
                 List<OrganizationUser> admins = OrganizationUser.findAdminsOf(org);
                 for(OrganizationUser admin : admins) {
                     email.addBcc(admin.user.email, admin.user.name);
@@ -821,21 +805,20 @@ public class ProjectApp extends Controller {
             String logEntry = String.format("\"%s\" %s", escapedTitle, email.getBccAddresses());
             play.Logger.of("mail").info(logEntry);
         } catch (Exception e) {
-            Logger.warn("Failed to send a notification: "
-                    + email + "\n" + ExceptionUtils.getStackTrace(e));
+            Logger.warn("Failed to send a notification: " + email + "\n" + ExceptionUtils.getStackTrace(e));
         }
     }
 
     private static void addCodeCommenters(String commitId, Long projectId, List<User> userList) {
         Project project = Project.find.byId(projectId);
 
-        if (project.vcs == RepositoryService.VCS_GIT) {
+        if (RepositoryService.VCS_GIT.equals(project.vcs)) {
             List<ReviewComment> comments = ReviewComment.find.where().eq("commitId",
                     commitId).eq("project.id", projectId).eq("pullRequest.id", null).findList();
 
             for (ReviewComment comment : comments) {
                 User commentAuthor = User.findByLoginId(comment.author.loginId);
-                if( userList.contains(commentAuthor) ) {
+                if (userList.contains(commentAuthor)) {
                     userList.remove(commentAuthor);
                 }
                 userList.add(commentAuthor);
@@ -846,7 +829,7 @@ public class ProjectApp extends Controller {
 
             for (CommitComment codeComment : comments) {
                 User commentAuthor = User.findByLoginId(codeComment.authorLoginId);
-                if( userList.contains(commentAuthor) ) {
+                if (userList.contains(commentAuthor)) {
                     userList.remove(commentAuthor);
                 }
                 userList.add(commentAuthor);
@@ -857,14 +840,14 @@ public class ProjectApp extends Controller {
     }
 
     private static void addCommitAuthor(Commit commit, List<User> userList) {
-        if(!commit.getAuthor().isAnonymous() && !userList.contains(commit.getAuthor())) {
+        if (!commit.getAuthor().isAnonymous() && !userList.contains(commit.getAuthor())) {
             userList.add(commit.getAuthor());
         }
 
         //fallback: additional search by email id
-        if (commit.getAuthorEmail() != null){
+        if (commit.getAuthorEmail() != null) {
             User authorByEmail = User.findByLoginId(commit.getAuthorEmail().substring(0, commit.getAuthorEmail().lastIndexOf("@")));
-            if(!authorByEmail.isAnonymous() && !userList.contains(authorByEmail)) {
+            if (!authorByEmail.isAnonymous() && !userList.contains(authorByEmail)) {
                 userList.add(authorByEmail);
             }
         }
@@ -883,8 +866,8 @@ public class ProjectApp extends Controller {
                 return;
         }
 
-        if(posting != null) {
-            for(Comment comment: posting.getComments()) {
+        if (posting != null) {
+            for (Comment comment: posting.getComments()) {
                 User commentUser = User.findByLoginId(comment.authorLoginId);
                 if (userList.contains(commentUser)) {
                     userList.remove(commentUser);
@@ -893,16 +876,16 @@ public class ProjectApp extends Controller {
             }
             Collections.reverse(userList); // recent commenter first!
             User postAuthor = User.findByLoginId(posting.authorLoginId);
-            if( !userList.contains(postAuthor) ) {
+            if (!userList.contains(postAuthor)) {
                 userList.add(postAuthor);
             }
         }
     }
 
     private static void collectedUsersToMentionList(List<Map<String, String>> users, List<User> userList) {
-        for(User user: userList) {
+        for (User user: userList) {
             Map<String, String> projectUserMap = new HashMap<>();
-            if(!user.loginId.equals(Constants.ADMIN_LOGIN_ID) && user != null){
+            if (user != null && !user.loginId.equals(Constants.ADMIN_LOGIN_ID)) {
                 projectUserMap.put("loginid", user.loginId);
                 projectUserMap.put("username", user.name);
                 projectUserMap.put("name", user.name + user.loginId);
@@ -913,20 +896,20 @@ public class ProjectApp extends Controller {
     }
 
     private static void addProjectMemberList(Project project, List<User> userList) {
-        for(ProjectUser projectUser: project.projectUser) {
-            if(!userList.contains(projectUser.user)){
+        for (ProjectUser projectUser: project.projectUser) {
+            if (!userList.contains(projectUser.user)) {
                 userList.add(projectUser.user);
             }
         }
     }
 
     private static void addGroupMemberList(Project project, List<User> userList) {
-        if(!project.hasGroup()) {
+        if (!project.hasGroup()) {
             return;
         }
 
-        for(OrganizationUser organizationUser : project.organization.users) {
-            if(!userList.contains(organizationUser.user)) {
+        for (OrganizationUser organizationUser : project.organization.users) {
+            if (!userList.contains(organizationUser.user)) {
                 userList.add(organizationUser.user);
             }
         }
@@ -937,43 +920,50 @@ public class ProjectApp extends Controller {
      *
      * 입력폼 오류시 경고메세지와 함께 프로젝트 설정페이지로 redirect 된다.<br />
      * 입력폼으로부터 멤버로 추가한 사용자 정보를 가져온다.<br />
-     * {@code loginId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
+     * {@code ownerId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
      * <br />
      * 현재 로그인 사용자가 UPDATE 권한이 없을경우 경고메세지와 함께 멤버설정 페이지로 redirect 된다.<br />
      * 추가한 사용자 정보가 null일 경우 경고메세지와 함께 멤버설정 페이지로 redirect 된다.<br />
      * 추가한 사용자가 이미 프로젝트 멤버일 경우 경고메시지와 함께 멤버설정 페이지로 redirect 된다.<br />
      *
-     * @param loginId the user login id
+     * @param ownerId the user login id
      * @param projectName the project name
      * @return 프로젝트, 멤버목록, Role 목록
      */
     @Transactional
     @With(DefaultProjectCheckAction.class)
-    public static Result newMember(String loginId, String projectName) {
-        // TODO change into view validation
+    @IsAllowed(Operation.UPDATE)
+    public static Result newMember(String ownerId, String projectName) {
         Form<User> addMemberForm = form(User.class).bindFromRequest();
-        if (addMemberForm.hasErrors()){
-            flash(Constants.WARNING, "project.member.notExist");
-            return redirect(routes.ProjectApp.members(loginId, projectName));
+
+        User newMember = User.findByLoginId(addMemberForm.field("loginId").value());
+        Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
+
+        if (validateWhenAddMember(newMember, project, addMemberForm)) {
+            return redirect(routes.ProjectApp.members(ownerId, projectName));
         }
 
-        User user = User.findByLoginId(form(User.class).bindFromRequest().get().loginId);
-        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+        ProjectUser.assignRole(newMember.id, project.id, RoleType.MEMBER);
+        project.cleanEnrolledUsers();
+        NotificationEvent.afterMemberRequest(project, newMember, RequestState.ACCEPT);
+        return redirect(routes.ProjectApp.members(ownerId, projectName));
+    }
 
-        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
+    private static boolean validateWhenAddMember(User user, Project project, Form<User> addMemberForm) {
+        if (addMemberForm.hasErrors()) {
+            flash(Constants.WARNING, "project.member.notExist");
+        } else if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
             flash(Constants.WARNING, "project.member.isManager");
-            return redirect(routes.ProjectApp.members(loginId, projectName));
+            addMemberForm.reject("loginId", "project.member.isManager");
         } else if (user.isAnonymous()) {
             flash(Constants.WARNING, "project.member.notExist");
-            return redirect(routes.ProjectApp.members(loginId, projectName));
-        } else if (!ProjectUser.isMember(user.id, project.id)){
-            ProjectUser.assignRole(user.id, project.id, RoleType.MEMBER);
-            project.cleanEnrolledUsers();
-            NotificationEvent.afterMemberRequest(project, user, RequestState.ACCEPT);
-        } else{
+            addMemberForm.reject("loginId", "project.member.notExist");
+        } else if (ProjectUser.isMember(user.id, project.id)) {
             flash(Constants.WARNING, "project.member.alreadyMember");
+            addMemberForm.reject("loginId", "project.member.alreadyMember");
         }
-        return redirect(routes.ProjectApp.members(loginId, projectName));
+
+        return addMemberForm.hasErrors();
     }
 
     /**
@@ -995,62 +985,67 @@ public class ProjectApp extends Controller {
     /**
      * 프로젝트 멤버를 삭제한다.<p />
      *
-     * {@code loginId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
+     * {@code ownerId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
      * 삭제할 멤버가 로그인 사용자 이거나 프로젝트 업데이트 권한이 있을 경우 삭제하고 멤버 설정페이지로 redirect 된다.<br />
      * 삭제할 멤버가 프로젝트 관리자일 경우 경고메세지와 함께 forbidden을 응답한다.<br />
      *
-     * @param loginId the user login id
+     * @param ownerId the user login id
      * @param projectName the project name
      * @param userId 삭제할 멤버 아이디
      * @return the result
      */
     @Transactional
     @With(DefaultProjectCheckAction.class)
-    public static Result deleteMember(String loginId, String projectName, Long userId) {
-        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+    public static Result deleteMember(String ownerId, String projectName, Long userId) {
+        Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
+        User deleteMember = User.find.byId(userId);
 
-        if (UserApp.currentUser().id.equals(userId)
-                || AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
-            if (project.isOwner(User.find.byId(userId))) {
-                return forbidden(ErrorViews.Forbidden.render("project.member.ownerCannotLeave", project));
-            }
-            ProjectUser.delete(userId, project.id);
+        if (!UserApp.currentUser().id.equals(userId)
+                && !AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
+        }
 
-            if (UserApp.currentUser().id == userId) {
-                if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-                    return okWithLocation(routes.ProjectApp.project(project.owner, project.name).url());
-                } else {
-                    return okWithLocation(routes.Application.index().url());
-                }
+        if (project.isOwner(deleteMember)) {
+            return forbidden(ErrorViews.Forbidden.render("project.member.ownerCannotLeave", project));
+        }
+
+        ProjectUser.delete(userId, project.id);
+
+        if (UserApp.currentUser().id.equals(userId)) {
+            if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
+                return okWithLocation(routes.ProjectApp.project(project.owner, project.name).url());
             } else {
-                return okWithLocation(routes.ProjectApp.members(loginId, projectName).url());
+                return okWithLocation(routes.Application.index().url());
             }
         } else {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
+            return okWithLocation(routes.ProjectApp.members(ownerId, projectName).url());
         }
     }
 
     /**
      * 멤버의 Role을 설정하고 NO_CONTENT를 응답한다.<p />
      *
-     * {@code loginId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
+     * {@code ownerId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
      * 로그인 사용자가 업데이트 권한이 있을경우 멤버에게 새로 설정한 Role을 할당한다.<br />
      * <br />
      * 변경하고자 하는 멤버가 프로젝트 관리자일 경우 경고메세지와 함께 forbidden을 응답한다.<br />
      * 업데이트 권한이 없을 경우 경고메세지와 함께 forbidden을 응답한다.<br />
      *
-     * @param loginId the user login id
+     * @param ownerId the user login id
      * @param projectName the project name
      * @param userId the user id
      * @return
      */
     @Transactional
     @IsAllowed(Operation.UPDATE)
-    public static Result editMember(String loginId, String projectName, Long userId) {
-        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
-        if (project.isOwner(User.find.byId(userId))) {
+    public static Result editMember(String ownerId, String projectName, Long userId) {
+        Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
+        User editMember = User.find.byId(userId);
+
+        if (project.isOwner(editMember)) {
             return badRequest(ErrorViews.Forbidden.render("project.member.ownerMustBeAManager", project));
         }
+
         ProjectUser.assignRole(userId, project.id, form(Role.class).bindFromRequest().get().id);
         return status(Http.Status.NO_CONTENT);
     }
@@ -1069,12 +1064,10 @@ public class ProjectApp extends Controller {
      * 조회 조건은 프로젝트명 또는 프로젝트관리자({@code query}), 공개 여부({@code state}) 이다.<br />
      *
      * @param query the query
-     * @param state the state
      * @param pageNum the page num
      * @return json일 경우 json형태의 프로젝트명 목록, html일 경우 java객체 형태의 프로젝트 목록
      */
     public static Result projects(String query, int pageNum) {
-
         String prefer = HttpUtil.getPreferType(request(), HTML, JSON);
         if (prefer == null) {
             return status(Http.Status.NOT_ACCEPTABLE);
@@ -1103,7 +1096,6 @@ public class ProjectApp extends Controller {
      * @return 프로젝트명 또는 관리자 로그인 아이디가 {@code query}를 포함하고 공개여부가 @{code state} 인 프로젝트 목록
      */
     private static Result getPagingProjects(String query, int pageNum) {
-
         ExpressionList<Project> el = createProjectSearchExpressionList(query);
 
         Set<Long> labelIds = LabelSearchUtil.getLabelIds(request());
@@ -1128,7 +1120,6 @@ public class ProjectApp extends Controller {
      * @return JSON 형태의 프로젝트 목록
      */
     private static Result getProjectsToJSON(String query) {
-
         ExpressionList<Project> el = createProjectSearchExpressionList(query);
 
         int total = el.findRowCount();
@@ -1151,8 +1142,8 @@ public class ProjectApp extends Controller {
         if (StringUtils.isNotBlank(query)) {
             Junction<Project> junction = el.disjunction();
             junction.icontains("owner", query)
-            .icontains("name", query)
-            .icontains("overview", query);
+                    .icontains("name", query)
+                    .icontains("overview", query);
             List<Object> ids = Project.find.where().icontains("labels.name", query).findIds();
             if (!ids.isEmpty()) {
                 junction.idIn(ids);
@@ -1170,22 +1161,22 @@ public class ProjectApp extends Controller {
     /**
      * 프로젝트 설정페이지에서 사용하며 태그목록을 JSON 형태로 반환한다.<p />
      *
-     * {@code loginId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
+     * {@code ownerId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
      * 읽기 권한이 없을경우 forbidden을 반환한다.<br />
      * application/json 요청이 아닐경우 not_acceptable을 반환한다.<br />
      *
      *
-     * @param owner the owner login id
+     * @param ownerId the owner login id
      * @param projectName the project name
      * @return 프로젝트 태그 JSON 데이터
      */
     @IsAllowed(Operation.READ)
-    public static Result labels(String owner, String projectName) {
-        Project project = Project.findByOwnerAndProjectName(owner, projectName);
-
+    public static Result labels(String ownerId, String projectName) {
         if (!request().accepts("application/json")) {
             return status(Http.Status.NOT_ACCEPTABLE);
         }
+
+        Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
 
         Map<Long, Map<String, String>> labels = new HashMap<>();
         for (Label label: project.labels) {
@@ -1201,19 +1192,19 @@ public class ProjectApp extends Controller {
     /**
      * 프로젝트 설정 페이지에서 사용하며 새로운 태그를 추가하고 추가된 태그를 JSON으로 반환한다.<p />
      *
-     * {@code loginId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
+     * {@code ownerId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
      * 업데이트 권한이 없을경우 forbidden을 반환한다.<br />
      * 태그명 파라미터가 null일 경우 empty 데이터를 JSON으로 반환한다.<br />
      * 프로젝트내 동일한 태그가 존재할 경우 empty 데이터를 JSON으로 반환한다.<br />
      *
-     * @param ownerName the owner name
+     * @param ownerId the owner name
      * @param projectName the project name
      * @return the result
      */
     @Transactional
     @With(DefaultProjectCheckAction.class)
-    public static Result attachLabel(String ownerName, String projectName) {
-        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+    public static Result attachLabel(String ownerId, String projectName) {
+        Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)) {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
@@ -1245,8 +1236,7 @@ public class ProjectApp extends Controller {
         if (!isCreated && !isAttached) {
             // Something is wrong. This case is not possible.
             play.Logger.warn(
-                    "A label '" + label + "' is created but failed to attach to project '"
-                    + project + "'.");
+                    "A label '" + label + "' is created but failed to attach to project '" + project + "'.");
         }
 
         if (isAttached) {
@@ -1276,15 +1266,15 @@ public class ProjectApp extends Controller {
      * _method 파라미터가 delete가 아니면 badRequest를 반환한다.<br />
      * 삭제할 태그가 존재하지 않으면 notfound를 반환한다.
      *
-     * @param ownerName the owner name
+     * @param ownerId the owner name
      * @param projectName the project name
      * @param id the id
      * @return the result
      */
     @Transactional
     @With(DefaultProjectCheckAction.class)
-    public static Result detachLabel(String ownerName, String projectName, Long id) {
-        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+    public static Result detachLabel(String ownerId, String projectName, Long id) {
+        Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)) {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
@@ -1310,7 +1300,7 @@ public class ProjectApp extends Controller {
 
     /**
      * 최근 푸쉬된 브랜치 정보를 삭제한다.
-     * @param ownerName
+     * @param ownerId
      * @param projectName
      * @param id
      * @return
@@ -1318,7 +1308,7 @@ public class ProjectApp extends Controller {
     @Transactional
     @With(AnonymousCheckAction.class)
     @IsAllowed(Operation.DELETE)
-    public static Result deletePushedBranch(String ownerName, String projectName, Long id) {
+    public static Result deletePushedBranch(String ownerId, String projectName, Long id) {
         PushedBranch pushedBranch = PushedBranch.find.byId(id);
         if (pushedBranch != null) {
             pushedBranch.delete();
