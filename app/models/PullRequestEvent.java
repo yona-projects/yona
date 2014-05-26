@@ -35,9 +35,6 @@ import play.db.ebean.Model;
 import utils.EventConstants;
 import utils.JodaDateUtil;
 
-/**
- * 보낸코드 이벤트 정보
- */
 @Entity
 public class PullRequestEvent extends Model implements TimelineItem {
 
