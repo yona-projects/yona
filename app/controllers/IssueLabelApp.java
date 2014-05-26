@@ -44,23 +44,27 @@ import static play.libs.Json.toJson;
 
 public class IssueLabelApp extends Controller {
     /**
-     * 특정 프로젝트의 모든 이슈라벨을 달라는 요청에 응답한다.
+     * Responds to a request for issue labels of the specified project.
      *
-     * when: 이슈에 라벨을 붙일 때, 이슈의 고급검색에서 라벨의 목록을 보여줄 때.
+     * This method is used when put a label on an issue and list labels in
+     * issue list page.
      *
-     * 주어진 {@code ownerName}과 {@code projectName}에 대응되는 프로젝트에 대해, 그 프로젝트에 속한 이슈라벨의
-     * 리스트를 {@code application/json} 형식으로 인코딩한다. 이 때 인코딩된 리스트에 담겨있는 각 라벨은
-     * {@link IssueLabel#id}, {@link IssueLabel#category}, {@link IssueLabel#color},
-     * {@link IssueLabel#name} 필드를 갖는다. 이 인코딩된 리스트를 본문으로 하여 응답을 돌려준다.
+     * Retrieves a project corresponding to {@code ownerName} and {@code
+     * projectName}, and returns its list of all issue labels in {@code
+     * application/json}. Each label has three fields: {@link IssueLabel#id},
+     * {@link IssueLabel#category}, {@link IssueLabel#color}, and {@link
+     * IssueLabel#name}.
      *
-     * 사용자에게 프로젝트에 접근할 권한이 없는 경우에는 {@code 403 Forbidden}으로 응답한다.
+     * Returns 403 Forbidden if the user has no permission to access to the
+     * project.
      *
-     * 클라이언트가 {@code application/json}을 받아들일 수 없는 경우에는 {@code 406 Not Acceptable}로 응답한다.
-     * 성공적인 응답에서 엔터티 본문의 미디어 타입은 언제나 {@code application/json}이기 때문이다.
+     * Returns 406 Not Acceptable if the client cannot accept
+     * {@code application/json}. Success response can only be returned when the
+     * content type of the body is {@code application/json}.
      *
-     * @param ownerName   프로젝트 소유자의 이름
-     * @param projectName 프로젝트의 이름
-     * @return 이슈라벨들을 달라는 요청에 대한 응답
+     * @param ownerName    the name of a project owner
+     * @param projectName  the name of a project
+     * @return the response to the request for issue labels
      */
     @IsAllowed(Operation.READ)
     public static Result labels(String ownerName, String projectName) {
@@ -85,27 +89,30 @@ public class IssueLabelApp extends Controller {
     }
 
     /**
-     * 특정 프로젝트에 새 이슈라벨 하나를 추가해달라는 요청에 응답한다.
+     * Responds to a request to add an issue label for the specified project.
      *
-     * when: 사용자가 고급검색, 이슈편집, 이슈등록 페이지에서 새 이슈라벨의 추가를 시도했을 때
+     * This method is used when a user tries to add a issue label in issue list,
+     * editing issue or new issue page.
      *
-     * 주어진 {@code ownerName}과 {@code projectName}에 대응되는 프로젝트에,
-     * 요청에서 {@link Form#bindFromRequest(java.util.Map, String...)}로 가져온 {@link Form}의 값들에 따라
-     * 만들어진 이슈라벨을 추가한다.
+     * Adds an issue label created with values taken from
+     * {@link Form#bindFromRequest(java.util.Map, String...)} in the project
+     * specified by the {@code ownerName} and {@code projectName}. But if there
+     * has already been the same issue label in category, name and color, then
+     * this method returns an empty 204 No Content response.
      *
-     * 그러나 그 프로젝트에 카테고리, 이름, 색상이 모두 같은 이슈라벨이 있다면 추가하지 않고 본문 없이
-     * {@code 204 No Content}로 응답한다.
+     * When a new label is added, this method encodes the label's fields:
+     * {@link IssueLabel#id}, {@link IssueLabel#name}, {@link IssueLabel#color},
+     * and {@link IssueLabel#category} into {@code application/json}, and
+     * includes them in the body of the 201 Created response. But if the client
+     * cannot accept {@code application/json}, it returns the 201 Created with
+     * no response body.
      *
-     * 새로 이슈라벨을 추가한 경우, 그 이슈라벨의 {@link IssueLabel#id}, {@link IssueLabel#name},
-     * {@link IssueLabel#color}, {@link IssueLabel#category} 필드를 {@code application/json} 형식으로
-     * 인코딩한 뒤, 이를 본문으로 하여 {@code 201 Created}로 응답한다. 그러나 이 때 클라이언트가
-     * {@code application/json}을 받아들일 수 없다면 본문 없이 응답한다.
+     * Returns 403 Forbidden, if the user has no permission to add a new label
+     * in the project.
      *
-     * 사용자에게 프로젝트에 이슈라벨을 만들 권한이 없는 경우에는 {@code 403 Forbidden}으로 응답한다.
-     *
-     * @param ownerName   프로젝트 소유자의 이름
-     * @param projectName 프로젝트의 이름
-     * @return 이슈라벨을 추가해달라는 요청에 대한 응답
+     * @param ownerName    the name of a project owner
+     * @param projectName  the name of a project
+     * @return             the response to the request to add a new issue label
      */
     @Transactional
     @IsCreatable(ResourceType.ISSUE_LABEL)
@@ -138,22 +145,27 @@ public class IssueLabelApp extends Controller {
     }
 
     /**
-     * 이슈라벨 하나를 삭제해달라는 요청에 응답한다.
+     * Responds to a request to delete the specified issue label.
      *
-     * when: 사용자가 고급검색, 이슈편집, 이슈등록 페이지에서 이슈라벨의 삭제 버튼을 클릭했을 때
+     * This method is used when a user click a button to delete a issue label
+     * in issue list, editing issue or new issue page.
      *
-     * 주어진 {@code id}에 대응되는 이슈라벨을 찾아 삭제한다. 대응되는 이슈라벨이 없다면
-     * {@code 404 Not Found}로 응답하며, 이슈라벨은 있지만 사용자에게 그것을 삭제할 권한이 없는 경우에는
-     * {@code 403 Forbidden}으로 응답한다. 이슈라벨이 성공적으로 삭제되었다면 {@code 200 OK}로 응답한다.
+     * Deletes an issue label corresponding to the given {@code id}.
      *
-     * 요청에 반드시 {@code _method} 파라메터가 들어있어야 하며, 그 값은 "delete"여야 한다. (대소문자 구분하지
-     * 않음) 그렇지 않다면 {@code 400 Bad request}로 응답한다. 이는 DELETE 메소드를 흉내내는 방법이며, 이렇게
-     * 하는 이유는 HTML Form이 DELETE 메소드를 지원하지 않기 때문이다.
+     * - Returns {@code 200 OK} if the issue label is deleted succesfully.
+     * - Returns {@code 403 Forbidden} if the user has no permission to delete
+     *   the issue label.
+     * - Returns {@code 404 Not Found} if no issue label is found.
      *
-     * @param ownerName   사용하지 않음
-     * @param projectName 사용하지 않음
-     * @param id          삭제할 이슈라벨의 아이디
-     * @return 이슈라벨을 삭제해달라는 요청에 대한 응답
+     * The request must have a {@code _method} parameter and the parameter
+     * value must be case-insensitive "delete"; otherwise, returns 400 Bad
+     * Request. We use this trick because an HTML Form does not support the
+     * DELETE method.
+     *
+     * @param ownerName    Don't use.
+     * @param projectName  Don't use.
+     * @param id           the id of the label to be deleted
+     * @return             the response to the request to delete an issue label
      */
     @Transactional
     @IsAllowed(value = Operation.DELETE, resourceType = ResourceType.ISSUE_LABEL)
@@ -171,18 +183,15 @@ public class IssueLabelApp extends Controller {
     }
 
     /**
-     * 특정 프로젝트의 모든 이슈라벨의 CSS 스타일을 달라는 요청에 응답한다
+     * Responds to a request for the CSS styles of all issue labels in the
+     * specified project.
      *
-     * when: 이슈 라벨을 사용하는 페이지에서 라벨 색상(스타일)을 필요로 할 때
+     * This method is used when CSS styles of issue labels are required in any
+     * page which uses issue label.
      *
-     * 주어진 {@code ownerName}과 {@code projectName}에 대응되는 프로젝트에 대해,
-     * 그 프로젝트에 속한 이슈라벨의 스타일을 {@code text/css} 형식으로 응답한다.
-     *
-     * 사용자에게 프로젝트에 접근할 권한이 없는 경우에는 {@code 403 Forbidden}으로 응답한다.
-     *
-     * @param ownerName   프로젝트 소유자의 이름
-     * @param projectName 프로젝트의 이름
-     * @return 이슈라벨의 스타일을 달라는 요청에 대한 응답
+     * @param ownerName    the name of a project owner
+     * @param projectName  the name of a project
+     * @return the response to the request for the css styles in text/css.
      */
     @IsAllowed(Operation.READ)
     public static Result labelStyles(String ownerName, String projectName) {
