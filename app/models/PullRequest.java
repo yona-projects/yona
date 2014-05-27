@@ -48,6 +48,7 @@ import org.joda.time.Duration;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
+import play.i18n.Messages;
 import play.libs.Akka;
 import playRepository.FileDiff;
 import playRepository.GitCommit;
@@ -234,7 +235,7 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     public boolean isAcceptable() {
-        return isOpen() && !isMerging && (isReviewed() || !toProject.isUsingReviewerCount);
+        return !isConflict && isOpen() && !isMerging && (isReviewed() || !toProject.isUsingReviewerCount);
     }
 
     public static PullRequest findById(long id) {
@@ -1070,5 +1071,18 @@ public class PullRequest extends Model implements ResourceConvertible {
             return null;
         }
         return tw.getObjectId(0);
+    }
+
+    public String getMessageForDisabledAcceptButton() {
+        if(this.isMerging) {
+            return Messages.get("pullRequest.not.acceptable.because.is.merging");
+        } else if(this.isConflict) {
+            return Messages.get("pullRequest.not.acceptable.because.is.conflict");
+        } else if(!this.isOpen()) {
+            return Messages.get("pullRequest.not.acceptable.because.is.not.open");
+        } else { // isOpen == false
+            return Messages.get("pullRequest.not.acceptable.because.is.not.enough.review.point",
+                    getLackingReviewerCount());
+        }
     }
 }
