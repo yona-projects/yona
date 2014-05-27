@@ -45,7 +45,7 @@ yobi.CodeCommentBlock = (function(){
      */
     function _initElement(htOptions){
         htElement.welContainer = $(htOptions.welContainer);
-        htElement.welButtonOnBlock = $(htOptions.welButtonOnBlock);
+        htElement.welPopButtonOnBlock = $(htOptions.welPopButtonOnBlock);
     }
 
     /**
@@ -183,32 +183,59 @@ yobi.CodeCommentBlock = (function(){
      * @private
      */
     function _onWrapCodeCommentBlock(){
-        if(htVar.bPopButtonOnBlock && htElement.welButtonOnBlock){
-            var htBlockInfo = _getBlockData();
-            var htElements = _getElementsByOffsetOptions(htBlockInfo);
-
-            var welLine = (htBlockInfo.bIsReversed ? htElements.welStartLine : htElements.welEndLine);
-            var welCode = welLine.find("td.code");
-            var nBlockOffset = (htBlockInfo.bIsReversed ? htBlockInfo.nStartColumn : htBlockInfo.nEndColumn);
-            var htCodeOffset = welCode.position();
-            var nTop = htCodeOffset.top + (htBlockInfo.bIsReversed ? -20 : welCode.height());
-            var nLeft = htCodeOffset.left + (nBlockOffset * 7);
-
-            if(nLeft > (htCodeOffset.left + welLine.width() - 40)){
-                nLeft = htCodeOffset.left + welLine.width() - 80;
-            }
-
-            htElement.welButtonOnBlock.show();
-            htElement.welButtonOnBlock.css({
-                "top" : nTop +"px",
-                "left": nLeft+"px"
-            });
-
+        if(htVar.bPopButtonOnBlock && htElement.welPopButtonOnBlock){
+            _showPopButtonOnBlock();
             _setSelectionWatcher();
         }
     }
 
     /**
+     * Show pop button on block(welPopButtonOnBlock)
+     * which is for create new comment thread
+     * near to selected block
+     *
+     * @private
+     */
+    function _showPopButtonOnBlock(){
+        var htPosition = _getPopButtonPosition();
+
+        htElement.welPopButtonOnBlock.show();
+        htElement.welPopButtonOnBlock.css({
+            "top" : htPosition.top  + "px",
+            "left": htPosition.left + "px"
+        });
+    }
+
+    /**
+     * Returns proper position for welPopButtonOnBlock.
+     * Calculate top, left offset position by finding last line of selection block.
+     *
+     * @returns {Hash Table} {top: number, left: number}
+     * @private
+     */
+    function _getPopButtonPosition(){
+        var htBlockInfo = _getBlockData();
+        var htElements = _getElementsByOffsetOptions(htBlockInfo);
+
+        var nColumnWidth = 7;
+        var nLineHeight = 1.5;
+        var nColumn = htBlockInfo.bIsReversed ? htBlockInfo.nStartColumn : htBlockInfo.nEndColumn;
+        var welLine = htBlockInfo.bIsReversed ? htElements.welStartLine : htElements.welEndLine;
+
+        var welCode = welLine.find("td.code");
+        var htCodeOffset = welCode.position();
+        var nMaxLeft = htElement.welContainer.width() - (htElement.welPopButtonOnBlock.width() * 2);
+
+        return {
+            "top" : htCodeOffset.top - (welCode.height() * nLineHeight),
+            "left": Math.min(htCodeOffset.left + (nColumn * nColumnWidth), nMaxLeft)
+        };
+    }
+
+    /**
+     * Watch whether selection exists after welPopButtonOnBlock has shown.
+     * If no more selection exists, Hide welPopButtonOnBlock and stop to watching.
+     *
      * @private
      */
     function _setSelectionWatcher(){
@@ -219,7 +246,7 @@ yobi.CodeCommentBlock = (function(){
 
         htVar.nSelectionWatcher = setInterval(function(){
             if(document.getSelection().toString().length === 0){
-                htElement.welButtonOnBlock.hide();
+                htElement.welPopButtonOnBlock.hide();
                 clearInterval(htVar.nSelectionWatcher);
                 htVar.nSelectionWatcher = null;
             }
@@ -378,8 +405,8 @@ yobi.CodeCommentBlock = (function(){
      * @private
      */
     function _onUnwrapAllCodeCommentBlock(){
-        if(htElement.welButtonOnBlock){
-            htElement.welButtonOnBlock.hide();
+        if(htElement.welPopButtonOnBlock){
+            htElement.welPopButtonOnBlock.hide();
         }
     }
 
