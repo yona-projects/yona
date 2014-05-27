@@ -3590,9 +3590,38 @@ label.issue-item-row {
 
 .vote-wrap {
     display:inline-block;
-    margin-left:.3em;
+    margin-left:3px;
     font-size:@base-font-size;
     vertical-align:middle;
+
+    .ybtn  {
+        padding:3px 12px !important;
+    }
+
+    .heart {
+        display:inline-block;
+        color:#ddd;
+        font-size:11px;
+        margin-right:2px;
+        vertical-align:middle;
+    }
+
+    .desc {
+        display:inline-block;
+        margin-right:3px;
+        vertical-align:middle;
+    }
+
+    .count {
+        display:inline-block;
+        vertical-align: middle;
+    }
+
+    .ybtn-watching {
+        .heart {
+            color:@yobi-primary;
+        }
+    }
 }
 .voter-list-wrap {
     display:inline-block;

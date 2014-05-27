@@ -47,8 +47,6 @@
     }
 }
 
-@isVotedByCurrentUser = {@if(issue.isVotedBy(UserApp.currentUser)){ybtn-watching}}
-
 @getVoteButtonTitle = {
     @if(issue.isVotedBy(UserApp.currentUser)){
         @Messages("issue.unvote.description")
@@ -249,7 +247,8 @@
             <div class="pull-left">
                 <div>
                     @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.WATCH)) {
-                        <button id="watch-button" type="button" class="ybtn @if(issue.getWatchers.contains(UserApp.currentUser())){ybtn-watching}" data-toggle="button" data-watching="@if(issue.getWatchers.contains(UserApp.currentUser())){true}else{false}">
+                        <button id="watch-button" type="button" class="ybtn @if(issue.getWatchers.contains(UserApp.currentUser())) {ybtn-watching pressed}"
+                                data-toggle="button" data-watching="@if(issue.getWatchers.contains(UserApp.currentUser())){true}else{false}">
                         @if(issue.getWatchers.contains(UserApp.currentUser())) {
                             @Messages("project.unwatch")
                         } else {
@@ -260,18 +259,20 @@
 
                     <div id="vote" class="vote-wrap">
                         @if(isResourceCreatable(User.findByLoginId(session.get("loginId")), issue.asResource(), ResourceType.ISSUE_COMMENT)) {
-                            <a href="@urlToVote" class="ybtn @isVotedByCurrentUser" title="@getVoteButtonTitle"
+                            <a href="@urlToVote" class="ybtn @if(issue.isVotedBy(UserApp.currentUser)){ybtn-watching pressed}" title="@getVoteButtonTitle"
                                data-request-method="post" data-toggle="tooltip">
-                                @Messages("issue.vote")
+                                <span class="heart"><i class="yobicon-hearts"></i></span>
+                                <span class="desc">@Messages("issue.vote")</span>
                                 @if(issue.voters.size > 0) {
-                                    <strong>+@issue.voters.size</strong>
+                                    <strong class="count">@issue.voters.size</strong>
                                 }
                             </a>
                         } else {
                             <span class="ybtn ybtn-disabled" style="color:#777;" data-toggle="tooltip" title="@Messages("user.login.alert")">
-                                @Messages("issue.vote")
+                                <span class="heart"><i class="yobicon-hearts"></i></span>
+                                <span class="desc">@Messages("issue.vote")</span>
                                 @if(issue.voters.size > 0) {
-                                    <strong>+@issue.voters.size</strong>
+                                    <strong class="count">@issue.voters.size</strong>
                                 }
                             </span>
                         }
