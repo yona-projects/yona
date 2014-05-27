@@ -364,7 +364,7 @@ public class GitRepository implements PlayRepository {
 
         boolean isBinary = RawText.isBinary(file.openStream());
         result.put("isBinary", isBinary);
-        if (!isBinary && file.getSize() < MAX_FILE_SIZE_CAN_BE_VIEWED) {
+        if (!isBinary && file.getSize() <= MAX_FILE_SIZE_CAN_BE_VIEWED) {
             byte[] bytes = file.getBytes();
             String str = new String(bytes, FileUtil.detectCharset(bytes));
             result.put("data", str);
