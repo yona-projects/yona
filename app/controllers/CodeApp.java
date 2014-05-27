@@ -26,6 +26,7 @@ import models.Project;
 import models.enumeration.Operation;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.tika.Tika;
+import org.apache.tika.mime.MediaType;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.tmatesoft.svn.core.SVNException;
@@ -179,7 +180,18 @@ public class CodeApp extends Controller {
         if(fileAsRaw == null){
             return redirect(routes.CodeApp.codeBrowserWithBranch(userName, projectName, revision, path));
         }
-        return ok(fileAsRaw).as("text/plain");
+
+        MediaType mediaType = FileUtil.detectMediaType(fileAsRaw, FilenameUtils.getName(path));
+
+        String mediaTypeString = "text/plain";
+        if (mediaType.hasParameters()) {
+            String charset = mediaType.getParameters().get("charset");
+            if (charset != null) {
+                mediaTypeString += "; charset=" + charset;
+            }
+        }
+
+        return ok(fileAsRaw).as(mediaTypeString);
     }
 
     /**
