@@ -29,6 +29,12 @@
     @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.ASSIGN_ISSUE)) {
     <option value="@UserApp.currentUser().id">@Messages("issue.assignToMe")</option>
     }
+    @defining(issue.getAuthor) { issueAuthor =>
+        @if(!UserApp.currentUser.equals(issueAuthor) &&
+            isAllowed(issueAuthor, project.asResource(), Operation.ASSIGN_ISSUE)) {
+            <option value="@issueAuthor.id">@Messages("issue.assignToAuthor")</option>
+        }
+    }
     @for(user <- project.relatedUsers){
         <option value="@user.id"
           data-avatar-url="@User.findByLoginId(user.loginId).avatarUrl"

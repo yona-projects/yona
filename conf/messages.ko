@@ -202,6 +202,7 @@ fork.help.title = 프로젝트의 코드 저장소를 복사합니다.
 fork.original = 원본 프로젝트
 fork.redirect.exist = 이전에 만들어둔 포크 프로젝트로 이동합니다.
 issue.assignToMe = 나에게 할당하기
+issue.assignToAuthor = 등록자에게 할당하기
 issue.assignee = 담당자
 issue.assignee.selectDefault= --담당자 선택--
 issue.author = 등록자
