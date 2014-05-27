@@ -138,6 +138,7 @@ object TemplateHelper {
   }
 
   def getUserAvatar(user: models.User, avatarSize:String = "small") = {
+    user.refresh();
     var userInfoURL = routes.UserApp.userInfo(user.loginId).toString()
 
     "<a href=\"" + userInfoURL + "\" class=\"usf-group\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"" + user.name + "\"><img src=\"" + user.avatarUrl + "\" class=\"avatar-wrap " + avatarSize + "\"></a>"
