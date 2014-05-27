@@ -256,6 +256,6 @@ public class CodeApp extends Controller {
             return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
-        return ok(raw).as(FileUtil.detectMediaType(raw, FilenameUtils.getName(path)));
+        return ok(raw).as(FileUtil.detectMediaType(raw, FilenameUtils.getName(path)).toString());
     }
 }
