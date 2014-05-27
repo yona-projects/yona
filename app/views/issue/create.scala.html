@@ -95,7 +95,7 @@
                                             data-toggle="select2" data-format="milestone"
                                             data-placeholder="@Messages("issue.milestone.selectDefault")">
                                         <option></option>
-                                        <option value="-1">@Messages("issue.noMilestone")</option>
+                                        <option value="@Milestone.NULL_MILESTONE_ID" selected="selected">@Messages("issue.noMilestone")</option>
                                         @for(milestone <- milestones){
                                         <option value="@milestone.id" data-state="@milestone.state">
                                             @milestone.title
