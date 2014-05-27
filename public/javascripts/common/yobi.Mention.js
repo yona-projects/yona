@@ -48,6 +48,8 @@ yobi.Mention = function(htOptions) {
             tpl: "<li data-value='@${loginid}'><img style='width:20px;height:20px;' src='${image}'> ${username} <small>${loginid}</small></li>",
             show_the_at: true
         }
+        htVar.nKeyupEventGenerator = null;
+        htVar.sMentionText = null;
     }
 
     /**
@@ -62,6 +64,10 @@ yobi.Mention = function(htOptions) {
      */
     function _attachEvent() {
         htElement.welTarget.on("keypress", _onKeyInput);
+        if (jQuery.browser.mozilla){
+            htElement.welTarget.on("focus", _startKeyupEventGenerator);
+            htElement.welTarget.on("blur", _stopKeyupEventGenerator);
+        }
     }
 
     /**
@@ -80,6 +86,28 @@ yobi.Mention = function(htOptions) {
         }
     }
 
+    function _startKeyupEventGenerator(){
+        if (htVar.nKeyupEventGenerator){
+            clearInterval(htVar.nKeyupEventGenerator);
+        }
+
+        htVar.nKeyupEventGenerator = setInterval(
+            function(){
+                if (htVar.sMentionText != htElement.welTarget.val()){
+                    htElement.welTarget.trigger("keyup");
+                    htVar.sMentionText = htElement.welTarget.val();
+                }
+            }
+            ,100);
+    }
+
+    function _stopKeyupEventGenerator(){
+        if (htVar.nKeyupEventGenerator){
+            clearInterval(htVar.nKeyupEventGenerator);
+            htVar.nKeyupEventGenerator = null;
+        }
+    }
+
     /**
      * Find Userlist
      */
@@ -94,9 +122,6 @@ yobi.Mention = function(htOptions) {
 
     function _onLoadUserList(aData){
         htVar.atConfig.data = aData.result;
-
-        // on-key event fix for FF on Korean input
-        var keyFix = new beta.fix(htVar.target);
 
         $inputor = htElement.welTarget
             .atwho(htVar.atConfig)
