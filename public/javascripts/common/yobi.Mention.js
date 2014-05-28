@@ -131,8 +131,8 @@ yobi.Mention = function(htOptions) {
                 tpl: '<li data-value="#${issueNo}"><small>#${issueNo}</small> ${title}</li>',
                 data: aData.issues
             });
-        $inputor.caret("pos", 47);
-        $inputor.focus().atwho("run");
+        
+        $inputor.atwho("run");
     }
 
     _init(htOptions || {});
