@@ -184,11 +184,9 @@ public class CodeApp extends Controller {
         MediaType mediaType = FileUtil.detectMediaType(fileAsRaw, FilenameUtils.getName(path));
 
         String mediaTypeString = "text/plain";
-        if (mediaType.hasParameters()) {
-            String charset = mediaType.getParameters().get("charset");
-            if (charset != null) {
-                mediaTypeString += "; charset=" + charset;
-            }
+        String charset = FileUtil.getCharset(mediaType);
+        if (charset != null) {
+            mediaTypeString += "; charset=" + charset;
         }
 
         return ok(fileAsRaw).as(mediaTypeString);

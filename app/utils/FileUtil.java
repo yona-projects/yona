@@ -55,6 +55,9 @@ public class FileUtil {
      *
      * Return "UTF-8" if it fails.
      *
+     * We use mozilla's UniversalDetector instead of Tika's CharsetDetector
+     * which raises "mark/reset not supported" IOException for FileInputStream.
+     *
      * @param bytes - a byte array to be checked
      * @return charset - the charset used
      * @throws IOException
@@ -77,6 +80,9 @@ public class FileUtil {
      * Detect the charset used for the given stream.
      *
      * Return "UTF-8" if it fails.
+     *
+     * We use mozilla's UniversalDetector instead of Tika's CharsetDetector
+     * which raises "mark/reset not supported" IOException for FileInputStream.
      *
      * @param is - an input stream to be checked
      * @return charset - the charset used
@@ -132,5 +138,10 @@ public class FileUtil {
         }
 
         return mediaType;
+    }
+
+    public static String getCharset(MediaType mediaType) {
+        return mediaType.hasParameters()
+                ? mediaType.getParameters().get("charset") : null;
     }
 }
