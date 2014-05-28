@@ -30,6 +30,7 @@
   </div>
   <div class="login-form-wrap frm-wrap">
     <form action="@routes.UserApp.login()" method="POST">
+      <input type="hidden" name="redirectUrl" value="@redirectUrl" />
       <dl>
         <dt>
           <label for="loginId">@Messages("user.loginId")</label>
@@ -38,7 +39,7 @@
           <input id="loginId" name="loginId" type="text" class="text email" autocomplete="off">
         </dd>
 
-        <dt>
+        <dt class="mt10">
           <label for="password">@Messages("user.password")</label>
         </dt>
         <dd>
@@ -46,19 +47,20 @@
         </dd>
       </dl>
 
-      <div class="act-row right-txt">
-        <input id="remember-me" type="checkbox" name="rememberMe" class="checkbox" autocomplete="off">
-        <label for="remember-me" class="bg-checkbox">@Messages("title.rememberMe")</label>
-
-        <a href="@routes.PasswordResetApp.lostPassword()" class="ybtn ybtn-mini ybtn-danger forgot-password">
-          @Messages("title.forgotpassword")
-        </a>
-      </div>
-
       <div class="btns-row">
-        <button type="submit" class="ybtn">@Messages("button.login")</button>
+        <button type="submit" class="ybtn ybtn-primary ybtn-large ybtn-fullsize">@Messages("button.login")</button>
       </div>
-      <input type="hidden" name="redirectUrl" value="@redirectUrl" />
+
+      <div class="act-row mt5">
+        <div class="remember-me-wrap pull-left">
+          <input id="remember-me" type="checkbox" name="rememberMe" class="checkbox" autocomplete="off">
+          <label for="remember-me" class="bg-checkbox">@Messages("title.rememberMe")</label>
+        </div>
+
+        <div class="links-wrap pull-right">
+          <a href="@routes.PasswordResetApp.lostPassword">@Messages("title.forgotpassword")</a>
+        </div>
+      </div>
     </form>
   </div>
 </div>
