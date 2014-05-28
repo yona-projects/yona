@@ -127,22 +127,22 @@ play 2.1 에서 사용하던 코드 중, 아래와 같은 구조의 코드는 pl
 * member variable 에 대한 접근을 getter/setter 를 통해서 할 경우 문제가 발생하지 않는다.
 * 위 코드에서 try-catch 가 없을 경우 문제가 발생하지 않는다.
 
-이 문제가 해결되기 전까지는 play 2.2 로 migration 은 힘들 것 같다.
-
 ### 원인
 
-javassist 3.17 version 이후부터 class file 의 stackmap 을 구성하는 코드가 변경되었다.
+- play framework 는 javassist 를 이용해서 public member variable 에 대한 직접적인 accesss 를 getter/setter 로 변경한다.
+- v2.1 에선 javassist 3.16 을 사용, v2.2 에선 javassist 3.18을 사용
+- javassist 3.17 version 이후부터 class file 의 stackmap 을 구성하는 코드가 변경되었고,
 이로 인해서 변조된 class file 이 JAVA7 이상에서 사용되는 class verifier 의 검증을 통과하지 못하는 경우가 발생한다.
 
 ### workaround
 
-stackmap 검증에 덜 엄격한 JAVA6 의 class verifier 를 사용하도록 강제한다.
+이 문제는 javassist 의 bug 로 3.18.2 version 에서 해결되었다. 아래와 같이 plugin.sbt 에서 javassist 의 version 을 변경해야 한다.
 
-    -XX:-UseSplitVerifier
+    libraryDependencies += "org.javassist" % "javassist" % "3.18.2-GA"
 
-이 옵션은 JAVA7 에서 유효하며, JAVA8 에선 deprecated.
+play framework 에 [근본적인 해결을 위한 커밋](https://github.com/playframework/playframework/commit/78b8bf8b6b180d3a29eb1f61e7626c35b6e77f85) 이 작성 되었지만, 아직 릴리즈 계획을 알 수 없다.
 
 ### 관련 링크
 
-* [테스트 코드](https://github.com/kjkmadness/play-test)
-* [테스트 CI](https://travis-ci.org/kjkmadness/play-test)
+- [javassist issue](https://issues.jboss.org/browse/JASSIST-212)
+- [play framework issue](https://github.com/playframework/playframework/issues/1966)
