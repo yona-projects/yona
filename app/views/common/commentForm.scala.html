@@ -48,9 +48,14 @@
         $(document).ready(function(){
             var welCommentForm = $("#comment-form");
 
-            welCommentForm.on("submit", function(){
-                yobi.ui.Spinner.show({"bUseDimmer": true});
-                welCommentForm.data("bOnSubmit", true);
+            welCommentForm.on("submit", function() {
+                if ($(this).find("textarea[name=contents]").val().trim().length > 0) {
+                    yobi.ui.Spinner.show({"bUseDimmer": true});
+                    welCommentForm.data("bOnSubmit", true);
+                } else {
+                    $yobi.notify(Messages("post.comment.empty"), 3000);
+                    return false;
+                }
             });
 
             // -- ESC 키를 눌러 폼 전송을 중단하는 경우
