@@ -85,8 +85,23 @@
     }
     } else {
     @** Text(Code) **@
-    <div id="codeVal" class="hidden">@if(files.get("data") != null){@fieldText(files, "data")}</div>
-    <pre id="showCode" class="code-wrap" data-mimeType="@files.get("mimeType")"></pre>
+    @defining(files.get("data")) { data =>
+      @data match {
+        case null if files.get("size") != null && files.get("size").getIntValue > 0 => {
+          <p>
+          @Messages("code.tooBigFileForCodeBrowser", playRepository.PlayRepository.MAX_FILE_SIZE_CAN_BE_VIEWED)
+          @if(UserApp.currentUser.isSiteManager) {
+          <br/>@Messages("code.looseFileSizeLimitForCodeBrowser")
+          }
+          <br/><a href="@filePath" target="_blank" class="filehref ybtn">@Messages("code.viewRaw")</a>
+          </p>
+        }
+        case _ => {
+          <div id="codeVal" class="hidden">@if(files.get("data") != null){@fieldText(files, "data")}</div>
+          <pre id="showCode" class="code-wrap" data-mimeType="@files.get("mimeType")"></pre>
+        }
+      }
+    }
     }
 </div>
 }
