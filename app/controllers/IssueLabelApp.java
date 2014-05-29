@@ -68,7 +68,7 @@ public class IssueLabelApp extends Controller {
             return status(Http.Status.NOT_ACCEPTABLE);
         }
 
-        Project project = ProjectApp.getProject(ownerName, projectName);
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         List<Map<String, String>> labels = new ArrayList<>();
         for (IssueLabel label : IssueLabel.findByProject(project)) {
@@ -111,7 +111,7 @@ public class IssueLabelApp extends Controller {
     @IsCreatable(ResourceType.ISSUE_LABEL)
     public static Result newLabel(String ownerName, String projectName) {
         Form<IssueLabel> labelForm = new Form<>(IssueLabel.class).bindFromRequest();
-        Project project = ProjectApp.getProject(ownerName, projectName);
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         IssueLabel label = labelForm.get();
         label.project = project;
@@ -186,7 +186,7 @@ public class IssueLabelApp extends Controller {
      */
     @IsAllowed(Operation.READ)
     public static Result labelStyles(String ownerName, String projectName) {
-        Project project = ProjectApp.getProject(ownerName, projectName);
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         List<IssueLabel> labels = IssueLabel.findByProject(project);
 
         String eTag = "\"" + labels.hashCode() + "\"";

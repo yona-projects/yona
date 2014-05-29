@@ -131,7 +131,7 @@ public class IssueApp extends AbstractPostingApp {
      */
     @IsAllowed(Operation.READ)
     public static Result issues(String ownerName, String projectName, String state, String format, int pageNum) throws WriteException, IOException {
-        Project project = ProjectApp.getProject(ownerName, projectName);
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         // SearchCondition from param
         Form<models.support.SearchCondition> issueParamForm = new Form<>(models.support.SearchCondition.class);
@@ -305,7 +305,7 @@ public class IssueApp extends AbstractPostingApp {
      */
     @With(NullProjectCheckAction.class)
     public static Result issue(String ownerName, String projectName, Long number) {
-        Project project = ProjectApp.getProject(ownerName, projectName);
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         Issue issueInfo = Issue.findByNumber(project, number);
 
@@ -363,7 +363,7 @@ public class IssueApp extends AbstractPostingApp {
      */
     @IsAllowed(resourceType = ResourceType.ISSUE_POST, value = Operation.READ)
     public static Result timeline(String ownerName, String projectName, Long number) {
-        Project project = ProjectApp.getProject(ownerName, projectName);
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         Issue issueInfo = Issue.findByNumber(project, number);
 
         for (IssueLabel label: issueInfo.labels) {
@@ -385,7 +385,7 @@ public class IssueApp extends AbstractPostingApp {
     @With(AnonymousCheckAction.class)
     @IsCreatable(ResourceType.ISSUE_POST)
     public static Result newIssueForm(String ownerName, String projectName) {
-        Project project = ProjectApp.getProject(ownerName, projectName);
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         return ok(create.render("title.newIssue", new Form<>(Issue.class), project));
     }
 
@@ -529,7 +529,7 @@ public class IssueApp extends AbstractPostingApp {
     @IsCreatable(ResourceType.ISSUE_POST)
     public static Result newIssue(String ownerName, String projectName) {
         Form<Issue> issueForm = new Form<>(Issue.class).bindFromRequest();
-        Project project = ProjectApp.getProject(ownerName, projectName);
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         if (issueForm.hasErrors()) {
             return badRequest(create.render("error.validation", issueForm, project));
@@ -590,7 +590,7 @@ public class IssueApp extends AbstractPostingApp {
      */
     @With(NullProjectCheckAction.class)
     public static Result editIssueForm(String ownerName, String projectName, Long number) {
-        Project project = ProjectApp.getProject(ownerName, projectName);
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         Issue issue = Issue.findByNumber(project, number);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
@@ -619,7 +619,7 @@ public class IssueApp extends AbstractPostingApp {
     @Transactional
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.ISSUE_POST)
     public static Result nextState(String ownerName, String projectName, Long number) {
-        Project project = ProjectApp.getProject(ownerName, projectName);
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         final Issue issue = Issue.findByNumber(project, number);
 
@@ -675,7 +675,7 @@ public class IssueApp extends AbstractPostingApp {
     public static Result editIssue(String ownerName, String projectName, Long number) {
         Form<Issue> issueForm = new Form<>(Issue.class).bindFromRequest();
 
-        Project project = ProjectApp.getProject(ownerName, projectName);
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         if (issueForm.hasErrors()) {
             return badRequest(edit.render("error.validation", issueForm, Issue.findByNumber(project, number), project));
@@ -738,7 +738,7 @@ public class IssueApp extends AbstractPostingApp {
     @Transactional
     @With(NullProjectCheckAction.class)
     public static Result deleteIssue(String ownerName, String projectName, Long number) {
-        Project project = ProjectApp.getProject(ownerName, projectName);
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         Issue issue = Issue.findByNumber(project, number);
         if(!issue.canBeDeleted()) {
             return badRequest(ErrorViews.BadRequest.render());

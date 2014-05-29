@@ -105,7 +105,7 @@ public class GitApp extends Controller {
             return forbidden(String.format("Unsupported service: '%s'", service));
         }
 
-        Project project = ProjectApp.getProject(ownerName, projectName);
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         if (project == null) {
             return notFound();

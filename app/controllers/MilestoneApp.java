@@ -77,7 +77,7 @@ public class MilestoneApp extends Controller {
      */
     @IsAllowed(Operation.READ)
     public static Result milestones(String userName, String projectName) {
-        Project project = ProjectApp.getProject(userName, projectName);
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
         MilestoneCondition mCondition = form(MilestoneCondition.class).bindFromRequest().get();
 
         List<Milestone> milestones = Milestone.findMilestones(project.id,
@@ -103,7 +103,7 @@ public class MilestoneApp extends Controller {
     @With(AnonymousCheckAction.class)
     @IsCreatable(ResourceType.MILESTONE)
     public static Result newMilestoneForm(String userName, String projectName) {
-        Project project = ProjectApp.getProject(userName, projectName);
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
         return ok(create.render("title.newMilestone", new Form<>(Milestone.class), project));
     }
 
@@ -127,7 +127,7 @@ public class MilestoneApp extends Controller {
     @IsCreatable(ResourceType.MILESTONE)
     public static Result newMilestone(String userName, String projectName) {
         Form<Milestone> milestoneForm = new Form<>(Milestone.class).bindFromRequest();
-        Project project = ProjectApp.getProject(userName, projectName);
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
         validate(project, milestoneForm);
         if (milestoneForm.hasErrors()) {
@@ -178,7 +178,7 @@ public class MilestoneApp extends Controller {
     @With(AnonymousCheckAction.class)
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.MILESTONE)
     public static Result editMilestoneForm(String userName, String projectName, Long milestoneId) {
-        Project project = ProjectApp.getProject(userName, projectName);
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
         Milestone milestone = Milestone.findById(milestoneId);
 
         Form<Milestone> editForm = new Form<>(Milestone.class).fill(milestone);
@@ -202,7 +202,7 @@ public class MilestoneApp extends Controller {
     @Transactional
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.MILESTONE)
     public static Result editMilestone(String userName, String projectName, Long milestoneId) {
-        Project project = ProjectApp.getProject(userName, projectName);
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
         Form<Milestone> milestoneForm = new Form<>(Milestone.class).bindFromRequest();
         Milestone original = Milestone.findById(milestoneId);
 
@@ -244,7 +244,7 @@ public class MilestoneApp extends Controller {
     @Transactional
     @IsAllowed(value = Operation.DELETE, resourceType = ResourceType.MILESTONE)
     public static Result deleteMilestone(String userName, String projectName, Long id) {
-        Project project = ProjectApp.getProject(userName, projectName);
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
         Milestone milestone = Milestone.findById(id);
 
         if(!project.id.equals(milestone.project.id)) {
@@ -308,7 +308,7 @@ public class MilestoneApp extends Controller {
      */
     @IsAllowed(value = Operation.READ, resourceType = ResourceType.MILESTONE)
     public static Result milestone(String userName, String projectName, Long id) {
-        Project project = ProjectApp.getProject(userName, projectName);
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
         Milestone milestone = Milestone.findById(id);
 
         String paramState = request().getQueryString("state");
