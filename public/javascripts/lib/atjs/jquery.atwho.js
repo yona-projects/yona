@@ -1,4 +1,4 @@
-/*! jquery.atwho - v0.4.10 - 2014-04-18
+/*! jquery.atwho - v0.4.11 - 2014-04-27
 * Copyright (c) 2014 chord.luo <chord.luo@gmail.com>; 
 * homepage: http://ichord.github.com/At.js 
 * Licensed MIT
@@ -102,8 +102,18 @@ App = (function() {
   App.prototype.dispatch = function() {
     return $.map(this.controllers, (function(_this) {
       return function(c) {
-        if (c.look_up()) {
-          return _this.set_context_for(c.at);
+        var delay;
+        if (delay = c.get_opt('delay')) {
+          clearTimeout(_this.delayedCallback);
+          return _this.delayedCallback = setTimeout(function() {
+            if (c.look_up()) {
+              return _this.set_context_for(c.at);
+            }
+          }, delay);
+        } else {
+          if (c.look_up()) {
+            return _this.set_context_for(c.at);
+          }
         }
       };
     })(this));
@@ -121,7 +131,6 @@ App = (function() {
       case KEY_CODE.DOWN:
       case KEY_CODE.UP:
       case KEY_CODE.CTRL:
-      case KEY_CODE.ALT:
         $.noop();
         break;
       case KEY_CODE.P:
@@ -174,14 +183,8 @@ App = (function() {
           return;
         }
         e.preventDefault();
-
-        // fix the caret problem on korean input
-        var event = jQuery.Event("keyup");
-        event.keyCode = 18;
-        this.$inputor.trigger(event);
         view.choose();
         break;
-      case KEY_CODE.ALT:
       default:
         $.noop();
     }
@@ -285,6 +288,7 @@ Controller = (function() {
       };
       this.trigger("matched", [this.at, query.text]);
     } else {
+      query = null;
       this.view.hide();
     }
     return this.query = query;
@@ -500,10 +504,6 @@ View = (function() {
       return $(e.currentTarget).addClass('cur');
     }).on('click', (function(_this) {
       return function(e) {
-        // fix the caret problem on korean input
-        var event = jQuery.Event("keyup");
-        event.keyCode = 18;
-        $inputor.trigger(event);
         _this.choose();
         return e.preventDefault();
       };
@@ -517,7 +517,7 @@ View = (function() {
   View.prototype.choose = function() {
     var $li, content;
     if (($li = this.$el.find(".cur")).length) {
-        content = this.context.insert_content_for($li);
+      content = this.context.insert_content_for($li);
       this.context.insert(this.context.callbacks("before_insert").call(this.context, content, $li), $li);
       this.context.trigger("inserted", [$li]);
       return this.hide();
@@ -626,8 +626,7 @@ KEY_CODE = {
   ENTER: 13,
   CTRL: 17,
   P: 80,
-  N: 78,
-  ALT: 18
+  N: 78
 };
 
 DEFAULT_CALLBACKS = {
@@ -811,7 +810,8 @@ $.fn.atwho["default"] = {
   highlight_first: true,
   limit: 5,
   max_len: 20,
-  display_timeout: 300
+  display_timeout: 300,
+  delay: null
 };
 
   });
