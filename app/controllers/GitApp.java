@@ -117,7 +117,14 @@ public class GitApp extends Controller {
             if (user.isAnonymous()) {
                 return BasicAuthAction.unauthorized(response());
             } else {
-                return forbidden("'" + user.name + "' has no permission");
+                // If you want the Git client showing your custom message to
+                // the user, the Content-Type should be exact "text/plain"
+                // without any parameter. For more details, see the code at
+                // https://github.com/git/git/commit/426e70d4a11ce3b4f70636d57c6a0ab16ae08a00#diff-eea0ad565ec5903a11b6023755d491cfR154
+                response().setHeader("Content-Type", "text/plain");
+                return forbidden(
+                        String.format("'%s' has no permission to '%s/%s'.",
+                            user.name, ownerName, projectName));
             }
         }
 
