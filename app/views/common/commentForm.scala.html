@@ -27,7 +27,7 @@
 @if(isResourceCreatable(User.findByLoginId(session.get("loginId")), container, resourceType)){
 
     <form id="comment-form" action="@action" method="post" enctype="multipart/form-data">
-        <div class="write-comment-box clearbg">
+        <div class="write-comment-box">
             @common.editor("contents")
 
             @** fileUploader **@
@@ -48,13 +48,13 @@
 
 } else {
 
-    <div class="write-comment-box">
+    <div class="write-comment-box mt20" title="@Messages("error.auth.unauthorized.comment")" data-login="required">
         <div class="write-comment-wrap">
             <div class="textarea-box">
-                <textarea class="comment disabled" disabled="disabled">@Messages("error.auth.unauthorized.comment")</textarea>
+                <textarea class="comment disabled" disabled="disabled" style="cursor:text;"></textarea>
             </div>
             <div class="right-txt mt10">
-                <button class="ybtn ybtn-disabled" disabled="disabled">@Messages("button.comment.new")</button>
+                <span class="ybtn ybtn-disabled">@Messages("button.comment.new")</span>
             </div>
         </div>
     </div>

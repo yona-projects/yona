@@ -43,7 +43,7 @@ $(function(){
     }
 
     function _attachEvent(){
-        $(document.body).on('click', '[login-required]', _showDialog);
+        $(document.body).on('click', '[data-login="required"]', _showDialog);
         htElement.welForm.on('submit', _onSubmitForm);
     }
 
