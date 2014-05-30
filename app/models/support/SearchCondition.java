@@ -50,12 +50,16 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
 
     public Long mentionId;
 
+    /**
+     * This doesn't copy {@code pageNum}, because it is safe when changing tabs with page parameter.
+     *
+     * @return cloned instance of {@code SearchCondition}
+     */
     public SearchCondition clone() {
         SearchCondition one = new SearchCondition();
         one.orderBy = this.orderBy;
         one.orderDir = this.orderDir;
         one.filter = this.filter;
-        one.pageNum = one.pageNum;
         one.state = this.state;
         one.commentedCheck = this.commentedCheck;
         one.milestoneId = this.milestoneId;
