@@ -346,6 +346,7 @@ notification.type.pullrequest.merged.conflict = 코드보내기 충돌
 notification.type.pullrequest.merged.resolved = 코드보내기 충돌 해결
 notification.type.pullrequest.state.changed = 코드보내기 상태 변경
 notification.type.pullrequest.review.action.changed = 코드보내기 리뷰 액션 변경
+notification.type.review.state.changed = 리뷰 스레드 상태 변경
 notification.watch = 지켜보기
 notification.will.help = 프로젝트를 지켜보면 다음 이벤트가 발생할 때 알림 메시지를 받습니다.
 organization.create = 그룹 만들기
