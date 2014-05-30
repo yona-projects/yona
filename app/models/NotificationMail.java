@@ -62,10 +62,12 @@ public class NotificationMail extends Model {
             NotificationMail.class);
 
     /**
-     * 알림 메일 발송에 대한 스케쥴을 등록한다.
+     * Sets up a schedule to send notification mails.
      *
-     * 애플리케이션이 시작되고 {@code application.notification.bymail.initdelay}가 경과한 후 부터,
-     * {@code application.notification.bymail.interval} 만큼의 시간이 지날 때 마다 알림 메일 발송 작업이 수행된다.
+     * Since the application started and then
+     * {@code application.notification.bymail.initdelay} of time passed, send
+     * notification mails every {@code application.notification.bymail.interval}
+     * of time.
      */
     public static void startSchedule() {
         final Long MAIL_NOTIFICATION_INITDELAY_IN_MILLIS = Configuration.root()
@@ -88,14 +90,17 @@ public class NotificationMail extends Model {
                 }
 
                 /**
-                 * 알림 메일을 발송한다.
+                 * Sends notification mails.
                  *
-                 * 등록된지 {@code application.notification.bymail.delay} 이상이 경과한 알림에 대한
-                 * 메일들을 모두 가져온 뒤, 알림의 바탕이 되는 resource가 여전히 존재하고 있다면 알림 메일을
-                 * 발송한다. 예를 들어, 댓글 등록에 대한 알림이 있다면, 그 댓글이 현재도 존재해야만 알림을
-                 * 발송한다.
+                 * Get and send notification mails for the events which satisfy
+                 * all of following conditions:
+                 * - {@code application.notification.bymail.delay} of time
+                 *   passed since the event is created.
+                 * - The base resource still exists. In the case of an event
+                 *   for new comment, the comment still exists.
                  *
-                 * 가져온 메일들은 발송 여부와 상관없이 모두 지운다.
+                 * Every mail will be deleted regardless of whether it is sent
+                 * or not.
                  */
                 private void sendMail() {
                     Date sinceDate = DateTime.now().minusMillis
@@ -117,7 +122,7 @@ public class NotificationMail extends Model {
     }
 
     /**
-     * {@code event}에 해당하는 알림 이메일을 발송한다.
+     * Sends notification mails for the given event.
      *
      * @param event
      * @see <a href="https://github.com/nforge/yobi/blob/master/docs/technical/watch.md>watch.md</a>
