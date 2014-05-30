@@ -111,11 +111,13 @@ public class GitApp extends Controller {
             return notFound();
         }
 
+        models.User user = UserApp.currentUser();
+
         if (!isAllowed(project, service)) {
-            if (UserApp.currentUser().isAnonymous()) {
+            if (user.isAnonymous()) {
                 return BasicAuthAction.unauthorized(response());
             } else {
-                return forbidden("'" + UserApp.currentUser().name + "' has no permission");
+                return forbidden("'" + user.name + "' has no permission");
             }
         }
 
@@ -126,7 +128,7 @@ public class GitApp extends Controller {
             if (request().body().isMaxSizeExceeded()) {
                 return status(REQUEST_ENTITY_TOO_LARGE);
             } else {
-                UserApp.currentUser().visits(project);
+                user.visits(project);
                 return ok(RepositoryService
                         .gitRpc(project, service, request(), response()));
             }
