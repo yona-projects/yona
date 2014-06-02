@@ -35,7 +35,6 @@
 }
 
 @notifycationIcon(notifytype: EventType, state: String) = @{
-
     notifytype match {
         case EventType.NEW_COMMENT
              | EventType.NEW_REVIEW_COMMENT
@@ -62,12 +61,11 @@
     }
 }
 
-
-    @if(  notifications(from, from + limit).size() == 0){
-        <div class="warning-none">
-            <i class="yobicon-danger"></i> @Messages("notification.none")
-        </div>
-    }
+@if(notifications(from, from + limit).size() == 0){
+    <div class="warning-none">
+        <i class="yobicon-danger"></i> @Messages("notification.none")
+    </div>
+}
 
 @for(noti <- notifications(from, from + limit)){
 <li class="notification-stream">
