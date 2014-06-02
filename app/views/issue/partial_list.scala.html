@@ -31,7 +31,7 @@
 <ul class="post-list-wrap row-fluid">
 @for(issue <- issueList){
     @defining(User.findByLoginId(issue.authorLoginId)){ user =>
-    <li class="post-item" id="issue-item-@issue.id">
+    <li class="post-item" id="issue-item-@issue.id" data-item="issue-item" data-value="@user.loginId @issue.getNumber @issue.title">
         <div class="span9">
             @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
             <label for="issue-@issue.id" class="mass-update-check">

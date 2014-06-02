@@ -32,17 +32,30 @@
          * @param {Hash Table} htOptions
          */
         function _init(htOptions){
-            _initElement();
+            _initElement(htOptions || {});
             _initFileDownloader();
+            _attachEvent();
         }
 
         /**
          * initialize elements
          */
-        function _initElement(){
-            htElement.welAttachments = $(".attachments");
+        function _initElement(htOptions){
+            htElement.welAttachments = $(".attachments")
+            htElement.waLabels = $("a.issue-label[data-color]")
+            htElement.sMilestoneId = htOptions.sMilestoneId;
+            htElement.sURLLabels = htOptions.sURLLabels;
         }
 
+        /**
+         * attach event handlers
+         */
+        function _attachEvent(){
+            htElement.waLabels.on("click", function(weEvt){
+                weEvt.preventDefault();
+                location.href = htElement.sURLLabels + "?milestoneId=" + htElement.sMilestoneId + "&labelIds=" + $(this).attr('data-labelId');
+            });
+        }
         /**
          * initialize fileDownloader
          */
