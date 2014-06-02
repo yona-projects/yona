@@ -50,8 +50,8 @@
         </ul>
     </li>
     @if(session.get("userId").equals("1")) {
-    <li class="gnb-usermenu-dropdown">
-        <a href="@routes.SiteApp.userList()" data-toggle="tooltip" title="@Messages("menu.siteAdmin")" data-placement="bottom">
+    <li class="gnb-usermenu-item">
+        <a href="@routes.SiteApp.userList()" data-toggle="tooltip" title="@Messages("menu.siteAdmin")" data-placement="bottom" class="usermenu-icon-button">
             <i class="yobicon-wrench"></i>
         </a>
     </li>
