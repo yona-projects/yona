@@ -494,4 +494,18 @@ public class Attachment extends Model implements ResourceConvertible {
     public static void onStart() {
         cleanupTemporaryUploadFilesWithSchedule();
     }
+
+    @Override
+    public String toString() {
+        return "Attachment{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", hash='" + hash + '\'' +
+                ", containerType=" + containerType +
+                ", mimeType='" + mimeType + '\'' +
+                ", size=" + size +
+                ", containerId='" + containerId + '\'' +
+                ", createdDate=" + createdDate +
+                '}';
+    }
 }
