@@ -69,6 +69,9 @@
 
             htElement.welUploader = $("#upload");
             htElement.welContainer = $("#frmWrap");
+
+            htElement.welAbleToMerge = $("#ableToMerge");
+            htElement.welCommitCount = $("#commitCount");
         }
 
         /**
@@ -85,15 +88,15 @@
             htVar.oFromBranch.onChange(_reloadNewPullRequestForm);
             htVar.oToBranch.onChange(_reloadNewPullRequestForm);
 
-            $('#helpMessage').hide();
-            $('#helpBtn').click(function(e){
-                e.preventDefault();
-                $('#helpMessage').toggle();
-            });
-
             $(document.body).on("click", "button.moreBtn", function(){
                 $(this).next("pre.commitMsg.desc").toggleClass("hidden");
             });
+
+            $('body').on('click','button.more',function(){
+               $(this).next('pre').toggleClass("hidden");
+            });
+
+            _reloadNewPullRequestForm();
         }
 
         /**
@@ -167,6 +170,24 @@
 
             _initFileUploader();
             _stopSpinner();
+            _updateSummary();
+        }
+
+        function _updateSummary() {
+            var success = $(".alert-success");
+            if(success) {
+                htElement.welAbleToMerge.text(Messages("pullRequest.is.safe.to.merge"));
+            } else {
+                htElement.welAbleToMerge.text(Messages("pullRequest.is.not.safe.to.merge"));
+            }
+
+            var commits = $(".commits tr");
+            if(commits) {
+                htElement.welCommitCount.text($(".commits tr").length - 1);
+            } else {
+                htElement.welCommitCount.text(Messages("is.empty"))
+            }
+
         }
 
         /**
