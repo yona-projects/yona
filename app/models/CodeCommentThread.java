@@ -97,35 +97,15 @@ public class CodeCommentThread extends CommentThread {
 
         Repository mergedRepository = pullRequest.getMergedRepository();
 
-        switch(codeRange.startSide) {
-            case A:
-                _isOutdated = !PullRequest.noChangesBetween(mergedRepository,
-                    pullRequest.mergedCommitIdFrom, mergedRepository, prevCommitId, path);
-                break;
-            case B:
-                _isOutdated = !PullRequest.noChangesBetween(mergedRepository,
-                    pullRequest.mergedCommitIdTo, mergedRepository, commitId, path);
-                break;
-            default:
-                throw new RuntimeException(unexpectedSideMessage(codeRange.startSide));
-        }
+        _isOutdated = !PullRequest.noChangesBetween(mergedRepository,
+            pullRequest.mergedCommitIdFrom, mergedRepository, prevCommitId, path);
 
         if (_isOutdated) {
             return _isOutdated;
         }
 
-        switch(codeRange.endSide) {
-            case A:
-                _isOutdated = !PullRequest.noChangesBetween(mergedRepository,
-                    pullRequest.mergedCommitIdFrom, mergedRepository, prevCommitId, path);
-                break;
-            case B:
-                _isOutdated = !PullRequest.noChangesBetween(mergedRepository,
-                    pullRequest.mergedCommitIdTo, mergedRepository, commitId, path);
-                break;
-            default:
-                throw new RuntimeException(unexpectedSideMessage(codeRange.endSide));
-        }
+        _isOutdated = !PullRequest.noChangesBetween(mergedRepository,
+            pullRequest.mergedCommitIdTo, mergedRepository, commitId, path);
 
         return _isOutdated;
     }
