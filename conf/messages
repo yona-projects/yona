@@ -701,7 +701,7 @@ title.projectMembers = Member List
 title.projectSetting = Project Settings
 title.projectTransfer = Project Transfer
 title.recently.visited =  Recently visited
-title.rememberMe = Remember Me
+title.rememberMe = Stay logged in
 title.resetPassword = Reset Password
 title.resetPasswordFor = Reset Password for <span class="highlight">{0}</span>
 title.search = Search

@@ -613,8 +613,12 @@
             }
         }
         &.login {
-           padding-top:40px;
-           margin-top:0px;
+            padding-top:80px;
+            margin-top:0px;
+        }
+        &.reset-password {
+            padding-top:80px;
+            margin-top:0px;
         }
         .title {
             font-size: 3.3em;
@@ -1349,32 +1353,34 @@
     width: 400px;
     .center-block;
 
+    .remember-me-wrap {
+        margin-top:0px;
+
+        .checkbox {
+            margin-left:0px !important;
+            margin-top:4px !important;
+        }
+    }
+
     .act-row {
         margin-bottom: 42px;
         line-height:22px;
-        .checkbox { margin-top:4px !important; }
-    }
-    .forgot-password {
-        float:left; margin:0;
+        overflow:auto;
     }
 
     .btns-row {
-        width: 384px;
-        margin-bottom: 73px;
-        .center-block;
+        display:block;
         text-align:center;
-
+        margin:0px auto 20px;
     }
 }
 
 //---- sign up
 .signup-form-wrap {
-    margin-top: 54px;
     width: 400px;
+    margin-top: 54px;
     .center-block;
-    .inline {
-        .inline-block;
-    }
+
     .text {
         &.email{
             width: 181px;
@@ -1384,18 +1390,21 @@
             width: 181px;
         }
     }
+
     .act-row {
-        font-size: 11px;
+        text-align:right;
         color: #999999;
-        margin-bottom: 45px;
+
         .go-login {
             color: #5C5C5C;
+            font-weight:bold;
         }
     }
+
     .btns-row {
-        width: 227px;
-        .center-block;
-        margin-bottom: 50px;
+        display:block;
+        text-align:center;
+        margin:0px auto 20px;
         text-align:center;
 
     }
