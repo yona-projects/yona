@@ -24,6 +24,8 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -343,7 +345,11 @@ public class Attachment extends Model implements ResourceConvertible {
     public void delete() {
         super.delete();
         if (!exists(this.hash)) {
-            new File(uploadDirectory, this.hash).delete();
+            try {
+                Files.delete(Paths.get(uploadDirectory, this.hash));
+            } catch (Exception e) {
+                play.Logger.error("Failed to delete: " + this, e);
+            }
         }
     }
 
