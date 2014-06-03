@@ -68,6 +68,9 @@
                 @User.findByLoginId(session.get("loginId")).name <span class="disabled">@{"@"}@session.get("loginId")</span>
             </li>
             <li>
+                <a href="@routes.IssueApp.userIssues()">@Messages("issue.myIssue")</a>
+            </li>
+            <li>
                 <a href="@routes.UserApp.userInfo(session.get("loginId"))">@Messages("userinfo.profile")</a>
             </li>
             <li>
