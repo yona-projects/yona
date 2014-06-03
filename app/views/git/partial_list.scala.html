@@ -97,8 +97,6 @@
 
 <script type="text/javascript">
     $(function(){
-        $('[data-toggle="tooltip"]').tooltip();
-        var welPagination = $("#pagination");
-        yobi.Pagination.update(welPagination, @page.getTotalPageCount);
+        yobi.Pagination.update($("#pagination"), @page.getTotalPageCount);
     });
 </script>

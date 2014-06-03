@@ -69,11 +69,6 @@
             htElement.welMsgHelp = $('#helpMessage');
             htElement.welState = $("#state");
             htElement.welBtnAccept = $("#btnAccept");
-
-            // tooltip
-            $('span[data-toggle="tooltip"]').tooltip({
-                placement : "bottom"
-            });
         }
 
         /**

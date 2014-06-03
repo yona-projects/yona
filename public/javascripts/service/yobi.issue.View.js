@@ -442,7 +442,6 @@
             _initFileDownloader(welTimelineList.find(".attachments"));
             yobi.Markdown.enableMarkdown(welTimelineList.find("[markdown]"));
             welTimelineList.find("[data-request-method]").requestAs(); // delete button
-            welTimelineList.find("[data-toggle=tooltip]").tooltip(); // bootstrap tooltip
 
             return welTimelineList;
         }

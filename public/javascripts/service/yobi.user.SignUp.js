@@ -164,13 +164,8 @@
          * @param {Array} aErrors
          */
         function _onFormValidate(aErrors){
-            _clearTooltips();
-            // to avoid bootstrap bug
-            if (aErrors.length <= 0) {
-                return _clearTooltips();
-            }
-
             var welTarget;
+
             aErrors.forEach(function(htError){
                 welTarget = htElement.welForm.find("input[name=" + htError.name + "]");
                 if(welTarget){
@@ -179,33 +174,12 @@
             });
         }
 
-        /**
-         * 폼 영역에 있는 jquery.tooltip 모두 제거하는 함수
-         */
-        function _clearTooltips(){
-            try {
-                htElement.welForm.find("input").each(function(i, v){
-                    $(v).tooltip("destroy");
-                });
-            } catch(e){}
-        }
-
-        /**
-         * Bootstrap toolTip function has some limitation.
-         * In this case, toolTip doesn't provide easy way to change title and contents.
-         * So, unfortunately I had to change data value in directly.
-         * @param {Wrapped Element} welInput
-         * @param {String} sMessage
-         */
         function showErrorMessage(welInput, sMessage){
-            welInput.popover({"trigger": "manual", "placement": "left"});
-
-            var oToolTip = welInput.data('popover');
-            oToolTip.options.placement = 'left';
-            oToolTip.options.trigger   = 'manual';
-            oToolTip.options.content   = sMessage;
-
-            welInput.popover('show');
+            welInput.popover({
+                "trigger": "manual",
+                "placement": "left",
+                "content": sMessage
+            }).popover("show");
         }
 
         function hideErrorMessage(welInput){

@@ -88,7 +88,9 @@
 
     $(document).ready(function(){
         // tooltip
-        $("[data-toggle=tooltip]").tooltip();
+        $(document.body).on("mouseenter", "[data-toggle=tooltip]", function(){
+            $(this).tooltip("show");
+        });
 
         // jquery.placeholder plugin initiator
         $('input[type=text], textarea').placeholder();

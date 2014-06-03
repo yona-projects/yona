@@ -75,9 +75,9 @@
             htVar.oValidator = new FormValidator('passwordReset', aRules, _onFormValidate);
 
             // set error message
-            htVar.oValidator.setMessage('required',         Messages("validation.required"));
-            htVar.oValidator.setMessage('min_length',     Messages("validation.tooShortPassword"));
-            htVar.oValidator.setMessage('matches',         Messages("validation.passwordMismatch"));
+            htVar.oValidator.setMessage('required',    Messages("validation.required"));
+            htVar.oValidator.setMessage('min_length',  Messages("validation.tooShortPassword"));
+            htVar.oValidator.setMessage('matches',     Messages("validation.passwordMismatch"));
         }
 
 
@@ -86,13 +86,8 @@
          * @param {Array} aErrors
          */
         function _onFormValidate(aErrors){
-            _clearTooltips();
-            // to avoid bootstrap bug
-            if (aErrors.length <= 0) {
-                return _clearTooltips();
-            }
-
             var welTarget;
+
             aErrors.forEach(function(htError){
                 welTarget = htElement.welForm.find("input[name=" + htError.name + "]");
                 if(welTarget){
@@ -101,42 +96,12 @@
             });
         }
 
-        /**
-         * 폼 영역에 있는 jquery.tooltip 모두 제거하는 함수
-         */
-        function _clearTooltips(){
-            try {
-                htElement.welForm.find("input").each(function(i, v){
-                    $(v).tooltip("destroy");
-                });
-            } catch(e){}
-        }
-
-        /**
-         * Bootstrap toolTip function has some limitation.
-         * In this case, toolTip doesn't provide easy way to change title and contents.
-         * So, unfortunately I had to change data value in directly.
-         * @param {Wrapped Element} welInput
-         * @param {String} sMessage
-         */
         function showErrorMessage(welInput, sMessage){
-            welInput.tooltip({"trigger": "manual", "placement": "left"});
-
-            var oToolTip = welInput.data('tooltip');
-            oToolTip.options.placement = 'left';
-            oToolTip.options.trigger   = 'manual';
-            oToolTip.options.title     = sMessage;
-            oToolTip.options.content   = sMessage;
-
-            welInput.tooltip('show');
-        }
-
-        function hideErrorMessage(welInput){
-            welInput.tooltip("hide");
-
-            try{
-                welInput.tooltip("destroy");
-            } catch(e){} // to avoid bootstrap bug
+            welInput.popover({
+                "trigger": "manual",
+                "placement": "left",
+                "content": sMessage
+            }).popover("show");
         }
 
         _init();
