@@ -1285,9 +1285,7 @@ public class GitRepository implements PlayRepository {
                         .setRefSpecs(new RefSpec("+" + srcToBranchName + ":" + destToBranchName))
                         .call();
 
-                // 현재 위치 정리.
-                new Git(cloneRepository).reset().setMode(ResetCommand.ResetType.HARD).setRef(Constants.HEAD).call();
-                new Git(cloneRepository).clean().setIgnore(true).setCleanDirectories(true).call();
+                resetAndClean(cloneRepository);
 
                 // mergingBranch 생성 및 이동
                 new Git(cloneRepository).checkout()
@@ -1300,6 +1298,8 @@ public class GitRepository implements PlayRepository {
                 CloneAndFetch cloneAndFetch = new CloneAndFetch(cloneRepository, destToBranchName, destFromBranchName, mergingBranch);
                 operation.invoke(cloneAndFetch);
 
+                resetAndClean(cloneRepository);
+
                 // 코드 받을 브랜치로 이동하고 mergingBranch 삭제
                 new Git(cloneRepository).checkout().setName(destToBranchName).call();
                 new Git(cloneRepository).branchDelete().setForce(true).setBranchNames(mergingBranch).call();
@@ -1310,22 +1310,14 @@ public class GitRepository implements PlayRepository {
             throw new IllegalStateException(e);
         } finally {
             if(cloneRepository != null) {
-                try {
-                    if(destFromBranchName != null) {
-                        // 코드 보내는 브랜치로 이동
-                        new Git(cloneRepository).checkout().setName(destFromBranchName).call();
-                    }
-                    if(mergingBranch != null) {
-                        // merge 브랜치 삭제
-                        new Git(cloneRepository).branchDelete().setForce(true).setBranchNames(mergingBranch).call();
-                    }
-                } catch (GitAPIException e) {
-                    Logger.error("failed to delete merging branch", e);
-                }
-
                 cloneRepository.close();
             }
         }
+    }
+
+    private static void resetAndClean(Repository cloneRepository) throws GitAPIException {
+        new Git(cloneRepository).reset().setMode(ResetCommand.ResetType.HARD).setRef(Constants.HEAD).call();
+        new Git(cloneRepository).clean().setIgnore(true).setCleanDirectories(true).call();
     }
 
     private static String makeDestToBranchName(PullRequest pullRequest) {
