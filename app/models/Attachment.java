@@ -278,7 +278,7 @@ public class Attachment extends Model implements ResourceConvertible {
         }
 
         if (this.mimeType == null) {
-            this.mimeType = FileUtil.detectMediaType(file, name);
+            this.mimeType = FileUtil.detectMediaType(file, name).toString();
         }
 
         // the size must be set before it is moved.

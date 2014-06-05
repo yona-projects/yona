@@ -28,6 +28,7 @@ import org.apache.tika.mime.MediaType;
 import org.mozilla.universalchardet.UniversalDetector;
 
 import java.io.*;
+import java.nio.charset.Charset;
 
 public class FileUtil {
 
@@ -54,6 +55,9 @@ public class FileUtil {
      *
      * Return "UTF-8" if it fails.
      *
+     * We use mozilla's UniversalDetector instead of Tika's CharsetDetector
+     * which raises "mark/reset not supported" IOException for FileInputStream.
+     *
      * @param bytes - a byte array to be checked
      * @return charset - the charset used
      * @throws IOException
@@ -77,6 +81,9 @@ public class FileUtil {
      *
      * Return "UTF-8" if it fails.
      *
+     * We use mozilla's UniversalDetector instead of Tika's CharsetDetector
+     * which raises "mark/reset not supported" IOException for FileInputStream.
+     *
      * @param is - an input stream to be checked
      * @return charset - the charset used
      * @throws IOException
@@ -94,11 +101,11 @@ public class FileUtil {
         return or(detector.getDetectedCharset(), "UTF-8");
     }
 
-    public static String detectMediaType(File file, String name) throws IOException {
+    public static MediaType detectMediaType(File file, String name) throws IOException {
         return detectMediaType(new FileInputStream(file), name);
     }
 
-    public static String detectMediaType(byte[] bytes, String name) throws IOException {
+    public static MediaType detectMediaType(byte[] bytes, String name) throws IOException {
         return detectMediaType(new ByteArrayInputStream(bytes), name);
     }
 
@@ -115,20 +122,26 @@ public class FileUtil {
      *         e.g. "text/plain; charset=utf-8"
      * @throws IOException
      */
-    public static String detectMediaType(InputStream is, String name) throws IOException {
+    public static MediaType detectMediaType(InputStream is, String name)
+        throws IOException {
         Metadata meta = new Metadata();
         meta.add(Metadata.RESOURCE_NAME_KEY, name);
         MediaType mediaType = new Tika().getDetector().detect(
                 new BufferedInputStream(is), meta);
-        String mimeType = mediaType.toString();
+
         if (mediaType.getType().toLowerCase().equals("text")) {
-            mimeType += "; charset=" + FileUtil.detectCharset(is);
+            return new MediaType(mediaType, Charset.forName(FileUtil.detectCharset(is)));
         } else if (mediaType.equals(MediaType.audio("ogg"))
                 && FilenameUtils.getExtension(name).toLowerCase().equals("ogv")) {
             // This fixes Tika's misjudge of media type for ogg videos.
-            mimeType = "video/ogg";
+            return new MediaType("video", "ogg");
         }
 
-        return mimeType;
+        return mediaType;
+    }
+
+    public static String getCharset(MediaType mediaType) {
+        return mediaType.hasParameters()
+                ? mediaType.getParameters().get("charset") : null;
     }
 }
