@@ -146,3 +146,4 @@ play framework 에 [근본적인 해결을 위한 커밋](https://github.com/pla
 
 - [javassist issue](https://issues.jboss.org/browse/JASSIST-212)
 - [play framework issue](https://github.com/playframework/playframework/issues/1966)
+- [Play 2.2 Migration Guide](http://www.playframework.com/documentation/2.2.x/Migration22)
