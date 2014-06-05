@@ -75,7 +75,7 @@ applyEvolutions.default=true
 # Server
 # ~~~~~
 
-# Server name used as the value of "Server" field in HTTP response message.
+# Server name used by servlet, as the value of "Server" field in HTTP response message.
 application.server="Play/2.1"
 
 # Components used to construct the URL to this application.
