@@ -29,6 +29,7 @@
 
 @siteMngLayout(message) {
     <div class="title_area">
+
         <h2 class="pull-left">@Messages("site.sidebar.userList")</h2>
         <form class="form-search pull-right" action="@routes.SiteApp.userList()">
             <input type="hidden" name="state" value="@userState" />
@@ -81,17 +82,20 @@
                     @{"@"}@user.loginId
                 </a>
             </div>
-            <div class="span4 listitem-col">
+            <div class="span3 listitem-col">
                 @user.email
             </div>
             <div class="span2 listitem-col">
                 @user.getDateString
             </div>
             @if(userState != UserState.DELETED) {
-            <div class="span3 listitem-col">
+            <div class="span4 listitem-col">
                 <a class="ybtn" data-request-method="post" data-request-uri="@routes.SiteApp.toggleAccountLock(user.loginId, user.state.name(), query)">
                     @Messages("button" +".user.makeAccountUnlock."+ (user.state == UserState.LOCKED))
                 </a>
+                <button id="@user.loginId" class="ybtn" data-toggle="reset-password" data-href="@routes.UserApp.userInfo(user.loginId)?action=resetPassword">
+                    @Messages("title.resetPassword")
+                </button>
                 <button class="ybtn ybtn-danger" data-toggle="account-delete" data-href="@routes.SiteApp.deleteUser(user.id)" data-user-id="@user.loginId" data-user-name="@user.name">
                     @Messages("button.delete")
                 </button>
@@ -126,6 +130,11 @@
 
     <script type="text/javascript">
     $(function(){
+        function _showRequestWaitingMessage(that){
+            $(".alert").remove();
+            $.tmpl (document.getElementById("dismissable-alerts-request" ).text, {}).appendTo(that.parent());
+        }
+
         $('.user-list-wrap').on('click','[data-toggle="account-delete"]',function(){
             $('#accountToggleBtn')
                 .data("requestUri", $(this).data('href'))
@@ -133,9 +142,39 @@
                 .requestAs();
             $('#userInfo').html($(this).data('userName')+'('+$(this).data('userId')+')');
             $('#alertDeletionWrap').modal('show');
+        })
+        .on('click','[data-toggle="reset-password"]',function(){
+            var that = $(this);
+            _showRequestWaitingMessage(that);
+            $.post(that.data("href"))
+                .done(function(data){
+                    $(".alert").remove();
+                    if(data && data.isSuccess === true){
+                        $.tmpl($('#dismissable-alerts').text(), data).appendTo(that.parent());
+                    } else {
+                        $yobi.alert("password change failed: " + data.reason);
+                    }
+                })
+                .fail(function(data){
+                    $yobi.alert("password change failed: " + JSON.parse(data.responseText).reason);
+                });
+
         });
 
         yobi.Pagination.update($("#pagination"), @currentPage.getTotalPageCount);
     });
     </script>
+    <script type="text/x-jquery-tmpl" id="dismissable-alerts">
+        <div class="alert alert-success">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <h4>@Messages("user.newPassword"): ${newPassword}</h4>
+        </div>
+    </script>
+    <script type="text/x-jquery-tmpl" id="dismissable-alerts-request">
+        <div class="alert alert-fail">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <h4>sending request...</h4>
+        </div>
+    </script>
+
 }

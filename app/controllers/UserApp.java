@@ -967,4 +967,30 @@ public class UserApp extends Controller {
             user.update();
         }
     }
+
+    public static Result resetUserPasswordBySiteManager(String loginId){
+        if (!request().getQueryString("action").equals("resetPassword")) {
+            ObjectNode json = Json.newObject();
+            json.put("isSuccess", false);
+            json.put("reason", "BAD_REQUEST");
+            return badRequest(json);
+        }
+        String newPassword = PasswordReset.generateResetHash(loginId).substring(0,6);
+        User targetUser = User.findByLoginId(loginId);
+        if(!targetUser.isAnonymous() && UserApp.currentUser().isSiteManager()){
+            User.resetPassword(loginId, newPassword);
+
+            ObjectNode json = Json.newObject();
+            json.put("loginId", targetUser.loginId);
+            json.put("name", targetUser.name);
+            json.put("newPassword", newPassword);
+            json.put("isSuccess", true);
+            return ok(json);
+        } else {
+            ObjectNode json = Json.newObject();
+            json.put("isSuccess", false);
+            json.put("reason", "FORBIDDEN");
+            return forbidden(json);
+        }
+    }
 }
