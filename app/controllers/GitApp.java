@@ -111,11 +111,20 @@ public class GitApp extends Controller {
             return notFound();
         }
 
+        models.User user = UserApp.currentUser();
+
         if (!isAllowed(project, service)) {
-            if (UserApp.currentUser().isAnonymous()) {
+            if (user.isAnonymous()) {
                 return BasicAuthAction.unauthorized(response());
             } else {
-                return forbidden("'" + UserApp.currentUser().name + "' has no permission");
+                // If you want the Git client showing your custom message to
+                // the user, the Content-Type should be exact "text/plain"
+                // without any parameter. For more details, see the code at
+                // https://github.com/git/git/commit/426e70d4a11ce3b4f70636d57c6a0ab16ae08a00#diff-eea0ad565ec5903a11b6023755d491cfR154
+                response().setHeader("Content-Type", "text/plain");
+                return forbidden(
+                        String.format("'%s' has no permission to '%s/%s'.",
+                            user.name, ownerName, projectName));
             }
         }
 
@@ -126,7 +135,7 @@ public class GitApp extends Controller {
             if (request().body().isMaxSizeExceeded()) {
                 return status(REQUEST_ENTITY_TOO_LARGE);
             } else {
-                UserApp.currentUser().visits(project);
+                user.visits(project);
                 return ok(RepositoryService
                         .gitRpc(project, service, request(), response()));
             }
