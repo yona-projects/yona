@@ -49,7 +49,7 @@
     			</dd>
 
                 <dd style="position: relative;">
-                    @common.editor("body", "", Map("tabindex"->"2", "id"->"body"))
+                    @common.editor("body", "", "tabindex=2")
     			</dd>
 
     			@if(isAllowedToNotice){
@@ -90,7 +90,7 @@ $(document).ready(function(){
 	});
 
     yobi.Mention({
-        target:'body',
+        target:'textarea[id^=editor-]',
         url : "@Html(routes.ProjectApp.mentionList(project.owner, project.name).toString())"
     });
 });

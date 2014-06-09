@@ -55,10 +55,15 @@ yobi.Mention = function(htOptions) {
     /**
      * Initialize Element variables
      */
-    function _initElement(){
-        htElement.welTarget = $('#' + htVar.target);
+    function _initElement() {
+        if (!htVar.target) {
+            if (window.console) {
+                console.error("mention form element targeting doesn't exist!")
+            }
+            return;
+        }
+        htElement.welTarget = $(htVar.target);
     }
-
     /**
      * attachEvent
      */
