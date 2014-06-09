@@ -939,27 +939,34 @@ public class ProjectApp extends Controller {
         User newMember = User.findByLoginId(addMemberForm.field("loginId").value());
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
 
-        if (validateWhenAddMember(newMember, project, addMemberForm)) {
+        if (isErrorOnAddMemberForm(newMember, project, addMemberForm)) {
+            if(HttpUtil.isJSONPreferred(request())){
+                return badRequest(addMemberForm.errorsAsJson());
+            }
+
+            List<ValidationError> errors = addMemberForm.errors().get("loginId");
+            flash(Constants.WARNING, errors.get(errors.size() - 1).message());
             return redirect(routes.ProjectApp.members(ownerId, projectName));
         }
 
         ProjectUser.assignRole(newMember.id, project.id, RoleType.MEMBER);
         project.cleanEnrolledUsers();
         NotificationEvent.afterMemberRequest(project, newMember, RequestState.ACCEPT);
+
+        if(HttpUtil.isJSONPreferred(request())){
+            return ok("{}");
+        }
         return redirect(routes.ProjectApp.members(ownerId, projectName));
     }
 
-    private static boolean validateWhenAddMember(User user, Project project, Form<User> addMemberForm) {
+    private static boolean isErrorOnAddMemberForm(User user, Project project, Form<User> addMemberForm) {
         if (addMemberForm.hasErrors()) {
-            flash(Constants.WARNING, "project.member.notExist");
+            addMemberForm.reject("loginId", "project.members.addMember");
         } else if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
-            flash(Constants.WARNING, "project.member.isManager");
             addMemberForm.reject("loginId", "project.member.isManager");
         } else if (user.isAnonymous()) {
-            flash(Constants.WARNING, "project.member.notExist");
             addMemberForm.reject("loginId", "project.member.notExist");
         } else if (ProjectUser.isMember(user.id, project.id)) {
-            flash(Constants.WARNING, "project.member.alreadyMember");
             addMemberForm.reject("loginId", "project.member.alreadyMember");
         }
 

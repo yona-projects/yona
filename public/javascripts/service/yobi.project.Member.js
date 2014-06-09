@@ -33,6 +33,8 @@
             _initVar(htOptions);
             _initElement();
             _attachEvent();
+
+            htElement.inputAddNewMember.focus();
         }
 
         /**
@@ -136,6 +138,8 @@
             htElement.waBtns = $(".btns");
             htElement.enrollAcceptBtns = $(".enrollAcceptBtn");
             htElement.memberListWrap = $('.members');
+            htElement.formAddNewMember = $("#addNewMember");
+            htElement.inputAddNewMember = $("#loginId");
         }
 
         /**
@@ -144,10 +148,34 @@
         function _attachEvent(){
             htElement.memberListWrap.on('click','[data-action="apply"]',_onClickApply);
             htElement.memberListWrap.on('click','[data-action="delete"]',_onClickDelete);
+            htElement.enrollAcceptBtns.on("click", _onClickEnrollAcceptBtns);
+            htElement.formAddNewMember.on("submit", _onSubmitAddNewMember);
+        }
 
-            htElement.enrollAcceptBtns.click(_onClickEnrollAcceptBtns);
+        /**
+         * Submit event handler of addNewMember form.
+         * Requests add new member with XHR instead of submitting form.
+         *
+         * @param evt
+         * @returns {boolean}
+         * @private
+         */
+        function _onSubmitAddNewMember(evt){
+            $.ajax(htElement.formAddNewMember.attr("action"), {
+                "method"  : "post",
+                "dataType": "json",
+                "data"    : {
+                    "loginId": htElement.inputAddNewMember.val()
+                }
+            }).done(function(){
+                location.reload();
+            }).fail(function(res){
+                var error = JSON.parse(res.responseText);
+                $yobi.notify(error.loginId.pop(), 3000);
+            });
 
-            $('#loginId').focus();
+            evt.preventDefault();
+            return false;
         }
 
         /**
