@@ -43,7 +43,7 @@
                     <label for="contents">@Messages("milestone.form.content")</label>
                     @helper.input(form("contents")){(id, name, value, args) =>
                     <div style="position: relative;">
-                        @common.editor("contents", value.getOrElse(""), Map("id"->"contents"))
+                        @common.editor("contents", value.getOrElse(""))
                     </div>
                     }
                 </div>
@@ -93,7 +93,7 @@
 
         // yobi.Mention
         yobi.Mention({
-            "target": "contents",
+            "target": "textarea[id^=editor-]",
             "url"   : "@routes.ProjectApp.mentionList(project.owner, project.name)"
         });
     });

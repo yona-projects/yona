@@ -18,7 +18,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(editorName:String = "contents", textValue:String="", textareaAttr:Map[String,String]=null)
+@(editorName:String, textValue:String="", additionalAttr:String="")
 
 @import org.apache.commons.lang3.RandomStringUtils._
 @import utils.TemplateHelper._
@@ -39,8 +39,8 @@
 
         <div id="edit-@wrapId" class="tab-pane active">
             <div class="textarea-box">
-                <textarea name="@editorName" class="content comment nm" markdown="true"
-                    @if(textareaAttr != null){ @buildAttrString(textareaAttr) }>@textValue</textarea>
+                <textarea name="@editorName" class="content comment nm" markdown="true" id="editor-@editorName-@wrapId"
+                    @additionalAttr>@textValue</textarea>
             </div>
         </div>
 

@@ -140,7 +140,7 @@
         });
 
         yobi.Mention({
-            target:'comment-editor',
+            target:'textarea[id^=editor-]',
             @if(pull.getCurrentCommits.isEmpty) {
                 url : "@Html(routes.ProjectApp.mentionListAtPullRequest(pull.toProject.owner, pull.toProject.name, "", pull.id).toString())"
             } else {
