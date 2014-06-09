@@ -146,7 +146,7 @@
                 "fOnLoad": function(){
                     welTarget
                         .attr("data-watching", !bWatched)
-                        .toggleClass('ybtn-watching pressed')
+                        .toggleClass('ybtn-watching')
                         .html(Messages(!bWatched ? "project.unwatch" : "project.watch")).blur();
                         
                     $yobi.notify(Messages(bWatched ? "issue.unwatch.start" : "issue.watch.start"), 3000);

@@ -247,7 +247,7 @@
             <div class="pull-left">
                 <div>
                     @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.WATCH)) {
-                        <button id="watch-button" type="button" class="ybtn @if(issue.getWatchers.contains(UserApp.currentUser())) {ybtn-watching pressed}"
+                        <button id="watch-button" type="button" class="ybtn @if(issue.getWatchers.contains(UserApp.currentUser())) {ybtn-watching}"
                                 data-toggle="button" data-watching="@if(issue.getWatchers.contains(UserApp.currentUser())){true}else{false}">
                         @if(issue.getWatchers.contains(UserApp.currentUser())) {
                             @Messages("project.unwatch")
@@ -259,7 +259,7 @@
 
                     <div id="vote" class="vote-wrap">
                         @if(isResourceCreatable(User.findByLoginId(session.get("loginId")), issue.asResource(), ResourceType.ISSUE_COMMENT)) {
-                            <a href="@urlToVote" class="ybtn @if(issue.isVotedBy(UserApp.currentUser)){ybtn-watching pressed}" title="@getVoteButtonTitle"
+                            <a href="@urlToVote" class="ybtn @if(issue.isVotedBy(UserApp.currentUser)){ybtn-watching}" title="@getVoteButtonTitle"
                                data-request-method="post" data-toggle="tooltip">
                                 <span class="heart"><i class="yobicon-hearts"></i></span>
                                 <span class="desc">@Messages("issue.vote")</span>
