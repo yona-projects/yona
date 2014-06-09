@@ -36,7 +36,7 @@
 
         <div class="inner-bubble">
             <form class="nm" action="@routes.ProjectApp.newMember(project.owner, project.name)" method="post" id="addNewMember">
-                <input type="text" class="text uname" id="loginId" name="loginId"
+                <input type="text" class="text uname" id="loginId" name="loginId" required="required"
                        data-provider="typeahead" autocomplete="off"
                        placeholder="@Messages("project.members.addMember")"
                        pattern="^[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*$" title="@Messages("user.wrongloginId.alert")" /><!--
