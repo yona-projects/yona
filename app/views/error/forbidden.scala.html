@@ -27,6 +27,9 @@
     	<div class="error-wrap">
     		<i class="ico ico-err2"></i>
     		<p>@Messages(messageKey)</p>
+        @if(UserApp.currentUser.isAnonymous){
+        <a href="@routes.UserApp.loginForm?redirectUrl=@request.uri" class="ybtn ybtn-primary" data-login="required">@Messages("title.login")</a>
+        }
         </div>
     </div>
 </div>
