@@ -54,7 +54,7 @@
             htElement.welDatePicker   = $(htOptions.elDatePicker);
             htElement.welInputDueDate = $(htOptions.elDueDate);
             htElement.welInputTitle   = $('#title');
-            htElement.welInputContent = $('#contents');
+            htElement.welInputContent = $('textarea[data-editor-mode="body"]');
             htElement.welUploader = $(htOptions.elUploader || "#upload");
         }
 
