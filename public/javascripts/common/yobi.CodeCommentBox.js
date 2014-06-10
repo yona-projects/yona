@@ -64,7 +64,7 @@ yobi.CodeCommentBox = (function(){
     function _initElement(){
         htElement.welCommentWrap = $("#review-form");
         htElement.welCommentForm = htElement.welCommentWrap.find("form");
-        htElement.welCommentTextarea = htElement.welCommentForm.find("textarea.comment");
+        htElement.welCommentTextarea = htElement.welCommentForm.find('textarea[data-editor-mode="code-review-body"]');
         htElement.welCommentUploader = htElement.welCommentForm.find(".upload-wrap");
         htElement.welInitialParent = htElement.welCommentWrap.parent();
     }

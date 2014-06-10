@@ -60,7 +60,7 @@
         function _initElement(htOptions){
             htElement.welForm = $("form.nm");
             htElement.welInputTitle = $('#title');
-            htElement.welInputBody  = $('textarea[data-editor-mode="body"]');
+            htElement.welInputBody  = $('textarea[data-editor-mode="content-body"]');
 
             htElement.welInputFromProject = $('input[name="fromProjectId"]');
             htElement.welInputToProject = $('input[name="toProjectId"]');
@@ -196,7 +196,7 @@
          */
         function _reloadElement(){
             htElement.welInputTitle = $('#title');
-            htElement.welInputBody  = $('textarea[data-editor-mode="body"]');
+            htElement.welInputBody  = $('textarea[data-editor-mode="content-body"]');
             htElement.welUploader = $("#upload");
 
             htElement.welInputTitle.on("keyup", _onKeyupInput);

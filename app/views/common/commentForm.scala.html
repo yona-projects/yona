@@ -28,7 +28,7 @@
 
     <form id="comment-form" action="@action" method="post" enctype="multipart/form-data">
         <div class="write-comment-box">
-            @common.editor("contents")
+            @common.editor("contents","","","comment-body")
 
             @** fileUploader **@
             @if(!UserApp.currentUser.isAnonymous){

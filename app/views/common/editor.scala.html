@@ -18,7 +18,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(editorName:String, textValue:String="", additionalAttr:String="")
+@(editorName:String, textValue:String="", additionalAttr:String="", editorMode:String="content-body")
 
 @import org.apache.commons.lang3.RandomStringUtils._
 @import utils.TemplateHelper._
@@ -39,7 +39,7 @@
 
         <div id="edit-@wrapId" class="tab-pane active">
             <div class="textarea-box">
-                <textarea name="@editorName" class="content comment nm" data-editor-mode="body" markdown="true" id="editor-@editorName-@wrapId"
+                <textarea name="@editorName" class="content comment nm" data-editor-mode="@editorMode" markdown="true" id="editor-@editorName-@wrapId"
                     @additionalAttr>@textValue</textarea>
             </div>
         </div>

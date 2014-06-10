@@ -49,7 +49,7 @@
     			</dd>
 
     		    <dd style="position: relative;">
-                    @common.editor("body", posting.body, "tabindex=2")
+                    @common.editor("body", posting.body, "tabindex=2", "content-body")
     			</dd>
 
     			@if(isAllowedToNotice){
@@ -86,7 +86,7 @@
 $(document).ready(function(){
 	$yobi.loadModule("board.Write", {
 		"sMode"			 : "edit",
-		"elTextarea"	 : 'textarea[data-editor-mode="body"]',
+		"elTextarea"	 : 'textarea[data-editor-mode="content-body"]',
 		"sUploaderAction": "@routes.AttachmentApp.uploadFile"
 	});
 
