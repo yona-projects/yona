@@ -385,6 +385,9 @@ public class PullRequest extends Model implements ResourceConvertible {
                 String mergeBranchName = cloneAndFetch.getMergingBranchName();
                 User sender = message.getSender();
 
+                List<GitCommit> commitList = GitRepository.diffCommits(cloneRepository,
+                        cloneAndFetch.getDestFromBranchName(), cloneAndFetch.getMergingBranchName());
+
                 String mergedCommitIdFrom;
                 MergeResult mergeResult;
 
@@ -394,7 +397,8 @@ public class PullRequest extends Model implements ResourceConvertible {
                 mergeResult = GitRepository.merge(cloneRepository, cloneAndFetch.getDestFromBranchName());
 
                 if (mergeResult.getMergeStatus().isSuccessful()) {
-                    RevCommit mergeCommit = writeMergeCommitMessage(cloneRepository, sender);
+                    // merge 커밋 메시지 수정
+                    RevCommit mergeCommit = writeMergeCommitMessage(cloneRepository, commitList, sender);
                     String mergedCommitIdTo = mergeCommit.getId().getName();
                     pullRequest.mergedCommitIdFrom = mergedCommitIdFrom;
                     pullRequest.mergedCommitIdTo = mergedCommitIdTo;
@@ -438,18 +442,36 @@ public class PullRequest extends Model implements ResourceConvertible {
         return Watch.findActualWatchers(actualWatchers, asResource());
     }
 
-    private RevCommit writeMergeCommitMessage(Repository cloneRepository, User user) throws GitAPIException {
-        return new Git(cloneRepository).commit()
+    private RevCommit writeMergeCommitMessage(Repository repository, List<GitCommit> commits, User user) throws GitAPIException, IOException {
+        return new Git(repository).commit()
                 .setAmend(true).setAuthor(user.name, user.email)
-                .setMessage(makeMergeCommitMessage())
+                .setMessage(makeMergeCommitMessage(commits))
                 .setCommitter(user.name, user.email)
                 .call();
     }
 
-    private String makeMergeCommitMessage() {
-        return "Merge branch '" + this.fromBranch.replace("refs/heads/", "")
-                + "' of " + fromProject.owner + "/" + fromProject.name + "\n\n"
-            + "from pull request " + number;
+    private String makeMergeCommitMessage(List<GitCommit> commits) throws IOException {
+        StringBuilder builder = new StringBuilder();
+        builder.append(String.format("Merge branch '%s' of %s/%s\n\n",
+                this.fromBranch.replace("refs/heads/", ""), fromProject.owner, fromProject.name));
+        builder.append("from pull-request " + number + "\n\n");
+        addCommitMessages(commits, builder);
+        addReviewers(builder);
+        return builder.toString();
+    }
+
+    private void addReviewers(StringBuilder builder) {
+        for(User user : reviewers) {
+            builder.append(String.format("Reviewed-by: %s <%s>\n", user.name, user.email));
+        }
+    }
+
+    private void addCommitMessages(List<GitCommit> commits, StringBuilder builder) {
+        builder.append(String.format("* %s:\n", this.fromBranch));
+        for(GitCommit gitCommit : commits) {
+            builder.append(String.format("  %s\n", gitCommit.getShortMessage()));
+        }
+        builder.append("\n");
     }
 
     private void changeState(State state) {
