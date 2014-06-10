@@ -58,7 +58,7 @@
                 <div class="span9">
                     <dl>
                         <dd style="position: relative;">
-                            @common.editor("body", "", "tabindex=2")
+                            @common.editor("body", "", "tabindex=2", "content-body")
                         </dd>
                     </dl>
 
@@ -143,7 +143,7 @@
 			"sMode"		   : "new",
             "sIssueFormURL": "@routes.IssueApp.newIssueForm(project.owner, project.name)",
 			"sIssueListURL": "@routes.IssueApp.issues(project.owner, project.name)",
-            "elTextarea"   : 'textarea[data-editor-mode="body"]',
+            "elTextarea"   : 'textarea[data-editor-mode="content-body"]',
             "elMilestoneRefresh": $("#milestoneOption .yobicon-refresh")
 		});
 
