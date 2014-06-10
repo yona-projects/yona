@@ -290,7 +290,7 @@
             $yobi.sendForm({
                 "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
                 "fOnLoad": function(){
-                    welTarget.toggleClass("active ybtn-watching pressed");
+                    welTarget.toggleClass("active ybtn-watching");
                 }
             });
         }
