@@ -18,24 +18,12 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(from: Integer, limit: Integer)
+@(from: Integer, size: Integer)
 
 @import utils.TemplateHelper._
 @import utils.JodaDateUtil
 
-@notifications(from: Integer, to: Integer) = @{
-    UserApp.currentUser.notificationEvents match {
-        case (events) if events.size < to => {
-            events.subList(from, events.size)
-        }
-        case (events) => {
-            events.subList(from, to)
-        }
-    }
-}
-
 @notifycationIcon(notifytype: EventType, state: String) = @{
-
     notifytype match {
         case EventType.NEW_COMMENT
              | EventType.NEW_REVIEW_COMMENT
@@ -62,58 +50,59 @@
     }
 }
 
-
-    @if(  notifications(from, from + limit).size() == 0){
-        <div class="warning-none">
-            <i class="yobicon-danger"></i> @Messages("notification.none")
-        </div>
+@defining(NotificationEvent.findByReceiver(UserApp.currentUser, from, size)){ notifications =>
+    @if(notifications.size() == 0){
+    <div class="warning-none">
+        <i class="yobicon-danger"></i> @Messages("notification.none")
+    </div>
     }
 
-@for(noti <- notifications(from, from + limit)){
-<li class="notification-stream">
-    @defining(User.find.byId(noti.senderId)){ user =>
-    <div class="stream-type @notifycationIcon(noti.eventType,noti.newValue)">
-        <i class="yobicon-@notifycationIcon(noti.eventType,noti.newValue)"></i>
-    </div>
-    <div class="stream-desc" data-target="message-@noti.id" data-toggle="learnmore">
-        <div class="stream-info">
-            @if(user != null){
-            <a class="avatar-wrap mlarge" href="@routes.UserApp.userInfo(user.loginId)">
-                <img src="@user.avatarUrl" >
-            </a>
-            } else {
-            <div class="avatar-wrap mlarge">
-                <img src="@routes.Assets.at("images/default-avatar-64.png")" width="42" height="42">
-            </div>
-            }
-            <div class="title">
-                @noti.getUrlToView match {
-                    case null => { @noti.title }
-                    case url => { <a href="@url">@noti.title</a> }
+    @for(noti <- notifications){
+    <li class="notification-stream">
+        @defining(User.find.byId(noti.senderId)){ user =>
+        <div class="stream-type @notifycationIcon(noti.eventType,noti.newValue)">
+            <i class="yobicon-@notifycationIcon(noti.eventType,noti.newValue)"></i>
+        </div>
+        <div class="stream-desc" data-target="message-@noti.id" data-toggle="learnmore">
+            <div class="stream-info">
+                @if(user != null){
+                <a class="avatar-wrap mlarge" href="@routes.UserApp.userInfo(user.loginId)">
+                    <img src="@user.avatarUrl" >
+                </a>
+                } else {
+                <div class="avatar-wrap mlarge">
+                    <img src="@routes.Assets.at("images/default-avatar-64.png")" width="42" height="42">
+                </div>
                 }
-            </div>
-            <div class="message-wrap nowrap" id="message-@noti.id">
-                <div class="message">@noti.getMessage</div>
-            </div>
-            <div class="meta">
-                <a href="@routes.UserApp.userInfo(user.loginId)" class="author">@user.name</a> @@@user.loginId
-                <span class="ago pull-right" title="@JodaDateUtil.getDateString(noti.created)">
-                    @agoOrDateString(noti.created)
-                </span>
+                <div class="title">
+                    @noti.getUrlToView match {
+                        case null => { @noti.title }
+                        case url => { <a href="@url">@noti.title</a> }
+                    }
+                </div>
+                <div class="message-wrap nowrap" id="message-@noti.id">
+                    <div class="message">@noti.getMessage</div>
+                </div>
+                <div class="meta">
+                    <a href="@routes.UserApp.userInfo(user.loginId)" class="author">@user.name</a> @@@user.loginId
+                    <span class="ago pull-right" title="@JodaDateUtil.getDateString(noti.created)">
+                        @agoOrDateString(noti.created)
+                    </span>
+                </div>
             </div>
         </div>
-    </div>
+        }
+    </li>
     }
-</li>
 }
 
-@if(UserApp.currentUser.notificationEvents.size > from + limit){
+@if(UserApp.currentUser.notificationEvents.size > size){
 <li><a href="javascript: void(0);" id="notification-more" class="ybtn">More</a></li>
 <script type="text/javascript">
     $(document).ready(function(){
         $("#notification-more").click(function() {
             $("#notification-more").remove();
-            $.get("@routes.NotificationApp.notifications(from + limit, limit)", function(data) {
+            $.get("@routes.NotificationApp.notifications(from + size, size)", function(data) {
                 $('.activity-streams').append(data);
             });
         });
