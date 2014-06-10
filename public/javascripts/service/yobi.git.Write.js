@@ -175,17 +175,20 @@
 
         function _updateSummary() {
             var success = $(".alert-success");
-            if(success) {
+            var error = $(".alert-error");
+            if(success.length > 0) {
                 htElement.welAbleToMerge.text(Messages("pullRequest.is.safe.to.merge"));
-            } else {
+            } else if(error.length > 0){
                 htElement.welAbleToMerge.text(Messages("pullRequest.is.not.safe.to.merge"));
+            } else {
+                htElement.welAbleToMerge.text(Messages("pullRequest.diff.noChanges"));
             }
 
             var commits = $(".commits tr");
-            if(commits) {
-                htElement.welCommitCount.text($(".commits tr").length - 1);
+            if(commits.length > 0) {
+                htElement.welCommitCount.text(commits.length - 1);
             } else {
-                htElement.welCommitCount.text(Messages("is.empty"))
+                htElement.welCommitCount.text(Messages("pullRequest.commit.is.empty"));
             }
 
         }
