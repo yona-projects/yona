@@ -55,6 +55,10 @@
 </div>
 @**<!-- //yobi.ui.Spinner -->**@
 
+@if(UserApp.currentUser.isAnonymous){
+@common.loginDialog()
+}
+
 <script type="text/javascript" src="@routes.Application.jsMessages()"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery/jquery.tmpl.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery/jquery.form.js")"></script>

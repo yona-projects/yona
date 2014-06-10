@@ -1,0 +1,68 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2014 NAVER Corp.
+* http://yobi.io
+*
+* @Author Jihan Kim
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@()
+
+<div id="loginDialog" class="modal hide loginDialog" tabindex="-1" role="dialog">
+  <div class="modal-body">
+    <div class="pull-right">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true" class="mr10">&times;</button>
+    </div>
+    <form action="@routes.UserApp.login()" method="post" class="frm-wrap login-form-wrap">
+      <dl>
+        <dt>
+          <label for="loginIdD">@Messages("user.loginId")</label>
+        </dt>
+        <dd>
+          <input id="loginIdD" name="loginId" type="text" class="text email" autocomplete="off">
+        </dd>
+
+        <dt>
+          <label for="passwordD">@Messages("user.password")</label>
+        </dt>
+        <dd>
+          <input id="passwordD" name="password" type="password" class="text password" autocomplete="off">
+        </dd>
+      </dl>
+
+      <div class="error">
+        <i class="yobicon-error"></i>
+        <span class="error-message">@Messages("user.login.failed")</span>
+      </div>
+
+      <div class="btns-row nm">
+        <button type="submit" class="ybtn ybtn-primary fullsize">@Messages("button.login")</button>
+      </div>
+
+      <div class="act-row right-txt mt20">
+        <div class="pull-left">
+          <input id="remember-meD" type="checkbox" name="rememberMe" class="checkbox">
+          <label for="remember-meD" class="bg-checkbox">@Messages("title.rememberMe")</label>
+        </div>
+
+        <a href="@routes.PasswordResetApp.lostPassword()">@Messages("title.resetPassword")</a>
+        <span class="gray-txt ml10 mr10">|</span>
+        <a href="@routes.UserApp.signupForm">@Messages("title.signup")</a>
+      </div>
+    </form>
+  </div>
+</div>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery/jquery-ui-1.10.4.custom.min.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/common/yobi.LoginDialog.js")"></script>

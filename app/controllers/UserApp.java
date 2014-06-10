@@ -149,42 +149,66 @@ public class UserApp extends Controller {
 
     /**
      * 로그인 처리
-     * 시스템 설정에서 가입승인 기능이 활성화 되어 있고 사용자 상태가 잠금상태(미승인?)라면 계정이 잠겼다는 메시지를 노출하고 로그인 폼으로 돌아감
-     * 시스템 설정에서 가입승인 기능이 활성화 되어 있지 않다면, 사용자 상태가 잠금상태라도 로그인이 가능하다 (스펙확인 필요)
-     * 요청의 정보로 사용자 인증에 성공하면 로그인쿠키를 생성하고 로그인유지하기가 선택되었다면, 로그인유지를 위한 쿠키를 별도로 생성한다
-     * 인증에 실패하면 관련된 메시지를 노출하고 로그인 폼으로 돌아간다
      *
      * @return
      */
+
     public static Result login() {
+        if (HttpUtil.isJSONPreferred(request())) {
+            return loginByAjaxRequest();
+        } else {
+            return loginByFormRequest();
+        }
+    }
+
+    /**
+     * Process login in general case of request.
+     *
+     * Returns:
+     * - If "signup.require.confirm = true" has enabled in application.conf,
+     *   the user in state of locked(or unconfirmed) cannot be logged in.
+     *   and page will be redirected to login form with message "user.locked".
+     *
+     * - If "signup.require.confirm" is disabled(as default),
+     *   the user in state of locked can be logged in. (TODO: check this in feature specification).
+     *
+     * - If failed to authentication, redirect to login form with error message.
+     *
+     * Cookie for login will be created
+     * if success to authenticate with request.
+     *
+     * If "rememberMe" included in request,
+     * Cookie for "rememberMe" (which means "Stay logged in") will be create
+     * separate from login cookie.
+     *
+     * @return
+     */
+    private static Result loginByFormRequest(){
         Form<User> userForm = form(User.class).bindFromRequest();
+
         if(userForm.hasErrors()) {
             return badRequest(login.render("title.login", userForm, null));
         }
+
         User sourceUser = form(User.class).bindFromRequest().get();
-
-        Map<String, String[]> params = request().body().asFormUrlEncoded();
-        String redirectUrl = HttpUtil.getFirstValueFromQuery(params, "redirectUrl");
-
-        String loginFormUrl = routes.UserApp.loginForm().url();
-        loginFormUrl += "?redirectUrl=" + redirectUrl;
 
         if (isUseSignUpConfirm()) {
             if (User.findByLoginId(sourceUser.loginId).state == UserState.LOCKED) {
                 flash(Constants.WARNING, "user.locked");
-                return redirect(loginFormUrl);
+                return redirect(getLoginFormURLWithRedirectURL());
             }
         }
 
         if (User.findByLoginId(sourceUser.loginId).state == UserState.DELETED) {
             flash(Constants.WARNING, "user.deleted");
-            return redirect(loginFormUrl);
+            return redirect(getLoginFormURLWithRedirectURL());
         }
 
         User authenticate = authenticateWithPlainPassword(sourceUser.loginId, sourceUser.password);
 
         if (!authenticate.isAnonymous()) {
             addUserInfoToSession(authenticate);
+
             if (sourceUser.rememberMe) {
                 setupRememberMe(authenticate);
             }
@@ -192,7 +216,9 @@ public class UserApp extends Controller {
             authenticate.lang = play.mvc.Http.Context.current().lang().code();
             authenticate.update();
 
-            if (StringUtils.isEmpty(redirectUrl)) {
+            String redirectUrl = getRedirectURLFromParams();
+
+            if(StringUtils.isEmpty(redirectUrl)){
                 return redirect(routes.Application.index());
             } else {
                 return redirect(redirectUrl);
@@ -201,6 +227,89 @@ public class UserApp extends Controller {
 
         flash(Constants.WARNING, "user.login.failed");
         return redirect(routes.UserApp.loginForm());
+    }
+
+    /**
+     * Process login request by AJAX
+     *
+     * Almost same with loginByFormRequest
+     * except part of handle with "redirectUrl" has excluded.
+     *
+     * Returns:
+     * - In case of success: empty JSON string {}
+     * - In case of failed: error message as JSON string in form of {"message":"cause"}.
+     *
+     * @return
+     */
+    private static Result loginByAjaxRequest(){
+        Form<User> userForm = form(User.class).bindFromRequest();
+
+        if(userForm.hasErrors()) {
+            return badRequest(getObjectNodeWithMessage("validation.required"));
+        }
+
+        User sourceUser = form(User.class).bindFromRequest().get();
+
+        if (isUseSignUpConfirm()) {
+            if (User.findByLoginId(sourceUser.loginId).state == UserState.LOCKED) {
+                return forbidden(getObjectNodeWithMessage("user.locked"));
+            }
+        }
+
+        if (User.findByLoginId(sourceUser.loginId).state == UserState.DELETED) {
+            return notFound(getObjectNodeWithMessage("user.deleted"));
+        }
+
+        User authenticate = authenticateWithPlainPassword(sourceUser.loginId, sourceUser.password);
+
+        if (!authenticate.isAnonymous()) {
+            addUserInfoToSession(authenticate);
+
+            if (sourceUser.rememberMe) {
+                setupRememberMe(authenticate);
+            }
+
+            authenticate.lang = play.mvc.Http.Context.current().lang().code();
+            authenticate.update();
+
+            return ok("{}");
+        }
+
+        return forbidden(getObjectNodeWithMessage("user.login.failed"));
+    }
+
+    /**
+     * Get value of "redirectUrl" from query
+     * @return
+     */
+    private static String getRedirectURLFromParams(){
+        Map<String, String[]> params = request().body().asFormUrlEncoded();
+        return HttpUtil.getFirstValueFromQuery(params, "redirectUrl");
+    }
+
+    /**
+     * Get login form URL string with "redirectUrl" parameter in query
+     * @return
+     */
+    private static String getLoginFormURLWithRedirectURL(){
+        String redirectUrl = getRedirectURLFromParams();
+        String loginFormUrl = routes.UserApp.loginForm().url();
+        loginFormUrl = loginFormUrl + "?redirectUrl=" + redirectUrl;
+
+        return loginFormUrl;
+    }
+
+    /**
+     * Returns ObjectNode which has "message" node filled with {@code message}
+     * loginByAjaxRequest() uses this to return result as JSON string
+     *
+     * @param message
+     * @return
+     */
+    private static ObjectNode getObjectNodeWithMessage(String message){
+        ObjectNode result = Json.newObject();
+        result.put("message", message);
+        return result;
     }
 
     /**
