@@ -48,7 +48,7 @@
          */
         function _initElement(htOptions){
             htElement.welUploader = $("#upload");
-            htElement.welTextarea = $("#comment-editor");
+            htElement.welTextarea = $('textarea[data-editor-mode="body"]');
 
             htElement.welBtnWatch = $('#watch-button');
 
@@ -490,7 +490,7 @@
          * @private
          */
         function _setBtnCommentAndClose(){
-            var welEditor = $("#comment-editor");
+            var welEditor = $('textarea[data-editor-mode="body"]');
             var welDynamicCommentBtn = $("#dynamic-comment-btn");
             var welCommentForm = $("#comment-form");
             var welWithStateTransition = $("<input type='hidden' name='withStateTransition'>");

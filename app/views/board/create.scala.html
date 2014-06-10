@@ -85,7 +85,7 @@
 $(document).ready(function(){
 	$yobi.loadModule("board.Write", {
 		"sMode"			 : "new",
-		"elTextarea"	 : $("#body"),
+		"elTextarea"	 : 'textarea[data-editor-mode="body"]',
 		"sUploaderAction": "@routes.AttachmentApp.uploadFile()"
 	});
 

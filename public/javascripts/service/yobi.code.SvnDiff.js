@@ -67,7 +67,7 @@
          */
         function _initElement(htOptions){
             htElement.welUploader = $("#upload");
-            htElement.welTextarea = $("#comment-editor");
+            htElement.welTextarea = $('textarea[data-editor-mode="body"]');
 
             var welHidden = $('<input>').attr('type', 'hidden');
 

@@ -54,7 +54,7 @@
          */
         function _initElement(htOptions){
             htElement.welUploader = $("#upload");
-            htElement.welTextarea = $("#comment-editor");
+            htElement.welTextarea = $('textarea[data-editor-mode="body"]');
 
             htElement.welAttachments = $(".attachments");
             htElement.welBtnWatch = $('#watch-button');

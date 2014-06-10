@@ -143,13 +143,13 @@
 			"sMode"		   : "new",
             "sIssueFormURL": "@routes.IssueApp.newIssueForm(project.owner, project.name)",
 			"sIssueListURL": "@routes.IssueApp.issues(project.owner, project.name)",
-            "elTextarea"   : $("#body"),
+            "elTextarea"   : 'textarea[data-editor-mode="body"]',
             "elMilestoneRefresh": $("#milestoneOption .yobicon-refresh")
 		});
 
         // yobi.Mention
         yobi.Mention({
-            "target": "textarea[id^=editor-]",
+            "target": 'textarea[id^=editor-]',
             "url"   : "@routes.ProjectApp.mentionList(project.owner, project.name)"
         });
     });

@@ -53,13 +53,11 @@
         function _initElement(htOptions){
             htElement.welUploader = $(htOptions.elTarget || "#upload");
             htElement.welTextarea = $(htOptions.elTextarea || "#body");
-
             htElement.welTplFileItem = $('#tplAttachedFile');
 
             // Validate
             htElement.welForm = $("form");
             htElement.welInputTitle = $("input#title");
-            htElement.welInputBody = $("textarea#body");
         }
 
         /**
@@ -68,13 +66,13 @@
         function _attachEvent(){
             htElement.welForm.submit(_onSubmitForm);
 
-            htElement.welInputBody.on("focus", function(){
+            htElement.welTextarea.on("focus", function(){
                 $(window).on("beforeunload", _onBeforeUnload);
             });
         }
 
         function _onBeforeUnload(){
-            if($yobi.getTrim(htElement.welInputBody.val()).length > 0){
+            if($yobi.getTrim(htElement.welTextarea.val()).length > 0){
                 return Messages("post.error.beforeunload");
             }
         }

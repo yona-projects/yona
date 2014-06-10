@@ -82,7 +82,7 @@
             htElement.welReviewList = htElement.welContainer.find("div.review-list");
             // 전체 댓글 (Non-Ranged comment thread)
             htElement.welUploader = $("#upload");
-            htElement.welTextarea = $("#comment-editor");
+            htElement.welTextarea = $('textarea[data-editor-mode="body"]');
 
             // 지켜보기
             htElement.welBtnWatch = $('#watch-button');
