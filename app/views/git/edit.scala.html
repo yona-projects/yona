@@ -31,26 +31,6 @@
     <div class="project-page-wrap">
         <div class="content-wrap frm-wrap">
             @helper.form(action=routes.PullRequestApp.editPullRequest(pull.toProject.owner, pull.toProject.name, pull.number), 'enctype -> "multipart/form-data", 'class->"nm"){
-                <legend>
-                    @Messages(title)
-                    <span class="pull-right">
-                        <button id="helpBtn" class="ybtn ybtn-inverse ybtn-small ">
-                            <i class="yobicon-question-sign yobicon-large"></i> @Messages("title.help")
-                        </button>
-                    </span>
-                </legend>
-                <div class="well" id="helpMessage" style="margin-bottom: 10px;">
-                    <div class="row-fluid">
-                        <div class="pull-left">
-                            <img class="img-polaroid" src="@routes.Assets.at("images/fork-pull/pull-request.jpg")"><br>
-                        </div>
-                        <div class="pull-left help-messages">
-                            <p class="lead">@Messages("pullRequest.help.message.1")</p>
-                            <p>@Messages("pullRequest.help.message.2")</p>
-                            <p>@Messages("pullRequest.help.message.3")</p>
-                        </div>
-                    </div>
-                </div>
                 <div class="pull-request-wrap">
                     <div class="option request-from">
                         <div class="option-label">@Messages("pullRequest.from"):
@@ -82,7 +62,7 @@
                     </div>
 
                     <div class="arrow">
-                       <i class="yobicon-right"></i>
+                        <i class="yobicon-right-2"></i>
                     </div>
 
                     <div class="option request-to">
