@@ -86,8 +86,16 @@ public class CodeCommentThread extends CommentThread {
             return _isOutdated;
         }
 
+        if (!isOnPullRequest()) {
+            return false;
+        }
+
         if (pullRequest.mergedCommitIdFrom == null || pullRequest.mergedCommitIdTo == null) {
             return false;
+        }
+
+        if (isCommitComment()) {
+            return PullRequestCommit.getByCommitId(pullRequest, commitId) == null;
         }
 
         String path = codeRange.path;
@@ -97,8 +105,10 @@ public class CodeCommentThread extends CommentThread {
 
         Repository mergedRepository = pullRequest.getMergedRepository();
 
-        _isOutdated = !PullRequest.noChangesBetween(mergedRepository,
-            pullRequest.mergedCommitIdFrom, mergedRepository, prevCommitId, path);
+        if (StringUtils.isNotEmpty(prevCommitId)) {
+            _isOutdated = !PullRequest.noChangesBetween(mergedRepository,
+                pullRequest.mergedCommitIdFrom, mergedRepository, prevCommitId, path);
+        }
 
         if (_isOutdated) {
             return _isOutdated;
