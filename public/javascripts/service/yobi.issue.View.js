@@ -490,7 +490,7 @@
          * @private
          */
         function _setBtnCommentAndClose(){
-            var welEditor = $('textarea[data-editor-mode="content-body"]');
+            var welEditor = $('textarea[data-editor-mode="comment-body"]');
             var welDynamicCommentBtn = $("#dynamic-comment-btn");
             var welCommentForm = $("#comment-form");
             var welWithStateTransition = $("<input type='hidden' name='withStateTransition'>");
