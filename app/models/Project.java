@@ -847,11 +847,13 @@ public class Project extends Model implements LabelOwner {
     private void deletePullRequests() {
         List<PullRequest> sentPullRequests = PullRequest.findSentPullRequests(this);
         for(PullRequest pullRequest : sentPullRequests) {
+            CommentThread.deleteByPullRequest(pullRequest);
             pullRequest.delete();
         }
 
         List<PullRequest> allReceivedRequests = PullRequest.allReceivedRequests(this);
         for(PullRequest pullRequest : allReceivedRequests) {
+            CommentThread.deleteByPullRequest(pullRequest);
             pullRequest.delete();
         }
     }
