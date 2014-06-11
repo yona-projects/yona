@@ -97,7 +97,8 @@ public class HttpUtil {
      * @return
      */
     public static Boolean isJSONPreferred(Http.Request request){
-        return getPreferType(request, "text/html", "application/json").equals("application/json");
+        String preferredType = getPreferType(request, "text/html", "application/json");
+        return (preferredType != null) ? preferredType.equals("application/json") : false;
     }
 
     /**
