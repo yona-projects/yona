@@ -866,6 +866,8 @@ public class NotificationEvent extends Model {
     }
 
     public static List<NotificationEvent> findByReceiver(User user, int from, int size) {
-        return find.where().eq("receivers.id", user.id).setFirstRow(from).setMaxRows(size).findList();
+        return find.where().eq("receivers.id", user.id)
+                .order().desc("created")
+                .setFirstRow(from).setMaxRows(size).findList();
     }
 }
