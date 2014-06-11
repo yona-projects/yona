@@ -67,6 +67,7 @@ button.user.makeAccountUnlock.true = Unlock
 button.yes = Yes
 code.addedPath = {0} (Added)
 code.author = Author
+code.authorDate = Author Date
 code.branches.commit = Latest commit
 code.branches.defaultBranch = Default branch
 code.branches.noPullRequest = No pull request sent

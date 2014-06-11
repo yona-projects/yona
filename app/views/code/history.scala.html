@@ -133,7 +133,7 @@
                                 @if(path != null){
                                 <td class="browse"></td>
                                 }
-                                <td class="date"><strong>@Messages("code.commitDate")</strong></td>
+                                <td class="date"><strong>@if(project.isGit) { @Messages("code.authorDate") } else { @Messages("code.commitDate") }</strong></td>
                                 <td class="author"><strong>@Messages("code.author")</strong></td>
                             </tr>
                         </thead>
