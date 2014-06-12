@@ -59,18 +59,22 @@ public class IssueEvent extends Model implements TimelineItem {
             IssueEvent.class);
 
     /**
-     * {@code event}를 추가한다.
+     * Adds {@code event}.
      *
-     * 직전에 추가된 이벤트가 현재 추가하려고 하는 이벤트가 같은 종류이며, 직전 이벤트가 추가된 지
-     * {@link #DRAFT_TIME_IN_MILLIS}밀리초가 지나지 않았다면 불필요한 이벤트를 최대한 줄이기 위해, 이전
-     * 이벤트와 이 이벤트를 합치거나 상황에 따라서는 두 이벤트를 모두 삭제한다.
+     * If the last event is not older than {@link #DRAFT_TIME_IN_MILLIS}
+     * miliseconds and the event is the same kind of event as the given one,
+     * merge or delete both of the events if necessary to reduce hassle
+     * notifications.
      *
-     * - 대체되는 경우의 예: 담당자가 A에서 B로 바뀐 뒤, 다시 B에서 C로 바뀌었다면,
-     *                       두 이벤트는 담당자가 A에서 C로 바뀐 이벤트로 합쳐진다.
-     * - 삭제되는 경우의 예: 담당자가 A에서 B로 바뀐 뒤, 다시 B에서 A로 바뀌었다면, 두 이벤트는 삭제된다.
+     * Examples:
      *
-     * 비고: 이 메소드는 {@link NotificationEvent#add(NotificationEvent)}를 가져와서 필요에 따라 약간
-     * 수정한 것이다.
+     * - If an assignee was changed from A to B, then A to C, the two events
+     *   are merged into the event of which assignee was changed from A to C.
+     * - If an assignee was changed from A to B, then B to A, the two events
+     *   will be deleted.
+     *
+     * Notes: This method originates from
+     * {@link NotificationEvent#add(NotificationEvent)}
      *
      * @param event
      */
@@ -102,8 +106,8 @@ public class IssueEvent extends Model implements TimelineItem {
     }
 
     /**
-     * 주어진 {@code notiEvent}, {@code updatedIssue}, {@code senderLoginId}를 바탕으로 새로운 이슈
-     * 이벤트를 만들어 추가한다.
+     * Adds events based on the given {@code notiEvent}, {@code updatedIssue}
+     * and {@code senderLoginId}.
      *
      * @param notiEvent
      * @param updatedIssue
