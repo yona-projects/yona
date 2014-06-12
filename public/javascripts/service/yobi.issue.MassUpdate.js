@@ -56,7 +56,7 @@
          * initialize element
          */
         function _initElement(htOptions){
-            htElement.waLabels = $("a.issue-label[data-color]"); // 목록 > 라벨
+            htElement.waLabels = $("a.issue-label[data-color]");
 
             htElement.welContainer  = $(".inner");
             htElement.welBtnAdvance = $(".btn-advanced");
@@ -67,10 +67,10 @@
             htElement.waCheckboxes  = $(htVar.sIssueCheckBoxesSelector);
             htElement.weAllCheckbox = $('#check-all');
 
-            htElement.welBtnAttachingLabel = $(htOptions.welAttachingLabel).find("button"); // 라벨 추가 버튼
-            htElement.welBtnDetachingLabel = $(htOptions.welDetachingLabel).find("button"); // 라벨 제거 버튼
-            htElement.welAttachLabels = $('#attach-label-list');  // 라벨 추가 <ul>
-            htElement.welDetachLabels = $('#delete-label-list');  // 라벨 제거 <ul>
+            htElement.welBtnAttachingLabel = $(htOptions.welAttachingLabel).find("button");
+            htElement.welBtnDetachingLabel = $(htOptions.welDetachingLabel).find("button");
+            htElement.welAttachLabels = $('#attach-label-list');
+            htElement.welDetachLabels = $('#delete-label-list');
         }
 
         /**
@@ -164,12 +164,10 @@
             var sCategory, sLabelId;
             var bVisible = false;
 
-            // 선택한 이슈에 설정된 라벨 정보로부터
             for(sCategory in htLabels){
                 for(sLabelId in htLabels[sCategory]){
                     htLabel = htLabels[sCategory][sLabelId];
 
-                    // 선택된 모든 이슈에 존재하는 라벨인 경우 항목 감춤
                     if(htLabel.issues.length === nLength){
                         htElement.welAttachLabels.find('[data-value="' + sLabelId + '"]').hide();
                     }
@@ -178,9 +176,6 @@
                 bVisible = _getLabelCategoryVisibility(htElement.welAttachLabels, sCategory) || bVisible;
             } // end-for-category
 
-            // 선택한 이슈에 라벨이 있으면서
-            // 모든 카테고리가 보여줄 항목이 없다면 라벨 추가 버튼 자체를 비활성화
-            // 아예 라벨이 없는 경우라면 라벨 추가 버튼은 당연히 활성화
             htElement.welBtnAttachingLabel.attr("disabled", htLabels.hasOwnProperty() ? !bVisible : false);
         }
 
@@ -237,7 +232,6 @@
                 aHTML.push('<li class="divider"></li>');
             }
 
-            // 선택한 항목에서 삭제할 라벨이 있는 경우에만 활성화
             if(aHTML.length > 0){
                 htElement.welDetachLabels.html(aHTML.join("\n"));
             } else {
@@ -293,13 +287,10 @@
             var welForm = htElement.welMassUpdateForm;
             var sItemId = _getCurrentItemIdByScrollTop();
 
-            // 어떤 항목을 보고 있었다는걸 확인할 수 있다면
-            // 폼 ActionURL 뒤에 Hash 를 붙여 최대한 그 위치에 가깝게 다시 돌아오게 만든다
             if(sItemId){
                 welForm.attr("action", htVar.sActionURL + "#" + sItemId);
             }
 
-            // 적용할 이슈 항목들을 폼 필드로 추가
             $(htVar.sIssueCheckedBoxesSelector).each(function(){
                 _addFormField(
                     welForm,
@@ -311,13 +302,6 @@
             welForm.submit();
         }
 
-        /**
-         * 현재 스크롤 높이를 기준으로 현재 보고 있는 이슈 항목(.post-item)의 ID를 추측하여 반환한다
-         * 첫번째 항목이 화면에 보이고 있는 경우 undefined 가 반환될 수 있다
-         *
-         * @returns {*|jQuery}
-         * @private
-         */
         function _getCurrentItemIdByScrollTop(){
             var nScrollTop = $(window).scrollTop();
             var sItemId = $(".post-item").filter(function(i,el){
@@ -327,9 +311,6 @@
             return sItemId;
         }
 
-        /**
-         * 일괄 업데이트 폼이 스크롤해도 계속 따라다니도록 설정하는 함수
-         */
         function _setMassUpdateFormAffixed(){
             $('.mass-update-wrap').affix({
                 offset: {top:$('.mass-update-wrap').offset().top - 15}

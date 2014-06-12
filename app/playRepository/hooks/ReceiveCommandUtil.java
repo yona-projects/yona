@@ -29,13 +29,6 @@ import org.eclipse.jgit.transport.ReceiveCommand;
 import org.eclipse.jgit.transport.ReceiveCommand.Type;
 
 public class ReceiveCommandUtil {
-    /**
-     * {@code commands} 중에서 {@code types} 에 지정된 type 을
-     * 가지고 있는 것들의 refName set 을 얻는다
-     * @param commands
-     * @param types
-     * @return
-     */
     public static Set<String> getRefNamesByCommandType(Collection<ReceiveCommand> commands, Type... types) {
         Set<String> branches = new HashSet<>();
         for (ReceiveCommand command : commands) {
@@ -46,39 +39,18 @@ public class ReceiveCommandUtil {
         return branches;
     }
 
-    /**
-     * {@code command} 의 type 이 {@code types} 중 하나인지 확인한다
-     * @param command
-     * @param types
-     * @return
-     */
     public static boolean isTypeMatching(ReceiveCommand command, Type... types) {
         return ArrayUtils.contains(types, command.getType());
     }
 
-    /**
-     * ReceiveCommand 중, branch update 에 해당하는 것들의 참조 branch set 을 구한다.
-     * @param commands
-     * @return
-     */
     public static Set<String> getUpdatedBranches(Collection<ReceiveCommand> commands) {
         return getRefNamesByCommandType(commands, Type.UPDATE, Type.UPDATE_NONFASTFORWARD);
     }
 
-    /**
-     * ReceiveCommand 중, branch delete 에 해당하는 것들의 참조 branch set 을 구한다.
-     * @param commands
-     * @return
-     */
     public static Set<String> getDeletedBranches(Collection<ReceiveCommand> commands) {
         return ReceiveCommandUtil.getRefNamesByCommandType(commands, Type.DELETE);
     }
 
-    /**
-     * ReceiveCommand 중, branch create, update 에 해당하는 것들의 참조 branch set 을 구한다.
-     * @param commands
-     * @return
-     */
     public static Set<String> getPushedBranches(Collection<ReceiveCommand> commands) {
         return getRefNamesByCommandType(commands, Type.CREATE, Type.UPDATE,
                 Type.UPDATE_NONFASTFORWARD);

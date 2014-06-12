@@ -80,15 +80,10 @@ import static play.libs.Json.toJson;
 import static utils.LogoUtil.*;
 import static utils.TemplateHelper.*;
 
-/**
- * ProjectApp
- *
- */
 public class ProjectApp extends Controller {
 
     private static final int ISSUE_MENTION_SHOW_LIMIT = 2000;
 
-    /** 자동완성에서 보여줄 최대 프로젝트 개수 */
     private static final int MAX_FETCH_PROJECTS = 1000;
 
     private static final int COMMIT_HISTORY_PAGE = 0;
@@ -123,21 +118,6 @@ public class ProjectApp extends Controller {
         return ok(result);
     }
 
-    /**
-     * 프로젝트 Home 페이지를 처리한다.<p />
-     *
-     * {@code ownerId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
-     * 읽기 권한이 없을 경우는 unauthorized로 응답한다.<br />
-     * 해당 프로젝트의 최근 커밋, 이슈, 포스팅 목록을 가져와서 히스토리를 만든다.<br />
-     *
-     * @param ownerId
-     * @param projectName
-     * @return 프로젝트 정보
-     * @throws IOException Signals that an I/O exception has occurred.
-     * @throws ServletException the servlet exception
-     * @throws SVNException the svn exception
-     * @throws GitAPIException the git api exception
-     */
     @IsAllowed(Operation.READ)
     public static Result project(String ownerId, String projectName)
             throws IOException, ServletException, SVNException, GitAPIException {
@@ -163,17 +143,6 @@ public class ProjectApp extends Controller {
         }
     }
 
-    /**
-     * {@code project}의 최근 커밋, 이슈, 포스팅 목록을 가져와서 히스토리를 만든다
-     *
-     * @param ownerId
-     * @param project
-     * @return 프로젝트 히스토리 정보
-     * @throws IOException Signals that an I/O exception has occurred.
-     * @throws ServletException the servlet exception
-     * @throws SVNException the svn exception
-     * @throws GitAPIException the git api exception
-     */
     private static List<History> getProjectHistory(String ownerId, Project project)
             throws IOException, ServletException, SVNException, GitAPIException {
         project.fixInvalidForkData();
@@ -195,14 +164,6 @@ public class ProjectApp extends Controller {
         return History.makeHistory(ownerId, project, commits, issues, postings, pullRequests);
     }
 
-    /**
-     * 신규 프로젝트 생성 페이지로 이동한다.<p />
-     *
-     * 비로그인 상태({@link models.User#anonymous})이면 로그인 경고메세지와 함께 로그인페이지로 redirect 된다.<br />
-     * 로그인 상태이면 프로젝트 생성 페이지로 이동한다.<br />
-     *
-     * @return 익명사용자이면 로그인페이지, 로그인 상태이면 프로젝트 생성페이지
-     */
     @With(AnonymousCheckAction.class)
     public static Result newProjectForm() {
         Form<Project> projectForm = form(Project.class).bindFromRequest("owner");
@@ -211,16 +172,6 @@ public class ProjectApp extends Controller {
         return ok(create.render("title.newProject", projectForm, orgUserList));
     }
 
-    /**
-     * 프로젝트 설정(업데이트) 페이지로 이동한다.<p />
-     *
-     * {@code ownerId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
-     * 업데이트 권한이 없을 경우는 unauthorized로 응답한다.<br />
-     *
-     * @param ownerId
-     * @param projectName
-     * @return 프로젝트 정보
-     */
     @IsAllowed(Operation.UPDATE)
     public static Result settingForm(String ownerId, String projectName) throws Exception {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
@@ -229,16 +180,6 @@ public class ProjectApp extends Controller {
         return ok(setting.render("title.projectSetting", projectForm, project, repository.getBranches()));
     }
 
-    /**
-     * 신규 프로젝트 생성(관리자Role 설정/코드 저장소를 생성)하고 Overview 페이지로 redirect 된다.<p />
-     *
-     * {@code loginId}와 {@code projectName}으로 프로젝트 정보를 조회하여 <br />
-     * 프로젝트가 이미 존재할 경우 경고메세지와 함께 badRequest로 응답한다.<br />
-     * 프로젝트폼 입력데이터에 오류가 있을 경우 경고메시지와 함께 badRequest로 응답한다.<br />
-     *
-     * @return 프로젝트 존재시 경고메세지, 입력폼 오류시 경고메세지, 프로젝트 생성시 프로젝트 정보
-     * @throws Exception
-     */
     @Transactional
     public static Result newProject() throws Exception {
         Form<Project> filledNewProjectForm = form(Project.class).bindFromRequest();
@@ -300,22 +241,6 @@ public class ProjectApp extends Controller {
         return newProjectForm.hasErrors();
     }
 
-    /**
-     * 프로젝트 설정을 업데이트한다.<p />
-     *
-     * 업데이트 권한이 없을 경우 경고메세지와 함께 프로젝트 설정페이지로 redirect된다.<br />
-     * {@code ownerId}의 프로젝트중 변경하고자 하는 이름과 동일한 프로젝트명이 있으면 경고메세지와 함께 badRequest를 응답한다.<br />
-     * 프로젝트 로고({@code filePart})가 이미지파일이 아니거나 제한사이즈(1MB) 보다 크다면 경고메세지와 함께 badRequest를 응답한다.<br />
-     * 프로젝트 로고({@code filePart})가 이미지파일이고 제한사이즈(1MB) 보다 크지 않다면 첨부파일과 프로젝트 정보를 저장하고 프로젝트 설정(업데이트) 페이지로 이동한다.<br />
-     *
-     * @param ownerId user login id
-     * @param projectName the project name
-     * @return
-     * @throws IOException Signals that an I/O exception has occurred.
-     * @throws NoSuchAlgorithmException the no such algorithm exception
-     * @throws ServletException
-     * @throws UnsupportedOperationException
-     */
     @Transactional
     @IsAllowed(Operation.UPDATE)
     public static Result settingProject(String ownerId, String projectName)
@@ -391,16 +316,6 @@ public class ProjectApp extends Controller {
         return updateProjectForm.hasErrors();
     }
 
-    /**
-     * 프로젝트 삭제 페이지로 이동한다.<p />
-     *
-     * {@code ownerId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
-     * 업데이트 권한이 없을 경우는 unauthorized로 응답한다.<br />
-     *
-     * @param ownerId user login id
-     * @param projectName the project name
-     * @return 프로젝트폼, 프로젝트 정보
-     */
     @IsAllowed(Operation.DELETE)
     public static Result deleteForm(String ownerId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
@@ -408,17 +323,6 @@ public class ProjectApp extends Controller {
         return ok(delete.render("title.projectDelete", projectForm, project));
     }
 
-    /**
-     * 프로젝트를 삭제한다.<p />
-     *
-     * {@code ownerId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
-     * 삭제 권한이 없을 경우는 경고 메시지와 함께 설정페이지로 redirect된다. <br />
-     *
-     * @param ownerId the user login id
-     * @param projectName the project name
-     * @return the result
-     * @throws Exception the exception
-     */
     @Transactional
     @IsAllowed(Operation.DELETE)
     public static Result deleteProject(String ownerId, String projectName) throws Exception {
@@ -426,7 +330,6 @@ public class ProjectApp extends Controller {
         project.delete();
         RepositoryService.deleteRepository(project);
 
-        // XHR 호출에 의한 경우라면 204 No Content 와 Location 헤더로 응답한다
         if (HttpUtil.isRequestedWithXHR(request())){
             response().setHeader("Location", routes.Application.index().toString());
             return status(204);
@@ -435,18 +338,6 @@ public class ProjectApp extends Controller {
         return redirect(routes.Application.index());
     }
 
-    /**
-     * 프로젝트 멤버설정 페이지로 이동한다.<p />
-     *
-     * {@code loginId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
-     * 프로젝트 아이디로 해당 프로젝트의 멤버목록을 가져온다.<br />
-     * 프로젝트 관련 Role 목록을 가져온다.<br />
-     * 프로젝트 수정 권한이 없을 경우 unauthorized 로 응답한다<br />
-     *
-     * @param loginId the user login id
-     * @param projectName the project name
-     * @return 프로젝트, 멤버목록, Role 목록
-     */
     @Transactional
     @IsAllowed(Operation.UPDATE)
     public static Result members(String loginId, String projectName) {
@@ -457,21 +348,6 @@ public class ProjectApp extends Controller {
                 Role.findProjectRoles()));
     }
 
-    /**
-     * 이슈나 게시판 본문, 댓글에서 보여줄 멘션 목록
-     *
-     * 대상
-     * - 해당 프로젝트 멤버
-     * - 해당 이슈/게시글 작성자
-     * - 해당 이슈/게시글의 코멘트 작성자
-     * - 프로젝트가 속한 그룹의 관리자와 멤버
-     *
-     * @param loginId
-     * @param projectName
-     * @param number 글번호
-     * @param resourceType
-     * @return
-     */
     @IsAllowed(Operation.READ)
     public static Result mentionList(String loginId, String projectName, Long number, String resourceType) {
         String prefer = HttpUtil.getPreferType(request(), HTML, JSON);
@@ -543,14 +419,6 @@ public class ProjectApp extends Controller {
         }
     }
 
-    /**
-     * 멘션에 노출될 이슈 목록
-     *
-     * {@code state}와 {@code createdDate} 내림차순으로 정렬하여 {@code ISSUE_MENTION_SHOW_LIMIT} 만큼 가져온다.
-     *
-     * @param project
-     * @return
-     */
     private static List<Issue> getMentionIssueList(Project project) {
         return Issue.finder.where()
                 .eq("project.id", project.isForkedFromOrigin() ? project.originalProject.id : project.id)
@@ -559,25 +427,6 @@ public class ProjectApp extends Controller {
                 .findList();
     }
 
-    /**
-     * CommitDiff 화면에서 코멘트 작성시 보여줄 멘션 목록
-     *
-     * 대상 (자신을 제외한)
-     * - 프로젝트 멤버
-     * - 커밋 작성자
-     * - 해당 커밋에 코드 코멘트를 작성한 사람들
-     * - 프로젝트가 속한 그룹의 관리자와 멤버
-     *
-     * @param ownerId
-     * @param projectName
-     * @param commitId
-     * @return
-     * @throws IOException
-     * @throws UnsupportedOperationException
-     * @throws ServletException
-     * @throws GitAPIException
-     * @throws SVNException
-     */
     @IsAllowed(Operation.READ)
     public static Result mentionListAtCommitDiff(String ownerId, String projectName, String commitId, Long pullRequestId)
             throws IOException, UnsupportedOperationException, ServletException, SVNException {
@@ -609,27 +458,6 @@ public class ProjectApp extends Controller {
         return ok(toJson(result));
     }
 
-    /**
-     * Pull-Request에 대해 댓글을 달때 보여줄 멘션 리스트
-     *
-     * 대상 (자신을 제외한)
-     * - 코멘트를 작성한 사람들
-     * - Pull Request를 받는 프로젝트의 멤버
-     * - Commit Author
-     * - Pull Request 요청자
-     * - 프로젝트가 속한 그룹의 관리자와 멤버
-     *
-     * @param ownerId
-     * @param projectName
-     * @param commitId
-     * @param pullRequestId
-     * @return
-     * @throws IOException
-     * @throws UnsupportedOperationException
-     * @throws ServletException
-     * @throws GitAPIException
-     * @throws SVNException
-     */
     @IsAllowed(Operation.READ)
     public static Result mentionListAtPullRequest(String ownerId, String projectName, String commitId, Long pullRequestId)
             throws IOException, UnsupportedOperationException, ServletException, SVNException {
@@ -915,21 +743,6 @@ public class ProjectApp extends Controller {
         }
     }
 
-    /**
-     * 프로젝트의 신규 멤버를 추가한다.<p />
-     *
-     * 입력폼 오류시 경고메세지와 함께 프로젝트 설정페이지로 redirect 된다.<br />
-     * 입력폼으로부터 멤버로 추가한 사용자 정보를 가져온다.<br />
-     * {@code ownerId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
-     * <br />
-     * 현재 로그인 사용자가 UPDATE 권한이 없을경우 경고메세지와 함께 멤버설정 페이지로 redirect 된다.<br />
-     * 추가한 사용자 정보가 null일 경우 경고메세지와 함께 멤버설정 페이지로 redirect 된다.<br />
-     * 추가한 사용자가 이미 프로젝트 멤버일 경우 경고메시지와 함께 멤버설정 페이지로 redirect 된다.<br />
-     *
-     * @param ownerId the user login id
-     * @param projectName the project name
-     * @return 프로젝트, 멤버목록, Role 목록
-     */
     @Transactional
     @With(DefaultProjectCheckAction.class)
     @IsAllowed(Operation.UPDATE)
@@ -984,15 +797,9 @@ public class ProjectApp extends Controller {
     }
 
     /**
-     * 프로젝트 멤버를 삭제한다.<p />
-     *
-     * {@code ownerId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
-     * 삭제할 멤버가 로그인 사용자 이거나 프로젝트 업데이트 권한이 있을 경우 삭제하고 멤버 설정페이지로 redirect 된다.<br />
-     * 삭제할 멤버가 프로젝트 관리자일 경우 경고메세지와 함께 forbidden을 응답한다.<br />
-     *
      * @param ownerId the user login id
      * @param projectName the project name
-     * @param userId 삭제할 멤버 아이디
+     * @param userId
      * @return the result
      */
     @Transactional
@@ -1024,14 +831,6 @@ public class ProjectApp extends Controller {
     }
 
     /**
-     * 멤버의 Role을 설정하고 NO_CONTENT를 응답한다.<p />
-     *
-     * {@code ownerId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
-     * 로그인 사용자가 업데이트 권한이 있을경우 멤버에게 새로 설정한 Role을 할당한다.<br />
-     * <br />
-     * 변경하고자 하는 멤버가 프로젝트 관리자일 경우 경고메세지와 함께 forbidden을 응답한다.<br />
-     * 업데이트 권한이 없을 경우 경고메세지와 함께 forbidden을 응답한다.<br />
-     *
      * @param ownerId the user login id
      * @param projectName the project name
      * @param userId the user id
@@ -1052,21 +851,9 @@ public class ProjectApp extends Controller {
     }
 
     /**
-     * accepted가능한 Content-type에 따라 JSON 목록을 반환하거나 프로젝트 목록 페이지로 이동한다.<p />
-     * HTML 또는 JSON 요청이 아닌경우 NOT_ACCEPTABLE 을 응답한다.<br />
-     * <br />
-     * 1. JSON 목록 반환 ( 자동완성용 )<br />
-     * 프로젝트 관리자 또는 이름에 {@code query}값를 포함하고 있는 프로젝트 목록을 가져온다.<br />
-     * 반환되는 최대 목록개수는 {@link ProjectApp#MAX_FETCH_PROJECTS} 로 설정한다.<br />
-     * 프로젝트 목록의 {@code owner}와 {@code name}을 조합하여 새로운 목록을 만들고 JSON 형태로 반환한다.<br />
-     * <br />
-     * 2. 프로젝트 목록 페이지 이동<br />
-     * 프로젝트 목록을 최근 생성일 기준으로 정렬하여 페이지(사이즈 : {@link #PROJECT_COUNT_PER_PAGE}) 단위로 가져오고<br />
-     * 조회 조건은 프로젝트명 또는 프로젝트관리자({@code query}), 공개 여부({@code state}) 이다.<br />
-     *
      * @param query the query
      * @param pageNum the page num
-     * @return json일 경우 json형태의 프로젝트명 목록, html일 경우 java객체 형태의 프로젝트 목록
+     * @return
      */
     public static Result projects(String query, int pageNum) {
         String prefer = HttpUtil.getPreferType(request(), HTML, JSON);
@@ -1083,19 +870,6 @@ public class ProjectApp extends Controller {
         }
     }
 
-    /**
-     * 프로젝트 목록을 가져온다.
-     *
-     * when : 프로젝트명, 프로젝트 관리자, 공개여부로 프로젝트 목록 조회시
-     *
-     * 프로젝트명 / 관리자 아이디 / Overview 중 {@code query}를 포함하고
-     * 공개여부가 @{code state} 인 프로젝트 목록을 최근생성일로 정렬하여 페이징 형태로 가져온다.
-     *
-     * @param query 검색질의(프로젝트명 / 관리자 아이디 / Overview)
-     * @param state 프로젝트 상태(공개/비공개/전체)
-     * @param pageNum 페이지번호
-     * @return 프로젝트명 또는 관리자 로그인 아이디가 {@code query}를 포함하고 공개여부가 @{code state} 인 프로젝트 목록
-     */
     private static Result getPagingProjects(String query, int pageNum) {
         ExpressionList<Project> el = createProjectSearchExpressionList(query);
 
@@ -1110,16 +884,6 @@ public class ProjectApp extends Controller {
         return ok(views.html.project.list.render("title.projectList", projects, query));
     }
 
-    /**
-     * 프로젝트 정보를 JSON으로 가져온다.
-     *
-     * 프로젝트명 / 관리자 아이디 / Overview 중 {@code query} 가 포함되는 프로젝트 목록을 {@link #MAX_FETCH_PROJECTS} 만큼 가져오고
-     * JSON으로 변환하여 반환한다.
-     *
-     * @param query 검색질의(프로젝트명 / 관리자 / Overview)
-     * @param state state 프로젝트 상태(공개/비공개/전체)
-     * @return JSON 형태의 프로젝트 목록
-     */
     private static Result getProjectsToJSON(String query) {
         ExpressionList<Project> el = createProjectSearchExpressionList(query);
 
@@ -1160,16 +924,9 @@ public class ProjectApp extends Controller {
     }
 
     /**
-     * 프로젝트 설정페이지에서 사용하며 태그목록을 JSON 형태로 반환한다.<p />
-     *
-     * {@code ownerId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
-     * 읽기 권한이 없을경우 forbidden을 반환한다.<br />
-     * application/json 요청이 아닐경우 not_acceptable을 반환한다.<br />
-     *
-     *
      * @param ownerId the owner login id
      * @param projectName the project name
-     * @return 프로젝트 태그 JSON 데이터
+     * @return
      */
     @IsAllowed(Operation.READ)
     public static Result labels(String ownerId, String projectName) {
@@ -1191,13 +948,6 @@ public class ProjectApp extends Controller {
     }
 
     /**
-     * 프로젝트 설정 페이지에서 사용하며 새로운 태그를 추가하고 추가된 태그를 JSON으로 반환한다.<p />
-     *
-     * {@code ownerId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
-     * 업데이트 권한이 없을경우 forbidden을 반환한다.<br />
-     * 태그명 파라미터가 null일 경우 empty 데이터를 JSON으로 반환한다.<br />
-     * 프로젝트내 동일한 태그가 존재할 경우 empty 데이터를 JSON으로 반환한다.<br />
-     *
      * @param ownerId the owner name
      * @param projectName the project name
      * @return the result
@@ -1262,11 +1012,6 @@ public class ProjectApp extends Controller {
     }
 
     /**
-     * 프로젝트 설정 페이지에서 사용하며 태그를 삭제한다.<p />
-     *
-     * _method 파라미터가 delete가 아니면 badRequest를 반환한다.<br />
-     * 삭제할 태그가 존재하지 않으면 notfound를 반환한다.
-     *
      * @param ownerId the owner name
      * @param projectName the project name
      * @param id the id
@@ -1299,13 +1044,6 @@ public class ProjectApp extends Controller {
         return status(Http.Status.NO_CONTENT);
     }
 
-    /**
-     * 최근 푸쉬된 브랜치 정보를 삭제한다.
-     * @param ownerId
-     * @param projectName
-     * @param id
-     * @return
-     */
     @Transactional
     @With(AnonymousCheckAction.class)
     @IsAllowed(Operation.DELETE)

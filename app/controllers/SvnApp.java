@@ -73,7 +73,6 @@ public class SvnApp extends Controller {
     @With(BasicAuthAction.class)
     @BodyParser.Of(value = BodyParser.Raw.class, maxLength = Integer.MAX_VALUE)
     public static Result service() throws ServletException, IOException, InterruptedException {
-        // FIXME DAVServlet 들어내고 싶다.
         String path;
         try {
             path = new java.net.URI(request().uri()).getPath();
@@ -130,12 +129,6 @@ public class SvnApp extends Controller {
         return sendResponse(status, response.getInputStream());
     }
 
-    /**
-     * WebDAV 서비스를 시작한다.
-     *
-     * @param ownerName 저장소 소유자의 이름. 저장소의 부모 경로를 얻기 위해 필요하다.
-     * @param pathInfo
-     */
     private static PlayServletResponse startDavService(final String ownerName, String pathInfo) throws IOException {
         // For DavServlet, transform HTTP request and HTTP response in this context to
         // ServletRequest and ServletResponse
@@ -161,15 +154,6 @@ public class SvnApp extends Controller {
         return response;
     }
 
-    /**
-     * 상태코드에 맞게 적절히 응답을 돌려준다.
-     *
-     * 1xx, 204, 304는 message body가 없어야 하며, 205는 길이가 0인 message body를 가져야만 한다.
-     *
-     * @param statusCode
-     * @param input
-     * @return
-     */
     private static Result sendResponse(int statusCode, PipedInputStream input) {
         if (statusCode < 200 || statusCode == 204 || statusCode == 304) {
             // 1xx, 204 and 304 MUST NOT include message body.

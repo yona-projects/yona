@@ -26,11 +26,6 @@ import javax.persistence.*;
 import java.util.Date;
 import java.util.List;
 
-/**
- * 프로젝트 방문 기록.
- *
- * @author Keeun Baik
- */
 @Entity
 public class ProjectVisitation extends Model {
 

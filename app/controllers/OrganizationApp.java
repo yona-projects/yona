@@ -92,19 +92,16 @@ public class OrganizationApp extends Controller {
     }
 
     private static void validate(Form<Organization> newOrgForm) {
-        // 조직 이름 패턴을 검사한다.
         Set<ConstraintViolation<Organization>> results = Validation.getValidator().validate(newOrgForm.get());
         if (!results.isEmpty()) {
             newOrgForm.reject("name", "organization.name.alert");
         }
 
         String name = newOrgForm.field("name").value();
-        // 중복된 loginId로 가입할 수 없다.
         if (User.isLoginIdExist(name)) {
             newOrgForm.reject("name", "organization.name.duplicate");
         }
 
-        // 같은 이름의 조직을 만들 수 없다.
         if (Organization.isNameExist(name)) {
             newOrgForm.reject("name", "organization.name.duplicate");
         }
@@ -123,12 +120,6 @@ public class OrganizationApp extends Controller {
         return ok(view.render(org));
     }
 
-    /**
-     * 그룹에 멤버를 추가한다.
-     *
-     * @param organizationName
-     * @return
-     */
     @Transactional
     public static Result addMember(String organizationName) {
         Form<User> addMemberForm = form(User.class).bindFromRequest();
@@ -146,13 +137,6 @@ public class OrganizationApp extends Controller {
         return redirect(routes.OrganizationApp.members(organizationName));
     }
 
-    /**
-     * {@link #addMember(String)}를 위해 사용되는 변수의 유효성 검사를 한다.
-     *
-     * @param addMemberForm
-     * @param organizationName
-     * @return
-     */
     private static Result validateForAddMember(Form<User> addMemberForm, String organizationName) {
         String userLoginId = addMemberForm.get().loginId;
         User userToBeAdded = User.findByLoginId(userLoginId);
@@ -182,13 +166,6 @@ public class OrganizationApp extends Controller {
         return null;
     }
 
-    /**
-     * 그룹에서 멤버를 삭제한다.
-     *
-     * @param organizationName
-     * @param userId
-     * @return
-     */
     @Transactional
     public static Result deleteMember(String organizationName, Long userId) {
         Result result = validateForDeleteMember(organizationName, userId);
@@ -206,13 +183,6 @@ public class OrganizationApp extends Controller {
         }
     }
 
-    /**
-     * {@link #deleteMember(String, Long)}를 위해 사용되는 변수의 유효성 검사를 한다.
-     *
-     * @param organizationName
-     * @param userId
-     * @return
-     */
     private static Result validateForDeleteMember(String organizationName, Long userId) {
         Organization organization = Organization.findByOrganizationName(organizationName);
         if (organization == null) {
@@ -239,13 +209,6 @@ public class OrganizationApp extends Controller {
         return null;
     }
 
-    /**
-     * 그룹 멤버의 권한을 수정한다.
-     *
-     * @param organizationName
-     * @param userId
-     * @return
-     */
     @Transactional
     public static Result editMember(String organizationName, Long userId) {
         Form<Role> roleForm = form(Role.class).bindFromRequest();
@@ -260,14 +223,6 @@ public class OrganizationApp extends Controller {
         return status(Http.Status.NO_CONTENT);
     }
 
-    /**
-     * {@link #editMember(String, Long)}를 위해 사용되는 변수의 유효성 검사를 한다.
-     *
-     * @param roleForm
-     * @param organizationName
-     * @param userId
-     * @return
-     */
     private static Result validateForEditMember(Form<Role> roleForm, String organizationName, Long userId) {
         if (roleForm.hasErrors()) {
             flash(Constants.WARNING, "organization.member.unknownRole");
@@ -297,12 +252,6 @@ public class OrganizationApp extends Controller {
         return null;
     }
 
-    /**
-     * 그룹 페이지 안에있는 멤버 관리 페이지로 이동한다.
-     *
-     * @param organizationName
-     * @return
-     */
     public static Result members(String organizationName) {
         Result result = validateForSetting(organizationName);
         if (result != null) {
@@ -314,12 +263,6 @@ public class OrganizationApp extends Controller {
         return ok(members.render(organization, Role.findOrganizationRoles()));
     }
 
-    /**
-     * {@link #members(String)}를 위해 사용되는 변수의 유효성 검사를 한다.
-     *
-     * @param organizationName
-     * @return
-     */
     private static Result validateForSetting(String organizationName) {
         Organization organization = Organization.findByOrganizationName(organizationName);
         if (organization == null) {
@@ -334,12 +277,6 @@ public class OrganizationApp extends Controller {
         return null;
     }
 
-    /**
-     * 그룹 페이지 안에있는 그룹 관리 페이지로 이동한다.
-     *
-     * @param organizationName
-     * @return
-     */
     public static Result settingForm(String organizationName) {
         Result result = validateForSetting(organizationName);
         if (result != null) {
@@ -351,15 +288,6 @@ public class OrganizationApp extends Controller {
         return ok(setting.render(organization, form(Organization.class).fill(organization)));
     }
 
-    /**
-     * {@code location}을 JSON 형태로 저장하여 ok와 함께 리턴한다.
-     *
-     * Ajax 요청에 대해 redirect를 리턴하면 정상 작동하지 않음으로 ok에 redirect loation을 포함하여 리턴한다.
-     * 클라이언트에서 {@code location}을 확인하여 redirect 시킨다.
-     *
-     * @param location
-     * @return
-     */
     private static Result okWithLocation(String location) {
         ObjectNode result = Json.newObject();
         result.put("location", location);
@@ -395,12 +323,6 @@ public class OrganizationApp extends Controller {
         return redirect(routes.OrganizationApp.settingForm(modifiedOrganization.name));
     }
 
-    /**
-     * {@link #updateOrganizationInfo(String)}를 위해 사용되는 변수의 유효성 검사를 한다.
-     * @param organizationForm
-     * @param modifiedOrganization
-     * @return
-     */
     private static Result validateForUpdate(Form<Organization> organizationForm, Organization modifiedOrganization) {
         Organization organization = Organization.find.byId(modifiedOrganization.id);
         if (organization == null) {

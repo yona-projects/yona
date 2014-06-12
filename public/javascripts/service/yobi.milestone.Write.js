@@ -128,7 +128,6 @@
         }
 
         /**
-         * 파일 업로더 초기화
          * initialize fileUploader
          */
         function _initFileUploader(){

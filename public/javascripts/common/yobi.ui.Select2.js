@@ -21,8 +21,6 @@
 /**
  * yobi.ui.Select2
  *
- * data-format 속성으로 해당 select 항목의 포맷을 지정할 수 있다
- *
  * @requires select2.js (http://ivaynberg.github.io/select2/)
  */
 
@@ -134,9 +132,6 @@
 
 })("yobi.ui.Select2");
 
-/**
- * data-toggle="select2" 로 지정한 select 엘리먼트에 select2.js 를 적용한다
- */
 $(function(){
     $('[data-toggle="select2"]').each(function(i, el){
         yobi.ui.Select2(el);

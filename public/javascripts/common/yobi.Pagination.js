@@ -21,10 +21,7 @@
 // Render pagination in the given target HTML element.
 // Usage: Pagiation.updatePagination(target, totalPages);
 // For more details, see docs/technical/pagination.md
-/**
- * TODO: 무한 스크롤 구현을 할 게 아니라면
- * 굳이 페이징 링크를 굳이 동적으로 만들어야 할까? 개선 검토 필요
- */
+
 yobi.Pagination = (function(window, document) {
     var htRegEx = {};
     var rxDigit = /^.[0-9]*$/;

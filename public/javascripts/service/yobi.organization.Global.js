@@ -24,7 +24,6 @@
         var htElement = {};
 
         /**
-         * 모듈 초기화
          * initialize
          */
         function _init() {
@@ -33,7 +32,6 @@
         }
 
         /**
-         * 엘리먼트 변수 초기화
          * initialize element variables
          */
         function _initElement() {
@@ -41,7 +39,6 @@
         }
 
         /**
-         * 이벤트 핸들러 초기화
          * attach event handlers
          */
         function _attachEvent() {
@@ -49,7 +46,6 @@
         }
 
         /**
-         * Enroll 버튼 클릭시 이벤트 핸들러
          * @param {Wrapped Event} weEvt
          */
         function _onClickBtnEnroll(weEvt){

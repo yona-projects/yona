@@ -137,40 +137,12 @@ public class PullRequest extends Model implements ResourceConvertible {
     @OrderBy("created ASC")
     public List<PullRequestEvent> pullRequestEvents;
 
-    /**
-     * {@link #fromBranch}의 가장 최근 커밋 ID
-     *
-     * when: 브랜치를 삭제한 뒤 복구할 때 사용한다.
-     *
-     */
     public String lastCommitId;
 
-    /**
-     * merge commit의 parent 중에서 코드를 받는 쪽 브랜치의 HEAD 커밋 ID.
-     *
-     * when: merge된 커밋 목록을 조회할 때 사용한다.
-     *
-     * 이 커밋 ID는 코드를 보내는쪽에도 존재하며 그 뒤의 커밋 ID부터 추가된 커밋 ID로 볼 수 있다.
-     *
-     * #mergedCommitIdFrom < 추가된 커밋 ID 목록 <= #mergedCommitIdTo
-     *
-     */
     public String mergedCommitIdFrom;
 
-    /**
-     * merge commit의 parent 중에서 코드를 보내는 쪽 브랜치의 HEAD 커밋 ID.
-     *
-     * when: merge된 커밋 목록을 조회할 때 사용한다.
-     *
-     * #mergedCommitIdFrom 뒤에 추가된 커밋 ID부터 이 커밋 ID까지를 추가된 커밋 ID로 불 수 있다.
-     *
-     * #mergedCommitIdFrom < 추가된 커밋 ID 목록 <= #mergedCommitIdTo
-     */
     public String mergedCommitIdTo;
 
-    /**
-     * #toProject 마다 순차적으로 유일한 수를 가진다.
-     */
     public Long number;
 
     public String conflictFiles;
@@ -222,9 +194,6 @@ public class PullRequest extends Model implements ResourceConvertible {
                 '}';
     }
 
-    /**
-     * when: Global의 onStart가 실행될 때 호출됩니다.
-     */
     public static void onStart() {
         regulateNumbers();
         changeStateToClosed();
@@ -331,16 +300,6 @@ public class PullRequest extends Model implements ResourceConvertible {
                 .findRowCount();
     }
 
-    /**
-     * 보내거나 받는 쪽에
-     * {@code project} 의 {@code branch} 를 가지고 있는 pull-request 목록 조회
-     *
-     * 병합(Closed)되지 않은 모든 보낸코드를 조회한다.
-     *
-     * @param project
-     * @param branch
-     * @return
-     */
     public static List<PullRequest> findRelatedPullRequests(Project project, String branch) {
         return finder.where()
                 .or(
@@ -380,11 +339,6 @@ public class PullRequest extends Model implements ResourceConvertible {
         };
     }
 
-    /**
-     * 새로운 코드 요청으로 기존 코드 요청을 수정한다.
-     *
-     * @param newPullRequest
-     */
     public void updateWith(PullRequest newPullRequest) {
         deleteIssueEvents();
 
@@ -397,12 +351,6 @@ public class PullRequest extends Model implements ResourceConvertible {
         addNewIssueEvents();
     }
 
-    /**
-     * {@code pullRequest}와 동일한 브랜치로 코드를 주고받는지 확인한다.
-     *
-     * @param pullRequest
-     * @return
-     */
     public boolean hasSameBranchesWith(PullRequest pullRequest) {
         return this.toBranch.equals(pullRequest.toBranch) && this.fromBranch.equals(pullRequest.fromBranch);
     }
@@ -416,8 +364,6 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     /**
-     * {@link #fromBranch}를 삭제하고 해당 브랜치의 최근 커밋 ID를 {@link #lastCommitId}에 저장한다.
-     *
      * @see #lastCommitId
      */
     public void deleteFromBranch() {
@@ -445,25 +391,19 @@ public class PullRequest extends Model implements ResourceConvertible {
                 mergedCommitIdFrom =
                         cloneRepository.getRef(org.eclipse.jgit.lib.Constants.HEAD).getObjectId().getName();
 
-                // 코드를 보낸 브랜치(fromBranch)의 코드를 merge 한다.
                 mergeResult = GitRepository.merge(cloneRepository, cloneAndFetch.getDestFromBranchName());
 
                 if (mergeResult.getMergeStatus().isSuccessful()) {
-                    // merge 커밋 메시지 수정
                     RevCommit mergeCommit = writeMergeCommitMessage(cloneRepository, sender);
                     String mergedCommitIdTo = mergeCommit.getId().getName();
                     pullRequest.mergedCommitIdFrom = mergedCommitIdFrom;
                     pullRequest.mergedCommitIdTo = mergedCommitIdTo;
 
-                    // 코드 보내기에서 변경한 코드의 원작자를 설정한다.
                     pullRequest.relatedAuthors = GitRepository.getRelatedAuthors(cloneRepository,
                             mergedCommitIdFrom, mergedCommitIdTo);
 
-                    // 코드 받을 프로젝트의 코드 받을 브랜치(srcToBranchName)로 clone한 프로젝트의
-                    // merge 브랜치(mergeBranchName)의 코드를 push 한다.
                     GitRepository.push(cloneRepository, GitRepository.getGitDirectoryURL(pullRequest.toProject), mergeBranchName, srcToBranchName);
 
-                    // 풀리퀘스트 완료
                     pullRequest.state = State.MERGED;
                     pullRequest.received = JodaDateUtil.now();
                     pullRequest.receiver = sender;
@@ -512,10 +452,6 @@ public class PullRequest extends Model implements ResourceConvertible {
             + "from pull request " + number;
     }
 
-    /**
-     * 코드 보내기 상태 변경
-     * @param state
-     */
     private void changeState(State state) {
         this.state = state;
         this.received = JodaDateUtil.now();
@@ -523,17 +459,11 @@ public class PullRequest extends Model implements ResourceConvertible {
         this.update();
     }
 
-    /**
-     * 코드 보내기 다시 열림
-     */
     public void reopen() {
         changeState(State.OPEN);
         PushedBranch.removeByPullRequestFrom(this);
     }
 
-    /**
-     * 코드 보내기 닫힘
-     */
     public void close() {
         changeState(State.CLOSED);
     }
@@ -575,11 +505,6 @@ public class PullRequest extends Model implements ResourceConvertible {
         return finder.where().eq("toProject", toProject).eq("number", number).findUnique();
     }
 
-    /**
-     * #number가 null인 PullRequest가 있을 때 number 초기화 작업을 진행합니다.
-     *
-     * when: Global의 onStart가 실행될 때 호출됩니다.
-     */
     @Transactional
     public static void regulateNumbers() {
         int nullNumberPullRequestCount = finder.where().eq("number", null).findRowCount();
@@ -621,13 +546,6 @@ public class PullRequest extends Model implements ResourceConvertible {
         return GitRepository.getDiff(mergedRepository, revA, mergedRepository, revB);
     }
 
-    /**
-     * {@code condition} 에 해당하는 코드-주고받기 목록 중 한 페이지를 가져온다.
-     * {@code SearchCondition.pageNum}은 0부터 시작하고, 한 페이지당 {@code ITEMS_PER_PAGE} 만큼 가져온다.
-     *
-     * @param condition
-     * @return
-     */
     public static Page<PullRequest> findPagingList(SearchCondition condition) {
         return createSearchExpressionList(condition)
                 .order().desc(condition.category.order())
@@ -635,19 +553,10 @@ public class PullRequest extends Model implements ResourceConvertible {
                 .getPage(condition.pageNum - 1);
     }
 
-    /**
-     * {@code condition} 에 해당하는 코드-주고받기 갯수를 가져온다.
-     *
-     * @param condition
-     * @return
-     */
     public static int count(SearchCondition condition) {
         return createSearchExpressionList(condition).findRowCount();
     }
 
-    /*
-     * 지정된 검색조건에 따라서 검색 표현식을 만든다.
-     */
     private static ExpressionList<PullRequest> createSearchExpressionList(SearchCondition condition) {
         ExpressionList<PullRequest> el = finder.where();
         if (condition.project != null) {
@@ -681,9 +590,6 @@ public class PullRequest extends Model implements ResourceConvertible {
         return el;
     }
 
-    /*
-     * 지정된 states 에 따라서 검색 표현식을 만든다.
-     */
     private static Expression createStateSearchExpression(State[] states) {
         int stateCount = ArrayUtils.getLength(states);
         switch (stateCount) {
@@ -696,9 +602,6 @@ public class PullRequest extends Model implements ResourceConvertible {
         }
     }
 
-    /**
-     * 새로운 풀리퀘가 저장될때 풀리퀘의 제목과 본문에서 참조한 이슈에 이슈 이벤트를 생성한다.
-     */
     private void addNewIssueEvents() {
         Set<Issue> referredIsseus = IssueEvent.findReferredIssue(this.title + this.body, this.toProject);
         String newValue = this.id.toString();
@@ -713,9 +616,6 @@ public class PullRequest extends Model implements ResourceConvertible {
         }
     }
 
-    /**
-     * 풀리퀘가 삭제될 때 이 풀리퀘와 관련있는 이슈 이벤트를 삭제한다.
-     */
     public void deleteIssueEvents() {
         String newValue = this.id.toString();
 
@@ -741,29 +641,16 @@ public class PullRequest extends Model implements ResourceConvertible {
         return StringUtils.split(this.conflictFiles, ",");
     }
 
-    /**
-     * 코드 코멘트를 반환한다.
-     * @return
-     */
     @Transient
     public List<CommitComment> getCommitComments() {
         return CommitComment.findByCommits(fromProject, pullRequestCommits);
     }
 
-    /**
-     * 현재 커밋목록을 반환한다.
-     * @return
-     */
     @Transient
     public List<PullRequestCommit> getCurrentCommits() {
         return PullRequestCommit.getCurrentCommits(this);
     }
 
-    /**
-     * 보낸 코드를 병합해보고 결과 정보를 반환한다.
-     *
-     * @return
-     */
     public PullRequestMergeResult attemptMerge() {
         final GitConflicts[] conflicts = {null};
         final List<GitCommit> commits = new ArrayList<>();
@@ -825,16 +712,6 @@ public class PullRequest extends Model implements ResourceConvertible {
         return mergeResult;
     }
 
-    /**
-     * diff commit message로 pull request의 title과 body를 채운다.<br>
-     * <br>
-     * case 1 : commit이 한개이고 message가 한줄일 경우 title에 추가한다.<br>
-     * case 2 : commit이 한개이고 message가 여러줄일 경우 첫번째줄 mesage는 title 나머지 message는 body에 추가<br>
-     * case 3 : commit이 여러개일 경우 각 commit의 첫번째줄 message들을 모아서 body에 추가 <br>
-     *
-     * @param commits
-     * @return
-     */
     private Map<String, String> suggestTitleAndBodyFromDiffCommit(List<GitCommit> commits) {
         Map<String, String> messageMap = new HashMap<>();
 
@@ -870,18 +747,6 @@ public class PullRequest extends Model implements ResourceConvertible {
         return messageMap;
     }
 
-    /**
-     * {@code fromProject}의 {@code fromBranch}에서 보낸 가장 최근 코드보내기 요청을 찾는다.
-     *
-     * fromProject와 toProject가 같은 수도 있다고 가정한다.
-     * {@code fromProject}가 fork 프로젝트 일때는 upstream으로 보낸 코드보내기 요청을 포함하여 찾는다.
-     *
-     * when: 코드 메뉴의 브랜치 탭에서 브랜치 목록을 보여줄 때 특정 브랜치와 관련있는 코드보내기 요청을 찾을 때 사용한다.
-     *
-     * @param fromProject
-     * @param fromBranch
-     * @return
-     */
     public static PullRequest findTheLatestOneFrom(Project fromProject, String fromBranch) {
         ExpressionList<PullRequest> el = finder.where()
                 .eq("fromProject", fromProject)
@@ -940,13 +805,6 @@ public class PullRequest extends Model implements ResourceConvertible {
         return toProject.defaultReviewerCount - reviewers.size();
     }
 
-    /**
-     * 변경내역에 달린 댓글들을 얻는다.
-     *
-     * @return
-     * @throws IOException
-     * @throws GitAPIException
-     */
     public List<CodeCommentThread> getCodeCommentThreadsForChanges(String commitId) throws
             IOException, GitAPIException {
         List<CodeCommentThread> result = new ArrayList<>();
@@ -989,12 +847,6 @@ public class PullRequest extends Model implements ResourceConvertible {
         return result;
     }
 
-    /**
-     * 주어진 {@code state} 상태의 댓글 스레드 목록을 얻는다
-     *
-     * @param state
-     * @return
-     */
     public List<CommentThread> getCommentThreadsByState(CommentThread.ThreadState state){
         List<CommentThread> result = new ArrayList<>();
 
@@ -1007,12 +859,6 @@ public class PullRequest extends Model implements ResourceConvertible {
         return result;
     }
 
-    /**
-     * 주어진 {@code state} 상태인 댓글 스레드 갯수를 반환한다
-     *
-     * @param state
-     * @return
-     */
     public int countCommentThreadsByState(CommentThread.ThreadState state){
         Integer count = 0;
 
@@ -1025,13 +871,6 @@ public class PullRequest extends Model implements ResourceConvertible {
         return count;
     }
 
-    /**
-     * 주어진 {@commitId}의 변경내역을 돌려준다.
-     *
-     * @param commitId
-     * @return
-     * @throws IOException
-     */
     public List<FileDiff> getDiff(String commitId) throws IOException {
         if (commitId == null) {
             return getDiff();
@@ -1049,18 +888,6 @@ public class PullRequest extends Model implements ResourceConvertible {
         thread.pullRequest = this;
     }
 
-    /**
-     * 저장소 {@code gitRepo}에서, {@code path}가 {@code rev1}과 {@code rev2}사이에서 아무
-     * 변화가 없었는지
-     *
-     * @param repoA
-     * @param rev1
-     * @param repoB
-     * @param rev2
-     * @param path
-     * @return
-     * @throws IOException
-     */
     static public boolean noChangesBetween(Repository repoA, String rev1,
                                            Repository repoB, String rev2,
                                            String path) throws IOException {

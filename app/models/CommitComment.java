@@ -108,13 +108,6 @@ public class CommitComment extends CodeComment {
         return list;
     }
 
-    /**
-     * CommitComment의 groupKey를 반환한다.
-     * commitId, path, line정보를 조한한 키가 일치할 경우 동일한 내용에 대한
-     * 코멘트로 간주한다.
-     *
-     * @return
-     */
     public String groupKey() {
         return new StringBuilder().append(this.commitId)
                 .append(this.path).append(this.line).toString();
@@ -131,10 +124,6 @@ public class CommitComment extends CodeComment {
         return commitId;
     }
 
-    /**
-     * 코멘트가 작성된 위치 정보가 있는지 여부를 반환한다.
-     * @return path와 line정보가 있으면 true 아니면 false
-     */
     public boolean hasLocation() {
         return StringUtils.isNotBlank(this.path) && this.line != null;
     }

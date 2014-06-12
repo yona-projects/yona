@@ -109,10 +109,6 @@ public class ReviewComment extends Model implements ResourceConvertible {
         };
     }
 
-    /**
-     * ReviewComment를 삭제합니다.
-     * CommentThread의 ReviewComment가 모두 삭제되면 CommentThread도 삭제됩니다.
-     */
     @Override
     public void delete() {
         long threadId = thread.id;

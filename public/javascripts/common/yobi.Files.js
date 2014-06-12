@@ -18,32 +18,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/**
- * yobi.Files
- * 첨부 파일 관리자
- *
- * - 파일 업로드(.uploadFile)
- * - 파일 삭제  (.deleteFile)
- * - 첨부 목록 수신(.getList)
- * - 업로더 영역 설정(.getUploader)
- * - 커스텀 이벤트 핸들러(.attach)
- *     - beforeUpload  : 업로드 시작
- *     - uploadProgress: 업로드 진행
- *     - successUpload : 업로드 성공
- *     - errorUpload   : 업로드 실패
- */
 yobi.Files = (function(){
     var htVar = {};
     var htElements = {};
     var htHandlers = {};
 
     /**
-     * 파일 관리자 초기화 함수
      * initialize fileUploader
      *
      * @param {Hash Table} htOptions
-     * @param {String} htOptions.sListURL   파일 목록 URL
-     * @param {String} htOptions.sUploadURL 파일 전송 URL
+     * @param {String} htOptions.sListURL
+     * @param {String} htOptions.sUploadURL
      */
     function _init(htOptions){
         htOptions = htOptions || {};
@@ -186,18 +171,17 @@ yobi.Files = (function(){
     function _uploadFileForm(nSubmitId, elFile, sNamespace){
         var htElement = htElements[sNamespace];
 
-        // FileForm 이용한 업로드는 input[type=file] 이 반드시 필요하다
         if(!htElement.welInputFile && !elFile){
             return false;
         }
 
-        var welInputFile = htElement.welInputFile || $(elFile); // 원래의 file input
-        var welInputFileClone = welInputFile.clone();            // 새로 끼워넣을 복제품.
+        var welInputFile = htElement.welInputFile || $(elFile);
+        var welInputFileClone = welInputFile.clone();
         var welForm = $('<form method="post" enctype="multipart/form-data" style="display:none">');
 
-        welInputFileClone.insertAfter(welInputFile); // 예전 input 뒤에 끼워넣고
-        welInputFileClone.on("change", $.proxy(_onChangeFile, this, sNamespace)); // 이벤트 핸들러
-        htElement.welInputFile = welInputFileClone; // 레퍼런스 교체
+        welInputFileClone.insertAfter(welInputFile);
+        welInputFileClone.on("change", $.proxy(_onChangeFile, this, sNamespace));
+        htElement.welInputFile = welInputFileClone;
 
         welForm.attr('action', htVar.sUploadURL);
         welForm.append(welInputFile).appendTo(document.body);
@@ -209,7 +193,6 @@ yobi.Files = (function(){
             welForm = welInputFile = null;
         };
 
-        // 폼 이벤트 핸들러 설정: nSubmitId 가 필요한 부분만
         var htUploadOpts = htVar.htUploadOpts;
         htUploadOpts.success = function(oRes){
             _onSuccessSubmit(nSubmitId, oRes, sNamespace);
@@ -232,7 +215,6 @@ yobi.Files = (function(){
     }
 
     /**
-     * 파일 업로드 진행상태 처리 함수
      * uploadProgress event handler
      *
      * @param {Object} oEvent
@@ -246,7 +228,6 @@ yobi.Files = (function(){
     }
 
     /**
-     * 첨부 파일 전송에 성공시 이벤트 핸들러
      * On success to submit temporary form created in onChangeFile()
      *
      * @param {Hash Table} htData
@@ -271,7 +252,6 @@ yobi.Files = (function(){
     }
 
     /**
-     * 파일 전송에 실패한 경우
      * On error to submit temporary form created in onChangeFile().
      *
      * @param {Number} nSubmitId
@@ -286,13 +266,12 @@ yobi.Files = (function(){
     }
 
     /**
-     * 파일 삭제 요청
      * delete specified file
      *
      * @param {Hash Table} htOptions
-     * @param {String} htOptions.sURL 삭제할 파일 주소
-     * @param {Function} htOptions.fOnLoad 성공시 콜백 함수
-     * @param {Function} htOptions.fOnError 실패시 콜백 함수
+     * @param {String} htOptions.sURL
+     * @param {Function} htOptions.fOnLoad
+     * @param {Function} htOptions.fOnError
      */
     function _deleteFile(htOptions){
         $yobi.sendForm({
@@ -308,14 +287,13 @@ yobi.Files = (function(){
     }
 
     /**
-     * 서버에 첨부파일 목록 요청
      * request attached file list
      *
      * @param {Hash Table} htOptions
-     * @param {String} htOptions.sResourceType 리소스 타입
-     * @param {String} htOptions.sResourceId   리소스 식별자 (Optional)
-     * @param {Function} htOptions.fOnLoad     성공시 콜백 함수
-     * @param {Function} htOptions.fOnError    실패시 콜백 함수
+     * @param {String} htOptions.sResourceType
+     * @param {String} htOptions.sResourceId
+     * @param {Function} htOptions.fOnLoad
+     * @param {Function} htOptions.fOnError
      */
     function _getFileList(htOptions){
         $.ajax({
@@ -331,10 +309,6 @@ yobi.Files = (function(){
     }
 
     /**
-     * 지정한 컨테이너 영역에 이벤트 핸들러를 설정해서
-     * input[type=file] 이나 드래그앤드롭 등의 파일 첨부 기능을 활성화 시켜준다
-     * 래핑된 컨테이너 엘리먼트에 이벤트 구분을 위한 네임스페이스ID 를 부여해서 반환
-     *
      * @param {HTMLElement} elContainer
      * @param {HTMLTextareaElement} elTextarea (Optional)
      * @param {String} sNamespace
@@ -359,8 +333,6 @@ yobi.Files = (function(){
     }
 
     /**
-     * 업로더 영역 제거 함수
-     *
      * @param {String} sNamespace
      */
     function _destroyUploader(sNamespace){
@@ -371,8 +343,6 @@ yobi.Files = (function(){
     }
 
     /**
-     * 엘리먼트 변수 설정
-     *
      * @param {Hash Table} htOptions
      * @param {HTMLElement} htOptions.elContainer
      * @param {HTMLTextareaElement} htOptions.elTextarea (Optional)
@@ -393,8 +363,6 @@ yobi.Files = (function(){
     }
 
     /**
-     * 컨테이너 영역에 이벤트 설정
-     *
      * @param {String} sNamespace
      */
     function _attachEvent(sNamespace){
@@ -449,8 +417,6 @@ yobi.Files = (function(){
     }
 
     /**
-     * DragOver 이벤트 핸들러
-     *
      * @param sNamespace
      * @param weEvt
      * @returns {boolean}
@@ -465,8 +431,6 @@ yobi.Files = (function(){
     }
 
     /**
-     * DragEnter 이벤트 핸들러
-     *
      * @param sNamespace
      * @param weEvt
      * @private
@@ -480,8 +444,6 @@ yobi.Files = (function(){
     }
 
     /**
-     * 전송되는 데이터 타입으로부터 dropEffect 문자열을 반환
-     *
      * @param weEvt
      * @returns {string}
      * @private
@@ -504,8 +466,6 @@ yobi.Files = (function(){
     }
 
     /**
-     * DragLeave 이벤트 핸들러
-     *
      * @param sNamespace
      * @param weEvt
      * @private
@@ -519,8 +479,6 @@ yobi.Files = (function(){
     }
 
     /**
-     * 컨테이너 영역에 설정된 이벤트 핸들러 제거
-     *
      * @param {String} sNamespace
      */
     function _detachEvent(sNamespace){
@@ -533,7 +491,6 @@ yobi.Files = (function(){
     }
 
     /**
-     * 파일 선택시 이벤트 핸들러
      * change event handler on input[type="file"]
      *
      * @param {String} sNamespace
@@ -549,8 +506,6 @@ yobi.Files = (function(){
     }
 
     /**
-     * 파일을 드래그앤드롭해서 가져왔을 때 이벤트 핸들러
-     *
      * @param {String} sNamespace
      * @param {Wrapped Event} weEvt
      */
@@ -575,8 +530,6 @@ yobi.Files = (function(){
     }
 
     /**
-     * 이미지 데이터를 클립보드에서 붙여넣었을 때 이벤트 핸들러
-     *
      * @param {String} sNamespace
      * @param {Wrapped Event} weEvt
      */
@@ -619,7 +572,6 @@ yobi.Files = (function(){
     }
 
     /**
-     * 문자열에서 경로를 제거하고 파일명만 반환
      * return trailing name component of path
      *
      * @param {String} sPath

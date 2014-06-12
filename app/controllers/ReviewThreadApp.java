@@ -35,8 +35,6 @@ import play.mvc.With;
 import views.html.reviewthread.list;
 
 /**
- * 리뷰 스레드 요청을 처리하는 컨트롤러.
- *
  * @author Changsung Kim
  * @author Keesun Baik
  */
@@ -44,13 +42,6 @@ public class ReviewThreadApp extends Controller {
 
     public static final int REVIEWS_PER_PAGE = 15;
 
-    /**
-     * 프로젝트 속한 리뷰 스레드 목록을 보여준다.
-     *
-     * @param ownerName
-     * @param projectName
-     * @return
-     */
     @With(AnonymousCheckAction.class)
     @IsAllowed(value = Operation.READ)
     public static Result reviewThreads(String ownerName, String projectName) {

@@ -19,8 +19,6 @@
  * limitations under the License.
  */
 /**
- * bootstrap-typeahead.js 사용을 위한 공통 인터페이스
- *
  * @example
  * new yobi.ui.Typeahead(htElement.welInputAddTag, {
  *      "sActionURL": htVar.sURLTags,
@@ -43,9 +41,8 @@
         var htElement = {};
 
         /**
-         * 초기화
          * Initialize component
-         * @param {String} sQuery ui.Typeahead 를 적용할 대상
+         * @param {String} sQuery
          * @param {Hash Table} htOptions
          */
         function _init(sQuery, htOptions){
@@ -54,7 +51,6 @@
         }
 
         /**
-         * 변수 초기화
          * Initialize variables
          * @param {Hash Table} htOptions
          */
@@ -73,7 +69,6 @@
         }
 
         /**
-         * 엘리먼트 초기화
          * Initialize element
          * @param {String} sQuery
          */

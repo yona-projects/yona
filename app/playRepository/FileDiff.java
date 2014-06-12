@@ -231,10 +231,6 @@ public class FileDiff {
         editList = newEditList;
     }
 
-    /**
-     * FileMode 가 변경되었는지 여부
-     * @return
-     */
     public boolean isFileModeChanged() {
         if (FileMode.MISSING.equals(oldMode.getBits())) {
             return false;

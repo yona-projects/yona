@@ -19,8 +19,6 @@
  * limitations under the License.
  */
 /**
- * yobi.ui.Spinner 는 일관된 Spinner UI를 위한 공통 인터페이스다.
- *
  * Method:
  * yobi.ui.Spinner.show()
  * yobi.ui.Spinner.hide()
@@ -118,12 +116,6 @@
 
 })("yobi.ui.Spinner");
 
-/**
- * Safari 브라우저의 캐시로 인해
- * Spinner 가 표시되고 있는 상태로 패이지를 이동했다가
- * "뒤로가기" 버튼을 눌러 돌아오면 여전히 표시중인 문제를 해결하기 위해
- * 페이지를 벗어나기 직전 없애고 Spinner 를 감춤 처리하도록 한다
- */
 $(document).ready(function(){
     if(navigator.userAgent.indexOf("Safari") > -1){
         $(window).on("beforeunload", function(){

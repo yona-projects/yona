@@ -143,11 +143,6 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
         commentedCheck = false;
     }
 
-    /**
-     * 프로젝트 제한을 두지 않고 전체 이슈를 대상으로 검색할 때 사용한다.
-     *
-     * @return ExpressionList<Issue>
-     */
     public ExpressionList<Issue> asExpressionList() {
         ExpressionList<Issue> el = Issue.finder.where();
 
@@ -240,11 +235,6 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
         return new ArrayList<>(ids);
     }
 
-    /**
-     * 특정 프로젝트를 대상으로 검색 표현식을 만든다.
-     *
-     * @return ExpressionList<Issue>
-     */
     public ExpressionList<Issue> asExpressionList(Project project) {
         ExpressionList<Issue> el = Issue.finder.where();
         if( project != null ){

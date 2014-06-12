@@ -456,14 +456,6 @@ public class Attachment extends Model implements ResourceConvertible {
                         }
                     }
 
-                    /**
-                     * 사용자 임시 첨부 파일을 삭제
-                     *
-                     * 사용자에 의해 업로드 된지 {@code application.temporaryfiles.keep-up.time}초 이상 경과한
-                     * 임시파일들은 서버에서 삭제한다.
-                     *
-                     * @return 전체 대상 파일 중 지운 파일 ex> (10 of 10)
-                     */
                     private String removeUserTemporaryFiles() {
                         List<Attachment> attachmentList = Attachment.find.where()
                                 .eq("containerType", ResourceType.USER)
@@ -487,9 +479,6 @@ public class Attachment extends Model implements ResourceConvertible {
         );
     }
 
-    /**
-     * when: Global의 onStart가 실행될 때 호출됩니다.
-     */
     public static void onStart() {
         cleanupTemporaryUploadFilesWithSchedule();
     }

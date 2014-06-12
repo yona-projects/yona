@@ -159,11 +159,7 @@ public class Global extends GlobalSettings {
                 Files.write(path, config.getBytes());
             }
 
-            /*
-             * 사이트 관리자 입력 폼 유효성 체크
-             */
             private boolean hasError(Form<User> newUserForm) {
-                // loginId가 빈 값이 들어오면 안된다.
                 if (StringUtils.isBlank(newUserForm.field("loginId").value())) {
                     newUserForm.reject("loginId", "user.wrongloginId.alert");
                 }
@@ -172,22 +168,18 @@ public class Global extends GlobalSettings {
                     newUserForm.reject("loginId", "user.wrongloginId.alert");
                 }
 
-                // password가 빈 값이 들어오면 안된다.
                 if (StringUtils.isBlank(newUserForm.field("password").value())) {
                     newUserForm.reject("password", "user.wrongPassword.alert");
                 }
 
-                // password와 retypedPassword가 일치해야 한다.
                 if (!newUserForm.field("password").value().equals(newUserForm.field("retypedPassword").value())) {
                     newUserForm.reject("retypedPassword", "user.confirmPassword.alert");
                 }
 
-                // email이 빈 값이 들어오면 안된다.
                 if (StringUtils.isBlank(newUserForm.field("email").value())) {
                     newUserForm.reject("email", "validation.invalidEmail");
                 }
 
-                // 중복된 email로 가입할 수 없다.
                 if (User.isEmailExist(newUserForm.field("email").value())) {
                     newUserForm.reject("email", "user.email.duplicate");
                 }

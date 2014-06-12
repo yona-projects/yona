@@ -40,7 +40,6 @@
 
         /**
          * initialize variables
-         * 정규식 변수는 한번만 선언하는게 성능 향상에 도움이 됩니다
          */
         function _initVar(htOptions){
             htVar.rxPrjName = /^[0-9A-Za-z-_\.]+$/;
@@ -76,17 +75,11 @@
             $(".reviewer-count-wrap").on("click", '[data-toggle="reviewer-count"]', _toggleReviewerCount);
         }
 
-        /**
-         * 리뷰어 기능 사용 여부를 토글 한다.
-         */
         function _toggleReviewerCount(){
             var sAction = $(this).data("action");
             htElement.welReviewerCount[sAction]();
         }
 
-        /**
-         * 프로젝트 로고 변경시 이벤트 핸들러
-         */
         function _onChangeLogoPath(){
             var welTarget = $(this);
 
@@ -99,9 +92,6 @@
             htElement.welForm.submit();
         }
 
-        /**
-         * 프로젝트 설정 저장 버튼 클릭시
-         */
         function _onClickBtnSave(){
             var sPrjName = htElement.welInputName.val();
             if(!htVar.rxPrjName.test(sPrjName)){

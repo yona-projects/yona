@@ -157,18 +157,6 @@ public class Watch extends UserAction {
         return isWatching(UserApp.currentUser(), resource.getType(), resource.getId());
     }
 
-    /**
-     * {@code resource} 를 실질적으로 지켜보는 사용자들을 찾는다.
-     * {@code baseWatchers} 와
-     * {@code resource} 가 어떤 프로젝트에 속한 것이라면 해당 프로젝트를 지켜보는 사용자,
-     * 명시적으로 {@code resource} 를 지켜보는 사용자의 합집합에서
-     * 명시적으로 {@code resource} 를 지켜보지 않는 사용자와
-     * {@code resource} 에 읽기 권한이 없는 사용자를 제외한 집합을 반환한다.
-     *
-     * @param baseWatchers 기본적으로 watcher 에 포함 시킬 사용자들
-     * @param resource 지켜보는 대상
-     * @return {@code resource} 를 실질적으로 지켜보는 사용자들
-     */
     public static Set<User> findActualWatchers(final Set<User> baseWatchers, final Resource resource) {
         Set<User> actualWatchers = new HashSet<>();
         actualWatchers.addAll(baseWatchers);

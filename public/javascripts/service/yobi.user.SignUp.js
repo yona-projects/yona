@@ -70,10 +70,6 @@
             htElement.welInputPassword2.focusout(_onBlurInputPassword);
         }
 
-        /**
-         * 아이디 입력란 벗어날 때 이벤트 핸들러
-         * 중복여부 즉시 확인
-         */
         function _onBlurInputLoginId(){
             var welInput = $(this);
             var sLoginId = $yobi.getTrim(welInput.val()).toLowerCase();
@@ -89,10 +85,6 @@
             }
         }
 
-        /**
-         * 이메일 입력란 벗어날 때 이벤트 핸들러
-         * 중복여부 즉시 확인
-         */
         function _onBlurInputEmail(){
             var welInput = $(this);
 
@@ -101,10 +93,6 @@
             }
         }
 
-        /**
-         * 비밀번호 확인 입력란 벗어날 때 이벤트 핸들러
-         * 마지막 입력란이므로 전체 폼 유효성 검사
-         */
         function _onBlurInputPassword(){
             htVar.oValidator._validateForm();
         }

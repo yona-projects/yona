@@ -19,9 +19,6 @@
  * limitations under the License.
  */
 /**
- * bootstrap-dropdown.js 에서는 단순히 목록 토글 기능만 제공하므로
- * yobi.Dropdown 로 해당 영역을 지정하면 <select> 의 기능을 하도록 만든다
- *
  * @example
  * var oSelect = new yobi.Dropdown({
  *     "elContainer": ".btn-group",
@@ -39,10 +36,7 @@
         var htVar = {"sValue":""};
         var htElement = {};
 
-        /**
-         * 초기화
-         */
-        function _init(htOptions){
+         function _init(htOptions){
             _initElement(htOptions);
             _attachEvent();
 
@@ -51,35 +45,19 @@
             _selectDefault();
         }
 
-        /**
-         * 엘리먼트 변수
-         */
-        function _initElement(htOptions){
+         function _initElement(htOptions){
             htElement.welContainer = $(htOptions.elContainer);
             htElement.welSelectedLabel = htElement.welContainer.find(".d-label");
             htElement.welList = htElement.welContainer.find(".dropdown-menu");
             htElement.waItems = htElement.welList.find("li");
         }
 
-        /**
-         * 이벤트 처리
-         */
         function _attachEvent(){
-            // 동적 list 추가 삭제 처리를 위한 event delegation
-            // 각 <li> 항목에 이벤트 핸들러를 설정하는 것 보다
-            // ul.dropdown-menu 전체에 설정하는 것이 메모리 절약
-
             htElement.welList.on("click", "li", _onClickItem);
             htElement.welList.on("mousewheel", _onScrollList);
         }
 
         /**
-         * 목록 영역에서 스크롤 할 때의 이벤트 핸들러 (mousewheel)
-         *
-         * 최상단에서 위쪽으로 스크롤 하려 하거나,
-         * 최하단에서 아래쪽으로 스크롤 하려 하는 경우
-         * 브라우저의 기본 동작을 막고 이벤트를 취소한다
-         *
          * @param weEvt
          * @returns {boolean}
          * @private
@@ -94,8 +72,6 @@
         }
 
         /**
-         * 목록 영역의 스크롤 위치가 최상단인지의 여부를 반환한다
-         *
          * @returns {boolean}
          * @private
          */
@@ -104,8 +80,6 @@
         }
 
         /**
-         * 목록 영역의 스크롤 위치가 최하단인지의 여부를 반환한다
-         *
          * @returns {boolean}
          * @private
          */
@@ -114,8 +88,6 @@
         }
 
         /**
-         * 항목 선택시 이벤트 핸들러
-         *
          * @param {Wrapped Event} weEvt
          */
         function _onClickItem(weEvt){
@@ -136,7 +108,6 @@
         }
 
         /**
-         * 선택한 항목을 선택된 상태로 보이게 만드는 함수
          * @param {Wrapped Element} welTarget
          */
         function _setItemSelected(welTarget){
@@ -146,7 +117,6 @@
         }
 
         /**
-         * 선택한 항목의 값을 input (type=hidden) 형태로 실제 폼 엘리먼트 값으로 반영
          * @param {Wrapped Element} welTarget
          */
         function _setFormValue(welTarget){
@@ -169,9 +139,6 @@
             welInput.val(sFieldValue);
         }
 
-        /**
-         * 항목 값이 변경되면 실행될 함수
-         */
         function _onChange(){
             if(typeof htVar.fOnChange == "function"){
                 setTimeout(function(){
@@ -181,7 +148,6 @@
         }
 
         /**
-         * 항목 값이 변경되면 실행할 함수 지정
          * @param {Function} fOnChange
          */
         function _setOnChange(fOnChange){
@@ -190,22 +156,17 @@
         }
 
         /**
-         * 현재 선택된 값을 반환
          * @return {String}
          */
         function _getValue(){
             return htVar.sValue;
         }
 
-        /**
-         * 기본값 지정이 있으면 선택된 상태로 만들기
-         */
         function _selectDefault(){
             return _selectItem("li[data-selected=true]");
         }
 
         /**
-         * 지정한 값을 data-value 로 가진 항목을 선택 상태로 만듬
          * @param {String} sValue
          */
         function _selectByValue(sValue){
@@ -213,8 +174,7 @@
         }
 
         /**
-         * 지정한 항목을 선택 상태로 만듬
-         * @param {String} sQuery 항목 선택 셀렉터 구문
+         * @param {String} sQuery
          */
         function _selectItem(sQuery){
             var waFind = htElement.welContainer.find(sQuery);

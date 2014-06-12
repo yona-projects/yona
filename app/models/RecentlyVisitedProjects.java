@@ -28,8 +28,6 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * 유저당 최근 방문 프로젝트 정보를 담고 있다.
- *
  * @author Keeun Baik
  */
 @Entity
@@ -50,13 +48,6 @@ public class RecentlyVisitedProjects extends Model {
     @JoinColumn(name = "recently_visited_projects_id")
     public List<ProjectVisitation> visitedProjects;
 
-    /**
-     * {@code user}가 {@code project}를 방문한 기록을 추가한다.
-     *
-     * @param user
-     * @param project
-     * @return
-     */
     @Transactional
     public static RecentlyVisitedProjects addNewVisitation(User user, Project project) {
         RecentlyVisitedProjects existingOne = find.where().eq("user", user).findUnique();
@@ -87,11 +78,6 @@ public class RecentlyVisitedProjects extends Model {
         }
     }
 
-    /**
-     * 최근 방문한 프로젝트 목록을 {@code size} 개수만큼 가져온다.
-     *
-     * @return
-     */
     public List<ProjectVisitation> findRecentlyVisitedProjects(int size) {
         return ProjectVisitation.findRecentlyVisitedProjects(this, size);
     }

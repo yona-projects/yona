@@ -28,7 +28,6 @@ yobi.LabelEditor = (function(welContainer, htOptions){
     var htElement = {};
 
     /**
-     * 초기화
      * initialize
      * @param {Wrapped Element} welContainer Container element to append label editor
      * @param {Hash Table} htOptions
@@ -40,14 +39,13 @@ yobi.LabelEditor = (function(welContainer, htOptions){
     }
 
     /**
-     * 변수 초기화
      * initialize variables
      * @param {Hash Table} htOptions
-     * @param {Function} htOptions.fOnCreate    라벨 추가 후 실행할 콜백 함수
-     * @param {String}   htOptions.sURLPost     라벨 추가 AJAX URL
-     * @param {String}   htOptions.sTplEditor   라벨 에디터 템플릿
-     * @param {String}   htOptions.sTplBtnColor 라벨 기본 색상 버튼 템플릿
-     * @param {Array}    htOptions.aColors      라벨 기본 색상코드 배열
+     * @param {Function} htOptions.fOnCreate
+     * @param {String}   htOptions.sURLPost
+     * @param {String}   htOptions.sTplEditor
+     * @param {String}   htOptions.sTplBtnColor
+     * @param {Array}    htOptions.aColors
      */
     function _initVar(htOptions){
         htVar.sURLPost = htOptions.sURLPost;
@@ -59,17 +57,14 @@ yobi.LabelEditor = (function(welContainer, htOptions){
     }
 
     /**
-     * 엘리먼트 초기화
      * initialize elements
-     * @param {Wrapped Element} welContainer 컨테이너 엘리먼트
+     * @param {Wrapped Element} welContainer
      */
     function _initElement(welContainer){
-        // htVar.sTplEditor 를 이용해 만들어진 라벨 에디터를 대상 영역에 붙이고
         htElement.welContainer = $(welContainer);
         htElement.welEditor = _getLabelEditor();
         htElement.welContainer.append(htElement.welEditor);
 
-        // 세부 항목의 엘리먼트 레퍼런스 변수 설정
         htElement.welWrap = $("#custom-label");
         htElement.welColors = htElement.welWrap.find("div.colors");
         _makeColorTable(); // 색상표 생성
@@ -86,7 +81,6 @@ yobi.LabelEditor = (function(welContainer, htOptions){
     }
 
     /**
-     * Enter 키가 눌렸을 경우 기본 이벤트 무시
      * @returns {Boolean} false on enter key has pressed
      */
     function _preventDefaultWhenEnterPressed(weEvt) {
@@ -94,7 +88,6 @@ yobi.LabelEditor = (function(welContainer, htOptions){
     }
 
     /**
-     * Enter 키가 눌렸을 경우 기본 이벤트 무시하고 특정 엘리먼트로 포커스 이동
      * @private false when enter key pressed
      */
     function _preventSubmitAndMoveWhenEnterPressed(eEvt, welTarget){
@@ -106,7 +99,6 @@ yobi.LabelEditor = (function(welContainer, htOptions){
     }
 
     /**
-     * 이벤트 초기화
      * attach events
      */
     function _attachEvent(){
@@ -143,15 +135,12 @@ yobi.LabelEditor = (function(welContainer, htOptions){
         var sCategory = htElement.welCustomLabelCategory.val();
         var sColor = htElement.welCustomLabelColor.val();
 
-        // 카테고리를 입력해야함
         if(!sCategory.trim()){
             return;
         }
 
         var welFirstItemInCategory = $('.label-group[data-category="' + sCategory + '"] > .issue-label:first');
 
-        // 그 카테고리에 적어도 하나 이상의 항목이 있으며
-        // 컬러는 입력한 값이 없는 상태라면 첫번째 항목의 색을 자동으로 선택한다
         if(welFirstItemInCategory.length > 0 && !sColor.trim()){
             var sColor = new RGBColor(welFirstItemInCategory.css("background-color")).toHex();
             _updateSelectedColor(sColor);
@@ -161,7 +150,6 @@ yobi.LabelEditor = (function(welContainer, htOptions){
 
     /**
      * Get label Editor
-     * 새 라벨 편집기 영역 엘리먼트를 생성해서 반환하는 함수
      * @return {Wrapped Element}
      */
     function _getLabelEditor(){
@@ -186,16 +174,12 @@ yobi.LabelEditor = (function(welContainer, htOptions){
         aColorBtns = null;
     }
 
-    /**
-     * 새 라벨 추가 버튼 클릭시 이벤트 핸들러
-     */
     function _onClickBtnSubmitCustom(){
         _addCustomLabel();
         htElement.welCustomLabelName.focus();
     }
 
     /**
-     * 새 라벨 추가
      * add custom label
      */
     function _addCustomLabel(){
@@ -205,13 +189,11 @@ yobi.LabelEditor = (function(welContainer, htOptions){
             "category": htElement.welCustomLabelCategory.val()
         };
 
-        // 하나라도 입력안된 것이 있으면 서버 요청 하지 않음
         if(htData.name.length === 0 || htData.color.length === 0 || htData.category.length === 0){
             $yobi.alert(Messages("label.error.empty"));
             return false;
         }
 
-        // 라벨 컬러가 정상적인 컬러코드인지 확인
         var sColor = htElement.welCustomLabelColor.val();
         var oColor = new RGBColor(sColor);
 
@@ -251,7 +233,6 @@ yobi.LabelEditor = (function(welContainer, htOptions){
     }
 
     /**
-     * 새 라벨 색상 버튼 클릭시 이벤트 핸들러
      * @param {Event} eEvt
      */
     function _onClickBtnCustomColor(eEvt){
@@ -273,10 +254,6 @@ yobi.LabelEditor = (function(welContainer, htOptions){
         htElement.welCustomLabelColor.focus();
     }
 
-    /**
-     * 새 라벨 색상 코드 입력 <input>이 업데이트 될 때
-     * 이름 입력 <input> 영역 배경색/글씨색 업데이트 하도록
-     */
     function _onKeyupInputColorCustom(){
         var sColor = htElement.welCustomLabelColor.val();
         var oColor = new RGBColor(sColor);
@@ -290,9 +267,8 @@ yobi.LabelEditor = (function(welContainer, htOptions){
 
     /**
      * updateSelectedLabel Color
-     * 지정한 색으로 새 라벨 이름 영역의 배경색을 설정하고
-     * 글자색을 배경색에 맞추어 업데이트 해주는 함수
-     * @param {String} sBgColor 배경색
+     *
+     * @param {String} sBgColor
      */
     function _updateSelectedColor(sBgColor){
         // Change the name input area's color to the selected color.
@@ -304,7 +280,6 @@ yobi.LabelEditor = (function(welContainer, htOptions){
         });
 
         // Change also place holder's
-        // TODO: 이 부분도 나중에 정리할 것. #custom-label-name 고정되어 있음
         var aSelectors = ['#custom-label input[name=labelName]:-moz-placeholder',
                          '#custom-label input[name=labelName]:-ms-input-placeholder',
                          '#custom-label input[name=labelName]::-webkit-input-placeholder'];
@@ -325,8 +300,7 @@ yobi.LabelEditor = (function(welContainer, htOptions){
     }
 
     /**
-     * 카테고리 자동완성(typeahead) 소스에서 지정한 값을 제거함
-     * @param {String} sCategory 제거할 카테고리 이름
+     * @param {String} sCategory
      */
     function _removeCategoryTypeahead(sCategory){
         var aSource = htElement.welCustomLabelCategory.typeahead().data('typeahead').source;
@@ -334,8 +308,7 @@ yobi.LabelEditor = (function(welContainer, htOptions){
     }
 
     /**
-     * 카테고리 자동완성(typeahead) 소스에서 지정한 값을 추가함
-     * @param {String} sCategory 추가할 카테고리 이름
+     * @param {String} sCategory
      */
     function _addCategoryTypeahead(sCategory) {
         var aSource = htElement.welCustomLabelCategory.typeahead().data('typeahead').source;
@@ -345,7 +318,6 @@ yobi.LabelEditor = (function(welContainer, htOptions){
         }
     }
 
-    // 인터페이스 반환
     return {
         "appendTo": _init,
         "removeCategory": _removeCategoryTypeahead,

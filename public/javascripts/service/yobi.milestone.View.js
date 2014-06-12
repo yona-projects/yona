@@ -37,7 +37,6 @@
         }
 
         /**
-         * 엘리먼트 변수 초기화
          * initialize elements
          */
         function _initElement(){

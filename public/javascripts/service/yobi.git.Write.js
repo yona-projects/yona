@@ -37,7 +37,6 @@
         }
 
         /**
-         * 변수 초기화
          * initialize variables
          */
         function _initVar() {
@@ -54,7 +53,6 @@
         }
 
         /**
-         * 엘리먼트 변수 초기화
          * initialize element variables
          */
         function _initElement(htOptions){
@@ -75,7 +73,6 @@
         }
 
         /**
-         * 이벤트 핸들러 설정
          * attach event handlers
          */
         function _attachEvent(){
@@ -100,8 +97,6 @@
         }
 
         /**
-         * 제목/내용에 키 입력이 발생할 때의 이벤트 핸들러
-         *
          * @param {Wrapped Event} weEvt
          */
         function _onKeyupInput(weEvt){
@@ -112,8 +107,6 @@
         }
 
         /**
-         * 프로젝트 선택이 바뀌면 페이지를 새로고침
-         *
          * @private
          */
         function _refreshNewPullRequestForm(){
@@ -126,7 +119,6 @@
         }
 
         /**
-         * 브랜치 선택이 바뀌면 폼 내용을 변경한다
          * request to reload pullRequestForm
          */
         function _reloadNewPullRequestForm(){
@@ -190,10 +182,6 @@
 
         }
 
-        /**
-         * pjax 영역 변화에 의해 다시 찾아야 하는 엘리먼트 레퍼런스
-         * _onSuccessReloadForm 에서 호출
-         */
         function _reloadElement(){
             htElement.welInputTitle = $('#title');
             htElement.welInputBody  = $('#body');
@@ -211,17 +199,11 @@
             $yobi.alert(Messages("pullRequest.error.newPullRequestForm", oRes.status, oRes.statusText));
         }
 
-        /**
-         * Spinner 시작
-         */
         function _startSpinner(){
             htVar.oSpinner = htVar.oSpinner || new Spinner();
             htVar.oSpinner.spin(document.getElementById('spin'));
         }
 
-        /**
-         * Spinner 종료
-         */
         function _stopSpinner(){
             if(htVar.oSpinner){
                 htVar.oSpinner.stop();
@@ -237,7 +219,6 @@
         }
 
         /**
-         * 폼 유효성 검사
          * Validate form before submit
          */
         function _validateForm(){
@@ -277,19 +258,15 @@
         }
 
         /**
-         * 파일업로더 초기화
          * initialize fileUploader
          */
         function _initFileUploader(){
-            // 이미 설정된 업로더가 있으면 제거하고 재설정
-            // reloadNewPullRequest 에서 브랜치 선택할 때 마다 입력 영역이 변하기 때문
             if(htVar.sUploaderId){
                 htVar.oAttachments.destroy();
                 yobi.Files.destroyUploader(htVar.sUploaderId);
                 htVar.sUploaderId = null;
             }
 
-            // 업로더 초기화
             var oUploader = yobi.Files.getUploader(htElement.welUploader, htElement.welInputBody);
             if(oUploader){
                 htVar.sUploaderId = oUploader.attr("data-namespace");

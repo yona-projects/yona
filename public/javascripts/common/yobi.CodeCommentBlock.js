@@ -27,8 +27,6 @@ yobi.CodeCommentBlock = (function(){
     var htBlockInfo = {};
 
     /**
-     * 초기화
-     *
      * @param sQuery
      * @private
      */
@@ -60,9 +58,6 @@ yobi.CodeCommentBlock = (function(){
     }
 
     /**
-     * DiffBody 영역에서 mousedown 이벤트 발생시 핸들러
-     * selectstart 이벤트는 FireFox 브라우저에서 지원되지 않기 때문에 mousedown 이벤트 사용
-     *
      * @private
      */
     function _onMouseDownOnDiff(weEvt){
@@ -71,12 +66,10 @@ yobi.CodeCommentBlock = (function(){
         }
 
         _unwrapAll();
-        window.getSelection().removeAllRanges(); // 기존의 Selection 정보를 지워야 함
+        window.getSelection().removeAllRanges();
     }
 
     /**
-     * 주어진 마우스 이벤트가 왼쪽 버튼을 누른 것인지 여부를 반환
-     *
      * @param weEvt
      * @returns {boolean}
      * @private
@@ -86,8 +79,6 @@ yobi.CodeCommentBlock = (function(){
     }
 
     /**
-     * DiffBody 영역에서 mouseup 이벤트 발생시 핸들러
-     *
      * @param weEvt
      * @private
      */
@@ -99,8 +90,6 @@ yobi.CodeCommentBlock = (function(){
     }
 
     /**
-     * 코멘트 달 수 있는 블럭 영역인지 여부를 불리언 값으로 반환
-     *
      * @returns {boolean}
      * @private
      */
@@ -152,7 +141,6 @@ yobi.CodeCommentBlock = (function(){
     }
 
     /**
-     * DiffBody 에서 선택한 영역 정보를 찾아 저장한다
      * @private
      */
     function _setBlockDataBySelection(){
@@ -192,9 +180,6 @@ yobi.CodeCommentBlock = (function(){
     }
 
     /**
-     * CodeCommentBlock 에서 wrap 이벤트 발생시
-     * 사용자가 어떤 영역을 선택하면 그 근처에 댓글작성 버튼을 표시
-     *
      * @private
      */
     function _onWrapCodeCommentBlock(){
@@ -209,7 +194,6 @@ yobi.CodeCommentBlock = (function(){
             var nTop = htCodeOffset.top + (htBlockInfo.bIsReversed ? -20 : welCode.height());
             var nLeft = htCodeOffset.left + (nBlockOffset * 7);
 
-            // 블럭 영역이 diff-container 테이블 밖에 잡힐때를 대비해서
             if(nLeft > (htCodeOffset.left + welLine.width() - 40)){
                 nLeft = htCodeOffset.left + welLine.width() - 80;
             }
@@ -225,10 +209,6 @@ yobi.CodeCommentBlock = (function(){
     }
 
     /**
-     * 사용자가 어떤 영역을 선택해서 welButtonOnBlock 이 표시된 이후에
-     * 계속 Selection 이 존재하는지를 확인해서 없어지면 welButtonOnBlock 을 감추고
-     * 더 이상 감시하지 않는다
-     *
      * @private
      */
     function _setSelectionWatcher(){
@@ -247,8 +227,6 @@ yobi.CodeCommentBlock = (function(){
     }
 
     /**
-     * line:offset ~ line:offset 을 Wrap 하는 함수
-     *
      * @param htOffset
      * @param htOffset.sPathA
      * @param htOffset.sPathB
@@ -268,9 +246,7 @@ yobi.CodeCommentBlock = (function(){
     }
 
     /**
-     * 선택한 영역을 Wrap
-     *
-     * @param {Hash Table} htOffset _setBlockDataBySelection 에서 반환하는 값과 같은 형식
+     * @param {Hash Table} htOffset
      * @private
      */
     function _wrapOnDiff(htOffset){
@@ -311,8 +287,6 @@ yobi.CodeCommentBlock = (function(){
     }
 
     /**
-     * _wrapByOffset() 함수의 인자로부터 필요한 엘리먼트들을 찾아서 반환하는 함수
-     *
      * @param htOffset
      * @returns {Hash Table}
      * @private
@@ -347,8 +321,6 @@ yobi.CodeCommentBlock = (function(){
     }
 
     /**
-     * elStart 와 elEnd 사이의 TableRow(TR) 배열을 반환한다
-     *
      * @param elStart
      * @param elEnd
      * @returns {Array}
@@ -403,8 +375,6 @@ yobi.CodeCommentBlock = (function(){
     }
 
     /**
-     * CodeCommentBlock 에서 unwrapAll 이벤트 발생시
-     * 댓글작성 버튼 감춤
      * @private
      */
     function _onUnwrapAllCodeCommentBlock(){

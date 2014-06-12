@@ -88,7 +88,6 @@ public class SVNRepository implements PlayRepository {
         SVNNodeKind nodeKind = repository.checkPath(path , -1 );
 
         if(nodeKind == SVNNodeKind.DIR){
-            //폴더 내용 출력
             ObjectNode result = Json.newObject();
             ObjectNode listData = Json.newObject();
             SVNProperties prop = new SVNProperties();
@@ -122,7 +121,6 @@ public class SVNRepository implements PlayRepository {
             return result;
 
         } else if(nodeKind == SVNNodeKind.FILE) {
-            //파일 내용 출력
             return fileAsJson(path, repository);
         } else {
             return null;
@@ -138,19 +136,6 @@ public class SVNRepository implements PlayRepository {
         }
     }
 
-    /**
-     * SVN repository의 {@code branch}에서 {@code path}의 정보를 JSON으로 반환한다.
-     *
-     * {@code branch}의 값으로 HEAD만 유효하며 그 외 다른 값이라면 null을 반환환다.
-     * HEAD에서 {@code path}가 디렉토리일 경우에는 해당 디렉토리에 들어있는 파일과 디렉토리 목록을 JSON으로 반환하고,
-     * 파일일 경우에는 해당 파일 정보를 JSON으로 반환한다. 그 외 디렉토리도 아니고 파일도 아니라면 null을 반환한다.
-     *
-     * @param branch
-     * @param path
-     * @return
-     * @throws IOException
-     * @throws SVNException
-     */
     @Override
     public ObjectNode getMetaDataFromPath(String branch, String path) throws
             IOException, SVNException {
@@ -164,7 +149,6 @@ public class SVNRepository implements PlayRepository {
         SVNNodeKind nodeKind = repository.checkPath(path , -1 );
 
         if(nodeKind == SVNNodeKind.DIR){
-            //폴더 내용 출력
             ObjectNode result = Json.newObject();
             ObjectNode listData = Json.newObject();
             SVNProperties prop = new SVNProperties();
@@ -399,11 +383,6 @@ public class SVNRepository implements PlayRepository {
     }
 
 
-    /**
-     * 코드저장소 프로젝트명을 변경하고 결과를 반환한다.
-     * @param projectName
-     * @return 코드저장소 이름 변경성공시 true / 실패시 false
-     */
     @Override
     public boolean renameTo(String projectName) {
         return move(this.ownerName, this.projectName, this.ownerName, projectName);
@@ -418,12 +397,6 @@ public class SVNRepository implements PlayRepository {
     public void setDefaultBranch(String target) throws IOException {
     }
 
-    /**
-     * {@code #revNumber}의 이전 리비전에 해당하는 커밋 정보를 번환한다.
-     *
-     * @param revNumber
-     * @return
-     */
     @Override
     public Commit getParentCommitOf(String revNumber) {
         Long rev = Long.parseLong(revNumber) - 1;

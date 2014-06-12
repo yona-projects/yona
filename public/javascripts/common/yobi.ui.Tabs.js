@@ -20,9 +20,6 @@
  */
 $(document).ready(function(){
 
-    /**
-     * 탭 클릭시 선택했던 탭 번호 저장하도록 이벤트 설정
-     */
     var waItems;
     var welContainer;
     var sContainerId;
@@ -41,7 +38,6 @@ $(document).ready(function(){
     });
 
     /**
-     * 선택했던 탭 복원
      * @param {String} sContainerId
      * @param {Wrapped Array} waItems
      */

@@ -112,11 +112,6 @@ public class GitRepository implements PlayRepository {
     private final String projectName;
 
     /**
-     * 매개변수로 전달받은 {@code ownerName}과 {@code projectName}을 사용하여 Git 저장소를 참조할 {@link GitRepository}를 생성한다.
-     *
-     * @param ownerName
-     * @param projectName
-     * @throws IOException
      * @see #buildGitRepository(String, String, boolean)
      */
     public GitRepository(String ownerName, String projectName, boolean alternatesMergeRepo) {
@@ -130,27 +125,12 @@ public class GitRepository implements PlayRepository {
     }
 
     /**
-     * {@code project} 정보를 사용하여 Git 저장소를 참조할 {@link GitRepository}를 생성한다.
-     *
-     * @param project
-     * @throws IOException
      * @see #GitRepository(String, String)
      */
     public GitRepository(Project project) throws IOException {
         this(project.owner, project.name, true);
     }
 
-    /**
-     * {@code ownerName}과 {@code projectName}을 받아서 {@link Repository} 객체를 생성한다.
-     *
-     * 실제 저장소를 생성하는건 아니고, Git 저장소를 참조할 수 있는 {@link Repository} 객체를 생성한다.
-     * 생성된 {@link Repository} 객체를 사용해서 기존에 만들어져있는 Git 저장소를 참조할 수도 있고, 새 저장소를 생성할 수도 있다.
-     *
-     * @param ownerName
-     * @param projectName
-     * @return
-     * @throws IOException
-     */
     public static Repository buildGitRepository(String ownerName, String projectName,
                                                 boolean alternatesMergeRepo) {
         try {
@@ -173,14 +153,6 @@ public class GitRepository implements PlayRepository {
     }
 
     /**
-     * {@code project}의 {@link Project#owner}와 {@link Project#name}을 사용하여 {@link Repository} 객체를 생성한다.
-     *
-     * when: {@link RepositoryService#gitAdvertise(models.Project, String, play.mvc.Http.Response)}와
-     * {@link RepositoryService#gitRpc(models.Project, String, play.mvc.Http.Request, play.mvc.Http.Response)}에서 사용한다.
-     *
-     * @param project
-     * @return
-     * @throws IOException
      * @see #buildGitRepository(String, String, boolean)
      */
     public static Repository buildGitRepository(Project project) {
@@ -191,17 +163,6 @@ public class GitRepository implements PlayRepository {
         return buildGitRepository(project.owner, project.name, alternatesMergeRepo);
     }
 
-    /**
-     * 로컬에 있는 Git 저장소를 복제(clone)한다.
-     *
-     * 디스크 공간을 절약하기 위해 우선 object들을 하드링크하는 클론을 시도하고,
-     * 실패한 경우에는 기본 JGit 클론을 한다.
-     *
-     * @param originalProject
-     * @param forkProject
-     * @throws IOException
-     * @throws GitAPIException
-     */
     public static void cloneLocalRepository(Project originalProject, Project forkProject)
             throws IOException, GitAPIException {
         try {
@@ -215,10 +176,6 @@ public class GitRepository implements PlayRepository {
     }
 
     /**
-     * bare 모드로 Git 저장소를 생성한다.
-     *
-     * @throws IOException
-     * @see <a href="https://www.kernel.org/pub/software/scm/git/docs/gitglossary.html#def_bare_repository">bare repository</a>
      * @see Repository#create()
      */
     @Override
@@ -227,15 +184,6 @@ public class GitRepository implements PlayRepository {
     }
 
     /**
-     * {@link Constants#HEAD}에서 {@code path}가 디렉토리일 경우에는 해당 디렉토리에 들어있는 파일과 디렉토리 목록을 JSON으로 반환하고,
-     * 파일일 경우에는 해당 파일 정보를 JSON으로 반환한다.
-     *
-     * @param path
-     * @return {@code path}가 디렉토리이면 그 안에 들어있는 파일과 디렉토리 목록을 담고있는 JSON, 파일이면 해당 파일 정보를 담고 있는 JSON
-     * @throws IOException
-     * @throws NoHeadException
-     * @throws GitAPIException
-     * @throws SVNException
      * @see #getMetaDataFromPath(String, String)
      */
     @Override
@@ -264,22 +212,6 @@ public class GitRepository implements PlayRepository {
         return false;
     }
 
-    /**
-     * {@code branch}에서 {@code path}가 디렉토리일 경우에는 해당 디렉토리에 들어있는 파일과 디렉토리 목록을 JSON으로 반환하고,
-     * 파일일 경우에는 해당 파일 정보를 JSON으로 반환한다.
-     *
-     *
-     * {@code branch}가 null이면 {@link Constants#HEAD}의 Commit을 가져오고, null이 아닐때는 해당 브랜치의 head Commit을 가져온다.
-     * Commit의 루트 Tree를 가져오고, {@link TreeWalk}로 해당 Tree를 순회하며 {@code path}에 해당하는 디렉토리나 파일을 찾는다.
-     * {@code path}가 디렉토리이면 해당 디렉토리로 들어가서 그 안에 있는 파일과 디렉토리 목록을 JSON으로 만들어서 변환한다.
-     * {@code path}가 파일이면 해당 파일 정보를 JSON으로 만들어 반환한다.
-     *
-     * @param branch
-     * @param path
-     * @return {@code path}가 디렉토리이면 그 안에 들어있는 파일과 디렉토리 목록을 담고있는 JSON, 파일이면 해당 파일 정보를 담고 있는 JSON, 존재하지 않는 path 이면 null을 반환한다.
-     * @throws IOException
-     * @throws GitAPIException
-     */
     @Override
     public ObjectNode getMetaDataFromPath(String branch, String path) throws IOException, GitAPIException {
         RevCommit headCommit = getRevCommit(branch);
@@ -321,14 +253,6 @@ public class GitRepository implements PlayRepository {
     }
 
     /**
-     * {@code treeWalk}가 현재 위치한 파일 메타데이터를 JSON 데이터로 변환하여 반환한다.
-     * 그 파일에 대한 {@code untilCommitId} 혹은 그 이전 커밋 중에서 가장 최근 커밋 정보를 사용하여 Commit
-     * 메시지와 author 정보등을 같이 반환한다.
-     *
-     * @param treeWalk
-     * @param untilCommitId
-     * @return
-     * @throws IOException
      * @see <a href="https://www.kernel.org/pub/software/scm/git/docs/git-log.html">git log until</a>
      */
     private ObjectNode fileAsJson(TreeWalk treeWalk, AnyObjectId untilCommitId) throws IOException, GitAPIException {
@@ -552,12 +476,6 @@ public class GitRepository implements PlayRepository {
             }
         }
 
-        /*
-         * JGit 의 LogCommand 를 사용하여 commit 조회를 할 때 path 정보를 이용하였을 경우
-         * commit 객체가 부모 commit 에 대한 정보를 가지고 있지 않을 수 있다.
-         * 이러한 현상은 아래의 JGit version 에서 확인 되었다.
-         * 3.1.0.201310021548-r ~ 3.2.0.201312181205-r
-         */
         private RevCommit fixRevCommitNoParents(RevCommit commit) {
             if (commit.getParentCount() == 0) {
                 return fixRevCommit(commit);
@@ -565,9 +483,6 @@ public class GitRepository implements PlayRepository {
             return commit;
         }
 
-        /*
-         * fixRevCommitNoParents 를 통해서 가져온 커밋의 parents 는 tree 정보가 없을 수 있다
-         */
         private RevCommit fixRevCommitNoTree(RevCommit commit) {
             if (commit.getTree() == null) {
                 return fixRevCommit(commit);
@@ -1196,10 +1111,6 @@ public class GitRepository implements PlayRepository {
             revWalk.setTreeFilter(PathFilter.create(path));
             revWalk.sort(RevSort.REVERSE);
             RevCommit commit = revWalk.next();
-            // 어떤 파일이 처음 생성된 commit 은 반드시 존재해야 한다.
-            // 하지만 어떤 이유에선지 위와 같이 RevWalk 를 이용했을 때 그 commit 을 찾지 못할 때가 있다.
-            // 아래 commit 이 null 일 경우의 처리는 임시적인 것이며 추후 원인을 분석해서 특정 path 의
-            // 파일이 생성된 commit 을 항상 찾도록 고쳐야 한다.
             if (commit == null) {
                 return User.anonymous;
             }
@@ -1257,21 +1168,6 @@ public class GitRepository implements PlayRepository {
     }
 
     /**
-     * 풀리퀘스트 기능 구현에 필요한 기본 작업을 수행하는 템플릿 메서드
-     *
-     * when: {@link models.PullRequest#merge}, {@link models.PullRequest#attemptMerge()}에서 사용한다.
-     *
-     * 1. merge용 저장소를 성성한다.
-     *   {@code pullRequest}의 toProject에 해당하는 저장소를 clone.
-     * 2. 코드 보내는 브랜치를 가져온다.
-     *   {@code pullRequest}의 fromProject 저장소에서 fromBranch fetch.
-     * 3. 코드 받을 브랜치를 가져온다.
-     *   {@code pullRequest}의 toProject 저장소에서 toBranch fetch.
-     * 4. 코드 받을 브랜치에서 merge할 때 사용할 새로운 브랜치를 생성한다.
-     *   git checkout -b 현재시간 destToBranchName
-     *
-     * @param pullRequest
-     * @param operation
      * @see models.PullRequest#attemptMerge()
      * @see models.PullRequest#merge(models.PullRequestEventMessage)
      */
@@ -1289,13 +1185,11 @@ public class GitRepository implements PlayRepository {
                 destFromBranchName = makeDestFromBranchName(pullRequest);
                 mergingBranch = "" + System.currentTimeMillis();
 
-                // 코드를 보내는 브랜치를 가져온다.
                 new Git(cloneRepository).fetch()
                         .setRemote(GitRepository.getGitDirectoryURL(pullRequest.fromProject))
                         .setRefSpecs(new RefSpec("+" + srcFromBranchName + ":" + destFromBranchName))
                         .call();
 
-                // 코드 받을 브랜치를 가져온다.
                 new Git(cloneRepository).fetch()
                         .setRemote(GitRepository.getGitDirectoryURL(pullRequest.toProject))
                         .setRefSpecs(new RefSpec("+" + srcToBranchName + ":" + destToBranchName))
@@ -1303,20 +1197,17 @@ public class GitRepository implements PlayRepository {
 
                 resetAndClean(cloneRepository);
 
-                // mergingBranch 생성 및 이동
                 new Git(cloneRepository).checkout()
                         .setCreateBranch(true)
                         .setName(mergingBranch)
                         .setStartPoint(destToBranchName)
                         .call();
 
-                // Operation 실행. (현재 위치는 mergingBranch)
                 CloneAndFetch cloneAndFetch = new CloneAndFetch(cloneRepository, destToBranchName, destFromBranchName, mergingBranch);
                 operation.invoke(cloneAndFetch);
 
                 resetAndClean(cloneRepository);
 
-                // 코드 받을 브랜치로 이동하고 mergingBranch 삭제
                 new Git(cloneRepository).checkout().setName(destToBranchName).call();
                 new Git(cloneRepository).branchDelete().setForce(true).setBranchNames(mergingBranch).call();
             }
@@ -1350,25 +1241,14 @@ public class GitRepository implements PlayRepository {
             pullRequest.fromBranch.replaceFirst(Constants.R_HEADS, "");
     }
 
-    /**
-     * {@code pullRequest}의 toProject를 clone 받은 Git 저장소를 참조할 {@link Repository}를 객체를 생성한다.
-     *
-     * @param pullRequest
-     * @return
-     * @throws GitAPIException
-     * @throws IOException
-     */
     public static Repository buildMergingRepository(PullRequest pullRequest) {
         return buildMergingRepository(pullRequest.toProject);
     }
 
     public static Repository buildMergingRepository(Project project) {
-        // merge 할 때 사용할 Git 저장소 디렉토리 경로를 생성한다.
         String workingTree = GitRepository.getDirectoryForMerging(project.owner, project.name);
 
         try {
-            // 이미 만들어둔 clone 디렉토리가 있다면 그걸 사용해서 Repository를 생성하고
-            // 없을 때는 새로 만든다.
             File gitDir = new File(workingTree + "/.git");
             if(!gitDir.exists()) {
                 return cloneRepository(project, workingTree).getRepository();
@@ -1380,15 +1260,6 @@ public class GitRepository implements PlayRepository {
         }
     }
 
-    /**
-     * {@link Project}의 Git 저장소를 {@code workingTreePath}에
-     * non-bare 모드로 clone 한다.
-     *
-     * @param project clone 받을 프로젝트
-     * @param workingTreePath clone 프로젝트를 생성할 워킹트리 경로
-     * @throws GitAPIException
-     * @throws IOException
-     */
     private static Git cloneRepository(Project project, String workingTreePath) throws GitAPIException, IOException {
         return Git.cloneRepository()
                 .setURI(GitRepository.getGitDirectoryURL(project))
@@ -1396,20 +1267,6 @@ public class GitRepository implements PlayRepository {
                 .call();
     }
 
-    /**
-     * {@code pullRequest}의 fromBranch를 삭제할 수 있는지 확인한다.
-     *
-     * 삭제하려는 fromBranch가 브랜치 목록에 있는지 확인하고,
-     * 브랜치 목록에 있을 때 fromBranch의 HEAD가 toProject에 있는지 확인한다.
-     *
-     * 브랜치 목록에 있으면서 toProject에 fromBranch의 HEAD가 있을 경우에만 fromBranch를 안전하게 삭제할 수 있다.
-     *
-     * 브랜치 목록에 없을 때는 이미 삭제 됐거나 현재 위치한 브랜치(master)에 있을 수 있어서 fromBranch를 삭제할 수 없거나,
-     * fromBranch에 toProject로 보내지 않은 새로운 커밋이 있어서 fromBranch를 삭제할 수 없다.
-     *
-     * @param pullRequest
-     * @return
-     */
     public static boolean canDeleteFromBranch(PullRequest pullRequest) {
         List<Ref> refs;
         Repository fromRepo = null; // repository that sent the pull request
@@ -1446,13 +1303,6 @@ public class GitRepository implements PlayRepository {
         return false;
     }
 
-    /**
-     * {@code pullRequest}의 fromBranch를 삭제한다.
-     *
-     * @param pullRequest
-     * @return {@code fromBranch}의 HEAD를 반환한다.
-     * @see PullRequest#lastCommitId;
-     */
     public static String deleteFromBranch(PullRequest pullRequest) {
         if(!canDeleteFromBranch(pullRequest)) {
             return null;
@@ -1481,11 +1331,6 @@ public class GitRepository implements PlayRepository {
         }
     }
 
-    /**
-     * {@code pullRequest}의 fromBranch를 복구한다.
-     *
-     * @param pullRequest
-     */
     public static void restoreBranch(PullRequest pullRequest) {
         if(!canRestoreBranch(pullRequest)) {
             return;
@@ -1507,16 +1352,6 @@ public class GitRepository implements PlayRepository {
         }
     }
 
-    /**
-     * {@code pullRequest}의 fromBranch를 복구할 수 있는지 확인한다.
-     *
-     * when: 완료된 PullRequest 조회 화면에서 브랜치를 삭제 했을 때 해당 브랜치를 복구할 수 있는지 확인한다.
-     *
-     * {@link PullRequest#lastCommitId}가 저장되어 있어야 하며, fromBranch가 없어야 복구할 수 있다.
-     *
-     * @param pullRequest
-     * @return
-     */
     public static boolean canRestoreBranch(PullRequest pullRequest) {
         Repository repo = null;
         try {
@@ -1733,7 +1568,6 @@ public class GitRepository implements PlayRepository {
             }
         };
 
-        // formatter로 scan해야 rename detection 가능할 듯
         DiffFormatter formatter = new DiffFormatter(NullOutputStream.INSTANCE);
         formatter.setRepository(fakeRepo);
         formatter.setDetectRenames(true);
@@ -1918,30 +1752,14 @@ public class GitRepository implements PlayRepository {
         }
     }
 
-    /**
-     * Clone과 Fetch 이후 작업에 필요한 정보를 담을 객체로 사용한다.
-     */
     public static class CloneAndFetch {
 
-        /**
-         * 코드 받을 저장소의 코드를 non-bare 모드로 clone 받은 Git 저장소
-         */
         private Repository repository;
 
-        /**
-         * 코드를 받을 브랜치의 코드를 fetch 받은 브랜치 이름
-         */
         private String destToBranchName;
 
-        /**
-         * 코드를 보내는 브랜치의 코드를 fetch 받은 브랜치 이름
-         */
         private String destFromBranchName;
 
-        /**
-         * 코드 받을 브랜치에서 생성한 브랜치로 실제 merge를 수행할 브랜치 이름
-         * 겹치지 않도록 현재 시간을 이름으로 사용한다.
-         */
         private String mergingBranchName;
 
         public Repository getRepository() {
@@ -1969,8 +1787,6 @@ public class GitRepository implements PlayRepository {
     }
 
     /**
-     * Clone과 Fetch 이후에 진행할 작업을 정의한다.
-     *
      * @see #cloneAndFetch(models.PullRequest, playRepository.GitRepository.AfterCloneAndFetchOperation)
      */
     public static interface AfterCloneAndFetchOperation {
@@ -1982,13 +1798,6 @@ public class GitRepository implements PlayRepository {
     }
 
     /**
-     * 코드저장소 프로젝트명을 변경하고 결과를 반환한다.
-     *
-     * 변경전 {@code repository.close()}를 통해 open된 repository의 리소스를 반환하고
-     * repository 내부에서 사용하는 {@code WindowCache}를 초기화하여 packFile의 참조를 제거한다.
-     *
-     * @param projectName
-     * @return 코드저장소 이름 변경성공시 true / 실패시 false
      * @see playRepository.PlayRepository#renameTo(String)
      */
     @Override
@@ -2014,12 +1823,6 @@ public class GitRepository implements PlayRepository {
         }
     }
 
-    /**
-     * {@code #commitIdString}에 해당하는 커밋의 부모 커밋 정보를 반환하다.
-     *
-     * @param commitIdString
-     * @return
-     */
     @Override
     public Commit getParentCommitOf(String commitIdString) {
         try {

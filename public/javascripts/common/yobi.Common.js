@@ -77,8 +77,6 @@ $yobi = yobi.Common = (function(){
     function loadModule(sName, htOptions, fCallback){
         htOptions = htOptions || {};
 
-        // 모듈 스크립트가 이미 로드되었으면 바로 초기화 하고
-        // 그렇지 않으면 스크립트 파일 불러온 뒤 초기화 시도
         if(registerModule(sName, htOptions) === false){
             htVar.htTryLoad = htVar.htTryLoad || {};
             htVar.htTryLoad[sName] = (typeof htVar.htTryLoad[sName] == "undefined") ? 1 : (++htVar.htTryLoad[sName]);

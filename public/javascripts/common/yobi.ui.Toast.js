@@ -27,7 +27,6 @@
         var htElement = {};
 
         /**
-         * 초기화
          * @param {String} sContainer
          * @param {Hash Table} htOptions
          */
@@ -37,7 +36,6 @@
         }
 
         /**
-         * 변수 초기화
          * @param {Hash Table} htOptions
          */
         function _initVar(htOptions){
@@ -48,7 +46,6 @@
         }
 
         /**
-         * 엘리먼트 변수
          * @param {String} sContainer
          */
         function _initElement(sContainer){
@@ -57,7 +54,6 @@
         }
 
         /**
-         * 토스트 메시지 추가
          * @param {String} sMessage
          * @param {Number} nDuration
          */
@@ -72,7 +68,6 @@
         }
 
         /**
-         * 토스트 메시지 엘리먼트 반환하는 함수
          * @param {String} sMessage
          * @return {Wrapped Element}
          */
@@ -87,19 +82,13 @@
             return welToast;
         }
 
-        /**
-         * 토스트 메시지 클릭시 이벤트 핸들러
-         * transition 사용하지 않고 즉각 삭제
-         */
         function _onClickClose(weEvt){
             $(this).remove();
         }
 
         /**
-         * 토스트 메시지를 지정한 시간 뒤에 사라지게 만드는 함수
-         * transition 사용하여 서서히 흐려지는 효과
-         * @param {Wrapped Element} welToast 토스트 엘리먼트
-         * @param {Number} nDuration 메시지를 표시할 시간 (ms)
+         * @param {Wrapped Element} welToast
+         * @param {Number} nDuration
          */
         function _fadeOutTimer(welToast, nDuration){
             welToast.bind("webkitTransitionEnd", function(){
@@ -110,14 +99,10 @@
             }, nDuration);
         }
 
-        /**
-         * 토스트 메시지 모두 제거
-         */
         function clearToasts(){
             htElement.welContainer.empty();
         }
 
-        // 초기화
         _init(sContainer, htOptions || {});
 
         return {
