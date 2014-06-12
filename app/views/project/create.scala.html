@@ -28,7 +28,7 @@
 <div class="page-wrap-outer">
   <div class="project-page-wrap">
     <div class="form-wrap new-project">
-      <form action="@routes.ProjectApp.newProject()" method="post" name="newproject" class="frm-wrap">
+      <form id="newProjectForm" action="@routes.ProjectApp.newProject()" method="post" class="frm-wrap">
         <legend>
           @Messages("title.newProject")
           <span>
@@ -64,11 +64,9 @@
                     </option>
                 }
             </select>
-            <div class="n-alert" data-errType="owner">
-              <div class="orange-txt">
-                @if(newProjectForm.error("owner") != null) { <span class="warning">@Messages(newProjectForm.error("owner").message())</span> }
-              </div>
-            </div>
+            @if(newProjectForm.error("owner") != null) {
+              <span class="orange-text">@Messages(newProjectForm.error("owner").message())</span>
+            }
           </dd>
           <!-- // -->
 
@@ -81,13 +79,7 @@
           </dt>
           <dd>
             <input id="project-name" type="text" name="name" class="text" maxlength="250" pattern="[a-zA-Z0-9-]+"
-                   value="@newProjectForm.field("name").value" placeholder="@Messages("project.name.alert")"  >
-            <div class="n-alert" data-errType="name">
-              <div class="orange-txt">
-                @if(newProjectForm.error("name") != null) { <span class="warning">@Messages(newProjectForm.error("name").message())</span> }
-                <span class="msg wrongName" style="display: none;"></span>
-              </div>
-            </div>
+                   value="@newProjectForm.field("name").value" placeholder="@Messages("project.name.placeholder")"  >
           </dd>
           <!-- // -->
 
@@ -187,9 +179,10 @@
 
 @common.select2()
 <script type="text/javascript">
-    $(document).ready(function() {
+    $(function() {
         $yobi.loadModule("project.New", {
-            "sFormName" : "newproject"
+            "sFormId": "#newProjectForm",
+            "htError": @Html(newProjectForm.errorsAsJson.toString)
         });
     });
 </script>
