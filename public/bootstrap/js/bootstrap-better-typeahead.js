@@ -11,7 +11,7 @@
 
 // **************************************************
 // Yobi modifications by Yi EungJun
-// http://github.github.com/nforge/yobi/
+// http://github.com/nforge/yobi/
 //
 // Modifications are tagged with "yobi"
 // **************************************************

@@ -56,6 +56,7 @@ public class LabelApp extends Controller {
      * 엔터티 본문의 미디어 타입은 언제나 {@code application/json}이기 때문이다.
      *
      * @param query 태그에 대한 검색어 질의
+     * @param category a group of label to search
      * @param limit 가져올 태그의 최대 갯수
      * @return 태그 목록 요청에 대한 응답
      * @see <a href="https://github.com/nforge/yobi/blob/master/docs/technical/label-typeahead

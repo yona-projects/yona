@@ -1091,7 +1091,6 @@ public class ProjectApp extends Controller {
      * 공개여부가 @{code state} 인 프로젝트 목록을 최근생성일로 정렬하여 페이징 형태로 가져온다.
      *
      * @param query 검색질의(프로젝트명 / 관리자 아이디 / Overview)
-     * @param state 프로젝트 상태(공개/비공개/전체)
      * @param pageNum 페이지번호
      * @return 프로젝트명 또는 관리자 로그인 아이디가 {@code query}를 포함하고 공개여부가 @{code state} 인 프로젝트 목록
      */
@@ -1116,7 +1115,6 @@ public class ProjectApp extends Controller {
      * JSON으로 변환하여 반환한다.
      *
      * @param query 검색질의(프로젝트명 / 관리자 / Overview)
-     * @param state state 프로젝트 상태(공개/비공개/전체)
      * @return JSON 형태의 프로젝트 목록
      */
     private static Result getProjectsToJSON(String query) {
@@ -1180,13 +1178,22 @@ public class ProjectApp extends Controller {
 
         Map<Long, Map<String, String>> labels = new HashMap<>();
         for (Label label: project.labels) {
-            Map<String, String> tagMap = new HashMap<>();
-            tagMap.put("category", label.category);
-            tagMap.put("name", label.name);
-            labels.put(label.id, tagMap);
+            labels.put(label.id, convertToMap(label));
         }
 
         return ok(toJson(labels));
+    }
+
+    /**
+     * convert from some part of {@link models.Label} to {@link java.util.Map}
+     * @param label {@link models.Label} object
+     * @return label's map data
+     */
+    private static Map<String, String> convertToMap(Label label) {
+        Map<String, String> tagMap = new HashMap<>();
+        tagMap.put("category", label.category);
+        tagMap.put("name", label.name);
+        return tagMap;
     }
 
     /**
@@ -1240,14 +1247,11 @@ public class ProjectApp extends Controller {
         }
 
         if (isAttached) {
-            // Return the attached label. The return type is Map<Long, String>
+            // Return the attached label. The return type is Map<Long, Map<String, String>>
             // even if there is only one label, to unify the return type with
             // ProjectApp.labels().
             Map<Long, Map<String, String>> labels = new HashMap<>();
-            Map<String, String> labelMap = new HashMap<>();
-            labelMap.put("category", label.category);
-            labelMap.put("name", label.name);
-            labels.put(label.id, labelMap);
+            labels.put(label.id, convertToMap(label));
 
             if (isCreated) {
                 return created(toJson(labels));
