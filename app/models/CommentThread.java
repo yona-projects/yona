@@ -226,4 +226,10 @@ public class CommentThread extends Model implements ResourceConvertible {
             return false;
         }
     }
+
+    public static void deleteByPullRequest(PullRequest pullRequest) {
+        for(CommentThread commentThread : find.where().eq("pullRequest", pullRequest).findList()) {
+            commentThread.delete();
+        }
+    }
 }
