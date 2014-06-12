@@ -199,14 +199,13 @@ public class FileDiff {
     }
 
     /**
-     * 주어진 줄 번호와 관련된 diff만 남기고 나머지는 모두 버린다.
+     * Remove every line not related to the given lines which "interest".
      *
-     * null인 줄 번호는 무시한다.
+     * Do nothing if {@link #editList} is null, because a file has been added
+     * or deleted.
      *
-     * editList가 null이라면 파일이 새로 추가되거나 삭제인 경우인데, 이럴때는 아무것도 하지 않는다.
-     *
-     * @param lineA
-     * @param lineB
+     * @param lineA an added line which interests. Ignore if it is <code>null</code>
+     * @param lineB an removed line which interests. Ignored if it is <code>null</code>
      */
     public void updateRange(Integer lineA, Integer lineB) {
         if (editList == null) {
