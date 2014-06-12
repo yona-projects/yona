@@ -1,0 +1,34 @@
+Yobi v0.5.5 Release Notes
+=========================
+
+Updates since v0.5.4
+--------------------
+
+* Git client displays better error message if access is denied.
+* GlobalNavigation: Global Navigation looks better.
+* GlobalNavigation: The popup menu of avatar has a link to my issues page.
+* Issue: 'Assignee' dropdown menu of an issue has 'Assign to author' item.
+* Issue: Duplicated comment cannot be submitted.
+* Issue: The 'Sympathy' button is renamed to 'Agree'.
+* Login form looks better.
+* PullRequest: Checking for merge works asynchronously.
+* PullRequest: Disabled accept button displays better message to describe the
+  reason.
+* PullRequest: Enhanced the message for disabled accept button.
+* PullRequest: Sending PullRequest form looks better.
+* PullRequest: Show the Edit button even if it is not safe to merge.
+* Review: "Outdated" label is attached on outdated review card.
+* Site administrator can reset any user's password.
+* Minor UI fixes
+
+Fixes since v0.5.4
+------------------
+
+* CodeBrowser: Characters were broken in raw view because of encoding problem.
+* Codebrowser: No notice was displayed when cannot show a large file.
+* Issue: NPE occured in new issue form.
+* Mention: Caret moved to strange location.
+* PullRequest: 'Waiting' status never ended.
+* PullRequest: Reviewer's name is displayed as 'null'.
+* Review: Outdated detection worked incorrectly.
+* And many minor bugs
