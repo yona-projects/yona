@@ -28,10 +28,12 @@
 
         function _init(htOptions){
             _initVar(htOptions);
-            _initElement(htOptions);
+            _initElement();
             _attachEvent();
 
             _initFormValidator();
+
+            htElement.welInputProjectName.focus();
         }
 
         /**
@@ -46,34 +48,24 @@
         /**
          * initialize element
          */
-        function _initElement(htOptions){
-            htElement.welInputVCS = $("#vcs"); // input type="hidden"
-            htElement.welBtnVCSSelected = $("#vcs_msg"); // <button data-toggle="dropdown">
-            htElement.aVCSItems = $("#vcs_dropdown li a");
+        function _initElement(){
+            htElement.vcsSelect = $("#vcs");
             htElement.svnWarning = $("#svn");
             htElement.welInputProjectName = $("#project-name");
             htElement.welInputProjectOwner = $("#project-owner");
-            htElement.welProtected = $("#protected, .label-protected");
-
-            htElement.welInputProjectName.focus();
+            htElement.welProtected = $("#opt-protected");
         }
 
         /**
          * attach event handler
          */
         function _attachEvent(){
-            htElement.aVCSItems.click(_onSelectVCSItem);
+            htElement.vcsSelect.on("change", _onChangeVCSItem);
             htElement.welInputProjectOwner.on("change", _onChangeProjectOwner);
         }
 
-        function _onSelectVCSItem(){
-            var sText = $(this).text();
-            var sValue = $(this).attr("data-value");
-
-            htElement.welInputVCS.val(sValue);
-            htElement.welBtnVCSSelected.text(sText);
-
-            if(sText == "Subversion") {
+        function _onChangeVCSItem(evt){
+            if(evt.val.toUpperCase() === "SUBVERSION"){
                 htElement.svnWarning.show();
             } else {
                 htElement.svnWarning.hide();
