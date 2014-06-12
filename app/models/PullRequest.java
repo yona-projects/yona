@@ -1093,4 +1093,10 @@ public class PullRequest extends Model implements ResourceConvertible {
                     getLackingReviewerCount());
         }
     }
+
+    public boolean isDiffable() {
+        return this.isConflict == false &&
+                this.mergedCommitIdFrom != null && this.mergedCommitIdTo != null;
+    }
+
 }
