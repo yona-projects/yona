@@ -164,7 +164,6 @@ emails.main.email.descr = Your primary email address will be used to send you no
 emails.send.validatino.mail = Send a validation email.
 emails.set.as.main = Set as a primary email address.
 emails.sub.email.descr = You will be identified as a same user by multiple sub emails.
-	
 emails.sub.emails = Sub email address
 emails.validation.email.title = [Yobi] validation email
 error.auth.unauthorized.comment = You need to log in to add comments.
@@ -213,7 +212,6 @@ issue.createdDate = Created date
 issue.delete = Delete issue
 issue.downloadAsExcel = Download as Excel file
 issue.error.beforeunload = Issue has not saved yet. Would you like to exit this page without saving?
-
 issue.error.emptyBody = Issue description is a required field.
 issue.error.emptyTitle = Issue title is a required field.
 issue.event.assigned = {0} assigned this issue to {1}
@@ -432,7 +430,6 @@ project.members = Project members
 project.members.addMember = Add new member ID.
 project.name = Project name
 project.name.alert = Wrong project name. (Characters that can be used in URL are allowed)
-
 project.name.duplicate = Same project name already exists.
 project.name.placeholder = Enter project name
 project.name.reserved.alert = You can''t use reserved names.
@@ -450,7 +447,6 @@ project.private.notice = The basic information of private projects including nam
 project.projects = Projects
 project.public = PUBLIC
 project.readme = README.md will be shown here if you add it into the code repository''s root directory.
-
 project.recently.visited = Recently visited
 project.reviewer.count.description = ( ) of reviewers is required to accept pull-request.
 project.reviewer.count.disable = Disable
@@ -491,7 +487,6 @@ pullRequest.delete.frombranch.message = You can delete branch.
 pullRequest.diff.noChanges = No changes have been made.
 pullRequest.duplicated = Please select another branch. Same pull request already exists in the current branch..
 pullRequest.error.newPullRequestForm = Invalid project or branch<br>({0} {1})
-
 pullRequest.event.closed = Closed
 pullRequest.event.commit = Committed
 pullRequest.event.conflict = Conflicted
@@ -511,16 +506,13 @@ pullRequest.fromBranch.required = Select branch that contains code to be sent.
 pullRequest.help.message.1 = This is a simple way to contribute your code to original project.
 pullRequest.help.message.2 = Please select your branch containing your code to be sent and that of original project to receive your code, and describe your code briefly.
 pullRequest.help.message.3 = Member of the original project can accept or postpone your code.
-
 pullRequest.is.safe.title = Safe to Merge
 pullRequest.is.checking = Checking
 pullRequest.is.safe.to.merge = Yes
 pullRequest.is.not.safe.to.merge = No
-
 pullRequest.is.empty = No pull requests have been received
 pullRequest.is.merging = We are checking if the code is safe. Please wait for a while to complete this process.
 pullRequest.is.not.safe = Conflict occurred when merging. This pull request cannot be merged safely.
-
 pullRequest.is.safe = This pull request can be merged safely.
 pullRequest.menu.changes = Changes
 pullRequest.menu.commit = Commits
@@ -529,7 +521,6 @@ pullRequest.merge.help.1 = You can check commits and descriptions on received co
 pullRequest.merge.help.2 = If members of the original project accept the code, it will be merged into original project.
 pullRequest.merge.help.3 = You can''t accept code if the code is not safe to merge.
 pullRequest.merge.help.4 = When you can''t accept code, you can postpone or delete the pull request.
-
 pullRequest.merge.requested = has sent pull request:
 pullRequest.merged.the.pullrequest = accepted this pull request.
 pullRequest.new = Send new pull request
@@ -549,7 +540,6 @@ pullRequest.resolver.step2 = Add upstream repository URL as new remote. But if y
 pullRequest.resolver.step3 = Get the latest upstream code.
 pullRequest.resolver.step4 = Rebase branch that will receive code.
 pullRequest.resolver.step5 = There must be some conflicted files. Open the files and edit them.
-
 pullRequest.resolver.step6 = Once you fix it, notify it to Git.
 pullRequest.resolver.step7 = After resolving all conflicts, continue rebasing.
 pullRequest.resolver.step8 = You may need to repeat steps 5 to 7 several times.
@@ -577,7 +567,6 @@ review.is.empty = No review has been added.
 review.outdated = Outdated
 site = Site
 site.features.codeManagement = Your code is safely stored in a version controlled system.
-
 site.features.codeReview = Review all changes in code with your team before merging. Code discussion will help you improve your code.
 site.features.issueTracker = Yobi provides an issue tracker to help you deal with your issues more easily and clearly.
 site.features.privateRepositories = Keep your code private at your private repositories.
