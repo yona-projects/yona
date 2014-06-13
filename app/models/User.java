@@ -48,9 +48,6 @@ import com.avaje.ebean.Page;
 import com.avaje.ebean.RawSql;
 import com.avaje.ebean.RawSqlBuilder;
 
-/**
- * User 클래스
- */
 @Table(name = "n4user")
 @Entity
 public class User extends Model implements ResourceConvertible {
@@ -66,67 +63,44 @@ public class User extends Model implements ResourceConvertible {
     };
 
     /**
-     * 한 페이지에 보여줄 사용자 개수.
+     * Max number of user size to show per page at site admin user list page
      */
     public static final int USER_COUNT_PER_PAGE = 30;
 
-    /**
-     * 사이트 관리자의 id값.
-     */
     public static final Long SITE_MANAGER_ID = 1l;
 
-    /**
-     * 로그인ID 패턴
-     */
     public static final String LOGIN_ID_PATTERN = "[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*";
     public static final String LOGIN_ID_PATTERN_ALLOW_FORWARD_SLASH = "[a-zA-Z0-9-/]+([_.][a-zA-Z0-9-/]+)*";
 
-    // TODO anonymous를 사용하는 것이아니라 향후 NullUser 패턴으로 usages들을 교체해야 함
     public static final User anonymous = new NullUser();
 
-    /**
-     * PK
-     */
     @Id
     public Long id;
 
     /**
-     * 화면에 보여줄 사용자 이름
+     * name to show at web pages
      */
     public String name;
 
-    /**
-     * 로그인할 때 사용할 아이디
-     */
     @Pattern(value = "^" + LOGIN_ID_PATTERN + "$", message = "user.wrongloginId.alert")
     @Required
     @ValidateWith(ReservedWordsValidator.class)
     public String loginId;
 
     /**
-     * 비밀번호 수정할 때 기존 비밀번호 확인할 때 사용하는 값
+     * only used for password reset
      */
     @Transient
     public String oldPassword;
-
-    /**
-     * 비밀번호
-     */
     public String password;
-
-    /**
-     * 비밀번호 암화할 할 때 사용하는 값
-     */
     public String passwordSalt;
-
-    /**
-     * 이메일
-     */
     @Constraints.Email(message = "user.wrongEmail.alert")
     public String email;
 
     /**
-     * 로그인 정보를 기억할지 나타내는 값
+     * used for enabling remember me feature
+     *
+     * remember me = keep a use logged in
      */
     public boolean rememberMe;
 
@@ -137,21 +111,21 @@ public class User extends Model implements ResourceConvertible {
     public Date lastStateModifiedDate;
 
     /**
-     * 계정 생성일
+     * account creation date
      */
     @Formats.DateTime(pattern = "yyyy-MM-dd")
     public Date createdDate;
 
     /**
-     * 프로젝트에서 사용자의 역할을 나타내는 값
+     * user auth role of project
      *
-     * 해당 프로젝트의 관리자 혹은 멤버일 수 있다.
+     * It can be a project admin or member
      */
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     public List<ProjectUser> projectUser;
 
     /**
-     * 멤버 등록 요청한 프로젝트
+     * project which is requested member join
      */
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "user_enrolled_project", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "project_id"))
@@ -166,11 +140,14 @@ public class User extends Model implements ResourceConvertible {
     public List<NotificationEvent> notificationEvents;
 
     /**
-     * 사용자로 인식할 수 있는 추가 이메일
+     * alternate user email addresses
      *
-     * 한 사용자가 여러 이메일을 사용할 경우, 해당 이메일로도 사용자를 인식할 때 사용한다. {@link #email}은 대표 이메일로 사용한다.
+     * It is used to recognize as same user when a user uses multiple emails.
      *
-     * 추가 이메일 목록 중에 하나를 {@link #email}로 설정할 수 있으며 그때는 {@link #emails}에서 빠지고 {@link #email}로 바뀐다.
+     * cf. {@link #email} is regarded as a user's representative email
+     *
+     * {@link #email} can be set as one of {@link #emails}.
+     * In that case, selected {@link #email} is removed from {@link #emails}
      */
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     public List<Email> emails;
@@ -198,9 +175,9 @@ public class User extends Model implements ResourceConvertible {
     }
 
     /**
-     * 완료일을 yyyy-MM-dd 형식의 문자열로 변환한다.
+     * User creation date which forms of "MMM dd, yyyy"
      *
-     * view에서 노출하기 위한 용도로 사용한다.
+     * It is made for view pages
      *
      * @return
      */
@@ -209,22 +186,15 @@ public class User extends Model implements ResourceConvertible {
         return sdf.format(this.createdDate);
     }
 
-    /**
-     * 자신이 속한 프로젝트 목록을 반환한다.
-     *
-     * @return
-     */
     public List<Project> myProjects(String orderString) {
         return Project.findProjectsByMemberWithFilter(id, orderString);
     }
 
     /**
-     * 사용자를 추가한다.
-     *
-     * 사용자 추가시 생성일을 설정하고 PK를 반환한다.
+     * Create a user and set creation date
      *
      * @param user
-     * @return
+     * @return user's id (not login id)
      */
     public static Long create(User user) {
         user.createdDate = JodaDateUtil.now();
@@ -233,12 +203,13 @@ public class User extends Model implements ResourceConvertible {
     }
 
     /**
-     * 로그인 아이디로 사용자를 조회한다.
+     * find a user by login id string
      *
-     * 사용자가 없으면 {@link #anonymous} 객체를 반환한다.
+     * If there is no user correspond to login id string,
+     * then return {@link #anonymous} not null
      *
      * @param loginId
-     * @return
+     * @return User or {@link #anonymous}
      */
     public static User findByLoginId(String loginId) {
         User user = find.where().ieq("loginId", loginId).findUnique();
@@ -277,10 +248,10 @@ public class User extends Model implements ResourceConvertible {
     }
 
     /**
-     * 로그인아이디로 존재하는 사용자인지를 확인한다.
+     * check is existed user
      *
      * @param loginId
-     * @return 사용자 존재여부
+     * @return boolean
      */
     public static boolean isLoginIdExist(String loginId) {
         int findRowCount = find.where().ieq("loginId", loginId).findRowCount();
@@ -288,9 +259,8 @@ public class User extends Model implements ResourceConvertible {
     }
 
     /**
-     * 전체 사용자 PK와 이름을 반환한다.
+     * all user list mapped by id and name
      *
-     * @return
      */
     public static Map<String, String> options() {
         LinkedHashMap<String, String> options = new LinkedHashMap<>();
@@ -301,11 +271,12 @@ public class User extends Model implements ResourceConvertible {
     }
 
     /**
-     * 익명사용자와 사이트 관리자를 제외한 사이트에 가입된 사용자 목록을 로그인 아이디로 정렬하여 Page객체로 반환한다.
      *
-     * @param pageNum 해당 페이지
-     * @param query {@code query}가 null이 아니면 {@code query}를 포함하고 있는 사용자 목록을 검색한다.
-     * @return
+     * All user list except anonymous and site admin
+     *
+     * @param pageNum
+     * @param query If {@code query}is not null, search list contains {@code query}
+     * @return user list forms of Page which is ordered by login id
      */
     public static Page<User> findUsers(int pageNum, String query, UserState state) {
         ExpressionList<User> el = User.find.where();
@@ -323,10 +294,10 @@ public class User extends Model implements ResourceConvertible {
     }
 
     /**
-     * 사이트 관리자를 제외한 특정 프로젝트에 속한 사용자 목록을 반환한다.
+     * project user list except site admin
      *
      * @param projectId
-     * @return
+     * @return project admin and member list
      */
     public static List<User> findUsersByProject(Long projectId) {
         return find.where().eq("projectUser.project.id", projectId)
@@ -334,10 +305,6 @@ public class User extends Model implements ResourceConvertible {
                 .findList();
     }
 
-    /**
-     * 사용자의 아바타 아이디를 반환한다.
-     * @return
-     */
     @Transient
     public Long avatarId() {
         List<Attachment> attachments = Attachment.findByContainer(avatarAsResource());
@@ -350,12 +317,12 @@ public class User extends Model implements ResourceConvertible {
     }
 
     /**
-     * 기존에 존재하는 email인지 확인한다.
+     * Check if email exists or not
      *
-     * {@link Email}에 검증된 보조 이메일로 존재하는지 확인한다.
+     * Also check the email exist in {@link Email} as a certificated side email
      *
      * @param emailAddress
-     * @return email이 있으면 true / 없으면 false
+     * @return boolean
      */
     public static boolean isEmailExist(String emailAddress) {
         User user = find.where().ieq("email", emailAddress).findUnique();
@@ -363,18 +330,19 @@ public class User extends Model implements ResourceConvertible {
     }
 
     /**
-     * 사용자가 익명사용자인지 확인한다.
-     * @return
+     * check whether this is a anonymous
      */
     public boolean isAnonymous() {
         return id == null || id.equals(anonymous.id);
     }
 
     /**
-     * 로그인 아이디로 사용자를 조회하고 새 비밀번호를 암호화하여 설정한다.
+     * reset user password with a new password
+     *
+     * When new password save, it will be encryped with {@link User.passwordSalt}
      *
      * @param loginId
-     * @param newPassword {@link User.passwordSalt}로 암호화하여 설정할 새 비밀번호
+     * @param newPassword
      */
     public static void resetPassword(String loginId, String newPassword) {
         User user = findByLoginId(loginId);
@@ -383,13 +351,6 @@ public class User extends Model implements ResourceConvertible {
         user.save();
     }
 
-    /**
-     * 모델을 리소스 객체로 반환한다.
-     *
-     * 권한검사와 첨부파일 정보를 포함한다.
-     *
-     * @return
-     */
     @Override
     public Resource asResource() {
         return new GlobalResource() {
@@ -419,10 +380,6 @@ public class User extends Model implements ResourceConvertible {
         };
     }
 
-    /**
-     * 사이트 관리자 여부를 확인한다.
-     * @return
-     */
     public boolean isSiteManager() {
         return SiteAdmin.exists(this);
     }
@@ -472,7 +429,7 @@ public class User extends Model implements ResourceConvertible {
     }
 
     /**
-     * {@code project}에 멤버 등록 요청을 추가한다.
+     * request join as a member at {@code project}
      *
      * @param project
      */
@@ -487,7 +444,7 @@ public class User extends Model implements ResourceConvertible {
     }
 
     /**
-     * {@code project}에 보낸 멤버 등록 요청을 삭제한다.
+     * cancel enrol request at {@code project}
      *
      * @param project
      */
@@ -502,7 +459,7 @@ public class User extends Model implements ResourceConvertible {
     }
 
     /**
-     * 현재 사용자가 {@code project}에 멤버 등록 요청을 보냈는지 확인한다.
+     * check current logged in user already sent a enrol request to {@code project}
      *
      * @param project
      * @return
@@ -568,7 +525,7 @@ public class User extends Model implements ResourceConvertible {
     }
 
     /**
-     * {@code projectId} 에 해당하는 project 에 이슈를 작성한 모든 사용자 조회
+     * All user post a issue at a project whose id is {@code projectId}
      *
      * @param projectId
      * @return
@@ -581,7 +538,7 @@ public class User extends Model implements ResourceConvertible {
     }
 
     /**
-     * {@code projectId} 에 해당하는 project 에 코드-주고받기를 보낸 모든 사용자 조회
+     * All user list sent pull-requests at project whose id is {@code projectId}
      *
      * @param projectId
      * @return
@@ -599,7 +556,7 @@ public class User extends Model implements ResourceConvertible {
     }
 
     /**
-     * {@code projectId} 에 해당하는 프로젝트에서 {@code roleType} 역할을 가지고 있는 사용자 목록을 조회한다.
+     * find users at a project whose id is {@code projectId} and role is {@code roleType}
      *
      * @param projectId
      * @param roleType
@@ -616,7 +573,7 @@ public class User extends Model implements ResourceConvertible {
     }
 
     /**
-     * 사용자가 가진 보조 이메일에 새로운 이메일 추가한다.
+     * add to user's alternate email list
      *
      * @param email
      */
@@ -626,10 +583,10 @@ public class User extends Model implements ResourceConvertible {
     }
 
     /**
-     * 사용자가 가진 보조 이메일 중에 {@code newEmail}값에 해당하는 이메일이 있는지 확인한다.
+     * check {@code newEmail} exists in user's alternate email list
      *
      * @param newEmail
-     * @return
+     * @return boolean
      */
     public boolean has(String newEmail) {
         for (Email email : emails) {
@@ -641,8 +598,7 @@ public class User extends Model implements ResourceConvertible {
     }
 
     /**
-     * 사용자가 가진 보조 이메일에서 {@code email}을 삭제한다.
-     *
+     * remove {@code email} from user's altenate emails
      * @param email
      */
     public void removeEmail(Email email) {

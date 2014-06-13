@@ -29,9 +29,6 @@ import org.eclipse.jgit.transport.PostReceiveHook;
 import org.eclipse.jgit.transport.ReceiveCommand;
 import org.eclipse.jgit.transport.ReceivePack;
 
-/**
- * project 가 마지막 업데이트된 시점 저장
- */
 public class UpdateLastPushedDate implements PostReceiveHook {
     private Project project;
 

@@ -49,30 +49,9 @@ import utils.HttpUtil;
 public class AttachmentApp extends Controller {
 
     public static final String TAG_NAME_FOR_TEMPORARY_UPLOAD_FILES = "temporaryUploadFiles";
-    //사용자 임시 첨부 파일의 서버내 보관시간. 임시파일은 글 작성시 파일은 업로드 한 파일 중 글 작성이 완료 되지 않은 상태의 파일을 말한다.
     public static final long TEMPORARYFILES_KEEPUP_TIME_MILLIS = Configuration.root()
             .getMilliseconds("application.temporaryfiles.keep-up.time", 24 * 60 * 60 * 1000L);
 
-    /**
-     * 사용자 첨부파일로 업로드한다
-     *
-     * when 이슈나 글, 코멘트등에서 파일을 첨부하기 전에 먼저 업로드
-     *
-     * 멀티파트 폼데이터로 파일 업로드 요청을 받아서 서버에 파일 저장을 시도하고
-     * 만약 이미 같은 파일이 서버내에 globally 존재한다면 200OK로 응답
-     * 존재하지 않는 파일이라면 201 created로 응답
-     *
-     * 요청에 첨부파일이 없는 것으로 보일때는 400 Bad Request로 응답
-     * 업로더가 익명 사용자일 경우에는 403 Forbidden 으로 응답
-     *
-     * 업로드된 파일은 그 파일을 업로드한 사용자에게 첨부된 상태가 된다. 이후
-     * {@link Attachment#moveAll(models.resource.Resource, models.resource.Resource)} 등의 메소드를
-     * 사용해서 사용자의 첨부를 이슈 등의 다른 리소스로 옮길 수 있다.
-     *
-     * @return 생성된 파일의 메타데이터를 JSON 타입으로 반환하는 응답
-     * @throws NoSuchAlgorithmException
-     * @throws IOException
-     */
     public static Result uploadFile() throws NoSuchAlgorithmException, IOException {
         // Get the file from request.
         FilePart filePart =
@@ -135,18 +114,6 @@ public class AttachmentApp extends Controller {
         }
     }
 
-    /**
-     * {@code id}로 파일을 찾아서 첨부파일로 돌려준다.
-     *
-     * when: 첨부파일을 다운로드 받을 때
-     *
-     * 주의사항: 파일명이 깨지지 않도록 {@link utils.HttpUtil#encodeContentDisposition)}로 인코딩한다.
-     *
-     * @param id 첨부파일 id
-     * @return 파일이 첨부된 응답
-     * @throws NoSuchAlgorithmException
-     * @throws IOException
-     */
     public static Result getFile(Long id) throws IOException {
         Attachment attachment = Attachment.find.byId(id);
         String action = HttpUtil.getFirstValueFromQuery(request().queryString(), "action");
@@ -179,22 +146,6 @@ public class AttachmentApp extends Controller {
         return ok(file);
     }
 
-    /**
-     * {@code id}에 해당하는 첨부파일을 지운다.
-     *
-     * 게시물, 이슈, 댓글들의 첨부파일을 지울때 사용한다.
-     *
-     * 폼의 필드에 {@code _method}가 존재하고 값이 delete로 지정되어 있지 않으면 Bad Request로 응답한다.
-     * 파일을 못 찾으면 Not Found
-     * 삭제 권한이 없으면 Forbidden
-     *
-     * 첨부내용을 삭제한 후 해당 첨부의 origin 파일 유효검증
-     *
-     * @param id 첨부파일 id
-     * @return attachment 삭제 결과 (하지만 해당 메시지를 쓰고 있지는 않다. 아까운 네크워크 자원..)
-     * @throws NoSuchAlgorithmException
-     * @throws IOException
-     */
     public static Result deleteFile(Long id) {
         // _method must be 'delete'
         Map<String, String[]> data =
@@ -225,14 +176,6 @@ public class AttachmentApp extends Controller {
         }
     }
 
-    /**
-     * origin file의 유효성을 검증하고, 유효하지 않다면 로그를 남긴다.
-     *
-     * origin file이 존재하지 않지만 그 파일을 참조하는 첨부가 존재하는 경우엔 에러 로그를 남긴다.
-     * origin file이 존재하지만 그 파일을 참조하는 첨부가 존재하지 않는 경우엔 경고 로그를 남긴다.
-     *
-     * @param hash origin file의 hash
-     */
     private static void logIfOriginFileIsNotValid(String hash) {
         if (!Attachment.fileExists(hash) && Attachment.exists(hash)) {
             Logger.error("The origin file '" + hash + "' cannot be " +
@@ -247,12 +190,6 @@ public class AttachmentApp extends Controller {
         }
     }
 
-    /**
-     * 첨부파일의 메타데이터를 가져온다.
-     *
-     * @param attach 첨부
-     * @return 메타데이터를 맵으로
-     */
     private static Map<String, String> extractFileMetaDataFromAttachementAsMap(Attachment attach) {
         Map<String, String> metadata = new HashMap<>();
 
@@ -265,19 +202,6 @@ public class AttachmentApp extends Controller {
         return metadata;
     }
 
-    /**
-     * 파일의 목록을 가져온다.
-     *
-     * 이슈, 게시물, 댓글을 볼 때, 첨부된 파일들의 목록을 보여주기 위해
-     * 이슈, 게시물, 댓글을 편집할 때, 첨부된 파일들의 목록 및 사용자 파일들의 목록을 보여주기 위해
-     *
-     * 로그인한 사용자의 파일들의 목록을 {@code tempFiles} 프로퍼티로 넘겨준다.
-     * 첨부 파일들의 목록을 {@code attachments} 프로퍼티로 넘겨준다.
-     * 첨부 파일들 중 로그인한 사용자가 읽기 권한을 갖지 못한 것이 하나라도 있다면 403 Forbidden 으로 응답한다.
-     *
-     * @return json 포맷으로 된 파일 목록을 본문으로 하는 응답. 다음고 같은 형식이다.
-     *         {@code {tempFiles: 사용자 파일 목록, attachments: 첨부 파일 목록 }}
-     */
     public static Result getFileList() {
         Map<String, List<Map<String, String>>> files =
                 new HashMap<>();

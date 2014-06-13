@@ -48,9 +48,6 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.*;
 
-/**
- * Project.
- */
 @Entity
 public class Project extends Model implements LabelOwner {
     private static final long serialVersionUID = 1L;
@@ -67,45 +64,30 @@ public class Project extends Model implements LabelOwner {
     public String name;
 
     public String overview;
-    /** 프로젝트에서 사용하는 vcs */
     public String vcs;
     public String siteurl;
-    /** 프로젝트 관리자 loginId */
     public String owner;
 
     public Date createdDate;
 
-    /** 프로젝트 이슈 **/
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     public Set<Issue> issues;
 
-    /** 프로젝트 멤버 */
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     public List<ProjectUser> projectUser;
 
-    /** 프로젝트 게시물 */
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     public List<Posting> posts;
 
-    /** 프로젝트 마일스톤 */
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     public List<Milestone> milestones;
 
-    /** 프로젝트 알림 */
+    /** Project Notification */
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     public List<UserProjectNotification> notifications;
 
-    /**
-     * 마지막 등록된 이슈 번호
-     *
-     * TODO : 사용하는곳을 찾을 수 없습니다. 삭제시 데이터 싱크가 되고 있지 않습니다.
-     */
     private long lastIssueNumber;
-    /**
-     * 마지막 등록된 게시물 번호
-     *
-     * TODO : 사용하는곳을 찾을 수 없습니다. 삭제시 데이터 싱크가 되고 있지 않습니다.
-     */
+
     private long lastPostingNumber;
 
     @ManyToMany
@@ -145,15 +127,6 @@ public class Project extends Model implements LabelOwner {
     public ProjectScope projectScope;
 
     /**
-     * 신규 프로젝트를 생성한다.
-     *
-     * 프로젝트 생성시 사용한다.
-     *
-     * {@code siteurl}과 {@code createdDate}을 초기화하고 저장한다.
-     * 프로젝트에 사이트 관리자의 Role을 추가한다.
-     *
-     * @param newProject 신규프로젝트
-     * @return 생성된 프로젝트 {@code id}
      * @see {@link User#SITE_MANAGER_ID}
      * @see {@link RoleType#SITEMANAGER}
      */
@@ -166,63 +139,23 @@ public class Project extends Model implements LabelOwner {
         return newProject.id;
     }
 
-    /**
-     * 프로젝트 이름을 포함하는 프로젝트 목록을 반환한다.
-     *
-     * {@link Page} 형태의 프로젝트 목록 조회시 사용한다.
-     *
-     * 프로젝트명에 {@code name} 값이 포함된 프로젝트 정보를 {@link Page} 형태로 가져온다.
-     *
-     * @param name 프로젝트 이름
-     * @param pageSize {@code pageSize}
-     * @param pageNum {@code pageNum}
-     * @return {@link Page} 형태의 프로젝트
-     */
     public static Page<Project> findByName(String name, int pageSize,
                                            int pageNum) {
         return find.where().ilike("name", "%" + name + "%")
                 .findPagingList(pageSize).getPage(pageNum);
     }
 
-    /**
-     * 프로젝트 관리자 {@code loginId} 와 {@code projectName} 으로 프로젝트 정보를 가져온다.
-     *
-     * 동일한 관리자 loginId와 {@code projectName} 으로 생성된 프로젝트는 Unique 하다.
-     *
-     * @param loginId 프로젝트 관리자 loginId
-     * @param projectName 프로젝트 이름
-     * @return 프로젝트
-     */
     public static Project findByOwnerAndProjectName(String loginId, String projectName) {
         return find.where().ieq("owner", loginId).ieq("name", projectName)
                 .findUnique();
     }
 
-    /**
-     * 해당 프로젝트 존재 여부를 반환한다.
-     *
-     * {@code loginId} 와 {@code projectName} 으로 프로젝트 카운트를 가져오고 존재 여부를 반환한다.
-     *
-     * @param loginId 로그인 아이디
-     * @param projectName 프로젝트 이름 (대소문자를 구분하지 않음)
-     * @return 프로젝트가 존재하면 true, 존재하지 않으면 false
-     */
     public static boolean exists(String loginId, String projectName) {
         int findRowCount = find.where().ieq("owner", loginId)
                 .ieq("name", projectName).findRowCount();
         return (findRowCount != 0);
     }
 
-    /**
-     * 프로젝트 이름을 {@code projectName} 값으로 변경이 가능한지 여부를 반환한다.
-     *
-     * 프로젝트 정보(이름) 변경시 중복방지를 위해 사용한다.
-     *
-     * @param id 현재 프로젝트 id
-     * @param userName 프로젝트 관리자 loginId
-     * @param projectName 프로젝트 이름
-     * @return 자신을 제외한 프로젝트 중 동일한 프로젝트 이름이 있으면 false, 없으면 true를 반환
-     */
     public static boolean projectNameChangeable(Long id, String userName,
                                                 String projectName) {
         int findRowCount = find.where().ieq("name", projectName)
@@ -231,13 +164,6 @@ public class Project extends Model implements LabelOwner {
     }
 
     /**
-     *
-     * {@code userId}로 사용자가 속한 프로젝트들 중에서 해당 사용자가 유일한 관리자인 프로젝트가 있는지 검사하고 그 프로젝트들의 목록을 반환한다.
-     *
-     * 사이트관리자가 사용자 삭제시 사용한다.
-     *
-     * @param userId the user id
-     * @return {@code userId} 가 유일한 관리자인 프로젝트가 있으면 true, 없으면 false
      * @see {@link RoleType#MANAGER}
      */
     public static boolean isOnlyManager(Long userId) {
@@ -254,34 +180,14 @@ public class Project extends Model implements LabelOwner {
         return false;
     }
 
-    /**
-     * {@code userId} 가 멤버로 있는 프로젝트 목록을 반환한다.
-     *
-     * @param userId the user id
-     * @return {@code userId}의 프로젝트 목록
-     */
     public static List<Project> findProjectsByMember(Long userId) {
         return find.where().eq("projectUser.user.id", userId).findList();
     }
 
-    /**
-     * {@code user} 가 owner가 아니고 멤버로 있는 프로젝트 목록을 반환한다.
-     *
-     * @param user 사용자
-     * @return {@code user}의 프로젝트 목록
-     */
     public static List<Project> findProjectsJustMemberAndNotOwner(User user) {
         return findProjectsJustMemberAndNotOwner(user, null);
     }
 
-    /**
-     * {@code user} 가 owner가 아니고 멤버로 있는 프로젝트 목록을 반환한다.
-     * 반환되는 목록을 {@code orderString} 을 이용해서 정렬한다.
-     *
-     * @param user 사용자
-     * @param orderString 정렬 정보
-     * @return {@code user}의 프로젝트 목록
-     */
     public static List<Project> findProjectsJustMemberAndNotOwner(User user, String orderString) {
         ExpressionList<Project> el = find.where()
                 .eq("projectUser.user.id", user.id)
@@ -294,15 +200,6 @@ public class Project extends Model implements LabelOwner {
     }
 
 
-    /**
-     * {@code userId} 가 멤버로 있는 프로젝트 목록을 {@code orderString} 에 따라 정렬하여 반환한다.
-     *
-     * {@code orderString} 이 null 일 경우 정렬하지 않고 반환한다.
-     *
-     * @param userId 유저 아이디
-     * @param orderString 정렬방식
-     * @return 정렬된 프로젝트 목록
-     */
     public static List<Project> findProjectsByMemberWithFilter(Long userId, String orderString) {
         List<Project> userProjectList = find.where().eq("projectUser.user.id", userId).findList();
         if( orderString == null ){
@@ -321,16 +218,6 @@ public class Project extends Model implements LabelOwner {
         return Ebean.filter(Project.class).sort(orderString).filter(userProjectList);
     }
 
-    /**
-     * 프로젝트의 마지막 업데이트일을 반환한다.
-     *
-     * 프로젝트의 vcs 타입(git, svn)에 따라 branch를 조회하여 branch가 하나 이상 존재하면 commit history(head revision)을 가져오고 commit history의 updateDate를 반환한다.
-     * branch가 존재하지 않거나 Exception 발생시 {@code createDate} 를 반환한다.
-     *
-     * TODO : 현재는 GitRepository의 히스토리만 가져오게 구현되어 있음. svn은?
-     *
-     * @return 마지막 업데이트일
-     */
     public Date lastUpdateDate() {
         try {
             PlayRepository repository = RepositoryService.getRepository(this);
@@ -362,12 +249,6 @@ public class Project extends Model implements LabelOwner {
         return "HEAD";
     }
 
-    /**
-     *
-     * 프로젝트 마지막 업데이트일을 {@link Duration} 객체로 반환한다. ( 지속시간 )
-     *
-     * @return 마지막 업데이트일 지속시간
-     */
     public Duration ago() {
         return JodaDateUtil.ago(lastUpdateDate());
     }
@@ -379,12 +260,6 @@ public class Project extends Model implements LabelOwner {
         return JodaDateUtil.ago(this.lastPushedDate);
     }
 
-    /**
-     * 프로젝트의 저장소로부터 Readme 파일을 읽어 String으로 반환한다.
-     * Exception 발생시 null을 반환한다.
-     *
-     * @return Readme
-     */
     public String readme() {
         try {
             byte[] bytes = RepositoryService.getRepository(this)
@@ -396,13 +271,6 @@ public class Project extends Model implements LabelOwner {
     }
 
     /**
-     * 프로젝트의 README 파일 이름을 얻는다. 없다면 {@code null}을 반환한다.
-     *
-     * 코드저장소 루트 디렉토리에서 다음의 순서로 파일을 찾아서 발견되는대로 그 이름을 반환한다.
-     *
-     * - README.md
-     * - readme.md
-     *
      * @return the readme file name or {@code null} if the file does not exist
      * @throws IOException Signals that an I/O exception has occurred.
      * @throws GitAPIException the git api exception
@@ -422,7 +290,6 @@ public class Project extends Model implements LabelOwner {
             return baseFileName.toLowerCase();
         }
 
-        // SVN은 /trunk/readme.md 까지 찾아본다.
         if(repo instanceof SVNRepository) {
             baseFileName = "/trunk/" + baseFileName;
             if(repo.isFile(baseFileName)) {
@@ -438,13 +305,6 @@ public class Project extends Model implements LabelOwner {
         return null;
     }
 
-    /**
-     * 마지막 이슈번호를 증가시킨다.
-     *
-     * 이슈 추가시 사용한다.
-     *
-     * @return {@code lastIssueNumber}
-     */
     @Transactional
     public Long increaseLastIssueNumber() {
         if (this.issues != null && lastIssueNumber < this.issues.size() ){
@@ -466,13 +326,6 @@ public class Project extends Model implements LabelOwner {
         }
     }
 
-    /**
-     * 마지막 게시글번호를 증가시킨다.
-     *
-     * 게시글 추가시 사용한다.
-     *
-     * @return {@code lastPostingNumber}
-     */
     @Transactional
     public Long increaseLastPostingNumber() {
         if (this.posts != null && lastPostingNumber < this.posts.size() ){
@@ -493,11 +346,6 @@ public class Project extends Model implements LabelOwner {
         }
     }
 
-    /**
-     * Labels as resource.
-     *
-     * @return the resource
-     */
     public Resource labelsAsResource() {
         return new Resource() {
 
@@ -519,11 +367,6 @@ public class Project extends Model implements LabelOwner {
         };
     }
 
-    /**
-     * As resource.
-     *
-     * @return the resource
-     */
     @Override
     public Resource asResource() {
         return new GlobalResource() {
@@ -541,25 +384,10 @@ public class Project extends Model implements LabelOwner {
         };
     }
 
-    /**
-     * loginId로 관리자(Project owner) 정보를 가져온다.
-     *
-     * @param loginId the user id
-     * @return the owner by name
-     */
     public User getOwnerByLoginId(String loginId){
         return User.findByLoginId(loginId);
     }
 
-    /**
-     * 프로젝트 라벨를 추가하고 성공여부를 반환한다.
-     *
-     * 라벨가 이미 있을경우 false를 반환한다.
-     * 라벨가 없으면 추가하고 true를 반환한다.
-     *
-     * @param label 신규 라벨
-     * @return 이미 라벨가 있을 경우 false / 없으면 추가하고 true 반환
-     */
     public Boolean attachLabel(Label label) {
         if (labels.contains(label)) {
             // Return false if the label has been already attached.
@@ -573,14 +401,6 @@ public class Project extends Model implements LabelOwner {
         return true;
     }
 
-    /**
-     * 라벨를 제거한다.
-     *
-     * 라벨를 참조하고 있는 프로젝트가 없으면 해당 라벨를 삭제하고
-     * 참조하는 프로젝트가 있으면 라벨 매핑정보를 업데이트한다.
-     *
-     * @param label 삭제할 라벨
-     */
     public void detachLabel(Label label) {
         label.projects.remove(this);
         if (label.projects.size() == 0) {
@@ -590,20 +410,10 @@ public class Project extends Model implements LabelOwner {
         }
     }
 
-    /**
-     * {@code user} 가 owner 인지 확인한다.
-     *
-     * @param user 사용자
-     * @return owner 이면 true, 아니면 false
-     */
     public boolean isOwner(User user) {
         return owner.toLowerCase().equals(user.loginId.toLowerCase());
     }
 
-    /**
-     * {@code owner} 와 '/', {@code name} 의 조합으로 String 을 반환한다.
-     * @return 프로젝트명
-     */
     public String toString() {
         return owner + "/" + name;
     }
@@ -612,11 +422,6 @@ public class Project extends Model implements LabelOwner {
         return ProjectUser.findMemberListByProject(this.id);
     }
 
-    /**
-     * 그룹에 속한 public과 protected 프로젝트에는 그룹의 모든 멤버도 포함해서 반환한다.
-     *
-     * @return
-     */
     public List<User> relatedUsers() {
         Set<User> users = new HashSet<>();
 
@@ -640,29 +445,14 @@ public class Project extends Model implements LabelOwner {
         return result;
     }
 
-    /**
-     * 이 프로젝트가 포크 프로젝트인지 확인한다.
-     *
-     * @return
-     */
     public boolean isForkedFromOrigin() {
         return this.originalProject != null;
     }
 
-    /**
-     * 이 프로젝트를 포크 받은 프로젝트가 있는지 확인한다.
-     *
-     * @return
-     */
     public boolean hasForks() {
         return this.forkingProjects.size() > 0;
     }
 
-    /**
-     * 포크 프로젝트 목록을 반환한다.
-     *
-     * @return
-     */
     public List<Project> getForkingProjects() {
         if(this.forkingProjects == null) {
             this.forkingProjects = new ArrayList<>();
@@ -670,25 +460,11 @@ public class Project extends Model implements LabelOwner {
         return forkingProjects;
     }
 
-    /**
-     * 포크를 추가한다.
-     *
-     * @param forkProject
-     */
     public void addFork(Project forkProject) {
         getForkingProjects().add(forkProject);
         forkProject.originalProject = this;
     }
 
-    /**
-     * {@code loginId}에 해당하는 유저가 {@code originalProject}를 포크 받은 프로젝트를 반환한다.
-     *
-     * when: fork 할 때 기존에 포크 받은 프로젝트가 있는지 확인할 때 사용한다.
-     *
-     * @param loginId
-     * @param originalProject
-     * @return
-     */
     public static List<Project> findByOwnerAndOriginalProject(String loginId, Project originalProject) {
         return find.where()
                 .eq("originalProject", originalProject)
@@ -696,38 +472,20 @@ public class Project extends Model implements LabelOwner {
                 .findList();
     }
 
-    /**
-     * 포크 프로젝트를 삭제한다.
-     *
-     * when: 프로젝트를 삭제할 때 해당 프로젝트가 포크 프로젝트라면 원본 프로젝트의 포크 프로젝트 목록에서
-     * 해당 프로젝트를 삭제한다.
-     */
     public void deleteFork() {
         if(this.originalProject != null) {
             this.originalProject.deleteFork(this);
         }
     }
 
-    /**
-     * {@code project}를 포크 목록에서 삭제한다.
-     *
-     * @param project
-     */
     private void deleteFork(Project project) {
         getForkingProjects().remove(project);
         project.originalProject = null;
     }
 
-    /**
-     * 데이터 교정용 메서드로, 원본이 삭제된 포크 프로젝트일 경우에 포크 프로젝트를 원본 프로젝트로 만든다.
-     *
-     * when: 프로젝트 조회할 때 사용.
-     *
-     */
     public void fixInvalidForkData() {
         if(originalProject != null) {
             try {
-                // originalProject의 속성에 접근해봐야 알 수 있다.
                 String owner = originalProject.owner;
             } catch (EntityNotFoundException e) {
                 originalProject = null;
@@ -737,10 +495,6 @@ public class Project extends Model implements LabelOwner {
     }
 
     /**
-     * 프로젝트 멤버 등록 요청중에서 이미 프로젝트 멤버로 등록된 유저의 요청은 삭제한다.
-     *
-     * when: 프로젝트 멤버 설정 화면을 보여줄 때 실행합니다.
-     *
      * @see controllers.ProjectApp#members(String, String)
      */
     @Transactional
@@ -760,23 +514,12 @@ public class Project extends Model implements LabelOwner {
         }
     }
 
-    /**
-     * 프로젝트 상태(공개/비공개)
-     */
     public enum State {
         PUBLIC, PRIVATE, ALL
     }
 
     /**
-     * <p>프로젝트를 삭제한다.</p>
-     *
-     * <p>{@link play.db.ebean.Model#delete()}를 override해서 이 메소드를 구현한 이유는,
-     * {@link #assignees}를 삭제하기 위해서이며, {@code Cascading.REMOVE}로 삭제 가능함에도 굳이 직접
-     * 삭제하는 것은 cascading을 설정한 상태에서 프로젝트 삭제시 발생하는 다음의 예외를 피하기 위함이다.</p>
-     *
      * <pre>Parameter "#1" is not set; SQL statement: delete from issue_comment where (issue_id in (?) [90012-168]]</pre>
-     *
-     * <p>이것은 Ebean의 버그로 알려져있다.</p>
      *
      * @see <a href="http://www.avaje.org/bugdetail-420.html">
      *     BUG 420 : SQLException with CascadeType.REMOVE</a>
@@ -839,11 +582,6 @@ public class Project extends Model implements LabelOwner {
         this.originalProject = null;
     }
 
-    /**
-     * 이 프로젝트에서 보낸 코드 요청 이 프로젝트가 받은 코드 요청을 삭제한다.
-     *
-     * when: 프로젝트를 삭제할 떄 관련 코드 요청을 삭제할 때 사용한다.
-     */
     private void deletePullRequests() {
         List<PullRequest> sentPullRequests = PullRequest.findSentPullRequests(this);
         for(PullRequest pullRequest : sentPullRequests) {
@@ -864,16 +602,6 @@ public class Project extends Model implements LabelOwner {
         }
     }
 
-    /**
-     * {@code loginId}와 {@code projectName}으로 새 프로젝트 이름을 생성한다.
-     *
-     * 기존에 해당 프로젝트와 동일한 이름을 가진 프로젝트가 있다면 프로젝트 이름 뒤에 -1을 추가한다.
-     * '프로젝트이름-1'과 동일한 프로젝트가 있다면 뒤에 숫자를 계속 증가시킨다.
-     *
-     * @param loginId
-     * @param projectName
-     * @return
-     */
     public static String newProjectName(String loginId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
         if(project == null) {
@@ -890,14 +618,6 @@ public class Project extends Model implements LabelOwner {
     }
 
     /**
-     * {@code project}의 {@code owner}의 복사본 프로젝트를 만든다.
-     * 이때 프로젝트의 이름은 {@link #newProjectName(String, String)}을 사용한다.
-     *
-     * when: 프로젝트 복사 폼과 복사 폼 처리에서 사용한다.
-     *
-     * @param project
-     * @param owner
-     * @return
      * @see #newProjectName(String, String)
      */
     public static Project copy(Project project, String owner) {
@@ -915,31 +635,15 @@ public class Project extends Model implements LabelOwner {
         return labels;
     }
 
-    /**
-     * {@code loginId} 가 owner 가 아니고 멤버로 있는 프로젝트 갯수를 반환한다.
-     *
-     * @param loginId loginId
-     * @return {@code loginId} 가 owner 가 아니고 멤버로 있는 프로젝트 갯수
-     */
     public static int countProjectsJustMemberAndNotOwner(String loginId) {
         return find.where().eq("projectUser.user.loginId", loginId)
                 .ne("owner", loginId).findRowCount();
     }
 
-    /**
-     * {@code loginId} 가 생성한 프로젝트 갯수를 반환한다.
-     *
-     * @param loginId loginId
-     * @return {@code loginId} 가 생성한 프로젝트 갯수
-     */
     public static int countProjectsCreatedByUser(String loginId) {
         return find.where().eq("owner", loginId).findRowCount();
     }
 
-    /**
-     * 최근 푸쉬된 브랜치 목록을 반환한다.
-     * @return
-     */
     public List<PushedBranch> getRecentlyPushedBranches() {
         return PushedBranch.find.where()
                             .eq("project", this)
@@ -947,10 +651,6 @@ public class Project extends Model implements LabelOwner {
                             .findList();
     }
 
-    /**
-     * 오래전 푸쉬된 브랜치 목록을 반환한다.
-     * @return
-     */
     public List<PushedBranch> getOldPushedBranches() {
         return PushedBranch.find.where()
                             .eq("project", this)
@@ -972,12 +672,6 @@ public class Project extends Model implements LabelOwner {
         return projects;
     }
 
-    /**
-     * 코드를 머지하는데 필요한 리뷰 포인트의 최대값을 반환한다.
-     * 최대값은 프로젝트의 멤버수 만큼인데, 프로젝트의 멤버수가 1보다 작을 때는 1을 반환한다.
-     *
-     * @return 필요한 리뷰 포인트의 최대값.
-     */
     public int getMaxNumberOfRequiredReviewerCount() {
         List<ProjectUser> members = ProjectUser.findMemberListByProject(this.id);
         if(members.size() > 1) {

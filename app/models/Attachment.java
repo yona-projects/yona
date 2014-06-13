@@ -81,14 +81,14 @@ public class Attachment extends Model implements ResourceConvertible {
     private Date createdDate;
 
     /**
-     * 주어진 {@code attach}와 내용이 같은 첨부 파일을 찾는다.
+     * Finds an attachment which matches the given one.
      *
-     * 내용이 같은 첨부 파일이라고 하는 것은 이름과 파일의 내용이 같고 첨부된 리소스도 같은 것을 말한다.
-     * 구체적으로 말하면 {@link Attachment#name}, {@link Attachment#hash},
-     * {@link Attachment#containerType}, {@link Attachment#containerId}가 서로 같은 첨부이다.
+     * Finds an attachment that matches {@link Attachment#name},
+     * {@link Attachment#hash}, {@link Attachment#containerType} and
+     * {@link Attachment#containerId} with the given one.
      *
-     * @param attach 이 첨부 파일과 내용이 같은 첨부 파일을 찾는다.
-     * @return 발견된 첨부 파일
+     * @param attach
+     * @return an attachment which matches up with the given one.
      */
     private static Attachment findBy(Attachment attach) {
         return find.where()
@@ -99,24 +99,19 @@ public class Attachment extends Model implements ResourceConvertible {
     }
 
     /**
-     * 파일의 해시값이 {@code hash}인 첨부 파일이 존재하는지의 여부를 반환한다.
-     *
-     * @param hash 해시값
-     * @return 해시값이 {@code hash}와 같은 첨부가 존재하는지의 여부
+     * @param hash
+     * @return true if an attachment which has the given hash exists
      */
     public static boolean exists(String hash) {
         return find.where().eq("hash", hash).findRowCount() > 0;
     }
 
     /**
-     * 주어진 {@code containerType}과 {@code containerId}에 대응하는 리소스에 첨부된 첨부 파일의 목록을 반환한다.
+     * Gets all attachments from a container.
      *
-     * {@code containerType}은 {@link models.resource.Resource#getType()}의 반환값과,
-     * {@code containerId}는 {@link models.resource.Resource#getId()}의 반환값과 비교한다.
-     *
-     * @param containerType 첨부 파일이 첨부된 리소스의 타입
-     * @param containerId 첨부 파일이 첨부된 리소스의 아이디
-     * @return 첨부 파일의 목록
+     * @param containerType  the resource type of the container
+     * @param containerId    the resource id of the container
+     * @return attachments of the container
      */
     public static List<Attachment> findByContainer(
             ResourceType containerType, String containerId) {
@@ -126,22 +121,18 @@ public class Attachment extends Model implements ResourceConvertible {
     }
 
     /**
-     * 주어진 {@code container}의 첨부된 첨부 파일의 목록을 반환한다.
+     * Gets all attachments from a container.
      *
-     * @param container 첨부 파일이 첨부된 리소스
-     * @return 첨부 파일의 목록
+     * @param container
+     * @return attachments of the container
      */
     public static List<Attachment> findByContainer(Resource container) {
         return findByContainer(container.getType(), container.getId());
     }
 
     /**
-     * 주어진 {@code container}에 첨부된 첨부 파일의 갯수를 반환한다.
-     *
-     * when:
-     *
-     * @param container 첨부 파일이 첨부된 리소스
-     * @return 첨부 파일의 목록
+     * @param container
+     * @return the number of attachments in the container
      */
     public static int countByContainer(Resource container) {
         return find.where()
@@ -150,13 +141,15 @@ public class Attachment extends Model implements ResourceConvertible {
     }
 
     /**
-     * {@code from}에 첨부된 모든 첨부 파일을 {@code to}로 옮긴다.
+     * Moves all attachments from a container to another container.
      *
-     * when: 업로드 직후 일시적으로 사용자에게 첨부되었던 첨부 파일들을, 특정 리소스(이슈, 게시물 등)으로 옮기려 할 때
+     * This method is used when move attachments which were attached to an user
+     * temporary to a specific resource(issue, posting, ...).
      *
-     * @param from 첨부 파일이 원래 있었던 리소스
-     * @param to 첨부 파일이 새로 옮겨질 리소스
-     * @return
+     * @param from  a container in which the attachment is currently stored
+     * @param to    a container to which the attachment moved
+     * @return      the number of attachments which was moved to another
+     *              container
      */
     public static int moveAll(Resource from, Resource to) {
         List<Attachment> attachments = Attachment.findByContainer(from);
@@ -167,13 +160,15 @@ public class Attachment extends Model implements ResourceConvertible {
     }
 
     /**
-     * {@code from}에 첨부된 파일중 파일 아이디가{@code selectedFileIds}에 해당하는 첨부 파일을 {@code to}로 옮긴다.
+     * Moves specified attachments from a container to another one.
      *
-     * when: 업로드 직후 일시적으로 사용자에게 첨부되었던 첨부 파일들을, 특정 리소스(이슈, 게시물 등)으로 옮기려 할 때
+     * This method is used when move attachments which were attached to an user
+     * temporary to a specific resource(issue, posting, ...).
      *
-     * @param from 첨부 파일이 원래 있었던 리소스
-     * @param to 첨부 파일이 새로 옮겨질 리소스
-     * @return
+     * @param from             a container to which it was attached
+     * @param to               a container to which it will be attached
+     * @param selectedFileIds  IDs of attachments to be moved
+     * @return the number of attachments which was moved to another container
      */
     public static int moveOnlySelected(Resource from, Resource to, String[] selectedFileIds) {
         if(selectedFileIds.length == 0){
@@ -190,10 +185,9 @@ public class Attachment extends Model implements ResourceConvertible {
     }
 
     /**
-     * 이 첨부 파일을 {@code to}로 옮긴다.
+     * Moves this attachment to another resource.
      *
-     * @param to 첨부 파일이 새로 옮겨질 리소스
-     * @return
+     * @param to  the destination
      */
     public void moveTo(Resource to) {
         containerType = to.getType();
@@ -202,13 +196,13 @@ public class Attachment extends Model implements ResourceConvertible {
     }
 
     /**
-     * {@code file}을 업로드 디렉토리로 옮긴다.
+     * Moves a file to the Upload Directory.
      *
-     * when: Play 프레임워크는 파일을 업로드하면 일단 임시 디렉토리에 보관하는데, 이 파일을 업로드 디렉토리로
-     * 옮기려 할 때 사용한다.
+     * This method is used to move a file stored in temporary directory by
+     * PlayFramework to the Upload Directory managed by Yobi.
      *
      * @param file
-     * @return
+     * @return SHA1 hash of the file
      * @throws NoSuchAlgorithmException
      * @throws IOException
      */
@@ -251,19 +245,23 @@ public class Attachment extends Model implements ResourceConvertible {
     }
 
     /**
-     * 업로드된 {@code file}을 주어진 {@code name}으로 {@code container}에 첨부한다.
+     * Attaches an uploaded file to the given container with the given name.
      *
-     * when: 업로드된 파일이 사용자에게 첨부될 때. 혹은 사용자를 거치지 않고 바로 다른 리소스로 첨부될 때.
+     * Moves an uploaded file to the Upload Directory and rename the file to
+     * its SHA1 hash. And it stores the metadata of the file in this entity.
      *
-     * 업로드된 파일을 업로드 디렉토리로 옮긴다. 이 때 파일이름을 그 파일의 해시값으로 변경한다. 그 후 이 파일에
-     * 대한 메타정보 및 첨부될 대상에 대한 정보를 이 엔터티에 담는다. 만약 이 엔터티와 같은 내용을 갖고 있는
-     * 엔터티가 이미 존재한다면, 이미 {@code container}에 같은 첨부가 존재하고 있으므로 첨부하지 않고
-     * {@code false}를 반환한다. 그렇지 않다면 첨부 후 {@code true}를 반환한다.
+     * If there is an entity that has the same values with this entity already,
+     * it means the container has the same attachment. If that is the case,
+     * this method will return {@code false} and do nothing; otherwise, return
+     * {@code true}.
      *
-     * @param file 첨부할 파일
-     * @param name 파일 이름
-     * @param container 파일이 첨부될 리소스
-     * @return 파일이 새로 첨부되었다면 {@code true}, 이미 같은 첨부가 존재하여 첨부되지 않았다면 {@code false}
+     * This method is used when an uploaded file is attached to a user or
+     * another resource directly.
+     *
+     * @param file       a file to be attached
+     * @param name       the name of the file
+     * @param container  the resource to which the file attached
+     * @return {@code true} if the file is attached, {@code false} otherwise.
      * @throws IOException
      * @throws NoSuchAlgorithmException
      */
@@ -301,43 +299,43 @@ public class Attachment extends Model implements ResourceConvertible {
    }
 
     /**
-     * 업로드 디렉토리에서 이 첨부 파일의 해시값에 해당하는 파일을 가져온다.
+     * Gets a file which mathces the hash from the Upload Directory.
      *
-     * when: 파일을 다운로드 할 때
+     * This method is used when an user downloads a file
      *
-     * @return 가져온 파일
+     * @return the file
      */
     public File getFile() {
         return new File(uploadDirectory, this.hash);
     }
 
     /**
-     * 업로드 디렉토리를 설정한다.
+     * Sets the Upload Directory to store files that users uploaded.
      *
-     * when: 테스트에서 업로드 디렉토리를 변경하기 위해 사용
+     * This method is used for unit tests.
      *
-     * @param path 업로드 디렉토리의 경로
+     * @param path  a path to the Upload Directory
      */
     public static void setUploadDirectory(String path) {
         uploadDirectory = path;
     }
 
     /**
-     * 이 첨부 파일의 해시값에 해당하는 파일의 업로드 디렉토리에 존재하는지 여부를 반환한다.
+     * Checks if there is a file that has the same hash in the Upload Directory.
      *
-     * when: 이 첨부 파일이 실제로 파일 시스템에 존재하고 있는지 검증하려고 할 때
+     * This method is used to check if the file exists in the system.
      *
-     * @param hash 파일을 찾을 때 비교해볼 해시값
-     * @return 파일이 존재하는지의 여부
+     * @param hash
+     * @return true if the file exists
      */
     public static boolean fileExists(String hash) {
         return new File(uploadDirectory, hash).isFile();
     }
 
     /**
-     * 이 첨부 파일을 삭제한다.
+     * Deletes this file.
      *
-     * when: 사용자가 첨부 파일 혹은 첨부 파일이 첨부된 리소스를 삭제했을 때
+     * This method is used when an user delete an attachment or its container.
      */
     @Override
     public void delete() {
@@ -349,11 +347,12 @@ public class Attachment extends Model implements ResourceConvertible {
 
 
     /**
-     * 주어진 {@code container}에 첨부된 모든 첨부 파일을 삭제한다.
+     * Deletes every attachment attached to the given container.
      *
-     * when: 첨부 파일을 가질 수 있는 어떤 리소스가 삭제되었을 때
+     * This method is used when a container, a resource may has attachments, is
+     * deleted.
      *
-     * @param container 첨부 파일을 삭제할 리소스
+     * @param container  the resource that has the attachments to be deleted
      */
     public static void deleteAll(Resource container) {
         List<Attachment> attachments = findByContainer(container);
@@ -367,11 +366,11 @@ public class Attachment extends Model implements ResourceConvertible {
     }
 
     /**
-     * 이 객체를 리소스로 반환한다.
+     * Returns this as a resource.
      *
-     * when: 권한검사시 사용
+     * This method is used for access control.
      *
-     * @return 리소스
+     * @return resource
      */
     @Override
     public Resource asResource() {
@@ -457,14 +456,6 @@ public class Attachment extends Model implements ResourceConvertible {
                         }
                     }
 
-                    /**
-                     * 사용자 임시 첨부 파일을 삭제
-                     *
-                     * 사용자에 의해 업로드 된지 {@code application.temporaryfiles.keep-up.time}초 이상 경과한
-                     * 임시파일들은 서버에서 삭제한다.
-                     *
-                     * @return 전체 대상 파일 중 지운 파일 ex> (10 of 10)
-                     */
                     private String removeUserTemporaryFiles() {
                         List<Attachment> attachmentList = Attachment.find.where()
                                 .eq("containerType", ResourceType.USER)
@@ -488,9 +479,6 @@ public class Attachment extends Model implements ResourceConvertible {
         );
     }
 
-    /**
-     * when: Global의 onStart가 실행될 때 호출됩니다.
-     */
     public static void onStart() {
         cleanupTemporaryUploadFilesWithSchedule();
     }

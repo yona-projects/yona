@@ -70,11 +70,6 @@
             });
         }
         
-        /**
-         * 프로젝트 이관 버튼 클릭시 이벤트 핸들러
-         * 프로젝트 이관 동의에 체크했는지 확인하고
-         * 체크되지 않았으면 경고
-         */
         function _onClickBtnTransferPop(){
             if(htElement.welChkAccept.is(":checked") === false){
                 $yobi.alert(Messages("project.transfer.alert"));

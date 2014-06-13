@@ -67,18 +67,11 @@
             this.$menu.html(items);
             return this;
         }
-        /**
-         * typeahead의 updater를 재정의
-         *
-         * 사용자목록 선택시 loginId가 반환된다.
-         */
         function _updater(item) {
             return htVar.htUserData[item].loginId;
         }
 
         /**
-         * typeahead의 source option을 재정의
-         *
          * For more information, See "source" option at
          * http://twitter.github.io/bootstrap/javascript.html#typeahead
          *
@@ -136,7 +129,6 @@
             htElement.enrollAcceptBtns = $(".enrollAcceptBtn");
             htElement.memberListWrap = $('.members');
 
-            // 멤버 삭제 확인 대화창
             htElement.welAlertDelete = $("#alertDeletion");
         }
 
@@ -153,8 +145,6 @@
         }
 
         /**
-         * 멤버 요청 승인 버튼 클릭시 이벤트 핸들러
-         * 멤버 추가 폼 서브밋하기
          * @param {Wrapped Event} weEvt
          */
         function _onClickEnrollAcceptBtns(weEvt){
@@ -165,7 +155,6 @@
         }
 
         /**
-         * 멤버 삭제 버튼 클릭시
          * @param {Wrapped Element} weltArget
          */
         function _onClickDelete(){
@@ -184,32 +173,28 @@
             _showConfirmDeleteMember(sURL);
         }
 
-        /**
-         * 멤버 삭제 요청이 성공했을때
-         */
         function _onSuccessDeleteMember(sResult){
             var htData = $.parseJSON(sResult);
             document.location.replace(htData.location);
         }
 
         /**
-         * 멤버 삭제 요청이 실패했을때
          * @param {Object} oXHR
          */
         function _onErrorDeleteMember(oXHR){
             var sErrorMsg;
 
             switch(oXHR.status){
-                case 403: // 삭제하려는 멤버가 관리자이거나 권한없음
+                case 403:
                     var sNeedle = Messages("project.member.ownerCannotLeave");
                     sErrorMsg = (oXHR.responseText.indexOf(sNeedle) > -1) ? sNeedle : Messages("error.forbidden");
                     break;
 
-                case 404: // 그룹을 찾을 수 없음
+                case 404:
                     sErrorMsg = Messages("organization.member.unknownOrganization");
                     break;
 
-                default:  // 그 이외의 기본 오류
+                default:
                     sErrorMsg = Messages("error.badrequest");
                     break;
             }
@@ -219,7 +204,6 @@
         }
 
         /**
-         * 멤버 삭제 확인 표시
          * @param {String} sURL
          */
         function _showConfirmDeleteMember(sURL){
@@ -227,7 +211,6 @@
         }
 
         /**
-         * 멤버 정보 변경 버튼 클릭시
          * @param {Wrapped Element} welTarget
          */
         function _onClickApply(){

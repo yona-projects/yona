@@ -35,9 +35,6 @@ import play.db.ebean.Model;
 import utils.EventConstants;
 import utils.JodaDateUtil;
 
-/**
- * 보낸코드 이벤트 정보
- */
 @Entity
 public class PullRequestEvent extends Model implements TimelineItem {
 
@@ -64,14 +61,6 @@ public class PullRequestEvent extends Model implements TimelineItem {
         return created;
     }
 
-    /**
-     * NotiEvent를 사용하여 보낸코드 이벤트를 추가한다.
-     *
-     * 신규/보류/열림/병합
-     *
-     * @param notiEvent
-     * @param pullRequest
-     */
     public static void addFromNotificationEvent(NotificationEvent notiEvent, PullRequest pullRequest) {
         PullRequestEvent event = new PullRequestEvent();
         event.created = notiEvent.created;
@@ -122,16 +111,6 @@ public class PullRequestEvent extends Model implements TimelineItem {
         event.save();
     }
 
-    /**
-     * 보낸코드 병합 결과 이벤트를 추가한다.
-     *
-     * 충돌/충돌 해결
-     *
-     * @param sender
-     * @param eventType
-     * @param state
-     * @param pullRequest
-     */
     public static void addMergeEvent(User sender, EventType eventType, State state, PullRequest pullRequest) {
         PullRequestEvent event = new PullRequestEvent();
         event.created = new Date();
@@ -143,14 +122,6 @@ public class PullRequestEvent extends Model implements TimelineItem {
         event.save();
     }
 
-    /**
-     * 보낸코드 커밋 이벤트를 추가한다.
-     *
-     * @param sender
-     * @param pullRequest
-     * @param commits
-     * @param oldValue
-     */
     public static void addCommitEvents(User sender, PullRequest pullRequest,
             List<PullRequestCommit> commits, String oldValue) {
         Date createdDate = new Date();
@@ -172,19 +143,10 @@ public class PullRequestEvent extends Model implements TimelineItem {
         event.save();
     }
 
-    /**
-     * 보낸코드의 이벤트 목록을 가져온다.
-     * @param pullRequest
-     * @return
-     */
     public static List<PullRequestEvent> findByPullRequest(PullRequest pullRequest) {
         return finder.where().eq("pullRequest", pullRequest).findList();
     }
 
-    /**
-     * 이벤트에 저장된 커밋아이디로 커밋목록을 가져온다.
-     * @return
-     */
     @Transient
     public List<PullRequestCommit> getPullRequestCommits() {
         List<PullRequestCommit> commits = new ArrayList<>();

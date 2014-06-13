@@ -37,7 +37,6 @@
          * initialize element variables
          */
         function _initElement(){
-            // 프로젝트 설정 관련
             htElement.welForm = $("form#saveSetting");
             htElement.welInputLogo = $("#logoPath");
         }
@@ -49,9 +48,6 @@
             htElement.welInputLogo.change(_onChangeLogoPath);
         }
 
-        /**
-         * 프로젝트 로고 변경시 이벤트 핸들러
-         */
         function _onChangeLogoPath(){
             var welTarget = $(this);
 

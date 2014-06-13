@@ -36,8 +36,6 @@ import static models.CodeRange.Side;
 import static models.CodeRange.Side.*;
 
 /**
- * 커밋 뷰에서 생성되는 모든 쓰레드는 CodeCommentThread.
- *
  * @author Keesun Baik
  */
 @Entity

@@ -29,10 +29,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * /{user.loginId}/{project.name}/** 에 해당하는 URL에 적용할 수 있는 Git 프로젝트 확인용 애노테이션.
- * - URL 패턴에 대응하는 프로젝트가 있는 확인하다. 없으면 404 Not Found.
- * - 접근하려는 프로젝트가 Git 프로젝트인지 확인한다. Git 프로젝트가 아니면 400 BadRequest.
- *
  * @author Keesun Baik
  * @see {@link actions.IsOnlyGitAvailableAction}
  */

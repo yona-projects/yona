@@ -32,20 +32,9 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import play.mvc.With;
 
-/**
- * 프로젝트에 멤버로 등록해달라는 요청을 처리하는 컨트롤러
- */
 @With(AnonymousCheckAction.class)
 public class EnrollProjectApp extends Controller {
 
-    /**
-     * {@code loginId}의 {@code proejctName}에 해당하는 프로젝트에
-     * 멤버 등록 요청을 생성합니다.
-     *
-     * @param loginId
-     * @param projectName
-     * @return
-     */
     @Transactional
     @With(DefaultProjectCheckAction.class)
     public static Result enroll(String loginId, String projectName) {
@@ -64,14 +53,6 @@ public class EnrollProjectApp extends Controller {
         return ok();
     }
 
-    /**
-     * {@code loginId}의 {@code proejctName}에 해당하는 프로젝트에
-     * 멤버 등록 요청을 취소한다.
-     *
-     * @param loginId
-     * @param proejctName
-     * @return
-     */
     @Transactional
     @With(DefaultProjectCheckAction.class)
     public static Result cancelEnroll(String loginId, String proejctName) {

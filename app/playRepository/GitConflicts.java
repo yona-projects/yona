@@ -32,21 +32,11 @@ import java.util.Map;
 
 public class GitConflicts {
 
-    /**
-     * conflict가 발생한 파일 목록
-     */
     public List<String> conflictFiles = new ArrayList<>();
 
-    /**
-     * conflict 목록
-     *
-     * conflict가 발생한 파일 한개는 여러개의 conflict를 가지고 있을 수 있다.
-     */
     public List<Conflict> conflictDetails = new ArrayList<>();
 
     /**
-     * MergeResult에서 #conflictFiles 데이터와 #conflicts 데이터를 뽑아낸다.
-     *
      * @param repository
      * @param mergeResult
      * @see http://download.eclipse.org/jgit/docs/latest/apidocs/org/eclipse/jgit/api/MergeResult.html#getConflicts()

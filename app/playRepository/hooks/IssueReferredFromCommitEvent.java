@@ -35,9 +35,6 @@ import akka.actor.Props;
 
 import play.libs.Akka;
 
-/**
- * 커밋에서 언급한 이슈에 이슈 참조 이벤트를 생성한다.
- */
 public class IssueReferredFromCommitEvent implements PostReceiveHook {
     private Project project;
     private User user;

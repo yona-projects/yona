@@ -38,11 +38,6 @@ import play.mvc.Http.Request;
 import actors.RelatedPullRequestMergingActor;
 import akka.actor.Props;
 
-/**
- * 성공한 ReceiveCommand 로 영향받은 branch 에 대해서
- * 관련 있는 오픈된 코드-보내기 요청을 찾아 코드가 안전한지 확인한다.
- * branch가 삭제된 경우 관련 있는 오픈된 코드-보내기 요청을 모두 삭제한다.
- */
 public class PullRequestCheck implements PostReceiveHook {
     private User user;
     private Request request;

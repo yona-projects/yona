@@ -66,23 +66,10 @@ import playRepository.hooks.*;
 import controllers.ProjectApp;
 import controllers.UserApp;
 
-/**
- * 저장소 관련 서비스를 제공하는 클래스
- */
 public class RepositoryService {
     public static final String VCS_SUBVERSION = "Subversion";
     public static final String VCS_GIT = "GIT";
 
-    /**
-     * 지원하는 VCS(버전 관리 시스템) 타입을 반환한다.
-     * <p/>
-     * when: 프로젝트 생성 화면에서 VCS 타입 보여줄 때 사용한다.
-     * <p/>
-     * "project.new.vcsType.git"과 "project.new.vcsType.subversion"이라는 키값으로
-     * message.en과 message.kr에 적혀있는 값을 화면에 보여줄 때 사용한다.
-     *
-     * @return
-     */
     public static Map<String, String> vcsTypes() {
         HashMap<String, String> map = new HashMap<>();
         map.put(VCS_GIT, "project.new.vcsType.git");
@@ -91,17 +78,6 @@ public class RepositoryService {
     }
 
     /**
-     * 저장소를 삭제한다.
-     * <p/>
-     * when: {@link ProjectApp#deleteProject(String, String)}에서 프로젝트를 삭제할 때
-     * 해당 프로젝트와 관련있는 저장소를 삭제할 때 사용한다.
-     * <p/>
-     * {@code project}에 해당하는 프로젝트의 {@link PlayRepository}를 읽어오고
-     * {@link playRepository.PlayRepository#delete()}를 호출한다.
-     *
-     * @param project
-     * @throws IOException
-     * @throws ServletException
      * @see {@link ProjectApp#deleteProject(String, String)}
      * @see {@link playRepository.PlayRepository#delete()}
      */
@@ -111,18 +87,6 @@ public class RepositoryService {
     }
 
     /**
-     * {@code project}와 관련있는 저장소를 생성한다.
-     * <p/>
-     * when: {@link controllers.ProjectApp#newProject()}로 프로젝트를 생성할 때 사용한다.
-     * <p/>
-     * {@code project}에 해당하는 저장소를 삭제하고 {@link PlayRepository}를 읽어온 뒤
-     * {@link PlayRepository#create()}를 호출한다.
-     *
-     * @param project
-     * @throws IOException
-     * @throws ServletException
-     * @throws ClientException
-     * @throws UnsupportedOperationException
      * @see {@link #deleteRepository(Project)}
      * @see {@link PlayRepository#create()}
      */
@@ -132,21 +96,6 @@ public class RepositoryService {
         RepositoryService.getRepository(project).create();
     }
 
-    /**
-     * {@code userName}의 {@code projectName}에 해당하는 프로젝트의 저장소에서
-     * {@code branch}의 {@code path}의 모든 상위 경로의 정보를 JSON으로 읽어온다.
-     * <p/>
-     * when: {@link controllers.CodeApp#ajaxRequestWithBranch(String, String, String, String)}에서
-     * 특정 프로젝트의 특정 브랜치, 특정 경로에 있는 코드 정보를 조회할 때 사용한다.
-     * <p/>
-     *
-     * @param userName
-     * @param projectName
-     * @param path
-     * @param branch
-     * @return
-     * @throws Exception
-     */
     public static List<ObjectNode> getMetaDataFromAncestorDirectories(PlayRepository repository,
                                                                       String branch,
                                                                       String path) throws
@@ -170,27 +119,6 @@ public class RepositoryService {
     }
 
     /**
-     * {@code userName}의 {@code projectName}에 해당하는 프로젝트의 저장소에서
-     * {@code revision}의 {@code path}에 해당하는 파일을 읽어온다.
-     * <p/>
-     * when: {@link controllers.CodeApp#showRawFile(String, String, String)}과
-     * {@link controllers.CodeApp#showImageFile(String, String, String)}에서 파일 내용을 화면에 보여줄 때 사용한다.
-     * <p/>
-     * {@code userName}의 {@code projectName}에 해당하는 {@link Project}의 {@link PlayRepository}를 찾아서
-     * {@link PlayRepository#getRawFile(String)}을 호출한다.
-     *
-     * @param userName
-     * @param projectName
-     * @param revision
-     * @param path
-     * @return
-     * @throws ServletException
-     * @throws IOException
-     * @throws UnsupportedOperationException
-     * @throws AmbiguousObjectException
-     * @throws IncorrectObjectTypeException
-     * @throws MissingObjectException
-     * @throws SVNException
      * @see {@link PlayRepository#getRawFile(String)}
      */
     public static byte[] getFileAsRaw(String userName, String projectName, String revision, String path)
@@ -199,19 +127,6 @@ public class RepositoryService {
         return RepositoryService.getRepository(project, true).getRawFile(revision, path);
     }
 
-    /**
-     * {@code project}의 저장소를 나타내는 {@link PlayRepository}를 반환한다.
-     * <p/>
-     * when:  {@link PlayRepository}를 사용하는 여러 곳에서 이 메서드를 사용하고 있다.
-     * <p/>
-     * Git 프로젝트일 경우에는 {@link GitRepository}를 반환하고 SVN 프로젝트일 경우에는 {@link SVNRepository}를 반환한다.
-     *
-     * @param project
-     * @return
-     * @throws IOException
-     * @throws ServletException
-     * @throws UnsupportedOperationException
-     */
     public static PlayRepository getRepository(Project project, boolean alternatesMergeRepo) throws IOException,
             ServletException, UnsupportedOperationException {
         if (project == null) {
@@ -233,40 +148,12 @@ public class RepositoryService {
         return getRepository(project, true);
     }
 
-    /**
-     * {@code project}의 저장소를 나타내는 {@link PlayRepository}를 반환한다.
-     * <p/>
-     * when:  {@link PlayRepository}를 사용하는 여러 곳에서 이 메서드를 사용하고 있다.
-     * <p/>
-     * Git 프로젝트일 경우에는 {@link GitRepository}를 반환하고 SVN 프로젝트일 경우에는 {@link SVNRepository}를 반환한다.
-     *
-     * @param userName
-     * @param projectName
-     * @return
-     * @throws IOException
-     * @throws ServletException
-     * @throws UnsupportedOperationException
-     */
     public static PlayRepository getRepository(String userName, String projectName) throws IOException,
     ServletException, UnsupportedOperationException {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         return RepositoryService.getRepository(project);
     }
 
-    /**
-     * {@link DAVServlet}을 생성하고 초기화(init)해서 객체를 반환한다.
-     * <p/>
-     * when: {@link controllers.SvnApp#service()}에서 SVN 요청을 처리할 때 사용한다.
-     * <p/>
-     * 초기화 할 때 사용하는 {@link ServletConfig#getInitParameter(String)}를 오버라이딩해서
-     * 넘어온 매개변수의 값이 "SVNParentPath"일 때는{@link SVNRepository#getRepoPrefix()} +
-     * {@code userName} + "/"의 절대 경로를 반환하고
-     * 다른 값일 경우에는 플레이 설정 파일에서 "application." + name에 해당하는 값을 반환하도록 설정한다.
-     *
-     * @param userName
-     * @return
-     * @throws ServletException
-     */
     public static DAVServlet createDavServlet(final String userName) throws ServletException {
         DAVServlet servlet = new DAVServlet();
         servlet.init(new ServletConfig() {
@@ -301,15 +188,6 @@ public class RepositoryService {
     }
 
     /**
-     * Git advertise 요청을 처리한다.
-     * <p/>
-     * when: {@link controllers.GitApp#service(String, String, String, boolean)}에서 사용한다.
-     *
-     * @param project
-     * @param service
-     * @param response
-     * @return
-     * @throws IOException
      * @see <a href="https://www.kernel.org/pub/software/scm/git/docs/git-upload-pack.html">git-upload-pack</a>
      * @see <a href="https://www.kernel.org/pub/software/scm/git/docs/git-receive-pack.html">git-receive-pack</a>
      */
@@ -339,23 +217,12 @@ public class RepositoryService {
     }
 
     /**
-     * GIT RPC 요청을 처리합니다.
-     * <p/>
-     * when: {@link controllers.GitApp#service(String, String, String, boolean)}에서 사용한다.
-     *
-     * @param project
-     * @param service
-     * @param request
-     * @param response
-     * @return
-     * @throws IOException
      * @see <a href="https://www.kernel.org/pub/software/scm/git/docs/git-upload-pack.html">git-upload-pack</a>
      * @see <a href="https://www.kernel.org/pub/software/scm/git/docs/git-receive-pack.html">git-receive-pack</a>
      */
     public static PipedInputStream gitRpc(final Project project, String service, Request request, Response response) {
         response.setContentType("application/x-" + service + "-result");
 
-        // FIXME 스트림으로..
         RawBuffer raw = request.body().asRaw();
         byte[] buf = raw.asBytes();
         InputStream requestStream = null;
@@ -383,7 +250,7 @@ public class RepositoryService {
                     PostReceiveHook postReceiveHook = createPostReceiveHook(UserApp.currentUser(), project, request);
                     receivePack(requestStream, repository, new PipedOutputStream(responseStream),
                             postReceiveHook);
-                    // receivePack.setEchoCommandFailures(true);//git버전에 따라서 불린값 설정필요.
+                    // receivePack.setEchoCommandFailures(true);
                     break;
                 default:
                     requestStream.close();
@@ -401,15 +268,6 @@ public class RepositoryService {
         }
     }
 
-    /*
-     * receive-pack 후처리 객체 생성
-     * project 의 lastPushedDate 업데이트
-     * 최근 push 된 branch 정보 저장
-     * 커밋에서 언급한 이슈에 이슈 참조 이벤트를 생성
-     * 변경된 branch 와 관련된 pull-request 들 충돌 검사
-     * 삭제된 branch 와 관련된 pull-request 삭제
-     * 새로운 커밋 알림
-     */
     private static PostReceiveHook createPostReceiveHook(
             final User currentUser, final Project project, final Request request) {
         List<PostReceiveHook> hooks = new ArrayList<>();

@@ -30,7 +30,7 @@ import java.util.*;
 
 public class HttpUtil {
     /**
-     * Find the first value by given the key in the given query.
+     * Finds the first value by given the key from the given query.
      *
      * This method is used to get a value from a URI query string.
      *
@@ -53,8 +53,8 @@ public class HttpUtil {
     }
 
     /**
-     * Encode the filename with RFC 2231; IE 8 or less, and Safari 5 or less
-     * are not supported.
+     * Encodes a filename according to RFC 2231; IE 8 or less, and Safari 5 or
+     * less are not supported.
      *
      * @param filename
      * @return
@@ -70,12 +70,12 @@ public class HttpUtil {
     }
 
     /**
-     * 주어진 Http.Request 의 acceptedTypes 와 두 번째 이후의 String ... types 를 비교하여
-     * 그 중 가장 선호되는 contentType 을 반환한다. 해당하는 형식이 존재하지 않으면 null 이 반환된다
+     * Returns the most preferred content-type among supported types.
      *
-     * @param request
-     * @param types
-     * @return
+     * @param request  the request of the client
+     * @param types    the supported types
+     * @return the most preferred type; {@code null} if the client has no
+     *         preference among the supported types.
      */
     public static String getPreferType(Http.Request request, String ... types) {
         // acceptedTypes is sorted by preference.
@@ -90,8 +90,8 @@ public class HttpUtil {
     }
 
     /**
-     * getPreferType()을 이용하여 주어진 Http.Request 가
-     * application/json 을 가장 받기 원하는지(preferred) 여부를 반환한다
+     * Returns whether is the client prefers "application/json" most
+     * using getPreferType()
      *
      * @param request
      * @return
@@ -101,13 +101,14 @@ public class HttpUtil {
     }
 
     /**
-     * 주어진 {@code url}의 query string에 주어진 key-value pair들을 추가하여 만든 url을 반환한다.
+     * Return a url formed by appending key-value pairs to the query string of
+     * the given {@code url}.
      *
-     * key-value pair의 형식은 {@code key=value}이다.
+     * The format of the key-value pair is {@code "key=value"}.
      *
      * @param url
-     * @param encodedPairs
-     * @return
+     * @param encodedPairs encoded pairs to compose the query string
+     * @return the resulting url
      * @throws URISyntaxException
      */
     public static String addQueryString(String url, String ... encodedPairs) throws
@@ -121,14 +122,13 @@ public class HttpUtil {
     }
 
     /**
-     * 주어진 {@code url}의 query string에서 주어진 {@code keys}에 해당하는 모든 key-value pair를 제외시켜
-     * 만든 url을 반환한다.
+     * Removes key-value pairs from the query string of the given url.
      *
-     * key-value pair의 형식은 {@code key=value}이다.
+     * The format of the key-value pair is {@code "key=value"}.
      *
      * @param url
-     * @param keys query string에서 제거할 key. 인코딩되어있어서는 안된다.
-     * @return
+     * @param keys keys to be removed; The key must not be encoded.
+     * @return the resulting url
      * @throws URISyntaxException
      * @throws UnsupportedEncodingException
      */
@@ -158,11 +158,11 @@ public class HttpUtil {
     }
 
     /**
-     * 주어진 Http.Request 에서 X-Requested-With 헤더가 존재하며
-     * 그 값이 XMLHttpRequest 인지의 여부를 Boolean 으로 반환한다.
+     * Returns whether request header has "X-Requested-With"
+     * and also its value equals to "XMLHttpRequest".
      *
-     * jQuery, prototype, JindoJS 등 대부분의 JavaScript framework 에서
-     * XHR 호출시 이 헤더에 이 값을 설정하여 전송한다.
+     * Most JavaScript frameworks like jQuery, prototype and JindoJS
+     * set "XMLHttpRequest" in the "X-Requested-With" header when they call XHR.
      *
      * @param request
      * @return Boolean
@@ -173,8 +173,7 @@ public class HttpUtil {
     }
 
     /**
-     * 주어진 Http.Request 에서 X-PJAX 헤더가 존재하는지
-     * (= PJAX 요청인지) 여부를 Boolean 으로 반환한다.
+     * Returns whether {@code request} has "X-PJAX" header
      *
      * @param request
      * @return Boolean

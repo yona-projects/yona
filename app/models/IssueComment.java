@@ -27,9 +27,6 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.persistence.*;
 
-/**
- * 이슈의 댓글
- */
 @Entity
 public class IssueComment extends Comment {
     private static final long serialVersionUID = 1L;

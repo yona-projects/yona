@@ -4,7 +4,7 @@
  * Copyright 2013 NAVER Corp.
  * http://yobi.io
  *
- * @Author Ghildong Hong, Chulsoo Park
+ * @Author Yi EungJun, Suwon Chae, Keeun Baik
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,9 +33,6 @@ import java.util.Arrays;
 
 @Entity
 public class SiteAdmin extends Model {
-    /**
-     *
-     */
     private static final long serialVersionUID = 1L;
 
     @Id

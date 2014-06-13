@@ -67,22 +67,11 @@ public class Email extends Model {
      */
     public boolean valid;
 
-    /**
-     * 이메일 검증에 사용할 토큰
-     */
     public String token;
 
     @Transient
     public String confirmUrl;
 
-    /**
-     * 검증된 메일로 확인된 메일은 한개만 있을 수 있고
-     * 검증된 메일로 확인되지 않은 메일은 여러개가 있을 수 있다.
-     *
-     * @param newEmail
-     * @param valid 검증된 이메일중에 있는지 확인하고 싶을 떄는 true 검증되지 않은 이메일 중에서 확인하고 싶을 때는 false
-     * @return
-     */
     public static boolean exists(String newEmail, boolean valid) {
         ExpressionList<Email> el = findByEmailAndIsValid(newEmail, valid);
 
@@ -95,12 +84,6 @@ public class Email extends Model {
         }
     }
 
-    /**
-     * {@code token}이 유효한지 확인하고 유효한 값이면 동일한 이메일로 검증되지 않은 이메일을 삭제한다.
-     *
-     * @param token
-     * @return 유효한 토큰으로 검증됐으면 true 아니면 false
-     */
     public boolean validate(String token) {
         if(token.equals(this.token)) {
             this.valid = true;
@@ -112,13 +95,6 @@ public class Email extends Model {
         }
     }
 
-    /**
-     * {@code emailAddress}로 등록되어있는 보조 이메일 중에서 검증되지 않은 이메일을 삭제한다.
-     *
-     * when: 새로운 유저가 {@code emailAddress}로 가입했을때 또는 해당 이메일로 검증된 보조 이메일이 생성됐을 때 사용한다.
-     *
-     * @param emailAddress
-     */
     public static void deleteOtherInvalidEmails(String emailAddress) {
         List<Email> invalidEmails = find.where().eq("email", emailAddress).eq("valid", false).findList();
         for(Email email : invalidEmails) {
@@ -126,9 +102,6 @@ public class Email extends Model {
         }
     }
 
-    /**
-     * 확인 메일 보내는 작업 때문에 응답이 늦어질 수 있기 때문에 {@link ValidationEmailSender}로 위임한다.
-     */
     public void sendValidationEmail() {
         this.token = RandomStringUtils.randomNumeric(50);
         this.confirmUrl = Url.create(routes.UserApp.confirmEmail(this.id, this.token).url());

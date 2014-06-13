@@ -84,10 +84,8 @@
             htElement.welEmptyLineNumColumn = $('#linenum-column-template').tmpl();
             htElement.welEmptyCommentButton = $('#comment-button-template').tmpl();
 
-            // 지켜보기
             htElement.welBtnWatch = $('#watch-button');
 
-            // 미니맵
             htElement.welMiniMap = $("#minimap"); // .minimap-outer
             htElement.welMiniMapWrap = htElement.welMiniMap.find(".minimap-wrap");
             htElement.welMiniMapCurr = htElement.welMiniMapWrap.find(".minimap-curr");
@@ -129,8 +127,6 @@
             htElement.welDiff.show();
             htElement.welComments.show(); // Show the remain comments
 
-            // Diff 중에서 특정 파일을 #path 로 지정한 경우
-            // Diff render 완료 후 해당 파일 위치로 스크롤 이동
             if(document.location.hash){
                 var sTargetId = document.location.hash.substr(1).replace(htVar.rxSlashes, "-");
                 var welTarget = $(document.getElementById(sTargetId));
@@ -144,7 +140,6 @@
         }
 
         /**
-         * 댓글 폼 파일 업로더 초기화
          * initialize fileUploader
          */
         function _initFileUploader(){
@@ -161,7 +156,6 @@
         }
 
         /**
-         * 첨부파일 표시
          * initialize fileDownloader
          */
         function _initFileDownloader(){
@@ -173,7 +167,6 @@
         }
 
         /**
-         * 댓글 표시하기 토글
          * initialize toggle comments button
          */
         function _initToggleCommentsButton() {
@@ -184,8 +177,6 @@
         }
 
         /**
-         * 현재 줄에 댓글 스레드와 댓글 상자 토글 버튼을 덧붙인다.
-         *
          * @param {Object} welTr
          */
         function _appendCommentThreadOnLine(welTr,sPath) {
@@ -197,11 +188,6 @@
         }
 
         /**
-         * 댓글의 스레드에 댓글 토글 버튼을 덧붙인다.
-         *
-         * when: 특정 라인에 대한 댓글 스레드를 렌더링하면서 끝에 댓글 토글
-         * 버튼을 붙이려 할 때
-         *
          * @param {Object} welTr
          * @param {Object} welUl
          */
@@ -240,12 +226,6 @@
 
         }
 
-        /**
-         * 댓글 상자를 숨긴다.
-         *
-         * when: 특정 줄의, (댓글 상자가 나타난 상태에서의) 댓글 아이콘이나,
-         * 댓글창 닫기 버튼을 눌렀을 때
-         */
         function _hideCommentBox() {
             htElement.welCommentTr.remove();
             htElement.welEmptyCommentForm.find('[name=path]').removeAttr('value');
@@ -256,18 +236,6 @@
         }
 
         /**
-         * 특정 줄의 줄번호 컬럼(왼쪽 것)을 클릭했을 때의 이벤트 핸들러
-         *
-         * 예를 들면 아래와 같은 줄에서 줄번호 "240"이 있는 컬럼을 클릭했을 때
-         * |  240 |  244 |  $(window).click(function(){ // for IE |
-         *
-         * 다음과 같이 조건에 따라 댓글 창이 토글된다.
-         * 1) 다음 줄에 댓글 창이 없다면 댓글 창이 나타난다.
-         * 2) 다음 줄에 댓글 창이 있다면 그 댓글 창이 사라진다.
-         *
-         * ps. 원래 댓글 아이콘을 클릭하면 댓글 창이 나타나게 하려고
-         * 했었는데, 아이콘이 너무 작아서 누르기 힘들길래 이렇게 고쳤다.
-         *
          * @param {Event} weEvt
          */
         function _onClickLineNumA(weEvt) {
@@ -287,11 +255,6 @@
         }
 
         /**
-         * 특정 라인에 대한 댓글 스레드를 생성한다.
-         *
-         * 이 커밋에 대한 모든 댓글을 순회하면서, 현재 라인에 대한 댓글이
-         * 존재한다면 현재 라인의 댓글 스레드에 추가한다.
-         *
          * @param {Object} welTr
          * @param {Object} welUl
          */
@@ -316,11 +279,6 @@
         }
 
         /**
-         * welTr 밑에 댓글 상자를 보여준다.
-         *
-         * when: 특정 줄의, (댓글 상자가 안 나타난 상태에서의) 댓글 아이콘이나,
-         * 댓글창 열기 버튼을 눌렀을 때
-         *
          * @param {Object} welTr
          */
         function _showCommentBox(welTr,sPath,nLine,sType) {
@@ -345,11 +303,6 @@
         }
 
         /**
-         * Diff 렌더링
-         *
-         * unified diff 형식의 텍스트인 sDiff를 HTML로 렌더링하며, 특정 라인에
-         * 대한 커멘트가 있는 경우 그것도 함께 하께 렌더링한다.
-         *
          * @param {String} sDiff
          * @return {Object} 렌더링한 결과로 만들어진 HTML 테이블
          */
@@ -532,20 +485,12 @@
             return welRow;
         }
 
-        /**
-         * 댓글 미니맵 초기화
-         * 모듈 로딩시(_init)와 창 크기 변경시(_attachEvent:window.resize) 호출됨
-         */
         function _initMiniMap(){
             _setMiniMapRatio();
             _updateMiniMap();
             _resizeMiniMapCurr();
         }
 
-        /**
-         * 미니맵 비율을 설정한다
-         * 비율 = 미니맵 높이 / 문서 전체 높이
-         */
         function _setMiniMapRatio(){
             var nDocumentHeight = $(document).height();
             var nMapHeight = htElement.welMiniMapWrap.height();
@@ -553,29 +498,14 @@
             htVar.nMiniMapRatio = nMapHeight / nDocumentHeight;
         }
 
-        /**
-         * 현재 스크롤 위치에 맞추어 minimap-curr 의 위치도 움직인다
-         */
         function _updateMiniMapCurr(){
             htElement.welMiniMapCurr.css("top", Math.ceil($(document.body).scrollTop() * htVar.nMiniMapRatio) + "px");
         }
 
-        /**
-         * 미니맵 스크롤 위치 표시기(minimap-curr)의 높이를
-         * 비율에 맞추어 조정한다
-         */
         function _resizeMiniMapCurr(){
             htElement.welMiniMapCurr.css("height", Math.ceil(window.innerHeight * htVar.nMiniMapRatio) + "px");
         }
 
-        /**
-         * tr.comments 의 위치, 높이를 기준으로 미니맵을 표시한다
-         *
-         * 화면 크기 변경(window.resize)이나 화면 내용 변동시(_initMiniMap)
-         * 이미 생성한 DOM을 일일히 제어하는 것 보다 HTML을 새로 그리는 것이 빠르다
-         *
-         * 표시할 항목이 없다면 미니맵은 감춤
-         */
         function _updateMiniMap(){
             var aLinks = [];
             var welTarget, nTop;

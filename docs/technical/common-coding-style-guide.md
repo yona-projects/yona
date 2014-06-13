@@ -1,28 +1,36 @@
-코딩 스타일 가이드
-==================
+Common Coding Style Guide
+=========================
 
-소스코드
---------
+This document defines the coding style guide for Yobi project.
 
-* 소스코드는 UTF-8로 인코딩한다.
-* 들여쓰기시 탭(ASCII 9)을 사용하지 않고 스페이스(ASCII 32)를 사용한다.
-* 줄바꿈 문자는 LF(ASCII 10)만 사용한다.
-* 소스파일은 줄바꿈 문자로 끝나야 한다.
+Follow this guide when you write a source code regardless of language. But if
+there is a style guide, a rule or a convention for a specific language and for
+Yobi project, follow it for source code in the language.
 
-커밋 로그
----------
+Style For Source Code
+---------------------
 
-* 커밋 로그의 첫 줄에는 커밋의 내용을 50자정도로 간략한 요약한 것을 적는다.
-* 요약 외에 더 많은 설명이 필요한 경우에는, 둘째 줄은 비우고 셋째 줄부터 작성한다.
+* Use UTF-8.
+* Use space(ASCII 32), not tab(ASCII 9), for indentation.
+* Use LF(ASCII 10), not CR nor CRLF, as a newline character.
+* Every source file must end with a newline character.
 
-어디에 적용하는가
-=================
+Style For Commit Message
+------------------------
 
-* 이 코딩 스타일 가이드는 언어에 상관없이 모든 소스 코드 작성시 적용한다.
-* 그러나 특정 언어에 대한 스타일 가이드, 규칙, 컨벤션이 있다면, 그 언어로 작성한 소스코드에 대해서는 이 가이드보다 그것들을 우선한다.
+* Write summary of the commit in the first line. (50 characters is soft limit)
+* Write detailed description from the third line. (Skip the second line)
 
-부연설명
-========
+This style comes from the SubmittingPatches document of Git project. [1]
 
-* 이 프로젝트는 오픈소스 프로젝트이므로, 다른 프로젝트의 소스코드를 가져와서 쓰는 일이 많다. 그런 경우에 매번 스타일을 고쳐줘야하는 부담을 최소화하기 위해 가급적 오픈소스 프로젝트들에서 널리 쓰이는 스타일 가이드을 따른다.
-* 커밋로그에 대한 가이드는 [Git 프로젝트의 패치 제출 가이드](http://git.kernel.org/?p=git/git.git;a=blob;f=Documentation/SubmittingPatches;hb=HEAD)에 따른 것이다.
+Advice For Introducing New Style Guide
+--------------------------------------
+
+It is very common to import a snippet of source code from other projects. To
+avoid hassle to fix coding style of them, follow style guides commonly used
+among open source projects if possible.
+
+References
+----------
+
+[1]: http://git.kernel.org/?p=git/git.git;a=blob;f=Documentation/SubmittingPatches;hb=HEAD

@@ -33,14 +33,6 @@ import javax.persistence.*;
 import java.util.Date;
 import java.util.List;
 
-/**
- * 프로젝트 이관 정보
- *
- * 이관 요청을 할 때 새로운 프로젝트 이관 정보를 생성하고, 이관이 완려되면 {@code accepted}가 true로 바뀐다.
- * 새로운 이관 요청을 만들때 받을 사용자의 프로젝트 이름을 확인하고 중복되는 프로젝트가 있을 경우에는 프로젝트 fork와 동일한 정책으로 프로젝트 이름을 변경한다.
- * 동일한 프로젝트를 동일한 사용자에서 동일한 사용자로 여러번 이관 요청을 할 경우에는 이전 요청의 날짜와 확인키를 변경한다.
- * 요청이 수락되면 이전 이관 요청 중에서 동일한 프로젝트를 반대로 주고받은 요청을 삭제한다.
- */
 @Entity
 public class ProjectTransfer extends Model implements ResourceConvertible {
 
@@ -103,11 +95,6 @@ public class ProjectTransfer extends Model implements ResourceConvertible {
         return Url.create(routes.ProjectApp.acceptTransfer(id, confirmKey).url());
     }
 
-    /**
-     * 현재 시간 기준으로 하루 안에 생성되었고 수락하지 않은 {@code ProjectTransfer} 요청을 찾습니다.
-     * @param id
-     * @return
-     */
     public static ProjectTransfer findValidOne(Long id) {
         Date now = new Date();
         DateTime oneDayBefore = new DateTime(now).minusDays(1);

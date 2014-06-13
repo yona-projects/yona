@@ -79,8 +79,8 @@
             htVar.nTimelineUpdateTimer = null;
             htVar.nTimelineUpdatePeriod = htOptions.nTimelineUpdatePeriod || 60000; // 60000ms = 60s = 1m
             htVar.sTimelineHTML = htElement.welTimelineList.html();
-            htVar.nTimelineItems = _countTimelineItems(); // 타임라인 항목 갯수
-            htVar.bOnFocusTextarea = false; // 댓글 작성폼에 포커스가 있는지 여부
+            htVar.nTimelineItems = _countTimelineItems();
+            htVar.bOnFocusTextarea = false;
 
             // for comment-and-close
             htVar.sNextState = htOptions.sNextState;
@@ -133,8 +133,6 @@
         }
 
         /**
-         * 지켜보기 버튼 클릭시 이벤트 핸들러
-         *
          * @param {Wrapped Event} weEvt
          */
         function _onClickBtnWatch(weEvt){
@@ -155,16 +153,12 @@
         }
 
         /**
-         * 이슈 라벨 변경시
-         * change 이벤트 핸들러
-         *
          * @param weEvt
          * @private
          */
         function _onChangeIssueLabels(weEvt){
             var htReqData = _getRequestDataForUpdateIssueLabel(weEvt);
 
-            // 업데이트 요청 전송
             _requestUpdateIssue({
                "htData"  : htReqData,
                "fOnLoad" : function(){
@@ -177,8 +171,6 @@
         }
 
         /**
-         * 이슈 라벨 변경 요청 데이터를 반환
-         *
          * @param weEvt
          * @returns {Hash Table}
          * @private
@@ -186,14 +178,10 @@
         function _getRequestDataForUpdateIssueLabel(weEvt){
             var htReqData = {};
 
-            // 삭제할 라벨
             htReqData["detachingLabel[0].id"] = _getIdPropFromObject(weEvt.removed);
 
-            // 추가할 라벨
             htReqData["attachingLabel[0].id"] = _getIdPropFromObject(weEvt.added);
 
-            // 추가하는 라벨이 있는 경우
-            // 해당 라벨을 추가함으로 인해 삭제해야 하는 라벨을 찾아 htReqData 에 넣는다
             if(htReqData["attachingLabel[0].id"]){
                 var htRemove = _getLabelsToRemovedByAdding(weEvt.added);
                 htReqData = $.extend(htReqData, htRemove);
@@ -203,8 +191,6 @@
         }
 
         /**
-         * {@code htItem}의 id 속성을 반환한다
-         *
          * @param htItem
          * @returns {*}
          * @private
@@ -214,8 +200,6 @@
         }
 
         /**
-         * {@code htLabel} 을 추가함으로 인해 삭제해야 하는 라벨을 찾아 그 정보를 반환한다
-         *
          * @param htLabel
          * @private
          * @return {Hash Table}
@@ -226,21 +210,17 @@
             var aIssueLabelValues = oIssueLabels.val();
             var aRemoveLabelIds = _getLabelInSameCategoryWith(oIssueLabels.data(), htLabel);
 
-            // 삭제할 항목으로 추가하고
             aRemoveLabelIds.forEach(function(nValue, nIndex){
                 htRemove["detachingLabel[" + (nIndex + 1) + "].id"] = nValue;
                 aIssueLabelValues.splice(aIssueLabelValues.indexOf(nValue), 1);
             });
 
-            // 해당 항목이 제거된 상태로 Select2 값 설정
             oIssueLabels.val(aIssueLabelValues);
 
             return htRemove;
         }
 
         /**
-         * {@code aData} 를 기준으로 {@code htAddedLabel}과 같은 카테고리의 항목을 반환한다
-         *
          * @param aData
          * @param htAddedLabel
          * @private
@@ -262,9 +242,7 @@
         }
 
         /**
-         * 담당자 변경시
-         *
-         * @param {Wrapped Event} weEvt "change" 이벤트
+         * @param {Wrapped Event} weEvt
          */
         function _onChangeAssignee(weEvt){
             _requestUpdateIssue({
@@ -281,9 +259,7 @@
         }
 
         /**
-         * 마일스톤 변경시
-         *
-         * @param {Wrapped Event} weEvt "change" 이벤트
+         * @param {Wrapped Event} weEvt
          */
         function _onChangeMilestone(weEvt){
             _requestUpdateIssue({
@@ -298,8 +274,6 @@
         }
 
         /**
-         * 이슈 정보 업데이트 AJAX 호출
-         *
          * @param {Hash Table} htOptions
          */
         function _requestUpdateIssue(htOptions){
@@ -318,8 +292,6 @@
         }
 
         /**
-         * 이슈 정보 업데이트 호출 실패시
-         *
          * @param sMessage
          * @param oRes
          * @private
@@ -384,28 +356,21 @@
 
             _fixTimelineHeight();
 
-            // 미리 그려서
             var welTimelineList = _getRenderedTimeline(sResult);
 
-            // 첨부파일, 마크다운 렌더링 등에 시간이 걸리므로 약간의 시간차를 두고
             setTimeout(function(){
-                // 한 번에 DOM Element 갈아끼우기
                 htElement.welTimelineList.replaceWith(welTimelineList);
                 htElement.welTimelineList = welTimelineList;
                 htVar.sTimelineHTML = sResult;
 
-                // 렌더링 이후 타임라인 항목 갯수가 변했나? = 영역의 높이가 달라지나?
                 var bChanged= (htVar.nTimelineItems !== _countTimelineItems());
                 var bTimelineChangedOnTyping = htVar.bOnFocusTextarea && bChanged;
 
-                // 댓글 입력 도중 타임라인 높이가 변경되었으면
-                // 댓글 입력폼과 화면 스크롤 간의 차이를 기억해둔다
                 var nScrollGap = bTimelineChangedOnTyping ?
                     (htElement.welTextarea.offset().top - $(document).scrollTop()) : 0;
 
                 _unfixTimelineHeight();
 
-                // 입력 중인 댓글 폼이 계속 원래 보던 위치에 보이도록 화면 스크롤
                 if(bTimelineChangedOnTyping){
                     $(document).scrollTop(htElement.welTextarea.offset().top - nScrollGap);
                 }

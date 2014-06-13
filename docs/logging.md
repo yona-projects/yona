@@ -1,56 +1,76 @@
-Yobi는 사이트 운영자와 Yobi 개발자를 위해 운영중에 발생한 상황에 대한 로그를 남긴다. 로그는 logs 디렉토리에 있는 로그 파일 및 표준출력을 통해 남겨지게 된다.
+Yobi supports logging of system messages for operators and Yobi programmers.
+Yobi writes the logs to the log files in `logs` directory and standard output.
 
-로그 파일
+Log Files
 ---------
 
-설정을 변경하지 않았다면, 로그는 다음의 파일에 기록된다.
+Unless you modified the logging configuration, logs are written to these files:
 
-    애플리케이션 로그: logs/application.log
-    액세스 로그: logs/access.log
-    모든 로그: logs/root.log
+* Application logs - `logs/application.log`
+* Access logs - `logs/access.log`
+* All logs - `logs/root.log`
 
-`root.log`에 기록되는 로그는 표준 출력으로도 출력되나, 포맷은 조금 다를 수 있다. 두 포맷이 서로 어떻게 다른지 정확하게 확인해보려면 로그 설정 파일인 `conf/application-logger.xml`을 보라.
+Every log which is written to `root.log` also written to standard output, but
+the formats can be differ. See `conf/application-logger.xml`, the configuration
+for logging, for the difference between two formats.
 
-로그 설정
----------
+Loggin Configuration
+--------------------
 
-어떤 로그를 어디에(어떤 파일 혹은 표준 출력 등)에 기록할 것인지에 대한 설정은 `conf/application-logger.xml`에서 한다.
+You can configure logging in `conf/application-logger.xml`. See LOGBack
+Document [1] for details about logging configuration.
 
-로그의 설정에 대해서는 [LOGBack 문서](http://logback.qos.ch/documentation.html)를 참조한다.
+Note: PlayFramework allows to configure logging also in
+`conf/application.conf`. But Yobi uses `conf/application-logger.xml` for more
+detailed configuration. If there is a difference between the two configurtaion
+files, Yobi may works incorrectly. Use `conf/application-logger.xml` only for
+logging configuration.
 
-주의: PlayFramework는 `conf/application.conf`를 통해서도 로그에 대한 설정을 할 수 있도록 허용한다. 그러나 Yobi에서는 보다 정교한 설정을 위해 `conf/application-logger.xml`에 설정을 남기도록 하고 있다. 두 파일의 설정이 각각 다른 경우 의도하지 않은 동작을 하게 될 수 있으므로, 로그 관련 설정은 `conf/application-logger.xml`에서만 하도록 한다.
-
-로그 레벨
----------
-
-다음의 표는 로그 레벨의 의미하는 바를 설명한 것이다. 로그 메시지를 남길 때, 로그 레벨을 어떤 것으로 할 것인가에 대해서는 이 표를 참고하라.
+Log Levels
+----------
 
 <table>
 <thead>
-<tr><td>로그 레벨</td><td>설명</td></tr>
+<tr><td>Log level</td><td>Description</td></tr>
 </thead>
 <tbody>
-<tr><td>ERROR</td><td>비정상적인 상황을 만났다. 오동작했거나, 혹은 그럴 가능성이 상당히 있다.</td></tr>
-<tr><td>WARNING</td><td>비정상적인 상황을 만났다. 복원 혹은 무시하고 정상적으로 진행했으며, 오동작이 있었을 가능성은 낮다.</td></tr>
-<tr><td>INFO</td><td>개발 및 운영에 도움을 주기 위한 정보</td></tr>
-<tr><td>DEBUG</td><td>디버깅에 도움을 주기 위한 정보</td></tr>
-<tr><td>TRACE</td><td>현재 사용하지 않는다.</td></tr>
+<tr><td>ERROR</td><td>Yobi met an abnormal situation and might work incorrectly.</td></tr>
+<tr><td>WARNING</td><td>Yobi met an abnormal situation and recovered or ignored it, but probably work correctly.</td></tr>
+<tr><td>INFO</td><td>Diagnostic information for operators and Yobi programmers</td></tr>
+<tr><td>DEBUG</td><td>Information for debugging</td></tr>
+<tr><td>TRACE</td><td>Not used</td></tr>
 </tbody>
 </table>
 
-로그 포맷
----------
+Log Format
+----------
 
-### 애플리케이션 로그
+### Application log
 
-애플리케이션 로그의 포맷은, 로그 설정 파일을 통해 설정할 수 있다.
+You can configure the format for Application for by modifying the logging
+configuration file.
 
-### 액세스 로그
+### Access log
 
-logs/access.log에 기록되는(기본 설정에서) 액세스 로그는, 다음의 예와 같이 [Apache HTTP Server의 Combined Log Format](http://httpd.apache.org/docs/2.2/logs.html)을 따른다. 다만 log entry의 끝에 처리시간(요청이 처리되는데 소요된 시간)이 추가된다는 점만이 Combined Log Format과 다르다.
+The format for Access log follows Combined Log Format for Apache HTTP Server
+[2] except the processing time, the time between when Yobi receives a request
+and when Yobi send a response for the request, added at the end of every log
+entry, as follows:
 
-    127.0.0.1 - frank [10/Oct/2000:13:55:36 -0700] "GET /apache_pb.gif" 200 - "http://www.example.com/start.html" "Mozilla/4.08 [en] (Win98; I ;Nav)" 70ms
+    127.0.0.1 - frank [10/Oct/2000:13:55:36 -0700] "GET /apache_pb.gif" 200
+    - "http://www.example.com/start.html" "Mozilla/4.08 [en] (Win98; I ;Nav)"
+    70ms
 
-또한 현재는 Yobi 기능상의 한계로 ident와 요청의 길이는 항상 "-" 으로 로그가 남게 된다. 응답이 정상적으로 처리되지 못해 에러가 발생한 경우에는 처리시간도 "-" 으로 기록된다.
+#### Notes
 
-처리시간은 요청의 수신이 완료된 후, 응답을 송신하게 직전까지 걸린 시간이다. 또한 chunked encoding된 본문으로 응답하는 경우, 본문을 생성하는데 걸린 시간(예: 첨부 파일을 다운로드 받는 경우 첨부 파일을 디스크에서 읽어 스트림에 쓰는 시간) 역시 처리시간에 포함되지 않는다.
+* Ident field is always filled with "-".
+* Processing time is filled with "-" if serving a request is failed.
+* For chunked encoding, the time taken to generate response body, e.g. the time
+  taken to read a file from a disk and write it to stream to provides it as
+  a attachment a user requests, is not included in the processing time.
+
+References
+----------
+
+[1]: http://logback.qos.ch/documentation.html
+[2]: http://httpd.apache.org/docs/2.2/logs.html
