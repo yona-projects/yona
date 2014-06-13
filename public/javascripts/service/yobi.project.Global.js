@@ -70,11 +70,6 @@
         function _attachEvent() {
             htElement.welBtnWatch.on('click',_onClickBtnWatch);
             htElement.welBtnEnroll.on('click',_onClickBtnEnroll);
-
-            // 내용은 data-content 속성으로 scala 파일 내에 있음.
-            htElement.welForkedFrom.popover({
-                "html"   : true
-            });
         }
 
         /**
@@ -83,7 +78,7 @@
          */
         function _onClickBtnWatch(weEvt){
             var sURL = $(this).attr('href');
-            //$('<form action="' + sURL + '" method="post"></form>').submit();
+
             $.ajax(sURL, {
                 "method" : "post",
                 "success": function(){
@@ -104,7 +99,7 @@
          */
         function _onClickBtnEnroll(weEvt){
             var sURL = $(this).attr('href');
-            //$('<form action="' + sURL + '" method="post"></form>').submit();
+
             $.ajax(sURL, {
                 "method" : "post",
                 "success": function(){

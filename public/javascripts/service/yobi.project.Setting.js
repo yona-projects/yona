@@ -34,8 +34,6 @@
             _initVar(htOpt);
             _initElement(htOpt);
             _attachEvent();
-
-            htVar.waPopOvers.popover();
         }
 
         /**
@@ -57,9 +55,6 @@
             htElement.welInputName = $("input#project-name");
             htElement.welBtnSave   = $("#save");
             htElement.welReviewerCount = $("#welReviewerCount");
-
-            // popovers
-            htVar.waPopOvers = $([$("#project_name"), $("#share_option_explanation"), $("#terms")]);
         }
 
         /**
