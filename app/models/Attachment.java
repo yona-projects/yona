@@ -24,6 +24,8 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -342,8 +344,20 @@ public class Attachment extends Model implements ResourceConvertible {
     @Override
     public void delete() {
         super.delete();
+        // FIXME: Rarely this may delete a file which is still referred by
+        // attachment, if new attachment is added after checking nonexistence
+        // of an attachment refers the file and before deleting the file.
+        //
+        // But synchronization with Attachment class may be a bad idea to solve
+        // the problem. If you do that, blocking of project deletion causes
+        // that all requests to attachments (even a user avatars you can see in
+        // most of pages) are blocked.
         if (!exists(this.hash)) {
-            new File(uploadDirectory, this.hash).delete();
+            try {
+                Files.delete(Paths.get(uploadDirectory, this.hash));
+            } catch (Exception e) {
+                play.Logger.error("Failed to delete: " + this, e);
+            }
         }
     }
 
@@ -493,5 +507,19 @@ public class Attachment extends Model implements ResourceConvertible {
      */
     public static void onStart() {
         cleanupTemporaryUploadFilesWithSchedule();
+    }
+
+    @Override
+    public String toString() {
+        return "Attachment{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", hash='" + hash + '\'' +
+                ", containerType=" + containerType +
+                ", mimeType='" + mimeType + '\'' +
+                ", size=" + size +
+                ", containerId='" + containerId + '\'' +
+                ", createdDate=" + createdDate +
+                '}';
     }
 }
