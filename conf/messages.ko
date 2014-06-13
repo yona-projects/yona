@@ -737,6 +737,7 @@ user.currentPassword = 현재 비밀번호
 user.deleted = 삭제된 사용자 계정입니다.
 user.email = 이메일
 user.email.duplicate = 이미 존재하는 이메일입니다.
+user.email.new = 새 이메일 주소
 user.isAlreadySignupUser = 이미 가입하셨나요?
 user.isLocked = 잠김여부
 user.locked = 잠긴 사용자 계정입니다.

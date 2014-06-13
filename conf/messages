@@ -742,6 +742,7 @@ user.currentPassword = Current password
 user.deleted = Deleted user account
 user.email = Email address
 user.email.duplicate = Email address already exists
+user.email.new = New E-mail address
 user.isAlreadySignupUser = Already signed up?
 user.isLocked = Is the user account locked out?
 user.locked = This user account is locked
