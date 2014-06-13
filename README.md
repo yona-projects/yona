@@ -50,7 +50,7 @@ or using web browser (for windows)
 
     git clone https://github.com/nforge/yobi.git -b maint yobi
 
-> You Can Change branch to master or an other branch. But never install master or an other branch a production server.
+**You can change branch to master or an other branch. But never install master or an other branch a production server.**
 
 
 You can also make your own yobi directory in any other place. But in that case, you should add playframework home path to $PATH environment.
@@ -83,9 +83,9 @@ If you want to run yobi in development mode, use **run**. You can see more detai
 Also, you can configure start options.
 If your system's memory is over than 4G, we recommend to use follow options.
 
->
-> _JAVA_OPTIONS="-Xmx2048m -Xms1024m" play "start -DapplyEvolutions.default=true -Dhttp.port=9000"
->
+
+    _JAVA_OPTIONS="-Xmx2048m -Xms1024m" play "start -DapplyEvolutions.default=true -Dhttp.port=9000"
+
 
 ### connect with browser
 
@@ -152,7 +152,7 @@ java 7(1.7) 이상이어야 합니다.
 
     git clone https://github.com/nforge/yobi.git -b maint yobi
 
-> Production Server 에 설치하시는 경우 반드시 `maint` branch 를 사용하거나 최신 realese 버전을 사용하시기 바랍니다.
+**Production Server 에 설치하시는 경우 반드시 `maint` branch 를 사용하거나 최신 realese 버전을 사용하시기 바랍니다.**
 
 ### clone 받은 yobi 디렉터리로 이동
 
@@ -178,9 +178,9 @@ java 7(1.7) 이상이어야 합니다.
 시작 옵션은 조정가능합니다. 만약 시스템 메모리가 4기가 이상이라면
 아래 옵션으로 실행하는걸 권장합니다.
 
->
-> _JAVA_OPTIONS="-Xmx2048m -Xms1024m" play "start -DapplyEvolutions.default=true -Dhttp.port=9000"
->
+
+    _JAVA_OPTIONS="-Xmx2048m -Xms1024m" play "start -DapplyEvolutions.default=true -Dhttp.port=9000"
+
 
 ### 브라우저로 접속
 
