@@ -19,6 +19,8 @@ Updates since v0.5.4
 * PullRequest: Show the Edit button even if it is not safe to merge.
 * Review: "Outdated" label is attached on outdated review card.
 * Site administrator can reset any user's password.
+* English messages are grammatically better than before.
+* Documents and comments in source code are in English.
 * Minor UI fixes
 
 Fixes since v0.5.4
