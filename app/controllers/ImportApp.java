@@ -83,7 +83,15 @@ public class ImportApp extends Controller {
         }
         String errorMessageKey = null;
         try {
-            GitRepository.cloneRepository(gitUrl, project);
+            String authId = filledNewProjectForm.field("authId").value();
+            String authPw = filledNewProjectForm.field("authPw").value();
+
+            if(StringUtils.isEmpty(authId) || StringUtils.isEmpty(authPw)) {
+                GitRepository.cloneRepository(gitUrl, project);
+            } else {
+                GitRepository.cloneRepository(gitUrl, project, authId, authPw);
+            }
+
             Long projectId = Project.create(project);
 
             if (User.isLoginIdExist(owner)) {

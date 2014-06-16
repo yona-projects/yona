@@ -49,9 +49,27 @@
           <dd>
             <input id="url" type="text" name="url" class="text" placeholder="@Messages("project.git.url.alert")" value="@newProjectForm.field("url").value">
           </dd>
+          <dd>
+            <label class="checkbox">
+              <input type="checkbox" id="useRepoAuth"> @Messages("project.import.auth.required")
+            </label>
+
+            <div id="repoAuth" class="repo-auth-wrap">
+              <div class="row-fluid">
+              <dl class="span6">
+                <dt>@Messages("project.import.auth.userid")</dt>
+                <dd><input type="text" name="authId" class="text" placeholder="@Messages("project.import.auth.userid.desc")"></dd>
+              </dl>
+              <dl class="span6">
+                <dt>@Messages("project.import.auth.userpw")</dt>
+                <dd><input type="password" name="authPw" class="text"></dd>
+              </dl>
+              </div>
+            </div>
+          </dd>
           <!-- // -->
           <!-- ProjectOwner -->
-          <dt>
+          <dt class="bordertop">
             <label for="project-owner">
               @Messages("project.owner")
               <strong class="orange-txt">*</strong>

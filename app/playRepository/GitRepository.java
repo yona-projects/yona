@@ -51,6 +51,7 @@ import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.WindowCacheConfig;
 import org.eclipse.jgit.transport.RefSpec;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.treewalk.AbstractTreeIterator;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.EmptyTreeIterator;
@@ -867,6 +868,17 @@ public class GitRepository implements PlayRepository {
                 .setDirectory(new File(directory))
                 .setCloneAllBranches(true)
                 .setBare(true)
+                .call();
+    }
+
+    public static void cloneRepository(String gitUrl, Project forkingProject, String authId, String authPw) throws GitAPIException {
+        String directory = getGitDirectory(forkingProject);
+        Git.cloneRepository()
+                .setURI(gitUrl)
+                .setDirectory(new File(directory))
+                .setCloneAllBranches(true)
+                .setBare(true)
+                .setCredentialsProvider(new UsernamePasswordCredentialsProvider(authId, authPw))
                 .call();
     }
 

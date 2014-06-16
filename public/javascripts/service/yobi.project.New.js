@@ -55,6 +55,10 @@
             htElement.vcsSelect = $("#vcs");
             htElement.svnWarning = $("#svn");
             htElement.welProtected = $("#opt-protected");
+
+            htElement.welRepoAuthCheck = $("#useRepoAuth");
+            htElement.welRepoAuthWrap = $("#repoAuth");
+            htElement.waRepoAuthInput = htElement.welRepoAuthWrap.find("input");
         }
 
         /**
@@ -64,6 +68,13 @@
             htElement.vcsSelect.on("change", _onChangeVCSItem);
             htElement.welInputProjectOwner.on("change", _onChangeProjectOwner);
             htElement.welForm.on("submit", _validateForm);
+            htElement.welRepoAuthCheck.on("change", _onChangeRepoAuthCheck);
+        }
+
+        function _onChangeRepoAuthCheck(){
+            $("input").popover("destroy");
+            htElement.welRepoAuthWrap.toggle("slide");
+            htElement.waRepoAuthInput.attr("disabled", !htElement.welRepoAuthCheck.is(":checked"));
         }
 
         function _onChangeVCSItem(evt){
