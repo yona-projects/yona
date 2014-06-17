@@ -60,7 +60,7 @@
                 }
             </div>
 
-            <div id="changePassword" class="tab-pane">
+            <div id="changePassword" class="tab-pane" style="position:relative;">
                 @helper.form(action=routes.UserApp.resetUserPassword(), 'id->"frmPassword"){
                 <input type="hidden" name="loginId" value="@user.loginId" />
                 <dl>
