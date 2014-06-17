@@ -78,7 +78,7 @@ public class BoardApp extends AbstractPostingApp {
         Form<SearchCondition> postParamForm = new Form<>(SearchCondition.class);
         SearchCondition searchCondition = postParamForm.bindFromRequest().get();
         searchCondition.pageNum = pageNum - 1;
-        if(searchCondition.orderBy.equals("id")) {
+        if (searchCondition.orderBy.equals("id")) {
             searchCondition.orderBy = "createdDate";
         }
 
@@ -138,7 +138,7 @@ public class BoardApp extends AbstractPostingApp {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         Posting post = Posting.findByNumber(project, number);
 
-        if(request().getHeader("Accept").contains("application/json")) {
+        if (request().getHeader("Accept").contains("application/json")) {
             ObjectNode json = Json.newObject();
             json.put("title", post.title);
             json.put("body", post.body);
@@ -167,7 +167,7 @@ public class BoardApp extends AbstractPostingApp {
     }
 
     /**
-     * @see AbstractPostingApp#editPosting(models.AbstractPosting, models.AbstractPosting, play.data.Form
+     * @see AbstractPostingApp#editPosting(models.AbstractPosting, models.AbstractPosting, play.data.Form, play.mvc.Call, java.lang.Runnable)
      */
     @Transactional
     @With(NullProjectCheckAction.class)
@@ -232,7 +232,7 @@ public class BoardApp extends AbstractPostingApp {
 
         final PostingComment comment = commentForm.get();
         PostingComment existingComment = PostingComment.find.where().eq("id", comment.id).findUnique();
-        if( existingComment != null){
+        if (existingComment != null) {
             existingComment.contents = comment.contents;
             return saveComment(existingComment, commentForm, redirectTo, getContainerUpdater(posting, comment));
         } else {
