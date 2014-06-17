@@ -119,7 +119,7 @@ public class RepositoryService {
     }
 
     /**
-     * @see {@link PlayRepository#getRawFile(String)}
+     * @see {@link PlayRepository#getRawFile(String, String)}
      */
     public static byte[] getFileAsRaw(String userName, String projectName, String revision, String path)
             throws UnsupportedOperationException, IOException, ServletException, SVNException {

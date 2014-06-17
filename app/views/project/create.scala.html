@@ -40,7 +40,7 @@
                 @if(newProjectForm.error("owner") != null) { <span class="warning">@Messages(newProjectForm.error("owner").message())</span> }
               </div>
             </div>
-            <label for="ownership">@Messages("project.owner.placeholder")</label>
+            <label for="project-owner">@Messages("project.owner.placeholder")</label>
           </dt>
           <dd>
             <select id="project-owner" name="owner">
@@ -75,11 +75,11 @@
           <li class="option">
             <div class="option-label">@Messages("project.shareOption")</div>
             <div class="option-desc">
-              <input name="projectScope" type="radio" @if(newProjectForm.field("projectScope").value == "PUBLIC" || newProjectForm.field("projectScope").value == null){ checked="checked" }id="public" value="PUBLIC" class="radio-btn">
+              <input name="projectScope" type="radio" id="public" value="PUBLIC"@if(newProjectForm.field("projectScope").value == "PUBLIC" || newProjectForm.field("projectScope").value == null){ checked="checked" } class="radio-btn">
               <label for="public" class="bg-radiobtn label-public">@Messages("project.public")</label>
-              <input name="projectScope" type="radio" @if(newProjectForm.field("projectScope").value == "PROTECTED"){ checked="checked" }id="protected" value="PROTECTED" class="radio-btn"@if(!Organization.isNameExist(newProjectForm.field("owner").value)){ style="display:none;"}>
+              <input name="projectScope" type="radio" id="protected" value="PROTECTED"@if(newProjectForm.field("projectScope").value == "PROTECTED"){ checked="checked" } class="radio-btn"@if(!Organization.isNameExist(newProjectForm.field("owner").value)){ style="display:none;"}>
               <label for="protected" class="bg-radiobtn label-protected"@if(!Organization.isNameExist(newProjectForm.field("owner").value)){ style="display:none;"}>@Messages("project.protected")</label>
-              <input name="projectScope" type="radio" @if(newProjectForm.field("projectScope").value == "PRIVATE"){ checked="checked" }id="private" value="PRIVATE" class="radio-btn">
+              <input name="projectScope" type="radio" id="private" value="PRIVATE"@if(newProjectForm.field("projectScope").value == "PRIVATE"){ checked="checked" } class="radio-btn">
               <label for="private" class="bg-radiobtn label-private">@Messages("project.private")</label>
             </div>
           </li>
