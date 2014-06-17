@@ -29,7 +29,6 @@
         var htElement = {};
 
         /**
-         * 모듈 초기화
          * initialize
          */
         function _init(htOptions) {
@@ -44,7 +43,6 @@
         }
 
         /**
-         * 변수 초기화
          * initialize normal variables
          */
         function _initVar(htOptions){
@@ -52,7 +50,6 @@
         }
 
         /**
-         * 엘리먼트 변수 초기화
          * initialize element variables
          */
         function _initElement() {
@@ -64,7 +61,6 @@
         }
 
         /**
-         * 이벤트 핸들러 초기화
          * attach event handlers
          */
         function _attachEvent() {
@@ -73,7 +69,6 @@
         }
 
         /**
-         * Watch 버튼 클릭시 이벤트 핸들러
          * @param {Wrapped Event} weEvt
          */
         function _onClickBtnWatch(weEvt){
@@ -94,7 +89,6 @@
         }
 
         /**
-         * Enroll 버튼 클릭시 이벤트 핸들러
          * @param {Wrapped Event} weEvt
          */
         function _onClickBtnEnroll(weEvt){
@@ -115,7 +109,6 @@
         }
 
         /**
-         * 프로젝트 전역 공통 단축키
          * @param {Hash Table} htKeyMap
          * @require yobi.ShortcutKey
          */

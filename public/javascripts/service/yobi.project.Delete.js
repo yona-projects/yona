@@ -59,11 +59,6 @@
             });
         }
 
-        /**
-         * 프로젝트 삭제 버튼 클릭시 이벤트 핸들러
-         * 데이터 영구 삭제 동의에 체크했는지 확인하고
-         * 체크되지 않았으면 경고
-         */
         function _onClickBtnDeletePrj(){
             if(htElement.welChkAccept.is(":checked") === false){
                 $yobi.alert(Messages("project.delete.alert"));

@@ -60,20 +60,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-/**
- * 프로젝트 복사(포크)와 코드 주고받기(풀리퀘) 기능을 다루는 컨트롤러
- */
 @IsOnlyGitAvailable
 public class PullRequestApp extends Controller {
 
-    /**
-     * {@code userName}과 {@code projectName}에 해당하는 프로젝트를
-     * 복사하여 현재 접속한 사용자의 새 프로젝트로 생성할 수 있다는 안내 메시지와 안내 정보를 보여준다.
-     *
-     * @param userName
-     * @param projectName
-     * @return
-     */
     @With(AnonymousCheckAction.class)
     @IsCreatable(ResourceType.FORK)
     public static Result newFork(String userName, String projectName, String forkOwner) {
@@ -93,18 +82,6 @@ public class PullRequestApp extends Controller {
         return UserApp.currentUser().loginId;
     }
 
-    /**
-     * {@code userName}과 {@code projectName}에 해당하는 프로젝트를 복사하여
-     * 새 프로젝트를 생성할 수 있는지 확인한다.
-     *
-     * 해당 프로젝트를 복사한 프로젝트가 이미 존재한다면, 해당 프로젝트로 이동한다.
-     * Git 프로젝트가 아닐 경우에는 이 기능을 지원하지 않는다.
-     * 복사하려는 프로젝트의 이름에 해당하는 프로젝트가 이미 존재한다면, 원본 프로젝트 이름 뒤에 '-1'을 붙여서 생성한다.
-     *
-     * @param userName
-     * @param projectName
-     * @return
-     */
     @With(AnonymousCheckAction.class)
     @IsCreatable(ResourceType.FORK)
     public static Result fork(String userName, String projectName) {
@@ -113,14 +90,12 @@ public class PullRequestApp extends Controller {
         String destination = findDestination(projectForm.owner);
         Project originalProject = Project.findByOwnerAndProjectName(userName, projectName);
 
-        // 포크 프로젝트 이름 중복 검사
         if (Project.exists(destination, projectForm.name)) {
             flash(Constants.WARNING, "project.name.duplicate");
             forkProjectForm.reject("name");
             return redirect(routes.PullRequestApp.newFork(originalProject.owner, originalProject.name, destination));
         }
 
-        // 새 프로젝트 생성
         Project forkProject = Project.copy(originalProject, destination);
         forkProject.name = projectForm.name;
         forkProject.projectScope = projectForm.projectScope;
@@ -129,14 +104,6 @@ public class PullRequestApp extends Controller {
         return ok(clone.render("fork", forkProject));
     }
 
-    /**
-     * {@code userName}과 {@code projectName}에 해당하는 프로젝트를 복사하여
-     * 현재 접속한 사용자의 새 프로젝트를 생성한다.
-     *
-     * @param userName
-     * @param projectName
-     * @return
-     */
     @Transactional
     @IsCreatable(ResourceType.FORK)
     public static Result doClone(String userName, String projectName) {
@@ -164,7 +131,6 @@ public class PullRequestApp extends Controller {
             return ok(result);
         }
 
-        // 새 프로젝트 생성
         Project forkProject = Project.copy(originalProject, destination);
         forkProject.name = projectForm.name;
         forkProject.projectScope = projectForm.projectScope;
@@ -173,7 +139,6 @@ public class PullRequestApp extends Controller {
         }
         originalProject.addFork(forkProject);
 
-        // git clone으로 Git 저장소 생성하고 새 프로젝트를 만들고 권한 추가.
         try {
             GitRepository.cloneLocalRepository(originalProject, forkProject);
             Long projectId = Project.create(forkProject);
@@ -189,19 +154,6 @@ public class PullRequestApp extends Controller {
         }
     }
 
-    /**
-     * {@code userName}과 {@code projectName}에 해당하는 프로젝트의 원본 프로젝트로 코드를 보낼 수 있는 코드 보내기 폼을 보여준다.
-     *
-     * 코드 보내기 폼에서 보내려는 브랜치과 코드를 받을 브랜치를 선택할 수 있도록 브랜치 목록을 보여준다.
-     * 보내는 브랜치(fromBranch)와 받는 브랜치(toBranch) 파라미터가 있을 경우 두개의 브랜치를 merge해보고 결과를 반환한다.
-     * ajax 요청일 경우 partial로 렌더링한다.
-     *
-     * @param userName
-     * @param projectName
-     * @return
-     * @throws IOException
-     * @throws ServletException
-     */
     @With(AnonymousCheckAction.class)
     @IsCreatable(ResourceType.FORK)
     public static Result newPullRequestForm(String userName, String projectName) throws IOException, GitAPIException {
@@ -233,16 +185,6 @@ public class PullRequestApp extends Controller {
         return ok(create.render("title.newPullRequest", new Form<>(PullRequest.class).fill(pullRequest), project, projects, fromProject, toProject, fromBranches, toBranches, pullRequest));
     }
 
-    /**
-     * 현재 선택된 프로젝트 정보를 가져온다.
-     *
-     * 디폴트는 현재 프로젝트이고 받는 프로젝트일 경우 원본프로젝트이다.
-     *
-     * @param project 현재 프로젝트
-     * @param projectId 선택된 프로젝트ID
-     * @param isToProject 받는 프로젝트인지 여부
-     * @return
-     */
     private static Project getSelectedProject(Project project, String projectId, boolean isToProject) {
         Project selectedProject = project;
         if(isToProject && project.isForkedFromOrigin()) {
@@ -256,18 +198,6 @@ public class PullRequestApp extends Controller {
         return selectedProject;
     }
 
-    /**
-     * {@link PullRequest}를 생성한다.
-     *
-     * Form에서 입력받은 '코드를 보낼 브랜치'와 '코드를 받을 브랜치' 정보를 사용하여
-     * 새로운 {@link PullRequest}를 생성한다.
-     * 만약, 동일한 브랜치로 주고 받으며 열려있는 상태의 {@link PullRequest}가 있을 때는
-     * 해당 {@link PullRequest}로 이동한다.
-     *
-     * @param userName
-     * @param projectName
-     * @return
-     */
     @Transactional
     @With(AnonymousCheckAction.class)
     @IsCreatable(ResourceType.FORK)
@@ -301,7 +231,6 @@ public class PullRequestApp extends Controller {
         pullRequest.isMerging = false;
         pullRequest.isConflict = false;
 
-        // 동일한 저장소와 브랜치로 주고 받으며, Open 상태의 PullRequest가 이미 존재한다면 해당 PullRequest로 이동한다.
         PullRequest sentRequest = PullRequest.findDuplicatedPullRequest(pullRequest);
         if(sentRequest != null) {
             return redirect(routes.PullRequestApp.pullRequest(pullRequest.toProject.owner, pullRequest.toProject.name, sentRequest.number));
@@ -332,50 +261,21 @@ public class PullRequestApp extends Controller {
         ValidationUtils.rejectIfEmpty(flash(), data.get("title"), "pullRequest.title.required");
     }
 
-    /**
-     * 열려 있는 상태의 확인할 코드 요청을 조회한다.
-     *
-     * @param userName
-     * @param projectName
-     * @return
-     */
     @IsAllowed(Operation.READ)
     public static Result pullRequests(String userName, String projectName) {
         return pullRequests(userName, projectName, Category.OPEN);
     }
 
-    /**
-     * 받은 상태의 코드 요청을 조회한다.
-     *
-     * @param userName
-     * @param projectName
-     * @return
-     */
     @IsAllowed(Operation.READ)
     public static Result closedPullRequests(String userName, String projectName) {
         return pullRequests(userName, projectName, Category.CLOSED);
     }
 
-    /**
-     * 보낸 코드 요청을 조회한다.
-     *
-     * @param userName
-     * @param projectName
-     * @return
-     */
     @IsAllowed(Operation.READ)
     public static Result sentPullRequests(String userName, String projectName) {
         return pullRequests(userName, projectName, Category.SENT);
     }
 
-    /**
-     * 코드-주고받기 목록을 조회한다.
-     *
-     * @param userName
-     * @param projectName
-     * @param category
-     * @return
-     */
     private static Result pullRequests(String userName, String projectName, Category category) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         SearchCondition condition = Form.form(SearchCondition.class).bindFromRequest().get();
@@ -389,14 +289,6 @@ public class PullRequestApp extends Controller {
         }
     }
 
-    /**
-     * {@code userName}과 {@code projectName}에 해당하는 프로젝트로 들어온 {@code pullRequestId}에 해당하는 코드 요청을 조회한다.
-     *
-     * @param userName
-     * @param projectName
-     * @param pullRequestNumber
-     * @return
-     */
     @IsAllowed(value = Operation.READ, resourceType = ResourceType.PULL_REQUEST)
     public static Result pullRequest(String userName, String projectName, long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
@@ -414,15 +306,6 @@ public class PullRequestApp extends Controller {
         return ok(view.render(project, pullRequest, canDeleteBranch, canRestoreBranch));
     }
 
-    /**
-     * {@code userName}과 {@code projectName}에 해당하는 프로젝트로 들어온
-     * {@code pullRequestId}에 해당하는 코드 요청의 상태를 반환한다
-     *
-     * @param userName
-     * @param projectName
-     * @param pullRequestNumber
-     * @return
-     */
     @IsAllowed(value = Operation.READ, resourceType = ResourceType.PULL_REQUEST)
     public static Result pullRequestState(String userName, String projectName, long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
@@ -452,15 +335,6 @@ public class PullRequestApp extends Controller {
         return ok(partial_state.render(project, pullRequest, canDeleteBranch, canRestoreBranch));
     }
 
-    /**
-     * {@code userName}과 {@code projectName}에 해당하는 프로젝트로 들어온
-     * {@code pullRequestId}에 해당하는 코드 요청의 변경내역을 조회한다.
-     *
-     * @param userName
-     * @param projectName
-     * @param pullRequestNumber
-     * @return
-     */
     @IsAllowed(value = Operation.READ, resourceType = ResourceType.PULL_REQUEST)
     public static Result pullRequestChanges(String userName, String projectName,
                                             long pullRequestNumber) {
@@ -475,16 +349,6 @@ public class PullRequestApp extends Controller {
         return ok(viewChanges.render(project, pullRequest, commitId));
     }
 
-    /**
-     * {@code pullRequestId}에 해당하는 코드 요청을 수락한다.
-     *
-     * 보내는 브랜치의 코드를 받을 브랜치의 코드에 병합한다. 문제없이 병합되면 코드 요청을 닫힌 상태로 변경한다.
-     *
-     * @param userName
-     * @param projectName
-     * @param pullRequestNumber
-     * @return
-     */
     @Transactional
     @With(AnonymousCheckAction.class)
     @IsAllowed(value = Operation.ACCEPT, resourceType = ResourceType.PULL_REQUEST)
@@ -529,14 +393,6 @@ public class PullRequestApp extends Controller {
         PullRequestEvent.addFromNotificationEvent(notiEvent, pullRequest);
     }
 
-    /**
-     * 코드 보내기 상태를 닫힘으로 처리한다.
-     *
-     * @param userName
-     * @param projectName
-     * @param pullRequestNumber
-     * @return
-     */
     @Transactional
     @With(AnonymousCheckAction.class)
     @IsAllowed(value = Operation.CLOSE, resourceType = ResourceType.PULL_REQUEST)
@@ -553,16 +409,6 @@ public class PullRequestApp extends Controller {
         return redirect(call);
     }
 
-    /**
-     * {@code pullRequestId}에 해당하는 코드 요청을 다시 열어준다.
-     *
-     * when: 보류 또는 닫기 상태로 변경했던 코드 요청을 다시 Open 상태로 변경할 때 사용한다.
-     *
-     * @param userName
-     * @param projectName
-     * @param pullRequestNumber
-     * @return
-     */
     @Transactional
     @With(AnonymousCheckAction.class)
     @IsAllowed(value = Operation.REOPEN, resourceType = ResourceType.PULL_REQUEST)
@@ -587,16 +433,6 @@ public class PullRequestApp extends Controller {
         return redirect(call);
     }
 
-    /**
-     * 코드 요청 수정 폼으로 이동한다.
-     *
-     * @param userName
-     * @param projectName
-     * @param pullRequestNumber
-     * @return
-     * @throws IOException
-     * @throws ServletException
-     */
     @With(AnonymousCheckAction.class)
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
     public static Result editPullRequestForm(String userName, String projectName, Long pullRequestNumber) throws IOException, GitAPIException {
@@ -611,17 +447,6 @@ public class PullRequestApp extends Controller {
         return ok(edit.render("title.editPullRequest", editForm, fromProject, fromBranches, toBranches, pullRequest));
     }
 
-    /**
-     * 코드 요청을 수정한다.
-     *
-     * fromBranch와 toBranch를 변경했다면 기존에 동일한 브랜치로 코드를 주고 받는 열려있는 코드 요청이 있을 때 중복 에러를 던진다.
-     * 중복 에러가 발생하면 flash로 에러 메시지를 보여주고 수정 폼으로 이동한다.
-     *
-     * @param userName
-     * @param projectName
-     * @param pullRequestNumber
-     * @return
-     */
     @Transactional
     @With(AnonymousCheckAction.class)
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
@@ -656,14 +481,6 @@ public class PullRequestApp extends Controller {
         return redirect(routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, pullRequest.number));
     }
 
-    /**
-     * {@code pullRequestNumber}에 해당하는 코드 보내기 요청의 {@link PullRequest#fromBranch} 브랜치를 삭제한다.
-     *
-     * @param userName
-     * @param projectName
-     * @param pullRequestNumber
-     * @return
-     */
     @Transactional
     @With(AnonymousCheckAction.class)
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
@@ -676,14 +493,6 @@ public class PullRequestApp extends Controller {
         return redirect(routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, pullRequestNumber));
     }
 
-    /**
-     * {@code pullRequestNumber}에 해당한느 코드 보내기 요청의 {@link PullRequest#fromBranch} 브랜치를 복구한다.
-     *
-     * @param userName
-     * @param projectName
-     * @param pullRequestNumber
-     * @return
-     */
     @Transactional
     @With(AnonymousCheckAction.class)
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
@@ -696,26 +505,10 @@ public class PullRequestApp extends Controller {
         return redirect(routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, pullRequestNumber));
     }
 
-    /**
-     * {@link PullRequest}를 만들어 보내기 전에 프로젝트와 현재 사용자의 권한을 검증한다.
-     *
-     * when: {@link PullRequest}를 생성하는 폼이나 폼 서브밋을 처리하기 전에 사용한다.
-     *
-     * 현재 사용자가 익명 사용자일 경우 로그인 페이지로 이동하는 303 응답을 반환한다.
-     * 프로젝트가 null이면 400(bad request) 응답을 반환한다.
-     * 프로젝트가 Fork 프로젝트가 아닐 경우에도 400(bad request) 응답을 반환한다.
-     * 사용자의 프로젝트 권한이 guest일 경우에도 400(bad request) 응답을 반환한다.
-     * 이외의 경우에는 null을 반환한다.
-     *
-     * @param userName
-     * @param projectName
-     * @return
-     */
     private static ValidationResult validateBeforePullRequest(Project project) {
         Result result = null;
         boolean hasError = false;
 
-        // anonymous는 위에서 걸렀고, 남은건 manager, member, site-manager, guest인데 이중에서 guest만 다시 걸러낸다.
         if(ProjectUser.isGuest(project, UserApp.currentUser())) {
             result = forbidden(ErrorViews.BadRequest.render("Guest is not allowed this request", project));
             hasError = true;
@@ -826,9 +619,6 @@ public class PullRequestApp extends Controller {
 
     }
 
-    /**
-     * 코드-주고받기 검색 조건
-     */
     public static class SearchCondition {
         public Project project;
         public String filter;
@@ -890,9 +680,6 @@ public class PullRequestApp extends Controller {
         }
     }
 
-    /**
-     * 코드-주고받기 카테고리
-     */
     public enum Category {
         OPEN("open", "toProject", "number", State.OPEN),
         CLOSED("closed", "toProject", "received", State.CLOSED, State.MERGED),

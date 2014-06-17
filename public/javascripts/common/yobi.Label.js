@@ -29,15 +29,14 @@ yobi.Label = (function(htOptions){
     var htElement = {};
 
     /**
-     * 초기화
      * initialize
      * @param {Hash Table} htOptions
-     * @param {Boolean} htOptions.bEditable     라벨 편집기 활성화 여부 (default: false)
-     * @param {String} htOptions.sTplLabel      라벨 카테고리 그룹 템플릿
-     * @param {String} htOptions.sTplControls   라벨 그룹 템플릿
-     * @param {String} htOptions.sTplBtnLabelId 라벨 항목 템플릿
-     * @param {String} htOptions.sURLLabels     라벨 목록을 반환하는 AJAX URL
-     * @param {String} htOptions.sURLPost       새 라벨 작성을 위한 AJAX URL
+     * @param {Boolean} htOptions.bEditable
+     * @param {String} htOptions.sTplLabel
+     * @param {String} htOptions.sTplControls
+     * @param {String} htOptions.sTplBtnLabelId
+     * @param {String} htOptions.sURLLabels
+     * @param {String} htOptions.sURLPost
      */
     function _init(htOptions){
         htOptions = $.extend({"bEditable": false}, htOptions);
@@ -48,12 +47,11 @@ yobi.Label = (function(htOptions){
     }
 
     /**
-     *  변수 초기화
      *  initialize variable except element
      *    htVar.sURLLabels = htOptions.sURLLabels;
      *    htVar.sURLPost = htOptions.sURLPost;
      *    htVar.bEditable = htOptions.bEditable;
-     *  @param {Hash Table} htOptions 초기화 옵션
+     *  @param {Hash Table} htOptions
      */
     function _initVar(htOptions){
         // copy htOptions to htVar
@@ -71,7 +69,6 @@ yobi.Label = (function(htOptions){
     }
 
     /**
-     * 엘리먼트 초기화
      * initialize element variable
      */
     function _initElement(htOptions){
@@ -90,7 +87,6 @@ yobi.Label = (function(htOptions){
     }
 
     /**
-     * 이벤트 핸들러 설정
      * initialize event handler
      */
     function _attachEvent(){
@@ -98,10 +94,6 @@ yobi.Label = (function(htOptions){
         htElement.welBtnManageLabel.click(_clickBtnManageLabel);
     }
 
-    /**
-     * 폼 전송시 이벤트 핸들러
-     * 라벨 선택도 반영되도록 자동으로 필드를 추가한다
-     */
     function _onSubmitForm(){
         // append labelIds to searchForm
         if(htVar.bEditable === false){
@@ -112,7 +104,6 @@ yobi.Label = (function(htOptions){
     }
 
     /**
-     * 현재 선택되어 있는 라벨들의 ID를 검색폼에 추가한다
      * @private
      */
     function _appendSelectedLabelIdsToForm(){
@@ -131,7 +122,6 @@ yobi.Label = (function(htOptions){
     }
 
     /**
-     * 기존에 검색폼 영역에 추가되어 있던 labelIds input을 제거한다
      * @private
      */
     function _clearLabelIdsOnForm(){
@@ -140,11 +130,7 @@ yobi.Label = (function(htOptions){
         });
     }
 
-    /**
-     * 라벨 에디터 컨트롤
-     */
     function _clickBtnManageLabel() {
-        // 편집모드로 진입하는 경우
         if(htVar.bEditable === false){
             _appendSelectedLabelIdsToForm();
         }
@@ -154,7 +140,6 @@ yobi.Label = (function(htOptions){
     }
 
     /**
-     * 라벨 편집기 초기화
      * initialize Label Editor
      */
     function _initLabelEditor(){
@@ -171,7 +156,6 @@ yobi.Label = (function(htOptions){
     }
 
     /**
-     * 라벨 에디터가 새 라벨 생성후 호출하는 함수
      * @param {Object} oLabel
      */
     function _onCreateNewLabel(oLabel){
@@ -198,10 +182,7 @@ yobi.Label = (function(htOptions){
     }
 
     /**
-     * getLabels
-     * 라벨 목록을 서버로부터 수신하여 목록 생성
-     * 분류에 따라 라벨 목록을 만드는 것은 _addLabelIntoCategory 에서 수행
-     * @param {Function} fCallback 완료 후 수행할 콜백 함수
+     * @param {Function} fCallback
      */
     function _getLabels(fCallback){
         // send request
@@ -229,13 +210,11 @@ yobi.Label = (function(htOptions){
 
     /**
      * add label into category
-     * 새 라벨을 지정한 분류에 추가.
-     * 서버 통신용 함수는 아니고 화면에 표시하기 위한 목적.
-     * @param {Number} oLabel.id 라벨 id
-     * @param {String} oLabel.category 라벨 분류
-     * @param {String} oLabel.name 라벨 이름
-     * @param {String} oLabel.color 라벨 색상
-     * @return {Wrapped Element} 추가된 라벨 버튼 엘리먼트
+     * @param {Number} oLabel.id
+     * @param {String} oLabel.category
+     * @param {String} oLabel.name
+     * @param {String} oLabel.color
+     * @return {Wrapped Element}
      */
     function _addLabelIntoCategory(oLabel) {
         // set Label Color
@@ -250,20 +229,17 @@ yobi.Label = (function(htOptions){
             "deleteButton": htVar.bEditable ? '<span class="delete">&times;</span>' : ''
         }));
 
-        // 편집모드: 라벨 버튼을 항상 active 상태로 유지
         if(htVar.bEditable){
             welBtnLabelId.addClass('active');
         }
         welBtnLabelId.click(_onClickLabel);
 
-        // 이미 같은 카테고리가 있으면 거기에 넣고
         var welCategory = $('fieldset.labels div[data-category="' + oLabel.category + '"]');
         if (welCategory.length > 0) {
             welCategory.append(welBtnLabelId);
             return welBtnLabelId;
         }
 
-        // 없으면 새 카테고리 줄을 추가한다
         var welLabel = $.tmpl(htVar.sTplLabel, {"category": oLabel.category});
         var welControls = $.tmpl(htVar.sTplControls, {"category": oLabel.category});
         welControls.append(welBtnLabelId); // Edit Button
@@ -284,8 +260,6 @@ yobi.Label = (function(htOptions){
     }
 
     /**
-     * 라벨 엘리먼트가 활성화 되었을때 (= active 클래스가 주어졌을때)
-     * 적용할 배경색/글자색 CSS Rule 추가하는 함수
      * @param {Object} oLabel
      */
     function _setLabelColor(oLabel){
@@ -310,7 +284,6 @@ yobi.Label = (function(htOptions){
     }
 
     /**
-     * 라벨 선택 여부에 따라 적절한 class 를 반환한다.
      * @param {Number} nLabelId
      */
     function _getActiveClass(nLabelId) {
@@ -321,8 +294,6 @@ yobi.Label = (function(htOptions){
     }
 
     /**
-     * 라벨 엘리먼트를 클릭했을때 이벤트 핸들러
-     *
      * @param {Wrapped Event} weEvt
      * @return {Boolean} false
      */
@@ -331,9 +302,7 @@ yobi.Label = (function(htOptions){
         var welLabel = welCurrent.attr("data-labelId") ? welCurrent : welCurrent.parent("[data-labelId]");
         var sLabelId = welLabel.attr("data-labelId");
 
-        // 편집모드이고, 삭제버튼을 클릭한 경우라면
         if(htVar.bEditable && welCurrent.hasClass("delete")){
-            // 정말 삭제하겠냐고 물어보고
             if(confirm(Messages("label.confirm.delete")) === false){
                 return false;
             }
@@ -341,16 +310,11 @@ yobi.Label = (function(htOptions){
             return _requestDeleteLabel(sLabelId);
         }
 
-        // 편집모드가 아닐때 클릭했다면 해당 라벨을
-        // 토글하고, 같은 카테고리의 다른 모든 라벨은
-        // 선택상태를 해제한다.
         if(!htVar.bEditable){
             welLabel.siblings().removeClass("active");
             welLabel.toggleClass("active");
         }
 
-        // 선택한 라벨로 이슈 검색
-        // 선택한 값을 검색쿼리에 추가하는 작업은 _onSubmitForm 에서 수행된다
         if (htVar.bRefresh) {
             htElement.welForm.submit();
         }
@@ -360,7 +324,6 @@ yobi.Label = (function(htOptions){
 
 
     /**
-     * 서버에 라벨 삭제 요청 전송
      * request to delete label
      * @param sLabelId
      * @private
@@ -381,7 +344,6 @@ yobi.Label = (function(htOptions){
     }
 
     /**
-     * 라벨 목록에서 라벨 삭제
      * remove label on list
      * @param {String} sLabelId
      */
@@ -401,14 +363,9 @@ yobi.Label = (function(htOptions){
     }
 
     /**
-     * 지정한 라벨을 선택한 상태로 만들어주는 함수
      * @param {String} sId
      */
     function _setActiveLabel(sId){
-        // 색상 지정: addLabelIntoCategory 단계에서
-        // 이미 .active 상태의 색상이 지정되어 있음
-
-        // 해당되는 라벨 엘리먼트에 active 클래스 지정
         $('.labels .issue-label[data-labelId="' + sId + '"]').addClass('active');
     }
 
@@ -417,7 +374,6 @@ yobi.Label = (function(htOptions){
         _setActiveLabel(labelId);
     }
 
-    // 인터페이스 반환
     return {
         "init": _init,
         "setActiveLabel": _setActiveLabel,

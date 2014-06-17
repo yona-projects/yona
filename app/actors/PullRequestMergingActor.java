@@ -24,7 +24,6 @@ import models.PullRequest;
 import models.PullRequestEventMessage;
 
 /**
- * message로 전달된 pullRequest에 대해 병합을 시도하고 결과를 저장한다.
  * @author Wansoon Park
  *
  */

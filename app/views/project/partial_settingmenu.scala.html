@@ -19,7 +19,6 @@
 * limitations under the License.
 **@
 @(project:Project)
-@** 프로젝트 설정 서브메뉴 **@
 
 @makeSubMenu(call:Call, name:String, count:Integer) = {
     <li class="@isActiveSubMenu(call)"><a href="@call">@name@if(count>0){<span class="num-badge">@count</span>}</a></li>

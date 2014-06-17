@@ -25,9 +25,6 @@ import models.resource.Resource;
 
 import javax.persistence.*;
 
-/**
- * 게시물의 댓글
- */
 @Entity
 public class PostingComment extends Comment {
     private static final long serialVersionUID = 1L;

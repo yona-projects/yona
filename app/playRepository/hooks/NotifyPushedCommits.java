@@ -35,9 +35,6 @@ import akka.actor.Props;
 
 import play.libs.Akka;
 
-/**
- * 프로젝트에 Push된 내용을 전달한다.
- */
 public class NotifyPushedCommits implements PostReceiveHook {
     private Project project;
     private User user;

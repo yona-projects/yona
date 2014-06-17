@@ -27,7 +27,6 @@
         var htElement = {};
 
         /**
-         * 초기화
          * initialize
          */
         function _init(htOptions){
@@ -36,12 +35,10 @@
             _attachEvent();
             _initFileUploader();
 
-            // 제목 입력란에 포커스
             htElement.welInputTitle.focus();
         }
 
         /**
-         * 변수 초기화
          * initialize variable
          */
         function _initVar(htOptions){
@@ -54,7 +51,6 @@
         }
 
         /**
-         * 엘리먼트 변수 초기화
          * initialize element variable
          */
         function _initElement(htOptions){
@@ -69,7 +65,6 @@
         }
 
         /**
-         * 이벤트 핸들러
          * attach event handler
          */
         function _attachEvent(){
@@ -90,18 +85,12 @@
             });
         }
 
-        /**
-         * 입력하던 도중 페이지를 벗어나려고 하면 경고 메시지를 표시하도록
-         */
         function _onBeforeUnload(){
             if($yobi.getTrim(htElement.welTextarea.val()).length > 0){
                 return Messages("issue.error.beforeunload");
             }
         }
 
-        /**
-         * 마일스톤 정보 새로고침
-         */
         function _onReloadMilestone() {
             $.get(htVar.sIssueFormURL, function(data){
                 var context = data.replace("<!DOCTYPE html>", "").trim();
@@ -112,7 +101,6 @@
         }
 
         /**
-         * 파일 업로더 초기화
          * initialize fileUploader
          */
         function _initFileUploader(){
@@ -128,13 +116,9 @@
             }
         }
 
-        /**
-         * 폼 전송시 유효성 검사 함수
-         */
         function _onSubmitForm(){
             var sTitle = $yobi.getTrim(htElement.welInputTitle.val());
 
-            // 제목이 비어있으면
             if(sTitle.length < 1){
                 $yobi.alert(Messages("issue.error.emptyTitle"), function(){
                     htElement.welInputTitle.focus();

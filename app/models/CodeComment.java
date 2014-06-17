@@ -42,7 +42,7 @@ abstract public class CodeComment extends Model implements ResourceConvertible, 
     @ManyToOne
     public Project project;
     public String path;
-    public Integer line; // FIXME: DB엔 integer가 아닌 bigint로 되어있음.
+    public Integer line;
     @Enumerated(EnumType.STRING)
     public CodeRange.Side side;
     @Lob @Constraints.Required

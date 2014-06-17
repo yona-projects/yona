@@ -27,8 +27,6 @@
         var htElement = {};
 
         /**
-         * 코드브라우저 초기화
-         *
          * @param {Hash Table} htOptions
          */
         function _init(htOptions){
@@ -48,7 +46,6 @@
         }
 
         /**
-         * 변수 초기화
          * initialize variables
          *
          * @param {Hash Table} htOptions
@@ -68,7 +65,6 @@
         }
 
         /**
-         * 엘리먼트 변수 초기화
          * initialize element variables
          */
         function _initElement(htOptions){
@@ -79,20 +75,6 @@
             htElement.welBreadCrumbs = $("#breadcrumbs");
         }
 
-        /**
-         * 첫 페이지 로딩 때 현재 페이지의 list-wrap 목록들을 계층단위로 맞추어 배치하는 함수
-         * code/view.scala.html 에서 상위 경로부터 순서대로 파일 목록을 표시하는 구조임
-         * 목록 페이지 로딩때 처음 한 번만 호출한다
-         *
-         * 예: app/models/resource 경로를 표현하는 경우
-         * 1. [app] 목록, [app/models] 목록, [app/models/resource] 목록을 각각 만든 뒤
-         *
-         * 2. [app/models] 목록을 [app] 목록의
-         *    data-path="app/models" 항목 바로 다음에 위치하도록 만들고
-         *
-         * 3. [app/models/resource] 목록을 [app/models] 목록의
-         *    data-path="app/models/resource" 항목 바로 다음에 위치하도록 만드는 것이다
-         */
         function _initDepthedList(){
             var waFileWrap = $("div.list-wrap[data-listpath]");
 
@@ -101,39 +83,30 @@
                 var sListPath = welList.data("listpath");
                 var welTarget = $('[data-path="' + sListPath + '"]');
 
-                welList.data("content", sListPath); // 목록이 표시하고 있는 경로
-                welList.data("depth", i+1);         // indent 정보
-                welList.addClass("depth-" + (i+1)); // indent CSS
-                _setIndentByDepth(i+1);              // indent CSS 설정
+                welList.data("content", sListPath);
+                welList.data("depth", i+1);
+                welList.addClass("depth-" + (i+1));
+                _setIndentByDepth(i+1);
 
-                // 목록의 위치 이동
                 welTarget.after(welList);
             });
             $(".list-wrap").show();
 
-            // 현재 페이지 주소와 일치하는 항목을 강조표시
             _setCurrentPathBold(htVar.sPath);
         }
 
-        /**
-         * 이벤트 핸들러 설정
-         */
         function _attachEvent(){
             $('.code-viewer-wrap').click(_onClickWrap);
             $(window).on("hashchange", _onHashChange);
         }
 
         /**
-         * 코드 목록 영역을 클릭했을 때의 이벤트 핸들러
-         * - 각 항목에 핸들러를 거는 것 보다 메모리 절약
-         *
          * @param {Wrapped Event} weEvt
          */
         function _onClickWrap(weEvt){
             var elTarget = weEvt.target;
             var welTarget = $(elTarget);
 
-            /// 폴더 링크 클릭시
             if(elTarget.tagName.toLowerCase() === 'a' && welTarget.data("type") === "folder"){
                 var sPreviousHash = document.location.hash;
                 var sTargetPath = welTarget.data("targetpath");
@@ -149,10 +122,6 @@
             }
         }
 
-        /**
-         * HashChange 이벤트 핸들러
-         * 하위 폴더 목록을 동적으로 취급하기 위한 함수
-         */
         function _onHashChange(){
             if(document.location.hash.length < 1){
                 return false;
@@ -165,26 +134,21 @@
             htVar.aPathQueue = [];
             htVar.aWelList = [];
 
-            // Path 단위로 목록이 필요함
             sTargetPath.split("/").forEach(function(sPath){
                 sCheckPath = (sCheckPath === "") ? sPath : (sCheckPath + "/" + sPath);
                 htVar.aPathQueue.push(sCheckPath);
             });
             _updateBreadcrumbs(htVar.aPathQueue);
 
-            if(welList.length > 0){ // 이미 리스트를 붙인 상태라면
-                welList.toggle();   // 목록 표시 여부만 토글하고
+            if(welList.length > 0){
+                welList.toggle();
                 _setCurrentPathBold(sTargetPath);
-            } else {                // 없으면 새로 리스트 만들어서 붙임
+            } else {
                 _requestFolderList();
             }
 
         }
 
-        /**
-         * htVar.aPathQueue 변수를 이용해서
-         * 순서대로 폴더 목록을 가져오기 위해 필요한 함수
-         */
         function _requestFolderList(){
             if(htVar.aPathQueue.length === 0){
                 yobi.ui.Spinner.hide();
@@ -198,27 +162,22 @@
             var welTarget = $('[data-targetpath="' + sTargetPath + '"]');
 
             if(_isListExistsByPath(sTargetPath)){
-                // 이미 있으면 다음 경로순서로 넘어간다
                 _requestFolderList();
             } else {
-                // 해당 경로의 목록이 존재하지 않을 때에만 요청
                 _appendFolderList(welTarget, sTargetPath);
             }
         }
 
         /**
-         * 지정한 경로의 목록을 생성하여 적절한 위치에 붙인다
-         *
          * @param {Wrapped Element} welTarget
          * @param {String} sTargetPath
          */
         function _appendFolderList(welTarget, sTargetPath){
             var sURL = _getCorrectedPath(htVar.sMetaInfoURL, sTargetPath);
-            var nParentDepth = welTarget.closest(".list-wrap").data("depth") || 0; // 부모 경로의 depth
-            var nNewDepth = nParentDepth + 1; // 지정한 경로의 depth 판단
-            _setIndentByDepth(nNewDepth); // CSS Rule 먼저 추가해 놓고
+            var nParentDepth = welTarget.closest(".list-wrap").data("depth") || 0;
+            var nNewDepth = nParentDepth + 1;
+            _setIndentByDepth(nNewDepth);
 
-            // AJAX 호출로 데이터 요청
             yobi.ui.Spinner.show();
             $.ajax(sURL, {
                 "success": function(oRes){
@@ -234,8 +193,8 @@
                     welList.data("depth", nNewDepth);
                     welList.addClass("depth-" + nNewDepth);
                     welList.css("display", "none");
-                    welList.html(aHTML);          // 내용을 채우고
-                    welTargetItem.after(welList); // 목록에 추가
+                    welList.html(aHTML);
+                    welTargetItem.after(welList);
                     htVar.aWelList.push(welList);
 
                     if(htVar.aPathQueue.length > 0){
@@ -250,15 +209,12 @@
                     yobi.ui.Spinner.hide();
                 },
                 "error"  : function(){
-                    // TODO: #255 서버 응답에 맞는 오류 메시지 보여주기
                     yobi.ui.Spinner.hide();
                 }
             });
         }
 
         /**
-         * 지정한 경로의 목록이 존재하는지 여부를 반환
-         *
          * @param sTargetPath
          * @returns {boolean}
          * @private
@@ -268,8 +224,6 @@
         }
 
         /**
-         * 경로 내 목록 데이터를 템플릿과 결합해서 HTML 문자열을 담은 배열로 반환한다
-         *
          * @param {Hash Table} htData
          * @param {String} sTargetPath
          * @return {Array}
@@ -293,8 +247,6 @@
         }
 
         /**
-         * 목록 데이터를 타입별로 정리해서 반환
-         *
          * @param {Hash Table} htData
          * @return {Hash Table}
          */
@@ -316,9 +268,6 @@
         }
 
         /**
-         * 템플릿 처리를 위한 파일 정보 가공
-         * _getListHTML 에서 호출한다
-         *
          * @param {Hash Table} htFile
          * @param {String} sTargetPath
          */
@@ -341,9 +290,6 @@
         }
 
         /**
-         * 경로 끝에 파일명을 바르게 붙여서 반환해준다
-         * - path//filename 이 아니라 path/filename 이 되도록
-         *
          * @param {String} sPath
          * @param {String} sFileName
          * @return {String}
@@ -353,8 +299,6 @@
         }
 
         /**
-         * 현재 경로와 일치하는 항목을 강조 표시한다
-         *
          * @param {String} sPath
          */
         function _setCurrentPathBold(sPath){
@@ -367,8 +311,6 @@
         }
 
         /**
-         * 지정한 depth 를 표현하는 indent 스타일 규칙을 추가한다
-         *
          * @param {Number} nDepth
          */
         function _setIndentByDepth(nDepth){
@@ -383,8 +325,6 @@
         }
 
         /**
-         * 동적으로 CSS 스타일 규칙을 추가하기 위한 함수
-         *
          * @param {String} sSelector
          * @param {String} sRule
          */
@@ -398,10 +338,6 @@
             }
         }
 
-        /**
-         * 파일 보기 화면일 경우
-         * _init 에서 호출된다
-         */
         function _initShowFile(){
             if(htElement.welShowCode.length > 0){
                 _initCodeView(); // 코드보기
@@ -411,8 +347,6 @@
         }
 
         /**
-         * 파일 보기 화면일 때 파일 크기를 읽기 좋게 변환해준다
-         *
          * @require humanize.js
          */
         function _beautifyFileSize(){
@@ -423,8 +357,6 @@
         }
 
         /**
-         * 코드 보기 화면일 때 aceEditor 를 이용해 표시한다
-         *
          * @param {String} sCode
          * @param {String} sMode
          */
@@ -458,9 +390,6 @@
         }
 
         /**
-         * aceEditor 객체 초기화해서 반환
-         * 에디터 초기화 할 때 한번만 사용
-         *
          * @param {String} sContainer
          * @return {Object}
          */
@@ -484,7 +413,6 @@
         }
 
         /**
-         * 파일명을 기준으로 사용가능한 aceEditor mode 반환
          * @param {String} sPath
          * @return {String}
          */
@@ -494,10 +422,8 @@
         }
 
         /**
-         * 확장자를 aceEditor mode 로 변환
-         *
          * @param {String} sExt
-         * @return {Variant} 지원 가능한 형식이면 해당 모드의 문자열(String), 그 이외에는 false(Boolean)
+         * @return {Variant}
          */
         function ext2mode(sExt){
             sExt = sExt.toLowerCase();
@@ -548,7 +474,6 @@
         }
 
        /**
-         * 경로명에서 파일명만 추출해서 반환
          * @param {String} sPath
          * @return {String}
          */
@@ -557,8 +482,6 @@
         }
 
         /**
-         * 파일명에서 확장자만 추출해서 반환
-         *
          * @param {String} sFilename
          * @return {String}
          */
@@ -566,9 +489,6 @@
             return htVar.rxScala.test(sFilename) ? "scala" : sFilename.split(".").pop();
         }
 
-        /**
-         * aceEditor 높이를 내용에 맞게 키우는 함수
-         */
         function _resizeEditor(){
             var nLineHeight = htVar.oEditor.renderer.lineHeight;
             nLineHeight = (nLineHeight === 1) ? (htVar.nFontSize + 4) : nLineHeight;
@@ -579,8 +499,6 @@
         }
 
         /**
-         * 현재 파일/폴더 경로 표시
-         *
          * @param {Array} aPathQueue
          */
         function _updateBreadcrumbs(aPathQueue){

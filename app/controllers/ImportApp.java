@@ -52,23 +52,12 @@ import static play.data.Form.form;
 
 public class ImportApp extends Controller {
 
-    /**
-     * Git repository에서 코드를 가져와서 프로젝트를 만드는 폼을 보여준다.
-     *
-     * @return
-     */
     @With(AnonymousCheckAction.class)
     public static Result importForm() {
         List<OrganizationUser> orgUserList = OrganizationUser.findByAdmin(UserApp.currentUser().id);
         return ok(importing.render("title.newProject", form(Project.class), orgUserList));
     }
 
-    /**
-     * 새 프로젝트 시작 폼에 추가로 Git 저장소 URL을 추가로 입력받고
-     * 해당 저장소를 clone하여 프로젝트의 Git 저장소를 생성한다.
-     *
-     * @return
-     */
     @Transactional
     public static Result newProject() throws GitAPIException, IOException {
         if( !AccessControl.isGlobalResourceCreatable(UserApp.currentUser()) ){

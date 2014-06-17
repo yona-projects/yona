@@ -25,9 +25,6 @@ import java.util.List;
 import models.PullRequest;
 import models.PullRequestEventMessage;
 
-/**
- * 변경된 branch 와 관련있는 모든 pullRequest 에 대해 병합을 시도하고 결과를 저장한다.
- */
 public class RelatedPullRequestMergingActor extends PullRequestActor {
     @Override
     public void onReceive(Object object) {
@@ -44,10 +41,6 @@ public class RelatedPullRequestMergingActor extends PullRequestActor {
 
     }
 
-    /**
-     * project/branch와 연관된 보낸코드들의 상태를 병합중으로 수정한다.
-     * @param pullRequests
-     */
     private void changeStateToMerging(List<PullRequest> pullRequests) {
         for (PullRequest pullRequest : pullRequests) {
             pullRequest.startMerge();

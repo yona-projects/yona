@@ -251,10 +251,6 @@ public class NotificationEvent extends Model {
         event.saveManyToManyAssociations("receivers");
     }
 
-    /*
-     * 특정 알림 유형에 대해 설정을 꺼둔 사용자가 있을 경우 수신인에서 제외
-     * 알림의 대상 Resource 가 project 별 on / off 설정이 불가능할 경우 필터링을 하지 않는다.
-     */
     private static void filterReceivers(final NotificationEvent event) {
         final Project project = event.getProject();
         if (project == null) {
@@ -286,10 +282,6 @@ public class NotificationEvent extends Model {
     }
 
     /**
-     * 신규로 코드를 보냈을때의 알림을 추가한다.
-     *
-     * @param pullRequest
-     * @return
      * @see {@link controllers.PullRequestApp#newPullRequest(String, String)}
      */
     public static NotificationEvent afterNewPullRequest(User sender, PullRequest pullRequest) {
@@ -333,13 +325,6 @@ public class NotificationEvent extends Model {
 
 
     /**
-     * 보낸코드의 상태가 변경되었을때의 알림을 추가한다.
-     *
-     * @param sender this parameter is nullable, If this parameter is null, UserApp().currentUser() is used.
-     * @param pullRequest
-     * @param oldState
-     * @param newState
-     * @return
      * @see {@link models.PullRequest#merge(models.PullRequestEventMessage)}
      * @see {@link controllers.PullRequestApp#addNotification(models.PullRequest, models.enumeration.State, models.enumeration.State)}
      */
@@ -355,13 +340,6 @@ public class NotificationEvent extends Model {
     }
 
     /**
-     * 보낸 코드의 병합 결과 알림을 추가한다.
-     *
-     * @param sender
-     * @param pullRequest
-     * @param conflicts
-     * @param state
-     * @return
      * @see {@link actors.PullRequestActor#processPullRequestMerging(models.PullRequestEventMessage, models.PullRequest)}
      */
     public static NotificationEvent afterMerge(User sender, PullRequest pullRequest, GitConflicts conflicts, State state) {
@@ -378,12 +356,6 @@ public class NotificationEvent extends Model {
     }
 
     /**
-     * 보낸 코드에 댓글이 달렸을 때 알림을 추가한다.
-     *
-     * @param sender
-     * @param pullRequest
-     * @param newComment
-     * @param urlToView
      * @see {@link controllers.PullRequestApp#newComment(String, String, Long, String)}
      */
     public static void afterNewComment(User sender, PullRequest pullRequest,
@@ -409,11 +381,6 @@ public class NotificationEvent extends Model {
         return afterPullRequestUpdated(UserApp.currentUser(), pullRequest, oldState, newState);
     }
 
-    /**
-     * 이슈와 게시물에 새 댓글을 달렸을 때 알림을 추가한다.
-     *
-     * @param comment
-     */
     public static void afterNewComment(Comment comment) {
         AbstractPosting post = comment.getParent();
 
@@ -432,11 +399,6 @@ public class NotificationEvent extends Model {
         NotificationEvent.add(notiEvent);
     }
 
-    /**
-     * 이슈와 게시물에 새 댓글을 달렸을 때 알림을 추가한다.
-     *
-     * @param comment
-     */
     public static void afterNewCommentWithState(Comment comment, State state) {
         AbstractPosting post = comment.getParent();
 
@@ -455,15 +417,6 @@ public class NotificationEvent extends Model {
         NotificationEvent.add(notiEvent);
     }
 
-    /**
-     * 상태 변경에 대한 알림을 추가한다.
-     *
-     * 등록된 notification은 사이트 메인 페이지를 통해 사용자에게 보여지며 또한
-     * {@link models.NotificationMail#startSchedule()} 에 의해 메일로 발송된다.
-     *
-     * @param oldState
-     * @param issue
-     */
     public static NotificationEvent afterStateChanged(State oldState, Issue issue) {
         NotificationEvent notiEvent = createFromCurrentUser(issue);
         notiEvent.title = formatReplyTitle(issue);
@@ -477,15 +430,6 @@ public class NotificationEvent extends Model {
         return notiEvent;
     }
 
-    /**
-     * 상태 변경에 대한 알림을 추가한다.
-     *
-     * 등록된 notification은 사이트 메인 페이지를 통해 사용자에게 보여지며 또한
-     * {@link models.NotificationMail#startSchedule()} 에 의해 메일로 발송된다.
-     *
-     * @param oldState
-     * @param thread
-     */
     public static NotificationEvent afterStateChanged(
             CommentThread.ThreadState oldState, CommentThread thread)
             throws IOException, SVNException, ServletException {
@@ -523,15 +467,6 @@ public class NotificationEvent extends Model {
 
 
 
-    /**
-     * 담당자 변경에 대한 알림을 추가한다.
-     *
-     * 등록된 notification은 사이트 메인 페이지를 통해 사용자에게 보여지며 또한
-     * {@link models.NotificationMail#startSchedule()} 에 의해 메일로 발송된다.
-     *
-     * @param oldAssignee
-     * @param issue
-     */
     public static NotificationEvent afterAssigneeChanged(User oldAssignee, Issue issue) {
         NotificationEvent notiEvent = createFromCurrentUser(issue);
 
@@ -624,13 +559,6 @@ public class NotificationEvent extends Model {
         NotificationEvent.add(notiEvent);
     }
 
-    /**
-     * 멤버 등록 요청에 관련된 알림을 보낸다.
-     *
-     * @param project
-     * @param user
-     * @param state
-     */
     public static void afterMemberRequest(Project project, User user, RequestState state) {
         NotificationEvent notiEvent = createFromCurrentUser(project);
         notiEvent.eventType = MEMBER_ENROLL_REQUEST;
@@ -691,16 +619,6 @@ public class NotificationEvent extends Model {
         NotificationEvent.add(notiEvent);
     }
 
-    /**
-     * 새 커밋이 있을 때 알림을 추가한다.
-     *
-     * @param commits
-     * @param refNames
-     * @param project
-     * @param sender
-     * @param title
-     * @param watchers
-     */
     public static void afterNewCommits(List<RevCommit> commits, List<String> refNames, Project project, User sender, String title, Set<User> watchers) {
         NotificationEvent notiEvent = createFrom(sender, project);
         notiEvent.title = title;
@@ -713,13 +631,6 @@ public class NotificationEvent extends Model {
         NotificationEvent.add(notiEvent);
     }
 
-    /**
-     * 코드 보내기 리뷰 완료 또는 리뷰 완료 취소할 때 알림을 추가한다.
-     *
-     * @param pullRequest
-     * @param reviewAction
-     * @return
-     */
     public static NotificationEvent afterReviewed(PullRequest pullRequest, PullRequestReviewAction reviewAction) {
         String title = formatReplyTitle(pullRequest);
         Resource resource = pullRequest.asResource();
@@ -769,17 +680,6 @@ public class NotificationEvent extends Model {
         return result.toString();
     }
 
-    /**
-     * 다음 값을 설정한다.
-     * - created: 현재 시간
-     * - resourceId: {@code rc}의 id
-     * - resourceType {@code rc}의 type
-     * - senderId: {@code sender}의 id
-     *
-     * @param sender
-     * @param rc
-     * @return
-     */
     private static NotificationEvent createFrom(User sender, ResourceConvertible rc) {
         NotificationEvent notiEvent = new NotificationEvent();
         notiEvent.senderId = sender.id;
@@ -791,14 +691,6 @@ public class NotificationEvent extends Model {
     }
 
     /**
-     * 다음 값을 설정한다.
-     * - created: 현재 시간
-     * - resourceId: {@code rc}의 id
-     * - resourceType {@code rc}의 type* - created
-     * - senderId: {@link controllers.UserApp#currentUser()}를 사용해서 sernderId를 설정한다.
-     *
-     * @param rc
-     * @return
      * @see {@link #createFrom(models.User, models.resource.ResourceConvertible)}
      */
     private static NotificationEvent createFromCurrentUser(ResourceConvertible rc) {
@@ -812,12 +704,6 @@ public class NotificationEvent extends Model {
         return receivers;
     }
 
-    /**
-     * {@code posting}의 번호를 반환하되, 이슈라면 앞에 "#"을 붙인다.
-     *
-     * @param posting
-     * @return 조건에 따라 앞에 "#"이 붙은 번호
-     */
     private static String getPrefixedNumber(AbstractPosting posting) {
         if (posting instanceof Issue) {
             return "#" + posting.getNumber();
@@ -870,13 +756,6 @@ public class NotificationEvent extends Model {
                 pullRequest.toProject.name, pullRequest.title, pullRequest.number);
     }
 
-    /**
-     * 멤버 등록 관련 알림을 받을 대상자 추출
-     * - 해당 프로젝트의 매니저이면서 지켜보기를 켜둔 사용자들
-     *
-     * @param project
-     * @return
-     */
     private static Set<User> getReceivers(Project project) {
         Set<User> receivers = new HashSet<>();
         List<User> managers = User.findUsersByProject(project.id, RoleType.MANAGER);
@@ -960,10 +839,6 @@ public class NotificationEvent extends Model {
         return users;
     }
 
-    /**
-     * 하루에 한번 {@code KEEP_TIME_IN_DAYS} 보다 오래된 알림을 삭제한다.
-     * 값이 지정되지 않았거나 양수가 아니라면 동작하지 않는다.
-     */
     public static void scheduleDeleteOldNotifications() {
         if (EventConstants.KEEP_TIME_IN_DAYS > 0) {
             Akka.system().scheduler().schedule(
@@ -986,9 +861,6 @@ public class NotificationEvent extends Model {
         }
     }
 
-    /**
-     * when: Global의 onStart가 실행될 때 호출됩니다.
-     */
     public static void onStart() {
         scheduleDeleteOldNotifications();
     }

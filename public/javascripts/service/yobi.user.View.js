@@ -43,8 +43,6 @@
         }
 
         /**
-         * 변수 초기화
-         *
          * @param {Hash Table} htOptions
          */
         function _initVar(htOptions){
@@ -54,7 +52,6 @@
         }
 
         /**
-         * 엘리먼트 변수 초기화
          * initialize elements
          */
         function _initElement(){
@@ -65,7 +62,6 @@
         }
 
         /**
-         * 이벤트 초기화
          * attach event
          */
         function _attachEvent(){
@@ -76,8 +72,6 @@
         }
 
         /**
-         * Watch 버튼 클릭시 이벤트 핸들러
-         *
          * @param {Wrapped Event} weEvt
          */
         function _onClickBtnWatch(weEvt){
@@ -90,8 +84,8 @@
                     document.location.reload();
                 },
                 "error"  : function(oRes){
-                    var bOnWatching = welTarget.hasClass("blue"); // 지켜보는 중이었나
-                    var sActionMsg = Messages(bOnWatching ? "project.unwatch" : "project.watch"); // 무엇을 하려 했나
+                    var bOnWatching = welTarget.hasClass("blue");
+                    var sActionMsg = Messages(bOnWatching ? "project.unwatch" : "project.watch");
 
                     $yobi.notify(Messages("error.failedTo", sActionMsg, oRes.status, oRes.statusText));
                 }
@@ -102,8 +96,6 @@
         }
 
         /**
-         * 프로젝트 탈퇴 버튼 클릭시 이벤트 핸들러
-         *
          * @param {Wrapped Event}
          */
         function _onClickBtnLeaveProject(weEvt){
@@ -117,8 +109,6 @@
         }
 
         /**
-         * 최근 n일 입력창에서 keypress 이벤트 발생시 핸들러
-         *
          * @param {Wrapped Event}
          */
         function _onKeypressDaysAgo(weEvt){
@@ -130,8 +120,6 @@
         }
 
         /**
-         * 탭 링크 클릭시 이벤트 핸들러
-         *
          * @param {Wrapped Event}
          */
         function _onClickTabs(weEvt){
@@ -139,30 +127,21 @@
             var sHref = $(this).attr('href');
             _rememberCurrentTab(sHref.substr(sHref.indexOf("#") + 1));
 
-            // postings, pullRequests, issues 탭이 아닐경우에는 daysAgo input 을 disabled 시킨다.
             ($.inArray($(this).attr('href'), htVar.aDaysAgoTargets) === -1) ? _disableDaysAgo() : _enableDaysAgo();
         }
 
-        /**
-         * daysAgo INPUT 을 입력 가능한 상태로 만든다
-         */
         function _enableDaysAgo(){
             htElement.welDaysAgo.prop('disabled', false);
             htElement.welDaysAgo.css('color','');
             htElement.welDaysAgo.blur();
         }
 
-        /**
-         * daysAgo INPUT 을 입력할 수 없는 상태로 만든다
-         */
         function _disableDaysAgo(){
             htElement.welDaysAgo.prop('disabled', true);
             htElement.welDaysAgo.css('color','#eee');
         }
 
         /**
-         * 지정한 탭을 선택했다는 것을 기억한다
-         *
          * @param {String} sTabSelected
          */
         function _rememberCurrentTab(sTabSelected){
@@ -173,8 +152,6 @@
         }
 
         /**
-         * 탭 선택값을 포함한 QueryString 을 반환한다
-         *
          * @return {String}
          */
         function _getTabQueryString(){

@@ -96,17 +96,14 @@ public class Organization extends Model implements ResourceConvertible {
     public List<Project> getVisiableProjects(User user) {
         List<Project> result = new ArrayList<>();
         if(OrganizationUser.isAdmin(this.id, user.id)) {
-            // 모든 프로젝트
             result.addAll(this.projects);
         } else if(OrganizationUser.isMember(this.id, user.id)) {
-            // private 프로젝트를 제외한 모든 프로젝트와 자신이 멤버로 속한 프로젝트
             for(Project project : this.projects) {
                 if(!project.isPrivate() || ProjectUser.isMember(user.id, project.id)) {
                     result.add(project);
                 }
             }
         } else {
-            // public 프로젝트와 자신이 멤버로 속한 프로젝트
             for(Project project : this.projects) {
                 if(project.isPublic() || ProjectUser.isMember(user.id, project.id)) {
                     result.add(project);
@@ -114,7 +111,6 @@ public class Organization extends Model implements ResourceConvertible {
             }
         }
 
-        // 정렬
         Collections.sort(result, new Comparator<Project>() {
             @Override
             public int compare(Project p1, Project p2) {

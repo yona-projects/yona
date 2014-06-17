@@ -30,13 +30,6 @@ import play.mvc.With;
 import actions.IsCreatableAction;
 
 /**
- * /{user.loginId}/{project.name}/** 에 해당하는 URL에 적용할 수 있는 리소스 생성 권한 확인하는 애노테이션.
- * - URL 패턴에 대응하는 프로젝트가 있는 확인하다. 없으면 404 Not Found.
- * - 현재 사용자가 {@code resourceType}에 해당하는 리소스를 생성할 수 있는지 확인한다. 권한이 없으면 403 Forbidden.
- *
- * 이 애노테이션은 {@link utils.AccessControl#isProjectResourceCreatable(models.User, models.Project, models.enumeration.ResourceType)}
- * 을 사용한다.
- *
  * @author Wansoon Park, Keesun Baik
  * @see {@link actions.IsCreatableAction}
  * @see {@link utils.AccessControl#isProjectResourceCreatable(models.User, models.Project, models.enumeration.ResourceType)}

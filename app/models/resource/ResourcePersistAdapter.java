@@ -30,10 +30,6 @@ import com.avaje.ebean.event.BeanPersistAdapter;
 import com.avaje.ebean.event.BeanPersistRequest;
 
 /**
- * {@link Resource} 객체 이벤트 핸들러<br>
- * {@link ResourceConvertible} 을 구현한 객체에 변화가 있을때
- * 해당 객체를 {@link Resource} 로 변환하여 특정 작업을 수행한다. <br>
- *
  * @see com.avaje.ebean.event.BeanPersistController
  * @see com.avaje.ebean.event.BeanPersistAdapter
  */
@@ -47,11 +43,6 @@ public class ResourcePersistAdapter extends BeanPersistAdapter {
     }
 
     /**
-     * {@link Resource} 가 삭제 되었을때 후처리
-     * <ol>
-     * <li>관련된 watch 정보를 삭제한다</li>
-     * <li>관련된 unwatch 정보를 삭제한다</li>
-     * </ol>
      * @see com.avaje.ebean.event.BeanPersistAdapter#postDelete(BeanPersistRequest)
      */
     @Override

@@ -159,7 +159,9 @@ public class CommentThread extends Model implements ResourceConvertible {
     }
 
     /**
-     * {@code projectId} 프로젝트에서 인자 조건에 따른 thread 개수를 반환한다.
+     * Returns number of threads.
+     *
+     * The function finds threads matching up {@code cond} in the project having {@code projectId} and returns number of it.
      *
      * @param projectId
      * @param cond

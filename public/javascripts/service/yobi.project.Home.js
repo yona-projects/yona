@@ -189,15 +189,15 @@
                         var sErrorMsg;
 
                         switch(oXHR.status){
-                            case 403: // 삭제하려는 멤버가 존재하지 않음
+                            case 403:
                                 sErrorMsg = Messages("project.member.notExist");
                                 break;
 
-                            case 404: // 프로젝트 찾을 수 없음
+                            case 404:
                                 sErrorMsg = Messages("project.is.empty");
                                 break;
 
-                            default:  // 그 이외의 기본 오류
+                            default:
                                 sErrorMsg = Messages("error.badrequest");
                                 break;
                         }

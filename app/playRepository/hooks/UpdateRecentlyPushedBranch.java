@@ -34,9 +34,6 @@ import org.eclipse.jgit.transport.ReceivePack;
 
 import utils.JodaDateUtil;
 
-/**
- * 프로젝트의 가장 최근 Push된 브랜치 저장
- */
 public class UpdateRecentlyPushedBranch implements PostReceiveHook {
     private Project project;
 
@@ -51,9 +48,6 @@ public class UpdateRecentlyPushedBranch implements PostReceiveHook {
         deletePushedBranch(ReceiveCommandUtil.getDeletedBranches(commands));
     }
 
-    /*
-     * 오래전 푸쉬된 브랜치를 삭제한다.
-     */
     private void removeOldPushedBranches() {
         List<PushedBranch> list = project.getOldPushedBranches();
         for (PushedBranch pushedBranch : list) {
@@ -61,11 +55,6 @@ public class UpdateRecentlyPushedBranch implements PostReceiveHook {
         }
     }
 
-    /*
-     * 최근 푸쉬된 브랜치를 저장한다.
-     * 이미 존재할 경우 {@code pushedDate}만 업데이트한다.
-     * 푸쉬된 브랜치를 보내는 코드(열림/보류 상태)가 있으면 저장하지 않는다.
-     */
     private void saveRecentlyPushedBranch(Set<String> pushedBranches) {
         for (String branch : pushedBranches) {
             PushedBranch pushedBranch = PushedBranch.find.where()
@@ -91,9 +80,6 @@ public class UpdateRecentlyPushedBranch implements PostReceiveHook {
         return pushedBranch == null && PullRequest.findByFromProjectAndBranch(project, branch).isEmpty();
     }
 
-    /*
-     * 삭제된 브랜치가 있을 경우 pushed-branch 정보에서도 삭제한다.
-     */
     private void deletePushedBranch(Set<String> deletedBranches) {
         for (String branch : deletedBranches) {
             PushedBranch pushedBranch = PushedBranch.find.where().eq("project", project)

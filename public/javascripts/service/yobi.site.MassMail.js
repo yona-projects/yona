@@ -38,7 +38,6 @@
 
         /**
          * initialize variables
-         * 정규식 변수는 한번만 선언하는게 성능 향상에 도움이 됩니다
          */
         function _initVar(htOptions){
             htVar.sURLProjects = htOptions.sURLProjects;

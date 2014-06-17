@@ -26,17 +26,7 @@ import models.enumeration.EventType;
 import models.enumeration.State;
 
 public abstract class PullRequestActor extends UntypedActor {
-    /**
-     * PullRequest 병합을 시도하고 병합결과를 저장한다.
-     *
-     * Diff커밋중 신규커밋이 있을경우 커밋이벤트를 등록한다.
-     * Diff커밋이 없을경우 PullRequest 상태를 병합으로 변경하고 알림과 이벤트를 등록한다.
-     * 병합결과가 충돌일 경우 알림과 이벤트를 등록한다.
-     * 병합결과가 충돌해결일 경우 알림과 이벤트를 등록한다.
-     *
-     * @param message
-     * @param pullRequest
-     */
+
     protected void processPullRequestMerging(PullRequestEventMessage message, PullRequest pullRequest) {
         try {
             String oldMergeCommitId = pullRequest.mergedCommitIdTo;

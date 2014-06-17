@@ -18,13 +18,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/**
- * 코드 주고받기 메뉴의 개요 탭에서도 코드에 댓글을 달 수 있도록 하기 위해
- * yobi.Code.Diff.js의 일부를 뽑아내어 구현하였다.
- * 그러나 View 에 의존성이 매우 크기 때문에
- * yobi.Code.Diff.js 와 yobi.git.View.js 이외에서 사용하려면
- * 많은 수정이 필요할 것이다.
- */
 
 yobi = yobi || {};
 
@@ -35,9 +28,6 @@ yobi.CodeCommentBox = (function(){
     var htElement = {};
 
     /**
-     * 초기화
-     *
-     * @param htOptions
      * @private
      */
     function _init(htOptions){
@@ -77,11 +67,6 @@ yobi.CodeCommentBox = (function(){
         htElement.welCommentForm.on("click", '[data-toggle="close"]', _hide);
     }
 
-    /**
-     * welTarget 을 기준으로 리뷰 작성 폼을 표시한다
-     *
-     * @param {Object} welTarget
-     */
     function _show(welTarget, htOptions) {
         htOptions = htOptions || {};
 
@@ -181,11 +166,6 @@ yobi.CodeCommentBox = (function(){
     }
 
     /**
-     * 블록 정보를 Form 전송을 위한 데이터로 만든다.
-     * 불필요한 항목은 제거하고, 필드명도 다듬어서 반환
-     *
-     * @param htBlockInfo
-     * @returns {{}}
      * @private
      */
     function _getFormFieldsFromBlockInfo(htBlockInfo){
@@ -207,12 +187,6 @@ yobi.CodeCommentBox = (function(){
     }
 
     /**
-     * welForm 을 htData 를 기준으로 폼 데이터를 채운다
-     * input(type="hidden")이 존재하면 값을 지정하고
-     * 존재하지 않으면 새롭게 만들어서 폼에 추가한다
-     *
-     * @param welForm
-     * @param htData
      * @private
      */
     function _setReviewFormFields(htData){
@@ -239,9 +213,6 @@ yobi.CodeCommentBox = (function(){
     }
 
     /**
-     * name=sFieldName,value=sFieldValue 인
-     * hidden type input 엘리먼트를 반환한다
-     *
      * @param sFieldName
      * @param sFieldValue
      * @returns {HTMLElement}
@@ -256,8 +227,6 @@ yobi.CodeCommentBox = (function(){
     }
 
     /**
-     * 댓글 상자를 숨긴다.
-     *
      * @private
      */
     function _hide(){
@@ -270,10 +239,6 @@ yobi.CodeCommentBox = (function(){
     }
 
     /**
-     * 댓글 상자 표시 토글
-     *
-     * @param welTr
-     * @param fCallback
      * @private
      */
     function _toggleVisibility(welTr, htOptions){
@@ -285,8 +250,6 @@ yobi.CodeCommentBox = (function(){
     }
 
     /**
-     * 댓글 상자가 표시되고 있는지를 반환
-     *
      * @returns {boolean}
      * @private
      */
@@ -296,8 +259,6 @@ yobi.CodeCommentBox = (function(){
     }
 
     /**
-     * 댓글 상자에 파일 업로더를 설정한다
-     *
      * @private
      */
     function _initFileUploader(){
@@ -314,8 +275,6 @@ yobi.CodeCommentBox = (function(){
     }
 
     /**
-     * 댓글 상자 영역의 높이를 반환한다
-     *
      * @private
      */
     function _getWrapHeight(){
@@ -323,8 +282,6 @@ yobi.CodeCommentBox = (function(){
     }
 
     /**
-     * 댓글 상자 영역의 위치를 반환한다
-     *
      * @private
      */
     function _getWrapOffset(){

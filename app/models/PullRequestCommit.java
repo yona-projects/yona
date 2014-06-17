@@ -34,10 +34,6 @@ import play.db.ebean.Model;
 import playRepository.GitCommit;
 import utils.JodaDateUtil;
 
-/**
- *
- * 보낸코드 커밋정보 저장
- */
 @Entity
 public class PullRequestCommit extends Model implements TimelineItem {
 

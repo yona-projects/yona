@@ -35,12 +35,6 @@
 @import org.apache.commons.lang.StringEscapeUtils.escapeHtml
 @import org.apache.commons.lang3.StringUtils
 
-@**
- * 변경 내용(Diff) 표시
- *
- * @param diff
- * @param threads
-**@
 @renderDiffLines(diff: playRepository.FileDiff, threads: Map[String, List[CodeCommentThread]]) = {
   @if(diff.isFileModeChanged) {
     <tr><td class="linenum"><div class="line-number" data-line-num="@diff.oldMode"></div><span class="hidden">@diff.oldMode</span></td><td class="linenum"><div class="line-number" data-line-num="@diff.newMode"></div><span class="hidden">@diff.newMode</span></td><td class="isBinary">@Messages("code.fileModeChanged")</td></tr>
@@ -69,20 +63,6 @@
   }
 }
 
-@**
- * 파일 내용 표시
- *
- * 성능 문제를 해결하기 위해 StringBuilder를 사용했다.
- *
- * 주의: StringBuilder는 thread-safe 하지 않다.
- *
- * @param klass
- * @param path
- * @param rawText
- * @param kind
- * @param prefix
- * @param threads
-**@
 @renderRawFile(klass: String, path: String, rawText: RawText, side: CodeRange.Side, prefix: String, comments: Map[String, List[_ <: CodeCommentThread]]) = {
     @defining(new StringBuilder) { builder =>
         @for(i <- 0 until rawText.size) @{
@@ -113,13 +93,6 @@
     }
 }
 
-@**
- * 추가된 라인 표시
- *
- * @param diff
- * @param threads
- * @param isBinaryOverwritten 기존 데이터가 바이너리인 경우 true
-**@
 @renderAddedLines(diff: FileDiff, threads:Map[String, List[_ <: CodeCommentThread]], isBinaryOverwritten: Boolean = false) = {
   @null match {
     case _ if diff.hasError(OTHERS_SIZE_EXCEEDED) => { <tr><td colspan=3>@Messages("code.skipDiff")</td></tr> }
@@ -132,13 +105,6 @@
   }
 }
 
-@**
- * 삭제된 라인 표시
- *
- * @param diff
- * @param threads
- * @param isOverwrittenByBinary 새 데이터가 바이너리인 경우 true
-**@
 @renderRemovedLines(diff: FileDiff, threads:Map[String, List[_ <: CodeCommentThread]], isOverwrittenByBinary: Boolean = false) = {
   @null match {
     case _ if diff.hasError(OTHERS_SIZE_EXCEEDED) => { <tr><td colspan=3>@Messages("code.skipDiff")</td></tr> }
@@ -151,12 +117,6 @@
   }
 }
 
-@**
- * 커밋 아이디를 ShortId 로 만듭니다
- * SVN 인 경우 7자 이하인 경우가 많기 때문
- *
- * @param commitId
-**@
 @getShortenedCommitId(commitId:String) = @{
     if(commitId.length < 7){
         commitId
@@ -171,13 +131,6 @@
     }
 }
 
-@**
- * 파일 헤더를 포함한 변경점 렌더링
- *
- * @param diff
- * @param fileHeader
- * @param renderedLines
-**@
 @renderFile(diff: FileDiff, fileHeader: String, renderedLines: Html) = {
   <div id="@getFileHeadId(diff)" class="diff-partial-outer">
     <div class="diff-partial-inner">
@@ -216,22 +169,10 @@
   </div>
 }
 
-@**
- * 바이너리 파일이면 경로명 뒤에 (Binary) 붙이기
- *
- * @param path
- * @param isBinary
-**@
 @getPathPostfixedBinary(path:String, isBinary:Boolean) = @{
     path + (if (isBinary) { " (Binary)" } else { "" } )
 }
 
-@**
- * 파일 헤더 영역 메시지
- *
- * @param headerType
- * @param diff
-**@
 @getFileHeaderMessage(headerType:DiffEntry.ChangeType, diff:FileDiff) = @{
     headerType match {
         case DiffEntry.ChangeType.MODIFY => { getPathPostfixedBinary(diff.pathB, diff.isBinaryB) }
@@ -243,13 +184,6 @@
     }
 }
 
-@**
- * 바이너리 파일입니다 표시
- * 이 영역에는 댓글을 달 수 없음
- *
- * @param klass CSS 클래스명. add/remove
- * @param prefix
-**@
 @renderCodeIsBinary(klass:String = "", prefix:String = "") = {
     <tr class="@klass"><td class='linenum'><div class='line-number'></div></td><td class='linenum'><div class='line-number'></div></td><td class="isBinary">@prefix@Messages("code.isBinary")</td></tr>
 }
