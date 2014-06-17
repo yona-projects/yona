@@ -46,10 +46,9 @@
                         </div>
                         <div class="span3 num">
                             <strong>@assignedIssues</strong>
-                            <small>(@assignedPerc%)</small>
                         </div>
                         <div class="span3 nm">
-                            <div class="progress progress-warning @if(assignedPerc==0){empty}">
+                            <div class="progress progress-warning @if(assignedPerc==0){empty}" data-toggle="tooltip" title="@assignedPerc%">
                                 <div class="bar" style="width: @assignedPerc%;"></div>
                             </div>
                         </div>
@@ -69,10 +68,9 @@
                 </div>
                 <div class="span3 num">
                     <strong>@notAssignedIssues</strong>
-                    <small>(@notAssignedPerc%)</small>
                 </div>
                 <div class="span3 nm">
-                    <div class="progress progress-warning @if(notAssignedPerc==0){empty}">
+                    <div class="progress progress-warning @if(notAssignedPerc==0){empty}" data-toggle="tooltip" title="@notAssignedPerc%">
                         <div class="bar" style="width: @notAssignedPerc%;"></div>
                     </div>
                 </div>

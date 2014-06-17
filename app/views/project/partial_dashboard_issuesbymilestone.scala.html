@@ -43,7 +43,7 @@
                             <strong>@milestoneIssues</strong>
                         </div>
                         <div class="span3 nm">
-                            <div class="progress progress-success @if(milestoneIssues == 0){ empty }">
+                            <div class="progress progress-success @if(milestoneIssues == 0){ empty }" data-toggle="tooltip" title="@milestone.getCompletionRate%">
                                 <div class="bar bar-success" style="width:@milestone.getCompletionRate%"></div>
                             </div>
                         </div>
