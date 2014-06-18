@@ -52,6 +52,7 @@ public class RecentlyVisitedProjects extends Model {
     public static RecentlyVisitedProjects addNewVisitation(User user, Project project) {
         RecentlyVisitedProjects existingOne = find.where().eq("user", user).findUnique();
         if(existingOne != null) {
+            existingOne.refresh();
             existingOne.add(project);
             existingOne.update();
             return existingOne;
