@@ -45,6 +45,7 @@ import org.junit.Test;
 import play.test.FakeApplication;
 import play.test.Helpers;
 
+import javax.naming.LimitExceededException;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -595,7 +596,7 @@ public class GitRepositoryTest {
     }
 
     @Test
-    public void getRelatedAuthors() throws IOException, GitAPIException {
+    public void getRelatedAuthors() throws IOException, GitAPIException, LimitExceededException {
         FakeApplication app = support.Helpers.makeTestApplication();
         Helpers.start(app);
 

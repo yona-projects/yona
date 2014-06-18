@@ -20,7 +20,6 @@
  */
 package playRepository;
 
-import controllers.ProjectApp;
 import controllers.UserApp;
 import controllers.routes;
 import models.Project;
@@ -38,7 +37,6 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.blame.BlameResult;
 import org.eclipse.jgit.diff.*;
 import org.eclipse.jgit.diff.Edit.Type;
@@ -65,6 +63,7 @@ import play.libs.Json;
 import utils.FileUtil;
 import utils.GravatarUtil;
 
+import javax.naming.LimitExceededException;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -81,6 +80,7 @@ public class GitRepository implements PlayRepository {
     public static final int DIFF_LINE_LIMIT = 3 * FileDiff.LINE_LIMIT;
     public static final int DIFF_FILE_LIMIT = 2000;
     public static final int COMMIT_HISTORY_LIMIT = 1000 * 1000;
+    public static final int BLAME_FILE_LIMIT = 10;
 
     /**
      * The base directory of Git repository
@@ -998,7 +998,7 @@ public class GitRepository implements PlayRepository {
      * @throws GitAPIException
      */
     public static Set<User> getRelatedAuthors(Repository repository, String revA, String revB)
-            throws IOException, GitAPIException {
+            throws IOException, GitAPIException, LimitExceededException {
         Set<User> authors = new HashSet<>();
         RevWalk revWalk = null;
 
@@ -1007,6 +1007,14 @@ public class GitRepository implements PlayRepository {
             RevCommit commitA = revWalk.parseCommit(repository.resolve(revA));
             RevCommit commitB = revWalk.parseCommit(repository.resolve(revB));
             List<DiffEntry> diffs = getDiffEntries(repository, commitA, commitB);
+
+            if (diffs.size() > BLAME_FILE_LIMIT) {
+                String msg = String.format("Reject to get related authors " +
+                        "from changes because of performance issue: The " +
+                        "changes include %n files and it exceeds our limit " +
+                        "of '%n' files.", diffs.size(), BLAME_FILE_LIMIT);
+                throw new LimitExceededException(msg);
+            }
 
             for (DiffEntry diff : diffs) {
                 if (isTypeMatching(diff.getChangeType(), MODIFY, DELETE)) {

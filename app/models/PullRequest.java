@@ -155,14 +155,6 @@ public class PullRequest extends Model implements ResourceConvertible {
     )
     public List<User> reviewers = new ArrayList<>();
 
-    @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(
-        name = "pull_request_related_authors",
-        joinColumns = @JoinColumn(name = "pull_request_id"),
-        inverseJoinColumns = @JoinColumn(name = "user_id")
-    )
-    public Set<User> relatedAuthors = new HashSet<>();
-
     @OneToMany(mappedBy = "pullRequest")
     public List<CommentThread> commentThreads = new ArrayList<>();
 
@@ -402,9 +394,6 @@ public class PullRequest extends Model implements ResourceConvertible {
                     String mergedCommitIdTo = mergeCommit.getId().getName();
                     pullRequest.mergedCommitIdFrom = mergedCommitIdFrom;
                     pullRequest.mergedCommitIdTo = mergedCommitIdTo;
-
-                    pullRequest.relatedAuthors = GitRepository.getRelatedAuthors(cloneRepository,
-                            mergedCommitIdFrom, mergedCommitIdTo);
 
                     GitRepository.push(cloneRepository, GitRepository.getGitDirectoryURL(pullRequest.toProject), mergeBranchName, srcToBranchName);
 
@@ -701,8 +690,6 @@ public class PullRequest extends Model implements ResourceConvertible {
                     String mergedCommitIdTo = mergeResult.getNewHead().getName();
                     pullRequest.mergedCommitIdFrom = mergedCommitIdFrom;
                     pullRequest.mergedCommitIdTo = mergedCommitIdTo;
-                    pullRequest.relatedAuthors = GitRepository.getRelatedAuthors(clonedRepository,
-                            mergedCommitIdFrom, mergedCommitIdTo);
                 }
             }
         });

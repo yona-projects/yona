@@ -29,6 +29,8 @@ import models.resource.ResourceConvertible;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.joda.time.DateTime;
 import org.tmatesoft.svn.core.SVNException;
@@ -36,18 +38,19 @@ import play.api.i18n.Lang;
 import play.db.ebean.Model;
 import play.i18n.Messages;
 import play.libs.Akka;
-import playRepository.Commit;
-import playRepository.GitCommit;
-import playRepository.GitConflicts;
-import playRepository.RepositoryService;
+import playRepository.*;
 import scala.concurrent.duration.Duration;
 import utils.EventConstants;
 import utils.RouteUtil;
 
+import javax.naming.LimitExceededException;
 import javax.persistence.*;
 import javax.servlet.ServletException;
 import java.io.IOException;
-import java.util.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -741,7 +744,25 @@ public class NotificationEvent extends Model {
 
     private static Set<User> getReceiversWithRelatedAuthors(User sender, PullRequest pullRequest) {
         Set<User> receivers = getDefaultReceivers(pullRequest);
-        receivers.addAll(pullRequest.relatedAuthors);
+        String failureMessage =
+                "Failed to get authors related to the pullrequest " + pullRequest;
+        try {
+            Repository clonedRepository = GitRepository.buildMergingRepository(pullRequest);
+            receivers.addAll(GitRepository.getRelatedAuthors(
+                    clonedRepository,
+                    pullRequest.mergedCommitIdFrom,
+                    pullRequest.mergedCommitIdTo));
+        } catch (LimitExceededException e) {
+            for (ProjectUser member : pullRequest.toProject.members()) {
+                receivers.add(member.user);
+            }
+            play.Logger.info(failureMessage
+                    + ": Get all project members instead", e);
+        } catch (GitAPIException e) {
+            play.Logger.warn(failureMessage, e);
+        } catch (IOException e) {
+            play.Logger.warn(failureMessage, e);
+        }
         receivers.remove(sender);
         return receivers;
     }
