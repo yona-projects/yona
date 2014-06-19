@@ -82,8 +82,7 @@ public class Global extends GlobalSettings {
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
-    public Action onRequest(final Http.Request request, Method actionMethod) {
+    public Action<Void> onRequest(final Http.Request request, Method actionMethod) {
         if (isSecretInvalid) {
             if (isRestartRequired) {
                 return getRestartAction();
@@ -95,7 +94,7 @@ public class Global extends GlobalSettings {
         }
     }
 
-    private Action getDefaultAction(final Http.Request request) {
+    private Action<Void> getDefaultAction(final Http.Request request) {
         return new Action.Simple() {
             public Result call(Http.Context ctx) throws Throwable {
                 UserApp.initTokenUser();
