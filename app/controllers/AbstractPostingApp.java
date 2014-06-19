@@ -151,9 +151,8 @@ public class AbstractPostingApp extends Controller {
         if (temporaryUploadFiles == null) {
             return new String[] {};
         }
-        final String CSV_DELEMETER = ",";
-        return body.asFormUrlEncoded()
-            .get(AttachmentApp.TAG_NAME_FOR_TEMPORARY_UPLOAD_FILES)[0].split(CSV_DELEMETER);
+        final String CSV_DELIMITER = ",";
+        return temporaryUploadFiles[0].split(CSV_DELIMITER);
     }
 
     private static boolean isTemporaryFilesExist(String[] files) {
