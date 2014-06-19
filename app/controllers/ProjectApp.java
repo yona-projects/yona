@@ -641,8 +641,12 @@ public class ProjectApp extends Controller {
         Project project = Project.find.byId(projectId);
 
         if (RepositoryService.VCS_GIT.equals(project.vcs)) {
-            List<ReviewComment> comments = ReviewComment.find.where().eq("commitId",
-                    commitId).eq("project.id", projectId).eq("pullRequest.id", null).findList();
+            List<ReviewComment> comments = ReviewComment.find
+                    .fetch("thread")
+                    .where()
+                    .eq("thread.commitId",commitId)
+                    .eq("thread.project", project)
+                    .eq("thread.pullRequest", null).findList();
 
             for (ReviewComment comment : comments) {
                 User commentAuthor = User.findByLoginId(comment.author.loginId);
