@@ -449,7 +449,6 @@ public class ProjectApp extends Controller {
         addProjectMemberList(project, userList);
         addGroupMemberList(project, userList);
         userList.remove(UserApp.currentUser());
-        List<Issue> issueList = getMentionIssueList(project);
 
         Map<String, List<Map<String, String>>> result = new HashMap<>();
         result.put("result", getUserList(project, userList));
