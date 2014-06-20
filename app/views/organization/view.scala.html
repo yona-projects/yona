@@ -80,7 +80,6 @@
                             </div>
                         </div>
                         <div class="stats-wrap pull-right">
-                            @if(project.isPublic){
                             <div class="members">
                                 <ul class="unstyled">
                                     @for(member <- User.findUsersByProject(project.id)){
@@ -98,7 +97,6 @@
                                     <i class="yobicon-eye yobicon-middle"></i> @Html(Messages("project.onwatching", project.getWatchingCount))
                                 </p>
                             </div>
-                            }
                         </div>
                     </li>
                     }
