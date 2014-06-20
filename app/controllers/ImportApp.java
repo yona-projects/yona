@@ -54,8 +54,10 @@ public class ImportApp extends Controller {
 
     @With(AnonymousCheckAction.class)
     public static Result importForm() {
+        Form<Project> projectForm = form(Project.class).bindFromRequest("owner");
+        projectForm.discardErrors();
         List<OrganizationUser> orgUserList = OrganizationUser.findByAdmin(UserApp.currentUser().id);
-        return ok(importing.render("title.newProject", form(Project.class), orgUserList));
+        return ok(importing.render("title.newProject", projectForm, orgUserList));
     }
 
     @Transactional

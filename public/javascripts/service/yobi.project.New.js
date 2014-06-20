@@ -27,18 +27,18 @@
         var htElement = {};
 
         function _init(htOptions){
-            _initVar(htOptions);
+            _initVar();
             _initElement(htOptions);
             _attachEvent();
+            _focusOnFirstField();
 
-            _initFormValidator();
+            _showErrors(htOptions.htError);
         }
 
         /**
          * initialize variables
          */
-        function _initVar(htOptions){
-            htVar.sFormName = htOptions.sFormName || "newproject";
+        function _initVar(){
             htVar.rxPrjName = /^[0-9A-Za-z-_\.]+$/;
             htVar.aReservedWords = [".", "..", ".git"];
         }
@@ -47,33 +47,27 @@
          * initialize element
          */
         function _initElement(htOptions){
-            htElement.welInputVCS = $("#vcs"); // input type="hidden"
-            htElement.welBtnVCSSelected = $("#vcs_msg"); // <button data-toggle="dropdown">
-            htElement.aVCSItems = $("#vcs_dropdown li a");
-            htElement.svnWarning = $("#svn");
+            htElement.welForm = $(htOptions.sFormId);
             htElement.welInputProjectName = $("#project-name");
             htElement.welInputProjectOwner = $("#project-owner");
-            htElement.welProtected = $("#protected, .label-protected");
+            htElement.welInputGitRepoURL = $("#url");
 
-            htElement.welInputProjectName.focus();
+            htElement.vcsSelect = $("#vcs");
+            htElement.svnWarning = $("#svn");
+            htElement.welProtected = $("#opt-protected");
         }
 
         /**
          * attach event handler
          */
         function _attachEvent(){
-            htElement.aVCSItems.click(_onSelectVCSItem);
+            htElement.vcsSelect.on("change", _onChangeVCSItem);
             htElement.welInputProjectOwner.on("change", _onChangeProjectOwner);
+            htElement.welForm.on("submit", _validateForm);
         }
 
-        function _onSelectVCSItem(){
-            var sText = $(this).text();
-            var sValue = $(this).attr("data-value");
-
-            htElement.welInputVCS.val(sValue);
-            htElement.welBtnVCSSelected.text(sText);
-
-            if(sText == "Subversion") {
+        function _onChangeVCSItem(evt){
+            if(evt.val.toUpperCase() === "SUBVERSION"){
                 htElement.svnWarning.show();
             } else {
                 htElement.svnWarning.hide();
@@ -82,6 +76,7 @@
 
         function _onChangeProjectOwner() {
             var sType = $("#project-owner option:selected").data("type");
+
             if (sType == "user") {
                 if ($("#protected").is(":checked")) {
                     $("#public").prop("checked", true);
@@ -92,63 +87,76 @@
             }
         }
 
-        /**
-         * initialize formValidator
-         * @require validate.js
-         */
-        function _initFormValidator(){
-            // name : name of input element
-            // rules: rules to apply to the input element.
-            var aRules = [];
-
-            htVar.oValidator = new FormValidator(htVar.sFormName, aRules, function(aErrors){
-                var oForm = $(document.forms[htVar.sFormName]);
-                var oElement = oForm.find("input[name=name]");
-                var sPrjName = oElement.val();
-                if(!htVar.rxPrjName.test(sPrjName)){
-                    aErrors.push({
-                        id: oElement.attr("id"),
-                        name: oElement.attr("name"),
-                        message: Messages("project.name.alert")
-                    });
-                }
-                if(htVar.aReservedWords.indexOf(sPrjName) >= 0){
-                    aErrors.push({
-                        id: oElement.attr("id"),
-                        name: oElement.attr("name"),
-                        message: Messages("project.name.reserved.alert")
-                    });
-                }
-                _onFormValidate(aErrors);
-            });
+        function _focusOnFirstField(){
+            if(htElement.welInputGitRepoURL.length > 0){
+                htElement.welInputGitRepoURL.focus();
+            } else {
+                htElement.welInputProjectName.focus();
+            }
         }
 
         /**
-         * handler for validation errors.
+         * Validate form on submit
+         *
+         * @private
          */
-        function _onFormValidate(aErrors){
-            if(aErrors.length > 0){
-                $('span.warning').hide();
-                $('span.msg').html(aErrors[0].message).show();
-            } else {
-                new Spinner({
-                    lines: 13, // The number of lines to draw
-                    length: 10, // The length of each line
-                    width: 5, // The line thickness
-                    radius: 10, // The radius of the inner circle
-                    corners: 1, // Corner roundness (0..1)
-                    rotate: 0, // The rotation offset
-                    direction: 1, // 1: clockwise, -1: counterclockwise
-                    color: '#000', // #rgb or #rrggbb
-                    speed: 1, // Rounds per second
-                    trail: 60, // Afterglow percentage
-                    shadow: false, // Whether to render a shadow
-                    hwaccel: false, // Whether to use hardware acceleration
-                    className: 'spinner', // The CSS class to assign to the spinner
-                    zIndex: 2e9, // The z-index (defaults to 2000000000)
-                    top: 'auto', // Top position relative to parent in px
-                    left: 'auto' // Left position relative to parent in px
-                }).spin(document.forms[htVar.sFormName]);
+        function _validateForm(evt){
+            var error = {};
+            var projectName = htElement.welInputProjectName.val();
+
+            if(projectName.length === 0){
+                error.name = error.name || [];
+                error.name.push(Messages("project.name.alert"));
+            }
+
+            if(!htVar.rxPrjName.test(projectName)){
+                error.name = error.name || [];
+                error.name.push(Messages("project.name.alert"));
+            }
+
+            if(htVar.aReservedWords.indexOf(projectName) > -1){
+                error.name = error.name || [];
+                error.name.push(Messages("project.name.reserved.alert"));
+            }
+
+            if(htElement.welInputGitRepoURL.length > 0 &&
+               htElement.welInputGitRepoURL.val().trim().length === 0 ){
+                error.url = error.url || [];
+                error.url.push(Messages("project.import.error.empty.url"));
+            }
+
+            if(!$.isEmptyObject(error)){
+                _showErrors(error);
+                evt.preventDefault();
+                return false;
+            }
+
+            yobi.ui.Spinner.show();
+        }
+
+        /**
+         * Show error message on target element with $.popover
+         *
+         * @param error
+         * @private
+         */
+        function _showErrors(error){
+            if(!error){
+                return;
+            }
+
+            var targetElement;
+
+            for(var target in error){
+                targetElement = htElement.welForm.find("[name=" + target + "]");
+
+                if(targetElement.length > 0) {
+                    targetElement.popover({
+                        "trigger"  : "manual",
+                        "placement": "left",
+                        "content"  : error[target].shift()
+                    }).popover("show");
+                }
             }
         }
 

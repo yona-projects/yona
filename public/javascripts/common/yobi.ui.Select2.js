@@ -53,10 +53,12 @@
                     '<strong class="name">${name}</strong>' +
                     '<span class="loginid">${loginId}</span></div>';
 
+                var sLoginId = welItem.data("loginId") ? "@" + welItem.data("loginId") : "";
+
                 var sText = $yobi.tmpl(sTplUserItem, {
                     "avatarURL": sAvatarURL,
                     "name"     : oItem.text.trim(),
-                    "loginId"  : "@" + welItem.data("loginId")
+                    "loginId"  : sLoginId
                 });
 
                 return sText;
