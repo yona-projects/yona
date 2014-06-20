@@ -129,6 +129,7 @@ common.attach.pastehere = . 클립보드 이미지를 붙여 넣을 수도 있�
 common.attach.dropFilesHere = 여기에 파일을 끌어다 놓으면 업로드 됩니다
 common.attachment = 첨부파일
 common.comment = 댓글
+common.comment.beforeunload.confirm = 입력 중인 댓글이 있습니다. 저장하지 않은 채로 다른 페이지로 가시겠어요?
 common.comment.delete = 댓글 삭제
 common.comment.delete.confirm = 해당 댓글이 삭제되면 영원히 복구할 수 없습니다. 그래도 삭제하시겠습니까?
 common.comment.edit = 댓글 수정

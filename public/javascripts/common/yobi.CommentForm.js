@@ -47,6 +47,7 @@ $(function(){
     function _attachEvent(){
         elements.commentForm.on("submit", onSubmitCommentForm);
         $(window).on("keydown",  onKeydownWindow);
+        $(window).on("beforeunload", onBeforeUnloadWindow);
     }
 
     /**
@@ -99,6 +100,17 @@ $(function(){
         if (isEscapeKeyPressed(evt) && isOnSubmit()){
             yobi.ui.Spinner.hide();
             elements.commentForm.data("onsubmit", false);
+        }
+    }
+
+    /**
+     * Handles beforeunload event of window
+     * In case of commentBody is not empty, show confirm to exit page.
+     * Browser will shows confirm dialog with returned message string.
+     */
+    function onBeforeUnloadWindow(){
+        if(!isCommentBodyEmpty()){
+            return Messages("common.comment.beforeunload.confirm");
         }
     }
 
