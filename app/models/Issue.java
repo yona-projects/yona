@@ -103,11 +103,11 @@ public class Issue extends AbstractPosting implements LabelOwner {
      */
     @Override
     protected Long increaseNumber() {
-        return project.increaseLastIssueNumber();
+        return Project.increaseLastIssueNumber(project.id);
     }
 
     protected void fixLastNumber() {
-        project.fixLastIssueNumber();
+        Project.fixLastIssueNumber(project.id);
     }
 
     public String assigneeName() {
