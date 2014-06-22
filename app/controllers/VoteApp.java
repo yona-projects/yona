@@ -20,8 +20,13 @@
  */
 package controllers;
 
+import controllers.annotation.IsAllowed;
 import models.Issue;
+import models.IssueComment;
 import models.User;
+import models.enumeration.Operation;
+import org.codehaus.jackson.node.ObjectNode;
+import play.libs.Json;
 import play.mvc.Call;
 import play.mvc.With;
 import models.Project;
@@ -31,6 +36,8 @@ import play.db.ebean.Transactional;
 import actions.AnonymousCheckAction;
 import models.enumeration.ResourceType;
 import controllers.annotation.IsCreatable;
+import utils.Constants;
+import utils.RouteUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,7 +59,8 @@ public class VoteApp extends Controller {
      * @return
      */
     @Transactional
-    @IsCreatable(ResourceType.ISSUE_COMMENT)
+    @With(AnonymousCheckAction.class)
+    @IsAllowed(Operation.READ)
     public static Result vote(String ownerName, String projectName, Long issueNumber) {
 
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
@@ -76,7 +84,8 @@ public class VoteApp extends Controller {
      * @return
      */
     @Transactional
-    @IsCreatable(ResourceType.ISSUE_COMMENT)
+    @With(AnonymousCheckAction.class)
+    @IsAllowed(Operation.READ)
     public static Result unvote(String ownerName, String projectName, Long issueNumber) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         Issue issue = Issue.findByNumber(project, issueNumber);
@@ -86,6 +95,38 @@ public class VoteApp extends Controller {
         Call call = routes.IssueApp.issue(ownerName, projectName, issueNumber);
 
         return redirect(call);
+    }
+
+    @Transactional
+    @With(AnonymousCheckAction.class)
+    @IsAllowed(Operation.READ)
+    public static Result voteComment(String user, String project, Long number, Long commentId) {
+        IssueComment issueComment = IssueComment.find.byId(commentId);
+        if (issueComment == null) {
+            return notFound("issue.comment.error.vote");
+        }
+
+        issueComment.addVoter(UserApp.currentUser());
+
+        return redirect(RouteUtil.getUrl(issueComment));
+    }
+
+    @Transactional
+    @With(AnonymousCheckAction.class)
+    @IsAllowed(Operation.READ)
+    public static Result unvoteComment(String user, String project, Long number, Long commentId) {
+        IssueComment issueComment = IssueComment.find.byId(commentId);
+        if (issueComment == null) {
+            return notFound("issue.comment.error.unvote");
+        }
+
+        if (!issueComment.voters.contains(UserApp.currentUser())) {
+            return notFound("issue.comment.error.have.not.voted");
+        }
+
+        issueComment.removeVoter(UserApp.currentUser());
+
+        return redirect(RouteUtil.getUrl(issueComment));
     }
 
     public static List<User> getVotersForAvatar(List<User> voters, int size){
