@@ -740,10 +740,10 @@ public class NotificationEvent extends Model {
     }
 
     private static Set<User> getReceiversWithRelatedAuthors(User sender, PullRequest pullRequest) {
-        Set<User> watchers = getDefaultReceivers(pullRequest);
-        watchers.addAll(pullRequest.relatedAuthors);
-        watchers.remove(sender);
-        return watchers;
+        Set<User> receivers = getDefaultReceivers(pullRequest);
+        receivers.addAll(pullRequest.relatedAuthors);
+        receivers.remove(sender);
+        return receivers;
     }
 
     private static String formatNewTitle(PullRequest pullRequest) {
