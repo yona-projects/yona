@@ -363,7 +363,9 @@ public class ProjectApp extends Controller {
         collectAuthorAndCommenter(project, number, userList, resourceType);
         addProjectMemberList(project, userList);
         addGroupMemberList(project, userList);
+
         userList.remove(UserApp.currentUser());
+        userList.add(UserApp.currentUser()); //send me last at list
 
         Map<String, List<Map<String, String>>> result = new HashMap<>();
         result.put("result", getUserList(project, userList));
@@ -449,6 +451,7 @@ public class ProjectApp extends Controller {
         addProjectMemberList(project, userList);
         addGroupMemberList(project, userList);
         userList.remove(UserApp.currentUser());
+        userList.add(UserApp.currentUser()); //send me last at list
 
         Map<String, List<Map<String, String>>> result = new HashMap<>();
         result.put("result", getUserList(project, userList));
@@ -478,6 +481,7 @@ public class ProjectApp extends Controller {
         }
 
         userList.remove(UserApp.currentUser());
+        userList.add(UserApp.currentUser()); //send me last at list
 
         Map<String, List<Map<String, String>>> result = new HashMap<>();
         result.put("result", getUserList(project, userList));
