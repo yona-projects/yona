@@ -380,8 +380,8 @@
          */
         function _initCodeCommentBlock(){
             yobi.CodeCommentBlock.init({
-                "welContainer"    : htElement.welDiffBody,
-                "welButtonOnBlock": htElement.welDiffBody.find(".btnPop")
+                "welContainer"       : htElement.welDiffBody,
+                "welPopButtonOnBlock": htElement.welDiffBody.find(".btnPop")
             });
 
             htElement.welDiffBody.on("click", ".btnPop", _onClickBtnAddBlockComment);
