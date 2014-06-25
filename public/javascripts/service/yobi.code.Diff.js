@@ -293,6 +293,23 @@
                     "sUploaderId"  : oUploader.attr("data-namespace")
                 }));
             }
+
+            $("form.review-form").each(function(i, el){
+                var form = $(el);
+                var container = form.find(".upload-wrap");
+                var textarea = form.find("textarea");
+                var uploader = yobi.Files.getUploader(container, textarea);
+
+                if(uploader){
+                    (new yobi.Attachments({
+                        "elTextarea"   : textarea,
+                        "elContainer"  : container,
+                        "sTplFileItem" : htVar.sTplFileItem,
+                        "sUploaderId"  : uploader.attr("data-namespace")
+                    }));
+
+                }
+            });
         }
 
         /**

@@ -1,0 +1,72 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2014 NAVER Corp.
+* http://yobi.io
+*
+* @Author Jihan Kim
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@(thread: CommentThread)
+
+@import utils.TemplateHelper._
+@import utils.TemplateHelper.DiffRenderer._
+
+@changeThreadStateButton = {
+  @if(utils.AccessControl.isAllowed(UserApp.currentUser(), thread.asResource(), Operation.UPDATE)){
+    @if(thread.state == CommentThread.ThreadState.OPEN) {
+      <button type="button" data-request-method="post" data-request-uri="@routes.CommentThreadApp.close(thread.id)" class="ybtn ybtn-default ybtn-small">@Messages("commentThread.close")</button>
+    } else {
+      <button type="button" data-request-method="post" data-request-uri="@routes.CommentThreadApp.open(thread.id)" class="ybtn ybtn-default ybtn-small">@Messages("commentThread.open")</button>
+    }
+  }
+}
+
+@defining(getResourceType(thread)) { resourceType =>
+  @if(utils.AccessControl.isProjectResourceCreatable(UserApp.currentUser(), thread.project, resourceType)){
+  <div class="write-comment-form">
+    <form action="@urlToPostNewComment(thread)" method="post" enctype="multipart/form-data" class="review-form" style="display:block;">
+      <input type="hidden" name="thread.id" value="@thread.id">
+      <div class="author-info-wrap pull-left">
+        <div class="author-info">
+          <a href="@routes.UserApp.userInfo(UserApp.currentUser().loginId)" class="avatar-wrap medium"
+             title="@UserApp.currentUser().name" data-toggle="tooltip" data-placement="top">
+            <img src="@UserApp.currentUser().avatarUrl" width="32" height="32">
+          </a>
+        </div>
+      </div>
+      <div class="write-comment-box">
+        <div class="write-comment-wrap">
+          @common.editor("contents", "" , "style=height:100px", "code-review-body")
+
+          @** fileUploader **@
+          @if(!UserApp.currentUser.isAnonymous){
+            @common.uploadForm(resourceType)
+          }
+          @** end of fileUploader **@
+
+          <div class="right-txt">
+            @changeThreadStateButton
+            <button type="submit" class="ybtn ybtn-success ybtn-small">@Messages("button.comment.new")</button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+  } else {
+  <p class="thread-actrow">
+    @changeThreadStateButton
+  </p>
+  }
+}
