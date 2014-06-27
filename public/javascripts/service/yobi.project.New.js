@@ -99,7 +99,9 @@
         }
 
         function _focusOnFirstField(){
-            if(htElement.welInputGitRepoURL.length > 0){
+            if(htElement.welRepoAuthCheck.is(":checked")){
+                htElement.waRepoAuthInput.get(0).focus();
+            } else if(htElement.welInputGitRepoURL.length > 0){
                 htElement.welInputGitRepoURL.focus();
             } else {
                 htElement.welInputProjectName.focus();

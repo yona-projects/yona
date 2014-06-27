@@ -31,6 +31,7 @@ import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Result;
 import play.mvc.With;
+import play.i18n.Messages;
 import playRepository.GitRepository;
 import utils.AccessControl;
 import utils.ErrorViews;
@@ -41,6 +42,7 @@ import views.html.project.importing;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.errors.*;
+import org.eclipse.jgit.internal.JGitText;
 
 import actions.AnonymousCheckAction;
 
@@ -81,12 +83,13 @@ public class ImportApp extends Controller {
         if (Organization.isNameExist(owner)) {
             project.organization = organization;
         }
-        String errorMessageKey = null;
-        try {
-            String authId = filledNewProjectForm.field("authId").value();
-            String authPw = filledNewProjectForm.field("authPw").value();
 
-            if(StringUtils.isEmpty(authId) || StringUtils.isEmpty(authPw)) {
+        String authId = filledNewProjectForm.field("authId").value();
+        String authPw = filledNewProjectForm.field("authPw").value();
+        boolean hasNoCredentials = StringUtils.isEmpty(authId) && StringUtils.isEmpty(authPw);
+
+        try {
+            if(hasNoCredentials){
                 GitRepository.cloneRepository(gitUrl, project);
             } else {
                 GitRepository.cloneRepository(gitUrl, project, authId, authPw);
@@ -99,21 +102,53 @@ public class ImportApp extends Controller {
             }
         } catch (InvalidRemoteException e) {
             // It is not an url.
-            errorMessageKey = "project.import.error.wrong.url";
+            filledNewProjectForm.reject("url", "project.import.error.wrong.url");
         } catch (JGitInternalException e) {
             // The url seems that does not locate a git repository.
-            errorMessageKey = "project.import.error.wrong.url";
+            filledNewProjectForm.reject("url", "project.import.error.wrong.url");
         } catch (TransportException e) {
-            errorMessageKey = "project.import.error.transport";
+            addDetailedTransportErrorMessage(filledNewProjectForm, e, hasNoCredentials);
         }
 
-        if (errorMessageKey != null) {
+        if (!filledNewProjectForm.errors().isEmpty()) {
             List<OrganizationUser> orgUserList = OrganizationUser.findByAdmin(UserApp.currentUser().id);
-            filledNewProjectForm.reject("url", errorMessageKey);
             FileUtil.rm_rf(new File(GitRepository.getGitDirectory(project)));
             return badRequest(importing.render("title.newProject", filledNewProjectForm, orgUserList));
         } else {
             return redirect(routes.ProjectApp.project(project.owner, project.name));
+        }
+    }
+
+    /**
+     * Add assorted error messages from TransportException like Unauthorized(401), Forbidden(403)
+     * or other transport error with HTTP response code to the given form.
+     *
+     * Referenced TransportHttp.java of jGit which throws TransportException while connect to remote repository.
+     *
+     * @see https://github.com/eclipse/jgit/blob/4cb0bd8/org.eclipse.jgit/src/org/eclipse/jgit/transport/TransportHttp.java#L491
+     * @param filledNewProjectForm
+     * @param e
+     * @param hasNoCredentials
+     * @return
+     */
+    private static void addDetailedTransportErrorMessage(Form<Project> filledNewProjectForm, TransportException e, boolean hasNoCredentials){
+        String errorMessage = e.getMessage();
+
+        // HttpConnection.HTTP_UNAUTHORIZED : 401
+        if(errorMessage.contains(JGitText.get().notAuthorized)){
+            if(hasNoCredentials){
+                filledNewProjectForm.reject("repoAuth", "required");
+                filledNewProjectForm.reject("url", "project.import.error.transport.unauthorized");
+            } else {
+                filledNewProjectForm.reject("authId", "project.import.error.transport.failedToAuth");
+            }
+        } else if(errorMessage.contains(java.text.MessageFormat.format(JGitText.get().serviceNotPermitted, ""))){
+            // HttpConnection.HTTP_FORBIDDEN : 403
+            filledNewProjectForm.reject("url", "project.import.error.transport.forbidden");
+        } else {
+            // and for other errors
+            String statusCode = errorMessage.split(" ")[1]; // 0 = URL, 1 = ResponseCode, 2 = ResponseMessage
+            filledNewProjectForm.reject("url", Messages.get("project.import.error.transport", statusCode));
         }
     }
 
