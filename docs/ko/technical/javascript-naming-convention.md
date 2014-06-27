@@ -14,7 +14,7 @@
 * 네임스페이스: 소문자로 언더스코어 표기법(Underscore Notation) 사용
 * 모듈: 파스칼 표기법 ([PascalCase](http://c2.com/cgi/wiki?PascalCase))
 * 함수: 카멜 표기법 ([CamelCase](http://en.wikipedia.org/wiki/CamelCase))
-* 변수: 헝가리안 표기법
+* 변수: 카멜 표기법 ([CamelCase](http://en.wikipedia.org/wiki/CamelCase))
 
 ## 네임스페이스 이름
 
@@ -70,14 +70,15 @@
 
 * Private 메소드 인 경우 메소드 이름 앞에 언더스코어(`_`)를 사용한다
 * 카멜 표기법을 준수한다. 복합어 이름은 첫 번째 단어를 소문자로 작성하고, 두 번째 이상의 단어 첫 글자를 대문자로 작성하여 단어를 구분한다.
-* 함수 이름의 첫 글자로 연속된 2개의 언더스코어(`__`) 기호와 달러 기호($)는 사용하지 않는다.
+* 함수 이름의 첫 글자로 연속된 두 개의 언더스코어(`__`) 기호와 달러 기호($)는 사용하지 않는다.
 * Getter, Setter 메소드는 반드시 'get + 멤버변수 이름', 'set + 멤버변수 이름' 형식으로 작성한다. 단, Getter 메소드의 반환값이 Boolean 인 경우 get 대신 is 조합을 사용한다
 
 >        getElement();
 >        isChecked();
 >        setOption();
 
-* 이벤트 핸들러 메소드는 `_on` + 이벤트명 으로 정의한다. 브라우저에서 제공하는 이벤트가 아니라 특정 모듈이나 함수에서 비동기 콜백 함수(이벤트) 모델을 사용하는 경우에도 동일하다.
+* 이벤트 핸들러 메소드는 `_on` + 이벤트명 으로 시작하도록 정의한다.
+  브라우저에서 제공하는 이벤트가 아니라 특정 모듈이나 함수에서 비동기 콜백 함수(이벤트) 모델을 사용하는 경우에도 동일하다.
 
 >        function _onLoadImage(){
 >            console.log("image loaded");
@@ -89,47 +90,15 @@
 >            "success": _onSuccessRequest
 >        });
 
-* 각 함수는 Jsdoc
 
 ## 변수 이름
 
 * 변수 이름은 명사를 사용하여 작성한다
-* Private 프로퍼티일 경우 변수 이름 앞에 언더스코어(`_`)를 사용한다
-* 헝가리안 표기법을 준수한다. 변수의 데이터 타입, 용도에 따라 접두사를 사용한다. jQuery 프레임워크에 의해 래핑(Wrapping) 된 변수는 접두사 w를 다른 접두사와 함께 사용한다
-
->g: 전역변수
-
->w: 래핑된 자료형
-
->a: Array
-
->s: String
-
->n: Number
-
->b: Boolean
-
->o: Object (메소드 함수를 가진 객체)
-
->ht: Hash Table (메소드 함수 없이 Key-Value 구조만 갖는 경우)
-
->e: Event
-
->v: Variant (다양한 자료형이 담길 수 있는 경우)
-
->el: HTML Element
-
->rx: Regular Expression
-
->f: Function
-
-
-* jQuery 프레임워크를 사용할 때 특정한 하나의 엘리먼트만을 지정하는 경우에는 Wrapped Element (wel), 여러 엘리먼트를 동시에 지정하는 경우에는 Wrapped Array (wa)로 취급한다. jQuery 프레임워크의 특성상 두 변수형의 활용이 유사하지만 어떤 목적으로 사용하느냐를 우선하도록 한다.
-
-        var welContainer = $("#container");
-        var welInput = $("<input>");
-        var waItems = $("li.item");
-
+* 카멜 표기법을 준수한다. 복합어 이름은 첫 번째 단어를 소문자로 작성하고, 두 번째 이상의 단어 첫 글자를 대문자로 작성하여 단어를 구분한다.
+ -  v0.5.4 이전에 작성된 코드는 헝가리안 표기법 ([Hungarian Notation](http://en.wikipedia.org/wiki/Hungarian_notation))을 사용했기 때문에
+    부득이 기존 코드의 유지보수를 위해 통일성이 필요한 경우에는 헝가리안 표기법을 사용할 수 있으나 그 외에는 헝가리안 표기법을 사용하지 않는다. 
+* 객체의 Private 프로퍼티일 경우 변수 이름 앞에 언더스코어(`_`)를 사용한다. 함수 내의 지역변수는 Private property 에 해당하지 않는다.
+* 변수 이름의 첫 글자로 연속된 두 개의 언더스코어(`__`) 기호와 달러 기호($)는 사용하지 않는다.
 * 변수 이름은 한 글자 이상으로 사용 의도를 충분히 알 수 있을 만큼 간결하고 명확하게 작성한다. 단, 임시 변수는 한 글자 이름을 사용할 수 있다.
 
 
@@ -152,7 +121,7 @@
 * 들여쓰기는 1탭 간격을 사용한다. 1탭 간격은 공백 4자리이다.
 * 선언 또는 제어문의 시작 중괄호는 명령문과 동일한 줄에 위치한다
 
->        var fOnLoad = function(){
+>        var onLoadHandler = function(){
 >            console.log("loaded");
 >        };
 >
@@ -176,11 +145,11 @@
 * 변수를 논리적으로 그룹화 한다. 그룹간에는 빈 줄을 사용하여 구분한다
 
 >        // on request
->        var oRequestDetailId;
->        var oRequestDetail;
+>        var requestDetailId;
+>        var requestDetail;
 >
 >        // on retry
->        var nRequestRetry;
+>        var requestRetry;
 
 
 ## 주석 작성에 대해
