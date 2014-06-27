@@ -62,8 +62,11 @@
         @defining(getPercent(notAssignedIssues, totalIssues)) { notAssignedPerc =>
             <div class="row-fluid">
                 <div class="span6">
-                    <a href="@makeIssuesLink(project, scala.collection.immutable.Map("assigneeId"->User.anonymous.id.toString))">
-                    @Messages("issue.noAssignee")
+                    <a href="@makeIssuesLink(project, scala.collection.immutable.Map("assigneeId"->User.anonymous.id.toString))" class="usf-group">
+                        <span class="avatar-wrap smaller">
+                          <i class="yobicon-blankstare"></i>
+                        </span>
+                        <span class="name">@Messages("issue.noAssignee")</span>
                     </a>
                 </div>
                 <div class="span3 num">
