@@ -81,7 +81,7 @@ public class GitApp extends Controller {
                 response().setHeader("Content-Type", "text/plain");
                 return forbidden(
                         String.format("'%s' has no permission to '%s/%s'.",
-                            user.name, ownerName, projectName));
+                            user.loginId, ownerName, projectName));
             }
         }
 
