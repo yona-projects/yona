@@ -170,7 +170,7 @@ public class IssueApp extends AbstractPostingApp {
         if (project == null) {
             return ok(my_partial_search.render("title.issueList", issues, searchCondition, project));
         } else {
-            return ok(partial_search.render("title.issueList", issues, searchCondition, project));
+            return ok(partial_list_wrap.render("title.issueList", issues, searchCondition, project));
         }
 
     }

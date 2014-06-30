@@ -30,32 +30,22 @@
          * initialize
          */
         function _init(htOptions){
-            _initVar(htOptions || {})
             _initElement(htOptions || {});
             _attachEvent();
             _initPagination();
-            _setLabelColor();
-        }
-
-        /**
-         * initialize variables except element
-         */
-        function _initVar(htOptions){
-            htVar.nTotalPages = htOptions.nTotalPages || 1;
+            _initPjax();
         }
 
         /**
          * initialize element
          */
         function _initElement(htOptions){
-            htElement.welFilter = htOptions.welFilter;
-            htElement.welSearchForm = htOptions.welSearchForm;
-            htElement.welSearchOrder = htOptions.welSearchOrder;
-            htElement.welSearchState = htOptions.welSearchState;
-
-            htElement.welContainer  = $(".inner");
-            htElement.welBtnAdvance = $(".btn-advanced");
+            htElement.welFilter = htOptions.welFilter || $("a[pjax-filter]");
+            htElement.welSearchForm = htOptions.welSearchForm || $("form[name='search']");
+            htElement.welSearchOrder = htOptions.welSearchOrder || $("a[orderBy]");
+            htElement.welSearchState = htOptions.welSearchState || $("a[state]");
             htElement.welPagination = $(htOptions.elPagination || "#pagination");
+            htElement.welSearchLabelIds = $("#labelIds");
 
             htElement.waLabels = $("a.issue-label[data-color]"); // 목록 > 라벨
 
@@ -75,11 +65,10 @@
                 yobi.ui.Select2(htElement.welSearchAuthorId);
                 yobi.ui.Select2(htElement.welSearchAssigneeId);
                 yobi.ui.Select2(htElement.welSearchMilestoneId);
+                yobi.ui.Select2(htElement.welSearchLabelIds);
             }
 
-            if(htOptions.welIssueDueDate){
-                htElement.welIssueDueDate = htOptions.welIssueDueDate;
-            }
+            htElement.welIssueDueDate = $(htOptions.welIssueDueDate || "#issueDueDate");
 
             if(typeof yobi.ui.Calendar === "function"){
                 yobi.ui.Calendar(htElement.welIssueDueDate);
@@ -93,9 +82,8 @@
             htElement.welSearchAuthorId.on("change", _onChangeSearchField);
             htElement.welSearchAssigneeId.on("change", _onChangeSearchField);
             htElement.welSearchMilestoneId.on("change", _onChangeSearchField);
-            if(htOptions.welIssueDueDate){
-                htElement.welIssueDueDate.on("change", _onChangeSearchField);
-            }
+            htElement.welSearchLabelIds.on("change", _onChangeSearchField);
+            htElement.welIssueDueDate.on("change", _onChangeSearchField);
 
             htElement.welSearchOrder.on("click", _onChangeSearchOrder);
             htElement.welSearchState.on("click", _onChangeSearchState);
@@ -149,11 +137,11 @@
          * @private
          */
         function _onChangeSearchLabel(weEvt) {
+            var selectedLabelIds = htElement.welSearchLabelIds.val() || [];
+            selectedLabelIds.push($(this).attr('data-labelId'));
+            htElement.welSearchLabelIds.val(selectedLabelIds).trigger("change");
+
             weEvt.preventDefault();
-
-            yobi.Label.resetLabel($(this).attr('data-labelId'));
-
-            htElement.welSearchForm.submit();
         }
 
         /**
@@ -182,23 +170,46 @@
          * @requires yobi.Pagination
          */
         function _initPagination(){
-            yobi.Pagination.update(htElement.welPagination, htVar.nTotalPages);
+            yobi.Pagination.update(htElement.welPagination, htElement.welPagination.data("total"));
         }
 
-        /**
-         * update Label color
-         */
-        function _setLabelColor(){
-            var welLabel, sColor;
+        function _initPjax(){
+            var htPjaxOptions = {
+                "fragment": "div[pjax-container]",
+                "timeout" : 3000
+            };
 
-            htElement.waLabels.each(function(){
-                welLabel = $(this);
-                sColor = welLabel.data("color");
-                welLabel.css("background-color", sColor);
-                welLabel.css("color", $yobi.getContrastColor(sColor));
+            if($.support.pjax) {
+                $.pjax.defaults.maxCacheLength = 0;
+            }
+
+            // on click pagination
+            $(document).on("click", "a[pjax-page]", function(weEvt) {
+                $.pjax.click(weEvt, "div[pjax-container]", htPjaxOptions);
             });
 
-            welLabel = sColor = null;
+            // on submit search form
+            $(document).on("submit", "form[name='search']", function(weEvt) {
+                $.pjax.submit(weEvt, "div[pjax-container]", htPjaxOptions);
+            });
+
+            // show spinners
+            $(document).on({
+                "pjax:send"    : _onBeforeLoadIssueList,
+                "pjax:complete": _onLoadIssueList
+            });
+        }
+
+        function _onBeforeLoadIssueList(){
+            yobi.ui.Spinner.show();
+        }
+
+        function _onLoadIssueList(){
+            yobi.ui.Spinner.hide();
+
+            _initElement(htOptions || {});
+            _initPagination();
+            _attachEvent();
         }
 
         _init(htOptions);

@@ -1,0 +1,56 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2014 NAVER Corp.
+* http://yobi.io
+*
+* @Author Jihan Kim
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@(project:Project)
+
+<div id="editLabel" class="modal hide fade yobiDialog" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="btn-dismiss"><button type="button" class="btn-transparent" data-dismiss="modal">&times;</button></div>
+  <div class="message edit-label-form">
+    <div class="center-txt">
+      <select name="category.id" data-toggle="select2">
+        @for(category <- IssueLabelCategory.findByProject(project) if !category.labels.isEmpty()){
+        <option value="@category.id">@category.name</option>
+        }
+      </select>
+
+      <input type="text" name="name" class="text input-label-name" placeholder="@Messages("label.name")">
+
+      <div class="label-preset-colors edit">
+        <button type="button" class="issue-label btn-preset-color" style="background-color:#da5454;"></button>
+        <button type="button" class="issue-label btn-preset-color" style="background-color:#f86ca0"></button>
+        <button type="button" class="issue-label btn-preset-color" style="background-color:#ff9e9d"></button>
+        <button type="button" class="issue-label btn-preset-color" style="background-color:#f8c86c"></button>
+        <button type="button" class="issue-label btn-preset-color" style="background-color:#ffcc33"></button>
+        <button type="button" class="issue-label btn-preset-color" style="background-color:#ff9933"></button>
+        <button type="button" class="issue-label btn-preset-color" style="background-color:#99ca3c"></button>
+        <button type="button" class="issue-label btn-preset-color" style="background-color:#3fb8af"></button>
+        <button type="button" class="issue-label btn-preset-color" style="background-color:#22b4b9"></button>
+        <button type="button" class="issue-label btn-preset-color" style="background-color:#6ca6f8"></button>
+        <button type="button" class="issue-label btn-preset-color" style="background-color:#4d68b1"></button>
+        <button type="button" class="issue-label btn-preset-color" style="background-color:#9966cc"></button>
+        <input type="text" name="color" class="input-small input-label-color" placeholder="@Messages("label.customColor")">
+      </div>
+    </div>
+    <div class="center-txt buttons mt20 mb20">
+      <button type="button" class="ybtn ybtn-info btnSubmit">@Messages("button.save")</button>
+      <button type="button" class="ybtn ybtn-default" data-dismiss="modal">@Messages("button.cancel")</button>
+    </div>
+  </div>
+</div>

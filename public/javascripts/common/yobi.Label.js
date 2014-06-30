@@ -268,7 +268,7 @@ yobi.Label = (function(htOptions){
 
         var aDefaultCss = [];
         var sDefaultCssSkel = 'box-shadow: inset 2px 0 0px ' + oLabel.color;
-        ["", "-moz-", "-webkit"].forEach(function(sPrefix){
+        ["", "-moz-", "-webkit-"].forEach(function(sPrefix){
             aDefaultCss.push(sPrefix + sDefaultCssSkel);
         });
         var sDefaultCss = aDefaultCss.join(";");

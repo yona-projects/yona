@@ -120,11 +120,24 @@
                         <dt>
                             @Messages("label")
                             @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
-                            <button id="manage-label-link" type="button" class="ybtn ybtn-default ybtn-mini pull-right"><i class="yobicon-cog"></i></button>
+                            <a href="@routes.IssueLabelApp.labels(project.owner, project.name)" target="_blank"
+                               class="ybtn ybtn-default ybtn-mini pull-right"><i class="yobicon-cog"></i></a>
                             }
                         </dt>
                         <dd>
-                            <fieldset class="labels issue-form-labels"></fieldset>
+                            <select id="issueLabels" multiple="multiple" data-toggle="select2" data-format="issuelabel"
+                                    data-dropdown-css-class="issue-labels" data-container-css-class="issue-labels" style="border:1px solid #ddd;">
+                                <option></option>
+                                @IssueLabel.findByProject(project).groupBy(_.category).map {
+                                    case (category, labels) => {
+                                        <optgroup label="@category.name">
+                                        @labels.map { label =>
+                                            <option value="@label.id" data-category="@category.id">@label.name</option>
+                                        }
+                                        </optgroup>
+                                    }
+                                }
+                            </select>
                         </dd>
                     </dl>
                 </div>
@@ -134,28 +147,24 @@
     	</div>
     </div>
 </div>
+
 @common.markdown(project)
-@common.issueLabel()
 @common.select2()
 @common.calendar()
+
+<link rel="stylesheet" type="text/css" media="screen" href="@routes.IssueLabelApp.labelStyles(project.owner, project.name)">
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.css")">
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.caret.min.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.js")"></script>
 <script type="text/javascript">
-    $(document).ready(function(){
-        // yobi.Label
-        yobi.Label.init({
-            "sURLLabels": "@routes.IssueLabelApp.labels(project.owner, project.name)",
-            "sURLPost"  : "@routes.IssueLabelApp.newLabel(project.owner, project.name)"
-        });
-
+    $(function(){
         // yobi.issue.Write
         $yobi.loadModule("issue.Write", {
-            "sMode": "new",
+            "sMode"		   : "new",
             "sIssueFormURL": "@routes.IssueApp.newIssueForm(project.owner, project.name)",
             "sIssueListURL": "@routes.IssueApp.issues(project.owner, project.name)",
-            "elTextarea": 'textarea[data-editor-mode="content-body"]',
-            "elMilestoneRefresh": $("#milestoneOption .yobicon-refresh"),
+            "elTextarea"   : 'textarea[data-editor-mode="content-body"]',
+            "elMilestoneRefresh": $("#milestoneOption .yobicon-refresh")
         });
 
         // yobi.Mention

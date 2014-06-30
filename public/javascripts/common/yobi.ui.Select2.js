@@ -92,7 +92,7 @@
                     return '<span>' + oItem.text.trim() + '</span>';
                 }
 
-                return '<a class="label issue-label active static" data-labelid="' + sLabelId + '">' + oItem.text.trim() + '</a>';
+                return '<a class="label issue-label active static" data-label-id="' + sLabelId + '">' + oItem.text.trim() + '</a>';
             },
             "branch": function(oItem){
                 var sBranchType = "";

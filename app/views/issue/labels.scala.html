@@ -1,0 +1,79 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2014 NAVER Corp.
+* http://yobi.io
+*
+* @Author Jihan Kim
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@(project:Project, labels:List[models.IssueLabel])
+
+@import utils.TemplateHelper._
+@import utils.AccessControl._
+
+@projectLayout("label", project, utils.MenuType.ISSUE){
+  @projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
+  <div class="page-wrap-outer">
+    <div class="project-page-wrap label-editor-wrap">
+      @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
+      <form id="frmNewLabel" action="@routes.IssueLabelApp.newLabel(project.owner, project.name)" method="post" class="new-label-wrap">
+        <strong class="form-legend">@Messages("label.new")</strong>
+        <div class="form-wrap">
+          <div>
+            <input type="text" name="category" class="input-label mr5" data-provider="typeahead" autocomplete="off" placeholder="@Messages("label.category")">
+            <input type="text" name="name" class="input-label" autocomplete="off" placeholder="@Messages("label.name")">
+          </div>
+          <div class="label-preset-colors">
+            <button type="button" class="issue-label btn-preset-color" style="background-color:#da5454;"></button>
+            <button type="button" class="issue-label btn-preset-color" style="background-color:#f86ca0"></button>
+            <button type="button" class="issue-label btn-preset-color" style="background-color:#ff9e9d"></button>
+            <button type="button" class="issue-label btn-preset-color" style="background-color:#f8c86c"></button>
+            <button type="button" class="issue-label btn-preset-color" style="background-color:#ffcc33"></button>
+            <button type="button" class="issue-label btn-preset-color" style="background-color:#ff9933"></button>
+            <button type="button" class="issue-label btn-preset-color" style="background-color:#99ca3c"></button>
+            <button type="button" class="issue-label btn-preset-color" style="background-color:#3fb8af"></button>
+            <button type="button" class="issue-label btn-preset-color" style="background-color:#22b4b9"></button>
+            <button type="button" class="issue-label btn-preset-color" style="background-color:#6ca6f8"></button>
+            <button type="button" class="issue-label btn-preset-color" style="background-color:#4d68b1"></button>
+            <button type="button" class="issue-label btn-preset-color" style="background-color:#9966cc"></button>
+            <input type="text" name="color" class="input-small input-label-color" placeholder="@Messages("label.customColor")">
+          </div>
+        </div>
+        <button type="submit" class="ybtn ybtn-primary btn-submit">@Messages("label.add")</button>
+      </form>
+      }
+
+      <div id="labelsList" class="issue-label-list-wrap">
+        @partial_labels_list(project, labels)
+      </div>
+    </div>
+  </div>
+
+  @partial_labels_editcategory()
+  @partial_labels_editlabel(project)
+  @common.select2()
+
+  <script type="text/javascript">
+    $(function(){
+      $yobi.loadModule("issue.LabelEditor", {
+        "form": "#frmNewLabel",
+        "list": "#labelsList",
+        "editCategoryForm": "#editCategory",
+        "editLabelForm"   : "#editLabel",
+        "listURL": "@routes.IssueLabelApp.labels(project.owner, project.name)"
+      });
+    });
+  </script>
+}

@@ -169,6 +169,7 @@ GET            /:user/:project/issue/$number<[0-9]+>/timeline                   
 GET            /:user/:project/issue/labels                                           controllers.IssueLabelApp.labels(user, project)
 POST           /:user/:project/issue/labels                                           controllers.IssueLabelApp.newLabel(user, project)
 POST           /:user/:project/issue/label/:id/delete                                 controllers.IssueLabelApp.delete(user, project, id:Long)
+PUT            /:user/:project/issue/label/:id                                        controllers.IssueLabelApp.update(user, project, id:Long)
 GET            /:user/:project/issue/labels.css                                       controllers.IssueLabelApp.labelStyles(user, project)
 GET            /:user/:project/issue/label/categories                                 controllers.IssueLabelApp.categories(user, project)
 GET            /:user/:project/issue/label/category/:id                               controllers.IssueLabelApp.category(user, project, id:Long)

@@ -23,22 +23,22 @@
 @labelList(project:Project) = {
     @IssueLabel.findByProject(project).groupBy(_.category).map {
         case (category, labels) => {
-            <li class="disabled" data-category="@category"><span>@category</span></li>
+            <li class="disabled" data-category="@category.id"><span>@category.name</span></li>
             @labels.map { label =>
-            <li data-value="@label.id" data-category="@category">
+            <li data-value="@label.id" data-category="@category.id">
             <a>
-                <span class="issue-label active list-label" data-labelId="@label.id">@label.name</span>
+                <span class="issue-label active list-label" data-label-id="@label.id">@label.name</span>
             </a>
             </li>
             }
-            <li class="divider" data-category="@category"></li>
+            <li class="divider" data-category="@category.id"></li>
         }
     }
 }
 
 <script type="text/x-jquery-tmpl" id="labelListItem">
 <li data-value="${id}" data-category="${category}">
-    <a><span class="issue-label active list-label" data-labelId="${id}">${name}</span></a>
+    <a><span class="issue-label active list-label" data-label-id="${id}">${name}</span></a>
 </li>
 </script>
 
@@ -46,7 +46,7 @@
 <li class="disabled" data-category="${category}"><span>${category}</span></li>
 <li data-value="${id}" data-category="${category}">
     <a>
-        <span class="issue-label active list-label" data-labelid="${id}">${name}</span>
+        <span class="issue-label active list-label" data-label-id="${id}">${name}</span>
     </a>
 </li>
 <li class="divider" data-category="${category}"></li>

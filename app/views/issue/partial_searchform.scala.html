@@ -1,0 +1,163 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2014 NAVER Corp.
+* http://yobi.io
+*
+* @Author Jihan Kim
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@(param:models.support.SearchCondition, project:Project)
+
+@import utils.AccessControl._
+
+<form id="search" name="search" action="@routes.IssueApp.issues(project.owner, project.name)" method="get">
+    <input type="hidden" name="orderBy" value="@param.orderBy">
+    <input type="hidden" name="orderDir" value="@param.orderDir">
+    <input type="hidden" name="state" value="@param.state">
+    <hr>
+    <div class="search">
+        <div class="search-bar">
+            <input name="filter" class="textbox full" type="text" value="@param.filter">
+            <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+        </div>
+    </div>
+
+    <div id="advanced-search-form" class="srch-advanced">
+        <dl class="issue-option">
+            <dt>@Messages("issue.author")</dt>
+            <dd>
+                <select id="authorId" name="authorId" data-toggle="select2" data-format="user">
+                    <option value="">@Messages("common.order.all")</option>
+                    @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
+                    <option value="@UserApp.currentUser().id">@Messages("issue.list.authoredByMe")</option>
+                    }
+                    @for(author <- User.findIssueAuthorsByProjectId(project.id)) {
+                        <option value="@author.id"
+                        @if(param.authorId != null && param.authorId == author.id){
+                            selected
+                        }
+                        data-avatar-url="@author.avatarUrl"
+                        data-login-id="@author.loginId">
+                        @author.name
+                        </option>
+                    }
+                </select>
+            </dd>
+        </dl>
+
+        <dl class="issue-option">
+            <dt>@Messages("issue.assignee")</dt>
+            <dd>
+                <select id="assigneeId" name="assigneeId" data-toggle="select2" data-format="user">
+                    <option value="">@Messages("common.order.all")</option>
+                    <option value="@User.anonymous.id" @if(param.assigneeId != null && param.assigneeId == User.anonymous.id){ selected }>@Messages("issue.noAssignee")</option>
+                    @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
+                    <option value="@UserApp.currentUser().id">@Messages("issue.list.assignedToMe")</a></option>
+                    }
+                    @for(member <- project.members) {
+                        <option value="@member.user.id"
+                        @if(param.assigneeId != null
+                            && param.assigneeId == member.user.id){
+                            selected
+                        }
+                        data-avatar-url="@member.user.avatarUrl"
+                        data-login-id="@member.user.loginId">
+                            @member.user.name
+                        </option>
+                    }
+                </select>
+            </dd>
+        </dl>
+
+        <dl class="issue-option">
+            <dt>@Messages("milestone")</dt>
+            <dd>
+                <select id="milestoneId" name="milestoneId" data-toggle="select2" data-format="milestone">
+                    <option value="">@Messages("milestone.state.all")</option>
+                    <option value="@Milestone.NULL_MILESTONE_ID"
+                        @if(param.milestoneId != null && param.milestoneId == Milestone.NULL_MILESTONE_ID){
+                        selected
+                    }>
+                        @Messages("issue.noMilestone")
+                    </option>
+                    <optgroup label="@Messages("milestone.state.open")">
+                    @for(milestone <- Milestone.findOpenMilestones(project.id)){
+                        <option value="@milestone.id" data-state="@milestone.state"
+                        @if(param.milestoneId != null && param.milestoneId == milestone.id){
+                            selected
+                        }>
+                            @milestone.title
+                        </option>
+                    }
+                    </optgroup>
+                    <optgroup label="@Messages("milestone.state.closed")">
+                    @for(milestone <- Milestone.findClosedMilestones(project.id)){
+                        <option value="@milestone.id" data-state="@milestone.state"
+                        @if(param.milestoneId != null && param.milestoneId == milestone.id){
+                            selected
+                        }>
+                            @milestone.title
+                        </option>
+                    }
+                    </optgroup>
+                </select>
+            </dd>
+        </dl>
+
+        @if(param.milestoneId != null){
+            @defining(Milestone.findById(param.milestoneId)){ milestone =>
+                @if(milestone != null){
+                    <hr>
+                    @views.html.milestone.partial_status(milestone, project)
+                }
+            }
+        }
+
+        <dl class="issue-option">
+            <dt>@Messages("issue.dueDate")</dt>
+            <dd class="search search-bar">
+                <input type="text" id="issueDueDate" data-toggle="calendar" name="dueDate" class="textbox full" value="@param.getDueDateString">
+                <button type="button" class="search-btn"><i class="yobicon-calendar2"></i></button>
+            </dd>
+        </dl>
+
+        <dl id="labels" class="issue-option labels-wrap">
+            <dt>
+                @Messages("label")
+                @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
+                <a href="@routes.IssueLabelApp.labels(project.owner, project.name)" target="_blank"
+                   class="ybtn ybtn-default ybtn-mini pull-right"><i class="yobicon-cog"></i></a>
+                }
+            </dt>
+            <dd>
+                <select id="labelIds" name="labelIds" multiple="multiple" data-toggle="select2" data-format="issuelabel"
+                    data-dropdown-css-class="issue-labels" data-container-css-class="issue-labels" style="border:1px solid #ddd;">
+                    <option></option>
+                    @IssueLabel.findByProject(project).groupBy(_.category).map {
+                        case (category, labels) => {
+                            <optgroup label="@category.name">
+                            @labels.map { label =>
+                                <option value="@label.id" data-category="@category.id" @if(param.labelIds != null && param.labelIds.contains(label.id)){ selected }>
+                            @label.name
+                            </option>
+                            }
+                            </optgroup>
+                        }
+                    }
+                </select>
+            </dd>
+        </dl>
+    </div>
+</form>

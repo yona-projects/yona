@@ -1,0 +1,95 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2012 NAVER Corp.
+* http://yobi.io
+*
+* @Author Tae
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@(title: String, currentPage: com.avaje.ebean.Page[Issue], param:models.support.SearchCondition, project:Project)
+
+@import helper._
+@import utils.HttpUtil._
+@import utils.TemplateHelper._
+@import utils.AccessControl._
+@import models.enumeration._
+@import scala.collection.immutable.Map
+@import scala.collection.mutable.ArrayBuffer
+
+@makeFilterLink(fieldName:String, orderBy:String, orderDir:String, fieldText:String) = {
+    @if(orderBy.equals(fieldName)) {
+        <a href="#" orderBy="@orderBy" orderDir="@if(orderDir.equals("desc")){asc}else{desc}" class="filter active"><i class="ico btn-gray-arrow @if(orderDir.equals("desc")){ down }"></i>@fieldText</a>
+    } else {
+        <a href="#" orderBy="@fieldName" orderDir="desc" class="filter"><i class="ico btn-gray-arrow down"></i>@fieldText</a>
+    }
+}
+
+<div pjax-container class="row-fluid issue-list-wrap">
+    <div class="span2">
+        @partial_list_quicksearch(param, project)
+        @partial_searchform(param, project)
+    </div>
+    <div class="span10" id="span10">
+        <div class="pull-right">
+            <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="ybtn ybtn-success">@Messages("issue.menu.new")</a>
+        </div>
+
+        <ul class="nav nav-tabs nm">
+        @for(state <- Array(State.OPEN, State.CLOSED)) {
+            <li @if(param.state == state.state) { class="active" } data-pjax>
+                <a href="#" state="@state.state">
+                    @Messages("issue.state." + state.name.toLowerCase)
+                    <span class="num-badge">@Issue.countIssuesBy(project.id, param.clone.setState(state))</span>
+                </a>
+            </li>
+        }
+        </ul>
+
+        @if(currentPage.getList.isEmpty){
+            <div class="error-wrap">
+                <i class="ico ico-err1"></i>
+                <p>@Messages("issue.is.empty")</p>
+            </div>
+
+            @help.keymap("issueList", project)
+        } else {
+            <div class="filter-wrap board">
+                @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
+                    @partial_massupdate(project, param)
+                }
+
+                @if(currentPage.getList.size() > 1){
+                <div class="filters pull-right">
+                    @makeFilterLink("updatedDate", param.orderBy, param.orderDir, Messages("common.order.updatedDate"))
+                    @makeFilterLink("createdDate", param.orderBy, param.orderDir, Messages("common.order.date"))
+                    @makeFilterLink("numOfComments", param.orderBy, param.orderDir, Messages("common.order.comments"))
+                </div>
+                }
+            </div>
+
+            @partial_list(project, currentPage.getList, param, currentPage.getPageIndex, currentPage.getTotalPageCount)
+
+            <div class="pull-left" style="padding:10px;">
+                <a href="@addQueryString(removeQueryString(request.uri, "pageNum"), "format=xls")" class="ybtn small">
+                    <i class="yobicon-file-excel"></i> @Messages("issue.downloadAsExcel")
+                </a>
+            </div>
+
+            @help.keymap("issueList", project)
+
+            <div id="pagination" data-total="@currentPage.getTotalPageCount"><!-- pagination.js will fill here. --></div>
+        }
+    </div>
+</div>

@@ -66,10 +66,12 @@
 }
 
 @for(label <- labels){
-.issue-label[data-labelId="@label.id"]{
-    border-left: 3px solid @label.color;
+.issue-label[data-label-id="@label.id"]{
+    box-shadow: inset 2px 0 0px @label.color;
+    -webkit-box-shadow: inset 2px 0 0px @label.color;
+    -moz-box-shadow: inset 2px 0 0px @label.color;
 }
-.issue-label.active[data-labelId="@label.id"]{
+.issue-label.active[data-label-id="@label.id"]{
     background-color: @label.color;
     color: @getLabelTextColorFromBgColor(label.color);
 }

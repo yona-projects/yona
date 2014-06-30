@@ -1,0 +1,43 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2014 NAVER Corp.
+* http://yobi.io
+*
+* @Author Jihan Kim
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+
+<div id="editCategory" class="modal hide fade yobiDialog" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="btn-dismiss"><button type="button" class="btn-transparent" data-dismiss="modal">&times;</button></div>
+  <div class="message edit-label-category-form">
+    <div class="center-txt">
+      <input type="text" name="name" class="text category-name" placeholder="@Messages("label.category")">
+
+      <div class="desc">
+        @Messages("label.category.option")
+
+        <select name="isExclusive" data-toggle="select2" data-dropdown-css-class="select2-without-searchbox">
+          <option value="false">@Messages("label.category.option.multiple")</option>
+          <option value="true">@Messages("label.category.option.single")</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="center-txt buttons mt20 mb20">
+      <button type="button" class="ybtn ybtn-info btnSubmit">@Messages("button.save")</button>
+      <button type="button" class="ybtn ybtn-default" data-dismiss="modal">@Messages("button.cancel")</button>
+    </div>
+  </div>
+</div>
