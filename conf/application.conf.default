@@ -84,7 +84,7 @@ application.scheme="http"
 # application.port="8080"
 
 # Application feedback url at top layout menu. You can remove feedback menu by commenting it.
-application.feedback.url="https://github.com/nforge/yobi/issues"
+application.feedback.url="https://github.com/naver/yobi/issues"
 
 # Mailer
 # ~~~~~~

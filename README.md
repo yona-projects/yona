@@ -2,7 +2,7 @@
 [[한국어]](#korean)
 Yobi
 =======
-[![Build Status](https://travis-ci.org/nforge/yobi.png?branch=master)](https://travis-ci.org/nforge/yobi)
+[![Build Status](https://travis-ci.org/naver/yobi.png?branch=master)](https://travis-ci.org/naver/yobi)
 
 
 Yobi, collaborative SW development platform.<br/>
@@ -48,7 +48,7 @@ or using web browser (for windows)
 
 ### download yobi
 
-    git clone https://github.com/nforge/yobi.git -b maint yobi
+    git clone https://github.com/naver/yobi.git -b maint yobi
 
 **You can change branch to master or an other branch. But never install master or an other branch a production server.**
 
@@ -150,7 +150,7 @@ java 7(1.7) 이상이어야 합니다.
 
 ### yobi 소스 내려 받기
 
-    git clone https://github.com/nforge/yobi.git -b maint yobi
+    git clone https://github.com/naver/yobi.git -b maint yobi
 
 **Production Server 에 설치하시는 경우 반드시 `maint` branch 를 사용하거나 최신 realese 버전을 사용하시기 바랍니다.**
 
