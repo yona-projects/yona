@@ -200,13 +200,13 @@ public class RepositoryService {
         packetLineOut.end();
         PacketLineOutRefAdvertiser packetLineOutRefAdvertiser = new PacketLineOutRefAdvertiser(packetLineOut);
 
-        Repository repository = GitRepository.buildGitRepository(project);
-
         if (service.equals("git-upload-pack")) {
+            Repository repository = GitRepository.buildGitRepository(project);
             UploadPack uploadPack = new UploadPack(repository);
             uploadPack.setBiDirectionalPipe(false);
             uploadPack.sendAdvertisedRefs(packetLineOutRefAdvertiser);
         } else if (service.equals("git-receive-pack")) {
+            Repository repository = GitRepository.buildGitRepository(project, false);
             ReceivePack receivePack = new ReceivePack(repository);
             receivePack.sendAdvertisedRefs(packetLineOutRefAdvertiser);
         }
