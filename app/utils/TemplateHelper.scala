@@ -438,6 +438,32 @@ object TemplateHelper {
         case _ => ""
       }
     }
+
+    def urlToPostNewComment(thread: CommentThread) = {
+      if(thread.isOnPullRequest){
+        routes.PullRequestApp.newComment(thread.project.owner, thread.project.name, thread.pullRequest.id, _getCommitId(thread))
+      } else {
+        routes.CodeHistoryApp.newComment(thread.project.owner, thread.project.name, _getCommitId(thread))
+      }
+    }
+
+    def _getCommitId(thread: CommentThread) = {
+      thread match {
+        case (t: CodeCommentThread) =>
+          t.commitId
+        case (t: models.NonRangedCodeCommentThread) =>
+          t.commitId
+        case _ => ""
+      }
+    }
+
+    def getResourceType(thread: CommentThread) = {
+      if(thread.isOnPullRequest){
+        models.enumeration.ResourceType.REVIEW_COMMENT
+      } else {
+        models.enumeration.ResourceType.COMMIT_COMMENT
+      }
+    }
   }
 
   object CodeBrowser {
