@@ -1,0 +1,42 @@
+Yobi v0.5.6 Release Notes
+=========================
+
+Updates since v0.5.5
+--------------------
+
+UI/UX
+
+* Adding new project member works with AJAX.
+* Leave Project is on the bottom layer of Project Members.
+* Login Form works with AJAX.
+* Pressed effect is removed from Watching button.
+* The forms to add project or organization member requires loginId.
+* 403 Forbidden Error Page shows login button.
+* Show Login dialog if anonymous clicks comment or vote button.
+* Warn user of possible loss of a comment in progress by leaving the editing
+  page.
+
+Etc
+
+* Ace has been upgraded to v1.1.3.
+* Listing events in site main is faster.
+* Log if deleting of attachment is failed.
+* README describes better about Yobi.
+
+Fixes since v0.5.5
+------------------
+
+* SqlException occurred because the 'review_comment' table doesn't have columns
+  like 'commitId', 'project.id' and 'pullRequest.id'.
+* NPE may occur when `Accept` header doesn't exists.
+* On issue view, Close Button didn't work.
+* In access log, time to taken process a request was incorrect.
+* PullRequest: When the sending and receiving branch are same, the summary
+  message showed wrong messages. 'Safe to Merge' showed "Conflict" even if not
+  and 'Commits' showed -1 for 0.
+* Mention didn't work correctly for comment editing.
+* PullRequest Edit form showed unnecessary help.
+* The contents of Commit Date column in Code menu might overflow.
+* Account Setting page might throw IllegalArgumentException.
+* While git pushing, git objects might be omitted. (08420e5 has defect)
+* Review List page might throw MissingObjectException.
