@@ -1168,6 +1168,7 @@
                                 .commit-detail {
                                     font-size: 11px;
                                     margin-left: 30px;
+                                    font-family: @fixed-font-family;
                                     .commit-id {
                                         color: @orange;/*#D06930;*/
                                         font-weight:bold;
@@ -2843,6 +2844,7 @@
                         }
                         &.desc {
                             margin-left:80px;
+                            font-family: @fixed-font-family;
                         }
                     }
 
@@ -2897,7 +2899,7 @@
         background:transparent;
         border:none;
         border-left: 3px solid #F1f1f1;
-        font-family:@base-font-family;
+        font-family:@fixed-font-family;
         color:#666;
         .border-radius(0);
     }
@@ -3900,6 +3902,7 @@ label.issue-item-row {
     .commitId {
         color:@secondary;
         margin-top:5px;
+        font-family: @fixed-font-family;
     }
     .commitInfo {
         .ago { margin-left:5px; color:#bbb; }
@@ -3909,7 +3912,7 @@ label.issue-item-row {
         }
         .commitMsg-wrap {
             .commitMsg.short { font-size:18px; white-space:normal; }
-            .commitMsg.desc  { margin:5px; }
+            .commitMsg.desc  { margin:5px; font-family: @fixed-font-family;}
         }
         .commitId-wrap { padding:10px 5px; }
     }
