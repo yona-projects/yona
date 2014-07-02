@@ -104,7 +104,7 @@
                     </dl>
                     }
 
-                    @if(isAllowed(UserApp.currentUser(), issue.milestoneAsResource(), Operation.UPDATE)){
+                    @if(project.menuSetting.milestone && isAllowed(UserApp.currentUser(), issue.milestoneAsResource(), Operation.UPDATE)){
                     <dl id="milestoneOption" class="issue-option">
                         <dt>@Messages("milestone")</dt>
                         <dd>

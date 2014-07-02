@@ -26,32 +26,40 @@
 <div class="content-container nm">
     <div class="project-overview-home row-fluid">
         <div class="span6">
-            <h5>@Messages("project.dashboard.openIssuesByAssignee")</h5>
-            <div class="overview-assignee">
-                @partial_dashboard_issuesbyassignee(project, openIssues)
-            </div>
+            @if(project.menuSetting.issue) {
+                <h5>@Messages("project.dashboard.openIssuesByAssignee")</h5>
+                <div class="overview-assignee">
+                    @partial_dashboard_issuesbyassignee(project, openIssues)
+                </div>
 
-            <hr>
+                <hr>
 
-            <h5>@Messages("project.dashboard.openIssuesByMilestone")</h5>
-            <div class="overview-milestone">
-                @partial_dashboard_issuesbymilestone(project, openIssues)
-            </div>
+                <h5>@Messages("project.dashboard.openIssuesByMilestone")</h5>
+                <div class="overview-milestone">
+                    @partial_dashboard_issuesbymilestone(project, openIssues)
+                </div>
+            }
 
-            @if(project.isGit){
-            <hr>
+            @if(project.menuSetting.pullRequest) {
+                @if(project.isGit){
+                    @if(project.menuSetting.issue) {
+                        <hr>
+                    }
 
-            <h5>@Messages("project.dashboard.pullRequests")</h5>
-            <div class="overview-pullrequest">
-                @partial_dashboard_pullrequests(project)
-            </div>
+                    <h5>@Messages("project.dashboard.pullRequests")</h5>
+                    <div class="overview-pullrequest">
+                        @partial_dashboard_pullrequests(project)
+                    </div>
+                }
             }
         </div>
 
-        <div class="span6">
-            <h5>@Messages("project.dashboard.openIssuesByLabel")</h5>
-            @partial_dashboard_issuesbylabel(project)
-        </div>
+        @if(project.menuSetting.issue) {
+            <div class="span6">
+                <h5>@Messages("project.dashboard.openIssuesByLabel")</h5>
+                @partial_dashboard_issuesbylabel(project)
+            </div>
+        }
     </div>
 </div>
 }

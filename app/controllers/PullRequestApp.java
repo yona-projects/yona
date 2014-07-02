@@ -187,8 +187,9 @@ public class PullRequestApp extends Controller {
 
     private static Project getSelectedProject(Project project, String projectId, boolean isToProject) {
         Project selectedProject = project;
-        if(isToProject && project.isForkedFromOrigin()) {
-            selectedProject = project.originalProject;
+        if(isToProject && project.isForkedFromOrigin() && project.originalProject.menuSetting.code
+                && project.originalProject.menuSetting.pullRequest) {
+                selectedProject = project.originalProject;
         }
 
         if(StringUtils.isNumeric(projectId)) {

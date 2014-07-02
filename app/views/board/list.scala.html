@@ -102,9 +102,11 @@
 			"nTotalPages" : @page.getTotalPageCount
 		});
 
-		yobi.ShortcutKey.setKeymapLink({
-		   "N": "@routes.BoardApp.newPostForm(project.owner, project.name)"
-		});
+        @if(project.menuSetting.board) {
+            yobi.ShortcutKey.setKeymapLink({
+                "N": "@routes.BoardApp.newPostForm(project.owner, project.name)"
+            });
+        }
 	});
 </script>
 }

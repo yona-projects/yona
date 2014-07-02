@@ -123,6 +123,29 @@
                         <span class="note ml10">@Messages("project.defaultBranch.placeholder")</span>
                     </div>
                 </div>
+
+                <div class="box-wrap middle">
+                    <div class="cu-label vmiddle">@Messages("project.menu.setting")</div>
+                    <div class="cu-desc">
+                        <input type="checkbox" class="radio-btn" id="menuSettingCode" name="code" value="true" @if(project.menuSetting.code){checked="checked"}>
+                        <label for="menuSettingCode" class="bg-radiobtn label-public">@Messages("menu.code")</label>
+                        &nbsp;&nbsp;&nbsp;
+                        <input type="checkbox" class="radio-btn" id="menuSettingIssue" name="issue" value="true" @if(project.menuSetting.issue){checked="checked"}>
+                        <label for="menuSettingIssue" class="bg-radiobtn label-public">@Messages("menu.issue")</label>
+                        &nbsp;&nbsp;&nbsp;
+                        <input type="checkbox" class="radio-btn" id="menuSettingPullRequest" name="pullRequest" value="true" @if(project.menuSetting.pullRequest){checked="checked"}>
+                        <label for="menuSettingPullRequest" class="bg-radiobtn label-public">@Messages("menu.pullRequest")</label>
+                        &nbsp;&nbsp;&nbsp;
+                        <input type="checkbox" class="radio-btn" id="menuSettingReview" name="review" value="true" @if(project.menuSetting.review){checked="checked"}>
+                        <label for="menuSettingReview" class="bg-radiobtn label-public">@Messages("menu.review")</label>
+                        &nbsp;&nbsp;&nbsp;
+                        <input type="checkbox" class="radio-btn" id="menuSettingMilestone" name="milestone" value="true" @if(project.menuSetting.milestone){checked="checked"}>
+                        <label for="menuSettingMilestone" class="bg-radiobtn label-public">@Messages("milestone")</label>
+                        &nbsp;&nbsp;&nbsp;
+                        <input type="checkbox" class="radio-btn" id="menuSettingBoard" name="board" value="true" @if(project.menuSetting.board){checked="checked"}>
+                        <label for="menuSettingBoard" class="bg-radiobtn label-public">@Messages("menu.board")</label>
+                    </div>
+                </div>
             </div>
 
             <div class="box-wrap bottom">

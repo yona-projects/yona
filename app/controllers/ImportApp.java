@@ -20,11 +20,7 @@
  */
 package controllers;
 
-import models.Organization;
-import models.OrganizationUser;
-import models.Project;
-import models.ProjectUser;
-import models.User;
+import models.*;
 import models.enumeration.RoleType;
 import play.data.Form;
 import play.db.ebean.Transactional;
@@ -97,6 +93,8 @@ public class ImportApp extends Controller {
 
             Long projectId = Project.create(project);
 
+            saveProjectMenuSetting(project);
+
             if (User.isLoginIdExist(owner)) {
                 ProjectUser.assignRole(UserApp.currentUser().id, projectId, RoleType.MANAGER);
             }
@@ -116,6 +114,21 @@ public class ImportApp extends Controller {
             return badRequest(importing.render("title.newProject", filledNewProjectForm, orgUserList));
         } else {
             return redirect(routes.ProjectApp.project(project.owner, project.name));
+        }
+    }
+
+    private static void saveProjectMenuSetting(Project project) {
+        Form<ProjectMenuSetting> filledUpdatedProjectMenuSettingForm = form(ProjectMenuSetting.class).bindFromRequest();
+        ProjectMenuSetting updatedProjectMenuSetting = filledUpdatedProjectMenuSettingForm.get();
+
+        project.refresh();
+        updatedProjectMenuSetting.project = project;
+
+        if (project.menuSetting == null) {
+            updatedProjectMenuSetting.save();
+        } else {
+            updatedProjectMenuSetting.id = project.menuSetting.id;
+            updatedProjectMenuSetting.update();
         }
     }
 
