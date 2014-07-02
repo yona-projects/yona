@@ -109,7 +109,7 @@ $(function(){
      * Browser will shows confirm dialog with returned message string.
      */
     function onBeforeUnloadWindow(){
-        if(!isCommentBodyEmpty()){
+        if(!isCommentBodyEmpty() && !isOnSubmit()){
             return Messages("common.comment.beforeunload.confirm");
         }
     }
