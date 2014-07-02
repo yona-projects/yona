@@ -21,6 +21,7 @@
 package controllers;
 
 import info.schleichardt.play2.mailplugin.Mailer;
+import models.AuthInfo;
 import utils.PasswordReset;
 import models.User;
 import org.apache.commons.mail.EmailException;
@@ -111,6 +112,6 @@ public class PasswordResetApp extends Controller {
             Logger.debug("Not a valid request!");
         }
         flash(Constants.WARNING, "user.loginWithNewPassword");
-        return ok(login.render("title.login", form(User.class), null));
+        return ok(login.render("title.login", form(AuthInfo.class), null));
     }
 }

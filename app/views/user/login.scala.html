@@ -18,7 +18,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(message:String, userForm:Form[User], redirectUrl:String)
+@(message:String, authInfoForm:Form[AuthInfo], redirectUrl:String)
 
 @siteLayout(message, utils.MenuType.NONE) {
 <div class="page full">
@@ -33,10 +33,10 @@
       <input type="hidden" name="redirectUrl" value="@redirectUrl" />
       <dl>
         <dt>
-          <label for="loginId">@Messages("user.loginId")</label>
+          <label for="loginIdOrEmailD">@Messages("user.login.key")</label>
         </dt>
         <dd>
-          <input id="loginId" name="loginId" type="text" class="text email" autocomplete="off">
+          <input id="loginIdOrEmailD" name="loginIdOrEmail" type="text" class="text email" autocomplete="off">
         </dd>
 
         <dt class="mt10">
@@ -66,7 +66,7 @@
 </div>
 <script type="text/javascript">
     $(function() {
-        $('#loginId').focus();
+        $('#loginIdOrEmail').focus();
     });
 </script>
 }

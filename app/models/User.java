@@ -247,6 +247,16 @@ public class User extends Model implements ResourceConvertible {
         return anonymous;
     }
 
+    public static User findByLoginKey(String loginIdOrEmail) {
+        User user = find.where().ieq("loginId", loginIdOrEmail).findUnique();
+
+        if (user == null) {
+            user = find.where().eq("email", loginIdOrEmail).findUnique();
+        }
+
+        return (user == null) ? anonymous : user;
+    }
+
     /**
      * check is existed user
      *

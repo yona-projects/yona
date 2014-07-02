@@ -36,7 +36,7 @@ $(function(){
     function _initElement(){
         htElement.welDialog = $("#loginDialog");
         htElement.welForm = htElement.welDialog.find("form");
-        htElement.welInputId = htElement.welDialog.find("input[name='loginId']");
+        htElement.welInputId = htElement.welDialog.find("input[name='loginIdOrEmail']");
         htElement.welInputPw = htElement.welDialog.find("input[name='password']");
         htElement.welLoginError = htElement.welDialog.find(".error");
         htElement.welLoginErrorMsg = htElement.welLoginError.find(".error-message");
@@ -73,7 +73,7 @@ $(function(){
             "type": "post",
             "dataType": "json",
             "data": {
-                "loginId" : htElement.welInputId.val(),
+                "loginIdOrEmail" : htElement.welInputId.val(),
                 "password": htElement.welInputPw.val()
             }
         }).done(function(){
