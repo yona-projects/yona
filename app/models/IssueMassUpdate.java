@@ -21,8 +21,10 @@
 package models;
 
 import models.enumeration.State;
+import play.data.format.Formats;
 import play.data.validation.Constraints;
 
+import java.util.Date;
 import java.util.List;
 
 public class IssueMassUpdate {
@@ -30,6 +32,9 @@ public class IssueMassUpdate {
     public User assignee;
     public Milestone milestone;
     public boolean delete;
+    @Formats.DateTime(pattern = "yyyy-MM-dd")
+    public Date dueDate;
+    public boolean isDueDateChanged;
 
     @Constraints.Required
     public List<Issue> issues;

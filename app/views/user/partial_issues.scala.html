@@ -30,7 +30,7 @@
 }
 @defining(User.findByLoginId(issue.authorLoginId)){ user =>
 <li class="post-item " id="issue-item-@issue.id">
-    <div class="span9">
+    <div class="span10">
         <a href="@routes.ProjectApp.project(project.owner, project.name)" class="avatar-wrap mlarge">
             <img src="@urlToProjectLogo(project)" alt="@project.owner / @project.name">
         </a>
@@ -56,6 +56,14 @@
                 @agoOrDateString(issue.createdDate)
             </span>
 
+            @if(project.menuSetting.milestone && issue.milestone != null) {
+            <span class="infos-item mileston-tag">
+                <a href="@routes.MilestoneApp.milestone(issue.project.owner, issue.project.name, issue.milestone.id)" data-toggle="tooltip" data-placement="top" title="@Messages("milestone")">
+                    @issue.milestone.title
+                </a>
+            </span>
+            }
+
             @if(issue.comments.size()>0 || issue.voters.size()>0) {
             <span class="infos-item item-count-groups">
             @if(issue.comments.size()>0){
@@ -72,7 +80,7 @@
             }
         </div>
     </div>
-    <div class="span3">
+    <div class="span2">
         <div class="mt5 pull-right">
             @if(issue.assigneeName != null) {
                 <a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)" class="avatar-wrap assinee" data-toggle="tooltip" data-placement="top" title="@Messages("issue.assignee"): @issue.assigneeName">
@@ -83,14 +91,17 @@
             }
         </div>
         <div class="pull-right">
-            @if(project.menuSetting.milestone && issue.milestone != null) {
-                <div class="mileston-tag">
-                    <a href="@routes.MilestoneApp.milestone(issue.project.owner, issue.project.name, issue.milestone.id)" data-toggle="tooltip" data-placement="top" title="@Messages("milestone")">
-                    @issue.milestone.title
-                </a>
-                </div>
-            }
+            @if(issue.dueDate != null) {
+            <div class="mr20 mt10 pull-right @if(issue.isOverDueDate) {overdue}" data-toggle="tooltip" data-placement="top" title="@issue.getDueDateString">
+                <i class="yobicon-clock2"></i>
+                @if(issue.isOverDueDate) {
+                    @Messages("issue.dueDate.overdue")
+                } else {
+                    @issue.until
+                }
+            </div>
         </div>
+        }
     </div>
 </li>
 }

@@ -83,4 +83,7 @@ public class JodaDateUtil {
         return moment.invoke("fromNow");
     }
 
+    public static int localDaysBetween(Date from, Date to) {
+        return Days.daysBetween(new DateTime(from).toLocalDate(), new DateTime(to).toLocalDate()).getDays();
+    }
 }

@@ -32,14 +32,19 @@ import models.enumeration.ResourceType;
 import models.enumeration.State;
 import models.resource.Resource;
 import models.support.SearchCondition;
+import org.apache.commons.lang3.time.DateUtils;
+import org.joda.time.*;
+import org.joda.time.DateTime;
+import play.data.format.Formats;
+import play.i18n.Messages;
 import utils.JodaDateUtil;
 
 import javax.persistence.*;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.Boolean;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Pattern;
 import com.avaje.ebean.Page;
@@ -61,6 +66,9 @@ public class Issue extends AbstractPosting implements LabelOwner {
     public static final Pattern ISSUE_PATTERN = Pattern.compile("#\\d+");
 
     public State state;
+
+    @Formats.DateTime(pattern = "yyyy-MM-dd")
+    public Date dueDate;
 
     public static List<State> availableStates = new ArrayList<>();
     static {
@@ -146,6 +154,14 @@ public class Issue extends AbstractPosting implements LabelOwner {
         }
         if(!updateProps.isEmpty()) {
             Ebean.update(this, updateProps);
+        }
+    }
+
+    public void expandDueDate() {
+        if (dueDate != null) {
+            dueDate = DateUtils.setHours(dueDate, 23);
+            dueDate = DateUtils.setMinutes(dueDate, 59);
+            dueDate = DateUtils.setSeconds(dueDate, 59);
         }
     }
 
@@ -438,5 +454,33 @@ public class Issue extends AbstractPosting implements LabelOwner {
      */
     public boolean isVotedBy(User user) {
         return this.voters.contains(user);
+    }
+
+    public String getDueDateString() {
+        if (dueDate == null) {
+            return null;
+        }
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        return sdf.format(this.dueDate);
+    }
+
+    public Boolean isOverDueDate(){
+        return (JodaDateUtil.ago(dueDate).getMillis() > 0);
+    }
+
+    public String until(){
+        if (dueDate == null) {
+            return null;
+        }
+
+        Date now = JodaDateUtil.now();
+
+        if (DateUtils.isSameDay(now, dueDate)) {
+            return Messages.get("common.time.today");
+        } else if (isOverDueDate()) {
+            return Messages.get("common.time.default.day", JodaDateUtil.localDaysBetween(dueDate, now));
+        } else {
+            return Messages.get("common.time.default.day", JodaDateUtil.localDaysBetween(now, dueDate));
+        }
     }
 }

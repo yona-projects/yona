@@ -3195,6 +3195,9 @@ div.markdown-preview {
              width: 100%;
            }
        }
+       span {
+           &.over { color:#f36c22; }
+       }
 }
 .label-editor {
     padding-top:10px;
@@ -3457,6 +3460,8 @@ label.issue-item-row {
 
                 .bar { height:100%; }
             }
+
+            &.over { color:#f36c22; }
         }
     }
 }
@@ -3482,19 +3487,18 @@ label.issue-item-row {
 }
 
 .mileston-tag {
-    margin-top:7px;
-    margin-right: 25px;
     font-weight: bold;
     max-width: 135px;
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
     color: darken(@secondary, 10%);
-    padding: 3px 10px;
-    background: #f7f7f7;
     font-size:11px;
     .border-radius(6px);
-    .box-shadow(1px 1px 1px rgba(0,0,0,0.15));
+}
+
+.overdue {
+    color:@yobi-red;
 }
 
 .pullRequest-branchInfo {

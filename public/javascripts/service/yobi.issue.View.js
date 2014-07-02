@@ -59,6 +59,7 @@
 
             htElement.welTimelineWrap = $("#timeline");
             htElement.welTimelineList = htElement.welTimelineWrap.find(".timeline-list");
+            htElement.welDueDate = htOptions.welDueDate;
         }
 
         /**
@@ -102,6 +103,7 @@
             htElement.welAssignee.on("change", _onChangeAssignee);
             htElement.welMilestone.on("change", _onChangeMilestone);
             htElement.welIssueLabels.on("change", _onChangeIssueLabels);
+            htElement.welDueDate.on("change", _onChangeDueDate);
 
             // 타임라인 자동업데이트를 위한 정보
             if(htElement.welTextarea.length > 0){
@@ -271,6 +273,25 @@
                    _onErrorRequest(Messages("issue.update.milestone"), oRes);
                }
             });
+        }
+
+        function _onChangeDueDate(weEvt) {
+            if (htElement.welDueDate.val() != htElement.welDueDate.data("oDueDate")) {
+                _requestUpdateIssue({
+                    "htData": {
+                        "dueDate": htElement.welDueDate.val(),
+                        "isDueDateChanged": true
+                    },
+                    "fOnLoad": function () {
+                        htElement.welDueDate.data("oDueDate", htElement.welDueDate.val());
+                        $yobi.notify(Messages("issue.update.duedate"), 3000);
+                    },
+                    "fOnError": function (oRes) {
+                        htElement.welDueDate.val(htElement.welDueDate.date("oDueDate"));
+                        _onErrorRequest(Messages("issue.update.duedate"), oRes);
+                    }
+                });
+            }
         }
 
         /**

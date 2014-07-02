@@ -65,6 +65,14 @@
                         @agoOrDateString(issue.createdDate)
                     </span>
 
+                    @if(project.menuSetting.milestone && issue.milestone != null) {
+                    <span class="infos-item mileston-tag">
+                        <a href="@routes.MilestoneApp.milestone(project.owner, project.name, issue.milestone.id)" data-toggle="tooltip" data-placement="top" title="@Messages("milestone")">
+                            @issue.milestone.title
+                        </a>
+                    </span>
+                    }
+
                     @if(issue.comments.size()>0 || issue.voters.size()>0) {
                     <span class="infos-item item-count-groups">
                     @if(issue.comments.size()>0){
@@ -92,15 +100,16 @@
                    <div class="empty-avatar-wrap">&nbsp;</div>
                 }
             </div>
-            <div class="pull-right">
-                @if(project.menuSetting.milestone && issue.milestone != null) {
-                    <div class="mileston-tag">
-                        <a href="@routes.MilestoneApp.milestone(project.owner, project.name, issue.milestone.id)" data-toggle="tooltip" data-placement="top" title="@Messages("milestone")">
-                        @issue.milestone.title
-                    </a>
-                    </div>
+            @if(issue.dueDate != null) {
+            <div class="mr20 mt10 pull-right @if(issue.isOverDueDate) {overdue}" data-toggle="tooltip" data-placement="top" title="@issue.getDueDateString">
+                <i class="yobicon-clock2"></i> 
+                @if(issue.isOverDueDate) {
+                    @Messages("issue.dueDate.overdue")
+                } else {
+                    @issue.until
                 }
             </div>
+            }       
         </div>
     </li>
     }
