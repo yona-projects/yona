@@ -30,6 +30,7 @@ import java.util.List;
 
 import java.io.IOException;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.Repository;
 
 import static models.CodeRange.Side;
@@ -103,17 +104,22 @@ public class CodeCommentThread extends CommentThread {
 
         Repository mergedRepository = pullRequest.getMergedRepository();
 
-        if (StringUtils.isNotEmpty(prevCommitId)) {
+        try {
+            if (StringUtils.isNotEmpty(prevCommitId)) {
+                _isOutdated = !PullRequest.noChangesBetween(mergedRepository,
+                    pullRequest.mergedCommitIdFrom, mergedRepository, prevCommitId, path);
+            }
+
+            if (_isOutdated) {
+                return _isOutdated;
+            }
+
             _isOutdated = !PullRequest.noChangesBetween(mergedRepository,
-                pullRequest.mergedCommitIdFrom, mergedRepository, prevCommitId, path);
+                pullRequest.mergedCommitIdTo, mergedRepository, commitId, path);
+        } catch (MissingObjectException e) {
+            play.Logger.warn("Possible false positive of outdated detection because of missing git object: " + e.getMessage());
+            return true;
         }
-
-        if (_isOutdated) {
-            return _isOutdated;
-        }
-
-        _isOutdated = !PullRequest.noChangesBetween(mergedRepository,
-            pullRequest.mergedCommitIdTo, mergedRepository, commitId, path);
 
         return _isOutdated;
     }
