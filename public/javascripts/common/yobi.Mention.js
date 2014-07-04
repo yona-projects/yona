@@ -41,13 +41,7 @@ yobi.Mention = function(htOptions) {
      */
     function _initVar(htOptions) {
         htVar = htOptions || {}; // set htVar as htOptions
-        htVar.atConfig = {
-            at: "@",
-            limit: 10,
-            data: [],
-            tpl: "<li data-value='@${loginid}'><img style='width:20px;height:20px;' src='${image}'> ${username} <small>${loginid}</small></li>",
-            show_the_at: true
-        }
+        htVar.doesNotDataLoaded = true;
         htVar.nKeyupEventGenerator = null;
         htVar.sMentionText = null;
     }
@@ -85,7 +79,7 @@ yobi.Mention = function(htOptions) {
 
         var charCode = eEvt.which || eEvt.keyCode;
         if(charCode === 64 || charCode === 35) { // 64 = @, 35 = #
-            if(htVar.atConfig.data.length == 0) {
+            if(htVar.doesNotDataLoaded) {
                 _findMentionList();
             }
         }
@@ -126,18 +120,48 @@ yobi.Mention = function(htOptions) {
     }
 
     function _onLoadUserList(aData){
-        htVar.atConfig.data = aData.result;
+        htVar.doesNotDataLoaded = false;
 
-        $inputor = htElement.welTarget
-            .atwho(htVar.atConfig)
+        htElement.welTarget
+            .atwho({
+                at: "@",
+                limit: 10,
+                data: aData.result,
+                tpl: "<li data-value='@${loginid}'><img style='width:20px;height:20px;' src='${image}'> ${username} <small>${loginid}</small></li>",
+                show_the_at: true
+            })
             .atwho({
                 at: "#",
                 limit: 10,
                 tpl: '<li data-value="#${issueNo}"><small>#${issueNo}</small> ${title}</li>',
-                data: aData.issues
-            });
-        
-        $inputor.atwho("run");
+                data: aData.issues,
+                callbacks: {
+                    sorter: function(query, items, searchKey) {
+                        var item, i, len, results;
+                        if (!query) {
+                            return items;
+                        }
+                        results = [];
+                        for (i = 0, len = items.length; i < len; i++) {
+                            item = items[i];
+
+                            if (item.issueNo === query) {
+                                item.atwhoOrder = 0;
+                            } else {
+                                var issueNoIndexOf = item.issueNo.toLowerCase().indexOf(query.toLowerCase());
+                                item.atwhoOrder = i + 1
+                                    + Math.pow(10, issueNoIndexOf)
+                                    + ((issueNoIndexOf > -1) ? 0 : Math.pow(100, item.title.toLowerCase().indexOf(query.toLowerCase())));
+                            }
+                            results.push(item);
+                        }
+                        return results.sort(function(a, b) {
+                            return a.atwhoOrder - b.atwhoOrder;
+                        });
+                    }
+                }
+            })
+            .atwho("run");
     }
 
     _init(htOptions || {});
