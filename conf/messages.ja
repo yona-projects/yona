@@ -109,6 +109,7 @@ common.attach.error.delete = 削除に失敗しました。<br>{1} ({0})
 common.attach.pastehere = . クリップボードからの画像を貼り付けることもできます。
 common.attachment= 添付ファイル
 common.comment = コメント
+common.comment.beforeunload.confirm = コメントを投稿しないままこのページから脱しますか?
 common.experimental = 実験的な機能
 common.experimental.description = それは機能の変更、開発の中断などの可能性がいつもあるという意味です。<br>温かい目で見守ってください。
 common.experimental.title = 実験的な機能：この機能は開発中です
