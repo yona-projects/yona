@@ -94,7 +94,9 @@ public class Global extends GlobalSettings {
         }
     }
 
+    @SuppressWarnings("rawtypes")
     private Action<Void> getDefaultAction(final Http.Request request) {
+        final long start = System.currentTimeMillis();
         return new Action.Simple() {
             public Result call(Http.Context ctx) throws Throwable {
                 UserApp.initTokenUser();
@@ -102,7 +104,7 @@ public class Global extends GlobalSettings {
                 ctx.response().setHeader("Date", DateUtils.formatDate(new Date()));
                 ctx.response().setHeader("Cache-Control", "no-cache");
                 Result result = delegate.call(ctx);
-                AccessLogger.log(request, result, System.currentTimeMillis());
+                AccessLogger.log(request, result, start);
                 return result;
             }
         };
