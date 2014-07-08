@@ -126,7 +126,7 @@ public class SvnApp extends Controller {
 
         // Send the response.
         UserApp.currentUser().visits(project);
-        return sendResponse(status, response.getInputStream());
+        return sendResponse(request().method(), status, response.getInputStream());
     }
 
     private static PlayServletResponse startDavService(final String ownerName, String pathInfo) throws IOException {
@@ -154,9 +154,12 @@ public class SvnApp extends Controller {
         return response;
     }
 
-    private static Result sendResponse(int statusCode, PipedInputStream input) {
-        if (statusCode < 200 || statusCode == 204 || statusCode == 304) {
-            // 1xx, 204 and 304 MUST NOT include message body.
+    private static Result sendResponse(String requestMethod, int statusCode,
+            PipedInputStream input) {
+        if (statusCode < 200 || statusCode == 204 || statusCode == 304 ||
+                requestMethod.toUpperCase().equals("HEAD")) {
+            // a response requested by HEAD method and/or whose status code is
+            // 1xx, 204 or 304 MUST NOT include message body.
             return status(statusCode);
         } else if (statusCode == 205) {
             // 205 MUST include message body of zero length.
