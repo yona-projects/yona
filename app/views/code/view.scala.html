@@ -76,18 +76,15 @@
             }
 
             <div class="code-browse-header">
-                <div id="branches" class="btn-group branches pull-left @if(fieldText(recursiveData{0}, "type").eq("file")){mb10}" data-name="branch" data-activate="manual">
-                    <button class="btn dropdown-toggle large" data-toggle="dropdown">
-                        <span class="d-label">@branch</span>
-                        <span class="d-caret"><span class="caret"></span></span>
-                    </button>
-                    <ul class="dropdown-menu">
-                    @for(branchName <- branches){
-                        @common.branchItem("code", project, branchName, path,
-                            utils.TemplateHelper.equals(branchName, branch))
-                    }
-                    </ul>
-                </div>
+                <select id="branches" data-toggle="select2" data-format="branch" data-dropdown-css-class="branches"
+                        class="pull-left @if(fieldText(recursiveData{0}, "type").eq("file")){mb10}">
+                @for(branchName <- branches){
+                    <option value="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branchName, "UTF-8"), path)"
+                            @if(branchItemName(branchName) == branchItemName(branch)){ selected }>
+                        @branchName
+                    </option>
+                }
+                </select>
                 <div id="breadcrumbs" class="code-breadcrumb-wrap ml10 pull-left">
                     <a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), "")">@project.name</a>
                     @makeBreadCrumbs(path)
@@ -103,6 +100,8 @@
         </div>
     </div>
 </div>
+
+@common.select2()
 
 <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/dynatree/skin/ui.dynatree.css")" />
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/moment-with-langs.min.js")"></script>

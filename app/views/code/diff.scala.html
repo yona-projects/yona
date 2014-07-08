@@ -25,7 +25,6 @@ List[playRepository.FileDiff],path:String)
 @import playRepository.RepositoryService
 @import java.net.URLEncoder
 @import utils.TemplateHelper._
-@import utils.TemplateHelper.Branches._
 @import utils.TemplateHelper.DiffRenderer._
 @import utils.JodaDateUtil
 @import utils.AccessControl._
@@ -37,20 +36,16 @@ List[playRepository.FileDiff],path:String)
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
         <div id="code-browse-wrap" class="code-browse-wrap">
-            <div id="branches" class="btn-group branches pull-right" data-name="branch" data-activate="manual">
-                <button class="btn dropdown-toggle large" data-toggle="dropdown">
-                    <span class="d-label">@selectedBranch</span>
-                    <span class="d-caret"><span class="caret"></span></span>
-                </button>
-                <ul class="dropdown-menu">
+            <select id="branches" data-toggle="select2" data-format="branch" data-dropdown-css-class="branches" class="pull-right">
                 @defining(RepositoryService.getRepository(project).getBranches()) { branches =>
-                    @for(branch <- branches){
-                        @common.branchItem("history", project, branch, null,
-                            utils.TemplateHelper.equals(branch, selectedBranch))
+                    @for(branchName <- branches){
+                        <option value="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branchName, "UTF-8"), null)"
+                                @if(selectedBranch){ @if(branchItemName(branchName) == branchItemName(selectedBranch)){ selected } }>
+                                @branchName
+                        </option>
                     }
                 }
-                </ul>
-            </div>
+            </select>
 
             <ul class="nav nav-tabs" style="margin-bottom:20px;">
                 <li>
@@ -199,7 +194,7 @@ List[playRepository.FileDiff],path:String)
 </div>
 @common.markdown(project)
 @common.commentDeleteModal("#code-browse-wrap")
-
+@common.select2()
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.css")">
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.caret.min.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.js")"></script>
