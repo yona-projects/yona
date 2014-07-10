@@ -51,7 +51,7 @@ public class IssueLabelApp extends Controller {
      *
      * Retrieves a project corresponding to {@code ownerName} and {@code
      * projectName}, and returns its list of all issue labels in {@code
-     * application/json}. Each label has three fields: {@link IssueLabel#id},
+     * application/json}. Each label has four fields: {@link IssueLabel#id},
      * {@link IssueLabel#category}, {@link IssueLabel#color}, and {@link
      * IssueLabel#name}.
      *
