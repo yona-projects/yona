@@ -52,6 +52,7 @@ public enum ResourceType {
     REVIEW_COMMENT("review_comment"),
     ORGANIZATION("organization"),
     PROJECT_TRANSFER("project_transfer"),
+    ISSUE_LABEL_CATEGORY("issue_label_category"),
     NOT_A_RESOURCE("");
 
     private String resource;

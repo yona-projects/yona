@@ -75,7 +75,7 @@
             </span>
             }
             
-            @for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
+            @for(label <- issue.labels.toList.sortBy(r => (r.category.name, r.name))) {
                 @makeLabelLink(project, label)
             }
         </div>

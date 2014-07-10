@@ -21,6 +21,7 @@
 package models;
 
 import com.avaje.ebean.Ebean;
+import com.avaje.ebean.Page;
 import jxl.Workbook;
 import jxl.format.Alignment;
 import jxl.format.Border;
@@ -41,15 +42,17 @@ import utils.JodaDateUtil;
 
 import javax.persistence.*;
 
+import play.data.Form;
+import utils.JodaDateUtil;
+
+import javax.persistence.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.Boolean;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Pattern;
-import com.avaje.ebean.Page;
-
-import play.data.Form;
+import java.util.regex.Pattern;
 
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"project_id", "number"}))
@@ -140,6 +143,20 @@ public class Issue extends AbstractPosting implements LabelOwner {
         super.update();
     }
 
+    public void checkLabels() throws IssueLabel.IssueLabelException {
+        Set<IssueLabelCategory> notAllowedCategories = new HashSet<>();
+        for (IssueLabel label : labels) {
+            if (notAllowedCategories.contains(label.category)) {
+                throw new IssueLabel.IssueLabelException("This category does " +
+                        "not allow an issue to have two or more labels of " +
+                        "the category");
+            }
+
+            if (label.category.isExclusive) {
+                notAllowedCategories.add(label.category);
+            }
+        }
+    }
 
     @Override
     public void updateProperties() {

@@ -247,4 +247,6 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
             Mention.add(this.asResource(), NotificationEvent.getMentionedUsers(this.body));
         }
     }
+
+    public abstract void checkLabels() throws IssueLabel.IssueLabelException;
 }

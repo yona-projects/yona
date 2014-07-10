@@ -192,6 +192,8 @@ public abstract class Resource {
                 return PullRequest.findOne(project, Long.parseLong(parser.getPathSegment(3)));
             case COMMIT_COMMENT:
                 return CommitComment.find.byId(Long.parseLong(parser.getPathSegment(5)));
+            case ISSUE_LABEL_CATEGORY:
+                return IssueLabelCategory.find.byId(Long.parseLong(parser.getPathSegment(5)));
             default:
                 throw new IllegalAccessError(getInvalidResourceTypeMessage(resourceType));
         }

@@ -268,7 +268,7 @@
                                         }
                                     </select>
                                 } else {
-                                    @for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
+                                    @for(label <- issue.labels.toList.sortBy(r => (r.category.name, r.name))) {
                                         <a href='@routes.IssueApp.issues(project.owner, project.name, issue.state.state(), "html", 1)&labelIds=@label.id' class="label issue-label active static" data-labelId="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>
                                     }
                                 }

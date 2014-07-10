@@ -26,7 +26,7 @@
 
 @urlToList = {@routes.IssueApp.issues(project.owner, project.name, searchCondition.state, "html", pageIndex + 1)}
 
-@issueLabels(issue:Issue) = {@for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {@label.category,@label.id,@label.name|}}
+@issueLabels(issue:Issue) = {@for(label <- issue.labels.toList.sortBy(r => (r.category.name, r.name))) {@label.category.name,@label.id,@label.name|}}
 
 <ul class="post-list-wrap row-fluid">
 @for(issue <- issueList){
@@ -84,7 +84,7 @@
                     </span>
                     }
 
-                    @for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
+                    @for(label <- issue.labels.toList.sortBy(r => (r.category.name, r.name))) {
                         <a href="#" class="label issue-label list-label" data-labelId="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>
                     }
                 </div>

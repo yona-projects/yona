@@ -1,7 +1,7 @@
 /**
  * Yobi, Project Hosting SW
  *
- * Copyright 2012 NAVER Corp.
+ * Copyright 2014 NAVER Corp.
  * http://yobi.io
  *
  * @Author Yi EungJun
@@ -21,75 +21,61 @@
 package models;
 
 import models.enumeration.ResourceType;
+import play.db.ebean.Model;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
 import play.data.validation.Constraints.Required;
-import play.db.ebean.Model;
 
 import javax.persistence.*;
 import java.util.List;
 import java.util.Set;
 
 @Entity
-public class IssueLabel extends Model implements ResourceConvertible {
+public class IssueLabelCategory extends Model implements ResourceConvertible {
 
-    static public class IssueLabelException extends Exception {
-        public IssueLabelException(String s) {
-            super(s);
-        }
-    }
+    private static final long serialVersionUID = 1L;
 
-    private static final long serialVersionUID = -35487506476718498L;
-    public static final Finder<Long, IssueLabel> finder = new Finder<>(Long.class, IssueLabel.class);
+    public static final Finder<Long, IssueLabelCategory> find = new Finder<>(Long.class, IssueLabelCategory.class);
 
     @Id
     public Long id;
 
     @Required
     @ManyToOne
-    public IssueLabelCategory category;
-
-    @Required
-    public String color;
+    public Project project;
 
     @Required
     public String name;
 
-    @ManyToOne
-    public Project project;
+    @OneToMany(mappedBy="category", cascade = CascadeType.ALL)
+    public Set<IssueLabel> labels;
 
-    @ManyToMany(mappedBy="labels", fetch = FetchType.EAGER)
-    public Set<Issue> issues;
-
-    public static List<IssueLabel> findByProject(Project project) {
-        return finder.where()
-                .eq("project.id", project.id)
-                .orderBy().asc("category.name")
-                .orderBy().asc("id")
-                .findList();
-    }
-
-    public String toString() {
-        return category.name + " - " + name;
-    }
+    /**
+     * Does this category disapproves an issue to have two or more labels of
+     * the category?
+     */
+    public boolean isExclusive;
 
     @Transient
     public boolean exists() {
-        return finder.where()
+        return find.where()
                 .eq("project.id", project.id)
-                .eq("category", category)
                 .eq("name", name)
-                .eq("color", color)
                 .findRowCount() > 0;
     }
 
-    @Override
-    public void delete() {
-        for(Issue issue: issues) {
-            issue.labels.remove(this);
-            issue.save();
-        }
-        super.delete();
+    public static IssueLabelCategory findBy(IssueLabelCategory instance) {
+        return find.where()
+                .eq("project.id", instance.project.id)
+                .eq("name", instance.name)
+                .findUnique();
+    }
+
+    public static List<IssueLabelCategory> findByProject(Project project) {
+        return find.where()
+                .eq("project.id", project.id)
+                .orderBy().asc("name")
+                .findList();
     }
 
     @Override
@@ -107,7 +93,7 @@ public class IssueLabel extends Model implements ResourceConvertible {
 
             @Override
             public ResourceType getType() {
-                return ResourceType.ISSUE_LABEL;
+                return ResourceType.ISSUE_LABEL_CATEGORY;
             }
         };
     }

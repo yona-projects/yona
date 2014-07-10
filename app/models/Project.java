@@ -589,8 +589,8 @@ public class Project extends Model implements LabelOwner {
             label.update();
         }
 
-        for(IssueLabel label : IssueLabel.findByProject(this)) {
-            label.delete();
+        for(IssueLabelCategory category : IssueLabelCategory.findByProject(this)) {
+            category.delete();
         }
 
         for(Issue issue : issues) {
