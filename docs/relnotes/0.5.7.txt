@@ -1,0 +1,8 @@
+Yobi v0.5.7 Release Notes
+=========================
+
+Fixes since v0.5.6
+------------------
+
+* SVN commit did not work for clients using serf.
+* Ordering of event list in the main page was incorrect.
