@@ -124,6 +124,9 @@ public class User extends Model implements ResourceConvertible {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     public List<ProjectUser> projectUser;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    public List<OrganizationUser> groupUser;
+
     /**
      * project which is requested member join
      */

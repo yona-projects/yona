@@ -1,0 +1,246 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2014 NAVER Corp.
+* http://yobi.io
+*
+* @Author Keesun Baik
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@(message: String, group: Organization, project: Project, searchResult: SearchResult)
+
+@import utils.TemplateHelper._
+@import utils.JodaDateUtil
+
+@siteLayout(message, utils.MenuType.NONE) {
+<div class="site-breadcrumb-outer">
+    <div class="site-breadcrumb-inner">
+        <h3>
+            @if(group != null) {> @group.name}
+            @if(project != null) {> @project.owner/@project.name}
+            > "@searchResult.getKeyword()"
+        </h3>
+    </div>
+</div>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <h4></h4>
+        <ul>
+            <li>Issues Count: @searchResult.getIssuesCount</li>
+            <li>Users Count: @searchResult.getUsersCount</li>
+            @if(project == null) {
+            <li>Projects Count: @searchResult.getProjectsCount</li>
+            }
+            <li>Posts Count: @searchResult.getPostsCount</li>
+            <li>Milestones Count: @searchResult.getMilestonesCount</li>
+            <li>IssueComments Count: @searchResult.getIssueCommentsCount</li>
+            <li>PostComments Count: @searchResult.getPostCommentsCount</li>
+            <li>Reviews Count: @searchResult.getReviewsCount</li>
+        </ul>
+
+        @defining(searchResult.getIssues) { page =>
+            @if(page != null) {
+            <h4>Issues</h4>
+            <ul>
+                @for(issue <- page.getList) {
+                <li>#@issue.getNumber @issue.title
+                    @defining(searchResult.makeSnipets(issue.body, 40)) { snipets =>
+                        @if(snipets != null && snipets.size > 0) {
+                            <ul>
+                                @for(snipet <- snipets) {
+                                    <li>@snipet</li>
+                                }
+                            </ul>
+                        }
+                    }
+                </li>
+                }
+            </ul>
+            <!-- pagination.js will fill here. -->
+            <div id="pagination"></div>
+
+            <script type="text/javascript">
+                $(document).ready(function(){
+                    yobi.Pagination.update($("#pagination"), @page.getTotalPageCount);
+                });
+            </script>
+            }
+        }
+
+        @defining(searchResult.getUsers) { page =>
+            @if(page != null) {
+            <h4>Users</h4>
+            <ul>
+                @for(user <- page.getList) {
+                <li>@user.loginId @user.name</li>
+                }
+            </ul>
+            <!-- pagination.js will fill here. -->
+            <div id="pagination"></div>
+
+            <script type="text/javascript">
+                $(document).ready(function(){
+                    yobi.Pagination.update($("#pagination"), @page.getTotalPageCount);
+                });
+            </script>
+            }
+        }
+
+        @defining(searchResult.getProjects) { page =>
+            @if(page != null) {
+            <h4>Projects</h4>
+            <ul>
+                @for(project <- page.getList) {
+                <li>@project.owner/@project.name
+                    @defining(searchResult.makeSnipets(project.overview, 40)) { snipets =>
+                        @if(snipets != null && snipets.size > 0) {
+                            <ul>
+                                @for(snipet <- snipets) {
+                                    <li>@snipet</li>
+                                }
+                            </ul>
+                        }
+                    }
+                </li>
+                }
+            </ul>
+            <!-- pagination.js will fill here. -->
+            <div id="pagination"></div>
+
+            <script type="text/javascript">
+                $(document).ready(function(){
+                    yobi.Pagination.update($("#pagination"), @page.getTotalPageCount);
+                });
+            </script>
+            }
+        }
+
+        @defining(searchResult.getPosts) { page =>
+            @if(page != null) {
+            <h4>Issues</h4>
+            <ul>
+                @for(post <- page.getList) {
+                <li>@post.title
+                    @defining(searchResult.makeSnipets(post.body, 40)) { snipets =>
+                        @if(snipets != null && snipets.size > 0) {
+                            <ul>
+                                @for(snipet <- snipets) {
+                                    <li>@snipet</li>
+                                }
+                            </ul>
+                        }
+                    }
+                </li>
+                }
+            </ul>
+            <!-- pagination.js will fill here. -->
+            <div id="pagination"></div>
+
+            <script type="text/javascript">
+                $(document).ready(function(){
+                    yobi.Pagination.update($("#pagination"), @page.getTotalPageCount);
+                });
+            </script>
+            }
+        }
+
+        @defining(searchResult.getIssueComments) { page =>
+            @if(page != null) {
+            <h4>Issue Comments</h4>
+            <ul>
+                @for(comment <- page.getList) {
+                <li>@comment.authorName
+                    @defining(searchResult.makeSnipets(comment.contents, 40)) { snipets =>
+                        @if(snipets != null && snipets.size > 0) {
+                            <ul>
+                                @for(snipet <- snipets) {
+                                    <li>@snipet</li>
+                                }
+                            </ul>
+                        }
+                    }
+                </li>
+                }
+            </ul>
+            <!-- pagination.js will fill here. -->
+            <div id="pagination"></div>
+
+            <script type="text/javascript">
+                $(document).ready(function(){
+                    yobi.Pagination.update($("#pagination"), @page.getTotalPageCount);
+                });
+            </script>
+            }
+        }
+
+        @defining(searchResult.getPostComments) { page =>
+            @if(page != null) {
+            <h4>Post Comments</h4>
+            <ul>
+                @for(comment <- page.getList) {
+                <li>@comment.authorName
+                    @defining(searchResult.makeSnipets(comment.contents, 40)) { snipets =>
+                        @if(snipets != null && snipets.size > 0) {
+                            <ul>
+                                @for(snipet <- snipets) {
+                                    <li>@snipet</li>
+                                }
+                            </ul>
+                        }
+                    }
+                </li>
+                }
+            </ul>
+            <!-- pagination.js will fill here. -->
+            <div id="pagination"></div>
+
+            <script type="text/javascript">
+                $(document).ready(function(){
+                    yobi.Pagination.update($("#pagination"), @page.getTotalPageCount);
+                });
+            </script>
+            }
+        }
+
+        @defining(searchResult.getReviews) { page =>
+            @if(page != null) {
+            <h4>Reviews</h4>
+            <ul>
+                @for(review <- page.getList) {
+                <li>@review.author.name
+                    @defining(searchResult.makeSnipets(review.getContents, 40)) { snipets =>
+                        @if(snipets != null && snipets.size > 0) {
+                            <ul>
+                                @for(snipet <- snipets) {
+                                    <li>@snipet</li>
+                                }
+                            </ul>
+                        }
+                    }
+                </li>
+                }
+            </ul>
+            <!-- pagination.js will fill here. -->
+            <div id="pagination"></div>
+
+            <script type="text/javascript">
+                $(document).ready(function(){
+                    yobi.Pagination.update($("#pagination"), @page.getTotalPageCount);
+                });
+            </script>
+            }
+        }
+    </div>
+</div>
+}

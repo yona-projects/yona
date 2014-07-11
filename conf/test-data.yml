@@ -6,6 +6,7 @@ users:
         state:          ACTIVE
         password:       ys9gr1Xet/DL9RpmgczOlJg+txPvqnZCaw/z55gb0KU=
         passwordSalt:   '[B@1032a4'
+        state:          ACTIVE
         email:          yobi@yobi.io
         createdDate:           2012-12-01 08:00:00
     - !!models.User
@@ -13,6 +14,7 @@ users:
         loginId:        laziel
         password:       v1O5ggs2TqM0prM1pLUD/zC+g7cavbWMXayVA9pvGHY=
         passwordSalt:   '[B@1032a4'
+        state:          ACTIVE
         email:          laziel@naver.com
         createdDate:           2012-01-01 08:00:00
     - !!models.User
@@ -20,6 +22,7 @@ users:
         loginId:        doortts
         password:       rB5DBMe0hxMWs5FlQOJi5GmK+wj2Txx09MdgFqH83+k=
         passwordSalt:   '[B@1032a4'
+        state:          ACTIVE
         email:          doortts@gmail.com
         createdDate:           2012-07-01 08:00:00
     - !!models.User
@@ -27,6 +30,7 @@ users:
         loginId:        nori
         password:       yOF0X0iKA1MVkaAJESNcdGE1n/3SWM8vDOKRYCXV2E0=
         passwordSalt:   '[B@1032a4'
+        state:          ACTIVE
         email:          ejlee@nhn.com
         createdDate:           2012-05-01 08:00:00
     - !!models.User
@@ -34,6 +38,7 @@ users:
         loginId:        alecsiel
         password:       2OZ+qhPn9UJ7GffhbfO5gctuUMWI8jUf2YFdAMH73G8=
         passwordSalt:   '[B@737aa47f'
+        state:          ACTIVE
         email:          alecsiel@nhn.com
         createdDate:           2013-11-18 13:30:00
     - !!models.User
@@ -41,6 +46,7 @@ users:
         loginId:        kjkmadness
         password:       ckJUVVaOHhRDNqwbeF+j4RNqXzodXO95+aQRIbJnDK4=
         passwordSalt:   '[B@737aa47f'
+        state:          ACTIVE
         email:          kjkmadness@nhn.com
         createdDate:           2014-03-06 13:30:00
 
