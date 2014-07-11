@@ -1,10 +1,10 @@
 @**
 * Yobi, Project Hosting SW
 *
-* Copyright 2013 NAVER Corp.
+* Copyright 2014 NAVER Corp.
 * http://yobi.io
 *
-* @Author Wansoon Park
+* @Author Jihan Kim
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(form: Form[PullRequest], project: Project, pullRequest:models.PullRequest, result:models.PullRequestMergeResult)
+@(project: Project, pullRequest:models.PullRequest, result:models.PullRequestMergeResult)
 
 @import utils.JodaDateUtil
 @import utils.TemplateHelper._
@@ -27,59 +27,22 @@
 @import playRepository.GitCommit
 @import scala.collection.Map
 
-@implicitField = @{ helper.FieldConstructor(simpleForm) }
-
-@getCodeURL(project: Project) = @{
-    if(session == null){
-        CodeApp.getURL(project.owner, project.name)
-    } else {
-        defining(ProjectUser.roleOf(session.get("loginId"), project)) { role =>
-            if(role == "manager" || role == "member"){
-                CodeApp.getURL(project.owner, project.name).replace("://", "://" + session.get("loginId") + "@")
-            } else {
-                CodeApp.getURL(project.owner, project.name)
-            }
-        }
-    }
-}
-
-<input type="text" name="title" id="title" placeholder="@Messages("title")" maxlength="255" tabindex="1" class="text" value="@pullRequest.title">
-<div style="position: relative;">
-    @common.editor("body", pullRequest.body, "tabindex=2", "content-body")
-</div>
-@common.fileUploader(ResourceType.PULL_REQUEST, null)
-@common.markdown(project)
-
-<div class="actions">
-    <button type="submit" class="ybtn ybtn-success">@Messages("button.save")</button>
-    <a href="javascript:history.back();" class="ybtn">@Messages("button.cancel")</a>
-</div>
-
-<div id="spin" style="position: absolute; top:50%; left:50%"></div>
-
-<div id="diff">
 @if(result != null) {
-    @if(result.getGitCommits().isEmpty) {
-        <h4>@Messages("pullRequest.diff.noChanges")</h4>
-    } else {
-        <div style="margin-top:20px;">
-            @if(result.getGitConflicts == null){
-            <div class="alert alert-success">
-                <h5>@Messages("pullRequest.is.safe")</h5>
-            </div>
+    @defining(result.getGitCommits){ commits =>
+        <div id="mergeResult" class="code-browser-wrap"
+             data-commits="@commits.size"
+             data-pullrequest-title="@pullRequest.title"
+             data-pullrequest-body="@pullRequest.body"
+             @if(!commits.isEmpty){
+                data-conflict="@result.conflicts"
+             }
+        >
+            @if(commits.isEmpty) {
+                <div>
+                    <h5>@Messages("pullRequest.diff.noChanges")</h5>
+                </div>
             } else {
-            <div class="alert alert-error">
-                <h5>@Messages("pullRequest.is.not.safe")</h5>
-            </div>
-            }
-        </div>
-
-        <ul class="nav nav-tabs nm">
-            <li class="active"><a href="#__commits" data-toggle="tab">@Messages("pullRequest.menu.commit")</a></li>
-        </ul>
-        <div class="tab-content">
-            <div id="__commits" class="code-browse-wrap tab-pane active">
-                <div id="history" class="commit-wrap mt20">
+                <div class="commit-wrap">
                     <table class="code-table commits">
                         <thead class="thead">
                         <tr>
@@ -90,7 +53,7 @@
                         </tr>
                         </thead>
                         <tbody class="tbody">
-                        @for(commit <- result.getGitCommits) {
+                        @for(commit <- commits){
                         <tr>
                             <td class="commit-id">
                                 <a href="@routes.CodeHistoryApp.show(pullRequest.fromProject.owner, pullRequest.fromProject.name, commit.getId)">
@@ -114,15 +77,15 @@
                             </td>
                             <td class="author @commit.getAuthorEmail">
                                 @defining(User.find.where.eq("email", commit.getAuthorEmail).findUnique) { user =>
-                                @if(user != null) {
-                                <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap">
-                                    <img src="@user.avatarUrl" alt="@user.name" width="32" height="32"/>
-                                </a>
-                                } else {
-                                <div class="avatar-wrap">
-                                    <img src="@urlToPicture(commit.getAuthorEmail, 32)" width="32" height="32"/>
-                                </div>
-                                }
+                                  @if(user != null) {
+                                      <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap">
+                                          <img src="@user.avatarUrl" alt="@user.name" width="32" height="32"/>
+                                      </a>
+                                  } else {
+                                      <div class="avatar-wrap">
+                                          <img src="@urlToPicture(commit.getAuthorEmail, 32)" width="32" height="32"/>
+                                      </div>
+                                  }
                                 }
                             </td>
                         </tr>
@@ -130,9 +93,7 @@
                         </tbody>
                     </table>
                 </div>
-            </div>
+            }
         </div>
     }
 }
-</div>
-<input type="hidden" id="commitChanged" value="@if(result != null){ @result.hasDiffCommits } else {false}" />

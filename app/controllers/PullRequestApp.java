@@ -176,12 +176,6 @@ public class PullRequestApp extends Controller {
                 , StringUtils.defaultIfBlank(request().getQueryString("fromBranch"), fromBranches.get(0).getName())
                 , StringUtils.defaultIfBlank(request().getQueryString("toBranch"), project.defaultBranch()));
 
-        if (HttpUtil.isRequestedWithXHR(request())) {
-            response().setHeader("Cache-Control", "no-cache, no-store");
-            PullRequestMergeResult mergeResult = pullRequest.getPullRequestMergeResult();
-            return ok(partial_diff.render(new Form<>(PullRequest.class).fill(pullRequest), project, pullRequest, mergeResult));
-        }
-
         return ok(create.render("title.newPullRequest", new Form<>(PullRequest.class).fill(pullRequest), project, projects, fromProject, toProject, fromBranches, toBranches, pullRequest));
     }
 
@@ -197,6 +191,32 @@ public class PullRequestApp extends Controller {
         }
 
         return selectedProject;
+    }
+
+    @With(AnonymousCheckAction.class)
+    @IsCreatable(ResourceType.FORK)
+    public static Result mergeResult(String userName, String projectName) throws IOException, GitAPIException {
+        final Project project = Project.findByOwnerAndProjectName(userName, projectName);
+
+        ValidationResult validation = validateBeforePullRequest(project);
+        if(validation.hasError()) {
+            return validation.getResult();
+        }
+
+        final Project fromProject = getSelectedProject(project, request().getQueryString("fromProjectId"), false);
+        final Project toProject = getSelectedProject(project, request().getQueryString("toProjectId"), true);
+
+        final List<GitBranch> fromBranches = new GitRepository(fromProject).getAllBranches();
+        final List<GitBranch> toBranches = new GitRepository(toProject).getAllBranches();
+
+        final PullRequest pullRequest = PullRequest.createNewPullRequest(fromProject, toProject
+                , StringUtils.defaultIfBlank(request().getQueryString("fromBranch"), fromBranches.get(0).getName())
+                , StringUtils.defaultIfBlank(request().getQueryString("toBranch"), toBranches.get(0).getName()));
+
+        PullRequestMergeResult mergeResult = pullRequest.getPullRequestMergeResult();
+
+        response().setHeader("Cache-Control", "no-cache, no-store");
+        return ok(partial_merge_result.render(project, pullRequest, mergeResult));
     }
 
     @Transactional

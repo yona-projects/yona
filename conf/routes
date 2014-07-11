@@ -187,6 +187,7 @@ GET            /:ownerName/:project/pullRequest/:id/changes                     
 GET            /:ownerName/:project/pullRequest/:id/changes/:commitId                 controllers.PullRequestApp.specificChange(ownerName, project, id: Long, commitId: String)
 GET            /:ownerName/:project/pullRequest/:id/state                             controllers.PullRequestApp.pullRequestState(ownerName, project, id: Long)
 GET            /:ownerName/:project/newPullRequestForm                                controllers.PullRequestApp.newPullRequestForm(ownerName:String, project:String)
+GET            /:ownerName/:project/newPullRequest/mergeResult                        controllers.PullRequestApp.mergeResult(ownerName, project)
 POST           /:ownerName/:project/pullRequests                                      controllers.PullRequestApp.newPullRequest(ownerName, project)
 POST           /:ownerName/:project/pullRequest/:id/accept                            controllers.PullRequestApp.accept(ownerName, project, id: Long)
 POST           /:ownerName/:project/pullRequest/:id/close                             controllers.PullRequestApp.close(ownerName, project, id: Long)
