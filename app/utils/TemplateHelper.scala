@@ -190,7 +190,7 @@ object TemplateHelper {
       val names = branch.split("/", 3).toList
 
       names match {
-        case refs :: branchType :: branchName => branchName(0)
+        case "refs" :: branchType :: branchName => branchName(0)
         case _ => branch
       }
     }
