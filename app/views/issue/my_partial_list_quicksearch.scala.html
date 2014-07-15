@@ -1,0 +1,53 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2014 NAVER Corp.
+* http://yobi.io
+*
+* @Author Jihan Kim
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@(param:models.support.SearchCondition)
+
+<ul class="lst-stacked unstyled">
+    @if(!UserApp.currentUser().isAnonymous()){
+    <li @if(param.assigneeId == UserApp.currentUser().id){ class="active"}>
+        <a pjax-filter href="#"
+            data-author-id=""
+            data-assignee-id="@User.findByLoginId(session.get("loginId")).id"
+            data-milestone-id="@param.milestoneId"
+            data-mention-id="">
+            @Messages("issue.list.assignedToMe")
+        </a>
+    </li>
+    <li @if(param.authorId == UserApp.currentUser().id){ class="active"}>
+        <a pjax-filter href="#"
+            data-author-id="@User.findByLoginId(session.get("loginId")).id"
+            data-assignee-id=""
+            data-milestone-id="@param.milestoneId"
+            data-mention-id="">
+            @Messages("issue.list.authoredByMe")
+        </a>
+    </li>
+    <li @if(param.mentionId == UserApp.currentUser().id){ class="active"}>
+        <a pjax-filter href="#"
+            data-author-id=""
+            data-assignee-id=""
+            data-milestone-id="@param.milestoneId"
+            data-mention-id="@User.findByLoginId(session.get("loginId")).id">
+            @Messages("issue.list.mentionedOfMe")
+        </a>
+    </li>
+    }
+</ul>

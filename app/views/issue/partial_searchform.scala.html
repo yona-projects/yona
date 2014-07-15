@@ -29,7 +29,7 @@
     <hr>
     <div class="search">
         <div class="search-bar">
-            <input name="filter" class="textbox full" type="text" value="@param.filter">
+            <input name="filter" class="textbox full" type="text" value="@param.filter" data-search="filter">
             <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
         </div>
     </div>
@@ -38,7 +38,7 @@
         <dl class="issue-option">
             <dt>@Messages("issue.author")</dt>
             <dd>
-                <select id="authorId" name="authorId" data-toggle="select2" data-format="user">
+                <select id="authorId" name="authorId" data-toggle="select2" data-format="user" data-search="authorId">
                     <option value="">@Messages("common.order.all")</option>
                     @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
                     <option value="@UserApp.currentUser().id">@Messages("issue.list.authoredByMe")</option>
@@ -60,7 +60,7 @@
         <dl class="issue-option">
             <dt>@Messages("issue.assignee")</dt>
             <dd>
-                <select id="assigneeId" name="assigneeId" data-toggle="select2" data-format="user">
+                <select id="assigneeId" name="assigneeId" data-toggle="select2" data-format="user" data-search="assigneeId">
                     <option value="">@Messages("common.order.all")</option>
                     <option value="@User.anonymous.id" @if(param.assigneeId != null && param.assigneeId == User.anonymous.id){ selected }>@Messages("issue.noAssignee")</option>
                     @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
@@ -84,7 +84,7 @@
         <dl class="issue-option">
             <dt>@Messages("milestone")</dt>
             <dd>
-                <select id="milestoneId" name="milestoneId" data-toggle="select2" data-format="milestone">
+                <select id="milestoneId" name="milestoneId" data-toggle="select2" data-format="milestone" data-search="milestoneId">
                     <option value="">@Messages("milestone.state.all")</option>
                     <option value="@Milestone.NULL_MILESTONE_ID"
                         @if(param.milestoneId != null && param.milestoneId == Milestone.NULL_MILESTONE_ID){
@@ -128,36 +128,22 @@
         <dl class="issue-option">
             <dt>@Messages("issue.dueDate")</dt>
             <dd class="search search-bar">
-                <input type="text" id="issueDueDate" data-toggle="calendar" name="dueDate" class="textbox full" value="@param.getDueDateString">
+                <input id="issueDueDate" type="text" name="dueDate" class="textbox full" value="@param.getDueDateString" data-toggle="calendar">
                 <button type="button" class="search-btn"><i class="yobicon-calendar2"></i></button>
             </dd>
         </dl>
 
-        <dl id="labels" class="issue-option labels-wrap">
-            <dt>
-                @Messages("label")
-                @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
-                <a href="@routes.IssueLabelApp.labels(project.owner, project.name)" target="_blank"
-                   class="ybtn ybtn-default ybtn-mini pull-right"><i class="yobicon-cog"></i></a>
-                }
-            </dt>
-            <dd>
-                <select id="labelIds" name="labelIds" multiple="multiple" data-toggle="select2" data-format="issuelabel"
-                    data-dropdown-css-class="issue-labels" data-container-css-class="issue-labels" style="border:1px solid #ddd;">
-                    <option></option>
-                    @IssueLabel.findByProject(project).groupBy(_.category).map {
-                        case (category, labels) => {
-                            <optgroup label="@category.name">
-                            @labels.map { label =>
-                                <option value="@label.id" data-category="@category.id" @if(param.labelIds != null && param.labelIds.contains(label.id)){ selected }>
-                            @label.name
-                            </option>
-                            }
-                            </optgroup>
-                        }
-                    }
-                </select>
-            </dd>
-        </dl>
+        @defining(IssueLabel.findByProject(project)){ labels =>
+        <div class="labels-wrap">
+            @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
+            <a href="@routes.IssueLabelApp.labels(project.owner, project.name)" class="ybtn ybtn-default ybtn-mini pull-right">
+                <i class="yobicon-cog vmiddle"></i>
+                @if(labels.isEmpty){<span class="vmiddle" style="margin-left:2px;">@Messages("label.manage")</span>}
+            </a>
+            }
+
+            @partial_select_label(labels, param.labelIds, "issue-option")
+        </div>
+        }
     </div>
 </form>

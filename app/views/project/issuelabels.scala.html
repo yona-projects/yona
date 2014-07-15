@@ -23,10 +23,12 @@
 @import utils.TemplateHelper._
 @import utils.AccessControl._
 
-@projectLayout("label", project, utils.MenuType.ISSUE){
-  @projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
+@projectLayout("label", project, utils.MenuType.PROJECT_SETTING){
+  @projectMenu(project, utils.MenuType.PROJECT_SETTING, "")
   <div class="page-wrap-outer">
     <div class="project-page-wrap label-editor-wrap">
+      @partial_settingmenu(project)
+
       @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
       <form id="frmNewLabel" action="@routes.IssueLabelApp.newLabel(project.owner, project.name)" method="post" class="new-label-wrap">
         <strong class="form-legend">@Messages("label.new")</strong>
@@ -56,13 +58,13 @@
       }
 
       <div id="labelsList" class="issue-label-list-wrap">
-        @partial_labels_list(project, labels)
+        @partial_issuelabels_list(project, labels)
       </div>
     </div>
   </div>
 
-  @partial_labels_editcategory()
-  @partial_labels_editlabel(project)
+  @partial_issuelabels_editcategory()
+  @partial_issuelabels_editlabel(project)
   @common.select2()
 
   <script type="text/javascript">

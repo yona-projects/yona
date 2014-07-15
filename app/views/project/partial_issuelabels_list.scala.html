@@ -40,7 +40,7 @@
 
   @labels.groupBy(_.category).map {
     case (category, labelsInCategory) => {
-      <div class="row-fluid list-item" data-category="@category.id" data-category-name="@category.name">
+      <div class="row-fluid list-item category-wrap" data-category="@category.id" data-category-name="@category.name">
         <div class="span3">
           <h5 class="right-txt mr20">
             <span class="category-name">
@@ -81,7 +81,8 @@
               <td class="actions">
                 @if(isAllowed(UserApp.currentUser, label.asResource(), Operation.DELETE)) {
                 <button type="button" class="ybtn ybtn-danger ybtn-small"
-                        data-category="@category.id" data-label-id="@label.id"
+                        data-category-name="@category.name"
+                        data-label-id="@label.id"
                         data-delete-uri="@routes.IssueLabelApp.delete(project.owner, project.name, label.id)">
                   @Messages("button.delete")
                 </button>
@@ -92,7 +93,7 @@
                         data-category-id="@category.id"
                         data-label-name="@label.name"
                         data-label-color="@label.color"
-                        data-label-update-uri="@routes.IssueLabelApp.update(project.owner, project.name, label.id)">
+                        data-update-uri="@routes.IssueLabelApp.update(project.owner, project.name, label.id)">
                   @Messages("button.edit")
                 </button>
                 }

@@ -26,18 +26,30 @@
 
 <ul class="lst-stacked unstyled">
     <li @if(param.assigneeId == null && param.authorId == null){class="active"}>
-        <a pjax-filter href="#" authorId="" assigneeId="" milestoneId="@param.milestoneId">@Messages("issue.list.all")
+        <a pjax-filter href="#"
+           data-assignee-id=""
+           data-author-id=""
+           data-milestone-id="@param.milestoneId">
+            @Messages("issue.list.all")
             <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, paramForEveryone)</span>
         </a>
     </li>
     @if(!UserApp.currentUser().isSiteManager){
     <li @if(param.assigneeId == UserApp.currentUser().id){ class="active"}>
-        <a pjax-filter href="#" authorId="" assigneeId="@User.findByLoginId(session.get("loginId")).id" milestoneId="@param.milestoneId">@Messages("issue.list.assignedToMe")
+        <a pjax-filter href="#"
+           data-assignee-id="@User.findByLoginId(session.get("loginId")).id"
+           data-author-id=""
+           data-milestone-id="@param.milestoneId">
+            @Messages("issue.list.assignedToMe")
             <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, paramForIssuesAssignedToMe)</span>
         </a>
     </li>
     <li @if(param.authorId == UserApp.currentUser().id){ class="active"}>
-        <a pjax-filter href="#" authorId="@User.findByLoginId(session.get("loginId")).id" assigneeId="" milestoneId="@param.milestoneId">@Messages("issue.list.authoredByMe")
+        <a pjax-filter href="#"
+           data-assignee-id=""
+           data-author-id="@User.findByLoginId(session.get("loginId")).id"
+           data-milestone-id="@param.milestoneId">
+            @Messages("issue.list.authoredByMe")
             <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, paramForIssuesAuthoredByMe)</span>
         </a>
     </li>

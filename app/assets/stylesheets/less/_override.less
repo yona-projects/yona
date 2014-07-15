@@ -10,6 +10,7 @@
 .select2-container {
     .avatar-wrap { margin-top:0; }
 
+    text-align:left;
     background-color:#fff;
     border:1px solid rgba(0,0,0,0.15);
 
@@ -57,6 +58,10 @@
                 margin-left: 0;
             }
         }
+
+        abbr {
+            top:7px;
+        }
     }
 
     &.select2-drop-above {
@@ -95,7 +100,7 @@
 }
 
 .select2-results {
-    max-height: 400px;
+    max-height: 350px;
     padding:4px; margin:4px 0 0 0;
 
     li { margin-bottom:1px; }
@@ -212,12 +217,22 @@
 
         .select2-search-field input {
             font-family:@base-font-family !important;
+            padding:3px 5px;
         }
     }
 
     &.issue-labels {
         border:none;
         .box-shadow(none);
+
+        &.bordered {
+            border:1px solid #ddd;
+
+            &:hover,
+            &.select2-container-active {
+                border:1px solid #ddd;
+            }
+        }
 
         .select2-choices {
             .select2-search-choice {
@@ -264,6 +279,12 @@
             .box-shadow(none);
         }
     }
+
+    &.select2-container-disabled {
+        .select2-choices {
+            border:none;
+        }
+    }
 }
 .select2-drop.issue-labels {
     min-width:240px;
@@ -273,6 +294,15 @@
 
     .select2-results {
         min-width: 220px;
+    }
+    .select2-result-with-children > .select2-result-label {
+        padding: 10px 7px;
+    }
+    .select2-result-with-children > .select2-result-label:first-of-type {
+        padding-top: 0;
+    }
+    .select2-result-with-children > .select2-result-sub > li:last-of-type {
+        margin-bottom: 10px;
     }
 }
 li.select2-result-with-children:first-of-type {
@@ -288,12 +318,16 @@ li.select2-result-with-children:first-of-type {
     display: none;
 }
 .select2-drop.branches {
-    width:auto !important;
-    border-top:1px solid rgba(0,0,0,0.15);
-    .box-shadow(2px 2px 0 rgba(0,0,0,0.05));
+    width: auto !important;
+    border-top: 1px solid rgba(0, 0, 0, 0.15);
+    .box-shadow(2px 2px 0 rgba(0, 0, 0, 0.05));
     .border-radius(3px);
 
     .select2-results {
         width: auto;
     }
+}
+.select2-result-label .issue-label {
+    display: block;
+    margin-right: 15px;
 }

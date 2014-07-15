@@ -20,509 +20,435 @@
  */
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
-    oNS.container[oNS.name] = function(htOptions){
+    "use strict";
 
-        var htVar = {};
-        var htElement = {};
+    var oNS = $yobi.createNamespace(ns);
+    oNS.container[oNS.name] = function(options){
+
+        var vars = {};
+        var elements = {};
 
         /**
-         * initialize
-         * @param {Hash Table} htOptions
+         * Initialize
+         * @param {Hash Table} options
          */
-        function _init(htOptions){
-            _initElement(htOptions || {});
-            _initVar(htOptions || {});
+        function _init(options){
+            _initElement(options || {});
+            _initVar(options || {});
             _attachEvent();
 
             _initFileUploader();
             _initFileDownloader();
+            _initCommentAndCloseButton();
 
             _setTimelineUpdateTimer();
-
-            _setBtnCommentAndClose();
+            _affixIssueInfoWrap();
         }
 
         /**
-         * initialize HTML Element variables
+         * Initialize HTML Element variables
+         *
+         * @private
          */
-        function _initElement(htOptions){
-            htElement.welUploader = $("#upload");
-            htElement.welTextarea = $('textarea[data-editor-mode="comment-body"]');
+        function _initElement(){
+            elements.uploader = $("#upload");
+            elements.textarea = $('textarea[data-editor-mode="comment-body"]');
 
-            htElement.welBtnWatch = $('#watch-button');
+            elements.btnWatch = $('#watch-button');
+            elements.issueInfoWrap = $(".issue-info");
 
-            htElement.welIssueLabels = $("#issueLabels");
-            htElement.welAssignee = htOptions.welAssignee || $("#assignee");
-            htElement.welMilestone = htOptions.welMilestone || $("#milestone");
-            htElement.welIssueUpdateForm = htOptions.welIssueUpdateForm;
+            elements.timelineWrap = $("#timeline");
+            elements.timelineList = elements.timelineWrap.find(".timeline-list");
 
-            htElement.welTimelineWrap = $("#timeline");
-            htElement.welTimelineList = htElement.welTimelineWrap.find(".timeline-list");
-            htElement.welDueDate = htOptions.welDueDate;
+            elements.dueDate = $("#issueDueDate");
         }
 
         /**
-         * initialize variables except HTML Element
+         * Initialize variables
+         *
+         * @param options
+         * @private
          */
-        function _initVar(htOptions){
-            htVar.sTplFileItem = $('#tplAttachedFile').text();
-
-            htVar.sIssueId = htOptions.sIssueId;
-            htVar.sIssuesUrl = htOptions.sIssuesUrl;
-
-            htVar.sWatchUrl   = htOptions.sWatchUrl;
-            htVar.sUnwatchUrl = htOptions.sUnwatchUrl;
-            htVar.sTimelineUrl = htOptions.sTimelineUrl;
+        function _initVar(options){
+            vars.issueId = options.issueId;
+            vars.urls = options.urls;
+            vars.nextState = options.nextState;
+            vars.tplFileItem = $('#tplAttachedFile').text();
 
             // for auto-update
-            htVar.bTimelineUpdating = false;
-            htVar.nTimelineUpdateTimer = null;
-            htVar.nTimelineUpdatePeriod = htOptions.nTimelineUpdatePeriod || 60000; // 60000ms = 60s = 1m
-            htVar.sTimelineHTML = htElement.welTimelineList.html();
-            htVar.nTimelineItems = _countTimelineItems();
-            htVar.bOnFocusTextarea = false;
+            vars.isTimelineUpdating = false;
+            vars.isTextareaOnFocused = false;
+            vars.timelineUpdateTimer = null;
+            vars.timelineUpdatePeriod = options.timelineUpdatePeriod || 60000; // 60000ms = 60s = 1m
+            vars.timelineHTML = elements.timelineList.html();
+            vars.timelineItems = _countTimelineItems();
 
             // for comment-and-close
-            htVar.sNextState = htOptions.sNextState;
-            htVar.sNextStateUrl = htOptions.sNextStateUrl;
-            htVar.sCommentWithStateUrl = htOptions.sCommentWithStateUrl;
-
-            // for label update
-            htVar.aLatestLabelIds = htElement.welIssueLabels.val();
+            vars.nextState = options.nextState;
         }
 
         /**
-         * attach event handler
+         * Attach event handler
          */
         function _attachEvent(){
-            // 지켜보기
-            htElement.welBtnWatch.click(_onClickBtnWatch);
+            // Watch button
+            elements.btnWatch.on("click", _onClickBtnWatch);
 
-            // 이슈 정보 업데이트
-            htElement.welAssignee.on("change", _onChangeAssignee);
-            htElement.welAssignee.on("select2-selecting", function(weEvt){
-                if($(weEvt.object.element).data("forceChange")){
-                    htElement.welAssignee.trigger("change");
+            // Update issue info
+            elements.issueInfoWrap.on("change", "[data-toggle=select2]", _onChangeIssueInfo);
+            elements.issueInfoWrap.on("change", "[data-toggle=calendar]", _onChangeIssueInfo);
+
+            // Detect textarea events for autoUpdate timeline
+            elements.textarea.on({
+               "focus": _onFocusCommentTextarea,
+               "blur" : _onBlurCommentTextarea
+            });
+        }
+
+        /**
+         * "change" event handler of issue info select2 fields.
+         *
+         * @param evt
+         * @private
+         */
+        function _onChangeIssueInfo(evt){
+            _requestUpdateIssue(evt);
+        }
+
+        /**
+         * Send request to update issue info
+         * like as assignee.id, milestone.id and labelIds.
+         *
+         * @param evt
+         * @private
+         */
+        function _requestUpdateIssue(evt){
+            var field = $(evt.target);
+            var fieldName = field.data("fieldName") || field.prop("name");
+            var fieldValue = field.data("select2") ? field.data("select2").val() : field.val();
+
+            // Send request to update issueInfo
+            $.ajax(vars.urls.massUpdate, {
+                "method"  : "post",
+                "dataType": "json",
+                "data"    : _getUpdateIssueRequestData(fieldName, fieldValue, evt)
+            })
+            .done(function(){
+                $yobi.notify(Messages("issue.update." + fieldName), 3000);
+
+                if(field.data("select2")){
+                    field.data("select2").val(fieldValue);
                 }
-            });
-            htElement.welMilestone.on("change", _onChangeMilestone);
-            htElement.welIssueLabels.on("change", _onChangeIssueLabels);
-            htElement.welDueDate.on("change", _onChangeDueDate);
 
-            // 타임라인 자동업데이트를 위한 정보
-            if(htElement.welTextarea.length > 0){
-                htElement.welTextarea.on({
-                   "focus": _onFocusCommentTextarea,
-                   "blur" : _onBlurCommentTextarea
-                });
-            }
-
-            $(".labels-wrap").on("click", ".edit-button", function(){
-                $("#issueLabels").data("select2").open();
+                _updateTimeline();
+            })
+            .fail(function(oRes){
+                $yobi.notify(Messages("error.failedTo",
+                    Messages("issue.update." + fieldName),
+                    oRes.status, oRes.statusText));
             });
         }
 
         /**
-         * on focus textarea
-         * @private
-         */
-        function _onFocusCommentTextarea(){
-            htVar.bOnFocusTextarea = true;
-        }
-
-        /**
-         * on blur textarea
-         * @private
-         */
-        function _onBlurCommentTextarea(){
-            htVar.bOnFocusTextarea = false;
-        }
-
-        /**
-         * @param {Wrapped Event} weEvt
-         */
-        function _onClickBtnWatch(weEvt){
-            var welTarget = $(weEvt.target);
-            var bWatched = (welTarget.attr("data-watching") === "true");
-
-            $yobi.sendForm({
-                "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
-                "fOnLoad": function(){
-                    welTarget
-                        .attr("data-watching", !bWatched)
-                        .toggleClass('ybtn-watching')
-                        .html(Messages(!bWatched ? "project.unwatch" : "project.watch")).blur();
-                        
-                    $yobi.notify(Messages(bWatched ? "issue.unwatch.start" : "issue.watch.start"), 3000);
-                }
-            });
-        }
-
-        /**
-         * @param weEvt
-         * @private
-         */
-        function _onChangeIssueLabels(weEvt){
-            var htReqData = _getRequestDataForUpdateIssueLabel(weEvt);
-
-            _requestUpdateIssue({
-               "htData"  : htReqData,
-               "fOnLoad" : function(){
-                   $yobi.notify(Messages("issue.update.label"), 3000);
-               },
-               "fOnError": function(oRes){
-                   _onErrorRequest(Messages("issue.update.label"), oRes);
-               }
-            });
-        }
-
-        /**
-         * @param weEvt
+         * Returns request data to update issue info.
+         *
+         * @param fieldName
+         * @param fieldValue
+         * @param evt
          * @returns {Hash Table}
          * @private
          */
-        function _getRequestDataForUpdateIssueLabel(weEvt){
-            var htReqData = {};
+        function _getUpdateIssueRequestData(fieldName, fieldValue, evt){
+            var requestData = {"issues[0].id": vars.issueId};
 
-            htReqData["detachingLabel[0].id"] = _getIdPropFromObject(weEvt.removed);
-
-            htReqData["attachingLabel[0].id"] = _getIdPropFromObject(weEvt.added);
-
-            if(htReqData["attachingLabel[0].id"]){
-                var htRemove = _getLabelsToRemovedByAdding(weEvt.added);
-                htReqData = $.extend(htReqData, htRemove);
+            if(fieldName === "labelIds"){
+                requestData["detachingLabel[0].id"] = _getIdPropFromObject(evt.removed);
+                requestData["attachingLabel[0].id"] = _getIdPropFromObject(evt.added);
+            } else {
+                requestData[fieldName] = fieldValue;
             }
 
-            return htReqData;
-        }
-
-        /**
-         * @param htItem
-         * @returns {*}
-         * @private
-         */
-        function _getIdPropFromObject(htItem){
-            return (htItem && htItem.id) ? htItem.id : undefined;
-        }
-
-        /**
-         * @param htLabel
-         * @private
-         * @return {Hash Table}
-         */
-        function _getLabelsToRemovedByAdding(htLabel){
-            var htRemove = {};
-            var oIssueLabels = htElement.welIssueLabels.data("select2");
-            var aIssueLabelValues = oIssueLabels.val();
-            var aRemoveLabelIds = _getLabelInSameCategoryWith(oIssueLabels.data(), htLabel);
-
-            aRemoveLabelIds.forEach(function(nValue, nIndex){
-                htRemove["detachingLabel[" + (nIndex + 1) + "].id"] = nValue;
-                aIssueLabelValues.splice(aIssueLabelValues.indexOf(nValue), 1);
-            });
-
-            oIssueLabels.val(aIssueLabelValues);
-
-            return htRemove;
-        }
-
-        /**
-         * @param aData
-         * @param htAddedLabel
-         * @private
-         * @returns {Array}
-         */
-        function _getLabelInSameCategoryWith(aData, htAddedLabel){
-            var aLabelIds = [];
-            var sAddedCategory = $(htAddedLabel.element).data("category");
-
-            aData.forEach(function(htData){
-                var sCategory = $(htData.element).data("category");
-
-                if(htData.id !== htAddedLabel.id && sCategory === sAddedCategory){
-                    aLabelIds.push(htData.id);
-                }
-            });
-
-            return aLabelIds;
-        }
-
-        /**
-         * @param {Wrapped Event} weEvt
-         */
-        function _onChangeAssignee(weEvt){
-            var value = weEvt.val || weEvt.currentTarget.value;
-            _requestUpdateIssue({
-               "htData"  : {"assignee.id": value},
-               "fOnLoad" : function(){
-                   $yobi.notify(Messages("issue.update.assignee"), 3000);
-                   htElement.welAssignee.select2("val", value);
-                   _updateTimeline();
-               },
-               "fOnError": function(oRes){
-                   _onErrorRequest(Messages("issue.update.assignee"), oRes);
-               }
-            });
-        }
-
-        /**
-         * @param {Wrapped Event} weEvt
-         */
-        function _onChangeMilestone(weEvt){
-            _requestUpdateIssue({
-               "htData"  : {"milestone.id": weEvt.val},
-               "fOnLoad" : function(){
-                   $yobi.notify(Messages("issue.update.milestone"), 3000);
-               },
-               "fOnError": function(oRes){
-                   _onErrorRequest(Messages("issue.update.milestone"), oRes);
-               }
-            });
-        }
-
-        function _onChangeDueDate(weEvt) {
-            if (htElement.welDueDate.val() != htElement.welDueDate.data("oDueDate")) {
-                _requestUpdateIssue({
-                    "htData": {
-                        "dueDate": htElement.welDueDate.val(),
-                        "isDueDateChanged": true
-                    },
-                    "fOnLoad": function () {
-                        htElement.welDueDate.data("oDueDate", htElement.welDueDate.val());
-                        $yobi.notify(Messages("issue.update.duedate"), 3000);
-                    },
-                    "fOnError": function (oRes) {
-                        htElement.welDueDate.val(htElement.welDueDate.date("oDueDate"));
-                        _onErrorRequest(Messages("issue.update.duedate"), oRes);
-                    }
-                });
-            }
-        }
-
-        /**
-         * @param {Hash Table} htOptions
-         */
-        function _requestUpdateIssue(htOptions){
-            var htReqData = {"issues[0].id": htVar.sIssueId};
-            for(var sKey in htOptions.htData){
-                htReqData[sKey] = htOptions.htData[sKey];
+            if(fieldName === "dueDate"){
+                requestData["isDueDateChanged"] = true;
             }
 
-            $.ajax(htVar.sIssuesUrl, {
-                "method"  : "post",
-                "dataType": "json",
-                "data"    : htReqData,
-                "success" : htOptions.fOnLoad,
-                "error"   : htOptions.fOnError
+            return requestData;
+        }
+
+        /**
+         * Returns "id" property of given object if exists
+         *
+         * @param o
+         * @returns {o.id|*}
+         * @private
+         */
+        function _getIdPropFromObject(o){
+            return (o && o.id) ? o.id : undefined;
+        }
+
+        /**
+         * "focus" event handler of textarea
+         * _onLoadTimeline references {@code vars.isTextareaOnFocus}
+         * to hold steady scroll position from textarea
+         *
+         * @private
+         */
+        function _onFocusCommentTextarea(){
+            vars.isTextareaOnFocused = true;
+        }
+
+        /**
+         * "blur" event handler of textarea
+         *
+         * @private
+         */
+        function _onBlurCommentTextarea(){
+            vars.isTextareaOnFocused = false;
+        }
+
+        /**
+         * "click" event handler of watch/unwatch button.
+         * Toggles watch/unwatch issue.
+         *
+         * @param evt
+         * @private
+         */
+        function _onClickBtnWatch(evt){
+            var button = $(evt.target);
+            var watching = button.data("watching");
+            var url = watching ? vars.urls.unwatch : vars.urls.watch;
+
+            $.post(url, function(){
+                button.data("watching", !watching)
+                    .toggleClass('ybtn-watching')
+                    .html(Messages(!watching ? "project.unwatch" : "project.watch"))
+                    .blur();
+
+                $yobi.notify(Messages(watching ? "issue.unwatch.start" : "issue.watch.start"), 3000);
             });
         }
 
         /**
-         * @param sMessage
-         * @param oRes
+         * Initialize fileUploader
+         *
          * @private
-         */
-        function _onErrorRequest(sMessage, oRes){
-            $yobi.notify(Messages("error.failedTo", sMessage, oRes.status, oRes.statusText));
-        }
-
-        /**
-         * initialize fileUploader
          */
         function _initFileUploader(){
-            var oUploader = yobi.Files.getUploader(htElement.welUploader, htElement.welTextarea);
+            var oUploader = yobi.Files.getUploader(elements.uploader, elements.textarea);
 
             if(oUploader){
                 (new yobi.Attachments({
-                    "elContainer"  : htElement.welUploader,
-                    "elTextarea"   : htElement.welTextarea,
-                    "sTplFileItem" : htVar.sTplFileItem,
+                    "elContainer"  : elements.uploader,
+                    "elTextarea"   : elements.textarea,
+                    "sTplFileItem" : vars.tplFileItem,
                     "sUploaderId"  : oUploader.attr("data-namespace")
                 }));
             }
         }
 
         /**
-         * initialize fileDownloader
+         * Initialize fileDownloader
          *
-         * @param {Wrapped Array} waTarget (optional)
+         * @param target
+         * @private
          */
-        function _initFileDownloader(waTarget){
-            (waTarget || $(".attachments")).each(function(i, elContainer){
-                if(!$(elContainer).data("isYobiAttachment")){
-                    (new yobi.Attachments({"elContainer": elContainer}));
+        function _initFileDownloader(target){
+            (target || $(".attachments")).each(function(i, container){
+                if(!$(container).data("isYobiAttachment")){
+                    (new yobi.Attachments({"elContainer": container}));
                 }
             });
         }
 
         /**
-         * update IssueTimeline
+         * Update issue timeline
+         *
+         * @private
          */
         function _updateTimeline(){
-            if(htVar.bTimelineUpdating){
+            if(vars.isTimelineUpdating){
                 return;
             }
 
-            htVar.bTimelineUpdating = true;
+            vars.isTimelineUpdating = true;
 
-            $.get(htVar.sTimelineUrl, _onLoadTimeline).always(function(){
-                htVar.bTimelineUpdating = false;
-            });
+            $.get(vars.urls.timeline, _onLoadTimeline)
+             .always(function(){
+                 vars.isTimelineUpdating = false;
+             });
         }
 
         /**
-         * On load IssueTimeline
-         * @param sResult HTML String
+         * Render issue timeline on load HTML
+         *
+         * @param resultHTML
          * @private
          */
-        function _onLoadTimeline(sResult){
-            if(sResult === htVar.sTimelineHTML){ // update only HTML has changed
+        function _onLoadTimeline(resultHTML){
+            if(resultHTML === vars.timelineHTML){ // update only HTML has changed
                 return;
             }
 
             _fixTimelineHeight();
 
-            var welTimelineList = _getRenderedTimeline(sResult);
+            var timelineList = _getRenderedTimeline(resultHTML);
 
             setTimeout(function(){
-                htElement.welTimelineList.replaceWith(welTimelineList);
-                htElement.welTimelineList = welTimelineList;
-                htVar.sTimelineHTML = sResult;
+                elements.timelineList.replaceWith(timelineList);
+                elements.timelineList = timelineList;
+                vars.timelineHTML = resultHTML;
 
-                var bChanged= (htVar.nTimelineItems !== _countTimelineItems());
-                var bTimelineChangedOnTyping = htVar.bOnFocusTextarea && bChanged;
+                var isChanged = (vars.timelineItems !== _countTimelineItems());
+                var isTimelineChangedOnTyping = vars.isTextareaOnFocused && isChanged;
 
-                var nScrollGap = bTimelineChangedOnTyping ?
-                    (htElement.welTextarea.offset().top - $(document).scrollTop()) : 0;
+                var scrollGap = isTimelineChangedOnTyping ?
+                    (elements.textarea.offset().top - $(document).scrollTop()) : 0;
 
                 _unfixTimelineHeight();
 
-                if(bTimelineChangedOnTyping){
-                    $(document).scrollTop(htElement.welTextarea.offset().top - nScrollGap);
+                if(isTimelineChangedOnTyping){
+                    $(document).scrollTop(elements.textarea.offset().top - scrollGap);
                 }
             }, 500);
         }
 
         /**
          * fix timeline height with current height
+         *
          * @private
          */
         function _fixTimelineHeight(){
-            htElement.welTimelineWrap.height(htElement.welTimelineWrap.height());
+            elements.timelineWrap.height(elements.timelineWrap.height());
         }
 
         /**
          * unfix timeline height
+         *
          * @private
          */
         function _unfixTimelineHeight(){
-            htElement.welTimelineWrap.height("");
-            htVar.nTimelineItems = _countTimelineItems();
+            elements.timelineWrap.height("");
+            vars.timelineItems = _countTimelineItems();
         }
 
         /**
          * Get issue timeline element which filled with specified HTML String
+         *
          * @param sHTML
          * @returns {*}
          * @private
          */
-        function _getRenderedTimeline(sHTML){
-            var welTimelineList = htElement.welTimelineList.clone();
-            welTimelineList.html(sHTML);
+        function _getRenderedTimeline(timelineHTML){
+            var timelineList = elements.timelineList.clone();
+            timelineList.html(timelineHTML);
 
-            _initFileDownloader(welTimelineList.find(".attachments"));
-            yobi.Markdown.enableMarkdown(welTimelineList.find("[markdown]"));
-            welTimelineList.find("[data-request-method]").requestAs(); // delete button
+            _initFileDownloader(timelineList.find(".attachments"));
+            yobi.Markdown.enableMarkdown(timelineList.find("[markdown]"));
+            timelineList.find("[data-request-method]").requestAs(); // delete button
 
-            return welTimelineList;
+            return timelineList;
         }
 
         /**
-         * update IssueTimeline automatically
-         * with interval timer
+         * Update timeline automatically with interval timer.
+         * Don't update if visible .comment-update-form exists
+         * or docked inspector is opened.
+         *
+         * @private
          */
         function _setTimelineUpdateTimer(){
             _unsetTimelineUpdateTimer();
 
-            htVar.nTimelineItems = _countTimelineItems();
-            htVar.nTimelineUpdateTimer = setInterval(function(){
-                var bEditing = (htElement.welTimelineWrap.find(".comment-update-form:visible").length > 0);
+            vars.timelineItems = _countTimelineItems();
+            vars.timelineUpdateTimer = setInterval(function(){
+                var isEditing = (elements.timelineWrap.find(".comment-update-form:visible").length > 0)
+                                || _isDockedInspectorOpened();
 
-                if(htVar.bTimelineUpdating !== true && !bEditing){
+                if(vars.isTimelineUpdating !== true && !isEditing){
                     _updateTimeline();
                 }
-            }, htVar.nTimelineUpdatePeriod);
+            }, vars.timelineUpdatePeriod);
+        }
+
+        function _isDockedInspectorOpened(){
+            return (window.outerHeight - window.innerHeight > 100);
         }
 
         /**
          * Unset IssueTimeline update timer
+         *
          * @private
          */
         function _unsetTimelineUpdateTimer(){
-            if(htVar.nTimelineUpdateTimer != null){
-                clearInterval(htVar.nTimelineUpdateTimer);
+            if(vars.timelineUpdateTimer != null){
+                clearInterval(vars.timelineUpdateTimer);
             }
 
-            htVar.nTimelineUpdateTimer = null;
+            vars.timelineUpdateTimer = null;
         }
 
         /**
          * Count items in timeline
          * for detect timeline has updated
+         *
          * @returns {*}
          * @private
          */
         function _countTimelineItems(){
-            return htElement.welTimelineList.find("ul.comments > li").length;
+            return elements.timelineList.find("ul.comments > li").length;
         }
 
         /**
          * Add "comment & close" like button at comment form
+         *
          * @private
          */
-        function _setBtnCommentAndClose(){
-            var welEditor = $('textarea[data-editor-mode="comment-body"]');
-            var welDynamicCommentBtn = $("#dynamic-comment-btn");
-            var welCommentForm = $("#comment-form");
-            var welWithStateTransition = $("<input type='hidden' name='withStateTransition'>");
+        function _initCommentAndCloseButton(){
+            var commentForm = $("#comment-form");
+            var dynamicCommentBtn = $("#dynamic-comment-btn");
+            var withStateTransitionInput = $("<input type='hidden' name='withStateTransition'>");
 
-            var sNextState = Messages("button.nextState." + htVar.sNextState);
-            var sCommentAndNextState = Messages("button.commentAndNextState." + htVar.sNextState);
+            commentForm.prepend(withStateTransitionInput);
 
-            welCommentForm.prepend(welWithStateTransition);
-            welDynamicCommentBtn.removeClass('hidden');
-            welDynamicCommentBtn.html(Messages("button.nextState." + htVar.sNextState));
-            welDynamicCommentBtn.on("click", function(){
-                if(welEditor.val().length > 0){
-                    welWithStateTransition.val("true");
-                    welCommentForm.attr("action", htVar.sCommentWithStateUrl);
-                    welCommentForm.submit();
+            dynamicCommentBtn.removeClass("hidden");
+            dynamicCommentBtn.html(Messages("button.nextState." + vars.nextState));
+            dynamicCommentBtn.on("click", function(){
+                if(elements.textarea.val().length > 0){
+                    withStateTransitionInput.val("true");
+                    commentForm.submit();
                 } else {
-                    welWithStateTransition.val("");
-                    location.href = htVar.sNextStateUrl;
+                    withStateTransitionInput.val("");
+                    location.href = vars.urls.nextState;
                 }
             });
 
-            welEditor.on("keyup", function(){
-                if(welEditor.val().length > 0){
-                    welDynamicCommentBtn.html(sCommentAndNextState);
+            elements.textarea.on("keyup", function(){
+                if(elements.textarea.val().length > 0){
+                    dynamicCommentBtn.html(Messages("button.commentAndNextState." + vars.nextState));
                 } else {
-                    welDynamicCommentBtn.html(sNextState);
+                    dynamicCommentBtn.html(Messages("button.nextState." + vars.nextState));
                 }
             });
 
             // if yobi.ShortcutKey exists
             if(yobi.ShortcutKey){
                 yobi.ShortcutKey.attach("CTRL+SHIFT+ENTER", function(htInfo){
-                    if(htInfo.welTarget.is(welEditor)){
-                        welDynamicCommentBtn.click();
+                    if(htInfo.welTarget.is(elements.textarea)){
+                        dynamicCommentBtn.click();
                     }
                 });
             }
         }
 
+        function _affixIssueInfoWrap(){
+            elements.issueInfoWrap.affix({
+                "offset": {
+                    "top": elements.issueInfoWrap.offset().top - 10
+                }
+            });
+        }
+
         // initialize
-        _init(htOptions || {});
+        _init(options || {});
     };
 })("yobi.issue.View");

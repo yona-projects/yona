@@ -20,11 +20,13 @@
  */
 (function(ns){
 
+    "use strict";
+
     var oNS = $yobi.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
-        var htVar = {};
         var htElement = {};
+        var htInitialOptions = {};
 
         /**
          * initialize
@@ -34,70 +36,42 @@
             _attachEvent();
             _initPagination();
             _initPjax();
+
+            htInitialOptions = htOptions || {};
         }
 
         /**
          * initialize element
          */
         function _initElement(htOptions){
-            htElement.welFilter = htOptions.welFilter || $("a[pjax-filter]");
-            htElement.welSearchForm = htOptions.welSearchForm || $("form[name='search']");
-            htElement.welSearchOrder = htOptions.welSearchOrder || $("a[orderBy]");
-            htElement.welSearchState = htOptions.welSearchState || $("a[state]");
+            htElement.welIssueWrap = $(htOptions.welIssueWrap || '.issue-list-wrap');
+            htElement.welSearchForm = $(htOptions.welSearchForm || "form[name='search']");
             htElement.welPagination = $(htOptions.elPagination || "#pagination");
-            htElement.welSearchLabelIds = $("#labelIds");
-
-            htElement.waLabels = $("a.issue-label[data-color]"); // 목록 > 라벨
-
-            htElement.welMassUpdateForm = htOptions.welMassUpdateForm;
-            htElement.welMassUpdateButtons = htOptions.welMassUpdateButtons;
-            htElement.welDeleteButton = htOptions.welDeleteButton;
-            htElement.waCheckboxes = $(htVar.sIssueCheckBoxesSelector);
-
-            htElement.welIssueWrap = $('.issue-list-wrap');
-
-            htElement.welSearchAuthorId = $("#authorId");
-            htElement.welSearchAssigneeId = $("#assigneeId");
-            htElement.welSearchMilestoneId = $("#milestoneId");
-
-            // ui.Select2.js required
-            if(typeof yobi.ui.Select2 === "function"){
-                yobi.ui.Select2(htElement.welSearchAuthorId);
-                yobi.ui.Select2(htElement.welSearchAssigneeId);
-                yobi.ui.Select2(htElement.welSearchMilestoneId);
-                yobi.ui.Select2(htElement.welSearchLabelIds);
-            }
-
-            htElement.welIssueDueDate = $(htOptions.welIssueDueDate || "#issueDueDate");
-
-            if(typeof yobi.ui.Calendar === "function"){
-                yobi.ui.Calendar(htElement.welIssueDueDate);
-            }
         }
 
         /**
          * attach event handlers
          */
         function _attachEvent(){
-            htElement.welSearchAuthorId.on("change", _onChangeSearchField);
-            htElement.welSearchAssigneeId.on("change", _onChangeSearchField);
-            htElement.welSearchMilestoneId.on("change", _onChangeSearchField);
-            htElement.welSearchLabelIds.on("change", _onChangeSearchField);
-            htElement.welIssueDueDate.on("change", _onChangeSearchField);
+            htElement.welIssueWrap.on("click", "a[data-label-id][data-category-id]", _onClickLabelOnList);
+            htElement.welIssueWrap.on("click", "a[pjax-filter]", _onClickSearchFilter);
+            htElement.welIssueWrap.on("click", "a[orderBy]", _onClickListOrder);
+            htElement.welIssueWrap.on("click", "a[state]", _onClickStateTab);
 
-            htElement.welSearchOrder.on("click", _onChangeSearchOrder);
-            htElement.welSearchState.on("click", _onChangeSearchState);
-            htElement.welFilter.on("click", _onClickSearchFilter);
-            htElement.waLabels.on("click", _onChangeSearchLabel);
-
-            htElement.welIssueWrap.on('change','[data-toggle="issue-checkbox"]',_onChangeIssueCheckBox);
+            htElement.welIssueWrap.on("change", '[data-toggle="issue-checkbox"]', _onChangeIssueCheckBox);
+            htElement.welIssueWrap.on("change", "[data-search]", _onChangeSearchField);
+            htElement.welIssueWrap.on("change", '[data-toggle="calendar"]', _onChangeSearchField);
         }
 
         /**
+         * "change" event of issue-checkbox.
+         * Gets issueId from changed checkbox and
+         * set highlight the issue item has same issue Id.
+         *
          * @private
          */
         function _onChangeIssueCheckBox() {
-            var welCheckBox = $(this)
+            var welCheckBox = $(this);
             var welItemWrap = $('#issue-item-' + welCheckBox.data('issueId'));
 
             if(welCheckBox.is(':checked')){
@@ -108,43 +82,68 @@
         }
 
         /**
+         * "click" event handler of list order link
+         * Fill orderBy and orderDir field value using data attribute,
+         * and submit the search form.
+         *
          * @param weEvt
          * @private
          */
-        function _onChangeSearchOrder(weEvt) {
+        function _onClickListOrder(weEvt) {
             weEvt.preventDefault();
 
-            $("input[name=orderBy]").val($(this).attr("orderBy"));
-            $("input[name=orderDir]").val($(this).attr("orderDir"));
+            var link = $(this);
 
+            htElement.welSearchForm.find("input[name=orderBy]").val(link.attr("orderBy"));
+            htElement.welSearchForm.find("input[name=orderDir]").val(link.attr("orderDir"));
             htElement.welSearchForm.submit();
         }
 
         /**
+         * "click" event handler of list state tab
+         * Fill state field value using data attribute and submit the search form.
+         *
          * @param weEvt
          * @private
          */
-        function _onChangeSearchState(weEvt) {
+        function _onClickStateTab(weEvt) {
             weEvt.preventDefault();
 
-            $("input[name=state]").val($(this).attr("state"));
-
+            htElement.welSearchForm.find("input[name=state]").val($(this).attr("state"));
             htElement.welSearchForm.submit();
         }
 
         /**
+         * "click" event handler of labels on issue list.
+         * Add clicked label to search form condition.
+         *
          * @param event
          * @private
          */
-        function _onChangeSearchLabel(weEvt) {
-            var selectedLabelIds = htElement.welSearchLabelIds.val() || [];
-            selectedLabelIds.push($(this).attr('data-labelId'));
-            htElement.welSearchLabelIds.val(selectedLabelIds).trigger("change");
-
+        function _onClickLabelOnList(weEvt) {
             weEvt.preventDefault();
+
+            var link = $(this);
+            var targetQuery = "[data-search=labelIds][data-category-id=" + link.data("categoryId") + "]";
+            var target = htElement.welSearchForm.find(targetQuery);
+
+            var labelId = link.data("labelId");
+            var newValue;
+
+            if(target.prop("multiple")){
+                newValue = (target.val() || []);
+                newValue.push(labelId);
+            } else {
+                newValue = labelId;
+            }
+
+            target.data("select2").val(newValue, true); // triggerChange=true
         }
 
         /**
+         * "change" event handler of search fields.
+         * Submit the form on change event has triggered.
+         *
          * @private
          */
         function _onChangeSearchField() {
@@ -152,27 +151,45 @@
         }
 
         /**
+         * "click" event handler of quick search links
+         * Find filter from data attribute and fill search form field with its value.
+         * Submits form after fill values.
+         *
+         * Relative pages:
+         * - views/issue/partial_list_quicksearch.scala.html
+         * - views/issue/my_partial_search.scala.html
+         *
          * @param weEvt
          * @private
          */
         function _onClickSearchFilter(weEvt) {
             weEvt.preventDefault();
 
-            htElement.welSearchAuthorId.val($(this).attr("authorId"));
-            htElement.welSearchAssigneeId.val($(this).attr("assigneeId"));
-            htElement.welSearchMilestoneId.val($(this).attr("milestoneId"));
+            var data = $(this).data();
+
+            for(var key in data){
+                htElement.welSearchForm.find('[data-search="' + key + '"]').val(data[key]);
+            }
 
             htElement.welSearchForm.submit();
         }
 
         /**
          * update Pagination
+         *
          * @requires yobi.Pagination
+         * @private
          */
         function _initPagination(){
             yobi.Pagination.update(htElement.welPagination, htElement.welPagination.data("total"));
         }
 
+        /**
+         * Initialize Pjax
+         *
+         * @requires jquery.pjax
+         * @private
+         */
         function _initPjax(){
             var htPjaxOptions = {
                 "fragment": "div[pjax-container]",
@@ -207,9 +224,40 @@
         function _onLoadIssueList(){
             yobi.ui.Spinner.hide();
 
-            _initElement(htOptions || {});
+            _initElement(htInitialOptions);
             _initPagination();
-            _attachEvent();
+            _initSelect2();
+            _initCalendar();
+        }
+
+        /**
+         * Initialize ui.Select2
+         * This function called after redraw issue list HTML using PJAX.
+         *
+         * @private
+         */
+        function _initSelect2(){
+            if(typeof yobi.ui.Select2 === "function"){
+                $('[data-toggle="select2"]').each(function(i, el){
+                    yobi.ui.Select2(el);
+                });
+            }
+        }
+
+        /**
+         * Initialize ui.Calendar
+         * This function called after redraw issue list HTML using PJAX.
+         *
+         * @private
+         */
+        function _initCalendar(){
+           if(typeof yobi.ui.Calendar === "function"){
+               $('[data-toggle="calendar"]').each(function(i, el){
+                   yobi.ui.Calendar(el, {
+                       "silent": true
+                   });
+               });
+           }
         }
 
         _init(htOptions);

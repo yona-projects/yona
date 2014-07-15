@@ -114,14 +114,14 @@ public class IssueLabelApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         List<IssueLabel> labels = IssueLabel.findByProject(project);
 
-        return ok(views.html.issue.partial_labels_list.render(project, labels));
+        return ok(views.html.project.partial_issuelabels_list.render(project, labels));
     }
 
     private static Result labelsAsHTML(String ownerName, String projectName){
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         List<IssueLabel> labels = IssueLabel.findByProject(project);
 
-        return ok(views.html.issue.labels.render(project, labels));
+        return ok(views.html.project.issuelabels.render(project, labels));
     }
 
     /**

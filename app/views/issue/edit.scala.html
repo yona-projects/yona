@@ -110,7 +110,10 @@
                         <dd>
                         @defining(issue.milestone != null) { hasMilestone =>
                             @if(Milestone.findByProjectId(project.id).isEmpty()) {
-                                <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" target="_blank" class="ybtn ybtn-success ybtn-small">@Messages("milestone.menu.new")</a>
+                                <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)"
+                                   class="ybtn ybtn-small ybtn-fullsize" target="_blank">
+                                    @Messages("milestone.menu.new")
+                                </a>
                             } else {
                                 <select id="milestoneId" name="milestoneId"
                                             data-toggle="select2" data-format="milestone">
@@ -154,32 +157,7 @@
                         </dd>
                     </dl>
 
-                    <dl id="labels" class="issue-option">
-                        <dt>
-                            @Messages("label")
-                            @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
-                            <a href="@routes.IssueLabelApp.labels(project.owner, project.name)" target="_blank"
-                               class="ybtn ybtn-default ybtn-mini pull-right"><i class="yobicon-cog"></i></a>
-                            }
-                        </dt>
-                        <dd>
-                            <select id="issueLabels" multiple="multiple" data-toggle="select2" data-format="issuelabel"
-                                    data-dropdown-css-class="issue-labels" data-container-css-class="issue-labels" style="border:1px solid #ddd;">
-                                <option></option>
-                                @IssueLabel.findByProject(project).groupBy(_.category).map {
-                                    case (category, labels) => {
-                                        <optgroup label="@category.name">
-                                        @labels.map { label =>
-                                            <option value="@label.id" data-category="@category.id" @if(issue.labels.contains(label)){ selected }>
-                                        @label.name
-                                        </option>
-                                        }
-                                        </optgroup>
-                                    }
-                                }
-                            </select>
-                        </dd>
-                    </dl>
+                    @partial_select_label(IssueLabel.findByProject(project), issue.getLabelIds, "issue-option")
                 </div>
             </div>
         </div>

@@ -45,8 +45,8 @@
                 htVar.oPicker = new Pikaday({
                     "format": htVar.sDateFormat,
                     "field": welInput.get(0),
-                    "setDefaultDate": true,
-                    "defaultDate": welInput.val()
+                    "defaultDate": welInput.val(),
+                    "setDefaultDate": true
                 });
                 welInput.data("pickaday", true);
 
@@ -56,7 +56,7 @@
                     htVar.oPicker.show();
                 });
 
-                if(welInput.val().length > 0){
+                if(welInput.val().length > 0 && htOptions.silent !== true){
                     htVar.oPicker.setDate(welInput.val());
                 }
             }
@@ -70,7 +70,7 @@
             return htVar.oPicker.setDate(dateStr);
         }
 
-        _init(htOptions);
+        _init(htOptions || {});
 
         return {
             "getDate": _getDate,

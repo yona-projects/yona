@@ -413,6 +413,16 @@ public class Issue extends AbstractPosting implements LabelOwner {
         return labels;
     }
 
+    public Set<Long> getLabelIds() {
+        Set<Long> labelIds = new HashSet<>();
+
+        for(IssueLabel label : this.labels){
+            labelIds.add(label.id);
+        }
+
+        return labelIds;
+    }
+
     public List<TimelineItem> getTimeline() {
         List<TimelineItem> timelineItems = new ArrayList<>();
         timelineItems.addAll(comments);

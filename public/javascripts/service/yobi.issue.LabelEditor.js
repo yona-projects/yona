@@ -103,8 +103,8 @@
 
             // label list
             elements.list.on("click", "[data-delete-uri]", _onClickBtnDeleteLabel);
+            elements.list.on("click", "[data-update-uri]", _onClickBtnEditLabel);
             elements.list.on("click", "[data-category-update-uri]", _onClickBtnEditCategory);
-            elements.list.on("click", "[data-label-update-uri]", _onClickBtnEditLabel);
 
             // edit category form
             elements.editCategoryForm.on("click", ".btnSubmit", _onClickBtnSubmitEditCategory);
@@ -486,7 +486,7 @@
                 "data"  : {"_method": "delete"}
             })
             .done(function(){
-                _removeLabel(targetButton.data("category"), targetButton.data("labelId"));
+                _removeLabel(targetButton.data("categoryName"), targetButton.data("labelId"));
             });
         }
 
@@ -536,7 +536,7 @@
          * @private
          */
         function _getCategoryElement(categoryName){
-            return $('div.list-item[data-category="' + categoryName + '"]');
+            return $('div.category-wrap[data-category-name="' + categoryName + '"]');
         }
 
         /**
@@ -613,14 +613,14 @@
          */
         function _onClickBtnSubmitEditLabel(){
             var requestData = {
-                "category.id": elements.editLabelCategory.val(),
                 "name" : $.trim(elements.editLabelName.val()),
-                "color": $.trim(elements.editLabelColor.val())
+                "color": $.trim(elements.editLabelColor.val()),
+                "category.id": elements.editLabelCategory.val()
             };
 
             yobi.ui.Spinner.show();
 
-            $.ajax(elements.editLabelForm.data("labelUpdateUri"), {
+            $.ajax(elements.editLabelForm.data("updateUri"), {
                 "method": "put",
                 "data"  : requestData
             }).done(function(){

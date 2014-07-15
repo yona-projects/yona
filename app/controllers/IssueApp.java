@@ -51,6 +51,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Collections;
 import utils.HttpUtil;
 
 public class IssueApp extends AbstractPostingApp {
@@ -106,6 +107,7 @@ public class IssueApp extends AbstractPostingApp {
         models.support.SearchCondition searchCondition = issueParamForm.bindFromRequest().get();
         searchCondition.pageNum = pageNum - 1;
         searchCondition.labelIds.addAll(LabelSearchUtil.getLabelIds(request()));
+        searchCondition.labelIds.remove(null);
 
         // determine pjax or json when requested with XHR
         if (HttpUtil.isRequestedWithXHR(request())) {
@@ -664,7 +666,9 @@ public class IssueApp extends AbstractPostingApp {
         String[] labelIds = form.get("labelIds");
         if (labelIds != null) {
             for (String labelId : labelIds) {
-                issue.labels.add(IssueLabel.finder.byId(Long.parseLong(labelId)));
+                if(!StringUtils.isEmpty(labelId)) {
+                    issue.labels.add(IssueLabel.finder.byId(Long.parseLong(labelId)));
+                }
             }
         }
     }

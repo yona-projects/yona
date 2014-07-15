@@ -1,0 +1,53 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2014 NAVER Corp.
+* http://yobi.io
+*
+* @Author Jihan Kim
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@(labels:List[models.IssueLabel], selectedLabelIds:Set[Long] = null, wrapperCSSClassName:String = "")
+
+@if(!labels.isEmpty){
+<dl class="@wrapperCSSClassName">
+  <dt>
+    @Messages("label")
+  </dt>
+  <dd>
+    <select name="labelIds" multiple="multiple" data-search="labelIds"
+            data-toggle="select2" data-format="issuelabel" data-allow-clear="true" data-close-on-select="false"
+            data-dropdown-css-class="issue-labels" data-container-css-class="issue-labels bordered"
+            data-placeholder="@Messages("label.select")">
+      <option></option>
+      @labels.groupBy(_.category).map {
+        case (category, labels) => {
+        <optgroup label="@category.name"
+                  data-category-id="@category.id"
+                  data-category-is-exclusive="@category.isExclusive">
+          @labels.map { label =>
+          <option value="@label.id"
+                  data-category-id="@category.id"
+                  data-category-is-exclusive="@category.isExclusive"
+                  @if(selectedLabelIds != null && selectedLabelIds.contains(label.id)){ selected }>
+            @label.name
+          </option>
+          }
+        </optgroup>
+        }
+      }
+    </select>
+  </dd>
+</dl>
+}

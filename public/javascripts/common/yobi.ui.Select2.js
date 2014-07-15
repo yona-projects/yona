@@ -33,6 +33,8 @@
         // Select2.js default options
         var htOpt = $.extend({
             "width": "resolve",
+            "allowClear": welSelect.data("allowClear"),
+            "closeOnSelect": welSelect.data("closeOnSelect"),
             "dropdownCssClass" : welSelect.data("dropdownCssClass"),
             "containerCssClass": welSelect.data("containerCssClass")
         }, htOptions);
@@ -84,15 +86,26 @@
 
                 return sText;
             },
-            "issuelabel": function(oItem){
-                var welItem = $(oItem.element);
-                var sLabelId = welItem.val();
+            "issuelabel": function(item){
+                var element = $(item.element);
+                var labelId = element.val();
 
-                if(!sLabelId){
-                    return '<span>' + oItem.text.trim() + '</span>';
+                if(!labelId){ // = optgroup
+                    var isCategoryExclusive = element.data("categoryIsExclusive");
+                    var data = {
+                        "text" : item.text.trim(),
+                        "title": Messages("label.category.option") + '<br>' +
+                                (isCategoryExclusive ? Messages("label.category.option.single")
+                                                     : Messages("label.category.option.multiple")),
+                        "css"  : isCategoryExclusive ? 'yobicon-tag  category-exclusive single'
+                                                     : 'yobicon-tags category-exclusive multiple'
+                    };
+                    var tpl = '<i class="${css}" data-toggle="tooltip" data-html="true" data-placement="right" title="${title}"></i><span>${text}</span>';
+
+                    return $yobi.tmpl(tpl, data);
                 }
 
-                return '<a class="label issue-label active static" data-label-id="' + sLabelId + '">' + oItem.text.trim() + '</a>';
+                return '<a class="label issue-label active static" data-label-id="' + labelId + '">' + item.text.trim() + '</a>';
             },
             "branch": function(oItem){
                 var sBranchType = "";

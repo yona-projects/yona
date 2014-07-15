@@ -35,6 +35,8 @@ import com.avaje.ebean.Expression;
 import com.avaje.ebean.Query;
 import com.avaje.ebean.QueryResultVisitor;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class LabelSearchUtil {
     private static final String FIELD_NAME_ID = "id";
 
@@ -53,7 +55,9 @@ public class LabelSearchUtil {
         String[] labelIds = request.queryString().get("labelIds");
         if (labelIds != null) {
             for (String labelId : labelIds) {
-                set.add(Long.valueOf(labelId));
+                if(!StringUtils.isEmpty(labelId)) {
+                    set.add(Long.valueOf(labelId));
+                }
             }
         }
         return set;

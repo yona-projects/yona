@@ -2595,41 +2595,26 @@ label.inline-list {
 
 .board-body {
     .author-info {
-        padding:15px 0 0 20px;
-
-        dl { margin-bottom:20px; }
-        dl.author {
-            height:51px; overflow:hidden;
-            dd { padding:5px 10px; }
-        }
-        p {
-            margin-bottom: 5px;
-            line-height: 14px;
-        }
-        .name {
-            font-size: 11px;
-        }
-        .status {
-            margin: 0;
-            color: #646464;
-            font-size: 11px;
-            .ico {
-                vertical-align: top;
-            }
-        }
+        display:block;
+        margin:10px 20px;
     }
+
     .content {
-       padding:0 20px;
-       margin-bottom: 20px;
-       a { font-weight:bold; }
+        padding:0 20px;
+        margin-bottom: 20px;
+        min-height: 250px;
+
+        a { font-weight:bold; }
 
         &.empty-content {
             text-align: center;
-            min-height: 250px;
             background-image:url("@{base-image-path}/no_contents.jpg");
             background-repeat: no-repeat;
             background-position: center 50%;
-       }
+        }
+    }
+    textarea.content {
+        padding:6px;
     }
 }
 .attachments {
@@ -3040,6 +3025,37 @@ div.markdown-preview {
     position:relative;
 
     select { visibility: hidden; }
+}
+
+.issue-info {
+    padding:15px 0 0 52px;
+    &.affix { top: 0; }
+
+    dl {
+        margin-bottom:20px;
+
+        dd {
+            padding:5px 0px;
+        }
+    }
+
+    p {
+        margin-bottom: 5px;
+        line-height: 14px;
+    }
+
+    .name {
+        font-size: 11px;
+    }
+
+    .status {
+        margin: 0;
+        color: #646464;
+        font-size: 11px;
+        .ico {
+            vertical-align: top;
+        }
+    }
 }
 
 // -- new attach files //
@@ -5711,7 +5727,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 
 .label-editor-wrap {
     .new-label-wrap {
-        margin:40px auto 30px;
+        margin:30px auto;
 
         .form-legend {
             display:block;
@@ -5752,15 +5768,6 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         .list-item {
             border-top:1px solid #ddd;
 
-            .category-exclusive {
-                margin-right:5px;
-                vertical-align: middle;
-                cursor:help;
-
-                &.single   { color:@yobi-cyan; }
-                &.multiple { color:@yobi-yello-dark; }
-            }
-
             .category-name {
                 margin-right:2px;
             }
@@ -5792,6 +5799,15 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
             }
         }
     }
+}
+
+.category-exclusive {
+    margin-right:5px;
+    vertical-align: middle;
+    cursor:help;
+
+    &.single   { color:@yobi-cyan; }
+    &.multiple { color:@yobi-yello-dark; }
 }
 
 .edit-label-form {
