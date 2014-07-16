@@ -179,5 +179,10 @@
             }
         }
 
+        $('[data-toggle="search-scope"]').on('click', function() {
+            $('form[name="gnb-search-form"]').attr('action', $(this).data('action'));
+            $('#gnb-search-scope-title').text($(this).text());
+        });
+
     });
 </script>

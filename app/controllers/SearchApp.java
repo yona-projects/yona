@@ -9,7 +9,8 @@ import models.enumeration.SearchType;
 import org.apache.commons.lang3.StringUtils;
 import play.mvc.Controller;
 import play.mvc.Result;
-import views.html.search.result;
+import views.html.search.*;
+import utils.HttpUtil;
 
 import java.util.List;
 
@@ -26,6 +27,7 @@ public class SearchApp extends Controller {
      * @return
      */
     public static Result searchAllRepos() {
+        // SearchCondition from param
         String searchTypeValue = request().getQueryString("searchType");
         String keyword = request().getQueryString("keyword");
         setPage();
@@ -143,7 +145,7 @@ public class SearchApp extends Controller {
                 break;
             case REVIEW:
                 searchResult.setReviews(Search.findReviews(keyword, user, organization, DEFAULT_PAGE));
-                break;
+                break;            
         }
 
         return ok(result.render("title.search", organization, null, searchResult));

@@ -1,0 +1,95 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2014 NAVER Corp.
+* http://yobi.io
+*
+* @Author Insanehong 
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+
+@(group: Organization, project: Project, searchResult: SearchResult)
+
+@import utils.TemplateHelper._
+@import utils.JodaDateUtil
+
+@defining(searchResult.getPosts) { page =>
+    @if(page.getList.length > 0) {
+    <ul class="search-list-wrap">
+        @for(post <- page.getList) {
+            @defining(User.findByLoginId(post.authorLoginId)){ user =>
+            <li class="search-list-item @if(project != null) {project}">
+                @if(project == null) {
+                <a href="@routes.ProjectApp.project(post.project.owner, post.project.name)" class="avatar-wrap">
+                    <img src="@urlToProjectLogo(post.project)">
+                </a>
+                }
+                <div class="title-wrap">
+                    <span class="post-id">#@post.getNumber</span>
+                    <a href="@routes.BoardApp.post(post.project.owner, post.project.name, post.getNumber)" class="title">
+                        @post.title
+                    </a>
+                </div>
+                <div class="search-content">
+                    @defining(searchResult.makeSnipets(post.body, 40)) { snipets =>
+                        @if(snipets != null && snipets.size > 0) {
+                            @for(snipet <- snipets) {
+                            <p class="search-content-body">
+                                @snipet @if(snipet.size < post.body.size) { ..... }
+                            </p>
+                            }
+                        }
+                    }
+                </div>
+                <div class="search-meta-info">
+                    @if(project == null) {
+                    <a href="@routes.ProjectApp.project(post.project.owner,post.project.name)" class="project-link meta-item">
+                        @post.project.owner/@post.project.name
+                    </a>
+                    }
+                    <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap meta" data-toggle="tooltip" data-placement="top" title="@user.loginId">
+                        @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){
+                            <img src="@urlToPicture(user.email, 32)">
+                        } else {
+                            <img src="@user.avatarUrl" alt="@user.name" width="32" height="32"/>
+                        }
+                    </a>
+                    @if(user.name){
+                        <a href="@routes.UserApp.userInfo(user.loginId)" class="meta-item" data-toggle="tooltip" data-placement="top" title="@user.loginId">
+                            @user.name
+                        </a>
+                    } else {
+                        <span class="meta-item">@Messages("issue.noAuthor")</span>
+                    }
+
+                    <span class="meta-item" title="@JodaDateUtil.getDateString(post.createdDate)">
+                        @agoOrDateString(post.createdDate)
+                    </span>
+                </div>
+            </li>
+            }
+        }
+    </ul>    
+    <!-- pagination.js will fill here. -->
+    <div id="pagination"></div>
+
+    <script type="text/javascript">
+        $(document).ready(function(){
+            yobi.Pagination.update($("#pagination"), @page.getTotalPageCount);
+        });
+    </script>
+    } else {
+        <div class="empty-result"></div>
+    }
+}

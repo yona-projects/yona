@@ -1,0 +1,95 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2014 NAVER Corp.
+* http://yobi.io
+*
+* @Author Insanehong 
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+
+@(group: Organization, project: Project, searchResult: SearchResult)
+
+@import utils.TemplateHelper._
+@import utils.JodaDateUtil
+
+@defining(searchResult.getPostComments) { page =>
+    @if(page.getList.length > 0) {
+    <ul class="search-list-wrap">
+        @for(comment <- page.getList) {
+            @defining(User.findByLoginId(comment.authorLoginId)){ user =>
+            <li class="search-list-item @if(project != null) {project}">
+                @if(project == null) {
+                <a href="@routes.ProjectApp.project(comment.posting.project.owner, comment.posting.project.name)" class="avatar-wrap">
+                    <img src="@urlToProjectLogo(comment.posting.project)">
+                </a>
+                }
+                <div class="title-wrap">
+                    <span class="post-id">#@comment.posting.getNumber</span>
+                    <a href="@routes.BoardApp.post(comment.posting.project.owner, comment.posting.project.name, comment.posting.getNumber)#comment-@comment.id">
+                        Re) @comment.posting.title
+                    </a>
+                </div>
+                <div class="search-content">
+                   @defining(searchResult.makeSnipets(comment.contents, 40)) { snipets =>
+                        @if(snipets != null && snipets.size > 0) {
+                            @for(snipet <- snipets) {
+                            <p class="search-content-body">
+                                @snipet @if(snipet.size < comment.contents.size) { ..... }
+                            </p>
+                            }
+                        }
+                    }                        
+                </div>
+                <div class="search-meta-info">
+                    @if(project == null) {
+                    <a href="@routes.ProjectApp.project(comment.posting.project.owner, comment.posting.project.name)" class="project-link meta-item">
+                        @comment.posting.project.owner/@comment.posting.project.name
+                    </a>
+                    }
+                    <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap meta" data-toggle="tooltip" data-placement="top" title="@user.loginId">
+                        @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){
+                            <img src="@urlToPicture(user.email, 16)">
+                        } else {
+                            <img src="@user.avatarUrl" alt="@user.name" width="16" height="16"/>
+                        }
+                    </a>
+                    @if(user.name){
+                        <a href="@routes.UserApp.userInfo(user.loginId)" class="meta-item" data-toggle="tooltip" data-placement="top" title="@user.loginId">
+                            @user.name
+                        </a>
+                    } else {
+                        <span class="meta-item">@Messages("posting.noAuthor")</span>
+                    }
+
+                    <span class="meta-item" title="@JodaDateUtil.getDateString(comment.createdDate)">
+                        @agoOrDateString(comment.createdDate)
+                    </span>               
+                </div>                
+            </li>
+            }
+        }
+    </ul>
+    <!-- pagination.js will fill here. -->
+    <div id="pagination"></div>
+
+    <script type="text/javascript">
+        $(document).ready(function(){
+            yobi.Pagination.update($("#pagination"), @page.getTotalPageCount);
+        });
+    </script>
+    } else {
+        <div class="empty-result"></div>
+    }
+}

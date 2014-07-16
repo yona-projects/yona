@@ -14,6 +14,10 @@ public enum SearchType {
         this.searchType = value;
     }
 
+    public String getType() {
+        return this.searchType;
+    }
+
     public static SearchType getValue(String value) {
         for (SearchType searchType : SearchType.values()) {
             if (searchType.searchType.equals(value)) {
