@@ -65,7 +65,7 @@ public class IssueLabel extends Model implements ResourceConvertible {
         return finder.where()
                 .eq("project.id", project.id)
                 .orderBy().asc("category.name")
-                .orderBy().asc("id")
+                .orderBy().asc("name")
                 .findList();
     }
 
