@@ -524,6 +524,14 @@ public class ProjectApp extends Controller {
             return badRequest(ErrorViews.BadRequest.render());
         }
 
+        User projectOwner = User.findByLoginId(project.owner);
+        Organization projectOrg = Organization.findByName(project.owner);
+        if(destOwner.equals(projectOwner) || projectOrg.equals(destOrg)) {
+            flash(Constants.INFO, "project.transfer.has.same.owner");
+            Form<Project> projectForm = form(Project.class).fill(project);
+            return ok(transfer.render("title.projectTransfer", projectForm, project));
+        }
+
         ProjectTransfer pt = null;
         // make a request to move to an user
         if (!destOwner.isAnonymous()) {
@@ -576,6 +584,8 @@ public class ProjectApp extends Controller {
         project.name = newProjectName;
         if (newOwnerOrg != null) {
             project.organization = newOwnerOrg;
+        } else {
+            project.organization = null;
         }
         project.update();
 
