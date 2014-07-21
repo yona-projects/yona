@@ -111,7 +111,8 @@
         </div>
         }
 
-        <div id="attaching-label" class="btn-group" data-name="attachingLabel[0].id">
+        @if(!IssueLabel.findByProject(project).isEmpty){
+        <div id="attaching-label" class="btn-group" data-name="attachingLabelIds">
             <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
                 <span class="d-label">@Messages("issue.update.attachLabel")</span>
                 <span class="d-caret"><span class="caret"></span></span>
@@ -121,7 +122,7 @@
             </ul>
         </div>
 
-        <div id="detaching-label" class="btn-group" data-name="detachingLabel[0].id">
+        <div id="detaching-label" class="btn-group" data-name="detachingLabelIds">
             <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
                 <span class="d-label">@Messages("issue.update.detachLabel")</span>
                 <span class="d-caret"><span class="caret"></span></span>
@@ -130,6 +131,7 @@
                 @labelList(project)
             </ul>
         </div>
+        }
     </form>
 </div>
 <script type="text/javascript">

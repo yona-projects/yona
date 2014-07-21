@@ -340,15 +340,15 @@ public class IssueApp extends AbstractPostingApp {
                 }
             }
 
-            if (issueMassUpdate.attachingLabel != null) {
-                for (IssueLabel label : issueMassUpdate.attachingLabel) {
-                    issue.labels.add(label);
+            if (issueMassUpdate.attachingLabelIds != null) {
+                for (Long labelId : issueMassUpdate.attachingLabelIds) {
+                    issue.labels.add(IssueLabel.finder.byId(labelId));
                 }
             }
 
-            if (issueMassUpdate.detachingLabel != null) {
-                for (IssueLabel label : issueMassUpdate.detachingLabel) {
-                    issue.labels.remove(label);
+            if (issueMassUpdate.detachingLabelIds != null) {
+                for (Long labelId : issueMassUpdate.detachingLabelIds) {
+                    issue.labels.remove(IssueLabel.finder.byId(labelId));
                 }
             }
 

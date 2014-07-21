@@ -111,4 +111,28 @@ public class IssueLabel extends Model implements ResourceConvertible {
             }
         };
     }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) return true;
+        if (object == null || getClass() != object.getClass()) return false;
+        if (!super.equals(object)) return false;
+
+        IssueLabel that = (IssueLabel) object;
+
+        if (!color.equals(that.color)) return false;
+        if (!id.equals(that.id)) return false;
+        if (!name.equals(that.name)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (id != null ? id.hashCode() : 0);
+        result = 31 * result + color.hashCode();
+        result = 31 * result + name.hashCode();
+        return result;
+    }
 }
