@@ -49,7 +49,8 @@ object ApplicationBuild extends Build {
       "commons-collections" % "commons-collections" % "3.2.1",
       "org.jsoup" % "jsoup" % "1.7.2",
       "com.googlecode.juniversalchardet" % "juniversalchardet" % "1.0.3",
-      "org.mockito" % "mockito-all" % "1.9.0" % "test"
+      "org.mockito" % "mockito-all" % "1.9.0" % "test",
+      "com.github.zafarkhaja" % "java-semver" % "0.7.2"
   )
 
     val projectSettings = Seq(

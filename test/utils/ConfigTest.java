@@ -100,4 +100,13 @@ public class ConfigTest {
         assertThat(Config.getSiteName()).isEqualTo("Yobi");
         Helpers.stop(app);
     }
+
+    @Test
+    public void semverize() {
+        assertThat(Config.semverize("0.5.7")).isEqualTo("0.5.7");
+        assertThat(Config.semverize("v0.5.7")).isEqualTo("0.5.7");
+        assertThat(Config.semverize("0.5")).isEqualTo("0.5.0");
+        assertThat(Config.semverize("0.4.0.pre")).isEqualTo("0.4.0-pre");
+        assertThat(Config.semverize("0.5-alpha")).isEqualTo("0.5.0-alpha");
+    }
 }

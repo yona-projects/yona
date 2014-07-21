@@ -31,6 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.SimpleEmail;
 import org.codehaus.jackson.node.ObjectNode;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import play.Configuration;
 import play.Logger;
 import play.db.ebean.Transactional;
@@ -48,6 +49,8 @@ import views.html.site.*;
 import java.util.*;
 
 import static play.libs.Json.toJson;
+
+import utils.Config;
 
 /**
  * The Class SiteApp.
@@ -246,5 +249,24 @@ public class SiteApp extends Controller {
         }
 
         return ok(toJson(emails));
+    }
+
+    /**
+     * Show the page to update Yobi.
+     */
+    public static Result update() throws GitAPIException {
+        String currentVersion = null;
+        String versionToUpdate = null;
+        Exception exception = null;
+
+        try {
+            currentVersion = Config.getCurrentVersion();
+            versionToUpdate = YobiUpdate.fetchVersionToUpdate();
+        } catch (Exception e) {
+            exception = e;
+        }
+
+        return ok(update.render(
+                "title.siteSetting", currentVersion, versionToUpdate, exception));
     }
 }
