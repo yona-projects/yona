@@ -81,14 +81,14 @@
                     <li data-value="@UserApp.currentUser().id"><a>@Messages("issue.assignToMe")</a></li>
                 }
                 <li class="divider"></li>
-                @for(member <- project.members()) {
-                    <li data-value="@member.user.id">
+                @for(user <- project.getAssignableUsers()) {
+                    <li data-value="@user.id">
                         <a class="usf-group">
                             <span class="avatar-wrap smaller">
-                                <img src="@member.user.avatarUrl" width="20" height="20">
+                                <img src="@user.avatarUrl" width="20" height="20">
                             </span>
-                            <strong class="name">@member.user.name</strong>
-                            <span class="loginid"> <strong>@{"@"}</strong>@member.user.loginId</span>
+                            <strong class="name">@user.name</strong>
+                            <span class="loginid"> <strong>@{"@"}</strong>@user.loginId</span>
                         </a>
                     </li>
                 }
