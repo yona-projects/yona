@@ -124,7 +124,7 @@
             weEvt.preventDefault();
 
             var link = $(this);
-            var targetQuery = "[data-search=labelIds][data-category-id=" + link.data("categoryId") + "]";
+            var targetQuery = "[data-search=labelIds]";
             var target = htElement.welSearchForm.find(targetQuery);
 
             var labelId = link.data("labelId");
@@ -241,6 +241,19 @@
                 $('[data-toggle="select2"]').each(function(i, el){
                     yobi.ui.Select2(el);
                 });
+
+                _restoreLabelsSelect2AfterPJAX();
+            }
+        }
+
+        function _restoreLabelsSelect2AfterPJAX(){
+            var activeSelect2Dropdown = $(".select2-drop.select2-drop-active");
+            var isIssueLabelDropdownOpened = activeSelect2Dropdown.hasClass("issue-labels");
+
+            activeSelect2Dropdown.remove();
+
+            if(isIssueLabelDropdownOpened){
+                $("[name=labelIds]").data("select2").open();
             }
         }
 

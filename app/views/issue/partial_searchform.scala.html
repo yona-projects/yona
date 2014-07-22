@@ -81,6 +81,7 @@
             </dd>
         </dl>
 
+        @if(!Milestone.findByProjectId(project.id).isEmpty){
         <dl class="issue-option">
             <dt>@Messages("milestone")</dt>
             <dd>
@@ -123,6 +124,7 @@
                     @views.html.milestone.partial_status(milestone, project)
                 }
             }
+        }
         }
 
         <dl class="issue-option">

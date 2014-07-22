@@ -96,6 +96,7 @@
         </div>
 
         @if(project.menuSetting.milestone) {
+        @if(!Milestone.findOpenMilestones(project.id).isEmpty){
         <div id="milestone" class="btn-group" data-name="milestone.id">
             <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
                 <span class="d-label">@Messages("issue.update.milestone.id")</span>
@@ -109,6 +110,7 @@
                 }
             </ul>
         </div>
+        }
         }
 
         @if(!IssueLabel.findByProject(project).isEmpty){

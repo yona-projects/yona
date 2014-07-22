@@ -162,8 +162,8 @@
             var requestData = {"issues[0].id": vars.issueId};
 
             if(fieldName === "labelIds"){
-                requestData["detachingLabel[0].id"] = _getIdPropFromObject(evt.removed);
-                requestData["attachingLabel[0].id"] = _getIdPropFromObject(evt.added);
+                requestData["attachingLabelIds"] = _getIdProps(evt.added);
+                requestData["detachingLabelIds"] = _getIdProps(evt.removed);
             } else {
                 requestData[fieldName] = fieldValue;
             }
@@ -176,14 +176,27 @@
         }
 
         /**
-         * Returns "id" property of given object if exists
+         * Returns "id" properties of given object.
+         * If {@code source} is array, extract "id" property of each object in the array.
          *
-         * @param o
-         * @returns {o.id|*}
+         * @param source
+         * @returns {Array}
          * @private
          */
-        function _getIdPropFromObject(o){
-            return (o && o.id) ? o.id : undefined;
+        function _getIdProps(source){
+            var result = [];
+
+            if(source instanceof Array){
+                source.forEach(function(obj){
+                    if(obj && obj.id){
+                        result.push(obj.id);
+                    }
+                });
+            } else if(source && source.id){
+                result.push(source.id);
+            }
+
+            return (result.length > 0) ? result : undefined;
         }
 
         /**
