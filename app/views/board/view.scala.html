@@ -46,21 +46,21 @@
 
     	@** Content body **@
     	<div class="board-body">
-    		<div class="author-info">
-    			<a href="@routes.UserApp.userInfo(post.authorLoginId)" class="avatar-wrap pull-left mr10">
-    				<img src="@User.findByLoginId(post.authorLoginId).avatarUrl" width="32" height="32" alt="@post.authorName">
-    			</a>
-    			<div class="media-body">
-    				<p>
-    					<a href="@routes.UserApp.userInfo(post.authorLoginId)"><strong>@post.authorLoginId</strong> (@post.authorName)</a>
-    				</p>
-    				<p class="status">
-    				    @Messages("comment") <strong class="num">@post.numOfComments</strong>
-    				</p>
-    			</div>
-    		</div>
+        <div class="author-info">
+          <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="usf-group">
+            <span class="avatar-wrap smaller">
+              <img src="@User.findByLoginId(post.authorLoginId).avatarUrl" width="20" height="20">
+            </span>
+            @if(post.authorLoginId != null){
+              <strong class="name">@post.authorName</strong>
+              <span class="loginid"> <strong>@{"@"}</strong>@post.authorLoginId</span>
+            } else {
+              <strong class="name">@Messages("common.noAuthor")</strong>
+            }
+          </a>
+        </div>
     		<div class="content markdown-wrap markdown-before" markdown="true">@post.body</div>
-            <div class="attachments" id="attachments" data-resource-type="@ResourceType.BOARD_POST" data-resource-id="@post.id"></div>
+        <div class="attachments" id="attachments" data-resource-type="@ResourceType.BOARD_POST" data-resource-id="@post.id"></div>
     	</div>
     	<div class="board-footer board-actrow">
     	    <div class="pull-left">
