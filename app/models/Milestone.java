@@ -26,12 +26,11 @@ import models.resource.ResourceConvertible;
 import models.support.*;
 
 import org.apache.commons.lang3.time.DateUtils;
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
 import play.data.format.*;
 import play.data.validation.*;
 import play.db.ebean.*;
 import play.i18n.Messages;
+import utils.JodaDateUtil;
 
 import javax.persistence.*;
 import java.text.*;
@@ -245,24 +244,24 @@ public class Milestone extends Model implements ResourceConvertible {
         return (count == 0);
     }
 
-    public String until(){
-        Date now = DateUtils.truncate(new Date(), Calendar.DATE);
-        Date dueDate = DateUtils.truncate(this.dueDate, Calendar.DATE);
-        Duration duration = new Duration(new DateTime(now), new DateTime(dueDate));
-        long days = duration.getStandardDays();
-        if(days < 0) {
-            return Messages.get("common.time.overday", -days);
-        } else if(days == 0) {
+    public String until() {
+        if (dueDate == null) {
+            return null;
+        }
+
+        Date now = JodaDateUtil.now();
+
+        if (DateUtils.isSameDay(now, dueDate)) {
             return Messages.get("common.time.today");
+        } else if (isOverDueDate()) {
+            return Messages.get("common.time.overday", JodaDateUtil.localDaysBetween(dueDate, now));
         } else {
-            return Messages.get("common.time.leftday", days);
+            return Messages.get("common.time.leftday", JodaDateUtil.localDaysBetween(now, dueDate));
         }
     }
 
     public Boolean isOverDueDate(){
-        Duration duration = new Duration(DateTime.now(), new DateTime(dueDate));
-        long days = duration.getStandardDays();
-        return (days < 0);
+        return (JodaDateUtil.ago(dueDate).getMillis() > 0);
     }
 
     @Override
@@ -287,12 +286,12 @@ public class Milestone extends Model implements ResourceConvertible {
 
     public void open() {
         this.state = State.OPEN;
-        super.update();
+        update();
     }
 
     public void close() {
         this.state = State.CLOSED;
-        super.update();
+        update();
     }
 
     public boolean isNullMilestone() {
@@ -305,5 +304,4 @@ public class Milestone extends Model implements ResourceConvertible {
                 .eq("state", State.OPEN)
                 .findRowCount();
     }
-
 }
