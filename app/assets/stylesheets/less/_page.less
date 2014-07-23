@@ -2628,10 +2628,24 @@
 }
 .attachments {
     ul { list-style-type:none; margin:0; margin-left:18px; }
-    i { margin-right:5px; }
 
+    .yobicon-paperclip {
+        vertical-align: middle;
+    }
+    .filename {
+        margin-left:5px;
+    }
+    .filesize {
+        font-size:10px;
+        color:#999;
+        margin-left:5px;
+    }
     .download {
         margin-left:5px;
+        i,span { vertical-align: middle;}
+    }
+    .attach {
+        line-height: 23px;
     }
 }
 
@@ -2723,14 +2737,24 @@
 
                 .attach {
                     color: #4489A4;
-                    padding:10px;
+                    padding:7px 10px;
                     background-color:#f8f8f8;
                     border-top:1px solid #BDC3C7;
                     border-left:1px solid #BDC3C7;
-                    .border-radius(3px);
 
-                    .yobicon-paperclip {vertical-align:middle;margin-top: 4px;}
+                    &:first-of-type {
+                        .border-radius(3px 0 0 0);
+                    }
+                    .yobicon-paperclip {vertical-align:middle;}
+                    .ybtn.download {
+                        color: inherit;
+                        float: right;
+                        background-color: rgba(255,255,255,0.5);
 
+                        &:hover, &:focus {
+                            background-color: rgba(255,255,255,0.85);
+                        }
+                    }
                 }
 
                 .comment-body {
