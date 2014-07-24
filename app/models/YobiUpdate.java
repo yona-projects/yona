@@ -38,14 +38,51 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class YobiUpdate {
+    private static final Long UPDATE_NOTIFICATION_INITDELAY_IN_MILLIS = Configuration.root()
+            .getMilliseconds("application.update.notification.initdelay", 5 * 1000L);
+    private static final Long UPDATE_NOTIFICATION_INTERVAL_IN_MILLIS = Configuration.root()
+            .getMilliseconds("application.update.notification.interval", 60 * 60 * 1000L);
     private static final String UPDATE_REPOSITORY_URL = Configuration.root()
             .getString("application.update.repositoryUrl", "http://demo.yobi.io/naver/Yobi");
     private static final String RELEASE_URL_FORMAT = Configuration.root()
             .getString("application.update.releaseUrlFormat",
                     "https://github.com/naver/yobi/releases/tag/v%s");
 
+    public static String versionToUpdate = null;
+
+    public static boolean isWatched = true;
+
+    public static void onStart() {
+        if (UPDATE_NOTIFICATION_INTERVAL_IN_MILLIS <= 0) {
+            return;
+        }
+
+        Akka.system().scheduler().schedule(
+            Duration.create(UPDATE_NOTIFICATION_INITDELAY_IN_MILLIS, TimeUnit.MILLISECONDS),
+            Duration.create(UPDATE_NOTIFICATION_INTERVAL_IN_MILLIS, TimeUnit.MILLISECONDS),
+            new Runnable() {
+                public void run() {
+                    try {
+                        refreshVersionToUpdate();
+                    } catch (Exception e) {
+                        play.Logger.warn("Failed to fetch the latest Yobi version to update", e);
+                    }
+                }
+            },
+            Akka.system().dispatcher()
+        );
+    }
+
+    public static String getReleaseUrl() throws GitAPIException {
+        return getReleaseUrl(versionToUpdate);
+    }
+
     public static String getReleaseUrl(String version) throws GitAPIException {
         return String.format(RELEASE_URL_FORMAT, version);
+    }
+
+    public static void refreshVersionToUpdate() throws GitAPIException {
+        versionToUpdate = fetchVersionToUpdate();
     }
 
     /**

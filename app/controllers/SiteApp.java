@@ -252,21 +252,28 @@ public class SiteApp extends Controller {
     }
 
     /**
+     * Hide the notification for Yobi updates.
+     */
+    public static Result unwatchUpdate() {
+        YobiUpdate.isWatched = false;
+        return ok();
+    }
+
+    /**
      * Show the page to update Yobi.
      */
     public static Result update() throws GitAPIException {
         String currentVersion = null;
-        String versionToUpdate = null;
         Exception exception = null;
 
         try {
             currentVersion = Config.getCurrentVersion();
-            versionToUpdate = YobiUpdate.fetchVersionToUpdate();
+            YobiUpdate.refreshVersionToUpdate();
         } catch (Exception e) {
             exception = e;
         }
 
-        return ok(update.render(
-                "title.siteSetting", currentVersion, versionToUpdate, exception));
+        return ok(update.render("title.siteSetting", currentVersion,
+                    YobiUpdate.versionToUpdate, exception));
     }
 }

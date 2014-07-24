@@ -69,6 +69,7 @@ public class Global extends GlobalSettings {
         NotificationMail.onStart();
         NotificationEvent.onStart();
         Attachment.onStart();
+        YobiUpdate.onStart();
     }
 
     private boolean equalsDefaultSecret() {

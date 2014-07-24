@@ -129,6 +129,8 @@ application.notification.draft-time = 30s
 
 # Software Update
 # ~~~~~~~~~~~~~~~
+# Check for updates of Yobi at this interval if it is grater than 0.
+application.update.notification.interval = 1d
 # A url to the git repository for Yobi releases.
 application.update.repositoryUrl = "https://github.com/naver/yobi"
 # A format to construct the url to latest Yobi release. "%s" is a format
