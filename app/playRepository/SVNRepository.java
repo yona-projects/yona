@@ -20,7 +20,6 @@
  */
 package playRepository;
 
-import controllers.ProjectApp;
 import controllers.UserApp;
 import controllers.routes;
 import models.Project;
@@ -438,5 +437,10 @@ public class SVNRepository implements PlayRepository {
             play.Logger.error("Move Failed", e);
             return false;
         }
+    }
+
+    @Override
+    public File getDirectory() {
+        return new File(getRepoPrefix() + ownerName + "/" + projectName);
     }
 }

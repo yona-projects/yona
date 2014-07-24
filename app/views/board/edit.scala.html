@@ -24,6 +24,7 @@
 @import utils.TemplateHelper._
 @import models.enumeration.ResourceType
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
+@import utils.HtmlUtil._
 
 @projectLayout(title, project, utils.MenuType.BOARD) {
 @projectMenu(project, utils.MenuType.BOARD, "main-menu-only")
@@ -57,6 +58,10 @@
     			<dd class="right-txt">
     				<input type="checkbox" id="notice" name="notice" class="checkbox" @toHtmlArgs(args) @(if(value.equals(Some("true"))) "checked" else "")/><!--
     			 --><label for="notice" class="label-public">@Messages("post.notice.label")</label>
+                @if(project.isGit){
+                    <input type="checkbox" id="readme" name="readme" class="checkbox" @boolToCheckedString(posting.readme)/>
+                    <label for="readme" class="label-public">@Messages("post.readmefy")</label>
+                }
     			</dd>
     			}
     			}

@@ -22,6 +22,7 @@ public class Posting extends AbstractPosting {
     public static final Finder<Long, Posting> finder = new Finder<>(Long.class, Posting.class);
 
     public boolean notice;
+    public boolean readme;
 
     @OneToMany(cascade = CascadeType.ALL)
     public List<PostingComment> comments;
@@ -92,4 +93,20 @@ public class Posting extends AbstractPosting {
     public static int countPostings(Project project) {
         return finder.where().eq("project", project).findRowCount();
     }
+
+    /**
+     * use EBean save functionality directly
+     * to prevent occurring select table lock
+     */
+    public void directSave(){
+        super.directSave();
+    }
+
+    public static Posting findREADMEPosting(Project project) {
+        return Posting.finder.where()
+                .eq("project.id", project.id)
+                .add(eq("readme", true))
+                .findUnique();
+    }
+
 }

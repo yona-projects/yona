@@ -34,6 +34,9 @@
     <div class="title-wrap">
         @if(post.notice){
             <span class="label label-notice">@Messages("post.notice")</span>&nbsp;
+        }
+        @if(post.readme){
+            <span class="label label-important">README</span>&nbsp;
         } else {
             <span class="post-id">@post.getNumber</span>
         }

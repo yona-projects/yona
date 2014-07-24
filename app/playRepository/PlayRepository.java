@@ -24,9 +24,11 @@ import models.resource.Resource;
 
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Repository;
 import org.tigris.subversion.javahl.ClientException;
 import org.tmatesoft.svn.core.SVNException;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -76,4 +78,6 @@ public interface PlayRepository {
     boolean isEmpty();
 
     boolean move(String srcProjectOwner, String srcProjectName, String desrProjectOwner, String destProjectName);
+
+    public File getDirectory();
 }

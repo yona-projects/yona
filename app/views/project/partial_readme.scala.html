@@ -19,20 +19,28 @@
 * limitations under the License.
 **@
 @(project: Project)
+@import utils.AccessControl._
+@import models.enumeration.ResourceType
 
 <div class="bubble-wrap gray readme">
 @if(project.readme == null){
     <p class="default">
-       <span class="v"></span>
           @if(project.vcs.equals("GIT")) {
-              <span>@Messages("project.readme")</span>
+            <span>@Messages("project.readme")</span><br/><br/>
+              @if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.COMMIT)) {
+              <a href="@routes.BoardApp.newPostForm(project.owner, project.name)?readme=true" class="ybtn">@Messages("project.readme.create")</a>
+              }
           } else {
               <span>@Messages("project.svn.readme")</span>
           }
     </p>
 } else {
     <div class="readme-wrap">
-        <header><i class="yobicon-book-open"></i><strong> @project.getReadmeFileName</strong></header>
+        <header><i class="yobicon-book-open"></i><strong> @project.getReadmeFileName</strong>
+            @if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.COMMIT)) {
+                <a href="@routes.BoardApp.newPostForm(project.owner, project.name)?readme=true" class="ybtn">edit</a>
+            }
+        </header>
         <div class="readme-body markdown-wrap markdown-before" markdown="true">@project.readme</div>
     </div>
 }

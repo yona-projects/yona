@@ -21,7 +21,6 @@
 package controllers;
 
 import actions.AnonymousCheckAction;
-import actions.DefaultProjectCheckAction;
 import actions.NullProjectCheckAction;
 
 import com.avaje.ebean.ExpressionList;
@@ -41,6 +40,8 @@ import play.libs.Json;
 import play.mvc.Call;
 import play.mvc.Result;
 import play.mvc.With;
+import playRepository.BareCommit;
+import playRepository.BareRepository;
 import utils.AccessControl;
 import utils.ErrorViews;
 import utils.JodaDateUtil;
@@ -98,7 +99,20 @@ public class BoardApp extends AbstractPostingApp {
         boolean isAllowedToNotice =
                 AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.BOARD_NOTICE);
 
-        return ok(create.render("post.new", new Form<>(Posting.class), project, isAllowedToNotice));
+        String preparedBodyText = "";
+        if(readmeEditRequested() && projectHasReadme(project)){
+            preparedBodyText = BareRepository.readREADME(project);
+        }
+
+        return ok(create.render("post.new", new Form<>(Posting.class), project, isAllowedToNotice, preparedBodyText));
+    }
+
+    private static boolean projectHasReadme(Project project) {
+        return project.readme() != null;
+    }
+
+    private static boolean readmeEditRequested() {
+        return request().getQueryString("readme") != null;
     }
 
     @Transactional
@@ -110,7 +124,7 @@ public class BoardApp extends AbstractPostingApp {
         if (postForm.hasErrors()) {
             boolean isAllowedToNotice =
                     AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.BOARD_NOTICE);
-            return badRequest(create.render("error.validation", postForm, project, isAllowedToNotice));
+            return badRequest(create.render("error.validation", postForm, project, isAllowedToNotice, ""));
         }
 
         final Posting post = postForm.get();
@@ -124,19 +138,42 @@ public class BoardApp extends AbstractPostingApp {
         post.setAuthor(UserApp.currentUser());
         post.project = project;
 
+        if (post.readme) {
+            Posting readmePosting = Posting.findREADMEPosting(project);
+            if (readmePosting != null) {
+                return editPost(userName, projectName, readmePosting.getNumber());
+            } else {
+                commitReadmeFile(project, post);
+            }
+        }
         post.save();
-
         attachUploadFilesToPost(post.asResource());
-
         NotificationEvent.afterNewPost(post);
 
+        if (post.readme) {
+            return redirect(routes.ProjectApp.project(userName, projectName));
+        }
         return redirect(routes.BoardApp.post(project.owner, project.name, post.getNumber()));
+    }
+
+    private static void commitReadmeFile(Project project, Posting post){
+        BareCommit bare = new BareCommit(project, UserApp.currentUser());
+        try{
+            bare.commitTextFile("README.md", post.body, post.title);
+        } catch (IOException e) {
+            e.printStackTrace();
+            play.Logger.error(e.getMessage());
+        }
     }
 
     @IsAllowed(value = Operation.READ, resourceType = ResourceType.BOARD_POST)
     public static Result post(String userName, String projectName, Long number) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         Posting post = Posting.findByNumber(project, number);
+
+        if(post.readme){
+            post.body = BareRepository.readREADME(project);
+        }
 
         if (request().getHeader("Accept").contains("application/json")) {
             ObjectNode json = Json.newObject();
@@ -163,6 +200,9 @@ public class BoardApp extends AbstractPostingApp {
         Form<Posting> editForm = new Form<>(Posting.class).fill(posting);
         boolean isAllowedToNotice = ProjectUser.isAllowedToNotice(UserApp.currentUser(), project);
 
+        if(posting.readme){
+            posting.body = BareRepository.readREADME(project);
+        }
         return ok(edit.render("post.modify", editForm, posting, number, project, isAllowedToNotice));
     }
 
@@ -183,7 +223,11 @@ public class BoardApp extends AbstractPostingApp {
 
         final Posting post = postForm.get();
         final Posting original = Posting.findByNumber(project, number);
-
+        if (post.readme) {
+            post.setAuthor(UserApp.currentUser());
+            commitReadmeFile(project, post);
+            unmarkAnotherReadmePostingIfExists(project, number);
+        }
         Call redirectTo = routes.BoardApp.post(project.owner, project.name, number);
         Runnable updatePostingBeforeUpdate = new Runnable() {
             @Override
@@ -193,6 +237,14 @@ public class BoardApp extends AbstractPostingApp {
         };
 
         return editPosting(original, post, postForm, redirectTo, updatePostingBeforeUpdate);
+    }
+
+    private static void unmarkAnotherReadmePostingIfExists(Project project, Long postingNumber) {
+        Posting previousReadmePosting = Posting.findREADMEPosting(project);
+        if(previousReadmePosting != null && previousReadmePosting.getNumber() != postingNumber){
+            previousReadmePosting.readme = false;
+            previousReadmePosting.directSave();
+        }
     }
 
     /**

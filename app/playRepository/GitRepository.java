@@ -1925,4 +1925,9 @@ public class GitRepository implements PlayRepository {
             return false;
         }
     }
+
+    @Override
+    public File getDirectory() {
+        return this.repository.getDirectory();
+    }
 }

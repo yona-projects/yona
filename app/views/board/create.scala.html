@@ -18,12 +18,18 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(title:String, form:Form[Posting], project:Project, isAllowedToNotice:Boolean)
+@(title:String, form:Form[Posting], project:Project, isAllowedToNotice:Boolean, preparedPostBody:String = "")
 
-@import scala.collection.Map
 @import utils.TemplateHelper._
+@import utils.HtmlUtil._
 @import models.enumeration._
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
+
+@readmeUpdateMessage = @{
+    if( request().getQueryString("readme") != null ) {
+        "Update README.md"
+    }
+}
 
 @projectLayout(title, project, utils.MenuType.BOARD) {
 @projectMenu(project, utils.MenuType.BOARD, "main-menu-only")
@@ -37,7 +43,7 @@
     			</dt>
     			<dd>
     				@defining(form.errors().get("title")) { errors =>
-    				<input type="text" id="title" name="title" class="zen-mode text title @if(errors != null) {error}" maxlength="250" tabindex="1" />
+				<input type="text" id="title" name="title" class="zen-mode text title @if(errors != null) {error}" maxlength="250" tabindex="1" value="@readmeUpdateMessage"/>
     					@if(errors != null) {
     						<div class="message">
     						@for(error <- errors) {
@@ -49,13 +55,18 @@
     			</dd>
 
                 <dd style="position: relative;">
-                    @common.editor("body", "", "tabindex=2")
+                    @common.editor("body", preparedPostBody, "tabindex=2")
     			</dd>
 
     			@if(isAllowedToNotice){
     			<dd class="right-txt">
     				<input type="checkbox" id="notice" name="notice" class="checkbox" /><!--
     			 --><label for="notice" class="label-public">@Messages("post.notice.label")</label>
+                    @if(project.isGit && request().getQueryString("readme") != null ) {
+                        <input type="checkbox" id="readme" name="readme" class="checkbox" @boolToCheckedString(request().getQueryString("readme"))
+                        /><!--
+                    --><label for="readme" class="label-public">@Messages("post.readmefy")</label>
+                    }
     			</dd>
     			}
     		</dl>
