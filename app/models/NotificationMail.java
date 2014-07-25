@@ -208,8 +208,20 @@ public class NotificationMail extends Model {
     }
 
     private static String getHtmlMessage(Lang lang, String message, String urlToView) {
-        Document doc = Jsoup.parse(Markdown.render(message));
+        String content = getRenderedHTMLWithTemplate(lang, Markdown.render(message), urlToView);
+        Document doc = Jsoup.parse(content);
 
+        handleLinks(doc);
+        handleImages(doc);
+
+        return doc.html();
+    }
+
+    private static String getRenderedHTMLWithTemplate(Lang lang, String message, String urlToView){
+        return views.html.common.notificationMail.render(lang, message, urlToView).toString();
+    }
+
+    private static void handleLinks(Document doc){
         String[] attrNames = {"src", "href"};
         for (String attrName : attrNames) {
             Elements tags = doc.select("*[" + attrName + "]");
@@ -224,15 +236,6 @@ public class NotificationMail extends Model {
                 }
             }
         }
-
-        handleImages(doc);
-
-        if (urlToView != null) {
-            doc.body().append(String.format("<hr><a href=\"%s\">%s</a>", urlToView,
-                    Messages.get(lang, "notification.linkToView", utils.Config.getSiteName())));
-        }
-
-        return doc.html();
     }
 
     private static void handleImages(Document doc){
@@ -252,5 +255,4 @@ public class NotificationMail extends Model {
 
         return msg;
     }
-
 }
