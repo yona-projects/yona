@@ -42,10 +42,7 @@ import play.libs.Json;
 import play.mvc.*;
 import play.mvc.Http.Cookie;
 import utils.*;
-import views.html.user.edit;
-import views.html.user.login;
-import views.html.user.signup;
-import views.html.user.view;
+import views.html.user.*;
 
 import java.util.*;
 
@@ -560,6 +557,52 @@ public class UserApp extends Controller {
         Form<User> userForm = new Form<>(User.class);
         userForm = userForm.fill(user);
         return ok(edit.render(userForm, user));
+    }
+
+    @With(AnonymousCheckAction.class)
+    public static Result editUserInfoByTabForm(String tabId) {
+        User user = UserApp.currentUser();
+        Form<User> userForm = new Form<>(User.class);
+        userForm = userForm.fill(user);
+
+        switch(UserInfoFormTabType.fromString(tabId)){
+            case PASSWORD:
+                return ok(edit_password.render(userForm, user));
+            case NOTIFICATIONS:
+                return ok(edit_notifications.render(userForm, user));
+            case EMAILS:
+                return ok(edit_emails.render(userForm, user));
+            default:
+            case PROFILE:
+                return ok(edit.render(userForm, user));
+        }
+    }
+
+    private enum UserInfoFormTabType {
+        PROFILE("profile"),
+        PASSWORD("password"),
+        NOTIFICATIONS("notifications"),
+        EMAILS("emails");
+
+        private String tabId;
+
+        UserInfoFormTabType(String tabId) {
+            this.tabId = tabId;
+        }
+
+        public String value(){
+            return tabId;
+        }
+
+        public static UserInfoFormTabType fromString(String text)
+            throws IllegalArgumentException {
+            for(UserInfoFormTabType tab : UserInfoFormTabType.values()){
+                if (tab.value().equalsIgnoreCase(text)) {
+                    return tab;
+                }
+            }
+            throw new IllegalArgumentException("Invalid tabId");
+        }
     }
 
     @With(AnonymousCheckAction.class)
