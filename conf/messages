@@ -309,6 +309,7 @@ notification.issue.closed  = Issue has been closed
 notification.issue.reopened = Issue has been reopened
 notification.issue.unassigned = Issue has been unassigned
 notification.linkToView = View it on {0}
+notification.linkToSettings = You can change settings at <a href="{0}" target="_blank" style="color:#4399e2; text-decoration:underline;">{1}</a>.
 notification.member.enroll.accept = Accepted as a member.
 notification.member.enroll.cancel = The request for joining your project has been withdrawn.
 notification.member.enroll.request = Received a request for joining your project.
@@ -316,6 +317,7 @@ notification.member.request.accept.title = Re: [{0}] {1} is accepted as a member
 notification.member.request.cancel.title = [{0}] {1} cancels the request to be a member.
 notification.member.request.title = [{0}] {1} wants to join your project
 notification.none = No notification has been received.
+notification.notified.why = You are receiving this notification email because you are member of or on watching this project.
 notification.organization.member.enroll.accept = Joined as a member.
 notification.organization.member.enroll.cancel = The request for joining your group has been canceled.
 notification.organization.member.enroll.request = Received a request for joining your group.

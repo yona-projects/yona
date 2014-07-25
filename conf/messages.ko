@@ -309,6 +309,7 @@ notification.issue.closed  = 이슈 닫힘
 notification.issue.reopened = 이슈 다시 열림
 notification.issue.unassigned = 이슈 담당자 없음
 notification.linkToView = {0}에서 보기
+notification.linkToSettings = <br>수신 여부는 <a href="{0}" target="_blank" style="color:#4399e2; text-decoration:underline;">{1}</a>에서 수정하실 수 있습니다.
 notification.member.enroll.accept = 멤버로 등록됨
 notification.member.enroll.cancel = 멤버 등록 요청이 취소됨
 notification.member.enroll.request = 멤버 등록 요청을 받음
@@ -316,6 +317,7 @@ notification.member.request.accept.title = [{0}] {1} 님을 멤버로 등록했�
 notification.member.request.cancel.title = [{0}] {1} 님이 멤버 요청을 취소하였습니다.
 notification.member.request.title = [{0}] {1} 님이 멤버 요청을 보냈습니다.
 notification.none = 알림 메시지가 없습니다.
+notification.notified.why = 참여 중이거나 지켜보는 프로젝트에서 발송된 알림입니다.
 notification.organization.member.enroll.accept = 멤버로 등록됨
 notification.organization.member.enroll.cancel = 멤버 등록 요청이 취소됨
 notification.organization.member.enroll.request = 멤버 등록 요청을 받음

@@ -24,10 +24,15 @@
   @Html(message)
 </div>
 
-<hr style="border:0; border-bottom:1px solid #ddd; margin-top:20px;">
+<hr style="border:0; border-bottom:1px solid #ddd; margin:20px 0;">
 
 @if(urlToView != null){
 <a href="@urlToView" target="_blank">
   @Messages("notification.linkToView", utils.Config.getSiteName())
 </a>
 }
+
+<div style="max-width:400px;margin-top:20px;color:#989898;font-size:11px;font-family:'Helvetica Neue','Helvetica','Arial','나눔고딕','NanumGothic','NanumGothicOTF','Apple SD Gothic Neo','맑은 고딕',sans-serif;">
+  @Messages("notification.notified.why")
+  @Html(Messages("notification.linkToSettings", routes.UserApp.editUserInfoByTabForm("notifications"), Messages("userinfo.changeNotifications")))
+</div>
