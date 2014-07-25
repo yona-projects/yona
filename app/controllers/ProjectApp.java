@@ -68,6 +68,7 @@ import views.html.project.delete;
 import views.html.project.home;
 import views.html.project.setting;
 import views.html.project.transfer;
+import views.html.project.change_vcs;
 
 import javax.servlet.ServletException;
 
@@ -627,6 +628,27 @@ public class ProjectApp extends Controller {
         ProjectTransfer.deleteExisting(project, pt.sender, pt.destination);
 
         return redirect(routes.ProjectApp.project(project.owner, project.name));
+    }
+
+    @IsAllowed(Operation.UPDATE)
+    public static Result changeVCSForm(String ownerId, String projectName) {
+        Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
+        Form<Project> projectForm = form(Project.class).fill(project);
+        return ok(change_vcs.render("title.projectChangeVCS", projectForm, project));
+    }
+
+    @IsAllowed(Operation.UPDATE)
+    public static Result changeVCS(String ownerId, String projectName) throws Exception {
+        Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
+        try {
+            project.changeVCS();
+            String url = routes.ProjectApp.project(ownerId, projectName).url();
+            response().setHeader("Location", url);
+            return noContent();
+        } catch (Exception e) {
+            Logger.error(e.getMessage());
+        }
+        return internalServerError();
     }
 
     private static void sendTransferRequestMail(ProjectTransfer pt) {
