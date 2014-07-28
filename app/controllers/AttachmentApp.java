@@ -129,6 +129,8 @@ public class AttachmentApp extends Controller {
             return forbidden("You have no permission to get the file.");
         }
 
+        response().setHeader("Cache-Control", "private, no-store, max-age=3600");
+
         String ifNoneMatchValue = request().getHeader("If-None-Match");
         if(ifNoneMatchValue != null && ifNoneMatchValue.equals(eTag)) {
             response().setHeader("ETag", eTag);
