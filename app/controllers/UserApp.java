@@ -116,7 +116,7 @@ public class UserApp extends Controller {
         if(StringUtils.isEmpty(redirectUrl) && !StringUtils.equals(loginFormUrl, referer)) {
             redirectUrl = request().getHeader("Referer");
         }
-        return ok(login.render("title.login", form(User.class), redirectUrl));
+        return ok(login.render("title.login", form(AuthInfo.class), redirectUrl));
     }
 
     public static Result logout() {
@@ -156,14 +156,14 @@ public class UserApp extends Controller {
      *
      * @return
      */
-    private static Result loginByFormRequest(){
-        Form<User> userForm = form(User.class).bindFromRequest();
+    private static Result loginByFormRequest() {
+        Form<AuthInfo> authInfoForm = form(AuthInfo.class).bindFromRequest();
 
-        if(userForm.hasErrors()) {
-            return badRequest(login.render("title.login", userForm, null));
+        if(authInfoForm.hasErrors()) {
+            return badRequest(login.render("title.login", authInfoForm, null));
         }
 
-        User sourceUser = form(User.class).bindFromRequest().get();
+        User sourceUser = User.findByLoginKey(authInfoForm.get().loginIdOrEmail);
 
         if (isUseSignUpConfirm()) {
             if (User.findByLoginId(sourceUser.loginId).state == UserState.LOCKED) {
@@ -177,7 +177,7 @@ public class UserApp extends Controller {
             return redirect(getLoginFormURLWithRedirectURL());
         }
 
-        User authenticate = authenticateWithPlainPassword(sourceUser.loginId, sourceUser.password);
+        User authenticate = authenticateWithPlainPassword(sourceUser.loginId, authInfoForm.get().password);
 
         if (!authenticate.isAnonymous()) {
             addUserInfoToSession(authenticate);
@@ -214,14 +214,14 @@ public class UserApp extends Controller {
      *
      * @return
      */
-    private static Result loginByAjaxRequest(){
-        Form<User> userForm = form(User.class).bindFromRequest();
+    private static Result loginByAjaxRequest() {
+        Form<AuthInfo> authInfoForm = form(AuthInfo.class).bindFromRequest();
 
-        if(userForm.hasErrors()) {
+        if(authInfoForm.hasErrors()) {
             return badRequest(getObjectNodeWithMessage("validation.required"));
         }
 
-        User sourceUser = form(User.class).bindFromRequest().get();
+        User sourceUser = User.findByLoginKey(authInfoForm.get().loginIdOrEmail);
 
         if (isUseSignUpConfirm()) {
             if (User.findByLoginId(sourceUser.loginId).state == UserState.LOCKED) {
@@ -233,7 +233,7 @@ public class UserApp extends Controller {
             return notFound(getObjectNodeWithMessage("user.deleted"));
         }
 
-        User authenticate = authenticateWithPlainPassword(sourceUser.loginId, sourceUser.password);
+        User authenticate = authenticateWithPlainPassword(sourceUser.loginId, authInfoForm.get().password);
 
         if (!authenticate.isAnonymous()) {
             addUserInfoToSession(authenticate);
