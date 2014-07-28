@@ -33,7 +33,19 @@
     <div class="project-page-wrap">
         <div class="code-browse-wrap">
             @partial_info(project, pull, "changes")
-            @partial_branch(pull)
+
+            <div class="board-body mb20">
+                <div class="author-info right-txt mt5">
+                    <a href="@routes.UserApp.userInfo(pull.contributor.loginId)" class="usf-group pull-left">
+                        <span class="avatar-wrap smaller">
+                            <img src="@pull.contributor.avatarUrl" width="32" height="32">
+                        </span>
+                        <strong class="name">@pull.contributor.name</strong>
+                        <span class="loginid"> <strong>@{"@"}</strong>@pull.contributor.loginId</span>
+                    </a>
+                    @partial_branch(pull)
+                </div>
+            </div>
 
             <div class="codediff-wrap mt10 @if(request.cookies.get("diffs-only") != null){diffs-only}">
                 <button type="button" class="ybtn ybtn-default btn-show-reviewcards">

@@ -33,28 +33,19 @@
     <div class="project-page-wrap">
         @partial_info(project, pull, "overview")
 
-        <div class="board-body row-fluid">
-            <div class="span9">
+        <div class="board-body">
+            <div class="author-info right-txt mt5">
+                <a href="@routes.UserApp.userInfo(pull.contributor.loginId)" class="usf-group pull-left">
+                    <span class="avatar-wrap smaller">
+                        <img src="@pull.contributor.avatarUrl" width="32" height="32">
+                    </span>
+                    <strong class="name">@pull.contributor.name</strong>
+                    <span class="loginid"> <strong>@{"@"}</strong>@pull.contributor.loginId</span>
+                </a>
                 @partial_branch(pull)
-                <div class="content markdown-wrap markdown-before" markdown="true">@pull.body</div>
-                <div class="attachments" data-resource-type="@ResourceType.PULL_REQUEST" data-resource-id="@pull.id"></div>
             </div>
-            <div class="span3">
-                <div class="author-info">
-                    <dl class="author">
-                        <dt>@Messages("issue.author")</dt>
-                        <dd>
-                            <a href="@routes.UserApp.userInfo(pull.contributor.loginId)" class="usf-group">
-                                <span class="avatar-wrap smaller">
-                                    <img src="@pull.contributor.avatarUrl" width="32" height="32">
-                                </span>
-                                <strong class="name">@pull.contributor.name</strong>
-                                <span class="loginid"> <strong>@{"@"}</strong>@pull.contributor.loginId</span>
-                            </a>
-                        </dd>
-                    </dl>
-                </div>
-            </div>
+            <div class="content markdown-wrap markdown-before" markdown="true">@pull.body</div>
+            <div class="attachments" data-resource-type="@ResourceType.PULL_REQUEST" data-resource-id="@pull.id"></div>
         </div>
 
         <div id="state" class="pullRequest-stateInfo">
