@@ -26,13 +26,13 @@
         data-toggle="select2" data-format="user">
     <option value="@User.anonymous.id" @if(issue == null || issue.assignee == null){selected}>@Messages("issue.noAssignee")</option>
     @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.ASSIGN_ISSUE)) {
-    <option value="@UserApp.currentUser().id">@Messages("issue.assignToMe")</option>
+    <option value="@UserApp.currentUser().id" data-force-change="true">@Messages("issue.assignToMe")</option>
     }
     @if(issue != null){
         @defining(issue.getAuthor) { issueAuthor =>
             @if(!UserApp.currentUser.equals(issueAuthor) &&
                 isAllowed(issueAuthor, project.asResource(), Operation.ASSIGN_ISSUE)) {
-                <option value="@issueAuthor.id">@Messages("issue.assignToAuthor")</option>
+                <option value="@issueAuthor.id" data-force-change="true">@Messages("issue.assignToAuthor")</option>
             }
         }
     }

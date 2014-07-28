@@ -83,6 +83,12 @@
             htElement.welAssignee.on("change", function(weEvt){
                 htElement.welAssignee.select2("val", weEvt.val);
             });
+
+            htElement.welAssignee.on("select2-selecting", function(weEvt){
+                if($(weEvt.object.element).data("forceChange")){
+                    htElement.welAssignee.trigger("change");
+                }
+            });
         }
 
         function _onBeforeUnload(){

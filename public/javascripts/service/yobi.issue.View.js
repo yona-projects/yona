@@ -100,6 +100,11 @@
 
             // 이슈 정보 업데이트
             htElement.welAssignee.on("change", _onChangeAssignee);
+            htElement.welAssignee.on("select2-selecting", function(weEvt){
+                if($(weEvt.object.element).data("forceChange")){
+                    htElement.welAssignee.trigger("change");
+                }
+            });
             htElement.welMilestone.on("change", _onChangeMilestone);
             htElement.welIssueLabels.on("change", _onChangeIssueLabels);
 
@@ -245,11 +250,12 @@
          * @param {Wrapped Event} weEvt
          */
         function _onChangeAssignee(weEvt){
+            var value = weEvt.val || weEvt.currentTarget.value;
             _requestUpdateIssue({
-               "htData"  : {"assignee.id": weEvt.val},
+               "htData"  : {"assignee.id": value},
                "fOnLoad" : function(){
                    $yobi.notify(Messages("issue.update.assignee"), 3000);
-                   htElement.welAssignee.select2("val", weEvt.val);
+                   htElement.welAssignee.select2("val", value);
                    _updateTimeline();
                },
                "fOnError": function(oRes){
