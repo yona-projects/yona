@@ -21,11 +21,13 @@
 package controllers;
 
 import actions.AnonymousCheckAction;
+import controllers.annotation.IsAllowed;
 import models.Organization;
 import models.User;
 import models.enumeration.Operation;
 
 import models.enumeration.RequestState;
+import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ObjectNode;
 
 import play.data.Form;
@@ -41,6 +43,7 @@ import utils.Constants;
 import utils.ErrorViews;
 import models.*;
 import models.enumeration.RoleType;
+import utils.ValidationResult;
 import views.html.organization.create;
 import views.html.organization.members;
 import views.html.organization.view;
@@ -51,6 +54,8 @@ import javax.validation.ConstraintViolation;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import static play.data.Form.form;
@@ -250,6 +255,40 @@ public class OrganizationApp extends Controller {
         }
 
         return null;
+    }
+
+    @Transactional
+    @With(AnonymousCheckAction.class)
+    public static Result leave(String organizationName) {
+        ValidationResult result = validateForLeave(organizationName);
+
+        if (!result.hasError()) {
+            OrganizationUser.delete(Organization.findByOrganizationName(organizationName).id, UserApp.currentUser().id);
+        }
+
+        return result.getResult();
+    }
+
+    public static ValidationResult validateForLeave(String organizationName) {
+        Organization organization = Organization.findByOrganizationName(organizationName);
+
+        if (organization == null) {
+            return new ValidationResult(notFound(getJsonErrorMsg("organization.member.unknownOrganization")), true);
+        }
+
+        if (OrganizationUser.isAdmin(organization.id, UserApp.currentUser().id)) {
+            if (OrganizationUser.findAdminsOf(organization).size() == 1) {
+                return new ValidationResult(forbidden(getJsonErrorMsg("organization.member.atLeastOneAdmin")), true);
+            }
+        }
+
+        return new ValidationResult(okWithLocation(routes.OrganizationApp.organization(organizationName).url()), false);
+    }
+
+    private static JsonNode getJsonErrorMsg(String errMsg) {
+        Map<String, String> response = new HashMap<>();
+        response.put("errorMsg", errMsg);
+        return Json.toJson(response);
     }
 
     public static Result members(String organizationName) {

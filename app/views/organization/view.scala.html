@@ -22,6 +22,27 @@
 
 @import utils.TemplateHelper._
 @import utils.JodaDateUtil
+@import utils.AccessControl._
+@import models._
+
+@makeLeaveBtn(org: Organization, isShow: Boolean) = {
+@if(!OrganizationApp.validateForLeave(org.name).hasError() && isShow) {
+<button type="button" class="ybtn ybtn-minimum ybtn-danger pull-right" id="groupLeaveBtn" data-href="@routes.OrganizationApp.leave(org.name)">@Messages("organization.member.leave")</button>
+}
+}
+
+@makeUser(organizationUser: OrganizationUser, isShow: Boolean) = {
+@if(isShow) {
+<li class="member">
+    <a href="@routes.UserApp.userInfo(organizationUser.user.loginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@organizationUser.user.loginId">
+        <img src="@organizationUser.user.avatarUrl" height="45" width="45" />
+    </a>
+    <a href="@routes.UserApp.userInfo(organizationUser.user.loginId)" data-toggle="tooltip" data-placement="top" title="@organizationUser.user.loginId">
+        @organizationUser.user.name
+    </a>
+</li>
+}
+}
 
 @siteLayout(org.name, utils.MenuType.NONE) {
 @header(org)
@@ -107,20 +128,12 @@
                     <div class="inner member-info">
                         <header>
                             <h3>@Messages("user.role.org_admin")</h3>
+                            @makeLeaveBtn(org, OrganizationUser.isAdmin(org.id, UserApp.currentUser().id))
                         </header>
                         <div class="member-wrap ">
                             <ul class="project-members">
                             @for(organizationUser <- org.users) {
-                            @if(OrganizationUser.isAdmin(org.id, organizationUser.user.id)) {
-                            <li class="member">
-                                <a href="@routes.UserApp.userInfo(organizationUser.user.loginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@organizationUser.user.loginId">
-                                    <img src="@organizationUser.user.avatarUrl" height="45" width="45" />
-                                </a>
-                                <a href="@routes.UserApp.userInfo(organizationUser.user.loginId)" data-toggle="tooltip" data-placement="top" title="@organizationUser.user.loginId">
-                                @organizationUser.user.name
-                                </a>
-                            </li>
-                            }
+                                @makeUser(organizationUser, OrganizationUser.isAdmin(org.id, organizationUser.user.id))
                             }
                             </ul>
                         </div>
@@ -131,20 +144,12 @@
                     <div class="inner member-info">
                         <header>
                             <h3>@Messages("user.role.org_member")</h3>
+                            @makeLeaveBtn(org, OrganizationUser.isMember(org.id, UserApp.currentUser().id))
                         </header>
                         <div class="member-wrap">
                             <ul class="unstyled project-members">
                             @for(organizationUser <- org.users) {
-                            @if(!OrganizationUser.isAdmin(org.id, organizationUser.user.id)) {
-                            <li class="member">                              
-                                <a href="@routes.UserApp.userInfo(organizationUser.user.loginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@organizationUser.user.loginId">
-                                    <img src="@organizationUser.user.avatarUrl" height="45" width="45" />
-                                </a>
-                                <a href="@routes.UserApp.userInfo(organizationUser.user.loginId)" data-toggle="tooltip" data-placement="top" title="@organizationUser.user.loginId">
-                                @organizationUser.user.name
-                                </a>
-                            </li>
-                            }
+                                @makeUser(organizationUser, OrganizationUser.isMember(org.id, organizationUser.user.id))
                             }
                             </ul>
                         </div>
@@ -154,4 +159,23 @@
         </div>
     </div>
 </div>
+@** Confirm to leave the project **@
+<div id="alertLeave" class="modal hide">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">×</button>
+        <h3>@Messages("organization.member.leave")</h3>
+    </div>
+    <div class="modal-body">
+        <p>@Messages("organization.member.leaveConfirm")</p>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="ybtn ybtn-info ybtn-mini" id="leaveBtn">@Messages("button.yes")</button>
+        <button type="button" class="ybtn ybtn-mini" data-dismiss="modal">@Messages("button.no")</button>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function() {
+        $yobi.loadModule("organization.View");
+    });
+</script>
 }

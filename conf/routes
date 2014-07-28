@@ -32,6 +32,7 @@ GET            /organizations/:organizationName/members                         
 POST           /organizations/:organizationName/members                               controllers.OrganizationApp.addMember(organizationName: String)
 POST           /organizations/:organizationName/member/:userId/edit                   controllers.OrganizationApp.editMember(organizationName: String, userId: Long)
 DELETE         /organizations/:organizationName/member/:userId/delete                 controllers.OrganizationApp.deleteMember(organizationName: String, userId: Long)
+DELETE         /organizations/:organizationName/member/leave                          controllers.OrganizationApp.leave(organizationName: String)
 
 # Enrolling Organization
 POST           /organizations/:organizationName/enroll                                controllers.EnrollOrganizationApp.enroll(organizationName)
