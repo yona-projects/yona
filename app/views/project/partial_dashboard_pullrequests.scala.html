@@ -23,20 +23,20 @@
 @import utils.TemplateHelper._
 @import utils.JodaDateUtil
 
-@defining(models.PullRequest.findRecentlyReceivedOpen(project, 5)) { pullRequests =>
+@defining(models.PullRequest.findRecentlyReceivedOpen(project, 10)) { pullRequests =>
     @if(pullRequests.size > 0){
         @for(pullRequest <- pullRequests){
             <div class="row-fluid">
-                <div class="@if(project.isUsingReviewerCount){span8}else{span10} title">
+                <div class="span9 title">
+                    <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)?contributorId=@pullRequest.contributor.id" class="usf-group">
+                        <span class="avatar-wrap smaller" data-toggle="tooltip" title="@pullRequest.contributor.name (@{"@"}@pullRequest.contributor.loginId)">
+                            <img src="@pullRequest.contributor.avatarUrl" width="20" height="20">
+                        </span>
+                    </a>
                     <a href="@routes.PullRequestApp.pullRequest(pullRequest.toProject.owner, pullRequest.toProject.name, pullRequest.number)">@pullRequest.title</a>
                 </div>
-                @if(project.isUsingReviewerCount){
-                    <div class="span2 review @if(!pullRequest.isReviewed){disabled}">
-                        @Messages("pullRequest.review") <strong>@pullRequest.reviewers.size</strong>
-                    </div>
-                }
-                <div class="span2 num" title="@JodaDateUtil.getDateString(pullRequest.created)">
-                    <small>@agoOrDateString(pullRequest.created)</small>
+                <div class="span3 num right-txt" style="color:#999;">
+                    @agoOrDateString(pullRequest.created)
                 </div>
             </div>
         }

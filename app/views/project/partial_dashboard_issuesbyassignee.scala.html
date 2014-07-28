@@ -46,10 +46,9 @@
                         </div>
                         <div class="span3 num">
                             <strong>@assignedIssues</strong>
-                            <small>(@assignedPerc%)</small>
                         </div>
                         <div class="span3 nm">
-                            <div class="progress progress-warning @if(assignedPerc==0){empty}">
+                            <div class="progress progress-warning @if(assignedPerc==0){empty}" data-toggle="tooltip" title="@assignedPerc%">
                                 <div class="bar" style="width: @assignedPerc%;"></div>
                             </div>
                         </div>
@@ -63,16 +62,18 @@
         @defining(getPercent(notAssignedIssues, totalIssues)) { notAssignedPerc =>
             <div class="row-fluid">
                 <div class="span6">
-                    <a href="@makeIssuesLink(project, scala.collection.immutable.Map("assigneeId"->User.anonymous.id.toString))">
-                    @Messages("issue.noAssignee")
+                    <a href="@makeIssuesLink(project, scala.collection.immutable.Map("assigneeId"->User.anonymous.id.toString))" class="usf-group">
+                        <span class="avatar-wrap smaller">
+                          <i class="yobicon-blankstare"></i>
+                        </span>
+                        <span class="name">@Messages("issue.noAssignee")</span>
                     </a>
                 </div>
                 <div class="span3 num">
                     <strong>@notAssignedIssues</strong>
-                    <small>(@notAssignedPerc%)</small>
                 </div>
                 <div class="span3 nm">
-                    <div class="progress progress-warning @if(notAssignedPerc==0){empty}">
+                    <div class="progress progress-warning @if(notAssignedPerc==0){empty}" data-toggle="tooltip" title="@notAssignedPerc%">
                         <div class="bar" style="width: @notAssignedPerc%;"></div>
                     </div>
                 </div>
