@@ -18,7 +18,11 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(userLanguage:Lang, message:String, urlToView:String = null)
+@(userLanguage:Lang, message:String, urlToView:String = null, resource:models.resource.Resource)
+
+@getFooterLinkHTML(link:String, anchorText:String) = {
+  <a href="@link" target="_blank" style="color:#4399e2; text-decoration:underline;">@anchorText</a>
+}
 
 <div style="font-family:'Helvetica Neue','Helvetica','Arial','나눔고딕','NanumGothic','NanumGothicOTF','Apple SD Gothic Neo','맑은 고딕',sans-serif;">
   @Html(message)
@@ -32,7 +36,7 @@
 </a>
 }
 
-<div style="max-width:400px;margin-top:20px;color:#989898;font-size:11px;font-family:'Helvetica Neue','Helvetica','Arial','나눔고딕','NanumGothic','NanumGothicOTF','Apple SD Gothic Neo','맑은 고딕',sans-serif;">
-  @Messages("notification.notified.why")
-  @Html(Messages("notification.linkToSettings", routes.UserApp.editUserInfoByTabForm("notifications"), Messages("userinfo.changeNotifications")))
+<div style="max-width:410px;margin-top:20px;color:#989898;text-align:justify;word-break:break-all;font-size:11px;font-family:'Helvetica Neue','Helvetica','Arial','나눔고딕','NanumGothic','NanumGothicOTF','Apple SD Gothic Neo','맑은 고딕',sans-serif;">
+  @Html(Messages("notification.off.unwatch", getFooterLinkHTML(routes.WatchApp.unwatch(resource.asParameter).toString, Messages("notification.unwatch"))))<br>
+  @Html(Messages("notification.off.settings", getFooterLinkHTML(routes.UserApp.editUserInfoByTabForm("notifications").toString, Messages("userinfo.changeNotifications"))))
 </div>

@@ -22,6 +22,7 @@ package models;
 
 import info.schleichardt.play2.mailplugin.Mailer;
 import models.enumeration.UserState;
+import models.resource.Resource;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.mail.HtmlEmail;
 import org.joda.time.DateTime;
@@ -191,7 +192,7 @@ public class NotificationMail extends Model {
                 String reference = Url.removeFragment(event.getUrlToView());
 
                 email.setSubject(event.title);
-                email.setHtmlMsg(getHtmlMessage(lang, message, urlToView));
+                email.setHtmlMsg(getHtmlMessage(lang, message, urlToView, event.getResource()));
                 email.setTextMsg(getPlainMessage(lang, message, urlToView));
                 email.setCharset("utf-8");
                 email.addHeader("References", "<" + reference + "@" + Config.getHostname() + ">");
@@ -207,8 +208,8 @@ public class NotificationMail extends Model {
         }
     }
 
-    private static String getHtmlMessage(Lang lang, String message, String urlToView) {
-        String content = getRenderedHTMLWithTemplate(lang, Markdown.render(message), urlToView);
+    private static String getHtmlMessage(Lang lang, String message, String urlToView, Resource resource) {
+        String content = getRenderedHTMLWithTemplate(lang, Markdown.render(message), urlToView, resource);
         Document doc = Jsoup.parse(content);
 
         handleLinks(doc);
@@ -217,8 +218,8 @@ public class NotificationMail extends Model {
         return doc.html();
     }
 
-    private static String getRenderedHTMLWithTemplate(Lang lang, String message, String urlToView){
-        return views.html.common.notificationMail.render(lang, message, urlToView).toString();
+    private static String getRenderedHTMLWithTemplate(Lang lang, String message, String urlToView, Resource resource){
+        return views.html.common.notificationMail.render(lang, message, urlToView, resource).toString();
     }
 
     private static void handleLinks(Document doc){

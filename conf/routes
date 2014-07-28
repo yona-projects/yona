@@ -238,6 +238,7 @@ GET            /help                                                            
 # Watch
 POST           /watch                                                                 controllers.WatchApp.watch(resource: models.resource.ResourceParam)
 POST           /unwatch                                                               controllers.WatchApp.unwatch(resource: models.resource.ResourceParam)
+GET            /unwatch                                                               controllers.WatchApp.unwatch(resource: models.resource.ResourceParam)
 
 # Statistics
 GET            /:user/:project/statistics                                             controllers.StatisticsApp.statistics(user, project)

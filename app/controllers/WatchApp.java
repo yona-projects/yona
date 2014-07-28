@@ -27,7 +27,11 @@ import models.resource.Resource;
 import models.resource.ResourceParam;
 import play.mvc.Controller;
 import play.mvc.Result;
+import play.i18n.Messages;
 import utils.AccessControl;
+import utils.HttpUtil;
+import utils.RouteUtil;
+import org.apache.commons.lang3.StringUtils;
 
 public class WatchApp extends Controller {
     public static Result watch(ResourceParam resourceParam) {
@@ -57,6 +61,34 @@ public class WatchApp extends Controller {
 
         Watch.unwatch(user, resource);
 
-        return ok();
+        if (HttpUtil.isJSONPreferred(request())) {
+            return ok();
+        } else {
+            String message = getUnwatchMessage(resource);
+
+            if(!StringUtils.isEmpty(message)) {
+                flash(utils.Constants.SUCCESS, message);
+            }
+
+            return redirect(RouteUtil.getUrl(resource.getType(), resource.getId()));
+        }
+    }
+
+    private static String getUnwatchMessage(Resource resource){
+        switch(resource.getType()) {
+            case ISSUE_POST:
+            case ISSUE_COMMENT:
+                return Messages.get("issue.unwatch.start");
+            case BOARD_POST:
+            case NONISSUE_COMMENT:
+                return Messages.get("post.unwatch.start");
+            case PULL_REQUEST:
+            case REVIEW_COMMENT:
+                return Messages.get("pullRequest.unwatch.start");
+            case PROJECT:
+                return Messages.get("project.unwatch.start");
+            default:
+                return "";
+        }
     }
 }
