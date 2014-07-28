@@ -456,6 +456,13 @@ public class Project extends Model implements LabelOwner {
         return ProjectUser.findMemberListByProject(this.id);
     }
 
+    /**
+     * Return users related to this project and group of the project.
+     *
+     * If the project has no groups, it returns all project members.
+     * If the project has a group and is private, it returns all project members and group admins.
+     * If the project has a group and is protected or public, it returns all project and group members.
+     */
     public List<User> relatedUsers() {
         Set<User> users = new HashSet<>();
 
@@ -466,8 +473,8 @@ public class Project extends Model implements LabelOwner {
         }
 
         // member of the group
-        if(hasGroup() && (isPublic() || isProtected())) {
-            List<OrganizationUser> ous = this.organization.users;
+        if(hasGroup()) {
+            List<OrganizationUser> ous = (isPublic() || isProtected()) ? this.organization.users : this.organization.getAdmins();
             for(OrganizationUser ou : ous) {
                 users.add(ou.user);
             }
