@@ -305,16 +305,38 @@ public class Project extends Model implements LabelOwner {
         return null;
     }
 
+    private boolean isLastIssueNumberCorrect() {
+        return issues == null || lastIssueNumber >= issues.size();
+    }
+
     private Long getLastIssueNumber() {
-        return lastIssueNumber;
+        if (isLastPostingNumberCorrect()) {
+            return lastIssueNumber;
+        }
+
+        Issue issue = Issue.finder.where().eq("project.id", id).order().desc("number").findList().get(0);
+        issue.refresh();
+
+        return issue.number == null ? 0l : issue.number;
     }
 
     private void setLastIssueNumber(Long number) {
         lastIssueNumber = number;
     }
 
+    private boolean isLastPostingNumberCorrect() {
+        return posts == null || lastPostingNumber >= posts.size();
+    }
+
     private Long getLastPostingNumber() {
-        return lastPostingNumber;
+        if (isLastPostingNumberCorrect()) {
+            return lastPostingNumber;
+        }
+
+        Posting posting = Posting.finder.where().eq("project.id", id).order().desc("number").findList().get(0);
+        posting.refresh();
+
+        return posting.number == null ? 0l : posting.number;
     }
 
     private void setLastPostingNumber(Long number) {
@@ -330,11 +352,6 @@ public class Project extends Model implements LabelOwner {
      */
     public static Long increaseLastIssueNumber(Long projectId) {
         Project project = find.byId(projectId);
-
-        if (project.issues != null && project.lastIssueNumber < project.issues.size() ){
-            fixLastIssueNumber(projectId);
-        }
-
         project.setLastIssueNumber(project.getLastIssueNumber() + 1);
         project.update();
 
@@ -344,26 +361,12 @@ public class Project extends Model implements LabelOwner {
     public static void fixLastIssueNumber(Long projectId) {
         Project project = find.byId(projectId);
         project.refresh();
-
-        Issue issue = Issue.finder.where().eq("project.id", projectId).order().desc("number").findList().get(0);
-        issue.refresh();
-
-        if (issue.number == null) {
-            project.lastIssueNumber = 0;
-        } else {
-            project.lastIssueNumber = issue.number;
-        }
-
+        project.setLastIssueNumber(project.getLastIssueNumber());
         project.update();
     }
 
     public static Long increaseLastPostingNumber(Long projectId) {
         Project project = find.byId(projectId);
-
-        if (project.posts != null && project.lastPostingNumber < project.posts.size() ){
-            fixLastPostingNumber(projectId);
-        }
-
         project.setLastPostingNumber(project.getLastPostingNumber() + 1);
         project.update();
 
@@ -373,16 +376,7 @@ public class Project extends Model implements LabelOwner {
     public static void fixLastPostingNumber(Long projectId) {
         Project project = find.byId(projectId);
         project.refresh();
-
-        Posting posting = Posting.finder.where().eq("project.id", projectId).order().desc("number").findList().get(0);
-        posting.refresh();
-
-        if (posting.number == null) {
-            project.lastPostingNumber = 0;
-        } else {
-            project.lastPostingNumber = posting.number;
-        }
-
+        project.setLastPostingNumber(project.getLastPostingNumber());
         project.update();
     }
 
