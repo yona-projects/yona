@@ -295,6 +295,7 @@ milestone.is.empty = No milestone entered.
 milestone.menu.manage = Manage milestone
 milestone.menu.new = New milestone
 milestone.open = Open
+milestone.searchPlaceholder = search at current milestone
 milestone.state.all = All
 milestone.state.closed = Closed
 milestone.state.open = In progress

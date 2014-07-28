@@ -62,6 +62,25 @@
                 <div class="attachments" data-resource-type="@ResourceType.MILESTONE" data-resource-id="@milestone.id"></div>
             </div>
 
+            <div class="actrow right-txt" style="padding: 15px 0; clear:both;">
+                <a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="ybtn pull-left">@Messages("button.list")</a>
+
+                @if(isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.DELETE)){
+                <a href="#deleteConfirm" data-toggle="modal" class="ybtn ybtn-danger">@Messages("button.delete")</a>
+                }
+
+                @if(isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.UPDATE)){
+                    <a href="@routes.MilestoneApp.editMilestoneForm(project.owner, project.name, milestone.id)" class="ybtn">@Messages("button.edit")</a>
+
+                    @if(milestone.state == State.OPEN) {
+                    <button type="button" data-request-method="post" data-request-uri="@routes.MilestoneApp.close(project.owner, project.name, milestone.id)" class="ybtn">@Messages("milestone.close")</button>
+                    }
+                    @if(milestone.state == State.CLOSED) {
+                    <button type="button" data-request-method="post" data-request-uri="@routes.MilestoneApp.open(project.owner, project.name, milestone.id)" class="ybtn">@Messages("milestone.open")</button>
+                    }
+                }
+            </div>
+
             <div id="issues">
                 <ul class="nav nav-tabs">
                 @for(state <- Array(State.OPEN, State.CLOSED, State.ALL)) {
@@ -77,6 +96,10 @@
                 <div class="issues">
                     <div class="filter-wrap">
                     @issue.partial_massupdate(project, new SearchCondition())
+                    <div class="pull-right search search-bar">
+                        <input name="filter" class="textbox" type="text" placeholder="@Messages("milestone.searchPlaceholder")" value="" data-toggle="item-search" data-items="issue-item">
+                        <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                    </div>
                     </div>
                     @{
                         issueState match {
@@ -89,25 +112,6 @@
                         }
                     }
                 </div>
-            </div>
-
-            <div class="actrow right-txt" style="padding: 15px 0; clear:both;">
-                <a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="ybtn pull-left">@Messages("button.list")</a>
-
-                @if(isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.DELETE)){
-                    <a href="#deleteConfirm" data-toggle="modal" class="ybtn ybtn-danger">@Messages("button.delete")</a>
-                }
-
-                @if(isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.UPDATE)){
-                    <a href="@routes.MilestoneApp.editMilestoneForm(project.owner, project.name, milestone.id)" class="ybtn">@Messages("button.edit")</a>
-
-                    @if(milestone.state == State.OPEN) {
-                        <button type="button" data-request-method="post" data-request-uri="@routes.MilestoneApp.close(project.owner, project.name, milestone.id)" class="ybtn">@Messages("milestone.close")</button>
-                    }
-                    @if(milestone.state == State.CLOSED) {
-                        <button type="button" data-request-method="post" data-request-uri="@routes.MilestoneApp.open(project.owner, project.name, milestone.id)" class="ybtn">@Messages("milestone.open")</button>
-                    }
-                }
             </div>
 
         </div>
@@ -133,7 +137,10 @@
 <link rel="stylesheet" href="@routes.IssueLabelApp.labelStyles(project.owner, project.name)" type="text/css" />
 <script type="text/javascript">
     $(document).ready(function(){
-        $yobi.loadModule("milestone.View");
+        $yobi.loadModule("milestone.View", {
+            "sMilestoneId" : "@milestone.id",
+            "sURLLabels"   : "@routes.IssueApp.issues(project.owner, project.name)"
+        });
     });
 </script>
 }
