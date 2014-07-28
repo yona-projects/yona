@@ -57,23 +57,23 @@
         <appender-ref ref="ROOT_LOG_FILE" />
     </root>
 
-    <logger name="play" level="DEBUG">
+    <logger name="play" level="WARNING">
         <appender-ref ref="APPLICATION_LOG_FILE" />
     </logger>
 
-    <logger name="application" level="DEBUG">
+    <logger name="application" level="WARNING">
         <appender-ref ref="APPLICATION_LOG_FILE" />
     </logger>
 
-    <logger name="access" level="DEBUG">
+    <logger name="access" level="WARNING">
         <appender-ref ref="ACCESS_LOG_FILE" />
     </logger>
 
-    <logger name="mail" level="DEBUG">
+    <logger name="mail" level="WARNING">
         <appender-ref ref="MAIL_LOG_FILE" />
     </logger>
 
-    <logger name="info.schleichardt.play2.mail" level="DEBUG">
+    <logger name="info.schleichardt.play2.mail" level="WARNING">
         <appender-ref ref="STDOUT" />
     </logger>
 
