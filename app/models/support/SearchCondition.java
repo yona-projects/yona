@@ -27,13 +27,13 @@ import models.*;
 import models.enumeration.State;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
+import play.data.format.Formats;
 import utils.LabelSearchUtil;
 
 import javax.persistence.Transient;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import static models.enumeration.ResourceType.*;
 
@@ -49,6 +49,9 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
     public Project project;
 
     public Long mentionId;
+
+    @Formats.DateTime(pattern = "yyyy-MM-dd")
+    public Date dueDate;
 
     /**
      * This doesn't copy {@code pageNum}, because it is safe when changing tabs with page parameter.
@@ -67,6 +70,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
         one.authorId = this.authorId;
         one.assigneeId = this.assigneeId;
         one.mentionId = this.mentionId;
+        one.dueDate = this.dueDate;
         return one;
     }
 
@@ -199,6 +203,10 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
             el.orderBy(orderBy + " " + orderDir);
         }
 
+        if (dueDate != null) {
+            el.lt("dueDate", DateUtils.addDays(dueDate, 1));
+        }
+
         return el;
     }
 
@@ -301,6 +309,18 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
             el.orderBy(orderBy + " " + orderDir);
         }
 
+        if (dueDate != null) {
+            el.lt("dueDate", DateUtils.addDays(dueDate, 1));
+        }
+
         return el;
+    }
+
+    public String getDueDateString() {
+        if (dueDate == null) {
+            return null;
+        }
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        return sdf.format(this.dueDate);
     }
 }

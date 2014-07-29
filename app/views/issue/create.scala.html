@@ -106,6 +106,16 @@
                         </dl>
                     }
 
+                    <dl class="issue-option">
+                        <dt>@Messages("issue.dueDate")</dt>
+                        <dd>
+                            <div class="search search-bar">
+                                <input type="text" id="issueDueDate" data-toggle="calendar" name="dueDate" class="textbox full">
+                                <button type="button" class="search-btn"><i class="yobicon-calendar2"></i></button>
+                            </div>
+                        </dd>
+                    </dl>
+
                     <dl id="labels" class="issue-option">
                         <dt>
                             @Messages("label")
@@ -127,25 +137,26 @@
 @common.markdown(project)
 @common.issueLabel()
 @common.select2()
+@common.calendar()
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.css")">
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.caret.min.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.js")"></script>
 <script type="text/javascript">
-	$(document).ready(function(){
-	    // yobi.Label
+    $(document).ready(function(){
+        // yobi.Label
         yobi.Label.init({
             "sURLLabels": "@routes.IssueLabelApp.labels(project.owner, project.name)",
             "sURLPost"  : "@routes.IssueLabelApp.newLabel(project.owner, project.name)"
         });
 
         // yobi.issue.Write
-		$yobi.loadModule("issue.Write", {
-			"sMode"		   : "new",
+        $yobi.loadModule("issue.Write", {
+            "sMode": "new",
             "sIssueFormURL": "@routes.IssueApp.newIssueForm(project.owner, project.name)",
-			"sIssueListURL": "@routes.IssueApp.issues(project.owner, project.name)",
-            "elTextarea"   : 'textarea[data-editor-mode="content-body"]',
-            "elMilestoneRefresh": $("#milestoneOption .yobicon-refresh")
-		});
+            "sIssueListURL": "@routes.IssueApp.issues(project.owner, project.name)",
+            "elTextarea": 'textarea[data-editor-mode="content-body"]',
+            "elMilestoneRefresh": $("#milestoneOption .yobicon-refresh"),
+        });
 
         // yobi.Mention
         yobi.Mention({

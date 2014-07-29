@@ -76,6 +76,14 @@
                 yobi.ui.Select2(htElement.welSearchAssigneeId);
                 yobi.ui.Select2(htElement.welSearchMilestoneId);
             }
+
+            if(htOptions.welIssueDueDate){
+                htElement.welIssueDueDate = htOptions.welIssueDueDate;
+            }
+
+            if(typeof yobi.ui.Calendar === "function"){
+                yobi.ui.Calendar(htElement.welIssueDueDate);
+            }
         }
 
         /**
@@ -85,6 +93,9 @@
             htElement.welSearchAuthorId.on("change", _onChangeSearchField);
             htElement.welSearchAssigneeId.on("change", _onChangeSearchField);
             htElement.welSearchMilestoneId.on("change", _onChangeSearchField);
+            if(htOptions.welIssueDueDate){
+                htElement.welIssueDueDate.on("change", _onChangeSearchField);
+            }
 
             htElement.welSearchOrder.on("click", _onChangeSearchOrder);
             htElement.welSearchState.on("click", _onChangeSearchState);

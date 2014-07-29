@@ -164,7 +164,11 @@
                             <dt>@Messages("milestone")</dt>
                             <dd style="padding:5px 10px;">
                             @if(Milestone.findByProjectId(project.id).isEmpty()){
+                                @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
                                 <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" target="_blank" class="ybtn ybtn-success ybtn-small">@Messages("milestone.menu.new")</a>
+                                } else {
+                                    @Messages("issue.noMilestone")
+                                }
                             } else {
                                 @defining(issue.milestone != null) { hasMilestone =>
                                     @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
@@ -208,6 +212,35 @@
                         </dl>
                         }
                         @**<!-- // -->**@
+
+                        <dl class="issue-option">
+                            <dt>
+                                @Messages("issue.dueDate")
+                                @if(issue.dueDate != null) {
+                                <span class="@if(issue.isOverDueDate) {overdue}">
+                                    @if(issue.isOverDueDate) {
+                                        (@Messages("issue.dueDate.overdue"))
+                                    } else {
+                                        (@issue.until)
+                                    }
+                                </span>
+                                }
+                            </dt>
+                            <dd style="padding:5px 10px;">
+                                @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+                                <div class="search search-bar">
+                                    <input type="text" id="issueDueDate" data-toggle="calendar" data-oDueDate="@issue.getDueDateString" name="dueDate" class="textbox full" value="@issue.getDueDateString">
+                                    <button type="button" class="search-btn"><i class="yobicon-calendar2"></i></button>
+                                </div>
+                                } else {
+                                    @if(issue.dueDate != null) {
+                                        @issue.getDueDateString
+                                    } else {
+                                        @Messages("issue.noDuedate")
+                                    }
+                                }
+                            </dd>
+                        </dl>
 
                         @**<!-- labels -->**@
                         @if(!IssueLabel.findByProject(project).isEmpty){
@@ -343,6 +376,7 @@
 @common.markdown(project)
 @common.commentDeleteModal()
 @common.select2()
+@common.calendar()
 
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.IssueLabelApp.labelStyles(project.owner, project.name)">
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.css")">
@@ -363,7 +397,8 @@
             "sIssueCheckBoxesSelector": "[type=checkbox][name=checked-issue]",
             "sNextState"    : "@issue.nextState().toString.toLowerCase",
             "sNextStateUrl" : "@routes.IssueApp.nextState(project.owner, project.name, issue.getNumber)",
-            "sCommentWithStateUrl": "@routes.IssueApp.newComment(project.owner, project.name, issue.getNumber)"
+            "sCommentWithStateUrl": "@routes.IssueApp.newComment(project.owner, project.name, issue.getNumber)",
+            "welDueDate": $("#issueDueDate")
         });
 
         // yobi.ShortcutKey
