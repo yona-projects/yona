@@ -127,6 +127,16 @@ application.notification.draft-time = 30s
 # If this value is undefined or not positive number, notifications will remain forever.
 # application.notification.keep-time = 60
 
+# Software Update
+# ~~~~~~~~~~~~~~~
+# Check for updates of Yobi at this interval if it is grater than 0.
+application.update.notification.interval = 1d
+# A url to the git repository for Yobi releases.
+application.update.repositoryUrl = "https://github.com/naver/yobi"
+# A format to construct the url to latest Yobi release. "%s" is a format
+# specifier for Yobi version to download like "0.5.7".
+application.update.releaesUrlFormat = "https://github.com/naver/yobi/releases/tag/v%s"
+
 #customize play default thread pool size
 play {
   akka {

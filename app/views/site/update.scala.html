@@ -1,0 +1,48 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2014 NAVER Corp.
+* http://yobi.io
+*
+* @Author Yi EungJun
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@(message: String, currentVersion: String, versionToUpdate: String, exception: Exception = null)
+
+@import org.apache.commons.lang.exception.ExceptionUtils
+@import utils.TemplateHelper._
+
+@siteMngLayout(message) {
+    <div class="title_area">
+        <h2 class="pull-left">@Messages("site.sidebar.update")</h2>
+    </div>
+
+    @if(versionToUpdate != null){
+      <p><strong>@Messages("site.update.isAvailable", versionToUpdate)</strong>
+      <a href="@YobiUpdate.getReleaseUrl(versionToUpdate)" class="ybtn ybtn-success">@Messages("site.update.download")</a></p>
+    }
+
+    @if(currentVersion != null){
+      <p>@Messages("site.update.currentVersion", currentVersion)</p>
+    }
+
+    @if(versionToUpdate == null && exception == null) {
+      <p>@Messages("site.update.isNotNecessary", currentVersion)</p>
+    }
+
+    @if(exception != null){
+      <p>@Messages("site.update.error")</p>
+      <pre>@ExceptionUtils.getStackTrace(exception)</pre>
+    }
+}

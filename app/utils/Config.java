@@ -20,11 +20,14 @@
  */
 package utils;
 
+import com.typesafe.config.*;
 import org.apache.commons.lang3.ObjectUtils;
 import play.Configuration;
 import play.mvc.Http;
 
+import java.io.File;
 import java.net.*;
+import java.nio.file.Paths;
 import java.util.Enumeration;
 
 public class Config {
@@ -207,5 +210,42 @@ public class Config {
      */
     public static URI createFullURI(String uri) throws URISyntaxException {
         return createFullURI(new URI(uri));
+    }
+
+    /**
+     * Convert the given version to be compatible with
+     * <a href="http://semver.org/">semver</a>.
+     *
+     * Examples:
+     *   v0.5.7 -> 0.5.7
+     *   0.5 -> 0.5.0
+     *   0.4.0.pre -> 0.4.0-pre
+     *
+     * @param ver  a version string to be semverized
+     * @return     the semverized string
+     */
+    public static String semverize(String ver) {
+        // v0.5.7 -> 0.5.7
+        ver = ver.replaceFirst("^v", "");
+
+        // 0.4.0.pre -> 0.4.0-pre
+        ver = ver.replaceAll("\\.([^\\d]+)","-$1");
+
+        // 0.5 -> 0.5.0
+        // 0.5-alpha -> 0.5.0-alpha
+        ver = ver.replaceFirst("^(\\d+\\.\\d+)($|-)", "$1.0$2");
+
+        return ver;
+    }
+
+    /**
+     * Return the version of Yobi installed currently.
+     *
+     * @return  the current version
+     */
+    public static String getCurrentVersion() {
+        File versionFile = Paths.get("conf", "version.conf").toFile();
+
+        return ConfigFactory.parseFile(versionFile).resolve().getString("app.version");
     }
 }
