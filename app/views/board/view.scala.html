@@ -128,8 +128,10 @@
 
         // yobi.ShortcutKey
         yobi.ShortcutKey.setKeymapLink({
-            "N": "@routes.BoardApp.newPostForm(project.owner, project.name)",
             "L": "@urlToPostings"
+            @if(project.menuSetting.board) {
+            ,"N": "@routes.BoardApp.newPostForm(project.owner, project.name)"
+            }
             @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){
            ,"E": "@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)"
             }

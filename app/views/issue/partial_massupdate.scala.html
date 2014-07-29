@@ -95,6 +95,7 @@
             </ul>
         </div>
 
+        @if(project.menuSetting.milestone) {
         <div id="milestone" class="btn-group" data-name="milestone.id">
             <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
                 <span class="d-label">@Messages("issue.update.milestone")</span>
@@ -108,6 +109,7 @@
                 }
             </ul>
         </div>
+        }
 
         <div id="attaching-label" class="btn-group" data-name="attachingLabel[0].id">
             <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">

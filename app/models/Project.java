@@ -126,6 +126,9 @@ public class Project extends Model implements LabelOwner {
     @Enumerated(EnumType.STRING)
     public ProjectScope projectScope;
 
+    @OneToOne(mappedBy = "project", cascade = CascadeType.ALL)
+    public ProjectMenuSetting menuSetting;
+
     /**
      * @see {@link User#SITE_MANAGER_ID}
      * @see {@link RoleType#SITEMANAGER}
@@ -668,6 +671,10 @@ public class Project extends Model implements LabelOwner {
         copyProject.vcs = project.vcs;
         copyProject.owner = owner;
         copyProject.projectScope = project.projectScope;
+        copyProject.menuSetting = new ProjectMenuSetting(project.menuSetting);
+        copyProject.menuSetting.project = copyProject;
+        copyProject.menuSetting.save();
+
         return copyProject;
     }
 
@@ -707,8 +714,9 @@ public class Project extends Model implements LabelOwner {
         List<Project> projects = new ArrayList<>();
         projects.add(this);
         projects.addAll(forkingProjects);
-        if(isForkedFromOrigin()) {
-            projects.add(originalProject);
+        if(isForkedFromOrigin() && originalProject.menuSetting.code
+                && originalProject.menuSetting.pullRequest) {
+                projects.add(originalProject);
         }
         return projects;
     }

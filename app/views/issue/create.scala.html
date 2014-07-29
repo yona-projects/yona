@@ -83,7 +83,7 @@
                     </dl>
                     }
 
-                    @if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_MILESTONE)) {
+                    @if(project.menuSetting.milestone && isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_MILESTONE)) {
                         <dl id="milestoneOption" class="issue-option">
                             <dt>@Messages("milestone")</dt>
                             <dd>

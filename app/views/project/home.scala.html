@@ -51,10 +51,12 @@
                     </form>
                 </div>
             </div>
-            <div class="project-clone-wrap span3">
-                <input type="text" class="project-clone-url" id="cloneURL" readonly="readonly" value="@if(project.isGit){@CodeApp.getURLWithLoginId(project)} else {@CodeApp.getURL(project)}">
-                <button class="ybtn project-clone-button" id="cloneURLBtn">@Messages("code.copyUrl")</button>
-            </div>
+            @if(project.menuSetting.code) {
+                <div class="project-clone-wrap span3">
+                    <input type="text" class="project-clone-url" id="cloneURL" readonly="readonly" value="@if(project.isGit){@CodeApp.getURLWithLoginId(project)} else {@CodeApp.getURL(project)}">
+                    <button class="ybtn project-clone-button" id="cloneURLBtn">@Messages("code.copyUrl")</button>
+                </div>
+            }
         </div>
         <div class="row-fluid">
             <div class="span9">
@@ -102,20 +104,26 @@
             <div class="span3">
                 <div class="bubble-wrap gray project-home">
                     <div class="project-btn-wrap">
-                        <span class="project-btn-item">
-                            <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="ybtn ybtn-success">@Messages("button.newIssue")</a>
-                        </span>
-                        @if(project.vcs.equals("GIT")){
-                        <span class="project-btn-item">
-                            <a href="@routes.PullRequestApp.newFork(project.owner, project.name)" class="ybtn ybtn-inverse">
-                                @Messages("fork")
-                            </a>
-                        </span>
+                        @if(project.menuSetting.issue) {
+                            <span class="project-btn-item">
+                                <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="ybtn ybtn-success">@Messages("button.newIssue")</a>
+                            </span>
+                        }
+                        @if(project.menuSetting.code) {
+                            @if(project.vcs.equals("GIT")){
+                            <span class="project-btn-item">
+                                <a href="@routes.PullRequestApp.newFork(project.owner, project.name)" class="ybtn ybtn-inverse">
+                                    @Messages("fork")
+                                </a>
+                            </span>
+                            }
                         }
                     </div>
-                    @defining(Milestone.findOpenMilestones(project.id)){ milestones =>
-                        @if(milestones.length > 0){
-                            @views.html.milestone.partial_status(milestones(0), project)
+                    @if(project.menuSetting.milestone) {
+                        @defining(Milestone.findOpenMilestones(project.id)){ milestones =>
+                            @if(milestones.length > 0){
+                                @views.html.milestone.partial_status(milestones(0), project)
+                            }
                         }
                     }
 

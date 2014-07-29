@@ -145,11 +145,13 @@
         }
     </div>
 </div>
+@if(project.menuSetting.milestone) {
 <script type="text/javascript">
-    $(document).ready(function() {
+    $(document).ready(function () {
         yobi.ShortcutKey.setKeymapLink({
-           "N": "@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)"
+            "N": "@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)"
         });
     });
 </script>
+}
 }

@@ -204,6 +204,9 @@ public class ProjectApp extends Controller {
         }
         ProjectUser.assignRole(user.id, Project.create(project), RoleType.MANAGER);
         RepositoryService.createRepository(project);
+
+        saveProjectMenuSetting(project);
+
         return redirect(routes.ProjectApp.project(project.owner, project.name));
     }
 
@@ -276,7 +279,25 @@ public class ProjectApp extends Controller {
         }
 
         updatedProject.update();
+
+        saveProjectMenuSetting(updatedProject);
+
         return redirect(routes.ProjectApp.settingForm(ownerId, updatedProject.name));
+    }
+
+    private static void saveProjectMenuSetting(Project project) {
+        Form<ProjectMenuSetting> filledUpdatedProjectMenuSettingForm = form(ProjectMenuSetting.class).bindFromRequest();
+        ProjectMenuSetting updatedProjectMenuSetting = filledUpdatedProjectMenuSettingForm.get();
+
+        project.refresh();
+        updatedProjectMenuSetting.project = project;
+
+        if (project.menuSetting == null) {
+            updatedProjectMenuSetting.save();
+        } else {
+            updatedProjectMenuSetting.id = project.menuSetting.id;
+            updatedProjectMenuSetting.update();
+        }
     }
 
     private static boolean validateWhenUpdate(String loginId, Form<Project> updateProjectForm) {

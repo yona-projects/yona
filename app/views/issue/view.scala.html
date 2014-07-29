@@ -156,6 +156,7 @@
                         @**<!-- // -->**@
 
                         @**<!-- milestones -->**@
+                        @if(project.menuSetting.milestone) {
                         <dl>
                             <dt>@Messages("milestone")</dt>
                             <dd style="padding:5px 10px;">
@@ -202,6 +203,7 @@
                             }
                             </dd>
                         </dl>
+                        }
                         @**<!-- // -->**@
 
                         @**<!-- labels -->**@
@@ -363,8 +365,10 @@
 
         // yobi.ShortcutKey
         yobi.ShortcutKey.setKeymapLink({
-            "N": "@routes.IssueApp.newIssueForm(project.owner, project.name)",
             "L": "@urlToIssues"
+            @if(project.menuSetting.issue) {
+            ,"N": "@routes.IssueApp.newIssueForm(project.owner, project.name)"
+            }
             @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
            ,"E": "@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)"
             }

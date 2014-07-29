@@ -141,6 +141,7 @@
                         </dd>
                     </dl>
 
+                    @if(project.menuSetting.milestone) {
                     <dl class="issue-option">
                         <dt>@Messages("milestone")</dt>
                         <dd>
@@ -175,6 +176,7 @@
                             </select>
                         </dd>
                     </dl>
+                    }
                 </div>
 
                 <hr>
@@ -259,9 +261,11 @@
                 });
 
                 // ShortcutKey
-                yobi.ShortcutKey.setKeymapLink({
-                    "N": "@routes.IssueApp.newIssueForm(project.owner, project.name)"
-                });
+                @if(project.menuSetting.issue) {
+                    yobi.ShortcutKey.setKeymapLink({
+                        "N": "@routes.IssueApp.newIssueForm(project.owner, project.name)"
+                    });
+                }
             });
         </script>
         </div>

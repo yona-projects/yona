@@ -541,6 +541,7 @@ project.you.are.not.watching = {0} 프로젝트를 지켜보고 있지 않습니
 project.you.are.watching = {0} 프로젝트를 지켜보는 중입니다.
 project.you.may.want.to.be.a.member = {0} 프로젝트 멤버로 등록 요청을 할 수 있습니다.
 project.you.want.to.be.a.member = {0} 프로젝트 멤버로 등록 요청했습니다.
+project.menu.setting = 메뉴 설정
 pullRequest = 코드 보내기
 pullRequest.accept = 코드 받기
 pullRequest.additional.changes = 추가 변경 내역

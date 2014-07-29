@@ -541,6 +541,7 @@ project.you.are.not.watching = You are not watching {0} project.
 project.you.are.watching = You are watching {0} project.
 project.you.may.want.to.be.a.member = You can send a sign-up request for {0} project.
 project.you.want.to.be.a.member = You have sent a sign-up request for {0} project.
+project.menu.setting = Menu Setting
 pullRequest = Pull request
 pullRequest.accept = Accept
 pullRequest.additional.changes = Additional changes

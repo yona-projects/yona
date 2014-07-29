@@ -83,7 +83,7 @@
             }
         </div>
         <div class="pull-right">
-            @if(issue.milestone != null) {
+            @if(project.menuSetting.milestone && issue.milestone != null) {
                 <div class="mileston-tag">
                     <a href="@routes.MilestoneApp.milestone(issue.project.owner, issue.project.name, issue.milestone.id)" data-toggle="tooltip" data-placement="top" title="@Messages("milestone")">
                     @issue.milestone.title
