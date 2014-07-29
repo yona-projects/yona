@@ -89,12 +89,12 @@
                 }
             </div>
             <div class="pull-right">
-                @if(project.menuSetting.milestone && issue.milestone != null) {
-                    <div class="mileston-tag">
-                        <a href="@routes.MilestoneApp.milestone(issue.project.owner, issue.project.name, issue.milestone.id)" data-toggle="tooltip" data-placement="top" title="@Messages("milestone")">
-                        @issue.milestone.title
+                @if(issue.milestone != null && issue.project != null && issue.project.menuSetting != null && issue.project.menuSetting.milestone) {
+                <div class="mileston-tag">
+                    <a href="@routes.MilestoneApp.milestone(issue.project.owner, issue.project.name, issue.milestone.id)" data-toggle="tooltip" data-placement="top" title="@Messages("milestone")">
+                    @issue.milestone.title
                     </a>
-                    </div>
+                </div>
                 }
             </div>
         </div>
