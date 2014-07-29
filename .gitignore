@@ -29,3 +29,4 @@ conf/application.user.conf
 conf/application.conf
 *.log
 conf/generated.keystore
+conf/application-logger.xml
