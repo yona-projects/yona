@@ -204,13 +204,9 @@ public class GitRepository implements PlayRepository {
         TreeWalk treeWalk = new TreeWalk(repository);
         treeWalk.addTree(revTree);
 
-        while (treeWalk.next()) {
-            if (treeWalk.getPathString().equals(path) && !treeWalk.isSubtree()) {
-                return true;
-            }
-        }
-
-        return false;
+        treeWalk.setRecursive(true);
+        treeWalk.setFilter(PathFilter.create(path));
+        return treeWalk.next();
     }
 
     @Override
@@ -1928,5 +1924,10 @@ public class GitRepository implements PlayRepository {
             play.Logger.error("[Transfer] Move Failed", e);
             return false;
         }
+    }
+
+    @Override
+    public File getDirectory() {
+        return this.repository.getDirectory();
     }
 }

@@ -139,6 +139,14 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
         updateMention();
     }
 
+    /**
+     * use EBean save functionality directly
+     * to prevent occurring select table lock
+     */
+    public void directSave(){
+        updateMention();
+        super.save();
+    }
 
     public void updateNumber() {
         number = increaseNumber();
