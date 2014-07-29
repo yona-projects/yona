@@ -20,243 +20,252 @@
  */
 (function(ns){
     var oNS = $yobi.createNamespace(ns);
-    oNS.container[oNS.name] = function(htOptions){
+    oNS.container[oNS.name] = function(options){
 
-        var htVar = {};
-        var htElement = {};
+        var vars = {};
+        var elements = {};
 
         /**
          * initialize
          */
-        function _init(htOptions){
-            _initVar(htOptions || {});
-            _initElement(htOptions || {});
+        function _init(options){
+            _initVar(options);
+            _initElement(options);
             _attachEvent();
 
             _initFileUploader();
+            _onChangeBranch();
         }
 
         /**
          * initialize variables
          */
-        function _initVar() {
-            htVar.sFormURL = htOptions.sFormURL;
-            htVar.oFromProject = new yobi.ui.Dropdown({"elContainer": htOptions.welFromProject});
-            htVar.oToProject = new yobi.ui.Dropdown({"elContainer": htOptions.welToProject});
-            htVar.oFromBranch  = new yobi.ui.Dropdown({"elContainer": htOptions.welFromBranch});
-            htVar.oToBranch  = new yobi.ui.Dropdown({"elContainer": htOptions.welToBranch});
-            htVar.sUploaderId = null;
-            htVar.oSpinner = null;
-
-            htVar.htUserInput = {};
-            htVar.sTplFileItem = $('#tplAttachedFile').text();
+        function _initVar(options) {
+            vars.mergeResult = {};
+            vars.mergeResultURL = options.mergeResultURL;
+            vars.tplFileItem = $('#tplAttachedFile').text();
+            vars.uploaderId = null;
         }
 
         /**
          * initialize element variables
          */
-        function _initElement(htOptions){
-            htElement.welForm = $("form.nm");
-            htElement.welInputTitle = $('#title');
-            htElement.welInputBody  = $('textarea[data-editor-mode="content-body"]');
+        function _initElement(options){
+            elements.form  = $("form.nm");
+            elements.title = $('#title');
+            elements.body  = $('textarea[data-editor-mode="content-body"]');
 
-            htElement.welInputFromProject = $('input[name="fromProjectId"]');
-            htElement.welInputToProject = $('input[name="toProjectId"]');
-            htElement.welInputFromBranch = $('input[name="fromBranch"]');
-            htElement.welInputToBranch = $('input[name="toBranch"]');
+            elements.fromProject = options.fromProject;
+            elements.fromBranch  = options.fromBranch;
+            elements.toProject   = options.toProject;
+            elements.toBranch    = options.toBranch;
 
-            htElement.welUploader = $("#upload");
-            htElement.welContainer = $("#frmWrap");
-
-            htElement.welAbleToMerge = $("#ableToMerge");
-            htElement.welCommitCount = $("#commitCount");
+            elements.uploader = $("#upload");
+            elements.numOfCommits = $("#numOfCommits");
+            elements.commits = $("#__commits");
+            elements.status = $("#status");
         }
 
         /**
          * attach event handlers
          */
         function _attachEvent(){
-            htElement.welForm.submit(_onSubmitForm);
-            htElement.welInputTitle.on("keyup", _onKeyupInput);
-            htElement.welInputBody.on("keyup", _onKeyupInput);
+            elements.form.on("submit", _onSubmitForm);
+            elements.title.on("keyup", _onKeyUpInput);
+            elements.body.on("keyup", _onKeyUpInput);
 
-            htVar.oFromProject.onChange(_refreshNewPullRequestForm);
-            htVar.oToProject.onChange(_refreshNewPullRequestForm);
-            htVar.oFromBranch.onChange(_reloadNewPullRequestForm);
-            htVar.oToBranch.onChange(_reloadNewPullRequestForm);
+            // onChangeProject
+            elements.fromProject.on("change", _onChangeProject);
+            elements.toProject.on("change", _onChangeProject);
+
+            // onChangeBranch
+            elements.fromBranch.on("change", _onChangeBranch);
+            elements.toBranch.on("change", _onChangeBranch);
 
             $(document.body).on("click", "button.moreBtn", function(){
                 $(this).next("pre.commitMsg.desc").toggleClass("hidden");
             });
-
-            $('body').on('click','button.more',function(){
-               $(this).next('pre').toggleClass("hidden");
-            });
-
-            _reloadNewPullRequestForm();
         }
 
         /**
-         * @param {Wrapped Event} weEvt
+         * "keyup" event handler of inputTitle, inputBody.
+         * Mark as user has typed on this input, and detach this event handler.
+         * Ignore if the pressed key is ENTER.
+         *
+         * @param {Wrapped Event} evt
          */
-        function _onKeyupInput(weEvt){
-            var welTarget = $(weEvt.target);
-            var sInputId = welTarget.attr("id");
-            htVar.htUserInput = htVar.htUserInput || {};
-            htVar.htUserInput[sInputId] = true;
+        function _onKeyUpInput(evt){
+            var keyCode = (evt.keyCode || evt.which);
+
+            if(keyCode !== 13){
+                $(evt.target).data("isUserHasTyped", true)
+                             .off("keyup", _onKeyUpInput);
+            }
         }
 
         /**
+         * Reload page with changed fromProjectId, toProjectId query string.
+         *
          * @private
          */
-        function _refreshNewPullRequestForm(){
-            var htData = {};
+        function _onChangeProject(){
+            var data = _getFormValue();
 
-            htData.fromProjectId = htVar.oFromProject.getValue();
-            htData.toProjectId = htVar.oToProject.getValue();
-
-            document.location.href = htVar.sFormURL + "?fromProjectId=" + htData.fromProjectId + "&toProjectId=" + htData.toProjectId;
+            location.search = "?fromProjectId=" + data.fromProject + "&toProjectId=" + data.toProject;
         }
 
         /**
-         * request to reload pullRequestForm
+         * Request merge result with changed branch.
+         *
+         * @private
          */
-        function _reloadNewPullRequestForm(){
-            var htData = {};
-            htData.fromBranch = htVar.oFromBranch.getValue();
-            htData.toBranch = htVar.oToBranch.getValue();
-            htData.fromProjectId = htVar.oFromProject.getValue();
-            htData.toProjectId = htVar.oToProject.getValue();
+        function _onChangeBranch(){
+            var data = _getFormValue();
 
-            if(!(htData.fromBranch && htData.toBranch)) {
+            if(!data.fromBranch && !data.toBranch){
                 return;
             }
 
-            _startSpinner();
+            _showMergeResult({"message" : Messages("pullRequest.is.merging")});
 
-            $.ajax(htVar.sFormURL, {
-                "method" : "get",
-                "data"   : htData,
-                "success": _onSuccessReloadForm,
-                "error"  : _onErrorReloadForm
+            yobi.ui.Spinner.show();
+
+            $.ajax(vars.mergeResultURL, {
+                "data": data
+            })
+            .done(_onSuccessMergeResult)
+            .fail(_onErrorMergeResult)
+            .always(function(){
+                yobi.ui.Spinner.hide();
             });
         }
 
         /**
-         * onSuccess to reloadForm
+         * On success to load mergeResult
+         * Fill element.commits and form field title/body.
+         * and show result with parsing responded HTML.
+         *
+         * @param resultHTML
+         * @private
          */
-        function _onSuccessReloadForm(sRes){
-            var sTitle = htElement.welInputTitle.val();
-            var sBody = htElement.welInputBody.val();
-
-            htElement.welContainer.html(sRes);
-            _reloadElement();
-
-            // 만약 사용자가 입력한 제목이나 본문이 있으면 내용을 유지한다
-            if(sTitle.length > 0 && htVar.htUserInput.title){
-                htElement.welInputTitle.val(sTitle);
-            }
-            if(sBody.length > 0 && htVar.htUserInput.body){
-                htElement.welInputBody.val(sBody);
-            }
-
-            _initFileUploader();
-            _stopSpinner();
-            _updateSummary();
-        }
-
-        function _updateSummary() {
-            var success = $(".alert-success");
-            var error = $(".alert-error");
-            if(success.length > 0) {
-                htElement.welAbleToMerge.text(Messages("pullRequest.is.safe.to.merge"));
-            } else if(error.length > 0){
-                htElement.welAbleToMerge.text(Messages("pullRequest.is.not.safe.to.merge"));
-            } else {
-                htElement.welAbleToMerge.text(Messages("pullRequest.diff.noChanges"));
-            }
-
-            var commits = $(".commits tr");
-            if(commits.length > 0) {
-                htElement.welCommitCount.text(commits.length - 1);
-            } else {
-                htElement.welCommitCount.text(Messages("pullRequest.commit.is.empty"));
-            }
-
-        }
-
-        function _reloadElement(){
-            htElement.welInputTitle = $('#title');
-            htElement.welInputBody  = $('textarea[data-editor-mode="content-body"]');
-            htElement.welUploader = $("#upload");
-
-            htElement.welInputTitle.on("keyup", _onKeyupInput);
-            htElement.welInputBody.on("keyup", _onKeyupInput);
+        function _onSuccessMergeResult(resultHTML){
+            elements.commits.html(resultHTML);
+            vars.mergeResult = _getMergeResultData();
+            _showMergeResult(vars.mergeResult);
+            _fillFormTitleBody(vars.mergeResult);
         }
 
         /**
-         * onFailed to reloadForm
+         * Returns merge result data to show.
+         * {@code container} relative data relies on views/git/partial_merge_result.scala.html
+         *
+         * @returns {{cssClass: string, message: *, isConflict: boolean, numOfCommits: Number, title: *, body: *}}
+         * @private
          */
-        function _onErrorReloadForm(oRes){
-            _stopSpinner();
-            $yobi.alert(Messages("pullRequest.error.newPullRequestForm", oRes.status, oRes.statusText));
-        }
+        function _getMergeResultData(){
+            var container = $("#mergeResult");
+            var data = {
+                "cssClass"    : "alert-info",
+                "message"     : Messages("pullRequest.diff.noChanges"),
+                "isConflict"  : (container.data("conflict") === "true"),
+                "numOfCommits": parseInt(container.data("commits"), 10),
+                "title"       : container.data("pullrequestTitle"),
+                "body"        : container.data("pullrequestBody")
+            };
 
-        function _startSpinner(){
-            htVar.oSpinner = htVar.oSpinner || new Spinner();
-            htVar.oSpinner.spin(document.getElementById('spin'));
-        }
-
-        function _stopSpinner(){
-            if(htVar.oSpinner){
-                htVar.oSpinner.stop();
+            if(data.numOfCommits > 0){
+                data.message  = data.isConflict ? Messages("pullRequest.is.not.safe") : Messages("pullRequest.is.safe");
+                data.cssClass = data.isConflict ? "alert-error" : "alert-success";
             }
-            htVar.oSpinner = null;
+
+            return data;
+        }
+
+        function _showMergeResult(mergeResult){
+            elements.status.removeClass("alert-success alert-error alert-info")
+                               .addClass(mergeResult.cssClass)
+                               .html(mergeResult.message);
+
+            elements.numOfCommits.html(mergeResult.numOfCommits || "");
         }
 
         /**
-         * Event handler on submit form
+         * Fill form input title and body with merge result data
+         * if user doesn't have typed.
+         *
+         * @param data
+         * @private
          */
-        function _onSubmitForm(weEvt){
+        function _fillFormTitleBody(data){
+            var isUserHasTyped = elements.title.data("isUserHasTyped") ||
+                                 elements.body.data("isUserHasTyped");
+
+            if(!isUserHasTyped){
+                elements.title.val(data.title);
+                elements.body.val(data.body);
+            }
+        }
+
+        /**
+         * On error occurs to get merge result.
+         * Show error message and response status.
+         *
+         * @param res
+         * @private
+         */
+        function _onErrorMergeResult(res){
+            _showMergeResult({
+                "message" : Messages("pullRequest.error.newPullRequestForm", res.status, res.statusText),
+                "cssClass": "alert-error"
+            });
+            _fillFormTitleBody({"title":"", "body":""});
+        }
+
+        /**
+         * "submit" event handler of the form.
+         * Returns false if validate fails.
+         *
+         * @returns {Boolean}
+         * @private
+         */
+        function _onSubmitForm(){
             return _validateForm();
         }
 
         /**
          * Validate form before submit
+         *
+         * @returns {boolean}
+         * @private
          */
         function _validateForm(){
-            // these two fields should be loaded dynamically.
-            htElement.welInputFromBranch = $('input[name="fromBranch"]');
-            htElement.welInputToBranch = $('input[name="toBranch"]');
-            htElement.welInputFromProject = $('input[name="fromProjectId"]');
-            htElement.welInputToProject = $('input[name="toProjectId"]');
+            // Check whether is commit exists to send
+            if(!vars.mergeResult.numOfCommits){
+                $yobi.alert(Messages("pullRequest.diff.noChanges"));
+                return false;
+            }
 
-            // check whether required field is empty
-            var htRequired = {
-                "title"     : $.trim(htElement.welInputTitle.val()),
-                "fromProject": $.trim(htElement.welInputFromProject.val()),
-                "toProject" : $.trim(htElement.welInputToProject.val()),
-                "fromBranch": $.trim(htElement.welInputFromBranch.val()),
-                "toBranch"  : $.trim(htElement.welInputToBranch.val())
-            };
+            // Show confirm dialog in case of conflict
+            if(vars.mergeResult.isConflict && !vars.mergeResult.forceSubmit){
+                $yobi.confirm(Messages("pullRequest.ignore.conflict"), function(data){
+                    if(data.nButtonIndex === 1){
+                        vars.mergeResult.forceSubmit = true;
+                        elements.form.submit();
+                    }
+                });
+                return false;
+            }
 
-            for(var sMessageKey in htRequired){
-                if(htRequired[sMessageKey].length === 0){
-                    $yobi.alert(Messages("pullRequest." + sMessageKey + ".required"));
+            // Check whether required field is empty
+            var requiredField = _getFormValue();
+
+            for(var fieldName in requiredField){
+                if(requiredField[fieldName].length === 0){
+                    $yobi.alert(Messages("pullRequest." + fieldName + ".required"));
                     return false;
                 }
             }
 
-            if(!htVar.sFormURL) {
-                return true;
-            }
-
-            var bCommitNotChanged = $.trim($("#commitChanged").val()) != "true";
-
-            if(bCommitNotChanged) {
-                $yobi.alert(Messages("pullRequest.diff.noChanges"));
-                return false;
-            }
             return true;
         }
 
@@ -264,24 +273,35 @@
          * initialize fileUploader
          */
         function _initFileUploader(){
-            if(htVar.sUploaderId){
-                htVar.oAttachments.destroy();
-                yobi.Files.destroyUploader(htVar.sUploaderId);
-                htVar.sUploaderId = null;
+            if(vars.uploaderId){
+                vars.attachments.destroy();
+                yobi.Files.destroyUploader(vars.uploaderId);
+                vars.uploaderId = null;
             }
 
-            var oUploader = yobi.Files.getUploader(htElement.welUploader, htElement.welInputBody);
+            var oUploader = yobi.Files.getUploader(elements.uploader, elements.body);
+
             if(oUploader){
-                htVar.sUploaderId = oUploader.attr("data-namespace");
-                htVar.oAttachments = new yobi.Attachments({
-                    "elContainer"  : htElement.welUploader,
-                    "elTextarea"   : htElement.welInputBody,
-                    "sTplFileItem" : htVar.sTplFileItem,
-                    "sUploaderId"  : htVar.sUploaderId
+                vars.uploaderId = oUploader.attr("data-namespace");
+                vars.attachments = new yobi.Attachments({
+                    "elContainer"  : elements.uploader,
+                    "elTextarea"   : elements.body,
+                    "sTplFileItem" : vars.tplFileItem,
+                    "sUploaderId"  : vars.uploaderId
                 });
             }
         }
 
-        _init(htOptions || {});
+        function _getFormValue(){
+            return {
+                "title"      : $.trim(elements.title.val()),
+                "fromProject": $.trim(elements.fromProject.val()),
+                "toProject"  : $.trim(elements.toProject.val()),
+                "fromBranch" : $.trim(elements.fromBranch.val()),
+                "toBranch"   : $.trim(elements.toBranch.val())
+            };
+        }
+
+        _init(options || {});
     };
 })("yobi.git.Write");

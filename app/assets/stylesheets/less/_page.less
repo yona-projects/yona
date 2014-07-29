@@ -4778,38 +4778,23 @@ label.issue-item-row {
 
 // -- pull request
 .pull-request-wrap {
+    position:relative;
+    display: block;
     margin-bottom:20px;
-    display: table;
+    min-height:55px;
 
-    .request-box {
-        border: 1px solid lightgray;
-        border-radius: 3px !important;
-        display:inline-block; width:350px;
-        .repo { color:@secondary; font-size:14px; }
-        .dropdown-toggle { width:350px; }
-        .dropdown-menu   { width:350px; }
-        padding: 5px;
-    }
-
-    label {
+    .field-title {
+        display:block;
         font-weight: bold;
-        cursor: default;
-    }
-
-    .request-from {
-        .request-box;
-    }
-
-    .request-to {
-        .request-box;
     }
 
     .arrow {
-        display:table-cell; vertical-align:middle;
-        width:50px;
+        position:absolute;
+        left:50%; top:20px;
+        margin-left:-16px;
         text-align:center;
-        font-size: xx-large;
-        color: lightgray;
+        color: @yobi-gray;
+        font-size: 32px;
     }
 }
 

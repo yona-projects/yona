@@ -18,112 +18,127 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(title:String, form: Form[PullRequest], project: Project, fromBranches: List[playRepository.GitBranch], toBranches: List[playRepository.GitBranch], pull: PullRequest)
+@(title:String, form:Form[PullRequest], project:Project,
+  fromBranches: List[playRepository.GitBranch], toBranches:List[playRepository.GitBranch],
+  pullRequest:models.PullRequest)
 
 @import scala.collection.Map
 @import utils.TemplateHelper._
 @import utils.TemplateHelper.Branches._
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
-@projectLayout(title, pull.toProject, utils.MenuType.PULL_REQUEST) {
-@projectMenu(pull.toProject, utils.MenuType.PULL_REQUEST, "main-menu-only")
+@projectLayout(title, pullRequest.toProject, utils.MenuType.PULL_REQUEST) {
+@projectMenu(pullRequest.toProject, utils.MenuType.PULL_REQUEST, "main-menu-only")
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
         <div class="content-wrap frm-wrap">
-            @helper.form(action=routes.PullRequestApp.editPullRequest(pull.toProject.owner, pull.toProject.name, pull.number), 'enctype -> "multipart/form-data", 'class->"nm"){
+            @helper.form(action=routes.PullRequestApp.editPullRequest(pullRequest.toProject.owner, pullRequest.toProject.name, pullRequest.number), 'enctype -> "multipart/form-data", 'class->"nm"){
                 <div class="pull-request-wrap">
-                    <div class="option request-from">
-                        <div class="option-label">@Messages("pullRequest.from"):
-                            <div class="btn-group branches" data-name="fromProjectId">
-                                <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                                    <span class="d-label">@Messages("pullRequest.select.branch")</span>
-                                    <span class="d-caret"><span class="caret"></span></span>
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li data-value="@pull.fromProject.id" data-selected="true">
-                                        <a href="#"><span class="label">repo</span>@pull.fromProject.owner/@pull.fromProject.name</a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="option-desc mt5">
-                            <div class="btn-group branches" data-name="fromBranch">
-                                <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                                    <span class="d-label">@Messages("pullRequest.select.branch")</span>
-                                    <span class="d-caret"><span class="caret"></span></span>
-                                </button>
-                                <ul class="dropdown-menu">
-                                    @defining(form("fromBranch").value()) { fromBranch =>
-                                        @common.branchItem("pullRequest", null, fromBranch, null, true)
-                                    }
-                                </ul>
-                            </div>
-                        </div>
+                    <!-- from -->
+                    <div class="pull-left">
+                        <label for="fromProjectId" class="field-title">@Messages("pullRequest.from")</label>
+                        <select id="fromProjectId" name="fromProjectId" data-toggle="select2" class="mr5" disabled>
+                            <option value="@pullRequest.fromProject.id" selected>
+                                @pullRequest.fromProject.owner / @pullRequest.fromProject.name
+                            </option>
+                        </select>
+                        <select id="fromBranch" name="fromBranch" data-toggle="select2" data-format="branch" disabled
+                                data-dropdown-css-class="branches" data-placeholder="@Messages("pullRequest.select.branch")">
+                            <option></option>
+                            @for(branch <- fromBranches) {
+                                <option value="@branch.getName" @if(branch.getName == pullRequest.fromBranch){ selected }>@branch.getName</option>
+                            }
+                        </select>
+
+                        <input type="hidden" name="fromProjectId" value="@pullRequest.fromProject.id">
+                        <input type="hidden" name="fromBranch" value="@pullRequest.fromBranch">
                     </div>
+                    <!-- // -->
 
                     <div class="arrow">
                         <i class="yobicon-right-2"></i>
                     </div>
 
-                    <div class="option request-to">
-                        <div class="option-label">@Messages("pullRequest.to"):
-                            <div class="btn-group branches" data-name="toProjectId">
-                                <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                                    <span class="d-label">@Messages("pullRequest.select.branch")</span>
-                                    <span class="d-caret"><span class="caret"></span></span>
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li data-value="@pull.toProject.id" data-selected="true">
-                                        <a href="#"><span class="label">repo</span>@pull.toProject.owner/@pull.toProject.name</a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="option-desc mt5">
-                            <div class="btn-group branches" data-name="toBranch">
-                                <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                                    <span class="d-label">@Messages("pullRequest.select.branch")</span>
-                                    <span class="d-caret"><span class="caret"></span></span>
-                                </button>
-                                <ul class="dropdown-menu">
-                                @defining(form("toBranch").value()) { toBranch =>
-                                    @common.branchItem("pullRequest", null, toBranch, null, true)
-                                }
-                                </ul>
-                            </div>
-                        </div>
+                    <!-- to -->
+                    <div class="pull-right">
+                        <label for="toProjectId" class="field-title">@Messages("pullRequest.to")</label>
+                        <select id="toProjectId" name="toProjectId" data-toggle="select2" class="mr5" disabled>
+                            <option value="@pullRequest.toProject.id" selected>
+                                @pullRequest.toProject.owner / @pullRequest.toProject.name
+                            </option>
+                        </select>
+                        <select id="toBranch" name="toBranch" data-toggle="select2" data-format="branch" disabled
+                                data-dropdown-css-class="branches" data-placeholder="@Messages("pullRequest.select.branch")">
+                            <option></option>
+                            @for(branch <- toBranches) {
+                                <option value="@branch.getName" @if(branch.getName == pullRequest.toBranch){ selected }>@branch.getName</option>
+                            }
+                        </select>
+
+                        <input type="hidden" name="toProjectId" value="@pullRequest.toProject.id">
+                        <input type="hidden" name="toBranch" value="@pullRequest.toBranch">
+                    </div>
+                    <!-- // -->
+                </div>
+
+                <div id="status" class="alert mt20 mb20">
+                    @Messages("pullRequest.is.merging")
+                </div>
+
+                <div>
+                    <input type="text" id="title" name="title" maxlength="255" class="text"
+                           value="@pullRequest.title" placeholder="@Messages("title")" data-is-user-has-typed="true">
+                    <div style="position: relative;">
+                        @common.editor("body", pullRequest.body, "data-is-user-has-typed=true", "content-body")
+                    </div>
+                    @common.fileUploader(ResourceType.PULL_REQUEST, pullRequest.id)
+                    @common.markdown(project)
+
+                    <div class="actions">
+                        <button type="submit" class="ybtn ybtn-success">@Messages("button.save")</button>
+                        <a href="javascript:history.back();" class="ybtn">@Messages("button.cancel")</a>
                     </div>
                 </div>
 
-                <input type="text" name="title" id="title" placeholder="" maxlength="maxlength" tabindex="1" class="text" value="@pull.title">
-                <div style="position: relative;">
-                    @common.editor("body", pull.body, "tabindex=2", "content-body")
-                </div>
+                <ul class="nav nav-tabs mt20">
+                    <li class="active">
+                        <a href="#__commits" data-toggle="tab">
+                            <span class="vmiddle-inline">@Messages("pullRequest.menu.commit")</span>
+                            <span id="numOfCommits" class="num-badge vmiddle-inline"></span>
+                        </a>
+                    </li>
+                </ul>
 
-                @common.fileUploader(ResourceType.PULL_REQUEST, pull.id)
-
-                <div class="actions">
-                    <button type="submit" class="ybtn ybtn-info">@Messages("button.save")</button>
-                    <a href="javascript:history.back();" class="ybtn">@Messages("button.cancel")</a>
+                <div class="tab-content">
+                    <div id="__commits" class="code-browse-wrap tab-pane active">
+                    @** this area will be replaced with asynchronously by yobi.git.Write.js after load this page. **@
+                    </div>
                 </div>
             }
         </div>
     </div>
 </div>
-@common.markdown(project)
+
+@common.select2()
 
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.css")">
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.caret.min.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.js")"></script>
 <script type="text/javascript">
-	$(document).ready(function(){
-        $yobi.loadModule("git.Write");
+$(function(){
+    $yobi.loadModule("git.Write", {
+        "sMergeResultURL": "@routes.PullRequestApp.mergeResult(project.owner, project.name)",
+        "welFromProject" : $("#fromProjectId"),
+        "welToProject"   : $("#toProjectId"),
+        "welFromBranch"  : $("#fromBranch"),
+        "welToBranch"    : $("#toBranch")
+    });
 
-        // yobi.Mention
-        yobi.Mention({
-            "target": "textarea[id^=editor-]",
-            "url"   : "@routes.ProjectApp.mentionList(project.owner, project.name)"
-        });
-	});
+    // yobi.Mention
+    yobi.Mention({
+        "target": "textarea[id^=editor-]",
+        "url"   : "@routes.ProjectApp.mentionList(project.owner, project.name)"
+    });
+});
 </script>
 }
