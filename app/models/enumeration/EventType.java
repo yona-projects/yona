@@ -76,4 +76,17 @@ public enum EventType {
         });
     }
 
+    public boolean isCreating() {
+        switch(this) {
+            case NEW_ISSUE:
+            case NEW_POSTING:
+            case NEW_PULL_REQUEST:
+            case NEW_COMMENT:
+            case NEW_REVIEW_COMMENT:
+            case NEW_COMMIT:
+                return true;
+            default:
+                return false;
+        }
+    }
 }

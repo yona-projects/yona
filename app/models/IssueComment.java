@@ -74,6 +74,11 @@ public class IssueComment extends Comment {
             public Long getAuthorId() {
                 return authorId;
             }
+
+            @Override
+            public Resource getContainer() {
+                return issue.asResource();
+            }
         };
     }
 
