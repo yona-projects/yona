@@ -43,7 +43,7 @@ public class YobiUpdate {
     private static final Long UPDATE_NOTIFICATION_INTERVAL_IN_MILLIS = Configuration.root()
             .getMilliseconds("application.update.notification.interval", 60 * 60 * 1000L);
     private static final String UPDATE_REPOSITORY_URL = Configuration.root()
-            .getString("application.update.repositoryUrl", "http://demo.yobi.io/naver/Yobi");
+            .getString("application.update.repositoryUrl", "https://github.com/naver/yobi");
     private static final String RELEASE_URL_FORMAT = Configuration.root()
             .getString("application.update.releaseUrlFormat",
                     "https://github.com/naver/yobi/releases/tag/v%s");
