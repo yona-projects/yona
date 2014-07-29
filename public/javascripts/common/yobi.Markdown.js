@@ -210,7 +210,8 @@ yobi.Markdown = (function(htOptions){
     function _setViewer(welTarget) {
         var sMarkdownText = welTarget.text();
         var sContentBody  = (sMarkdownText) ? _renderMarkdown(sMarkdownText) : welTarget.html();
-        welTarget.html(sContentBody).removeClass('markdown-before');
+        $('.markdown-loader').remove();
+        welTarget.html(sContentBody).removeClass('markdown-before');  
     }
 
     /**

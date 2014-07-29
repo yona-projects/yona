@@ -79,6 +79,9 @@
                 @if(StringUtils.isEmpty(issue.body)){
                 <div class="content empty-content"></div>
                 } else {
+                <div class="markdown-loader">
+                    <i class=" yobicon-loading2"></i> Loading....
+                </div>
                 <div class="content markdown-wrap markdown-before" markdown="true">@issue.body</div>
                 }
                 <div class="attachments" id="attachments" data-resource-type="@ResourceType.ISSUE_POST" data-resource-id="@issue.id"></div>
