@@ -29,31 +29,35 @@
     @if(page.getList.length > 0) {
     <ul class="search-list-wrap">
         @for(review <- page.getList) {
-            <li class="search-list-item @if(project != null) {project}">
+            <li class="search-list-item">
             @defining(User.findByLoginId(review.author.loginId)){ user =>
-                @if(review.thread.pullRequest != null) {
-                @if(project == null) {
-                <a href="@routes.ProjectApp.project(review.thread.project.owner, review.thread.project.name)" class="avatar-wrap">
-                    <img src="@urlToProjectLogo(review.thread.project)">
-                </a>
-                }
+                @if(review.thread.isOnPullRequest()) {
                 <div class="title-wrap">
                     <span class="post-id">#@review.thread.pullRequest.number</span>
                     <a href="@DiffRenderer.urlToCommentThread(review.thread)">
                         Re) @review.thread.pullRequest.title
                     </a>
                 </div>
-                }
+                } 
                 <div class="search-content">
-                   @defining(searchResult.makeSnipets(review.getContents, 40)) { snipets =>
-                        @if(snipets != null && snipets.size > 0) {
-                            @for(snipet <- snipets) {
+               @defining(searchResult.makeSnippets(review.getContents, 40)) { snippets =>
+                    @if(review.thread.isOnPullRequest()) {
+                        @for(snippet <- snippets) {
                             <p class="search-content-body">
-                                @snipet @if(snipet.size < review.getContents.size) { ..... }
+                                @snippet @if(snippet.size < review.getContents.size) { ..... }
                             </p>
-                            }
                         }
-                    }                        
+                    } else {
+                        <a href="@DiffRenderer.urlToCommentThread(review.thread)">
+                        @for(snippet <- snippets) {
+                            <p class="search-content-body">
+                                @snippet @if(snippet.size < review.getContents.size) { ..... }
+                            </p>
+                        }
+                        </a>
+                    }
+                    
+                }                        
                 </div>
                 <div class="search-meta-info">
                     @if(project == null) {
@@ -61,13 +65,6 @@
                         @review.thread.project.owner/@review.thread.project.name
                     </a>
                     }
-                    <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap meta" data-toggle="tooltip" data-placement="top" title="@user.loginId">
-                        @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){
-                            <img src="@urlToPicture(user.email, 16)">
-                        } else {
-                            <img src="@user.avatarUrl" alt="@user.name" width="16" height="16"/>
-                        }
-                    </a>
                     @if(user.name){
                         <a href="@routes.UserApp.userInfo(user.loginId)" class="meta-item" data-toggle="tooltip" data-placement="top" title="@user.loginId">
                             @user.name

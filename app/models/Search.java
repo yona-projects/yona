@@ -1,14 +1,34 @@
+/**
+ * Yobi, Project Hosting SW
+ *
+ * Copyright 2014 NAVER Corp.
+ * http://yobi.io
+ *
+ * @Author Keesun Baik
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package models;
 
 import com.avaje.ebean.*;
+import models.enumeration.Operation;
 import models.enumeration.ProjectScope;
 import models.enumeration.UserState;
+import utils.AccessControl;
 
+import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author Keeun Baik
- */
 public class Search {
 
     private static final String DEFAULT_PATH_TO_PROJECT = "project";
@@ -138,20 +158,13 @@ public class Search {
 
     private static ExpressionList<Issue> issuesEL(String keyword, User user, Project project) {
         ExpressionList<Issue> el = Issue.finder.where().eq("project", project);
-
-        if(isAllowed(user, project)) {
-            Junction<Issue> junction = el.disjunction();
-            containsKeywordIn(keyword, junction, new String[]{"title", "body"});
-            junction.endJunction();
-        } else {
+        if(!AccessControl.isAllowed(user, project.asResource(), Operation.READ)) {
             Junction<Issue> junction = el.disjunction();
             junction.add(Expr.eq("authorId", user.id));
             junction.add(Expr.eq("assignee.user.id", user.id));
             junction.endJunction();
-            containsKeywordIn(keyword, el.conjunction(), new String[]{"title", "body"});
-
         }
-
+        containsKeywordIn(keyword, el.conjunction(), new String[]{"title", "body"});
         el.orderBy().desc("createdDate");
         return el;
     }
@@ -270,17 +283,10 @@ public class Search {
     private static ExpressionList<Posting> postsEL(String keyword, User user, Project project) {
         ExpressionList<Posting> el = Posting.finder.where()
                 .eq("project", project);
-
-        if(isAllowed(user, project)) {
-            Junction<Posting> junction = el.disjunction();
-            containsKeywordIn(keyword, junction, new String[]{"title", "body"});
-            junction.endJunction();
-            equalsUserTemplate(keyword, user, junction, DEFAULT_PATH_TO_AUTHOR, containsKeywordInPosting);
-        } else {
+        if(!AccessControl.isAllowed(user, project.asResource(), Operation.READ)) {
             el.eq("authorId", user.id);
-            containsKeywordIn(keyword, el.conjunction(), new String[]{"title", "body"});
         }
-
+        containsKeywordIn(keyword, el.conjunction(), new String[]{"title", "body"});
         el.orderBy().desc("createdDate");
         return el;
     }
@@ -360,7 +366,7 @@ public class Search {
     }
 
     /**
-     * Find all users in a {@code project} who contains the {@code keyword} in name or loginId.
+     * Finds all users in a {@code project} who contains the {@code keyword} in name or loginId.
      *
      * @param keyword
      * @param project
@@ -396,7 +402,7 @@ public class Search {
     }
 
     /**
-     * Find all users in an {@code organization} who contains the {@code keyword} in name or loginId.
+     * Finds all users in an {@code organization} who contains the {@code keyword} in name or loginId.
      *
      * @param keyword
      * @param organization
@@ -460,7 +466,7 @@ public class Search {
     }
 
     /**
-     * Find all projects in an {@code organization} that contains the {@code keyword} in name or overview.
+     * Finds all projects in an {@code organization} that contains the {@code keyword} in name or overview.
      *
      * @param keyword
      * @param user
@@ -531,10 +537,16 @@ public class Search {
     }
 
     public static Page<Milestone> findMilestones(String keyword, User user, Project project, PageParam pageParam) {
+        if(!AccessControl.isAllowed(user, project.asResource(), Operation.READ)) {
+            return emptyPage();
+        }
         return milestonesEL(keyword, project).findPagingList(pageParam.getSize()).getPage(pageParam.getPage());
     }
 
     public static int countMilestones(String keyword, User user, Project project) {
+        if(!AccessControl.isAllowed(user, project.asResource(), Operation.READ)) {
+            return 0;
+        }
         return milestonesEL(keyword, project).findRowCount();
     }
 
@@ -595,17 +607,10 @@ public class Search {
     private static ExpressionList<IssueComment> issueCommentsEL(String keyword, User user, Project project) {
         ExpressionList<IssueComment> el = IssueComment.find.where()
                 .eq("issue.project", project);
-
-        if(isAllowed(user, project)) {
-            Junction<IssueComment> junction = el.disjunction();
-            containsKeywordIn(keyword, junction, new String[]{"contents"});
-            junction.endJunction();
-            equalsUserTemplate(keyword, user, junction, DEFAULT_PATH_TO_AUTHOR, containsKeywordInIssueComment);
-        } else {
+        if(!AccessControl.isAllowed(user, project.asResource(), Operation.READ)) {
             el.eq("authorId", user.id);
-            containsKeywordIn(keyword, el.conjunction(), new String[]{"contents"});
         }
-
+        containsKeywordIn(keyword, el.conjunction(), new String[]{"contents"});
         el.orderBy().desc("createdDate");
         return el;
     }
@@ -659,16 +664,10 @@ public class Search {
         ExpressionList<PostingComment> el = PostingComment.find.where()
                 .eq("posting.project", project);
 
-        if(isAllowed(user, project)) {
-            Junction<PostingComment> junction = el.disjunction();
-            containsKeywordIn(keyword, junction, new String[]{"contents"});
-            junction.endJunction();
-            equalsUserTemplate(keyword, user, junction, DEFAULT_PATH_TO_AUTHOR, containsKeywordInPostComment);
-        } else {
+        if(!AccessControl.isAllowed(user, project.asResource(), Operation.READ)) {
             el.eq("authorId", user.id);
-            containsKeywordIn(keyword, el.conjunction(), new String[]{"contents"});
         }
-
+        containsKeywordIn(keyword, el.conjunction(), new String[]{"contents"});
         el.orderBy().desc("createdDate");
         return el;
     }
@@ -721,17 +720,10 @@ public class Search {
     private static ExpressionList<ReviewComment> reviewsEL(String keyword, User user, Project project) {
         ExpressionList<ReviewComment> el = ReviewComment.find.where()
                 .eq("thread.project", project);
-
-        if(isAllowed(user, project)) {
-            Junction<ReviewComment> junction = el.disjunction();
-            containsKeywordIn(keyword, junction, new String[]{"contents"});
-            junction.endJunction();
-            equalsUserTemplate(keyword, user, junction, "author.id", containsKeywordInReviewComment);
-        } else {
+        if(!AccessControl.isAllowed(user, project.asResource(), Operation.READ)) {
             el.eq("author.id", user.id);
-            containsKeywordIn(keyword, el.conjunction(), new String[]{"contents"});
         }
-
+        containsKeywordIn(keyword, el.conjunction(), new String[]{"contents"});
         el.orderBy().desc("createdDate");
         return el;
     }
@@ -837,10 +829,53 @@ public class Search {
         }
     }
 
-    private static boolean isAllowed(User user, Project project) {
-        return project.projectScope == ProjectScope.PUBLIC
-                || ProjectUser.isMember(user.id, project.id)
-                || (project.projectScope == ProjectScope.PROTECTED && OrganizationUser.exist(project.organization.id, user.id));
+    private static <T> Page<T> emptyPage() {
+        return new Page<T>() {
+            @Override
+            public List<T> getList() {
+                return new ArrayList<>();
+            }
+
+            @Override
+            public int getTotalRowCount() {
+                return 0;
+            }
+
+            @Override
+            public int getTotalPageCount() {
+                return 0;
+            }
+
+            @Override
+            public int getPageIndex() {
+                return 0;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return false;
+            }
+
+            @Override
+            public boolean hasPrev() {
+                return false;
+            }
+
+            @Override
+            public Page<T> next() {
+                return null;
+            }
+
+            @Override
+            public Page<T> prev() {
+                return null;
+            }
+
+            @Override
+            public String getDisplayXtoYofZ(String s, String s2) {
+                return null;
+            }
+        };
     }
 
 }

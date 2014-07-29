@@ -223,15 +223,6 @@
     }
 }
 
-.search-box-wrap {
-    border-bottom:1px solid #ddd;
-    padding-bottom:20px;
-
-    input[type="text"] {
-        margin-bottom: 0;
-    }
-}
-
 .gnb-search-form {
     margin:0;
     padding:0 10px;
@@ -5727,6 +5718,26 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
   }
 }
 
+.search-box-wrap {
+    padding-bottom:15px;
+    border-bottom: 1px solid #ddd;
+
+    input[type="text"] {
+        margin-bottom: 0;
+    }
+
+    h3.search-result-title {
+        font-size:16px;
+        margin-top: 15px;
+        font-weight: normal;
+        padding:0 15px;
+        
+        strong {
+            color:#f36c22;
+        }
+    }
+}
+
 .search-list-wrap {
     list-style: none;
     display: block;
@@ -5736,11 +5747,11 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         display: block;
         float: none;
         margin:0;
-        padding:10px 15px 10px 60px;
+        padding:15px;
         border-bottom: 1px solid #ddd;
 
         &.project {
-            padding:10px 15px;
+           padding:15px 15px 15px 60px;
         }
     }
 
@@ -5773,8 +5784,8 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     }
 
     .title-wrap {
-        line-height: 40px;
-        font-size: 18px;
+        line-height: 30px;
+        font-size: 16px;
         font-weight: bold;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -5783,9 +5794,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         .post-id {
             color:#999;
             font-weight: normal;
-
-            
-        }
+       }
 
         .title {
             color:#333;
@@ -5806,19 +5815,27 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     .search-content {
         display: block;
         font-size: 14px;
-        margin-top: 15px;
-        border-left: 3px solid #DDD;
-        padding-left:13px;
+        padding-left:20px;
+
+        &.np {
+            padding-left:0 !important;
+        }
+
     }
 
     .search-content-body {
         display: block;
-        margin-top:15px;
     }
 
     .search-meta-info {
-        margin-top:15px;
+        margin-top:10px;
         font-size: 13px;
+        color:#999;
+        padding-left:20px;  
+
+        &.np {
+            padding-left:0 !important;
+        }
 
         .meta-item {
             line-height: 20px;
@@ -5826,7 +5843,13 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         }
     }
 
-    .project-link, .user-link {
+    .project-link {
+        &:hover {
+            color: #3592b5 !important;
+        }
+    }
+
+    .user-link { 
         color: #3592b5 !important;
         font-weight: bold;
     }

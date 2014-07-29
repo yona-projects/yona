@@ -666,6 +666,7 @@ search.menu.milestones = 마일스톤
 search.menu.projects = 프로젝트
 search.menu.reviews = 코드 리뷰
 search.menu.users =  사용자
+search.result.title = {1}에서 <strong>{0}</strong> 건이 검색 되었습니다
 search.scope.all = 모든 프로젝트
 search.scope.group = 현재 그룹
 search.scope.porject = 현재 프로젝트

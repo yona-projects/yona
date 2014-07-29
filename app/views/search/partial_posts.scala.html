@@ -29,12 +29,7 @@
     <ul class="search-list-wrap">
         @for(post <- page.getList) {
             @defining(User.findByLoginId(post.authorLoginId)){ user =>
-            <li class="search-list-item @if(project != null) {project}">
-                @if(project == null) {
-                <a href="@routes.ProjectApp.project(post.project.owner, post.project.name)" class="avatar-wrap">
-                    <img src="@urlToProjectLogo(post.project)">
-                </a>
-                }
+            <li class="search-list-item">
                 <div class="title-wrap">
                     <span class="post-id">#@post.getNumber</span>
                     <a href="@routes.BoardApp.post(post.project.owner, post.project.name, post.getNumber)" class="title">
@@ -42,15 +37,13 @@
                     </a>
                 </div>
                 <div class="search-content">
-                    @defining(searchResult.makeSnipets(post.body, 40)) { snipets =>
-                        @if(snipets != null && snipets.size > 0) {
-                            @for(snipet <- snipets) {
-                            <p class="search-content-body">
-                                @snipet @if(snipet.size < post.body.size) { ..... }
-                            </p>
-                            }
-                        }
+                @defining(searchResult.makeSnippets(post.body, 40)) { snippets =>
+                    @for(snippet <- snippets) {
+                    <p class="search-content-body">
+                        @snippet @if(snippet.size < post.body.size) { ..... }
+                    </p>
                     }
+                }
                 </div>
                 <div class="search-meta-info">
                     @if(project == null) {
@@ -58,13 +51,6 @@
                         @post.project.owner/@post.project.name
                     </a>
                     }
-                    <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap meta" data-toggle="tooltip" data-placement="top" title="@user.loginId">
-                        @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){
-                            <img src="@urlToPicture(user.email, 32)">
-                        } else {
-                            <img src="@user.avatarUrl" alt="@user.name" width="32" height="32"/>
-                        }
-                    </a>
                     @if(user.name){
                         <a href="@routes.UserApp.userInfo(user.loginId)" class="meta-item" data-toggle="tooltip" data-placement="top" title="@user.loginId">
                             @user.name

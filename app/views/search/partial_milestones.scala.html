@@ -37,26 +37,18 @@
     @if(page.getList.length > 0) {
     <ul class="search-list-wrap">
         @for(milestone <- page.getList) {
-        <li class="search-list-item @if(project != null) {project}">
-            @if(project == null) {
-            <a href="@routes.ProjectApp.project(milestone.project.owner, milestone.project.name)" class="avatar-wrap">
-                <img src="@urlToProjectLogo(milestone.project)">
-            </a>
-            }
+        <li class="search-list-item">
             <div class="title-wrap">
-                 <span class="state @milestone.state.state.toLowerCase">@Messages("milestone.state." + milestone.state.state.toLowerCase)</span>
                 <a href="@routes.MilestoneApp.milestone(milestone.project.owner, milestone.project.name, milestone.id)" class="title">
                     @milestone.title
                 </a>
             </div>
             <div class="search-content">
-                @defining(searchResult.makeSnipets(milestone.contents, 40)) { snipets =>
-                    @if(snipets != null && snipets.size > 0) {
-                        @for(snipet <- snipets) {
-                        <p class="search-content-body">
-                            @snipet @if(snipet.size < milestone.contents.size) { ..... }
-                        </p>
-                        }
+                @defining(searchResult.makeSnippets(milestone.contents, 40)) { snippets =>
+                    @for(snippet <- snippets) {
+                    <p class="search-content-body">
+                        @snippet @if(snippet.size < milestone.contents.size) { ..... }
+                    </p>
                     }
                 }
             </div>

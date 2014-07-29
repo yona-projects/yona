@@ -29,7 +29,7 @@
     <ul class="search-list-wrap">
         @for(project <- page.getList) {
             @defining(User.findByLoginId(project.owner)){ user =>
-            <li class="search-list-item">
+            <li class="search-list-item project">
                 <a href="@routes.ProjectApp.project(project.owner, project.name)" class="avatar-wrap">
                     <img src="@urlToProjectLogo(project)">
                 </a>
@@ -39,7 +39,7 @@
                     </a>
                 </div>
                 @if(project.isForkedFromOrigin){
-                <div class="search-meta-info nm">
+                <div class="search-meta-info nm np">
                     <span>
                        <i class="yobicon-split yobicon-white vmiddle"></i>
                         @Messages("fork.original")
@@ -51,12 +51,12 @@
                     </span>
                 </div>
                 }
-                <div class="search-content">
+                <div class="search-content np">
                     <p class="search-content-body">
                         @project.overview
                     </p>
                  </div>
-                 <div class="search-meta-info">
+                 <div class="search-meta-info np">
                     <span class="meta-info">
                         @Messages("project.create")
                         <strong title="@getDateString(project.createdDate)">@agoOrDateString(project.createdDate)</strong>

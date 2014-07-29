@@ -19,7 +19,7 @@ GET            /init                                                            
 GET            /UIKit                                                                 controllers.Application.UIKit()
 
 # Search
-GET            /search                                                                controllers.SearchApp.searchAllRepos()
+GET            /search                                                                controllers.SearchApp.searchInAll()
 
 # Import
 GET            /import                                                                controllers.ImportApp.importForm()
@@ -36,7 +36,7 @@ POST           /organizations/:organizationName/members                         
 POST           /organizations/:organizationName/member/:userId/edit                   controllers.OrganizationApp.editMember(organizationName: String, userId: Long)
 DELETE         /organizations/:organizationName/member/:userId/delete                 controllers.OrganizationApp.deleteMember(organizationName: String, userId: Long)
 DELETE         /organizations/:organizationName/member/leave                          controllers.OrganizationApp.leave(organizationName: String)
-GET            /organizations/:organizationName/search                                controllers.SearchApp.searchGroupRepos(organizationName)
+GET            /organizations/:organizationName/search                                controllers.SearchApp.searchInAGroup(organizationName)
 
 # Enrolling Organization
 POST           /organizations/:organizationName/enroll                                controllers.EnrollOrganizationApp.enroll(organizationName)
@@ -139,7 +139,7 @@ DELETE         /:user/:project/pushedBranch/:id/delete                          
 GET            /:user/:project/transfer                                               controllers.ProjectApp.transferForm(user, project)
 PUT            /:user/:project/transfer                                               controllers.ProjectApp.transferProject(user, project)
 GET            /project/transfer/:id/:key                                             controllers.ProjectApp.acceptTransfer(id: Long, key)
-GET            /:user/:project/search                                                 controllers.SearchApp.searchProject(user, project)
+GET            /:user/:project/search                                                 controllers.SearchApp.searchInAProject(user, project)
 
 # Project Review Menu
 GET            /:user/:project/reviews                                                controllers.ReviewThreadApp.reviewThreads(user, project)

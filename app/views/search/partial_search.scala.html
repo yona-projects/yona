@@ -27,14 +27,41 @@
 
 @makeSearchLink() = @{
     if(project != null) {
-        routes.SearchApp.searchProject(project.owner, project.name)
+        routes.SearchApp.searchInAProject(project.owner, project.name)
     } else if (group !=null) {
-        routes.SearchApp.searchGroupRepos(group.name)
+        routes.SearchApp.searchInAGroup(group.name)
     } else {
-        routes.SearchApp.searchAllRepos()
+        routes.SearchApp.searchInAll()
     }
 }
 
+@makeTilte(search_type:SearchType) =@{
+    search_type match {
+        case SearchType.ISSUE => { Messages("search.menu.issues") }
+        case SearchType.USER => { Messages("search.menu.users") }
+        case SearchType.PROJECT => { Messages("search.menu.projects") }
+        case SearchType.POST => { Messages("search.menu.boards") }
+        case SearchType.MILESTONE => { Messages("search.menu.milestones") }
+        case SearchType.ISSUE_COMMENT => { Messages("search.menu.issue.comments") }
+        case SearchType.POST_COMMENT => { Messages("search.menu.board.comments") }
+        case SearchType.REVIEW => { Messages("search.menu.reviews") }  
+        case SearchType.NA => { }
+    }
+}
+
+@getCurrentlySearchCount(search_type:SearchType) =@{
+    search_type match {
+        case SearchType.ISSUE => { searchResult.getIssuesCount }
+        case SearchType.USER => { searchResult.getUsersCount }
+        case SearchType.PROJECT => { searchResult.getProjectsCount }
+        case SearchType.POST => { searchResult.getPostsCount }
+        case SearchType.MILESTONE => { searchResult.getMilestonesCount }
+        case SearchType.ISSUE_COMMENT => { searchResult.getIssueCommentsCount }
+        case SearchType.POST_COMMENT => { searchResult.getPostCommentsCount }
+        case SearchType.REVIEW => { searchResult.getReviewsCount }  
+        case SearchType.NA => { }
+    }
+}
 <div class="site-breadcrumb-outer">
     <div class="site-breadcrumb-inner">
         <h3>
@@ -107,6 +134,10 @@
                             <input type="text" name="keyword" class="span11" value="@searchResult.getKeyword()">
                             <button type="submit" class="ybtn">@Messages("title.search")</button>
                         </form>
+                        
+                        <h3 class="search-result-title">
+                            @Html(Messages("search.result.title", getCurrentlySearchCount(searchResult.getSearchType()),makeTilte(searchResult.getSearchType())))
+                        </h3>
                     </div>
                     <div class="search-result-wrap">
                         @if(searchResult.getSearchType() == SearchType.ISSUE) {

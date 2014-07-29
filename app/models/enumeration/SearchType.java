@@ -5,7 +5,7 @@ package models.enumeration;
  */
 public enum SearchType {
 
-    NA("not availeable"), USER("user"), PROJECT("project"), ISSUE("issue"), POST("post"),
+    NA("not available"), USER("user"), PROJECT("project"), ISSUE("issue"), POST("post"),
     MILESTONE("milestone"), ISSUE_COMMENT("issue_comment"), POST_COMMENT("post_comment"), REVIEW("review");
 
     private String searchType;

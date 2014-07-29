@@ -2,57 +2,63 @@ package models;
 
 import models.enumeration.ProjectScope;
 import models.enumeration.RoleType;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
+import play.test.FakeApplication;
+import play.test.Helpers;
 
 import java.util.HashSet;
 import java.util.List;
 
 import static org.fest.assertions.Assertions.assertThat;
 
-public class SearchTests extends ModelTest<Search> {
+public class SearchTests {
 
-    private Organization labs;
-    private Project publicProject; // labs's project
-    private Project protectedProject; // labs's project
-    private Project privateProject; // labs's project
+    private static Organization labs;
+    private static Project publicProject; // labs's project
+    private static Project protectedProject; // labs's project
+    private static Project privateProject; // labs's project
 
-    private User author; // author of a privateProject's post and issue
-    private User projectMember; // member of a privateProject
-    private User groupMember; // member of labs
-    private User groupAndProjectMember; // member of a privateProject and member of labs
-    private User assignee; // assignee of all issues
+    private static User author; // author of a privateProject's post and issue
+    private static User projectMember; // member of a privateProject
+    private static User groupMember; // member of labs
+    private static User groupAndProjectMember; // member of a privateProject and member of labs
+    private static User assignee; // assignee of all issues
 
-    private Posting publicPost;
-    private Posting protectedPost;
-    private Posting privatePost;
+    private static Posting publicPost;
+    private static Posting protectedPost;
+    private static Posting privatePost;
 
-    private Issue privateIssue;
-    private Issue publicIssue;
-    private Issue protectedIssue;
+    private static Issue privateIssue;
+    private static Issue publicIssue;
+    private static Issue protectedIssue;
 
-    private Milestone publicMilestone;
-    private Milestone protectedMilestone;
-    private Milestone privateMilestone;
+    private static Milestone publicMilestone;
+    private static Milestone protectedMilestone;
+    private static Milestone privateMilestone;
 
-    private IssueComment publicIssueComment;
-    private IssueComment protectedIssueComment;
-    private IssueComment privateIssueComment;
+    private static IssueComment publicIssueComment;
+    private static IssueComment protectedIssueComment;
+    private static IssueComment privateIssueComment;
 
-    private PostingComment publicPostComment;
-    private PostingComment protectedPostComment;
-    private PostingComment privatePostComment;
+    private static PostingComment publicPostComment;
+    private static PostingComment protectedPostComment;
+    private static PostingComment privatePostComment;
 
-    private ReviewComment publicReviewComment;
-    private ReviewComment protectedReviewComment;
-    private ReviewComment privateReviewComment;
+    private static ReviewComment publicReviewComment;
+    private static ReviewComment protectedReviewComment;
+    private static ReviewComment privateReviewComment;
 
     private PageParam onePageFiveSize = new PageParam(0, 5);
 
-    @Before
-    public void setUp() {
+    protected static FakeApplication app;
+
+    @BeforeClass
+    public static void startApp() {
+        app = support.Helpers.makeTestApplication();
+        Helpers.start(app);
+
         // Given
-        author = User.find.byId(1l);
+        author = User.find.byId(6l);
         groupAndProjectMember = User.find.byId(2l);
         projectMember = User.find.byId(3l);
         groupMember = User.find.byId(4l);
@@ -189,6 +195,11 @@ public class SearchTests extends ModelTest<Search> {
         privateReviewComment.thread = privateCommentThread;
         privateReviewComment.author = new UserIdent(author);
         privateReviewComment.save();
+    }
+
+    @AfterClass
+    public static void stopApp() {
+        Helpers.stop(app);
     }
 
     /**

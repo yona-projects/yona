@@ -32,11 +32,11 @@
 
 @makeSearchLink() = @{
     if(project != null) {
-        routes.SearchApp.searchProject(project.owner, project.name)
+        routes.SearchApp.searchInAProject(project.owner, project.name)
     } else if (org !=null) {
-        routes.SearchApp.searchGroupRepos(org.name)
+        routes.SearchApp.searchInAGroup(org.name)
     } else {
-        routes.SearchApp.searchAllRepos()
+        routes.SearchApp.searchInAll()
     }
 }
 
@@ -79,13 +79,13 @@
                         <ul class="dropdown-menu flat right">
                             @if(project != null) {
                             <li>
-                                <a href="#" data-toggle="search-scope" data-action="@routes.SearchApp.searchProject(project.owner, project.name)">
+                                <a href="#" data-toggle="search-scope" data-action="@routes.SearchApp.searchInAProject(project.owner, project.name)">
                                     @Messages("search.scope.porject")
                                 </a>
                             </li>
                             @if(project.hasGroup) {
                             <li>
-                                <a href="#" data-toggle="search-scope" data-action="@routes.SearchApp.searchGroupRepos(project.owner)">
+                                <a href="#" data-toggle="search-scope" data-action="@routes.SearchApp.searchInAGroup(project.owner)">
                                     @Messages("search.scope.group")
                                 </a>
                             </li>
@@ -93,13 +93,13 @@
                             } 
                             @if(org != null) {
                             <li>
-                                <a href="#" data-toggle="search-scope" data-action="@routes.SearchApp.searchGroupRepos(org.name)">
+                                <a href="#" data-toggle="search-scope" data-action="@routes.SearchApp.searchInAGroup(org.name)">
                                     @Messages("search.scope.group")
                                 </a>
                             </li>
                             }
                             <li>
-                                <a href="#" data-toggle="search-scope" data-action="@routes.SearchApp.searchAllRepos()">
+                                <a href="#" data-toggle="search-scope" data-action="@routes.SearchApp.searchInAll()">
                                     @Messages("search.scope.all")
                                 </a>
                             </li>

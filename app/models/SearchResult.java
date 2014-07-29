@@ -1,3 +1,23 @@
+/**
+ * Yobi, Project Hosting SW
+ *
+ * Copyright 2014 NAVER Corp.
+ * http://yobi.io
+ *
+ * @Author Keesun Baik
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package models;
 
 import com.avaje.ebean.Page;
@@ -8,9 +28,6 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-/**
- * @author Keeun Baik
- */
 public class SearchResult {
 
     private String keyword;
@@ -34,17 +51,17 @@ public class SearchResult {
     private Page<PostingComment> postComments;
     private Page<ReviewComment> reviews;
 
-    public List<String> makeSnipets(String contents, int threshold) {
+    public List<String> makeSnippets(String contents, int threshold) {
         String lowerCaseContents = contents.toLowerCase();
-        String lowerCasekeyword = keyword.toLowerCase();
+        String lowerCaseKeyword = keyword.toLowerCase();
 
         LinkedList<BeginAndEnd> beginAndEnds = new LinkedList<>();
-        List<Integer> indexes = findIndexes(lowerCaseContents, lowerCasekeyword); // 6, 40
+        List<Integer> indexes = findIndexes(lowerCaseContents, lowerCaseKeyword); // 6, 40
 
         for(int i = 0 ; i < indexes.size() ; i++) {
             int currentIndex = indexes.get(i);
             int beginIndex = beginIndex(currentIndex, threshold);
-            int endIndex = endIndex(currentIndex + lowerCasekeyword.length(), lowerCaseContents.length(), threshold);
+            int endIndex = endIndex(currentIndex + lowerCaseKeyword.length(), lowerCaseContents.length(), threshold);
             BeginAndEnd thisOne = new BeginAndEnd(beginIndex, endIndex);
             if(i == 0) {
                 beginAndEnds.push(thisOne);
@@ -62,12 +79,12 @@ public class SearchResult {
 
         Collections.reverse(beginAndEnds);
 
-        List<String> snipets = new ArrayList<>();
+        List<String> snippets = new ArrayList<>();
         for(BeginAndEnd bae : beginAndEnds) {
-            snipets.add(contents.substring(bae.beginIndex, bae.endIndex));
+            snippets.add(contents.substring(bae.beginIndex, bae.endIndex));
         }
 
-        return snipets;
+        return snippets;
     }
 
     private List<Integer> findIndexes(String contents, String keyword) {

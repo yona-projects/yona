@@ -666,6 +666,7 @@ search.menu.milestones = milestones
 search.menu.projects = projects
 search.menu.reviews = Code Reviews
 search.menu.users =  Users
+search.result.title = Found <strong>{0}</strong> result(s) in {1}
 search.scope.all = All Projects
 search.scope.group = This Group
 search.scope.porject = This Project

@@ -20,7 +20,7 @@ public class SearchResultTests {
         searchResult.setKeyword(keyword);
 
         // When
-        List<String> snipets = searchResult.makeSnipets(contents, 10);
+        List<String> snipets = searchResult.makeSnippets(contents, 10);
 
         // Then
         assertThat(snipets.size()).isEqualTo(1);
@@ -36,7 +36,7 @@ public class SearchResultTests {
         searchResult.setKeyword(keyword);
 
         // When
-        List<String> snipets = searchResult.makeSnipets(contents, 40);
+        List<String> snipets = searchResult.makeSnippets(contents, 40);
 
         // Then
         assertThat(snipets.size()).isEqualTo(2);

@@ -28,7 +28,7 @@
     @if(page.getList.length > 0) {
     <ul class="search-list-wrap">
         @for(user <- page.getList) {
-            <li class="search-list-item">
+            <li class="search-list-item project">
             <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@user.loginId">
             @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){
                 <img src="@urlToPicture(user.email, 32)">

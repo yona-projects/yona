@@ -29,29 +29,21 @@
     <ul class="search-list-wrap">
         @for(comment <- page.getList) {
             @defining(User.findByLoginId(comment.authorLoginId)){ user =>
-            <li class="search-list-item @if(project != null) {project}">
-                @if(project == null) {
-                <a href="@routes.ProjectApp.project(comment.issue.project.owner, comment.issue.project.name)" class="avatar-wrap">
-                    <img src="@urlToProjectLogo(comment.issue.project)">
-                </a>
-                }
+            <li class="search-list-item">
                 <div class="title-wrap">
-                    <span class="state @comment.issue.state.state.toLowerCase">@Messages("issue.state." + comment.issue.state.state.toLowerCase)</span>
                     <span class="post-id">#@comment.issue.getNumber</span>
                     <a href="@routes.IssueApp.issue(comment.issue.project.owner, comment.issue.project.name, comment.issue.getNumber)#comment-@comment.id">
                         Re) @comment.issue.title
                     </a>
                 </div>
                 <div class="search-content">
-                   @defining(searchResult.makeSnipets(comment.contents, 40)) { snipets =>
-                        @if(snipets != null && snipets.size > 0) {
-                            @for(snipet <- snipets) {
-                            <p class="search-content-body">
-                                @snipet @if(snipet.size < comment.contents.size) { ..... }
-                            </p>
-                            }
-                        }
-                    }                        
+               @defining(searchResult.makeSnippets(comment.contents, 40)) { snippets =>
+                    @for(snippet <- snippets) {
+                    <p class="search-content-body">
+                        @snippet @if(snippet.size < comment.contents.size) { ..... }
+                    </p>
+                    }
+                }
                 </div>
                 <div class="search-meta-info">
                     @if(project == null) {
@@ -59,13 +51,6 @@
                         @comment.issue.project.owner/@comment.issue.project.name
                     </a>
                     }
-                    <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap meta" data-toggle="tooltip" data-placement="top" title="@user.loginId">
-                        @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){
-                            <img src="@urlToPicture(user.email, 16)">
-                        } else {
-                            <img src="@user.avatarUrl" alt="@user.name" width="16" height="16"/>
-                        }
-                    </a>
                     @if(user.name){
                         <a href="@routes.UserApp.userInfo(user.loginId)" class="meta-item" data-toggle="tooltip" data-placement="top" title="@user.loginId">
                             @user.name
