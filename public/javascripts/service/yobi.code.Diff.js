@@ -149,6 +149,10 @@
             _setReviewWrapAffixed();
 
             $(window).on('resize scroll', _setReviewListHeight);
+
+            $("#branches").on("change", function(weEvt){
+                location.href = weEvt.val;
+            });
         }
 
         /**

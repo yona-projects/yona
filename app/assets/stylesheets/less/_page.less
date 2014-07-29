@@ -3776,12 +3776,21 @@ label.issue-item-row {
     }
 
 }
-.branches {
-    text-align:left;
 
-    .label {
-        margin:0; padding:0 5px; margin-right:3px;
-        &.branch { background-color:@orange; }
+.branch-label {
+    color:#fff;
+    text-shadow: none;
+    .border-radius(2px);
+
+    &.branch {
+        padding: 2px 4px;
+        margin: 0 3px 0 0;
+        background-color: @yobi-yello-dark;
+    }
+    &.tag {
+        padding: 2px 4px;
+        margin: 0 3px 0 0;
+        background-color: @yobi-cyan;
     }
 }
 
@@ -3836,7 +3845,7 @@ label.issue-item-row {
         display:inline-block;
         padding:0; padding-right:10px;
         color:#555;
-        line-height:34px;
+        line-height:30px;
         font-size: 15px;
         font-weight:bold;
 

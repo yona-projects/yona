@@ -73,6 +73,7 @@
             htElement.welShowCode = $("#showCode"); // aceEditor
             htElement.welCodeVal  = $("#codeVal");
             htElement.welBreadCrumbs = $("#breadcrumbs");
+            htElement.welBranches = $("#branches");
         }
 
         function _initDepthedList(){
@@ -98,6 +99,11 @@
         function _attachEvent(){
             $('.code-viewer-wrap').click(_onClickWrap);
             $(window).on("hashchange", _onHashChange);
+            htElement.welBranches.on("change", _onChangeBranch);
+        }
+
+        function _onChangeBranch(weEvt){
+            location.href = weEvt.val;
         }
 
         /**

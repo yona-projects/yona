@@ -93,6 +93,35 @@
                 }
 
                 return '<a class="label issue-label active static" data-labelid="' + sLabelId + '">' + oItem.text.trim() + '</a>';
+            },
+            "branch": function(oItem){
+                var sBranchType = "";
+                var sBranchName = oItem.text.trim();
+                var rxBranchName = /refs\/(.[a-z]+)\/(.+)/i;
+
+                // parse sBranchName with regular expression rxBranchName
+                // e.g.'refs/heads/feature/review-10'
+                // -> ["refs/heads/feature/review-10", "heads", "feature/review-10"]
+                var aParsedBranchName = sBranchName.match(rxBranchName);
+                var htBranchTypeMapByName = {
+                    "heads": "branch",
+                    "tags" : "tag"
+                };
+
+                if(aParsedBranchName){
+                    sBranchType = htBranchTypeMapByName[aParsedBranchName[1]] || aParsedBranchName[1];
+                    sBranchName = aParsedBranchName[2];
+                }
+
+                var sTplBranchItem = $("#tplSelect2FormatBranch").text()
+                                  || '<strong class="branch-label ${branchType}">${branchType}</strong> ${branchName}';
+
+                var sBranchNameHTMLWithLabel = $yobi.tmpl(sTplBranchItem, {
+                    "branchType": sBranchType,
+                    "branchName": sBranchName
+                });
+
+                return sBranchNameHTMLWithLabel;
             }
         };
 
