@@ -353,8 +353,7 @@ public class IssueApp extends AbstractPostingApp {
             }
 
             if (issueMassUpdate.isDueDateChanged) {
-                issue.dueDate = issueMassUpdate.dueDate;
-                issue.expandDueDate();
+                issue.dueDate = JodaDateUtil.lastSecondOfDay(issueMassUpdate.dueDate);
             }
 
             issue.updatedDate = JodaDateUtil.now();
@@ -413,7 +412,7 @@ public class IssueApp extends AbstractPostingApp {
         addLabels(newIssue, request());
         setMilestone(issueForm, newIssue);
 
-        newIssue.expandDueDate();
+        newIssue.dueDate = JodaDateUtil.lastSecondOfDay(newIssue.dueDate);
         newIssue.save();
 
         attachUploadFilesToPost(newIssue.asResource());
@@ -503,7 +502,7 @@ public class IssueApp extends AbstractPostingApp {
         final Issue issue = issueForm.get();
         removeAnonymousAssignee(issue);
         setMilestone(issueForm, issue);
-        issue.expandDueDate();
+        issue.dueDate = JodaDateUtil.lastSecondOfDay(issue.dueDate);
 
         final Issue originalIssue = Issue.findByNumber(project, number);
 

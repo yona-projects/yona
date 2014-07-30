@@ -157,14 +157,6 @@ public class Issue extends AbstractPosting implements LabelOwner {
         }
     }
 
-    public void expandDueDate() {
-        if (dueDate != null) {
-            dueDate = DateUtils.setHours(dueDate, 23);
-            dueDate = DateUtils.setMinutes(dueDate, 59);
-            dueDate = DateUtils.setSeconds(dueDate, 59);
-        }
-    }
-
     /**
      * @see #updateAssignee()
      */
