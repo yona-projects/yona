@@ -270,7 +270,7 @@
                                 @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
                                 <div class="search search-bar">
                                     <input type="text" name="dueDate" value="@issue.getDueDateString" class="textbox full" autocomplete="off" data-toggle="calendar">
-                                    <button type="button" class="search-btn"><i class="yobicon-calendar2"></i></button>
+                                    <button type="button" class="search-btn btn-calendar"><i class="yobicon-calendar2"></i></button>
                                 </div>
                                 } else {
                                     @if(issue.dueDate != null) {
