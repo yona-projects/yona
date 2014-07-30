@@ -31,30 +31,61 @@
 </div>
 <div class="page-wrap-outer">
     <div class="page-wrap">
-        <ul id="editUserinfo" class="nav nav-tabs mt20">
-            <li class="active"><a href="#profile" data-toggle="tab">@Messages("userinfo.editProfile")</a></li>
-            <li><a href="#changePassword" data-toggle="tab">@Messages("userinfo.changePassword")</a></li>
-            <li><a href="#watch" data-toggle="tab">@Messages("userinfo.changeNotifications")</a></li>
-            <li><a href="#email" data-toggle="tab">@Messages("userinfo.changeEmails")</a></li>
-        </ul>
+        @partial_edit_tabmenu("profile")
 
-        <div class="tab-content">
-            <div id="profile" class="tab-pane active">
-                @partial_edit_profile(user)
-            </div>
+        <form id="frmBasic" method="post" action="@routes.UserApp.editUserInfo" class="pull-left">
+        <dl>
+          <dt>@Messages("user.name")</dt>
+          <dd class="mt10">
+            <input type="text" name="name" class="text" value="@user.name">
+          </dd>
+          <dt>@Messages("user.email")</dt>
+          <dd class="mt10">
+            <input type="email" name="email" class="text" value="@user.email">
+          </dd>
+          <dd>
+            <button type="submit" class="ybtn ybtn-success">@Messages("userinfo.editProfile")</button>
+          </dd>
+        </dl>
+        </form>
 
-            <div id="email" class="tab-pane">
-                @partial_edit_email(user)
-            </div>
+        <form method="post" action="@routes.UserApp.editUserInfo" class="pull-left" style="margin-left:50px; padding-left:50px; border-left:1px solid #ddd;">
+          <input type="hidden" name="name" value="@user.name">
+          <input type="hidden" name="email" value="@user.email">
 
-            <div id="changePassword" class="tab-pane">
-                @partial_edit_password(user)
+          <div class="avatar-frm">
+            <div class="avatar-wrap xlarge">
+              <img src="@user.avatarUrl" style="width:128px; max-width:none;" />
+              <div class="progress"></div>
             </div>
+            <div class="btn-wrap mt10 center-txt">
+              <div class="ybtn ybtn-small fake-file-wrap btnUploadAvatar">
+                @Messages("userinfo.changeAvatar")<!--
+                --><input id="avatarFile" type="file" class="file" name="filePath" accept="image/*">
+              </div>
+            </div>
+          </div>
+        </form>
 
-            <div id="watch" class="tab-pane">
-                @partial_edit_watch(user)
+        <div id="avatarCropWrap" class="modal hide" role="dialog" data-backdrop="static">
+          <div class="modal-header center-txt">
+            <div class="avatar-wrap xlarge">
+              <img style="width:128px; max-width:none;"/>
             </div>
+          </div>
+          <div class="modal-body">
+            <img style="max-width:500px;">
+            <canvas width="128" height="128" class="hide"></canvas>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="ybtn ybtn-default" data-dismiss="modal">@Messages("button.cancel")</button>
+            <button type="button" class="ybtn ybtn-success btnSubmitCrop">@Messages("button.save")</button>
+          </div>
         </div>
+
+        <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/jcrop/jquery.Jcrop.css")" />
+        <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery/jquery.Jcrop.min.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/canvas-to-blob.js")"></script>
     </div>
 </div>
 <script type="text/javascript">

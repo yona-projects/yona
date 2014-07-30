@@ -37,6 +37,7 @@
 
             _initFormValidator();
             _initAvatarUploader();
+            _showNotificationTab();
         }
 
         /**
@@ -394,6 +395,10 @@
                         oRes.status, oRes.statusText));
                 }
             })
+        }
+
+        function _showNotificationTab(){
+            $('#notification-projects a[href="' + location.hash + '"]').tab("show");
         }
 
         _init(htOptions || {});

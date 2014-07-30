@@ -290,14 +290,14 @@ button.nbtn {
 .fake-file-wrap {
     position: relative; display:block; clear:both;
     overflow: hidden; cursor:pointer;
-    width:70px; /*margin-top:10px;*/
     &:hover {
         background:darken(@white, 10%);
     }
 
     .file {
         position: absolute; z-index:2; cursor:pointer;
-        top:0; left: 5px; /*-15px;*/ width:100px;
+        top:0; left: 5px; /*-15px;*/
+        min-width:100px; width:100%;
         .opacity(0);
     }
 }

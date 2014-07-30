@@ -50,6 +50,7 @@ GET            /users/logout                                                    
 GET            /users/signupform                                                      controllers.UserApp.signupForm()
 POST           /users/signup                                                          controllers.UserApp.newUser()
 GET            /user/editform                                                         controllers.UserApp.editUserInfoForm()
+GET            /user/editform/:tabId                                                  controllers.UserApp.editUserInfoByTabForm(tabId: String)
 POST           /user/edit                                                             controllers.UserApp.editUserInfo()
 POST           /user/resetPassword                                                    controllers.UserApp.resetUserPassword()
 GET            /user/isUsed                                                           controllers.UserApp.isUsed(name:String)
@@ -241,6 +242,7 @@ GET            /help                                                            
 # Watch
 POST           /watch                                                                 controllers.WatchApp.watch(resource: models.resource.ResourceParam)
 POST           /unwatch                                                               controllers.WatchApp.unwatch(resource: models.resource.ResourceParam)
+GET            /unwatch                                                               controllers.WatchApp.unwatch(resource: models.resource.ResourceParam)
 
 # Statistics
 GET            /:user/:project/statistics                                             controllers.StatisticsApp.statistics(user, project)

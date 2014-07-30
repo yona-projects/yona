@@ -1,0 +1,42 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2014 NAVER Corp.
+* http://yobi.io
+*
+* @Author Jihan Kim
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@(userLanguage:Lang, message:String, urlToView:String = null, resource:models.resource.Resource)
+
+@getFooterLinkHTML(link:String, anchorText:String) = {
+  <a href="@link" target="_blank" style="color:#4399e2; text-decoration:underline;">@anchorText</a>
+}
+
+<div style="font-family:'Helvetica Neue','Helvetica','Arial','나눔고딕','NanumGothic','NanumGothicOTF','Apple SD Gothic Neo','맑은 고딕',sans-serif;">
+  @Html(message)
+</div>
+
+<hr style="border:0; border-bottom:1px solid #ddd; margin:20px 0;">
+
+@if(urlToView != null){
+<a href="@urlToView" target="_blank">
+  @Messages("notification.linkToView", utils.Config.getSiteName())
+</a>
+}
+
+<div style="max-width:410px;margin-top:20px;color:#989898;text-align:justify;word-break:break-all;font-size:11px;font-family:'Helvetica Neue','Helvetica','Arial','나눔고딕','NanumGothic','NanumGothicOTF','Apple SD Gothic Neo','맑은 고딕',sans-serif;">
+  @Html(Messages("notification.off.unwatch", getFooterLinkHTML(routes.WatchApp.unwatch(resource.asParameter).toString, Messages("notification.unwatch"))))<br>
+  @Html(Messages("notification.off.settings", getFooterLinkHTML(routes.UserApp.editUserInfoByTabForm("notifications").toString, Messages("userinfo.changeNotifications"))))
+</div>
