@@ -86,4 +86,17 @@ public class JodaDateUtil {
     public static int localDaysBetween(Date from, Date to) {
         return Days.daysBetween(new DateTime(from).toLocalDate(), new DateTime(to).toLocalDate()).getDays();
     }
+
+    /**
+     * Force update HH:mm:ss -> 23:59:59
+     */
+    public static Date lastSecondOfDay(Date date) {
+        if (date == null) {
+            return null;
+        }
+        DateTime dateTime = new DateTime(date);
+        return dateTime.withField(DateTimeFieldType.hourOfDay(), 23)
+                .withField(DateTimeFieldType.minuteOfHour(), 59)
+                .withField(DateTimeFieldType.secondOfMinute(), 59).toDate();
+    }
 }
