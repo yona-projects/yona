@@ -58,32 +58,22 @@
           <dl class="issue-option">
             <dt>@Messages("pullRequest.sender")</dt>
             <dd>
-              <div class="btn-group" data-name="contributorId">
-                <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                  <span class="d-label">@Messages("common.order.all")</span>
-                  <span class="d-caret"><span class="caret"></span></span>
-                </button>
-                <ul class="dropdown-menu">
-                  <li data-value=""><a>@Messages("common.order.all")</a></li>
-                  @defining(User.findPullRequestContributorsByProjectId(project.id)){ contributors =>
+              <select id="contributors" name="contributorId" data-format="user">
+                @defining(User.findPullRequestContributorsByProjectId(project.id)){ contributors =>
+                  <option value="">@Messages("common.order.all")</option>
                   @if(contributors.contains(UserApp.currentUser)){
-                    <li data-value="@UserApp.currentUser().id"><a>@Messages("pullRequest.sentByMe")</a></li>
+                  <option value="@UserApp.currentUser().id">@Messages("pullRequest.sentByMe")</option>
                   }
-                  <li class="divider"></li>
                   @for(contributor <- contributors){
-                  <li data-value="@contributor.id" @if(condition.contributorId != null && condition.contributorId == contributor.id){data-selected="true" class="active"}>
-                    <a class="usf-group">
-                      <span class="avatar-wrap smaller">
-                        <img src="@contributor.avatarUrl" width="20" height="20">
-                      </span>
-                      <strong class="name">@contributor.name</strong>
-                      <span class="loginid"> <strong>@{"@"}</strong>@contributor.loginId</span>
-                    </a>
-                  </li>
+                  <option value="@contributor.id"
+                          data-avatar-url="@contributor.avatarUrl"
+                          data-login-id="@contributor.loginId"
+                          @if(condition.contributorId != null && condition.contributorId == contributor.id){selected}>
+                      @contributor.name
+                  </option>
                   }
-                  }
-                </ul>
-              </div>
+                }
+              </select>
             </dd>
           </dl>
         </div>
@@ -132,12 +122,9 @@
     </div>
     </div>
     <script type="text/javascript">
-        $(document).ready(function(){
-            var oSearchContributor = new yobi.ui.Dropdown({
-                'elContainer': $('div[data-name="contributorId"]'),
-                'fOnChange' : function() {
-                    $('#search').submit();
-                }
+        $(function(){
+            yobi.ui.Select2("#contributors").on("change", function(){
+                $('#search').submit();
             });
         });
     </script>

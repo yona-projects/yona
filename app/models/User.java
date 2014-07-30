@@ -558,6 +558,7 @@ public class User extends Model implements ResourceConvertible {
         String sql = "SELECT user.id, user.name, user.login_id FROM pull_request pullrequest, n4user user WHERE pullrequest.contributor_id = user.id GROUP BY pullrequest.contributor_id";
         return createUserSearchQueryWithRawSql(sql).where()
                 .eq("pullrequest.to_project_id", projectId)
+                .orderBy("user.name ASC")
                 .findList();
     }
 
