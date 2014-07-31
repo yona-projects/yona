@@ -36,6 +36,8 @@ import java.nio.channels.OverlappingFileLockException;
 
 import static org.eclipse.jgit.lib.Constants.HEAD;
 import static org.eclipse.jgit.lib.Constants.OBJ_BLOB;
+import static utils.LineEnding.*;
+import static playRepository.BareRepository.*;
 
 public class BareCommit {
     private PersonIdent personIdent;
@@ -69,6 +71,7 @@ public class BareCommit {
         RefHeadFileLock refHeadFileLock = new RefHeadFileLock().invoke(this.refName);
         try {
             this.objectInserter = this.repository.newObjectInserter();
+            contents = addEOL(changeLineEnding(contents, findFileLineEnding(repository, fileNameWithPath)));
             refUpdate(createCommitWithNewTree(createGitObjectWithText(contents)), refName);
         } catch (OverlappingFileLockException e) {
             play.Logger.error("Overlapping File Lock Error: " + e.getMessage());
