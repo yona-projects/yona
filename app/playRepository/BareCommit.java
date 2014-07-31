@@ -119,15 +119,21 @@ public class BareCommit {
     private TreeFormatter rebuildExistingTreeWith(String fileName, ObjectId fileObjectId) throws IOException {
         TreeFormatter formatter = new TreeFormatter();
         CanonicalTreeParser treeParser = getCanonicalTreeParser(this.repository);
-        formatter.append(fileName, FileMode.REGULAR_FILE, fileObjectId);
+        boolean isAlreadyExist = false;
         while(!treeParser.eof()){
             String entryName = new String(treeParser.getEntryPathBuffer(), 0, treeParser.getEntryPathLength());
-            if (!entryName.equals(fileName)){
-                formatter.append(entryName
+            if (entryName.equals(fileName)){
+                formatter.append(fileName, FileMode.REGULAR_FILE, fileObjectId);
+                isAlreadyExist = true;
+            } else {
+                formatter.append(entryName.getBytes()
                         , treeParser.getEntryFileMode()
                         , treeParser.getEntryObjectId());
             }
             treeParser = treeParser.next();
+        }
+        if(!isAlreadyExist){
+            formatter.append(fileName, FileMode.REGULAR_FILE, fileObjectId);
         }
         return formatter;
     }
