@@ -147,7 +147,7 @@ public class UserAppTest extends ContextTest {
                 user.save();
 
                 Map<String, String> data = new HashMap<>();
-                data.put("loginId", user.loginId);
+                data.put("loginIdOrEmail", user.loginId);
                 data.put("password", user.password);
 
                 //When
@@ -360,7 +360,7 @@ public class UserAppTest extends ContextTest {
                 String password = "pass";
                 User user = User.findByLoginId(loginId);
                 Map<String, String> data = new HashMap<>();
-                data.put("loginId", loginId);
+                data.put("loginIdOrEmail", loginId);
                 data.put("password", password);
 
                 // When
@@ -387,7 +387,7 @@ public class UserAppTest extends ContextTest {
                 String loginId = "kjkmadness";
                 String password = "wrong";
                 Map<String, String> data = new HashMap<>();
-                data.put("loginId", loginId);
+                data.put("loginIdOrEmail", loginId);
                 data.put("password", password);
 
                 // When
