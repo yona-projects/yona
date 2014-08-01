@@ -22,6 +22,7 @@ package actors;
 
 import models.*;
 import org.eclipse.jgit.revwalk.RevCommit;
+import play.i18n.Messages;
 
 import java.util.List;
 import java.util.Set;
@@ -44,9 +45,9 @@ public class CommitsNotificationActor extends PostReceiveActor {
 
         String title;
         if(refNames.size() == 1) {
-            title = String.format("[%s] pushed %d commits to %s.", project.name, commits.size(), refNames.get(0));
+            title = Messages.get("notification.pushed.commits.to", project.name, commits.size(), refNames.get(0));
         } else {
-            title = String.format("[%s] pushed %d commits.", project.name, commits.size());
+            title = Messages.get("notification.pushed.commits", project.name, commits.size());
         }
 
         Set<User> watchers = Watch.findWatchers(project.asResource());
