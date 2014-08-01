@@ -473,3 +473,69 @@ organizationUsers:
                                      id: 1
         role:                    !!models.Role
                                      id: 6
+
+# ProjectsMenuSettings
+projectMenuSettings:
+    - !!models.ProjectMenuSetting
+        project:         !!models.Project
+                             id: 1
+        code: true
+        issue: true
+        pullRequest: true
+        review: true
+        milestone: true
+        board: true
+    - !!models.ProjectMenuSetting
+        project:         !!models.Project
+                             id: 2
+        code: true
+        issue: true
+        pullRequest: true
+        review: true
+        milestone: true
+        board: true
+    - !!models.ProjectMenuSetting
+        project:         !!models.Project
+                             id: 3
+        code: true
+        issue: true
+        pullRequest: true
+        review: true
+        milestone: true
+        board: true
+    - !!models.ProjectMenuSetting
+        project:         !!models.Project
+                             id: 4
+        code: true
+        issue: true
+        pullRequest: true
+        review: true
+        milestone: true
+        board: true
+    - !!models.ProjectMenuSetting
+        project:         !!models.Project
+                             id: 5
+        code: true
+        issue: true
+        pullRequest: true
+        review: true
+        milestone: true
+        board: true
+    - !!models.ProjectMenuSetting
+        project:         !!models.Project
+                             id: 6
+        code: true
+        issue: true
+        pullRequest: true
+        review: true
+        milestone: true
+        board: true
+    - !!models.ProjectMenuSetting
+        project:         !!models.Project
+                             id: 7
+        code: true
+        issue: true
+        pullRequest: true
+        review: true
+        milestone: true
+        board: true
