@@ -23,10 +23,7 @@ package controllers;
 import models.*;
 import models.enumeration.ProjectScope;
 import models.resource.Resource;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import play.mvc.Result;
 import play.test.FakeApplication;
 import play.test.Helpers;
@@ -58,12 +55,12 @@ public class IssueAppTest {
         callAction(
                 routes.ref.Application.init()
         );
+        app = support.Helpers.makeTestApplication();
+        Helpers.start(app);
     }
 
     @Before
     public void before() {
-        app = support.Helpers.makeTestApplication();
-        Helpers.start(app);
 
         project = Project.findByOwnerAndProjectName(projectOwner, projectName);
         project.setProjectScope(ProjectScope.PRIVATE);
@@ -83,7 +80,15 @@ public class IssueAppTest {
         issue.setAuthor(author);
         issue.setAssignee(Assignee.add(assignee.id, project.id));
         issue.save();
+    }
 
+    @AfterClass
+    public static void after() {
+        Helpers.stop(app);
+    }
+
+    @Test
+    public void testInit(){
         assertThat(this.admin.isSiteManager()).describedAs("admin is Site Admin.").isTrue();
         assertThat(ProjectUser.isManager(manager.id, project.id)).describedAs("manager is a manager").isTrue();
         assertThat(ProjectUser.isManager(member.id, project.id)).describedAs("member is a manager").isFalse();
@@ -92,12 +97,6 @@ public class IssueAppTest {
         assertThat(project.isPublic()).describedAs("project is public").isFalse();
         assertThat(ProjectUser.isMember(assignee.id, project.id)).describedAs("assignee is a member").isFalse();
     }
-
-    @After
-    public void after() {
-        Helpers.stop(app);
-    }
-
     private Result postBy(User user) {
         //Given
         Map<String,String> data = new HashMap<>();
@@ -464,7 +463,7 @@ public class IssueAppTest {
 
         // Then
         issue.refresh();
-        assertThat(status(result)).isEqualTo(OK);
+        assertThat(status(result)).isEqualTo(SEE_OTHER);
         assertThat(issue.getWatchers().contains(nonmember))
             .describedAs("A user becomes a unwatcher if the user explictly choose not to watch the issue.").isFalse();
     }
@@ -483,7 +482,7 @@ public class IssueAppTest {
 
         // Then
         issue.refresh();
-        assertThat(status(result)).isEqualTo(OK);
+        assertThat(status(result)).isEqualTo(SEE_OTHER);
     }
 
     @Test
@@ -500,7 +499,7 @@ public class IssueAppTest {
 
         // Then
         issue.refresh();
-        assertThat(status(result)).isEqualTo(OK);
+        assertThat(status(result)).isEqualTo(SEE_OTHER);
     }
 
 }
