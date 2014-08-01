@@ -102,6 +102,7 @@
             // Update issue info
             elements.issueInfoWrap.on("change", "[data-toggle=select2]", _onChangeIssueInfo);
             elements.issueInfoWrap.on("change", "[data-toggle=calendar]", _onChangeIssueInfo);
+            elements.issueInfoWrap.on("select2-selecting", '[name="assignee.user.id"]', _onSelectingAssignee);
 
             // Detect textarea events for autoUpdate timeline
             elements.textarea.on({
@@ -120,6 +121,16 @@
                     $yobi.notify(Messages(res.responseText), 3000);
                 }
             });
+        }
+
+        function _onSelectingAssignee(evt){
+            var targetElement = $(this);
+            var isValueNotChanged = (targetElement.val() === evt.val);
+            var isForceChange = $(evt.object.element).data("forceChange");
+
+            if(isForceChange && isValueNotChanged){
+                targetElement.trigger("change");
+            }
         }
 
         /**
