@@ -38,6 +38,7 @@ import play.mvc.With;
 import utils.Constants;
 import utils.ErrorViews;
 import utils.HttpUtil;
+import utils.JodaDateUtil;
 import views.html.milestone.create;
 import views.html.milestone.edit;
 import views.html.milestone.list;
@@ -110,6 +111,7 @@ public class MilestoneApp extends Controller {
             }
 
             newMilestone.project = project;
+            newMilestone.dueDate = JodaDateUtil.lastSecondOfDay(newMilestone.dueDate);
             Milestone.create(newMilestone);
             Attachment.moveAll(UserApp.currentUser().asResource(), newMilestone.asResource());
             return redirect(routes.MilestoneApp.milestone(userName, projectName, newMilestone.id));
@@ -160,6 +162,7 @@ public class MilestoneApp extends Controller {
                         ErrorViews.RequestTextEntityTooLarge.render());
             }
 
+            milestone.dueDate = JodaDateUtil.lastSecondOfDay(milestone.dueDate);
             existingMilestone.updateWith(milestone);
             Attachment.moveAll(UserApp.currentUser().asResource(), existingMilestone.asResource());
             return redirect(routes.MilestoneApp.milestone(userName, projectName, existingMilestone.id));
