@@ -69,12 +69,7 @@ public class PostingTest extends ModelTest<Posting> {
     @Test
     public void save() throws Exception {
         // Given
-        Posting post = new Posting();
-        post.setBody("new Contents");
-        post.title = "new_title";
-        post.createdDate = JodaDateUtil.now();
-        post.project = Project.find.byId(1l);
-        post.setAuthor(getTestUser());
+        Posting post = getNewPosting();
 
         // When
         post.save();
@@ -87,16 +82,35 @@ public class PostingTest extends ModelTest<Posting> {
         assertThat(actual.createdDate).isEqualTo(post.createdDate);
         assertThat(actual.authorId).isEqualTo(getTestUser().id);
         assertThat(actual.id).isEqualTo(post.id);
+
+        // To keep data clean after this test.
+        post.delete();
+    }
+
+    private Posting getNewPosting() {
+        Posting post = new Posting();
+        post.setBody("new Contents");
+        post.title = "new_title";
+        post.createdDate = JodaDateUtil.now();
+        post.project = Project.find.byId(1l);
+        post.setAuthor(getTestUser());
+        return post;
     }
 
     @Test
     public void delete() throws Exception {
         // Given
+        Posting post = getNewPosting();
+        post.save();
+        long postId = post.id;
+        assertThat(Posting.finder.byId(postId)).isNotNull();
+
         // When
-        Posting.finder.byId(1l).delete();
+        Posting.finder.byId(postId).delete();
+
         // Then
-        assertThat(Posting.finder.byId(1l)).isNull();
-        assertThat(PostingComment.find.byId(1l)).isNull();
+        assertThat(Posting.finder.byId(postId)).isNull();
+        assertThat(PostingComment.find.byId(postId)).isNull();
     }
 
     @Test

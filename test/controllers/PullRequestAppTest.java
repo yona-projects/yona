@@ -174,16 +174,26 @@ public class PullRequestAppTest {
 
     @Test
     public void testOpenPullRequestBadRequest() throws Exception {
+        //Given
         initParameters("yobi", "projectYobi", 1L);
         User currentUser = User.findByLoginId("admin");
 
+        User projectOwner = User.findByLoginId("yobi");
+
+        final String uri = "/" + ownerLoginId + "/" + projectName + "/pullRequest/" + pullRequestNumber;
+        callAction(
+                controllers.routes.ref.PullRequestApp.open(ownerLoginId, projectName, pullRequestNumber),
+                fakeRequest("GET", uri).withSession(UserApp.SESSION_USERID, projectOwner.id.toString())
+        );
+
+        //When
         Result result = callAction(
                 controllers.routes.ref.PullRequestApp.open(ownerLoginId, projectName, pullRequestNumber),
-                fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/pullRequest/" + pullRequestNumber)
-                .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
+                fakeRequest("GET", uri).withSession(UserApp.SESSION_USERID, currentUser.id.toString())
               );
 
-        assertThat(status(result)).isEqualTo(BAD_REQUEST);
+        //Then
+        assertThat(status(result)).isEqualTo(BAD_REQUEST).describedAs("open already opened");
     }
 
     @Test
@@ -230,8 +240,8 @@ public class PullRequestAppTest {
         Result result = callAction(
                 controllers.routes.ref.PullRequestApp.newFork(ownerLoginId, projectName, null),
                 fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/newFork")
-                .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
-              );
+                        .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
+        );
 
         assertThat(status(result)).isEqualTo(OK);
     }
@@ -244,8 +254,8 @@ public class PullRequestAppTest {
         Result result = callAction(
                 controllers.routes.ref.PullRequestApp.newFork(ownerLoginId, projectName, null),
                 fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/newFork")
-                .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
-              );
+                        .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
+        );
 
         assertThat(status(result)).isEqualTo(OK);
 

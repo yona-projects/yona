@@ -21,6 +21,7 @@
 package models;
 
 import org.apache.shiro.util.ThreadState;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.Before;
 import utils.JodaDateUtil;
@@ -45,6 +46,8 @@ public class CommentThreadTest extends ModelTest<CommentThread>  {
     private User anonymous;
     private Project project;
     private SimpleCommentThread thread;
+    private List<Long> threadIds;
+    String commitId = "123123";
 
     @Before
     public void before() {
@@ -68,14 +71,20 @@ public class CommentThreadTest extends ModelTest<CommentThread>  {
         assertThat(ProjectUser.isMember(member.id, project.id)).describedAs("member is a member").isTrue();
         assertThat(ProjectUser.isMember(author.id, project.id)).describedAs("author is not a member").isFalse();
         assertThat(project.projectScope).isEqualTo(ProjectScope.PUBLIC);
+
+        threadIds = addTestData(commitId);
+    }
+
+    @After
+    public void after() {
+        thread.delete();
+        for(Long id : threadIds) {
+            CommentThread.find.byId(id).delete();
+        }
     }
 
     @Test
     public void findByCommitId() {
-        // given
-        String commitId = "123123";
-        addTestData(commitId);
-
         // when
         List<CommentThread> threadList = CommentThread.findByCommitId(commitId);
 
@@ -87,10 +96,6 @@ public class CommentThreadTest extends ModelTest<CommentThread>  {
 
     @Test
     public void findByCommitIdAndState() {
-        // given
-        String commitId = "123123";
-        List<Long> threadIds = addTestData(commitId);
-
         // when and then
         List<CommentThread> threadList = CommentThread.findByCommitIdAndState(commitId, CommentThread.ThreadState.OPEN);
         assertThat(threadList.get(0).id).isEqualTo(threadIds.get(0));

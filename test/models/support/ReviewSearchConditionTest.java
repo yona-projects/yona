@@ -34,7 +34,20 @@ import static org.fest.assertions.Assertions.assertThat;
  */
 public class ReviewSearchConditionTest extends ModelTest<ReviewSearchCondition> {
 
-    protected static FakeApplication app;
+    CommentThread ct1;
+    CommentThread ct2;
+    CommentThread ct3;
+
+    @Before
+    public void before() {
+        addTestData();
+    }
+
+    @After
+    public void after() {
+        clearData();
+    }
+
 
     /**
      * Tests searching reviews having the content.
@@ -160,12 +173,18 @@ public class ReviewSearchConditionTest extends ModelTest<ReviewSearchCondition> 
         User lazielUser = User.findByLoginId("laziel");
         Project project = Project.findByOwnerAndProjectName("yobi", "projectYobi");
 
-        addTestThread1(adminUser, lazielUser, project);
-        addTestThread2(adminUser, lazielUser, project);
-        addTestThread3(adminUser, lazielUser, project);
+        ct1 = addTestThread1(adminUser, lazielUser, project);
+        ct2 = addTestThread2(adminUser, lazielUser, project);
+        ct3 = addTestThread3(adminUser, lazielUser, project);
     }
 
-    private void addTestThread1(User admin, User user, Project project) {
+    private void clearData() {
+        ct1.delete();
+        ct2.delete();
+        ct3.delete();
+    }
+
+    private CommentThread addTestThread1(User admin, User user, Project project) {
         CodeCommentThread thread = new CodeCommentThread();
         thread.createdDate = JodaDateUtil.today();
         thread.commitId = "controllers";
@@ -173,9 +192,10 @@ public class ReviewSearchConditionTest extends ModelTest<ReviewSearchCondition> 
         makeThread(admin, "Comment #1 : 111", project, thread);
         makeComment(thread, user, "Comment #1-1");
         makeComment(thread, user, "Comment #1-2");
+        return thread;
     }
 
-    private void addTestThread2(User admin, User user, Project project) {
+    private CommentThread addTestThread2(User admin, User user, Project project) {
         CodeCommentThread thread = new CodeCommentThread();
         thread.createdDate = JodaDateUtil.before(2);
         thread.commitId = "200";
@@ -183,9 +203,10 @@ public class ReviewSearchConditionTest extends ModelTest<ReviewSearchCondition> 
         makeThread(admin, "Comment #2 : /app/controllers/BoardApp.java", project, thread);
         makeComment(thread, admin, "Comment #2-1");
         makeComment(thread, user, "Comment #2-2");
+        return thread;
     }
 
-    private void addTestThread3(User admin, User user, Project project) {
+    private CommentThread addTestThread3(User admin, User user, Project project) {
         CodeCommentThread thread = new CodeCommentThread();
         thread.createdDate = JodaDateUtil.before(3);
         thread.commitId = "300";
@@ -195,21 +216,8 @@ public class ReviewSearchConditionTest extends ModelTest<ReviewSearchCondition> 
         makeComment(thread, user, "Comment #3-1");
         makeComment(thread, user, "Comment #3-2");
         makeComment(thread, user, "Comment #3-3");
+        return thread;
     }
-
-
-    @Before
-    public void before() {
-        app = support.Helpers.makeTestApplication();
-        Helpers.start(app);
-        addTestData();
-    }
-
-    @After
-    public void after() {
-        Helpers.stop(app);
-    }
-
     /**
      * Creates a comment and added to {@code thread}
      * @param thread

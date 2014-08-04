@@ -20,14 +20,10 @@
  */
 package models;
 
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import play.test.FakeApplication;
 import play.test.Helpers;
-//import support.EbeanUtil;
-
 
 public class ModelTest<T> {
     protected static FakeApplication app;
@@ -37,17 +33,16 @@ public class ModelTest<T> {
     public ModelTest() {
     }
 
-    @Before
-    public  void startApp() {
+    @BeforeClass
+    public static void startApp() {
         app = support.Helpers.makeTestApplication();
         Helpers.start(app);
     }
 
-    @After
-    public void stopApp() {
+    @AfterClass
+    public static void stopApp() {
         Helpers.stop(app);
     }
-
     /**
      * Returns the first user. (id : 2 / name : yobi)
      *

@@ -20,9 +20,11 @@
  */
 package models;
 
+import org.junit.Before;
 import org.junit.Test;
 import play.data.validation.Validation;
 
+import java.io.IOException;
 import java.util.List;
 
 import static org.fest.assertions.Assertions.assertThat;

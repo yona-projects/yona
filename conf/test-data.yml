@@ -24,7 +24,6 @@ users:
         state:          ACTIVE
         email:          doortts@gmail.com
         createdDate:           2012-07-01 08:00:00
-        state: ACTIVE
     - !!models.User
         name:           eungjun
         loginId:        nori

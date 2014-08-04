@@ -34,11 +34,7 @@ public class ProjectTest extends ModelTest<Project> {
     @Test
     public void create() throws Exception {
         // Given
-        Project project = new Project();
-        project.name = "prj_test";
-        project.overview = "Overview for prj_test";
-        project.projectScope = ProjectScope.PRIVATE;
-        project.vcs = "GIT";
+        Project project = getNewProject();
         // When
         Project.create(project);
         // Then
@@ -47,6 +43,15 @@ public class ProjectTest extends ModelTest<Project> {
         assertThat(actualProject).isNotNull();
         assertThat(actualProject.name).isEqualTo("prj_test");
         assertThat(actualProject.siteurl).isEqualTo("http://localhost:9000/prj_test");
+    }
+
+    private Project getNewProject() {
+        Project project = new Project();
+        project.name = "prj_test";
+        project.overview = "Overview for prj_test";
+        project.projectScope = ProjectScope.PRIVATE;
+        project.vcs = "GIT";
+        return project;
     }
 
     @Test
@@ -70,14 +75,17 @@ public class ProjectTest extends ModelTest<Project> {
     @Test
     public void delete() throws Exception {
         // Given
+        Project project = getNewProject();
+        Project.create(project);
+        long projectId = project.id;
         // When
-        Project.find.byId(1l).delete();
+        Project.find.byId(projectId).delete();
 
         // Then
-        assertThat(Project.find.byId(1l)).isNull();
-        assertThat(ProjectUser.findByIds(1l, 1l)).isNull();
-        assertThat(Issue.finder.byId(1l)).isNull();
-        assertThat(Milestone.findById(1l)).isNull();
+        assertThat(Project.find.byId(projectId)).isNull();
+        assertThat(ProjectUser.findMemberListByProject(projectId)).isEmpty();
+        assertThat(Issue.finder.where().eq("project.id", projectId).findList()).isEmpty();
+        assertThat(Milestone.findByProjectId(projectId)).isEmpty();
     }
 
     @Test

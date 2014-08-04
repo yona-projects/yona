@@ -41,6 +41,7 @@ import org.junit.*;
 import org.junit.rules.TestWatcher;
 import play.test.FakeApplication;
 import play.test.Helpers;
+import support.ExecutionTimeWatcher;
 
 import javax.naming.LimitExceededException;
 import java.io.BufferedWriter;
