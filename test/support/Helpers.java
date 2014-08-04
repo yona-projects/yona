@@ -70,11 +70,11 @@ public class Helpers {
         return makeTestApplicationWithServiceGlobal(makeTestConfig());
     }
 
-    private static void insertInitialData() {
+    public static void insertInitialData() {
         YamlUtil.insertDataFromYaml("initial-data.yml", new String[] {"users", "roles", "siteAdmins"});
     }
 
-    private static void insertTestData() {
+    public static void insertTestData() {
         YamlUtil.insertDataFromYaml("test-data.yml", new String[] {
                 "users", "projects", "pullRequests", "milestones",
                 "issues", "issueComments", "postings",

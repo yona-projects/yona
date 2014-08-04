@@ -30,18 +30,15 @@ import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.NoFilepatternException;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.treewalk.TreeWalk;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 
+import org.junit.rules.TestWatcher;
 import play.test.FakeApplication;
 import play.test.Helpers;
 
@@ -57,6 +54,9 @@ import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.assertions.Fail.fail;
 
 public class GitRepositoryTest {
+
+    @Rule
+    public TestWatcher watcher = new ExecutionTimeWatcher();
 
     @Before
     public void before() {
@@ -321,18 +321,6 @@ public class GitRepositoryTest {
                 }
             }
         });
-    }
-
-    @Ignore
-    @Test
-    public void getRawFile() throws Exception {
-        // Given
-        String userName = "yobi";
-        String projectName = "testProject";
-        GitRepository repo = new GitRepository(userName, projectName);
-        // When
-        repo.getRawFile("HEAD", "readme");
-        // Then
     }
 
     @Test

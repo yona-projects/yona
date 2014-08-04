@@ -33,16 +33,16 @@ import play.mvc.Result;
 import play.test.FakeApplication;
 
 public class EnrollProjectAppTest {
-    private FakeApplication application;
+    private static FakeApplication application;
 
-    @Before
-    public void before() {
+    @BeforeClass
+    public static void beforeClass() {
         application = support.Helpers.makeTestApplication();
         start(application);
     }
 
-    @After
-    public void after() {
+    @AfterClass
+    public static void afterClass() {
         stop(application);
     }
 

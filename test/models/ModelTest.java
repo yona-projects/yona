@@ -21,7 +21,9 @@
 package models;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import play.test.FakeApplication;
 import play.test.Helpers;
 //import support.EbeanUtil;
@@ -36,7 +38,7 @@ public class ModelTest<T> {
     }
 
     @Before
-    public void startApp() {
+    public  void startApp() {
         app = support.Helpers.makeTestApplication();
         Helpers.start(app);
     }

@@ -67,11 +67,6 @@ public class ProjectAppTest {
         Helpers.start(app);
     }
 
-    @After
-    public void after() {
-        Helpers.stop(app);
-    }
-
     @Test
     public void label() {
         //Given

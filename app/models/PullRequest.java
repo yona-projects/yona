@@ -935,4 +935,9 @@ public class PullRequest extends Model implements ResourceConvertible {
                 this.mergedCommitIdFrom != null && this.mergedCommitIdTo != null;
     }
 
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        PullRequest cloned = (PullRequest)super.clone();
+        return cloned;
+    }
 }

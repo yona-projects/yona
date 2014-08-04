@@ -156,14 +156,14 @@ public class PasswordResetTest extends ModelTest<PasswordReset> {
 
         //Then
         assertThat(result).isTrue();
-        assertThat(UserApp.authenticateWithPlainPassword(userId, newPassword).isAnonymous()).isFalse();
+        assertThat(UserApp.authenticateWithPlainPassword(userId, newPassword)).isEqualTo(User.findByLoginId(userId));
     }
 
     @Test
     public void testResetPassword_wrongHash() {
         //Given
         String userId = "doortts";
-        String newPassword = "whffudy";
+        String newPassword = "gomdol";
         String hashString = PasswordReset.generateResetHash(userId);
         PasswordReset.addHashToResetTable(userId, hashString);
 
@@ -173,7 +173,7 @@ public class PasswordResetTest extends ModelTest<PasswordReset> {
 
         //Then
         assertThat(result).isFalse();
-        assertThat(UserApp.authenticateWithPlainPassword(userId, newPassword).isAnonymous()).isTrue();
+        assertThat(UserApp.authenticateWithPlainPassword(userId, newPassword)).isEqualTo(User.anonymous);
     }
 
     private static boolean hashStringExist(String loginId) {
