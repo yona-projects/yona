@@ -22,10 +22,9 @@ package models;
 
 import models.enumeration.ResourceType;
 import models.resource.Resource;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 public class IssueComment extends Comment {
@@ -34,6 +33,14 @@ public class IssueComment extends Comment {
 
     @ManyToOne
     public Issue issue;
+
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "issue_comment_voter",
+            joinColumns = @JoinColumn(name = "issue_comment_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    public List<User> voters;
 
     /**
      * @see Comment#getParent()
@@ -68,5 +75,19 @@ public class IssueComment extends Comment {
                 return authorId;
             }
         };
+    }
+
+    public void addVoter(User user) {
+        if (!this.voters.contains(user)) {
+            this.voters.add(user);
+            this.update();
+        }
+    }
+
+    public void removeVoter(User user) {
+        if (this.voters.contains(user)) {
+            this.voters.remove(user);
+            this.update();
+        }
     }
 }

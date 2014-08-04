@@ -281,6 +281,8 @@ GET            /:user/:project/compare/:revA..:revB                             
 # Vote
 POST           /:user/:project/issue/:number/vote                                     controllers.VoteApp.vote(user, project, number: Long)
 POST           /:user/:project/issue/:number/unvote                                   controllers.VoteApp.unvote(user, project, number: Long)
+POST           /:user/:project/issue/:number/comment/:commentId/vote                  controllers.VoteApp.voteComment(user, project, number: Long, commentId: Long)
+POST           /:user/:project/issue/:number/comment/:commentId/unvote                controllers.VoteApp.unvoteComment(user, project, number: Long, commentId: Long)
 
 # Comment Thread
 POST           /threads/:id/open                                                      controllers.CommentThreadApp.open(id: Long)

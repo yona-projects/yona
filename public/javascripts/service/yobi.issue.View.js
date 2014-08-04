@@ -50,7 +50,7 @@
          *
          * @private
          */
-        function _initElement(){
+        function _initElement(options){
             elements.uploader = $("#upload");
             elements.textarea = $('textarea[data-editor-mode="comment-body"]');
 
@@ -61,6 +61,8 @@
             elements.timelineList = elements.timelineWrap.find(".timeline-list");
 
             elements.dueDate = $("#issueDueDate");
+
+            elements.btnVoteComment = $(options.btnVoteComment || '[data-request-type="comment-vote"]');
         }
 
         /**
@@ -94,6 +96,9 @@
             // Watch button
             elements.btnWatch.on("click", _onClickBtnWatch);
 
+            // Vote button on comment
+            elements.btnVoteComment.on("click", _onClickCommentVote);
+
             // Update issue info
             elements.issueInfoWrap.on("change", "[data-toggle=select2]", _onChangeIssueInfo);
             elements.issueInfoWrap.on("change", "[data-toggle=calendar]", _onChangeIssueInfo);
@@ -102,6 +107,18 @@
             elements.textarea.on({
                "focus": _onFocusCommentTextarea,
                "blur" : _onBlurCommentTextarea
+            });
+        }
+
+        function _onClickCommentVote(){
+            $.ajax($(this).data("requestUri"), {
+                "method"  : "post",
+                "success" : function(){
+                    location.reload();
+                },
+                "error" : function(res){
+                    $yobi.notify(Messages(res.responseText), 3000);
+                }
             });
         }
 
