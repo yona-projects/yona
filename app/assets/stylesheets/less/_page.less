@@ -850,8 +850,7 @@
 }
 
 .site-guide-outer {
-    margin:30px 0;
-    border-bottom:1px solid rgba(0, 0, 0, 0.15);
+    margin:30px 0 0;
 
     &.hide {
         margin-top:0px;
@@ -873,6 +872,8 @@
 
     .site-guide-inner {
         margin-top:15px;
+        padding:0 130px;
+        font-size: 0;
 
         .guide-wrap {
             list-style : none;
@@ -880,47 +881,43 @@
             padding:0;
             width:100%;
             .border-radius(6px);
+            font-size: 0;
 
             li {
-                float: left;
-                width: 25%;
+                display: inline-block;
                 -webkit-box-sizing: border-box;
                 -moz-box-sizing: border-box;
                 -o-box-sizing: border-box;
                 -ms-box-sizing: border-box;
                 box-sizing: border-box;
-                padding:10px 15px;
-                border: 1px solid rgba(0, 0, 0, 0.15);
+                padding:20px 15px;
                 overflow:hidden;
                 position:relative;
                 text-align:center;
+                margin-left: 0 !important;
+                font-size: 14px;
+                min-height: 150px;
 
-                .guide-icons {
-                    margin-top:10px;
-                    font-size:35px;
-                     color:@yobi-primary;
-                }
-
-                .guide-title {
-                    margin-top:25px;
+                h4 {
                     font-size:16px;
                     font-weight:bold;
-                    text-align:left;
                 }
 
-                .guide-desc {
-                    text-align:left;
-                    font-size:13px;
-                    min-height:80px;
+                p {
+                    margin-top:15px;
+                    font-size:14px;
+                    min-height:60px;
                 }
 
                 &:nth-child(odd) {
                     background-color:@yobi-cyan-light;
-
                 }
 
                 &:nth-child(even) {
                     background-color:@yobi-white;
+                    border-top:1px solid #f2f4f5;
+                    border-bottom:1px solid #f2f4f5;
+                    padding: 19px 15px;
                 }
 
                 &:nth-child(1) {
@@ -932,7 +929,7 @@
                     border-left: none;
                 }
 
-                &:nth-child(4) {
+                &:nth-child(3) {
                     border-left: none;
                     .border-radius(0 6px 6px 0);
                 }
