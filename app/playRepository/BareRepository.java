@@ -30,11 +30,13 @@ import org.eclipse.jgit.treewalk.filter.OrTreeFilter;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.jgit.treewalk.filter.TreeFilter;
 import org.eclipse.jgit.util.FS;
+import utils.LineEnding.EndingType;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
 
 import static org.eclipse.jgit.lib.Constants.HEAD;
+import static utils.LineEnding.*;
 
 public class BareRepository {
     /**
@@ -73,7 +75,7 @@ public class BareRepository {
         TreeWalk treeWalk = new TreeWalk(repository);
         RevTree revTree = getRevTreeFromRef(repository, repository.getRef(HEAD));
         if( revTree == null ){
-            return null;
+            return ObjectId.zeroId();
         }
         treeWalk.addTree(revTree);
         treeWalk.setRecursive(false);
@@ -114,5 +116,15 @@ public class BareRepository {
         filters[2] = PathFilter.create("README.markdown");
         filters[3] = PathFilter.create("readme.markdown");
         return filters;
+    }
+
+    public static EndingType findFileLineEnding(Repository repository, String fileNameWithPath) throws IOException {
+        ObjectId oldObjectId = BareRepository.getFileObjectId(repository, fileNameWithPath);
+        if(oldObjectId.equals(ObjectId.zeroId())){
+            return EndingType.UNDEFINED;
+        } else {
+            String fileContents = new String(repository.open(oldObjectId).getBytes());
+            return findLineEnding(fileContents);
+        }
     }
 }
