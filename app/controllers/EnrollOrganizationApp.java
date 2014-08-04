@@ -36,7 +36,7 @@ public class EnrollOrganizationApp extends Controller {
             return result.getResult();
         }
 
-        Organization organization = Organization.findByOrganizationName(organizationName);
+        Organization organization = Organization.findByName(organizationName);
         if (!User.enrolled(organization)) {
             User user = UserApp.currentUser();
             user.enroll(organization);
@@ -47,7 +47,7 @@ public class EnrollOrganizationApp extends Controller {
     }
 
     private static ValidationResult validateForEnroll(String organizationName) {
-        Organization organization = Organization.findByOrganizationName(organizationName);
+        Organization organization = Organization.findByName(organizationName);
         if (organization == null) {
             return new ValidationResult(badRequest(), true);
         }
@@ -67,7 +67,7 @@ public class EnrollOrganizationApp extends Controller {
             return result.getResult();
         }
 
-        Organization organization = Organization.findByOrganizationName(organizationName);
+        Organization organization = Organization.findByName(organizationName);
         if (User.enrolled(organization)) {
             User user = UserApp.currentUser();
             user.cancelEnroll(organization);
@@ -78,7 +78,7 @@ public class EnrollOrganizationApp extends Controller {
     }
 
     private static ValidationResult validateForCancelEnroll(String organizationName) {
-        Organization organization = Organization.findByOrganizationName(organizationName);
+        Organization organization = Organization.findByName(organizationName);
         if (organization == null) {
             return new ValidationResult(badRequest(), true);
         }

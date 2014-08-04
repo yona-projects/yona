@@ -68,7 +68,7 @@ public class Organization extends Model implements ResourceConvertible {
     }
 
     public static Organization findByName(String name) {
-        return find.where().eq("name", name).findUnique();
+        return find.where().ieq("name", name).findUnique();
     }
 
     public static boolean isNameExist(String name) {
@@ -93,7 +93,7 @@ public class Organization extends Model implements ResourceConvertible {
         }
     }
 
-    public List<Project> getVisiableProjects(User user) {
+    public List<Project> getVisibleProjects(User user) {
         List<Project> result = new ArrayList<>();
         if(OrganizationUser.isAdmin(this.id, user.id)) {
             result.addAll(this.projects);
@@ -119,10 +119,6 @@ public class Organization extends Model implements ResourceConvertible {
         });
 
         return result;
-    }
-
-    public static Organization findByOrganizationName(String organizationName) {
-        return find.where().ieq("name", organizationName).findUnique();
     }
 
     /**
