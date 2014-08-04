@@ -89,7 +89,10 @@
                             <dd>
                             @defining(Milestone.findOpenMilestones(project.id)) { milestones =>
                                 @if(milestones.isEmpty()) {
-                                    <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" target="_blank" class="ybtn ybtn-success ybtn-small">@Messages("milestone.menu.new")</a>
+                                    <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)"
+                                       class="ybtn ybtn-small ybtn-fullsize" target="_blank">
+                                        @Messages("milestone.menu.new")
+                                    </a>
                                 } else {
                                     <select id="milestoneId" name="milestoneId"
                                             data-toggle="select2" data-format="milestone">
@@ -111,22 +114,12 @@
                         <dd>
                             <div class="search search-bar">
                                 <input type="text" id="issueDueDate" data-toggle="calendar" name="dueDate" class="textbox full">
-                                <button type="button" class="search-btn"><i class="yobicon-calendar2"></i></button>
+                                <button type="button" class="search-btn btn-calendar"><i class="yobicon-calendar2"></i></button>
                             </div>
                         </dd>
                     </dl>
 
-                    <dl id="labels" class="issue-option">
-                        <dt>
-                            @Messages("label")
-                            @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
-                            <button id="manage-label-link" type="button" class="ybtn ybtn-default ybtn-mini pull-right"><i class="yobicon-cog"></i></button>
-                            }
-                        </dt>
-                        <dd>
-                            <fieldset class="labels issue-form-labels"></fieldset>
-                        </dd>
-                    </dl>
+                    @partial_select_label(IssueLabel.findByProject(project), null, "issue-option")
                 </div>
             </div>
         </div>
@@ -134,28 +127,24 @@
     	</div>
     </div>
 </div>
+
 @common.markdown(project)
-@common.issueLabel()
 @common.select2()
 @common.calendar()
+
+<link rel="stylesheet" type="text/css" media="screen" href="@routes.IssueLabelApp.labelStyles(project.owner, project.name)">
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.css")">
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.caret.min.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.js")"></script>
 <script type="text/javascript">
-    $(document).ready(function(){
-        // yobi.Label
-        yobi.Label.init({
-            "sURLLabels": "@routes.IssueLabelApp.labels(project.owner, project.name)",
-            "sURLPost"  : "@routes.IssueLabelApp.newLabel(project.owner, project.name)"
-        });
-
+    $(function(){
         // yobi.issue.Write
         $yobi.loadModule("issue.Write", {
-            "sMode": "new",
+            "sMode"		   : "new",
             "sIssueFormURL": "@routes.IssueApp.newIssueForm(project.owner, project.name)",
             "sIssueListURL": "@routes.IssueApp.issues(project.owner, project.name)",
-            "elTextarea": 'textarea[data-editor-mode="content-body"]',
-            "elMilestoneRefresh": $("#milestoneOption .yobicon-refresh"),
+            "elTextarea"   : 'textarea[data-editor-mode="content-body"]',
+            "elMilestoneRefresh": $("#milestoneOption .yobicon-refresh")
         });
 
         // yobi.Mention

@@ -26,141 +26,237 @@
 
 (function(ns){
 
-    var oNS = $yobi.createNamespace(ns);
-    oNS.container[oNS.name] = function(elSelect, htOptions){
-        var welSelect = $(elSelect);
+    "use strict";
 
-        // Select2.js default options
-        var htOpt = $.extend({
-            "width": "resolve",
-            "dropdownCssClass" : welSelect.data("dropdownCssClass"),
-            "containerCssClass": welSelect.data("containerCssClass")
-        }, htOptions);
+    var oNS = $yobi.createNamespace(ns);
+    oNS.container[oNS.name] = function(element, options){
+        var targetElement = $(element);
+
+        var select2Option = $.extend({
+            "width"            : "resolve",
+            "allowClear"       : targetElement.data("allowClear"),
+            "closeOnSelect"    : targetElement.data("closeOnSelect"),
+            "dropdownCssClass" : targetElement.data("dropdownCssClass"),
+            "containerCssClass": targetElement.data("containerCssClass")
+        }, options);
 
         // Customized formats
-        var htFormat = {
-            "user": function(oItem){
-                var welItem = $(oItem.element);
-                var sAvatarURL = welItem.data("avatarUrl");
+        var formatters = {
+            "user": function(itemObject){
+                var itemElement = $(itemObject.element);
+                var avatarURL = itemElement.data("avatarUrl");
 
-                if(!sAvatarURL){
-                    return '<div>' + oItem.text + '</div>';
+                if(!avatarURL){
+                    return '<div>' + itemObject.text + '</div>';
                 }
 
                 // Template text
-                var sTplUserItem = $("#tplSelect2FormatUser").text() || '<div class="usf-group" title="${name} ${loginId}">' +
+                var tplUserItem = $("#tplSelect2FormatUser").text() || '<div class="usf-group" title="${name} ${loginId}">' +
                     '<span class="avatar-wrap smaller"><img src="${avatarURL}" width="20" height="20"></span>' +
                     '<strong class="name">${name}</strong>' +
                     '<span class="loginid">${loginId}</span></div>';
 
-                var sLoginId = welItem.data("loginId") ? "@" + welItem.data("loginId") : "";
+                var loginId = itemElement.data("loginId") ? "@" + itemElement.data("loginId") : "";
 
-                var sText = $yobi.tmpl(sTplUserItem, {
-                    "avatarURL": sAvatarURL,
-                    "name"     : oItem.text.trim(),
-                    "loginId"  : sLoginId
+                var formattedResult = $yobi.tmpl(tplUserItem, {
+                    "avatarURL": avatarURL,
+                    "name"     : itemObject.text.trim(),
+                    "loginId"  : loginId
                 });
 
-                return sText;
+                return formattedResult;
             },
-            "milestone": function(oItem){
-                var welItem = $(oItem.element);
-                var sMilestoneState = welItem.data("state");
+            "milestone": function(itemObject){
+                var itemElement = $(itemObject.element);
+                var milestoneState = itemElement.data("state");
 
-                if(!sMilestoneState){
-                    return oItem.text;
+                if(!milestoneState){
+                    return itemObject.text;
                 }
 
-                sMilestoneState = sMilestoneState.toLowerCase();
-                var sMilestoneStateLabel = Messages("milestone.state." + sMilestoneState);
-                var sTplMilestoneItem = $("#tplSElect2FormatMilestone").text()
+                milestoneState = milestoneState.toLowerCase();
+                var milestoneStateLabel = Messages("milestone.state." + milestoneState);
+                var tplMilestoneItem = $("#tplSElect2FormatMilestone").text()
                                     || '<div title="[${stateLabel}] ${name}">${name}</div>';
 
-                var sText = $yobi.tmpl(sTplMilestoneItem, {
-                    "name" : oItem.text.trim(),
-                    "state": sMilestoneState,
-                    "stateLabel": sMilestoneStateLabel
+                var formattedResult = $yobi.tmpl(tplMilestoneItem, {
+                    "name" : itemObject.text.trim(),
+                    "state": milestoneState,
+                    "stateLabel": milestoneStateLabel
                 });
 
-                return sText;
+                return formattedResult;
             },
-            "issuelabel": function(oItem){
-                var welItem = $(oItem.element);
-                var sLabelId = welItem.val();
+            "issuelabel": function(itemObject){
+                var element = $(itemObject.element);
+                var labelId = element.val();
 
-                if(!sLabelId){
-                    return '<span>' + oItem.text.trim() + '</span>';
+                if(!labelId){ // = optgroup
+                    var isCategoryExclusive = element.data("categoryIsExclusive");
+                    var data = {
+                        "text" : itemObject.text.trim(),
+                        "title": Messages("label.category.option") + '<br>' +
+                                (isCategoryExclusive ? Messages("label.category.option.single")
+                                                     : Messages("label.category.option.multiple")),
+                        "css"  : isCategoryExclusive ? 'yobicon-tag  category-exclusive single'
+                                                     : 'yobicon-tags category-exclusive multiple'
+                    };
+                    var tpl = '<i class="${css}" data-toggle="tooltip" data-html="true" data-placement="right" title="${title}"></i><span>${text}</span>';
+
+                    return $yobi.tmpl(tpl, data);
                 }
 
-                return '<a class="label issue-label active static" data-labelid="' + sLabelId + '">' + oItem.text.trim() + '</a>';
+                return '<a class="label issue-label active static" data-label-id="' + labelId + '">' + itemObject.text.trim() + '</a>';
             },
-            "branch": function(oItem){
-                var sBranchType = "";
-                var sBranchName = oItem.text.trim();
-                var rxBranchName = /refs\/(.[a-z]+)\/(.+)/i;
+            "branch": function(itemObject){
+                var branchType = "";
+                var branchName = itemObject.text.trim();
+                var branchNameRegex = /refs\/(.[a-z]+)\/(.+)/i;
 
-                // parse sBranchName with regular expression rxBranchName
+                // parse branchName with regular expression branchNameRegex
                 // e.g.'refs/heads/feature/review-10'
                 // -> ["refs/heads/feature/review-10", "heads", "feature/review-10"]
-                var aParsedBranchName = sBranchName.match(rxBranchName);
-                var htBranchTypeMapByName = {
+                var parsedBranchName = branchName.match(branchNameRegex);
+                var branchTypeMapByName = {
                     "heads": "branch",
                     "tags" : "tag"
                 };
 
-                if(aParsedBranchName){
-                    sBranchType = htBranchTypeMapByName[aParsedBranchName[1]] || aParsedBranchName[1];
-                    sBranchName = aParsedBranchName[2];
+                if(parsedBranchName){
+                    branchType = branchTypeMapByName[parsedBranchName[1]] || parsedBranchName[1];
+                    branchName = parsedBranchName[2];
                 }
 
-                var sTplBranchItem = $("#tplSelect2FormatBranch").text()
+                var tplBranchItem = $("#tplSelect2FormatBranch").text()
                                   || '<strong class="branch-label ${branchType}">${branchType}</strong> ${branchName}';
 
-                var sBranchNameHTMLWithLabel = $yobi.tmpl(sTplBranchItem, {
-                    "branchType": sBranchType,
-                    "branchName": sBranchName
+                var formattedResult = $yobi.tmpl(tplBranchItem, {
+                    "branchType": branchType,
+                    "branchName": branchName
                 });
 
-                return sBranchNameHTMLWithLabel;
+                return formattedResult;
             }
         };
 
         // Custom matchers
-        var htMatchers = {
-            "user": function(sTerm, sText, welItem){
-                sTerm = sTerm.toLowerCase();
-                sText = sText.toLowerCase();
+        var matchers = {
+            "user": function(term, formattedResult, itemElement){
+                term = term.toLowerCase();
+                formattedResult = formattedResult.toLowerCase();
 
-                var sLoginId = welItem.data("loginId");
-                sLoginId = (typeof sLoginId !== "undefined") ? sLoginId.toLowerCase() : "";
+                var loginId = itemElement.data("loginId");
+                loginId = (typeof loginId !== "undefined") ? loginId.toLowerCase() : "";
 
-                return (sLoginId.indexOf(sTerm) > -1) || (sText.indexOf(sTerm) > -1);
+                return (loginId.indexOf(term) > -1) || (formattedResult.indexOf(term) > -1);
+            }
+        };
+
+        // Custom behaviors
+        var behaviors = {
+            "issuelabel": function(select2Element){
+                select2Element.on({
+                    "select2-selecting": _onSelectingIssueLabel,
+                    "select2-open"     : _onOpenIssueLabel
+                });
+
+                function _onSelectingIssueLabel(evt){
+                    var data = [evt.object];
+                    var element = $(evt.object.element);
+                    var select2Object = $(evt.target).data("select2");
+
+                    if(element.data("categoryIsExclusive")){
+                        var filtered = _filterLabelInSameCategory(evt.object, select2Object.data());
+                        data = data.concat(filtered);
+                    } else {
+                        data = data.concat(select2Object.data());
+                    }
+
+                    _rememberLastScrollTop();
+
+                    select2Object.data(data, true); // trigger "change" event
+
+                    _refreshDropdown(select2Object);
+
+                    evt.preventDefault();
+                    return false;
+                }
+
+                function _filterLabelInSameCategory(label, currentData){
+                    var categoryId = $(label.element).data("categoryId");
+
+                    return currentData.filter(function(data){
+                        return (categoryId !== $(data.element).data("categoryId"));
+                    });
+                }
+
+                function _rememberLastScrollTop(){
+                    var lastScrollTop = $("#select2-drop").find(".select2-results").scrollTop();
+                    select2Element.data("lastScrollTop", lastScrollTop);
+                }
+
+                function _restoreLastScrollTop(){
+                    var lastScrollTop = select2Element.data("lastScrollTop");
+
+                    if(lastScrollTop){
+                        $("#select2-drop").find(".select2-results").scrollTop(lastScrollTop);
+                        select2Element.data("lastScrollTop", null);
+                    }
+                }
+
+                function _refreshDropdown(select2Object){
+                    select2Object.close();
+                    select2Object.open();
+                }
+
+                function _onOpenIssueLabel(){
+                    _restoreLastScrollTop();
+                }
             }
         };
 
         // Use customized format if specified format exists
-        var sFormatName = welSelect.data("format");
-        var fFormat = sFormatName ? htFormat[sFormatName.toLowerCase()] : null;
-        var fMatcher = sFormatName ? htMatchers[sFormatName.toLowerCase()] : null;
+        var formatName = targetElement.data("format");
+        var formatter = formatName ? formatters[formatName.toLowerCase()] : null;
+        var matcher   = formatName ? matchers[formatName.toLowerCase()]   : null;
+        var behavior  = formatName ? behaviors[formatName.toLowerCase()]  : null;
 
-        if(typeof fFormat === "function"){
-            htOpt = $.extend(htOpt, {
-                "formatResult"   : fFormat,
-                "formatSelection": fFormat
+        if(typeof formatter === "function"){
+            select2Option = $.extend(select2Option, {
+                "formatResult"   : formatter,
+                "formatSelection": formatter
             });
         }
 
-        if(typeof fMatcher === "function"){
-            htOpt.matcher = fMatcher;
+        if(typeof matcher === "function"){
+            select2Option.matcher = matcher;
         }
 
-        if(typeof fSorter === "function"){
-            htOpt.sortResults = fSorter;
+        if(typeof behavior === "function"){
+            behavior(targetElement);
         }
 
-        return welSelect.select2(htOpt);
+        $(document).on("mousewheel", ".select2-results", _stopScrollOnBothEnds);
+
+        function _stopScrollOnBothEnds(evt){
+            if((evt.originalEvent.deltaY > 0 && _isScrollEndOfList(evt.currentTarget)) ||
+               (evt.originalEvent.deltaY < 0 && _isScrollTopOfList(evt.currentTarget))){
+                evt.preventDefault();
+                evt.stopPropagation();
+                return false;
+            }
+        }
+
+        function _isScrollTopOfList(element){
+            return ($(element).scrollTop() === 0);
+        }
+
+        function _isScrollEndOfList(element){
+            return ($(element).scrollTop() + $(element).height() === element.scrollHeight);
+        }
+
+        return targetElement.select2(select2Option);
     };
-
 })("yobi.ui.Select2");
 
 $(function(){

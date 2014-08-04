@@ -76,65 +76,106 @@
         <!--board-body-->
         <div class="board-body row-fluid">
             <div class="span9">
-                @if(StringUtils.isEmpty(issue.body)){
-                <div class="content empty-content"></div>
-                } else {
-                <div class="markdown-loader">
-                    <i class=" yobicon-loading2"></i> Loading....
+                <div class="author-info">
+                    <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="usf-group">
+                        <span class="avatar-wrap smaller">
+                            <img src="@User.findByLoginId(issue.authorLoginId).avatarUrl" width="20" height="20">
+                        </span>
+                        @if(issue.authorLoginId != null){
+                        <strong class="name">@issue.authorName</strong>
+                        <span class="loginid"> <strong>@{"@"}</strong>@issue.authorLoginId</span>
+                        } else {
+                        <strong class="name">@Messages("issue.noAuthor")</strong>
+                        }
+                    </a>
                 </div>
-                <div class="content markdown-wrap markdown-before" markdown="true">@issue.body</div>
+
+                @if(StringUtils.isEmpty(issue.body)){
+                    <div class="content empty-content"></div>
+                } else {
+                    <div class="markdown-loader">
+                        <i class="yobicon-loading2"></i> @Messages("site.massMail.loading")
+                    </div>
+                    <div class="content markdown-wrap markdown-before" markdown="true">@issue.body</div>
                 }
                 <div class="attachments" id="attachments" data-resource-type="@ResourceType.ISSUE_POST" data-resource-id="@issue.id"></div>
+
+                <div class="board-actrow right-txt">
+                    <div class="pull-left">
+                        <div>
+                            @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.WATCH)) {
+                                <button id="watch-button" type="button" class="ybtn @if(issue.getWatchers.contains(UserApp.currentUser())) {ybtn-watching}"
+                                        data-toggle="button" data-watching="@if(issue.getWatchers.contains(UserApp.currentUser())){true}else{false}">
+                                @if(issue.getWatchers.contains(UserApp.currentUser())) {
+                                    @Messages("project.unwatch")
+                                } else {
+                                    @Messages("project.watch")
+                                }
+                                </button>
+                            }
+
+                            <div id="vote" class="vote-wrap">
+                                @if(isResourceCreatable(User.findByLoginId(session.get("loginId")), issue.asResource(), ResourceType.ISSUE_COMMENT)) {
+                                    <a href="@urlToVote" class="ybtn @if(issue.isVotedBy(UserApp.currentUser)){ybtn-watching}" title="@getVoteButtonTitle"
+                                       data-request-method="post" data-toggle="tooltip">
+                                        <span class="heart"><i class="yobicon-hearts"></i></span>
+                                        <span class="desc">@Messages("issue.vote")</span>
+                                        @if(issue.voters.size > 0) {
+                                            <strong class="count">@issue.voters.size</strong>
+                                        }
+                                    </a>
+                                } else {
+                                    <span class="ybtn ybtn-disabled" style="color:#777;" data-toggle="tooltip" title="@Messages("user.login.alert")" data-login="required">
+                                        <span class="heart"><i class="yobicon-hearts"></i></span>
+                                        <span class="desc">@Messages("issue.vote")</span>
+                                        @if(issue.voters.size > 0) {
+                                            <strong class="count">@issue.voters.size</strong>
+                                        }
+                                    </span>
+                                }
+
+                                @if(issue.voters.size > 0){
+                                    @partial_voters(issue, 3)
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    @if(issue.canBeDeleted) {
+                        @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.DELETE)) {
+                            <a href="#deleteConfirm" data-toggle="modal" class="ybtn ybtn-danger">@Messages("button.delete")</a>
+                        }
+                    } else {
+                        <button class="ybtn ybtn-disabled" data-toggle="tooltip" data-placement="top" title="@Messages("issue.can.not.be.deleted")">@Messages("button.delete")</button>
+                    }
+
+                    @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+                        <a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)" class="ybtn">@Messages("button.edit")</a>
+                    }
+                </div>
+
+                @** Comment **@
+                <div id="comments" class="board-comment-wrap">
+                    <div id="timeline">
+                        <div class="timeline-list">
+                        @partial_comments(project, issue)
+                        </div>
+                    </div>
+                    @common.commentForm(issue.asResource(), ResourceType.ISSUE_COMMENT, routes.IssueApp.newComment(project.owner, project.name, issue.getNumber).toString())
+                </div>
+                @** // Comment **@
             </div>
 
             <div class="span3 mb20">
-                <div class="author-info pull-right mr10">
-                    <form id="issueUpdateForm" action="@routes.IssueApp.massUpdate(project.owner, project.name)" method="post" class="frm-wrap">
+                <div class="issue-info">
+                    <form id="issueUpdateForm" action="@routes.IssueApp.massUpdate(project.owner, project.name)" method="post">
                         <input type="hidden" name="issues[0].id" value="@issue.id" />
-
-                        @**<!-- author  -->**@
-                        <dl class="author">
-                            <dt>@Messages("issue.author")</dt>
-                            <dd style="padding:5px 10px;">
-                                <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="usf-group">
-                                    <span class="avatar-wrap smaller">
-                                        <img src="@User.findByLoginId(issue.authorLoginId).avatarUrl" width="20" height="20">
-                                    </span>
-                                    @if(issue.authorLoginId != null){
-                                    <strong class="name">@issue.authorName</strong>
-                                    <span class="loginid"> <strong>@{"@"}</strong>@issue.authorLoginId</span>
-                                    } else {
-                                    <strong class="name">@Messages("issue.noAuthor")</strong>
-                                    }
-                                </a>
-                            </dd>
-                        </dl>
-                        @**<!-- // -->**@
-
-                        @**<!-- state  -->**@
-                        <!--
-                        <dl>
-                            <dt>@Messages("issue.state")</dt>
-                            <dd>
-                                <div id="state" class="btn-group" data-name="state">
-                                    <button class="btn dropdown-toggle large" data-toggle="dropdown">
-                                        <span class="d-label">@Messages("issue.state")</span>
-                                        <span class="d-caret"><span class="caret"></span></span>
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li data-value="@State.OPEN.name" @if(issue.state == State.OPEN){data-selected="true" class="active"}><a>@Messages("issue.state.open")</a></li>
-                                        <li data-value="@State.CLOSED.name" @if(issue.state == State.CLOSED){data-selected="true" class="active"}><a>@Messages("issue.state.closed")</a></li>
-                                    </ul>
-                                </div>
-                            </dd>
-                        </dl>
-                        -->
 
                         @**<!-- assignee  -->**@
                         <dl>
                             <dt>@Messages("issue.assignee")</dt>
 
-                            <dd style="padding:5px 10px;">
+                            <dd>
                             @defining(issue.assigneeName != null) { isAssigned =>
                                 @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
                                     @partial_assignee(project, issue)
@@ -162,13 +203,12 @@
                         @if(project.menuSetting.milestone) {
                         <dl>
                             <dt>@Messages("milestone")</dt>
-                            <dd style="padding:5px 10px;">
+                            <dd>
                             @if(Milestone.findByProjectId(project.id).isEmpty()){
-                                @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
-                                <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" target="_blank" class="ybtn ybtn-success ybtn-small">@Messages("milestone.menu.new")</a>
-                                } else {
-                                    @Messages("issue.noMilestone")
-                                }
+                                <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)"
+                                   class="ybtn ybtn-small ybtn-fullsize" target="_blank">
+                                    @Messages("milestone.menu.new")
+                                </a>
                             } else {
                                 @defining(issue.milestone != null) { hasMilestone =>
                                     @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
@@ -213,7 +253,7 @@
                         }
                         @**<!-- // -->**@
 
-                        <dl class="issue-option">
+                        <dl>
                             <dt>
                                 @Messages("issue.dueDate")
                                 @if(issue.dueDate != null) {
@@ -226,11 +266,11 @@
                                 </span>
                                 }
                             </dt>
-                            <dd style="padding:5px 10px;">
+                            <dd>
                                 @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
                                 <div class="search search-bar">
-                                    <input type="text" id="issueDueDate" data-toggle="calendar" data-oDueDate="@issue.getDueDateString" name="dueDate" class="textbox full" value="@issue.getDueDateString">
-                                    <button type="button" class="search-btn"><i class="yobicon-calendar2"></i></button>
+                                    <input type="text" name="dueDate" value="@issue.getDueDateString" class="textbox full" autocomplete="off" data-toggle="calendar">
+                                    <button type="button" class="search-btn btn-calendar"><i class="yobicon-calendar2"></i></button>
                                 </div>
                                 } else {
                                     @if(issue.dueDate != null) {
@@ -244,36 +284,11 @@
 
                         @**<!-- labels -->**@
                         @if(!IssueLabel.findByProject(project).isEmpty){
-                        <dl class="labels-wrap">
-                            <dt>
-                                @Messages("label")
-                                <button type="button" class="ybtn ybtn-mini edit-button" style="margin-left:10px;"><i class="yobicon-edit vmiddle"></i></button>
-                            </dt>
-                            <dd>
-                            <dd style="padding:5px 10px; line-height:30px; @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)){padding-left:0;}">
-                                @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
-                                    <select id="issueLabels" multiple="multiple" data-toggle="select2" data-format="issuelabel"
-                                            data-dropdown-css-class="issue-labels" data-container-css-class="issue-labels">
-                                        <option></option>
-                                        @IssueLabel.findByProject(project).groupBy(_.category).map {
-                                            case (category, labels) => {
-                                                <optgroup label="@category">
-                                                @labels.map { label =>
-                                                    <option value="@label.id" data-category="@category" @if(issue.labels.contains(label)){ selected }>
-                                                @label.name
-                                                </option>
-                                                }
-                                                </optgroup>
-                                            }
-                                        }
-                                    </select>
-                                } else {
-                                    @for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
-                                        <a href='@routes.IssueApp.issues(project.owner, project.name, issue.state.state(), "html", 1)&labelIds=@label.id' class="label issue-label active static" data-labelId="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>
-                                    }
-                                }
-                            </dd>
-                        </dl>
+                            @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)){
+                                @partial_select_label(IssueLabel.findByProject(project), issue.getLabelIds)
+                            } else {
+                                @partial_show_selected_label(issue.labels.toList, routes.IssueApp.issues(project.owner, project.name, issue.state.state(), "html", 1).toString)
+                            }
                         }
                         @**<!-- // -->**@
                     </form>
@@ -281,74 +296,11 @@
             </div>
         </div>
 
-        <div class="board-footer board-actrow">
-            <div class="pull-left">
-                <div>
-                    @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.WATCH)) {
-                        <button id="watch-button" type="button" class="ybtn @if(issue.getWatchers.contains(UserApp.currentUser())) {ybtn-watching}"
-                                data-toggle="button" data-watching="@if(issue.getWatchers.contains(UserApp.currentUser())){true}else{false}">
-                        @if(issue.getWatchers.contains(UserApp.currentUser())) {
-                            @Messages("project.unwatch")
-                        } else {
-                            @Messages("project.watch")
-                        }
-                        </button>
-                    }
 
-                    <div id="vote" class="vote-wrap">
-                        @if(isResourceCreatable(User.findByLoginId(session.get("loginId")), issue.asResource(), ResourceType.ISSUE_COMMENT)) {
-                            <a href="@urlToVote" class="ybtn @if(issue.isVotedBy(UserApp.currentUser)){ybtn-watching}" title="@getVoteButtonTitle"
-                               data-request-method="post" data-toggle="tooltip">
-                                <span class="heart"><i class="yobicon-hearts"></i></span>
-                                <span class="desc">@Messages("issue.vote")</span>
-                                @if(issue.voters.size > 0) {
-                                    <strong class="count">@issue.voters.size</strong>
-                                }
-                            </a>
-                        } else {
-                            <span class="ybtn ybtn-disabled" style="color:#777;" data-toggle="tooltip" title="@Messages("user.login.alert")" data-login="required">
-                                <span class="heart"><i class="yobicon-hearts"></i></span>
-                                <span class="desc">@Messages("issue.vote")</span>
-                                @if(issue.voters.size > 0) {
-                                    <strong class="count">@issue.voters.size</strong>
-                                }
-                            </span>
-                        }
-
-                        @if(issue.voters.size > 0){
-                            @partial_voters(issue, 3)
-                        }
-                    </div>
-                </div>
-            </div>
-
-            @if(issue.canBeDeleted) {
-                @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.DELETE)) {
-                <a href="#deleteConfirm" data-toggle="modal" class="ybtn ybtn-danger">@Messages("button.delete")</a>
-                }
-            } else {
-            <button class="ybtn ybtn-disabled" data-toggle="tooltip" data-placement="top" title="@Messages("issue.can.not.be.deleted")">@Messages("button.delete")</button>
-            }
-
-            @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
-            <a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)" class="ybtn">@Messages("button.edit")</a>
-            }
+        <div class="board-footer">
+            <a href="@urlToIssues" class="ybtn pull-left" data-button="historyBack">@Messages("button.list")</a>
+            @help.keymap("issueDetail", project)
         </div>
-
-        @** Comment **@
-        <div id="comments" class="board-comment-wrap">
-            <div id="timeline">
-                <div class="timeline-list">
-                @partial_comments(project, issue)
-                </div>
-            </div>
-            @common.commentForm(issue.asResource(), ResourceType.ISSUE_COMMENT, routes.IssueApp.newComment(project.owner, project.name, issue.getNumber).toString())
-        </div>
-        @** // Comment **@
-
-        <a href="@urlToIssues" class="ybtn pull-left" data-button="historyBack">@Messages("button.list")</a>
-
-        @help.keymap("issueDetail", project)
     </div>
 
     <script type="text/x-jquery-tmpl" id="tplAttachedFile"><!--
@@ -383,22 +335,18 @@
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.caret.min.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.js")"></script>
 <script type="text/javascript">
-    $(document).ready(function(){
+    $(function(){
         // yobi.issue.View
         $yobi.loadModule("issue.View", {
-            "sWatchUrl"     : "@routes.WatchApp.watch(issue.asResource.asParameter)",
-            "sUnwatchUrl"   : "@routes.WatchApp.unwatch(issue.asResource.asParameter)",
-            "sIssuesUrl"    : "@routes.IssueApp.massUpdate(project.owner, project.name)",
-            "sTimelineUrl"  : "@routes.IssueApp.timeline(project.owner, project.name, issue.getNumber)",
-            "sIssueId"      : "@issue.id",
-            "welMilestone"  : $("#milestone"),
-            "welAssignee"   : $("#assignee"),
-            "welIssueUpdateForm": $("#issueUpdateForm"),
-            "sIssueCheckBoxesSelector": "[type=checkbox][name=checked-issue]",
-            "sNextState"    : "@issue.nextState().toString.toLowerCase",
-            "sNextStateUrl" : "@routes.IssueApp.nextState(project.owner, project.name, issue.getNumber)",
-            "sCommentWithStateUrl": "@routes.IssueApp.newComment(project.owner, project.name, issue.getNumber)",
-            "welDueDate": $("#issueDueDate")
+            "issueId"  : "@issue.id",
+            "nextState": "@issue.nextState().toString.toLowerCase",
+            "urls"     : {
+                "watch"     : "@routes.WatchApp.watch(issue.asResource.asParameter)",
+                "unwatch"   : "@routes.WatchApp.unwatch(issue.asResource.asParameter)",
+                "timeline"  : "@routes.IssueApp.timeline(project.owner, project.name, issue.getNumber)",
+                "nextState" : "@routes.IssueApp.nextState(project.owner, project.name, issue.getNumber)",
+                "massUpdate": "@routes.IssueApp.massUpdate(project.owner, project.name)"
+            }
         });
 
         // yobi.ShortcutKey
@@ -412,9 +360,10 @@
             }
         });
 
+        // yobi.Mention
         yobi.Mention({
-            target:'textarea[id^=editor-]',
-            url : "@Html(routes.ProjectApp.mentionList(project.owner, project.name, issue.getNumber, issue.asResource().getType.resource()).toString())"
+            "target": 'textarea[id^=editor-]',
+            "url"   : "@Html(routes.ProjectApp.mentionList(project.owner, project.name, issue.getNumber, issue.asResource().getType.resource()).toString())"
         });
     });
 </script>

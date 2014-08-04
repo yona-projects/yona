@@ -27,11 +27,17 @@ import play.data.validation.Constraints.Required;
 import play.db.ebean.Model;
 
 import javax.persistence.*;
-
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 
 @Entity
 public class IssueLabel extends Model implements ResourceConvertible {
+
+    static public class IssueLabelException extends Exception {
+        public IssueLabelException(String s) {
+            super(s);
+        }
+    }
 
     private static final long serialVersionUID = -35487506476718498L;
     public static final Finder<Long, IssueLabel> finder = new Finder<>(Long.class, IssueLabel.class);
@@ -40,7 +46,8 @@ public class IssueLabel extends Model implements ResourceConvertible {
     public Long id;
 
     @Required
-    public String category;
+    @ManyToOne
+    public IssueLabelCategory category;
 
     @Required
     public String color;
@@ -57,13 +64,13 @@ public class IssueLabel extends Model implements ResourceConvertible {
     public static List<IssueLabel> findByProject(Project project) {
         return finder.where()
                 .eq("project.id", project.id)
-                .orderBy().asc("category")
-                .orderBy().asc("id")
+                .orderBy().asc("category.name")
+                .orderBy().asc("name")
                 .findList();
     }
 
     public String toString() {
-        return category + " - " + name;
+        return category.name + " - " + name;
     }
 
     @Transient
@@ -103,5 +110,29 @@ public class IssueLabel extends Model implements ResourceConvertible {
                 return ResourceType.ISSUE_LABEL;
             }
         };
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) return true;
+        if (object == null || getClass() != object.getClass()) return false;
+        if (!super.equals(object)) return false;
+
+        IssueLabel that = (IssueLabel) object;
+
+        if (!color.equals(that.color)) return false;
+        if (!id.equals(that.id)) return false;
+        if (!name.equals(that.name)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (id != null ? id.hashCode() : 0);
+        result = 31 * result + color.hashCode();
+        result = 31 * result + name.hashCode();
+        return result;
     }
 }

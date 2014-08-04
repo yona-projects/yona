@@ -19,14 +19,14 @@
 * limitations under the License.
 **@
 @(project:Project, issueList:Collection[Issue], searchCondition:models.support.SearchCondition, pageIndex:Int, totalPageCount:Int)
+
 @import java.util
 @import utils.JodaDateUtil
 @import utils.TemplateHelper._
 @import utils.AccessControl._
 
-@urlToList = {@routes.IssueApp.issues(project.owner, project.name, searchCondition.state, "html", pageIndex + 1)}
 
-@issueLabels(issue:Issue) = {@for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {@label.category,@label.id,@label.name|}}
+@issueLabels(issue:Issue) = {@for(label <- issue.labels.toList.sortBy(r => (r.category.name, r.name))) {@label.category.name,@label.id,@label.name|}}
 
 <ul class="post-list-wrap row-fluid">
 @for(issue <- issueList){
@@ -84,8 +84,8 @@
                     </span>
                     }
 
-                    @for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
-                        <a href="#" class="label issue-label list-label" data-labelId="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>
+                    @for(label <- issue.labels.toList.sortBy(r => (r.category.name, r.name))) {
+                        <a href="#" class="label issue-label list-label" data-category-id="@label.category.id" data-label-id="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>
                     }
                 </div>
             </label>

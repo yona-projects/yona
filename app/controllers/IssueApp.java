@@ -51,6 +51,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Collections;
 import utils.HttpUtil;
 
 public class IssueApp extends AbstractPostingApp {
@@ -106,6 +107,7 @@ public class IssueApp extends AbstractPostingApp {
         models.support.SearchCondition searchCondition = issueParamForm.bindFromRequest().get();
         searchCondition.pageNum = pageNum - 1;
         searchCondition.labelIds.addAll(LabelSearchUtil.getLabelIds(request()));
+        searchCondition.labelIds.remove(null);
 
         // determine pjax or json when requested with XHR
         if (HttpUtil.isRequestedWithXHR(request())) {
@@ -170,7 +172,7 @@ public class IssueApp extends AbstractPostingApp {
         if (project == null) {
             return ok(my_partial_search.render("title.issueList", issues, searchCondition, project));
         } else {
-            return ok(partial_search.render("title.issueList", issues, searchCondition, project));
+            return ok(partial_list_wrap.render("title.issueList", issues, searchCondition, project));
         }
 
     }
@@ -340,15 +342,15 @@ public class IssueApp extends AbstractPostingApp {
                 }
             }
 
-            if (issueMassUpdate.attachingLabel != null) {
-                for (IssueLabel label : issueMassUpdate.attachingLabel) {
-                    issue.labels.add(label);
+            if (issueMassUpdate.attachingLabelIds != null) {
+                for (Long labelId : issueMassUpdate.attachingLabelIds) {
+                    issue.labels.add(IssueLabel.finder.byId(labelId));
                 }
             }
 
-            if (issueMassUpdate.detachingLabel != null) {
-                for (IssueLabel label : issueMassUpdate.detachingLabel) {
-                    issue.labels.remove(label);
+            if (issueMassUpdate.detachingLabelIds != null) {
+                for (Long labelId : issueMassUpdate.detachingLabelIds) {
+                    issue.labels.remove(IssueLabel.finder.byId(labelId));
                 }
             }
 
@@ -664,7 +666,9 @@ public class IssueApp extends AbstractPostingApp {
         String[] labelIds = form.get("labelIds");
         if (labelIds != null) {
             for (String labelId : labelIds) {
-                issue.labels.add(IssueLabel.finder.byId(Long.parseLong(labelId)));
+                if(!StringUtils.isEmpty(labelId)) {
+                    issue.labels.add(IssueLabel.finder.byId(Long.parseLong(labelId)));
+                }
             }
         }
     }

@@ -23,22 +23,22 @@
 @labelList(project:Project) = {
     @IssueLabel.findByProject(project).groupBy(_.category).map {
         case (category, labels) => {
-            <li class="disabled" data-category="@category"><span>@category</span></li>
+            <li class="disabled" data-category="@category.id"><span>@category.name</span></li>
             @labels.map { label =>
-            <li data-value="@label.id" data-category="@category">
+            <li data-value="@label.id" data-category="@category.id">
             <a>
-                <span class="issue-label active list-label" data-labelId="@label.id">@label.name</span>
+                <span class="issue-label active list-label" data-label-id="@label.id">@label.name</span>
             </a>
             </li>
             }
-            <li class="divider" data-category="@category"></li>
+            <li class="divider" data-category="@category.id"></li>
         }
     }
 }
 
 <script type="text/x-jquery-tmpl" id="labelListItem">
 <li data-value="${id}" data-category="${category}">
-    <a><span class="issue-label active list-label" data-labelId="${id}">${name}</span></a>
+    <a><span class="issue-label active list-label" data-label-id="${id}">${name}</span></a>
 </li>
 </script>
 
@@ -46,7 +46,7 @@
 <li class="disabled" data-category="${category}"><span>${category}</span></li>
 <li data-value="${id}" data-category="${category}">
     <a>
-        <span class="issue-label active list-label" data-labelid="${id}">${name}</span>
+        <span class="issue-label active list-label" data-label-id="${id}">${name}</span>
     </a>
 </li>
 <li class="divider" data-category="${category}"></li>
@@ -72,7 +72,7 @@
 
         <div id="assignee" class="btn-group" data-name="assignee.id">
             <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
-                <span class="d-label">@Messages("issue.update.assignee")</span>
+                <span class="d-label">@Messages("issue.update.assignee.id")</span>
                 <span class="d-caret"><span class="caret"></span></span>
             </button>
             <ul class="dropdown-menu mass-update-list">
@@ -96,9 +96,10 @@
         </div>
 
         @if(project.menuSetting.milestone) {
+        @if(!Milestone.findOpenMilestones(project.id).isEmpty){
         <div id="milestone" class="btn-group" data-name="milestone.id">
             <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
-                <span class="d-label">@Messages("issue.update.milestone")</span>
+                <span class="d-label">@Messages("issue.update.milestone.id")</span>
                 <span class="d-caret"><span class="caret"></span></span>
             </button>
             <ul class="dropdown-menu mass-update-list">
@@ -110,8 +111,10 @@
             </ul>
         </div>
         }
+        }
 
-        <div id="attaching-label" class="btn-group" data-name="attachingLabel[0].id">
+        @if(!IssueLabel.findByProject(project).isEmpty){
+        <div id="attaching-label" class="btn-group" data-name="attachingLabelIds">
             <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
                 <span class="d-label">@Messages("issue.update.attachLabel")</span>
                 <span class="d-caret"><span class="caret"></span></span>
@@ -121,7 +124,7 @@
             </ul>
         </div>
 
-        <div id="detaching-label" class="btn-group" data-name="detachingLabel[0].id">
+        <div id="detaching-label" class="btn-group" data-name="detachingLabelIds">
             <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
                 <span class="d-label">@Messages("issue.update.detachLabel")</span>
                 <span class="d-caret"><span class="caret"></span></span>
@@ -130,6 +133,7 @@
                 @labelList(project)
             </ul>
         </div>
+        }
     </form>
 </div>
 <script type="text/javascript">

@@ -1,0 +1,110 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2014 NAVER Corp.
+* http://yobi.io
+*
+* @Author Jihan Kim
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@(project:Project, labels:List[models.IssueLabel])
+
+@import utils.TemplateHelper._
+@import utils.AccessControl._
+
+@if(labels.isEmpty){
+  <div class="error-wrap">
+    <i class="ico ico-err1"></i>
+    <p>@Messages("label.list.empty")</p>
+  </div>
+} else {
+  <div class="row-fluid list-head">
+    <div class="span3 category">
+      <strong>@Messages("label.category")</strong>
+    </div>
+    <div class="span9 name">
+      <strong>@Messages("label.name")</strong>
+    </div>
+  </div>
+
+  @labels.groupBy(_.category).map {
+    case (category, labelsInCategory) => {
+      <div class="row-fluid list-item category-wrap" data-category="@category.id" data-category-name="@category.name">
+        <div class="span3">
+          <h5 class="right-txt mr20">
+            <span class="category-name">
+              @category.name
+            </span>
+
+            <p class="mt5">
+              @if(category.isExclusive){
+                <i class="category-exclusive yobicon-tag single"
+                   data-toggle="tooltip" data-html="true"
+                   title="@Messages("label.category.option")<br>@Messages("label.category.option.single")">
+              } else {
+                <i class="category-exclusive yobicon-tags multiple"
+                   data-toggle="tooltip" data-html="true"
+                   title="@Messages("label.category.option")<br>@Messages("label.category.option.multiple")">
+              }
+              </i>
+              <button type="button" class="ybtn ybtn-mini"
+                      data-project-id="@project.id"
+                      data-category-id="@category.id"
+                      data-category-name="@category.name"
+                      data-category-is-exclusive="@category.isExclusive"
+                      data-category-update-uri="@routes.IssueLabelApp.updateCategory(project.owner, project.name, category.id)">
+                @Messages("label.category.edit")
+              </button>
+            </p>
+          </h5>
+        </div>
+        <div class="span9">
+          <table class="table nm">
+            @labelsInCategory.map { label =>
+            <tr data-label-id="@label.id">
+              <td>
+                <span class="issue-label active" data-label-id="@label.id" data-label-name="@label.name">
+                  @label.name
+                </span>
+              </td>
+              <td class="actions">
+                @if(isAllowed(UserApp.currentUser, label.asResource(), Operation.DELETE)) {
+                <button type="button" class="ybtn ybtn-danger ybtn-small"
+                        data-category-name="@category.name"
+                        data-label-id="@label.id"
+                        data-delete-uri="@routes.IssueLabelApp.delete(project.owner, project.name, label.id)">
+                  @Messages("button.delete")
+                </button>
+                }
+
+                @if(isAllowed(UserApp.currentUser, label.asResource(), Operation.UPDATE)) {
+                <button type="button" class="ybtn ybtn-small"
+                        data-category-id="@category.id"
+                        data-label-name="@label.name"
+                        data-label-color="@label.color"
+                        data-update-uri="@routes.IssueLabelApp.update(project.owner, project.name, label.id)">
+                  @Messages("button.edit")
+                </button>
+                }
+              </td>
+            </tr>
+            }
+          </table>
+        </div>
+      </div>
+    }
+  }
+
+  <link rel="stylesheet" type="text/css" href="@routes.IssueLabelApp.labelStyles(project.owner, project.name)">
+}

@@ -117,6 +117,13 @@ public class AbstractPostingApp extends Controller {
         posting.project = original.project;
         posting.setNumber(original.getNumber());
         preUpdateHook.run();
+
+        try {
+            posting.checkLabels();
+        } catch (IssueLabel.IssueLabelException e) {
+            return badRequest(e.getMessage());
+        }
+
         posting.update();
         posting.updateProperties();
 

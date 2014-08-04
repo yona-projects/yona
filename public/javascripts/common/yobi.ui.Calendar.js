@@ -26,51 +26,43 @@
 
 (function(ns){
     var oNS = $yobi.createNamespace(ns);
-    oNS.container[oNS.name] = function(elInput, htOptions){
-        var welInput = $(elInput);
+    oNS.container[oNS.name] = function(element, userOptions){
 
-        var htVar = {
-            "sDateFormat": "YYYY-MM-DD",
-            "rxDateFormat": /\d{4}-\d{2}-\d{2}/
-        };
+        var targetElement;
 
-        var htElement = {};
+        function _init(element, userOptions){
+            targetElement = $(element);
 
-        function _init(htOptions){
-            _initElement(htOptions);
-        }
+            var options = $.extend({
+                "field"      : targetElement.get(0),
+                "defaultDate": targetElement.val(),
+                "setDefaultDate": true,
+                "format": "YYYY-MM-DD"
+            }, userOptions);
 
-        function _initElement(htOptions) {
-            if (!welInput.data("pickaday")) {
-                htVar.oPicker = new Pikaday({
-                    "format": htVar.sDateFormat,
-                    "field": welInput.get(0),
-                    "setDefaultDate": true,
-                    "defaultDate": welInput.val()
-                });
-                welInput.data("pickaday", true);
+            if (!targetElement.data("pickaday")){
+                var pikaday = new Pikaday(options);
+                targetElement.data("pickaday", pikaday);
+            }
 
-                htElement.welBtn = welInput.next();
+            targetElement.next(".btn-calendar").on("click", function(){
+                targetElement.data("pickaday").show();
+            });
 
-                htElement.welBtn.on("click", function() {
-                    htVar.oPicker.show();
-                });
-
-                if(welInput.val().length > 0){
-                    htVar.oPicker.setDate(welInput.val());
-                }
+            if(targetElement.val().length > 0 && options.silent !== true){
+                _setDate(targetElement.val());
             }
         }
 
-        function _getDate() {
-            return htVar.oPicker.getDate();
+        function _getDate(){
+            return targetElement.data("pickaday").getDate();
         }
 
-        function _setDate(dateStr) {
-            return htVar.oPicker.setDate(dateStr);
+        function _setDate(dateStr){
+            return targetElement.data("pickaday").setDate(dateStr);
         }
 
-        _init(htOptions);
+        _init(element, userOptions || {});
 
         return {
             "getDate": _getDate,
@@ -82,6 +74,6 @@
 
 $(function(){
     $('[data-toggle="calendar"]').each(function(i, el){
-        yobi.ui.Calendar(el);
+        yobi.ui.Calendar(el, $(el).data());
     });
 });

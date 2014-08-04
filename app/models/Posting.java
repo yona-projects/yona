@@ -86,6 +86,11 @@ public class Posting extends AbstractPosting {
         return comments;
     }
 
+    @Override
+    public void checkLabels() {
+
+    }
+
     public static Posting findByNumber(Project project, long number) {
         return AbstractPosting.findByNumber(finder, project, number);
     }

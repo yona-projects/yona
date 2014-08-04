@@ -23,6 +23,7 @@ package controllers;
 import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
 import models.IssueLabel;
+import models.IssueLabelCategory;
 import models.Project;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
@@ -33,6 +34,7 @@ import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 import utils.ErrorViews;
+import utils.HttpUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,18 +51,8 @@ public class IssueLabelApp extends Controller {
      * This method is used when put a label on an issue and list labels in
      * issue list page.
      *
-     * Retrieves a project corresponding to {@code ownerName} and {@code
-     * projectName}, and returns its list of all issue labels in {@code
-     * application/json}. Each label has four fields: {@link IssueLabel#id},
-     * {@link IssueLabel#category}, {@link IssueLabel#color}, and {@link
-     * IssueLabel#name}.
-     *
      * Returns 403 Forbidden if the user has no permission to access to the
      * project.
-     *
-     * Returns 406 Not Acceptable if the client cannot accept
-     * {@code application/json}. Success response can only be returned when the
-     * content type of the body is {@code application/json}.
      *
      * @param ownerName    the name of a project owner
      * @param projectName  the name of a project
@@ -68,6 +60,33 @@ public class IssueLabelApp extends Controller {
      */
     @IsAllowed(Operation.READ)
     public static Result labels(String ownerName, String projectName) {
+        if (HttpUtil.isJSONPreferred(request())){
+            return labelsAsJSON(ownerName, projectName);
+        }
+
+        if (HttpUtil.isPJAXRequest(request())){
+            return labelsAsPjax(ownerName, projectName);
+        }
+
+        return labelsAsHTML(ownerName, projectName);
+    }
+
+    /**
+     * Retrieves a project corresponding to {@code ownerName} and {@code
+     * projectName}, and returns its list of all issue labels in {@code
+     * application/json}. Each label has four fields: {@link IssueLabel#id},
+     * {@link IssueLabel#category}, {@link IssueLabel#color}, and {@link
+     * IssueLabel#name}.
+     *
+     * Returns 406 Not Acceptable if the client cannot accept
+     * {@code application/json}. Success response can only be returned when the
+     * content type of the body is {@code application/json}.
+     *
+     * @param ownerName
+     * @param projectName
+     * @return the response to the request for issue labels
+     */
+    private static Result labelsAsJSON(String ownerName, String projectName) {
         if (!request().accepts("application/json")) {
             return status(Http.Status.NOT_ACCEPTABLE);
         }
@@ -78,7 +97,8 @@ public class IssueLabelApp extends Controller {
         for (IssueLabel label : IssueLabel.findByProject(project)) {
             Map<String, String> labelPropertyMap = new HashMap<>();
             labelPropertyMap.put("id", "" + label.id);
-            labelPropertyMap.put("category", label.category);
+            labelPropertyMap.put("category", label.category.name);
+            labelPropertyMap.put("categoryId", "" + label.category.id);
             labelPropertyMap.put("color", label.color);
             labelPropertyMap.put("name", label.name);
             labels.add(labelPropertyMap);
@@ -86,6 +106,22 @@ public class IssueLabelApp extends Controller {
 
         response().setHeader("Content-Type", "application/json");
         return ok(toJson(labels));
+    }
+
+    private static Result labelsAsPjax(String ownerName, String projectName){
+        response().setHeader("Cache-Control", "no-cache, no-store");
+
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+        List<IssueLabel> labels = IssueLabel.findByProject(project);
+
+        return ok(views.html.project.partial_issuelabels_list.render(project, labels));
+    }
+
+    private static Result labelsAsHTML(String ownerName, String projectName){
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+        List<IssueLabel> labels = IssueLabel.findByProject(project);
+
+        return ok(views.html.project.issuelabels.render(project, labels));
     }
 
     /**
@@ -117,11 +153,27 @@ public class IssueLabelApp extends Controller {
     @Transactional
     @IsCreatable(ResourceType.ISSUE_LABEL)
     public static Result newLabel(String ownerName, String projectName) {
-        Form<IssueLabel> labelForm = new Form<>(IssueLabel.class).bindFromRequest();
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
-        IssueLabel label = labelForm.get();
+        DynamicForm labelForm = form().bindFromRequest();
+        String categoryName = labelForm.get("categoryName");
+
+        IssueLabelCategory category = new IssueLabelCategory();
+        category.project = project;
+        category.name = categoryName;
+
+        if (category.exists()) {
+            category = IssueLabelCategory.findBy(category);
+        } else {
+            category.isExclusive = Boolean.parseBoolean(labelForm.get("categoryIsExclusive"));
+            category.save();
+        }
+
+        IssueLabel label = new IssueLabel();
         label.project = project;
+        label.name = labelForm.get("labelName");
+        label.color = labelForm.get("labelColor");
+        label.category = category;
 
         if (label.exists()) {
             return noContent();
@@ -138,7 +190,8 @@ public class IssueLabelApp extends Controller {
             labelPropertyMap.put("id", "" + label.id);
             labelPropertyMap.put("name", label.name);
             labelPropertyMap.put("color", label.color);
-            labelPropertyMap.put("category", label.category);
+            labelPropertyMap.put("category", label.category.name);
+            labelPropertyMap.put("categoryId", "" + label.category.id);
 
             return created(toJson(labelPropertyMap));
         }
@@ -182,6 +235,23 @@ public class IssueLabelApp extends Controller {
         return ok();
     }
 
+    @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.ISSUE_LABEL)
+    public static Result update(String ownerName, String projectName, Long id) {
+        Form<IssueLabel> form = new Form<>(IssueLabel.class).bindFromRequest();
+
+        if (form.hasErrors()) {
+            return badRequest();
+        }
+
+        IssueLabel label = form.get();
+        label.id = id;
+        label.project = Project.findByOwnerAndProjectName(ownerName, projectName);
+
+        label.update();
+
+        return ok();
+    }
+
     /**
      * Responds to a request for the CSS styles of all issue labels in the
      * specified project.
@@ -209,5 +279,162 @@ public class IssueLabelApp extends Controller {
         response().setHeader("ETag", eTag);
 
         return ok(views.html.common.issueLabelColor.render(labels)).as("text/css");
+    }
+
+    /**
+     * Responds to a request for issue label categories of the specified
+     * project.
+     *
+     * Retrieves a project corresponding to {@code ownerName} and
+     * {@code projectName}, and returns its list of all issue label categories
+     * in {@code application/json}. Each category has three fields:
+     * {@link IssueLabelCategory#id}, {@link IssueLabelCategory#name},
+     * {@link IssueLabelCategory#isExclusive}.
+     *
+     * Returns 403 Forbidden if the user has no permission to access to the
+     * project.
+     *
+     * Returns 406 Not Acceptable if the client cannot accept
+     * {@code application/json}. Success response can only be returned when the
+     * content type of the body is {@code application/json}.
+     *
+     * @param ownerName    the name of a project owner
+     * @param projectName  the name of a project
+     * @return the response to the request for issue label categories
+     */
+    @IsAllowed(Operation.READ)
+    public static Result categories(String ownerName, String projectName) {
+        if (!request().accepts("application/json")) {
+            return status(Http.Status.NOT_ACCEPTABLE);
+        }
+
+        Project project =
+            Project.findByOwnerAndProjectName(ownerName, projectName);
+
+        List<Map<String, String>> categories = new ArrayList<>();
+        for (IssueLabelCategory category
+                : IssueLabelCategory.findByProject(project)) {
+            categories.add(toMap(category));
+        }
+
+        return ok(toJson(categories)).as("application/json");
+    }
+
+    /**
+     * Responds to a request for an issue label category.
+     *
+     * Returns 406 Not Acceptable if the client cannot accept
+     * {@code application/json}. Success response can only be returned when the
+     * content type of the body is {@code application/json}.
+     *
+     * @param ownerName    Don't use.
+     * @param projectName  Don't use.
+     * @param id           the id of the category
+     * @return the response to the request for an issue label category
+     */
+    @IsAllowed(value = Operation.READ,
+            resourceType = ResourceType.ISSUE_LABEL_CATEGORY)
+    public static Result category(String ownerName, String projectName,
+            Long id) {
+        if (!request().accepts("application/json")) {
+            return status(Http.Status.NOT_ACCEPTABLE);
+        }
+
+        Project project =
+            Project.findByOwnerAndProjectName(ownerName, projectName);
+
+        IssueLabelCategory category = IssueLabelCategory.find.byId(id);
+
+        return ok(toJson(toMap(category))).as("application/json");
+    }
+
+    @IsAllowed(value = Operation.UPDATE,
+            resourceType = ResourceType.ISSUE_LABEL_CATEGORY)
+    public static Result updateCategory(String ownerName, String projectName,
+            Long id) {
+        Form<IssueLabelCategory> form =
+            new Form<>(IssueLabelCategory.class).bindFromRequest();
+
+        if (form.hasErrors()) {
+            return badRequest();
+        }
+
+        IssueLabelCategory category = form.get();
+        category.id = id;
+        category.project =
+            Project.findByOwnerAndProjectName(ownerName, projectName);
+
+        category.update();
+
+        return ok();
+    }
+
+    /**
+     * Responds to a request to add an issue label category for the specified
+     * project.
+     *
+     * Adds an issue label category created with values taken from
+     * {@link Form#bindFromRequest(java.util.Map, String...)} in the project
+     * specified by the {@code ownerName} and {@code projectName}. But if there
+     * has already been the same issue label category in name, then this method
+     * returns an empty 204 No Content response.
+     *
+     * When a new category is added, this method encodes the category's fields:
+     * {@link IssueLabelCategory#id}, {@link IssueLabelCategory#name},
+     * {@link IssueLabelCategory#isExclusive}, and includes them in the body of
+     * the 201 Created response. But if the client cannot accept
+     * {@code application/json}, it returns the 201 Created with no response
+     * body.
+     *
+     * @param ownerName    the name of a project owner
+     * @param projectName  the name of a project
+     * @return             the response to the request to add a new issue label
+     *                     category
+     */
+    @IsCreatable(ResourceType.ISSUE_LABEL_CATEGORY)
+    public static Result newCategory(String ownerName, String projectName) {
+        Form<IssueLabelCategory> form =
+            new Form<>(IssueLabelCategory.class).bindFromRequest();
+
+        if (form.hasErrors()) {
+            return badRequest();
+        }
+
+        IssueLabelCategory category = form.get();
+
+        category.project =
+            Project.findByOwnerAndProjectName(ownerName, projectName);
+
+        if (category.exists()) {
+            return noContent();
+        }
+
+        category.save();
+
+        if (!request().accepts("application/json")) {
+            return created();
+        }
+
+        Map<String, String> categoryPropertyMap = new HashMap<>();
+        categoryPropertyMap.put("id", "" + category.id);
+        categoryPropertyMap.put("name", category.name);
+        categoryPropertyMap.put("isExclusive", "" + category.isExclusive);
+
+        return created(toJson(categoryPropertyMap)).as("application/json");
+    }
+
+    @Transactional
+    @IsAllowed(value = Operation.DELETE, resourceType = ResourceType.ISSUE_LABEL_CATEGORY)
+    public static Result deleteCategory(String ownerName, String projectName, Long id) {
+        IssueLabelCategory.find.byId(id).delete();
+        return ok();
+    }
+
+    private static Map<String, String> toMap(IssueLabelCategory category) {
+        Map<String, String> map = new HashMap<>();
+        map.put("id", "" + category.id);
+        map.put("name", category.name);
+        map.put("isExclusive", "" + category.isExclusive);
+        return map;
     }
 }
