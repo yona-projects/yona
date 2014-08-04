@@ -1,0 +1,79 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2014 NAVER Corp.
+* http://yobi.io
+*
+* @Author Insanehong 
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+
+@(group: Organization, project: Project, searchResult: SearchResult)
+
+@import utils.JodaDateUtil
+@import utils.TemplateHelper._
+@import utils.AccessControl._
+@import scala.collection.immutable._
+@import models.enumeration.ResourceType
+@import models.enumeration.Operation
+
+
+@makeIssuesLink(mId: Long, _state: String, project: Project) = @{
+    buildQueryString(routes.IssueApp.issues(project.owner, project.name, _state),Map("milestoneId"->mId.toString))
+}
+
+@defining(searchResult.getMilestones) { page =>
+    @if(page.getList.length > 0) {
+    <ul class="search-list-wrap">
+        @for(milestone <- page.getList) {
+        <li class="search-list-item">
+            <div class="title-wrap">
+                <a href="@routes.MilestoneApp.milestone(milestone.project.owner, milestone.project.name, milestone.id)" class="title">
+                    @milestone.title
+                </a>
+            </div>
+            <div class="search-content">
+                @defining(searchResult.makeSnippets(milestone.contents, 40)) { snippets =>
+                    @for(snippet <- snippets) {
+                    <p class="search-content-body">
+                        @snippet @if(snippet.size < milestone.contents.size) { ..... }
+                    </p>
+                    }
+                }
+            </div>
+            <div class="search-meta-info">
+                @if(project == null) {
+                <a href="@routes.ProjectApp.project(milestone.project.owner,milestone.project.name)" class="project-link meta-item">
+                    @milestone.project.owner/@milestone.project.name
+                </a>
+                }
+                @if(milestone.dueDate != null) {
+                <span class="due-date meta-item">@Messages("label.dueDate") <strong>@milestone.getDueDateString</strong> (@milestone.until)</span>
+                }
+            </div>
+        </li>
+        }
+    </ul>
+    <!-- pagination.js will fill here. -->
+    <div id="pagination"></div>
+
+    <script type="text/javascript">
+        $(document).ready(function(){
+            yobi.Pagination.update($("#pagination"), @page.getTotalPageCount);
+        });
+    </script>
+    } else {
+        <div class="empty-result"></div>
+    }
+}

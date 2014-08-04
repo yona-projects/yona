@@ -1,10 +1,10 @@
 @**
 * Yobi, Project Hosting SW
 *
-* Copyright 2013 NAVER Corp.
+* Copyright 2014 NAVER Corp.
 * http://yobi.io
 *
-* @Author JiHan Kim
+* @Author Insanehong
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -18,18 +18,14 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(title: String, menuType:utils.MenuType)(content: Html)
+@(title: String, menuType:utils.MenuType, group: Organization)(content: Html)
 
 @import utils._
 
 @layout(Messages(title))(""){
-    @common.navbar(menuType, null, null)
-
-    @if(menuType == utils.MenuType.SITE_HOME && UserApp.currentUser.isAnonymous){
-        @index.partial_intro()
-    } else {
-        @content
-    }
-
+    @common.navbar(menuType, null, group)
+    
+    @content
+    
     @common.footer()
 }

@@ -1,0 +1,198 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2014 NAVER Corp.
+* http://yobi.io
+*
+* @Author Insanehong 
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+
+@(group: Organization, project: Project, searchResult: SearchResult)
+
+@isActiveMenu(search_type:SearchType) = @{
+    if(search_type == searchResult.getSearchType()){ "class=active" }
+}
+
+@makeSearchLink() = @{
+    if(project != null) {
+        routes.SearchApp.searchInAProject(project.owner, project.name)
+    } else if (group !=null) {
+        routes.SearchApp.searchInAGroup(group.name)
+    } else {
+        routes.SearchApp.searchInAll()
+    }
+}
+
+@makeTilte(search_type:SearchType) =@{
+    search_type match {
+        case SearchType.ISSUE => { Messages("search.menu.issues") }
+        case SearchType.USER => { Messages("search.menu.users") }
+        case SearchType.PROJECT => { Messages("search.menu.projects") }
+        case SearchType.POST => { Messages("search.menu.boards") }
+        case SearchType.MILESTONE => { Messages("search.menu.milestones") }
+        case SearchType.ISSUE_COMMENT => { Messages("search.menu.issue.comments") }
+        case SearchType.POST_COMMENT => { Messages("search.menu.board.comments") }
+        case SearchType.REVIEW => { Messages("search.menu.reviews") }  
+        case SearchType.NA => { }
+    }
+}
+
+@getCurrentlySearchCount(search_type:SearchType) =@{
+    search_type match {
+        case SearchType.ISSUE => { searchResult.getIssuesCount }
+        case SearchType.USER => { searchResult.getUsersCount }
+        case SearchType.PROJECT => { searchResult.getProjectsCount }
+        case SearchType.POST => { searchResult.getPostsCount }
+        case SearchType.MILESTONE => { searchResult.getMilestonesCount }
+        case SearchType.ISSUE_COMMENT => { searchResult.getIssueCommentsCount }
+        case SearchType.POST_COMMENT => { searchResult.getPostCommentsCount }
+        case SearchType.REVIEW => { searchResult.getReviewsCount }  
+        case SearchType.NA => { }
+    }
+}
+<div class="site-breadcrumb-outer">
+    <div class="site-breadcrumb-inner">
+        <h3>
+            @Messages("title.search")
+        </h3>
+    </div>
+</div>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="project-page-wrap">
+            <div class="row-fluid">
+                <div class="span2">
+                    <ul class="lst-stacked unstyled search-category-wrap">
+                        <li @isActiveMenu(SearchType.ISSUE)>
+                            <a href="#" data-toggle="search-category" data-type="@SearchType.ISSUE.getType()">
+                                @Messages("search.menu.issues")
+                                <span class="num-badge pull-right">@searchResult.getIssuesCount</span>
+                            </a>
+                        </li>
+                        <li @isActiveMenu(SearchType.USER)>
+                            <a href="#" data-toggle="search-category" data-type="@SearchType.USER.getType()">
+                                @Messages("search.menu.users")
+                                <span class="num-badge pull-right">@searchResult.getUsersCount</span>
+                            </a>
+                        </li>
+                        @if(project == null) {
+                        <li @isActiveMenu(SearchType.PROJECT)>
+                            <a href="#" data-toggle="search-category" data-type="@SearchType.PROJECT.getType()">
+                                @Messages("search.menu.projects")
+                                <span class="num-badge pull-right">@searchResult.getProjectsCount</span>
+                            </a>    
+                        </li>
+                        }
+                        <li @isActiveMenu(SearchType.POST)>
+                            <a href="#" data-toggle="search-category" data-type="@SearchType.POST.getType()">
+                                @Messages("search.menu.boards")
+                                <span class="num-badge pull-right">@searchResult.getPostsCount</span>
+                            </a>
+                        </li>
+                        <li @isActiveMenu(SearchType.MILESTONE)>
+                            <a href="#" data-toggle="search-category" data-type="@SearchType.MILESTONE.getType()">
+                                @Messages("search.menu.milestones")
+                                <span class="num-badge pull-right">@searchResult.getMilestonesCount</span>
+                            </a>
+                        </li>
+                        <li @isActiveMenu(SearchType.ISSUE_COMMENT)>
+                            <a href="#" data-toggle="search-category" data-type="@SearchType.ISSUE_COMMENT.getType()">
+                                @Messages("search.menu.issue.comments")
+                                <span class="num-badge pull-right">@searchResult.getIssueCommentsCount</span>
+                            </a>
+                        </li>
+                        <li @isActiveMenu(SearchType.POST_COMMENT)>
+                            <a href="#" data-toggle="search-category" data-type="@SearchType.POST_COMMENT.getType()">
+                                @Messages("search.menu.board.comments") 
+                                <span class="num-badge pull-right">@searchResult.getPostCommentsCount</span>
+                            </a>
+                        </li>
+                        <li @isActiveMenu(SearchType.REVIEW)>
+                            <a href="#" data-toggle="search-category" data-type="@SearchType.REVIEW.getType()">
+                                @Messages("search.menu.reviews")
+                                <span class="num-badge pull-right">@searchResult.getReviewsCount</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="span10">
+                    <div class="search-box-wrap">
+                        <form id="searchInnerForm" method="get" action="@makeSearchLink()" > 
+                        <input type="hidden" name="searchType" value="@searchResult.getSearchType().getType()">    
+                            <input type="text" name="keyword" class="span11" value="@searchResult.getKeyword()">
+                            <button type="submit" class="ybtn">@Messages("title.search")</button>
+                        </form>
+                        
+                        <h3 class="search-result-title">
+                            @Html(Messages("search.result.title", getCurrentlySearchCount(searchResult.getSearchType()),makeTilte(searchResult.getSearchType())))
+                        </h3>
+                    </div>
+                    <div class="search-result-wrap">
+                        @if(searchResult.getSearchType() == SearchType.ISSUE) {
+                            @partial_issues(group, project, searchResult)
+                        }
+
+                        @if(searchResult.getSearchType() == SearchType.USER) {
+                            @partial_users(group, project, searchResult)
+                        }
+
+                        @if(searchResult.getSearchType() == SearchType.PROJECT) {
+                            @partial_projects(group, project, searchResult)
+                        }
+
+                        @if(searchResult.getSearchType() == SearchType.POST) {
+                            @partial_posts(group, project, searchResult)
+                        }
+
+                        @if(searchResult.getSearchType() == SearchType.MILESTONE) {
+                            @partial_milestones(group, project, searchResult)
+                        }
+
+                        @if(searchResult.getSearchType() == SearchType.ISSUE_COMMENT) {
+                            @partial_issue_comments(group, project, searchResult)
+                        }
+
+                        @if(searchResult.getSearchType() == SearchType.POST_COMMENT) {
+                            @partial_post_comments(group, project, searchResult)
+                        }
+
+                        @if(searchResult.getSearchType() == SearchType.REVIEW) {
+                            @partial_reviews(group, project, searchResult)
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>        
+    </div>
+</div>
+
+<script>
+$(function(){
+    $('.search-category-wrap').on('click', 'a[data-toggle="search-category"]', function(event) {
+        event.preventDefault();
+        $('#searchInnerForm').find('input[name="searchType"]').val($(this).data('type'));
+        $('#searchInnerForm').submit();
+    });
+
+    $('.search-content-body, .title').each(function() {
+        var content = $(this).html();
+        content = content.replace(/@searchResult.getKeyword()/ig, function(match) {
+            return "<strong class=\"keyword\">"+ match +"</strong>";
+        });
+
+        $(this).html(content);
+    })
+});
+</script>

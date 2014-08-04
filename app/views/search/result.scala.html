@@ -1,0 +1,44 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2014 NAVER Corp.
+* http://yobi.io
+*
+* @Author Keesun Baik
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@(message: String, group: Organization, project: Project, searchResult: SearchResult)
+
+@import utils.TemplateHelper._
+@import utils.JodaDateUtil
+
+
+@if(project !=null) {
+    @projectLayout(message, project, utils.MenuType.NONE) {
+        @projectMenu(project, utils.MenuType.NONE, "main-menu-only")
+        @partial_search(group, project, searchResult)
+    }
+} else {
+    @if( group != null) {
+        @organizationLayout(message, utils.MenuType.NONE, group) {
+            @organization.header(group)
+            @organization.menu(group)
+            @partial_search(group, project, searchResult)
+        }
+    } else {
+        @siteLayout(message, utils.MenuType.NONE) {
+            @partial_search(null, null, searchResult)
+        }
+    }
+}

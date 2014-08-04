@@ -22,14 +22,6 @@
 @import utils.TemplateHelper._
 @orderString = @{"createdDate DESC"}
 <ul class="gnb-usermenu">
-    <li>
-        <form action="@routes.ProjectApp.projects()">
-            <div class="search-box">
-                <input type="text" name="filter" autocomplete="off" accesskey="S">
-                <button type="submit"><i class="yobicon-search"></i></button>
-            </div>
-        </form>
-    </li>
     @if(session.contains("loginId")){
     <li class="gnb-usermenu-dropdown">
         <a href="javascript:void(0);" class="gnb-dropdown-toggle dropdwon-box-btn" data-toggle="dropdown">

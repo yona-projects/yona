@@ -1,0 +1,78 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2014 NAVER Corp.
+* http://yobi.io
+*
+* @Author Insanehong 
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+
+@(group: Organization, project: Project, searchResult: SearchResult)
+
+@import utils.TemplateHelper._
+@import utils.JodaDateUtil._
+
+@defining(searchResult.getProjects) { page =>
+    @if(page.getList.length > 0) {
+    <ul class="search-list-wrap">
+        @for(project <- page.getList) {
+            @defining(User.findByLoginId(project.owner)){ user =>
+            <li class="search-list-item project">
+                <a href="@routes.ProjectApp.project(project.owner, project.name)" class="avatar-wrap">
+                    <img src="@urlToProjectLogo(project)">
+                </a>
+                <div class="title-wrap">
+                    <a href="@routes.ProjectApp.project(project.owner, project.name)" class="title project-link">
+                    @project.owner/@project.name
+                    </a>
+                </div>
+                @if(project.isForkedFromOrigin){
+                <div class="search-meta-info nm np">
+                    <span>
+                       <i class="yobicon-split yobicon-white vmiddle"></i>
+                        @Messages("fork.original")
+                    </span>
+                    <span>
+                        <a href="@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)" class="project-link">
+                            @project.originalProject.owner/@project.originalProject.name
+                        </a>
+                    </span>
+                </div>
+                }
+                <div class="search-content np">
+                    <p class="search-content-body">
+                        @project.overview
+                    </p>
+                 </div>
+                 <div class="search-meta-info np">
+                    <span class="meta-info">
+                        @Messages("project.create")
+                        <strong title="@getDateString(project.createdDate)">@agoOrDateString(project.createdDate)</strong>
+                    </span>
+                    @if(project.lastPushedDateAgo() != null) {
+                    <span class="meta-info">
+                        @Messages("project.codeUpdate")
+                        <strong title="@getDateString(project.lastPushedDate)">@agoOrDateString(project.lastPushedDate)</strong>
+                    </span>
+                    }
+                 </div>
+            </li>
+            }
+        }
+    </ul>
+    } else {
+        <div class="empty-result"></div>
+    }
+}

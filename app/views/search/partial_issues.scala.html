@@ -1,0 +1,84 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2014 NAVER Corp.
+* http://yobi.io
+*
+* @Author Insanehong 
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+
+@(group: Organization, project: Project, searchResult: SearchResult)
+
+@import utils.TemplateHelper._
+@import utils.JodaDateUtil
+
+@urlToList(project:Project, state:String) = {@routes.IssueApp.issues(project.owner, project.name, "open", "html", 1)}
+
+@defining(searchResult.getIssues) { page =>
+    @if(page.getList.length > 0) {
+    <ul class="search-list-wrap">
+        @for(issue <- page.getList) {
+            @defining(User.findByLoginId(issue.authorLoginId)){ user =>
+            <li class="search-list-item">
+                <div class="title-wrap">
+                    <span class="post-id">#@issue.getNumber</span>
+                    <a href="@routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.getNumber)" class="title">
+                        @issue.title
+                    </a>
+                </div>
+                <div class="search-content">
+                @defining(searchResult.makeSnippets(issue.body, 40)) { snippets =>
+                    @for(snippet <- snippets) {
+                    <p class="search-content-body">
+                        @snippet @if(snippet.size < issue.body.size) { ..... }
+                    </p>
+                    }
+                }
+                </div>
+                <div class="search-meta-info">
+                    @if(project == null) {
+                    <a href="@routes.ProjectApp.project(issue.project.owner,issue.project.name)" class="project-link meta-item">
+                        @issue.project.owner/@issue.project.name
+                    </a>
+                    }
+                    @if(user.name){
+                        <a href="@routes.UserApp.userInfo(user.loginId)" class="meta-item" data-toggle="tooltip" data-placement="top" title="@user.loginId">
+                            @user.name
+                        </a>
+                    } else {
+                        <span class="meta-item">@Messages("issue.noAuthor")</span>
+                    }
+
+                    <span class="meta-item" title="@JodaDateUtil.getDateString(issue.createdDate)">
+                        @agoOrDateString(issue.createdDate)
+                    </span>               
+                </div>
+            </li>
+            }
+        }
+    </ul>    
+    <!-- pagination.js will fill here. -->
+    <div id="pagination"></div>
+
+    <script type="text/javascript">
+        $(document).ready(function(){
+            yobi.Pagination.update($("#pagination"), @page.getTotalPageCount);
+        });
+    </script>
+    } else {
+        <div class="empty-result"></div>
+    }
+
+}

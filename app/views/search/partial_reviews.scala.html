@@ -1,0 +1,95 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2014 NAVER Corp.
+* http://yobi.io
+*
+* @Author Insanehong 
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+
+@(group: Organization, project: Project, searchResult: SearchResult)
+
+@import utils.TemplateHelper._
+@import utils.JodaDateUtil
+@import utils.TemplateHelper.DiffRenderer._
+
+@defining(searchResult.getReviews) { page =>
+    @if(page.getList.length > 0) {
+    <ul class="search-list-wrap">
+        @for(review <- page.getList) {
+            <li class="search-list-item">
+            @defining(User.findByLoginId(review.author.loginId)){ user =>
+                @if(review.thread.isOnPullRequest()) {
+                <div class="title-wrap">
+                    <span class="post-id">#@review.thread.pullRequest.number</span>
+                    <a href="@DiffRenderer.urlToCommentThread(review.thread)">
+                        Re) @review.thread.pullRequest.title
+                    </a>
+                </div>
+                } 
+                <div class="search-content">
+               @defining(searchResult.makeSnippets(review.getContents, 40)) { snippets =>
+                    @if(review.thread.isOnPullRequest()) {
+                        @for(snippet <- snippets) {
+                            <p class="search-content-body">
+                                @snippet @if(snippet.size < review.getContents.size) { ..... }
+                            </p>
+                        }
+                    } else {
+                        <a href="@DiffRenderer.urlToCommentThread(review.thread)">
+                        @for(snippet <- snippets) {
+                            <p class="search-content-body">
+                                @snippet @if(snippet.size < review.getContents.size) { ..... }
+                            </p>
+                        }
+                        </a>
+                    }
+                    
+                }                        
+                </div>
+                <div class="search-meta-info">
+                    @if(project == null) {
+                    <a href="@routes.ProjectApp.project(review.thread.project.owner, review.thread.project.name)" class="project-link meta-item">
+                        @review.thread.project.owner/@review.thread.project.name
+                    </a>
+                    }
+                    @if(user.name){
+                        <a href="@routes.UserApp.userInfo(user.loginId)" class="meta-item" data-toggle="tooltip" data-placement="top" title="@user.loginId">
+                            @user.name
+                        </a>
+                    } else {
+                        <span class="meta-item">@Messages("issue.noAuthor")</span>
+                    }
+                    <span class="meta-item" title="@JodaDateUtil.getDateString(review.createdDate)">
+                        @agoOrDateString(review.createdDate)
+                    </span>               
+       
+                </div>             
+            </li>
+            }
+        }
+    </ul>
+    <!-- pagination.js will fill here. -->
+    <div id="pagination"></div>
+
+    <script type="text/javascript">
+        $(document).ready(function(){
+            yobi.Pagination.update($("#pagination"), @page.getTotalPageCount);
+        });
+    </script>
+    } else {
+        <div class="empty-result"></div>
+    }
+}
