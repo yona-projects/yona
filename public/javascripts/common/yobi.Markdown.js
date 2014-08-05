@@ -41,7 +41,7 @@ yobi.Markdown = (function(htOptions){
         htVar.sIssuesUrl = htOptions.sIssuesUrl;
         htVar.sProjectUrl = htOptions.sProjectUrl;
         htVar.bBreaks = htOptions.bBreaks;
-
+        htVar.sApplicationContext = htOptions.sApplicationContext;
         htVar.sUserRules = '[a-zA-Z0-9_\\-\\.\\/]';
         htVar.sProjecRules = '[a-zA-Z0-9_\\-\\.]';
         htVar.sIssueRules = '\\d';
@@ -159,38 +159,36 @@ yobi.Markdown = (function(htOptions){
     function _makeLink(target){
         var sRef,
             sTitle,
-            sOwner = htVar.sProjectUrl.split('/')[1],
-            sProject = htVar.sProjectUrl.split('/')[2];
-        var sClass = "";
+            sClass = "";
 
         if(target.projectGroup && target.userName && target.issue && !target.projectPath) {
             // User/#Num nforge#12345
-            sRef = [target.userName, target.project, 'issue', target.issue].join("/");
+            sRef = [htVar.sApplicationContext, target.userName, target.project, 'issue', target.issue].join("/");
             sTitle = target.match;
         } else if(target.projectGroup && target.projectPath && target.issue && !target.userName) {
             // User/Project#Num nforge/yobi#12345
-            sRef = [target.projectGroup, 'issue', target.issue].join("/");
+            sRef = [htVar.sApplicationContext, target.projectGroup, 'issue', target.issue].join("/");
             sTitle = target.match;
         } else if(target.issue && !target.projectGroup && !target.projectPath && !target.userName) {
             // #Num #123
-            sRef = [sOwner, sProject, 'issue', target.issue].join("/");
+            sRef = [htVar.sProjectUrl, 'issue', target.issue].join("/");
             sTitle = target.match;
             sClass="issueLink";
         } else if(target.sha1 && !target.at && !/[^0-9a-f]/.test(target.match)) {
             // SHA1 be6a8cc1c1ecfe9489fb51e4869af15a13fc2cd2
-            sRef = [sOwner, sProject, 'commit' , target.match].join("/");
+            sRef = [htVar.sProjectUrl, 'commit' , target.match].join("/");
             sTitle = target.match.slice(0,7);
         } else if(target.sha1 && target.at) {
             // SHA1 @be6a8cc1c1ecfe9489fb51e4869af15a13fc2cd2
-            sRef = [sOwner, sProject, 'commit' , target.match.slice(1)].join("/");
+            sRef = [htVar.sProjectUrl, 'commit' , target.match.slice(1)].join("/");
             sTitle = target.match.slice(1,7);
         } else if(target.projectGroup && target.userName && target.sha1 && target.at && !target.projectPath ) {
             // User@SHA1 nforge@be6a8cc1c1ecfe9489fb51e4869af15a13fc2cd2
-            sRef = [target.userName, target.project, 'commit' , target.sha1].join("/");
+            sRef = [htVar.sApplicationContext, target.userName, target.project, 'commit' , target.sha1].join("/");
             sTitle = [target.userName, '@', target.sha1.slice(0,7)].join("");
         } else if(target.projectGroup && target.sha1 && target.projectPath && target.at && !target.userName) {
             // User/Project@SHA1 nforge/yobi@be6a8cc1c1ecfe9489fb51e4869af15a13fc2cd2
-            sRef = [target.projectGroup, 'commit' , target.sha1].join("/");
+            sRef = [htVar.sApplicationContext, target.projectGroup, 'commit' , target.sha1].join("/");
             sTitle = [target.projectGroup, '@', target.sha1.slice(0,7)].join("");
         } else if (target.mention) {
             sRef = target.mention;
@@ -199,7 +197,7 @@ yobi.Markdown = (function(htOptions){
             return target.match;
         }
 
-        return '<a href="/'+sRef+'" class="'+sClass+'">'+sTitle+'</a>';
+        return '<a href="'+sRef+'" class="'+sClass+'">'+sTitle+'</a>';
     }
 
     /**
