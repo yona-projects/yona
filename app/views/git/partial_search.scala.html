@@ -93,22 +93,22 @@
             @Messages("pullRequest.new")
         </a>
       </div>
-      <ul class="nav nav-tabs nm">
+      <ul class="nav nav-tabs nm pullrequeset-tab-menu">
         <li @if(requestType.equals("open")){class="active"}>
-          <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)@conditionForOpen.queryString" pjax-page>
+          <a href="#" data-url="@searchFormAction(Category.OPEN)" data-type="state">
             @Messages("pullRequest.state.open")
             <span class="num-badge">@PullRequest.count(conditionForOpen)</span>
           </a>
         </li>
         <li @if(requestType.equals("closed")){class="active"}>
-          <a href="@routes.PullRequestApp.closedPullRequests(project.owner, project.name)@conditionForClosed.queryString" pjax-page>
+          <a href="#" data-url="@searchFormAction(Category.CLOSED)" data-type="state">
             @Messages("pullRequest.state.closed")
             <span class="num-badge">@PullRequest.count(conditionForClosed)</span>
           </a>
         </li>
         @if(project.isForkedFromOrigin()){
         <li @if(requestType.equals("sent")){class="active"}>
-          <a href="@routes.PullRequestApp.sentPullRequests(project.owner, project.name)@conditionForSent.queryString" pjax-page>
+          <a href="#" data-url="@searchFormAction(Category.SENT)" data-type="state">
             @Messages("pullRequest.sent")
             <span class="num-badge">@PullRequest.count(conditionForAccepted) / @PullRequest.count(conditionForSent)</span>
           </a>
@@ -123,6 +123,11 @@
     </div>
     <script type="text/javascript">
         $(function(){
+            $('.pullrequeset-tab-menu').on('click','[data-type="state"]',function() {
+              $('#search').attr('action', $(this).data('url'));
+              $('#search').submit();
+            });
+
             yobi.ui.Select2("#contributors").on("change", function(){
                 $('#search').submit();
             });
