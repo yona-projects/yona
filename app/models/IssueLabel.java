@@ -34,6 +34,7 @@ import java.util.Set;
 public class IssueLabel extends Model implements ResourceConvertible {
 
     static public class IssueLabelException extends Exception {
+        private static final long serialVersionUID = 1L;
         public IssueLabelException(String s) {
             super(s);
         }
