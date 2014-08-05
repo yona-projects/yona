@@ -92,13 +92,10 @@
             elements.form.on("submit", _onSubmitForm);
             elements.form.on("click", ".btn-preset-color", _onClickBtnPresetColor);
             elements.inputCategory.on("keypress", _preventSubmitWhenEnterKeyPressed);
-            elements.inputName.on({
-                "keypress": _preventSubmitWhenEnterKeyPressed,
-                "focus"   : _onFocusInputName
-            });
+            elements.inputName.on("focus", _onFocusInputName);
             elements.inputColor.on({
                 "keyup": _onKeyUpInputColor,
-                "blur" : _onKeyUpInputColor
+                "blur" : _onBlurInputColor
             });
 
             // label list
@@ -114,7 +111,7 @@
             elements.editLabelForm.on("click", ".btn-preset-color", _onClickBtnPresetColorOnEditForm);
             elements.editLabelColor.on({
                 "keyup": _onKeyUpEditColor,
-                "blur" : _onKeyUpEditColor
+                "blur" : _onBlurEditColor
             });
         }
 
@@ -236,7 +233,7 @@
                     vars.isNewCategoryExclusive = (evt.nButtonIndex === 1);
                     elements.form.submit();
                 }, "", {
-                    "aButtonStyles":["confirm-button-vertical", "ybtn-primary confirm-button-vertical"],
+                    "aButtonStyles":["confirm-button-vertical", "confirm-button-vertical"],
                     "aButtonLabels":[Messages("label.category.option.multiple"), Messages("label.category.option.single")]
                 }
             );
@@ -294,8 +291,8 @@
          * @private
          */
         function _addLabelIntoCategory(label){
-            if(_isNewCategory(label.categoryName)){
-                vars.categories.push(label.categoryName);
+            if(_isNewCategory(label.category)){
+                vars.categories.push(label.category);
                 _addCategoryIntoEditFormSelect(label.categoryId, label.category);
             }
 
@@ -394,12 +391,41 @@
         }
 
         /**
-         * "keyUp" event handler of inputColor
+         * "blur" event handler of inputColor
          *
          * @private
          */
+        function _onBlurInputColor(){
+            var typedColor = elements.inputColor.val();
+
+            if(typedColor.length < 1){
+                return;
+            }
+
+            var rgb = new RGBColor(typedColor);
+
+            if(!rgb.ok){
+                $yobi.alert(Messages("label.error.color", typedColor), function(){
+                    elements.inputColor.focus();
+                });
+                return;
+            }
+
+            _updateInputBySelectedColor(elements.inputName,
+                                        elements.inputColor,
+                                        _getRefinedHexColor(typedColor));
+        }
+
         function _onKeyUpInputColor(){
-            _updateInputBySelectedColor(elements.inputName, elements.inputColor, elements.inputColor.val());
+            var rgb = new RGBColor(elements.inputColor.val());
+
+            if(!rgb.ok){
+                return;
+            }
+
+            _updateInputBySelectedColor(elements.inputName,
+                                        elements.inputColor,
+                                        elements.inputColor.val());
         }
 
         /**
@@ -410,10 +436,9 @@
          * @private
          */
         function _updateInputBySelectedColor(inputName, inputColor, color){
-            var refinedColor = _getRefinedHexColor(color);
-            var boxShadowCSS = _getPrefixedCSSText("box-shadow: inset 25px 0 0 " + refinedColor + " !important");
+            var boxShadowCSS = _getPrefixedCSSText("box-shadow: inset 25px 0 0 " + color + " !important");
 
-            inputColor.val(refinedColor);
+            inputColor.val(color);
             inputColor.css("cssText", boxShadowCSS);
             inputName.css("background-color", color);
             inputName.removeClass("dimgray white").addClass($yobi.getContrastColor(color));
@@ -653,11 +678,25 @@
         }
 
         /**
-         * "keyUp" event handler of color input on editLabel form.
+         * "blur" event handler of color input on editLabel form.
          *
          * @private
          */
+        function _onBlurEditColor(){
+            var refinedColor = _getRefinedHexColor(elements.editLabelColor.val());
+
+            _updateInputBySelectedColor(elements.editLabelName,
+                                        elements.editLabelColor,
+                                        refinedColor);
+        }
+
         function _onKeyUpEditColor(){
+            var rgb = new RGBColor(elements.editLabelColor.val());
+
+            if(!rgb.ok){
+                return;
+            }
+
             _updateInputBySelectedColor(elements.editLabelName,
                                         elements.editLabelColor,
                                         elements.editLabelColor.val());
