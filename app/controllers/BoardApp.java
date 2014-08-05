@@ -45,6 +45,7 @@ import playRepository.BareRepository;
 import utils.AccessControl;
 import utils.ErrorViews;
 import utils.JodaDateUtil;
+import utils.MenuType;
 import views.html.board.create;
 import views.html.board.edit;
 import views.html.board.list;
@@ -274,7 +275,7 @@ public class BoardApp extends AbstractPostingApp {
                 .bindFromRequest();
 
         if (commentForm.hasErrors()) {
-            return badRequest(views.html.error.badrequest.render("error.validation", project));
+            return badRequest(ErrorViews.BadRequest.render("error.validation", project, MenuType.BOARD));
         }
 
         if (!AccessControl.isResourceCreatable(

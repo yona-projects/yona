@@ -18,10 +18,10 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(messageKey:String = "error.badrequest", project: Project)
+@(messageKey:String = "error.badrequest", project: Project, menuType: utils.MenuType)
 
-@projectLayout(Messages(messageKey), project, utils.MenuType.NONE) {
-@projectMenu(project, utils.MenuType.PROJECT_HOME, "")
+@projectLayout(Messages(messageKey), project, menuType) {
+@projectMenu(project, menuType, "")
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
     	<div class="error-wrap">

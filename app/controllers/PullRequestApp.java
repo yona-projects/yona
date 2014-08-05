@@ -172,6 +172,13 @@ public class PullRequestApp extends Controller {
         final List<GitBranch> fromBranches = new GitRepository(fromProject).getAllBranches();
         final List<GitBranch> toBranches = new GitRepository(toProject).getAllBranches();
 
+        if(fromBranches.isEmpty()) {
+            return badRequest(ErrorViews.BadRequest.render("error.pullRerquest.empty.from.repository", fromProject, MenuType.PULL_REQUEST));
+        }
+        if(toBranches.isEmpty()) {
+            return badRequest(ErrorViews.BadRequest.render("error.pullRerquest.empty.to.repository", toProject));
+        }
+
         final PullRequest pullRequest = PullRequest.createNewPullRequest(fromProject, toProject
                 , StringUtils.defaultIfBlank(request().getQueryString("fromBranch"), fromBranches.get(0).getName())
                 , StringUtils.defaultIfBlank(request().getQueryString("toBranch"), project.defaultBranch()));

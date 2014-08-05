@@ -61,6 +61,10 @@ public enum ErrorViews {
             return null;
         }
 
+        public Html render(String messageKey, Project project, MenuType menuType) {
+            throw new UnsupportedOperationException();
+        }
+
         @Override
         public Html render() {
             return render("error.forbidden");
@@ -74,7 +78,7 @@ public enum ErrorViews {
 
         @Override
         public Html render(String messageKey, Project project) {
-            return render(messageKey, project, null);
+            return render(messageKey, project, MenuType.PROJECT_HOME);
         }
 
         @Override
@@ -86,6 +90,10 @@ public enum ErrorViews {
         @Override
         public Html render(String messageKey, Project project, String type) {
             return views.html.error.notfound.render(messageKey, project, type);
+        }
+
+        public Html render(String messageKey, Project project, MenuType menuType) {
+            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -118,6 +126,9 @@ public enum ErrorViews {
         public Html render(String messageKey, Project project, String target) {
             throw new UnsupportedOperationException();
         }
+        public Html render(String messageKey, Project project, MenuType menuType) {
+            throw new UnsupportedOperationException();
+        }
     },
     BadRequest {
         @Override
@@ -127,7 +138,7 @@ public enum ErrorViews {
 
         @Override
         public Html render(String messageKey, Project project) {
-            return views.html.error.badrequest.render(messageKey, project);
+            return views.html.error.badrequest.render(messageKey, project, MenuType.PROJECT_HOME);
         }
 
         @Override
@@ -140,6 +151,10 @@ public enum ErrorViews {
         @Override
         public Html render(String messageKey, Project project, String type) {
             return null;
+        }
+
+        public Html render(String messageKey, Project project, MenuType menuType) {
+            return views.html.error.badrequest.render(messageKey, project, menuType);
         }
 
         @Override
@@ -158,6 +173,8 @@ public enum ErrorViews {
     public abstract Html render(String messageKey, Organization organization);
 
     public abstract Html render(String messageKey, Project project, String target);
+
+    public abstract Html render(String messageKey, Project project, MenuType menuType);
 
     public Html render(String messageKey, String returnUrl) {
         return index.render(UserApp.currentUser());
