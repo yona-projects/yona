@@ -111,7 +111,7 @@
         function _onChangeProject(){
             var data = _getFormValue();
 
-            location.search = "?fromProjectId=" + data.fromProject + "&toProjectId=" + data.toProject;
+            location.search = "?fromProjectId=" + data.fromProjectId + "&toProjectId=" + data.toProjectId;
         }
 
         /**
@@ -295,8 +295,8 @@
         function _getFormValue(){
             return {
                 "title"      : $.trim(elements.title.val()),
-                "fromProject": $.trim(elements.fromProject.val()),
-                "toProject"  : $.trim(elements.toProject.val()),
+                "fromProjectId": $.trim(elements.fromProject.val()),
+                "toProjectId"  : $.trim(elements.toProject.val()),
                 "fromBranch" : $.trim(elements.fromBranch.val()),
                 "toBranch"   : $.trim(elements.toBranch.val())
             };
