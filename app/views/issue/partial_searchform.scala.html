@@ -141,7 +141,7 @@
         @defining(IssueLabel.findByProject(project)){ labels =>
         <div class="labels-wrap">
             @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
-            <a href="@routes.IssueLabelApp.labels(project.owner, project.name)" class="ybtn ybtn-default ybtn-mini pull-right">
+            <a href="@routes.IssueLabelApp.labelsForm(project.owner, project.name)" class="ybtn ybtn-default ybtn-mini pull-right">
                 <i class="yobicon-cog vmiddle"></i>
                 @if(labels.isEmpty){<span class="vmiddle" style="margin-left:2px;">@Messages("label.manage")</span>}
             </a>

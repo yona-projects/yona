@@ -58,6 +58,7 @@
                    title="@Messages("label.category.option")<br>@Messages("label.category.option.multiple")">
               }
               </i>
+              @if(isAllowed(UserApp.currentUser, category.asResource(), Operation.UPDATE)) {
               <button type="button" class="ybtn ybtn-mini"
                       data-project-id="@project.id"
                       data-category-id="@category.id"
@@ -66,6 +67,7 @@
                       data-category-update-uri="@routes.IssueLabelApp.updateCategory(project.owner, project.name, category.id)">
                 @Messages("label.category.edit")
               </button>
+              }
             </p>
           </h5>
         </div>

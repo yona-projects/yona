@@ -60,15 +60,11 @@ public class IssueLabelApp extends Controller {
      */
     @IsAllowed(Operation.READ)
     public static Result labels(String ownerName, String projectName) {
-        if (HttpUtil.isJSONPreferred(request())){
-            return labelsAsJSON(ownerName, projectName);
-        }
-
         if (HttpUtil.isPJAXRequest(request())){
             return labelsAsPjax(ownerName, projectName);
         }
 
-        return labelsAsHTML(ownerName, projectName);
+        return labelsAsJSON(ownerName, projectName);
     }
 
     /**
@@ -117,7 +113,8 @@ public class IssueLabelApp extends Controller {
         return ok(views.html.project.partial_issuelabels_list.render(project, labels));
     }
 
-    private static Result labelsAsHTML(String ownerName, String projectName){
+    @IsAllowed(Operation.UPDATE)
+    public static Result labelsForm(String ownerName, String projectName){
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         List<IssueLabel> labels = IssueLabel.findByProject(project);
 
