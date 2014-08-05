@@ -38,7 +38,8 @@
         <dl class="issue-option">
             <dt>@Messages("issue.author")</dt>
             <dd>
-                <select id="authorId" name="authorId" data-toggle="select2" data-format="user" data-search="authorId">
+                <select id="authorId" name="authorId" data-search="authorId"
+                        data-toggle="select2" data-format="user" data-container-css-class="fullsize">
                     <option value="">@Messages("common.order.all")</option>
                     @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
                     <option value="@UserApp.currentUser().id">@Messages("issue.list.authoredByMe")</option>
@@ -60,7 +61,8 @@
         <dl class="issue-option">
             <dt>@Messages("issue.assignee")</dt>
             <dd>
-                <select id="assigneeId" name="assigneeId" data-toggle="select2" data-format="user" data-search="assigneeId">
+                <select id="assigneeId" name="assigneeId" data-search="assigneeId"
+                        data-toggle="select2" data-format="user" data-container-css-class="fullsize">
                     <option value="">@Messages("common.order.all")</option>
                     <option value="@User.anonymous.id" @if(param.assigneeId != null && param.assigneeId == User.anonymous.id){ selected }>@Messages("issue.noAssignee")</option>
                     @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
@@ -85,7 +87,8 @@
         <dl class="issue-option">
             <dt>@Messages("milestone")</dt>
             <dd>
-                <select id="milestoneId" name="milestoneId" data-toggle="select2" data-format="milestone" data-search="milestoneId">
+                <select id="milestoneId" name="milestoneId" data-search="milestoneId"
+                        data-toggle="select2" data-format="milestone" data-container-css-class="fullsize">
                     <option value="">@Messages("milestone.state.all")</option>
                     <option value="@Milestone.NULL_MILESTONE_ID"
                         @if(param.milestoneId != null && param.milestoneId == Milestone.NULL_MILESTONE_ID){

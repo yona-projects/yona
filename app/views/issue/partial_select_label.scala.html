@@ -28,7 +28,7 @@
   <dd>
     <select name="labelIds" multiple="multiple" data-search="labelIds"
             data-toggle="select2" data-format="issuelabel" data-allow-clear="true" data-close-on-select="false"
-            data-dropdown-css-class="issue-labels" data-container-css-class="issue-labels bordered"
+            data-dropdown-css-class="issue-labels" data-container-css-class="issue-labels bordered fullsize"
             data-placeholder="@Messages("label.select")">
       <option></option>
       @labels.groupBy(_.category).map {
