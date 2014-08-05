@@ -49,15 +49,15 @@
         </dl>
         </form>
 
-        <form method="post" action="@routes.UserApp.editUserInfo" class="pull-left" style="margin-left:50px; padding-left:50px; border-left:1px solid #ddd;">
+        <form id="frmAvatar" method="post" action="@routes.UserApp.editUserInfo" class="pull-left" style="margin-left:50px; padding-left:50px; border-left:1px solid #ddd;">
           <input type="hidden" name="name" value="@user.name">
           <input type="hidden" name="email" value="@user.email">
 
           <div class="avatar-frm">
             <div class="avatar-wrap xlarge">
               <img src="@user.avatarUrl" style="width:128px; max-width:none;" />
-              <div class="progress"></div>
             </div>
+            <div class="upload-progress avatar" style="display:none;"><div class="bar orange"></div></div>
             <div class="btn-wrap mt10 center-txt">
               <div class="ybtn ybtn-small fake-file-wrap btnUploadAvatar">
                 @Messages("userinfo.changeAvatar")<!--

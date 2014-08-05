@@ -50,8 +50,8 @@
             htElement.welBtnUploadAvatar = htElement.welFormAvatar.find(".btnUploadAvatar");
             htElement.welAvatarWrap = htElement.welFormAvatar.find(".avatar-wrap");
             htElement.welAvatarImage = htElement.welAvatarWrap.find("img");
-            htElement.welAvatarProgress = htElement.welAvatarWrap.find(".progress");
-            htVar.nProgressHeight = htElement.welAvatarWrap.height();
+            htElement.welAvatarProgress = htElement.welFormAvatar.find(".upload-progress");
+            htElement.welAvatarProgressBar = htElement.welAvatarProgress.find(".bar");
 
             htElement.welAvatarCropWrap = $("#avatarCropWrap");
             htElement.welAvatarCropImg = htElement.welAvatarCropWrap.find(".modal-body > img");
@@ -195,13 +195,14 @@
          * @private
          */
         function _clearJcrop(){
-            htElement.welAvatarCropImg.attr("src", "");
-            htElement.welAvatarCropPreviewImg.attr("src", "");
-
             if(htVar.oJcrop){
                 htVar.oJcrop.destroy();
                 htVar.oJcrop = null;
             }
+
+            htElement.welAvatarCropImg.attr("src", "");
+            htElement.welAvatarCropImg.css({"width":"auto", "height":"auto"});
+            htElement.welAvatarCropPreviewImg.attr("src", "");
         }
 
         /**
@@ -290,17 +291,23 @@
         }
 
         /**
+         * Set avatar image upload progress bar with given percent.
+         *
          * @param {Number} nPercent
          */
         function _setAvatarProgressBar(nPercent){
             nPercent = parseInt(nPercent, 10);
-            var nHeight = parseInt(htVar.nProgressHeight * (nPercent / 100), 10);
-            htElement.welAvatarProgress.height(nHeight);
 
-            // 꽉 차면 보이지 않게 하고 다시 0으로 되돌림
-            if(nPercent === 100){
-                htElement.welAvatarProgress.css("opacity", 0);
+            if(nPercent > 0){
+                htElement.welAvatarProgress.show();
+            } else {
+                htElement.welAvatarProgress.hide();
+            }
 
+            htElement.welAvatarProgressBar.css("width", nPercent + "%");
+
+            // Hide progress bar 1s after full
+            if(nPercent >= 100){
                 setTimeout(function(){
                     _setAvatarProgressBar(0);
                 }, 1000);
