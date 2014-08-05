@@ -748,10 +748,14 @@ public class NotificationEvent extends Model {
                 "Failed to get authors related to the pullrequest " + pullRequest;
         try {
             Repository clonedRepository = GitRepository.buildMergingRepository(pullRequest);
-            receivers.addAll(GitRepository.getRelatedAuthors(
-                    clonedRepository,
-                    pullRequest.mergedCommitIdFrom,
-                    pullRequest.mergedCommitIdTo));
+
+            if (pullRequest.mergedCommitIdFrom != null
+                    && pullRequest.mergedCommitIdTo != null) {
+                receivers.addAll(GitRepository.getRelatedAuthors(
+                        clonedRepository,
+                        pullRequest.mergedCommitIdFrom,
+                        pullRequest.mergedCommitIdTo));
+            }
         } catch (LimitExceededException e) {
             for (ProjectUser member : pullRequest.toProject.members()) {
                 receivers.add(member.user);
