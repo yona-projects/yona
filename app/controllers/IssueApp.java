@@ -224,7 +224,7 @@ public class IssueApp extends AbstractPostingApp {
             if (HttpUtil.isJSONPreferred(request())){
                 ObjectNode result = Json.newObject();
                 result.put("title", number);
-                result.put("body", Messages.get("error.notfound.issue"));
+                result.put("body", Messages.get("error.notfound.issue_post"));
                 return ok(result);
             } else {
                 return notFound(ErrorViews.NotFound.render("error.notfound", project, ResourceType.ISSUE_POST.resource()));
