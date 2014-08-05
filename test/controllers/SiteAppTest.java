@@ -23,6 +23,7 @@ package controllers;
 import models.*;
 import models.enumeration.UserState;
 import org.junit.*;
+import play.mvc.Result;
 import play.test.FakeApplication;
 import play.test.Helpers;
 
@@ -30,52 +31,46 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.fest.assertions.Assertions.assertThat;
-import static play.test.Helpers.callAction;
-import static play.test.Helpers.fakeRequest;
+import static play.test.Helpers.*;
 
 public class SiteAppTest {
     protected static FakeApplication app;
-    private User admin;
-    private User notAdmin;
 
     @BeforeClass
     public static void beforeClass() {
         callAction(
                 routes.ref.Application.init()
         );
-    }
-
-    @Before
-    public void before() {
-        Map<String, String> config = support.Helpers.makeTestConfig();
-        config.put("signup.require.confirm", "true");
-        app = support.Helpers.makeTestApplication(config);
+        app = support.Helpers.makeTestApplication();
         Helpers.start(app);
     }
 
-    @After
-    public void after() {
+    @AfterClass
+    public static void afterClass() {
         Helpers.stop(app);
     }
 
-    @Test @Ignore   //FixMe I don't know how to make a assert
+
+    @Test
     public void testToggleUserAccountLock() {
         //Given
         Map<String,String> data = new HashMap<>();
         final String loginId= "doortts";
         data.put("loginId", loginId);
+        User admin = User.find.byId(1L);
 
-        User targetUser = User.findByLoginId(loginId);
-        UserState currentIsLocked = targetUser.state;
-
+        System.out.println(User.findByLoginId(loginId).state);
         //When
-        callAction(
+
+        Result result = callAction(
                 controllers.routes.ref.SiteApp.toggleAccountLock(loginId, "", ""),
-                fakeRequest()
+                fakeRequest(POST, routes.SiteApp.toggleAccountLock(loginId, "", "").url())
                         .withFormUrlEncodedBody(data)
-                        .withSession("loginId", "admin")
-        );
+                        .withSession("loginId", admin.loginId)
+                        .withSession(UserApp.SESSION_USERID, admin.id.toString()));
         //Then
-        assertThat(User.findByLoginId(loginId).state).isNotEqualTo(currentIsLocked);
+        assertThat(status(result)).isEqualTo(OK);
+        assertThat(flash(result)).isEmpty();
+        assertThat(User.findByLoginId(loginId).state).isEqualTo(UserState.LOCKED);
     }
 }

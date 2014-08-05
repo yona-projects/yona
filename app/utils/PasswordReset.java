@@ -48,20 +48,16 @@ public class PasswordReset {
     }
 
     public static void addHashToResetTable(String userId, String hashString) {
-        Logger.debug(">> add to HashTable " + userId + ":" + hashString);
         PasswordReset.resetHashMap.put(userId, hashString);
         resetHashTimetable.put(hashString, new DateTime().getMillis());
     }
 
     public static boolean isValidResetHash(String hashString) {
-        Logger.debug("Reset hash entry size:" + resetHashMap.size());
         if( !resetHashMap.containsValue(hashString) ) {
-            Logger.debug("HashString doesn't exists in resetHashMap: " + hashString);
             return false;
         }
 
         if(isExpired(hashString)) {
-            Logger.debug("HashString was expired: " + hashString);
             return false;
         }
 

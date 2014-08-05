@@ -197,5 +197,8 @@ public class UserTest extends ModelTest<User> {
         // Then
         issue.refresh();
         assertThat(issue.assignee).isNull();
+
+        // To keep data clean after this test.
+        user.delete();
     }
 }

@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 import models.enumeration.State;
 
 import org.apache.commons.lang3.time.DateUtils;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.Before;
 
@@ -62,6 +63,16 @@ public class IssueTest extends ModelTest<Issue> {
         issue.setAuthor(author);
         issue.state = State.OPEN;
         issue.save();
+    }
+
+    @After
+    public void after() {
+        issue.setProject(project);
+        issue.setTitle("hello");
+        issue.setBody("world");
+        issue.setAuthor(author);
+        issue.state = State.OPEN;
+        issue.update();
     }
 
     @Test

@@ -43,6 +43,8 @@ public class ProjectUserTest extends ModelTest<ProjectUser> {
         // Then
         assertThat(ProjectUser.findByIds(2l, 3l).role.id)
                 .isEqualTo(2l);
+        // To keep data clean after this test.
+        ProjectUser.delete(2l, 3l);
     }
 
     @Test
@@ -55,6 +57,9 @@ public class ProjectUserTest extends ModelTest<ProjectUser> {
         // Then
         assertThat(ProjectUser.findByIds(2l, 1l).role.id).isEqualTo(2l);
         assertThat(ProjectUser.findByIds(2l, 3l).role.id).isEqualTo(2l);
+        // To keep data clean after this test.
+        ProjectUser.assignRole(2l, 1l, 1l);
+        ProjectUser.delete(2l, 3l);
     }
 
     @Test
@@ -70,6 +75,8 @@ public class ProjectUserTest extends ModelTest<ProjectUser> {
         // Then
         assertThat(ProjectUser.checkOneMangerPerOneProject(userIdCase1, 3l)).isEqualTo(true);
         assertThat(ProjectUser.checkOneMangerPerOneProject(userIdCase2, 3l)).isEqualTo(false);
+        // To keep data clean after this test.
+        ProjectUser.delete(2l, 3l);
     }
 
     @Test

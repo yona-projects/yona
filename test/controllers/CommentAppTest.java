@@ -56,13 +56,12 @@ public class CommentAppTest {
         callAction(
                 routes.ref.Application.init()
         );
+        app = support.Helpers.makeTestApplication();
+        Helpers.start(app);
     }
 
     @Before
     public void before() {
-        app = support.Helpers.makeTestApplication();
-        Helpers.start(app);
-
         admin = User.findByLoginId("admin");
         manager = User.findByLoginId("yobi");
         member = User.findByLoginId("laziel");

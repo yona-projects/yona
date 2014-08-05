@@ -35,6 +35,20 @@ public class ReviewThreadAppTest {
     protected static FakeApplication app;
 
     /**
+     * 테스트를 위해 메모리 DB로 전환
+     */
+    @BeforeClass
+    public static void beforeClass() {
+        app = support.Helpers.makeTestApplication();
+        Helpers.start(app);
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        Helpers.stop(app);
+    }
+
+    /**
      * 잘못된 URL을 입력하여 not found return을 테스트
      */
     @Test
@@ -57,19 +71,5 @@ public class ReviewThreadAppTest {
         );
 
         assertThat(status(result)).isEqualTo(SEE_OTHER);
-    }
-
-    /**
-     * 테스트를 위해 메모리 DB로 전환
-     */
-    @BeforeClass
-    public static void beforeClass() {
-        app = support.Helpers.makeTestApplication();
-        Helpers.start(app);
-    }
-
-    @AfterClass
-    public static void afterClass() {
-        Helpers.stop(app);
     }
 }

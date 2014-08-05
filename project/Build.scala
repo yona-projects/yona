@@ -1,5 +1,5 @@
 import sbt._
-import Keys._
+import sbt.Keys._
 import play.Project.javaCore
 import play.Project.javaJdbc
 import play.Project.javaEbean
@@ -65,7 +65,7 @@ object ApplicationBuild extends Build {
       templatesImport += "models.enumeration._",
       lessEntryPoints <<= baseDirectory(_ / "app" / "assets" / "stylesheets" ** "yobi.less"),
         //      jacoco.settings:_*,
-      javaOptions in test ++= Seq("-Xmx512m", "-XX:MaxPermSize=512m", "-Dfile.encoding=UTF-8"),
+      javaOptions in test ++= Seq("-Xmx2g", "-Xms1g", "-XX:MaxPermSize=1g", "-Dfile.encoding=UTF-8"),
       javacOptions ++= Seq("-Xlint:all", "-Xlint:-path"),
       scalacOptions ++= Seq("-feature")
     )

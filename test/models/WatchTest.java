@@ -35,19 +35,17 @@ import static org.fest.assertions.Assertions.assertThat;
 import static play.test.Helpers.start;
 import static play.test.Helpers.stop;
 
-public class WatchTest {
-
-    private FakeApplication application;
+public class WatchTest extends ModelTest<Watch> {
 
     @Before
-    public void setUp() {
-        application = support.Helpers.makeTestApplication();
-        start(application);
-    }
+    public void setup() {
+        for(Watch watch : Watch.find.all()) {
+            watch.delete();
+        }
 
-    @After
-    public void tearDown() {
-        stop(application);
+        for(Unwatch unwatch : Unwatch.find.all()) {
+            unwatch.delete();
+        }
     }
 
     @Test

@@ -32,7 +32,6 @@ public class Files {
                 rm_rf(f);
             }
         }
-        System.gc();
         file.delete();
     }
 }

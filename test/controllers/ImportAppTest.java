@@ -31,9 +31,7 @@ import java.util.Map;
 import models.Project;
 import models.User;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 
 import controllers.routes.ref;
 
@@ -46,14 +44,14 @@ import playRepository.GitRepository;
 import utils.Constants;
 
 public class ImportAppTest {
-    private FakeApplication application;
-    private User yobi;
-    private Project src;
-    private Project dest;
-    private Map<String, String> formData;
+    private static FakeApplication application;
+    private static User yobi;
+    private static Project src;
+    private static Project dest;
+    private static Map<String, String> formData;
 
-    @Before
-    public void before() throws Exception {
+    @BeforeClass
+    public static void before() throws Exception {
         GitRepository.setRepoPrefix("resources/test/repo/git/");
         GitRepository.setRepoForMergingPrefix("resources/test/repo/git-merging/");
         application = support.Helpers.makeTestApplication();
@@ -65,8 +63,8 @@ public class ImportAppTest {
         formData = new HashMap<>();
     }
 
-    @After
-    public void after() {
+    @AfterClass
+    public static void after() {
         stop(application);
         support.Files.rm_rf(new File(GitRepository.getRepoPrefix()));
         support.Files.rm_rf(new File(GitRepository.getRepoForMergingPrefix()));
@@ -191,14 +189,14 @@ public class ImportAppTest {
         assertThat(contentAsString(result)).contains(Messages.get(Lang.defaultLang(), "project.name.alert"));
     }
 
-    private Project project(String owner, String name) {
+    private static Project project(String owner, String name) {
         Project project = new Project();
         project.owner = owner;
         project.name = name;
         return project;
     }
 
-    private void createRepository(Project project) throws Exception {
+    private static void createRepository(Project project) throws Exception {
         GitRepository gitRepository = new GitRepository(project);
         gitRepository.create();
         gitRepository.close();

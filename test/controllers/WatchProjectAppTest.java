@@ -31,27 +31,32 @@ import models.Watch;
 import models.enumeration.EventType;
 import models.enumeration.ProjectScope;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 
 import play.mvc.Http;
 import play.mvc.Result;
 import play.test.FakeApplication;
 import play.test.FakeRequest;
+import play.test.Helpers;
+
+import java.util.Map;
 
 public class WatchProjectAppTest {
-    private static FakeApplication app;
+    protected static FakeApplication app;
 
-    @Before
-    public void before() {
+    @BeforeClass
+    public static void beforeClass() {
+        callAction(
+                routes.ref.Application.init()
+        );
+
         app = support.Helpers.makeTestApplication();
-        start(app);
+        Helpers.start(app);
     }
 
-    @After
-    public void after() {
-        stop(app);
+    @AfterClass
+    public static void afterClass() {
+        Helpers.stop(app);
     }
 
     @Test

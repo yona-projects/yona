@@ -30,6 +30,17 @@ import models.*;
 import org.junit.*;
 
 public class CommitTest extends ModelTest<Commit> {
+
+    @Before
+    public void before() {
+        for(Watch watch : Watch.find.all()) {
+            watch.delete();
+        }
+        for(Unwatch unwatch : Unwatch.find.all()) {
+            unwatch.delete();
+        }
+    }
+
     @Test
     public void getWatchers_no_watchers() {
         // Given
@@ -77,6 +88,7 @@ public class CommitTest extends ModelTest<Commit> {
 
         // Then
         assertThat(watchers).containsOnly(author, commentUser);
+        comment.delete();
     }
 
     @Test

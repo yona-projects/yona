@@ -20,6 +20,7 @@
  */
 package models;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -43,6 +44,13 @@ public class RecentlyVisitedProjectsTest extends ModelTest<RecentlyVisitedProjec
         nori = User.findByLoginId("nori");
         yobi = Project.findByOwnerAndProjectName("yobi", "projectYobi");
         cubrid = Project.findByOwnerAndProjectName("doortts", "CUBRID");
+    }
+
+    @After
+    public void after() {
+        for(RecentlyVisitedProjects visitedProjects: RecentlyVisitedProjects.find.all()) {
+            visitedProjects.delete();
+        }
     }
 
     @Test

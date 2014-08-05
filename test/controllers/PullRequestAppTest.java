@@ -40,22 +40,52 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.RefSpec;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 
+import org.junit.rules.TestWatcher;
 import play.mvc.Result;
 import play.test.FakeApplication;
 import play.test.Helpers;
+import support.ExecutionTimeWatcher;
 import playRepository.GitRepository;
 
 public class PullRequestAppTest {
-    protected FakeApplication app;
+    protected static FakeApplication app;
 
     private String ownerLoginId;
     private String projectName;
     private Long pullRequestNumber;
+    private static PullRequest pullRequest;
+    private static boolean isInit = false;
+
+    @Rule
+    public TestWatcher watcher = new ExecutionTimeWatcher();
+
+    @BeforeClass
+    public static void beforeClass() {
+        callAction(
+                routes.ref.Application.init()
+        );
+        app = support.Helpers.makeTestApplication();
+        Helpers.start(app);
+    }
+
+    @Before
+    public void before() {
+        GitRepository.setRepoPrefix("resources/test/repo/git/");
+        GitRepository.setRepoForMergingPrefix("resources/test/repo/git-merging/");
+    }
+
+    @AfterClass
+    public static void afterClase(){
+        Helpers.stop(app);
+    }
+
+    @After
+    public void after() {
+        support.Files.rm_rf(new File(GitRepository.getRepoPrefix()));
+        support.Files.rm_rf(new File(GitRepository.getRepoForMergingPrefix()));
+    }
 
     @Test
     public void testCloseAnonymous() throws Exception {
@@ -103,8 +133,8 @@ public class PullRequestAppTest {
         Result result = callAction(
                 controllers.routes.ref.PullRequestApp.close(ownerLoginId, projectName, pullRequestNumber),
                 fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/pullRequest/" + pullRequestNumber)
-                .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
-              );
+                        .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
+        );
 
         assertThat(status(result)).isEqualTo(SEE_OTHER);
         assertThat(PullRequest.findById(pullRequestNumber).state).isEqualTo(State.CLOSED);
@@ -114,6 +144,13 @@ public class PullRequestAppTest {
     public void testClosePullRequestNotAllow() throws Exception {
         initParameters("yobi", "projectYobi", 1L);
         User currentUser = User.findByLoginId("alecsiel");
+        User projectOwner = User.findByLoginId("yobi");
+
+        callAction(
+                controllers.routes.ref.PullRequestApp.open(ownerLoginId, projectName, pullRequestNumber),
+                fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/pullRequest/" + pullRequestNumber)
+                        .withSession(UserApp.SESSION_USERID, projectOwner.id.toString())
+        );
 
         Result result = callAction(
                 controllers.routes.ref.PullRequestApp.close(ownerLoginId, projectName, pullRequestNumber),
@@ -137,16 +174,26 @@ public class PullRequestAppTest {
 
     @Test
     public void testOpenPullRequestBadRequest() throws Exception {
+        //Given
         initParameters("yobi", "projectYobi", 1L);
         User currentUser = User.findByLoginId("admin");
 
+        User projectOwner = User.findByLoginId("yobi");
+
+        final String uri = "/" + ownerLoginId + "/" + projectName + "/pullRequest/" + pullRequestNumber;
+        callAction(
+                controllers.routes.ref.PullRequestApp.open(ownerLoginId, projectName, pullRequestNumber),
+                fakeRequest("GET", uri).withSession(UserApp.SESSION_USERID, projectOwner.id.toString())
+        );
+
+        //When
         Result result = callAction(
                 controllers.routes.ref.PullRequestApp.open(ownerLoginId, projectName, pullRequestNumber),
-                fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/pullRequest/" + pullRequestNumber)
-                .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
+                fakeRequest("GET", uri).withSession(UserApp.SESSION_USERID, currentUser.id.toString())
               );
 
-        assertThat(status(result)).isEqualTo(BAD_REQUEST);
+        //Then
+        assertThat(status(result)).isEqualTo(BAD_REQUEST).describedAs("open already opened");
     }
 
     @Test
@@ -193,8 +240,8 @@ public class PullRequestAppTest {
         Result result = callAction(
                 controllers.routes.ref.PullRequestApp.newFork(ownerLoginId, projectName, null),
                 fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/newFork")
-                .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
-              );
+                        .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
+        );
 
         assertThat(status(result)).isEqualTo(OK);
     }
@@ -207,8 +254,8 @@ public class PullRequestAppTest {
         Result result = callAction(
                 controllers.routes.ref.PullRequestApp.newFork(ownerLoginId, projectName, null),
                 fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/newFork")
-                .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
-              );
+                        .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
+        );
 
         assertThat(status(result)).isEqualTo(OK);
 
@@ -222,8 +269,8 @@ public class PullRequestAppTest {
         Result result = callAction(
                 controllers.routes.ref.PullRequestApp.newFork(ownerLoginId, projectName, null),
                 fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/newFork")
-                .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
-              );
+                        .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
+        );
 
         assertThat(status(result)).isEqualTo(OK);
     }
@@ -236,8 +283,8 @@ public class PullRequestAppTest {
         Result result = callAction(
                 controllers.routes.ref.PullRequestApp.newFork(ownerLoginId, projectName, null),
                 fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/newFork")
-                .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
-              );
+                        .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
+        );
 
         assertThat(status(result)).isEqualTo(FORBIDDEN);
     }
@@ -255,9 +302,9 @@ public class PullRequestAppTest {
         Result result = callAction(
                 controllers.routes.ref.PullRequestApp.fork(ownerLoginId, projectName),
                 fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/fork")
-                .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
-                .withFormUrlEncodedBody(data)
-              );
+                        .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
+                        .withFormUrlEncodedBody(data)
+        );
 
         assertThat(status(result)).isEqualTo(OK);
     }
@@ -310,41 +357,30 @@ public class PullRequestAppTest {
 
     @Test
     public void testOpenRoute() throws Exception {
+        //Given
         initParameters("yobi", "projectYobi", 1L);
-        String url = "/" + ownerLoginId + "/" + projectName + "/pullRequest/" + pullRequestNumber + "/open";
         User currentUser = User.findByLoginId("yobi");
+        User projectOwner = User.findByLoginId("yobi");
 
+        String url = "/" + ownerLoginId + "/" + projectName + "/pullRequest/" + pullRequestNumber + "/open";
+        callAction(
+                controllers.routes.ref.PullRequestApp.open(ownerLoginId, projectName, pullRequestNumber),
+                fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/pullRequest/" + pullRequestNumber)
+                        .withSession(UserApp.SESSION_USERID, projectOwner.id.toString())
+        );
+
+        //When
         Result result = route(
             fakeRequest(POST, url).withSession(UserApp.SESSION_USERID, currentUser.id.toString())
         );
+
+        //Then
         assertThat(status(result)).isEqualTo(BAD_REQUEST);
 
         Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
 
         assertThat(pullRequest.state).isEqualTo(State.OPEN);
-    }
-
-    @BeforeClass
-    public static void beforeClass() {
-        callAction(
-                routes.ref.Application.init()
-        );
-    }
-
-    @Before
-    public void before() {
-        GitRepository.setRepoPrefix("resources/test/repo/git/");
-        GitRepository.setRepoForMergingPrefix("resources/test/repo/git-merging/");
-        app = support.Helpers.makeTestApplication();
-        Helpers.start(app);
-    }
-
-    @After
-    public void after() {
-        Helpers.stop(app);
-        support.Files.rm_rf(new File(GitRepository.getRepoPrefix()));
-        support.Files.rm_rf(new File(GitRepository.getRepoForMergingPrefix()));
     }
 
     private void initParameters(String ownerLoginId, String projectName, Long pullRequestNumber)

@@ -43,10 +43,86 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.fest.assertions.Assertions.assertThat;
-import static play.test.Helpers.callAction;
 import static utils.FileUtil.rm_rf;
 
 public class PullRequestTest extends ModelTest<PullRequest> {
+    private static final String MERGING_REPO_PREFIX = "resources/test/repo/git-merging/";
+    private static final String REPO_PREFIX = "resources/test/repo/git/";
+    private static final String LOCAL_REPO_PREFIX = "resources/test/local-repo/git/";
+
+    private RevCommit baseCommit;
+    private RevCommit firstCommit;
+    private RevCommit secondCommit;
+    private PullRequest pullRequest;
+    private Project forkedProject;
+
+    @Before
+    public void initRepositories() throws IOException, GitAPIException, ServletException,
+            ClientException {
+        GitRepository.setRepoPrefix(REPO_PREFIX);
+        GitRepository.setRepoForMergingPrefix(MERGING_REPO_PREFIX);
+
+        app = support.Helpers.makeTestApplication();
+        Helpers.start(app);
+
+        Project project = Project.findByOwnerAndProjectName("yobi", "projectYobi");
+        forkedProject = Project.findByOwnerAndProjectName("yobi", "projectYobi-1");
+
+        // 1. projectYobi 저장소를 만듦
+        RepositoryService.createRepository(project);
+
+        // 2. projectYobi 저장소에 커밋 하나
+        {
+            String localRepoPath = LOCAL_REPO_PREFIX + project.name;
+            Git git = Git.cloneRepository()
+                    .setURI(GitRepository.getGitDirectoryURL(project))
+                    .setDirectory(new File(localRepoPath))
+                    .call();
+            Repository repo = git.getRepository();
+            baseCommit = support.Git.commit(repo, repo.getWorkTree().getAbsolutePath(), "test.txt",
+                    "apple\nbanana\ncat\n", "commit 1");
+            git.push().setRefSpecs(new RefSpec("+refs/heads/master:refs/heads/master")).call();
+        }
+
+        // 3. 포크된 프로젝트 클론된 저장소 만들기
+        GitRepository.cloneLocalRepository(project, forkedProject);
+
+        // 4. 포크된 저장소에 새 브랜치를 만들어 그 브랜치에 커밋을 두개 하고
+        {
+            String localRepoPath = LOCAL_REPO_PREFIX + forkedProject.name;
+            Git git = Git.cloneRepository()
+                    .setURI(GitRepository.getGitDirectoryURL(forkedProject))
+                    .setDirectory(new File(localRepoPath))
+                    .call();
+            git.branchCreate().setName("fix/1").call();
+            git.checkout().setName("fix/1").call();
+            Repository repo = git.getRepository();
+            assertThat(repo.isBare()).describedAs("projectYobi-1 must be non-bare").isFalse();
+            firstCommit = support.Git.commit(repo, repo.getWorkTree().getAbsolutePath(),
+                    "test.txt", "apple\nbanana\ncorn\n", "commit 1");
+            secondCommit = support.Git.commit(repo, repo.getWorkTree().getAbsolutePath(),
+                    "test.txt", "apple\nbanana\ncake\n", "commit 2");
+            git.push().setRefSpecs(new RefSpec("+refs/heads/fix/1:refs/heads/fix/1")).call();
+        }
+
+        // 5. 그 브랜치로 projectYobi에 pullrequest를 보낸다.
+        pullRequest = PullRequest.createNewPullRequest(forkedProject, project, "refs/heads/fix/1",
+                "refs/heads/master");
+
+        // 6. attempt merge
+        boolean isConflict = pullRequest.attemptMerge().conflicts();
+
+        assertThat(isConflict).isFalse();
+    }
+
+    @After
+    public void after() {
+        rm_rf(new File(REPO_PREFIX));
+        rm_rf(new File(MERGING_REPO_PREFIX));
+        rm_rf(new File(LOCAL_REPO_PREFIX));
+        Helpers.stop(app);
+    }
+
     @Test
     public void addIssueEvent() {
         // Given
@@ -184,83 +260,6 @@ public class PullRequestTest extends ModelTest<PullRequest> {
         PullRequestEvent event = new PullRequestEvent();
         event.created = DateUtils.parseDate(str, "yyyy-MM-dd");
         return event;
-    }
-
-    private static final String MERGING_REPO_PREFIX = "resources/test/repo/git-merging/";
-    private static final String REPO_PREFIX = "resources/test/repo/git/";
-    private static final String LOCAL_REPO_PREFIX = "resources/test/local-repo/git/";
-
-    private RevCommit baseCommit;
-    private RevCommit firstCommit;
-    private RevCommit secondCommit;
-    private PullRequest pullRequest;
-    private Project forkedProject;
-
-    @Before
-    public void initRepositories() throws IOException, GitAPIException, ServletException,
-            ClientException {
-        GitRepository.setRepoPrefix(REPO_PREFIX);
-        GitRepository.setRepoForMergingPrefix(MERGING_REPO_PREFIX);
-
-        app = support.Helpers.makeTestApplication();
-        Helpers.start(app);
-
-        Project project = Project.findByOwnerAndProjectName("yobi", "projectYobi");
-        forkedProject = Project.findByOwnerAndProjectName("yobi", "projectYobi-1");
-
-        // 1. projectYobi 저장소를 만듦
-        RepositoryService.createRepository(project);
-
-        // 2. projectYobi 저장소에 커밋 하나
-        {
-            String localRepoPath = LOCAL_REPO_PREFIX + project.name;
-            Git git = Git.cloneRepository()
-                    .setURI(GitRepository.getGitDirectoryURL(project))
-                    .setDirectory(new File(localRepoPath))
-                    .call();
-            Repository repo = git.getRepository();
-            baseCommit = support.Git.commit(repo, repo.getWorkTree().getAbsolutePath(), "test.txt",
-                    "apple\nbanana\ncat\n", "commit 1");
-            git.push().setRefSpecs(new RefSpec("+refs/heads/master:refs/heads/master")).call();
-        }
-
-        // 3. 포크된 프로젝트 클론된 저장소 만들기
-        GitRepository.cloneLocalRepository(project, forkedProject);
-
-        // 4. 포크된 저장소에 새 브랜치를 만들어 그 브랜치에 커밋을 두개 하고
-        {
-            String localRepoPath = LOCAL_REPO_PREFIX + forkedProject.name;
-            Git git = Git.cloneRepository()
-                    .setURI(GitRepository.getGitDirectoryURL(forkedProject))
-                    .setDirectory(new File(localRepoPath))
-                    .call();
-            git.branchCreate().setName("fix/1").call();
-            git.checkout().setName("fix/1").call();
-            Repository repo = git.getRepository();
-            assertThat(repo.isBare()).describedAs("projectYobi-1 must be non-bare").isFalse();
-            firstCommit = support.Git.commit(repo, repo.getWorkTree().getAbsolutePath(),
-                    "test.txt", "apple\nbanana\ncorn\n", "commit 1");
-            secondCommit = support.Git.commit(repo, repo.getWorkTree().getAbsolutePath(),
-                    "test.txt", "apple\nbanana\ncake\n", "commit 2");
-            git.push().setRefSpecs(new RefSpec("+refs/heads/fix/1:refs/heads/fix/1")).call();
-        }
-
-        // 5. 그 브랜치로 projectYobi에 pullrequest를 보낸다.
-        pullRequest = PullRequest.createNewPullRequest(forkedProject, project, "refs/heads/fix/1",
-                "refs/heads/master");
-
-        // 6. attempt merge
-        boolean isConflict = pullRequest.attemptMerge().conflicts();
-
-        assertThat(isConflict).isFalse();
-    }
-
-    @After
-    public void after() {
-        rm_rf(new File(REPO_PREFIX));
-        rm_rf(new File(MERGING_REPO_PREFIX));
-        rm_rf(new File(LOCAL_REPO_PREFIX));
-        Helpers.stop(app);
     }
 
     @Test

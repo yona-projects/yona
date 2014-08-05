@@ -934,5 +934,4 @@ public class PullRequest extends Model implements ResourceConvertible {
         return this.isConflict == false &&
                 this.mergedCommitIdFrom != null && this.mergedCommitIdTo != null;
     }
-
 }

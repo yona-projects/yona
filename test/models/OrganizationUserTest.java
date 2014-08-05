@@ -23,6 +23,7 @@ package models;
 
 import controllers.routes;
 import models.enumeration.RoleType;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -37,34 +38,30 @@ import static play.test.Helpers.callAction;
 /**
  * Created by kcs on 2/21/14.
  */
-public class OrganizationUserTest {
-    protected static FakeApplication app;
+public class OrganizationUserTest extends ModelTest<OrganizationUser> {
 
-    @BeforeClass
-    public static void beforeClass() {
-        callAction(
-                routes.ref.Application.init()
-        );
-    }
+    Organization organization;
 
     @Before
     public void before() {
-        app = support.Helpers.makeTestApplication();
-        Helpers.start(app);
+        organization = createOrganization();
     }
 
-    private Organization createOrganization(String name) {
-        Organization organization = new Organization();
-        organization.name = name;
-        organization.save();
+    @After
+    public void after() {
+        organization.delete();
+    }
 
+    private Organization createOrganization() {
+        Organization organization = new Organization();
+        organization.name = "TestOrganization";
+        organization.save();
         return organization;
     }
 
     @Test
     public void addMember() {
         // Given
-        Organization organization = createOrganization("TestOrganization");
         User user = User.findByLoginId("laziel");
 
         // When
@@ -78,7 +75,6 @@ public class OrganizationUserTest {
     @Test
     public void checkMemberInfo() {
         // Given
-        Organization organization = createOrganization("TestOrganization");
         User user = User.findByLoginId("laziel");
         Long roleType = RoleType.ORG_ADMIN.roleType();
 
@@ -96,7 +92,6 @@ public class OrganizationUserTest {
     @Test
     public void deleteMember() {
         // Given
-        Organization organization = createOrganization("TestOrganization");
         User user = User.findByLoginId("laziel");
         Long roleType = RoleType.ORG_ADMIN.roleType();
 
@@ -112,7 +107,6 @@ public class OrganizationUserTest {
     @Test
     public void editMember() {
         // Given
-        Organization organization = createOrganization("TestOrganization");
         User user = User.findByLoginId("laziel");
         Long firstRoleType = RoleType.ORG_ADMIN.roleType();
         Long secondRoleType = RoleType.ORG_MEMBER.roleType();
@@ -130,7 +124,6 @@ public class OrganizationUserTest {
     @Test
     public void listOrganization() {
         // Given
-        Organization organization = createOrganization("TestOrganization");
         User laziel = User.findByLoginId("laziel");
         User doortts = User.findByLoginId("doortts");
 

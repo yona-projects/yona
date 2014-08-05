@@ -20,14 +20,21 @@
  */
 package models;
 
+import com.avaje.ebean.Ebean;
 import models.enumeration.State;
 
 import org.apache.commons.lang3.time.DateUtils;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import play.i18n.Messages;
+import play.libs.Yaml;
+import support.Helpers;
 import utils.JodaDateUtil;
+import utils.YamlUtil;
 
+import java.io.IOException;
 import java.util.*;
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -40,7 +47,7 @@ public class MilestoneTest extends ModelTest<Milestone> {
         Milestone newMilestone = new Milestone();
         newMilestone.dueDate = new Date();
         newMilestone.setContents("테스트 마일스톤");
-        newMilestone.project = Project.find.byId(1l);
+        newMilestone.project = Project.find.byId(3l);
         newMilestone.title = "0.1";
 
         // When
@@ -48,6 +55,8 @@ public class MilestoneTest extends ModelTest<Milestone> {
 
         // Then
         assertThat(newMilestone.id).isNotNull();
+        //To keep data clean after this test.
+        newMilestone.delete();
     }
 
     @Test
@@ -82,15 +91,21 @@ public class MilestoneTest extends ModelTest<Milestone> {
     @Test
     public void delete() throws Exception {
         // Given
-        Milestone firstMilestone = Milestone.findById(1l);
-        assertThat(firstMilestone).isNotNull();
+        Milestone milestone = new Milestone();
+        milestone.title = "test";
+        milestone.project = getTestProject();
+        milestone.contents = "test";
+        milestone.save();
+
+        Milestone savedMilestone = Milestone.findById(milestone.id);
+        assertThat(savedMilestone).isNotNull();
 
         // When
-        firstMilestone.delete();
+        savedMilestone.delete();
 
         //Then
-        firstMilestone = Milestone.findById(1l);
-        assertThat(firstMilestone).isNull();
+        savedMilestone = Milestone.findById(milestone.id);
+        assertThat(savedMilestone).isNull();
     }
 
     @Test
@@ -221,6 +236,8 @@ public class MilestoneTest extends ModelTest<Milestone> {
         m5 = Milestone.findById(5l);
         assertThat(m5.getNumTotalIssues()).isEqualTo(totalNumber + 1);
         assertThat(m5.getNumOpenIssues()).isEqualTo(openNumber + 1);
+        //To keep data clean after this test.
+        issue.delete();
     }
 
     @Test
