@@ -22,9 +22,8 @@
 
 @import utils.AccessControl._
 
-<select id="assignee" name="assignee.user.id"
-        data-field-name="assignee.id"
-        data-toggle="select2" data-format="user">
+<select id="assignee" name="assignee.user.id" data-field-name="assignee.id"
+        data-toggle="select2" data-format="user" data-container-css-class="fullsize">
     <option value="@User.anonymous.id" @if(issue == null || issue.assignee == null){selected}>@Messages("issue.noAssignee")</option>
     @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.ASSIGN_ISSUE)) {
     <option value="@UserApp.currentUser().id" data-force-change="true">@Messages("issue.assignToMe")</option>
