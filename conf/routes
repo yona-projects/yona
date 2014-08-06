@@ -173,6 +173,7 @@ GET            /:user/:project/issue/$number<[0-9]+>/timeline                   
 # Issue Labels
 GET            /:user/:project/issue/labels                                           controllers.IssueLabelApp.labels(user, project)
 POST           /:user/:project/issue/labels                                           controllers.IssueLabelApp.newLabel(user, project)
+GET            /:user/:project/issue/labelsform                                       controllers.IssueLabelApp.labelsForm(user, project)
 POST           /:user/:project/issue/label/:id/delete                                 controllers.IssueLabelApp.delete(user, project, id:Long)
 PUT            /:user/:project/issue/label/:id                                        controllers.IssueLabelApp.update(user, project, id:Long)
 GET            /:user/:project/issue/labels.css                                       controllers.IssueLabelApp.labelStyles(user, project)
