@@ -62,6 +62,7 @@
             htElement.welMilestoneRefresh = $(htOptions.elMilestoneRefresh || ".icon-refresh");
             htElement.welTplFileItem = $('#tplAttachedFile');
             htElement.welAssignee = $("#assignee");
+            htElement.welDueDate = $(htOptions.elDueDate || "#issueDueDate");
         }
 
         /**
@@ -128,6 +129,15 @@
             if(sTitle.length < 1){
                 $yobi.alert(Messages("issue.error.emptyTitle"), function(){
                     htElement.welInputTitle.focus();
+                });
+                return false;
+            }
+
+            var sDueDate = $yobi.getTrim(htElement.welDueDate.val());
+
+            if (sDueDate && !moment(sDueDate).isValid()) {
+                $yobi.alert(Messages("issue.error.invalid.duedate"), function(){
+                    htElement.welDueDate.focus();
                 });
                 return false;
             }

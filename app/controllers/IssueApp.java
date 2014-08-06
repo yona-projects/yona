@@ -48,10 +48,8 @@ import utils.*;
 import views.html.issue.*;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
+import java.util.*;
+
 import utils.HttpUtil;
 
 public class IssueApp extends AbstractPostingApp {
