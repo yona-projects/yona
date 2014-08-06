@@ -115,7 +115,7 @@
                             }
 
                             @if(issueComment.voters.contains(UserApp.currentUser())) {
-                                <button type="button" class="btn-transparent-with-fontsize-lineheight" title="@Messages("common.comment.vote")" data-request-type="comment-vote" data-request-uri="@routes.VoteApp.unvoteComment(project.owner, project.name, issue.getNumber, comment.id)">
+                                <button type="button" class="btn-transparent-with-fontsize-lineheight" title="@Messages("common.comment.unvote")" data-request-type="comment-vote" data-request-uri="@routes.VoteApp.unvoteComment(project.owner, project.name, issue.getNumber, comment.id)">
                                 <i class="yobicon-hearts vote-heart-on"></i>
                                 </button>
                             } else {
