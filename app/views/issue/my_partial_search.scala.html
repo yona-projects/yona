@@ -81,6 +81,7 @@
                 @if(currentPage.getList.size() > 1){
 
                 <div class="filters pull-right">
+                  @makeFilterLink("dueDate", param.orderBy, param.orderDir, Messages("common.order.dueDate"))
                   @makeFilterLink("updatedDate", param.orderBy, param.orderDir, Messages("common.order.updatedDate"))
                   @makeFilterLink("createdDate", param.orderBy, param.orderDir, Messages("common.order.date"))
                   @makeFilterLink("numOfComments", param.orderBy, param.orderDir, Messages("common.order.comments"))
