@@ -28,7 +28,7 @@
 @IssueLabel.findByProject(project).groupBy(_.category).map {
     case (category, labels) => {
         <dl class="dl-horizontal overview-label">
-            <dt>@category</dt>
+            <dt>@category.name</dt>
             <dd>
             @labels.map { label =>
                 <div class="row-fluid">
