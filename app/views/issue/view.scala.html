@@ -212,7 +212,8 @@
                             } else {
                                 @defining(issue.milestone != null) { hasMilestone =>
                                     @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
-                                    <select id="milestone" name="milestone.id" data-toggle="select2" data-format="milestone">
+                                    <select id="milestone" name="milestone.id"
+                                            data-toggle="select2" data-format="milestone" data-container-css-class="fullsize">
                                         <option value="@Milestone.NULL_MILESTONE_ID" @if(!hasMilestone){ selected }>
                                             @Messages("issue.noMilestone")
                                         </option>
