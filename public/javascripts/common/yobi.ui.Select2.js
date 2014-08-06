@@ -90,11 +90,12 @@
             "issuelabel": function(itemObject){
                 var element = $(itemObject.element);
                 var labelId = element.val();
+                var text = $.trim($('<div/>').text(itemObject.text).html());
 
                 if(!labelId){ // = optgroup
                     var isCategoryExclusive = element.data("categoryIsExclusive");
                     var data = {
-                        "text" : itemObject.text.trim(),
+                        "text" : text,
                         "title": Messages("label.category.option") + '<br>' +
                                 (isCategoryExclusive ? Messages("label.category.option.single")
                                                      : Messages("label.category.option.multiple")),
@@ -106,7 +107,7 @@
                     return $yobi.tmpl(tpl, data);
                 }
 
-                return '<a class="label issue-label active static" data-label-id="' + labelId + '">' + itemObject.text.trim() + '</a>';
+                return '<a class="label issue-label active static" data-label-id="' + labelId + '">' + text + '</a>';
             },
             "branch": function(itemObject){
                 var branchType = "";
