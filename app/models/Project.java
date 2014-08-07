@@ -558,6 +558,20 @@ public class Project extends Model implements LabelOwner {
         }
     }
 
+    public void changeVCS() throws Exception {
+        if(this.forkingProjects != null) {
+            for(Project fork : forkingProjects) {
+                fork.originalProject = null;
+                fork.update();
+            }
+        }
+
+        RepositoryService.deleteRepository(this);
+        this.vcs = nextVCS();
+        RepositoryService.getRepository(this).create();
+        this.update();
+    }
+
     public enum State {
         PUBLIC, PRIVATE, ALL
     }
@@ -749,5 +763,13 @@ public class Project extends Model implements LabelOwner {
 
     public boolean isPrivate() {
         return projectScope == ProjectScope.PRIVATE;
+    }
+
+    public String nextVCS() {
+        if(this.vcs.equals(RepositoryService.VCS_GIT)) {
+            return RepositoryService.VCS_SUBVERSION;
+        } else {
+            return RepositoryService.VCS_GIT;
+        }
     }
 }

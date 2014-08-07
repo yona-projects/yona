@@ -140,6 +140,8 @@ GET            /:user/:project/transfer                                         
 PUT            /:user/:project/transfer                                               controllers.ProjectApp.transferProject(user, project)
 GET            /project/transfer/:id/:key                                             controllers.ProjectApp.acceptTransfer(id: Long, key)
 GET            /:user/:project/search                                                 controllers.SearchApp.searchInAProject(user, project)
+GET            /:user/:project/changeVCS                                              controllers.ProjectApp.changeVCSForm(user, project)
+POST           /:user/:project/changeVCS                                              controllers.ProjectApp.changeVCS(user, project)
 
 # Project Review Menu
 GET            /:user/:project/reviews                                                controllers.ReviewThreadApp.reviewThreads(user, project)
