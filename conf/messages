@@ -239,6 +239,7 @@ issue.dueDate.overdue = Overdue
 issue.error.beforeunload = Issue has not saved yet. Would you like to exit this page without saving?
 issue.error.emptyBody = Issue description is a required field.
 issue.error.emptyTitle = Issue title is a required field.
+issue.error.invalid.duedate = Issue due date is not valid date type.
 issue.event.assigned = {0} assigned this issue to {1}
 issue.event.assignedToMe = {0} assigned this issue to her/himself
 issue.event.closed = {0} closed this issue

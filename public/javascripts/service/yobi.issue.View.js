@@ -151,6 +151,18 @@
          * @private
          */
         function _requestUpdateIssue(evt){
+            var elDueDate = elements.issueInfoWrap.find("[data-toggle='calendar']");
+            var sDueDate = $yobi.getTrim($(elDueDate).val());
+
+            if(sDueDate && !moment(sDueDate).isValid()){
+                $yobi.alert(Messages("issue.error.invalid.duedate"), function(){
+                    elDueDate.focus();
+                });
+                return;
+            }else if(elDueDate.data("oval") != elDueDate.val()){
+                elDueDate.data("oval", elDueDate.val());
+            }
+
             var field = $(evt.target);
             var fieldName = field.data("fieldName") || field.prop("name");
             var fieldValue = field.data("select2") ? field.data("select2").val() : field.val();

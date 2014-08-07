@@ -240,6 +240,7 @@ issue.dueDate.overdue= 기한지남
 issue.error.beforeunload = 아직 이슈를 저장하지 않았습니다. 저장하지 않은 채로 다른 페이지로 이동하시겠습니까?
 issue.error.emptyBody = 이슈 내용을 입력해주세요
 issue.error.emptyTitle = 이슈 제목을 입력해주세요
+issue.error.invalid.duedate = 목표 완료일이 날짜형식에 맞지 않습니다.
 issue.event.assigned = {0}님이 {1}님을 이 이슈의 담당자로 지정하였습니다.
 issue.event.assignedToMe = {0}님이 자신을 이슈의 담당자로 지정하였습니다.
 issue.event.closed = {0}님이 이 이슈를 닫았습니다.

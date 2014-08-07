@@ -61,6 +61,8 @@
             htElement.welIssueWrap.on("change", '[data-toggle="issue-checkbox"]', _onChangeIssueCheckBox);
             htElement.welIssueWrap.on("change", "[data-search]", _onChangeSearchField);
             htElement.welIssueWrap.on("change", '[data-toggle="calendar"]', _onChangeSearchField);
+
+            htElement.welSearchForm.submit(_onSubmitForm);
         }
 
         /**
@@ -271,6 +273,20 @@
                    });
                });
            }
+        }
+
+        function _onSubmitForm(){
+            var elDueDate = htElement.welIssueWrap.find("[data-toggle='calendar']");
+            var sDueDate = $yobi.getTrim($(elDueDate).val());
+
+            if(sDueDate && !moment(sDueDate).isValid()){
+                $yobi.alert(Messages("issue.error.invalid.duedate"), function(){
+                    elDueDate.focus();
+                });
+                return false;
+            }
+
+            return true;
         }
 
         _init(htOptions);
