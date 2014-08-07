@@ -80,6 +80,10 @@ public class SvnApp extends Controller {
             return badRequest();
         }
 
+        // Remove contextPath
+        path = StringUtils.removeStart(path,
+                play.Configuration.root().getString("application.context"));
+
         // If the url starts with slash, remove the slash.
         if (path.startsWith("/")) {
             path = path.substring(1);
