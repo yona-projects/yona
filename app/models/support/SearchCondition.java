@@ -200,7 +200,12 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
         }
 
         if (orderBy != null) {
-            el.orderBy(orderBy + " " + orderDir);
+            if (orderBy.equals("dueDate")) {
+                String formulaName = orderDir.equals("asc") ? "dueDateAsc" : "dueDateDesc";
+                el.orderBy(formulaName + " " + orderDir);
+            } else {
+                el.orderBy(orderBy + " " + orderDir);
+            }
         }
 
         if (dueDate != null) {
@@ -306,7 +311,12 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
         }
 
         if (orderBy != null) {
-            el.orderBy(orderBy + " " + orderDir);
+            if (orderBy.equals("dueDate")) {
+                String formulaName = orderDir.equals("asc") ? "dueDateAsc" : "dueDateDesc";
+                el.orderBy(formulaName + " " + orderDir);
+            } else {
+                el.orderBy(orderBy + " " + orderDir);
+            }
         }
 
         if (dueDate != null) {
