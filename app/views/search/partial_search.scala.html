@@ -131,7 +131,7 @@
                     <div class="search-box-wrap">
                         <form id="searchInnerForm" method="get" action="@makeSearchLink()" > 
                         <input type="hidden" name="searchType" value="@searchResult.getSearchType().getType()">    
-                            <input type="text" name="keyword" class="span11" value="@searchResult.getKeyword()">
+                            <input type="text" id="searchKeyword" name="keyword" class="span11" value="@searchResult.getKeyword()">
                             <button type="submit" class="ybtn">@Messages("title.search")</button>
                         </form>
                         
@@ -188,7 +188,11 @@ $(function(){
 
     $('.search-content-body, .title').each(function() {
         var content = $(this).html();
-        content = content.replace(/@searchResult.getKeyword()/ig, function(match) {
+        var matchKeyword = $.trim($('#searchKeyword').val())
+                            .replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+        var matchRegx = new RegExp(matchKeyword, "ig");
+
+        content = content.replace(matchRegx, function(match) {
             return "<strong class=\"keyword\">"+ match +"</strong>";
         });
 
