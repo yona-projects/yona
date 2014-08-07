@@ -136,9 +136,8 @@
             var sDueDate = $yobi.getTrim(htElement.welDueDate.val());
 
             if (sDueDate && !moment(sDueDate).isValid()) {
-                $yobi.alert(Messages("issue.error.invalid.duedate"), function(){
-                    htElement.welDueDate.focus();
-                });
+                $yobi.notify(Messages("issue.error.invalid.duedate"), 3000);
+                htElement.welDueDate.focus();
                 return false;
             }
 

@@ -155,12 +155,17 @@
             var sDueDate = $yobi.getTrim($(elDueDate).val());
 
             if(sDueDate && !moment(sDueDate).isValid()){
-                $yobi.alert(Messages("issue.error.invalid.duedate"), function(){
-                    elDueDate.focus();
-                });
+                $yobi.notify(Messages("issue.error.invalid.duedate"), 3000);
+                elDueDate.focus();
                 return;
-            }else if(elDueDate.data("oval") != elDueDate.val()){
-                elDueDate.data("oval", elDueDate.val());
+            }
+
+            if(elDueDate.get(0) == evt.target) {
+                if(elDueDate.data("oval") == elDueDate.val()){
+                    return;
+                }else{
+                    elDueDate.data("oval", elDueDate.val());
+                }
             }
 
             var field = $(evt.target);
