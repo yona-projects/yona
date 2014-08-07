@@ -42,6 +42,7 @@ import play.mvc.Result;
 import play.mvc.With;
 import playRepository.BareCommit;
 import playRepository.BareRepository;
+import playRepository.RepositoryService;
 import utils.AccessControl;
 import utils.ErrorViews;
 import utils.JodaDateUtil;
@@ -172,7 +173,7 @@ public class BoardApp extends AbstractPostingApp {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         Posting post = Posting.findByNumber(project, number);
 
-        if(post.readme){
+        if(post.readme && RepositoryService.VCS_GIT.equals(project.vcs)){
             post.body = BareRepository.readREADME(project);
         }
 
@@ -201,7 +202,7 @@ public class BoardApp extends AbstractPostingApp {
         Form<Posting> editForm = new Form<>(Posting.class).fill(posting);
         boolean isAllowedToNotice = ProjectUser.isAllowedToNotice(UserApp.currentUser(), project);
 
-        if(posting.readme){
+        if(posting.readme && RepositoryService.VCS_GIT.equals(project.vcs)){
             posting.body = BareRepository.readREADME(project);
         }
         return ok(edit.render("post.modify", editForm, posting, number, project, isAllowedToNotice));
