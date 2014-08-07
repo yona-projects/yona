@@ -132,10 +132,12 @@
                             <input type="checkbox" class="radio-btn" id="menuSettingIssue" name="issue" value="true" @if(project.menuSetting.issue){checked="checked"}>
                             @Messages("menu.issue")
                         </label>
+                        @if(project.vcs.equals("GIT")){
                         <label for="menuSettingPullRequest" class="bg-radiobtn label-public inline-list">
                             <input type="checkbox" class="radio-btn" id="menuSettingPullRequest" name="pullRequest" value="true" @if(project.menuSetting.pullRequest){checked="checked"}>
                             @Messages("menu.pullRequest")
                         </label>
+                        }
                         <label for="menuSettingReview" class="bg-radiobtn label-public inline-list">
                             <input type="checkbox" class="radio-btn" id="menuSettingReview" name="review" value="true" @if(project.menuSetting.review){checked="checked"}>
                             @Messages("menu.review")
