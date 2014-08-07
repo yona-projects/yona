@@ -68,6 +68,10 @@ public class GitApp extends Controller {
             return notFound();
         }
 
+        if (!project.vcs.equals(RepositoryService.VCS_GIT)) {
+            return notFound();
+        }
+
         models.User user = UserApp.currentUser();
 
         if (!isAllowed(project, service)) {

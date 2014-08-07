@@ -111,6 +111,10 @@ public class SvnApp extends Controller {
             return notFound();
         }
 
+        if (!project.vcs.equals(RepositoryService.VCS_SUBVERSION)) {
+            return notFound();
+        }
+
         PlayRepository repository = RepositoryService.getRepository(project);
         if (!AccessControl.isAllowed(currentUser, repository.asResource(),
                 getRequestedOperation(request().method()))) {
