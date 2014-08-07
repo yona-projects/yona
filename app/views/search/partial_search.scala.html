@@ -22,7 +22,7 @@
 @(group: Organization, project: Project, searchResult: SearchResult)
 
 @isActiveMenu(search_type:SearchType) = @{
-    if(search_type == searchResult.getSearchType()){ "class=active" }
+    if(search_type == searchResult.getSearchType()){ "active" }
 }
 
 @makeSearchLink() = @{
@@ -75,51 +75,51 @@
             <div class="row-fluid">
                 <div class="span2">
                     <ul class="lst-stacked unstyled search-category-wrap">
-                        <li @isActiveMenu(SearchType.ISSUE)>
+                        <li class="@isActiveMenu(SearchType.ISSUE) @if(searchResult.getIssuesCount == 0) {empty}">
                             <a href="#" data-toggle="search-category" data-type="@SearchType.ISSUE.getType()">
                                 @Messages("search.menu.issues")
                                 <span class="num-badge pull-right">@searchResult.getIssuesCount</span>
                             </a>
                         </li>
-                        <li @isActiveMenu(SearchType.USER)>
+                        <li class="@isActiveMenu(SearchType.USER) @if(searchResult.getUsersCount == 0) {empty}">
                             <a href="#" data-toggle="search-category" data-type="@SearchType.USER.getType()">
                                 @Messages("search.menu.users")
                                 <span class="num-badge pull-right">@searchResult.getUsersCount</span>
                             </a>
                         </li>
                         @if(project == null) {
-                        <li @isActiveMenu(SearchType.PROJECT)>
+                        <li class="@isActiveMenu(SearchType.PROJECT) @if(searchResult.getProjectsCount == 0) {empty}">
                             <a href="#" data-toggle="search-category" data-type="@SearchType.PROJECT.getType()">
                                 @Messages("search.menu.projects")
                                 <span class="num-badge pull-right">@searchResult.getProjectsCount</span>
                             </a>    
                         </li>
                         }
-                        <li @isActiveMenu(SearchType.POST)>
+                        <li class="@isActiveMenu(SearchType.POST) @if(searchResult.getPostsCount == 0) {empty}">
                             <a href="#" data-toggle="search-category" data-type="@SearchType.POST.getType()">
                                 @Messages("search.menu.boards")
                                 <span class="num-badge pull-right">@searchResult.getPostsCount</span>
                             </a>
                         </li>
-                        <li @isActiveMenu(SearchType.MILESTONE)>
+                        <li class="@isActiveMenu(SearchType.MILESTONE) @if(searchResult.getMilestonesCount == 0) {empty}">
                             <a href="#" data-toggle="search-category" data-type="@SearchType.MILESTONE.getType()">
                                 @Messages("search.menu.milestones")
                                 <span class="num-badge pull-right">@searchResult.getMilestonesCount</span>
                             </a>
                         </li>
-                        <li @isActiveMenu(SearchType.ISSUE_COMMENT)>
+                        <li class="@isActiveMenu(SearchType.ISSUE_COMMENT) @if(searchResult.getIssueCommentsCount == 0) {empty}">
                             <a href="#" data-toggle="search-category" data-type="@SearchType.ISSUE_COMMENT.getType()">
                                 @Messages("search.menu.issue.comments")
                                 <span class="num-badge pull-right">@searchResult.getIssueCommentsCount</span>
                             </a>
                         </li>
-                        <li @isActiveMenu(SearchType.POST_COMMENT)>
+                        <li class="@isActiveMenu(SearchType.POST_COMMENT) @if(searchResult.getPostCommentsCount == 0) {empty}">
                             <a href="#" data-toggle="search-category" data-type="@SearchType.POST_COMMENT.getType()">
                                 @Messages("search.menu.board.comments") 
                                 <span class="num-badge pull-right">@searchResult.getPostCommentsCount</span>
                             </a>
                         </li>
-                        <li @isActiveMenu(SearchType.REVIEW)>
+                        <li class="@isActiveMenu(SearchType.REVIEW) @if(searchResult.getReviewsCount == 0) {empty}">
                             <a href="#" data-toggle="search-category" data-type="@SearchType.REVIEW.getType()">
                                 @Messages("search.menu.reviews")
                                 <span class="num-badge pull-right">@searchResult.getReviewsCount</span>
