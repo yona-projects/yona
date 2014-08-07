@@ -55,6 +55,9 @@ public class BareRepository {
             e.printStackTrace();
             play.Logger.error(e.getMessage());
         }
+        if (loader == null) {
+            return null;
+        }
         return new String(loader.getCachedBytes());
     }
 
@@ -86,17 +89,16 @@ public class BareRepository {
     private static ObjectId getFirstFoundREADMEfileObjectId(Repository repository) throws IOException {
         TreeWalk treeWalk = new TreeWalk(repository);
         RevTree revTree = getRevTreeFromRef(repository, repository.getRef(HEAD));
-        if( revTree != null ){
-            treeWalk.addTree(revTree);
+        if( revTree == null ){
+            return ObjectId.zeroId();
         }
+        treeWalk.addTree(revTree);
         treeWalk.setRecursive(false);
         treeWalk.setFilter(OrTreeFilter.create(READMEFileNameFilter()));
 
         if (!treeWalk.next()) {
-            play.Logger.info("no tree or no README file found");
-            throw new IllegalStateException("Did not find expected file 'README.md'");
+            play.Logger.info("No tree or no README file found at " + repository.getDirectory());
         }
-
         return treeWalk.getObjectId(0);
     }
 

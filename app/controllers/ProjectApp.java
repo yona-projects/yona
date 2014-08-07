@@ -641,6 +641,13 @@ public class ProjectApp extends Controller {
     public static Result changeVCS(String ownerId, String projectName) throws Exception {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
         try {
+            if (project.readme() != null){
+                Posting posting = Posting.findREADMEPosting(project);
+                if (posting != null){
+                    posting.readme = false;
+                    posting.save();
+                }
+            }
             project.changeVCS();
             String url = routes.ProjectApp.project(ownerId, projectName).url();
             response().setHeader("Location", url);
