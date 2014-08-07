@@ -80,8 +80,16 @@
         function _onChangeVCSItem(evt){
             if(evt.val.toUpperCase() === "SUBVERSION"){
                 htElement.svnWarning.show();
+                /**
+                 * We don't know whether the user want to check this or not
+                 * because this checkbox will be hidden. So we let it be true
+                 * forcely. It may be misguessing of the user's choice but it
+                 * prevents the possibiltiy that the user never knows the
+                 * existence of PullRequest feature when the user changes the 
+                 * project setting to use Git.
+                 */   
                 $('#menuSettingPullRequest')
-                    .prop('checked', false)
+                    .prop('checked', true)
                     .parent('label').hide();
             } else {
                 htElement.svnWarning.hide();
