@@ -81,6 +81,7 @@
                     </div>
                 </div>
 
+                @if(project.vcs.equals("GIT")){
                 <div class="box-wrap middle reviewer-count-wrap">
                     <div class="cu-label vmiddle">@Messages("project.reviewer.count")</div>
                     <div class="cu-desc">
@@ -120,6 +121,7 @@
                         </select>
                     </div>
                 </div>
+                }
 
                 <div class="box-wrap middle">
                     <div class="cu-label vmiddle">@Messages("project.menu.setting")</div>
