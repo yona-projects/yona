@@ -80,8 +80,14 @@
         function _onChangeVCSItem(evt){
             if(evt.val.toUpperCase() === "SUBVERSION"){
                 htElement.svnWarning.show();
+                $('#menuSettingPullRequest')
+                    .prop('checked', false)
+                    .parent('label').hide();
             } else {
                 htElement.svnWarning.hide();
+                $('#menuSettingPullRequest')
+                    .prop('checked', true)
+                    .parent('label').show();
             }
         }
 
