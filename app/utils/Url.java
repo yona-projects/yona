@@ -23,6 +23,7 @@ package utils;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import play.Configuration;
 
 public class Url {
 
@@ -35,6 +36,11 @@ public class Url {
      */
     public static String create(List<String> pathSegments) {
         return create(join(pathSegments));
+    }
+
+    public static String createWithContext(List<String> pathSegments) {
+        String context = Configuration.root().getString("application.context");
+        return create((context == null ? "" : context) + join(pathSegments));
     }
 
     /**

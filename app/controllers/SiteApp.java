@@ -96,7 +96,7 @@ public class SiteApp extends Controller {
             }
         }
 
-        String sender = config.getString("smtp.user") + "@" + config.getString("smtp.domain");
+        String sender = utils.Config.getEmailFromSmtp();
 
         return ok(mail.render("title.sendMail", notConfiguredItems, sender, errorMessage, sended));
     }
