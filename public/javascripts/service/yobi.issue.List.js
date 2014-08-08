@@ -57,12 +57,12 @@
             htElement.welIssueWrap.on("click", "a[pjax-filter]", _onClickSearchFilter);
             htElement.welIssueWrap.on("click", "a[orderBy]", _onClickListOrder);
             htElement.welIssueWrap.on("click", "a[state]", _onClickStateTab);
+            htElement.welIssueWrap.on("click", "[data-submit]", _onChangeSearchField);
 
             htElement.welIssueWrap.on("change", '[data-toggle="issue-checkbox"]', _onChangeIssueCheckBox);
             htElement.welIssueWrap.on("change", "[data-search]", _onChangeSearchField);
             htElement.welIssueWrap.on("change", '[data-toggle="calendar"]', _onChangeSearchField);
-
-            htElement.welSearchForm.submit(_onSubmitForm);
+            htElement.welIssueWrap.on("submit", "form[name='search']", _onSubmitSearchForm);
         }
 
         /**
@@ -275,14 +275,13 @@
            }
         }
 
-        function _onSubmitForm(){
+        function _onSubmitSearchForm(evt){
             var elDueDate = htElement.welIssueWrap.find("[data-toggle='calendar']");
             var sDueDate = $yobi.getTrim($(elDueDate).val());
 
             if(sDueDate && !moment(sDueDate).isValid()){
-                $yobi.alert(Messages("issue.error.invalid.duedate"), function(){
-                    elDueDate.focus();
-                });
+                $yobi.notify(Messages("issue.error.invalid.duedate"), 3000);
+                elDueDate.focus();
                 return false;
             }
 
