@@ -22,6 +22,7 @@ package models;
 
 import com.avaje.ebean.Ebean;
 import com.avaje.ebean.Page;
+import com.avaje.ebean.annotation.Formula;
 import jxl.Workbook;
 import jxl.format.Alignment;
 import jxl.format.Border;
@@ -34,8 +35,6 @@ import models.enumeration.State;
 import models.resource.Resource;
 import models.support.SearchCondition;
 import org.apache.commons.lang3.time.DateUtils;
-import org.joda.time.*;
-import org.joda.time.DateTime;
 import play.data.format.Formats;
 import play.i18n.Messages;
 import utils.JodaDateUtil;
@@ -43,15 +42,12 @@ import utils.JodaDateUtil;
 import javax.persistence.*;
 
 import play.data.Form;
-import utils.JodaDateUtil;
 
-import javax.persistence.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.Boolean;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.regex.Pattern;
 import java.util.regex.Pattern;
 
 @Entity
@@ -101,6 +97,14 @@ public class Issue extends AbstractPosting implements LabelOwner {
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     public List<User> voters = new ArrayList<>();
+
+    @Transient
+    @Formula(select = "case when due_date is null then cast('0001-01-01 00:00:00' as timestamp) else due_date end")
+    public Date dueDateDesc;
+
+    @Transient
+    @Formula(select = "case when due_date is null then cast('9999-12-31 23:59:59' as timestamp) else due_date end")
+    public Date dueDateAsc;
 
     /**
      * @see models.AbstractPosting#computeNumOfComments()
@@ -370,7 +374,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
     }
 
     public static Page<Issue> findIssuesByState(int size, int pageNum, State state) {
-       return finder.where().eq("state", state)
+        return finder.where().eq("state", state)
                 .order().desc("createdDate")
                 .findPagingList(size).getPage(pageNum);
     }
