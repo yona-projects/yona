@@ -24,6 +24,7 @@ import info.schleichardt.play2.mailplugin.Mailer;
 import models.enumeration.UserState;
 import models.resource.Resource;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.HtmlEmail;
 import org.joda.time.DateTime;
 import org.jsoup.Jsoup;
@@ -188,12 +189,12 @@ public class NotificationMail extends Model {
                 Lang lang = Lang.apply(langCode);
 
                 String message = event.getMessage(lang);
-                String urlToView = Url.create(event.getUrlToView());
+                String urlToView = event.getUrlToView();
                 String reference = Url.removeFragment(event.getUrlToView());
 
                 email.setSubject(event.title);
                 email.setHtmlMsg(getHtmlMessage(lang, message, urlToView, event.getResource()));
-                email.setTextMsg(getPlainMessage(lang, message, urlToView));
+                email.setTextMsg(getPlainMessage(lang, message, Url.create(urlToView)));
                 email.setCharset("utf-8");
                 email.addHeader("References", "<" + reference + "@" + Config.getHostname() + ">");
                 email.setSentDate(event.created);
@@ -222,18 +223,43 @@ public class NotificationMail extends Model {
         return views.html.common.notificationMail.render(lang, message, urlToView, resource).toString();
     }
 
-    private static void handleLinks(Document doc){
+    /**
+     * Make every link to be absolute and to have 'rel=noreferrer' if
+     * necessary.
+     */
+    public static void handleLinks(Document doc){
+        String hostname = Config.getHostname();
         String[] attrNames = {"src", "href"};
+        Boolean noreferrer =
+            play.Configuration.root().getBoolean("application.noreferrer");
+
         for (String attrName : attrNames) {
             Elements tags = doc.select("*[" + attrName + "]");
             for (Element tag : tags) {
-                String uri = tag.attr(attrName);
+                boolean isNoreferrerRequired = false;
+                String uriString = tag.attr(attrName);
+
+                if (noreferrer && attrName.equals("href")) {
+                    isNoreferrerRequired = true;
+                }
+
                 try {
-                    if (!new URI(uri).isAbsolute()) {
-                        tag.attr(attrName, Url.create(uri));
+                    URI uri = new URI(uriString);
+
+                    if (!uri.isAbsolute()) {
+                        tag.attr(attrName, Url.create(uriString));
+                    }
+
+                    if (uri.getHost() == null || uri.getHost().equals(hostname)) {
+                        isNoreferrerRequired = false;
                     }
                 } catch (URISyntaxException e) {
-                    play.Logger.info("A malformed URI is ignored", e);
+                    play.Logger.info("A malformed URI is detected while" +
+                            " checking an email to send", e);
+                }
+
+                if (isNoreferrerRequired) {
+                    tag.attr("rel", tag.attr("rel") + " noreferrer");
                 }
             }
         }
