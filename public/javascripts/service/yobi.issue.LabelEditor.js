@@ -247,7 +247,7 @@
          * @private
          */
         function _requestAddLabel(requestData){
-            if(_isLabelExists(requestData.category, requestData.name)){
+            if(_isLabelExists(requestData.categoryName, requestData.labelName)){
                 $yobi.alert(Messages("label.error.duplicated"));
                 return false;
             }
@@ -643,6 +643,14 @@
                 "category.id": elements.editLabelCategory.val()
             };
 
+            // Check is label with same name exists on new category
+            var categoryName = elements.editLabelCategory.data("select2").data().text;
+
+            if(_isLabelExists(categoryName, requestData.name)){
+                _popoverMessageOn(Messages("label.error.duplicated.in.category", categoryName), elements.editLabelName);
+                return false;
+            }
+
             yobi.ui.Spinner.show();
 
             $.ajax(elements.editLabelForm.data("updateUri"), {
@@ -700,6 +708,20 @@
             _updateInputBySelectedColor(elements.editLabelName,
                                         elements.editLabelColor,
                                         elements.editLabelColor.val());
+        }
+
+        /**
+         * Show {@code message} bottom of {@code element}
+         *
+         * @param message
+         * @param element
+         * @private
+         */
+        function _popoverMessageOn(message, element){
+            element.popover({
+                "placement": "bottom",
+                "content"  : message
+            }).popover("show");
         }
 
         _init(options || {});
