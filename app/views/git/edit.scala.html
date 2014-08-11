@@ -127,11 +127,11 @@
 <script type="text/javascript">
 $(function(){
     $yobi.loadModule("git.Write", {
-        "sMergeResultURL": "@routes.PullRequestApp.mergeResult(project.owner, project.name)",
-        "welFromProject" : $("#fromProjectId"),
-        "welToProject"   : $("#toProjectId"),
-        "welFromBranch"  : $("#fromBranch"),
-        "welToBranch"    : $("#toBranch")
+        "mergeResultURL": "@routes.PullRequestApp.mergeResult(project.owner, project.name)",
+        "fromProject" : $("#fromProjectId"),
+        "toProject"   : $("#toProjectId"),
+        "fromBranch"  : $("#fromBranch"),
+        "toBranch"    : $("#toBranch")
     });
 
     // yobi.Mention
