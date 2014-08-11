@@ -50,6 +50,7 @@
         function _initVar(htOptions){
             htVar.sDefaultButton = '<button type="button" class="ybtn ybtn-info" data-dismiss="modal">' + Messages("button.confirm") + '</button>';
             htVar.sTplCustomButton = '<button type="button" class="ybtn ${class}">${text}</button>';
+            htVar.bAutoFocusOnLastButton = (typeof htOptions.bAutoFocusOnLastButton !== "undefined") ? htOptions.bAutoFocusOnLastButton : true;
         }
 
         /**
@@ -135,6 +136,10 @@
         function _onShownDialog(){
             if(typeof htVar.fOnAfterShow == "function"){
                 htVar.fOnAfterShow();
+            }
+
+            if(htVar.bAutoFocusOnLastButton){
+                htElement.welButtons.find(".ybtn-primary:last,button:last").focus();
             }
         }
 
