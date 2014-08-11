@@ -32,11 +32,17 @@
 
 @if(urlToView != null){
 <a href="@urlToView" target="_blank">
-  @Messages("notification.linkToView", utils.Config.getSiteName())
+  @Messages("notification.linkToView", utils.Config.getSiteName())(userLanguage)
 </a>
 }
 
 <div style="max-width:410px;margin-top:20px;color:#989898;text-align:justify;word-break:break-all;font-size:11px;font-family:'Helvetica Neue','Helvetica','Arial','나눔고딕','NanumGothic','NanumGothicOTF','Apple SD Gothic Neo','맑은 고딕',sans-serif;">
-  @Html(Messages("notification.off.unwatch", getFooterLinkHTML(routes.WatchApp.unwatch(resource.asParameter).toString, Messages("notification.unwatch"))))<br>
-  @Html(Messages("notification.off.settings", getFooterLinkHTML(routes.UserApp.editUserInfoByTabForm("notifications").toString, Messages("userinfo.changeNotifications"))))
+  @Html(Messages("notification.off.unwatch",
+                  getFooterLinkHTML(routes.WatchApp.unwatch(resource.asParameter).toString,
+                                    Messages("notification.unwatch")(userLanguage))
+                )(userLanguage))<br>
+  @Html(Messages("notification.off.settings",
+                 getFooterLinkHTML(routes.UserApp.editUserInfoByTabForm("notifications").toString,
+                                   Messages("userinfo.changeNotifications")(userLanguage))
+                )(userLanguage))
 </div>
