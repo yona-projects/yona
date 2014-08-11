@@ -1,0 +1,106 @@
+Yobi v0.6.0 Release Notes
+=========================
+
+Backward compatibility notes
+----------------------------
+
+We recommend you to change the log levels to follow the changes of our default
+log level as follows(66e9224, 0ee3bf6):
+
+    play: DEBUG -> WARNING
+    application: DEBUG -> WARNING
+    access: DEBUG -> INFO
+    mail: DEBUG -> INFO
+    info.schleichardt.play2.mail: DEBUG -> WARNING
+
+Future versions of Yobi may produce huge amount of log messages if log level is
+DEBUG.
+
+Updates since v0.5.7
+--------------------
+
+New Features and Enhancements
+
+* Users can search the entire of issues, postings, users, milestones, comments
+  and reviews. (9ff8580)
+* Yobi notifies software update if available. (3bfc204)
+* Project administrators can hide unnecessary project menu items. (67a21e7)
+* Every comment has Agree button. (75484d6)
+* Project administrators can change VCS type (Git or SVN) for their projects.
+  (e55b9d4)
+* README is editable on Web. (2cae128)
+* Issues can have a duedate(134d039) and be sorted by duedate(f1359eb).
+* Miletone page has a input box to filter issues. (62780c2)
+* Project members can configure whether a issue-label category allows issues
+  have multiple labels of the category or not. (a7216b6, 9243ee6)
+* Group admins and members are assignable to issues of projects belong to the
+  group. (b651a3a)
+* Users can leave a group. (5496d11)
+* Users can login by using email address not only login id. (6789532)
+
+UI/UX
+
+* Notification Mails look better. (78b2db1)
+* PullRequest: Dropdown list for senders look better. (2bf828b)
+* New Project form looks better. (fd252cd)
+* Commit View: Commit Date column becomes wider. (bdeee6e)
+* Code View: Branches becomes wider and Latest Commit becomes narrower.
+  (f575d85)
+* PullRequest: Merge commit message contains list of merged commits and
+  reviewer's name and email. (8acb099)
+* Displays "Loading..." while rendering markdown text. (70b09ac)
+* Applys select2 to the dropdown lists for branches (a626d7f)
+* Shows the author's info above content body. (47b40b8)
+* Project dashboard looks better. (cb27f96)
+* Attachment list and download button looks better. (399cb9c)
+* Autocomplete list for mentioning user contains the user who is mentioning.
+  (ab127e8)
+* Displays commit message and id in fixed font. (63bb1e1)
+* Comment threads display their comment form. (bdf9ef6)
+* The width of column for branches becomes wider. (8c451b7)
+* Sort project members and issue authors by name. (e7bf0da)
+* The Yobi guide on Site home is updated. (3d71e6f)
+* Issue label editor looks better. (60ebf00)
+
+Performance
+
+* Attachment: HTTP cache is allowed. (3cd2d6e)
+* PullRequest: Merging becomes faster. (e3b7295)
+* Almost of requests may be faster; We removed a synchronized block. (518c5da)
+* Running unittests becomes much faster. (dbbd3fe)
+
+Etc
+
+* JGit has been upgraded to v3.1.0 to v3.4.0. This upgrade fixes an exception
+  on conflicts with recursive merge and slow delta compression. (cfa8fb0)
+
+Fixes since v0.5.7
+------------------
+
+* In Commit View, new comment not on a specific range of code wasn't combined
+  into a existing thread. (99847d4)
+* Fix possible optimistic-lock exception while saving an issue or a posting.
+  (25733ba)
+* Some messages missed single qutoation marks. (870a951)
+* A flash error message for oversize project logo was incorrect. (13e3fe0)
+* SVN commits could not be commented. (24a6ecb)
+* 403 error message for Git client displayed user's name which can be broken if
+  client does not support UTF-8. (18b5b6b)
+* Starting New Project by Importing Git Repository worked incorrectly if
+  authentication is required. (3d7dfe3)
+* Assignee dropdown displayed assignees incorrectly. (949bf4e)
+* Strangely a project could be transfered to a group which owns the project and
+  some projects have incorrect organization_id. (6de171d)
+* Some old issues could not be autocompleted. (0bfaf8b)
+* PullRequest: Title and body input was not filled automatically. (9546044)
+* Avatars and number of members of a private or protected project were not
+  displayed if the user has the proper permission. (fa87e03)
+* PullRequest: Merge never stopped if commit message is longer than 2,000
+  bytes. (d5594dc)
+* Updating Yobi overwrote conf/application-logger.xml. (66e9224)
+* If application.context is configured, autolink to an issue(2b70f80) and url
+  to a repository(4afde6) was incorrect and SVN repositories cannot be
+  accessed(00f33d2).
+* In Send Email page, the email address of sender included a duplicated domain
+  part if smtp.username includes a domain part (117d9e8)
+* Milesontes cannot be sorted by date in Closed tab. (9018993)
