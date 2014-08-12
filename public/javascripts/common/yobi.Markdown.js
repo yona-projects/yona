@@ -191,7 +191,7 @@ yobi.Markdown = (function(htOptions){
             sRef = [htVar.sApplicationContext, target.projectGroup, 'commit' , target.sha1].join("/");
             sTitle = [target.projectGroup, '@', target.sha1.slice(0,7)].join("");
         } else if (target.mention) {
-            sRef = target.mention;
+            sRef = [htVar.sApplicationContext, target.mention].join("/");
             sTitle = target.match;
         } else {
             return target.match;
