@@ -150,6 +150,7 @@ common.editor.preview = 미리보기
 common.experimental = 실험적인 기능
 common.experimental.description = 이 기능은 아직 개발 진행 중으로 언제든지 변경되거나 개발 중단될 수 있습니다.<br>너그러운 마음으로 응원해주세요.
 common.experimental.title = 실험적인 기능: 새롭게 개발 중인 기능을 선보입니다
+common.loading = 불러오는 중
 common.none = 없음
 common.noAuthor = 작성자 없음
 common.order.all = 전체
