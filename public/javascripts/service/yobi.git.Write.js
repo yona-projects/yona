@@ -167,10 +167,10 @@
             var data = {
                 "cssClass"    : "alert-info",
                 "message"     : Messages("pullRequest.diff.noChanges"),
-                "isConflict"  : (container.data("conflict") === "true"),
-                "numOfCommits": parseInt(container.data("commits"), 10),
-                "title"       : container.data("pullrequestTitle"),
-                "body"        : container.data("pullrequestBody")
+                "isConflict"  : (container.attr("data-conflict") === "true"),
+                "numOfCommits": parseInt(container.attr("data-commits"), 10),
+                "title"       : container.attr("data-pullrequestTitle"),
+                "body"        : container.attr("data-pullrequestBody")
             };
 
             if(data.numOfCommits > 0){
