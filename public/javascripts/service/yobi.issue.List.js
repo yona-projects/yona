@@ -243,19 +243,6 @@
                 $('[data-toggle="select2"]').each(function(i, el){
                     yobi.ui.Select2(el);
                 });
-
-                _restoreLabelsSelect2AfterPJAX();
-            }
-        }
-
-        function _restoreLabelsSelect2AfterPJAX(){
-            var activeSelect2Dropdown = $(".select2-drop.select2-drop-active:visible");
-            var isIssueLabelDropdownOpened = activeSelect2Dropdown.hasClass("issue-labels");
-
-            activeSelect2Dropdown.remove();
-
-            if(isIssueLabelDropdownOpened){
-                $("[name=labelIds]").data("select2").open();
             }
         }
 

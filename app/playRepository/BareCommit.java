@@ -122,20 +122,33 @@ public class BareCommit {
     private TreeFormatter rebuildExistingTreeWith(String fileName, ObjectId fileObjectId) throws IOException {
         TreeFormatter formatter = new TreeFormatter();
         CanonicalTreeParser treeParser = getCanonicalTreeParser(this.repository);
-        boolean isAlreadyExist = false;
+
+        boolean isInsertedInTree = false;
         while(!treeParser.eof()){
             String entryName = new String(treeParser.getEntryPathBuffer(), 0, treeParser.getEntryPathLength());
-            if (entryName.equals(fileName)){
+            String nameForComparison = entryName;
+
+            if (treeParser.getEntryFileMode() == FileMode.TREE){
+                nameForComparison = entryName.concat("/"); //for tree ordering comparison
+            }
+            if (nameForComparison.compareTo(fileName) == 0 && isInsertedInTree == false){
                 formatter.append(fileName, FileMode.REGULAR_FILE, fileObjectId);
-                isAlreadyExist = true;
+                isInsertedInTree = true;
+            } else if (nameForComparison.compareTo(fileName) > 0 && isInsertedInTree == false) {
+                formatter.append(fileName, FileMode.REGULAR_FILE, fileObjectId);
+                formatter.append(entryName.getBytes()
+                        , treeParser.getEntryFileMode()
+                        , treeParser.getEntryObjectId());
+                isInsertedInTree = true;
             } else {
                 formatter.append(entryName.getBytes()
                         , treeParser.getEntryFileMode()
                         , treeParser.getEntryObjectId());
             }
+
             treeParser = treeParser.next();
         }
-        if(!isAlreadyExist){
+        if(!isInsertedInTree){
             formatter.append(fileName, FileMode.REGULAR_FILE, fileObjectId);
         }
         return formatter;

@@ -20,7 +20,8 @@
 **@
 @(section:String, project:Project)(implicit request: play.api.mvc.RequestHeader)
 
-@ctrl = @{if(request.headers.get("User-Agent").getOrElse("").contains("Macintosh")){"⌘"}else{"CTRL"}}
+@isMac = @{request.headers.get("User-Agent").getOrElse("").contains("Macintosh")}
+@ctrl = @{if(isMac){"⌘"}else{"CTRL"}}
 
 <div class="pull-right" style="padding:10px 0;">
     <a href="#helpKeys" data-toggle="modal" class="ybtn ybtn-inverse ybtn-mini">
@@ -105,6 +106,9 @@
                         <span class="ybtn ybtn-small">P</span>
                         <span class="help-inline">@Messages("userinfo.profile")</span><br>
 
+                        @if(isMac){
+                        <span class="ybtn ybtn-small">CTRL</span> +
+                        }
                         <span class="ybtn ybtn-small">ALT</span> + <span class="ybtn ybtn-small">S</span>
                         <span class="help-inline">@Messages("site.search")</span><br>
 

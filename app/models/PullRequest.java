@@ -663,10 +663,11 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     public PullRequestMergeResult attemptMerge() {
-        final GitConflicts[] conflicts = {null};
+        final PullRequestMergeResult pullRequestMergeResult = new PullRequestMergeResult();
         final List<GitCommit> commits = new ArrayList<>();
         final PullRequest pullRequest = this;
 
+        pullRequestMergeResult.setPullRequest(pullRequest);
         GitRepository.cloneAndFetch(pullRequest, new AfterCloneAndFetchOperation() {
             @Override
             public void invoke(CloneAndFetch cloneAndFetch) throws IOException, GitAPIException {
@@ -678,6 +679,7 @@ public class PullRequest extends Model implements ResourceConvertible {
                 for (GitCommit gitCommit : commitList) {
                     commits.add(gitCommit);
                 }
+                pullRequestMergeResult.setGitCommits(commits);
 
                 String mergedCommitIdFrom = clonedRepository
                         .getRef(org.eclipse.jgit.lib.Constants.HEAD).getObjectId().getName();
@@ -685,20 +687,16 @@ public class PullRequest extends Model implements ResourceConvertible {
                         cloneAndFetch.getDestFromBranchName());
 
                 if (mergeResult.getMergeStatus() == MergeResult.MergeStatus.CONFLICTING) {
-                    conflicts[0] = new GitConflicts(clonedRepository, mergeResult);
+                    pullRequestMergeResult.setGitConflicts(new GitConflicts(clonedRepository, mergeResult));
+                    pullRequestMergeResult.setConflictStateOfPullRequest();
                 } else if (mergeResult.getMergeStatus().isSuccessful()) {
                     String mergedCommitIdTo = mergeResult.getNewHead().getName();
                     pullRequest.mergedCommitIdFrom = mergedCommitIdFrom;
                     pullRequest.mergedCommitIdTo = mergedCommitIdTo;
+                    pullRequestMergeResult.setResolvedStateOfPullRequest();
                 }
             }
         });
-
-        PullRequestMergeResult pullRequestMergeResult = new PullRequestMergeResult();
-        pullRequestMergeResult.setGitCommits(commits);
-        pullRequestMergeResult.setGitConflicts(conflicts[0]);
-        pullRequestMergeResult.setPullRequest(pullRequest);
-
         return pullRequestMergeResult;
     }
 

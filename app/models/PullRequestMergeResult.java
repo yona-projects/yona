@@ -58,10 +58,10 @@ public class PullRequestMergeResult {
         return this.gitCommits.size() > 0;
     }
     public boolean resolved() {
-        return this.gitConflicts == null && pullRequest.isConflict;
+        return this.gitConflicts == null && !pullRequest.isConflict;
     }
     public boolean conflicts() {
-        return this.gitConflicts != null && !pullRequest.isConflict;
+        return this.gitConflicts != null && pullRequest.isConflict;
     }
     public List<PullRequestCommit> getNewCommits() {
         return newCommits;

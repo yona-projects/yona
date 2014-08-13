@@ -102,7 +102,7 @@
                 padding:10px;
                 float: none;
                 line-height: 40px;
-                color:#788ba7;
+                color:#a2a2a2;
                 text-decoration: none;
                 .transition(color 0.15s);
 
@@ -4952,6 +4952,8 @@ label.issue-item-row {
     white-space:nowrap;
     text-align:left;
     font-size:12px;
+    width:640px;
+    margin-left:-320px;
 
     .ybtn {
         min-width:20px;
@@ -5470,7 +5472,10 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         border: none;
         .box-shadow(none);
 
-        .thread-header, .thread-actrow, .comments {
+        .thread-header,
+        .thread-actrow,
+        .comments,
+        .write-comment-form {
             display:none;
         }
         .btn-thread-here {
