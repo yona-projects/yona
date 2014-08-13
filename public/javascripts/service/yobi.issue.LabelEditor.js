@@ -645,8 +645,10 @@
 
             // Check is label with same name exists on new category
             var categoryName = elements.editLabelCategory.data("select2").data().text;
+            var initialLabelName = elements.editLabelForm.data("labelName");
+            var isLabelNameChanged = (requestData.name !== initialLabelName);
 
-            if(_isLabelExists(categoryName, requestData.name)){
+            if(isLabelNameChanged && _isLabelExists(categoryName, requestData.name)){
                 _popoverMessageOn(Messages("label.error.duplicated.in.category", categoryName), elements.editLabelName);
                 return false;
             }
