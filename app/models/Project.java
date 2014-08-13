@@ -313,7 +313,7 @@ public class Project extends Model implements LabelOwner {
     }
 
     private Long getLastIssueNumber() {
-        if (isLastPostingNumberCorrect()) {
+        if (isLastIssueNumberCorrect()) {
             return lastIssueNumber;
         }
 
