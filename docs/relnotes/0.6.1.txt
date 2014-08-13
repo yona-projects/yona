@@ -1,0 +1,30 @@
+Yobi v0.6.1 Release Notes
+=========================
+
+Updates since v0.6.0
+--------------------
+
+* Stripe style is removed in milestone progressbar. (498f0cf)
+* The loading message of markdown is displayed in the user's preferred
+  language. (091535c)
+* The text color of global navigation bar is changed. (f005e73)
+* Close select boxes after choosing issue label. (0de1cb6)
+
+Fixes since v0.6.0
+------------------
+
+* Pullrequest could not be modified. (226b201)
+* Some pullrequests could not be merged. (f892d65)
+* Some shortcut key was incorrect on OSX. (37e245f)
+* The padding of markdown-rendered list was incorrect. (091535c)
+* The footer of email was displayed not in the user's preferred
+  language but in the language of the system. (1747c29)
+* Autolink works incorrectly if application.context is set. (25f1ab1)
+* Color of an issue label cannot be changed. (0c64212)
+* Review Comment form was not disappeared after closing the review thread.
+  (84ce661)
+* Search box was broken if screen width is same with or narrower than 1024px.
+  (ee1a07b)
+* An error might occur when post a new issue. (4707ba4)
+* In Code Browser, an error might occur when tries to display a README file
+  created by Yobi. (63a6e68)
