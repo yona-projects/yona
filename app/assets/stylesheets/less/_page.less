@@ -2014,10 +2014,7 @@ label.inline-list {
 
 .milestone-info {
     margin:10px 0;
-    /*border: 2px solid #DADADA;*/
     background-color: #fff;
-    /*border-radius: 5px;
-    box-shadow: 1px 1px #999;*/
     padding: 4px;
 
     .progress {
@@ -2032,8 +2029,11 @@ label.inline-list {
     .meta-info {
         margin:5px;
         .title    { font-size:12px; font-weight:bold; }
-        .sp       { margin: 0 5px; color:#E4E4E4; }
-        .due-date { color: #666; /*999;*/ }
+        .due-date {
+            color: #666;
+            &.over { color:@primary; }
+            .date  { font-size:11px; }
+        }
     }
     .progress-wrap {
         overflow: hidden;
@@ -2047,6 +2047,22 @@ label.inline-list {
         background-color: #EBEBEB;
         border-top:1px solid #D3D3D3;
         .border-radius(2px);
+    }
+}
+.issue-option {
+    .milestone-info .meta-info {
+        margin:5px 0;
+        .due-date { display:block; }
+    }
+}
+.project-home {
+    .milestone-info {
+        .meta-info {
+            .due-date {
+                display: block;
+            }
+        }
+        .progress-wrap { margin:0 5px; }
     }
 }
 
@@ -3261,21 +3277,22 @@ div.markdown-preview {
 }
 
 .issue-option {
-       width:100%;
-       margin-bottom:16px !important;
+    width:100%;
+    margin-bottom:16px !important;
 
-       dt { margin-bottom:5px; }
-       dd {
-           margin:0;
-           .btn-group { width:100%; }
-           select {
-             width: 100%;
-           }
-       }
-       span {
-           &.over { color:#f36c22; }
-       }
+    dt { margin-bottom:5px; }
+    dd {
+        margin:0;
+        .btn-group { width:100%; }
+        select {
+          width: 100%;
+        }
+    }
+    span {
+        &.over { color:#f36c22 !important; }
+    }
 }
+
 .label-editor {
     padding-top:10px;
     border-top:1px solid #ddd;
