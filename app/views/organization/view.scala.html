@@ -67,7 +67,7 @@
                     </div>
                 </div>
                 <ul class="all-projects">
-                    @for(project <- org.getVisiableProjects(UserApp.currentUser())) {
+                    @for(project <- org.getVisibleProjects(UserApp.currentUser())) {
                     <li class="project" data-item="project-item" data-value="@project.name @project.overview">
                         <div class="info-wrap">
                             <div class="owner-avatar-wrap">
