@@ -1,0 +1,13 @@
+Yobi v0.6.2 Release Notes
+=========================
+
+Fixes since v0.6.1
+------------------
+
+* A server error might occur when send a pullrequest to a repository which has
+  a symlink. (3d46616)
+* When send a pullrequest, its body and title is not filled automatically.
+  (bf104ca)
+* The width of the right pane of an issue was changed occasionally. (d783e76)
+* A server error occured when users try to choose two or more issue labels in
+  a exclusive category while updating an issue. (8617bf1)
