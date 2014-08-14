@@ -139,6 +139,11 @@ public class AttachmentApp extends Controller {
 
         File file = attachment.getFile();
 
+        if(file != null && !file.exists()){
+            Logger.error("Attachment ID:" + id + " (" + file.getAbsolutePath() + ") does not exist on storage");
+            return internalServerError("The file does not exist");
+        }
+
         String filename = HttpUtil.encodeContentDisposition(attachment.name);
 
         response().setHeader("Content-Type", attachment.mimeType);
