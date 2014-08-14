@@ -263,14 +263,14 @@ public class OrganizationApp extends Controller {
         ValidationResult result = validateForLeave(organizationName);
 
         if (!result.hasError()) {
-            OrganizationUser.delete(Organization.findByOrganizationName(organizationName).id, UserApp.currentUser().id);
+            OrganizationUser.delete(Organization.findByName(organizationName).id, UserApp.currentUser().id);
         }
 
         return result.getResult();
     }
 
     public static ValidationResult validateForLeave(String organizationName) {
-        Organization organization = Organization.findByOrganizationName(organizationName);
+        Organization organization = Organization.findByName(organizationName);
 
         if (organization == null) {
             return new ValidationResult(notFound(getJsonErrorMsg("organization.member.unknownOrganization")), true);
