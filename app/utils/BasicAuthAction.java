@@ -34,7 +34,6 @@ import play.mvc.Http.Response;
 import play.mvc.Result;
 
 public class BasicAuthAction extends Action<Object> {
-    private boolean isAnonymousSupported = true; // configuration is not available yet.
     private static final String REALM = "Yobi";
 
     public static Result unauthorized(Response response) {
@@ -112,11 +111,7 @@ public class BasicAuthAction extends Action<Object> {
                     , null);
         }
 
-        if (user.isAnonymous()) {
-            if (!isAnonymousSupported) {
-                return AccessLogger.log(context.request(), unauthorized(context.response()), null);
-            }
-        } else {
+        if (!user.isAnonymous()) {
             UserApp.addUserInfoToSession(user);
         }
 

@@ -6,6 +6,11 @@
 # The name of your website
 application.siteName="Yobi"
 
+# Anonymous access
+# ~~~~~~~~~~~~~~~~
+# This site allows anonymous access. (default: true)
+application.allowsAnonymousAccess=true
+
 # Notification
 # ~~~~~
 # Notfication email is delivered by default.
