@@ -152,7 +152,8 @@
           </div>
         </div>
         <div class="diff-partial-file">
-          <span class="filename">@fileHeader</span>
+          <span class="filename" title="@fileHeader">@if(StringUtils.isNotEmpty(diff.pathA)){--- @diff.pathA}</span>
+          @if(StringUtils.isNotEmpty(diff.pathB)){<span class="pathB">+++ @diff.pathB</span>}
         </div>
       </div>
       <div class="diff-partial-code" data-hashcode="@diff.hashCode">
