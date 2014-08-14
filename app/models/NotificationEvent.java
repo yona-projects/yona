@@ -47,6 +47,7 @@ import javax.naming.LimitExceededException;
 import javax.persistence.*;
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -54,6 +55,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.net.URLEncoder;
 
 import static models.enumeration.EventType.*;
 
@@ -662,7 +664,8 @@ public class NotificationEvent extends Model {
         StringBuilder result = new StringBuilder();
 
         if(commits.size() > 0) {
-            result.append("New Commits: \n");
+            result.append("### " + Messages.get("notification.pushed.newcommits") + "\n");
+            result.append("```\n");
             for(RevCommit commit : commits) {
                 GitCommit gitCommit = new GitCommit(commit);
                 result.append(gitCommit.getShortId());
@@ -670,12 +673,18 @@ public class NotificationEvent extends Model {
                 result.append(gitCommit.getShortMessage());
                 result.append("\n");
             }
+            result.append("```\n\n");
         }
 
         if(refNames.size() > 0) {
-            result.append("Branches: \n");
+            result.append("### " + Messages.get("notification.pushed.branches") + "\n");
+
             for(String refName: refNames) {
-                result.append(refName);
+                try {
+                    result.append("[" + refName + "](" + routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(refName, "UTF-8"), "") + ")");
+                } catch(UnsupportedEncodingException e){
+                    result.append(refName);
+                }
                 result.append("\n");
             }
         }
