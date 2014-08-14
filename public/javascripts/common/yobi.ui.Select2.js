@@ -153,10 +153,75 @@
             }
         };
 
+        // Custom behaviors
+        var behaviors = {
+            "issuelabel": function(select2Element){
+                select2Element.on({
+                    "select2-selecting": _onSelectingIssueLabel,
+                    "select2-open"     : _onOpenIssueLabel
+                });
+
+                function _onSelectingIssueLabel(evt){
+                    var data = [evt.object];
+                    var element = $(evt.object.element);
+                    var select2Object = $(evt.target).data("select2");
+
+                    // Remove label which category is same with selected label from current data
+                    // if selected label belonged exclusive category
+                    if(element.data("categoryIsExclusive")){
+                        var filtered = _filterLabelInSameCategory(evt.object, select2Object.data());
+                        data = data.concat(filtered);
+                    } else {
+                        data = data.concat(select2Object.data());
+                    }
+
+                    _rememberLastScrollTop();
+
+                    // Set data as filtered
+                    // and trigger "change" event
+                    select2Object.data(data, true);
+
+                    if(select2Object.opts.closeOnSelect !== false){
+                        select2Object.close();
+                    }
+
+                    evt.preventDefault();
+                    return false;
+                }
+
+                function _filterLabelInSameCategory(label, currentData){
+                    var categoryId = $(label.element).data("categoryId");
+
+                    return currentData.filter(function(data){
+                        return (categoryId !== $(data.element).data("categoryId"));
+                    });
+                }
+
+                function _rememberLastScrollTop(){
+                    var lastScrollTop = $("#select2-drop").find(".select2-results").scrollTop();
+                    select2Element.data("lastScrollTop", lastScrollTop);
+                }
+
+                function _restoreLastScrollTop(){
+                    var lastScrollTop = select2Element.data("lastScrollTop");
+
+                    if(lastScrollTop){
+                        $("#select2-drop").find(".select2-results").scrollTop(lastScrollTop);
+                        select2Element.data("lastScrollTop", null);
+                    }
+                }
+
+                function _onOpenIssueLabel(){
+                    _restoreLastScrollTop();
+                }
+            }
+        };
+
         // Use customized format if specified format exists
         var formatName = targetElement.data("format");
         var formatter = formatName ? formatters[formatName.toLowerCase()] : null;
         var matcher   = formatName ? matchers[formatName.toLowerCase()]   : null;
+        var behavior  = formatName ? behaviors[formatName.toLowerCase()]  : null;
 
         if(typeof formatter === "function"){
             select2Option = $.extend(select2Option, {
@@ -167,6 +232,10 @@
 
         if(typeof matcher === "function"){
             select2Option.matcher = matcher;
+        }
+
+        if(typeof behavior === "function"){
+            behavior(targetElement);
         }
 
         $(document).on("mousewheel", ".select2-results", _stopScrollOnBothEnds);
