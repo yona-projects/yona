@@ -169,8 +169,8 @@
                 "message"     : Messages("pullRequest.diff.noChanges"),
                 "isConflict"  : (container.attr("data-conflict") === "true"),
                 "numOfCommits": parseInt(container.attr("data-commits"), 10),
-                "title"       : container.attr("data-pullrequestTitle"),
-                "body"        : container.attr("data-pullrequestBody")
+                "title"       : container.attr("data-pullrequest-title"),
+                "body"        : container.attr("data-pullrequest-body")
             };
 
             if(data.numOfCommits > 0){
