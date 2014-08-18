@@ -24,11 +24,11 @@ import controllers.annotation.AnonymousCheck;
 import models.enumeration.Operation;
 import models.resource.Resource;
 import play.db.ebean.Transactional;
-import play.mvc.Result;
 import play.mvc.Controller;
+import play.mvc.Result;
 import utils.AccessControl;
 
-import static models.enumeration.ResourceType.*;
+import static models.enumeration.ResourceType.getValue;
 
 @AnonymousCheck
 public class CommentApp extends Controller {

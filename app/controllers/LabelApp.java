@@ -33,7 +33,7 @@ import play.mvc.Result;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.avaje.ebean.Expr.*;
+import static com.avaje.ebean.Expr.icontains;
 import static play.libs.Json.toJson;
 
 @AnonymousCheck

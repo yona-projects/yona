@@ -35,10 +35,8 @@ import models.Attachment;
 import models.User;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
-
-import org.codehaus.jackson.JsonNode;
-
 import org.apache.commons.lang3.StringUtils;
+import org.codehaus.jackson.JsonNode;
 import play.Configuration;
 import play.Logger;
 import play.mvc.Controller;

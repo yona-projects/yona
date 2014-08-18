@@ -20,7 +20,6 @@
  */
 package controllers;
 
-import java.util.List;
 
 import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
@@ -33,8 +32,10 @@ import playRepository.FileDiff;
 import playRepository.PlayRepository;
 import playRepository.RepositoryService;
 import utils.ErrorViews;
-import views.html.code.compare_svn;
 import views.html.code.compare;
+import views.html.code.compare_svn;
+
+import java.util.List;
 
 @AnonymousCheck
 public class CompareApp extends Controller {

@@ -20,16 +20,13 @@
  */
 package controllers;
 
-import controllers.annotation.IsAllowed;
 import controllers.annotation.AnonymousCheck;
-import models.Organization;
-import models.User;
+import models.*;
 import models.enumeration.Operation;
-
 import models.enumeration.RequestState;
+import models.enumeration.RoleType;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ObjectNode;
-
 import play.data.Form;
 import play.data.validation.Validation;
 import play.db.ebean.Transactional;
@@ -37,20 +34,16 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
-import play.mvc.With;
 import utils.AccessControl;
 import utils.Constants;
 import utils.ErrorViews;
-import models.*;
-import models.enumeration.RoleType;
 import utils.ValidationResult;
 import views.html.organization.create;
 import views.html.organization.members;
-import views.html.organization.view;
 import views.html.organization.setting;
+import views.html.organization.view;
 
 import javax.validation.ConstraintViolation;
-
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;

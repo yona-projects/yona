@@ -20,18 +20,17 @@
  */
 package utils;
 
-import java.io.UnsupportedEncodingException;
-
-import org.apache.commons.codec.binary.Base64;
-
 import controllers.UserApp;
 import models.User;
+import org.apache.commons.codec.binary.Base64;
 import play.mvc.Action;
 import play.mvc.Http;
 import play.mvc.Http.Context;
 import play.mvc.Http.Request;
 import play.mvc.Http.Response;
 import play.mvc.Result;
+
+import java.io.UnsupportedEncodingException;
 
 public class BasicAuthAction extends Action<Object> {
     private static final String REALM = "Yobi";

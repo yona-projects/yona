@@ -36,7 +36,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.tmatesoft.svn.core.SVNException;
-
 import play.api.mvc.Call;
 import play.data.Form;
 import play.db.ebean.Transactional;
@@ -46,7 +45,9 @@ import play.libs.F.Promise;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
-import playRepository.*;
+import playRepository.GitBranch;
+import playRepository.GitRepository;
+import playRepository.RepositoryService;
 import utils.*;
 import views.html.git.*;
 import views.html.error.notfound;

@@ -21,7 +21,6 @@
 package controllers;
 
 import actions.DefaultProjectCheckAction;
-
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Junction;
 import com.avaje.ebean.Page;
@@ -30,12 +29,7 @@ import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import info.schleichardt.play2.mailplugin.Mailer;
 import models.*;
-import models.enumeration.Operation;
-import models.enumeration.ProjectScope;
-import models.enumeration.RequestState;
-import models.enumeration.ResourceType;
-import models.enumeration.RoleType;
-
+import models.enumeration.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -44,23 +38,20 @@ import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.tmatesoft.svn.core.SVNException;
-
 import play.Logger;
 import play.data.Form;
+import play.data.validation.Constraints.PatternValidator;
 import play.data.validation.ValidationError;
 import play.db.ebean.Transactional;
 import play.i18n.Messages;
 import play.libs.Json;
-import play.mvc.Controller;
-import play.mvc.Http;
+import play.mvc.*;
 import play.mvc.Http.MultipartFormData.FilePart;
-import play.mvc.Result;
 import playRepository.Commit;
 import playRepository.PlayRepository;
 import playRepository.RepositoryService;
 import scala.reflect.io.FileOperationException;
 import utils.*;
-import play.data.validation.Constraints.PatternValidator;
 import validation.ExConstraints.RestrictedValidator;
 import views.html.project.create;
 import views.html.project.delete;
@@ -70,7 +61,6 @@ import views.html.project.transfer;
 import views.html.project.change_vcs;
 
 import javax.servlet.ServletException;
-
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;

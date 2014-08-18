@@ -40,17 +40,14 @@ import play.data.validation.ValidationError;
 import play.db.ebean.Transactional;
 import play.i18n.Messages;
 import play.libs.Json;
-import play.mvc.Call;
-import play.mvc.Http;
-import play.mvc.Result;
-import play.mvc.With;
+import play.mvc.*;
 import utils.*;
 import views.html.issue.*;
 
 import java.io.IOException;
-import java.util.*;
-
-import utils.HttpUtil;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 @AnonymousCheck
 public class IssueApp extends AbstractPostingApp {

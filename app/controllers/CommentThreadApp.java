@@ -22,8 +22,8 @@ package controllers;
 
 import controllers.annotation.AnonymousCheck;
 import models.CommentThread;
-import models.enumeration.Operation;
 import models.NotificationEvent;
+import models.enumeration.Operation;
 import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Result;
