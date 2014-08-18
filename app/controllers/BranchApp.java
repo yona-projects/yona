@@ -20,6 +20,7 @@
  */
 package controllers;
 
+import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import controllers.annotation.IsOnlyGitAvailable;
 import models.Project;
@@ -41,6 +42,7 @@ import java.util.List;
  * @author Keesun Baik
  */
 @IsOnlyGitAvailable
+@AnonymousCheck
 public class BranchApp extends Controller {
 
     @IsAllowed(Operation.READ)

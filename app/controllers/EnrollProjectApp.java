@@ -20,8 +20,8 @@
  */
 package controllers;
 
-import actions.AnonymousCheckAction;
 import actions.DefaultProjectCheckAction;
+import controllers.annotation.AnonymousCheck;
 import models.NotificationEvent;
 import models.Project;
 import models.ProjectUser;
@@ -32,7 +32,7 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import play.mvc.With;
 
-@With(AnonymousCheckAction.class)
+@AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
 public class EnrollProjectApp extends Controller {
 
     @Transactional

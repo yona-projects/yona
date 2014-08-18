@@ -20,6 +20,7 @@
  */
 package controllers;
 
+import controllers.annotation.AnonymousCheck;
 import info.schleichardt.play2.mailplugin.Mailer;
 import models.AuthInfo;
 import utils.PasswordReset;
@@ -38,6 +39,7 @@ import views.html.site.lostPassword;
 
 import static play.data.Form.form;
 
+@AnonymousCheck
 public class PasswordResetApp extends Controller {
 
     public static Result lostPassword(){

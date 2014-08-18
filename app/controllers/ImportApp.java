@@ -20,6 +20,7 @@
  */
 package controllers;
 
+import controllers.annotation.AnonymousCheck;
 import models.*;
 import models.enumeration.RoleType;
 import play.data.Form;
@@ -40,17 +41,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.internal.JGitText;
 
-import actions.AnonymousCheckAction;
 
 import java.io.IOException;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import static play.data.Form.form;
 
+@AnonymousCheck
 public class ImportApp extends Controller {
 
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     public static Result importForm() {
         Form<Project> projectForm = form(Project.class).bindFromRequest("owner");
         projectForm.discardErrors();

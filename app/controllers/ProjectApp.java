@@ -20,13 +20,13 @@
  */
 package controllers;
 
-import actions.AnonymousCheckAction;
 import actions.DefaultProjectCheckAction;
 
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Junction;
 import com.avaje.ebean.Page;
 
+import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import info.schleichardt.play2.mailplugin.Mailer;
 import models.*;
@@ -55,7 +55,6 @@ import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Result;
-import play.mvc.With;
 import playRepository.Commit;
 import playRepository.PlayRepository;
 import playRepository.RepositoryService;
@@ -81,6 +80,7 @@ import static play.libs.Json.toJson;
 import static utils.LogoUtil.*;
 import static utils.TemplateHelper.*;
 
+@AnonymousCheck
 public class ProjectApp extends Controller {
 
     private static final int ISSUE_MENTION_SHOW_LIMIT = 2000;
@@ -103,7 +103,7 @@ public class ProjectApp extends Controller {
 
     private static final String JSON = "application/json";
 
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.UPDATE)
     public static Result projectOverviewUpdate(String ownerId, String projectName){
         Project targetProject = Project.findByOwnerAndProjectName(ownerId, projectName);
@@ -165,7 +165,7 @@ public class ProjectApp extends Controller {
         return History.makeHistory(ownerId, project, commits, issues, postings, pullRequests);
     }
 
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     public static Result newProjectForm() {
         Form<Project> projectForm = form(Project.class).bindFromRequest("owner");
         projectForm.discardErrors();
@@ -577,7 +577,7 @@ public class ProjectApp extends Controller {
     }
 
     @Transactional
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     public static synchronized Result acceptTransfer(Long id, String confirmKey) throws IOException, ServletException {
         ProjectTransfer pt = ProjectTransfer.findValidOne(id);
         if (pt == null) {
@@ -1125,7 +1125,7 @@ public class ProjectApp extends Controller {
     }
 
     @Transactional
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.DELETE)
     public static Result deletePushedBranch(String ownerId, String projectName, Long id) {
         PushedBranch pushedBranch = PushedBranch.find.byId(id);

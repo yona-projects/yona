@@ -20,9 +20,9 @@
  */
 package controllers;
 
-import actions.AnonymousCheckAction;
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
+import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import models.CommentThread;
 import models.Project;
@@ -31,18 +31,18 @@ import models.support.ReviewSearchCondition;
 import play.data.Form;
 import play.mvc.Controller;
 import play.mvc.Result;
-import play.mvc.With;
 import views.html.reviewthread.list;
 
 /**
  * @author Changsung Kim
  * @author Keesun Baik
  */
+@AnonymousCheck
 public class ReviewThreadApp extends Controller {
 
     public static final int REVIEWS_PER_PAGE = 15;
 
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(value = Operation.READ)
     public static Result reviewThreads(String ownerName, String projectName) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);

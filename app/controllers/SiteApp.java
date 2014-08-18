@@ -21,7 +21,7 @@
 package controllers;
 
 import com.avaje.ebean.Page;
-
+import controllers.annotation.AnonymousCheck;
 import info.schleichardt.play2.mailplugin.Mailer;
 import models.*;
 
@@ -56,6 +56,7 @@ import utils.Config;
  * The Class SiteApp.
  */
  @With(SiteManagerAuthAction.class)
+@AnonymousCheck
 public class SiteApp extends Controller {
 
     private static final int PROJECT_COUNT_PER_PAGE = 25;

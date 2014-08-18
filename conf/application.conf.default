@@ -9,6 +9,10 @@ application.siteName="Yobi"
 # Anonymous access
 # ~~~~~~~~~~~~~~~~
 # This site allows anonymous access. (default: true)
+# If this is false, Yobi refuses anonymous access to any page except for the
+# ones to be needed for login, login and creating accout.
+# NOTE: Even if this is false, anyone can create a account freely. If you don't
+# want to allow that, set signup.require.confirm to false.
 application.allowsAnonymousAccess=true
 
 # Notification

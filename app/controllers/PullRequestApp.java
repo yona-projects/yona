@@ -20,11 +20,13 @@
  */
 package controllers;
 
-import actions.AnonymousCheckAction;
 import actors.PullRequestMergingActor;
 import akka.actor.Props;
 import com.avaje.ebean.Page;
-import controllers.annotation.*;
+import controllers.annotation.AnonymousCheck;
+import controllers.annotation.IsAllowed;
+import controllers.annotation.IsCreatable;
+import controllers.annotation.IsOnlyGitAvailable;
 import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
@@ -44,7 +46,6 @@ import play.libs.F.Promise;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
-import play.mvc.With;
 import playRepository.*;
 import utils.*;
 import views.html.git.*;
@@ -61,9 +62,10 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 @IsOnlyGitAvailable
+@AnonymousCheck
 public class PullRequestApp extends Controller {
 
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsCreatable(ResourceType.FORK)
     public static Result newFork(String userName, String projectName, String forkOwner) {
         String destination = findDestination(forkOwner);
@@ -82,7 +84,7 @@ public class PullRequestApp extends Controller {
         return UserApp.currentUser().loginId;
     }
 
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsCreatable(ResourceType.FORK)
     public static Result fork(String userName, String projectName) {
         Form<Project> forkProjectForm = new Form<>(Project.class).bindFromRequest();
@@ -154,7 +156,7 @@ public class PullRequestApp extends Controller {
         }
     }
 
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsCreatable(ResourceType.FORK)
     public static Result newPullRequestForm(String userName, String projectName) throws IOException, GitAPIException {
         final Project project = Project.findByOwnerAndProjectName(userName, projectName);
@@ -200,7 +202,7 @@ public class PullRequestApp extends Controller {
         return selectedProject;
     }
 
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsCreatable(ResourceType.FORK)
     public static Result mergeResult(String userName, String projectName) throws IOException, GitAPIException {
         final Project project = Project.findByOwnerAndProjectName(userName, projectName);
@@ -227,7 +229,7 @@ public class PullRequestApp extends Controller {
     }
 
     @Transactional
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsCreatable(ResourceType.FORK)
     public static Result newPullRequest(String userName, String projectName) throws IOException, GitAPIException {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
@@ -378,7 +380,7 @@ public class PullRequestApp extends Controller {
     }
 
     @Transactional
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(value = Operation.ACCEPT, resourceType = ResourceType.PULL_REQUEST)
     public static Result accept(final String userName, final String projectName,
                                 final long pullRequestNumber) {
@@ -422,7 +424,7 @@ public class PullRequestApp extends Controller {
     }
 
     @Transactional
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(value = Operation.CLOSE, resourceType = ResourceType.PULL_REQUEST)
     public static Result close(String userName, String projectName, Long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
@@ -438,7 +440,7 @@ public class PullRequestApp extends Controller {
     }
 
     @Transactional
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(value = Operation.REOPEN, resourceType = ResourceType.PULL_REQUEST)
     public static Result open(String userName, String projectName, Long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
@@ -461,7 +463,7 @@ public class PullRequestApp extends Controller {
         return redirect(call);
     }
 
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
     public static Result editPullRequestForm(String userName, String projectName, Long pullRequestNumber) throws IOException, GitAPIException {
         Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
@@ -476,7 +478,7 @@ public class PullRequestApp extends Controller {
     }
 
     @Transactional
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
     public static Result editPullRequest(String userName, String projectName, Long pullRequestNumber) {
         Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
@@ -510,7 +512,7 @@ public class PullRequestApp extends Controller {
     }
 
     @Transactional
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
     public static Result deleteFromBranch(String userName, String projectName, Long pullRequestNumber) {
         Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
@@ -522,7 +524,7 @@ public class PullRequestApp extends Controller {
     }
 
     @Transactional
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
     public static Result restoreFromBranch(String userName, String projectName, Long pullRequestNumber) {
         Project toProject = Project.findByOwnerAndProjectName(userName, projectName);

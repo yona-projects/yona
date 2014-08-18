@@ -20,12 +20,12 @@
  */
 package controllers;
 
-import actions.AnonymousCheckAction;
 import actions.NullProjectCheckAction;
 
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
 
+import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
 import models.*;
@@ -93,7 +93,7 @@ public class BoardApp extends AbstractPostingApp {
         return ok(list.render("menu.board", project, posts, searchCondition, notices));
     }
 
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsCreatable(ResourceType.BOARD_POST)
     public static Result newPostForm(String userName, String projectName) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);

@@ -21,6 +21,7 @@
 package controllers;
 
 import actions.DefaultProjectCheckAction;
+import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import models.Project;
 import models.enumeration.Operation;
@@ -33,7 +34,6 @@ import org.tmatesoft.svn.core.SVNException;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
-import play.mvc.With;
 import playRepository.PlayRepository;
 import playRepository.RepositoryService;
 import utils.ErrorViews;
@@ -50,6 +50,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@AnonymousCheck
 public class CodeApp extends Controller {
     public static String hostName;
 

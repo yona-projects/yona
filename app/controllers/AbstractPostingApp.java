@@ -20,6 +20,7 @@
  */
 package controllers;
 
+import controllers.annotation.AnonymousCheck;
 import models.*;
 import models.enumeration.Direction;
 import models.enumeration.Operation;
@@ -38,6 +39,7 @@ import utils.*;
 
 import java.io.IOException;
 
+@AnonymousCheck
 public class AbstractPostingApp extends Controller {
     public static final int ITEMS_PER_PAGE = 15;
 

@@ -20,6 +20,7 @@
  */
 package controllers;
 
+import controllers.annotation.AnonymousCheck;
 import models.enumeration.Operation;
 import models.resource.Resource;
 import play.db.ebean.Transactional;
@@ -29,6 +30,7 @@ import utils.AccessControl;
 
 import static models.enumeration.ResourceType.*;
 
+@AnonymousCheck
 public class CommentApp extends Controller {
     @Transactional
     public static Result delete(String type, String id) {

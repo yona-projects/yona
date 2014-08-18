@@ -20,7 +20,7 @@
  */
 package controllers;
 
-import actions.AnonymousCheckAction;
+import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import models.Project;
 import models.User;
@@ -31,11 +31,10 @@ import models.enumeration.Operation;
 import play.i18n.Messages;
 import play.mvc.Controller;
 import play.mvc.Result;
-import play.mvc.With;
 import utils.AccessControl;
 import utils.ErrorViews;
 
-@With(AnonymousCheckAction.class)
+@AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
 public class WatchProjectApp extends Controller {
 
     @IsAllowed(Operation.READ)

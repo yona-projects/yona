@@ -20,8 +20,8 @@
  */
 package controllers;
 
-import actions.AnonymousCheckAction;
 import controllers.annotation.IsAllowed;
+import controllers.annotation.AnonymousCheck;
 import models.Organization;
 import models.User;
 import models.enumeration.Operation;
@@ -64,12 +64,13 @@ import static utils.LogoUtil.*;
 /**
  * @author Keeun Baik
  */
+@AnonymousCheck
 public class OrganizationApp extends Controller {
     /**
      * show New Group page
      * @return {@link Result}
      */
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     public static Result newForm() {
         return ok(create.render("title.newOrganization", new Form<>(Organization.class)));
     }
@@ -79,7 +80,7 @@ public class OrganizationApp extends Controller {
      * @return {@link Result}
      * @throws Exception
      */
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     public static Result newOrganization() throws Exception {
         Form<Organization> newOrgForm = form(Organization.class).bindFromRequest();
         validate(newOrgForm);
@@ -258,7 +259,7 @@ public class OrganizationApp extends Controller {
     }
 
     @Transactional
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     public static Result leave(String organizationName) {
         ValidationResult result = validateForLeave(organizationName);
 

@@ -22,6 +22,7 @@ package controllers;
 
 import java.util.List;
 
+import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import models.Project;
 import models.enumeration.Operation;
@@ -35,6 +36,7 @@ import utils.ErrorViews;
 import views.html.code.compare_svn;
 import views.html.code.compare;
 
+@AnonymousCheck
 public class CompareApp extends Controller {
     @IsAllowed(Operation.READ)
     public static Result compare(String ownerName, String projectName, String revA, String revB)

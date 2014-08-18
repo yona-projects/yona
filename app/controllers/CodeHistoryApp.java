@@ -22,6 +22,7 @@ package controllers;
 
 import actions.DefaultProjectCheckAction;
 import actions.NullProjectCheckAction;
+import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
 import models.*;
@@ -35,7 +36,6 @@ import play.data.Form;
 import play.mvc.Call;
 import play.mvc.Controller;
 import play.mvc.Result;
-import play.mvc.With;
 import playRepository.Commit;
 import playRepository.FileDiff;
 import playRepository.PlayRepository;
@@ -56,6 +56,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
+@AnonymousCheck
 public class CodeHistoryApp extends Controller {
 
     private static final int HISTORY_ITEM_LIMIT = 25;

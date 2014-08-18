@@ -19,9 +19,9 @@
 
 package controllers;
 
-import actions.AnonymousCheckAction;
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.annotation.Transactional;
+import controllers.annotation.AnonymousCheck;
 import models.*;
 import models.enumeration.Operation;
 import models.enumeration.UserState;
@@ -69,6 +69,7 @@ public class UserApp extends Controller {
     public static final String DEFAULT_SELECTED_TAB = "projects";
     public static final String TOKEN_USER = "TOKEN_USER";
 
+    @AnonymousCheck
     public static Result users(String query) {
         if (!request().accepts("application/json")) {
             return status(Http.Status.NOT_ACCEPTABLE);
@@ -420,6 +421,7 @@ public class UserApp extends Controller {
         return User.anonymous;
     }
 
+    @AnonymousCheck
     public static Result userInfo(String loginId, String groups, int daysAgo, String selected) {
         Organization org = Organization.findByName(loginId);
         if(org != null) {
@@ -551,7 +553,7 @@ public class UserApp extends Controller {
         }
     }
 
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     public static Result editUserInfoForm() {
         User user = UserApp.currentUser();
         Form<User> userForm = new Form<>(User.class);
@@ -559,7 +561,7 @@ public class UserApp extends Controller {
         return ok(edit.render(userForm, user));
     }
 
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     public static Result editUserInfoByTabForm(String tabId) {
         User user = UserApp.currentUser();
         Form<User> userForm = new Form<>(User.class);
@@ -605,7 +607,7 @@ public class UserApp extends Controller {
         }
     }
 
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @Transactional
     public static Result editUserInfo() {
         Form<User> userForm = new Form<>(User.class).bindFromRequest("name", "email");

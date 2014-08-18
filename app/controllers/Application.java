@@ -20,6 +20,7 @@
  */
 package controllers;
 
+import controllers.annotation.AnonymousCheck;
 import models.Project;
 import play.Logger;
 import play.mvc.Controller;
@@ -32,6 +33,7 @@ import java.io.File;
 
 public class Application extends Controller {
 
+    @AnonymousCheck
     public static Result index() {
         return ok(index.render(UserApp.currentUser()));
     }

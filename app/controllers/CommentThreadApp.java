@@ -20,6 +20,7 @@
  */
 package controllers;
 
+import controllers.annotation.AnonymousCheck;
 import models.CommentThread;
 import models.enumeration.Operation;
 import models.NotificationEvent;
@@ -31,6 +32,7 @@ import utils.AccessControl;
 import static models.CommentThread.ThreadState.CLOSED;
 import static models.CommentThread.ThreadState.OPEN;
 
+@AnonymousCheck
 public class CommentThreadApp extends Controller {
 
     @Transactional

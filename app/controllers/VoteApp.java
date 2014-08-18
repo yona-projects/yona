@@ -20,6 +20,7 @@
  */
 package controllers;
 
+import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import models.Issue;
 import models.IssueComment;
@@ -28,12 +29,10 @@ import models.enumeration.Operation;
 import org.codehaus.jackson.node.ObjectNode;
 import play.libs.Json;
 import play.mvc.Call;
-import play.mvc.With;
 import models.Project;
 import play.mvc.Result;
 import play.mvc.Controller;
 import play.db.ebean.Transactional;
-import actions.AnonymousCheckAction;
 import models.enumeration.ResourceType;
 import controllers.annotation.IsCreatable;
 import utils.Constants;
@@ -45,7 +44,7 @@ import java.util.List;
 /**
  * The Controller which plays a role in voting in the issue.
  */
-@With(AnonymousCheckAction.class)
+@AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
 public class VoteApp extends Controller {
 
     /**

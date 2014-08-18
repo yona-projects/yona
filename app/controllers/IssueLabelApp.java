@@ -20,6 +20,7 @@
  */
 package controllers;
 
+import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
 import models.IssueLabel;
@@ -44,6 +45,7 @@ import java.util.Map;
 import static play.data.Form.form;
 import static play.libs.Json.toJson;
 
+@AnonymousCheck
 public class IssueLabelApp extends Controller {
     /**
      * Responds to a request for issue labels of the specified project.
