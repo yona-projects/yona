@@ -3866,18 +3866,26 @@ label.issue-item-row {
 }
 
 .branch-label {
+    display:inline-block;
     color:#fff;
+    font-size:11px;
+    background:@yobi-gray;
     text-shadow: none;
+    text-align:center;
+    min-width:50px;
+    height:20px;
+    line-height:20px;
+    margin: 0 3px 0 0;
+    vertical-align: middle;
     .border-radius(2px);
 
+    &.unknown {
+        display: none;
+    }
     &.branch {
-        padding: 2px 4px;
-        margin: 0 3px 0 0;
         background-color: @yobi-yello-dark;
     }
     &.tag {
-        padding: 2px 4px;
-        margin: 0 3px 0 0;
         background-color: @yobi-cyan;
     }
 }
