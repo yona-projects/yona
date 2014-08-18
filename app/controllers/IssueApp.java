@@ -376,9 +376,17 @@ public class IssueApp extends AbstractPostingApp {
 
         // Determine type of response with Accept header
         if (HttpUtil.isJSONPreferred(request())){
-            // jQuery treats as error if response text empty
-            // on dataType is json
-            return ok("{}");
+            if (issueMassUpdate.isDueDateChanged) {
+                Issue issue = issueMassUpdate.issues.get(0);
+                ObjectNode result = Json.newObject();
+                result.put("isOverDue", issue.isOverDueDate());
+                result.put("dueDateMsg", issue.isOverDueDate() ? Messages.get("issue.dueDate.overdue") : issue.until());
+                return ok(result);
+            } else {
+                // jQuery treats as error if response text empty
+                // on dataType is json
+                return ok("{}");
+            }
         } else {
             return redirect(request().getHeader("Referer"));
         }

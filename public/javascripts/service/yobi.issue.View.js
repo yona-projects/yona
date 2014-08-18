@@ -56,11 +56,14 @@
 
             elements.btnWatch = $('#watch-button');
             elements.issueInfoWrap = $(".issue-info");
+            elements.dueDateStatus = elements.issueInfoWrap.find(".duedate-status");
 
             elements.timelineWrap = $("#timeline");
             elements.timelineList = elements.timelineWrap.find(".timeline-list");
 
             elements.dueDate = $("#issueDueDate");
+
+            elements.btnVoteComment = $(options.btnVoteComment || '[data-request-type="comment-vote"]');
         }
 
         /**
@@ -99,7 +102,7 @@
 
             // Update issue info
             elements.issueInfoWrap.on("change", "[data-toggle=select2]", _onChangeIssueInfo);
-            elements.issueInfoWrap.on("change", "[data-toggle=calendar]", _onChangeIssueInfo);
+            elements.issueInfoWrap.on("change", "[data-toggle=calendar]", _onChangeDueDate);
             elements.issueInfoWrap.on("select2-selecting", '[name="assignee.user.id"]', _onSelectingAssignee);
 
             // Detect textarea events for autoUpdate timeline
@@ -132,6 +135,37 @@
         }
 
         /**
+         * on change dueDate input field
+         *
+         * @param evt
+         * @private
+         */
+        function _onChangeDueDate(evt){
+            var element = $(this);
+            var dueDate = $.trim(element.val());
+
+            // if dueDate is not empty and invalid
+            if(dueDate && !moment(dueDate).isValid()){
+                $yobi.notify(Messages("issue.error.invalid.duedate"), 3000);
+                element.focus();
+                return;
+            }
+
+            if(element.data("oval") !== element.val()){
+                element.data("oval", element.val());
+            }
+
+            _requestUpdateIssue(evt, function(res){
+                elements.dueDateStatus.html("(" + res.dueDateMsg + ")");
+                if (res.isOverDue) {
+                    elements.dueDateStatus.addClass("overdue");
+                } else {
+                    elements.dueDateStatus.removeClass("overdue");
+                }
+            });
+        }
+
+        /**
          * "change" event handler of issue info select2 fields.
          *
          * @param evt
@@ -146,26 +180,10 @@
          * like as assignee.id, milestone.id and labelIds.
          *
          * @param evt
+         * @param callback
          * @private
          */
-        function _requestUpdateIssue(evt){
-            var elDueDate = elements.issueInfoWrap.find("[data-toggle='calendar']");
-            var sDueDate = $yobi.getTrim($(elDueDate).val());
-
-            if(sDueDate && !moment(sDueDate).isValid()){
-                $yobi.notify(Messages("issue.error.invalid.duedate"), 3000);
-                elDueDate.focus();
-                return;
-            }
-
-            if(elDueDate.get(0) == evt.target) {
-                if(elDueDate.data("oval") == elDueDate.val()){
-                    return;
-                }else{
-                    elDueDate.data("oval", elDueDate.val());
-                }
-            }
-
+        function _requestUpdateIssue(evt, callback){
             var field = $(evt.target);
             var fieldName = field.data("fieldName") || field.prop("name");
             var fieldValue = field.data("select2") ? field.data("select2").val() : field.val();
@@ -176,19 +194,23 @@
                 "dataType": "json",
                 "data"    : _getUpdateIssueRequestData(fieldName, fieldValue, evt)
             })
-            .done(function(){
+            .done(function(res){
+                _updateTimeline();
+
                 $yobi.notify(Messages("issue.update." + fieldName), 3000);
 
                 if(field.data("select2")){
                     field.data("select2").val(fieldValue);
                 }
 
-                _updateTimeline();
+                if(typeof callback === "function"){
+                    callback(res, fieldName, fieldValue, evt);
+                }
             })
-            .fail(function(oRes){
+            .fail(function(res){
                 $yobi.notify(Messages("error.failedTo",
                     Messages("issue.update." + fieldName),
-                    oRes.status, oRes.statusText));
+                    res.status, res.statusText));
             });
         }
 
