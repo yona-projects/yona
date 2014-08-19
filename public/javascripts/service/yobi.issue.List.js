@@ -264,13 +264,18 @@
 
         function _onSubmitSearchForm(evt){
             var elDueDate = htElement.welIssueWrap.find("[data-toggle='calendar']");
-            var sDueDate = $yobi.getTrim($(elDueDate).val());
 
-            if(sDueDate && !moment(sDueDate).isValid()){
-                $yobi.notify(Messages("issue.error.invalid.duedate"), 3000);
-                elDueDate.focus();
-                return false;
-            }
+            if(elDueDate.length > 0) {
+                var sDueDate = $yobi.getTrim($(elDueDate).val());
+
+                if(sDueDate && !moment(sDueDate).isValid()){
+                    $yobi.notify(Messages("issue.error.invalid.duedate"), 3000);
+                    elDueDate.focus();
+                    return false;
+                }
+
+                return true;
+            }    
 
             return true;
         }
