@@ -53,7 +53,7 @@
         }
     }
 
-    @if(issue.assignee != null && issue.assignee.user.isSiteManager() && !UserApp.currentUser().isSiteManager()) {
+    @if(issue != null && issue.assignee != null && issue.assignee.user.isSiteManager() && !UserApp.currentUser().isSiteManager()) {
         @makeOptionTagWithFlag(issue.assignee.user, "selected")
     }
 </select>
