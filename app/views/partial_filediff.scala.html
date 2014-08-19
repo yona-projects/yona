@@ -145,7 +145,7 @@
           </div>
           <div class="diff-partial-commit-id">
             @if(diff.commitB != null && diff.pathB != null){
-            <a href="@routes.CodeApp.codeBrowserWithBranch(projectB.owner, projectB.name, diff.commitB, diff.pathB)" title="@diff.commitB" target="_blank">@getShortenedCommitId(diff.commitB)</a></td>
+            <a href="@routes.CodeApp.codeBrowserWithBranch(projectB.owner, projectB.name, diff.commitB, diff.pathB)" title="@diff.commitB" target="_blank">@getShortenedCommitId(diff.commitB)</a>
             } else {
             &nbsp;
             }

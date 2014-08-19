@@ -105,11 +105,12 @@ yobi.CodeCommentBox = (function(){
      * @private
      */
     function _placeReviewForm(welTarget, sPlacement){
-        var welTarget = _getReviewFormTarget(welTarget);
-        var welPlace = _getReviewFormPlace(welTarget, sPlacement);
-        _setReviewFormFields(_getReviewFormFieldData(welTarget));
+        var welFormTarget = _getReviewFormTarget(welTarget);
+        var welFormPlace = _getReviewFormPlace(welFormTarget, sPlacement);
 
-        welPlace.find(".write-comment-form").append(htElement.welCommentWrap);
+        _setReviewFormFields(_getReviewFormFieldData(welFormTarget));
+
+        welFormPlace.find(".write-comment-form").append(htElement.welCommentWrap);
     }
 
     /**
