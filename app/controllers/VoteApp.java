@@ -59,7 +59,6 @@ public class VoteApp extends Controller {
      * @return
      */
     @Transactional
-    @With(AnonymousCheckAction.class)
     @IsAllowed(Operation.READ)
     public static Result vote(String ownerName, String projectName, Long issueNumber) {
 
@@ -84,7 +83,6 @@ public class VoteApp extends Controller {
      * @return
      */
     @Transactional
-    @With(AnonymousCheckAction.class)
     @IsAllowed(Operation.READ)
     public static Result unvote(String ownerName, String projectName, Long issueNumber) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
@@ -98,7 +96,6 @@ public class VoteApp extends Controller {
     }
 
     @Transactional
-    @With(AnonymousCheckAction.class)
     @IsAllowed(Operation.READ)
     public static Result voteComment(String user, String project, Long number, Long commentId) {
         IssueComment issueComment = IssueComment.find.byId(commentId);
@@ -112,7 +109,6 @@ public class VoteApp extends Controller {
     }
 
     @Transactional
-    @With(AnonymousCheckAction.class)
     @IsAllowed(Operation.READ)
     public static Result unvoteComment(String user, String project, Long number, Long commentId) {
         IssueComment issueComment = IssueComment.find.byId(commentId);
