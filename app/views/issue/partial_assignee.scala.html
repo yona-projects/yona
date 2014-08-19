@@ -22,6 +22,15 @@
 
 @import utils.AccessControl._
 
+@makeOptionTagWithFlag(user:User, flag:String) = {
+    <option value="@user.id"
+            data-avatar-url="@User.findByLoginId(user.loginId).avatarUrl"
+            data-login-id="@user.loginId"
+            @flag>
+        @user.name
+    </option>
+}
+
 <select id="assignee" name="assignee.user.id" data-field-name="assignee.id"
         data-toggle="select2" data-format="user" data-container-css-class="fullsize">
     <option value="@User.anonymous.id" @if(issue == null || issue.assignee == null){selected}>@Messages("issue.noAssignee")</option>
@@ -36,15 +45,15 @@
             }
         }
     }
-    @for(user <- project.relatedUsers){
-        <option value="@user.id"
-          data-avatar-url="@User.findByLoginId(user.loginId).avatarUrl"
-          data-login-id="@user.loginId"
-          @if(issue != null && issue.assignee != null && issue.assignee.user.loginId == user.loginId){
-            selected
-          }
-        >
-        @user.name
-        </option>
+    @for(user <- project.getAssignableUsers){
+        @if(issue != null && issue.assignee != null && issue.assignee.user.loginId == user.loginId) {
+            @makeOptionTagWithFlag(user, "selected")
+        } else {
+            @makeOptionTagWithFlag(user,"")
+        }
+    }
+
+    @if(issue.assignee != null && issue.assignee.user.isSiteManager() && !UserApp.currentUser().isSiteManager()) {
+        @makeOptionTagWithFlag(issue.assignee.user, "selected")
     }
 </select>

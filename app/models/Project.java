@@ -23,6 +23,7 @@ package models;
 import com.avaje.ebean.Ebean;
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
+import controllers.UserApp;
 import models.enumeration.ProjectScope;
 import models.enumeration.RequestState;
 import models.enumeration.ResourceType;
@@ -460,13 +461,13 @@ public class Project extends Model implements LabelOwner {
     }
 
     /**
-     * Return users related to this project and group of the project.
+     * Return assignable users to this project and group of the project.
      *
      * If the project has no groups, it returns all project members.
      * If the project has a group and is private, it returns all project members and group admins.
      * If the project has a group and is protected or public, it returns all project and group members.
      */
-    public List<User> relatedUsers() {
+    public List<User> getAssignableUsers() {
         Set<User> users = new HashSet<>();
 
         // member of this project.
@@ -486,6 +487,11 @@ public class Project extends Model implements LabelOwner {
         // sorting
         List<User> result = new ArrayList<>(users);
         Collections.sort(result, User.USER_NAME_COMPARATOR);
+
+        if (UserApp.currentUser().isSiteManager()) {
+            result.add(UserApp.currentUser());
+        }
+
         return result;
     }
 
