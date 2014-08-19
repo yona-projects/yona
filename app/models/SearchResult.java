@@ -106,6 +106,54 @@ public class SearchResult {
         return endIndex < contentLength ? endIndex : contentLength;
     }
 
+    public void updateSearchType() {
+        if(!(this.searchType == SearchType.AUTO)) {
+            return;
+        }
+
+        if (getIssuesCount() > 0) {
+            setSearchType(SearchType.ISSUE);
+            return;
+        }
+
+        if (getUsersCount() > 0) {
+            setSearchType(SearchType.USER);
+            return;
+        }
+
+        if (getProjectsCount() > 0) {
+            setSearchType(SearchType.PROJECT);
+            return;
+        }
+
+        if (getPostsCount() > 0) {
+            setSearchType(SearchType.POST);
+            return;
+        }
+
+        if (getMilestonesCount() > 0) {
+            setSearchType(SearchType.MILESTONE);
+            return;
+        }
+
+        if (getIssueCommentsCount() > 0) {
+            setSearchType(SearchType.ISSUE_COMMENT);
+            return;
+        }
+
+        if (getPostCommentsCount() > 0) {
+            setSearchType(SearchType.POST_COMMENT);
+            return;
+        }
+
+        if (getReviewsCount() > 0) {
+            setSearchType(SearchType.REVIEW);
+            return;
+        }
+
+        setSearchType(SearchType.ISSUE);
+    }
+
     private class BeginAndEnd {
         int beginIndex;
         int endIndex;
