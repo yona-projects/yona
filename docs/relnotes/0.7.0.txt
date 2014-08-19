@@ -1,0 +1,35 @@
+Yobi v0.7.0 Release Notes
+=========================
+
+Updates since v0.6.3
+--------------------
+
+New Feature
+
+* Private Site: Yobi requires users to authenticate themselves to access any
+  page if application.allowsAnonymousAccess is true. (4a81d87)
+
+UI Improvements
+
+* Git-push notification email looks better and internationalized. (8ccf0ac)
+* Spinner UI is integrated by using ui.Spinner. (0251d93)
+* In Dialog boxes the button at the bottom has focus. (dab01bd)
+* Search: If a user didn't select a tab, the first non-empty tab is selected
+  automatically. (3b1e724)
+* PullRequest (fcf2333)
+    * Move review thread icon to before progres bar and number.
+    * Show number of reviewers on list and highlight reviewers number if
+      current user included in it.
+    * Show names of reviewers as tooltip.
+
+Internal changes
+
+* .mailmap is added. (2da8913)
+
+Fixes since v0.6.3
+------------------
+
+* SearchForm: The line-height for dropdown list was incorrect. (e6fdac0)
+* PullRequest: margin-top of author-info was incorrect. (be78764)
+* git,svn: Responded server errors to requests to unsupported repositories.
+  (bb52e67)
