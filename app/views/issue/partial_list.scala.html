@@ -85,7 +85,7 @@
                     }
 
                     @for(label <- issue.labels.toList.sortBy(r => (r.category.name, r.name))) {
-                        <a href="#" class="label issue-label list-label" data-category-id="@label.category.id" data-label-id="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>
+                        <a href="#" class="label issue-label list-label active" data-category-id="@label.category.id" data-label-id="@label.id">@label.name</a>
                     }
                 </div>
             </label>

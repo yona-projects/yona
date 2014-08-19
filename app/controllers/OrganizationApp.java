@@ -128,7 +128,7 @@ public class OrganizationApp extends Controller {
         }
 
         User user = User.findByLoginId(addMemberForm.get().loginId);
-        Organization organization = Organization.findByOrganizationName(organizationName);
+        Organization organization = Organization.findByName(organizationName);
         OrganizationUser.assignRole(user.id, organization.id, RoleType.ORG_MEMBER.roleType());
         organization.cleanEnrolledUsers();
         NotificationEvent.afterOrganizationMemberRequest(organization, user, RequestState.ACCEPT);
@@ -145,7 +145,7 @@ public class OrganizationApp extends Controller {
             return redirect(routes.OrganizationApp.members(organizationName));
         }
 
-        Organization organization = Organization.findByOrganizationName(organizationName);
+        Organization organization = Organization.findByName(organizationName);
         if (organization == null) {
             flash(Constants.WARNING, "organization.member.unknownOrganization");
             return redirect(routes.OrganizationApp.members(organizationName));
@@ -172,7 +172,7 @@ public class OrganizationApp extends Controller {
             return result;
         }
 
-        Organization organization = Organization.findByOrganizationName(organizationName);
+        Organization organization = Organization.findByName(organizationName);
         OrganizationUser.delete(organization.id, userId);
 
         if (UserApp.currentUser().id.equals(userId)) {
@@ -183,7 +183,7 @@ public class OrganizationApp extends Controller {
     }
 
     private static Result validateForDeleteMember(String organizationName, Long userId) {
-        Organization organization = Organization.findByOrganizationName(organizationName);
+        Organization organization = Organization.findByName(organizationName);
         if (organization == null) {
             return notFound(ErrorViews.NotFound.render("organization.member.unknownOrganization", organization));
         }
@@ -216,7 +216,7 @@ public class OrganizationApp extends Controller {
             return result;
         }
 
-        Organization organization = Organization.findByOrganizationName(organizationName);
+        Organization organization = Organization.findByName(organizationName);
         OrganizationUser.assignRole(userId, organization.id, roleForm.get().id);
 
         return status(Http.Status.NO_CONTENT);
@@ -228,7 +228,7 @@ public class OrganizationApp extends Controller {
             return okWithLocation(routes.OrganizationApp.members(organizationName).url());
         }
 
-        Organization organization = Organization.findByOrganizationName(organizationName);
+        Organization organization = Organization.findByName(organizationName);
         if (organization == null) {
             return notFound(ErrorViews.NotFound.render("organization.member.unknownOrganization", organization));
         }
@@ -257,14 +257,14 @@ public class OrganizationApp extends Controller {
         ValidationResult result = validateForLeave(organizationName);
 
         if (!result.hasError()) {
-            OrganizationUser.delete(Organization.findByOrganizationName(organizationName).id, UserApp.currentUser().id);
+            OrganizationUser.delete(Organization.findByName(organizationName).id, UserApp.currentUser().id);
         }
 
         return result.getResult();
     }
 
     public static ValidationResult validateForLeave(String organizationName) {
-        Organization organization = Organization.findByOrganizationName(organizationName);
+        Organization organization = Organization.findByName(organizationName);
 
         if (organization == null) {
             return new ValidationResult(notFound(getJsonErrorMsg("organization.member.unknownOrganization")), true);
@@ -291,13 +291,13 @@ public class OrganizationApp extends Controller {
             return result;
         }
 
-        Organization organization = Organization.findByOrganizationName(organizationName);
+        Organization organization = Organization.findByName(organizationName);
 
         return ok(members.render(organization, Role.findOrganizationRoles()));
     }
 
     private static Result validateForSetting(String organizationName) {
-        Organization organization = Organization.findByOrganizationName(organizationName);
+        Organization organization = Organization.findByName(organizationName);
         if (organization == null) {
             return notFound(ErrorViews.NotFound.render("organization.member.unknownOrganization", organization));
         }
@@ -316,7 +316,7 @@ public class OrganizationApp extends Controller {
             return result;
         }
 
-        Organization organization = Organization.findByOrganizationName(organizationName);
+        Organization organization = Organization.findByName(organizationName);
 
         return ok(setting.render(organization, form(Organization.class).fill(organization)));
     }

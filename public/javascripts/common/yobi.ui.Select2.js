@@ -110,7 +110,7 @@
                 return '<a class="label issue-label active static" data-label-id="' + labelId + '">' + text + '</a>';
             },
             "branch": function(itemObject){
-                var branchType = "";
+                var branchType = "unknown";
                 var branchName = itemObject.text.trim();
                 var branchNameRegex = /refs\/(.[a-z]+)\/(.+)/i;
 
@@ -131,6 +131,8 @@
                 var tplBranchItem = $("#tplSelect2FormatBranch").text()
                                   || '<strong class="branch-label ${branchType}">${branchType}</strong> ${branchName}';
 
+                // branchType will be "unknown"
+                // if selected branch name doesn't starts with /refs
                 var formattedResult = $yobi.tmpl(tplBranchItem, {
                     "branchType": branchType,
                     "branchName": branchName

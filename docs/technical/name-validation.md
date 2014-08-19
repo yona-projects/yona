@@ -53,7 +53,7 @@ do it case-insensitively.
 When Yobi compares names to prevent duplication, comparison should be case
 insensitive to make it work correctly in some file systems (e.g. HFS+). But Yobi
 should show names case-insensitively to meet users' needs. It also means that
-Yobi should store names case-insensitively..
+Yobi should store names case-insensitively.
 
 ### An exception
 

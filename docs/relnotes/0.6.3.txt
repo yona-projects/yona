@@ -1,0 +1,22 @@
+Yobi v0.6.3 Release Notes
+=========================
+
+Updates since v0.6.2
+--------------------
+
+* Group searching works case-insensitively. (4e94308)
+* The error log for the case if an attachment file does not exist in the disk
+  is shorten and displays a proper message to the user in the case. (c366aff)
+
+Fixes since v0.6.2
+------------------
+
+* PullRequest: Unnecessary resolving-conflict events (d0dad20)
+* In the issue list, text color of labels are always white so the readability
+  can be poor if the label has bright color. (8ee2ac9)
+* Unassigne issues look to be assigned to anonymous. (2221ef6)
+* ui.Select2: .branche-label styles were incorrect. (60e5822)
+* In My Issues page, searching did not work. (c90c6fd)
+* Code browser listed files incorrectly in subdirectory. (c3f9761)
+* An issue assigned to Site Admin looked to be assigned nobody to the Site Admin. (5184244)
+* In IE11, block comment forms didn't displayed. (fba784d)

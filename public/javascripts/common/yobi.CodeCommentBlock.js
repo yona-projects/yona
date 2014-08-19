@@ -146,8 +146,8 @@ yobi.CodeCommentBlock = (function(){
     function _setBlockDataBySelection(){
         // get anchor, focus row (TR) from selected text node
         var oSelection = document.getSelection();
-        var welAnchor = $(oSelection.anchorNode.parentElement).closest("tr");
-        var welFocus = $(oSelection.focusNode.parentElement).closest("tr");
+        var welAnchor = $(oSelection.anchorNode.parentNode).closest("tr");
+        var welFocus = $(oSelection.focusNode.parentNode).closest("tr");
         var welTable = welAnchor.closest("table");
 
         // detect whether is reversed

@@ -121,7 +121,7 @@ public class SearchApp extends Controller {
             return badRequest();
         }
 
-        Organization organization = Organization.findByOrganizationName(organizationName);
+        Organization organization = Organization.findByName(organizationName);
         User user = UserApp.currentUser();
         SearchType searchType = SearchType.getValue(searchTypeValue);
 
