@@ -1,7 +1,7 @@
 Yobi v0.7.0 Release Notes
 =========================
 
-Updates since v0.6.3
+Updates since v0.6.4
 --------------------
 
 New Feature
@@ -26,7 +26,7 @@ Internal changes
 
 * .mailmap is added. (2da8913)
 
-Fixes since v0.6.3
+Fixes since v0.6.4
 ------------------
 
 * SearchForm: The line-height for dropdown list was incorrect. (e6fdac0)
