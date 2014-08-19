@@ -40,7 +40,7 @@
 
 <div class="pull-right">
     @if(project.isUsingReviewerCount && isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT)){
-        <div style="display:inline-block; margin-right:5px;">
+        <div id="reviewers" style="display:inline-block; margin-right:5px;">
             <span style="font-size: 13px; vertical-align: middle; margin: 0 10px;">
                 @Html(Messages("pullRequest.review.participants", pull.reviewers.size))
             </span>

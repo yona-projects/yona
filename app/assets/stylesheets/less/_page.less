@@ -3529,7 +3529,12 @@ label.issue-item-row {
                 .bar { height:100%; }
             }
 
-            &.over { color:#f36c22; }
+            .infos-icon { color:#777; margin-right:2px; }
+
+            &.over {
+                color:@yobi-primary !important;
+                .infos-icon { color:@yobi-primary; }
+            }
         }
     }
 }

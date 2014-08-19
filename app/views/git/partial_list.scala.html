@@ -22,6 +22,7 @@
 
 @import utils.JodaDateUtil
 @import utils.TemplateHelper._
+@import org.apache.commons.lang3.StringUtils
 
 <ul class="post-list-wrap">
 @if(page.getList.size()> 0){
@@ -55,19 +56,29 @@
                     </span>
                     @if(!req.commentThreads.isEmpty){
                         @defining(req.countCommentThreadsByState(CommentThread.ThreadState.CLOSED)){ countClosed =>
-                        <i class="yobicon-post2 vmiddle" style="color:#777;"></i>
-                        <div class="infos-item" style="margin-right:3px">
+
+                        <div class="infos-item" style="margin-right:20px;">
+                            <i class="infos-icon yobicon-post2 vmiddle"></i>
                             <div class="upload-progress">
                                 <div class="bar orange" style="width: @getPercent(countClosed.toDouble, req.commentThreads.size.toDouble)%;"></div>
                             </div>
+                            <a href="@routes.PullRequestApp.pullRequestChanges(req.toProject.owner, req.toProject.name, req.number)"
+                               data-toggle="tooltip" title="@Messages("pullRequest.review.closed") / @Messages("pullRequest.review.total")">
+                                    <span>@countClosed</span>
+                                    <span class="gray-txt">/</span>
+                                <span class="size total">@req.commentThreads.size</span>
+                            </a>
                         </div>
-                        <a href="@routes.PullRequestApp.pullRequestChanges(req.toProject.owner, req.toProject.name, req.number)" class="infos-item"
-                           data-toggle="tooltip" title="@Messages("pullRequest.review.closed") / @Messages("pullRequest.review.total")">
-                                <span>@countClosed</span>
-                                <span class="gray-txt">/</span>
-                            <span class="size total">@req.commentThreads.size</span>
-                        </a>
                         }
+                    }
+                    @if(project.isUsingReviewerCount && !req.reviewers.isEmpty){
+                        <div class="infos-item @if(req.reviewers.contains(UserApp.currentUser)){over}" style="margin-top:-1px;">
+                            <i class="infos-icon yobicon-preview vmiddle"></i>
+                            <a href="@routes.PullRequestApp.pullRequest(req.toProject.owner, req.toProject.name, req.number)#reviewers"
+                               data-toggle="tooltip" data-html="true" data-title="@StringUtils.join(req.getReviewerNames, "<br>")">
+                                <span class="vmiddle">@req.reviewers.size</span>
+                            </a>
+                        </div>
                     }
                 </div>
             </div>

@@ -455,6 +455,16 @@ public class PullRequest extends Model implements ResourceConvertible {
         }
     }
 
+    public List<String> getReviewerNames(){
+        List<String> names = new ArrayList<>();
+
+        for(User user : reviewers){
+            names.add(user.name);
+        }
+
+        return names;
+    }
+
     private void addCommitMessages(List<GitCommit> commits, StringBuilder builder) {
         builder.append(String.format("* %s:\n", this.fromBranch));
         for(GitCommit gitCommit : commits) {
