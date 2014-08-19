@@ -20,6 +20,7 @@
  */
 package controllers;
 
+import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import models.*;
 import models.enumeration.Operation;
@@ -30,6 +31,7 @@ import play.mvc.Result;
 import utils.ErrorViews;
 import views.html.search.*;
 
+@AnonymousCheck
 public class SearchApp extends Controller {
 
     private static final PageParam DEFAULT_PAGE = new PageParam(0, 20);

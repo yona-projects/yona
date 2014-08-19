@@ -21,6 +21,7 @@
 package controllers;
 
 import actions.DefaultProjectCheckAction;
+import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import models.Project;
 import models.enumeration.Operation;
@@ -30,10 +31,7 @@ import org.apache.tika.mime.MediaType;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.tmatesoft.svn.core.SVNException;
-import play.mvc.Controller;
-import play.mvc.Http;
-import play.mvc.Result;
-import play.mvc.With;
+import play.mvc.*;
 import playRepository.PlayRepository;
 import playRepository.RepositoryService;
 import utils.ErrorViews;
@@ -43,13 +41,13 @@ import views.html.code.nohead_svn;
 import views.html.code.view;
 
 import javax.servlet.ServletException;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@AnonymousCheck
 public class CodeApp extends Controller {
     public static String hostName;
 

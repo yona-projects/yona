@@ -22,6 +22,7 @@ package controllers;
 
 import actions.DefaultProjectCheckAction;
 import actions.NullProjectCheckAction;
+import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
 import models.*;
@@ -32,19 +33,12 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.tmatesoft.svn.core.SVNException;
 import play.data.Form;
-import play.mvc.Call;
-import play.mvc.Controller;
-import play.mvc.Result;
-import play.mvc.With;
+import play.mvc.*;
 import playRepository.Commit;
 import playRepository.FileDiff;
 import playRepository.PlayRepository;
 import playRepository.RepositoryService;
-import utils.AccessControl;
-import utils.ErrorViews;
-import utils.HttpUtil;
-import utils.PullRequestCommit;
-import utils.RouteUtil;
+import utils.*;
 import views.html.code.diff;
 import views.html.code.history;
 import views.html.code.nohead;
@@ -56,6 +50,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
+@AnonymousCheck
 public class CodeHistoryApp extends Controller {
 
     private static final int HISTORY_ITEM_LIMIT = 25;

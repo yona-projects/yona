@@ -21,41 +21,31 @@
 package controllers;
 
 import com.avaje.ebean.Page;
-
+import controllers.annotation.AnonymousCheck;
 import info.schleichardt.play2.mailplugin.Mailer;
 import models.*;
-
 import models.enumeration.State;
 import models.enumeration.UserState;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.SimpleEmail;
-import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import play.Configuration;
 import play.Logger;
 import play.db.ebean.Transactional;
-import play.libs.Json;
-import play.mvc.Controller;
-import play.mvc.Http;
-import play.mvc.Result;
-import play.mvc.With;
-import utils.Constants;
-import utils.PasswordReset;
-import utils.SiteManagerAuthAction;
-import utils.ErrorViews;
 import views.html.site.*;
+import play.mvc.*;
+import utils.*;
 
 import java.util.*;
 
 import static play.libs.Json.toJson;
 
-import utils.Config;
-
 /**
  * The Class SiteApp.
  */
  @With(SiteManagerAuthAction.class)
+@AnonymousCheck
 public class SiteApp extends Controller {
 
     private static final int PROJECT_COUNT_PER_PAGE = 25;

@@ -1,7 +1,7 @@
 /**
  * Yobi, Project Hosting SW
  *
- * Copyright 2013 NAVER Corp.
+ * Copyright 2014 NAVER Corp.
  * http://yobi.io
  *
  * @Author Wansoon Park, Keesun Baek
@@ -20,12 +20,13 @@
  */
 package actions;
 
-import models.User;
 import controllers.UserApp;
+import controllers.annotation.AnonymousCheck;
 import controllers.routes;
 import play.mvc.Action;
 import play.mvc.Http.Context;
 import play.mvc.Result;
+import utils.AccessControl;
 import utils.AccessLogger;
 import utils.Constants;
 
@@ -36,18 +37,20 @@ import utils.Constants;
  * @author Wansoon Park, Keesun Beak
  *
  */
-public class AnonymousCheckAction extends Action.Simple {
+public class AnonymousCheckAction extends Action<AnonymousCheck> {
 
     @Override
     public Result call(Context context) throws Throwable {
-        User user = UserApp.currentUser();
-        if(user.isAnonymous()) {
-            play.mvc.Controller.flash(Constants.WARNING, "user.login.alert");
+        if ((AccessControl.isAnonymousNotAllowed() || configuration.requiresLogin()) &&
+                UserApp.currentUser().isAnonymous()) {
+            if (configuration.displaysFlashMessage()) {
+                play.mvc.Controller.flash(Constants.WARNING, "user.login.alert");
+            }
             String loginFormUrl = routes.UserApp.loginForm().url();
             loginFormUrl += "?redirectUrl=" + context.request().path();
             return AccessLogger.log(context.request(), redirect(loginFormUrl), null);
         }
-        return this.delegate.call(context);
+        return delegate.call(context);
     }
 
 }

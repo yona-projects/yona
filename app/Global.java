@@ -44,6 +44,7 @@ import play.data.Form;
 import play.mvc.*;
 import play.mvc.Http.RequestHeader;
 
+import utils.AccessControl;
 import utils.AccessLogger;
 import utils.ErrorViews;
 import utils.YamlUtil;
@@ -70,6 +71,7 @@ public class Global extends GlobalSettings {
         NotificationEvent.onStart();
         Attachment.onStart();
         YobiUpdate.onStart();
+        AccessControl.onStart();
     }
 
     private boolean equalsDefaultSecret() {

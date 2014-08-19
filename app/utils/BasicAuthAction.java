@@ -20,12 +20,9 @@
  */
 package utils;
 
-import java.io.UnsupportedEncodingException;
-
-import org.apache.commons.codec.binary.Base64;
-
 import controllers.UserApp;
 import models.User;
+import org.apache.commons.codec.binary.Base64;
 import play.mvc.Action;
 import play.mvc.Http;
 import play.mvc.Http.Context;
@@ -33,8 +30,9 @@ import play.mvc.Http.Request;
 import play.mvc.Http.Response;
 import play.mvc.Result;
 
+import java.io.UnsupportedEncodingException;
+
 public class BasicAuthAction extends Action<Object> {
-    private boolean isAnonymousSupported = true; // configuration is not available yet.
     private static final String REALM = "Yobi";
 
     public static Result unauthorized(Response response) {
@@ -112,11 +110,7 @@ public class BasicAuthAction extends Action<Object> {
                     , null);
         }
 
-        if (user.isAnonymous()) {
-            if (!isAnonymousSupported) {
-                return AccessLogger.log(context.request(), unauthorized(context.response()), null);
-            }
-        } else {
+        if (!user.isAnonymous()) {
             UserApp.addUserInfoToSession(user);
         }
 

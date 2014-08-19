@@ -20,24 +20,20 @@
  */
 package controllers;
 
+import controllers.annotation.AnonymousCheck;
 import models.*;
 import models.enumeration.Direction;
 import models.enumeration.Operation;
 import models.resource.Resource;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import play.data.Form;
 import play.db.ebean.Model;
 import play.i18n.Messages;
-import play.mvc.Call;
-import play.mvc.Controller;
-import play.mvc.Http;
-import play.mvc.Result;
+import play.mvc.*;
 import utils.*;
 
-import java.io.IOException;
-
+@AnonymousCheck
 public class AbstractPostingApp extends Controller {
     public static final int ITEMS_PER_PAGE = 15;
 

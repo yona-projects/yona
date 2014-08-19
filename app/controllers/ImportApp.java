@@ -20,37 +20,35 @@
  */
 package controllers;
 
+import controllers.annotation.AnonymousCheck;
 import models.*;
 import models.enumeration.RoleType;
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.InvalidRemoteException;
+import org.eclipse.jgit.api.errors.JGitInternalException;
+import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.internal.JGitText;
 import play.data.Form;
 import play.db.ebean.Transactional;
+import play.i18n.Messages;
 import play.mvc.Controller;
 import play.mvc.Result;
-import play.mvc.With;
-import play.i18n.Messages;
 import playRepository.GitRepository;
-import utils.AccessControl;
-import utils.ErrorViews;
-import utils.FileUtil;
-import utils.ValidationResult;
+import utils.*;
 import views.html.project.create;
 import views.html.project.importing;
 
-import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jgit.api.errors.*;
-import org.eclipse.jgit.internal.JGitText;
-
-import actions.AnonymousCheckAction;
-
-import java.io.IOException;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import static play.data.Form.form;
 
+@AnonymousCheck
 public class ImportApp extends Controller {
 
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     public static Result importForm() {
         Form<Project> projectForm = form(Project.class).bindFromRequest("owner");
         projectForm.discardErrors();

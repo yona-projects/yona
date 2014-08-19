@@ -20,6 +20,7 @@
  */
 package controllers;
 
+import controllers.annotation.AnonymousCheck;
 import models.*;
 import models.enumeration.RequestState;
 import play.db.ebean.Transactional;
@@ -27,6 +28,7 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import utils.ValidationResult;
 
+@AnonymousCheck
 public class EnrollOrganizationApp extends Controller {
 
     @Transactional

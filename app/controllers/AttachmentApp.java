@@ -30,14 +30,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import controllers.annotation.AnonymousCheck;
 import models.Attachment;
 import models.User;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
-
-import org.codehaus.jackson.JsonNode;
-
 import org.apache.commons.lang3.StringUtils;
+import org.codehaus.jackson.JsonNode;
 import play.Configuration;
 import play.Logger;
 import play.mvc.Controller;
@@ -46,6 +45,7 @@ import play.mvc.Result;
 import utils.AccessControl;
 import utils.HttpUtil;
 
+@AnonymousCheck
 public class AttachmentApp extends Controller {
 
     public static final String TAG_NAME_FOR_TEMPORARY_UPLOAD_FILES = "temporaryUploadFiles";

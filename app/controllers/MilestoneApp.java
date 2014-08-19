@@ -20,7 +20,7 @@
  */
 package controllers;
 
-import actions.AnonymousCheckAction;
+import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
 import models.Attachment;
@@ -34,11 +34,7 @@ import play.data.Form;
 import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Result;
-import play.mvc.With;
-import utils.Constants;
-import utils.ErrorViews;
-import utils.HttpUtil;
-import utils.JodaDateUtil;
+import utils.*;
 import views.html.milestone.create;
 import views.html.milestone.edit;
 import views.html.milestone.list;
@@ -48,6 +44,7 @@ import java.util.List;
 
 import static play.data.Form.form;
 
+@AnonymousCheck
 public class MilestoneApp extends Controller {
 
     public static class MilestoneCondition {
@@ -81,7 +78,7 @@ public class MilestoneApp extends Controller {
     /**
      * when: GET /:user/:project/newMilestoneForm
      */
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsCreatable(ResourceType.MILESTONE)
     public static Result newMilestoneForm(String userName, String projectName) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
@@ -128,7 +125,7 @@ public class MilestoneApp extends Controller {
     /**
      * when: GET /:user/:project/milestone/:id/editform
      */
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.MILESTONE)
     public static Result editMilestoneForm(String userName, String projectName, Long milestoneId) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);

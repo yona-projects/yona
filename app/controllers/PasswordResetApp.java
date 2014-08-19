@@ -20,24 +20,27 @@
  */
 package controllers;
 
+import controllers.annotation.AnonymousCheck;
 import info.schleichardt.play2.mailplugin.Mailer;
 import models.AuthInfo;
-import utils.PasswordReset;
 import models.User;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.SimpleEmail;
 import play.Configuration;
 import play.Logger;
 import play.data.DynamicForm;
-import play.mvc.*;
 import play.i18n.Messages;
+import play.mvc.Controller;
+import play.mvc.Result;
 import utils.Constants;
+import utils.PasswordReset;
+import views.html.site.lostPassword;
 import views.html.user.login;
 import views.html.user.resetPassword;
-import views.html.site.lostPassword;
 
 import static play.data.Form.form;
 
+@AnonymousCheck
 public class PasswordResetApp extends Controller {
 
     public static Result lostPassword(){

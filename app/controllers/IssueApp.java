@@ -21,9 +21,9 @@
 package controllers;
 
 import actions.NullProjectCheckAction;
-import actions.AnonymousCheckAction;
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
+import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
 import jxl.write.WriteException;
@@ -40,23 +40,21 @@ import play.data.validation.ValidationError;
 import play.db.ebean.Transactional;
 import play.i18n.Messages;
 import play.libs.Json;
-import play.mvc.Call;
-import play.mvc.Http;
-import play.mvc.Result;
-import play.mvc.With;
+import play.mvc.*;
 import utils.*;
 import views.html.issue.*;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
-import utils.HttpUtil;
-
+@AnonymousCheck
 public class IssueApp extends AbstractPostingApp {
     private static final String EXCEL_EXT = "xls";
     private static final Integer ITEMS_PER_PAGE_MAX = 45;
 
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     public static Result userIssues(String state, String format, int pageNum) throws WriteException, IOException {
         Project project = null;
         // SearchCondition from param
@@ -267,7 +265,7 @@ public class IssueApp extends AbstractPostingApp {
         return ok(partial_comments.render(project, issueInfo));
     }
 
-    @With(AnonymousCheckAction.class)
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsCreatable(ResourceType.ISSUE_POST)
     public static Result newIssueForm(String ownerName, String projectName) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);

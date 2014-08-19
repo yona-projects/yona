@@ -25,8 +25,10 @@ import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import models.resource.GlobalResource;
 import models.resource.Resource;
+import org.apache.commons.lang.BooleanUtils;
 
 public class AccessControl {
+    private static boolean anonymousNotAllowed;
 
     /**
      * Checks if an user has a permission to create a global resource.
@@ -99,7 +101,15 @@ public class AccessControl {
                 && OrganizationUser.isMember(project.organization, user);
     }
 
+    public static boolean isAnonymousNotAllowed() {
+        return anonymousNotAllowed;
+    }
+
     public static boolean isResourceCreatable(User user, Resource container, ResourceType resourceType) {
+        if (isAnonymousNotAllowed() && user.isAnonymous()) {
+            return false;
+        }
+
         if (isAllowedIfAuthor(user, container) || isAllowedIfAssignee(user, container)) {
             return true;
         }
@@ -306,6 +316,10 @@ public class AccessControl {
      */
     public static boolean isAllowed(User user, Resource resource, Operation operation)
             throws IllegalStateException {
+        if (isAnonymousNotAllowed() && user.isAnonymous()) {
+            return false;
+        }
+
         if (user.isSiteManager()) {
             return true;
         }
@@ -321,6 +335,11 @@ public class AccessControl {
 
             return isProjectResourceAllowed(user, project, resource, operation);
         }
+    }
+
+    public static void onStart() {
+        anonymousNotAllowed = BooleanUtils.toBoolean(
+                play.Configuration.root().getBoolean("application.allowsAnonymousAccess"));
     }
 
     /**
