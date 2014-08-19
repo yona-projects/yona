@@ -34,7 +34,7 @@
             <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, paramForEveryone)</span>
         </a>
     </li>
-    @if(!UserApp.currentUser().isSiteManager){
+    @if(!UserApp.currentUser().isAnonymous){
     <li @if(param.assigneeId == UserApp.currentUser().id){ class="active"}>
         <a pjax-filter href="#"
            data-assignee-id="@User.findByLoginId(session.get("loginId")).id"
