@@ -1,0 +1,7 @@
+Yobi v0.6.4 Release Notes
+=========================
+
+Fixes since v0.6.3
+------------------
+
+* An error occurred when try to write an issue. (2abce4d)
