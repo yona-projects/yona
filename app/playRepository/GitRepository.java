@@ -355,7 +355,9 @@ public class GitRepository implements PlayRepository {
                     break;
                 }
 
-                if (!commitIterator.hasNext()) {
+                if (commitIterator.hasNext()) {
+                    curr = commitIterator.next();
+                } else {
                     // ** Illegal state detected! (JGit bug?) **
                     //
                     // If targets still remain but there is no next commit,
@@ -365,16 +367,17 @@ public class GitRepository implements PlayRepository {
                     // see http://dev.eclipse.org/mhonarc/lists/jgit-dev/msg02461.html
                     try {
                         commitIterator = getCommitIterator(curr.getId());
+
+                        // If the new iteartor returns a same commit as the
+                        // previous one, just skip it.
+                        curr = commitIterator.next();
+                        if (curr.equals(prev)) {
+                            curr = commitIterator.next();
+                        }
                     } catch (GitAPIException e) {
                         play.Logger.warn("An exception occurs while traversing git history", e);
                         break;
                     }
-                }
-
-                curr = commitIterator.next();
-
-                if (curr.equals(prev)) {
-                    break;
                 }
 
                 found(curr, findObjects(curr));
