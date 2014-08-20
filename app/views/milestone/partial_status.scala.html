@@ -29,9 +29,15 @@
     <div class="meta-info">
         <a href="@routes.MilestoneApp.milestone(project.owner, project.name, milestone.id)" class="title">@milestone.title</a>
         @if(milestone.dueDate != null) {
-            <span class="sp">|</span>
-            <span class="due-date">@Messages("label.dueDate") <strong>@milestone.getDueDateString</strong></span>
-            <span class="date">(@milestone.until)</span>
+            <span class="due-date @if(milestone.state != State.CLOSED && milestone.isOverDueDate){over}">
+                @Messages("label.dueDate")
+                <strong>@milestone.getDueDateString</strong>
+                @if(milestone.state != State.CLOSED){
+                <span class="date">
+                    (@milestone.until)
+                </span>
+                }
+            </span>
         }
     </div>
 

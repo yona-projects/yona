@@ -117,18 +117,17 @@
                     }
                     </optgroup>
                 </select>
+                @if(param.milestoneId != null){
+                    @defining(Milestone.findById(param.milestoneId)){ milestone =>
+                        @if(milestone != null){
+                            @views.html.milestone.partial_status(milestone, project)
+                            <hr>
+                        }
+                    }
+                }
+                }
             </dd>
         </dl>
-
-        @if(param.milestoneId != null){
-            @defining(Milestone.findById(param.milestoneId)){ milestone =>
-                @if(milestone != null){
-                    <hr>
-                    @views.html.milestone.partial_status(milestone, project)
-                }
-            }
-        }
-        }
 
         <dl class="issue-option">
             <dt>@Messages("issue.dueDate")</dt>
