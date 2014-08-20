@@ -31,6 +31,7 @@ yobi.Markdown = (function(htOptions){
 
         _initVar(htOptions);
         _enableMarkdown(htOptions.aTarget);
+        _initializeMarkdownRenderer();
     }
 
     /**
@@ -42,11 +43,13 @@ yobi.Markdown = (function(htOptions){
         htVar.sProjectUrl = htOptions.sProjectUrl;
         htVar.bBreaks = htOptions.bBreaks;
         htVar.sApplicationContext = htOptions.sApplicationContext;
+        htVar.bNoReferrer = htOptions.bNoReferrer;
         htVar.sUserRules = '[a-zA-Z0-9_\\-\\.\\/]';
         htVar.sProjecRules = '[a-zA-Z0-9_\\-\\.]';
         htVar.sIssueRules = '\\d';
         htVar.sSha1Rules = '[a-f0-9]{7,40}';
         htVar.htFilter = new Filter();
+
         htVar.htMarkedOption = {
             "gfm"       : true,
             "tables"    : true,
@@ -66,6 +69,72 @@ yobi.Markdown = (function(htOptions){
                 }
             }
         };
+    }
+
+    function _initializeMarkdownRenderer() {
+        var renderer = new marked.Renderer();
+        renderer.link = function(href, title, text) {
+            
+            var link = $('<a/>', {
+                href : _removeJavascript2Href(href),
+                title : title,
+                text: text
+            });
+
+            if(htVar.bNoReferrer && !isInternalLink(href)) link.attr('rel', "noreferrer");
+
+            return $('<div>').append(link.clone()).remove().html();                
+        };
+
+        renderer.html = function(html) {  
+            var tag = $(html);
+
+            if (tag.prop("href")) {   
+
+                tag.attr("href", _removeJavascript2Href(tag.attr("href")));
+
+                if(htVar.bNoReferrer && !isInternalLink(tag.attr("href"))) {
+                    tag.attr("rel", function(i, val) {
+                        return _addUniqeValue2Attr(val, "noreferrer");
+                    });
+                }  
+
+                html = $('<div>').append(tag.clone()).remove().html().split(">")[0]+">";     
+            }
+
+            return html;
+        };
+
+        htVar.htMarkedOption.renderer = renderer;
+    }
+
+    function _addUniqeValue2Attr(origin, value) {
+        if(!origin) return value;
+
+        var origins = origin.split(" ");
+        var values = [value];
+        
+        $.each(origins, function(i, val){
+            if(val !== value) values.push(val);
+        });
+
+        return values.join(" ");
+    }
+
+    function _removeJavascript2Href(href) {
+        try {
+            var wordString = decodeURIComponent(unescape(href))
+                .replace(/[^\w:]/g, '')
+                .toLowerCase();
+        } catch (e) {
+            href = '#';
+        }
+
+        if (wordString.indexOf('javascript:') === 0) {
+            href = '#';
+        }
+
+        return href;
     }
 
     /**
@@ -263,6 +332,11 @@ yobi.Markdown = (function(htOptions){
     function _isEditableElement(elTarget){
         var sTagName = elTarget.tagName.toUpperCase();
         return (sTagName === "TEXTAREA" || sTagName === "INPUT" || elTarget.contentEditable == "true");
+    }
+
+    function isInternalLink(url) {
+        var linkHostname = $('<a/>').attr('href', url).prop('hostname');
+        return (linkHostname === document.location.hostname);
     }
 
     // public interface
