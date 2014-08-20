@@ -21,6 +21,7 @@
 package controllers;
 
 import actions.DefaultProjectCheckAction;
+import com.avaje.ebean.Expr;
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Junction;
 import com.avaje.ebean.Page;
@@ -980,8 +981,21 @@ public class ProjectApp extends Controller {
             junction.endJunction();
         }
 
-        if (!UserApp.currentUser().isSiteManager()) {
-            el.eq("projectScope", ProjectScope.PUBLIC);
+        User user = UserApp.currentUser();
+        if (!user.isSiteManager()) {
+            if(user.isAnonymous()) {
+                el.eq("projectScope", ProjectScope.PUBLIC);
+            } else {
+                Junction<Project> junction = el.conjunction();
+                Junction<Project> pj = junction.disjunction();
+                pj.add(Expr.eq("projectScope", ProjectScope.PUBLIC)); // public
+                List<Organization> orgs = Organization.findOrganizationsByUserLoginId(user.loginId); // protected
+                if(!orgs.isEmpty()) {
+                    pj.and(Expr.in("organization", orgs), Expr.eq("projectScope", ProjectScope.PROTECTED));
+                }
+                pj.add(Expr.eq("projectUser.user.id", user.id)); // private
+                pj.endJunction();
+            }
         }
 
         return el;
