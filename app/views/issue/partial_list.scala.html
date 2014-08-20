@@ -101,13 +101,24 @@
                 }
             </div>
             @if(issue.dueDate != null) {
-            <div class="mr20 mt10 pull-right @if(issue.isOverDueDate) {overdue}" data-toggle="tooltip" data-placement="top" title="@issue.getDueDateString">
-                <i class="yobicon-clock2"></i> 
-                @if(issue.isOverDueDate) {
-                    @Messages("issue.dueDate.overdue")
+            <div class="mr20 mt10 pull-right
+                 @if(issue.state == State.CLOSED){darkgray-txt}
+                 @if(issue.state == State.OPEN && issue.isOverDueDate){overdue}"
+                 @if(issue.state == State.OPEN){
+                    data-toggle="tooltip" data-placement="top" title="@issue.getDueDateString"
+                 }>
+                <i class="yobicon-clock2 mr3 vmiddle"></i>
+                <span class="vmiddle">
+                @if(issue.state == State.OPEN){
+                    @if(issue.isOverDueDate) {
+                        @Messages("issue.dueDate.overdue")
+                    } else {
+                        @issue.until
+                    }
                 } else {
-                    @issue.until
+                    @issue.getDueDateString
                 }
+                </span>
             </div>
             }       
         </div>
