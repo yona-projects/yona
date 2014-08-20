@@ -5263,10 +5263,27 @@ label.issue-item-row {
                     padding:5px 10px;
                     font-weight: bold;
                     overflow: hidden;
-                    text-overflow: ellipsis;
                     white-space: nowrap;
                     word-break : break-all;
                     margin-right: 115px;
+
+                    .filename {
+                        color:transparent;
+                        font-size:0;
+
+                        &:before {
+                            content:attr(title);
+                            color:@base-text-color;
+                            font-size:@base-font-size;
+                            cursor:text;
+                        }
+                    }
+                    .pathB {
+                        display:block;
+                        color:transparent;
+                        font-size:0;
+                        .opacity(0);
+                    }
                 }
 
                 .diff-partial-utility {
