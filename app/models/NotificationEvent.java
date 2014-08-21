@@ -69,9 +69,6 @@ public class NotificationEvent extends Model {
 
     public String title;
 
-    @Lob
-    public String message;
-
     public Long senderId;
 
     @ManyToMany(cascade = CascadeType.ALL)
@@ -108,10 +105,6 @@ public class NotificationEvent extends Model {
 
     @Transient
     public String getMessage(Lang lang) {
-        if (message != null) {
-            return message;
-        }
-
         switch (eventType) {
             case ISSUE_STATE_CHANGED:
                 if (newValue.equals(State.CLOSED.state())) {
