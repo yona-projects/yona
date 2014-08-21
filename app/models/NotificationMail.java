@@ -24,7 +24,6 @@ import info.schleichardt.play2.mailplugin.Mailer;
 import models.enumeration.UserState;
 import models.resource.Resource;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.HtmlEmail;
 import org.joda.time.DateTime;
 import org.jsoup.Jsoup;
@@ -53,6 +52,7 @@ import java.util.concurrent.TimeUnit;
 @Entity
 public class NotificationMail extends Model {
     private static final long serialVersionUID = 1L;
+    static boolean hideAddress = true;
 
     @Id
     public Long id;
@@ -64,6 +64,9 @@ public class NotificationMail extends Model {
             NotificationMail.class);
 
     public static void onStart() {
+        hideAddress = play.Configuration.root().getBoolean(
+            "application.notification.bymail.hideAddress", true);
+
         if (notificationEnabled()) {
             NotificationMail.startSchedule();
         }
@@ -179,11 +182,23 @@ public class NotificationMail extends Model {
             final HtmlEmail email = new HtmlEmail();
 
             try {
-                email.setFrom(Config.getEmailFromSmtp(), event.getSender().name);
-                email.addTo(Config.getEmailFromSmtp(), utils.Config.getSiteName());
+                if (hideAddress) {
+                    email.setFrom(Config.getEmailFromSmtp(), event.getSender().name);
+                    email.addTo(Config.getEmailFromSmtp(), utils.Config.getSiteName());
+                } else {
+                    email.setFrom(event.getSender().email, event.getSender().name);
+                }
 
                 for (User receiver : usersByLang.get(langCode)) {
-                    email.addBcc(receiver.email, receiver.name);
+                    if (hideAddress) {
+                        email.addBcc(receiver.email, receiver.name);
+                    } else {
+                        email.addTo(receiver.email, receiver.name);
+                    }
+                }
+
+                if (email.getToAddresses().isEmpty()) {
+                    continue;
                 }
 
                 Lang lang = Lang.apply(langCode);
