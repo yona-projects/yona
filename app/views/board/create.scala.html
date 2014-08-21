@@ -20,71 +20,76 @@
 **@
 @(title:String, form:Form[Posting], project:Project, isAllowedToNotice:Boolean, preparedPostBody:String = "")
 
+@import utils.AccessControl._
 @import utils.TemplateHelper._
 @import utils.HtmlUtil._
 @import models.enumeration._
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
 @readmeUpdateMessage = @{
-    if( request().getQueryString("readme") != null ) {
-        "Update README.md"
-    }
+  if( request().getQueryString("readme") != null ) {
+      "Update README.md"
+  }
 }
 
 @projectLayout(title, project, utils.MenuType.BOARD) {
 @projectMenu(project, utils.MenuType.BOARD, "main-menu-only")
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
-    	<form action="@routes.BoardApp.newPost(project.owner, project.name)" method="post" enctype="multipart/form-data" class="nm">
-    	<div class="content-wrap frm-wrap">
-    		<dl>
-    			<dt>
-    				<label for="title">@Messages("title")</label>
-    			</dt>
-    			<dd>
-    				@defining(form.errors().get("title")) { errors =>
-				<input type="text" id="title" name="title" class="zen-mode text title @if(errors != null) {error}" maxlength="250" tabindex="1" value="@readmeUpdateMessage"/>
-    					@if(errors != null) {
-    						<div class="message">
-    						@for(error <- errors) {
-    							<div>@Messages(error.message)</div>
-    						}
-    						</div>
-    					}
-    				}
-    			</dd>
-
-                <dd style="position: relative;">
-                    @common.editor("body", preparedPostBody, "tabindex=2")
-    			</dd>
-
-    			@if(isAllowedToNotice){
-    			<dd class="right-txt">
-    				<input type="checkbox" id="notice" name="notice" class="checkbox" /><!--
-    			 --><label for="notice" class="label-public">@Messages("post.notice.label")</label>
-                    @if(project.isGit && request().getQueryString("readme") != null ) {
-                        <input type="checkbox" id="readme" name="readme" class="checkbox" @boolToCheckedString(request().getQueryString("readme"))
-                        /><!--
-                    --><label for="readme" class="label-public">@Messages("post.readmefy")</label>
-                    }
-    			</dd>
-    			}
-    		</dl>
-
-            @** fileUploader **@
-            @if(!UserApp.currentUser.isAnonymous) {
-                @common.fileUploader(ResourceType.BOARD_POST, null)
+  <div class="project-page-wrap">
+    <form action="@routes.BoardApp.newPost(project.owner, project.name)" method="post" enctype="multipart/form-data" class="nm">
+      <div class="content-wrap frm-wrap">
+        <dl>
+          <dt>
+            <label for="title">@Messages("title")</label>
+          </dt>
+          <dd>
+            @defining(form.errors().get("title")) { errors =>
+              <input type="text" id="title" name="title" class="zen-mode text title @if(errors != null) {error}" maxlength="250" tabindex="1" value="@readmeUpdateMessage"/>
+              @if(errors != null) {
+                <div class="message">
+                @for(error <- errors) {
+                  <div>@Messages(error.message)</div>
+                }
+                </div>
+              }
             }
-            @** end of fileUploader **@
+          </dd>
+          <dd style="position: relative;">
+            @common.editor("body", preparedPostBody, "tabindex=2")
+          </dd>
+        </dl>
 
-    		<div class="actions">
-    			<button class="ybtn ybtn-success" tabindex="3">@Messages("button.save")</button><!--
-    		 --><a href="javascript:history.back();" class="ybtn" tabindex="4">@Messages("button.cancel")</a>
-    		</div>
+        @** fileUploader **@
+        @if(!UserApp.currentUser.isAnonymous) {
+            @common.fileUploader(ResourceType.BOARD_POST, null)
+        }
+        @** end of fileUploader **@
 
-    	</div>
-    	</form>
-    </div>
+        <div class="right-txt mt10 mb10">
+          @if(isAllowedToNotice && !stringToBoolean(request().getQueryString("readme"))){
+          <label class="checkbox">
+            <input type="checkbox" id="notice" name="notice">
+            @Messages("post.notice.label")
+          </label>
+          }
+
+          @if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.COMMIT)){
+            @if(project.isGit && stringToBoolean(request().getQueryString("readme"))){
+            <label class="checkbox">
+              <input type="checkbox" id="readme" name="readme" @boolToCheckedString(request().getQueryString("readme"))>
+              @Messages("post.readmefy")
+            </label>
+            }
+          }
+        </div>
+
+        <div class="actions">
+          <button class="ybtn ybtn-success" tabindex="3">@Messages("button.save")</button><!--
+         --><a href="javascript:history.back();" class="ybtn" tabindex="4">@Messages("button.cancel")</a>
+        </div>
+      </div>
+    </form>
+  </div>
 </div>
 
 @common.markdown(project)
@@ -93,16 +98,15 @@
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.caret.min.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.js")"></script>
 <script type="text/javascript">
-$(document).ready(function(){
-	$yobi.loadModule("board.Write", {
-		"sMode"			 : "new",
-		"elTextarea"	 : 'textarea[data-editor-mode="content-body"]',
-		"sUploaderAction": "@routes.AttachmentApp.uploadFile()"
-	});
+$(function(){
+    $yobi.loadModule("board.Write", {
+        "sMode"     : "new",
+        "elTextarea": 'textarea[data-editor-mode="content-body"]'
+    });
 
     yobi.Mention({
-        target:'textarea[id^=editor-]',
-        url : "@Html(routes.ProjectApp.mentionList(project.owner, project.name).toString())"
+        "target": 'textarea[id^=editor-]',
+        "url"   : "@Html(routes.ProjectApp.mentionList(project.owner, project.name).toString())"
     });
 });
 </script>
