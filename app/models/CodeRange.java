@@ -26,8 +26,6 @@ import play.data.validation.Constraints;
 import javax.persistence.Embeddable;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.Transient;
-import javax.validation.constraints.NotNull;
 
 /**
  * @author Keesun Baik
