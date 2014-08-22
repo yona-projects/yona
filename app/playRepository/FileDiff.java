@@ -38,6 +38,25 @@ public class FileDiff {
     public static final int SIZE_LIMIT = 500 * 1024;
     public static final int LINE_LIMIT = 5000;
     private Set<Error> errors = new HashSet<>();
+
+    public Integer getInterestLine() {
+        return interestLine;
+    }
+
+    public void setInterestLine(Integer interestLine) {
+        this.interestLine = interestLine;
+        hunks = null;
+    }
+
+    public CodeRange.Side getInterestSide() {
+        return interestSide;
+    }
+
+    public void setInterestSide(CodeRange.Side interestSide) {
+        this.interestSide = interestSide;
+        hunks = null;
+    }
+
     public enum Error {A_SIZE_EXCEEDED, B_SIZE_EXCEEDED, DIFF_SIZE_EXCEEDED, OTHERS_SIZE_EXCEEDED }
     public RawText a;
     public RawText b;
@@ -50,8 +69,8 @@ public class FileDiff {
     public boolean isBinaryA = false;
     public boolean isBinaryB = false;
     public DiffEntry.ChangeType changeType;
-    public Integer interestLine = null;
-    public CodeRange.Side interestSide = null;
+    private Integer interestLine = null;
+    private CodeRange.Side interestSide = null;
     public FileMode oldMode;
     public FileMode newMode;
     private Hunks hunks;
@@ -131,11 +150,12 @@ public class FileDiff {
                     curEdit = editList.get(curIdx);
             }
 
-            if (interestLine != null && interestSide != null) {
+            if (getInterestLine() != null && getInterestSide() != null) {
+
                 boolean added = false;
-                switch(interestSide) {
+                switch(getInterestSide()) {
                     case A:
-                        if (hunk.beginA <= interestLine && hunk.endA >= interestLine) {
+                        if (hunk.beginA <= getInterestLine() && hunk.endA >= getInterestLine()) {
                             hunks.add(hunk);
                             size += hunk.size();
                             lines += hunk.lines.size();
@@ -143,7 +163,7 @@ public class FileDiff {
                         }
                         break;
                     case B:
-                        if (hunk.beginB <= interestLine && hunk.endB >= interestLine) {
+                        if (hunk.beginB <= getInterestLine() && hunk.endB >= getInterestLine()) {
                             hunks.add(hunk);
                             size += hunk.size();
                             lines += hunk.lines.size();
