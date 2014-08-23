@@ -44,14 +44,6 @@
     <div class="alert alert-error">
         <i class="yobicon-error mr5"></i>
         <span>@Messages("pullRequest.is.not.safe")</span>
-        <div>
-            <h6>@Messages("pullRequest.conflict.files")</h6>
-            <ul class="unstyled conflict-files">
-                @for(file <- pull.getConflictFiles) {
-                <li>@file</li>
-                }
-            </ul>
-        </div>
 
         @if(UserApp.currentUser().equals(pull.contributor)){
         <div class="howto-resolve-conflict">

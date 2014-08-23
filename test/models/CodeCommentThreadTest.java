@@ -28,6 +28,7 @@ import org.junit.Before;
 import org.junit.Test;
 import playRepository.BareCommit;
 import playRepository.GitRepository;
+import support.Git;
 import utils.JodaDateUtil;
 
 import java.io.File;
@@ -41,7 +42,6 @@ import static utils.FileUtil.rm_rf;
  * @author Changsung Kim
  */
 public class CodeCommentThreadTest extends ModelTest<CodeCommentThread>  {
-    private static final String MERGING_REPO_PREFIX = "resources/test/repo/git-merging/";
     private static final String REPO_PREFIX = "resources/test/repo/git/";
     private Project project;
     private ObjectId baseCommit;
@@ -57,12 +57,10 @@ public class CodeCommentThreadTest extends ModelTest<CodeCommentThread>  {
     @After
     public void after() {
         rm_rf(new File(REPO_PREFIX));
-        rm_rf(new File(MERGING_REPO_PREFIX));
     }
 
     private void addTestRepository() throws IOException, GitAPIException {
         GitRepository.setRepoPrefix(REPO_PREFIX);
-        GitRepository.setRepoForMergingPrefix(MERGING_REPO_PREFIX);
 
         // given
         GitRepository.buildGitRepository(project).create(true);

@@ -30,7 +30,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.joda.time.DateTime;
 import org.tmatesoft.svn.core.SVNException;
@@ -48,6 +47,7 @@ import javax.persistence.*;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -55,7 +55,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.net.URLEncoder;
 
 import static models.enumeration.EventType.*;
 
@@ -347,15 +346,12 @@ public class NotificationEvent extends Model {
     /**
      * @see {@link actors.PullRequestActor#processPullRequestMerging(models.PullRequestEventMessage, models.PullRequest)}
      */
-    public static NotificationEvent afterMerge(User sender, PullRequest pullRequest, GitConflicts conflicts, State state) {
+    public static NotificationEvent afterMerge(User sender, PullRequest pullRequest, State state) {
         NotificationEvent notiEvent = createFrom(sender, pullRequest);
         notiEvent.title = formatReplyTitle(pullRequest);
         notiEvent.receivers = state == State.MERGED ? getReceiversWithRelatedAuthors(sender, pullRequest) : getReceivers(sender, pullRequest);
         notiEvent.eventType = PULL_REQUEST_MERGED;
         notiEvent.newValue = state.state();
-        if (conflicts != null) {
-            notiEvent.oldValue = StringUtils.join(conflicts.conflictFiles, "\n");
-        }
         NotificationEvent.add(notiEvent);
         return notiEvent;
     }
@@ -756,12 +752,10 @@ public class NotificationEvent extends Model {
         String failureMessage =
                 "Failed to get authors related to the pullrequest " + pullRequest;
         try {
-            Repository clonedRepository = GitRepository.buildMergingRepository(pullRequest);
-
             if (pullRequest.mergedCommitIdFrom != null
                     && pullRequest.mergedCommitIdTo != null) {
                 receivers.addAll(GitRepository.getRelatedAuthors(
-                        clonedRepository,
+                        new GitRepository(pullRequest.toProject).getRepository(),
                         pullRequest.mergedCommitIdFrom,
                         pullRequest.mergedCommitIdTo));
             }

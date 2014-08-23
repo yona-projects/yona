@@ -23,20 +23,33 @@ package support;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.eclipse.jgit.revwalk.RevCommit;
+import playRepository.GitRepository;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
 public class Git {
-    public static RevCommit commit(Repository repository, String wcPath, String fileName,
+    public static RevCommit commit(Repository repository, String fileName,
                                    String contents, String commitMessage) throws IOException, GitAPIException {
+        String wcPath = repository.getWorkTree().getAbsolutePath();
         org.eclipse.jgit.api.Git git = new org.eclipse.jgit.api.Git(repository);
         BufferedWriter out = new BufferedWriter(new FileWriter(wcPath + "/" + fileName));
         out.write(contents);
         out.flush();
         git.add().addFilepattern(fileName).call();
         return git.commit().setMessage(commitMessage).call();
+    }
+
+    public static Repository createRepository(String userName, String projectName, boolean bare) throws IOException {
+        String wcPath = GitRepository.getRepoPrefix() + userName + "/" + projectName;
+        String repoPath = wcPath + "/.git";
+        File repoDir = new File(repoPath);
+        Repository repository = new RepositoryBuilder().setGitDir(repoDir).build();
+        repository.create(bare);
+        return repository;
     }
 }

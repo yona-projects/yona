@@ -73,7 +73,6 @@ public class PullRequestAppTest {
     @Before
     public void before() {
         GitRepository.setRepoPrefix("resources/test/repo/git/");
-        GitRepository.setRepoForMergingPrefix("resources/test/repo/git-merging/");
     }
 
     @AfterClass
@@ -84,7 +83,6 @@ public class PullRequestAppTest {
     @After
     public void after() {
         support.Files.rm_rf(new File(GitRepository.getRepoPrefix()));
-        support.Files.rm_rf(new File(GitRepository.getRepoForMergingPrefix()));
     }
 
     @Test
@@ -388,33 +386,6 @@ public class PullRequestAppTest {
         this.ownerLoginId = ownerLoginId;
         this.projectName = projectName;
         this.pullRequestNumber = pullRequestNumber;
-        Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
-        PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
-        initRepositories(pullRequest);
     }
 
-    private void initRepositories(PullRequest pullRequest) throws Exception {
-        if (pullRequest == null) {
-            return;
-        }
-        initRepository(pullRequest.toProject,
-                StringUtils.removeStart(pullRequest.toBranch, "refs/heads/"), "1.txt");
-        initRepository(pullRequest.fromProject,
-                StringUtils.removeStart(pullRequest.fromBranch, "refs/heads/"), "2.txt");
-    }
-
-    private void initRepository(Project project, String branchName, String fileName) throws Exception {
-        GitRepository gitRepository = new GitRepository(project);
-        gitRepository.create();
-
-        Repository repository = GitRepository.buildMergingRepository(project);
-        Git git =  new Git(repository);
-
-        FileUtils.touch(new File(GitRepository.getDirectoryForMerging(project.owner, project.name + "/" + fileName)));
-        git.add().addFilepattern(fileName).call();
-        git.commit().setMessage(fileName).call();
-        git.push().setRefSpecs(new RefSpec("master:master"), new RefSpec("master:" + branchName)).call();
-        gitRepository.close();
-        repository.close();
-    }
 }

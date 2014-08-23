@@ -63,7 +63,6 @@ import javax.annotation.Nullable;
 import javax.persistence.*;
 import javax.persistence.OrderBy;
 import javax.validation.constraints.Size;
-import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.*;
@@ -79,9 +78,6 @@ public class PullRequest extends Model implements ResourceConvertible {
     public static final Finder<Long, PullRequest> finder = new Finder<>(Long.class, PullRequest.class);
 
     public static final int ITEMS_PER_PAGE = 15;
-
-    @Transient
-    public Repository mergedRepo = null;
 
     @Id
     public Long id;
@@ -146,8 +142,6 @@ public class PullRequest extends Model implements ResourceConvertible {
     public String mergedCommitIdTo;
 
     public Long number;
-
-    public String conflictFiles;
 
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
@@ -665,16 +659,6 @@ public class PullRequest extends Model implements ResourceConvertible {
         return repository;
     }
 
-    public Repository getMergedRepository() throws IOException {
-        if (mergedRepo == null) {
-            File dir = new File(
-                    GitRepository.getDirectoryForMerging(toProject.owner, toProject.name) + "/.git");
-            mergedRepo = new RepositoryBuilder().setGitDir(dir).build();
-        }
-
-        return mergedRepo;
-    }
-
     @Transient
     public List<FileDiff> getDiff(String revA, String revB) throws IOException {
         Repository repository = getRepository();
@@ -769,11 +753,6 @@ public class PullRequest extends Model implements ResourceConvertible {
     public void delete() {
         deleteIssueEvents();
         super.delete();
-    }
-
-    @Transient
-    public String[] getConflictFiles() {
-        return StringUtils.split(this.conflictFiles, ",");
     }
 
     @Transient
