@@ -18,7 +18,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(project: Project, pullRequest:models.PullRequest, result:models.PullRequestMergeResult)
+@(project: Project, pullRequest:models.PullRequest, commits: List[playRepository.GitCommit], conflict: Boolean)
 
 @import utils.JodaDateUtil
 @import utils.TemplateHelper._
@@ -27,73 +27,71 @@
 @import playRepository.GitCommit
 @import scala.collection.Map
 
-@if(result != null) {
-    @defining(result.getGitCommits){ commits =>
-        <div id="mergeResult" class="code-browser-wrap"
-             data-commits="@commits.size"
-             data-pullrequest-title="@pullRequest.title"
-             data-pullrequest-body="@pullRequest.body"
-             @if(!commits.isEmpty){
-                data-conflict="@result.conflicts"
-             }
-        >
-            @if(commits.isEmpty) {
-                <div>
-                    <h5>@Messages("pullRequest.diff.noChanges")</h5>
-                </div>
-            } else {
-                <div class="commit-wrap">
-                    <table class="code-table commits">
-                        <thead class="thead">
-                        <tr>
-                            <td class="commit-id"><strong>@{"@"}</strong></td>
-                            <td class="messages"><strong>@Messages("code.commitMsg")</strong></td>
-                            <td class="date"><strong>@Messages("code.commitDate")</strong></td>
-                            <td class="author"><strong>@Messages("code.author")</strong></td>
-                        </tr>
-                        </thead>
-                        <tbody class="tbody">
-                        @for(commit <- commits){
-                        <tr>
-                            <td class="commit-id">
-                                <a href="@routes.CodeHistoryApp.show(pullRequest.fromProject.owner, pullRequest.fromProject.name, commit.getId)">
-                                    @commit.getShortId
-                                </a>
-                            </td>
-                            <td class="messages">
-                                @defining(CommitComment.count(pullRequest.fromProject, commit.getId, null)){ numOfComment =>
-                                    @if(numOfComment > 0) {
-                                    <span class="number-of-comments"><i class="yobicon-comments"></i> @numOfComment</span>
-                                    }
-                                }
-                                @defining(commit.getMessage){ commitMsg =>
-                                    @common.commitMsg(commitMsg.split("\n")(0),
-                                        commitMsg,
-                                        routes.CodeHistoryApp.show(pullRequest.fromProject.owner, pullRequest.fromProject.name, commit.getId).toString())
-                                }
-                            </td>
-                            <td class="date" title="@JodaDateUtil.getDateString(commit.getAuthorDate)">
-                                @agoOrDateString(commit.getAuthorDate)
-                            </td>
-                            <td class="author @commit.getAuthorEmail">
-                                @defining(User.find.where.eq("email", commit.getAuthorEmail).findUnique) { user =>
-                                  @if(user != null) {
-                                      <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap">
-                                          <img src="@user.avatarUrl" alt="@user.name" width="32" height="32"/>
-                                      </a>
-                                  } else {
-                                      <div class="avatar-wrap">
-                                          <img src="@urlToPicture(commit.getAuthorEmail, 32)" width="32" height="32"/>
-                                      </div>
-                                  }
-                                }
-                            </td>
-                        </tr>
-                        }
-                        </tbody>
-                    </table>
-                </div>
+@if(conflict != null) {
+    <div id="mergeResult" class="code-browser-wrap"
+            data-commits="@commits.size"
+            data-pullrequest-title="@pullRequest.title"
+            data-pullrequest-body="@pullRequest.body"
+            @if(!commits.isEmpty){
+            data-conflict="@conflict"
             }
-        </div>
-    }
+    >
+        @if(commits.isEmpty) {
+            <div>
+                <h5>@Messages("pullRequest.diff.noChanges")</h5>
+            </div>
+        } else {
+            <div class="commit-wrap">
+                <table class="code-table commits">
+                    <thead class="thead">
+                    <tr>
+                        <td class="commit-id"><strong>@{"@"}</strong></td>
+                        <td class="messages"><strong>@Messages("code.commitMsg")</strong></td>
+                        <td class="date"><strong>@Messages("code.commitDate")</strong></td>
+                        <td class="author"><strong>@Messages("code.author")</strong></td>
+                    </tr>
+                    </thead>
+                    <tbody class="tbody">
+                    @for(commit <- commits){
+                    <tr>
+                        <td class="commit-id">
+                            <a href="@routes.CodeHistoryApp.show(pullRequest.fromProject.owner, pullRequest.fromProject.name, commit.getId)">
+                                @commit.getShortId
+                            </a>
+                        </td>
+                        <td class="messages">
+                            @defining(CommitComment.count(pullRequest.fromProject, commit.getId, null)){ numOfComment =>
+                                @if(numOfComment > 0) {
+                                <span class="number-of-comments"><i class="yobicon-comments"></i> @numOfComment</span>
+                                }
+                            }
+                            @defining(commit.getMessage){ commitMsg =>
+                                @common.commitMsg(commitMsg.split("\n")(0),
+                                    commitMsg,
+                                    routes.CodeHistoryApp.show(pullRequest.fromProject.owner, pullRequest.fromProject.name, commit.getId).toString())
+                            }
+                        </td>
+                        <td class="date" title="@JodaDateUtil.getDateString(commit.getAuthorDate)">
+                            @agoOrDateString(commit.getAuthorDate)
+                        </td>
+                        <td class="author @commit.getAuthorEmail">
+                            @defining(User.find.where.eq("email", commit.getAuthorEmail).findUnique) { user =>
+                                @if(user != null) {
+                                    <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap">
+                                        <img src="@user.avatarUrl" alt="@user.name" width="32" height="32"/>
+                                    </a>
+                                } else {
+                                    <div class="avatar-wrap">
+                                        <img src="@urlToPicture(commit.getAuthorEmail, 32)" width="32" height="32"/>
+                                    </div>
+                                }
+                            }
+                        </td>
+                    </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
 }

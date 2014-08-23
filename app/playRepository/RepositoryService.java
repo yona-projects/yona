@@ -20,51 +20,29 @@
  */
 package playRepository;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-
-import models.*;
-
+import controllers.ProjectApp;
+import controllers.UserApp;
+import models.Project;
+import models.User;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.errors.AmbiguousObjectException;
-import org.eclipse.jgit.errors.IncorrectObjectTypeException;
-import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.transport.PacketLineOut;
-import org.eclipse.jgit.transport.PostReceiveHook;
-import org.eclipse.jgit.transport.PostReceiveHookChain;
-import org.eclipse.jgit.transport.ReceivePack;
+import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.transport.RefAdvertiser.PacketLineOutRefAdvertiser;
-import org.eclipse.jgit.transport.UploadPack;
 import org.tigris.subversion.javahl.ClientException;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.internal.server.dav.DAVServlet;
-
 import play.Logger;
 import play.mvc.Http.RawBuffer;
 import play.mvc.Http.Request;
 import play.mvc.Http.Response;
 import playRepository.hooks.*;
 
-import controllers.ProjectApp;
-import controllers.UserApp;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import java.io.*;
+import java.util.*;
 
 public class RepositoryService {
     public static final String VCS_SUBVERSION = "Subversion";
@@ -247,9 +225,10 @@ public class RepositoryService {
                     break;
                 case "git-receive-pack":
                     repository = GitRepository.buildGitRepository(project, false);
+                    PreReceiveHook preReceiveHook = createPreReceiveHook();
                     PostReceiveHook postReceiveHook = createPostReceiveHook(UserApp.currentUser(), project, request);
                     receivePack(requestStream, repository, new PipedOutputStream(responseStream),
-                            postReceiveHook);
+                            preReceiveHook, postReceiveHook);
                     // receivePack.setEchoCommandFailures(true);
                     break;
                 default:
@@ -268,6 +247,12 @@ public class RepositoryService {
         }
     }
 
+    private static PreReceiveHook createPreReceiveHook() {
+        List<PreReceiveHook> hooks = new ArrayList<>();
+        hooks.add(new RejectPushToReservedRefs());
+        return PreReceiveHookChain.newChain(hooks);
+    }
+
     private static PostReceiveHook createPostReceiveHook(
             final User currentUser, final Project project, final Request request) {
         List<PostReceiveHook> hooks = new ArrayList<>();
@@ -281,6 +266,7 @@ public class RepositoryService {
 
     private static void receivePack(final InputStream input, Repository repository,
                                     final OutputStream output,
+                                    final PreReceiveHook preReceiveHook,
                                     final PostReceiveHook postReceiveHook) {
         final ReceivePack receivePack = new ReceivePack(repository);
         receivePack.setBiDirectionalPipe(false);
@@ -288,6 +274,7 @@ public class RepositoryService {
             @Override
             public void run() {
                 try {
+                    receivePack.setPreReceiveHook(preReceiveHook);
                     receivePack.setPostReceiveHook(postReceiveHook);
                     receivePack.receive(input, output, null);
                 } catch (IOException e) {

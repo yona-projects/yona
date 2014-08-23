@@ -226,7 +226,8 @@ public class PullRequestApp extends Controller {
         PullRequestMergeResult mergeResult = pullRequest.getPullRequestMergeResult();
 
         response().setHeader("Cache-Control", "no-cache, no-store");
-        return ok(partial_merge_result.render(project, pullRequest, mergeResult));
+        return ok(partial_merge_result.render(project, pullRequest, mergeResult.getGitCommits(),
+                mergeResult.conflicts()));
     }
 
     @Transactional

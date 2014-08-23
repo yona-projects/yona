@@ -954,28 +954,28 @@ public class GitRepository implements PlayRepository {
         return getDirectoryForMerging(owner, projectName) + "/.git/objects";
     }
 
-    @SuppressWarnings("unchecked")
-    public static List<RevCommit> diffRevCommits(Repository repository, String fromBranch, String toBranch) throws IOException {
-        RevWalk walk = null;
-        try {
-            walk = new RevWalk(repository);
-            ObjectId from = repository.resolve(fromBranch);
-            ObjectId to = repository.resolve(toBranch);
-
-            walk.markStart(walk.parseCommit(from));
-            walk.markUninteresting(walk.parseCommit(to));
-
-            return IteratorUtils.toList(walk.iterator());
-        } finally {
-            if (walk != null) {
-                walk.dispose();
-            }
-        }
+    public static List<RevCommit> diffRevCommits(Repository repository, String fromBranch, String toBranch) throws IOException, GitAPIException {
+        ObjectId from = repository.resolve(fromBranch);
+        ObjectId to = repository.resolve(toBranch);
+        return diffRevCommits(repository, from, to);
     }
 
-    public static List<GitCommit> diffCommits(Repository repository, String fromBranch, String toBranch) throws IOException {
+    @SuppressWarnings("unchecked")
+    public static List<RevCommit> diffRevCommits(Repository repository, ObjectId from, ObjectId to) throws IOException, GitAPIException {
+        return IteratorUtils.toList(
+                new Git(repository).log().addRange(from, to).call().iterator());
+    }
+
+    public static List<GitCommit> diffCommits(Repository repository, String fromBranch, String toBranch) throws IOException, GitAPIException {
+        return wrap(diffRevCommits(repository, fromBranch, toBranch));
+    }
+
+    public static List<GitCommit> diffCommits(Repository repository, ObjectId from, ObjectId to) throws IOException, GitAPIException {
+        return wrap(diffRevCommits(repository, from, to));
+    }
+
+    public static List<GitCommit> wrap(List<RevCommit> revCommits) throws IOException, GitAPIException {
         List<GitCommit> commits = new ArrayList<>();
-        List<RevCommit> revCommits = diffRevCommits(repository, fromBranch, toBranch);
         for (RevCommit revCommit : revCommits) {
             commits.add(new GitCommit(revCommit));
         }
@@ -1932,5 +1932,9 @@ public class GitRepository implements PlayRepository {
     @Override
     public File getDirectory() {
         return this.repository.getDirectory();
+    }
+
+    public Repository getRepository() {
+        return repository;
     }
 }

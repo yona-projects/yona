@@ -61,7 +61,8 @@ public class BareCommit {
      * @param contents
      * @param message
      */
-    public void commitTextFile(String fileNameWithPath, String contents, String message) throws IOException {
+    public ObjectId commitTextFile(
+            String fileNameWithPath, String contents, String message) throws IOException {
         this.file = new File(fileNameWithPath);
         setCommitMessage(message);
         if (this.refName == null) {
@@ -69,10 +70,12 @@ public class BareCommit {
         }
 
         RefHeadFileLock refHeadFileLock = new RefHeadFileLock().invoke(this.refName);
+        ObjectId commitId = null;
         try {
             this.objectInserter = this.repository.newObjectInserter();
             contents = addEOL(changeLineEnding(contents, findFileLineEnding(repository, fileNameWithPath)));
-            refUpdate(createCommitWithNewTree(createGitObjectWithText(contents)), refName);
+            commitId = createCommitWithNewTree(createGitObjectWithText(contents));
+            refUpdate(commitId, refName);
         } catch (OverlappingFileLockException e) {
             play.Logger.error("Overlapping File Lock Error: " + e.getMessage());
         } finally {
@@ -80,6 +83,8 @@ public class BareCommit {
             repository.close();
             refHeadFileLock.release();
         }
+
+        return commitId;
     }
 
     private boolean noHeadRef() {

@@ -346,19 +346,20 @@ public class GitRepositoryTest {
 
     @Test
     public void deleteBranch() throws IOException, GitAPIException {
-        // Given
-        Project original = createProject("keesun", "test");
-        PullRequest pullRequest = createPullRequest(original);
-        new GitRepository(original).create();
-        Repository repository = GitRepository.buildMergingRepository(pullRequest);
-
+        // given
+        Repository repository = createRepository("keesun", "test", false);
         Git git = new Git(repository);
-        String branchName = "refs/heads/master";
-        newCommit(original, repository, "readme.md", "Hello World", "Initial commit");
+
+        String fileName = "readme.md";
+        String contents = "Hello World";
+        String commitMessage = "Initial commit";
+        addCommit(git, fileName, contents, commitMessage);
+
         git.branchCreate().setName("develop").setForce(true).call();
         GitRepository.checkout(repository, "develop");
 
         // When
+        String branchName = "refs/heads/master";
         GitRepository.deleteBranch(repository, branchName);
 
         // Then
@@ -368,6 +369,24 @@ public class GitRepositoryTest {
                 fail("deleting branch was failed");
             }
         }
+    }
+
+    public Repository createRepository(String userName, String projectName, boolean bare) throws IOException {
+        String wcPath = GitRepository.getRepoPrefix() + userName + "/" + projectName;
+        String repoPath = wcPath + "/.git";
+        File repoDir = new File(repoPath);
+        Repository repository = new RepositoryBuilder().setGitDir(repoDir).build();
+        repository.create(bare);
+        return repository;
+    }
+
+    public void addCommit(Git git, String fileName, String contents, String commitMessage) throws IOException, GitAPIException {
+        File newFile = new File(git.getRepository().getWorkTree().getAbsolutePath(), fileName);
+        BufferedWriter out = new BufferedWriter(new FileWriter(newFile));
+        out.write(contents);
+        out.flush();
+        git.add().addFilepattern(fileName).call();
+        git.commit().setMessage(commitMessage).call();
     }
 
     @Test

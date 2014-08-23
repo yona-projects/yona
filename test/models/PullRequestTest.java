@@ -20,6 +20,7 @@
  */
 package models;
 
+import errors.PullRequestException;
 import org.apache.commons.lang3.time.DateUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -58,7 +59,7 @@ public class PullRequestTest extends ModelTest<PullRequest> {
 
     @Before
     public void initRepositories() throws IOException, GitAPIException, ServletException,
-            ClientException {
+            ClientException, PullRequestException {
         GitRepository.setRepoPrefix(REPO_PREFIX);
         GitRepository.setRepoForMergingPrefix(MERGING_REPO_PREFIX);
 
@@ -108,9 +109,10 @@ public class PullRequestTest extends ModelTest<PullRequest> {
         // 5. 그 브랜치로 projectYobi에 pullrequest를 보낸다.
         pullRequest = PullRequest.createNewPullRequest(forkedProject, project, "refs/heads/fix/1",
                 "refs/heads/master");
+        pullRequest.save();
 
         // 6. attempt merge
-        boolean isConflict = pullRequest.attemptMerge().conflicts();
+        boolean isConflict = pullRequest.updateMerge().conflicts();
 
         assertThat(isConflict).isFalse();
     }

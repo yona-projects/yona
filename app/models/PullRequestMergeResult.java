@@ -20,15 +20,13 @@
  */
 package models;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import models.enumeration.State;
-
 import org.apache.commons.lang3.StringUtils;
-
 import playRepository.GitCommit;
 import playRepository.GitConflicts;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class PullRequestMergeResult {
     private GitConflicts gitConflicts;
@@ -138,7 +136,7 @@ public class PullRequestMergeResult {
 
     public void setConflictStateOfPullRequest() {
         pullRequest.isConflict = true;
-        pullRequest.conflictFiles = getConflictFilesToString();
+        pullRequest.conflictFiles = StringUtils.EMPTY;
     }
 
     public void setResolvedStateOfPullRequest() {

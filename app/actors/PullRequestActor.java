@@ -32,7 +32,7 @@ public abstract class PullRequestActor extends UntypedActor {
             String oldMergeCommitId = pullRequest.mergedCommitIdTo;
             boolean wasConflict = pullRequest.isConflict != null ? pullRequest.isConflict : false;
 
-            PullRequestMergeResult mergeResult = pullRequest.attemptMerge();
+            PullRequestMergeResult mergeResult = pullRequest.updateMerge();
 
             if (mergeResult.hasDiffCommits()) {
                 mergeResult.saveCommits();
