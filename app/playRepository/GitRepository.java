@@ -540,7 +540,7 @@ public class GitRepository implements PlayRepository {
     public byte[] getRawFile(String revision, String path) throws IOException {
         RevTree tree = new RevWalk(repository).parseTree(repository.resolve(revision));
         TreeWalk treeWalk = TreeWalk.forPath(repository, path, tree);
-        if (treeWalk.isSubtree()) {
+        if (treeWalk == null || treeWalk.isSubtree()) {
             return null;
         } else {
             return repository.open(treeWalk.getObjectId(0)).getBytes();
