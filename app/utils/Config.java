@@ -20,7 +20,8 @@
  */
 package utils;
 
-import com.typesafe.config.*;
+import com.typesafe.config.ConfigFactory;
+import models.SiteAdmin;
 import org.apache.commons.lang3.ObjectUtils;
 import play.Configuration;
 import play.mvc.Http;
@@ -163,6 +164,22 @@ public class Config {
         } else {
             return scheme;
         }
+    }
+
+    public static String getSystemEmailAddress() {
+        String email = getEmailFromSmtp();
+
+        if (email != null) {
+            return email;
+        }
+
+        email = (new SiteAdmin()).admin.email;
+
+        if (email != null) {
+            return email;
+        }
+
+        return "yobi@yobi.io";
     }
 
     public static String getEmailFromSmtp() {
