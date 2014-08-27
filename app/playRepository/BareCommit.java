@@ -49,6 +49,14 @@ public class BareCommit {
     private String refName;
     private ObjectId headObjectId;
 
+    /**
+     * Constructs a BareCommit.
+     *
+     * The given project MUST have a Git repository which has been CREATED.
+     *
+     * @param project  a project whose repository to be commited
+     * @param user     the author and also the committer
+     */
     public BareCommit(Project project, User user) {
         this.repository = BareRepository.getRepository(project);
         this.personIdent = new PersonIdent(user.name, user.email);
@@ -229,6 +237,10 @@ public class BareCommit {
         private File refHeadFile;
 
         public RefHeadFileLock invoke(String refName) throws IOException {
+            if (!repository.getDirectory().exists()) {
+                throw new IllegalStateException("The repository seems not to be created");
+            }
+
             refHeadFile = new File(repository.getDirectory().getPath(),
                     repository.getRef(refName).getLeaf().getName());
             if(refHeadFile.exists()){
