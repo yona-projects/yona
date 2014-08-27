@@ -30,15 +30,7 @@
         @partial_settingmenu(project)
         <div class="bubble-wrap gray wp">
             <div class="row-fluid">
-                <div class="cu-label">@Messages("project.changeVCS.current.vcs")</div>
-                <div class="cu-desc">
-                    <p>
-                        @project.vcs
-                    </p>
-                </div>
-            </div>
-            <div class="row-fluid">
-                <div class="cu-label">@Messages("project.changeVCS")</div>
+                <h3>@project.vcs <i class="yobicon-right-2 vmiddle"></i> @project.nextVCS</h3>
                 <div class="cu-desc">
                     <ul>
                         <li class="notice"><strong>@Messages("project.changeVCS.description1", project.nextVCS)</strong></li>
