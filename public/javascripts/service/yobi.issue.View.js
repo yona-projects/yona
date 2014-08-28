@@ -126,8 +126,14 @@
 
         function _onSelectingAssignee(evt){
             var targetElement = $(this);
+            var selectedElement = targetElement.find(':selected');
             var isValueNotChanged = (targetElement.val() === evt.val);
             var isForceChange = $(evt.object.element).data("forceChange");
+            var isNonMember = selectedElement.data("nonMember");
+
+            if (isNonMember && !isValueNotChanged) {
+                selectedElement.remove();
+            }
 
             if(isForceChange && isValueNotChanged){
                 targetElement.trigger("change");
