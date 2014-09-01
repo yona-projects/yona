@@ -409,12 +409,36 @@ public class PullRequest extends Model implements ResourceConvertible {
                         utils.Config.getSystemEmailAddress()));
             }
 
+            private ObjectId getMergedTreeIfReusable() {
+                String refName = getNameOfRefToMerged();
+                RevCommit commit = null;
+                try {
+                    ObjectId objectId = getRepository().getRef(refName).getObjectId();
+                    commit = new RevWalk(getRepository()).parseCommit(objectId);
+                } catch (Exception e) {
+                    play.Logger.info("Failed to get the merged branch", e);
+                }
+
+                if (commit != null
+                        && commit.getParentCount() == 2
+                        && commit.getParent(0).equals(leftParent)
+                        && commit.getParent(1).equals(rightParent)) {
+                    return commit.getTree().toObjectId();
+                }
+
+                return null;
+            }
+
             public MergeRefUpdate createCommit(PersonIdent whoMerges) throws IOException,
                     GitAPIException {
                 // creates merge commit
                 CommitBuilder mergeCommit = new CommitBuilder();
-
-                mergeCommit.setTreeId(treeId);
+                ObjectId reusableMergedTreeId = getMergedTreeIfReusable();
+                if (reusableMergedTreeId != null) {
+                    mergeCommit.setTreeId(reusableMergedTreeId);
+                } else {
+                    mergeCommit.setTreeId(treeId);
+                }
                 mergeCommit.setParentIds(leftParent, rightParent);
                 mergeCommit.setAuthor(whoMerges);
                 mergeCommit.setCommitter(whoMerges);
