@@ -755,7 +755,7 @@ public class GitRepository implements PlayRepository {
      * @return a list of the name strings
      */
     @Override
-    public List<String> getBranches() {
+    public List<String> getBranchNames() {
         List<String> branches = new ArrayList<>();
 
         for(String refName : repository.getAllRefs().keySet()) {
@@ -769,7 +769,7 @@ public class GitRepository implements PlayRepository {
         return branches;
     }
 
-    public List<GitBranch> getAllBranches() throws IOException, GitAPIException {
+    public List<GitBranch> getBranches() throws IOException, GitAPIException {
         List<GitBranch> branches = new ArrayList<>();
 
         for(Ref ref : repository.getAllRefs().values()) {
@@ -1733,7 +1733,7 @@ public class GitRepository implements PlayRepository {
 
     @Override
     public boolean isEmpty() {
-        return this.getBranches().isEmpty();
+        return this.getBranchNames().isEmpty();
     }
 
     /*

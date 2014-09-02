@@ -225,7 +225,7 @@ public class Project extends Model implements LabelOwner {
     public Date lastUpdateDate() {
         try {
             PlayRepository repository = RepositoryService.getRepository(this);
-            List<String> branches = repository.getBranches();
+            List<String> branches = repository.getBranchNames();
             if (!branches.isEmpty() && repository instanceof GitRepository) {
                 GitRepository gitRepo = new GitRepository(owner, name);
                 List<Commit> history = gitRepo.getHistory(0, 2, "HEAD", null);

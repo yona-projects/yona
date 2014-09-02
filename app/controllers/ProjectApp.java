@@ -168,7 +168,7 @@ public class ProjectApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
         Form<Project> projectForm = form(Project.class).fill(project);
         PlayRepository repository = RepositoryService.getRepository(project);
-        return ok(setting.render("title.projectSetting", projectForm, project, repository.getBranches()));
+        return ok(setting.render("title.projectSetting", projectForm, project, repository.getBranchNames()));
     }
 
     @Transactional
@@ -245,7 +245,7 @@ public class ProjectApp extends Controller {
 
         if (validateWhenUpdate(ownerId, filledUpdatedProjectForm)) {
             return badRequest(setting.render("title.projectSetting",
-                    filledUpdatedProjectForm, project, repository.getBranches()));
+                    filledUpdatedProjectForm, project, repository.getBranchNames()));
         }
 
         Project updatedProject = filledUpdatedProjectForm.get();

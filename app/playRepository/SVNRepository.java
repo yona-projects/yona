@@ -138,7 +138,7 @@ public class SVNRepository implements PlayRepository {
     @Override
     public ObjectNode getMetaDataFromPath(String branch, String path) throws
             IOException, SVNException {
-        List<String> branches = getBranches();
+        List<String> branches = getBranchNames();
         if (!branches.contains(branch)) {
             return null;
         }
@@ -333,7 +333,7 @@ public class SVNRepository implements PlayRepository {
     }
 
     @Override
-    public List<String> getBranches() {
+    public List<String> getBranchNames() {
         ArrayList<String> branches = new ArrayList<>();
         branches.add(SVNRevision.HEAD.getName());
         return branches;

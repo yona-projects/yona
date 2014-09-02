@@ -392,7 +392,7 @@ public class GitRepositoryTest {
         repository.close();
 
         // When
-        List<GitBranch> gitBranches = gitRepository.getAllBranches();
+        List<GitBranch> gitBranches = gitRepository.getBranches();
         gitRepository.close();
 
         // Then
