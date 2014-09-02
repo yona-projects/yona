@@ -737,26 +737,49 @@ public class GitRepository implements PlayRepository {
     }
 
     /**
+     * Check if the given ref name is under a well-known namespace.
+     *
+     * @param refName
+     * @return true if the refName starts with "refs/heads/", "refs/tags/" or
+     *         "refs/remotes/"
+     */
+    private static boolean isWellKnownRef(String refName) {
+        return refName.startsWith(Constants.R_HEADS)
+              || refName.startsWith(Constants.R_TAGS)
+              || refName.startsWith(Constants.R_REMOTES);
+    }
+
+    /**
      * Returns names of all branches.
      *
      * @return a list of the name strings
      */
     @Override
     public List<String> getBranches() {
-        return new ArrayList<>(repository.getAllRefs().keySet());
+        List<String> branches = new ArrayList<>();
+
+        for(String refName : repository.getAllRefs().keySet()) {
+            if (!isWellKnownRef(refName)) {
+                continue;
+            }
+
+            branches.add(refName);
+        }
+
+        return branches;
     }
 
     public List<GitBranch> getAllBranches() throws IOException, GitAPIException {
         List<GitBranch> branches = new ArrayList<>();
 
-        for(Ref branchRef : new Git(repository).branchList().call()) {
-            RevWalk walk = new RevWalk(repository);
-            RevCommit head = walk.parseCommit(branchRef.getObjectId());
-            walk.dispose();
+        for(Ref ref : repository.getAllRefs().values()) {
+            if (!isWellKnownRef(ref.getName())) {
+                continue;
+            }
 
-            GitBranch newBranch = new GitBranch(branchRef.getName(), new GitCommit(head));
-            setTheLatestPullRequest(newBranch);
-
+            GitCommit commit = new GitCommit(
+                    new RevWalk(getRepository()).parseCommit(ref.getObjectId()));
+            GitBranch newBranch = new GitBranch(ref.getName(), commit);
             branches.add(newBranch);
         }
 
