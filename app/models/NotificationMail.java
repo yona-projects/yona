@@ -231,7 +231,7 @@ public class NotificationMail extends Model {
         String hostname = Config.getHostname();
         String[] attrNames = {"src", "href"};
         Boolean noreferrer =
-            play.Configuration.root().getBoolean("application.noreferrer");
+            play.Configuration.root().getBoolean("application.noreferrer", false);
 
         for (String attrName : attrNames) {
             Elements tags = doc.select("*[" + attrName + "]");
