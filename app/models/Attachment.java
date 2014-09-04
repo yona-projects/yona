@@ -231,7 +231,7 @@ public class Attachment extends Model implements ResourceConvertible {
         uploads.mkdirs();
         if (!uploads.isDirectory()) {
             throw new NotDirectoryException(
-                    "'" + file.getAbsolutePath() + "' is not a directory.");
+                    "'" + uploads.getAbsolutePath() + "' is not a directory.");
         }
         File attachedFile = new File(uploadDirectory, hash);
         boolean isMoved = file.renameTo(attachedFile);
