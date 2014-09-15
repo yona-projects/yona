@@ -271,25 +271,25 @@ public class ProjectAppTest {
     }
 
     @Test
-    public void memberCannotSearchPrivateProjects() {
+    public void memberCanSearchPrivateProjects() {
         // Given
         User member = User.find.byId(3L);
         Project project = Project.findByOwnerAndProjectName("laziel", "Jindo");
 
         // When
         // Then
-        testProjectSearch(member, project, acceptHtml, doesNotContains(routes.ProjectApp.project(project.owner,project.name).url()));
+        testProjectSearch(member, project, acceptHtml, contains(routes.ProjectApp.project(project.owner,project.name).url()));
     }
 
     @Test
-    public void memberCannotSearchPrivateProjectsAsJson() {
+    public void memberCanSearchPrivateProjectsAsJson() {
         // Given
         User member = User.find.byId(3L);
         Project project = Project.findByOwnerAndProjectName("laziel", "Jindo");
 
         // When
         // Then
-        testProjectSearch(member, project, acceptJson, doesNotContains(project.owner + "/" + project.name));
+        testProjectSearch(member, project, acceptJson, contains(project.owner + "/" + project.name));
     }
 
     @Test
