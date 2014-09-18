@@ -37,7 +37,7 @@ List[playRepository.FileDiff],path:String)
     <div class="project-page-wrap">
         <div id="code-browse-wrap" class="code-browse-wrap">
             <select id="branches" data-toggle="select2" data-format="branch" data-dropdown-css-class="branches" class="pull-right">
-                @defining(RepositoryService.getRepository(project).getBranches()) { branches =>
+                @defining(RepositoryService.getRepository(project).getBranchNames()) { branches =>
                     @for(branchName <- branches){
                         <option value="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branchName, "UTF-8"), null)"
                                 @if(selectedBranch){ @if(branchItemName(branchName) == branchItemName(selectedBranch)){ selected } }>

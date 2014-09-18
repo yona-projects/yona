@@ -32,7 +32,7 @@ public abstract class PullRequestActor extends UntypedActor {
             String oldMergeCommitId = pullRequest.mergedCommitIdTo;
             boolean wasConflict = pullRequest.isConflict != null ? pullRequest.isConflict : false;
 
-            PullRequestMergeResult mergeResult = pullRequest.attemptMerge();
+            PullRequestMergeResult mergeResult = pullRequest.updateMerge();
 
             if (mergeResult.hasDiffCommits()) {
                 mergeResult.saveCommits();
@@ -52,14 +52,14 @@ public abstract class PullRequestActor extends UntypedActor {
             if (!wasConflict && mergeResult.conflicts()) {
                 mergeResult.setConflictStateOfPullRequest();
                 NotificationEvent notiEvent = NotificationEvent.afterMerge(message.getSender(),
-                        pullRequest, mergeResult.getGitConflicts(), State.CONFLICT);
+                        pullRequest, State.CONFLICT);
                 PullRequestEvent.addMergeEvent(notiEvent.getSender(), EventType.PULL_REQUEST_MERGED, State.CONFLICT, pullRequest);
             }
 
-            if (wasConflict && mergeResult.resolved()) {
+            if (wasConflict && !mergeResult.conflicts()) {
                 mergeResult.setResolvedStateOfPullRequest();
                 NotificationEvent notiEvent = NotificationEvent.afterMerge(message.getSender(),
-                        pullRequest, mergeResult.getGitConflicts(), State.RESOLVED);
+                        pullRequest, State.RESOLVED);
                 PullRequestEvent.addMergeEvent(notiEvent.getSender(), EventType.PULL_REQUEST_MERGED, State.RESOLVED, pullRequest);
             }
 

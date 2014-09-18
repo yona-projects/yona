@@ -20,6 +20,7 @@
  */
 package models;
 
+import errors.PullRequestException;
 import org.apache.commons.lang3.time.DateUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -46,7 +47,6 @@ import static org.fest.assertions.Assertions.assertThat;
 import static utils.FileUtil.rm_rf;
 
 public class PullRequestTest extends ModelTest<PullRequest> {
-    private static final String MERGING_REPO_PREFIX = "resources/test/repo/git-merging/";
     private static final String REPO_PREFIX = "resources/test/repo/git/";
     private static final String LOCAL_REPO_PREFIX = "resources/test/local-repo/git/";
 
@@ -58,9 +58,8 @@ public class PullRequestTest extends ModelTest<PullRequest> {
 
     @Before
     public void initRepositories() throws IOException, GitAPIException, ServletException,
-            ClientException {
+            ClientException, PullRequestException {
         GitRepository.setRepoPrefix(REPO_PREFIX);
-        GitRepository.setRepoForMergingPrefix(MERGING_REPO_PREFIX);
 
         app = support.Helpers.makeTestApplication();
         Helpers.start(app);
@@ -79,7 +78,7 @@ public class PullRequestTest extends ModelTest<PullRequest> {
                     .setDirectory(new File(localRepoPath))
                     .call();
             Repository repo = git.getRepository();
-            baseCommit = support.Git.commit(repo, repo.getWorkTree().getAbsolutePath(), "test.txt",
+            baseCommit = support.Git.commit(repo, "test.txt",
                     "apple\nbanana\ncat\n", "commit 1");
             git.push().setRefSpecs(new RefSpec("+refs/heads/master:refs/heads/master")).call();
         }
@@ -98,9 +97,9 @@ public class PullRequestTest extends ModelTest<PullRequest> {
             git.checkout().setName("fix/1").call();
             Repository repo = git.getRepository();
             assertThat(repo.isBare()).describedAs("projectYobi-1 must be non-bare").isFalse();
-            firstCommit = support.Git.commit(repo, repo.getWorkTree().getAbsolutePath(),
+            firstCommit = support.Git.commit(repo,
                     "test.txt", "apple\nbanana\ncorn\n", "commit 1");
-            secondCommit = support.Git.commit(repo, repo.getWorkTree().getAbsolutePath(),
+            secondCommit = support.Git.commit(repo,
                     "test.txt", "apple\nbanana\ncake\n", "commit 2");
             git.push().setRefSpecs(new RefSpec("+refs/heads/fix/1:refs/heads/fix/1")).call();
         }
@@ -108,9 +107,10 @@ public class PullRequestTest extends ModelTest<PullRequest> {
         // 5. 그 브랜치로 projectYobi에 pullrequest를 보낸다.
         pullRequest = PullRequest.createNewPullRequest(forkedProject, project, "refs/heads/fix/1",
                 "refs/heads/master");
+        pullRequest.save();
 
         // 6. attempt merge
-        boolean isConflict = pullRequest.attemptMerge().conflicts();
+        boolean isConflict = pullRequest.updateMerge().conflicts();
 
         assertThat(isConflict).isFalse();
     }
@@ -118,7 +118,6 @@ public class PullRequestTest extends ModelTest<PullRequest> {
     @After
     public void after() {
         rm_rf(new File(REPO_PREFIX));
-        rm_rf(new File(MERGING_REPO_PREFIX));
         rm_rf(new File(LOCAL_REPO_PREFIX));
         Helpers.stop(app);
     }

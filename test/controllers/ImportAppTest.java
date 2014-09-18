@@ -53,7 +53,6 @@ public class ImportAppTest {
     @BeforeClass
     public static void before() throws Exception {
         GitRepository.setRepoPrefix("resources/test/repo/git/");
-        GitRepository.setRepoForMergingPrefix("resources/test/repo/git-merging/");
         application = support.Helpers.makeTestApplication();
         start(application);
         yobi = User.findByLoginId("yobi");
@@ -67,7 +66,6 @@ public class ImportAppTest {
     public static void after() {
         stop(application);
         support.Files.rm_rf(new File(GitRepository.getRepoPrefix()));
-        support.Files.rm_rf(new File(GitRepository.getRepoForMergingPrefix()));
     }
 
     @Test

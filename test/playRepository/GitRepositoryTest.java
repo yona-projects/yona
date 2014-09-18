@@ -20,24 +20,27 @@
  */
 package playRepository;
 
-import static play.test.Helpers.*;
 import models.Project;
 import models.PullRequest;
 import models.User;
-
 import org.apache.commons.io.FileUtils;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.*;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.treewalk.TreeWalk;
-import org.junit.*;
-
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.TestWatcher;
 import play.test.FakeApplication;
 import play.test.Helpers;
@@ -53,6 +56,7 @@ import java.util.Set;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.assertions.Fail.fail;
+import static play.test.Helpers.running;
 
 public class GitRepositoryTest {
 
@@ -62,13 +66,11 @@ public class GitRepositoryTest {
     @Before
     public void before() {
         GitRepository.setRepoPrefix("resources/test/repo/git/");
-        GitRepository.setRepoForMergingPrefix("resources/test/repo/git-merging/");
     }
 
     @After
     public void after() {
         support.Files.rm_rf(new File(GitRepository.getRepoPrefix()));
-        support.Files.rm_rf(new File(GitRepository.getRepoForMergingPrefix()));
     }
 
     @Test
@@ -217,57 +219,6 @@ public class GitRepositoryTest {
         assertThat(file.exists()).isTrue();
     }
 
-    @Test
-    public void cloneRepositoryWithNonBareMode() throws IOException, GitAPIException {
-        // Given
-        Project originProject = createProject("whiteship", "test");
-        support.Files.rm_rf(new File(GitRepository.getGitDirectory(originProject)));
-        new GitRepository(originProject.owner, originProject.name).create();
-
-        String cloneWorkingTreePath = GitRepository.getDirectoryForMerging(originProject.owner, originProject.name);
-        support.Files.rm_rf(new File(cloneWorkingTreePath));
-
-        // When
-        Git.cloneRepository()
-                .setURI(GitRepository.getGitDirectoryURL(originProject))
-                .setDirectory(new File(cloneWorkingTreePath))
-                .call();
-
-        // Then
-        assertThat(new File(cloneWorkingTreePath).exists()).isTrue();
-        assertThat(new File(cloneWorkingTreePath + "/.git").exists()).isTrue();
-
-        Repository cloneRepository = new RepositoryBuilder()
-                .setWorkTree(new File(cloneWorkingTreePath))
-                .setGitDir(new File(cloneWorkingTreePath + "/.git"))
-                .build();
-
-        assertThat(cloneRepository.getFullBranch()).isEqualTo("refs/heads/master");
-
-        // When
-        Git cloneGit = new Git(cloneRepository);
-
-        // toProject를 clone 받은 워킹 디렉토리에서 테스트 파일 만들고 커밋하고 푸쉬하기
-        String readmeFileName = "readme.md";
-        String testFilePath = cloneWorkingTreePath + "/" + readmeFileName;
-        BufferedWriter out = new BufferedWriter(new FileWriter(testFilePath));
-        out.write("hello 1");
-        out.flush();
-        cloneGit.add().addFilepattern(readmeFileName).call();
-        cloneGit.commit().setMessage("commit 1").call();
-        cloneGit.push().call();
-
-        // Then
-        Repository originRepository = GitRepository.buildGitRepository(originProject);
-        String readmeFileInClone = new String(getRawFile(cloneRepository, readmeFileName));
-        assertThat(readmeFileInClone).isEqualTo("hello 1");
-        String readmeFileInOrigin = new String(getRawFile(originRepository, readmeFileName));
-        assertThat(readmeFileInOrigin).isEqualTo("hello 1");
-
-        cloneRepository.close();
-        originRepository.close();
-    }
-
 
     @Test
     public void getMetaDataFromPath() throws Exception {
@@ -301,7 +252,7 @@ public class GitRepositoryTest {
                     ObjectNode notExistBranch = gitRepository.getMetaDataFromPath("not_exist_branch", "");
                     ObjectNode root = gitRepository.getMetaDataFromPath("");
                     ObjectNode dir = gitRepository.getMetaDataFromPath("dir");
-                    ObjectNode file= gitRepository.getMetaDataFromPath("hello");
+                    ObjectNode file = gitRepository.getMetaDataFromPath("hello");
                     ObjectNode branch = gitRepository.getMetaDataFromPath(branchName, "");
                     ObjectNode lightWeightTag = gitRepository.getMetaDataFromPath(lightWeightTagName, "");
                     ObjectNode annotatedTag = gitRepository.getMetaDataFromPath(annotatedTagName, "");
@@ -325,40 +276,21 @@ public class GitRepositoryTest {
     }
 
     @Test
-    public void buildCloneRepository() throws GitAPIException, IOException {
-        // Given
-        Project original = createProject("keesun", "test");
-        PullRequest pullRequest = createPullRequest(original);
-        new GitRepository("keesun", "test").create();
-
-        // When
-        Repository repository = GitRepository.buildMergingRepository(pullRequest);
-
-        // Then
-        assertThat(repository).isNotNull();
-        String repositoryWorkingDirectory = GitRepository.getDirectoryForMerging(original.owner, original.name);
-        assertThat(repositoryWorkingDirectory).isNotNull();
-        String clonePath = "resources/test/repo/git-merging/keesun/test.git";
-        assertThat(repositoryWorkingDirectory).isEqualTo(clonePath);
-        assertThat(new File(clonePath).exists()).isTrue();
-        assertThat(new File(clonePath + "/.git").exists()).isTrue();
-    }
-
-    @Test
     public void deleteBranch() throws IOException, GitAPIException {
-        // Given
-        Project original = createProject("keesun", "test");
-        PullRequest pullRequest = createPullRequest(original);
-        new GitRepository(original).create();
-        Repository repository = GitRepository.buildMergingRepository(pullRequest);
-
+        // given
+        Repository repository = support.Git.createRepository("keesun", "test", false);
         Git git = new Git(repository);
-        String branchName = "refs/heads/master";
-        newCommit(original, repository, "readme.md", "Hello World", "Initial commit");
+
+        String fileName = "readme.md";
+        String contents = "Hello World";
+        String commitMessage = "Initial commit";
+        addCommit(git, fileName, contents, commitMessage, null);
+
         git.branchCreate().setName("develop").setForce(true).call();
         GitRepository.checkout(repository, "develop");
 
         // When
+        String branchName = "refs/heads/master";
         GitRepository.deleteBranch(repository, branchName);
 
         // Then
@@ -370,133 +302,19 @@ public class GitRepositoryTest {
         }
     }
 
-    @Test
-    public void fetch() throws IOException, GitAPIException {
-        // Given
-        Project original = createProject("keesun", "test");
-        PullRequest pullRequest = createPullRequest(original);
-        new GitRepository(original).create();
-        Repository repository = GitRepository.buildMergingRepository(pullRequest);
-
-        RevCommit commit = newCommit(original, repository, "readme.md", "hello 1", "commit 1");
-        new Git(repository).push().call();
-
-        // When
-        String dstBranchName = "refs/heads/master-fetch";
-        GitRepository.fetch(repository, original, "refs/heads/master", dstBranchName);
-
-        // Then
-        ObjectId branch = repository.resolve(dstBranchName);
-        assertThat(branch.getName()).isEqualTo(commit.getId().getName());
-    }
-
-    private RevCommit newCommit(Project project, Repository repository, String fileName, String content, String message) throws IOException, GitAPIException {
-        return newCommit(project, repository, fileName, content, message, null);
-    }
-
-    private RevCommit newCommit(Project project, Repository repository, String fileName,
-            String content, String message, User author) throws IOException, GitAPIException {
-        String workingTreePath = GitRepository.getDirectoryForMerging(project.owner, project.name);
-        String testFilePath = workingTreePath + "/" + fileName;
-        BufferedWriter out = new BufferedWriter(new FileWriter(testFilePath));
-        out.write(content);
+    public RevCommit addCommit(Git git, String fileName, String contents, String commitMessage,
+                          User author) throws IOException, GitAPIException {
+        File newFile = new File(git.getRepository().getWorkTree().getAbsolutePath(), fileName);
+        BufferedWriter out = new BufferedWriter(new FileWriter(newFile));
+        out.write(contents);
         out.flush();
-        out.close();
-
-        Git git = new Git(repository);
         git.add().addFilepattern(fileName).call();
-        CommitCommand commitCommand = git.commit().setMessage(message);
+        CommitCommand commit = git.commit().setMessage(commitMessage);
         if (author != null) {
-            commitCommand
-                .setAuthor(author.loginId, author.email)
-                .setCommitter(author.loginId, author.email);
+            commit.setAuthor(author.loginId, author.email)
+                  .setCommitter(author.loginId, author.email);
         }
-        return commitCommand.call();
-    }
-
-    @Test
-    public void checkout() throws IOException, GitAPIException {
-        // Given
-        Project original = createProject("keesun", "test");
-        PullRequest pullRequest = createPullRequest(original);
-        new GitRepository(original).create();
-        Repository repository = GitRepository.buildMergingRepository(pullRequest);
-        // 커밋이 없으면 HEAD도 없어서 브랜치 만들 때 에러가 발생하기 때문에 일단 하나 커밋한다.
-        newCommit(original, repository, "readme.md", "hello 1", "commit 1");
-
-        Git git = new Git(repository);
-        String branchName = "new-branch";
-        git.branchCreate()
-                .setName(branchName)
-                .setForce(true)
-                .call();
-
-        // When
-        GitRepository.checkout(repository, branchName);
-
-        // Then
-        assertThat(repository.getFullBranch()).isEqualTo("refs/heads/" + branchName);
-    }
-
-    @Test
-    public void merge() throws IOException, GitAPIException {
-        // Given
-        Project original = createProject("keesun", "test");
-        PullRequest pullRequest = createPullRequest(original);
-        GitRepository gitRepository = new GitRepository(original);
-        gitRepository.create();
-        Repository repository = GitRepository.buildMergingRepository(pullRequest);
-
-        // master에 commit 1 추가
-        newCommit(original, repository, "readme.md", "hello 1", "commit 1");
-        // new-branch 생성
-        Git git = new Git(repository);
-        String branchName = "new-branch";
-        git.branchCreate()
-                .setName(branchName)
-                .setForce(true)
-                .call();
-        // new-branch 로 이동
-        GitRepository.checkout(repository, branchName);
-        // new-branch에 commit 2 추가
-        String fileName = "hello.md";
-        String content = "hello 2";
-        newCommit(original, repository, fileName, content, "commit 2");
-
-        // master 로 이동
-        GitRepository.checkout(repository, "master");
-        // When
-        GitRepository.merge(repository, branchName);
-        // Then
-        assertThat(new String(getRawFile(repository, fileName))).isEqualTo(content);
-
-        gitRepository.close();
-        repository.close();
-    }
-
-    @Test
-    public void push() throws IOException, GitAPIException {
-        // Given
-        Project original = createProject("keesun", "test");
-        PullRequest pullRequest = createPullRequest(original);
-        new GitRepository(original).create();
-        Repository repository = GitRepository.buildMergingRepository(pullRequest);
-        // master에 commit 1 추가
-        String fileName = "readme.md";
-        String content = "hello 1";
-        newCommit(original, repository, fileName, content, "commit 1");
-
-        // When
-        String branchName = "master";
-        GitRepository.push(repository, GitRepository.getGitDirectoryURL(original), branchName, branchName);
-
-        // Then
-        Repository originalRepo = new RepositoryBuilder()
-                .setGitDir(new File(GitRepository.getGitDirectory(original)))
-                .build();
-        assertThat(new String(getRawFile(originalRepo, fileName))).isEqualTo(content);
-
-        originalRepo.close();
+        return commit.call();
     }
 
     @Test
@@ -574,7 +392,7 @@ public class GitRepositoryTest {
         repository.close();
 
         // When
-        List<GitBranch> gitBranches = gitRepository.getAllBranches();
+        List<GitBranch> gitBranches = gitRepository.getBranches();
         gitRepository.close();
 
         // Then
@@ -589,21 +407,19 @@ public class GitRepositoryTest {
         FakeApplication app = support.Helpers.makeTestApplication();
         Helpers.start(app);
 
-        Project project = createProject("yobi", "test");
-        PullRequest pullRequest = createPullRequest(project);
-        GitRepository gitRepository = new GitRepository(project);
-        gitRepository.create();
-        Repository repository = GitRepository.buildMergingRepository(pullRequest);
+        Repository repository = support.Git.createRepository("yobi", "test", true);
 
         // Given
         User yobi = User.findByLoginId("yobi");
         User laziel = User.findByLoginId("laziel");
         User doortts = User.findByLoginId("doortts");
         User nori = User.findByLoginId("nori");
-        RevCommit from = newCommit(project, repository, "README.md", "hello", "1st commit", yobi);
-        newCommit(project, repository, "test.txt", "text file", "2nd commit", laziel);
-        newCommit(project, repository, "test.txt", "edited text file", "3rd commit", doortts);
-        RevCommit to = newCommit(project, repository, "README.md", "hello, world!", "4th commit", nori);
+
+        Git git = new Git(repository);
+        RevCommit from = addCommit(git, "README.md", "hello", "1st commit", yobi);
+        addCommit(git, "test.txt", "text file", "2nd commit", laziel);
+        addCommit(git, "test.txt", "edited text file", "3rd commit", doortts);
+        RevCommit to = addCommit(git, "README.md", "hello, world!", "4th commit", nori);
 
         // When
         Set<User> authors = GitRepository.getRelatedAuthors(repository, from.getName(), to.getName());
@@ -611,66 +427,8 @@ public class GitRepositoryTest {
         // Then
         assertThat(authors).containsOnly(yobi);
 
-        gitRepository.close();
+        repository.close();
         Helpers.stop(app);
-    }
-
-    @Test
-    public void testCloneAndFetch() throws IOException, GitAPIException {
-        // Given
-        Project original = createProject("keesun", "test");
-        GitRepository gitRepository = new GitRepository(original);
-        gitRepository.create();
-
-        // original master에 커밋 하나를 push한다.
-        Repository noneBareClone = GitRepository.buildMergingRepository(original);
-        newCommit(original, noneBareClone, "README.md", "hello", "first commit");
-        GitRepository.push(noneBareClone, GitRepository.getGitDirectoryURL(original), Constants.MASTER, Constants.MASTER);
-
-        // feature 브랜치를 만들고 feature 브랜치로 이동해서 두번째 커밋을 작성하고 original의 feature 브랜치로 push한다.
-        String featureBranchName = "feature";
-        new Git(noneBareClone).branchCreate().setName(featureBranchName).setForce(true).call();
-        final String branchName = Constants.R_HEADS + featureBranchName;
-        new Git(noneBareClone).checkout().setName(branchName).call();
-        newCommit(original, noneBareClone, "README.md", "world", "second commit");
-        GitRepository.push(noneBareClone, GitRepository.getGitDirectoryURL(original), featureBranchName, featureBranchName);
-
-        // feature 브랜치에서 master 브랜치로 코드를 보낸다.
-        final PullRequest pullRequest = createPullRequest(original);
-        pullRequest.toProject = original;
-        pullRequest.fromProject = original;
-        pullRequest.toBranch = Constants.R_HEADS + Constants.MASTER;
-        pullRequest.fromBranch = branchName;
-
-        // When && Then
-        GitRepository.cloneAndFetch(pullRequest, new GitRepository.AfterCloneAndFetchOperation() {
-            @Override
-            public void invoke(GitRepository.CloneAndFetch cloneAndFetch) throws IOException, GitAPIException {
-                Repository repo = cloneAndFetch.getRepository();
-                // 현재 위치가 코드를 merging하는 브랜치 인지 확인한다.
-                String fullBranch = repo.getFullBranch();
-                assertThat(fullBranch).isEqualTo(cloneAndFetch.getMergingBranchName());
-
-                List<Ref> refs = new Git(repo).branchList().call();
-                String fromBranchObjectId = null;
-                String toBranchObjectId = null;
-                for (Ref branchRef : refs) {
-                    String name = branchRef.getObjectId().getName();
-                    if (branchRef.getName().equals(pullRequest.fromBranch)) {
-                        fromBranchObjectId = name;
-                    }
-                    if (branchRef.getName().equals(pullRequest.toBranch)) {
-                        toBranchObjectId = name;
-                    }
-                }
-
-                // from 브랜치와 to 브랜치를 fetch 받았는지 확인한다.
-                ObjectId fromObjectId = repo.resolve(cloneAndFetch.getDestFromBranchName());
-                ObjectId toObjectId = repo.resolve(cloneAndFetch.getDestToBranchName());
-                assertThat(fromObjectId.getName()).isEqualTo(fromBranchObjectId);
-                assertThat(toObjectId.getName()).isEqualTo(toBranchObjectId);
-            }
-        });
     }
 
     private Project createProject(String owner, String name) {

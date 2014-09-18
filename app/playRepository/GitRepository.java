@@ -35,7 +35,8 @@ import org.apache.tika.Tika;
 import org.apache.tika.metadata.Metadata;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ObjectNode;
-import org.eclipse.jgit.api.*;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.LogCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.blame.BlameResult;
 import org.eclipse.jgit.diff.*;
@@ -48,7 +49,6 @@ import org.eclipse.jgit.revwalk.RevSort;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.WindowCacheConfig;
-import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.treewalk.AbstractTreeIterator;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
@@ -102,10 +102,6 @@ public class GitRepository implements PlayRepository {
 
     public static String getRepoForMergingPrefix() {
         return repoForMergingPrefix;
-    }
-
-    public static void setRepoForMergingPrefix(String repoForMergingPrefix) {
-        GitRepository.repoForMergingPrefix = repoForMergingPrefix;
     }
 
     private final Repository repository;
@@ -741,26 +737,49 @@ public class GitRepository implements PlayRepository {
     }
 
     /**
+     * Check if the given ref name is under a well-known namespace.
+     *
+     * @param refName
+     * @return true if the refName starts with "refs/heads/", "refs/tags/" or
+     *         "refs/remotes/"
+     */
+    private static boolean isWellKnownRef(String refName) {
+        return refName.startsWith(Constants.R_HEADS)
+              || refName.startsWith(Constants.R_TAGS)
+              || refName.startsWith(Constants.R_REMOTES);
+    }
+
+    /**
      * Returns names of all branches.
      *
      * @return a list of the name strings
      */
     @Override
-    public List<String> getBranches() {
-        return new ArrayList<>(repository.getAllRefs().keySet());
+    public List<String> getBranchNames() {
+        List<String> branches = new ArrayList<>();
+
+        for(String refName : repository.getAllRefs().keySet()) {
+            if (!isWellKnownRef(refName)) {
+                continue;
+            }
+
+            branches.add(refName);
+        }
+
+        return branches;
     }
 
-    public List<GitBranch> getAllBranches() throws IOException, GitAPIException {
+    public List<GitBranch> getBranches() throws IOException, GitAPIException {
         List<GitBranch> branches = new ArrayList<>();
 
-        for(Ref branchRef : new Git(repository).branchList().call()) {
-            RevWalk walk = new RevWalk(repository);
-            RevCommit head = walk.parseCommit(branchRef.getObjectId());
-            walk.dispose();
+        for(Ref ref : repository.getAllRefs().values()) {
+            if (!isWellKnownRef(ref.getName())) {
+                continue;
+            }
 
-            GitBranch newBranch = new GitBranch(branchRef.getName(), new GitCommit(head));
-            setTheLatestPullRequest(newBranch);
-
+            GitCommit commit = new GitCommit(
+                    new RevWalk(getRepository()).parseCommit(ref.getObjectId()));
+            GitBranch newBranch = new GitBranch(ref.getName(), commit);
             branches.add(newBranch);
         }
 
@@ -881,48 +900,6 @@ public class GitRepository implements PlayRepository {
                 .call();
     }
 
-    public static void deleteMergingDirectory(PullRequest pullRequest) {
-        Project toProject = pullRequest.toProject;
-        String directoryForMerging = GitRepository.getDirectoryForMerging(toProject.owner, toProject.name);
-        FileUtil.rm_rf(new File(directoryForMerging));
-    }
-
-    /**
-     * Pushes branches.
-     *
-     * @param repository the source repository
-     * @param remote the destination repository
-     * @param src src of refspec
-     * @param dest dst of refspec
-     * @throws GitAPIException
-     */
-    public static void push(Repository repository, String remote, String src, String dest) throws GitAPIException {
-        new Git(repository).push()
-                .setRemote(remote)
-                .setRefSpecs(new RefSpec(src + ":" + dest))
-                .call();
-    }
-
-    /**
-     * Merges a branch.
-     *
-     * Add --no-ff option to create a merge commit even when the merge resolves
-     * as a fast-forward.
-     *
-     * @param repository
-     * @param branchName the name of a branch to be merged.
-     * @return
-     * @throws GitAPIException
-     * @throws IOException
-     */
-    public static MergeResult merge(Repository repository, String branchName) throws GitAPIException, IOException {
-        ObjectId branch = repository.resolve(branchName);
-        return new Git(repository).merge()
-                .setFastForward(MergeCommand.FastForwardMode.NO_FF)
-                .include(branch)
-                .call();
-    }
-
     /**
      * Checks out the branch.
      *
@@ -955,27 +932,17 @@ public class GitRepository implements PlayRepository {
     }
 
     @SuppressWarnings("unchecked")
-    public static List<RevCommit> diffRevCommits(Repository repository, String fromBranch, String toBranch) throws IOException {
-        RevWalk walk = null;
-        try {
-            walk = new RevWalk(repository);
-            ObjectId from = repository.resolve(fromBranch);
-            ObjectId to = repository.resolve(toBranch);
-
-            walk.markStart(walk.parseCommit(from));
-            walk.markUninteresting(walk.parseCommit(to));
-
-            return IteratorUtils.toList(walk.iterator());
-        } finally {
-            if (walk != null) {
-                walk.dispose();
-            }
-        }
+    public static List<RevCommit> diffRevCommits(Repository repository, ObjectId from, ObjectId to) throws IOException, GitAPIException {
+        return IteratorUtils.toList(
+                new Git(repository).log().addRange(from, to).call().iterator());
     }
 
-    public static List<GitCommit> diffCommits(Repository repository, String fromBranch, String toBranch) throws IOException {
+    public static List<GitCommit> diffCommits(Repository repository, ObjectId from, ObjectId to) throws IOException, GitAPIException {
+        return wrapInGitCommits(diffRevCommits(repository, from, to));
+    }
+
+    public static List<GitCommit> wrapInGitCommits(List<RevCommit> revCommits) throws IOException, GitAPIException {
         List<GitCommit> commits = new ArrayList<>();
-        List<RevCommit> revCommits = diffRevCommits(repository, fromBranch, toBranch);
         for (RevCommit revCommit : revCommits) {
             commits.add(new GitCommit(revCommit));
         }
@@ -1166,98 +1133,6 @@ public class GitRepository implements PlayRepository {
                 .setBranchNames(branchName)
                 .setForce(true)
                 .call();
-    }
-
-    /**
-     * Fetches branches.
-     *
-     * @param repository Stores fetched objects and refs in this repository.
-     * @param project Fetches from this project.
-     * @param fromBranch src of refspec
-     * @param toBranch dst of refspec
-     * @throws GitAPIException
-     * @throws IOException
-     * @see <a href="https://www.kernel.org/pub/software/scm/git/docs/git-fetch.html">git-fetch</a>
-     */
-    public static void fetch(Repository repository, Project project, String fromBranch, String toBranch) throws GitAPIException, IOException {
-        new Git(repository).fetch()
-                .setRemote(GitRepository.getGitDirectoryURL(project))
-                .setRefSpecs(new RefSpec(fromBranch + ":" + toBranch))
-                .call();
-    }
-
-    /**
-     * @see models.PullRequest#attemptMerge()
-     * @see models.PullRequest#merge(models.PullRequestEventMessage)
-     */
-    public static void cloneAndFetch(PullRequest pullRequest, AfterCloneAndFetchOperation operation) {
-        Repository cloneRepository = null;
-        String mergingBranch = null;
-        String destFromBranchName = null;
-        try {
-            synchronized (PROJECT_LOCK.get(pullRequest.toProject)) {
-                cloneRepository = buildMergingRepository(pullRequest);
-
-                String srcToBranchName = pullRequest.toBranch;
-                String destToBranchName = makeDestToBranchName(pullRequest);
-                String srcFromBranchName = pullRequest.fromBranch;
-                destFromBranchName = makeDestFromBranchName(pullRequest);
-                mergingBranch = "" + System.currentTimeMillis();
-
-                new Git(cloneRepository).fetch()
-                        .setRemote(GitRepository.getGitDirectoryURL(pullRequest.fromProject))
-                        .setRefSpecs(new RefSpec("+" + srcFromBranchName + ":" + destFromBranchName))
-                        .call();
-
-                new Git(cloneRepository).fetch()
-                        .setRemote(GitRepository.getGitDirectoryURL(pullRequest.toProject))
-                        .setRefSpecs(new RefSpec("+" + srcToBranchName + ":" + destToBranchName))
-                        .call();
-
-                resetAndClean(cloneRepository);
-
-                new Git(cloneRepository).checkout()
-                        .setCreateBranch(true)
-                        .setName(mergingBranch)
-                        .setStartPoint(destToBranchName)
-                        .call();
-
-                CloneAndFetch cloneAndFetch = new CloneAndFetch(cloneRepository, destToBranchName, destFromBranchName, mergingBranch);
-                operation.invoke(cloneAndFetch);
-
-                resetAndClean(cloneRepository);
-
-                new Git(cloneRepository).checkout().setName(destToBranchName).call();
-                new Git(cloneRepository).branchDelete().setForce(true).setBranchNames(mergingBranch).call();
-            }
-        } catch (GitAPIException e) {
-            throw new IllegalStateException(e);
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        } finally {
-            if(cloneRepository != null) {
-                cloneRepository.close();
-            }
-        }
-    }
-
-    private static void resetAndClean(Repository cloneRepository) throws GitAPIException {
-        new Git(cloneRepository).reset().setMode(ResetCommand.ResetType.HARD).setRef(Constants.HEAD).call();
-        new Git(cloneRepository).clean().setIgnore(true).setCleanDirectories(true).call();
-    }
-
-    private static String makeDestToBranchName(PullRequest pullRequest) {
-        return Constants.R_REMOTES +
-            pullRequest.toProject.owner + "/" +
-            pullRequest.toProject.name + "/" +
-            pullRequest.toBranch.replaceFirst(Constants.R_HEADS, "");
-    }
-
-    private static String makeDestFromBranchName(PullRequest pullRequest) {
-        return Constants.R_REMOTES +
-            pullRequest.fromProject.owner + "/" +
-            pullRequest.fromProject.name + "/" +
-            pullRequest.fromBranch.replaceFirst(Constants.R_HEADS, "");
     }
 
     public static Repository buildMergingRepository(PullRequest pullRequest) {
@@ -1805,9 +1680,6 @@ public class GitRepository implements PlayRepository {
         }
     }
 
-    /**
-     * @see #cloneAndFetch(models.PullRequest, playRepository.GitRepository.AfterCloneAndFetchOperation)
-     */
     public static interface AfterCloneAndFetchOperation {
         public void invoke(CloneAndFetch cloneAndFetch) throws IOException, GitAPIException;
     }
@@ -1861,7 +1733,7 @@ public class GitRepository implements PlayRepository {
 
     @Override
     public boolean isEmpty() {
-        return this.getBranches().isEmpty();
+        return this.getBranchNames().isEmpty();
     }
 
     /*
@@ -1932,5 +1804,9 @@ public class GitRepository implements PlayRepository {
     @Override
     public File getDirectory() {
         return this.repository.getDirectory();
+    }
+
+    public Repository getRepository() {
+        return repository;
     }
 }

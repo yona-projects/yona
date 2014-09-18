@@ -22,19 +22,19 @@ package models;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-
-import javax.annotation.Nullable;
-import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
-
-import java.io.IOException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.Repository;
 
+import javax.annotation.Nullable;
+import javax.persistence.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import static models.CodeRange.Side;
-import static models.CodeRange.Side.*;
+import static models.CodeRange.Side.A;
+import static models.CodeRange.Side.B;
 
 /**
  * @author Keesun Baik
@@ -102,20 +102,20 @@ public class CodeCommentThread extends CommentThread {
             path = path.substring(1);
         }
 
-        Repository mergedRepository = pullRequest.getMergedRepository();
+        Repository repository = pullRequest.getRepository();
 
         try {
             if (StringUtils.isNotEmpty(prevCommitId)) {
-                _isOutdated = !PullRequest.noChangesBetween(mergedRepository,
-                    pullRequest.mergedCommitIdFrom, mergedRepository, prevCommitId, path);
+                _isOutdated = !PullRequest.noChangesBetween(repository,
+                    pullRequest.mergedCommitIdFrom, repository, prevCommitId, path);
             }
 
             if (_isOutdated) {
                 return _isOutdated;
             }
 
-            _isOutdated = !PullRequest.noChangesBetween(mergedRepository,
-                pullRequest.mergedCommitIdTo, mergedRepository, commitId, path);
+            _isOutdated = !PullRequest.noChangesBetween(repository,
+                pullRequest.mergedCommitIdTo, repository, commitId, path);
         } catch (MissingObjectException e) {
             play.Logger.warn("Possible false positive of outdated detection because of missing git object: " + e.getMessage());
             return true;

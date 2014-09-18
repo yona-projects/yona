@@ -98,7 +98,7 @@ public class CodeApp extends Controller {
         fileInfo.put("path", path);
 
         List<ObjectNode> recursiveData = new ArrayList<>();
-        List<String> branches = repository.getBranches();
+        List<String> branches = repository.getBranchNames();
 
         if(fileInfo.get("type").getTextValue().equals("folder") && !path.equals("")){
             recursiveData.addAll(RepositoryService.getMetaDataFromAncestorDirectories(repository, branch, path));

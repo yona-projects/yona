@@ -49,7 +49,7 @@ public class BranchApp extends Controller {
     public static Result branches(String loginId, String projectName) throws IOException, GitAPIException {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
         GitRepository gitRepository = new GitRepository(project);
-        List<GitBranch> allBranches = gitRepository.getAllBranches();
+        List<GitBranch> allBranches = gitRepository.getBranches();
         final GitBranch headBranch = gitRepository.getHeadBranch();
 
         // filter the head branch from all branch list.

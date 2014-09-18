@@ -25,26 +25,29 @@ import akka.actor.Props;
 import com.avaje.ebean.*;
 import controllers.PullRequestApp.SearchCondition;
 import controllers.UserApp;
+import errors.PullRequestException;
 import models.enumeration.EventType;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.MergeResult;
+import org.eclipse.jgit.api.errors.ConcurrentRefUpdateException;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.lib.RepositoryBuilder;
+import org.eclipse.jgit.internal.JGitText;
+import org.eclipse.jgit.lib.*;
+import org.eclipse.jgit.merge.MergeStrategy;
+import org.eclipse.jgit.merge.ThreeWayMerger;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.transport.FetchResult;
+import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.joda.time.Duration;
-
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
@@ -52,18 +55,16 @@ import play.i18n.Messages;
 import play.libs.Akka;
 import playRepository.FileDiff;
 import playRepository.GitCommit;
-import playRepository.GitConflicts;
 import playRepository.GitRepository;
-import playRepository.GitRepository.AfterCloneAndFetchOperation;
-import playRepository.GitRepository.CloneAndFetch;
 import utils.Constants;
 import utils.JodaDateUtil;
 
+import javax.annotation.Nullable;
 import javax.persistence.*;
 import javax.persistence.OrderBy;
 import javax.validation.constraints.Size;
-import java.io.File;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.*;
 
 import static com.avaje.ebean.Expr.*;
@@ -77,9 +78,6 @@ public class PullRequest extends Model implements ResourceConvertible {
     public static final Finder<Long, PullRequest> finder = new Finder<>(Long.class, PullRequest.class);
 
     public static final int ITEMS_PER_PAGE = 15;
-
-    @Transient
-    public Repository mergedRepo = null;
 
     @Id
     public Long id;
@@ -145,8 +143,6 @@ public class PullRequest extends Model implements ResourceConvertible {
 
     public Long number;
 
-    public String conflictFiles;
-
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
         name = "pull_request_reviewers",
@@ -157,6 +153,9 @@ public class PullRequest extends Model implements ResourceConvertible {
 
     @OneToMany(mappedBy = "pullRequest")
     public List<CommentThread> commentThreads = new ArrayList<>();
+
+    @Transient
+    private Repository repository;
 
     public static PullRequest createNewPullRequest(Project fromProject, Project toProject, String fromBranch, String toBranch) {
         PullRequest pullRequest = new PullRequest();
@@ -367,49 +366,178 @@ public class PullRequest extends Model implements ResourceConvertible {
         GitRepository.restoreBranch(this);
     }
 
-    public void merge(final PullRequestEventMessage message) {
-        final PullRequest pullRequest = this;
-        GitRepository.cloneAndFetch(pullRequest, new AfterCloneAndFetchOperation() {
-            @Override
-            public void invoke(CloneAndFetch cloneAndFetch) throws IOException, GitAPIException {
-                Repository cloneRepository = cloneAndFetch.getRepository();
-                String srcToBranchName = pullRequest.toBranch;
-                String mergeBranchName = cloneAndFetch.getMergingBranchName();
-                User sender = message.getSender();
+    public class Merger {
+        private ThreeWayMerger merger;
+        private String leftRef;
+        private String rightRef;
 
-                List<GitCommit> commitList = GitRepository.diffCommits(cloneRepository,
-                        cloneAndFetch.getDestFromBranchName(), cloneAndFetch.getMergingBranchName());
+        public Merger(String leftRef, String rightRef) throws IOException {
+            this.leftRef = Objects.requireNonNull(leftRef);
+            this.rightRef = Objects.requireNonNull(rightRef);
+        }
 
-                String mergedCommitIdFrom;
-                MergeResult mergeResult;
+        public CommitCreation createTree() throws IOException {
+            merger = MergeStrategy.RECURSIVE.newMerger(getRepository(), true);
+            String refNotExistMessageFormat = "Ref '%s' does not exist in Git repository '%s'";
+            ObjectId leftParent = Objects.requireNonNull(getRepository().resolve(leftRef),
+                    String.format(refNotExistMessageFormat, leftRef, getRepository()));
+            ObjectId rightParent = Objects.requireNonNull(getRepository().resolve(rightRef),
+                    String.format(refNotExistMessageFormat, rightRef, getRepository()));
 
-                mergedCommitIdFrom =
-                        cloneRepository.getRef(org.eclipse.jgit.lib.Constants.HEAD).getObjectId().getName();
-
-                mergeResult = GitRepository.merge(cloneRepository, cloneAndFetch.getDestFromBranchName());
-
-                if (mergeResult.getMergeStatus().isSuccessful()) {
-                    // merge 커밋 메시지 수정
-                    RevCommit mergeCommit = writeMergeCommitMessage(cloneRepository, commitList, sender);
-                    String mergedCommitIdTo = mergeCommit.getId().getName();
-                    pullRequest.mergedCommitIdFrom = mergedCommitIdFrom;
-                    pullRequest.mergedCommitIdTo = mergedCommitIdTo;
-
-                    GitRepository.push(cloneRepository, GitRepository.getGitDirectoryURL(pullRequest.toProject), mergeBranchName, srcToBranchName);
-
-                    pullRequest.state = State.MERGED;
-                    pullRequest.received = JodaDateUtil.now();
-                    pullRequest.receiver = sender;
-                    pullRequest.update();
-
-                    NotificationEvent.afterPullRequestUpdated(sender, pullRequest, State.OPEN, State.MERGED);
-                    PullRequestEvent.addStateEvent(sender, pullRequest, State.MERGED);
-
-                    Akka.system().actorOf(new Props(RelatedPullRequestMergingActor.class)).tell(message, null);
-                }
+            if (merger.merge(leftParent, rightParent)) {
+                return new CommitCreation(merger.getResultTreeId(), leftParent, rightParent);
+            } else {
+                return null;
             }
-        });
+        }
+
+        public class CommitCreation {
+            private ObjectId mergeCommitId;
+            private ObjectId treeId;
+            private ObjectId leftParent;
+            private ObjectId rightParent;
+
+            private CommitCreation(
+                    ObjectId treeId, ObjectId leftParent, ObjectId rightParent) {
+                this.treeId = Objects.requireNonNull(treeId);
+                this.leftParent = Objects.requireNonNull(leftParent);
+                this.rightParent = Objects.requireNonNull(rightParent);
+            }
+
+            public MergeRefUpdate createCommit() throws IOException, GitAPIException {
+                return createCommit(new PersonIdent(utils.Config.getSiteName(),
+                        utils.Config.getSystemEmailAddress()));
+            }
+
+            private ObjectId getMergedTreeIfReusable() {
+                String refName = getNameOfRefToMerged();
+                RevCommit commit = null;
+                try {
+                    ObjectId objectId = getRepository().getRef(refName).getObjectId();
+                    commit = new RevWalk(getRepository()).parseCommit(objectId);
+                } catch (Exception e) {
+                    play.Logger.info("Failed to get the merged branch", e);
+                }
+
+                if (commit != null
+                        && commit.getParentCount() == 2
+                        && commit.getParent(0).equals(leftParent)
+                        && commit.getParent(1).equals(rightParent)) {
+                    return commit.getTree().toObjectId();
+                }
+
+                return null;
+            }
+
+            public MergeRefUpdate createCommit(PersonIdent whoMerges) throws IOException,
+                    GitAPIException {
+                // creates merge commit
+                CommitBuilder mergeCommit = new CommitBuilder();
+                ObjectId reusableMergedTreeId = getMergedTreeIfReusable();
+                if (reusableMergedTreeId != null) {
+                    mergeCommit.setTreeId(reusableMergedTreeId);
+                } else {
+                    mergeCommit.setTreeId(treeId);
+                }
+                mergeCommit.setParentIds(leftParent, rightParent);
+                mergeCommit.setAuthor(whoMerges);
+                mergeCommit.setCommitter(whoMerges);
+                List<GitCommit> commitList = GitRepository.diffCommits(
+                        getRepository(), leftParent, rightParent);
+                mergeCommit.setMessage(makeMergeCommitMessage(commitList));
+
+                // insertObject and got mergeCommit Object Id
+                ObjectInserter inserter = getRepository().newObjectInserter();
+                mergeCommitId = inserter.insert(mergeCommit);
+                inserter.flush();
+                inserter.release();
+
+                return new MergeRefUpdate(mergeCommitId, whoMerges);
+            }
+
+            @Nullable
+            public ObjectId getMergeCommitId() {
+                return mergeCommitId;
+            }
+
+            public ObjectId getLeftParentId() {
+                return leftParent;
+            }
+
+            public ObjectId getRightParentId() {
+                return rightParent;
+            }
+        }
+
+        public class MergeRefUpdate {
+            private ObjectId mergeCommitId;
+            private PersonIdent whoMerges;
+
+            private MergeRefUpdate(ObjectId mergeCommitId, PersonIdent whoMerges) {
+                this.mergeCommitId = Objects.requireNonNull(mergeCommitId);
+                this.whoMerges = Objects.requireNonNull(whoMerges);
+            }
+
+            public void updateRef(String ref) throws
+                    IOException, ConcurrentRefUpdateException, PullRequestException {
+                RefUpdate refUpdate = getRepository().updateRef(ref);
+                refUpdate.setNewObjectId(mergeCommitId);
+                refUpdate.setForceUpdate(false);
+                refUpdate.setRefLogIdent(whoMerges);
+                refUpdate.setRefLogMessage("merged", true);
+                RefUpdate.Result rc = refUpdate.update();
+                switch (rc) {
+                    case NEW:
+                    case FAST_FORWARD:
+                        return;
+                    case REJECTED:
+                    case LOCK_FAILURE:
+                        throw new ConcurrentRefUpdateException(
+                                "Could not lock '" + refUpdate.getRef() + "'",
+                                refUpdate.getRef(), rc);
+                    default:
+                        throw new PullRequestException(MessageFormat.format(
+                                JGitText.get().updatingRefFailed, refUpdate.getRef(),
+                                mergeCommitId, rc));
+                }
+
+            }
+        }
     }
+
+    public void merge(final PullRequestEventMessage message) throws IOException, GitAPIException, PullRequestException {
+        Merger.CommitCreation mergeCommitCreation =
+                new Merger(toBranch, fetchSourceBranch()).createTree();
+
+        if (mergeCommitCreation != null) {
+            User sender = message.getSender();
+            mergeCommitCreation.createCommit(new PersonIdent(sender.name,
+                    sender.email)).updateRef(toBranch);
+
+            // Update the pull request
+            updateMergedCommitId(mergeCommitCreation);
+            changeState(State.MERGED, sender);
+
+            // Add event
+            NotificationEvent.afterPullRequestUpdated(sender, this, State.OPEN, State.MERGED);
+            PullRequestEvent.addStateEvent(sender, this, State.MERGED);
+
+            Akka.system().actorOf(new Props(RelatedPullRequestMergingActor.class)).tell(message, null);
+        }
+    }
+
+    public String fetchSourceBranch() throws IOException, GitAPIException {
+        String destination = getRefNameToFetchedSource();
+        fetchSourceBranchTo(destination);
+        return destination;
+    }
+
+    public void updateMergedCommitId(Merger.CommitCreation merger) {
+        mergedCommitIdFrom = merger.getRightParentId().getName();
+        mergedCommitIdTo = merger.getMergeCommitId().getName();
+        update();
+    }
+
 
     public String getResourceKey() {
         return ResourceType.PULL_REQUEST.resource() + Constants.RESOURCE_KEY_DELIM + this.id;
@@ -429,14 +557,6 @@ public class PullRequest extends Model implements ResourceConvertible {
         }
 
         return Watch.findActualWatchers(actualWatchers, asResource());
-    }
-
-    private RevCommit writeMergeCommitMessage(Repository repository, List<GitCommit> commits, User user) throws GitAPIException, IOException {
-        return new Git(repository).commit()
-                .setAmend(true).setAuthor(user.name, user.email)
-                .setMessage(makeMergeCommitMessage(commits))
-                .setCommitter(user.name, user.email)
-                .call();
     }
 
     private String makeMergeCommitMessage(List<GitCommit> commits) throws IOException {
@@ -474,9 +594,13 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     private void changeState(State state) {
+        changeState(state, UserApp.currentUser());
+    }
+
+    private void changeState(State state, User updater) {
         this.state = state;
         this.received = JodaDateUtil.now();
-        this.receiver = UserApp.currentUser();
+        this.receiver = updater;
         this.update();
     }
 
@@ -551,20 +675,18 @@ public class PullRequest extends Model implements ResourceConvertible {
         return getDiff(mergedCommitIdFrom, mergedCommitIdTo);
     }
 
-    public Repository getMergedRepository() throws IOException {
-        if (mergedRepo == null) {
-            File dir = new File(
-                    GitRepository.getDirectoryForMerging(toProject.owner, toProject.name) + "/.git");
-            mergedRepo = new RepositoryBuilder().setGitDir(dir).build();
+    public Repository getRepository() throws IOException {
+        if (repository == null) {
+            repository = new GitRepository(toProject).getRepository();
         }
 
-        return mergedRepo;
+        return repository;
     }
 
     @Transient
     public List<FileDiff> getDiff(String revA, String revB) throws IOException {
-        Repository mergedRepository = getMergedRepository();
-        return GitRepository.getDiff(mergedRepository, revA, mergedRepository, revB);
+        Repository repository = getRepository();
+        return GitRepository.getDiff(repository, revA, repository, revB);
     }
 
     public static Page<PullRequest> findPagingList(SearchCondition condition) {
@@ -658,11 +780,6 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     @Transient
-    public String[] getConflictFiles() {
-        return StringUtils.split(this.conflictFiles, ",");
-    }
-
-    @Transient
     public List<CommitComment> getCommitComments() {
         return CommitComment.findByCommits(fromProject, pullRequestCommits);
     }
@@ -672,41 +789,92 @@ public class PullRequest extends Model implements ResourceConvertible {
         return PullRequestCommit.getCurrentCommits(this);
     }
 
-    public PullRequestMergeResult attemptMerge() {
-        final PullRequestMergeResult pullRequestMergeResult = new PullRequestMergeResult();
-        final List<GitCommit> commits = new ArrayList<>();
-        final PullRequest pullRequest = this;
+    private FetchResult fetchSourceBranchTo(String destination) throws IOException,
+            GitAPIException {
+        return new Git(getRepository()).fetch()
+                .setRemote(GitRepository.getGitDirectoryURL(fromProject))
+                .setRefSpecs(new RefSpec()
+                        .setSource(fromBranch)
+                        .setDestination(destination)
+                        .setForceUpdate(true))
+                .call();
+    }
 
-        pullRequestMergeResult.setPullRequest(pullRequest);
-        GitRepository.cloneAndFetch(pullRequest, new AfterCloneAndFetchOperation() {
-            @Override
-            public void invoke(CloneAndFetch cloneAndFetch) throws IOException, GitAPIException {
-                Repository clonedRepository = cloneAndFetch.getRepository();
+    public PullRequestMergeResult updateMerge() throws IOException, GitAPIException, PullRequestException {
+        if (id == null) {
+            throw new IllegalStateException("id must not be null");
+        }
 
-                List<GitCommit> commitList = GitRepository.diffCommits(clonedRepository,
-                    cloneAndFetch.getDestFromBranchName(), cloneAndFetch.getMergingBranchName());
+        // merge
+        Merger.CommitCreation mergeCommitCreation = new Merger(toBranch,
+                fetchSourceBranch()).createTree();
 
-                for (GitCommit gitCommit : commitList) {
-                    commits.add(gitCommit);
-                }
-                pullRequestMergeResult.setGitCommits(commits);
+        // Make a PullRequestMergeResult to return
+        PullRequestMergeResult pullRequestMergeResult = new PullRequestMergeResult();
+        pullRequestMergeResult.setPullRequest(this);
 
-                String mergedCommitIdFrom = clonedRepository
-                        .getRef(org.eclipse.jgit.lib.Constants.HEAD).getObjectId().getName();
-                MergeResult mergeResult = GitRepository.merge(clonedRepository,
-                        cloneAndFetch.getDestFromBranchName());
+        if (mergeCommitCreation == null) {
+            pullRequestMergeResult.setConflictStateOfPullRequest();
+        } else {
+            // Commit and update the ref to merge commit of this pullrequest
+            mergeCommitCreation.createCommit().updateRef(getNameOfRefToMerged());
 
-                if (mergeResult.getMergeStatus() == MergeResult.MergeStatus.CONFLICTING) {
-                    pullRequestMergeResult.setGitConflicts(new GitConflicts(clonedRepository, mergeResult));
-                    pullRequestMergeResult.setConflictStateOfPullRequest();
-                } else if (mergeResult.getMergeStatus().isSuccessful()) {
-                    String mergedCommitIdTo = mergeResult.getNewHead().getName();
-                    pullRequest.mergedCommitIdFrom = mergedCommitIdFrom;
-                    pullRequest.mergedCommitIdTo = mergedCommitIdTo;
-                    pullRequestMergeResult.setResolvedStateOfPullRequest();
-                }
-            }
-        });
+            List<GitCommit> commits = GitRepository.diffCommits(
+                    getRepository(),
+                    mergeCommitCreation.getLeftParentId(),
+                    mergeCommitCreation.getRightParentId());
+            pullRequestMergeResult.setGitCommits(commits);
+            pullRequestMergeResult.setResolvedStateOfPullRequest();
+
+            // Update the pullrequest
+            updateMergedCommitId(mergeCommitCreation);
+        }
+
+        return pullRequestMergeResult;
+    }
+
+    public String getRefNameToFetchedSource() {
+        return "refs/yobi/pull/" + id + "/head";
+    }
+
+    public String getNameOfRefToMerged() {
+        return "refs/yobi/pull/" + id + "/merged";
+    }
+
+    public String fetchSourceTemporarilly() throws IOException, GitAPIException {
+        String tempBranchToCheckConflict = String.format(
+                "refs/yobi/pull-check/%s/%s/%s",
+                fromProject.owner, fromProject.name, fromBranch);
+        fetchSourceBranchTo(tempBranchToCheckConflict);
+        return tempBranchToCheckConflict;
+    }
+
+    // locking this repository is required because of fetch and update
+    public PullRequestMergeResult attemptMerge() throws IOException, GitAPIException {
+        // fetch the branch to merge
+        String tempBranchToCheckConflict = fetchSourceTemporarilly();
+
+        // merge
+        Merger.CommitCreation commit = new Merger(toBranch,
+                tempBranchToCheckConflict).createTree();
+
+        // Make a PullRequestMergeResult to return
+        PullRequestMergeResult pullRequestMergeResult = new PullRequestMergeResult();
+        pullRequestMergeResult.setPullRequest(this);
+        if (commit == null) {
+            pullRequestMergeResult.setConflictStateOfPullRequest();
+        } else {
+            List<GitCommit> commits = GitRepository.diffCommits(
+                    getRepository(), commit.getLeftParentId(), commit.getRightParentId());
+            pullRequestMergeResult.setGitCommits(commits);
+            pullRequestMergeResult.setResolvedStateOfPullRequest();
+        }
+
+        // Clean Up: Delete the temporary branch
+        RefUpdate refUpdate = getRepository().updateRef(tempBranchToCheckConflict);
+        refUpdate.setForceUpdate(true);
+        refUpdate.delete();
+
         return pullRequestMergeResult;
     }
 
@@ -718,7 +886,7 @@ public class PullRequest extends Model implements ResourceConvertible {
         this.isMerging = false;
     }
 
-    public PullRequestMergeResult getPullRequestMergeResult() {
+    public PullRequestMergeResult getPullRequestMergeResult() throws IOException, GitAPIException {
         PullRequestMergeResult mergeResult = null;
         if (!StringUtils.isEmpty(this.fromBranch) && !StringUtils.isEmpty(this.toBranch)) {
             mergeResult = this.attemptMerge();
@@ -851,11 +1019,11 @@ public class PullRequest extends Model implements ResourceConvertible {
                 }
 
                 // Include the other non-outdated threads
-                Repository mergedRepository = getMergedRepository();
-                if (noChangesBetween(mergedRepository,
-                        mergedCommitIdFrom, mergedRepository, codeCommentThread.prevCommitId,
-                        codeCommentThread.codeRange.path) && noChangesBetween(mergedRepository,
-                        mergedCommitIdTo, mergedRepository, codeCommentThread.commitId,
+                Repository repository = getRepository();
+                if (noChangesBetween(repository,
+                        mergedCommitIdFrom, repository, codeCommentThread.prevCommitId,
+                        codeCommentThread.codeRange.path) && noChangesBetween(repository,
+                        mergedCommitIdTo, repository, codeCommentThread.commitId,
                         codeCommentThread.codeRange.path)) {
                     result.add(codeCommentThread);
                 }
@@ -892,7 +1060,7 @@ public class PullRequest extends Model implements ResourceConvertible {
         if (commitId == null) {
             return getDiff();
         }
-        return GitRepository.getDiff(getMergedRepository(), commitId);
+        return GitRepository.getDiff(getRepository(), commitId);
     }
 
     public void removeCommentThread(CommentThread commentThread) {

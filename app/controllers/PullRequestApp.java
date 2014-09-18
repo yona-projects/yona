@@ -172,8 +172,8 @@ public class PullRequestApp extends Controller {
         final Project fromProject = getSelectedProject(project, request().getQueryString("fromProjectId"), false);
         final Project toProject = getSelectedProject(project, request().getQueryString("toProjectId"), true);
 
-        final List<GitBranch> fromBranches = new GitRepository(fromProject).getAllBranches();
-        final List<GitBranch> toBranches = new GitRepository(toProject).getAllBranches();
+        final List<GitBranch> fromBranches = new GitRepository(fromProject).getBranches();
+        final List<GitBranch> toBranches = new GitRepository(toProject).getBranches();
 
         if(fromBranches.isEmpty()) {
             return badRequest(ErrorViews.BadRequest.render("error.pullRerquest.empty.from.repository", fromProject, MenuType.PULL_REQUEST));
@@ -216,8 +216,8 @@ public class PullRequestApp extends Controller {
         final Project fromProject = getSelectedProject(project, request().getQueryString("fromProjectId"), false);
         final Project toProject = getSelectedProject(project, request().getQueryString("toProjectId"), true);
 
-        final List<GitBranch> fromBranches = new GitRepository(fromProject).getAllBranches();
-        final List<GitBranch> toBranches = new GitRepository(toProject).getAllBranches();
+        final List<GitBranch> fromBranches = new GitRepository(fromProject).getBranches();
+        final List<GitBranch> toBranches = new GitRepository(toProject).getBranches();
 
         final PullRequest pullRequest = PullRequest.createNewPullRequest(fromProject, toProject
                 , StringUtils.defaultIfBlank(request().getQueryString("fromBranch"), fromBranches.get(0).getName())
@@ -226,7 +226,8 @@ public class PullRequestApp extends Controller {
         PullRequestMergeResult mergeResult = pullRequest.getPullRequestMergeResult();
 
         response().setHeader("Cache-Control", "no-cache, no-store");
-        return ok(partial_merge_result.render(project, pullRequest, mergeResult));
+        return ok(partial_merge_result.render(project, pullRequest, mergeResult.getGitCommits(),
+                mergeResult.conflicts()));
     }
 
     @Transactional
@@ -243,8 +244,8 @@ public class PullRequestApp extends Controller {
         Form<PullRequest> form = new Form<>(PullRequest.class).bindFromRequest();
         validateForm(form);
         if(form.hasErrors()) {
-            List<GitBranch> fromBranches = new GitRepository(project).getAllBranches();
-            List<GitBranch> toBranches = new GitRepository(project.originalProject).getAllBranches();
+            List<GitBranch> fromBranches = new GitRepository(project).getBranches();
+            List<GitBranch> toBranches = new GitRepository(project.originalProject).getBranches();
             return ok(create.render("title.newPullRequest", new Form<>(PullRequest.class), project, null, null, null, fromBranches, toBranches, null));
         }
 
@@ -472,8 +473,8 @@ public class PullRequestApp extends Controller {
         Project fromProject = pullRequest.fromProject;
 
         Form<PullRequest> editForm = new Form<>(PullRequest.class).fill(pullRequest);
-        List<GitBranch> fromBranches = new GitRepository(pullRequest.fromProject).getAllBranches();
-        List<GitBranch> toBranches = new GitRepository(pullRequest.toProject).getAllBranches();
+        List<GitBranch> fromBranches = new GitRepository(pullRequest.fromProject).getBranches();
+        List<GitBranch> toBranches = new GitRepository(pullRequest.toProject).getBranches();
 
         return ok(edit.render("title.editPullRequest", editForm, fromProject, fromBranches, toBranches, pullRequest));
     }

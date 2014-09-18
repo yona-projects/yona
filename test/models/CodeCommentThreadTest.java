@@ -20,16 +20,16 @@
  */
 package models;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.lib.RepositoryBuilder;
-import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.lib.ObjectId;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import playRepository.BareCommit;
 import playRepository.GitRepository;
+import support.Git;
 import utils.JodaDateUtil;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,13 +42,12 @@ import static utils.FileUtil.rm_rf;
  * @author Changsung Kim
  */
 public class CodeCommentThreadTest extends ModelTest<CodeCommentThread>  {
-    private static final String MERGING_REPO_PREFIX = "resources/test/repo/git-merging/";
     private static final String REPO_PREFIX = "resources/test/repo/git/";
     private Project project;
-    private RevCommit baseCommit;
-    private RevCommit firstCommit;
-    private RevCommit secondCommit;
-    private RevCommit thirdCommit;
+    private ObjectId baseCommit;
+    private ObjectId firstCommit;
+    private ObjectId secondCommit;
+    private ObjectId thirdCommit;
 
     @Before
     public void before() throws IOException, GitAPIException {
@@ -58,27 +57,20 @@ public class CodeCommentThreadTest extends ModelTest<CodeCommentThread>  {
     @After
     public void after() {
         rm_rf(new File(REPO_PREFIX));
-        rm_rf(new File(MERGING_REPO_PREFIX));
     }
 
     private void addTestRepository() throws IOException, GitAPIException {
         GitRepository.setRepoPrefix(REPO_PREFIX);
-        GitRepository.setRepoForMergingPrefix(MERGING_REPO_PREFIX);
 
         // given
-        String wcPath
-                = GitRepository.getRepoForMergingPrefix() + project.owner + "/" + project.name +
-                ".git";
-        File repoDir = new File(
-                GitRepository.getDirectoryForMerging(project.owner, project.name) + "/.git");
-        Repository repo = new RepositoryBuilder().setGitDir(repoDir).build();
-        repo.create(false);
+        GitRepository.buildGitRepository(project).create(true);
+        BareCommit committer = new BareCommit(project, User.anonymous);
 
         // when
-        baseCommit = support.Git.commit(repo, wcPath, "a.txt", "read me", "base commit");
-        firstCommit = support.Git.commit(repo, wcPath, "a.txt", "hello", "commit 1");
-        secondCommit = support.Git.commit(repo, wcPath, "b.txt", "world", "commit 2");
-        thirdCommit = support.Git.commit(repo, wcPath, "a.txt", "HELLO", "commit 3");
+        baseCommit = committer.commitTextFile("a.txt", "read me", "base commit");
+        firstCommit = committer.commitTextFile("a.txt", "hello", "commit 1");
+        secondCommit = committer.commitTextFile("b.txt", "world", "commit 2");
+        thirdCommit = committer.commitTextFile("a.txt", "HELLO", "commit 3");
     }
 
     @Test

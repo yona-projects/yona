@@ -20,28 +20,17 @@
  */
 package models;
 
+import models.enumeration.State;
+import playRepository.GitCommit;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import models.enumeration.State;
-
-import org.apache.commons.lang3.StringUtils;
-
-import playRepository.GitCommit;
-import playRepository.GitConflicts;
-
 public class PullRequestMergeResult {
-    private GitConflicts gitConflicts;
     private List<GitCommit> gitCommits;
     private List<PullRequestCommit> newCommits;
     private PullRequest pullRequest;
 
-    public GitConflicts getGitConflicts() {
-        return gitConflicts;
-    }
-    public void setGitConflicts(GitConflicts gitConflicts) {
-        this.gitConflicts = gitConflicts;
-    }
     public List<GitCommit> getGitCommits() {
         return gitCommits;
     }
@@ -57,20 +46,13 @@ public class PullRequestMergeResult {
     public boolean hasDiffCommits() {
         return this.gitCommits.size() > 0;
     }
-    public boolean resolved() {
-        return this.gitConflicts == null && !pullRequest.isConflict;
-    }
+
     public boolean conflicts() {
-        return this.gitConflicts != null && pullRequest.isConflict;
+        return pullRequest.isConflict;
     }
+
     public List<PullRequestCommit> getNewCommits() {
         return newCommits;
-    }
-    public String getConflictFilesToString() {
-        if (gitConflicts == null) {
-            return StringUtils.EMPTY;
-        }
-        return StringUtils.join(gitConflicts.conflictFiles, PullRequest.DELIMETER);
     }
 
     public List<PullRequestCommit> findNewCommits() {
@@ -138,17 +120,14 @@ public class PullRequestMergeResult {
 
     public void setConflictStateOfPullRequest() {
         pullRequest.isConflict = true;
-        pullRequest.conflictFiles = getConflictFilesToString();
     }
 
     public void setResolvedStateOfPullRequest() {
         pullRequest.isConflict = false;
-        pullRequest.conflictFiles = StringUtils.EMPTY;
     }
 
     public void setMergedStateOfPullRequest(User receiver) {
         pullRequest.isConflict = false;
-        pullRequest.conflictFiles = StringUtils.EMPTY;
         pullRequest.state = State.MERGED;
         pullRequest.receiver = receiver;
     }

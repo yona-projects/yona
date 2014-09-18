@@ -49,6 +49,14 @@ public class BareCommit {
     private String refName;
     private ObjectId headObjectId;
 
+    /**
+     * Constructs a BareCommit.
+     *
+     * The given project MUST have a Git repository which has been CREATED.
+     *
+     * @param project  a project whose repository to be commited
+     * @param user     the author and also the committer
+     */
     public BareCommit(Project project, User user) {
         this.repository = BareRepository.getRepository(project);
         this.personIdent = new PersonIdent(user.name, user.email);
@@ -61,7 +69,8 @@ public class BareCommit {
      * @param contents
      * @param message
      */
-    public void commitTextFile(String fileNameWithPath, String contents, String message) throws IOException {
+    public ObjectId commitTextFile(
+            String fileNameWithPath, String contents, String message) throws IOException {
         this.file = new File(fileNameWithPath);
         setCommitMessage(message);
         if (this.refName == null) {
@@ -69,10 +78,12 @@ public class BareCommit {
         }
 
         RefHeadFileLock refHeadFileLock = new RefHeadFileLock().invoke(this.refName);
+        ObjectId commitId = null;
         try {
             this.objectInserter = this.repository.newObjectInserter();
             contents = addEOL(changeLineEnding(contents, findFileLineEnding(repository, fileNameWithPath)));
-            refUpdate(createCommitWithNewTree(createGitObjectWithText(contents)), refName);
+            commitId = createCommitWithNewTree(createGitObjectWithText(contents));
+            refUpdate(commitId, refName);
         } catch (OverlappingFileLockException e) {
             play.Logger.error("Overlapping File Lock Error: " + e.getMessage());
         } finally {
@@ -80,6 +91,8 @@ public class BareCommit {
             repository.close();
             refHeadFileLock.release();
         }
+
+        return commitId;
     }
 
     private boolean noHeadRef() {
@@ -224,6 +237,10 @@ public class BareCommit {
         private File refHeadFile;
 
         public RefHeadFileLock invoke(String refName) throws IOException {
+            if (!repository.getDirectory().exists()) {
+                throw new IllegalStateException("The repository seems not to be created");
+            }
+
             refHeadFile = new File(repository.getDirectory().getPath(),
                     repository.getRef(refName).getLeaf().getName());
             if(refHeadFile.exists()){
