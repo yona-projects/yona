@@ -647,7 +647,7 @@ InlineLexer.prototype.output = function(src) {
       src = src.substring(cap[0].length);
       out += this.options.sanitize
         ? escape(cap[0])
-        : cap[0];
+        : this.renderer.html(cap[0]);
       continue;
     }
 

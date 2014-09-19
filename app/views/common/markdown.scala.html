@@ -34,6 +34,7 @@ $(document).ready(function(){
         htOptions.sIssuesUrl = "@routes.IssueApp.issues(project.owner, project.name)";
         htOptions.sProjectUrl = "@routes.ProjectApp.project(project.owner, project.name)";
         htOptions.sApplicationContext = "@play.Configuration.root().getString("application.context")";
+        htOptions.bNoReferrer = "@play.Configuration.root().getString("application.noreferrer")"
     }
 
     // Reusable markdown renderer
