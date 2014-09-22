@@ -21,6 +21,7 @@
 package utils;
 
 import controllers.UserApp;
+import org.apache.commons.lang3.StringEscapeUtils;
 import play.api.mvc.AsyncResult;
 import play.api.mvc.PlainResult;
 import play.libs.Akka;
@@ -59,7 +60,7 @@ public class AccessLogger {
         if (value == null) {
             return "-";
         } else {
-            return "\"" + value + "\"";
+            return "\"" + StringEscapeUtils.escapeJava(value) + "\"";
         }
     }
 
