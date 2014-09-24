@@ -22,14 +22,12 @@ package models;
 
 import models.enumeration.ResourceType;
 import models.resource.Resource;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.persistence.Entity;
 import javax.persistence.Transient;
-
-import org.apache.commons.lang3.StringUtils;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class CommitComment extends CodeComment {

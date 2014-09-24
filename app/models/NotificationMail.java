@@ -24,7 +24,6 @@ import info.schleichardt.play2.mailplugin.Mailer;
 import models.enumeration.UserState;
 import models.resource.Resource;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.HtmlEmail;
 import org.joda.time.DateTime;
 import org.jsoup.Jsoup;
@@ -40,8 +39,12 @@ import play.libs.Akka;
 import scala.concurrent.duration.Duration;
 import utils.Config;
 import utils.Markdown;
+import utils.RouteUtil;
 import utils.Url;
 
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.internet.MimeMessage;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
@@ -136,6 +139,59 @@ public class NotificationMail extends Model {
     }
 
     /**
+     * An email which has Message-ID and/or References header based the given
+     * NotificationEvent if possible. The headers help MUA to bind the emails
+     * into a thread.
+     */
+    public static class EventEmail extends HtmlEmail {
+        private NotificationEvent event;
+
+        public EventEmail(NotificationEvent event) {
+            this.event = event;
+        }
+
+        @Override
+        protected MimeMessage createMimeMessage(Session aSession) {
+            return new MimeMessage(aSession) {
+                @Override
+                protected void updateMessageID() throws MessagingException {
+                    if (event != null && event.eventType.isCreating()) {
+                        setHeader("Message-ID",
+                                String.format("<%s@%s>",
+                                        event.getUrlToView(),
+                                        Config.getHostname()));
+                    } else {
+                        super.updateMessageID();
+                    }
+                }
+            };
+        }
+
+        public void addReferences() {
+            if (event == null || event.resourceType == null ||
+                    event.resourceId == null) {
+                return;
+            }
+
+            Resource resource = Resource.get(
+                    event.resourceType, event.resourceId);
+
+            if (resource == null) {
+                return;
+            }
+
+            Resource container = resource.getContainer();
+
+            if (container != null) {
+                String reference = RouteUtil.getUrl(
+                        container.getType(), container.getId());
+                addHeader("References",
+                        "<" + reference + "@" + Config.getHostname() + ">");
+            }
+        }
+    }
+
+    /**
      * Sends notification mails for the given event.
      *
      * @param event
@@ -176,7 +232,7 @@ public class NotificationMail extends Model {
         }
 
         for (String langCode : usersByLang.keySet()) {
-            final HtmlEmail email = new HtmlEmail();
+            final EventEmail email = new EventEmail(event);
 
             try {
                 email.setFrom(Config.getEmailFromSmtp(), event.getSender().name);
@@ -196,7 +252,7 @@ public class NotificationMail extends Model {
                 email.setHtmlMsg(getHtmlMessage(lang, message, urlToView, event.getResource()));
                 email.setTextMsg(getPlainMessage(lang, message, Url.create(urlToView)));
                 email.setCharset("utf-8");
-                email.addHeader("References", "<" + reference + "@" + Config.getHostname() + ">");
+                email.addReferences();
                 email.setSentDate(event.created);
                 Mailer.send(email);
                 String escapedTitle = email.getSubject().replace("\"", "\\\"");

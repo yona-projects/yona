@@ -106,6 +106,11 @@ public class ReviewComment extends Model implements ResourceConvertible {
             public void delete() {
                 ReviewComment.this.delete();
             }
+
+            @Override
+            public Resource getContainer() {
+                return thread.asResource();
+            }
         };
     }
 
