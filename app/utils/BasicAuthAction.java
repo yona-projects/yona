@@ -44,7 +44,7 @@ public class BasicAuthAction extends Action<Object> {
 
         String challenge = "Basic realm=\"" + REALM + "\"";
         response.setHeader(Http.HeaderNames.WWW_AUTHENTICATE, challenge);
-        return unauthorized();
+        return unauthorized("Invalid username or password");
     }
 
     public static User parseCredentials(String credentials) throws MalformedCredentialsException, UnsupportedEncodingException {
