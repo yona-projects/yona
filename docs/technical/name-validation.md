@@ -103,6 +103,16 @@ Github allows alphanumeric characters such as `-`, `_` and `.`; otherwise, it
 automatically changes into `-`. Strings like `.`, `...` and `.git` can't be used
 as repository names because they are reserved.
 
+Considerations for Basic Authentication
+---------------------------------------
+
+Any name which can be used as a userid of Basic Authentication scheme [5], like
+users' login id, MUST NOT contain a `:` character. If the userid contains it,
+the authentication does not work at all because the scheme uses a `:` character
+as a separator to split credential from a client into userid and password.
+
+It is okay that password contains `:` characters.
+
 References
 ----------
 
@@ -110,3 +120,4 @@ References
 [2]: http://www.oracle.com/technetwork/java/javase/config-417990.html
 [3]: http://tools.ietf.org/html/rfc5322
 [4]: http://tools.ietf.org/html/rfc5322#section-3.2.3
+[5]: http://tools.ietf.org/html/rfc2617#section-2
