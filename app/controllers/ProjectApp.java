@@ -548,7 +548,7 @@ public class ProjectApp extends Controller {
 
         User projectOwner = User.findByLoginId(project.owner);
         Organization projectOrg = Organization.findByName(project.owner);
-        if((destOwner != null && destOwner.equals(projectOwner)) || (projectOrg != null && projectOrg.equals(destOrg))) {
+        if((!destOwner.isAnonymous() && destOwner.equals(projectOwner)) || (projectOrg != null && projectOrg.equals(destOrg))) {
             flash(Constants.INFO, "project.transfer.has.same.owner");
             Form<Project> projectForm = form(Project.class).fill(project);
             return ok(transfer.render("title.projectTransfer", projectForm, project));
