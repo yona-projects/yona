@@ -129,6 +129,8 @@ smtp.archive.size = 5
 application.notification.bymail.interval = 60s
 # Sending a notification mail delays this seconds.
 application.notification.bymail.delay = 180s
+# Hide recipients of notification email by using bcc. (default: true)
+application.notification.bymail.hideAddress = true
 # A new event notification can be merged if possible with previous one which is
 # not older than this seconds.
 application.notification.draft-time = 30s
