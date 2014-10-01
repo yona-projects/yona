@@ -28,7 +28,7 @@ import models.resource.Resource;
 import org.apache.commons.lang.BooleanUtils;
 
 public class AccessControl {
-    private static boolean anonymousNotAllowed;
+    private static boolean allowsAnonymousAccess = true;
 
     /**
      * Checks if an user has a permission to create a global resource.
@@ -102,7 +102,7 @@ public class AccessControl {
     }
 
     public static boolean isAnonymousNotAllowed() {
-        return anonymousNotAllowed;
+        return !allowsAnonymousAccess;
     }
 
     public static boolean isResourceCreatable(User user, Resource container, ResourceType resourceType) {
@@ -338,8 +338,8 @@ public class AccessControl {
     }
 
     public static void onStart() {
-        anonymousNotAllowed = BooleanUtils.toBoolean(
-                play.Configuration.root().getBoolean("application.allowsAnonymousAccess"));
+        allowsAnonymousAccess = BooleanUtils.toBoolean(
+                play.Configuration.root().getBoolean("application.allowsAnonymousAccess", true));
     }
 
     /**
