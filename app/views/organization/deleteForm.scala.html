@@ -1,0 +1,76 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2014 NAVER Corp.
+* http://yobi.io
+*
+* @Author Deokhong Kim
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@(organization:Organization)
+
+@import utils.TemplateHelper._
+
+@siteLayout(organization.name, utils.MenuType.NONE) {
+@header(organization)
+@menu(organization)
+
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        @partial_settingmenu(organization)
+        <div class="box-wrap bottom">
+            <a id="btnDelete" href="#alertDeletion" class="ybtn ybtn-danger" data-toggle="modal" ><!--
+         -->@Messages("organization.delete.this")</a>
+        </div>
+
+        @** Confirm to delete organization **@
+        <div id="alertDeletion" class="modal hide">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h3>@Messages("organization.delete.requestion")</h3>
+            </div>
+            <div class="modal-body">
+                <p> @Messages("organization.delete.reaccept") </p>
+            </div>
+            <div class="modal-footer">
+                <button id="btnDeleteExec" type="button" class="ybtn ybtn-danger">@Messages("button.yes")</button>
+                <button type="button" class="ybtn" data-dismiss="modal">@Messages("button.no")</button>
+            </div>
+        </div>
+        @** // -- // **@
+    </div>
+</div>
+<script language="javascript">
+    $("#btnDeleteExec").on("click", function() {
+        $.ajax({
+            type: "delete",
+            url: "@routes.OrganizationApp.deleteOrganization(organization.name)",
+            success: function() {
+                location.href = "@routes.Application.index()";
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                $("#alertDeletion").modal("hide");
+                var sErrorMsg;
+                try{
+                    sErrorMsg = Messages($.parseJSON(jqXHR.responseText).errorMsg);
+                }catch(e){
+                    sErrorMsg = Messages("organization.delete.error");
+                }
+                $yobi.alert(sErrorMsg);
+                return false;
+            }
+        });
+    });
+</script>
+}

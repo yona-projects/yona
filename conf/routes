@@ -30,6 +30,8 @@ GET            /organizations/new                                               
 POST           /organizations/new                                                     controllers.OrganizationApp.newOrganization()
 GET            /organizations/:organizationName                                       controllers.OrganizationApp.organization(organizationName: String)
 GET            /organizations/:organizationName/settingform                           controllers.OrganizationApp.settingForm(organizationName: String)
+GET            /organizations/:organizationName/deleteForm                            controllers.OrganizationApp.deleteForm(organizationName: String)
+DELETE         /organizations/:organizationName                                       controllers.OrganizationApp.deleteOrganization(organizationName: String)
 POST           /organizations/:organizationName/setting                               controllers.OrganizationApp.updateOrganizationInfo(organizationName: String)
 GET            /organizations/:organizationName/members                               controllers.OrganizationApp.members(organizationName: String)
 POST           /organizations/:organizationName/members                               controllers.OrganizationApp.addMember(organizationName: String)
