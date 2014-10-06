@@ -28,6 +28,10 @@
         var htVar = {};
         var htElement = {};
 
+        var clientErrorStatus = /^4[0-9][0-9]$/
+        var serverErrorStatus = /^5[0-9][0-9]$/
+        var networkErrorStatus = 0;
+
         /**
          * initialize
          */
@@ -99,8 +103,25 @@
                 "success": function(){
                     document.location.reload();
                 },
-                "error": function(){
-                    $yobi.notify("Server Error");
+                "error": function(oXHR){
+                    if(oXHR.readyState == networkErrorStatus){
+                        $yobi.notify(Messages("user.enroll.failed.network"), 3000);
+                    }else{
+                        switch(true){
+                            case oXHR.status == 403:
+                                $yobi.notify(Messages("error.forbidden"), 3000);
+                                break;
+                            case clientErrorStatus.test(oXHR.status):
+                                $yobi.notify(Messages("user.enroll.failed.client"), 3000);
+                                break;
+                            case serverErrorStatus.test(oXHR.status):
+                                $yobi.notify(Messages("user.enroll.failed.server"), 3000);
+                                break;
+                            default:
+                                $yobi.notify(Messages("user.enroll.failed"), 3000);
+                                break;
+                        }
+                    }
                 }
             })
 
