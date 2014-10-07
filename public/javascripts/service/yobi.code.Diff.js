@@ -210,18 +210,23 @@
          * @private
          */
         function _scrollToAndHighlight(welTarget){
-            if(!welTarget || welTarget.length === 0){
+            var welThread = _getThread(welTarget);
+
+            if(!welTarget || welTarget.length === 0 || !welThread || welThread.length === 0){
                 return;
             }
 
-            window.scrollTo(0, welTarget.offset().top - 50);
-
-            if(_isFoldedThread(welTarget)){
-                welTarget.removeClass("fold");
+            if(_isFoldedThread(welThread)){
+                welThread.removeClass("fold");
             }
-            welTarget.effect("highlight");
 
-            _showReviewCardsTabByState(welTarget.data("state"));
+            _showReviewCardsTabByState(welThread.data("state"));
+            window.scrollTo(0, welTarget.offset().top - 50);
+            welTarget.effect("highlight");
+        }
+
+        function _getThread(welTarget){
+            return (welTarget.hasClass("comment-thread-wrap")) ? welTarget : welTarget.parents(".comment-thread-wrap");
         }
 
         /**
