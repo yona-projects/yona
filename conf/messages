@@ -369,6 +369,7 @@ notification.pushed.commits.to = [{0}] pushed {1} commits to {2}
 notification.pushed.newcommits = New Commits
 notification.reviewthread.closed = Review thread closed.
 notification.reviewthread.reopened = Review thread reopened
+notification.reviewthread.inTheFile = In {0}:
 notification.type.issue.assignee.changed = Issue assignee changed.
 notification.type.issue.body.changed = Issue body changed
 notification.type.issue.referred.from.commit = Issue mentioned in commit

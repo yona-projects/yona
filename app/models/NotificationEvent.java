@@ -48,10 +48,7 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -68,9 +65,6 @@ public class NotificationEvent extends Model {
     public static Finder<Long, NotificationEvent> find = new Finder<>(Long.class, NotificationEvent.class);
 
     public String title;
-
-    @Lob
-    public String message;
 
     public Long senderId;
 
@@ -108,10 +102,6 @@ public class NotificationEvent extends Model {
 
     @Transient
     public String getMessage(Lang lang) {
-        if (message != null) {
-            return message;
-        }
-
         switch (eventType) {
             case ISSUE_STATE_CHANGED:
                 if (newValue.equals(State.CLOSED.state())) {
@@ -129,9 +119,21 @@ public class NotificationEvent extends Model {
             case NEW_POSTING:
             case NEW_COMMENT:
             case NEW_PULL_REQUEST:
-            case NEW_REVIEW_COMMENT:
             case NEW_COMMIT:
             case ISSUE_BODY_CHANGED:
+                return newValue;
+            case NEW_REVIEW_COMMENT:
+                try {
+                    ReviewComment reviewComment = ReviewComment.find.byId(Long.valueOf(this.resourceId));
+                    if (reviewComment != null) {
+                        return buildCommentedCodeMessage(reviewComment, lang);
+                    }
+                } catch (Exception e) {
+                    play.Logger.error(
+                            "Failed to generate a notification " +
+                            "message for a review comment", e);
+                }
+
                 return newValue;
             case PULL_REQUEST_STATE_CHANGED:
                 if (State.OPEN.state().equals(newValue)) {
@@ -174,6 +176,112 @@ public class NotificationEvent extends Model {
             default:
                 return null;
         }
+    }
+
+    /**
+     * Builds a notification message for a comment on code.
+     *
+     * The message contains the commented hunk of the code as below:
+     *
+     *     In foo.c:
+     *
+     *     > @@ -1,5 +1,5 @@
+     *     >   int bar(void)
+     *     >   {
+     *     > -     printf("good");
+     *     > +     printf("good");
+     *
+     *     Looks good to me
+     *
+     *     >       return 0;
+     *     >   }
+     *
+     * Note: This method has a performance issue. See the comment in the method
+     * body for the details.
+     *
+     * @param reviewComment
+     * @param lang
+     * @return
+     * @throws IOException
+     */
+    private static String buildCommentedCodeMessage(ReviewComment reviewComment, Lang lang) throws
+            IOException {
+        if (reviewComment.thread == null ||
+            !reviewComment.thread.getFirstReviewComment().equals(reviewComment) ||
+            !(reviewComment.thread instanceof CodeCommentThread)) {
+            return reviewComment.getContents();
+        }
+
+        CodeCommentThread thread = (CodeCommentThread) reviewComment.thread;
+
+        PlayRepository repo;
+
+        try {
+            repo = RepositoryService.getRepository(thread.project);
+        } catch (Exception e) {
+            play.Logger.error("Failed to get the repository", e);
+            return reviewComment.getContents();
+        }
+
+        CodeRange codeRange = thread.codeRange;
+
+
+        List<FileDiff> diffs;
+        if (thread.prevCommitId == null) {
+            diffs = repo.getDiff(thread.commitId);
+        } else {
+            diffs = repo.getDiff(thread.prevCommitId, thread.commitId);
+        }
+
+        for(FileDiff diff : diffs) {
+            if (!codeRange.isFor(diff)) continue;
+
+            StringBuilder message = new StringBuilder();
+
+            message.append(Messages.get(lang,
+                    "notification.reviewthread.inTheFile", codeRange.path));
+            message.append("\n");
+
+            diff.setInterestLine(codeRange.endLine);
+            diff.setInterestSide(codeRange.endSide);
+
+            message.append("```diff\n");
+
+            // FIXME: Performance Issue: The hunks of this diffs were
+            // already computed but it was not necessary because they will
+            // and should be recomputed here.
+            for (Hunk hunk : diff.getHunks()) {
+                message.append(
+                        String.format("> @@ -%d, %d +%d, %d @@\n",
+                                hunk.beginA + 1, (hunk.endA - hunk.beginA),
+                                hunk.beginB + 1, (hunk.endB - hunk.beginB)));
+                for (DiffLine line : hunk.lines) {
+                    message.append("> ");
+                    switch (line.kind) {
+                        case CONTEXT:
+                            message.append(" ");
+                            break;
+                        case ADD:
+                            message.append("+");
+                            break;
+                        case REMOVE:
+                            message.append("-");
+                            break;
+                    }
+                    message.append(line.content + "\n");
+                    if (codeRange.endsWith(line)) {
+                        message.append("```\n");
+                        message.append("\n" + reviewComment.getContents() + "\n\n");
+                        message.append("```diff\n");
+                    }
+                }
+            }
+            message.append("```\n");
+
+            return message.toString();
+        }
+
+        return reviewComment.getContents();
     }
 
     public User getSender() {
@@ -537,7 +645,7 @@ public class NotificationEvent extends Model {
         NotificationEvent notiEvent = createFromCurrentUser(comment);
         notiEvent.title = formatReplyTitle(project, commit);
         notiEvent.receivers = watchers;
-        notiEvent.eventType = NEW_COMMENT;
+        notiEvent.eventType = NEW_REVIEW_COMMENT;
         notiEvent.oldValue = null;
         notiEvent.newValue = comment.getContents();
 

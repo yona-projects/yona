@@ -370,6 +370,7 @@ notification.pushed.commits.to = [{0}] {1}개의 커밋이 브랜치 {2}로 푸�
 notification.pushed.newcommits = 커밋
 notification.reviewthread.closed = 리뷰 스레드 닫힘
 notification.reviewthread.reopened = 리뷰 스레드 다시 열림
+notification.reviewthread.inTheFile = {0} 에서:
 notification.type.issue.assignee.changed = 이슈 담당자 변경
 notification.type.issue.body.changed = 이슈 본문 변경
 notification.type.issue.referred.from.commit = 커밋에서의 이슈 언급

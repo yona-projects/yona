@@ -22,18 +22,36 @@ package models;
 
 import com.avaje.ebean.annotation.EnumValue;
 import play.data.validation.Constraints;
+import playRepository.DiffLine;
+import playRepository.FileDiff;
 
 import javax.persistence.Embeddable;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.Transient;
-import javax.validation.constraints.NotNull;
 
 /**
  * @author Keesun Baik
  */
 @Embeddable
 public class CodeRange {
+
+    public boolean isFor(FileDiff diff) {
+        if (endSide.equals(Side.B)
+                && !diff.pathB.equals(path)) {
+            return false;
+        }
+
+        if (endSide.equals(Side.A)
+                && !diff.pathA.equals(path)) {
+            return false;
+        }
+        return true;
+    }
+
+    public boolean endsWith(DiffLine line) {
+        return (endSide.equals(Side.A) && endLine.equals(line.numA)) ||
+               (endSide.equals(Side.B) && endLine.equals(line.numB));
+    }
 
     public enum Side {
         @EnumValue("A") A,
