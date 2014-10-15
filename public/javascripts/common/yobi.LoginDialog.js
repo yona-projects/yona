@@ -38,6 +38,7 @@ $(function(){
         htElement.welForm = htElement.welDialog.find("form");
         htElement.welInputId = htElement.welDialog.find("input[name='loginIdOrEmail']");
         htElement.welInputPw = htElement.welDialog.find("input[name='password']");
+        htElement.welInputRememberMe = htElement.welDialog.find("input[name='rememberMe']");
         htElement.welLoginError = htElement.welDialog.find(".error");
         htElement.welLoginErrorMsg = htElement.welLoginError.find(".error-message");
     }
@@ -74,7 +75,8 @@ $(function(){
             "dataType": "json",
             "data": {
                 "loginIdOrEmail" : htElement.welInputId.val(),
-                "password": htElement.welInputPw.val()
+                "password": htElement.welInputPw.val(),
+                "rememberMe": htElement.welInputRememberMe.is(":checked")
             }
         }).done(function(){
             document.location.reload();
