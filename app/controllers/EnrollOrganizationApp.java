@@ -20,13 +20,19 @@
  */
 package controllers;
 
+import static play.libs.Json.toJson;
+
 import controllers.annotation.AnonymousCheck;
 import models.*;
 import models.enumeration.RequestState;
 import play.db.ebean.Transactional;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
 import utils.ValidationResult;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @AnonymousCheck
 public class EnrollOrganizationApp extends Controller {
@@ -45,7 +51,11 @@ public class EnrollOrganizationApp extends Controller {
             NotificationEvent.afterOrganizationMemberRequest(organization, user, RequestState.REQUEST);
         }
 
-        return ok();
+        response().setHeader("Content-Type", "application/json");
+        Map<String, String> representationData = new HashMap<String, String>();
+        representationData.put("message", "You enrolled in " + organizationName + ".");
+        representationData.put("statusMonitorUrl", "http://" + request().host() + routes.OrganizationApp.organization(organizationName).url());
+        return status(Http.Status.ACCEPTED, toJson(representationData));
     }
 
     private static ValidationResult validateForEnroll(String organizationName) {
@@ -76,7 +86,11 @@ public class EnrollOrganizationApp extends Controller {
             NotificationEvent.afterOrganizationMemberRequest(organization, user, RequestState.CANCEL);
         }
 
-        return ok();
+        response().setHeader("Content-Type", "application/json");
+        Map<String, String> representationData = new HashMap<String, String>();
+        representationData.put("message", "You canceled to enroll in " + organizationName + ".");
+        representationData.put("statusMonitorUrl", "http://" + request().host() + routes.OrganizationApp.organization(organizationName).url());
+        return status(Http.Status.ACCEPTED, toJson(representationData));
     }
 
     private static ValidationResult validateForCancelEnroll(String organizationName) {
