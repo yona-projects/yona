@@ -224,11 +224,7 @@ public class NotificationMail extends Model {
         HashMap<String, List<User>> usersByLang = new HashMap<>();
 
         for (User receiver : receivers) {
-            String lang = receiver.lang;
-
-            if (lang == null) {
-                lang = Locale.getDefault().getLanguage();
-            }
+            String lang = receiver.getPreferredLanguage();
 
             if (usersByLang.containsKey(lang)) {
                 usersByLang.get(lang).add(receiver);

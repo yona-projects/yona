@@ -186,6 +186,14 @@ public class User extends Model implements ResourceConvertible {
         this.id = id;
     }
 
+    public String getPreferredLanguage() {
+        if (lang != null) {
+            return lang;
+        } else {
+            return Locale.getDefault().getLanguage();
+        }
+    }
+
     /**
      * User creation date which forms of "MMM dd, yyyy"
      *
