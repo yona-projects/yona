@@ -26,7 +26,6 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.Repository;
 
-import javax.annotation.Nullable;
 import javax.persistence.*;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -47,7 +46,6 @@ public class CodeCommentThread extends CommentThread {
     public static final Finder<Long, CodeCommentThread> find = new Finder<>(Long.class, CodeCommentThread.class);
 
     @Embedded
-    @Nullable
     public CodeRange codeRange = new CodeRange();
 
     public String prevCommitId = StringUtils.EMPTY;
