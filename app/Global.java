@@ -46,10 +46,21 @@ import play.mvc.Http.RequestHeader;
 import play.mvc.Result;
 import play.libs.F.Promise;
 
-import utils.AccessControl;
-import utils.AccessLogger;
-import utils.ErrorViews;
-import utils.YamlUtil;
+import play.mvc.Result;
+import play.mvc.Results;
+import utils.*;
+import views.html.welcome.restart;
+import views.html.welcome.secret;
+
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.math.BigInteger;
+import java.net.InetAddress;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.SecureRandom;
+import java.util.Date;
 
 import views.html.welcome.secret;
 import views.html.welcome.restart;
@@ -69,6 +80,7 @@ public class Global extends GlobalSettings {
         isSecretInvalid = equalsDefaultSecret();
         insertInitialData();
 
+        Config.onStart();
         PullRequest.onStart();
         NotificationMail.onStart();
         NotificationEvent.onStart();

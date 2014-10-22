@@ -268,4 +268,12 @@ public class SiteApp extends Controller {
         return ok(update.render("title.siteSetting", currentVersion,
                     YobiUpdate.versionToUpdate, exception));
     }
+
+    /**
+     * Diagnose Yobi
+     * @return
+     */
+    public static Result diagnose() {
+        return ok(diagnostic.render("title.siteSetting", Diagnostic.checkAll()));
+    }
 }
