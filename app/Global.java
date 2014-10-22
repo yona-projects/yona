@@ -81,6 +81,7 @@ public class Global extends GlobalSettings {
         insertInitialData();
 
         Config.onStart();
+        Property.onStart();
         PullRequest.onStart();
         NotificationMail.onStart();
         NotificationEvent.onStart();
