@@ -22,6 +22,9 @@ $(function(){
     "use strict";
 
     var htElement = {};
+    var clientErrorStatus = /^4[0-9][0-9]$/
+    var serverErrorStatus = /^5[0-9][0-9]$/
+    var networkErrorStatus = 0;
 
     function _init(){
         // do this except in loginForm, signUpForm
@@ -79,12 +82,38 @@ $(function(){
         }).done(function(){
             document.location.reload();
         }).fail(function(htResult){
-            _showDialogError(Messages(htResult.message));
+            // If the value of readyState is UNSET(zero), it will be viewed as 'Network Error'
+            if(htResult.readyState == networkErrorStatus){
+                _showDialogError(Messages("user.login.failed.network"));
+            }else if(htResult.responseText && htResult.responseText.length > 0){
+                try{
+                    var responseObject = JSON.parse(htResult.responseText);
+                    _showDialogError(Messages(responseObject.message));
+                }catch (err){
+                    _getErrorMessageByStatus(htResult.status);
+                }
+            }else{
+                _getErrorMessageByStatus(htResult.status);
+            }
         });
 
         weEvt.preventDefault();
         weEvt.stopPropagation();
         return false;
+    }
+
+    function _getErrorMessageByStatus(status) {
+        switch(true){
+            case clientErrorStatus.test(status):
+                _showDialogError(Messages("user.login.failed.client"));
+                break;
+            case serverErrorStatus.test(status):
+                _showDialogError(Messages("user.login.failed.server"));
+                break;
+            default:
+                _showDialogError(Messages("user.login.failed"));
+                break;
+        }
     }
 
     function _showDialogError(sMessage){

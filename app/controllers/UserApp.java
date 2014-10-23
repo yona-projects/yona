@@ -158,6 +158,7 @@ public class UserApp extends Controller {
         Form<AuthInfo> authInfoForm = form(AuthInfo.class).bindFromRequest();
 
         if(authInfoForm.hasErrors()) {
+            flash(Constants.WARNING, "user.login.required");
             return badRequest(login.render("title.login", authInfoForm, null));
         }
 
@@ -196,7 +197,7 @@ public class UserApp extends Controller {
             }
         }
 
-        flash(Constants.WARNING, "user.login.failed");
+        flash(Constants.WARNING, "user.login.invalid");
         return redirect(routes.UserApp.loginForm());
     }
 
@@ -216,7 +217,7 @@ public class UserApp extends Controller {
         Form<AuthInfo> authInfoForm = form(AuthInfo.class).bindFromRequest();
 
         if(authInfoForm.hasErrors()) {
-            return badRequest(getObjectNodeWithMessage("validation.required"));
+            return badRequest(getObjectNodeWithMessage("user.login.required"));
         }
 
         User sourceUser = User.findByLoginKey(authInfoForm.get().loginIdOrEmail);
@@ -246,7 +247,7 @@ public class UserApp extends Controller {
             return ok("{}");
         }
 
-        return forbidden(getObjectNodeWithMessage("user.login.failed"));
+        return forbidden(getObjectNodeWithMessage("user.login.invalid"));
     }
 
     /**
