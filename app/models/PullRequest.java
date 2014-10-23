@@ -912,7 +912,7 @@ public class PullRequest extends Model implements ResourceConvertible {
             if (messages.length > 1) {
                 String[] msgs = Arrays.copyOfRange(messages, 1, messages.length);
                 messageMap.put("title", messages[0]);
-                messageMap.put("body", StringUtils.join(msgs, Constants.NEW_LINE_DELIMETER));
+                messageMap.put("body", StringUtils.join(msgs, Constants.NEW_LINE_DELIMETER).trim());
 
             } else {
                 messageMap.put("title", messages[0]);
