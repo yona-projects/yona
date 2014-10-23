@@ -28,11 +28,11 @@ object ApplicationBuild extends Build {
     javaEbean,
       // Add your project dependencies here,
       // Core Library
-      "org.eclipse.jgit" % "org.eclipse.jgit" % "3.4.0.201406110918-r",
+      "org.eclipse.jgit" % "org.eclipse.jgit" % "3.5.1.201410131835-r",
       // Smart HTTP Servlet
-      "org.eclipse.jgit" % "org.eclipse.jgit.http.server" % "3.4.0.201406110918-r",
+      "org.eclipse.jgit" % "org.eclipse.jgit.http.server" % "3.5.1.201410131835-r",
       // Symlink support for Java7
-      "org.eclipse.jgit" % "org.eclipse.jgit.java7" % "3.4.0.201406110918-r",
+      "org.eclipse.jgit" % "org.eclipse.jgit.java7" % "3.5.1.201410131835-r",
       // svnkit
       "sonia.svnkit" % "svnkit" % "1.7.10-scm3",
       // svnkit-dav
