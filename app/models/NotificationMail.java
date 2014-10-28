@@ -163,9 +163,7 @@ public class NotificationMail extends Model {
                 protected void updateMessageID() throws MessagingException {
                     if (event != null && event.eventType.isCreating()) {
                         setHeader("Message-ID",
-                                String.format("<%s@%s>",
-                                        event.getUrlToView(),
-                                        Config.getHostname()));
+                                event.getResource().getMessageId());
                     } else {
                         super.updateMessageID();
                     }
@@ -189,10 +187,7 @@ public class NotificationMail extends Model {
             Resource container = resource.getContainer();
 
             if (container != null) {
-                String reference = RouteUtil.getUrl(
-                        container.getType(), container.getId());
-                addHeader("References",
-                        "<" + reference + "@" + Config.getHostname() + ">");
+                addHeader("References", container.getMessageId());
             }
         }
     }

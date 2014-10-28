@@ -26,6 +26,7 @@ import models.enumeration.ResourceType;
 import play.db.ebean.Model;
 import playRepository.Commit;
 import playRepository.RepositoryService;
+import utils.Config;
 
 import java.util.EnumSet;
 
@@ -199,4 +200,8 @@ public abstract class Resource {
         }
     }
 
+    public String getMessageId() {
+        return String.format("<%s@%s>",
+                this, Config.getHostname());
+    }
 }
