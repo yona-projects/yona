@@ -20,16 +20,15 @@
  */
 package models;
 
-import java.util.Date;
-import java.util.List;
-
-import javax.persistence.*;
-
 import models.enumeration.ResourceType;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
+
+import javax.persistence.*;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author Keesun Baik

@@ -58,6 +58,12 @@ abstract public class Comment extends Model implements TimelineItem, ResourceCon
         createdDate = new Date();
     }
 
+    public Comment(User author, String contents) {
+        this();
+        setAuthor(author);
+        this.contents = contents;
+    }
+
     public Duration ago() {
         return JodaDateUtil.ago(this.createdDate);
     }

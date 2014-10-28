@@ -85,6 +85,14 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
         this.updatedDate = JodaDateUtil.now();
     }
 
+    public AbstractPosting(Project project, User author, String title, String body) {
+        this();
+        setAuthor(author);
+        this.project = project;
+        this.title = title;
+        this.body = body;
+    }
+
     /**
      * @see models.Issue#increaseNumber()
      * @see models.Posting#increaseNumber()

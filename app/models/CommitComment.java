@@ -23,6 +23,7 @@ package models;
 import models.enumeration.ResourceType;
 import models.resource.Resource;
 import org.apache.commons.lang3.StringUtils;
+import playRepository.Commit;
 
 import javax.persistence.Entity;
 import javax.persistence.Transient;
@@ -64,6 +65,11 @@ public class CommitComment extends CodeComment {
             @Override
             public Long getAuthorId() {
                 return authorId;
+            }
+
+            @Override
+            public Resource getContainer() {
+                return Commit.getAsResource(project, commitId);
             }
 
             public void delete() {

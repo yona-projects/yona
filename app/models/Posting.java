@@ -4,13 +4,13 @@
 
 package models;
 
-import javax.persistence.*;
-
 import models.enumeration.ResourceType;
 import models.resource.Resource;
 import utils.JodaDateUtil;
 
-import java.util.*;
+import javax.persistence.*;
+import java.util.Collections;
+import java.util.List;
 
 import static com.avaje.ebean.Expr.eq;
 
@@ -26,6 +26,10 @@ public class Posting extends AbstractPosting {
 
     @OneToMany(cascade = CascadeType.ALL)
     public List<PostingComment> comments;
+
+    public Posting(Project project, User author, String title, String body) {
+        super(project, author, title, body);
+    }
 
     /**
      * @see models.Project#increaseLastPostingNumber()
@@ -113,5 +117,4 @@ public class Posting extends AbstractPosting {
                 .add(eq("readme", true))
                 .findUnique();
     }
-
 }

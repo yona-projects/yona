@@ -84,6 +84,10 @@ public abstract class Commit {
         return Project.find.byId(Long.valueOf(pair[0]));
     }
 
+    public static Resource getAsResource(Project project, String commitId) {
+        return getAsResource(project.id + ":" + commitId);
+    }
+
     public static Resource getAsResource(final String resourceId) {
         return new Resource() {
 

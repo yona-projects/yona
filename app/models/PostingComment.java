@@ -33,6 +33,11 @@ public class PostingComment extends Comment {
     @ManyToOne
     public Posting posting;
 
+    public PostingComment(Posting posting, User author, String contents) {
+        super(author, contents);
+        this.posting = posting;
+    }
+
     /**
      * @see Comment#getParent()
      */
@@ -64,6 +69,11 @@ public class PostingComment extends Comment {
             @Override
             public Long getAuthorId() {
                 return authorId;
+            }
+
+            @Override
+            public Resource getContainer() {
+                return posting.asResource();
             }
         };
     }

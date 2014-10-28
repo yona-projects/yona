@@ -174,6 +174,43 @@ public abstract class Resource {
     public boolean isAuthoredBy(User user) { return getAuthorId() != null && getAuthorId().equals(user.id); }
     public void delete() { throw new UnsupportedOperationException(); }
 
+    public String getDetail() {
+        Project project = getProject();
+        String type = getType().asPathSegment();
+
+        if (project != null && type != null) {
+            return project + "/" + type;
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) return true;
+        if (object == null || getClass() != object.getClass()) return false;
+
+        Resource that = (Resource) object;
+
+        if (!getId().equals(that.getId())) return false;
+        if (!getType().equals(that.getType())) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 0;
+        result = 31 * result + (getId() != null ? getId().hashCode() : 0);
+        result = 31 * result + (getType() != null ? getType().hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return getType().resource() + "/" + getId();
+    }
+
     /**
      * @see {@link actions.IsAllowedAction}
      */
@@ -198,6 +235,34 @@ public abstract class Resource {
             default:
                 throw new IllegalAccessError(getInvalidResourceTypeMessage(resourceType));
         }
+    }
+
+    /**
+     * Finds a resource by the given resource path.
+     *
+     * The format of resource path is as follows:
+     *
+     *     resource-type "/" resource-id
+     *
+     * @param path
+     * @return
+     */
+    public static Resource findByPath(String path) {
+        String[] segments = path.split("/");
+
+        if (segments.length < 2) {
+            return null;
+        }
+
+        ResourceType resourceType = null;
+
+        try {
+            resourceType = ResourceType.getValue(segments[0]);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+
+        return Resource.get(resourceType, segments[1]);
     }
 
     public String getMessageId() {

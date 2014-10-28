@@ -81,6 +81,10 @@ public class Property extends Model {
     }
 
     public static enum Name {
+        // the uid of the most recent email Mailbox has received
+        MAILBOX_LAST_SEEN_UID,
+        // the uidvalidity of the imap folder Mailbox has used most recently
+        MAILBOX_LAST_UID_VALIDITY
         // Add property you need here.
     }
 

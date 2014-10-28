@@ -196,18 +196,7 @@ public class Config {
     }
 
     public static String getEmailFromSmtp() {
-        Configuration config = Configuration.root();
-        String user = config.getString("smtp.user");
-
-        if (user == null) {
-            return null;
-        }
-
-        if (user.contains("@")) {
-            return user;
-        } else {
-            return user + "@" + config.getString("smtp.domain");
-        }
+        return getEmail("smtp");
     }
 
     /**
@@ -277,5 +266,24 @@ public class Config {
         File versionFile = Paths.get("conf", "version.conf").toFile();
 
         return ConfigFactory.parseFile(versionFile).resolve().getString("app.version");
+    }
+
+    public static String getEmailFromImap() {
+        return Configuration.root().getString("imap.address", getEmail("imap"));
+    }
+
+    private static String getEmail(String prefix) {
+        Configuration config = Configuration.root();
+        String user = config.getString(prefix + ".user");
+
+        if (user == null) {
+            return null;
+        }
+
+        if (user.contains("@")) {
+            return user;
+        } else {
+            return user + "@" + config.getString(prefix + ".domain", getHostname());
+        }
     }
 }
