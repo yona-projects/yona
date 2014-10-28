@@ -26,6 +26,8 @@ import models.resource.GlobalResource;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
 import org.apache.commons.io.FileUtils;
+import org.apache.tika.config.TikaConfig;
+import org.apache.tika.mime.MimeTypeException;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import play.libs.Akka;
@@ -506,11 +508,20 @@ public class Attachment extends Model implements ResourceConvertible {
         this.containerType = container.getType();
         this.containerId = container.getId();
         this.createdDate = JodaDateUtil.now();
-        this.name = fileName;
         this.hash = file.getName();
         this.size = file.length();
         if (this.mimeType == null) {
             this.mimeType = FileUtil.detectMediaType(file, name).toString();
+        }
+        if (fileName == null) {
+            this.name = String.valueOf(new Date().getTime());
+            try {
+                this.name += "." + TikaConfig.getDefaultConfig()
+                        .getMimeRepository().forName(this.mimeType).getExtension();
+            } catch (MimeTypeException e) {
+            }
+        } else {
+            this.name = fileName;
         }
 
         // Add the attachment into the Database only if there is no same record.
