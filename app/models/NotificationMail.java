@@ -187,7 +187,18 @@ public class NotificationMail extends Model {
             Resource container = resource.getContainer();
 
             if (container != null) {
-                addHeader("References", container.getMessageId());
+                String reference;
+                switch (container.getType()) {
+                    case COMMENT_THREAD:
+                        CommentThread thread =
+                                CommentThread.find.byId(Long.valueOf(container.getId()));
+                        reference = thread.getFirstReviewComment().asResource().getMessageId();
+                        break;
+                    default:
+                        reference = container.getMessageId();
+                        break;
+                }
+                addHeader("References", reference);
             }
         }
     }
