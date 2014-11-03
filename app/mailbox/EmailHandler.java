@@ -158,6 +158,17 @@ class EmailHandler {
         long startTime = System.currentTimeMillis();
         User author;
 
+        try {
+            // Ignore auto-replied emails to avoid suffering from tons of
+            // vacation messages. For more details about auto-replied emails,
+            // see https://tools.ietf.org/html/rfc3834
+            if (isAutoReplied(msg)) {
+                return;
+            }
+        } catch (MessagingException e) {
+            play.Logger.warn("Failed to determine whether the email is auto-replied or not", e);
+        }
+
         InternetAddress[] senderAddresses;
 
         try {
@@ -214,6 +225,32 @@ class EmailHandler {
                 play.Logger.warn("Failed to update the lastSeenUID", e);
             }
         }
+    }
+
+    /**
+     * @param   message
+     * @return  true if the given message has one or more Auto-Submitted header
+     *          whose value is "auto-replied".
+     * @throws  MessagingException
+     */
+    private static boolean isAutoReplied(IMAPMessage message) throws MessagingException {
+        String[] values = message.getHeader("Auto-Submitted");
+
+        if (values == null) {
+            return false;
+        }
+
+        for (String value : values) {
+            int semicolon = value.indexOf(';');
+            if (semicolon >= 0) {
+                value = value.substring(0, semicolon);
+            }
+            if (value.trim().toLowerCase().equals("auto-replied")) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static void createResources(IMAPMessage msg, User sender, List<String> errors)
