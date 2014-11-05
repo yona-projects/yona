@@ -93,7 +93,7 @@ public enum ErrorViews {
         }
 
         public Html render(String messageKey, Project project, MenuType menuType) {
-            throw new UnsupportedOperationException();
+            return views.html.error.notfound_default.render(messageKey);
         }
 
         @Override
