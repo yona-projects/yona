@@ -20,6 +20,8 @@
  */
 package controllers;
 
+import com.avaje.ebean.annotation.Transactional;
+import models.Unwatch;
 import models.User;
 import models.Watch;
 import models.enumeration.Operation;
@@ -51,23 +53,31 @@ public class WatchApp extends Controller {
         return ok();
     }
 
+    @Transactional
     public static Result unwatch(ResourceParam resourceParam) {
         User user = UserApp.currentUser();
         Resource resource = resourceParam.resource;
 
         if (user.isAnonymous()) {
-            return forbidden("Anonymous cannot unwatch it.");
+            return forbidden(views.html.error.forbidden.render(Messages.get("issue.error.unwatch.anonymous"), resource.getProject()));
         }
 
+        if (!AccessControl.isAllowed(user, resource, Operation.READ)) {
+            return forbidden(views.html.error.forbidden.render(Messages.get("issue.error.unwatch.permission"), resource.getProject()));
+        }
+
+        Unwatch unwatch = Unwatch.findBy(user, resource.getType(), resource.getId());
         Watch.unwatch(user, resource);
 
         if (HttpUtil.isJSONPreferred(request())) {
             return ok();
         } else {
-            String message = getUnwatchMessage(resource);
+            if (unwatch == null) {
+                String message = getUnwatchMessage(resource);
 
-            if(!StringUtils.isEmpty(message)) {
-                flash(utils.Constants.SUCCESS, message);
+                if (!StringUtils.isEmpty(message)) {
+                    flash(utils.Constants.SUCCESS, message);
+                }
             }
 
             return redirect(RouteUtil.getUrl(resource.getType(), resource.getId()));
