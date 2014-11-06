@@ -24,25 +24,28 @@
 
 <div class="bubble-wrap gray readme">
 @if(project.readme == null){
-    <p class="default">
-          @if(project.vcs.equals("GIT")) {
-            <span>@Messages("project.readme")</span><br/><br/>
-              @if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.COMMIT)) {
-              <a href="@routes.BoardApp.newPostForm(project.owner, project.name)?readme=true" class="ybtn">@Messages("project.readme.create")</a>
-              }
-          } else {
-              <span>@Messages("project.svn.readme")</span>
-          }
-    </p>
+  <p class="default">
+    @if(project.isGit){
+      <span>@Messages("project.readme")</span>
+      <br><br>
+      @if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.COMMIT)){
+        <a href="@routes.BoardApp.newPostForm(project.owner, project.name)?readme=true" class="ybtn">@Messages("project.readme.create")</a>
+      }
+    } else {
+      <span>@Messages("project.svn.readme")</span>
+    }
+  </p>
 } else {
-    <div class="readme-wrap">
-        <header><i class="yobicon-book-open"></i><strong> @project.getReadmeFileName</strong>
-            @if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.COMMIT)) {
-                <a href="@routes.BoardApp.newPostForm(project.owner, project.name)?readme=true" class="ybtn">edit</a>
-            }
-        </header>
-        <div class="readme-body markdown-wrap markdown-before" markdown="true">@project.readme</div>
-    </div>
+  <div class="readme-wrap">
+    <header>
+      <i class="yobicon-book-open vmiddle"></i>
+      <strong class="vmiddle"> @project.getReadmeFileName</strong>
+      @if(project.isGit && isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.COMMIT)){
+          <a href="@routes.BoardApp.newPostForm(project.owner, project.name)?readme=true" class="ybtn vmiddle ml5">@Messages("button.edit")</a>
+      }
+    </header>
+    <div class="readme-body markdown-wrap markdown-before" markdown="true">@project.readme</div>
+  </div>
 }
 @common.markdown(project)
 </div>
