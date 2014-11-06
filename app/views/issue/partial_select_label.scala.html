@@ -18,7 +18,8 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(labels:List[models.IssueLabel], selectedLabelIds:Set[Long] = null, wrapperCSSClassName:String = "")
+@(labels:List[models.IssueLabel], selectedLabelIds:Set[Long] = null,
+  wrapperCSSClassName:String = "", additionalAttr:String = "")
 
 @if(!labels.isEmpty){
 <dl class="@wrapperCSSClassName">
@@ -27,9 +28,9 @@
   </dt>
   <dd>
     <select name="labelIds" multiple="multiple" data-search="labelIds"
-            data-toggle="select2" data-format="issuelabel" data-allow-clear="true" data-close-on-select="true"
+            data-toggle="select2" data-format="issuelabel" data-allow-clear="true"
             data-dropdown-css-class="issue-labels" data-container-css-class="issue-labels bordered fullsize"
-            data-placeholder="@Messages("label.select")">
+            data-placeholder="@Messages("label.select")" @additionalAttr>
       <option></option>
       @labels.groupBy(_.category).map {
         case (category, labels) => {
