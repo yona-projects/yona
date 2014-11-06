@@ -23,7 +23,9 @@ package mailbox;
 import com.sun.mail.imap.IMAPFolder;
 import com.sun.mail.imap.IMAPMessage;
 import info.schleichardt.play2.mailplugin.Mailer;
-import mailbox.exceptions.*;
+import mailbox.exceptions.IllegalDetailException;
+import mailbox.exceptions.MailHandlerException;
+import models.OriginalEmail;
 import models.Project;
 import models.Property;
 import models.User;
@@ -33,6 +35,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.mail.HtmlEmail;
+import org.joda.time.DateTime;
 import play.Logger;
 import play.api.i18n.Lang;
 import play.i18n.Messages;
@@ -166,7 +169,32 @@ class EmailHandler {
                 return;
             }
         } catch (MessagingException e) {
-            play.Logger.warn("Failed to determine whether the email is auto-replied or not", e);
+            play.Logger.warn(
+                    "Failed to determine whether the email is auto-replied or not: " + msg, e);
+        }
+
+        try {
+            // Ignore the email if there is an email with the same id. It occurs
+            // quite frequently because mail servers send an email twice if the
+            // email has two addresses differ from each other: e.g.
+            // yobi+my/proj@mail.com and yobi+your/proj@mail.com.
+            OriginalEmail sameMessage =
+                    OriginalEmail.finder.where().eq("messageId", msg.getMessageID()).findUnique();
+            if (sameMessage != null) {
+                // Warn if the older email was handled one hour or more ago. Because it is
+                // quite long time so that possibly the ignored email is actually
+                // new one which should be handled.
+                if (sameMessage.getHandledDate().before(new DateTime().minusHours(1).toDate())) {
+                    String warn = String.format("This email '%s' is ignored because an email with" +
+                                    " the same id '%s' was already handled at '%s'",
+                            msg, sameMessage.messageId, sameMessage.getHandledDate());
+                    play.Logger.warn(warn);
+                }
+                return;
+            }
+        } catch (MessagingException e) {
+            play.Logger.warn(
+                    "Failed to determine whether the email is duplicated or not: " + msg, e);
         }
 
         InternetAddress[] senderAddresses;

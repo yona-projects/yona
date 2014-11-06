@@ -26,6 +26,7 @@ import play.data.validation.Constraints;
 import play.db.ebean.Model;
 
 import javax.persistence.*;
+import java.util.Date;
 
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"resource_type", "resource_id"}))
@@ -49,6 +50,9 @@ public class OriginalEmail extends Model {
     @Constraints.Required
     public String resourceId;
 
+    @Constraints.Required
+    private Date handledDate;
+
     public static OriginalEmail findBy(Resource resource) {
         return finder.where()
                 .eq("resourceType", resource.getType())
@@ -64,5 +68,15 @@ public class OriginalEmail extends Model {
         this.messageId = messageId;
         this.resourceType = resource.getType();
         this.resourceId = resource.getId();
+    }
+
+    @Override
+    public void save() {
+        handledDate = new Date();
+        super.save();
+    }
+
+    public Date getHandledDate() {
+        return handledDate;
     }
 }
