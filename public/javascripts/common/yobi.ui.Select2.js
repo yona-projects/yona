@@ -148,7 +148,7 @@
                 term = term.toLowerCase();
                 formattedResult = formattedResult.toLowerCase();
 
-                var loginId = itemElement.data("loginId");
+                var loginId = itemElement.data("loginId") + "";
                 loginId = (typeof loginId !== "undefined") ? loginId.toLowerCase() : "";
 
                 return (loginId.indexOf(term) > -1) || (formattedResult.indexOf(term) > -1);
