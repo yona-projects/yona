@@ -32,6 +32,7 @@ import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.node.ObjectNode;
 
 import play.data.Form;
@@ -66,7 +67,7 @@ public class BoardApp extends AbstractPostingApp {
                 el.or(icontains("title", filter), icontains("body", filter));
             }
 
-            if (orderBy != null) {
+            if (StringUtils.isNotBlank(orderBy)) {
                 el.orderBy(orderBy + " " + orderDir);
             }
 
