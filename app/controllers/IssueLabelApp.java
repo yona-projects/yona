@@ -30,6 +30,7 @@ import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import play.data.DynamicForm;
 import play.data.Form;
+import play.data.validation.Constraints;
 import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Http;
@@ -37,6 +38,7 @@ import play.mvc.Result;
 import utils.ErrorViews;
 import utils.HttpUtil;
 
+import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -123,6 +125,38 @@ public class IssueLabelApp extends Controller {
         return ok(views.html.project.issuelabels.render(project, labels));
     }
 
+    public static class NewLabel {
+        @Constraints.Required(message="label.error.labelName.empty")
+        @Size(max=255, message="label.error.labelName.tooLongSize")
+        public String labelName;
+
+        @Constraints.Required(message="label.error.color.empty")
+        public String labelColor;
+
+        @Constraints.Required(message="label.error.categoryName.empty")
+        @Size(max=255, message="label.error.categoryName.tooLongSize")
+        public String categoryName;
+
+        public boolean categoryIsExclusive;
+
+        public IssueLabelCategory getIssueLabelCategory(Project project) {
+            IssueLabelCategory category = new IssueLabelCategory();
+            category.project = project;
+            category.name = categoryName;
+            category.isExclusive = categoryIsExclusive;
+            return category;
+        }
+
+        public IssueLabel getIssueLabel(Project project, IssueLabelCategory category) {
+            IssueLabel label = new IssueLabel();
+            label.project = project;
+            label.name = labelName;
+            label.color = labelColor;
+            label.category = category;
+            return label;
+        }
+    }
+
     /**
      * Responds to a request to add an issue label for the specified project.
      *
@@ -154,25 +188,21 @@ public class IssueLabelApp extends Controller {
     public static Result newLabel(String ownerName, String projectName) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
-        DynamicForm labelForm = form().bindFromRequest();
-        String categoryName = labelForm.get("categoryName");
+        Form<NewLabel> newLabelForm = form(NewLabel.class).bindFromRequest();
 
-        IssueLabelCategory category = new IssueLabelCategory();
-        category.project = project;
-        category.name = categoryName;
+        if (newLabelForm.hasErrors()) {
+            return badRequest(newLabelForm.errorsAsJson());
+        }
+
+        IssueLabelCategory category = newLabelForm.get().getIssueLabelCategory(project);
 
         if (category.exists()) {
             category = IssueLabelCategory.findBy(category);
         } else {
-            category.isExclusive = Boolean.parseBoolean(labelForm.get("categoryIsExclusive"));
             category.save();
         }
 
-        IssueLabel label = new IssueLabel();
-        label.project = project;
-        label.name = labelForm.get("labelName");
-        label.color = labelForm.get("labelColor");
-        label.category = category;
+        IssueLabel label = newLabelForm.get().getIssueLabel(project, category);
 
         if (label.exists()) {
             return noContent();
@@ -239,7 +269,7 @@ public class IssueLabelApp extends Controller {
         Form<IssueLabel> form = new Form<>(IssueLabel.class).bindFromRequest();
 
         if (form.hasErrors()) {
-            return badRequest();
+            return badRequest(form.errorsAsJson());
         }
 
         IssueLabel label = form.get();
@@ -355,7 +385,7 @@ public class IssueLabelApp extends Controller {
             new Form<>(IssueLabelCategory.class).bindFromRequest();
 
         if (form.hasErrors()) {
-            return badRequest();
+            return badRequest(form.errorsAsJson());
         }
 
         IssueLabelCategory category = form.get();

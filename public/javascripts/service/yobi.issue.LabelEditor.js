@@ -199,12 +199,12 @@
             if(elements.inputCategory.val().length === 0 ||
                 elements.inputName.val().length === 0 ||
                 elements.inputColor.val().length === 0){
-                $yobi.alert(Messages("label.error.empty"));
+                $yobi.alert(Messages("label.failed") + "\n" + Messages("label.error.empty"));
                 return false;
             }
 
             if(_getRefinedHexColor(elements.inputColor.val()) === false){
-                $yobi.alert(Messages("label.error.color", elements.inputColor.val()));
+                $yobi.alert(Messages("label.failed") + "\n" + Messages("label.error.color", elements.inputColor.val()));
                 return false;
             }
 
@@ -239,6 +239,25 @@
             );
         }
 
+        function _showError(res, messageKey){
+            if(res.responseText){
+                try{
+                    var error = JSON.parse(res.responseText);
+                    var errorText = Messages("label.failedTo", Messages(messageKey));
+
+                    for(var key in error){
+                        errorText += "\n" + error[key];
+                    }
+
+                    $yobi.alert(errorText);
+                }catch(e){
+                    $yobi.alert(Messages("error.failedTo", Messages(messageKey), res.status, res.statusText));
+                }
+            }else{
+                $yobi.alert(Messages("error.failedTo", Messages(messageKey), res.status, res.statusText));
+            }
+        }
+
         /**
          * Send request to add label with given data
          * called from _onSubmitForm.
@@ -266,7 +285,7 @@
                 $yobi.alert(Messages("label.error.creationFailed"));
             })
             .fail(function(res){
-                $yobi.alert(Messages("error.failedTo", Messages("label.add"), res.status, res.statusText));
+                _showError(res, "label.add");
             });
         }
 
@@ -602,7 +621,7 @@
             }).done(function(){
                 _reloadLabelList();
             }).fail(function(res){
-                $yobi.alert(Messages("error.failedTo", Messages("label.category.edit"), res.status, res.statusText));
+                _showError(res, "label.category.edit");
             }).always(function(){
                 elements.editCategoryForm.modal("hide");
                 yobi.ui.Spinner.hide();
@@ -667,7 +686,7 @@
             }).done(function(){
                 _reloadLabelList();
             }).fail(function(res){
-                $yobi.alert(Messages("error.failedTo", Messages("label.edit"), res.status, res.statusText));
+                _showError(res, "label.edit");
             }).always(function(){
                 elements.editLabelForm.modal("hide");
                 yobi.ui.Spinner.hide();
