@@ -20,6 +20,7 @@
  */
 package models;
 
+import play.Logger;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
 
@@ -48,6 +49,15 @@ public class RecentlyVisitedProjects extends Model {
     @JoinColumn(name = "recently_visited_projects_id")
     public List<ProjectVisitation> visitedProjects;
 
+    /**
+     * Add new ProjectVisitation to existing RecentlyVisitedProjects or new one.
+     *
+     * Updating the existing ProjectVisitation can be failed by OptimisticLockException.
+     *
+     * @param user
+     * @param project
+     * @return
+     */
     @Transactional
     public static RecentlyVisitedProjects addNewVisitation(User user, Project project) {
         RecentlyVisitedProjects existingOne = find.where().eq("user", user).findUnique();
@@ -68,14 +78,22 @@ public class RecentlyVisitedProjects extends Model {
     private void add(Project project) {
         ProjectVisitation existingPV = ProjectVisitation.findBy(this, project);
         if(existingPV != null) {
-            existingPV.visited = new Date();
-            existingPV.update();
+            updateExistingPv(existingPV);
         } else {
             ProjectVisitation newPV = new ProjectVisitation();
             newPV.recentlyVisitedProjects = this;
             newPV.project = project;
             newPV.visited = new Date();
             this.visitedProjects.add(newPV);
+        }
+    }
+
+    private void updateExistingPv(ProjectVisitation existingPV) {
+        try {
+            existingPV.visited = new Date();
+            existingPV.update();
+        } catch (OptimisticLockException e) {
+            Logger.warn("OptimisticLockException occurred when updating ProjectVisitation: " + existingPV.id);
         }
     }
 
