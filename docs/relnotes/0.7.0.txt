@@ -4,10 +4,34 @@ Yobi v0.7.0 Release Notes
 Updates since v0.6.4
 --------------------
 
-New Feature
+New Features
 
-* Private Site: Yobi requires users to authenticate themselves to access any
-  page if application.allowsAnonymousAccess is true. (4a81d87)
+* Private Site
+    * Yobi requires users to authenticate themselves to access any
+      page if application.allowsAnonymousAccess is false. (4a81d87)
+    * Every link to outside of the Yobi site has 'rel=noreferrer' attribute so
+      that the client, which supports HTML5, does not provide the referrer for
+      the linked site, if application.noreferrer is true. (4d4f0a9, 531c212)
+
+Enhancements
+
+* In notification emails, the addresses of users are not hidden if
+  application.notification.bymail.hideAddress is false. (3ffd70f)
+* A text drag-and-copied from the rendered diff contains filenames to be
+  a complete unified context diff. (bdc74a6)
+* In closed issue list, each issue shows the duedate instead of the remaining
+  days. (046164f)
+* Project list provides not only public projects but also protected or private
+  projects which the user has been joined in. (2e70827)
+* Notification emails have a meaningful message-id so that the other emails can
+  refer them by using References header. It helps some MUAs to bind emails into
+  a thread. (87694d4)
+* Notification emails for a comment on source code can contain the code.
+  (66781bc)
+* When authentication with Git client is failed, Yobi tells the reason.
+  (fe129a5)
+* Site Administrator searches users by email address in in Site Admin > Users.
+  (0ad1b62)
 
 UI Improvements
 
@@ -21,6 +45,21 @@ UI Improvements
     * Show number of reviewers on list and highlight reviewers number if
       current user included in it.
     * Show names of reviewers as tooltip.
+* In issue list, the selected milestone looks better. (6543ad2)
+* The page to change the type of vcs in a project looks simple. (e24000a)
+* Posting: Checkboxes for setting to notice and saving as README locates at
+  better position. (257eb0b)
+* Issue: Dropdown list for labels is not closed after choosing a label to
+  improve usability for choosing many labels. (b544cd6)
+
+Performance
+
+* Merging pullrequests becomes faster by removing the non-bare repositories
+  used for merging. (e20053f)
+
+Documentation
+
+* Yobi requires JDK 7, not just JAVA 7, explicitly. (efb1ab0)
 
 Internal changes
 
@@ -33,3 +72,35 @@ Fixes since v0.6.4
 * PullRequest: margin-top of author-info was incorrect. (be78764)
 * git,svn: Responded server errors to requests to unsupported repositories.
   (bb52e67)
+* CodeBrowser: NPE occurred when trying to open a nonexistent file. (f7abb5d)
+* PullRequest: NoMergeBaseException occurred on criss-cross merge. (b05dfb2)
+* An error message when login is failed because of network problem was
+  incorrect. (cb939e3)
+* "Server Error" flash message is displayed when a user requests to join
+  a private project even if there is no such error. (853b292)
+* PullRequest: When sending a pullrequest, the description which is filled by
+  Yobi automatically started with an unnecessary empty line. (261b089)
+* CodeReview: A link to a comment in a closed thread did not work. (c27c5c9)
+* AccessLogger: Escaping double-quote marks was missed. (398f369)
+* Group: Some projects in a group were hidden to users even if the user has the
+  permission to access the project. (f47de29)
+* Vote button on issue did not work after the timeline is updated. (95d0af6)
+* Users could not edit the hexcode of the color of an issue label. (4a34500)
+* Server error occurred occasionally when trying to read an issue. (cfc791f)
+* Issue: Overdue message is not disappeared even after extending the duedate by
+  user. (f312c87)
+* 'Unwatch' link on notification emails did not work. (a39a9fc)
+* Projects could not be transferred to another group. (54fa948)
+* Some messages contained errata. (fbaeea6)
+* Remeber Me did not work. (004bc9b)
+* Server error occurred when trying to access nonexistent commit. (f8cb3b3)
+* Issues could not be assigned if there is a member whose login id is numeric.
+  (72e04d2)
+* Server error occurred when searching issues if orderBy parameter exists but
+  its value is empty. (4b56767)
+* The link to the owner of projects which had been transferred to the other
+  group was broken. (4fae248)
+* Server error occurred while deleting a project which has an issue to which
+  a label is attached. (1411db7)
+* Server error occurred while creating an issue label whose name is longer than
+  255 characters. (f2b3b43)
