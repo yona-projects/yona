@@ -341,6 +341,7 @@
                                                           : _getFirstItemColorInCategory(categoryName);
 
             if(elements.inputColor.val().length === 0){
+                elements.inputColor.val(labelColor);
                 _updateInputBySelectedColor(elements.inputName, elements.inputColor, labelColor);
             }
         }
@@ -402,9 +403,7 @@
                 return;
             }
 
-            var rgb = new RGBColor(typedColor);
-
-            if(!rgb.ok){
+            if(!_isValidColorExpr(typedColor)){
                 $yobi.alert(Messages("label.error.color", typedColor), function(){
                     elements.inputColor.focus();
                 });
@@ -417,31 +416,13 @@
         }
 
         function _onKeyUpInputColor(){
-            var rgb = new RGBColor(elements.inputColor.val());
-
-            if(!rgb.ok){
+            if(!_isValidColorExpr(elements.inputColor.val())){
                 return;
             }
 
             _updateInputBySelectedColor(elements.inputName,
                                         elements.inputColor,
                                         elements.inputColor.val());
-        }
-
-        /**
-         * Update inputColor and inputName style with given color expression
-         *
-         * @require common/yobi.Common.js
-         * @param color
-         * @private
-         */
-        function _updateInputBySelectedColor(inputName, inputColor, color){
-            var boxShadowCSS = _getPrefixedCSSText("box-shadow: inset 25px 0 0 " + color + " !important");
-
-            inputColor.val(color);
-            inputColor.css("cssText", boxShadowCSS);
-            inputName.css("background-color", color);
-            inputName.removeClass("dimgray white").addClass($yobi.getContrastColor(color));
         }
 
         /**
@@ -455,7 +436,26 @@
          */
         function _getRefinedHexColor(color){
             var rgb = new RGBColor(color || "");
-            return rgb ? rgb.toHex() : false;
+            return rgb && rgb.ok ? rgb.toHex() : false;
+        }
+
+        /**
+         * Update inputColor and inputName style with given color expression
+         *
+         * @require common/yobi.Common.js
+         * @param color
+         * @private
+         */
+        function _updateInputBySelectedColor(inputName, inputColor, color){
+            if(!color){
+                return;
+            }
+
+            var boxShadowCSS = _getPrefixedCSSText("box-shadow: inset 25px 0 0 " + color + " !important");
+
+            inputColor.css("cssText", boxShadowCSS);
+            inputName.css("background-color", color);
+            inputName.removeClass("dimgray white").addClass($yobi.getContrastColor(color));
         }
 
         /**
@@ -653,6 +653,12 @@
                 return false;
             }
 
+            // Check is entered color valid
+            if(!_isValidColorExpr(requestData.color)){
+                _popoverMessageOn(Messages("label.error.color", requestData.color), elements.editLabelColor);
+                return false;
+            }
+
             yobi.ui.Spinner.show();
 
             $.ajax(elements.editLabelForm.data("updateUri"), {
@@ -679,6 +685,7 @@
             var targetColor = _getRefinedHexColor(targetButton.css('background-color'));
 
             elements.editLabelColor.focus();
+            elements.editLabelColor.val(targetColor);
             elements.editLabelColorsWrap.find(".btn-preset-color").removeClass("active");
             targetButton.addClass("active");
 
@@ -701,15 +708,32 @@
         }
 
         function _onKeyUpEditColor(){
-            var rgb = new RGBColor(elements.editLabelColor.val());
-
-            if(!rgb.ok){
+            if(!_isValidColorExpr(elements.editLabelColor.val())){
                 return;
             }
 
             _updateInputBySelectedColor(elements.editLabelName,
                                         elements.editLabelColor,
                                         elements.editLabelColor.val());
+        }
+
+        /**
+         * Returns whether given color expression is valid
+         *
+         * @param colorExpr
+         * @returns {boolean}
+         * @private
+         */
+        function _isValidColorExpr(colorExpr){
+            // As RGBColor.js is too generous to validate HEX color expression,
+            // Check length of colorExpr if it starts with '#' which means HEX.
+            if(colorExpr.indexOf('#') === 0 &&
+                !(colorExpr.length === 4 || colorExpr.length === 7)){
+                return false;
+            }
+
+            var rgb = new RGBColor(colorExpr);
+            return (rgb && rgb.ok);
         }
 
         /**
@@ -720,6 +744,7 @@
          * @private
          */
         function _popoverMessageOn(message, element){
+            element.popover("destroy");
             element.popover({
                 "placement": "bottom",
                 "content"  : message

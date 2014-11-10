@@ -24,11 +24,12 @@ Copyright 2014 NAVER Corp. under the Apache License, Version 2.0
 
 ## How to install
 
-### Check java version
+### Check JDK version
 
     java -version
+    javac -version
 
-Java version 7(1.7) or above is required.
+JDK version 7(1.7) is required.
 
 ### Download playframework
 
@@ -158,11 +159,12 @@ Yobi는 Apache 2.0 라이선스로 제공됩니다.
 
 ## 설치하기
 
-### java version 확인
+### JDK version 확인
 
     java -version
+    javac -version
 
-java 7(1.7) 이상이어야 합니다.
+JDK 7(1.7)이어야 합니다.
 
 ### playframework 내려 받기
 

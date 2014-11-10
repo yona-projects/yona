@@ -1,7 +1,7 @@
 Server
 ------
 
-* Java 7
+* Java SE 7 JDK
 
 Client
 ------

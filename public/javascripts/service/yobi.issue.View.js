@@ -61,8 +61,6 @@
             elements.timelineList = elements.timelineWrap.find(".timeline-list");
 
             elements.dueDate = $("#issueDueDate");
-
-            elements.btnVoteComment = $(options.btnVoteComment || '[data-request-type="comment-vote"]');
         }
 
         /**
@@ -97,7 +95,7 @@
             elements.btnWatch.on("click", _onClickBtnWatch);
 
             // Vote button on comment
-            elements.btnVoteComment.on("click", _onClickCommentVote);
+            elements.timelineWrap.on("click", '[data-request-type="comment-vote"]', _onClickCommentVote);
 
             // Update issue info
             elements.issueInfoWrap.on("change", "[data-toggle=select2]", _onChangeIssueInfo);
