@@ -20,10 +20,6 @@
 **@
 @(project:Project)
 
-@makeSubMenu(call:Call, name:String, count:Integer) = {
-    <li class="@isActiveSubMenu(call)"><a href="@call">@name@if(count>0){<span class="num-badge">@count</span>}</a></li>
-}
-
 @isActiveSubMenu(calls: Call*) = @{
     var menuState = ""
     for(call <- calls) {
@@ -35,10 +31,16 @@
 }
 
 <ul class="nav nav-tabs">
-    @makeSubMenu(routes.ProjectApp.settingForm(project.owner, project.name),  Messages("project.setting"), 0)
-    @makeSubMenu(routes.ProjectApp.members(project.owner, project.name),      Messages("project.member"), project.enrolledUsers.size)
-    @makeSubMenu(routes.IssueLabelApp.labelsForm(project.owner, project.name),    Messages("issue.label"), 0)
-    @makeSubMenu(routes.ProjectApp.transferForm(project.owner, project.name), Messages("project.transfer"), 0)
-    @makeSubMenu(routes.ProjectApp.deleteForm(project.owner, project.name),   Messages("project.delete"), 0)
-    @makeSubMenu(routes.ProjectApp.changeVCS(project.owner, project.name),   Messages("project.changeVCS"), 0)
+    <li id="subMenuProjectSetting" class="@isActiveSubMenu(routes.ProjectApp.settingForm(project.owner, project.name))">
+        <a href="@routes.ProjectApp.settingForm(project.owner, project.name)">@Messages("project.setting")</a></li>
+    <li id="subMenuProjectMember" class="@isActiveSubMenu(routes.ProjectApp.members(project.owner, project.name))">
+        <a href="@routes.ProjectApp.members(project.owner, project.name)">@Messages("project.member")@if(project.enrolledUsers.size>0){<span class="num-badge">@project.enrolledUsers.size</span>}</a></li>
+    <li id="subMenuIssueLabel" class="@isActiveSubMenu(routes.IssueLabelApp.labelsForm(project.owner, project.name))">
+        <a href="@routes.IssueLabelApp.labelsForm(project.owner, project.name)">@Messages("issue.label")</a></li>
+    <li id="subMenuProjectTransfer" class="@isActiveSubMenu(routes.ProjectApp.transferForm(project.owner, project.name))">
+        <a href="@routes.ProjectApp.transferForm(project.owner, project.name)">@Messages("project.transfer")</a></li>
+    <li id="subMenuProjectDelete" class="@isActiveSubMenu(routes.ProjectApp.deleteForm(project.owner, project.name))">
+        <a href="@routes.ProjectApp.deleteForm(project.owner, project.name)">@Messages("project.delete")</a></li>
+    <li id="subMenuProjectChangeVCS" class="@isActiveSubMenu(routes.ProjectApp.changeVCS(project.owner, project.name))" style="@if(!project.menuSetting.code){display:none;}">
+        <a href="@routes.ProjectApp.changeVCS(project.owner, project.name)">@Messages("project.changeVCS")</a></li>
 </ul>
