@@ -257,15 +257,15 @@
                         <dl>
                             <dt>
                                 @Messages("issue.dueDate")
+                                <span class="duedate-status @if(issue.isOverDueDate) {overdue}">
                                 @if(issue.dueDate != null) {
-                                <span class="@if(issue.isOverDueDate) {overdue}">
                                     @if(issue.isOverDueDate) {
                                         (@Messages("issue.dueDate.overdue"))
                                     } else {
                                         (@issue.until)
                                     }
-                                </span>
                                 }
+                                </span>
                             </dt>
                             <dd>
                                 @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {

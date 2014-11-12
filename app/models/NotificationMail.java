@@ -21,6 +21,7 @@
 package models;
 
 import info.schleichardt.play2.mailplugin.Mailer;
+import models.enumeration.ResourceType;
 import models.enumeration.UserState;
 import models.resource.Resource;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -265,7 +266,13 @@ public class NotificationMail extends Model {
                 String reference = Url.removeFragment(event.getUrlToView());
 
                 email.setSubject(event.title);
-                email.setHtmlMsg(getHtmlMessage(lang, message, urlToView, event.getResource()));
+
+                Resource resource = event.getResource();
+                if (resource.getType() == ResourceType.ISSUE_COMMENT) {
+                    IssueComment issueComment = IssueComment.find.byId(Long.valueOf(resource.getId()));
+                    resource = issueComment.issue.asResource();
+                }
+                email.setHtmlMsg(getHtmlMessage(lang, message, urlToView, resource));
                 email.setTextMsg(getPlainMessage(lang, message, Url.create(urlToView)));
                 email.setCharset("utf-8");
                 email.addReferences();
