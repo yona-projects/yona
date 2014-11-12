@@ -21,6 +21,7 @@
 package controllers;
 
 import controllers.annotation.AnonymousCheck;
+import controllers.annotation.IsAllowed;
 import models.*;
 import models.enumeration.Operation;
 import models.enumeration.RequestState;
@@ -34,11 +35,9 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
-import utils.AccessControl;
-import utils.Constants;
-import utils.ErrorViews;
-import utils.ValidationResult;
+import utils.*;
 import views.html.organization.create;
+import views.html.organization.deleteForm;
 import views.html.organization.members;
 import views.html.organization.setting;
 import views.html.organization.view;
@@ -402,5 +401,42 @@ public class OrganizationApp extends Controller {
 
     private static boolean isNotChangedName(String name, String modifiedName) {
         return name.equals(modifiedName);
+    }
+
+    public static Result deleteForm(String organizationName) {
+        Result result = validateForSetting(organizationName);
+        if (result != null) {
+            return result;
+        }
+
+        Organization organization = Organization.findByName(organizationName);
+
+        return ok(deleteForm.render(organization));
+    }
+
+    @Transactional
+    public static Result deleteOrganization(String organizationName) {
+        Organization organization = Organization.findByName(organizationName);
+
+        ValidationResult result = validateForDelete(organization);
+
+        if (result.hasError()) {
+            return result.getResult();
+        }
+
+        organization.delete();
+
+        return redirect(routes.Application.index());
+    }
+
+    private static ValidationResult validateForDelete(Organization organization) {
+        if (organization == null) {
+            return new ValidationResult(notFound(getJsonErrorMsg("organization.member.unknownOrganization")), true);
+        }
+        if (organization.projects != null && organization.projects.size() > 0) {
+            return new ValidationResult(notFound(getJsonErrorMsg("organization.delete.impossible.project.exist")), true);
+        }
+
+        return new ValidationResult(okWithLocation(routes.OrganizationApp.organization(organization.name).url()), false);
     }
 }

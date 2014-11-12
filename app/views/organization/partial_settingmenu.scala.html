@@ -37,4 +37,7 @@
     <li class="@isActiveSubMenu(routes.OrganizationApp.members(organization.name))">
         <a href="@routes.OrganizationApp.members(organization.name)">@Messages("organization.member")</a>
     </li>
+    <li class="@isActiveSubMenu(routes.OrganizationApp.deleteForm(organization.name))">
+        <a href="@routes.OrganizationApp.deleteForm(organization.name)">@Messages("organization.delete")</a>
+    </li>
 </ul>
