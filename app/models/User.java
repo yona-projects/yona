@@ -299,7 +299,7 @@ public class User extends Model implements ResourceConvertible {
 
         if(StringUtils.isNotBlank(query)) {
             el = el.disjunction();
-            el = el.icontains("loginId", query).icontains("name", query);
+            el = el.icontains("loginId", query).icontains("name", query).icontains("email", query);
             el.endJunction();
         }
 
