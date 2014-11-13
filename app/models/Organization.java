@@ -29,9 +29,13 @@ import play.data.format.Formats;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
+import playRepository.PlayRepository;
+import playRepository.RepositoryService;
 import utils.ReservedWordsValidator;
 
 import javax.persistence.*;
+import javax.servlet.ServletException;
+import java.io.IOException;
 import java.util.*;
 
 @Entity
@@ -157,6 +161,24 @@ public class Organization extends Model implements ResourceConvertible {
 
     public List<OrganizationUser> getAdmins() {
         return OrganizationUser.findAdminsOf(this);
+    }
+
+    public void updateWith(Organization modifiedOrganization) throws IOException, ServletException {
+        if(!this.name.equals(modifiedOrganization.name)) {
+            updateProjects(modifiedOrganization.name);
+        }
+        modifiedOrganization.update();
+    }
+
+    private void updateProjects(String newOwner) throws IOException, ServletException {
+        for(Project project : projects) {
+            if(!newOwner.equals(project.owner)) {
+                PlayRepository repository = RepositoryService.getRepository(project);
+                repository.move(project.owner, project.name, newOwner, project.name);
+            }
+            project.owner = newOwner;
+            project.update();
+        }
     }
 }
 

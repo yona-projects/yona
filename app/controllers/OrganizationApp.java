@@ -42,6 +42,7 @@ import views.html.organization.members;
 import views.html.organization.setting;
 import views.html.organization.view;
 
+import javax.servlet.ServletException;
 import javax.validation.ConstraintViolation;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -334,7 +335,7 @@ public class OrganizationApp extends Controller {
      * @throws IOException
      * @throws NoSuchAlgorithmException
      */
-    public static Result updateOrganizationInfo(String organizationName) throws IOException, NoSuchAlgorithmException {
+    public static Result updateOrganizationInfo(String organizationName) throws IOException, NoSuchAlgorithmException, ServletException {
         Form<Organization> organizationForm = form(Organization.class).bindFromRequest();
         Organization modifiedOrganization = organizationForm.get();
 
@@ -350,7 +351,8 @@ public class OrganizationApp extends Controller {
             new Attachment().store(filePart.getFile(), filePart.getFilename(), modifiedOrganization.asResource());
         }
 
-        modifiedOrganization.update();
+        Organization original = Organization.find.byId(modifiedOrganization.id);
+        original.updateWith(modifiedOrganization);
 
         return redirect(routes.OrganizationApp.settingForm(modifiedOrganization.name));
     }
