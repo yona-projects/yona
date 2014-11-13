@@ -199,7 +199,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
             el.eq("state", st);
         }
 
-        if (orderBy != null) {
+        if (StringUtils.isNotBlank(orderBy)) {
             if (orderBy.equals("dueDate")) {
                 String formulaName = orderDir.equals("asc") ? "dueDateAsc" : "dueDateDesc";
                 el.orderBy(formulaName + " " + orderDir);
@@ -310,7 +310,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
             el.add(LabelSearchUtil.createLabelSearchExpression(el.query(), labelIds));
         }
 
-        if (orderBy != null) {
+        if (StringUtils.isNotBlank(orderBy)) {
             if (orderBy.equals("dueDate")) {
                 String formulaName = orderDir.equals("asc") ? "dueDateAsc" : "dueDateDesc";
                 el.orderBy(formulaName + " " + orderDir);
