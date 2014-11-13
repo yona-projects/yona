@@ -28,4 +28,11 @@ public class AuthInfo {
     public String loginIdOrEmail;
     @Constraints.Required
     public String password;
+
+    /**
+     * used for enabling remember me feature
+     *
+     * remember me = keep a use logged in
+     */
+    public boolean rememberMe;
 }

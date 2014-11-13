@@ -181,7 +181,7 @@ public class UserApp extends Controller {
         if (!authenticate.isAnonymous()) {
             addUserInfoToSession(authenticate);
 
-            if (sourceUser.rememberMe) {
+            if (authInfoForm.get().rememberMe) {
                 setupRememberMe(authenticate);
             }
 
@@ -237,7 +237,7 @@ public class UserApp extends Controller {
         if (!authenticate.isAnonymous()) {
             addUserInfoToSession(authenticate);
 
-            if (sourceUser.rememberMe) {
+            if (authInfoForm.get().rememberMe) {
                 setupRememberMe(authenticate);
             }
 
