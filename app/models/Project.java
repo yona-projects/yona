@@ -609,12 +609,14 @@ public class Project extends Model implements LabelOwner {
             label.update();
         }
 
-        for(IssueLabelCategory category : IssueLabelCategory.findByProject(this)) {
-            category.delete();
-        }
-
+        // Issues must be deleted before issue labels because issues may refer
+        // issue labels.
         for(Issue issue : issues) {
             issue.delete();
+        }
+
+        for(IssueLabelCategory category : IssueLabelCategory.findByProject(this)) {
+            category.delete();
         }
 
         for (Assignee assignee : assignees) {
