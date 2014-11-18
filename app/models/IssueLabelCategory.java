@@ -27,6 +27,7 @@ import models.resource.ResourceConvertible;
 import play.data.validation.Constraints.Required;
 
 import javax.persistence.*;
+import javax.validation.constraints.Size;
 import java.util.List;
 import java.util.Set;
 
@@ -44,7 +45,8 @@ public class IssueLabelCategory extends Model implements ResourceConvertible {
     @ManyToOne
     public Project project;
 
-    @Required
+    @Required(message="label.error.categoryName.empty")
+    @Size(max=255, message="label.error.categoryName.tooLongSize")
     public String name;
 
     @OneToMany(mappedBy="category", cascade = CascadeType.ALL)

@@ -27,6 +27,7 @@ import play.data.validation.Constraints.Required;
 import play.db.ebean.Model;
 
 import javax.persistence.*;
+import javax.validation.constraints.Size;
 import java.util.List;
 import java.util.Set;
 
@@ -50,10 +51,11 @@ public class IssueLabel extends Model implements ResourceConvertible {
     @ManyToOne
     public IssueLabelCategory category;
 
-    @Required
+    @Required(message="label.error.color.empty")
     public String color;
 
-    @Required
+    @Required(message="label.error.labelName.empty")
+    @Size(max=255, message="label.error.labelName.tooLongSize")
     public String name;
 
     @ManyToOne
