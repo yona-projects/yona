@@ -67,16 +67,14 @@ Yobi의 파일 업로드 및 다운로드 기능은 HTTP 요청과 응답을 통
         "attachments":[
             {
                 "id":"201",
-                "name":"스크린샷,
-                2013-03-09 012043.png",
+                "name":"스크린샷, 2013-03-09 012043.png",
                 "url":"/files/201",
                 "mimeType":"image/png",
                 "size":"267068"
             },
             {
                 "id":"202",
-                "name":"스크린샷,
-                2013-03-15 225249.png",
+                "name":"스크린샷, 2013-03-15 225249.png",
                 "url":"/files/202",
                 "mimeType":"image/png",
                 "size":"277671"

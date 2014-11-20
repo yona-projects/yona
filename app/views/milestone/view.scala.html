@@ -23,6 +23,7 @@
 @import utils.TemplateHelper._
 @import utils.AccessControl._
 @import models.support.SearchCondition
+@import play.libs.Json.toJson
 
 @urlToList = {@routes.MilestoneApp.milestones(project.owner, project.name)}
 
@@ -59,7 +60,7 @@
             </div>
             <div class="milestone-desc">
                 <div markdown="true" class="markdown-wrap">@milestone.contents</div>
-                <div class="attachments" data-resource-type="@ResourceType.MILESTONE" data-resource-id="@milestone.id"></div>
+                <div class="attachments" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.MILESTONE.toString(), milestone.id.toString()))"></div>
             </div>
 
             <div class="actrow right-txt" style="padding: 15px 0; clear:both;">

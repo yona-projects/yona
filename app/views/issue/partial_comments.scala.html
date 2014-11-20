@@ -24,6 +24,7 @@
 @import utils.TemplateHelper._
 @import utils.AccessControl._
 @import utils.JodaDateUtil
+@import play.libs.Json.toJson
 
 @avatarByLoginId(loginId: String, loginName: String) = {
     <a href="@routes.UserApp.userInfo(loginId)" class="usf-group" data-toggle="tooltip" data-placement="top" title="@loginName">
@@ -144,7 +145,7 @@
 
             <div id="comment-body-@comment.id">
                 <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
-                <div class="attachments pull-right" data-resource-type="@ResourceType.ISSUE_COMMENT" data-resource-id="@comment.id"></div>
+                <div class="attachments pull-right" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.ISSUE_COMMENT.toString(), comment.id.toString()))"></div>
             </div>
         </div>
     </li>
