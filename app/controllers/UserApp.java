@@ -890,8 +890,11 @@ public class UserApp extends Controller {
         String code = StringUtils.left(Http.Context.current().lang().code(), 255);
 
         if (!code.equals(user.lang)) {
-            user.lang = code;
-            user.update();
+            synchronized (user) {
+                user.refresh();
+                user.lang = code;
+                user.update();
+            }
         }
     }
 
