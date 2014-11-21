@@ -33,7 +33,7 @@ import models.enumeration.ResourceType;
 import models.enumeration.State;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.Tika;
-import org.codehaus.jackson.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import play.api.templates.Html;
 import play.data.Form;
 import play.data.validation.ValidationError;

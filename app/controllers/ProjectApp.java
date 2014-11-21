@@ -35,7 +35,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.HtmlEmail;
-import org.codehaus.jackson.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.tmatesoft.svn.core.SVNException;
@@ -102,7 +102,7 @@ public class ProjectApp extends Controller {
             return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
-        targetProject.overview = request().body().asJson().findPath("overview").getTextValue();
+        targetProject.overview = request().body().asJson().findPath("overview").textValue();
         targetProject.save();
 
         ObjectNode result = Json.newObject();

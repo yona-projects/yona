@@ -54,7 +54,7 @@ public class PullRequestCheck implements PostReceiveHook {
         Set<String> branches = ReceiveCommandUtil.getUpdatedBranches(commands);
         for (String branch : branches) {
             PullRequestEventMessage message = new PullRequestEventMessage(user, request, project, branch);
-            Akka.system().actorOf(new Props(RelatedPullRequestMergingActor.class)).tell(message, null);
+            Akka.system().actorOf(Props.create(RelatedPullRequestMergingActor.class)).tell(message, null);
         }
 
         Set<String> deletedBranches = ReceiveCommandUtil.getDeletedBranches(commands);

@@ -28,6 +28,7 @@ import play.mvc.Result;
 import playRepository.RepositoryService;
 import views.html.error.notfound_default;
 import views.html.index.index;
+import jsmessages.JsMessages;
 
 import java.io.File;
 
@@ -56,8 +57,10 @@ public class Application extends Controller {
         return redirect(routes.Application.index());
     }
 
+    static final JsMessages messages = JsMessages.create(play.Play.application());
+
     public static Result jsMessages() {
-        return ok(jsmessages.JsMessages.generate("Messages")).as("application/javascript");
+        return ok(messages.generate("Messages")).as("application/javascript");
     }
 
     private static void makeUploadFolder() {

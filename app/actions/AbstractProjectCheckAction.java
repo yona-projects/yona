@@ -29,6 +29,8 @@ import play.i18n.Messages;
 import play.mvc.Action;
 import play.mvc.Http.Context;
 import play.mvc.Result;
+import play.mvc.SimpleResult;
+import play.libs.F.Promise;
 import utils.AccessControl;
 import utils.AccessLogger;
 import utils.ErrorViews;
@@ -46,32 +48,38 @@ import static play.mvc.Controller.flash;
  */
 public abstract class AbstractProjectCheckAction<T> extends Action<T> {
     @Override
-    public final Result call(Context context) throws Throwable {
+    public final Promise<SimpleResult> call(Context context) throws Throwable {
         PathParser parser = new PathParser(context);
         String ownerLoginId = parser.getOwnerLoginId();
         String projectName = parser.getProjectName();
 
         Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
 
+        Promise<SimpleResult> promise;
+
         if (project == null) {
             if (UserApp.currentUser() == User.anonymous){
                 flash("failed", Messages.get("error.auth.unauthorized.waringMessage"));
-                return AccessLogger.log(context.request(),
-                        forbidden(ErrorViews.Forbidden.render("error.forbidden.or.notfound", context.request().path())), null);
+                promise = Promise.pure((SimpleResult) forbidden(ErrorViews.Forbidden.render("error.forbidden.or.notfound", context.request().path())));
+            } else {
+                promise = Promise.pure((SimpleResult) forbidden(ErrorViews.NotFound.render("error.forbidden.or.notfound")));
             }
-            return AccessLogger.log(context.request(),
-                    forbidden(ErrorViews.NotFound.render("error.forbidden.or.notfound")), null);
+
+            AccessLogger.log(context.request(), promise, null);
+
+            return promise;
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             flash("failed", Messages.get("error.auth.unauthorized.waringMessage"));
-            return AccessLogger.log(context.request(),
-                    forbidden(ErrorViews.Forbidden.render("error.forbidden.or.notfound", context.request().path())), null);
+            promise = Promise.pure((SimpleResult) forbidden(ErrorViews.Forbidden.render("error.forbidden.or.notfound", context.request().path())));
+            AccessLogger.log(context.request(), promise, null);
+            return promise;
         }
 
         return call(project, context, parser);
     }
 
-    protected abstract Result call(Project project, Context context, PathParser parser)
+    protected abstract Promise<SimpleResult> call(Project project, Context context, PathParser parser)
             throws Throwable;
 }

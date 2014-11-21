@@ -22,8 +22,8 @@ package controllers;
 
 import models.*;
 
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.node.ObjectNode;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.fest.assertions.Condition;
 import org.junit.After;
 import org.junit.Before;
@@ -87,7 +87,7 @@ public class ProjectAppTest {
 
         //Then
         assertThat(status(result)).isEqualTo(CREATED);
-        Iterator<Map.Entry<String, JsonNode>> fields = Json.parse(contentAsString(result)).getFields();
+        Iterator<Map.Entry<String, JsonNode>> fields = Json.parse(contentAsString(result)).fields();
         Map.Entry<String, JsonNode> field = fields.next();
 
         Label expected = new Label(field.getValue().get("category").asText(), field.getValue().get("name").asText());

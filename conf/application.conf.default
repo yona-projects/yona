@@ -166,7 +166,7 @@ play {
 
 # customize akka thread pool size
 akka {
-  event-handlers = ["akka.event.Logging$DefaultLogger", "akka.event.slf4j.Slf4jEventHandler"]
+  loggers = ["akka.event.Logging$DefaultLogger", "akka.event.slf4j.Slf4jLogger"]
   loglevel = WARNING
   actor {
     default-dispatcher = {

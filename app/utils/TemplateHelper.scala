@@ -467,9 +467,9 @@ object TemplateHelper {
   }
 
   object CodeBrowser {
-    def fieldText(obj:org.codehaus.jackson.JsonNode, field:String):String = {
+    def fieldText(obj:com.fasterxml.jackson.databind.JsonNode, field:String):String = {
       if(obj.get(field) != null){
-        obj.get(field).getTextValue()
+        obj.get(field).textValue()
       } else {
         ""
       }
@@ -491,7 +491,7 @@ object TemplateHelper {
       }
     }
 
-    def getAvatar(file:org.codehaus.jackson.JsonNode):String = {
+    def getAvatar(file:com.fasterxml.jackson.databind.JsonNode):String = {
       val avatarURL = fieldText(file, "avatar")
 
       if(avatarURL != null){
@@ -501,7 +501,7 @@ object TemplateHelper {
       }
     }
 
-    def getFileClass(file:org.codehaus.jackson.JsonNode):String = {
+    def getFileClass(file:com.fasterxml.jackson.databind.JsonNode):String = {
       if(fieldText(file, "name") == ".."){
         "updir"
       } else {
@@ -512,12 +512,12 @@ object TemplateHelper {
       }
     }
 
-    def getFileDate(file:org.codehaus.jackson.JsonNode, field:String)(implicit lang:Lang):String = {
-      JodaDateUtil.momentFromNow(file.get(field).getLongValue, lang.language)
+    def getFileDate(file:com.fasterxml.jackson.databind.JsonNode, field:String)(implicit lang:Lang):String = {
+      JodaDateUtil.momentFromNow(file.get(field).longValue, lang.language)
     }
 
-    def getFileAgoOrDate(file:org.codehaus.jackson.JsonNode, field:String) = {
-      agoOrDateString(new java.util.Date(file.get(field).getLongValue))
+    def getFileAgoOrDate(file:com.fasterxml.jackson.databind.JsonNode, field:String) = {
+      agoOrDateString(new java.util.Date(file.get(field).longValue))
     }
 
     def getCorrectedPath(filePath:String, fileName:String):String = {
@@ -528,7 +528,7 @@ object TemplateHelper {
       }
     }
 
-    def getFileRev(vcsType:String, file:org.codehaus.jackson.JsonNode):String = {
+    def getFileRev(vcsType:String, file:com.fasterxml.jackson.databind.JsonNode):String = {
       vcsType match {
         case "GIT" => fieldText(file,"commitId")
         case "Subversion" => fieldText(file, "revisionNo")

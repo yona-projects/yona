@@ -560,7 +560,7 @@ public class PullRequest extends Model implements ResourceConvertible {
             NotificationEvent.afterPullRequestUpdated(sender, this, State.OPEN, State.MERGED);
             PullRequestEvent.addStateEvent(sender, this, State.MERGED);
 
-            Akka.system().actorOf(new Props(RelatedPullRequestMergingActor.class)).tell(message, null);
+            Akka.system().actorOf(Props.create(RelatedPullRequestMergingActor.class)).tell(message, null);
         }
     }
 

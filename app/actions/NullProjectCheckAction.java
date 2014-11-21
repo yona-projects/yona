@@ -28,6 +28,8 @@ import play.i18n.Messages;
 import play.mvc.Action;
 import play.mvc.Http;
 import play.mvc.Result;
+import play.mvc.SimpleResult;
+import play.libs.F.Promise;
 import utils.AccessLogger;
 import utils.ErrorViews;
 
@@ -43,7 +45,7 @@ import static play.mvc.Controller.flash;
 public class NullProjectCheckAction extends Action<Void> {
 
     @Override
-    public Result call(Http.Context context) throws Throwable {
+    public Promise<SimpleResult> call(Http.Context context) throws Throwable {
         PathParser parser = new PathParser(context);
         String ownerLoginId = parser.getOwnerLoginId();
         String projectName = parser.getProjectName();
@@ -51,13 +53,18 @@ public class NullProjectCheckAction extends Action<Void> {
         Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
 
         if (project == null) {
+            Promise<SimpleResult> promise;
+
             if (UserApp.currentUser() == User.anonymous){
                 flash("failed", Messages.get("error.auth.unauthorized.waringMessage"));
-                return AccessLogger.log(context.request(),
-                        forbidden(ErrorViews.Forbidden.render("error.forbidden.or.notfound", context.request().path())), null);
+                promise = Promise.pure((SimpleResult) forbidden(ErrorViews.Forbidden.render("error.forbidden.or.notfound", context.request().path())));
+            } else {
+                promise = Promise.pure((SimpleResult) forbidden(ErrorViews.NotFound.render("error.forbidden.or.notfound")));
             }
-            return AccessLogger.log(context.request(),
-                    forbidden(ErrorViews.NotFound.render("error.forbidden.or.notfound")), null);
+
+            AccessLogger.log(context.request(), promise, null);
+
+            return promise;
         }
 
         return this.delegate.call(context);

@@ -24,6 +24,8 @@ import actions.support.PathParser;
 import models.Project;
 import play.mvc.Http.Context;
 import play.mvc.Result;
+import play.mvc.SimpleResult;
+import play.libs.F.Promise;
 
 /**
  * Default implementation of {@link AbstractProjectCheckAction}.
@@ -34,7 +36,7 @@ import play.mvc.Result;
  */
 public class DefaultProjectCheckAction extends AbstractProjectCheckAction<Void> {
     @Override
-    protected Result call(Project project, Context context, PathParser parser) throws Throwable {
+    protected Promise<SimpleResult> call(Project project, Context context, PathParser parser) throws Throwable {
         return this.delegate.call(context);
     }
 }

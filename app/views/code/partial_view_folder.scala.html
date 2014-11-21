@@ -18,12 +18,12 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(project:Project, files:org.codehaus.jackson.JsonNode, branch:String, listPath:String)
+@(project:Project, files:com.fasterxml.jackson.databind.JsonNode, branch:String, listPath:String)
 
 @import utils.TemplateHelper.CodeBrowser._
 @import java.net.URLEncoder
 
-@makeFileItem(file:org.codehaus.jackson.JsonNode, fileName:String, listPath:String) = {
+@makeFileItem(file:com.fasterxml.jackson.databind.JsonNode, fileName:String, listPath:String) = {
     @defining(routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), listPath).toString()) { filePath =>
     @defining(fieldText(file, "type")) { fileType =>
     <div id="cb-@listPath@fileName" class="row-fluid listitem" data-path="@getDataPath(listPath, fileName)">
@@ -52,12 +52,12 @@
     </div>
 
     @** no files **@
-    @if(files.getFieldNames().hasNext == false){
+    @if(files.fieldNames().hasNext == false){
     <div class="alert alert-warning nm" style="border-top:0; padding-left:23px;">@Messages("code.nofiles")</div>
     }
 
     @** folders **@
-    @for(fileName <- files.getFieldNames()){
+    @for(fileName <- files.fieldNames()){
         @defining(files.get(fileName)) { file =>
             @if(fieldText(file, "type").eq("folder")){
                 @makeFileItem(file, fileName, listPath)
@@ -66,7 +66,7 @@
     }
 
     @** files **@
-    @for(fileName <- files.getFieldNames()){
+    @for(fileName <- files.fieldNames()){
         @defining(files.get(fileName)) { file =>
             @if(!fieldText(file, "type").eq("folder")){
                 @makeFileItem(file, fileName, listPath)

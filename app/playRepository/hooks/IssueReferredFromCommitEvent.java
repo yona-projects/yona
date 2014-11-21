@@ -47,6 +47,6 @@ public class IssueReferredFromCommitEvent implements PostReceiveHook {
     @Override
     public void onPostReceive(ReceivePack receivePack, Collection<ReceiveCommand> commands) {
         PostReceiveMessage message = new PostReceiveMessage(commands, project, user);
-        Akka.system().actorOf(new Props(IssueReferredFromCommitEventActor.class)).tell(message, null);
+        Akka.system().actorOf(Props.create(IssueReferredFromCommitEventActor.class)).tell(message, null);
     }
 }
