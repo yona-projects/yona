@@ -101,6 +101,14 @@ public class PlayServletResponse implements HttpServletResponse {
             target.close();
             super.close();
         }
+
+        public void setWriteListener(WriteListener writeListener) {
+            throw new UnsupportedOperationException();
+        }
+
+        public boolean isReady() {
+            throw new UnsupportedOperationException();
+        }
     }
 
     public PlayServletResponse(Response response) throws IOException {
@@ -189,6 +197,10 @@ public class PlayServletResponse implements HttpServletResponse {
     @Override
     public void setContentLength(int length) {
         this.response.setHeader(Http.HeaderNames.CONTENT_LENGTH, Integer.toString(length));
+    }
+
+    public void setContentLengthLong(long length) {
+        this.response.setHeader(Http.HeaderNames.CONTENT_LENGTH, Long.toString(length));
     }
 
     @Override
@@ -379,5 +391,9 @@ public class PlayServletResponse implements HttpServletResponse {
             encoding = encoding.substring(1, encoding.length() - 1);
         }
         return (encoding.trim());
+    }
+
+    public String getVirtualServerName() {
+        throw new UnsupportedOperationException();
     }
 }

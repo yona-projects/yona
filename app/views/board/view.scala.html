@@ -18,7 +18,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(post:Posting, commentForm:Form[PostingComment],  project:Project)
+@(post:Posting, commentForm: play.data.Form[PostingComment],  project:Project)
 
 @import utils.JodaDateUtil
 @import utils.TemplateHelper._
@@ -28,7 +28,7 @@
 @import utils.Markdown
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
-@urlToPostings = @{ urlToList(request.getHeader("Referer"), routes.BoardApp.posts(project.owner, project.name).toString()) }
+@urlToPostings = @{ urlToList(requestHeader.headers.get("Referer").get, routes.BoardApp.posts(project.owner, project.name).toString()) }
 
 @projectLayout(post.title, project, utils.MenuType.BOARD){
 @projectMenu(project, utils.MenuType.BOARD, "main-menu-only")

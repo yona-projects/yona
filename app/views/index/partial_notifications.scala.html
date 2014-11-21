@@ -51,7 +51,7 @@
 }
 
 @defining(NotificationEvent.findByReceiver(UserApp.currentUser, from, size)){ notifications =>
-    @if(notifications.size() == 0){
+    @if(notifications.size == 0){
     <div class="warning-none">
         <i class="yobicon-danger"></i> @Messages("notification.none")
     </div>

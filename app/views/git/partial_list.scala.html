@@ -25,8 +25,8 @@
 @import org.apache.commons.lang3.StringUtils
 
 <ul class="post-list-wrap">
-@if(page.getList.size()> 0){
-    @for(req <- page.getList.iterator()) {
+@if(page.getList.size> 0){
+    @for(req <- page.getList.iterator) {
     @defining(User.findByLoginId(req.contributor.loginId)){ user =>
         <li class="post-item">
             <div class="span10">

@@ -131,8 +131,9 @@ $(document).ready(function(){
         @if(project.menuSetting.pullRequest && project.vcs.equals("GIT")){
            ,"F": "@getPullRequestURL(project)"
         }
-        @if(ProjectUser.roleOf(session.get("loginId"), project).equals("manager")){
-           ,"Q": "@routes.ProjectApp.settingForm(project.owner, project.name)"
+        @requestHeader.session.get("loginId") match {
+            case Some(role) if role.equals("manager") => { "Q": "@routes.ProjectApp.settingForm(project.owner, project.name)" }
+            case _ => { }
         }
     };
 

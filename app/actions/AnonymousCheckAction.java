@@ -26,7 +26,7 @@ import controllers.routes;
 import play.mvc.Action;
 import play.mvc.Http.Context;
 import play.mvc.Result;
-import play.mvc.SimpleResult;
+import play.mvc.Result;
 import play.libs.F.Promise;
 import utils.AccessControl;
 import utils.AccessLogger;
@@ -42,7 +42,7 @@ import utils.Constants;
 public class AnonymousCheckAction extends Action<AnonymousCheck> {
 
     @Override
-    public Promise<SimpleResult> call(Context context) throws Throwable {
+    public Promise<Result> call(Context context) throws Throwable {
         if ((AccessControl.isAnonymousNotAllowed() || configuration.requiresLogin()) &&
                 UserApp.currentUser().isAnonymous()) {
             if (configuration.displaysFlashMessage()) {
@@ -50,7 +50,7 @@ public class AnonymousCheckAction extends Action<AnonymousCheck> {
             }
             String loginFormUrl = routes.UserApp.loginForm().url();
             loginFormUrl += "?redirectUrl=" + context.request().path();
-            Promise<SimpleResult> promise = Promise.pure(redirect(loginFormUrl));
+            Promise<Result> promise = Promise.pure(redirect(loginFormUrl));
             AccessLogger.log(context.request(), promise, null);
             return promise;
         }

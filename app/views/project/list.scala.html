@@ -89,7 +89,7 @@
                         }
                         </ul>
                         <p>
-                            @Html(Messages("project.onmember", User.findUsersByProject(project.id).length))
+                            @Html(Messages("project.onmember", User.findUsersByProject(project.id).size))
                             <i class="yobicon-eye yobicon-middle"></i> @Html(Messages("project.onwatching", project.getWatchingCount))
                         </p>
                     </div>

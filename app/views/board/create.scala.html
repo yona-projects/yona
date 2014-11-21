@@ -18,7 +18,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(title:String, form:Form[Posting], project:Project, isAllowedToNotice:Boolean, preparedPostBody:String = "")
+@(title:String, form: play.data.Form[Posting], project:Project, isAllowedToNotice:Boolean, preparedPostBody:String = "")
 
 @import utils.AccessControl._
 @import utils.TemplateHelper._
@@ -27,7 +27,7 @@
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
 @readmeUpdateMessage = @{
-  if( request().getQueryString("readme") != null ) {
+  if( requestHeader.getQueryString("readme") != null ) {
       "Update README.md"
   }
 }
@@ -66,7 +66,7 @@
         @** end of fileUploader **@
 
         <div class="right-txt mt10 mb10">
-          @if(isAllowedToNotice && !stringToBoolean(request().getQueryString("readme"))){
+          @if(isAllowedToNotice && !stringToBoolean(requestHeader.getQueryString("readme").get)){
           <label class="checkbox">
             <input type="checkbox" id="notice" name="notice">
             @Messages("post.notice.label")
@@ -74,9 +74,9 @@
           }
 
           @if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.COMMIT)){
-            @if(project.isGit && stringToBoolean(request().getQueryString("readme"))){
+            @if(project.isGit && stringToBoolean(requestHeader.getQueryString("readme").get)){
             <label class="checkbox">
-              <input type="checkbox" id="readme" name="readme" @boolToCheckedString(request().getQueryString("readme"))>
+              <input type="checkbox" id="readme" name="readme" @boolToCheckedString(requestHeader.getQueryString("readme"))>
               @Messages("post.readmefy")
             </label>
             }

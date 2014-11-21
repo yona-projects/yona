@@ -77,7 +77,7 @@
 }
 
 @isHistoryExistAndHasParent(history: List[playRepository.Commit]) = @{
-    (history.size() > 0 && history.get(history.size() - 1).getParentCount() > 0)
+    (history.size > 0 && history.get(history.size - 1).getParentCount() > 0)
 }
 
 @projectLayout(Messages("title.commitHistory"), project, utils.MenuType.CODE) {
@@ -137,7 +137,7 @@
                             @if(history.isEmpty()){
                                 <tr><td colspan="5" class="warning-none">@Messages("code.nocommits")</td></tr>
                             }
-                            @for(commit <- history.iterator()) {
+                            @for(commit <- history.iterator) {
                             @defining(getShowCommitURL(project, commit, path)){ showCommitURL =>
                             <tr>
                                 <td class="commit-id">

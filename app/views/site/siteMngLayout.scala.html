@@ -23,7 +23,7 @@
 @isActiveMenu(calls: Call*) = @{
     var menuState = ""
     for(call <- calls) {
-        if(call.toString().equals(request().path())) {
+        if(call.toString().equals(requestHeader.path)) {
             menuState = "active"
         }
     }

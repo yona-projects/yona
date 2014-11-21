@@ -25,7 +25,7 @@ import controllers.annotation.IsOnlyGitAvailable;
 import models.Project;
 import play.mvc.Http.Context;
 import play.mvc.Result;
-import play.mvc.SimpleResult;
+import play.mvc.Result;
 import play.libs.F.Promise;
 import utils.AccessLogger;
 import utils.ErrorViews;
@@ -40,9 +40,9 @@ import utils.ErrorViews;
  */
 public class IsOnlyGitAvailableAction extends AbstractProjectCheckAction<IsOnlyGitAvailable> {
     @Override
-    protected Promise<SimpleResult> call(Project project, Context context, PathParser parser) throws Throwable {
+    protected Promise<Result> call(Project project, Context context, PathParser parser) throws Throwable {
         if(!project.isGit()) {
-            Promise<SimpleResult> promise = Promise.pure((SimpleResult) badRequest(ErrorViews.BadRequest.render("error.badrequest.only.available.for.git")));
+            Promise<Result> promise = Promise.pure((Result) badRequest(ErrorViews.BadRequest.render("error.badrequest.only.available.for.git")));
             AccessLogger.log(context.request(), promise, null);
             return promise;
         }

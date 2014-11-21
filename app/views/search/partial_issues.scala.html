@@ -27,7 +27,7 @@
 @urlToList(project:Project, state:String) = {@routes.IssueApp.issues(project.owner, project.name, "open", "html", 1)}
 
 @defining(searchResult.getIssues) { page =>
-    @if(page.getList.length > 0) {
+    @if(page.getList.size > 0) {
     <ul class="search-list-wrap">
         @for(issue <- page.getList) {
             @defining(User.findByLoginId(issue.authorLoginId)){ user =>

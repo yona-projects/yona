@@ -30,7 +30,7 @@ import models.resource.Resource;
 import models.resource.ResourceConvertible;
 import play.mvc.Http.Context;
 import play.mvc.Result;
-import play.mvc.SimpleResult;
+import play.mvc.Result;
 import play.libs.F.Promise;
 import utils.AccessControl;
 import utils.AccessLogger;
@@ -49,19 +49,19 @@ import utils.ErrorViews;
  */
 public class IsAllowedAction extends AbstractProjectCheckAction<IsAllowed> {
     @Override
-    protected Promise<SimpleResult> call(Project project, Context context, PathParser parser) throws Throwable {
+    protected Promise<Result> call(Project project, Context context, PathParser parser) throws Throwable {
         ResourceType resourceType = this.configuration.resourceType();
         ResourceConvertible resourceObject = Resource.getResourceObject(parser, project, resourceType);
         Operation operation = this.configuration.value();
 
         if(resourceObject == null) {
-            Promise<SimpleResult> promise = Promise.pure((SimpleResult) notFound(ErrorViews.NotFound.render("error.notfound", project, resourceType.resource())));
+            Promise<Result> promise = Promise.pure((Result) notFound(ErrorViews.NotFound.render("error.notfound", project, resourceType.resource())));
             AccessLogger.log(context.request(), promise, null);
             return promise;
         }
 
         if(!AccessControl.isAllowed(UserApp.currentUser(), resourceObject.asResource(), operation)) {
-            Promise<SimpleResult> promise = Promise.pure((SimpleResult) forbidden(ErrorViews.Forbidden.render("error.forbidden", project)));
+            Promise<Result> promise = Promise.pure((Result) forbidden(ErrorViews.Forbidden.render("error.forbidden", project)));
             AccessLogger.log(context.request(), promise, null);
             return promise;
         }

@@ -47,7 +47,7 @@
 <div class="content-container nm">
   <div class="main-stream" style="width:100%;">
     <ul class="activity-streams unstyled">
-      @for(history <- histories.iterator()) {
+      @for(history <- histories.iterator) {
       <li class="activity-stream">
         <a href="@userPageUrlOnHistory(history)" class="avatar-wrap pull-left mr10">
           <img src="@userAvatarUrlOnHistory(history)" width="32" height="32">

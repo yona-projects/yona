@@ -25,7 +25,7 @@
 @import utils.JodaDateUtil
 
 @defining(searchResult.getIssueComments) { page =>
-    @if(page.getList.length > 0) {
+    @if(page.getList.size > 0) {
     <ul class="search-list-wrap">
         @for(comment <- page.getList) {
             @defining(User.findByLoginId(comment.authorLoginId)){ user =>

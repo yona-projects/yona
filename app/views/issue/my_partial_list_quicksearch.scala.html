@@ -25,7 +25,7 @@
     <li @if(param.assigneeId == UserApp.currentUser().id){ class="active"}>
         <a pjax-filter href="#"
             data-author-id=""
-            data-assignee-id="@User.findByLoginId(session.get("loginId")).id"
+            data-assignee-id="@UserApp.currentUser.id"
             data-milestone-id="@param.milestoneId"
             data-mention-id="">
             @Messages("issue.list.assignedToMe")
@@ -33,7 +33,7 @@
     </li>
     <li @if(param.authorId == UserApp.currentUser().id){ class="active"}>
         <a pjax-filter href="#"
-            data-author-id="@User.findByLoginId(session.get("loginId")).id"
+            data-author-id="@UserApp.currentUser.id"
             data-assignee-id=""
             data-milestone-id="@param.milestoneId"
             data-mention-id="">
@@ -45,7 +45,7 @@
             data-author-id=""
             data-assignee-id=""
             data-milestone-id="@param.milestoneId"
-            data-mention-id="@User.findByLoginId(session.get("loginId")).id">
+            data-mention-id="@UserApp.currentUser.id">
             @Messages("issue.list.mentionedOfMe")
         </a>
     </li>

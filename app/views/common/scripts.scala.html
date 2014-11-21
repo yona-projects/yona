@@ -101,7 +101,7 @@
 
         // current language set!
         if (typeof window.moment == "function" && typeof window.moment.lang == "function") {
-            moment.lang("@lang.language");
+            moment.lang("@implicitJavaLang.language");
         }
 
      	// yobi.Dropdown
@@ -120,10 +120,15 @@
                 $(htInfo.welTarget.parents("form").get(0)).submit();
             }
         });
-        @if(session.contains("loginId")){
-            yobi.ShortcutKey.setKeymapLink({
-            "P": "@routes.UserApp.userInfo(session.get("loginId"))"
-        });
+        @requestHeader.session.get("loginId") match {
+            case Some(loginId) => { }
+            case None => { }
+        }
+        @requestHeader.session.get("loginId") match {
+            case Some(v) => { yobi.ShortcutKey.setKeymapLink({
+                "P": "@routes.UserApp.userInfo(v)"
+            }); }
+            case None => { }
         }
 
         // yobi.Files
@@ -168,14 +173,11 @@
         }
 
         // notify flash messages
-        @for(key <- flash.keys) {
-            @if(key != utils.Constants.TITLE &&
-                key != utils.Constants.DESCRIPTION){
-                $yobi.notify("@Messages(flash.get(key))", 3000);
+        @requestHeader.flash.get(utils.Constants.TITLE) match {
+            case Some(title) => { $yobi.alert("@Messages(title)", null, "@Messages(requestHeader.flash.get(utils.Constants.DESCRIPTION).get)"); }
+            case None => { @requestHeader.flash.data.foreach {
+                case (_, value) => { $yobi.notify("@Messages(value)", 3000); }
             }
-            @if(key == utils.Constants.TITLE){
-                $yobi.alert("@Messages(flash.get(key))", null,
-                            "@Messages(flash.get(utils.Constants.DESCRIPTION))");
             }
         }
 

@@ -57,7 +57,7 @@
                     <tbody>
                         @partial_branchrow(project, head, true)
 
-                        @for(branch <- branches.iterator()) {
+                        @for(branch <- branches.iterator) {
                             @partial_branchrow(project, branch, false)
                         }
                     </tbody>

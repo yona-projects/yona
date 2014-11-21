@@ -25,7 +25,7 @@ import playRepository.FileDiff
 import play.api.i18n.Lang
 import models.CodeCommentThread
 import models.CommentThread
-import play.api.templates.Html
+import play.twirl.api.Html
 
 object TemplateHelper {
 
@@ -364,12 +364,12 @@ object TemplateHelper {
     def shortId(commitId: String) = commitId.substring(0, Math.min(7, commitId.size))
 
     @tailrec
-    def renderNonRangedThreads(threads: List[models.CommentThread], commitId: String, html: play.api.templates.Html): play.api.templates.Html =
+    def renderNonRangedThreads(threads: List[models.CommentThread], commitId: String, html: play.twirl.api.Html): play.twirl.api.Html =
       threads match {
         case head :: tail =>
           head match {
             case (thread: models.NonRangedCodeCommentThread)
-              if commitId == null || commitId == thread.commitId => html += partial_comment_thread(thread)
+              if commitId == null || commitId == thread.commitId => new Html(List(html, partial_comment_thread(thread)))
             case _ => ;
           }
           renderNonRangedThreads(tail, commitId, html)
@@ -378,16 +378,16 @@ object TemplateHelper {
 
     @tailrec
     def _renderEventsOnPullRequest(pull: PullRequest, events: List[PullRequestEvent],
-                                   html: play.api.templates.Html): play.api.templates.Html =
+                                   html: play.twirl.api.Html): play.twirl.api.Html =
       events match {
         case head :: tail =>
-          html += partial_pull_request_event(pull, head)
+          new Html(List(html, partial_pull_request_event(pull, head)))
           _renderEventsOnPullRequest(pull, tail, html)
         case _ => html
       }
 
     def renderEventsOnPullRequest(pull: PullRequest) =
-      _renderEventsOnPullRequest(pull, pull.pullRequestEvents.toList, play.api.templates.Html(""))
+      _renderEventsOnPullRequest(pull, pull.pullRequestEvents.toList, play.twirl.api.Html(""))
 
     def urlToCommentThread(thread: CommentThread) = {
         urlToContainer(thread) + "#thread-" + thread.id

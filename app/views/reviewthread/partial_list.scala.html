@@ -24,7 +24,7 @@
 @import utils.TemplateHelper._
 @import utils.JodaDateUtil
 
-@if(page.getList().size() > 0){
+@if(page.getList().size > 0){
 <ul class="post-list-wrap">
     @for(thread <- page.getList())  {
         @defining(User.find.byId(thread.getFirstReviewComment.author.id)){ user =>
@@ -54,7 +54,7 @@
                 <span class="infos-item" title="@JodaDateUtil.getDateString(thread.createdDate)">
                     @agoOrDateString(thread.createdDate)
                 </span>
-                @defining(thread.reviewComments.size()-1) { numberOfComments =>
+                @defining(thread.reviewComments.size-1) { numberOfComments =>
 
                     @if(numberOfComments > 0) {
                     <span class="infos-item item-count-groups">

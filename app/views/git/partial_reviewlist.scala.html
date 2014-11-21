@@ -32,7 +32,7 @@
             @thread.getFirstReviewComment().getContents()
         </p>
         <p class="info">
-            @defining(thread.reviewComments.size()-1) { numberOfComments =>
+            @defining(thread.reviewComments.size-1) { numberOfComments =>
                 @if(numberOfComments > 0) {
                     <span class="comments pull-left">
                         <i class="yobicon-comments"></i> @numberOfComments

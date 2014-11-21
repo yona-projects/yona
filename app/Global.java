@@ -43,7 +43,7 @@ import play.api.mvc.Handler;
 import play.data.Form;
 import play.mvc.*;
 import play.mvc.Http.RequestHeader;
-import play.mvc.SimpleResult;
+import play.mvc.Result;
 import play.libs.F.Promise;
 
 import utils.AccessControl;
@@ -104,12 +104,12 @@ public class Global extends GlobalSettings {
     private Action<Void> getDefaultAction(final Http.Request request) {
         final long start = System.currentTimeMillis();
         return new Action.Simple() {
-            public Promise<SimpleResult> call(Http.Context ctx) throws Throwable {
+            public Promise<Result> call(Http.Context ctx) throws Throwable {
                 UserApp.initTokenUser();
                 UserApp.updatePreferredLanguage();
                 ctx.response().setHeader("Date", DateUtils.formatDate(new Date()));
                 ctx.response().setHeader("Cache-Control", "no-cache");
-                Promise<SimpleResult> promise = delegate.call(ctx);
+                Promise<Result> promise = delegate.call(ctx);
                 AccessLogger.log(request, promise, start);
                 return promise;
             }
@@ -119,8 +119,8 @@ public class Global extends GlobalSettings {
     private Action<Void> getRestartAction() {
         return new Action.Simple() {
             @Override
-            public Promise<SimpleResult> call(Http.Context ctx) throws Throwable {
-                return Promise.pure((SimpleResult) ok(restart.render()));
+            public Promise<Result> call(Http.Context ctx) throws Throwable {
+                return Promise.pure((Result) ok(restart.render()));
             }
         };
     }
@@ -128,20 +128,20 @@ public class Global extends GlobalSettings {
     private Action<Void> getConfigSecretAction() {
         return new Action.Simple() {
             @Override
-            public Promise<SimpleResult> call(Http.Context ctx) throws Throwable {
+            public Promise<Result> call(Http.Context ctx) throws Throwable {
                 if( ctx.request().method().toLowerCase().equals("post") ) {
                     Form<User> newSiteAdminUserForm = form(User.class).bindFromRequest();
 
                     if (hasError(newSiteAdminUserForm)) {
-                        return Promise.pure((SimpleResult) badRequest(secret.render(SiteAdmin.SITEADMIN_DEFAULT_LOGINID, newSiteAdminUserForm)));
+                        return Promise.pure((Result) badRequest(secret.render(SiteAdmin.SITEADMIN_DEFAULT_LOGINID, newSiteAdminUserForm)));
                     }
 
                     User siteAdmin = SiteAdmin.updateDefaultSiteAdmin(newSiteAdminUserForm.get());
                     replaceSiteSecretKey(createSeed(siteAdmin.password));
                     isRestartRequired = true;
-                    return Promise.pure((SimpleResult) ok(restart.render()));
+                    return Promise.pure((Result) ok(restart.render()));
                 } else {
-                    return Promise.pure((SimpleResult) ok(secret.render(SiteAdmin.SITEADMIN_DEFAULT_LOGINID, new Form<>(User.class))));
+                    return Promise.pure((Result) ok(secret.render(SiteAdmin.SITEADMIN_DEFAULT_LOGINID, new Form<>(User.class))));
                 }
             }
 
@@ -211,26 +211,26 @@ public class Global extends GlobalSettings {
     }
 
     @Override
-    public Promise<SimpleResult> onHandlerNotFound(RequestHeader request) {
+    public Promise<Result> onHandlerNotFound(RequestHeader request) {
         AccessLogger.log(request, null, Http.Status.NOT_FOUND);
-        return Promise.pure((SimpleResult) Results.notFound(ErrorViews.NotFound.render()));
+        return Promise.pure((Result) Results.notFound(ErrorViews.NotFound.render()));
     }
 
     @Override
-    public Promise<SimpleResult> onError(RequestHeader request, Throwable t) {
+    public Promise<Result> onError(RequestHeader request, Throwable t) {
         AccessLogger.log(request, null, Http.Status.INTERNAL_SERVER_ERROR);
 
         if (Play.isProd()) {
-            return Promise.pure((SimpleResult) Results.internalServerError(views.html.error.internalServerError_default.render("error.internalServerError")));
+            return Promise.pure((Result) Results.internalServerError(views.html.error.internalServerError_default.render("error.internalServerError")));
         } else {
             return super.onError(request, t);
         }
     }
 
     @Override
-    public Promise<SimpleResult> onBadRequest(RequestHeader request, String error) {
+    public Promise<Result> onBadRequest(RequestHeader request, String error) {
         AccessLogger.log(request, null, Http.Status.BAD_REQUEST);
-        return Promise.pure((SimpleResult) badRequest(ErrorViews.BadRequest.render()));
+        return Promise.pure((Result) badRequest(ErrorViews.BadRequest.render()));
     }
 
 }

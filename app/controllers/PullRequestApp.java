@@ -47,7 +47,7 @@ import play.libs.F.Promise;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
-import play.mvc.SimpleResult;
+import play.mvc.Result;
 import playRepository.GitBranch;
 import playRepository.GitRepository;
 import playRepository.RepositoryService;

@@ -25,7 +25,7 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import play.libs.F.Callback;
 import play.libs.F.Promise;
 import play.mvc.Http;
-import play.mvc.SimpleResult;
+import play.mvc.Result;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -86,13 +86,13 @@ public class AccessLogger {
      * @see <a href="http://httpd.apache.org/docs/2.2/en/logs.html#combined">Combined Log Format - Apache HTTP Server</a>
      * @see <a href="http://httpd.apache.org/docs/2.2/mod/mod_log_config.html#formats">Custom Log Formats - Apache HTTP Server</a>
      */
-    public static void log(final Http.Request request, final Promise<SimpleResult> promise,
+    public static void log(final Http.Request request, final Promise<Result> promise,
             final Long startTimeMillis) {
         final String username = UserApp.currentUser().loginId;
-        promise.onRedeem(new Callback<SimpleResult>() {
+        promise.onRedeem(new Callback<Result>() {
             @Override
-            public void invoke(final SimpleResult result) throws Throwable {
-                log(request, username, result.getWrappedSimpleResult().header().status(),
+            public void invoke(final Result result) throws Throwable {
+                log(request, username, result.toScala().header().status(),
                         startTimeMillis);
             }
         });

@@ -28,7 +28,7 @@
 
 @getCodeURL(project: Project) = @{
     if(ProjectUser.isMember(project.id, UserApp.currentUser().id)){
-        CodeApp.getURL(project.owner, project.name).replace("://", "://" + session.get("loginId") + "@")
+        CodeApp.getURL(project.owner, project.name).replace("://", "://" + UserApp.currentUser.loginId + "@")
     } else {
         CodeApp.getURL(project.owner, project.name)
     }

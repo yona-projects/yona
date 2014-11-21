@@ -78,7 +78,7 @@
         </ul>
         @if(!currentPage.getList.isEmpty){
             <div class="filter-wrap small-heights">
-                @if(currentPage.getList.size() > 1){
+                @if(currentPage.getList.size > 1){
 
                 <div class="filters pull-right">
                   @makeFilterLink("dueDate", param.orderBy, param.orderDir, Messages("common.order.dueDate"))
