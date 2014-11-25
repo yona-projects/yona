@@ -38,7 +38,7 @@ public class CommitsNotificationActorTest {
         // Given
         String ownerLoginid = "whiteship";
         String proejctName = "yobi";
-        String branchName = URLEncoder.encode("refs/heads/feature/review", "UTF-8");
+        String branchName = "refs/heads/feature/review";
 
         // When
         String url = routes.CodeApp.codeBrowserWithBranch(ownerLoginid, proejctName, branchName, "").url();
