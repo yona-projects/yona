@@ -49,9 +49,6 @@ public class UserAppTest extends ContextTest {
 
     @BeforeClass
     public static void beforeClass() {
-        callAction(
-                routes.ref.Application.init()
-        );
         Map<String, String> config = support.Helpers.makeTestConfig();
         config.put("signup.require.confirm", "true");
 

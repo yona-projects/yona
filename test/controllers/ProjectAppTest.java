@@ -54,13 +54,6 @@ public class ProjectAppTest {
     private String acceptHtml = "text/html";
     private String acceptJson = "application/json";
 
-    @BeforeClass
-    public static void beforeClass() {
-        callAction(
-                routes.ref.Application.init()
-        );
-    }
-
     @Before
     public void before() {
         app = support.Helpers.makeTestApplication();

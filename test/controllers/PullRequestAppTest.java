@@ -63,9 +63,6 @@ public class PullRequestAppTest {
 
     @BeforeClass
     public static void beforeClass() {
-        callAction(
-                routes.ref.Application.init()
-        );
         app = support.Helpers.makeTestApplication();
         Helpers.start(app);
     }
