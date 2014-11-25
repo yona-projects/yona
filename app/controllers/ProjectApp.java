@@ -1064,14 +1064,13 @@ public class ProjectApp extends Controller {
         if (label == null) {
             // Create new label if there is no label which has the given name.
             label = new Label(category, name);
-            label.projects.add(project);
             label.save();
             isCreated = true;
         }
 
         Boolean isAttached = project.attachLabel(label);
 
-        if (!isCreated && !isAttached) {
+        if (isCreated && !isAttached) {
             // Something is wrong. This case is not possible.
             play.Logger.warn(
                     "A label '" + label + "' is created but failed to attach to project '" + project + "'.");

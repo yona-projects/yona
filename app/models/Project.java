@@ -427,14 +427,14 @@ public class Project extends Model implements LabelOwner {
     }
 
     public Boolean attachLabel(Label label) {
-        if (labels.contains(label)) {
+        if (label.projects.contains(this)) {
             // Return false if the label has been already attached.
             return false;
         }
 
-        // Attach new label.
-        labels.add(label);
-        update();
+        // Attach new label. I don't know why labels.add(label) does not work.
+        label.projects.add(this);
+        label.update();
 
         return true;
     }
