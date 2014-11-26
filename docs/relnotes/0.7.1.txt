@@ -1,0 +1,9 @@
+Yobi v0.7.1 Release Notes
+=========================
+
+Fixes since v0.7.0
+------------------
+
+* Pullrequest could not be updated. (0a10799)
+* Server error from OptimisticLockException occured occasionally when the
+  user's preferred language is updated automatically. (8294cce)
