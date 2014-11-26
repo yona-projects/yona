@@ -482,13 +482,14 @@ public class PullRequest extends Model implements ResourceConvertible {
                     IOException, ConcurrentRefUpdateException, PullRequestException {
                 RefUpdate refUpdate = getRepository().updateRef(ref);
                 refUpdate.setNewObjectId(mergeCommitId);
-                refUpdate.setForceUpdate(false);
+                refUpdate.setForceUpdate(true);
                 refUpdate.setRefLogIdent(whoMerges);
                 refUpdate.setRefLogMessage("merged", true);
                 RefUpdate.Result rc = refUpdate.update();
                 switch (rc) {
                     case NEW:
                     case FAST_FORWARD:
+                    case FORCED:
                         return;
                     case REJECTED:
                     case LOCK_FAILURE:
