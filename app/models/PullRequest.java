@@ -376,7 +376,7 @@ public class PullRequest extends Model implements ResourceConvertible {
             this.rightRef = Objects.requireNonNull(rightRef);
         }
 
-        public CommitCreation createTree() throws IOException {
+        public MergeResult merge() throws IOException {
             merger = MergeStrategy.RECURSIVE.newMerger(getRepository(), true);
             String refNotExistMessageFormat = "Ref '%s' does not exist in Git repository '%s'";
             ObjectId leftParent = Objects.requireNonNull(getRepository().resolve(leftRef),
@@ -385,26 +385,46 @@ public class PullRequest extends Model implements ResourceConvertible {
                     String.format(refNotExistMessageFormat, rightRef, getRepository()));
 
             if (merger.merge(leftParent, rightParent)) {
-                return new CommitCreation(merger.getResultTreeId(), leftParent, rightParent);
+                return new Success(merger.getResultTreeId(), leftParent, rightParent);
             } else {
-                return null;
+                return new Conflict(leftParent, rightParent);
             }
         }
 
-        public class CommitCreation {
-            private ObjectId mergeCommitId;
-            private ObjectId treeId;
-            private ObjectId leftParent;
-            private ObjectId rightParent;
+        public class Conflict extends MergeResult {
+            private Conflict(ObjectId leftParent, ObjectId rightParent) {
+                this.leftParent = Objects.requireNonNull(leftParent);
+                this.rightParent = Objects.requireNonNull(rightParent);
+            }
 
-            private CommitCreation(
+            @Override
+            public MergeRefUpdate createCommit() throws IOException, GitAPIException {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public MergeRefUpdate createCommit(PersonIdent whoMerges) throws IOException, GitAPIException {
+                throw new UnsupportedOperationException();
+            }
+
+            @Nullable
+            @Override
+            public ObjectId getMergeCommitId() {
+                throw new UnsupportedOperationException();
+            }
+        }
+
+        public class Success extends MergeResult {
+            private ObjectId mergeCommitId;
+            protected ObjectId treeId;
+
+            private Success(
                     ObjectId treeId, ObjectId leftParent, ObjectId rightParent) {
                 this.treeId = Objects.requireNonNull(treeId);
                 this.leftParent = Objects.requireNonNull(leftParent);
                 this.rightParent = Objects.requireNonNull(rightParent);
             }
-
-            public MergeRefUpdate createCommit() throws IOException, GitAPIException {
+                        public MergeRefUpdate createCommit() throws IOException, GitAPIException {
                 return createCommit(new PersonIdent(utils.Config.getSiteName(),
                         utils.Config.getSystemEmailAddress()));
             }
@@ -459,6 +479,19 @@ public class PullRequest extends Model implements ResourceConvertible {
             public ObjectId getMergeCommitId() {
                 return mergeCommitId;
             }
+        }
+
+        public abstract class MergeResult {
+            protected ObjectId leftParent;
+            protected ObjectId rightParent;
+
+            abstract public MergeRefUpdate createCommit() throws IOException, GitAPIException;
+
+            abstract public MergeRefUpdate createCommit(PersonIdent whoMerges) throws IOException,
+                    GitAPIException;
+
+            @Nullable
+            abstract public ObjectId getMergeCommitId();
 
             public ObjectId getLeftParentId() {
                 return leftParent;
@@ -466,6 +499,10 @@ public class PullRequest extends Model implements ResourceConvertible {
 
             public ObjectId getRightParentId() {
                 return rightParent;
+            }
+
+            boolean conflicts() {
+                return this instanceof Conflict;
             }
         }
 
@@ -507,16 +544,16 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     public void merge(final PullRequestEventMessage message) throws IOException, GitAPIException, PullRequestException {
-        Merger.CommitCreation mergeCommitCreation =
-                new Merger(toBranch, fetchSourceBranch()).createTree();
+        Merger.MergeResult result =
+                new Merger(toBranch, fetchSourceBranch()).merge();
 
-        if (mergeCommitCreation != null) {
+        if (!result.conflicts()) {
             User sender = message.getSender();
-            mergeCommitCreation.createCommit(new PersonIdent(sender.name,
+            result.createCommit(new PersonIdent(sender.name,
                     sender.email)).updateRef(toBranch);
 
             // Update the pull request
-            updateMergedCommitId(mergeCommitCreation);
+            updateMergedCommitId(result);
             changeState(State.MERGED, sender);
 
             // Add event
@@ -533,7 +570,7 @@ public class PullRequest extends Model implements ResourceConvertible {
         return destination;
     }
 
-    public void updateMergedCommitId(Merger.CommitCreation merger) {
+    public void updateMergedCommitId(Merger.MergeResult merger) {
         mergedCommitIdFrom = merger.getLeftParentId().getName();
         mergedCommitIdTo = merger.getMergeCommitId().getName();
         update();
@@ -807,29 +844,29 @@ public class PullRequest extends Model implements ResourceConvertible {
         }
 
         // merge
-        Merger.CommitCreation mergeCommitCreation = new Merger(toBranch,
-                fetchSourceBranch()).createTree();
+        Merger.MergeResult mergeResult = new Merger(toBranch,
+                fetchSourceBranch()).merge();
 
         // Make a PullRequestMergeResult to return
         PullRequestMergeResult pullRequestMergeResult = new PullRequestMergeResult();
         pullRequestMergeResult.setPullRequest(this);
 
-        if (mergeCommitCreation == null) {
+        if (mergeResult instanceof Merger.Conflict) {
             pullRequestMergeResult.setConflictStateOfPullRequest();
         } else {
             // Commit and update the ref to merge commit of this pullrequest
-            mergeCommitCreation.createCommit().updateRef(getNameOfRefToMerged());
+            mergeResult.createCommit().updateRef(getNameOfRefToMerged());
 
-            List<GitCommit> commits = GitRepository.diffCommits(
-                    getRepository(),
-                    mergeCommitCreation.getLeftParentId(),
-                    mergeCommitCreation.getRightParentId());
-            pullRequestMergeResult.setGitCommits(commits);
             pullRequestMergeResult.setResolvedStateOfPullRequest();
 
             // Update the pullrequest
-            updateMergedCommitId(mergeCommitCreation);
+            updateMergedCommitId(mergeResult);
         }
+
+        pullRequestMergeResult.setGitCommits(GitRepository.diffCommits(
+                getRepository(),
+                mergeResult.getLeftParentId(),
+                mergeResult.getRightParentId()));
 
         return pullRequestMergeResult;
     }
@@ -856,20 +893,21 @@ public class PullRequest extends Model implements ResourceConvertible {
         String tempBranchToCheckConflict = fetchSourceTemporarilly();
 
         // merge
-        Merger.CommitCreation commit = new Merger(toBranch,
-                tempBranchToCheckConflict).createTree();
+        Merger.MergeResult mergeResult = new Merger(toBranch,
+                tempBranchToCheckConflict).merge();
 
         // Make a PullRequestMergeResult to return
         PullRequestMergeResult pullRequestMergeResult = new PullRequestMergeResult();
         pullRequestMergeResult.setPullRequest(this);
-        if (commit == null) {
+        if (mergeResult.conflicts()) {
             pullRequestMergeResult.setConflictStateOfPullRequest();
         } else {
-            List<GitCommit> commits = GitRepository.diffCommits(
-                    getRepository(), commit.getLeftParentId(), commit.getRightParentId());
-            pullRequestMergeResult.setGitCommits(commits);
             pullRequestMergeResult.setResolvedStateOfPullRequest();
         }
+        pullRequestMergeResult.setGitCommits(GitRepository.diffCommits(
+                getRepository(),
+                mergeResult.getLeftParentId(),
+                mergeResult.getRightParentId()));
 
         // Clean Up: Delete the temporary branch
         RefUpdate refUpdate = getRepository().updateRef(tempBranchToCheckConflict);
