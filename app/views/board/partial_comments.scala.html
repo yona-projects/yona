@@ -24,6 +24,7 @@
 @import utils.TemplateHelper._
 @import utils.AccessControl._
 @import utils.JodaDateUtil
+@import play.libs.Json.toJson
 
 @isAuthorComment(commentId: String) = @{
     if(commentId == UserApp.currentUser().loginId) {"author"}
@@ -63,7 +64,7 @@
 
             <div id="comment-body-@comment.id">
                 <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
-                <div class="attachments pull-right" data-resource-type="@ResourceType.NONISSUE_COMMENT" data-resource-id="@comment.id"></div>
+                <div class="attachments pull-right" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.NONISSUE_COMMENT.toString(), comment.id.toString()))"></div>
             </div>
         </div>
     </li>

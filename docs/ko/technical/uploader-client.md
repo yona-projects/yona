@@ -125,7 +125,7 @@ yobi.Files 와 달리 new yobi.Attachments 로 인스턴스를 생성하여 사�
 
 예: 단순한 첨부파일 목록 표현 yobi.Attachments
 ```
-<ul class="attachments" data-resourceType="ISSUE_COMMENT" data-resourceId="1234"></ul>
+<ul class="attachments" data-resource-type="ISSUE_COMMENT" data-resource-id="1234"></ul>
 <script type="text/javascript">
     new yobi.Attachments({"elContainer": $("#attachments")});
 </script>
@@ -149,4 +149,16 @@ var sUploaderId = oUploader.attr("data-namespace");
     "sTplFileItem" : sTplText,
     "sUploaderId"  : sUploaderId
 }));
+```
+
+파일 목록을 가져오는 요청을 보내는 것을 피하기 위해, 다음과 같이
+data-attachments 속성에 파일 목록을 json 형식으로 미리 넣어둘 수 있다.
+이후 yobi.Attachments가 그 속성을 읽어서 파일 목록을 렌더링한다.
+
+```
+<ul class="attachments" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.ISSUE_COMMENT.toString(), comment.id.toString()))"></ul>
+<script type="text/javascript">
+    new yobi.Attachments({"elContainer": $("#attachments")});
+</script>
+
 ```

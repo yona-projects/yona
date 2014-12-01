@@ -21,6 +21,7 @@
 @(thread: CommentThread)
 
 @import utils.JodaDateUtil
+@import play.libs.Json.toJson
 
 <div id="thread-@thread.id" data-state="@thread.state.toString().toLowerCase()"
      class="comment-thread-wrap @thread.state.toString().toLowerCase()
@@ -71,7 +72,7 @@
                 </div>
 
                 <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.getContents</div>
-                <div class="attachments" data-resource-type="@comment.asResource.getType" data-resource-id="@comment.id"></div>
+                <div class="attachments" data-attachments="@toJson(AttachmentApp.getFileList(comment.asResource().getType().toString(), comment.id.toString()))"></div>
             </div>
         </li>
         }
