@@ -25,6 +25,7 @@
 @import utils.AccessControl._
 @import utils.JodaDateUtil
 @import play.libs.Json.toJson
+@import utils.Markdown
 
 @isAuthorComment(commentId: String) = @{
     if(commentId == UserApp.currentUser().loginId) {"author"}
@@ -63,7 +64,7 @@
             @common.commentUpdateForm(comment.id, routes.BoardApp.newComment(project.owner, project.name, post.getNumber).toString(), comment.contents)
 
             <div id="comment-body-@comment.id">
-                <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
+                <div class="comment-body markdown-wrap">@Html(Markdown.render(comment.contents, project))</div>
                 <div class="attachments pull-right" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.NONISSUE_COMMENT.toString(), comment.id.toString()))"></div>
             </div>
         </div>

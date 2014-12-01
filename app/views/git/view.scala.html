@@ -27,6 +27,7 @@
 @import models.enumeration
 @import scala.collection.JavaConversions._
 @import play.libs.Json.toJson
+@import utils.Markdown
 
 @projectLayout(Messages("menu.pullRequest"), project, utils.MenuType.PULL_REQUEST) {
     @projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
@@ -45,10 +46,7 @@
                 </a>
                 @partial_branch(pull)
             </div>
-            <div class="markdown-loader">
-                <i class="yobicon-loading2"></i> @Messages("common.loading")
-            </div>
-            <div class="content markdown-wrap markdown-before" markdown="true">@pull.body</div>
+            <div class="content markdown-wrap">@Html(Markdown.render(pull.body, project))</div>
             <div class="attachments" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.PULL_REQUEST.toString(), pull.id.toString()))"></div>
         </div>
 

@@ -293,5 +293,8 @@ POST           /:user/:project/issue/:number/comment/:commentId/unvote          
 POST           /threads/:id/open                                                      controllers.CommentThreadApp.open(id: Long)
 POST           /threads/:id/close                                                     controllers.CommentThreadApp.close(id: Long)
 
+# Markdown Renderer
+POST           /markdown/:user/:project                                               controllers.MarkdownApp.render(user, project)
+
 # remove trailing slash - must be the bottom of this file
 GET            /*paths                                                                controllers.Application.removeTrailer(paths)

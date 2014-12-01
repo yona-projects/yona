@@ -24,6 +24,7 @@
 @import utils.AccessControl._
 @import models.support.SearchCondition
 @import play.libs.Json.toJson
+@import utils.Markdown
 
 @urlToList = {@routes.MilestoneApp.milestones(project.owner, project.name)}
 
@@ -59,7 +60,7 @@
                 <div class="bar" style="width: @milestone.getCompletionRate%;"></div>
             </div>
             <div class="milestone-desc">
-                <div markdown="true" class="markdown-wrap">@milestone.contents</div>
+                <div class="markdown-wrap">@Html(Markdown.render(milestone.contents, milestone.project))</div>
                 <div class="attachments" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.MILESTONE.toString(), milestone.id.toString()))"></div>
             </div>
 

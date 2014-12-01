@@ -21,6 +21,7 @@
 @(project: Project)
 @import utils.AccessControl._
 @import models.enumeration.ResourceType
+@import utils.Markdown
 
 <div class="bubble-wrap gray readme">
 @if(project.readme == null){
@@ -44,7 +45,7 @@
           <a href="@routes.BoardApp.newPostForm(project.owner, project.name)?readme=true" class="ybtn vmiddle ml5">@Messages("button.edit")</a>
       }
     </header>
-    <div class="readme-body markdown-wrap markdown-before" markdown="true">@project.readme</div>
+    <div class="readme-body markdown-wrap">@Html(Markdown.render(project.readme, project, false))</div>
   </div>
 }
 @common.markdown(project)

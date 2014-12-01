@@ -25,6 +25,7 @@
 @import utils.AccessControl._
 @import models.enumeration._
 @import play.libs.Json.toJson
+@import utils.Markdown
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
 @urlToPostings = @{ urlToList(request.getHeader("Referer"), routes.BoardApp.posts(project.owner, project.name).toString()) }
@@ -63,7 +64,7 @@
             <div class="markdown-loader">
                 <i class="yobicon-loading2"></i> @Messages("common.loading")
             </div>
-    		<div class="content markdown-wrap markdown-before" markdown="true">@post.body</div>
+    		<div class="content markdown-wrap">@Html(Markdown.render(post.body, post.asResource().getProject()))</div>
             <div class="attachments" id="attachments" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.BOARD_POST.toString(), post.id.toString()))"></div>
     	</div>
     	<div class="board-footer board-actrow">

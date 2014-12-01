@@ -20,17 +20,26 @@
  */
 package utils;
 
+import models.Project;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 public class Markdown {
 
     private static final String XSS_JS_FILE = "public/javascripts/lib/xss.js";
     private static final String MARKED_JS_FILE = "public/javascripts/lib/marked.js";
+    private static final String HIGHLIGHT_JS_FILE = "public/javascripts//lib/highlight/highlight.pack.js";
     private static ScriptEngine engine = buildEngine();
 
     private static ScriptEngine buildEngine() {
@@ -47,6 +56,10 @@ public class Markdown {
             is = Thread.currentThread().getContextClassLoader().getResourceAsStream(MARKED_JS_FILE);
             reader = new InputStreamReader(is);
             _engine.eval(reader);
+
+            is = Thread.currentThread().getContextClassLoader().getResourceAsStream(HIGHLIGHT_JS_FILE);
+            reader = new InputStreamReader(is);
+            _engine.eval(reader);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         } finally {
@@ -61,17 +74,95 @@ public class Markdown {
         return _engine;
     }
 
-    public static String render(String source) {
+    private static String removeJavascriptInHref(String source) {
+        Document doc = Jsoup.parse(source);
+
+        Elements elements = doc.getElementsByAttribute("href");
+
+        for (Element el : elements) {
+            String href = el.attr("href").replaceAll("[^\\w:]", "").toLowerCase();
+
+            if (href.startsWith("javascript:")) {
+                el.attr("href", "#");
+            }
+        }
+
+        return doc.body().html();
+    }
+
+    private static String checkReferrer(String source) {
+        Boolean noReferrer = play.Configuration.root().getBoolean("application.noreferrer", false);
+
+        if (noReferrer) {
+            String hostname = Config.getHostname();
+
+            Document doc = Jsoup.parse(source);
+
+            Elements elements = doc.getElementsByAttribute("href");
+
+            for (Element el : elements) {
+                String href = el.attr("href");
+
+                try {
+                    URI uri = new URI(href);
+
+                    if (uri.getHost() != null && !uri.getHost().startsWith(hostname)) {
+                        el.attr("rel", el.attr("rel") + " noreferrer");
+                    }
+                }  catch (URISyntaxException e) {
+                    // Just skip the wrong link.
+                }
+            }
+
+            return doc.body().html();
+        }
+        return source;
+    }
+
+    private static String sanitize(String source) {
         try {
             Object filter = engine.eval("new Filter();");
-            Object options = engine.eval("new Object({gfm: true, tables: true, breaks: true, " +
-                    "pedantic: false, sanitize: false, smartLists: true});");
-            String rendered = (String) ((Invocable) engine).invokeFunction("marked", source,
-                    options);
-            Object sanitize = ((Invocable) engine).invokeMethod(filter, "sanitize", rendered);
+            Object sanitize = ((Invocable) engine).invokeMethod(filter, "sanitize", source);
             return new JSInvocable((Invocable) engine, sanitize).invoke("xss");
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
+    }
+
+    private static String renderWithHighlight(String source, boolean breaks) {
+        try {
+            Object options = engine.eval("new Object({gfm: true, tables: true, breaks: " + breaks + ", " +
+                    "pedantic: false, sanitize: false, smartLists: true," +
+                    "highlight : function(sCode, sLang) { " +
+                    "if(sLang) { try { return hljs.highlight(sLang.toLowerCase(), sCode).value;" +
+                    " } catch(oException) { return sCode; } } }});");
+            String rendered = (String) ((Invocable) engine).invokeFunction("marked", source, options);
+            rendered = removeJavascriptInHref(rendered);
+            rendered = checkReferrer(rendered);
+            return sanitize(rendered);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    public static String render(String source) {
+        try {
+            Object options = engine.eval("new Object({gfm: true, tables: true, breaks: true, " +
+                    "pedantic: false, sanitize: false, smartLists: true});");
+            String rendered = (String) ((Invocable) engine).invokeFunction("marked", source,
+                    options);
+            return sanitize(rendered);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    public static String render(String source, Project project, boolean breaks) {
+        AutoLinkRenderer autoLinkRenderer = new AutoLinkRenderer(renderWithHighlight(source, breaks), project);
+        return autoLinkRenderer.render();
+    }
+
+    public static String render(String source, Project project) {
+        return render(source, project, true);
     }
 }

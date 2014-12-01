@@ -30,6 +30,7 @@ import models.SimpleCommentThread;
 import models.NonRangedCodeCommentThread;
 import models.CodeCommentThread;
 
+import playRepository.Commit;
 import utils.TemplateHelper.DiffRenderer$;
 
 public class RouteUtil {
@@ -65,6 +66,25 @@ public class RouteUtil {
         }
 
         return null;
+    }
+
+    public static String getUrl(User user) {
+        if (user == null) return null;
+        user.refresh();
+
+        return controllers.routes.UserApp.userInfo(
+                user.loginId,
+                controllers.routes.UserApp.userInfo$default$2(),
+                controllers.routes.UserApp.userInfo$default$3(),
+                controllers.routes.UserApp.userInfo$default$4()
+        ).url();
+    }
+
+    public static String getUrl(Project project) {
+        if (project == null) return null;
+        project.refresh();
+
+        return controllers.routes.ProjectApp.project(project.owner, project.name).url();
     }
 
     public static String getUrl(Issue issue) {
@@ -133,5 +153,11 @@ public class RouteUtil {
 
     public static String getUrl(CommentThread thread) {
         return diffRenderer.urlToContainer(thread) + "#thread-" + thread.id;
+    }
+
+    public static String getUrl(Commit commit, Project project) {
+        if (commit == null) return null;
+
+        return controllers.routes.CodeHistoryApp.show(project.owner, project.name, commit.getId()).url();
     }
 }

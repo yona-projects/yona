@@ -26,15 +26,10 @@
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/xss.js")"></script>
 <script type="text/javascript">
 $(document).ready(function(){
-    var htOptions = {
-        "bBreaks": ($('[markdown]').hasClass('readme-body')) ? false : true
-    };
+    var htOptions = {};
 
     @if(project != null){
-        htOptions.sIssuesUrl = "@routes.IssueApp.issues(project.owner, project.name)";
-        htOptions.sProjectUrl = "@routes.ProjectApp.project(project.owner, project.name)";
-        htOptions.sApplicationContext = "@play.Configuration.root().getString("application.context")";
-        htOptions.bNoReferrer = "@play.Configuration.root().getString("application.noreferrer")"
+        htOptions.sMarkdownRendererUrl = "@routes.MarkdownApp.render(project.owner, project.name)";
     }
 
     // Reusable markdown renderer
