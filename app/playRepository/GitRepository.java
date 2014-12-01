@@ -327,6 +327,7 @@ public class GitRepository implements PlayRepository {
         private Map<String, JsonNode> targets = new HashMap<>();
         private String basePath;
         private Iterator<RevCommit> commitIterator;
+        private AnyObjectId untilCommitId;
 
         public ObjectFinder(String basePath, TreeWalk treeWalk, AnyObjectId untilCommitId) throws IOException, GitAPIException {
             while (treeWalk.next()) {
@@ -336,6 +337,7 @@ public class GitRepository implements PlayRepository {
                 targets.put(path, object);
             }
             this.basePath = basePath;
+            this.untilCommitId = untilCommitId;
             this.commitIterator = getCommitIterator(untilCommitId);
         }
 
@@ -364,14 +366,14 @@ public class GitRepository implements PlayRepository {
                     try {
                         commitIterator = getCommitIterator(curr.getId());
 
-                        // If the new iteartor returns a same commit as the
+                        // If the new iterator returns a same commit as the
                         // previous one, just skip it.
                         curr = commitIterator.next();
                         if (curr.equals(prev)) {
                             curr = commitIterator.next();
                         }
-                    } catch (GitAPIException e) {
-                        play.Logger.warn("An exception occurs while traversing git history", e);
+                    } catch (Exception e) {
+                        play.Logger.warn("An exception occurred while traversing git history", e);
                         break;
                     }
                 }
@@ -381,9 +383,23 @@ public class GitRepository implements PlayRepository {
                 prev = curr;
             }
 
-            if (i >= COMMIT_HISTORY_LIMIT) {
-                play.Logger.warn("Stopped object traversal of '" + basePath + "' in '" +
-                        repository + "' because of reaching the limit");
+            // Fall back in a slow way for the remainder of targets.
+            for (String path : targets.keySet()) {
+                Git git = new Git(repository);
+                Iterator<RevCommit> iterator;
+
+                try {
+                    String targetPath = new File(basePath, path).getPath();
+                    iterator = git.log().add(untilCommitId).addPath(targetPath)
+                            .setMaxCount(1).call().iterator();
+                } catch (GitAPIException e) {
+                    play.Logger.warn("An exception occurred while traversing git history", e);
+                    continue;
+                }
+
+                if (iterator.hasNext()) {
+                    setLatestCommit(fixRevCommitNoParents(iterator.next()), path);
+                }
             }
 
             return found;
@@ -408,6 +424,12 @@ public class GitRepository implements PlayRepository {
 
                 @Override
                 public RevCommit next() {
+                    // This may be a bug of JGit; RevWalk.iterator().next()
+                    // should do this but doesn't.
+                    if (!hasNext()) {
+                        throw new NoSuchElementException();
+                    }
+
                     return fixRevCommitNoParents(iterator.next());
                 }
 
@@ -501,21 +523,25 @@ public class GitRepository implements PlayRepository {
          */
         private void found(RevCommit revCommit, Map<String, ObjectId> objects) {
             for (String path : objects.keySet()) {
-                GitCommit commit = new GitCommit(revCommit);
-                ObjectNode data = (ObjectNode) targets.get(path);
-                data.put("msg", commit.getShortMessage());
-                String emailAddress = commit.getAuthorEmail();
-                User user = User.findByEmail(emailAddress);
-                data.put("avatar", getAvatar(user));
-                data.put("userName", user.name);
-                data.put("userLoginId", user.loginId);
-                data.put("createdDate", revCommit.getCommitTime() * 1000l);
-                data.put("author", commit.getAuthorName());
-                data.put("commitId", commit.getShortId());
-                data.put("commitUrl", routes.CodeHistoryApp.show(ownerName, projectName, commit.getShortId()).url());
-                found.put(path, data);
-                targets.remove(path);
+                setLatestCommit(revCommit, path);
             }
+        }
+
+        private void setLatestCommit(RevCommit revCommit, String path) {
+            GitCommit commit = new GitCommit(revCommit);
+            ObjectNode data = (ObjectNode) targets.get(path);
+            data.put("msg", commit.getShortMessage());
+            String emailAddress = commit.getAuthorEmail();
+            User user = User.findByEmail(emailAddress);
+            data.put("avatar", getAvatar(user));
+            data.put("userName", user.name);
+            data.put("userLoginId", user.loginId);
+            data.put("createdDate", revCommit.getCommitTime() * 1000l);
+            data.put("author", commit.getAuthorName());
+            data.put("commitId", commit.getShortId());
+            data.put("commitUrl", routes.CodeHistoryApp.show(ownerName, projectName, commit.getShortId()).url());
+            found.put(path, data);
+            targets.remove(path);
         }
     }
 
