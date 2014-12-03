@@ -240,12 +240,8 @@ public class NotificationMail extends Model {
             final EventEmail email = new EventEmail(event);
 
             try {
-                if (hideAddress) {
-                    email.setFrom(Config.getEmailFromSmtp(), event.getSender().name);
-                    email.addTo(Config.getEmailFromSmtp(), utils.Config.getSiteName());
-                } else {
-                    email.setFrom(event.getSender().email, event.getSender().name);
-                }
+                email.setFrom(Config.getEmailFromSmtp(), event.getSender().name);
+                email.addTo(Config.getEmailFromSmtp(), utils.Config.getSiteName());
 
                 for (User receiver : usersByLang.get(langCode)) {
                     if (hideAddress) {
