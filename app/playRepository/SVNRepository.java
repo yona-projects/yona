@@ -45,6 +45,7 @@ import utils.GravatarUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -72,9 +73,14 @@ public class SVNRepository implements PlayRepository {
     }
 
     @Override
-    public byte[] getRawFile(String revision, String path) throws SVNException {
+    public byte[] getRawFile(String revision, String path) throws SVNException, FileNotFoundException {
         Long revId = (revision.equals("HEAD") ? -1l : Long.parseLong(revision));
         org.tmatesoft.svn.core.io.SVNRepository repository = getSVNRepository();
+
+        if (!repository.checkPath(path, revId).equals(SVNNodeKind.FILE)) {
+            throw new FileNotFoundException();
+        }
+
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         repository.getFile(path, revId, null, baos); // revId=-1l
         return baos.toByteArray();
