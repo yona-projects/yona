@@ -230,6 +230,13 @@ public class Issue extends AbstractPosting implements LabelOwner {
         cf2.setBorder(Border.ALL, BorderLineStyle.THIN);
         cf2.setAlignment(Alignment.CENTRE);
 
+        DateFormat valueFormatDate = new DateFormat("yyyy-MM-dd HH:mm:ss");
+        WritableCellFormat cfDate = new WritableCellFormat(valueFormatDate);
+        cfDate.setFont(wf2);
+        cfDate.setShrinkToFit(true);
+        cfDate.setBorder(Border.ALL, BorderLineStyle.THIN);
+        cfDate.setAlignment(Alignment.CENTRE);
+
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         workbook = Workbook.createWorkbook(bos);
         sheet = workbook.createSheet(String.valueOf(JodaDateUtil.today().getTime()), 0);
@@ -247,7 +254,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
             sheet.addCell(new jxl.write.Label(colcnt++, i, issue.state.toString(), cf2));
             sheet.addCell(new jxl.write.Label(colcnt++, i, issue.title, cf2));
             sheet.addCell(new jxl.write.Label(colcnt++, i, getAssigneeName(issue.assignee), cf2));
-            sheet.addCell(new jxl.write.Label(colcnt++, i, issue.createdDate.toString(), cf2));
+            sheet.addCell(new jxl.write.DateTime(colcnt++, i, issue.createdDate, cfDate));
         }
         workbook.write();
 
