@@ -56,7 +56,7 @@
                 }
 
                 @if(project != null ) {
-                    @if(ProjectUser.roleOf(session.get("loginId"), project).equals("manager")){
+                    @if(UserApp.currentUser.isManagerOf(project)){
                         <span class="ybtn ybtn-small">Q</span>
                         <span class="help-inline">@Messages("project.setting")</span><br>
                     }

@@ -103,13 +103,13 @@ public class Organization extends Model implements ResourceConvertible {
             result.addAll(this.projects);
         } else if(OrganizationUser.isMember(this.id, user.id)) {
             for(Project project : this.projects) {
-                if(!project.isPrivate() || ProjectUser.isMember(user.id, project.id)) {
+                if(!project.isPrivate() || user.isMemberOf(project)) {
                     result.add(project);
                 }
             }
         } else {
             for(Project project : this.projects) {
-                if(project.isPublic() || ProjectUser.isMember(user.id, project.id)) {
+                if(project.isPublic() || user.isMemberOf(project)) {
                     result.add(project);
                 }
             }
