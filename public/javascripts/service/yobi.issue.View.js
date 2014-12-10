@@ -41,7 +41,7 @@
             _initFileDownloader();
             _initCommentAndCloseButton();
 
-            _setTimelineUpdateTimer();
+            //_setTimelineUpdateTimer();
             _affixIssueInfoWrap();
         }
 
