@@ -45,6 +45,7 @@ import utils.Url;
 
 import javax.mail.MessagingException;
 import javax.mail.Session;
+import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -275,7 +276,11 @@ public class NotificationMail extends Model {
                 email.setSentDate(event.created);
                 Mailer.send(email);
                 String escapedTitle = email.getSubject().replace("\"", "\\\"");
-                String logEntry = String.format("\"%s\" %s", escapedTitle, email.getBccAddresses());
+                Set<InternetAddress> recipients = new HashSet<>();
+                recipients.addAll(email.getToAddresses());
+                recipients.addAll(email.getCcAddresses());
+                recipients.addAll(email.getBccAddresses());
+                String logEntry = String.format("\"%s\" %s", escapedTitle, recipients);
                 play.Logger.of("mail").info(logEntry);
             } catch (Exception e) {
                 Logger.warn("Failed to send a notification: "
