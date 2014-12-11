@@ -245,38 +245,40 @@ public class NotificationEvent extends Model {
             diff.setInterestLine(codeRange.endLine);
             diff.setInterestSide(codeRange.endSide);
 
-            message.append("```diff\n");
-
             // FIXME: Performance Issue: The hunks of this diffs were
             // already computed but it was not necessary because they will
             // and should be recomputed here.
-            for (Hunk hunk : diff.getHunks()) {
-                message.append(
-                        String.format("> @@ -%d, %d +%d, %d @@\n",
-                                hunk.beginA + 1, (hunk.endA - hunk.beginA),
-                                hunk.beginB + 1, (hunk.endB - hunk.beginB)));
-                for (DiffLine line : hunk.lines) {
-                    message.append("> ");
-                    switch (line.kind) {
-                        case CONTEXT:
-                            message.append(" ");
-                            break;
-                        case ADD:
-                            message.append("+");
-                            break;
-                        case REMOVE:
-                            message.append("-");
-                            break;
-                    }
-                    message.append(line.content + "\n");
-                    if (codeRange.endsWith(line)) {
-                        message.append("```\n");
-                        message.append("\n" + reviewComment.getContents() + "\n\n");
-                        message.append("```diff\n");
+            FileDiff.Hunks hunks = diff.getHunks();
+            if (hunks != null) {
+                message.append("```diff\n");
+                for (Hunk hunk : hunks) {
+                    message.append(
+                            String.format("> @@ -%d, %d +%d, %d @@\n",
+                                    hunk.beginA + 1, (hunk.endA - hunk.beginA),
+                                    hunk.beginB + 1, (hunk.endB - hunk.beginB)));
+                    for (DiffLine line : hunk.lines) {
+                        message.append("> ");
+                        switch (line.kind) {
+                            case CONTEXT:
+                                message.append(" ");
+                                break;
+                            case ADD:
+                                message.append("+");
+                                break;
+                            case REMOVE:
+                                message.append("-");
+                                break;
+                        }
+                        message.append(line.content + "\n");
+                        if (codeRange.endsWith(line)) {
+                            message.append("```\n");
+                            message.append("\n" + reviewComment.getContents() + "\n\n");
+                            message.append("```diff\n");
+                        }
                     }
                 }
+                message.append("```\n");
             }
-            message.append("```\n");
 
             return message.toString();
         }
