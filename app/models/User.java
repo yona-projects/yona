@@ -97,6 +97,15 @@ public class User extends Model implements ResourceConvertible {
     @Constraints.Email(message = "user.wrongEmail.alert")
     public String email;
 
+    @Transient
+    private Boolean siteManager;
+
+    @Transient
+    private Map<Long, Boolean> projectManagerMemo = new HashMap<>();
+
+    @Transient
+    private Map<Long, Boolean> projectMembersMemo = new HashMap<>();
+
     /**
      * used for enabling remember me feature
      *
@@ -394,7 +403,27 @@ public class User extends Model implements ResourceConvertible {
     }
 
     public boolean isSiteManager() {
-        return SiteAdmin.exists(this);
+        if (siteManager == null) {
+            siteManager = SiteAdmin.exists(this);
+        }
+
+        return siteManager;
+    }
+
+    public boolean isManagerOf(Project project) {
+        if (!projectManagerMemo.containsKey(project.id)) {
+            projectManagerMemo.put(project.id, ProjectUser.isManager(id, project.id));
+        }
+
+        return projectManagerMemo.get(project.id);
+    }
+
+    public boolean isMemberOf(Project project) {
+        if (!projectMembersMemo.containsKey(project.id)) {
+            projectMembersMemo.put(project.id, ProjectUser.isMember(id, project.id));
+        }
+
+        return projectMembersMemo.get(project.id);
     }
 
     public List<Project> getEnrolledProjects() {

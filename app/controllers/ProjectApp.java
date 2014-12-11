@@ -837,7 +837,7 @@ public class ProjectApp extends Controller {
             addMemberForm.reject("loginId", "project.member.isManager");
         } else if (user.isAnonymous()) {
             addMemberForm.reject("loginId", "project.member.notExist");
-        } else if (ProjectUser.isMember(user.id, project.id)) {
+        } else if (user.isMemberOf(project)) {
             addMemberForm.reject("loginId", "project.member.alreadyMember");
         }
 
