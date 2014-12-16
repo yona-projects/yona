@@ -573,11 +573,21 @@ public class User extends Model implements ResourceConvertible {
      * @return
      */
     public static List<User> findIssueAuthorsByProjectId(long projectId) {
-        String sql = "select user.id, user.name, user.login_id from issue issue, n4user user where issue.author_id = user.id group by issue.author_id";
+        String sql = "select distinct user.id, user.name, user.login_id from issue issue, n4user user where issue.author_id = user.id";
         return createUserSearchQueryWithRawSql(sql).where()
                 .eq("issue.project_id", projectId)
                 .orderBy("user.name ASC")
                 .findList();
+    }
+
+    /**
+     * Find assigned users at a project whose id is {@code projectId}
+     *
+     * @param projectId
+     * @return
+     */
+    public static List<Assignee> findIssueAssigneeByProjectId(long projectId) {
+        return Assignee.finder.where().eq("project.id", projectId).orderBy("user.name ASC").findList();
     }
 
     /**

@@ -68,15 +68,15 @@
                     @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
                     <option value="@UserApp.currentUser().id">@Messages("issue.list.assignedToMe")</a></option>
                     }
-                    @for(member <- project.members) {
-                        <option value="@member.user.id"
+                    @for(assignee <- User.findIssueAssigneeByProjectId(project.id)) {
+                        <option value="@assignee.user.id"
                         @if(param.assigneeId != null
-                            && param.assigneeId == member.user.id){
+                            && param.assigneeId == assignee.user.id){
                             selected
                         }
-                        data-avatar-url="@member.user.avatarUrl"
-                        data-login-id="@member.user.loginId">
-                            @member.user.name
+                        data-avatar-url="@assignee.user.avatarUrl"
+                        data-login-id="@assignee.user.loginId">
+                            @assignee.user.name
                         </option>
                     }
                 </select>
