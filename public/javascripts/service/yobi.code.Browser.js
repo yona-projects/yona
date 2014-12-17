@@ -374,9 +374,7 @@
 
                 htElement.welCodeVal
                     .removeClass('hidden')
-                    .addClass('markdown-wrap codebrowser-markdown')
-                    .html(yobi.Markdown.renderMarkdown(htElement.welCodeVal.text()));
-
+                    .addClass('markdown-wrap codebrowser-markdown');
             } else {
 
                 if(!htVar.oEditor){

@@ -25,6 +25,7 @@
 @import utils.AccessControl._
 @import utils.JodaDateUtil
 @import play.libs.Json.toJson
+@import utils.Markdown
 
 @avatarByLoginId(loginId: String, loginName: String) = {
     <a href="@routes.UserApp.userInfo(loginId)" class="usf-group" data-toggle="tooltip" data-placement="top" title="@loginName">
@@ -144,7 +145,7 @@
             @common.commentUpdateForm(comment.id, routes.IssueApp.newComment(project.owner, project.name, issue.getNumber).toString(), comment.contents)
 
             <div id="comment-body-@comment.id">
-                <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
+                <div class="comment-body markdown-wrap">@Html(Markdown.render(comment.contents, project))</div>
                 <div class="attachments pull-right" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.ISSUE_COMMENT.toString(), comment.id.toString()))"></div>
             </div>
         </div>

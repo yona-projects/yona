@@ -33,6 +33,7 @@
 @import utils.AccessControl._
 @import utils.Config
 @import play.libs.Json.toJson
+@import utils.Markdown
 
 @getTitle(issue:Issue) = @{ "#" + issue.getNumber + " " + issue.title }
 
@@ -94,10 +95,7 @@
                 @if(StringUtils.isEmpty(issue.body)){
                     <div class="content empty-content"></div>
                 } else {
-                    <div class="markdown-loader">
-                        <i class="yobicon-loading2"></i> @Messages("common.loading")
-                    </div>
-                    <div class="content markdown-wrap markdown-before" markdown="true">@issue.body</div>
+                    <div class="content markdown-wrap">@Html(Markdown.render(issue.body, issue.project))</div>
                 }
                 <div class="attachments" id="attachments" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.ISSUE_POST.toString(), issue.id.toString()))"></div>
                 <div class="board-actrow right-txt">

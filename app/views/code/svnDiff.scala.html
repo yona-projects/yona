@@ -26,6 +26,7 @@
 @import utils.JodaDateUtil
 @import utils.AccessControl._
 @import play.libs.Json.toJson
+@import utils.Markdown
 
 @projectLayout(Messages("code.commits") + " @" + commit.getId, project, utils.MenuType.CODE) {
 @projectMenu(project, utils.MenuType.CODE, "main-menu-only")
@@ -125,7 +126,7 @@
                                 }
                             </div>
 
-                            <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
+                            <div class="comment-body markdown-wrap">@Html(Markdown.render(comment.contents, comment.asResource().getProject()))</div>
 
                             <div class="attachments" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.COMMIT_COMMENT.toString(), comment.id.toString()))"></div>
                         </div>
