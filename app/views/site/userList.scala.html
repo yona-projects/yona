@@ -139,7 +139,13 @@
             $('#accountToggleBtn')
                 .data("requestUri", $(this).data('href'))
                 .data("requestMethod","delete")
-                .requestAs();
+                .requestAs({
+                        "fOnError": function(oRes) {
+                            if (oRes.oXHR.status == 403) {
+                                document.location.reload();
+                            }
+                        }
+                    });
             $('#userInfo').html($(this).data('userName')+'('+$(this).data('userId')+')');
             $('#alertDeletionWrap').modal('show');
         })
