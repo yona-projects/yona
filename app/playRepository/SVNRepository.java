@@ -111,6 +111,7 @@ public class SVNRepository implements PlayRepository {
                 data.put("commiter", author);
                 data.put("commitDate", commitTime);
                 data.put("commitId", entry.getRevision());
+                data.put("commitUrl", routes.CodeHistoryApp.show(ownerName, projectName, String.valueOf(entry.getRevision())).url());
                 data.put("size", entry.getSize());
 
                 listData.put(entry.getName(), data);
@@ -118,7 +119,6 @@ public class SVNRepository implements PlayRepository {
             result.put("data", listData);
 
             return result;
-
         } else if(nodeKind == SVNNodeKind.FILE) {
             return fileAsJson(path, repository);
         } else {
@@ -142,49 +142,7 @@ public class SVNRepository implements PlayRepository {
         if (!branches.contains(branch)) {
             return null;
         }
-
-        org.tmatesoft.svn.core.io.SVNRepository repository = getSVNRepository();
-
-        SVNNodeKind nodeKind = repository.checkPath(path , -1 );
-
-        if(nodeKind == SVNNodeKind.DIR){
-            ObjectNode result = Json.newObject();
-            ObjectNode listData = Json.newObject();
-            SVNProperties prop = new SVNProperties();
-            Collection<SVNDirEntry> entries = repository.getDir(path, -1, prop, SVNDirEntry.DIRENT_ALL, (Collection)null);
-
-            result.put("type", "folder");
-
-            for (SVNDirEntry entry : entries) {
-                ObjectNode data = Json.newObject();
-                String author = entry.getAuthor();
-                User user = User.findByLoginId(author);
-                Long commitTime = entry.getDate().getTime();
-
-                data.put("type", entry.getKind() == SVNNodeKind.DIR ? "folder" : "file");
-                data.put("msg", entry.getCommitMessage());
-                data.put("author", author);
-                data.put("avatar", getAvatar(user));
-                data.put("userName", user.name);
-                data.put("userLoginId", user.loginId);
-                data.put("createdDate", commitTime);
-                data.put("commitMessage", entry.getCommitMessage());
-                data.put("commiter", author);
-                data.put("commitDate", commitTime);
-                data.put("commitId", entry.getRevision());
-                data.put("commitUrl", routes.CodeHistoryApp.show(ownerName, projectName, String.valueOf(entry.getRevision())).url());
-                data.put("size", entry.getSize());
-
-                listData.put(entry.getName(), data);
-            }
-            result.put("data", listData);
-
-            return result;
-        } else if(nodeKind == SVNNodeKind.FILE) {
-            return fileAsJson(path, repository);
-        } else {
-            return null;
-        }
+        return getMetaDataFromPath(path);
     }
 
     private ObjectNode fileAsJson(String path, org.tmatesoft.svn.core.io.SVNRepository repository) throws SVNException, IOException {
