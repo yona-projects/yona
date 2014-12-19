@@ -189,6 +189,67 @@ public class GitRepository implements PlayRepository {
         return getMetaDataFromPath(null, path);
     }
 
+    /**
+     * Returns the path extended so that empty intermediate folders
+     * are skipped.
+     *
+     * @see <a href="https://github.com/blog/1877-folder-jumping">Folder Jumping on GitHub blog</a>
+     */
+    public String extendPath(String basePath, String path) {
+        try {
+            ObjectId objectId = repository.resolve(Constants.HEAD);
+            RevWalk revWalk = new RevWalk(repository);
+            RevTree revTree = revWalk.parseTree(objectId);
+            while (true) {
+                String fullPath;
+                if (StringUtils.isEmpty(basePath)) {
+                    fullPath = path;
+                } else {
+                    fullPath = basePath + "/" + path;
+                }
+                if (StringUtils.isEmpty(fullPath)) {
+                    return path;
+                }
+                TreeWalk treeWalk = TreeWalk.forPath(repository, fullPath, revTree);
+                // path is not a folder
+                if (!treeWalk.isSubtree()) return path;
+                treeWalk.enterSubtree();
+                treeWalk.next();
+                // path contains a file
+                if (!treeWalk.isSubtree()) return path;
+                String next = path + "/" + treeWalk.getNameString();
+                // path contains more than a single entry
+                if (treeWalk.next()) return path;
+                path = next;
+            }
+        } catch (IOException e) {
+            return path;
+        }
+    }
+
+    public boolean isIntermediateFolder(String path) {
+        try {
+            ObjectId objectId = repository.resolve(Constants.HEAD);
+            RevWalk revWalk = new RevWalk(repository);
+            RevTree revTree = revWalk.parseTree(objectId);
+            if (StringUtils.isEmpty(path)) {
+                return false;
+            }
+            TreeWalk treeWalk = TreeWalk.forPath(repository, path, revTree);
+            // path is not a folder
+            if (!treeWalk.isSubtree()) return false;
+            treeWalk.enterSubtree();
+            treeWalk.next();
+            // path contains a file
+            if (!treeWalk.isSubtree()) return false;
+            // patch contains more than a single entry
+            if (treeWalk.next()) return false;
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
     public boolean isFile(String path, String revStr) throws IOException {
         ObjectId objectId = getObjectId(revStr);
 
@@ -514,7 +575,7 @@ public class GitRepository implements PlayRepository {
                 data.put("author", commit.getAuthorName());
                 data.put("commitId", commit.getShortId());
                 data.put("commitUrl", routes.CodeHistoryApp.show(ownerName, projectName, commit.getShortId()).url());
-                found.put(path, data);
+                found.put(extendPath(basePath, path), data);
                 targets.remove(path);
             }
         }

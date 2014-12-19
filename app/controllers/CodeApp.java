@@ -91,19 +91,8 @@ public class CodeApp extends Controller {
         }
 
         PlayRepository repository = RepositoryService.getRepository(project);
-        ObjectNode fileInfo = repository.getMetaDataFromPath(branch, path);
-        if (fileInfo == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
-        }
-        fileInfo.put("path", path);
-
-        List<ObjectNode> recursiveData = new ArrayList<>();
         List<String> branches = repository.getBranchNames();
-
-        if(fileInfo.get("type").getTextValue().equals("folder") && !path.equals("")){
-            recursiveData.addAll(RepositoryService.getMetaDataFromAncestorDirectories(repository, branch, path));
-        }
-        recursiveData.add(fileInfo);
+        List<ObjectNode> recursiveData = RepositoryService.getMetaDataFromAncestorDirectories(repository, branch, path);
 
         return ok(view.render(project, branches, recursiveData, branch, path));
     }
