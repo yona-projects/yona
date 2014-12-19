@@ -39,6 +39,7 @@ import play.i18n.Messages;
 import play.libs.Akka;
 import playRepository.*;
 import scala.concurrent.duration.Duration;
+import utils.AccessControl;
 import utils.EventConstants;
 import utils.RouteUtil;
 
@@ -377,6 +378,10 @@ public class NotificationEvent extends Model {
             public boolean evaluate(Object obj) {
                 User receiver = (User) obj;
                 if(receiver.loginId == null) {
+                    return false;
+                }
+
+                if (!AccessControl.isAllowed(receiver, event.getResource(), Operation.READ)) {
                     return false;
                 }
 
