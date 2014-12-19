@@ -66,6 +66,7 @@ import utils.GravatarUtil;
 import javax.naming.LimitExceededException;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -562,11 +563,12 @@ public class GitRepository implements PlayRepository {
     public byte[] getRawFile(String revision, String path) throws IOException {
         RevTree tree = new RevWalk(repository).parseTree(repository.resolve(revision));
         TreeWalk treeWalk = TreeWalk.forPath(repository, path, tree);
+
         if (treeWalk == null || treeWalk.isSubtree()) {
-            return null;
-        } else {
-            return repository.open(treeWalk.getObjectId(0)).getBytes();
+            throw new FileNotFoundException();
         }
+
+        return repository.open(treeWalk.getObjectId(0)).getBytes();
     }
 
     /**

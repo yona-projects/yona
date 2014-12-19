@@ -495,6 +495,20 @@ public class Project extends Model implements LabelOwner {
         return result;
     }
 
+    public List<User> getAssignableUsersAndAssignee(Issue issue) {
+        List<User> users = getAssignableUsers();
+
+        if (issue != null && issue.assignee != null && !users.contains(issue.assignee.user)) {
+            users.add(issue.assignee.user);
+        }
+
+        return users;
+    }
+
+    public boolean isAssignableUser(User user) {
+        return getAssignableUsers().contains(user);
+    }
+
     public boolean isForkedFromOrigin() {
         return this.originalProject != null;
     }

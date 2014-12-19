@@ -138,18 +138,20 @@ public class SiteApp extends Controller {
         if (User.findByLoginId(session().get("loginId")).isSiteManager()){
             if (Project.isOnlyManager(userId)) {
                 flash(Constants.WARNING, "site.userList.deleteAlert");
+                return forbidden();
             } else {
                 User user = User.find.byId(userId);
                 for (ProjectUser projectUser : user.projectUser) {
                     projectUser.delete();
                 }
                 user.changeState(UserState.DELETED);
+
+                return redirect(routes.SiteApp.userList(1, null));
             }
         } else {
             flash(Constants.WARNING, "error.auth.unauthorized.waringMessage");
+            return forbidden();
         }
-
-        return redirect(routes.SiteApp.userList(1, null));
     }
 
     /**

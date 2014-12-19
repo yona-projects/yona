@@ -1,0 +1,21 @@
+Yobi v0.7.2 Release Notes
+=========================
+
+Updates since v0.7.1
+--------------------
+
+* Software Update: Yobi uses http://repo.yobi.io/naver/yobi as the update
+  repository instead of https://github.com/naver/yobi. (5a9e026)
+* Notification emails' From fields have system email address instead of the
+  address of the user who causes the notification. (bc73166)
+* When site administrator tries to delete a user who is the only manager of
+  a project, an alert dialog is displayed to say it is not possible. (7f550a5)
+
+Fixes since v0.7.1
+------------------
+
+* CodeBrowser: Server error occrued when access a nonexistent file. (8fe705a)
+* PullRequest: Server error occured when a merge conflicts. (34b8706)
+* Email log missed recipients. (0abef81)
+* The Dropdown list for assignees for each issue did not include non-member
+  assignee even if he or she is assigned. (e84a895)
