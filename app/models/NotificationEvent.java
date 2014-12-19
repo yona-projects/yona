@@ -1003,7 +1003,22 @@ public class NotificationEvent extends Model {
         scheduleDeleteOldNotifications();
     }
 
+    /**
+     * Finds NotificationEvents that are supposed to be shown to the {@code user}.
+     * Paginates it with {@code from} and {@code size}.
+     *
+     * @param user
+     * @param from
+     * @param size
+     * @return
+     */
     public static List<NotificationEvent> findByReceiver(User user, int from, int size) {
-        return user.notificationEvents.subList(from, from + size);
+        List<NotificationEvent> allEvents = user.notificationEvents;
+        int allEventsCount = allEvents.size();
+        if (allEventsCount <= from) {
+            return new ArrayList<>();
+        }
+        int to = (allEventsCount < from + size) ? allEventsCount : from + size;
+        return allEvents.subList(from, to);
     }
 }
