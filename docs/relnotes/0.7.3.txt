@@ -1,0 +1,9 @@
+Yobi v0.7.3 Release Notes
+=========================
+
+Fixes since v0.7.2
+------------------
+
+* JGit had a critical vulnerability (CVE-2014-9390) (0929763)
+* Software Update: The update site was still Github. (7a6d696)
+* Software Update: Yobi has checked new update too frequently. (f7d072d)
