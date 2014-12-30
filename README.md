@@ -117,7 +117,7 @@ In installed directory, download latest release file and unzip it.
 
 	https://github.com/naver/yobi/archive/master.zip
 
-** Be careful! Don't overwrite or delete `yobi.h2.db` file, `repo` & `uploads` directory! **
+**Be careful! Don't overwrite or delete `yobi.h2.db` file, `repo` & `uploads` directory!**
 
 ### Backup
 
