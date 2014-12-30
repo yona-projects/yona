@@ -808,6 +808,7 @@ public class GitRepository implements PlayRepository {
             GitCommit commit = new GitCommit(
                     new RevWalk(getRepository()).parseCommit(ref.getObjectId()));
             GitBranch newBranch = new GitBranch(ref.getName(), commit);
+            setTheLatestPullRequest(newBranch);
             branches.add(newBranch);
         }
 
