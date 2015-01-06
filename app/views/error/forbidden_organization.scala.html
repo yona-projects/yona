@@ -18,11 +18,14 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(messageKey:String = "error.forbidden", organization: Organization)
+@(messageKey:String = "error.forbidden", org: Organization)
 
-@siteLayout(organization.name, utils.MenuType.NONE) {
-    <div class="site-breadcrumb-outer">
-        <div class="site-breadcrumb-inner">
+@organizationLayout(org.name, utils.MenuType.NONE, org) {
+    @organization.header(org)
+    @organization.menu(org)
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
             <div class="error-wrap">
                 <i class="ico ico-err2"></i>
                 <p>@Messages(messageKey)</p>

@@ -21,7 +21,6 @@
 package controllers;
 
 import controllers.annotation.AnonymousCheck;
-import controllers.annotation.IsAllowed;
 import models.*;
 import models.enumeration.Operation;
 import models.enumeration.RequestState;
@@ -46,10 +45,7 @@ import javax.servlet.ServletException;
 import javax.validation.ConstraintViolation;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static play.data.Form.form;
 import static utils.LogoUtil.*;
@@ -152,7 +148,7 @@ public class OrganizationApp extends Controller {
         }
 
         User currentUser = UserApp.currentUser();
-        if (!OrganizationUser.isAdmin(organization.id, currentUser.id)) {
+        if (!AccessControl.isAllowed(currentUser, organization.asResource(), Operation.UPDATE)) {
             flash(Constants.WARNING, "organization.member.needManagerRole");
             return redirect(routes.OrganizationApp.members(organizationName));
         }
@@ -243,9 +239,11 @@ public class OrganizationApp extends Controller {
             flash(Constants.WARNING, "organization.member.needManagerRole");
             return okWithLocation(routes.OrganizationApp.members(organizationName).url());
         }
-        if (OrganizationUser.isAdmin(organization.id, userId) && organization.getAdmins().size() == 1) {
-            flash(Constants.WARNING, "organization.member.atLeastOneAdmin");
-            return okWithLocation(routes.OrganizationApp.members(organizationName).url());
+
+        if (OrganizationUser.isAdmin(organization.id, userId) && organization.getAdmins().size() == 1
+                && roleForm.get().id.equals(RoleType.ORG_MEMBER.roleType())) {
+                    flash(Constants.WARNING, "organization.member.atLeastOneAdmin");
+                    return okWithLocation(routes.OrganizationApp.members(organizationName).url());
         }
 
         return null;
@@ -270,7 +268,7 @@ public class OrganizationApp extends Controller {
             return new ValidationResult(notFound(getJsonErrorMsg("organization.member.unknownOrganization")), true);
         }
 
-        if (OrganizationUser.isAdmin(organization.id, UserApp.currentUser().id)) {
+        if (!AccessControl.isAllowed(UserApp.currentUser(), organization.asResource(), Operation.LEAVE)) {
             if (OrganizationUser.findAdminsOf(organization).size() == 1) {
                 return new ValidationResult(forbidden(getJsonErrorMsg("organization.member.atLeastOneAdmin")), true);
             }
@@ -303,7 +301,7 @@ public class OrganizationApp extends Controller {
         }
 
         User currentUser = UserApp.currentUser();
-        if (!OrganizationUser.isAdmin(organization.id, currentUser.id)) {
+        if (!AccessControl.isAllowed(currentUser, organization.asResource(), Operation.UPDATE)) {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", organization));
         }
 
@@ -361,6 +359,11 @@ public class OrganizationApp extends Controller {
         Organization organization = Organization.find.byId(modifiedOrganization.id);
         if (organization == null) {
             return notFound(ErrorViews.NotFound.render("organization.member.unknownOrganization"));
+        }
+
+        if (!AccessControl.isAllowed(UserApp.currentUser(), organization.asResource(), Operation.UPDATE)) {
+            flash(Constants.WARNING, "organization.member.needManagerRole");
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", organization));
         }
 
         if (isDuplicateName(organization, modifiedOrganization)) {
@@ -434,6 +437,9 @@ public class OrganizationApp extends Controller {
     private static ValidationResult validateForDelete(Organization organization) {
         if (organization == null) {
             return new ValidationResult(notFound(getJsonErrorMsg("organization.member.unknownOrganization")), true);
+        }
+        if (!AccessControl.isAllowed(UserApp.currentUser(), organization.asResource(), Operation.DELETE)) {
+            return new ValidationResult(notFound(getJsonErrorMsg("organization.member.needManagerRole")), true);
         }
         if (organization.projects != null && organization.projects.size() > 0) {
             return new ValidationResult(notFound(getJsonErrorMsg("organization.delete.impossible.project.exist")), true);
