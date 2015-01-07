@@ -37,11 +37,11 @@
 </div>
 }
 
-@if(notConfiguredItems != null && notConfiguredItems.size() > 0) {
+@if(notConfiguredItems != null && notConfiguredItems.size > 0) {
 <div class="alert alert-error">
     <p>@Html(Messages("site.mail.notConfigured", "/admin/mailconf"))</p>
     <ul>
-    @for(item <- notConfiguredItems.iterator()) {
+    @for(item <- notConfiguredItems.iterator) {
         <li>@item</li>
     }
     </ul>

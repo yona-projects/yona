@@ -70,7 +70,7 @@
                     @partial_massupdate(project, param)
                 }
 
-                @if(currentPage.getList.size() > 1){
+                @if(currentPage.getList.size > 1){
                 <div class="filters pull-right">
                     @makeFilterLink("dueDate", param.orderBy, param.orderDir, Messages("common.order.dueDate"))
                     @makeFilterLink("updatedDate", param.orderBy, param.orderDir, Messages("common.order.updatedDate"))
@@ -83,7 +83,7 @@
             @partial_list(project, currentPage.getList, param, currentPage.getPageIndex, currentPage.getTotalPageCount)
 
             <div class="pull-left" style="padding:10px;">
-                <a href="@addQueryString(removeQueryString(request.uri, "pageNum"), "format=xls")" class="ybtn small">
+                <a href="@addQueryString(removeQueryString(requestHeader.uri, "pageNum"), "format=xls")" class="ybtn small">
                     <i class="yobicon-file-excel"></i> @Messages("issue.downloadAsExcel")
                 </a>
             </div>

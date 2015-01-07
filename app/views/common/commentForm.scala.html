@@ -24,7 +24,7 @@
 @import models.enumeration.ResourceType
 @import utils.AccessControl._
 
-@if(isResourceCreatable(User.findByLoginId(session.get("loginId")), container, resourceType)){
+@if(isResourceCreatable(UserApp.currentUser, container, resourceType)){
 
     <form id="comment-form" action="@action" method="post" enctype="multipart/form-data">
         <div class="write-comment-box">

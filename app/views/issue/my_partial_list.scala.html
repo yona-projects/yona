@@ -70,13 +70,13 @@
                 </span>
                 }
 
-                @if(issue.comments.size()>0 || issue.voters.size()>0) {
+                @if(issue.comments.size>0 || issue.voters.size>0) {
                 <span class="infos-item item-count-groups">
-                    @if(issue.comments.size()>0){
-                        @countHtml("comments",routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.getNumber).toString() + "#comments", issue.comments.size() )
+                    @if(issue.comments.size>0){
+                        @countHtml("comments",routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.getNumber).toString() + "#comments", issue.comments.size )
                     }
-                    @if(issue.voters.size()>0){
-                        @countHtml("hearts",routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.getNumber).toString() + "#vote", issue.voters.size(), "strong" )
+                    @if(issue.voters.size>0){
+                        @countHtml("hearts",routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.getNumber).toString() + "#vote", issue.voters.size, "strong" )
                     }
                 </span>
                 }

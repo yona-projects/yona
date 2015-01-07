@@ -34,7 +34,7 @@
 }
 
 @defining(searchResult.getMilestones) { page =>
-    @if(page.getList.length > 0) {
+    @if(page.getList.size > 0) {
     <ul class="search-list-wrap">
         @for(milestone <- page.getList) {
         <li class="search-list-item">

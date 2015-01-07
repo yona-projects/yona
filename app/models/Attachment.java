@@ -54,7 +54,7 @@ import play.data.validation.*;
 import play.db.ebean.Model;
 import play.libs.Akka;
 import scala.concurrent.duration.Duration;
-import scalax.file.NotDirectoryException;
+import java.nio.file.NotDirectoryException;
 import utils.FileUtil;
 import utils.JodaDateUtil;
 

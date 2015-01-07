@@ -151,7 +151,7 @@ List[playRepository.FileDiff],path:String)
                                     <p class="content">@thread.getFirstReviewComment().getContents()</p>
                                     <span class="date" title="@utils.JodaDateUtil.getDateString(thread.createdDate)">
                                         <span class="comments">
-                                        @if( thread.hasChildComments ){<i class="yobicon-comments"></i> @thread.reviewComments.size()}
+                                        @if( thread.hasChildComments ){<i class="yobicon-comments"></i> @thread.reviewComments.size}
                                         </span>
                                         <span class="avatar-wrap smaller margin-right-5">
                                             <img src="@User.findByLoginId(thread.author.loginId).avatarUrl" alt="@thread.author.name" />
@@ -170,7 +170,7 @@ List[playRepository.FileDiff],path:String)
                                     <p class="content">@thread.getFirstReviewComment().getContents()</p>
                                     <span class="date" title="@utils.JodaDateUtil.getDateString(thread.createdDate)">
                                         <span class="comments">
-                                        @if( thread.hasChildComments ){<i class="yobicon-comments"></i> @thread.reviewComments.size()}
+                                        @if( thread.hasChildComments ){<i class="yobicon-comments"></i> @thread.reviewComments.size}
                                         </span>
                                         <span class="avatar-wrap smaller margin-right-5">
                                             <img src="@User.findByLoginId(thread.author.loginId).avatarUrl" alt="@thread.author.name" />

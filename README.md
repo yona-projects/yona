@@ -31,25 +31,25 @@ Copyright 2014 NAVER Corp. under the Apache License, Version 2.0
 
 JDK version 7(1.7) is required.
 
-### Download playframework
+### Download Play Activator
 
-    curl -O http://downloads.typesafe.com/play/2.1.0/play-2.1.0.zip
+    curl -O http://downloads.typesafe.com/typesafe-activator/1.2.10/typesafe-activator-1.2.10-minimal.zip
 
 or
 
-    wget http://downloads.typesafe.com/play/2.1.0/play-2.1.0.zip
+    wget http://downloads.typesafe.com/typesafe-activator/1.2.10/typesafe-activator-1.2.10-minimal.zip
 
 or using web browser (for windows)
 
-    http://downloads.typesafe.com/play/2.1.0/play-2.1.0.zip
+    http://downloads.typesafe.com/typesafe-activator/1.2.10/typesafe-activator-1.2.10-minimal.zip
 
 ### Unzip
 
-    unzip play-2.1.0.zip
+    unzip typesafe-activator-1.2.10-minimal.zip
 
 ### Change directory to unzipped directory
 
-    cd play-2.1.0
+    cd typesafe-activator-1.2.10-minimal
 
 ### Download Yobi
 
@@ -66,19 +66,19 @@ If you want to download one of the stable releases, you can download a compresse
     
 **Caution! in case2, You might come across troubles when you try to upgrade Yobi.**
 
-> You can locate your own Yobi directory in any other place. Please note that you must add playframework home path to $PATH environment in that case.
+> You can locate your own Yobi directory in any other place. Please note that you must add Play Activator home path to $PATH environment in that case.
 
 ### Change directory to cloned Yobi directory (or cd to your unzipped file directory)
 
     cd yobi
 
-### Run play framework
+### Run Play Activator
 
-    ../play
+    ../activator
 
 or (for windows)
 
-    ..\play
+    ..\activator
 
 Required files will be download automatically. In the first time, it may take about 10 min or more.
 
@@ -94,7 +94,7 @@ If you want to run Yobi in development mode, use **run**. You can see more detai
 Also, you can configure start options.
 If your system's memory is over than 4G, we recommend to use follow options.
 
-    _JAVA_OPTIONS="-Xmx2048m -Xms1024m" play "start -DapplyEvolutions.default=true -Dhttp.port=9000"
+    _JAVA_OPTIONS="-Xmx2048m -Xms1024m" activator "start -DapplyEvolutions.default=true -Dhttp.port=9000"
 
 ### Connect with browser
 
@@ -102,7 +102,7 @@ If your system's memory is over than 4G, we recommend to use follow options.
 
 If you want to change port, check your permission to use 80 port
 
-See [http://www.playframework.com/documentation/2.1.1/Production](http://www.playframework.com/documentation/2.1.1/Production)
+See [http://www.playframework.com/documentation/2.3.6/Production](http://www.playframework.com/documentation/2.3.6/Production)
 
 ### Upgrade Yobi
 
@@ -166,26 +166,25 @@ Yobi는 Apache 2.0 라이선스로 제공됩니다.
 
 JDK 7(1.7)이어야 합니다.
 
-### playframework 내려 받기
+### Play Activator 내려 받기
 
-    curl -O http://downloads.typesafe.com/play/2.1.0/play-2.1.0.zip
+    curl -O http://downloads.typesafe.com/typesafe-activator/1.2.10/typesafe-activator-1.2.10-minimal.zip
 
 혹은
 
-    wget http://downloads.typesafe.com/play/2.1.0/play-2.1.0.zip
+    wget http://downloads.typesafe.com/typesafe-activator/1.2.10/typesafe-activator-1.2.10-minimal.zip
 
 웹 브라우저에서 (이를테면, MS윈도우즈 사용자일 경우)
 
-    http://downloads.typesafe.com/play/2.1.0/play-2.1.0.zip
-
+    http://downloads.typesafe.com/typesafe-activator/1.2.10/typesafe-activator-1.2.10-minimal.zip
 
 ### 압축풀기
 
-    unzip play-2.1.0.zip
+    unzip typesafe-activator-1.2.10-minimal.zip
 
 ### 압축을 푼 다음 하위 디렉터리로 이동
 
-    cd play-2.1.0
+    cd typesafe-activator-1.2.10-minimal
 
 ### Yobi 소스 내려 받기
 
@@ -199,20 +198,20 @@ case2. 단순히 최신 안정버전을 내려받고자 할 때는 아래 링크
     
 주의! case2의 경우, 업그레이드를 할 때 문제가 생길 수 있습니다.
 
-> 임의의 장소에 Yobi 디렉터리를 위치시킬 경우에는 play 실행파일이 있는 playframework 디렉터리를 $PATH 환경변수에 추가해 주세요.
+> 임의의 장소에 Yobi 디렉터리를 위치시킬 경우에는 activator 실행파일이 있는 Play Activator 디렉터리를 $PATH 환경변수에 추가해 주세요.
 
 ### clone 받은 Yobi 디렉터리로 이동 
 (혹은 압축을 해제한 디렉터리로 이동)
 
     cd yobi
 
-### 상단에 있는 play 실행파일 실행
+### 상단에 있는 activator 실행파일 실행
 
-    ../play
+    ../activator
 
 혹은 (윈도우 사용자일 경우)
 
-    ..\play
+    ..\activator
 
 실행하면 필요한 파일들을 web에서 내려받습니다. 첫 실행시 네트워크 상황에 따라 10여분 가까이 소요될 수 있습니다.
 
@@ -226,7 +225,7 @@ case2. 단순히 최신 안정버전을 내려받고자 할 때는 아래 링크
 시작 옵션은 조정가능합니다. 만약 시스템 메모리가 4기가 이상이라면
 아래 옵션으로 실행하는걸 권장합니다.
 
-    _JAVA_OPTIONS="-Xmx2048m -Xms1024m" play "start -DapplyEvolutions.default=true -Dhttp.port=9000"
+    _JAVA_OPTIONS="-Xmx2048m -Xms1024m" activator "start -DapplyEvolutions.default=true -Dhttp.port=9000"
     
 
 ### 브라우저로 접속
@@ -234,7 +233,7 @@ case2. 단순히 최신 안정버전을 내려받고자 할 때는 아래 링크
     http://127.0.0.1:9000
 
 80 포트 등으로 포트를 변경하고 싶을 경우에는 해당 포트가 사용가능한지 확인 한 다음 80 포트를 사용할 수 있는 계정으로 실행합니다.
-관련해서는 [http://www.playframework.com/documentation/2.1.1/Production](http://www.playframework.com/documentation/2.1.1/Production) 부분을 확인해 주세요.
+관련해서는 [http://www.playframework.com/documentation/2.3.6/Production](http://www.playframework.com/documentation/2.3.6/Production) 부분을 확인해 주세요.
 
 ### 업그레이드 하기
 

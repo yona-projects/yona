@@ -29,6 +29,8 @@ import play.mvc.Http.Context;
 import play.mvc.Http.Request;
 import play.mvc.Http.Response;
 import play.mvc.Result;
+import play.mvc.Result;
+import play.libs.F.Promise;
 
 import java.io.UnsupportedEncodingException;
 
@@ -96,18 +98,18 @@ public class BasicAuthAction extends Action<Object> {
     }
 
     @Override
-    public Result call(Context context) throws Throwable {
+    public Promise<Result> call(Context context) throws Throwable {
         User user;
         try {
             user = authenticate(context.request());
         } catch (MalformedCredentialsException error) {
-            return AccessLogger.log(context.request()
-                    , badRequest()
-                    , null);
+            Promise<Result> promise = Promise.pure((Result) badRequest());
+            AccessLogger.log(context.request(), promise, null);
+            return promise;
         } catch (UnsupportedEncodingException e) {
-            return AccessLogger.log(context.request()
-                    , internalServerError()
-                    , null);
+            Promise<Result> promise = Promise.pure((Result) internalServerError());
+            AccessLogger.log(context.request(), promise, null);
+            return promise;
         }
 
         if (!user.isAnonymous()) {

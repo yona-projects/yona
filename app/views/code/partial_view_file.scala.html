@@ -18,7 +18,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(project:Project, files:org.codehaus.jackson.node.ObjectNode, branch:String, path:String)
+@(project:Project, files:com.fasterxml.jackson.databind.node.ObjectNode, branch:String, path:String)
 
 @import utils.TemplateHelper._
 @import utils.TemplateHelper.CodeBrowser._
@@ -58,7 +58,7 @@
             <span id="commitMessage" class="commitMsg">@fieldText(files,"commitMessage")</span>
         </div>
         <div class="pull-right">
-            @if(!files.get("isBinary").getBooleanValue()){
+            @if(!files.get("isBinary").booleanValue()){
             <a href="@filePath" class="ybtn" target="_blank">
                 <i class="yobicon-download-alt yobicon-white vmiddle"></i> Raw
             </a>
@@ -71,7 +71,7 @@
     </div>
 
     @** Binary File **@
-    @if(files.get("isBinary").getBooleanValue()){
+    @if(files.get("isBinary").booleanValue()){
     @if(fieldText(files, "mimeType").indexOf("image/") == 0){
     <div id="showImage" class="image-wrap"><img src="@filePath"></div>
     } else {
@@ -87,7 +87,7 @@
     @** Text(Code) **@
     @defining(files.get("data")) { data =>
       @data match {
-        case null if files.get("size") != null && files.get("size").getIntValue > 0 => {
+        case null if files.get("size") != null && files.get("size").intValue > 0 => {
           <p>
           @Messages("code.tooBigFileForCodeBrowser", playRepository.PlayRepository.MAX_FILE_SIZE_CAN_BE_VIEWED)
           @if(UserApp.currentUser.isSiteManager) {

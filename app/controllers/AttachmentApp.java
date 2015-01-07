@@ -26,7 +26,7 @@ import models.User;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
 import play.Configuration;
 import play.Logger;
 import play.mvc.Controller;

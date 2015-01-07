@@ -18,7 +18,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(title:String, form:Form[Posting], posting:Posting, number:Long,  project:Project, isAllowedToNotice:Boolean)
+@(title:String, form: play.data.Form[Posting], posting:Posting, number:Long,  project:Project, isAllowedToNotice:Boolean)
 
 @import utils.AccessControl._
 @import utils.TemplateHelper._
@@ -60,7 +60,7 @@
         @** end of fileUploader **@
 
         <div class="right-txt mt10 mb10">
-          @if(isAllowedToNotice && !stringToBoolean(request().getQueryString("readme"))){
+          @if(isAllowedToNotice && !stringToBoolean(requestHeader.getQueryString("readme").get)){
             @helper.input(form("notice")){(id, name, value, args) =>
             <label class="checkbox">
               <input type="checkbox" id="notice" name="notice" @toHtmlArgs(args) @(if(value.equals(Some("true"))) "checked" else "")/>

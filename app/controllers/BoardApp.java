@@ -33,7 +33,7 @@ import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import play.data.Form;
 import play.db.ebean.Transactional;

@@ -47,6 +47,6 @@ public class NotifyPushedCommits implements PostReceiveHook {
     @Override
     public void onPostReceive(ReceivePack receivePack, Collection<ReceiveCommand> commands) {
         PostReceiveMessage message = new PostReceiveMessage(commands, project, user);
-        Akka.system().actorOf(new Props(CommitsNotificationActor.class)).tell(message, null);
+        Akka.system().actorOf(Props.create(CommitsNotificationActor.class)).tell(message, null);
     }
 }

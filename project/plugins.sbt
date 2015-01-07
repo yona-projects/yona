@@ -5,7 +5,13 @@ logLevel := Level.Warn
 resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
 
 // Use the Play sbt plugin for Play projects
-addSbtPlugin("play" % "sbt-plugin" % "2.1.0")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.3.6")
 
 // Dependency graph plugin
 addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.7.4")
+
+addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.0.4")
+
+addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.0.3")
+
+libraryDependencies += "org.javassist" % "javassist" % "3.18.2-GA"

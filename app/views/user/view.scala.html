@@ -23,8 +23,8 @@
 
 @import utils.TemplateHelper._
 
-@watching_count(loginId: String) = { @User.findByLoginId(loginId).getWatchingProjects().size() }
-@belongsToMe_count() = { @(user.myProjects("name").size() - Project.findProjectsCreatedByUser(user.loginId, "name").size()) }
+@watching_count(loginId: String) = { @User.findByLoginId(loginId).getWatchingProjects().size }
+@belongsToMe_count() = { @(user.myProjects("name").size - Project.findProjectsCreatedByUser(user.loginId, "name").size) }
 @showBadgeNumberIfExist(number:Int) = { @if(number>0){ <span class="num-badge">@number</span> } }
 @emailObfuscation(emailAddress:String) = {
     @Html(emailAddress.reverse.replace("@","@<span class='z'>"+MD5Util.md5Hex(emailAddress)+"</span>").replace(".", "<span class='z'>"+MD5Util.md5Hex(emailAddress).reverse+"</span>."))
@@ -45,7 +45,7 @@
                 <div class="whoami usf-group">
                     <span class="name">@user.name</span>
                     <span class="loginid">@{"@"}@user.loginId</span>
-                    @if(user != null && session != null && user.loginId == session.get("loginId")){
+                    @if(user != null && requestHeader.session != null && user.loginId == UserApp.currentUser.loginId){
                     <div class="edit">
                         <a href="@routes.UserApp.editUserInfoForm()" class="ybtn ybtn-default ybtn-mini"><i class="yobicon-edit"></i> @Messages("userinfo.editProfile")</a>
                     </div>
@@ -59,7 +59,7 @@
                     <li @if(groupNames.contains("member")){class="active"}>
                     <a href="@routes.UserApp.userInfo(user.loginId, "member")">@Messages("project.default.group.member")<span class="num-badge pull-right">@Project.countProjectsJustMemberAndNotOwner(user.loginId)</span></a>
                     </li>
-                    @if(user.loginId == session.get("loginId")){
+                    @if(user.loginId == UserApp.currentUser.loginId){
                         <li @if(groupNames.contains("watching")){class="active"}>
                         <a href="@routes.UserApp.userInfo(user.loginId, "watching")">@Messages("project.default.group.watching")<span class="num-badge pull-right">@user.getWatchingProjects.size</span></a>
                         </li>

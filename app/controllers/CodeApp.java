@@ -28,7 +28,7 @@ import models.enumeration.Operation;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.tika.Tika;
 import org.apache.tika.mime.MediaType;
-import org.codehaus.jackson.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.tmatesoft.svn.core.SVNException;
 import play.mvc.*;
@@ -100,7 +100,7 @@ public class CodeApp extends Controller {
         List<ObjectNode> recursiveData = new ArrayList<>();
         List<String> branches = repository.getBranchNames();
 
-        if(fileInfo.get("type").getTextValue().equals("folder") && !path.equals("")){
+        if(fileInfo.get("type").textValue().equals("folder") && !path.equals("")){
             recursiveData.addAll(RepositoryService.getMetaDataFromAncestorDirectories(repository, branch, path));
         }
         recursiveData.add(fileInfo);

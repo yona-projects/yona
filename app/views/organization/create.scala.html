@@ -18,7 +18,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(title:String, form: Form[Organization])
+@(title:String, form: play.data.Form[Organization])
 
 @siteLayout("app.name", utils.MenuType.NONE) {
 <div class="page-wrap-outer">
@@ -32,7 +32,10 @@
                     <dt>
                         <div class="n-alert" data-errType="name">
                             <div class="orange-txt">
-                                @if(flash.get("warning") != null) { <span class="warning">@Messages(flash.get("warning"))</span> }
+                                @requestHeader.flash.get("warning") match {
+                                  case Some(msg) => { <span class="warning">@Messages(msg)</span> }
+                                  case None => { }
+                                }
                                 <span class="msg wrongName" style="display: none;"></span>
                             </div>
                         </div>

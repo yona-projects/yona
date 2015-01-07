@@ -47,7 +47,7 @@
                 </div>
             </div>
 
-            <div class="codediff-wrap mt10 @if(request.cookies.get("diffs-only") != null){diffs-only}">
+            <div class="codediff-wrap mt10 @if(requestHeader.cookies.get("diffs-only") != null){diffs-only}">
                 <button type="button" class="ybtn ybtn-default btn-show-reviewcards">
                     <i class="yobicon-restore"></i>
                 </button>
@@ -158,8 +158,8 @@
                         </button>
 
                         <ul class="nav nav-tabs" style="margin-bottom:10px;">
-                            <li class="active"><a href="#reviewcards-open" data-toggle="tab">@Messages("issue.state.open") @pull.getCommentThreadsByState(CommentThread.ThreadState.OPEN).size()</a></li>
-                            <li><a href="#reviewcards-closed" data-toggle="tab">@Messages("issue.state.closed") @pull.getCommentThreadsByState(CommentThread.ThreadState.CLOSED).size()</a></li>
+                            <li class="active"><a href="#reviewcards-open" data-toggle="tab">@Messages("issue.state.open") @pull.getCommentThreadsByState(CommentThread.ThreadState.OPEN).size</a></li>
+                            <li><a href="#reviewcards-closed" data-toggle="tab">@Messages("issue.state.closed") @pull.getCommentThreadsByState(CommentThread.ThreadState.CLOSED).size</a></li>
                         </ul>
 
                         <div class="tab-content review-list">

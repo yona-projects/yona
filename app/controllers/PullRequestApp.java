@@ -23,34 +23,37 @@ package controllers;
 import actors.PullRequestMergingActor;
 import akka.actor.Props;
 import com.avaje.ebean.Page;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
 import controllers.annotation.IsOnlyGitAvailable;
+import errors.PullRequestException;
 import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
 import models.enumeration.State;
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.tmatesoft.svn.core.SVNException;
 import play.api.mvc.Call;
 import play.data.Form;
 import play.db.ebean.Transactional;
 import play.libs.Akka;
+import play.libs.F;
 import play.libs.F.Function;
 import play.libs.F.Promise;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
+import play.mvc.Result;
 import playRepository.GitBranch;
 import playRepository.GitRepository;
 import playRepository.RepositoryService;
 import utils.*;
-import views.html.git.*;
 import views.html.error.notfound;
+import views.html.git.*;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
@@ -60,7 +63,6 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 @IsOnlyGitAvailable
 @AnonymousCheck
@@ -281,7 +283,7 @@ public class PullRequestApp extends Controller {
 
         PullRequestEventMessage message = new PullRequestEventMessage(
                 UserApp.currentUser(), request(), pullRequest);
-        Akka.system().actorOf(new Props(PullRequestMergingActor.class)).tell(message, null);
+        Akka.system().actorOf(Props.create(PullRequestMergingActor.class)).tell(message, null);
 
         return redirect(pullRequestCall);
     }
@@ -378,13 +380,13 @@ public class PullRequestApp extends Controller {
                                             long pullRequestNumber, String commitId) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
-        return ok(viewChanges.render(project, pullRequest, commitId));
+        return ok(views.html.git.viewChanges.render(project, pullRequest, commitId));
     }
 
     @Transactional
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(value = Operation.ACCEPT, resourceType = ResourceType.PULL_REQUEST)
-    public static Result accept(final String userName, final String projectName,
+    public static Promise<Result> accept(final String userName, final String projectName,
                                 final long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         final PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
@@ -397,27 +399,29 @@ public class PullRequestApp extends Controller {
                 UserApp.currentUser(), request(), project, pullRequest.toBranch);
 
         if(project.isUsingReviewerCount && !pullRequest.isReviewed()) {
-            return badRequest(ErrorViews.BadRequest.render("pullRequest.not.enough.review.point"));
+            return Promise.pure((Result) badRequest(
+                    ErrorViews.BadRequest.render("pullRequest.not.enough.review.point")));
         }
 
-        Promise<Void> promise = Akka.future(new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                pullRequest.merge(message);
-                // mark the end of the merge
-                pullRequest.endMerge();
-                pullRequest.update();
-                return null;
-            }
-        });
+        Promise<Void> promise = Promise.promise(
+                new F.Function0<Void>() {
+                    public Void apply() throws Exception {
+                        pullRequest.merge(message);
+                        // mark the end of the merge
+                        pullRequest.endMerge();
+                        pullRequest.update();
+                        return null;
+                    }
+                }
+        );
 
-        return async(promise.map(new Function<Void, Result>() {
+        return promise.map(new Function<Void, Result>() {
             @Override
             public Result apply(Void v) throws Throwable {
                 return redirect(routes.PullRequestApp.pullRequest(userName, projectName,
                         pullRequestNumber));
             }
-        }));
+        });
     }
 
     private static void addNotification(PullRequest pullRequest, State from, State to) {
@@ -460,7 +464,7 @@ public class PullRequestApp extends Controller {
 
         PullRequestEventMessage message = new PullRequestEventMessage(
                 UserApp.currentUser(), request(), pullRequest);
-        Akka.system().actorOf(new Props(PullRequestMergingActor.class)).tell(message, null);
+        Akka.system().actorOf(Props.create(PullRequestMergingActor.class)).tell(message, null);
 
         return redirect(call);
     }

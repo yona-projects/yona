@@ -115,6 +115,16 @@ public class PlayServletRequest implements HttpServletRequest {
         return Integer.parseInt(contentLength);
     }
 
+    public long getContentLengthLong() {
+        String contentLength = request.getHeader(Http.HeaderNames.CONTENT_LENGTH);
+
+        if (contentLength == null) {
+            return -1;
+        }
+
+        return Long.parseLong(contentLength);
+    }
+
     @Override
     public String getContentType() {
         return request.getHeader(Http.HeaderNames.CONTENT_TYPE);
@@ -172,6 +182,18 @@ public class PlayServletRequest implements HttpServletRequest {
             protected void finalize() throws Throwable {
                 close();
                 super.finalize();
+            }
+
+            public void setReadListener(javax.servlet.ReadListener readListener) {
+                throw new UnsupportedOperationException();
+            }
+
+            public boolean isReady() {
+                throw new UnsupportedOperationException();
+            }
+
+            public boolean isFinished() {
+                throw new UnsupportedOperationException();
             }
         };
     }
@@ -553,6 +575,16 @@ public class PlayServletRequest implements HttpServletRequest {
 
     @Override
     public void logout() throws ServletException {
+        throw new UnsupportedOperationException();
+    }
+
+    public <T extends javax.servlet.http.HttpUpgradeHandler> T upgrade(java.lang.Class<T> httpUpgradeHandlerClass)
+	    throws java.io.IOException,
+		   ServletException {
+        throw new UnsupportedOperationException();
+    }
+
+    public String changeSessionId() {
         throw new UnsupportedOperationException();
     }
 

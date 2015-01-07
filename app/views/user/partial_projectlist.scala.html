@@ -68,9 +68,9 @@
         </div>
 
         <div class="stats">
-            @Html(Messages("project.onmember", User.findUsersByProject(project.id).length))<br/>
+            @Html(Messages("project.onmember", User.findUsersByProject(project.id).size))<br/>
 
-            @if(session.get("loginId") != project.owner ){
+            @if(UserApp.currentUser.loginId != project.owner ){
                 @if(User.isWatching(project)){
                     <a href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="nbtn blue medium watchBtn">
                         <i class="yobicon-eye-open yobicon-middle yobicon-white"></i>
@@ -87,7 +87,7 @@
                 }
             }
 
-            @if(user.loginId != project.owner && user.loginId == session.get("loginId") && ProjectUser.isMember(user.id, project.id)){
+            @if(user.loginId != project.owner && user.loginId == UserApp.currentUser.loginId && ProjectUser.isMember(user.id, project.id)){
             <a href="@routes.UserApp.leave(project.owner, project.name)" data-projectName="@project.name" class="nbtn black medium last leaveProject">
                 <i class="yobicon-trash"></i> @Messages("userinfo.leaveProject")
             </a>
@@ -97,5 +97,5 @@
     </div>
 </li>
 @loginUser() = {
-    @User.findByLoginId(session.get("loginId"))
+    @UserApp.currentUser
 }

@@ -302,4 +302,7 @@ public class PlayServletContext implements ServletContext {
         throw new UnsupportedOperationException();
     }
 
+    public String getVirtualServerName() {
+        throw new UnsupportedOperationException();
+    }
 }

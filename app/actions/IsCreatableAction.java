@@ -24,6 +24,8 @@ import models.Project;
 import models.User;
 import play.mvc.Http.Context;
 import play.mvc.Result;
+import play.mvc.Result;
+import play.libs.F.Promise;
 import utils.AccessControl;
 import utils.AccessLogger;
 import utils.ErrorViews;
@@ -41,12 +43,12 @@ import controllers.annotation.IsCreatable;
  */
 public class IsCreatableAction extends AbstractProjectCheckAction<IsCreatable> {
     @Override
-    protected Result call(Project project, Context context, PathParser parser) throws Throwable {
+    protected Promise<Result> call(Project project, Context context, PathParser parser) throws Throwable {
         User currentUser = UserApp.currentUser();
         if (!AccessControl.isProjectResourceCreatable(currentUser, project, this.configuration.value())) {
-            return AccessLogger.log(context.request()
-                    , forbidden(ErrorViews.Forbidden.render("error.forbidden", project))
-                    , null);
+            Promise<Result> promise = Promise.pure((Result) forbidden(ErrorViews.Forbidden.render("error.forbidden", project)));
+            AccessLogger.log(context.request(), promise, null);
+            return promise;
         }
 
         return this.delegate.call(context);

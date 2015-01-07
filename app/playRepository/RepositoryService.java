@@ -24,7 +24,7 @@ import controllers.ProjectApp;
 import controllers.UserApp;
 import models.Project;
 import models.User;
-import org.codehaus.jackson.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.*;

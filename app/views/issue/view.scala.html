@@ -18,7 +18,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(title:String, issue:Issue, issueForm:Form[Issue], commentForm:Form[Comment],project:Project)
+@(title:String, issue:Issue, issueForm: play.data.Form[Issue], commentForm: play.data.Form[Comment],project:Project)
 @import org.apache.commons.lang.StringUtils
 @import helper._
 @import scala.collection.mutable.Map
@@ -39,7 +39,12 @@
 
 @isFirstState(state:State) = {@if(issue.state.state == Issue.availableStates.get(0).state()){dirty}}
 
-@urlToIssues = @{ urlToList(request.getHeader("Referer"), routes.IssueApp.issues(project.owner, project.name, "open").toString()) }
+@urlToIssues = @{
+  requestHeader.headers.get("Referer") match {
+    case Some(u) => urlToList(u, routes.IssueApp.issues(project.owner, project.name, "open").toString())
+    case _ => routes.IssueApp.issues(project.owner, project.name, "open").toString()
+  }
+}
 
 @urlToVote = @{
     if(issue.isVotedBy(UserApp.currentUser)){
@@ -113,7 +118,7 @@
                             }
 
                             <div id="vote" class="vote-wrap">
-                                @if(isResourceCreatable(User.findByLoginId(session.get("loginId")), issue.asResource(), ResourceType.ISSUE_COMMENT)) {
+                                @if(isResourceCreatable(UserApp.currentUser, issue.asResource(), ResourceType.ISSUE_COMMENT)) {
                                     <a href="@urlToVote" class="ybtn @if(issue.isVotedBy(UserApp.currentUser)){ybtn-watching}" title="@getVoteButtonTitle"
                                        data-request-method="post" data-toggle="tooltip">
                                         <span class="heart"><i class="yobicon-hearts"></i></span>

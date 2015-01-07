@@ -20,7 +20,7 @@
 **@
 @(section:String, project:Project)(implicit request: play.api.mvc.RequestHeader)
 
-@isMac = @{request.headers.get("User-Agent").getOrElse("").contains("Macintosh")}
+@isMac = @{requestHeader.headers.get("User-Agent").getOrElse("").contains("Macintosh")}
 @ctrl = @{if(isMac){"⌘"}else{"CTRL"}}
 
 <div class="pull-right" style="padding:10px 0;">

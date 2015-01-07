@@ -31,13 +31,6 @@ import static org.fest.assertions.Assertions.assertThat;
 import static play.test.Helpers.*;
 
 public class PasswordResetAppTest {
-    @BeforeClass
-    public static void beforeClass() {
-        callAction(
-                routes.ref.Application.init()
-        );
-    }
-
     @Test
     public void testRequestResetPassword_validLoginIdAndEmailAddress() {
         Map<String, String> config = support.Helpers.makeTestConfig();

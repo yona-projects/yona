@@ -26,7 +26,7 @@
 @import utils.TemplateHelper.DiffRenderer._
 
 @defining(searchResult.getReviews) { page =>
-    @if(page.getList.length > 0) {
+    @if(page.getList.size > 0) {
     <ul class="search-list-wrap">
         @for(review <- page.getList) {
             <li class="search-list-item">
