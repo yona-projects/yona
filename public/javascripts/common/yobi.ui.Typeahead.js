@@ -75,7 +75,7 @@
         function _initElement(sQuery){
             try {
                 htElement.welInput = $(sQuery);
-                htElement.welInput.typeahead({ minLength: 0 });
+                htElement.welInput.typeahead({ minLength: htVar.htData.minLength || 0 });
                 htData = htElement.welInput.data('typeahead');
                 htData.items = htVar.htData.limit || 8;
                 htData.source = htVar.htData.source || _onTypeAhead;
@@ -88,7 +88,7 @@
                     htData.render = htVar.htData.render;
                 }
 
-                htData.minLength = 0;
+                htData.minLength = htVar.htData.minLength || 0;
             } catch (err){
                 if(typeof console == "object") {
                     console.log(err);

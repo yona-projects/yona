@@ -45,6 +45,7 @@
 
             htVar.oTypeahead = new yobi.ui.Typeahead("#loginId", {
                 "htData" : {
+                    "minLength" : 1,
                     "updater" : _updater,
                     "source" : _source,
                     "render" : _render
