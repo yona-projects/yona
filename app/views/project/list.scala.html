@@ -79,13 +79,11 @@
                     <div class="members">
                         <ul class="unstyled">
                         @for(member <- User.findUsersByProject(project.id)){
-                            @if(member.loginId != project.owner){
                             <li>
                                 <a href="@routes.UserApp.userInfo(member.loginId)" class="avatar-wrap">
                                     <img src="@member.avatarUrl" alt="@member.name">
                                 </a>
                             </li>
-                            }
                         }
                         </ul>
                         <p>
