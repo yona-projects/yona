@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.List;
 
 @Entity
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"project_id", "recently_visited_projects_id"}))
 public class ProjectVisitation extends Model {
 
     private static final long serialVersionUID = 1L;
