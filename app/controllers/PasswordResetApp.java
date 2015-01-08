@@ -32,6 +32,7 @@ import play.data.DynamicForm;
 import play.i18n.Messages;
 import play.mvc.Controller;
 import play.mvc.Result;
+import utils.Config;
 import utils.Constants;
 import utils.PasswordReset;
 import views.html.site.lostPassword;
@@ -71,8 +72,7 @@ public class PasswordResetApp extends Controller {
     }
 
     private static boolean sendPasswordResetMail(User user, String hashString) {
-        Configuration config = play.Play.application().configuration();
-        String sender = config.getString("smtp.user") + "@" + config.getString("smtp.domain");
+        String sender = Config.getEmailFromSmtp();
         String resetPasswordUrl = getResetPasswordUrl(hashString);
 
         try {
