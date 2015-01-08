@@ -46,14 +46,15 @@ public class MarkdownAppTest extends ContextTest {
     @BeforeClass
     public static void beforeClass() {
         GitRepository.setRepoPrefix("resources/test/repo/git/");
-        callAction(
-                routes.ref.Application.init()
-        );
         Map<String, String> config = support.Helpers.makeTestConfig();
         config.put("signup.require.confirm", "true");
 
         app = support.Helpers.makeTestApplication(config);
         Helpers.start(app);
+
+        callAction(
+                routes.ref.Application.init()
+        );
 
         testOwner = createUser("testOwner", "testOwner@naver.com");
         testProject = createProject(testOwner, "testProject");
