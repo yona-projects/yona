@@ -82,6 +82,7 @@
                     <!-- // -->
                 </div>
 
+                <span id="pullRequestState" data-value="@pullRequest.state"></span>
                 <div id="status" class="alert mt20 mb20">
                     @Messages("pullRequest.is.merging")
                 </div>
@@ -131,7 +132,8 @@ $(function(){
         "fromProject" : $("#fromProjectId"),
         "toProject"   : $("#toProjectId"),
         "fromBranch"  : $("#fromBranch"),
-        "toBranch"    : $("#toBranch")
+        "toBranch"    : $("#toBranch"),
+        "state"       : $("#pullRequestState").data("value")
     });
 
     // yobi.Mention

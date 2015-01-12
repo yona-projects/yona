@@ -32,9 +32,7 @@
             _initVar(options);
             _initElement(options);
             _attachEvent();
-
             _initFileUploader();
-            _onChangeBranch();
         }
 
         /**
@@ -59,6 +57,7 @@
             elements.fromBranch  = options.fromBranch;
             elements.toProject   = options.toProject;
             elements.toBranch    = options.toBranch;
+            elements.state       = options.state;
 
             elements.uploader = $("#upload");
             elements.numOfCommits = $("#numOfCommits");
@@ -85,6 +84,10 @@
             $(document.body).on("click", "button.moreBtn", function(){
                 $(this).next("pre.commitMsg.desc").toggleClass("hidden");
             });
+
+            if(elements.state === "OPEN") {
+                _onChangeBranch();
+            }
         }
 
         /**
