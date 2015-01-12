@@ -41,12 +41,12 @@
                 <select id="authorId" name="authorId" data-search="authorId"
                         data-toggle="select2" data-format="user" data-container-css-class="fullsize">
                     <option value="">@Messages("common.order.all")</option>
-                    @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
+                    @if(project.isProjectOrOrganizationUser(UserApp.currentUser())) {
                     <option value="@UserApp.currentUser().id">@Messages("issue.list.authoredByMe")</option>
                     }
-                    @for(author <- User.findIssueAuthorsByProjectId(project.id)) {
+                    @for(author <- User.findIssueAuthorsByProjectIdAndMe(UserApp.currentUser(), project.id)) {
                         <option value="@author.id"
-                        @if(param.authorId != null && param.authorId == author.id){
+                        @if(param.authorId != null && param.authorId == author.id) {
                             selected
                         }
                         data-avatar-url="@author.avatarUrl"
@@ -68,15 +68,15 @@
                     @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
                     <option value="@UserApp.currentUser().id">@Messages("issue.list.assignedToMe")</a></option>
                     }
-                    @for(assignee <- User.findIssueAssigneeByProjectId(project.id)) {
-                        <option value="@assignee.user.id"
+                    @for(user <- User.findIssueAssigneeByProjectIdAndMe(UserApp.currentUser(), project.id)) {
+                        <option value="@user.id"
                         @if(param.assigneeId != null
-                            && param.assigneeId == assignee.user.id){
+                            && param.assigneeId == user.id){
                             selected
                         }
-                        data-avatar-url="@assignee.user.avatarUrl"
-                        data-login-id="@assignee.user.loginId">
-                            @assignee.user.name
+                        data-avatar-url="@user.avatarUrl"
+                        data-login-id="@user.loginId">
+                            @user.name
                         </option>
                     }
                 </select>

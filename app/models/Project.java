@@ -23,7 +23,6 @@ package models;
 import com.avaje.ebean.Ebean;
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
-import controllers.UserApp;
 import models.enumeration.ProjectScope;
 import models.enumeration.RequestState;
 import models.enumeration.ResourceType;
@@ -468,31 +467,7 @@ public class Project extends Model implements LabelOwner {
      * If the project has a group and is protected or public, it returns all project and group members.
      */
     public List<User> getAssignableUsers() {
-        Set<User> users = new HashSet<>();
-
-        // member of this project.
-        List<ProjectUser> pus = members();
-        for(ProjectUser pu : pus) {
-            users.add(pu.user);
-        }
-
-        // member of the group
-        if(hasGroup()) {
-            List<OrganizationUser> ous = (isPublic() || isProtected()) ? this.organization.users : this.organization.getAdmins();
-            for(OrganizationUser ou : ous) {
-                users.add(ou.user);
-            }
-        }
-
-        // sorting
-        List<User> result = new ArrayList<>(users);
-        Collections.sort(result, User.USER_NAME_COMPARATOR);
-
-        if (UserApp.currentUser().isSiteManager()) {
-            result.add(UserApp.currentUser());
-        }
-
-        return result;
+        return User.findUsersByProjectAndOrganization(this);
     }
 
     public List<User> getAssignableUsersAndAssignee(Issue issue) {
@@ -503,6 +478,10 @@ public class Project extends Model implements LabelOwner {
         }
 
         return users;
+    }
+
+    public boolean isProjectOrOrganizationUser(User user) {
+        return User.findUsersByProjectAndOrganization(this).contains(user);
     }
 
     public boolean isAssignableUser(User user) {

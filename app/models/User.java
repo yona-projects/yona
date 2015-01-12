@@ -24,7 +24,10 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import javax.persistence.*;
+import javax.persistence.OrderBy;
+import javax.persistence.criteria.Expression;
 
+import com.avaje.ebean.*;
 import controllers.UserApp;
 import models.enumeration.*;
 import models.resource.GlobalResource;
@@ -39,14 +42,11 @@ import play.data.validation.Constraints;
 import play.data.validation.Constraints.*;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
+import scala.reflect.internal.Trees;
 import utils.JodaDateUtil;
 import utils.ReservedWordsValidator;
 
-import com.avaje.ebean.Ebean;
-import com.avaje.ebean.ExpressionList;
-import com.avaje.ebean.Page;
-import com.avaje.ebean.RawSql;
-import com.avaje.ebean.RawSqlBuilder;
+import static com.avaje.ebean.Expr.eq;
 
 @Table(name = "n4user")
 @Entity
@@ -327,6 +327,34 @@ public class User extends Model implements ResourceConvertible {
                 .findList();
     }
 
+    public static List<User> findUsersByProjectAndOrganization(Project project) {
+        Set<User> users = new HashSet<>();
+
+        // member of this project.
+        List<ProjectUser> pus = project.members();
+        for(ProjectUser pu : pus) {
+            users.add(pu.user);
+        }
+
+        // member of the group
+        if(project.hasGroup()) {
+            List<OrganizationUser> ous = (project.isPublic() || project.isProtected()) ? project.organization.users : project.organization.getAdmins();
+            for(OrganizationUser ou : ous) {
+                users.add(ou.user);
+            }
+        }
+
+        // sorting
+        List<User> result = new ArrayList<>(users);
+        Collections.sort(result, USER_NAME_COMPARATOR);
+
+        if (UserApp.currentUser().isSiteManager()) {
+            result.add(UserApp.currentUser());
+        }
+
+        return result;
+    }
+
     @Transient
     public Long avatarId() {
         List<Attachment> attachments = Attachment.findByContainer(avatarAsResource());
@@ -567,13 +595,16 @@ public class User extends Model implements ResourceConvertible {
     }
 
     /**
-     * All user post a issue at a project whose id is {@code projectId}
+     * Find issue authors and {@code currentUser}
      *
+     * Issue authors are found in a project whose id is {@code projectId}.
+     *
+     * @param currentUser
      * @param projectId
      * @return
      */
-    public static List<User> findIssueAuthorsByProjectId(long projectId) {
-        String sql = "select distinct user.id, user.name, user.login_id from issue issue, n4user user where issue.author_id = user.id";
+    public static List<User> findIssueAuthorsByProjectIdAndMe(User currentUser, long projectId) {
+        String sql = "select distinct user.id, user.name, user.login_id from issue issue, n4user user where issue.author_id = user.id or user.id = " + currentUser.id;
         return createUserSearchQueryWithRawSql(sql).where()
                 .eq("issue.project_id", projectId)
                 .orderBy("user.name ASC")
@@ -586,8 +617,11 @@ public class User extends Model implements ResourceConvertible {
      * @param projectId
      * @return
      */
-    public static List<Assignee> findIssueAssigneeByProjectId(long projectId) {
-        return Assignee.finder.where().eq("project.id", projectId).orderBy("user.name ASC").findList();
+    public static List<User> findIssueAssigneeByProjectIdAndMe(User currentUser, long projectId) {
+        String sql = "SELECT id, name FROM n4user WHERE id = " + currentUser.id + " or id IN (SELECT DISTINCT user_id FROM assignee WHERE id IN (SELECT DISTINCT assignee_id FROM issue WHERE project_id = " + projectId + "))";
+        return User.find.setRawSql(RawSqlBuilder.parse(sql).create())
+                .orderBy("name ASC")
+                .findList();
     }
 
     /**
