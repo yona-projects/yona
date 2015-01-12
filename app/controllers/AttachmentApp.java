@@ -246,5 +246,6 @@ public class AttachmentApp extends Controller {
     }
 
     private static class PermissionDeniedException extends Exception {
+        private static final long serialVersionUID = 1L;
     }
 }
