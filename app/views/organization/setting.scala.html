@@ -29,7 +29,7 @@
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
         @partial_settingmenu(organization)
-        <form id="saveSetting" method="post" action="@routes.OrganizationApp.updateOrganizationInfo(organization.name)" enctype="multipart/form-data" class="nm">
+        <form id="saveSetting" method="post" action="@routes.OrganizationApp.updateOrganizationInfo(organization.name)" enctype="multipart/form-data" class="nm" name="update-org">
             <input type="hidden" name="id" value="@organization.id">
             <div class="bubble-wrap gray">
                 <div class="box-wrap top clearfix frm-wrap" style="padding-top:20px;">
@@ -58,6 +58,7 @@
                             <input id="project-name" type="text" name="name" maxlength="250" value="@organization.name">
                             <div class="orange-txt">
                             @if(organizationForm.error("name") != null) { <span class="warning">@Messages(organizationForm.error("name").message())</span> }
+                                <span class="msg wrongName" style="display: none;"></span>
                             </div>
                         </dd>
                         <dt>
@@ -70,7 +71,7 @@
                 </div>
             </div>
             <div class="box-wrap bottom">
-                <button id="save" type="submit" class="ybtn ybtn-success">@Messages("button.save")</button>
+                <button id="save" class="ybtn ybtn-success">@Messages("button.save")</button>
             </div>
         </form>
     </div>
