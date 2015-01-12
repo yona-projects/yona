@@ -78,15 +78,15 @@
             elements.toProject.on("change", _onChangeProject);
 
             // onChangeBranch
-            elements.fromBranch.on("change", _onChangeBranch);
-            elements.toBranch.on("change", _onChangeBranch);
+            elements.fromBranch.on("change", _checkMergeResult);
+            elements.toBranch.on("change", _checkMergeResult);
 
             $(document.body).on("click", "button.moreBtn", function(){
                 $(this).next("pre.commitMsg.desc").toggleClass("hidden");
             });
 
             if(elements.state === "OPEN") {
-                _onChangeBranch();
+                _checkMergeResult();
             }
         }
 
@@ -122,7 +122,7 @@
          *
          * @private
          */
-        function _onChangeBranch(){
+        function _checkMergeResult(){
             var data = _getFormValue();
 
             if(!data.fromBranch && !data.toBranch){
