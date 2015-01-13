@@ -72,22 +72,22 @@
                 <div class="box-wrap middle">
                     <div class="cu-label">@Messages("project.shareOption")</div>
                     <div class="cu-desc">
-                        <input name="projectScope" type="radio" @if(project.isPublic){checked="checked"} id="public" value="PUBLIC" class="radio-btn"><label for="public" class="bg-radiobtn label-public">@Messages("project.public")</label>
+                        <input name="projectScope" type="radio" class="radio-btn" id="public" value="PUBLIC" @if(project.isPublic){checked="checked"}><label for="public" class="bg-radiobtn label-public">@Messages("project.public")</label>
                         @if(project.hasGroup){
-                        <input name="projectScope" type="radio" @if(project.isProtected){checked="checked"} id="protected" value="PROTECTED" class="radio-btn"><label for="protected" class="bg-radiobtn label-protected">@Messages("project.protected")</label>
+                        <input name="projectScope" type="radio" class="radio-btn" id="protected" value="PROTECTED" @if(project.isProtected){checked="checked"}><label for="protected" class="bg-radiobtn label-protected">@Messages("project.protected")</label>
                         }
-                        <input name="projectScope" type="radio" @if(project.isPrivate){checked="checked"} id="private" value="PRIVATE" class="radio-btn"><label for="private" class="bg-radiobtn label-private">@Messages("project.private")</label>
+                        <input name="projectScope" type="radio" class="radio-btn" id="private" value="PRIVATE" @if(project.isPrivate){checked="checked"}><label for="private" class="bg-radiobtn label-private">@Messages("project.private")</label>
                         <span class="note">@Messages("project.private.notice")</span>
                     </div>
                 </div>
 
                 @if(project.vcs.equals("GIT")){
-                <div class="box-wrap middle reviewer-count-wrap">
+                <div class="box-wrap middle reviewer-count-wrap" id="reviewerCountSettingPanel" style="@if(!project.menuSetting.code){display:none;}">
                     <div class="cu-label vmiddle">@Messages("project.reviewer.count")</div>
                     <div class="cu-desc">
-                        <input name="isUsingReviewerCount" data-toggle="reviewer-count" data-action="show" type="radio" @if(project.isUsingReviewerCount){checked="checked"} id="reviewerCountEnable" value="true" class="radio-btn">
+                        <input name="isUsingReviewerCount" data-toggle="reviewer-count" data-action="show" type="radio" class="radio-btn" id="reviewerCountEnable" value="true" @if(project.isUsingReviewerCount){checked="checked"}>
                         <label for="reviewerCountEnable" class="bg-radiobtn label-public">@Messages("project.reviewer.count.enable")</label>
-                        <input name="isUsingReviewerCount" data-toggle="reviewer-count" data-action="hide" type="radio" @if(!project.isUsingReviewerCount){checked="checked"} id="reviewerCountDisable" value="false" class="radio-btn">
+                        <input name="isUsingReviewerCount" data-toggle="reviewer-count" data-action="hide" type="radio" class="radio-btn" id="reviewerCountDisable" value="false" @if(!project.isUsingReviewerCount){checked="checked"}>
                         <label for="reviewerCountDisable" class="bg-radiobtn label-private">@Messages("project.reviewer.count.disable")</label>
 
                         <div id="welReviewerCount" data-value="@project.isUsingReviewerCount" class="hide">
@@ -107,7 +107,7 @@
                     </div>
                 </div>
 
-                <div class="box-wrap middle">
+                <div class="box-wrap middle" id="defaultBranceSettingPanel" style="@if(!project.menuSetting.code){display:none;}">
                     <div class="cu-label vmiddle">@Messages("code.branches.defaultBranch")</div>
                     <div class="cu-desc">
                         <select id="project-default-branch" name="defaultBranch"

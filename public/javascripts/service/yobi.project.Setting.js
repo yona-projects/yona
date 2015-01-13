@@ -54,6 +54,12 @@
             htElement.welInputName = $("input#project-name");
             htElement.welBtnSave   = $("#save");
             htElement.welReviewerCount = $("#welReviewerCount");
+            htElement.welMenuSettingCode = $("#menuSettingCode");
+            htElement.welMenuSettingPullRequest = $("#menuSettingPullRequest");
+            htElement.welMenuSettingReview = $("#menuSettingReview");
+            htElement.welReviewerCountSettingPanel = $("#reviewerCountSettingPanel");
+            htElement.welDefaultBranceSettingPanel = $("#defaultBranceSettingPanel");
+            htElement.welSubMenuProjectChangeVCS = $("#subMenuProjectChangeVCS");
         }
 
         /**
@@ -62,6 +68,9 @@
         function _attachEvent(){
             htElement.welInputLogo.change(_onChangeLogoPath);
             htElement.welBtnSave.click(_onClickBtnSave);
+            htElement.welMenuSettingCode.click(_onClickMenuSettingCode);
+            htElement.welMenuSettingPullRequest.click(_onClickMenuSettingCode);
+            htElement.welMenuSettingReview.click(_onClickMenuSettingCode);
 
             if(htElement.welReviewerCount.data("value") === true) {
                 htElement.welReviewerCount.show();
@@ -99,6 +108,22 @@
             }
 
             return true;
+        }
+
+        function _onClickMenuSettingCode() {
+            var isChecked = $(this).prop("checked");
+            htElement.welMenuSettingCode.prop("checked", isChecked);
+            htElement.welMenuSettingPullRequest.prop("checked", isChecked);
+            htElement.welMenuSettingReview.prop("checked", isChecked);
+            if (isChecked) {
+                htElement.welReviewerCountSettingPanel.show();
+                htElement.welDefaultBranceSettingPanel.show();
+                htElement.welSubMenuProjectChangeVCS.show();
+            } else {
+                htElement.welReviewerCountSettingPanel.hide();
+                htElement.welDefaultBranceSettingPanel.hide();
+                htElement.welSubMenuProjectChangeVCS.hide();
+            }
         }
 
         _init(htOptions);
