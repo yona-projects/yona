@@ -39,6 +39,8 @@ public interface PlayRepository {
 
     public abstract void create() throws IOException, ClientException;
 
+    public abstract boolean isIntermediateFolder(String path);
+
     public abstract ObjectNode getMetaDataFromPath(String path) throws IOException, GitAPIException, SVNException;
 
     public abstract byte[] getRawFile(String revision, String path) throws IOException, SVNException;

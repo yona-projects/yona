@@ -86,6 +86,10 @@ public class SVNRepository implements PlayRepository {
         return baos.toByteArray();
     }
 
+    public boolean isIntermediateFolder(String path) {
+        return false;
+    }
+
     @Override
     public ObjectNode getMetaDataFromPath(String path) throws SVNException, IOException {
         org.tmatesoft.svn.core.io.SVNRepository repository = getSVNRepository();
