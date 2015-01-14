@@ -279,6 +279,8 @@ public class NotificationEvent extends Model {
                     }
                 }
                 message.append("```\n");
+            } else {
+                message.append(reviewComment.getContents());
             }
 
             return message.toString();
