@@ -43,6 +43,7 @@ import play.data.validation.Constraints.*;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
 import scala.reflect.internal.Trees;
+import play.i18n.Messages;
 import utils.JodaDateUtil;
 import utils.ReservedWordsValidator;
 
@@ -740,5 +741,13 @@ public class User extends Model implements ResourceConvertible {
 
     private void add(OrganizationUser ou) {
         this.organizationUsers.add(ou);
+    }
+
+    public String toString() {
+        if (isAnonymous()) {
+            return Messages.get("user.role.anonymous");
+        } else {
+            return name + "(" + loginId + ")";
+        }
     }
 }
