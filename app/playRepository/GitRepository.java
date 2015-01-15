@@ -586,6 +586,7 @@ public class GitRepository implements PlayRepository {
         private void found(RevCommit revCommit, Map<String, ObjectId> objects) {
             for (String path : objects.keySet()) {
                 setLatestCommit(revCommit, path);
+                targets.remove(path);
             }
         }
 
@@ -603,7 +604,6 @@ public class GitRepository implements PlayRepository {
             data.put("commitId", commit.getShortId());
             data.put("commitUrl", routes.CodeHistoryApp.show(ownerName, projectName, commit.getShortId()).url());
             found.put(extendPath(basePath, path), data);
-            targets.remove(path);
         }
     }
 
