@@ -189,7 +189,7 @@ public class NotificationEvent extends Model {
      *     > @@ -1,5 +1,5 @@
      *     >   int bar(void)
      *     >   {
-     *     > -     printf("good");
+     *     > -     printf("bad");
      *     > +     printf("good");
      *
      *     Looks good to me
@@ -279,6 +279,8 @@ public class NotificationEvent extends Model {
                     }
                 }
                 message.append("```\n");
+            } else {
+                message.append(reviewComment.getContents());
             }
 
             return message.toString();
