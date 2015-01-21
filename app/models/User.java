@@ -660,4 +660,24 @@ public class User extends Model implements ResourceConvertible {
     private void add(OrganizationUser ou) {
         this.organizationUsers.add(ou);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if(!(o instanceof User)) {
+            return false;
+        }
+        if(o == this) {
+            return true;
+        }
+        User user = (User) o;
+        return this.id.equals(user.id) && this.loginId.equals(user.loginId);
+    }
+
+    @Override
+    public int hashCode() {
+      int result = 31;
+      result = result * 37 + this.id.hashCode();
+      result = result * 37 + this.loginId.hashCode();
+      return result;
+    }
 }
