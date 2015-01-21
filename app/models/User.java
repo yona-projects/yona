@@ -675,9 +675,9 @@ public class User extends Model implements ResourceConvertible {
 
     @Override
     public int hashCode() {
-      int result = 31;
-      result = result * 37 + this.id.hashCode();
-      result = result * 37 + this.loginId.hashCode();
+      int result = super.hashCode();
+      result = result * 37 + (this.id != null ? this.id.hashCode() : 0);
+      result = result * 37 + (this.loginId != null ? this.loginId.hashCode() : 0);
       return result;
     }
 }
