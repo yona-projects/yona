@@ -80,6 +80,10 @@ public class Organization extends Model implements ResourceConvertible {
         return (findRowCount != 0);
     }
 
+    public boolean isLastAdmin(User currentUser) {
+        return OrganizationUser.isAdmin(this, currentUser) && getAdmins().size() == 1;
+    }
+
     @Transactional
     public void cleanEnrolledUsers() {
         List<User> enrolledUsers = this.enrolledUsers;
@@ -180,5 +184,6 @@ public class Organization extends Model implements ResourceConvertible {
             project.update();
         }
     }
+
 }
 

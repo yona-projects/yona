@@ -240,10 +240,9 @@ public class OrganizationApp extends Controller {
             return okWithLocation(routes.OrganizationApp.members(organizationName).url());
         }
 
-        if (OrganizationUser.isAdmin(organization.id, userId) && organization.getAdmins().size() == 1
-                && roleForm.get().id.equals(RoleType.ORG_MEMBER.roleType())) {
-                    flash(Constants.WARNING, "organization.member.atLeastOneAdmin");
-                    return okWithLocation(routes.OrganizationApp.members(organizationName).url());
+        if (organization.isLastAdmin(currentUser) && roleForm.get().id.equals(RoleType.ORG_MEMBER.roleType())) {
+            flash(Constants.WARNING, "organization.member.atLeastOneAdmin");
+            return okWithLocation(routes.OrganizationApp.members(organizationName).url());
         }
 
         return null;
