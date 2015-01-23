@@ -513,4 +513,28 @@ public class Issue extends AbstractPosting implements LabelOwner {
             return Messages.get("common.time.default.day", JodaDateUtil.localDaysBetween(now, dueDate));
         }
     }
+
+    public static int countOpenIssuesByLabel(Project project, IssueLabel label) {
+        return finder.where()
+                .eq("project", project)
+                .eq("labels", label)
+                .findRowCount();
+    }
+
+    public static int countOpenIssuesByAssignee(Project project, Assignee assignee) {
+        return finder.where()
+                .eq("project", project)
+                .eq("assignee", assignee)
+                .findRowCount();
+    }
+
+    public static int countOpenIssuesByMilestone(Project project, Milestone milestone) {
+        return finder.where()
+                .eq("project", project)
+                .eq("milestone", milestone)
+                .findRowCount();
+    }
+
+
+
 }
