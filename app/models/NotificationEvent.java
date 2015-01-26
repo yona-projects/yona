@@ -1037,4 +1037,14 @@ public class NotificationEvent extends Model {
                 .findList();
     }
 
+    public static int getNotificationsCount(User user) {
+        String sql = "select t1.id " +
+                "from n4user t0 " +
+                "left outer join notification_event_n4user t1z_ on t1z_.n4user_id = t0.id " +
+                "left outer join notification_event t1 on t1.id = t1z_.notification_event_id " +
+                "left outer join notification_mail t2 on t2.notification_event_id = t1.id " +
+                "where t0.id = " + user.id + " and t1.id IS NOT NULL ";
+
+        return find.setRawSql(RawSqlBuilder.parse(sql).create()).findList().size();
+    }
 }
