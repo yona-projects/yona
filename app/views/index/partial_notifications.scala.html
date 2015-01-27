@@ -96,7 +96,7 @@
     }
 }
 
-@if(UserApp.currentUser.notificationEvents.size > size){
+@if(NotificationEvent.getNotificationsCount(UserApp.currentUser()) > size){
 <li><a href="javascript: void(0);" id="notification-more" class="ybtn">More</a></li>
 <script type="text/javascript">
     $(document).ready(function(){
