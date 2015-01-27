@@ -173,6 +173,9 @@ public class SvnApp extends Controller {
             // 205 MUST include message body of zero length.
             return status(statusCode, "");
         } else {
+            // Passing a stream to status method triggers chunked encoding which
+            // does not allow Content-Length header.
+            response().getHeaders().remove("Content-Length");
             return status(statusCode, input);
         }
     }
