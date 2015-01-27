@@ -24,6 +24,7 @@
 @import utils.JodaDateUtil
 @import utils.TemplateHelper._
 @import utils.AccessControl._
+@import utils.Markdown
 @import models.enumeration._
 @import scala.collection.immutable._
 
@@ -38,7 +39,7 @@
         <div class="project-home-header row-fluid">
             <div class="project-overview span9">
                 <div class="project-description" data-toggle="project-description-tab">
-                <h3><span id="project-description">@if(StringUtils.isEmpty(project.overview)) {@Messages("project.description.placeholder")} else {@project.overview}</span>
+                <h3><span id="project-description" class="markdown-wrap">@if(StringUtils.isEmpty(project.overview)) {@Messages("project.description.placeholder")} else {@Html(Markdown.render(project.overview))}</span>
                     @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)){
                 <button type="button" class="ybtn ybtn-minimum" data-toggle="description-edit"><i class="yobicon-edit"></i></button>
                     }
@@ -211,6 +212,7 @@
         </div>
     </div>
 </div>
+@common.markdown(project)
 <script type="text/javascript">
 $(document).ready(function(){
     $yobi.loadModule("project.Home", {
@@ -219,7 +221,7 @@ $(document).ready(function(){
         "sURLLabelCategories": "@routes.LabelApp.categories()",
         "welLabelBoard": $('#label-board'),
         "welLabelEditorToggle": $('#label-editor-toggle'),
-        "nProjectId"     : @project.id,
+        "nProjectId"     : "@project.id",
         "sURLProject"       : "@routes.ProjectApp.projectOverviewUpdate(project.owner, project.name)",
         "sURLZeroClipboard" : "@routes.Assets.at("javascripts/lib/jquery/ZeroClipboard.swf")"
     });
