@@ -31,12 +31,11 @@
         </ul>
         <div class="project-setting">
             <ul class="project-menu-nav">
-                @if(OrganizationUser.isAdmin(org, UserApp.currentUser)) {
+                @if(OrganizationUser.isAdmin(org, UserApp.currentUser) || UserApp.currentUser().isSiteManager) {
                     <li class="">
                         <a href="@routes.OrganizationApp.settingForm(org.name)">
                             <i class="yobicon-cog"></i>
                             <span class="blind">@Messages("menu.admin")</span>
-
                         </a>
                     <li>
                 }
