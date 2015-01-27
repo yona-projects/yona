@@ -40,7 +40,7 @@
                         </a>
                     </div>
                     <div class="span2 num">
-                        <strong>@countOpenIssuesBy(project, Map("labelIds"->label.id.toString))</strong>
+                        <strong>@Issue.countOpenIssuesByLabel(project, label)</strong>
                     </div>
                 </div>
             }

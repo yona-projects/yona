@@ -241,11 +241,6 @@ object TemplateHelper {
       )
   }
 
-  def countOpenIssuesBy(project:Project, cond:java.util.Map[String,String]) = {
-    cond += ("state" -> models.enumeration.State.OPEN.toString)
-    Issue.countIssuesBy(project.id, cond)
-  }
-
   def urlToOrganizationLogo(organization: Organization) = {
     models.Attachment.findByContainer(organization.asResource) match {
       case files if files.size > 0 => routes.AttachmentApp.getFile(files.head.id)
