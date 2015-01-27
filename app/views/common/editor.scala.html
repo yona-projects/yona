@@ -18,7 +18,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(editorName:String, textValue:String="", additionalAttr:String="", editorMode:String="content-body")
+@(editorName:String, textValue:String="", additionalAttr:String="", editorMode:String="content-body", viaEmail:Boolean=false)
 
 @import org.apache.commons.lang3.RandomStringUtils._
 @import utils.TemplateHelper._
@@ -45,7 +45,7 @@
         </div>
 
         <div id="preview-@wrapId" class="tab-pane">
-            <div class="markdown-preview markdown-wrap"></div>
+            <div class="markdown-preview markdown-wrap" data-via-email="@viaEmail"></div>
         </div>
     </div>
 </div>

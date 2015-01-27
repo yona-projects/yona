@@ -35,19 +35,18 @@ import models.enumeration.State;
 import models.resource.Resource;
 import models.support.SearchCondition;
 import org.apache.commons.lang3.time.DateUtils;
+import play.data.Form;
 import play.data.format.Formats;
 import play.i18n.Messages;
 import utils.JodaDateUtil;
 
 import javax.persistence.*;
-
-import play.data.Form;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.Boolean;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.regex.Pattern;
 
 @Entity
@@ -105,6 +104,15 @@ public class Issue extends AbstractPosting implements LabelOwner {
     @Transient
     @Formula(select = "case when due_date is null then cast('9999-12-31 23:59:59' as timestamp) else due_date end")
     public Date dueDateAsc;
+
+    public Issue(Project project, User author, String title, String body) {
+        super(project, author, title, body);
+        this.state = State.OPEN;
+    }
+
+    public Issue() {
+        super();
+    }
 
     /**
      * @see models.AbstractPosting#computeNumOfComments()

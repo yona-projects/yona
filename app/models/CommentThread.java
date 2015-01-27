@@ -20,15 +20,15 @@
  */
 package models;
 
-import models.support.ReviewSearchCondition;
-import play.data.format.Formats;
-import play.data.validation.Constraints;
 import models.enumeration.ResourceType;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
+import models.support.ReviewSearchCondition;
+import play.data.format.Formats;
+import play.data.validation.Constraints;
 import play.db.ebean.Model;
+
 import javax.persistence.*;
-import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;

@@ -64,6 +64,9 @@
                         @if(YobiUpdate.versionToUpdate != null) { <span class="notification-badge">1</span> }
                         </a>
                     </li>
+                    <li class="@isActiveMenu(routes.SiteApp.diagnose())">
+                        <a href="@routes.SiteApp.diagnose()">@Messages("site.sidebar.diagnostics")</a>
+                    </li>
                 </ul>
             </div>
             <div class="span10">

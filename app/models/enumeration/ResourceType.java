@@ -20,6 +20,9 @@
  */
 package models.enumeration;
 
+import play.api.i18n.Lang;
+import play.i18n.Messages;
+
 public enum ResourceType {
     ISSUE_POST("issue_post"),
     ISSUE_ASSIGNEE("issue_assignee"),
@@ -72,5 +75,24 @@ public enum ResourceType {
             }
         }
         throw new IllegalArgumentException("No matching resource type found for [" + value + "]");
+    }
+
+    public String asPathSegment() {
+        switch(this) {
+            case ISSUE_POST:
+                return "issue";
+            case BOARD_POST:
+                return "post";
+            case COMMENT_THREAD:
+                return "review";
+            case COMMIT:
+                return "commit";
+            default:
+                return this.resource;
+        }
+    }
+
+    public String getName(Lang lang) {
+        return Messages.get(lang, "resource." + resource);
     }
 }

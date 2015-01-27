@@ -80,6 +80,7 @@ DELETE         /sites/project/delete/:projectId                                 
 POST           /sites/toggleAccountLock                                               controllers.SiteApp.toggleAccountLock(loginId: String, state: String ?= null, query: String ?= null)
 GET            /sites/update                                                          controllers.SiteApp.update()
 POST           /sites/unwatchUpdate                                                   controllers.SiteApp.unwatchUpdate()
+GET            /sites/diagnostic                                                      controllers.SiteApp.diagnose()
 GET            /lostPassword                                                          controllers.PasswordResetApp.lostPassword
 POST           /lostPassword                                                          controllers.PasswordResetApp.requestResetPasswordEmail()
 GET            /resetPassword                                                         controllers.PasswordResetApp.resetPasswordForm(s:String)

@@ -18,6 +18,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import mailbox.MailboxService;
+import com.avaje.ebean.Ebean;
+import controllers.SvnApp;
+import controllers.UserApp;
+import controllers.routes;
+import models.*;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.impl.cookie.DateUtils;
+import play.Application;
+import play.GlobalSettings;
+import play.Play;
+import play.api.mvc.Handler;
+import play.data.Form;
+import play.mvc.Action;
+import play.mvc.Http;
+import play.mvc.Http.RequestHeader;
+import play.mvc.Result;
+import play.libs.F.Promise;
+
+import play.mvc.Result;
+import play.mvc.Results;
+import utils.*;
+import views.html.welcome.restart;
+import views.html.welcome.secret;
+
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
@@ -28,31 +54,6 @@ import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.Date;
 
-import com.avaje.ebean.Ebean;
-import controllers.SvnApp;
-import models.*;
-
-import controllers.UserApp;
-import controllers.routes;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.impl.cookie.DateUtils;
-import play.Application;
-import play.GlobalSettings;
-import play.Play;
-import play.api.mvc.Handler;
-import play.data.Form;
-import play.mvc.*;
-import play.mvc.Http.RequestHeader;
-import play.mvc.Result;
-import play.libs.F.Promise;
-
-import utils.AccessControl;
-import utils.AccessLogger;
-import utils.ErrorViews;
-import utils.YamlUtil;
-
-import views.html.welcome.secret;
-import views.html.welcome.restart;
 import static play.data.Form.form;
 import static play.mvc.Results.badRequest;
 
@@ -64,17 +65,22 @@ public class Global extends GlobalSettings {
     private boolean isSecretInvalid = false;
     private boolean isRestartRequired = false;
 
+    private MailboxService mailboxService = new MailboxService();
+
     @Override
     public void onStart(Application app) {
         isSecretInvalid = equalsDefaultSecret();
         insertInitialData();
 
+        Config.onStart();
+        Property.onStart();
         PullRequest.onStart();
         NotificationMail.onStart();
         NotificationEvent.onStart();
         Attachment.onStart();
         YobiUpdate.onStart();
         AccessControl.onStart();
+        mailboxService.start();
     }
 
     private boolean equalsDefaultSecret() {
@@ -208,6 +214,7 @@ public class Global extends GlobalSettings {
     }
 
     public void onStop(Application app) {
+        mailboxService.stop();
     }
 
     @Override

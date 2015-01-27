@@ -42,6 +42,7 @@ import play.libs.Akka;
 import playRepository.*;
 import scala.concurrent.duration.Duration;
 import utils.AccessControl;
+import utils.Config;
 import utils.EventConstants;
 import utils.RouteUtil;
 
@@ -480,6 +481,10 @@ public class NotificationEvent extends Model {
      */
     public static void afterNewComment(User sender, PullRequest pullRequest,
                                        ReviewComment newComment, String urlToView) {
+        NotificationEvent.add(forNewComment(sender, pullRequest, newComment));
+    }
+
+    public static NotificationEvent forNewComment(User sender, PullRequest pullRequest, ReviewComment newComment) {
         NotificationEvent notiEvent = createFrom(sender, newComment);
         notiEvent.title = formatReplyTitle(pullRequest);
         Set<User> receivers = getMentionedUsers(newComment.getContents());
@@ -489,8 +494,7 @@ public class NotificationEvent extends Model {
         notiEvent.eventType = NEW_REVIEW_COMMENT;
         notiEvent.oldValue = null;
         notiEvent.newValue = newComment.getContents();
-
-        NotificationEvent.add(notiEvent);
+        return notiEvent;
     }
 
     public static NotificationEvent afterNewPullRequest(PullRequest pullRequest) {
@@ -502,21 +506,24 @@ public class NotificationEvent extends Model {
     }
 
     public static void afterNewComment(Comment comment) {
+        NotificationEvent.add(forNewComment(comment, UserApp.currentUser()));
+    }
+
+    public static NotificationEvent forNewComment(Comment comment, User author) {
         AbstractPosting post = comment.getParent();
 
-        NotificationEvent notiEvent = createFromCurrentUser(comment);
+        NotificationEvent notiEvent = createFrom(author, comment);
         notiEvent.title = formatReplyTitle(post);
         Set<User> receivers = getReceivers(post);
         receivers.addAll(getMentionedUsers(comment.contents));
-        receivers.remove(UserApp.currentUser());
+        receivers.remove(author);
         notiEvent.receivers = receivers;
         notiEvent.eventType = NEW_COMMENT;
         notiEvent.oldValue = null;
         notiEvent.newValue = comment.contents;
         notiEvent.resourceType = comment.asResource().getType();
         notiEvent.resourceId = comment.asResource().getId();
-
-        NotificationEvent.add(notiEvent);
+        return notiEvent;
     }
 
     public static void afterNewCommentWithState(Comment comment, State state) {
@@ -585,8 +592,6 @@ public class NotificationEvent extends Model {
         return notiEvent;
     }
 
-
-
     public static NotificationEvent afterAssigneeChanged(User oldAssignee, Issue issue) {
         NotificationEvent notiEvent = createFromCurrentUser(issue);
 
@@ -611,14 +616,17 @@ public class NotificationEvent extends Model {
     }
 
     public static void afterNewIssue(Issue issue) {
-        NotificationEvent notiEvent = createFromCurrentUser(issue);
+        NotificationEvent.add(forNewIssue(issue, UserApp.currentUser()));
+    }
+
+    public static NotificationEvent forNewIssue(Issue issue, User author) {
+        NotificationEvent notiEvent = createFrom(author, issue);
         notiEvent.title = formatNewTitle(issue);
         notiEvent.receivers = getReceivers(issue);
         notiEvent.eventType = NEW_ISSUE;
         notiEvent.oldValue = null;
         notiEvent.newValue = issue.body;
-
-        NotificationEvent.add(notiEvent);
+        return notiEvent;
     }
 
     public static NotificationEvent afterIssueBodyChanged(String oldBody, Issue issue) {
@@ -635,39 +643,55 @@ public class NotificationEvent extends Model {
     }
 
     public static void afterNewPost(Posting post) {
-        NotificationEvent notiEvent = createFromCurrentUser(post);
+        NotificationEvent.add(forNewPosting(post, UserApp.currentUser()));
+    }
+
+    public static NotificationEvent forNewPosting(Posting post, User author) {
+        NotificationEvent notiEvent = createFrom(author, post);
         notiEvent.title = formatNewTitle(post);
         notiEvent.receivers = getReceivers(post);
         notiEvent.eventType = NEW_POSTING;
         notiEvent.oldValue = null;
         notiEvent.newValue = post.body;
-
-        NotificationEvent.add(notiEvent);
+        return notiEvent;
     }
 
     public static void afterNewCommitComment(Project project, ReviewComment comment,
                                              String commitId) throws
             IOException, SVNException, ServletException {
+        NotificationEvent.add(
+                forNewCommitComment(project, comment, commitId, UserApp.currentUser()));
+    }
+
+    public static NotificationEvent forNewCommitComment(
+            Project project, ReviewComment comment, String commitId, User author)
+            throws IOException, SVNException, ServletException {
         Commit commit = RepositoryService.getRepository(project).getCommit(commitId);
         Set<User> watchers = commit.getWatchers(project);
         watchers.addAll(getMentionedUsers(comment.getContents()));
-        watchers.remove(UserApp.currentUser());
+        watchers.remove(author);
 
-        NotificationEvent notiEvent = createFromCurrentUser(comment);
+        NotificationEvent notiEvent = createFrom(author, comment);
         notiEvent.title = formatReplyTitle(project, commit);
         notiEvent.receivers = watchers;
         notiEvent.eventType = NEW_REVIEW_COMMENT;
         notiEvent.oldValue = null;
         notiEvent.newValue = comment.getContents();
-
-        NotificationEvent.add(notiEvent);
+        return notiEvent;
     }
 
-    public static void afterNewSVNCommitComment(Project project, CommitComment codeComment) throws IOException, SVNException, ServletException {
+    public static void afterNewSVNCommitComment(Project project, CommitComment codeComment)
+            throws IOException, SVNException, ServletException {
+        NotificationEvent.add(forNewSVNCommitComment(project, codeComment, UserApp.currentUser()));
+    }
+
+    private static NotificationEvent forNewSVNCommitComment(
+            Project project, CommitComment codeComment, User author)
+            throws IOException, SVNException, ServletException {
         Commit commit = RepositoryService.getRepository(project).getCommit(codeComment.commitId);
         Set<User> watchers = commit.getWatchers(project);
         watchers.addAll(getMentionedUsers(codeComment.contents));
-        watchers.remove(UserApp.currentUser());
+        watchers.remove(author);
 
         NotificationEvent notiEvent = createFromCurrentUser(codeComment);
         notiEvent.title = formatReplyTitle(project, commit);
@@ -675,8 +699,7 @@ public class NotificationEvent extends Model {
         notiEvent.eventType = NEW_COMMENT;
         notiEvent.oldValue = null;
         notiEvent.newValue = codeComment.contents;
-
-        NotificationEvent.add(notiEvent);
+        return notiEvent;
     }
 
     public static void afterMemberRequest(Project project, User user, RequestState state) {
@@ -827,7 +850,7 @@ public class NotificationEvent extends Model {
     private static Set<User> getReceivers(AbstractPosting abstractPosting) {
         Set<User> receivers = abstractPosting.getWatchers();
         receivers.addAll(getMentionedUsers(abstractPosting.body));
-        receivers.remove(UserApp.currentUser());
+        receivers.remove(abstractPosting.author);
         return receivers;
     }
 
@@ -1047,4 +1070,5 @@ public class NotificationEvent extends Model {
 
         return find.setRawSql(RawSqlBuilder.parse(sql).create()).findList().size();
     }
+
 }

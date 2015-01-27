@@ -42,6 +42,11 @@ public class IssueComment extends Comment {
     )
     public List<User> voters;
 
+    public IssueComment(Issue issue, User author, String contents) {
+        super(author, contents);
+        this.issue = issue;
+    }
+
     /**
      * @see Comment#getParent()
      */

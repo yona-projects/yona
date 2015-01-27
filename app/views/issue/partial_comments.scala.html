@@ -145,7 +145,7 @@
             @common.commentUpdateForm(comment.id, routes.IssueApp.newComment(project.owner, project.name, issue.getNumber).toString(), comment.contents)
 
             <div id="comment-body-@comment.id">
-                <div class="comment-body markdown-wrap">@Html(Markdown.render(comment.contents, project))</div>
+                <div class="comment-body markdown-wrap" data-via-email="@OriginalEmail.exists(comment.asResource)">@Html(Markdown.render(comment.contents, project))</div>
                 <div class="attachments pull-right" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.ISSUE_COMMENT.toString(), comment.id.toString()))"></div>
             </div>
         </div>

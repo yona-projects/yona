@@ -86,6 +86,7 @@
 <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yobi.ui.Toast.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yobi.ui.Tabs.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yobi.ui.Spinner.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/common/yobi.OriginalMessage.js")"></script>
 
 <script type="text/javascript">
     $yobi.setScriptPath("@getJSPath");
@@ -186,5 +187,6 @@
             $('#gnb-search-scope-title').text($(this).text());
         });
 
+        yobi.OriginalMessage.hide($("[data-via-email]"));
     });
 </script>

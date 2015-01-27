@@ -34,6 +34,23 @@ import java.util.Enumeration;
 public class Config {
     public static final String DEFAULT_SCHEME = "http";
 
+    public static void onStart() {
+        Diagnostic.register(new SimpleDiagnostic() {
+            @Override
+            public String checkOne() {
+                Configuration config = Configuration.root();
+
+                if (config.getInt("application.port") != null
+                        && config.getInt("application.hostname") == null) {
+                    return "application.port may be ignored because " +
+                            "application.hostname is not configured.";
+                } else {
+                    return null;
+                }
+            }
+        });
+    }
+
     public static String getSiteName() {
         return ObjectUtils.defaultIfNull(
                 play.Configuration.root().getString("application.siteName"), "Yobi");
@@ -57,10 +74,6 @@ public class Config {
                return hostname;
             }
         } else {
-           if (play.Configuration.root().getInt("application.port") != null) {
-               play.Logger.warn("application.port is ignored because application.hostname is not" +
-                       " configured.");
-           }
            return defaultValue;
         }
     }
@@ -183,18 +196,7 @@ public class Config {
     }
 
     public static String getEmailFromSmtp() {
-        Configuration config = Configuration.root();
-        String user = config.getString("smtp.user");
-
-        if (user == null) {
-            return null;
-        }
-
-        if (user.contains("@")) {
-            return user;
-        } else {
-            return user + "@" + config.getString("smtp.domain");
-        }
+        return getEmail("smtp");
     }
 
     /**
@@ -264,5 +266,24 @@ public class Config {
         File versionFile = Paths.get("conf", "version.conf").toFile();
 
         return ConfigFactory.parseFile(versionFile).resolve().getString("app.version");
+    }
+
+    public static String getEmailFromImap() {
+        return Configuration.root().getString("imap.address", getEmail("imap"));
+    }
+
+    private static String getEmail(String prefix) {
+        Configuration config = Configuration.root();
+        String user = config.getString(prefix + ".user");
+
+        if (user == null) {
+            return null;
+        }
+
+        if (user.contains("@")) {
+            return user;
+        } else {
+            return user + "@" + config.getString(prefix + ".domain", getHostname());
+        }
     }
 }

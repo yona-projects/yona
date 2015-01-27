@@ -126,7 +126,7 @@
                                 }
                             </div>
 
-                            <div class="comment-body markdown-wrap">@Html(Markdown.render(comment.contents, comment.asResource().getProject()))</div>
+                            <div class="comment-body markdown-wrap" data-via-email="@OriginalEmail.exists(comment.asResource)">@Html(Markdown.render(comment.contents, comment.asResource().getProject()))</div>
 
                             <div class="attachments" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.COMMIT_COMMENT.toString(), comment.id.toString()))"></div>
                         </div>

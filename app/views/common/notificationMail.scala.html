@@ -18,11 +18,9 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(userLanguage:Lang, message:String, urlToView:String = null, resource:models.resource.Resource)
+@(userLanguage:Lang, message:String, urlToView:String = null, resource:models.resource.Resource, acceptsReply:Boolean)
 
-@getFooterLinkHTML(link:String, anchorText:String) = {
-  <a href="@link" target="_blank" style="color:#4399e2; text-decoration:underline;">@anchorText</a>
-}
+@getFooterLinkHTML(link:String, anchorText:String) = {<a href="@link" target="_blank" style="color:#4399e2; text-decoration:underline;">@anchorText</a>}
 
 <div style="font-family:'Helvetica Neue','Helvetica','Arial','나눔고딕','NanumGothic','NanumGothicOTF','Apple SD Gothic Neo','맑은 고딕',sans-serif;">
   @Html(message)
@@ -31,18 +29,7 @@
 <hr style="border:0; border-bottom:1px solid #ddd; margin:20px 0;">
 
 @if(urlToView != null){
-<a href="@urlToView" target="_blank">
-  @Messages("notification.linkToView", utils.Config.getSiteName())(userLanguage)
-</a>
+@Html(Messages(if(acceptsReply){"notification.replyOrLinkToViewHtml"}else{"notification.linkToViewHtml"}, utils.Config.getSiteName(), urlToView, "_blank")(userLanguage))
 }
 
-<div style="max-width:410px;margin-top:20px;color:#989898;text-align:justify;word-break:break-all;font-size:11px;font-family:'Helvetica Neue','Helvetica','Arial','나눔고딕','NanumGothic','NanumGothicOTF','Apple SD Gothic Neo','맑은 고딕',sans-serif;">
-  @Html(Messages("notification.off.unwatch",
-                  getFooterLinkHTML(routes.WatchApp.unwatch(resource.asParameter).toString,
-                                    Messages("notification.unwatch")(userLanguage))
-                )(userLanguage))<br>
-  @Html(Messages("notification.off.settings",
-                 getFooterLinkHTML(routes.UserApp.editUserInfoByTabForm("notifications").toString,
-                                   Messages("userinfo.changeNotifications")(userLanguage))
-                )(userLanguage))
-</div>
+<div style="max-width:410px;margin-top:20px;color:#989898;text-align:justify;word-break:break-all;font-size:11px;font-family:'Helvetica Neue','Helvetica','Arial','나눔고딕','NanumGothic','NanumGothicOTF','Apple SD Gothic Neo','맑은 고딕',sans-serif;">@Html(Messages("notification.off.unwatch", getFooterLinkHTML(routes.WatchApp.unwatch(resource.asParameter).toString, Messages("notification.unwatch")(userLanguage)))(userLanguage))<br>@Html(Messages("notification.off.settings", getFooterLinkHTML(routes.UserApp.editUserInfoByTabForm("notifications").toString, Messages("userinfo.changeNotifications")(userLanguage)))(userLanguage))</div>
