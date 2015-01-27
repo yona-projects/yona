@@ -43,7 +43,7 @@ public class Markdown {
     private static ScriptEngine engine = buildEngine();
 
     private static ScriptEngine buildEngine() {
-        ScriptEngineManager manager = new ScriptEngineManager();
+        ScriptEngineManager manager = new ScriptEngineManager(null);
         InputStream is = null;
         Reader reader = null;
         ScriptEngine _engine = manager.getEngineByName("JavaScript");
