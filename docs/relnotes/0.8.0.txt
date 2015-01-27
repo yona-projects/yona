@@ -1,0 +1,20 @@
+Yobi v0.8.0 Release Notes
+=========================
+
+Backward compatibility notes
+----------------------------
+
+If you are using implicit relative path for the db.default.url,
+then you have to change it to use explicit relative path like:
+
+    AS IS:
+    db.default.url="jdbc:h2:file:yobi;MODE=PostgreSQL"
+
+    TO BE:
+    db.default.url="jdbc:h2:file:./yobi;MODE=PostgreSQL"
+
+Updates since v0.7.2
+------------------
+
+* Updated H2 database to v1.4.184. (45e1288)
+
