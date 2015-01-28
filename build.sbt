@@ -24,11 +24,11 @@ libraryDependencies ++= Seq(
   // Symlink support for Java7
   "org.eclipse.jgit" % "org.eclipse.jgit.java7" % "3.5.3.201412180710-r",
   // svnkit
-  "sonia.svnkit" % "svnkit" % "1.7.10-scm3",
+  "sonia.svnkit" % "svnkit" % "1.8.5-scm2",
   // svnkit-dav
-  "sonia.svnkit" % "svnkit-dav" % "1.7.10-scm3",
+  "sonia.svnkit" % "svnkit-dav" % "1.8.5-scm2",
   // javahl
-  "sonia.svnkit" % "svnkit-javahl16" % "1.7.10-scm3",
+  "sonia.svnkit" % "svnkit-javahl16" % "1.8.5-scm2",
   "net.sourceforge.jexcelapi" % "jxl" % "2.6.10",
 // shiro
   "org.apache.shiro" % "shiro-core" % "1.2.1",
