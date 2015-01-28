@@ -166,8 +166,11 @@
                                             ? data.overview
                                             : $("#project-description-input").attr('placeholder');
 
+                        yobi.Markdown.render($("#project-description"), sDescription);
+
                         $('[data-toggle="project-description-tab"]').toggleClass('hidden');
-                        $("#project-description").text(sDescription);
+
+
                 }).fail(function(err){
                         console.log("err>> ", err);
                 });

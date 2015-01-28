@@ -53,14 +53,18 @@ yobi.Markdown = (function(htOptions){
          * Because, the content body not replaced is shown to user before this request.
          */
         if(htVar.sAutoLinkRenderUrl){
-            $.ajax(htVar.sMarkdownRendererUrl,{
-                "type": "post",
-                "data": {"body": sContentBody, "breaks": (welTarget.hasClass('readme-body') ? false : true)},
-                "success": function(data){
-                    welTarget.html(data);
-                }
-            });
+            _render(welTarget, sContentBody);
         }
+    }
+
+    function _render(welTarget, sContentBody) {
+        $.ajax(htVar.sMarkdownRendererUrl,{
+            "type": "post",
+            "data": {"body": sContentBody, "breaks": (welTarget.hasClass('readme-body') ? false : true)},
+            "success": function(data){
+                welTarget.html(data);
+            }
+        });
     }
 
     /**
@@ -125,6 +129,7 @@ yobi.Markdown = (function(htOptions){
     // public interface
     return {
         "init"  : _init,
-        "enableMarkdown": _enableMarkdown
+        "enableMarkdown": _enableMarkdown,
+        "render" : _render
     };
 })();
