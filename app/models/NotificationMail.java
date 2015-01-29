@@ -305,6 +305,10 @@ public class NotificationMail extends Model {
             return null;
         }
 
+        if (Config.getEmailFromImap() == null) {
+            return null;
+        }
+
         String detail = null;
 
         switch(resource.getType()) {
