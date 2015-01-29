@@ -128,7 +128,13 @@ public class MailboxService {
      * Stop MailboxService.
      */
     public void stop() {
+        if (folder == null && store == null && pollingSchedule == null) {
+            // We don't need to stop the Mailbox Service which didn't start.
+            return;
+        }
+
         isStopping = true;
+
         try {
             folder.close(true);
             store.close();
