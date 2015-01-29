@@ -203,10 +203,10 @@ public class SVNRepository implements PlayRepository {
     }
 
     @Override
-    public void create() throws ClientException {
+    public void create() throws SVNException {
         String svnPath = new File(SVNRepository.getRepoPrefix() + ownerName + "/" + projectName)
                 .getAbsolutePath();
-        new org.tigris.subversion.javahl.SVNAdmin().create(svnPath, false, false, null, "fsfs");
+        SVNRepositoryFactory.createLocalRepository(new File(svnPath), true, false);
     }
 
     @Override

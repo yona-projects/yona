@@ -20,16 +20,15 @@
  */
 package playRepository;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.ProjectApp;
 import controllers.UserApp;
 import models.Project;
 import models.User;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.transport.RefAdvertiser.PacketLineOutRefAdvertiser;
-import org.tigris.subversion.javahl.ClientException;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.internal.server.dav.DAVServlet;
 import play.Logger;
@@ -69,7 +68,7 @@ public class RepositoryService {
      * @see {@link PlayRepository#create()}
      */
     public static void createRepository(Project project) throws IOException, ServletException,
-            ClientException, UnsupportedOperationException {
+            UnsupportedOperationException, SVNException {
         RepositoryService.deleteRepository(project);
         RepositoryService.getRepository(project).create();
     }
