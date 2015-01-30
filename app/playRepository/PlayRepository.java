@@ -20,12 +20,9 @@
  */
 package playRepository;
 
-import models.resource.Resource;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import models.resource.Resource;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Repository;
-import org.tigris.subversion.javahl.ClientException;
 import org.tmatesoft.svn.core.SVNException;
 
 import java.io.File;
@@ -37,7 +34,7 @@ public interface PlayRepository {
     public final long MAX_FILE_SIZE_CAN_BE_VIEWED = play.Configuration.root().getInt(
             "application.codeBrowser.viewer.maxFileSize", 1024 * 1024);
 
-    public abstract void create() throws IOException, ClientException;
+    public abstract void create() throws IOException, SVNException;
 
     public abstract boolean isIntermediateFolder(String path);
 

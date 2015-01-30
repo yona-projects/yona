@@ -30,6 +30,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.tigris.subversion.javahl.ClientException;
+import org.tmatesoft.svn.core.SVNException;
 import play.libs.Json;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -435,7 +436,7 @@ public class ProjectAppTest {
     }
 
     @Test
-    public void testAcceptTransfer() throws IOException, ServletException, ClientException {
+    public void testAcceptTransfer() throws IOException, ServletException, SVNException {
         //Given
         GitRepository.setRepoPrefix("resources/test/repo/git/");
 
@@ -461,7 +462,7 @@ public class ProjectAppTest {
     }
 
     @Test
-    public void testAcceptTransferWithWrongKey() throws IOException, ServletException, ClientException {
+    public void testAcceptTransferWithWrongKey() throws IOException, ServletException, SVNException {
         //Given
         GitRepository.setRepoPrefix("resources/test/repo/git/");
 

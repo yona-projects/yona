@@ -24,22 +24,30 @@ import errors.PullRequestException;
 import org.apache.commons.lang3.time.DateUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.diff.*;
+import org.eclipse.jgit.diff.DiffAlgorithm;
+import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.diff.RawText;
+import org.eclipse.jgit.diff.RawTextComparator;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.transport.RefSpec;
-import org.junit.*;
-
-import org.tigris.subversion.javahl.ClientException;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import org.tmatesoft.svn.core.SVNException;
 import play.test.Helpers;
-import playRepository.*;
+import playRepository.FileDiff;
+import playRepository.GitRepository;
+import playRepository.PlayRepository;
+import playRepository.RepositoryService;
 
 import javax.servlet.ServletException;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -58,7 +66,7 @@ public class PullRequestTest extends ModelTest<PullRequest> {
 
     @Before
     public void initRepositories() throws IOException, GitAPIException, ServletException,
-            ClientException, PullRequestException {
+            PullRequestException, SVNException {
         GitRepository.setRepoPrefix(REPO_PREFIX);
 
         app = support.Helpers.makeTestApplication();
