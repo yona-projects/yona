@@ -54,3 +54,11 @@ and/or 'References' header of the received email.
 
 If Yobi failed to post an email, it replies to the sender with an email which
 contains the reason and help message.
+
+## Security Consideration
+
+Yobi believes the email address in From header of the received email is
+truthful and use it for authentication without doubt. It means a malicious user
+can send an email from another person's email address to create an issue to
+a private project the user cannot access. To avoid this problem, your imap
+server must deny every email whose From header is forged.
