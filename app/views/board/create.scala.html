@@ -27,7 +27,7 @@
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
 @readmeUpdateMessage = @{
-  if( requestHeader.getQueryString("readme") != null ) {
+  if( !requestHeader.getQueryString("readme").equals(None) ) {
       "Update README.md"
   }
 }
@@ -58,15 +58,14 @@
             @common.editor("body", preparedPostBody, "tabindex=2")
           </dd>
         </dl>
-
-        @** fileUploader **@
+          @** fileUploader **@
         @if(!UserApp.currentUser.isAnonymous) {
             @common.fileUploader(ResourceType.BOARD_POST, null)
         }
         @** end of fileUploader **@
 
         <div class="right-txt mt10 mb10">
-          @if(isAllowedToNotice && !stringToBoolean(requestHeader.getQueryString("readme").get)){
+          @if(isAllowedToNotice ){
           <label class="checkbox">
             <input type="checkbox" id="notice" name="notice">
             @Messages("post.notice.label")
@@ -74,9 +73,9 @@
           }
 
           @if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.COMMIT)){
-            @if(project.isGit && stringToBoolean(requestHeader.getQueryString("readme").get)){
+            @if(project.isGit && !requestHeader.getQueryString("readme").equals(None)){
             <label class="checkbox">
-              <input type="checkbox" id="readme" name="readme" @boolToCheckedString(requestHeader.getQueryString("readme"))>
+              <input type="checkbox" id="readme" name="readme" @boolToCheckedString(!requestHeader.getQueryString("readme").equals(None))>
               @Messages("post.readmefy")
             </label>
             }
