@@ -34,6 +34,7 @@ import models.resource.GlobalResource;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
 
+import models.support.UserComparator;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.crypto.hash.Sha256Hash;
 import org.apache.shiro.util.ByteSource;
@@ -613,11 +614,18 @@ public class User extends Model implements ResourceConvertible {
      * @return
      */
     public static List<User> findIssueAuthorsByProjectIdAndMe(User currentUser, long projectId) {
-        String sql = "select distinct user.id, user.name, user.login_id from issue issue, n4user user where issue.author_id = user.id or user.id = " + currentUser.id;
-        return createUserSearchQueryWithRawSql(sql).where()
+        String sql = "select distinct user.id, user.name, user.login_id from issue issue, n4user user where issue.author_id = user.id";
+        List<User> users = createUserSearchQueryWithRawSql(sql).where()
                 .eq("issue.project_id", projectId)
                 .orderBy("user.name ASC")
                 .findList();
+
+        if (!users.contains(currentUser)) {
+            users.add(currentUser);
+            Collections.sort(users, new UserComparator());
+        }
+
+        return users;
     }
 
     /**
@@ -627,10 +635,17 @@ public class User extends Model implements ResourceConvertible {
      * @return
      */
     public static List<User> findIssueAssigneeByProjectIdAndMe(User currentUser, long projectId) {
-        String sql = "SELECT id, name FROM n4user WHERE id = " + currentUser.id + " or id IN (SELECT DISTINCT user_id FROM assignee WHERE id IN (SELECT DISTINCT assignee_id FROM issue WHERE project_id = " + projectId + "))";
-        return User.find.setRawSql(RawSqlBuilder.parse(sql).create())
+        String sql = "SELECT id, name FROM n4user WHERE id IN (SELECT DISTINCT user_id FROM assignee WHERE id IN (SELECT DISTINCT assignee_id FROM issue WHERE project_id = " + projectId + "))";
+        List<User> users = User.find.setRawSql(RawSqlBuilder.parse(sql).create())
                 .orderBy("name ASC")
                 .findList();
+
+        if (!users.contains(currentUser)) {
+            users.add(currentUser);
+            Collections.sort(users, new UserComparator());
+        }
+
+        return users;
     }
 
     /**
