@@ -514,10 +514,7 @@ public class NotificationEvent extends Model {
 
         NotificationEvent notiEvent = createFrom(author, comment);
         notiEvent.title = formatReplyTitle(post);
-        Set<User> receivers = getReceivers(post);
-        receivers.addAll(getMentionedUsers(comment.contents));
-        receivers.remove(author);
-        notiEvent.receivers = receivers;
+        notiEvent.receivers = getReceivers(post, author);
         notiEvent.eventType = NEW_COMMENT;
         notiEvent.oldValue = null;
         notiEvent.newValue = comment.contents;
@@ -622,7 +619,7 @@ public class NotificationEvent extends Model {
     public static NotificationEvent forNewIssue(Issue issue, User author) {
         NotificationEvent notiEvent = createFrom(author, issue);
         notiEvent.title = formatNewTitle(issue);
-        notiEvent.receivers = getReceivers(issue);
+        notiEvent.receivers = getReceivers(issue, author);
         notiEvent.eventType = NEW_ISSUE;
         notiEvent.oldValue = null;
         notiEvent.newValue = issue.body;
@@ -848,9 +845,13 @@ public class NotificationEvent extends Model {
     }
 
     private static Set<User> getReceivers(AbstractPosting abstractPosting) {
+        return getReceivers(abstractPosting, UserApp.currentUser());
+    }
+
+    private static Set<User> getReceivers(AbstractPosting abstractPosting, User except) {
         Set<User> receivers = abstractPosting.getWatchers();
         receivers.addAll(getMentionedUsers(abstractPosting.body));
-        receivers.remove(abstractPosting.author);
+        receivers.remove(except);
         return receivers;
     }
 
