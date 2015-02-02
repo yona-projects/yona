@@ -60,7 +60,7 @@
         @** end of fileUploader **@
 
         <div class="right-txt mt10 mb10">
-          @if(isAllowedToNotice && !stringToBoolean(requestHeader.getQueryString("readme").get)){
+          @if(isAllowedToNotice && !requestHeader.getQueryString("readme").equals(None)){
             @helper.input(form("notice")){(id, name, value, args) =>
             <label class="checkbox">
               <input type="checkbox" id="notice" name="notice" @toHtmlArgs(args) @(if(value.equals(Some("true"))) "checked" else "")/>
