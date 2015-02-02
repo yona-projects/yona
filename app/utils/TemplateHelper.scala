@@ -362,12 +362,15 @@ object TemplateHelper {
     def renderNonRangedThreads(threads: List[models.CommentThread], commitId: String, html: play.twirl.api.Html): play.twirl.api.Html =
       threads match {
         case head :: tail =>
-          head match {
-            case (thread: models.NonRangedCodeCommentThread)
-              if commitId == null || commitId == thread.commitId => new Html(List(html, partial_comment_thread(thread)))
-            case _ => ;
-          }
-          renderNonRangedThreads(tail, commitId, html)
+          renderNonRangedThreads(
+            tail,
+            commitId,
+            head match {
+              case (thread: models.NonRangedCodeCommentThread)
+                if commitId == null || commitId == thread.commitId => new Html(List(html, partial_comment_thread(thread)))
+              case _ => html
+            }
+          )
         case _ => html
       }
 
@@ -376,8 +379,8 @@ object TemplateHelper {
                                    html: play.twirl.api.Html): play.twirl.api.Html =
       events match {
         case head :: tail =>
-          new Html(List(html, partial_pull_request_event(pull, head)))
-          _renderEventsOnPullRequest(pull, tail, html)
+          _renderEventsOnPullRequest(pull, tail,
+            new Html(List(html, partial_pull_request_event(pull, head))))
         case _ => html
       }
 
