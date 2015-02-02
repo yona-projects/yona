@@ -182,4 +182,15 @@ public class HttpUtil {
     public static Boolean isPJAXRequest(Http.Request request){
         return Boolean.parseBoolean(request.getHeader("X-PJAX"));
     }
+
+    /**
+     * Decodes the percent-encoded path segment.
+     *
+     * @param pathSegment
+     * @return
+     * @throws UnsupportedEncodingException
+     */
+    public static String decodePathSegment(String pathSegment) throws UnsupportedEncodingException {
+        return URLDecoder.decode(pathSegment, "UTF-8");
+    }
 }
