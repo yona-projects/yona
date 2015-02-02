@@ -33,11 +33,11 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import playRepository.GitBranch;
 import playRepository.GitRepository;
+import utils.HttpUtil;
 import views.html.code.branches;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.List;
 
 /**
@@ -70,7 +70,7 @@ public class BranchApp extends Controller {
     public static Result deleteBranch(String loginId, String projectName, String branchName) throws GitAPIException, UnsupportedEncodingException {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
         Repository repository = GitRepository.buildGitRepository(project);
-        branchName = URLDecoder.decode(branchName, "UTF-8");
+        branchName = HttpUtil.decodePathSegment(branchName);
         GitRepository.deleteBranch(repository, branchName);
         return redirect(routes.BranchApp.branches(loginId, projectName));
     }
@@ -79,7 +79,7 @@ public class BranchApp extends Controller {
     public static Result setAsDefault(String loginId, String projectName, String branchName) throws IOException, GitAPIException {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
         GitRepository gitRepository = new GitRepository(project);
-        branchName = URLDecoder.decode(branchName, "UTF-8");
+        branchName = HttpUtil.decodePathSegment(branchName);
         gitRepository.setDefaultBranch(branchName);
 
         return utils.HttpUtil.isRequestedWithXHR(request()) ? ok() : redirect(routes.BranchApp.branches(loginId, projectName));
