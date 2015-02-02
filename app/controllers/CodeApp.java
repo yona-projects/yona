@@ -42,6 +42,7 @@ import views.html.code.view;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -90,9 +91,13 @@ public class CodeApp extends Controller {
             return status(Http.Status.NOT_IMPLEMENTED, project.vcs + " is not supported!");
         }
 
+        branch = URLDecoder.decode(branch, "UTF-8");
+        path = URLDecoder.decode(path, "UTF-8");
+
         PlayRepository repository = RepositoryService.getRepository(project);
         List<String> branches = repository.getBranchNames();
-        List<ObjectNode> recursiveData = RepositoryService.getMetaDataFromAncestorDirectories(repository, branch, path);
+        List<ObjectNode> recursiveData = RepositoryService.getMetaDataFromAncestorDirectories(
+                repository, branch, path);
 
         return ok(view.render(project, branches, recursiveData, branch, path));
     }
@@ -101,6 +106,7 @@ public class CodeApp extends Controller {
     public static Result ajaxRequest(String userName, String projectName, String path) throws Exception{
         PlayRepository repository = RepositoryService.getRepository(userName, projectName);
         ObjectNode fileInfo = repository.getMetaDataFromPath(path);
+        path = URLDecoder.decode(path, "UTF-8");
 
         if(fileInfo != null) {
             return ok(fileInfo);
@@ -114,6 +120,8 @@ public class CodeApp extends Controller {
             throws UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException{
         CodeApp.hostName = request().host();
         PlayRepository repository = RepositoryService.getRepository(userName, projectName);
+        branch = URLDecoder.decode(branch, "UTF-8");
+        path = URLDecoder.decode(path, "UTF-8");
         ObjectNode fileInfo = repository.getMetaDataFromPath(branch, path);
 
         if(fileInfo != null) {
@@ -125,6 +133,8 @@ public class CodeApp extends Controller {
 
     @With(DefaultProjectCheckAction.class)
     public static Result showRawFile(String userName, String projectName, String revision, String path) throws Exception{
+        path = URLDecoder.decode(path, "UTF-8");
+        revision = URLDecoder.decode(revision, "UTF-8");
         byte[] fileAsRaw = RepositoryService.getFileAsRaw(userName, projectName, revision, path);
         if(fileAsRaw == null){
             return redirect(routes.CodeApp.codeBrowserWithBranch(userName, projectName, revision, path));
@@ -143,6 +153,8 @@ public class CodeApp extends Controller {
 
     @With(DefaultProjectCheckAction.class)
     public static Result showImageFile(String userName, String projectName, String revision, String path) throws Exception{
+        revision = URLDecoder.decode(revision, "UTF-8");
+        path = URLDecoder.decode(path, "UTF-8");
         final byte[] fileAsRaw = RepositoryService.getFileAsRaw(userName, projectName, revision, path);
         String mimeType = tika.detect(fileAsRaw);
         return ok(fileAsRaw).as(mimeType);
@@ -181,6 +193,8 @@ public class CodeApp extends Controller {
     @IsAllowed(Operation.READ)
     public static Result openFile(String userName, String projectName, String revision,
                            String path) throws Exception{
+        revision = URLDecoder.decode(revision, "UTF-8");
+        path = URLDecoder.decode(path, "UTF-8");
         byte[] raw = RepositoryService.getFileAsRaw(userName, projectName, revision, path);
 
         if(raw == null){

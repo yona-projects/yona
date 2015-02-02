@@ -47,6 +47,7 @@ import views.html.error.notfound;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.util.Date;
 import java.util.List;
 
@@ -69,6 +70,8 @@ public class CodeHistoryApp extends Controller {
             SVNException {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         PlayRepository repository = RepositoryService.getRepository(project);
+        branch = URLDecoder.decode(branch, "UTF-8");
+        path = URLDecoder.decode(path, "UTF-8");
 
         String pageStr = HttpUtil.getFirstValueFromQuery(request().queryString(), "page");
         int page = 0;
