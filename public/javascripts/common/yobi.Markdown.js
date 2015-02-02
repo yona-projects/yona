@@ -52,7 +52,7 @@ yobi.Markdown = (function(htOptions){
          * If this ajax request is failed, do anything.
          * Because, the content body not replaced is shown to user before this request.
          */
-        if(htVar.sAutoLinkRenderUrl){
+        if(htVar.sMarkdownRendererUrl){
             _render(welTarget, sContentBody);
         }
     }
