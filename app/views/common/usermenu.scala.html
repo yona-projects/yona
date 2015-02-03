@@ -76,7 +76,7 @@
                         @Messages("title.logout")
                     </a>
                 </li>
-                @defining(UserApp.currentUser.getOrganizations(5)) { groups =>
+                @defining(UserApp.currentUser.getOrganizations(10)) { groups =>
                     <li class="title">
                         @Messages("title.organization")
                         <span class="numberic">@groups.size</span>

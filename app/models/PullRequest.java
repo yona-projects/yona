@@ -149,7 +149,7 @@ public class PullRequest extends Model implements ResourceConvertible {
         joinColumns = @JoinColumn(name = "pull_request_id"),
         inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    public List<User> reviewers = new ArrayList<>();
+    public Set<User> reviewers = new HashSet<>();
 
     @OneToMany(mappedBy = "pullRequest")
     public List<CommentThread> commentThreads = new ArrayList<>();
@@ -999,7 +999,7 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     public void clearReviewers() {
-        this.reviewers = new ArrayList<>();
+        this.reviewers = new HashSet<>();
         this.update();
     }
 
@@ -1008,8 +1008,9 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     public void addReviewer(User user) {
-        this.reviewers.add(user);
-        this.update();
+        if(this.reviewers.add(user)) {
+            this.update();
+        }
     }
 
     public void removeReviewer(User user) {
