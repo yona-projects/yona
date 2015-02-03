@@ -187,10 +187,14 @@ public class HttpUtil {
      * Decodes the percent-encoded path segment.
      *
      * @param pathSegment
-     * @return
+     * @return decoded path segment or null if the given path segment is null
      * @throws UnsupportedEncodingException
      */
     public static String decodePathSegment(String pathSegment) throws UnsupportedEncodingException {
-        return URLDecoder.decode(pathSegment, "UTF-8");
+        if (pathSegment != null) {
+            return URLDecoder.decode(pathSegment, "UTF-8");
+        } else {
+            return null;
+        }
     }
 }
