@@ -28,7 +28,12 @@
 @import utils.Markdown
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
-@urlToPostings = @{ urlToList(requestHeader.headers.get("Referer").get, routes.BoardApp.posts(project.owner, project.name).toString()) }
+@urlToPostings = @{
+    requestHeader.headers.get("Referer") match {
+        case Some(url) => { urlToList(url, routes.BoardApp.posts(project.owner, project.name).toString) }
+        case _ => routes.BoardApp.posts(project.owner, project.name).toString
+    }
+}
 
 @projectLayout(post.title, project, utils.MenuType.BOARD){
 @projectMenu(project, utils.MenuType.BOARD, "main-menu-only")
