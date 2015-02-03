@@ -104,8 +104,8 @@ public class CodeApp extends Controller {
     @With(DefaultProjectCheckAction.class)
     public static Result ajaxRequest(String userName, String projectName, String path) throws Exception{
         PlayRepository repository = RepositoryService.getRepository(userName, projectName);
-        ObjectNode fileInfo = repository.getMetaDataFromPath(path);
         path = HttpUtil.decodePathSegment(path);
+        ObjectNode fileInfo = repository.getMetaDataFromPath(path);
 
         if(fileInfo != null) {
             return ok(fileInfo);
