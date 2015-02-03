@@ -83,9 +83,20 @@ public class PullRequestCommit extends Model implements TimelineItem {
         return created;
     }
 
+    /**
+     * PullRequestCommits that have the same {@code pullRequest} and {@code commitId}
+     * but have different state. And, this method find the latest PullRequestCommit.
+     * 
+     * @param pullRequest
+     * @param commitId
+     * @return
+     */
     public static PullRequestCommit getByCommitId(PullRequest pullRequest, String commitId) {
-        return find.select("state").where().eq("pullRequest", pullRequest).eq("commitId",
-                commitId).findUnique();
+        return find.select("state").where().eq("pullRequest", pullRequest)
+                .eq("commitId",commitId)
+                .orderBy().desc("created")
+                .setMaxRows(1)
+                .findUnique();
     }
 
     public static State getStateByCommitId(PullRequest pullRequest, String commitId) {
