@@ -207,12 +207,10 @@ public class GitRepository implements PlayRepository {
                 } else {
                     fullPath = basePath + "/" + path;
                 }
-                if (StringUtils.isEmpty(fullPath)) {
-                    return path;
-                }
+
                 TreeWalk treeWalk = TreeWalk.forPath(repository, fullPath, revTree);
                 // path is not a folder
-                if (!treeWalk.isSubtree()) return path;
+                if (treeWalk == null || !treeWalk.isSubtree()) return path;
                 treeWalk.enterSubtree();
                 treeWalk.next();
                 // path contains a file
