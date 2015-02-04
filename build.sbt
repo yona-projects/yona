@@ -15,6 +15,7 @@ libraryDependencies ++= Seq(
   javaCore,
   javaJdbc,
   javaEbean,
+  cache,
   // Add your project dependencies here,
   "com.h2database" % "h2" % "1.4.184",
   // Core Library

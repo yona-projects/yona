@@ -20,6 +20,7 @@
  */
 package models;
 
+import utils.AttachmentCache;
 import controllers.AttachmentApp;
 import models.enumeration.ResourceType;
 import models.resource.GlobalResource;
@@ -108,9 +109,16 @@ public class Attachment extends Model implements ResourceConvertible {
      */
     public static List<Attachment> findByContainer(
             ResourceType containerType, String containerId) {
-        return find.where()
+        List<Attachment> cachedData = AttachmentCache.get(containerType, containerId);
+        if (cachedData != null) {
+            return cachedData;
+        }
+
+        List<Attachment> list = find.where()
                 .eq("containerType", containerType)
                 .eq("containerId", containerId).findList();
+        AttachmentCache.set(containerType.name() + containerId, list);
+        return list;
     }
 
     /**
@@ -120,7 +128,14 @@ public class Attachment extends Model implements ResourceConvertible {
      * @return attachments of the container
      */
     public static List<Attachment> findByContainer(Resource container) {
-        return findByContainer(container.getType(), container.getId());
+        List<Attachment> cachedData = AttachmentCache.get(container);
+        if (cachedData != null) {
+            return cachedData;
+        }
+
+        List<Attachment> list = findByContainer(container.getType(), container.getId());
+        AttachmentCache.set(container, list);
+        return list;
     }
 
     /**
@@ -289,7 +304,8 @@ public class Attachment extends Model implements ResourceConvertible {
     }
 
     /**
-     * Deletes this file.
+     * Deletes this file and remove cache that contains it.
+     * However, the cache can not be removed if Ebean.delete() is directly used or called by cascading.
      *
      * This method is used when an user delete an attachment or its container.
      */
@@ -311,6 +327,18 @@ public class Attachment extends Model implements ResourceConvertible {
                 play.Logger.error("Failed to delete: " + this, e);
             }
         }
+
+        AttachmentCache.remove(this);
+    }
+
+    /**
+     * Update this file and remove cache that contains it.
+     * However, the cache can not be removed if Ebean.update() is directly used or called by cascading.
+     */
+    @Override
+    public void update() {
+        super.update();
+        AttachmentCache.remove(this);
     }
 
 
@@ -434,7 +462,7 @@ public class Attachment extends Model implements ResourceConvertible {
                             attachment.delete();
                             deletedFileCount++;
                         }
-                        if( attachmentList.size() != deletedFileCount) {
+                        if (attachmentList.size() != deletedFileCount) {
                             play.Logger.error(
                                     String.format("Failed to delete user temporary files.\nExpected: %d  Actual: %d",
                                             attachmentList.size(), deletedFileCount)
@@ -523,6 +551,8 @@ public class Attachment extends Model implements ResourceConvertible {
         } else {
             this.name = fileName;
         }
+
+        AttachmentCache.remove(this);
 
         // Add the attachment into the Database only if there is no same record.
         Attachment sameAttach = Attachment.findBy(this);
