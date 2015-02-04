@@ -235,7 +235,7 @@ public class GitRepository implements PlayRepository {
             }
             TreeWalk treeWalk = TreeWalk.forPath(repository, path, revTree);
             // path is not a folder
-            if (!treeWalk.isSubtree()) return false;
+            if (treeWalk == null || !treeWalk.isSubtree()) return false;
             treeWalk.enterSubtree();
             treeWalk.next();
             // path contains a file
