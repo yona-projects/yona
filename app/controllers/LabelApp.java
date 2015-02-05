@@ -26,12 +26,15 @@ import com.avaje.ebean.SqlQuery;
 import com.avaje.ebean.SqlRow;
 import controllers.annotation.AnonymousCheck;
 import models.Label;
+import org.apache.commons.lang3.StringUtils;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.avaje.ebean.Expr.icontains;
 import static play.libs.Json.toJson;
@@ -112,5 +115,18 @@ public class LabelApp extends Controller {
         }
 
         return ok(toJson(categories));
+    }
+
+    public static Set<Long> getLabelIds(final Http.Request request) {
+        Set<Long> set = new HashSet<>();
+        String[] labelIds = request.queryString().get("labelIds");
+        if (labelIds != null) {
+            for (String labelId : labelIds) {
+                if(!StringUtils.isEmpty(labelId)) {
+                    set.add(Long.valueOf(labelId));
+                }
+            }
+        }
+        return set;
     }
 }
