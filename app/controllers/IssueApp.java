@@ -506,6 +506,7 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         final Issue issue = issueForm.get();
+        setAssignee(issueForm, issue, project);
         removeAnonymousAssignee(issue);
         setMilestone(issueForm, issue);
         issue.dueDate = JodaDateUtil.lastSecondOfDay(issue.dueDate);
@@ -533,6 +534,16 @@ public class IssueApp extends AbstractPostingApp {
         };
 
         return editPosting(originalIssue, issue, issueForm, redirectTo, preUpdateHook);
+    }
+
+    private static void setAssignee(Form<Issue> issueForm, Issue issue, Project project) {
+        String value = issueForm.field("assignee.user.id").value();
+        if (value != null) {
+            long userId = Long.parseLong(value);
+            if (userId != User.anonymous.id) {
+                issue.assignee = new Assignee(userId, project.id);
+            }
+        }
     }
 
     private static void setMilestone(Form<Issue> issueForm, Issue issue) {
