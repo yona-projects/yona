@@ -657,7 +657,7 @@ public class NotificationEvent extends Model {
     public static NotificationEvent afterIssueBodyChanged(String oldBody, Issue issue) {
         NotificationEvent notiEvent = createFromCurrentUser(issue);
         notiEvent.title = formatReplyTitle(issue);
-        notiEvent.receivers = getReceivers(issue);
+        notiEvent.receivers = getReceiversForIssueBodyChanged(oldBody, issue);
         notiEvent.eventType = EventType.ISSUE_BODY_CHANGED;
         notiEvent.oldValue = oldBody;
         notiEvent.newValue = issue.body;
@@ -665,6 +665,13 @@ public class NotificationEvent extends Model {
         NotificationEvent.add(notiEvent);
 
         return notiEvent;
+    }
+
+    private static Set<User> getReceiversForIssueBodyChanged(String oldBody, Issue issue) {
+        Set<User> receivers = issue.getWatchers();
+        receivers.addAll(getNewMentionedUsers(oldBody, issue.body));
+        receivers.remove(UserApp.currentUser());
+        return receivers;
     }
 
     public static void afterNewPost(Posting post) {
@@ -998,6 +1005,12 @@ public class NotificationEvent extends Model {
         return Messages.get("notification.member.request.accept.title", organization.name, user.loginId);
     }
 
+    /**
+     * Get mentioned users in {@code body}.
+     *
+     * @param body
+     * @return
+     */
     public static Set<User> getMentionedUsers(String body) {
         Matcher matcher = Pattern.compile("@" + User.LOGIN_ID_PATTERN_ALLOW_FORWARD_SLASH).matcher(body);
         Set<User> users = new HashSet<>();
@@ -1009,6 +1022,25 @@ public class NotificationEvent extends Model {
         }
         users.remove(User.anonymous);
         return users;
+    }
+
+    /**
+     * Get new mentioned users.
+     *
+     * It gets mentioned users from {@code oldBody} and {@code newBody},
+     * subtracts old from new and returns it.
+     *
+     * @param oldBody
+     * @param newBody
+     * @return
+     */
+    public static Set<User> getNewMentionedUsers(String oldBody, String newBody) {
+        Set<User> oldBodyMentionedUsers = getMentionedUsers(oldBody);
+        Set<User> newBodyMentionedUsers = getMentionedUsers(newBody);
+
+        newBodyMentionedUsers.removeAll(oldBodyMentionedUsers);
+
+        return newBodyMentionedUsers;
     }
 
     private static Set<User> findOrganizationMembers(String mentionWord) {
