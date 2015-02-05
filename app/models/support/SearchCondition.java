@@ -307,7 +307,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
         }
 
         if (CollectionUtils.isNotEmpty(labelIds)) {
-            el.add(LabelSearchUtil.createLabelSearchExpression(el.query(), labelIds));
+            el.in("labels.id", labelIds);
         }
 
         if (StringUtils.isNotBlank(orderBy)) {

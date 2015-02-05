@@ -940,7 +940,7 @@ public class ProjectApp extends Controller {
 
         Set<Long> labelIds = LabelSearchUtil.getLabelIds(request());
         if (CollectionUtils.isNotEmpty(labelIds)) {
-            el.add(LabelSearchUtil.createLabelSearchExpression(el.query(), labelIds));
+            el.in("labels.id", labelIds);
         }
 
         el.orderBy("createdDate desc");
