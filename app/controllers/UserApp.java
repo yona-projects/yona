@@ -431,7 +431,7 @@ public class UserApp extends Controller {
 
         if (daysAgo == UNDEFINED) {
             Cookie cookie = request().cookie(DAYS_AGO_COOKIE);
-            if (cookie != null) {
+            if (cookie != null && StringUtils.isNotEmpty(cookie.value())) {
                 daysAgo = Integer.parseInt(cookie.value());
             } else {
                 daysAgo = DAYS_AGO;
