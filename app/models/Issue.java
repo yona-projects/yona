@@ -95,7 +95,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
             joinColumns = @JoinColumn(name = "issue_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    public List<User> voters = new ArrayList<>();
+    public Set<User> voters = new HashSet<>();
 
     @Transient
     @Formula(select = "case when due_date is null then cast('0001-01-01 00:00:00' as timestamp) else due_date end")
@@ -470,8 +470,9 @@ public class Issue extends AbstractPosting implements LabelOwner {
      * @param user
      */
     public void addVoter(User user) {
-        this.voters.add(user);
-        this.update();
+        if (voters.add(user)) {
+            update();
+        }
     }
 
     /**
@@ -480,8 +481,9 @@ public class Issue extends AbstractPosting implements LabelOwner {
      * @param user
      */
     public void removeVoter(User user) {
-        this.voters.remove(user);
-        this.update();
+        if (voters.remove(user)) {
+            update();
+        }
     }
 
     /**

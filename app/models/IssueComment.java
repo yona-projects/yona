@@ -24,7 +24,8 @@ import models.enumeration.ResourceType;
 import models.resource.Resource;
 
 import javax.persistence.*;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 public class IssueComment extends Comment {
@@ -40,7 +41,7 @@ public class IssueComment extends Comment {
             joinColumns = @JoinColumn(name = "issue_comment_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    public List<User> voters;
+    public Set<User> voters = new HashSet<>();
 
     public IssueComment(Issue issue, User author, String contents) {
         super(author, contents);
@@ -88,16 +89,14 @@ public class IssueComment extends Comment {
     }
 
     public void addVoter(User user) {
-        if (!this.voters.contains(user)) {
-            this.voters.add(user);
-            this.update();
+        if (voters.add(user)) {
+            update();
         }
     }
 
     public void removeVoter(User user) {
-        if (this.voters.contains(user)) {
-            this.voters.remove(user);
-            this.update();
+        if (voters.remove(user)) {
+            update();
         }
     }
 }
