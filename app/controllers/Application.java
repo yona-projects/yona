@@ -23,6 +23,7 @@ package controllers;
 import controllers.annotation.AnonymousCheck;
 import models.Project;
 import play.Logger;
+import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Result;
 import playRepository.RepositoryService;
@@ -32,6 +33,7 @@ import jsmessages.JsMessages;
 
 import java.io.File;
 
+@Transactional
 public class Application extends Controller {
 
     @AnonymousCheck

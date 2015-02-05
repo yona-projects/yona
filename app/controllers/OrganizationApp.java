@@ -54,6 +54,7 @@ import static utils.LogoUtil.*;
  * @author Keeun Baik
  */
 @AnonymousCheck
+@Transactional
 public class OrganizationApp extends Controller {
     /**
      * show New Group page
@@ -115,7 +116,6 @@ public class OrganizationApp extends Controller {
         return ok(view.render(org));
     }
 
-    @Transactional
     public static Result addMember(String organizationName) {
         Form<User> addMemberForm = form(User.class).bindFromRequest();
         Result result = validateForAddMember(addMemberForm, organizationName);
@@ -161,7 +161,6 @@ public class OrganizationApp extends Controller {
         return null;
     }
 
-    @Transactional
     public static Result deleteMember(String organizationName, Long userId) {
         Result result = validateForDeleteMember(organizationName, userId);
         if (result != null) {
@@ -204,7 +203,6 @@ public class OrganizationApp extends Controller {
         return null;
     }
 
-    @Transactional
     public static Result editMember(String organizationName, Long userId) {
         Form<Role> roleForm = form(Role.class).bindFromRequest();
         Result result = validateForEditMember(roleForm, organizationName, userId);
@@ -248,7 +246,6 @@ public class OrganizationApp extends Controller {
         return null;
     }
 
-    @Transactional
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     public static Result leave(String organizationName) {
         ValidationResult result = validateForLeave(organizationName);
@@ -418,7 +415,6 @@ public class OrganizationApp extends Controller {
         return ok(deleteForm.render(organization));
     }
 
-    @Transactional
     public static Result deleteOrganization(String organizationName) {
         Organization organization = Organization.findByName(organizationName);
 

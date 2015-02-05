@@ -46,6 +46,7 @@ import static play.libs.Json.toJson;
  */
  @With(SiteManagerAuthAction.class)
 @AnonymousCheck
+@Transactional
 public class SiteApp extends Controller {
 
     private static final int PROJECT_COUNT_PER_PAGE = 25;
@@ -133,7 +134,6 @@ public class SiteApp extends Controller {
      * @return the result
      * @see {@link Project#isOnlyManager(Long)}
      */
-    @Transactional
     public static Result deleteUser(Long userId) {
         if (User.findByLoginId(session().get("loginId")).isSiteManager()){
             if (Project.isOnlyManager(userId)) {
@@ -169,7 +169,6 @@ public class SiteApp extends Controller {
      * @param projectId the project id
      * @return the result
      */
-    @Transactional
     public static Result deleteProject(Long projectId){
         if( User.findByLoginId(session().get("loginId")).isSiteManager() ){
             Project.find.byId(projectId).delete();

@@ -29,6 +29,7 @@ import org.apache.commons.mail.SimpleEmail;
 import play.Configuration;
 import play.Logger;
 import play.data.DynamicForm;
+import play.db.ebean.Transactional;
 import play.i18n.Messages;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -42,6 +43,7 @@ import views.html.user.resetPassword;
 import static play.data.Form.form;
 
 @AnonymousCheck
+@Transactional
 public class PasswordResetApp extends Controller {
 
     public static Result lostPassword(){

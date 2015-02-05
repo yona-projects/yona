@@ -45,6 +45,7 @@ import java.util.List;
 import static play.data.Form.form;
 
 @AnonymousCheck
+@Transactional
 public class MilestoneApp extends Controller {
 
     public static class MilestoneCondition {
@@ -90,7 +91,6 @@ public class MilestoneApp extends Controller {
      *
      * @see {@link #validate(models.Project, play.data.Form)}
      */
-    @Transactional
     @IsCreatable(ResourceType.MILESTONE)
     public static Result newMilestone(String userName, String projectName) {
         Form<Milestone> milestoneForm = new Form<>(Milestone.class).bindFromRequest();
@@ -138,7 +138,6 @@ public class MilestoneApp extends Controller {
     /**
      * when: POST /:user/:project/milestone/:id/edit
      */
-    @Transactional
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.MILESTONE)
     public static Result editMilestone(String userName, String projectName, Long milestoneId) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
@@ -169,7 +168,6 @@ public class MilestoneApp extends Controller {
     /**
      * when: GET /:user/:project/milestone/:id/delete
      */
-    @Transactional
     @IsAllowed(value = Operation.DELETE, resourceType = ResourceType.MILESTONE)
     public static Result deleteMilestone(String userName, String projectName, Long id) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
@@ -188,7 +186,6 @@ public class MilestoneApp extends Controller {
         return redirect(routes.MilestoneApp.milestones(userName, projectName));
     }
 
-    @Transactional
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.MILESTONE)
     public static Result open(String userName, String projectName, Long id) {
         Milestone milestone = Milestone.findById(id);
@@ -196,7 +193,6 @@ public class MilestoneApp extends Controller {
         return redirect(routes.MilestoneApp.milestone(userName, projectName, id));
     }
 
-    @Transactional
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.MILESTONE)
     public static Result close(String userName, String projectName, Long id) {
         Milestone milestone = Milestone.findById(id);

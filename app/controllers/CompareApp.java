@@ -25,6 +25,7 @@ import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import models.Project;
 import models.enumeration.Operation;
+import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Result;
 import playRepository.Commit;
@@ -40,6 +41,7 @@ import java.util.List;
 @AnonymousCheck
 public class CompareApp extends Controller {
     @IsAllowed(Operation.READ)
+    @Transactional
     public static Result compare(String ownerName, String projectName, String revA, String revB)
             throws Exception {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);

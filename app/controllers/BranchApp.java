@@ -29,6 +29,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
+import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Result;
 import playRepository.GitBranch;
@@ -45,6 +46,7 @@ import java.util.List;
  */
 @IsOnlyGitAvailable
 @AnonymousCheck
+@Transactional
 public class BranchApp extends Controller {
 
     @IsAllowed(Operation.READ)

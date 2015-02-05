@@ -21,11 +21,13 @@
 package controllers;
 
 import controllers.annotation.AnonymousCheck;
+import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Result;
 
 @AnonymousCheck
 public class NotificationApp extends Controller {
+    @Transactional
     public static Result notifications(int from, int size) {
         return ok(views.html.index.partial_notifications.render(from, size));
     }

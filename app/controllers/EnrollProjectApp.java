@@ -33,9 +33,9 @@ import play.mvc.Result;
 import play.mvc.With;
 
 @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
+@Transactional
 public class EnrollProjectApp extends Controller {
 
-    @Transactional
     @With(DefaultProjectCheckAction.class)
     public static Result enroll(String loginId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
@@ -53,7 +53,6 @@ public class EnrollProjectApp extends Controller {
         return ok();
     }
 
-    @Transactional
     @With(DefaultProjectCheckAction.class)
     public static Result cancelEnroll(String loginId, String proejctName) {
         Project project = Project.findByOwnerAndProjectName(loginId, proejctName);

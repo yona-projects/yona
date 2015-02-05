@@ -28,6 +28,7 @@ import models.UserProjectNotification;
 import models.Watch;
 import models.enumeration.EventType;
 import models.enumeration.Operation;
+import play.db.ebean.Transactional;
 import play.i18n.Messages;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -35,6 +36,7 @@ import utils.AccessControl;
 import utils.ErrorViews;
 
 @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
+@Transactional
 public class WatchProjectApp extends Controller {
 
     @IsAllowed(Operation.READ)

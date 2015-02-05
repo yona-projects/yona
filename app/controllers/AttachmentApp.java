@@ -29,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import play.Configuration;
 import play.Logger;
+import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Result;
@@ -46,6 +47,7 @@ import java.util.Map;
 import static play.libs.Json.toJson;
 
 @AnonymousCheck
+@Transactional
 public class AttachmentApp extends Controller {
 
     public static final String TAG_NAME_FOR_TEMPORARY_UPLOAD_FILES = "temporaryUploadFiles";

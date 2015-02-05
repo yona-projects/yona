@@ -29,6 +29,7 @@ import models.Project;
 import models.enumeration.Operation;
 import models.support.ReviewSearchCondition;
 import play.data.Form;
+import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Result;
 import views.html.reviewthread.list;
@@ -44,6 +45,7 @@ public class ReviewThreadApp extends Controller {
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(value = Operation.READ)
+    @Transactional
     public static Result reviewThreads(String ownerName, String projectName) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         ReviewSearchCondition searchCondition = Form.form(ReviewSearchCondition.class).bindFromRequest().get();

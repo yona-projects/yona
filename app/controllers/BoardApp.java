@@ -58,6 +58,7 @@ import java.util.List;
 
 import static com.avaje.ebean.Expr.icontains;
 
+@Transactional
 public class BoardApp extends AbstractPostingApp {
     public static class SearchCondition extends AbstractPostingApp.SearchCondition {
         private ExpressionList<Posting> asExpressionList(Project project) {
@@ -118,7 +119,6 @@ public class BoardApp extends AbstractPostingApp {
         return request().getQueryString("readme") != null;
     }
 
-    @Transactional
     @IsCreatable(ResourceType.BOARD_POST)
     public static Result newPost(String userName, String projectName) {
         Form<Posting> postForm = new Form<>(Posting.class).bindFromRequest();
@@ -212,7 +212,6 @@ public class BoardApp extends AbstractPostingApp {
     /**
      * @see AbstractPostingApp#editPosting(models.AbstractPosting, models.AbstractPosting, play.data.Form, play.mvc.Call, java.lang.Runnable)
      */
-    @Transactional
     @With(NullProjectCheckAction.class)
     public static Result editPost(String userName, String projectName, Long number) {
         Form<Posting> postForm = new Form<>(Posting.class).bindFromRequest();
@@ -253,7 +252,6 @@ public class BoardApp extends AbstractPostingApp {
     /**
      * @see controllers.AbstractPostingApp#delete(play.db.ebean.Model, models.resource.Resource, play.mvc.Call)
      */
-    @Transactional
     @IsAllowed(value = Operation.DELETE, resourceType = ResourceType.BOARD_POST)
     public static Result deletePost(String owner, String projectName, Long number) {
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
@@ -266,7 +264,6 @@ public class BoardApp extends AbstractPostingApp {
     /**
      * @see controllers.AbstractPostingApp#saveComment(models.Comment, play.data.Form, play.mvc.Call, Runnable)
      */
-    @Transactional
     @IsAllowed(value = Operation.READ, resourceType = ResourceType.BOARD_POST)
     @With(NullProjectCheckAction.class)
     public static Result newComment(String owner, String projectName, Long number) throws IOException {
@@ -306,7 +303,6 @@ public class BoardApp extends AbstractPostingApp {
     /**
      * @see controllers.AbstractPostingApp#delete(play.db.ebean.Model, models.resource.Resource, play.mvc.Call)
      */
-    @Transactional
     @With(NullProjectCheckAction.class)
     public static Result deleteComment(String userName, String projectName, Long number, Long commentId) {
         Comment comment = PostingComment.find.byId(commentId);

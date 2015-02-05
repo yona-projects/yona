@@ -27,6 +27,7 @@ import javax.servlet.ServletException;
 import models.Project;
 import models.enumeration.Operation;
 
+import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Result;
 import play.mvc.With;
@@ -35,6 +36,7 @@ import playRepository.RepositoryService;
 import utils.AccessControl;
 import utils.BasicAuthAction;
 
+@Transactional
 public class GitApp extends Controller {
 
     public static boolean isSupportedService(String service) {

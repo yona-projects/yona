@@ -33,6 +33,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.tmatesoft.svn.core.SVNException;
 import play.data.Form;
+import play.db.ebean.Transactional;
 import play.mvc.*;
 import playRepository.Commit;
 import playRepository.FileDiff;
@@ -51,6 +52,7 @@ import java.util.Date;
 import java.util.List;
 
 @AnonymousCheck
+@Transactional
 public class CodeHistoryApp extends Controller {
 
     private static final int HISTORY_ITEM_LIMIT = 25;

@@ -20,7 +20,6 @@
 package controllers;
 
 import com.avaje.ebean.ExpressionList;
-import com.avaje.ebean.annotation.Transactional;
 import controllers.annotation.AnonymousCheck;
 import models.*;
 import models.enumeration.Operation;
@@ -37,6 +36,7 @@ import play.Configuration;
 import play.Logger;
 import play.Play;
 import play.data.Form;
+import play.db.ebean.Transactional;
 import play.i18n.Messages;
 import play.libs.Json;
 import play.mvc.*;
@@ -49,6 +49,7 @@ import java.util.*;
 import static play.data.Form.form;
 import static play.libs.Json.toJson;
 
+@Transactional
 public class UserApp extends Controller {
     public static final String SESSION_USERID = "userId";
     public static final String SESSION_LOGINID = "loginId";
@@ -300,7 +301,6 @@ public class UserApp extends Controller {
         return ok(signup.render("title.signup", form(User.class)));
     }
 
-    @Transactional
     public static Result newUser() {
         Form<User> newUserForm = form(User.class).bindFromRequest();
         validate(newUserForm);
@@ -317,7 +317,6 @@ public class UserApp extends Controller {
         }
     }
 
-    @Transactional
     public static Result resetUserPassword() {
         Form<User> userForm = form(User.class).bindFromRequest();
 
@@ -350,7 +349,6 @@ public class UserApp extends Controller {
         return currentUser.password.equals(hashedOldPassword);
     }
 
-    @Transactional
     public static void resetPassword(User user, String newPassword) {
         user.password = hashedPassword(newPassword, user.passwordSalt);
         user.save();
@@ -609,7 +607,6 @@ public class UserApp extends Controller {
     }
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
-    @Transactional
     public static Result editUserInfo() {
         Form<User> userForm = new Form<>(User.class).bindFromRequest("name", "email");
         String newEmail = userForm.data().get("email");
@@ -654,7 +651,6 @@ public class UserApp extends Controller {
         return redirect(routes.UserApp.userInfo(user.loginId, DEFAULT_GROUP, DAYS_AGO, DEFAULT_SELECTED_TAB));
     }
 
-    @Transactional
     public static Result leave(String userName, String projectName) {
         ProjectApp.deleteMember(userName, projectName, UserApp.currentUser().id);
         return redirect(routes.UserApp.userInfo(UserApp.currentUser().loginId, DEFAULT_GROUP, DAYS_AGO, DEFAULT_SELECTED_TAB));
@@ -696,7 +692,6 @@ public class UserApp extends Controller {
         return new Sha256Hash(plainTextPassword, ByteSource.Util.bytes(passwordSalt), HASH_ITERATIONS).toBase64();
     }
 
-    @Transactional
     public static Result addEmail() {
         Form<Email> emailForm = form(Email.class).bindFromRequest();
         String newEmail = emailForm.data().get("email");
@@ -727,7 +722,6 @@ public class UserApp extends Controller {
         return redirect(routes.UserApp.editUserInfoForm());
     }
 
-    @Transactional
     public static Result deleteEmail(Long id) {
         User currentUser = currentUser();
         Email email = Email.find.byId(id);
@@ -744,7 +738,6 @@ public class UserApp extends Controller {
         return redirect(routes.UserApp.editUserInfoForm());
     }
 
-    @Transactional
     public static Result sendValidationEmail(Long id) {
         User currentUser = currentUser();
         Email email = Email.find.byId(id);
@@ -763,7 +756,6 @@ public class UserApp extends Controller {
         return redirect(routes.UserApp.editUserInfoForm());
     }
 
-    @Transactional
     public static Result confirmEmail(Long id, String token) {
         Email email = Email.find.byId(id);
 
@@ -779,7 +771,6 @@ public class UserApp extends Controller {
         }
     }
 
-    @Transactional
     public static Result setAsMainEmail(Long id) {
         User currentUser = currentUser();
         Email email = Email.find.byId(id);
