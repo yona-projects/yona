@@ -22,7 +22,7 @@ Use @Nullable and @Nonnull
 @Nullable is an annotation defined by javax.annotation.Nullable. If an element
 is annotated with @Nullable, we say the element is nullable and it means the
 element may have NULL value. Similarly, if a method is annotated with
-@Nulalble, we say the method is nullable and it means the method may return
+@Nullable, we say the method is nullable and it means the method may return
 NULL.
 
 In a public method:
