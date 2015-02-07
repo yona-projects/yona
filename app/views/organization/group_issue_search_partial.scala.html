@@ -1,0 +1,100 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2014 NAVER Corp.
+* http://yobi.io
+*
+* @author Suwon Chae
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@(title: String, currentPage: com.avaje.ebean.Page[Issue], param:models.support.SearchCondition, organization: Organization)
+
+@import helper._
+@import models.enumeration._
+@import utils.AccessControl._
+@import utils.TemplateHelper._
+
+@makeFilterLink(fieldName:String, orderBy:String, orderDir:String, fieldText:String) = {
+	@if(orderBy.equals(fieldName)) {
+		<a href="#" orderBy="@orderBy" orderDir="@if(orderDir.equals("desc")){asc}else{desc}" class="filter active"><i class="ico btn-gray-arrow @if(orderDir.equals("desc")){ down }"></i>@fieldText</a>
+	} else {
+    <a href="#" orderBy="@fieldName" orderDir="desc" class="filter"><i class="ico btn-gray-arrow down"></i>@fieldText</a>
+	}
+}
+
+<div pjax-container class="row-fluid issue-list-wrap">
+    <div class="span2">
+        <div class="inner advanced">
+            @group_issue_list_quicksearch(param)
+
+            <form id="search" name="search" action="@routes.IssueApp.organizationIssues(organization.name)" method="get">
+                <select id="projects" name="projectNames[]" multiple data-placeholder="@Messages("organization.choose.projects")" data-toggle="select2" data-container-css-class="fullsize" >
+                @for(project <- organization.getVisibleProjects(UserApp.currentUser())) {
+                    <option value="@project.name" @if(param.projectNames != null && param.projectNames.contains(project.name)){selected} data-avatar-url="@urlToProjectLogo(project)">@project.name</option>
+                }
+                </select>
+                <hr>
+
+                <input type="hidden" name="orderBy" value="@param.orderBy">
+                <input type="hidden" name="orderDir" value="@param.orderDir">
+                <input type="hidden" name="state" value="@param.state">
+                <input type="hidden" name="authorId" value="@param.authorId" data-search="authorId">
+                <input type="hidden" name="assigneeId" value="@param.assigneeId" data-search="assigneeId">
+                <input type="hidden" name="mentionId" value="@param.mentionId" data-search="mentionId">
+
+                <div class="search">
+                    <div class="search-bar">
+                        <input name="filter" class="textbox full" type="text" value="@param.filter">
+                        <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+    <div class="span10" id="span10">
+        <ul class="nav nav-tabs nm">
+        @for(state <- Array(State.OPEN, State.CLOSED)) {
+            <li @if(param.state == state.state) { class="active" }>
+                <a href="#" state="@state.state">
+                    @Messages("issue.state." + state.name.toLowerCase)
+                    <span class="num-badge">@Issue.countIssuesBy(organization, param.clone.setState(state))</span>
+                </a>
+            </li>
+        }
+        </ul>
+        @if(!currentPage.getList.isEmpty){
+            <div class="filter-wrap small-heights">
+                @if(currentPage.getList.size > 1){
+
+                <div class="filters pull-right">
+                  @makeFilterLink("dueDate", param.orderBy, param.orderDir, Messages("common.order.dueDate"))
+                  @makeFilterLink("updatedDate", param.orderBy, param.orderDir, Messages("common.order.updatedDate"))
+                  @makeFilterLink("createdDate", param.orderBy, param.orderDir, Messages("common.order.date"))
+                  @makeFilterLink("numOfComments", param.orderBy, param.orderDir, Messages("common.order.comments"))
+                </div>
+                }
+            </div>
+
+            @group_issue_list_partial(currentPage.getList, param, currentPage.getPageIndex, currentPage.getTotalPageCount, organization)
+
+            <div id="pagination" data-total="@currentPage.getTotalPageCount"><!-- pagination.js will fill here. --></div>
+        } else {
+            <div class="error-wrap">
+                <i class="ico ico-err1"></i>
+                <p>@Messages("issue.is.empty")</p>
+            </div>
+        }
+    </div>
+</div>

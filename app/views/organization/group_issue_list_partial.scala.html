@@ -1,0 +1,113 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2014 NAVER Corp.
+* http://yobi.io
+*
+* @author Suwon Chae
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@(issueList:Collection[Issue], searchCondition:models.support.SearchCondition, pageIndex:Int, totalPageCount:Int, organization: Organization)
+@import java.util
+@import utils.JodaDateUtil
+@import utils.TemplateHelper._
+@import utils.AccessControl._
+
+@urlToList(project:Project, state:String) = {@routes.IssueApp.issues(project.owner, project.name, "open", "html", 1)}
+
+@issueLabels(issue:Issue) = {@for(label <- issue.labels.toList.sortBy(r => (r.category.name, r.name))) {@label.category.name,@label.id,@label.name|}}
+
+<ul class="post-list-wrap">
+@for(issue <- issueList){
+@defining(User.findByLoginId(issue.authorLoginId)){ user =>
+    <li class="post-item" id="issue-item-@issue.id">
+        <div class="span10">
+            <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap mlarge" data-toggle="tooltip" data-placement="top" title="@user.loginId">
+                @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){
+                    <img src="@urlToPicture(user.email, 32)">
+                } else {
+                    <img src="@user.avatarUrl" alt="@user.name" width="32" height="32"/>
+                }
+            </a>
+            <div class="title-wrap">
+                <a href="@routes.ProjectApp.project(issue.project.owner,issue.project.name)" class="title project">
+                    @issue.project.name
+                </a>
+                <span class="post-id">#@issue.getNumber</span>
+                <a href="@routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.getNumber)" class="title">
+                    @issue.title
+                </a>
+            </div>
+            <div class="infos">
+                @if(user.name){
+                    <a href="@routes.UserApp.userInfo(user.loginId)" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="top" title="@user.loginId">
+                        @user.name
+                    </a>
+                } else {
+                    <span class="infos-item">@Messages("issue.noAuthor")</span>
+                }
+
+                <span class="infos-item" title="@JodaDateUtil.getDateString(issue.createdDate)">
+                    @agoOrDateString(issue.createdDate)
+                </span>
+
+                @if(issue.milestone != null && issue.project != null && issue.project.menuSetting != null && issue.project.menuSetting.milestone) {
+                <span class="infos-item mileston-tag">
+                    <a href="@routes.MilestoneApp.milestone(issue.project.owner, issue.project.name, issue.milestone.id)" data-toggle="tooltip" data-placement="top" title="@Messages("milestone")">
+                        @issue.milestone.title
+                    </a>
+                </span>
+                }
+
+                @if(issue.comments.size>0 || issue.voters.size>0) {
+                <span class="infos-item item-count-groups">
+                    @if(issue.comments.size>0){
+                        @countHtml("comments",routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.getNumber).toString() + "#comments", issue.comments.size )
+                    }
+                    @if(issue.voters.size>0){
+                        @countHtml("hearts",routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.getNumber).toString() + "#vote", issue.voters.size, "strong" )
+                    }
+                </span>
+                }
+
+                @for(label <- issue.labels.toList.sortBy(r => (r.category.name, r.name))) {
+                    <a href="@urlToList(issue.project, searchCondition.state)&labelIds=@label.id" class="label issue-label list-label" data-label-id="@label.id" style="background:@label.color">@label.name</a>
+                }
+            </div>
+        </div>
+        <div class="span2">
+            <div class="mt5 pull-right">
+                @if(issue.assigneeName != null) {
+                    <a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)" class="avatar-wrap assinee" data-toggle="tooltip" data-placement="top" title="@Messages("issue.assignee"): @issue.assigneeName">
+                        <img src="@issue.assignee.user.avatarUrl" width="32" height="32" alt="@issue.assigneeName">
+                    </a>
+                } else {
+                   <div class="empty-avatar-wrap">&nbsp;</div>
+                }
+            </div>
+            @if(issue.dueDate != null) {
+            <div class="mr20 mt10 pull-right @if(issue.isOverDueDate) {overdue}" data-toggle="tooltip" data-placement="top" title="@issue.getDueDateString">
+                <i class="yobicon-clock2"></i> 
+                @if(issue.isOverDueDate) {
+                    @Messages("issue.dueDate.overdue")
+                } else {
+                    @issue.until
+                }
+            </div>
+            }
+        </div>
+    </li>
+}
+}
+</ul>

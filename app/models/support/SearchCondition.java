@@ -23,6 +23,7 @@ package models.support;
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Junction;
 import controllers.AbstractPostingApp;
+import controllers.UserApp;
 import models.*;
 import models.enumeration.State;
 import org.apache.commons.collections.CollectionUtils;
@@ -30,6 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import play.data.format.Formats;
 
+import javax.annotation.Nonnull;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -48,6 +50,8 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
     public Project project;
 
     public Long mentionId;
+    public Organization organization;
+    public List<String> projectNames;
 
     @Formats.DateTime(pattern = "yyyy-MM-dd")
     public Date dueDate;
@@ -70,6 +74,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         one.assigneeId = this.assigneeId;
         one.mentionId = this.mentionId;
         one.dueDate = this.dueDate;
+        one.projectNames = this.projectNames;
         return one;
     }
 
@@ -138,45 +143,64 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         return this;
     }
 
-    public SearchCondition() {
-        super();
-        milestoneId = null;
-        state = State.OPEN.name().toLowerCase();
-        orderBy = "createdDate";
-        commentedCheck = false;
-    }
-
-    public ExpressionList<Issue> asExpressionList() {
+    public ExpressionList<Issue> asExpressionList(@Nonnull Organization organization) {
         ExpressionList<Issue> el = Issue.finder.where();
 
-        if (assigneeId != null) {
-            if (assigneeId.equals(User.anonymous.id)) {
-                el.isNull("assignee");
-            } else {
-                el.eq("assignee.user.id", assigneeId);
-            }
+        if(isFilteredByProject()){
+            el.in("project.id", getFilteredProjectIds(organization));
+        } else {
+            el.in("project.id", getVisibleProjectIds(organization));
         }
 
-        if (authorId != null) {
-            el.eq("authorId", authorId);
+        setAssigneeIfExists(el);
+        setAuthorIfExist(el);
+        setMentionedIssuesIfExist(el);
+        setFilteredStringIfExist(el);
+
+        if (commentedCheck) {
+            el.ge("numOfComments", AbstractPosting.NUMBER_OF_ONE_MORE_COMMENTS);
         }
 
-        // TODO: access control
-        if (mentionId != null) {
-            User mentionUser = User.find.byId(mentionId);
-            if(!mentionUser.isAnonymous()) {
-                List<Long> ids = getMentioningIssueIds(mentionUser);
+        setIssueState(el);
+        setOrderByIfExist(el);
 
-                if (ids.isEmpty()) {
-                    // No need to progress because the query matches nothing.
-                    ids.add(-1l);
-                    return el.idIn(ids);
-                } else {
-                    el.idIn(ids);
+        if (dueDate != null) {
+            el.lt("dueDate", DateUtils.addDays(dueDate, 1));
+        }
+
+        return el;
+    }
+
+    private boolean isFilteredByProject() {
+        return CollectionUtils.isNotEmpty(this.projectNames);
+    }
+
+    private List<Long> getFilteredProjectIds(Organization organization) {
+        List<Long> projectIdsFilter = new ArrayList<>();
+        for(String projectName: projectNames){
+            for(Project project: organization.projects){
+                if(project.name.equalsIgnoreCase(projectName)
+                    && getVisibleProjectIds(organization).contains(project.id.toString())) {
+                    projectIdsFilter.add(project.id);
+                    break;
                 }
             }
         }
+        return projectIdsFilter;
+    }
 
+    private void setOrderByIfExist(ExpressionList<Issue> el) {
+        if (StringUtils.isNotBlank(orderBy)) {
+            if (orderBy.equals("dueDate")) {
+                String formulaName = orderDir.equals("asc") ? "dueDateAsc" : "dueDateDesc";
+                el.orderBy(formulaName + " " + orderDir);
+            } else {
+                el.orderBy(orderBy + " " + orderDir);
+            }
+        }
+    }
+
+    private void setFilteredStringIfExist(ExpressionList<Issue> el) {
         if (StringUtils.isNotBlank(filter)) {
             Junction<Issue> junction = el.disjunction();
             junction.icontains("title", filter)
@@ -188,30 +212,86 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
             }
             junction.endJunction();
         }
+    }
+
+    private void setAuthorIfExist(ExpressionList<Issue> el) {
+        if (authorId != null) {
+            el.eq("authorId", authorId);
+        }
+    }
+
+    private void setAssigneeIfExists(ExpressionList<Issue> el) {
+        if (assigneeId != null) {
+            if (assigneeId.equals(User.anonymous.id)) {
+                el.isNull("assignee");
+            } else {
+                el.eq("assignee.user.id", assigneeId);
+            }
+        }
+    }
+
+    private List<String> getVisibleProjectIds(Organization organization) {
+        List<Project> projects = organization.getVisibleProjects(UserApp.currentUser());
+        List<String> projectsIds = new ArrayList<>();
+        for (Project project : projects) {
+            projectsIds.add(project.id.toString());
+        }
+        return projectsIds;
+    }
+
+    public SearchCondition() {
+        super();
+        milestoneId = null;
+        state = State.OPEN.name().toLowerCase();
+        orderBy = "createdDate";
+        commentedCheck = false;
+    }
+
+    public ExpressionList<Issue> asExpressionList() {
+        ExpressionList<Issue> el = Issue.finder.where();
+
+        setAssigneeIfExists(el);
+        setAuthorIfExist(el);
+        setMentionedIssuesIfExist(el);
+        setFilteredStringIfExist(el);
 
         if (commentedCheck) {
             el.ge("numOfComments", AbstractPosting.NUMBER_OF_ONE_MORE_COMMENTS);
         }
 
-        State st = State.getValue(state);
-        if (st.equals(State.OPEN) || st.equals(State.CLOSED)) {
-            el.eq("state", st);
-        }
+        setIssueState(el);
 
-        if (StringUtils.isNotBlank(orderBy)) {
-            if (orderBy.equals("dueDate")) {
-                String formulaName = orderDir.equals("asc") ? "dueDateAsc" : "dueDateDesc";
-                el.orderBy(formulaName + " " + orderDir);
-            } else {
-                el.orderBy(orderBy + " " + orderDir);
-            }
-        }
+        setOrderByIfExist(el);
 
         if (dueDate != null) {
             el.lt("dueDate", DateUtils.addDays(dueDate, 1));
         }
 
         return el;
+    }
+
+    private void setIssueState(ExpressionList<Issue> el) {
+        State st = State.getValue(state);
+        if (st.equals(State.OPEN) || st.equals(State.CLOSED)) {
+            el.eq("state", st);
+        }
+    }
+
+    private void setMentionedIssuesIfExist(ExpressionList<Issue> el) {
+        // TODO: access control
+        if (mentionId != null) {
+            User mentionUser = User.find.byId(mentionId);
+            if(!mentionUser.isAnonymous()) {
+                List<Long> ids = getMentioningIssueIds(mentionUser);
+
+                if (ids.isEmpty()) {
+                    // No need to progress because the query matches nothing.
+                    el.idEq(-1);
+                } else {
+                    el.idIn(ids);
+                }
+            }
+        }
     }
 
     private List<Long> getMentioningIssueIds(User mentionUser) {
@@ -300,24 +380,14 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
             el.ge("numOfComments", AbstractPosting.NUMBER_OF_ONE_MORE_COMMENTS);
         }
 
-        State st = State.getValue(state);
-        if (st.equals(State.OPEN) || st.equals(State.CLOSED)) {
-            el.eq("state", st);
-        }
+        setIssueState(el);
 
         if (CollectionUtils.isNotEmpty(labelIds)) {
             Set<IssueLabel> labels = IssueLabel.finder.where().idIn(new ArrayList<>(labelIds)).findSet();
             el.in("id", Issue.finder.where().in("labels", labels).findIds());
         }
 
-        if (StringUtils.isNotBlank(orderBy)) {
-            if (orderBy.equals("dueDate")) {
-                String formulaName = orderDir.equals("asc") ? "dueDateAsc" : "dueDateDesc";
-                el.orderBy(formulaName + " " + orderDir);
-            } else {
-                el.orderBy(orderBy + " " + orderDir);
-            }
-        }
+        setOrderByIfExist(el);
 
         if (dueDate != null) {
             el.lt("dueDate", DateUtils.addDays(dueDate, 1));

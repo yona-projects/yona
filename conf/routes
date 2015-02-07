@@ -29,6 +29,7 @@ POST           /import                                                          
 GET            /organizations/new                                                     controllers.OrganizationApp.newForm()
 POST           /organizations/new                                                     controllers.OrganizationApp.newOrganization()
 GET            /organizations/:organizationName                                       controllers.OrganizationApp.organization(organizationName: String)
+GET            /organizations/:organizationName/issues                                controllers.IssueApp.organizationIssues(organizationName: String, state:String ?= "", format:String ?= "html", pageNum: Int ?= 1)
 GET            /organizations/:organizationName/settingform                           controllers.OrganizationApp.settingForm(organizationName: String)
 GET            /organizations/:organizationName/deleteForm                            controllers.OrganizationApp.deleteForm(organizationName: String)
 DELETE         /organizations/:organizationName                                       controllers.OrganizationApp.deleteOrganization(organizationName: String)
