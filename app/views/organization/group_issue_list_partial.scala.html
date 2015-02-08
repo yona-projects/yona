@@ -41,10 +41,6 @@
                 }
             </a>
             <div class="title-wrap">
-                <a href="@routes.ProjectApp.project(issue.project.owner,issue.project.name)" class="title project">
-                    @issue.project.name
-                </a>
-                <span class="post-id">#@issue.getNumber</span>
                 <a href="@routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.getNumber)" class="title">
                     @issue.title
                 </a>
@@ -59,8 +55,12 @@
                 }
 
                 <span class="infos-item" title="@JodaDateUtil.getDateString(issue.createdDate)">
-                    @agoOrDateString(issue.createdDate)
+                @agoOrDateString(issue.createdDate)
                 </span>
+
+                <a href="@routes.ProjectApp.project(issue.project.owner,issue.project.name)" class="infos-link-item group-project-name pull-left">
+                @issue.project.name
+                </a>
 
                 @if(issue.milestone != null && issue.project != null && issue.project.menuSetting != null && issue.project.menuSetting.milestone) {
                 <span class="infos-item mileston-tag">
