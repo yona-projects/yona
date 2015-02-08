@@ -81,6 +81,11 @@
                 </span>
                 }
 
+                <a href="@routes.ProjectApp.project(issue.project.owner,issue.project.name)" class="infos-link-item group-project-name">
+                    @issue.project.name
+                </a>
+                <span class="post-id margin-right-5">#@issue.getNumber</span>
+
                 @for(label <- issue.labels.toList.sortBy(r => (r.category.name, r.name))) {
                     <a href="@urlToList(issue.project, searchCondition.state)&labelIds=@label.id" class="label issue-label list-label" data-label-id="@label.id" style="background:@label.color">@label.name</a>
                 }
