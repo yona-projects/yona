@@ -33,6 +33,11 @@
                 @Messages("menu.issue")
                 </a>
             </li>
+            <li class="@if(request.path.contains(org.name + "/boards")){active}">
+                <a href="@routes.BoardApp.organizationBoards(org.name)">
+                @Messages("menu.board")
+                </a>
+            </li>
         </ul>
         <div class="project-setting">
             <ul class="project-menu-nav">

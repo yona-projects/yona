@@ -1,0 +1,115 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2015 NAVER Corp.
+* http://yobi.io
+*
+* @author Suwon Chae
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@(title:String, organization:Organization, page:com.avaje.ebean.Page[Posting], param:BoardApp.SearchCondition, notices:List[models.Posting])
+
+@import utils.TemplateHelper._
+@import utils.AccessControl._
+@import scala.collection.immutable.Map
+
+@urlToList = {@routes.BoardApp.organizationBoards(organization.name, page.getPageIndex + 1)}
+
+@getPageListUrl(pageIndex:Integer) = {@routes.BoardApp.organizationBoards(organization.name, pageIndex + 1)}
+
+@makeFilterLink(fieldName:String, orderBy:String, orderDir:String, fieldText:String) = {
+	@if(orderBy.equals(fieldName)) {
+		<a href="@urlToList?orderBy=@fieldName&orderDir=@if(orderDir.equals("desc")){asc}else{desc}" class="filter active"><i class="ico btn-gray-arrow @if(orderDir.equals("desc")){ down }"></i>@fieldText</a>
+	} else {
+	    <a href="@urlToList?orderBy=@fieldName&orderDir=desc" class="filter"><i class="ico btn-gray-arrow down"></i>@fieldText</a>
+	}
+}
+
+@organizationLayout(organization.name, utils.MenuType.NONE, organization) {
+    @header(organization)
+    @menu(organization)
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+        <div class="search-wrap underline">
+            <form id="option_form" method="get" class="pull-left">
+                <input type="hidden" name="orderBy"  value="@param.orderBy">
+                <input type="hidden" name="orderDir" value="@param.orderDir">
+                <div class="project-selects span7">
+                    <select id="projects" name="projectNames[]" data-format="projects" multiple data-placeholder="@Messages("organization.choose.projects")" data-toggle="select2" data-container-css-class="fullsize" >
+                    @for(project <- organization.getVisibleProjects(UserApp.currentUser())) {
+                        <option value="@project.name" @if(param.projectNames != null && param.projectNames.contains(project.name)){selected} data-avatar-url="@urlToProjectLogo(project)">@project.name</option>
+                    }
+                    </select>
+                </div>
+                <div class="search-bar span4">
+                    <input name="filter" class="textbox" type="text" placeholder="@Messages("title.searchByKeyword")" value="@param.filter">
+                    <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                </div>
+            </form>
+        </div>
+
+    	@if(page.getTotalRowCount == 0 && (notices == null || notices.size == 0)){
+            <div class="error-wrap">
+                <i class="ico ico-err1"></i>
+                <p>@Messages("post.is.empty")</p>
+            </div>
+    	} else {
+            @if(page.getTotalRowCount > 1){
+                <div class="filter-wrap board">
+                    <div class="filters">
+                        @makeFilterLink("updatedDate", param.orderBy, param.orderDir, Messages("common.order.updatedDate"))
+                        @makeFilterLink("createdDate", param.orderBy, param.orderDir, Messages("common.order.date"))
+                        @makeFilterLink("numOfComments", param.orderBy, param.orderDir, Messages("common.order.comments"))
+                    </div>
+                </div>
+            }
+
+            @if(notices != null && notices.size > 0 && page.getPageIndex == 0) {
+                <ul class="post-list-wrap notice-wrap">
+                    @for(post <- notices) {
+                        @group_board_list_partial(post, post.project)
+                    }
+                </ul>
+            }
+
+            <ul class="post-list-wrap">
+            @for(post <- page.getList) {
+                @group_board_list_partial(post, post.project)
+            }
+            </ul>
+        }
+
+    	<div class="write-btn-wrap">
+    	</div>
+
+    	<div id="pagination">
+    		<!-- pagination.js will fill here. -->
+    	</div>
+
+    </div>
+</div>
+<script type="text/javascript">
+	$(document).ready(function() {
+		$yobi.loadModule("board.List", {
+			"elPagination": $('#pagination'),
+			"nTotalPages" : @page.getTotalPageCount
+		});
+
+        $("#projects").on("change", function(){
+            $("#option_form").submit();
+        }) ;
+	});
+</script>
+@common.select2()
+}

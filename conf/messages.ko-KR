@@ -862,6 +862,7 @@ title.rememberMe = 로그인 유지하기
 title.resetPassword = 비밀번호 재설정
 title.resetPasswordFor = <span class="highlight">{0}</span> 비밀번호 재설정
 title.search = 검색
+title.searchByKeyword = 키워드로 검색
 title.sendMail = 메일 발송
 title.signup = 회원 가입
 title.signupFor = <span class="highlight">{0}</span> 회원가입

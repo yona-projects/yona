@@ -42,6 +42,25 @@
 
         // Customized formats
         var formatters = {
+            "projects": function(itemObject){
+                var itemElement = $(itemObject.element);
+                var avatarURL = itemElement.data("avatarUrl");
+
+                function _doesntHaveProjectAvatar() {
+                    return !avatarURL || avatarURL.indexOf("project_default_logo.png") !== -1;
+                }
+
+                if(_doesntHaveProjectAvatar()){
+                    return $yobi.tmpl($("#tplSelect2ProjectsWithoutAvatar").text(), {
+                        "name"     : itemObject.text
+                    });
+                } else {
+                    return $yobi.tmpl($("#tplSelect2Projects").text(), {
+                        "avatarURL": avatarURL,
+                        "name"     : itemObject.text.trim()
+                    });
+                }
+            },
             "user": function(itemObject){
                 var itemElement = $(itemObject.element);
                 var avatarURL = itemElement.data("avatarUrl");
