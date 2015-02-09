@@ -3,12 +3,7 @@ import java.nio.file.Paths
 
 name := """yobi"""
 
-val CONFIG_DIRNAME = "conf"
-val VERSION_CONF = "version.conf"
-val pathToVersionConfig = Paths.get(basePath, CONFIG_DIRNAME, VERSION_CONF)
-val versionConf = ConfigFactory.parseFile(pathToVersionConfig.toFile()).resolve()
-
-version := versionConf.getString("app.version")
+version := "0.8.0-rc2"
 
 libraryDependencies ++= Seq(
   // Add your project dependencies here,
@@ -67,7 +62,13 @@ val projectSettings = Seq(
   scalacOptions ++= Seq("-feature")
 )
 
-scalaVersion := "2.10.4"
+buildInfoSettings
+
+sourceGenerators in Compile <+= buildInfo
+
+buildInfoKeys := Seq[BuildInfoKey](name, version)
+
+buildInfoPackage := "yobi"
 
 lazy val yobi = (project in file("."))
       .enablePlugins(PlayScala)
