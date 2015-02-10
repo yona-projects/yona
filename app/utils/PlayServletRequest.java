@@ -516,15 +516,7 @@ public class PlayServletRequest implements HttpServletRequest {
 
     @Override
     public HttpSession getSession(boolean create) {
-        if (httpSession != null) {
-            return httpSession;
-        }
-
-        if (create) {
-            return new PlayServletSession(new PlayServletContext());
-        } else {
-            return null;
-        }
+        return httpSession;
     }
 
     @Override
