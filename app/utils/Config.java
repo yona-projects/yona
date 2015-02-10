@@ -20,15 +20,12 @@
  */
 package utils;
 
-import com.typesafe.config.ConfigFactory;
 import models.SiteAdmin;
 import org.apache.commons.lang3.ObjectUtils;
 import play.Configuration;
 import play.mvc.Http;
 
-import java.io.File;
 import java.net.*;
-import java.nio.file.Paths;
 import java.util.Enumeration;
 
 public class Config {
@@ -263,9 +260,7 @@ public class Config {
      * @return  the current version
      */
     public static String getCurrentVersion() {
-        File versionFile = Paths.get("conf", "version.conf").toFile();
-
-        return ConfigFactory.parseFile(versionFile).resolve().getString("app.version");
+        return yobi.BuildInfo.version();
     }
 
     public static String getEmailFromImap() {
