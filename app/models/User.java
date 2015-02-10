@@ -614,10 +614,11 @@ public class User extends Model implements ResourceConvertible {
      * @return
      */
     public static List<User> findIssueAuthorsByProjectIdAndMe(User currentUser, long projectId) {
-        String sql = "select distinct user.id, user.name, user.login_id from issue issue, n4user user where issue.author_id = user.id";
-        List<User> users = createUserSearchQueryWithRawSql(sql).where()
-                .eq("issue.project_id", projectId)
-                .orderBy("user.name ASC")
+        String sql = "SELECT DISTINCT t0.id AS id, t0.name AS name, t0.login_id AS loginId " +
+                "FROM n4user t0 JOIN issue t1 ON t0.id = t1.author_id";
+        List<User> users = find.setRawSql(RawSqlBuilder.parse(sql).create()).where()
+                .eq("t1.project_id", projectId)
+                .orderBy().asc("t0.name")
                 .findList();
 
         if (!users.contains(currentUser)) {
@@ -635,9 +636,11 @@ public class User extends Model implements ResourceConvertible {
      * @return
      */
     public static List<User> findIssueAssigneeByProjectIdAndMe(User currentUser, long projectId) {
-        String sql = "SELECT id, name FROM n4user WHERE id IN (SELECT DISTINCT user_id FROM assignee WHERE id IN (SELECT DISTINCT assignee_id FROM issue WHERE project_id = " + projectId + "))";
-        List<User> users = User.find.setRawSql(RawSqlBuilder.parse(sql).create())
-                .orderBy("name ASC")
+        String sql = "SELECT DISTINCT t0.id AS id, t0.name AS name, t0.login_id AS loginId " +
+                "FROM n4user t0 JOIN assignee t1 ON t0.id = t1.user_id";
+        List<User> users = find.setRawSql(RawSqlBuilder.parse(sql).create()).where()
+                .eq("t1.project_id", projectId)
+                .orderBy().asc("t0.name")
                 .findList();
 
         if (!users.contains(currentUser)) {
@@ -655,16 +658,12 @@ public class User extends Model implements ResourceConvertible {
      * @return
      */
     public static List<User> findPullRequestContributorsByProjectId(long projectId) {
-        String sql = "SELECT user.id, user.name, user.login_id FROM pull_request pullrequest, n4user user WHERE pullrequest.contributor_id = user.id GROUP BY pullrequest.contributor_id";
-        return createUserSearchQueryWithRawSql(sql).where()
-                .eq("pullrequest.to_project_id", projectId)
-                .orderBy("user.name ASC")
+        String sql = "SELECT DISTINCT t0.id AS id, t0.name AS name, t0.login_id AS loginId " +
+                "FROM n4user t0 JOIN pull_request t1 ON t0.id = t1.contributor_id";
+        return find.setRawSql(RawSqlBuilder.parse(sql).create()).where()
+                .eq("t1.to_project_id", projectId)
+                .orderBy().asc("t0.name")
                 .findList();
-    }
-
-    private static com.avaje.ebean.Query<User> createUserSearchQueryWithRawSql(String sql) {
-        RawSql rawSql = RawSqlBuilder.parse(sql).columnMapping("user.login_id", "loginId").create();
-        return User.find.setRawSql(rawSql);
     }
 
     /**
