@@ -28,7 +28,6 @@ import org.junit.Before;
 import org.junit.Test;
 import playRepository.BareCommit;
 import playRepository.GitRepository;
-import support.Git;
 import utils.JodaDateUtil;
 
 import java.io.File;
@@ -55,7 +54,7 @@ public class CodeCommentThreadTest extends ModelTest<CodeCommentThread>  {
     }
 
     @After
-    public void after() {
+    public void after() throws Exception {
         rm_rf(new File(REPO_PREFIX));
     }
 

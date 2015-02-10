@@ -59,7 +59,7 @@ public class RepositoryService {
      * @see {@link playRepository.PlayRepository#delete()}
      */
     public static void deleteRepository(Project project)
-            throws IOException, ServletException {
+            throws Exception {
         RepositoryService.getRepository(project).delete();
     }
 
@@ -67,8 +67,7 @@ public class RepositoryService {
      * @see {@link #deleteRepository(Project)}
      * @see {@link PlayRepository#create()}
      */
-    public static void createRepository(Project project) throws IOException, ServletException,
-            UnsupportedOperationException, SVNException {
+    public static void createRepository(Project project) throws Exception {
         RepositoryService.deleteRepository(project);
         RepositoryService.getRepository(project).create();
     }

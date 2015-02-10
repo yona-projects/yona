@@ -210,7 +210,7 @@ public class SVNRepository implements PlayRepository {
     }
 
     @Override
-    public void delete() {
+    public void delete() throws Exception {
         FileUtil.rm_rf(new File(getRepoPrefix() + ownerName + "/" + projectName));
     }
 

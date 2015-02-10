@@ -57,7 +57,7 @@ public class ImportApp extends Controller {
     }
 
     @Transactional
-    public static Result newProject() throws GitAPIException, IOException {
+    public static Result newProject() throws Exception {
         if( !AccessControl.isGlobalResourceCreatable(UserApp.currentUser()) ){
             return forbidden("'" + UserApp.currentUser().name + "' has no permission");
         }

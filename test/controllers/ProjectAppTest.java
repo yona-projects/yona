@@ -436,7 +436,7 @@ public class ProjectAppTest {
     }
 
     @Test
-    public void testAcceptTransfer() throws IOException, ServletException, SVNException {
+    public void testAcceptTransfer() throws Exception {
         //Given
         GitRepository.setRepoPrefix("resources/test/repo/git/");
 
@@ -462,7 +462,7 @@ public class ProjectAppTest {
     }
 
     @Test
-    public void testAcceptTransferWithWrongKey() throws IOException, ServletException, SVNException {
+    public void testAcceptTransferWithWrongKey() throws Exception {
         //Given
         GitRepository.setRepoPrefix("resources/test/repo/git/");
 

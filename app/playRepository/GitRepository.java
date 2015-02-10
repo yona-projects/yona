@@ -162,7 +162,7 @@ public class GitRepository implements PlayRepository {
     }
 
     public static void cloneLocalRepository(Project originalProject, Project forkProject)
-            throws IOException, GitAPIException {
+            throws Exception {
         try {
             cloneHardLinkedRepository(originalProject, forkProject);
         } catch (Exception e) {
@@ -638,7 +638,7 @@ public class GitRepository implements PlayRepository {
      * initializing {@code Cache} used in the repository.
      */
     @Override
-    public void delete() {
+    public void delete() throws Exception {
         repository.close();
         WindowCacheConfig config = new WindowCacheConfig();
         config.install();
