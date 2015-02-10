@@ -1065,8 +1065,8 @@ public class GitRepository implements PlayRepository {
             if (diffs.size() > BLAME_FILE_LIMIT) {
                 String msg = String.format("Reject to get related authors " +
                         "from changes because of performance issue: The " +
-                        "changes include %n files and it exceeds our limit " +
-                        "of '%n' files.", diffs.size(), BLAME_FILE_LIMIT);
+                        "changes include %d files and it exceeds our limit " +
+                        "of '%d' files.", diffs.size(), BLAME_FILE_LIMIT);
                 throw new LimitExceededException(msg);
             }
 
