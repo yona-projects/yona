@@ -371,7 +371,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
             return otherAssignee == null || otherAssignee.user == null || otherAssignee.user.isAnonymous();
         }
         if (otherAssignee == null || otherAssignee.user == null || otherAssignee.user.isAnonymous()) {
-            return assignee == null || assignee.user == null || assignee.user.isAnonymous();
+            return assignee.user.isAnonymous();
         }
         return assignee.equals(otherAssignee) || assignee.user.equals(otherAssignee.user);
     }
