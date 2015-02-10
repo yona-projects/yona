@@ -55,6 +55,7 @@ import views.html.board.view;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 import static com.avaje.ebean.Expr.icontains;
 
@@ -244,7 +245,7 @@ public class BoardApp extends AbstractPostingApp {
 
     private static void unmarkAnotherReadmePostingIfExists(Project project, Long postingNumber) {
         Posting previousReadmePosting = Posting.findREADMEPosting(project);
-        if(previousReadmePosting != null && previousReadmePosting.getNumber() != postingNumber){
+        if(previousReadmePosting != null && !Objects.equals(previousReadmePosting.getNumber(), postingNumber)){
             previousReadmePosting.readme = false;
             previousReadmePosting.directSave();
         }
