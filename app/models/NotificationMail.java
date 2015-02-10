@@ -59,7 +59,9 @@ import java.util.concurrent.TimeUnit;
 @Entity
 public class NotificationMail extends Model {
     private static final long serialVersionUID = 1L;
+    private static final int RECIPIENT_NO_LIMIT = 0;
     static boolean hideAddress = true;
+    private static int recipientLimit = RECIPIENT_NO_LIMIT;
 
     @Id
     public Long id;
@@ -73,6 +75,9 @@ public class NotificationMail extends Model {
     public static void onStart() {
         hideAddress = play.Configuration.root().getBoolean(
             "application.notification.bymail.hideAddress", true);
+
+        recipientLimit = play.Configuration.root().getInt(
+                "application.notification.bymail.recipientLimit", RECIPIENT_NO_LIMIT);
 
         if (notificationEnabled()) {
             NotificationMail.startSchedule();
@@ -241,61 +246,77 @@ public class NotificationMail extends Model {
         }
 
         for (String langCode : usersByLang.keySet()) {
-            final EventEmail email = new EventEmail(event);
+            List<User> users = usersByLang.get(langCode);
 
-            try {
-                email.setFrom(Config.getEmailFromSmtp(), event.getSender().name);
-                email.addTo(Config.getEmailFromSmtp(), utils.Config.getSiteName());
-
-                String replyTo = getReplyTo(event.getResource());
-                boolean acceptsReply = false;
-                if (replyTo != null) {
-                    email.addReplyTo(replyTo);
-                    acceptsReply = true;
+            if (recipientLimit == RECIPIENT_NO_LIMIT) {
+                sendMail(event, users, langCode);
+            } else {
+                int usersSize = users.size();
+                int fromIndex, toIndex = 0;
+                while (toIndex < usersSize) {
+                    fromIndex = toIndex;
+                    toIndex = Math.min(toIndex + recipientLimit, usersSize);
+                    sendMail(event, users.subList(fromIndex, toIndex), langCode);
                 }
-
-                for (User receiver : usersByLang.get(langCode)) {
-                    if (hideAddress) {
-                        email.addBcc(receiver.email, receiver.name);
-                    } else {
-                        email.addTo(receiver.email, receiver.name);
-                    }
-                }
-
-                if (email.getToAddresses().isEmpty()) {
-                    continue;
-                }
-
-                // FIXME: gmail은 From과 To에 같은 주소가 있으면 reply-to를 무시한다.
-
-                Lang lang = Lang.apply(langCode);
-
-                String message = event.getMessage(lang);
-                String urlToView = event.getUrlToView();
-
-                email.setSubject(event.title);
-                Resource resource = event.getResource();
-                if (resource.getType() == ResourceType.ISSUE_COMMENT) {
-                    IssueComment issueComment = IssueComment.find.byId(Long.valueOf(resource.getId()));
-                    resource = issueComment.issue.asResource();
-                }
-                email.setHtmlMsg(getHtmlMessage(lang, message, urlToView, resource, acceptsReply));
-                email.setTextMsg(getPlainMessage(lang, message, Url.create(urlToView), acceptsReply));
-                email.setCharset("utf-8");
-                email.addReferences();
-                email.setSentDate(event.created);
-                Mailer.send(email);
-                String escapedTitle = email.getSubject().replace("\"", "\\\"");
-                Set<InternetAddress> recipients = new HashSet<>();
-                recipients.addAll(email.getToAddresses());
-                recipients.addAll(email.getCcAddresses());
-                recipients.addAll(email.getBccAddresses());
-                String logEntry = String.format("\"%s\" %s", escapedTitle, recipients);
-                play.Logger.of("mail.out").info(logEntry);
-            } catch (Exception e) {
-                Logger.warn("Failed to send a notification: "
-                        + email + "\n" + ExceptionUtils.getStackTrace(e));
             }
+        }
+    }
+
+    private static void sendMail(NotificationEvent event, List<User> receivers, String langCode) {
+        final EventEmail email = new EventEmail(event);
+
+        try {
+            email.setFrom(Config.getEmailFromSmtp(), event.getSender().name);
+            email.addTo(Config.getEmailFromSmtp(), utils.Config.getSiteName());
+
+            String replyTo = getReplyTo(event.getResource());
+            boolean acceptsReply = false;
+            if (replyTo != null) {
+                email.addReplyTo(replyTo);
+                acceptsReply = true;
+            }
+
+            for (User receiver : receivers) {
+                if (hideAddress) {
+                    email.addBcc(receiver.email, receiver.name);
+                } else {
+                    email.addTo(receiver.email, receiver.name);
+                }
+            }
+
+            if (email.getToAddresses().isEmpty()) {
+                return;
+            }
+
+            // FIXME: gmail은 From과 To에 같은 주소가 있으면 reply-to를 무시한다.
+
+            Lang lang = Lang.apply(langCode);
+
+            String message = event.getMessage(lang);
+            String urlToView = event.getUrlToView();
+
+            email.setSubject(event.title);
+            Resource resource = event.getResource();
+            if (resource.getType() == ResourceType.ISSUE_COMMENT) {
+                IssueComment issueComment = IssueComment.find.byId(Long.valueOf(resource.getId()));
+                resource = issueComment.issue.asResource();
+            }
+            email.setHtmlMsg(getHtmlMessage(lang, message, urlToView, resource, acceptsReply));
+            email.setTextMsg(getPlainMessage(lang, message, Url.create(urlToView), acceptsReply));
+            email.setCharset("utf-8");
+            email.addReferences();
+            email.setSentDate(event.created);
+            Mailer.send(email);
+            String escapedTitle = email.getSubject().replace("\"", "\\\"");
+            Set<InternetAddress> recipients = new HashSet<>();
+            recipients.addAll(email.getToAddresses());
+            recipients.addAll(email.getCcAddresses());
+            recipients.addAll(email.getBccAddresses());
+            String logEntry = String.format("\"%s\" %s", escapedTitle, recipients);
+            play.Logger.of("mail.out").info(logEntry);
+        } catch (Exception e) {
+            Logger.warn("Failed to send a notification: "
+                    + email + "\n" + ExceptionUtils.getStackTrace(e));
         }
     }
 

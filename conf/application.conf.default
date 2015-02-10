@@ -160,6 +160,10 @@ imap.folder = inbox
 application.notification.bymail.interval = 60s
 # Sending a notification mail delays this seconds.
 application.notification.bymail.delay = 180s
+# Split notification emails by the recipient limit.
+# The value is number of maximum recipients per an email and inclusive.
+# (default: 0, This means there is no limitation.)
+application.notification.bymail.recipientLimit = 100
 # Hide recipients of notification email by using bcc. (default: true)
 application.notification.bymail.hideAddress = true
 # A new event notification can be merged if possible with previous one which is
