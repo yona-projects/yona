@@ -24,6 +24,7 @@ import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import utils.Diagnostic;
 
+import javax.annotation.Nonnull;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -91,7 +92,7 @@ public class Property extends Model {
     public static void onStart() {
         Diagnostic.register(new Diagnostic() {
             @Override
-            public List<String> check() {
+            public @Nonnull List<String> check() {
                 List<String> errors = new ArrayList<>();
 
                 for (Property.Name name : Property.Name.values()) {
