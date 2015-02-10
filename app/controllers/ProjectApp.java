@@ -938,9 +938,9 @@ public class ProjectApp extends Controller {
     private static Result getPagingProjects(String query, int pageNum) {
         ExpressionList<Project> el = createProjectSearchExpressionList(query);
 
-        Set<Long> labelIds = LabelSearchUtil.getLabelIds(request());
+        Set<Long> labelIds = LabelApp.getLabelIds(request());
         if (CollectionUtils.isNotEmpty(labelIds)) {
-            el.add(LabelSearchUtil.createLabelSearchExpression(el.query(), labelIds));
+            el.in("labels.id", labelIds);
         }
 
         el.orderBy("createdDate desc");

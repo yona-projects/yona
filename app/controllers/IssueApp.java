@@ -102,7 +102,7 @@ public class IssueApp extends AbstractPostingApp {
         Form<models.support.SearchCondition> issueParamForm = new Form<>(models.support.SearchCondition.class);
         models.support.SearchCondition searchCondition = issueParamForm.bindFromRequest().get();
         searchCondition.pageNum = pageNum - 1;
-        searchCondition.labelIds.addAll(LabelSearchUtil.getLabelIds(request()));
+        searchCondition.labelIds.addAll(LabelApp.getLabelIds(request()));
         searchCondition.labelIds.remove(null);
 
         // determine pjax or json when requested with XHR

@@ -29,13 +29,12 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import play.data.format.Formats;
-import utils.LabelSearchUtil;
 
-import javax.persistence.Transient;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static models.enumeration.ResourceType.*;
+import static models.enumeration.ResourceType.ISSUE_COMMENT;
+import static models.enumeration.ResourceType.ISSUE_POST;
 
 public class SearchCondition extends AbstractPostingApp.SearchCondition {
     public String state;
@@ -307,7 +306,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
         }
 
         if (CollectionUtils.isNotEmpty(labelIds)) {
-            el.add(LabelSearchUtil.createLabelSearchExpression(el.query(), labelIds));
+            el.in("labels.id", labelIds);
         }
 
         if (StringUtils.isNotBlank(orderBy)) {
