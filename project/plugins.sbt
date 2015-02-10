@@ -14,4 +14,6 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.0.4")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.0.3")
 
+addSbtPlugin("de.johoop" % "findbugs4sbt" % "1.3.0")
+
 libraryDependencies += "org.javassist" % "javassist" % "3.18.2-GA"
