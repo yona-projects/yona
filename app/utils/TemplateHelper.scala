@@ -2,6 +2,7 @@ package utils
 
 import play.mvc.Call
 import org.joda.time.DateTimeConstants
+import org.apache.commons.io.FilenameUtils
 import play.i18n.Messages
 import controllers.routes
 import controllers.UserApp
@@ -543,4 +544,13 @@ object TemplateHelper {
         <a href="%s">%d</a>
       </span> """.format(strong, icon, link, count))
   }
+
+  def isMarkdownExtension(path: String):Boolean = {
+    var ext = FilenameUtils.getExtension(path).toLowerCase()
+    var markdownExtenstions = List("markdown", "mdown", "mkdn", "mkd", "md", "mdwn")
+
+    markdownExtenstions.contains(ext)
+
+  }
+
 }

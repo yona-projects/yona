@@ -23,6 +23,7 @@
 @import utils.TemplateHelper._
 @import utils.TemplateHelper.CodeBrowser._
 @import java.net.URLEncoder
+@import utils.Markdown
 
 @defining(path.substring(path.lastIndexOf("/") + 1)) { fileName =>
 @defining(getFileRev(project.vcs, files)) { revId=>
@@ -97,8 +98,16 @@
           </p>
         }
         case _ => {
+          @if(isMarkdownExtension(path)) {
+          <div id="codeVal" class="markdown-wrap codebrowser-markdown">
+            @if(files.get("data") != null){
+            @Html(Markdown.render(fieldText(files, "data"), project))
+            }
+          </div>
+          } else {
           <div id="codeVal" class="hidden">@if(files.get("data") != null){@fieldText(files, "data")}</div>
           <pre id="showCode" class="code-wrap" data-mimeType="@files.get("mimeType")"></pre>
+          }
         }
       }
     }
@@ -108,5 +117,4 @@
 }
 }
 }
-@common.markdown(project)
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/ace/ace.js")"></script>
