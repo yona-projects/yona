@@ -338,31 +338,36 @@ public class User extends Model implements ResourceConvertible {
     }
 
     public static List<User> findUsersByProjectAndOrganization(Project project) {
-        Set<User> users = new HashSet<>();
-
         // member of this project.
+        Set<Long> userIds = new HashSet<>();
+
         List<ProjectUser> pus = project.members();
         for(ProjectUser pu : pus) {
-            users.add(pu.user);
+            userIds.add(pu.user.id);
         }
 
         // member of the group
         if(project.hasGroup()) {
-            List<OrganizationUser> ous = (project.isPublic() || project.isProtected()) ? project.organization.users : project.organization.getAdmins();
+            List<OrganizationUser> ous = null;
+            if(project.isPrivate()) {
+                ous = project.organization.getAdmins();
+            } else {
+                ous = OrganizationUser.find.fetch("user")
+                        .where().eq("organization", project.organization).findList();
+            }
+
             for(OrganizationUser ou : ous) {
-                users.add(ou.user);
+                userIds.add(ou.user.id);
             }
         }
 
-        // sorting
-        List<User> result = new ArrayList<>(users);
-        Collections.sort(result, USER_NAME_COMPARATOR);
-
         if (UserApp.currentUser().isSiteManager()) {
-            result.add(UserApp.currentUser());
+            userIds.add(UserApp.currentUser().id);
         }
 
-        return result;
+        List<User> users = find.where().in("id", userIds).orderBy().asc("name").findList();
+
+        return users;
     }
 
     @Transient
