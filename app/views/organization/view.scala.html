@@ -62,9 +62,11 @@
                             <button type="button" class="search-btn"><i class="yobicon-search"></i></button>
                         </div>
                     </div>
+                    @if(OrganizationUser.isAdmin(org, UserApp.currentUser) || UserApp.currentUser().isSiteManager) {
                     <div class="span3">
                         <a href="@routes.ProjectApp.newProjectForm()?owner=@org.name" class="ybtn ybtn-primary">@Messages("button.newProject")</a>
                     </div>
+                    }
                 </div>
                 <ul class="all-projects">
                     @for(project <- org.getVisibleProjects(UserApp.currentUser())) {
