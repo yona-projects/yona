@@ -463,6 +463,32 @@ public class NotificationEvent extends Model {
         return notiEvent;
     }
 
+    public static NotificationEvent afterPullRequestCommitChanged(User sender, PullRequest pullRequest) {
+        NotificationEvent notiEvent = createFrom(sender, pullRequest);
+        notiEvent.title = formatReplyTitle(pullRequest);
+        notiEvent.receivers = getReceivers(sender, pullRequest);
+        notiEvent.eventType = PULL_REQUEST_COMMIT_CHANGED;
+        notiEvent.oldValue = null;
+        notiEvent.newValue = newPullRequestCommitChangedMessage(pullRequest);
+        NotificationEvent.add(notiEvent);
+        return notiEvent;
+    }
+
+    private static String newPullRequestCommitChangedMessage(PullRequest pullRequest) {
+        List<PullRequestCommit> commits = PullRequestCommit.find.where().eq("pullRequest", pullRequest).orderBy().desc("authorDate").findList();
+        StringBuilder builder = new StringBuilder();
+        builder.append("### ");
+        builder.append(Messages.get("notification.pullrequest.current.commits"));
+        builder.append("\n");
+        for (PullRequestCommit commit : commits) {
+            builder.append(commit.getCommitShortId());
+            builder.append(" ");
+            builder.append(commit.getCommitShortMessage());
+            builder.append("\n");
+        }
+        return builder.toString();
+    }
+
     /**
      * @see {@link actors.PullRequestActor#processPullRequestMerging(models.PullRequestEventMessage, models.PullRequest)}
      */
@@ -1071,5 +1097,4 @@ public class NotificationEvent extends Model {
 
         return find.setRawSql(RawSqlBuilder.parse(sql).create()).findList().size();
     }
-
 }

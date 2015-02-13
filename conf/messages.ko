@@ -370,6 +370,7 @@ notification.organization.member.request.title = [{0}] {1} 님이 멤버 요청�
 notification.organization.type.member.enroll = 멤버 등록 요청
 notification.pullrequest.closed = 코드 주고받기 닫힘(closed)
 notification.pullrequest.conflicts = 충돌이 발생
+notification.pullrequest.current.commits = 현재 커밋 목록
 notification.pullrequest.merged = 보낸 코드가 반영됨(merged)
 notification.pullrequest.reopened = 코드 주고받기 다시 열림
 notification.pullrequest.reviewed = {0} 님이 리뷰를 완료했습니다.

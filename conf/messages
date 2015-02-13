@@ -370,6 +370,7 @@ notification.organization.member.request.title = [{0}] {1} wants to join your gr
 notification.organization.type.member.enroll = Requests for joining group
 notification.pullrequest.closed = Pull Request closed
 notification.pullrequest.conflicts = Pull Request conflicts
+notification.pullrequest.current.commits = Current Pull Request Commits
 notification.pullrequest.merged = Pull Request merged
 notification.pullrequest.reopened = Pull Request has been reopened
 notification.pullrequest.reviewed = {0} completed a review on pull request.
