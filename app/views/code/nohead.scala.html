@@ -46,26 +46,26 @@
     @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
                 <h5>@Messages("code.nohead.clone", utils.Config.getSiteName)</h5>
     			<pre><code>git clone @getCodeURL(project)
-    cd @project.name/
-    echo "# @project.name" > README.md
-    git add README.md
-    git commit -m "Hello @utils.Config.getSiteName"
-    git push origin master</code></pre>
+cd @project.name/
+echo "# @project.name" > README.md
+git add README.md
+git commit -m "Hello @utils.Config.getSiteName"
+git push origin master</code></pre>
                 <h5>@Messages("code.nohead.init", utils.Config.getSiteName)</h5>
                 <pre><code>mkdir @project.name
-    cd @project.name/
-    echo "# @project.name" > README.md
-    git init
-    git add README.md
-    git commit -m "Hello @utils.Config.getSiteName"
-    git remote add origin @getCodeURL(project)
-    git push origin master</code></pre>
+cd @project.name/
+echo "# @project.name" > README.md
+git init
+git add README.md
+git commit -m "Hello @utils.Config.getSiteName"
+git remote add origin @getCodeURL(project)
+git push origin master</code></pre>
                 <h5>@Messages("code.nohead.remote", utils.Config.getSiteName)</h5>
                 <pre><code>git remote add origin @getCodeURL(project)
-    git push origin master</code></pre>
+git push origin master</code></pre>
                 <h5>@Messages("code.nohead.pull.push")</h5>
                 <pre><code>git pull origin master
-    git push origin master</code></pre>
+git push origin master</code></pre>
     }
     		</div>
         </div>
