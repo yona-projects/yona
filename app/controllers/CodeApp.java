@@ -31,6 +31,7 @@ import org.apache.tika.mime.MediaType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.tmatesoft.svn.core.SVNException;
+import play.db.ebean.Transactional;
 import play.mvc.*;
 import playRepository.PlayRepository;
 import playRepository.RepositoryService;
@@ -48,6 +49,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @AnonymousCheck
+@Transactional
 public class CodeApp extends Controller {
     public static String hostName;
 

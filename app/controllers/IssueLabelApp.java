@@ -48,6 +48,7 @@ import static play.data.Form.form;
 import static play.libs.Json.toJson;
 
 @AnonymousCheck
+@Transactional
 public class IssueLabelApp extends Controller {
     /**
      * Responds to a request for issue labels of the specified project.
@@ -183,7 +184,6 @@ public class IssueLabelApp extends Controller {
      * @param projectName  the name of a project
      * @return             the response to the request to add a new issue label
      */
-    @Transactional
     @IsCreatable(ResourceType.ISSUE_LABEL)
     public static Result newLabel(String ownerName, String projectName) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
@@ -249,7 +249,6 @@ public class IssueLabelApp extends Controller {
      * @param id           the id of the label to be deleted
      * @return             the response to the request to delete an issue label
      */
-    @Transactional
     @IsAllowed(value = Operation.DELETE, resourceType = ResourceType.ISSUE_LABEL)
     public static Result delete(String ownerName, String projectName, Long id) {
         // _method must be 'delete'
@@ -452,7 +451,6 @@ public class IssueLabelApp extends Controller {
         return created(toJson(categoryPropertyMap)).as("application/json");
     }
 
-    @Transactional
     @IsAllowed(value = Operation.DELETE, resourceType = ResourceType.ISSUE_LABEL_CATEGORY)
     public static Result deleteCategory(String ownerName, String projectName, Long id) {
         IssueLabelCategory.find.byId(id).delete();

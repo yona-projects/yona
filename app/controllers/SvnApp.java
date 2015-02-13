@@ -26,6 +26,7 @@ import models.enumeration.Operation;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.tmatesoft.svn.core.internal.server.dav.handlers.DAVHandlerFactory;
+import play.db.ebean.Transactional;
 import play.mvc.*;
 import playRepository.PlayRepository;
 import playRepository.RepositoryService;
@@ -36,6 +37,7 @@ import java.io.IOException;
 import java.io.PipedInputStream;
 import java.net.URISyntaxException;
 
+@Transactional
 public class SvnApp extends Controller {
     private static final String[] WEBDAV_METHODS = {
         DAVHandlerFactory.METHOD_PROPFIND,

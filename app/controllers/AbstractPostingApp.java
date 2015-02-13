@@ -29,11 +29,13 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import play.data.Form;
 import play.db.ebean.Model;
+import play.db.ebean.Transactional;
 import play.i18n.Messages;
 import play.mvc.*;
 import utils.*;
 
 @AnonymousCheck
+@Transactional
 public class AbstractPostingApp extends Controller {
     public static final int ITEMS_PER_PAGE = 15;
 

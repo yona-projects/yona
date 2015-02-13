@@ -46,6 +46,7 @@ import java.util.List;
 import static play.data.Form.form;
 
 @AnonymousCheck
+@Transactional
 public class ImportApp extends Controller {
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
@@ -56,7 +57,6 @@ public class ImportApp extends Controller {
         return ok(importing.render("title.newProject", projectForm, orgUserList));
     }
 
-    @Transactional
     public static Result newProject() throws GitAPIException, IOException {
         if( !AccessControl.isGlobalResourceCreatable(UserApp.currentUser()) ){
             return forbidden("'" + UserApp.currentUser().name + "' has no permission");
