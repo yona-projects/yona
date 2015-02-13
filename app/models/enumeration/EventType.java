@@ -83,7 +83,7 @@ public enum EventType {
             case NEW_PULL_REQUEST:
             case NEW_COMMENT:
             case NEW_REVIEW_COMMENT:
-            case NEW_COMMIT:
+            // We consider "NEW_COMMIT" as "UPDATE" because it updates a project.
                 return true;
             default:
                 return false;
