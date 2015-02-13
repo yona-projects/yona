@@ -22,11 +22,11 @@
 
 @import utils.AccessControl._
 
-@makeOptionTagWithFlag(user:User, flag:String) = {
+@makeOptionTagWithFlag(user:User, users:List[User], flag:String) = {
     <option value="@user.id"
-            data-avatar-url="@User.findByLoginId(user.loginId).avatarUrl"
+            data-avatar-url="@user.avatarUrl"
             data-login-id="@user.loginId"
-            @if(!project.isAssignableUser(user)) { data-non-member="true" }
+            @if(!users.contains(user)) { data-non-member="true" }
             @flag>
         @user.name
     </option>
@@ -46,15 +46,18 @@
             }
         }
     }
-    @for(user <- project.getAssignableUsersAndAssignee(issue)){
-        @if(issue != null && issue.assignee != null && issue.assignee.user.loginId == user.loginId) {
-            @makeOptionTagWithFlag(user, "selected")
-        } else {
-            @makeOptionTagWithFlag(user,"")
+    @defining(project.getAssignableUsersAndAssignee(issue)) { users =>
+        @for(user <- users){
+            @if(issue != null && issue.assignee != null && issue.assignee.user.loginId == user.loginId) {
+                @makeOptionTagWithFlag(user, users, "selected")
+            } else {
+                @makeOptionTagWithFlag(user, users, "")
+            }
+        }
+
+        @if(issue != null && issue.assignee != null && issue.assignee.user.isSiteManager() && !UserApp.currentUser().isSiteManager()) {
+            @makeOptionTagWithFlag(issue.assignee.user, users, "selected")
         }
     }
 
-    @if(issue != null && issue.assignee != null && issue.assignee.user.isSiteManager() && !UserApp.currentUser().isSiteManager()) {
-        @makeOptionTagWithFlag(issue.assignee.user, "selected")
-    }
 </select>

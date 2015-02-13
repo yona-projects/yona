@@ -20,9 +20,7 @@
  */
 package models;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -93,7 +91,7 @@ public class ProjectUser extends Model {
     }
 
     public static List<ProjectUser> findMemberListByProject(Long projectId) {
-        return find.fetch("user", "loginId").fetch("role", "name").where()
+        return find.fetch("user").fetch("role", "name").where()
                 .eq("project.id", projectId).ne("role.id", RoleType.SITEMANAGER.roleType())
                 .orderBy("user.name ASC")
                 .findList();
