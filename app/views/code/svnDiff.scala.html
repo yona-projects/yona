@@ -27,6 +27,7 @@
 @import utils.AccessControl._
 @import play.libs.Json.toJson
 @import utils.Markdown
+@import org.apache.commons.lang3.StringUtils
 
 @projectLayout(Messages("code.commits") + " @" + commit.getId, project, utils.MenuType.CODE) {
 @projectMenu(project, utils.MenuType.CODE, "main-menu-only")
@@ -42,7 +43,7 @@
                 @defining(RepositoryService.getRepository(project).getBranchNames()) { branches =>
                     @for(branch <- branches){
                         @common.branchItem("history", project, branch, null,
-                            utils.TemplateHelper.equals(branch, selectedBranch))
+                            StringUtils.equals(branch, selectedBranch))
                     }
                 }
                 </ul>

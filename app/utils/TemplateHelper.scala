@@ -1,5 +1,6 @@
 package utils
 
+import org.apache.commons.lang3.StringUtils
 import play.mvc.Call
 import org.joda.time.DateTimeConstants
 import org.apache.commons.io.FilenameUtils
@@ -105,10 +106,8 @@ object TemplateHelper {
     }
   }
 
-  def equals(a: String, b: String) = (a == b) || a.equals(b)
-
   def equalsThen(a: String, b: String, thenStr: String): String = {
-    if(a != null && b != null && equals(a, b)){
+    if(a != null && b != null && StringUtils.equals(a, b)){
       thenStr
     } else {
       ""
@@ -125,7 +124,7 @@ object TemplateHelper {
 
   // Whether the given uris are pointing the same resource.
   def resourceEquals(a: URI, b: URI) =
-    nullOrEquals(a.getHost, b.getHost) && getPort(a) == getPort(b) && equals(a.getPath, b.getPath)
+    nullOrEquals(a.getHost, b.getHost) && getPort(a) == getPort(b) && StringUtils.equals(a.getPath, b.getPath)
 
   // Get the url to return to the list page from the view page.
   // Return the referrer if the it is the uri for the list page, an/ return the
