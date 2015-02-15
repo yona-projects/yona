@@ -32,8 +32,6 @@ import java.nio.charset.Charset;
 
 public class FileUtil {
 
-    public static final int MAX_SIZE_FOR_BINARY_DETECTION = 512;
-
     public static void rm_rf(File file) throws Exception {
         if(file.isDirectory()){
             File[] list = file.listFiles();

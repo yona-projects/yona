@@ -23,14 +23,13 @@ package utils;
 import controllers.UserApp;
 import models.User;
 import org.apache.commons.codec.binary.Base64;
+import play.libs.F.Promise;
 import play.mvc.Action;
 import play.mvc.Http;
 import play.mvc.Http.Context;
 import play.mvc.Http.Request;
 import play.mvc.Http.Response;
 import play.mvc.Result;
-import play.mvc.Result;
-import play.libs.F.Promise;
 
 import java.io.UnsupportedEncodingException;
 
@@ -59,10 +58,7 @@ public class BasicAuthAction extends Action<Object> {
             return null;
         }
 
-        String userpassBase64 = credentials.substring(6);
-        byte[] userpassBytes;
-
-        userpassBytes = Base64.decodeBase64(userpassBase64);
+        byte[] userpassBytes = Base64.decodeBase64(credentials.substring(6));
 
         // Use ISO-8859-1 only and not others, even if in RFC 2616, Section 2.2 "Basic Rules" allows
         // TEXT to be encoded according to the rules of RFC 2047.
