@@ -224,7 +224,7 @@ public class PlayServletResponse implements HttpServletResponse {
 
     @Override
     public void addDateHeader(String name, long date) {
-        addHeader(name, FastHttpDateFormat.formatDate(date, FastHttpDateFormat.format));
+        addHeader(name, FastHttpDateFormat.formatDate(date, null));
     }
 
     @Override
@@ -332,7 +332,7 @@ public class PlayServletResponse implements HttpServletResponse {
 
     @Override
     public void setDateHeader(String name, long date) {
-        this.response.setHeader(name, FastHttpDateFormat.formatDate(date, FastHttpDateFormat.format));
+        this.response.setHeader(name, FastHttpDateFormat.formatDate(date, null));
     }
 
     @Override
