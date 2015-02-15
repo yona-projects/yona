@@ -40,13 +40,11 @@ import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNDiffClient;
 import org.tmatesoft.svn.core.wc.SVNRevision;
 import play.libs.Json;
+import utils.Config;
 import utils.FileUtil;
 import utils.GravatarUtil;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -215,17 +213,17 @@ public class SVNRepository implements PlayRepository {
     }
 
     @Override
-    public String getPatch(String commitId) throws SVNException {
+    public String getPatch(String commitId) throws SVNException, UnsupportedEncodingException {
         long rev = Integer.parseInt(commitId);
         return getPatch(rev - 1, rev);
     }
 
     @Override
-    public String getPatch(String revA, String revB) throws SVNException {
+    public String getPatch(String revA, String revB) throws SVNException, UnsupportedEncodingException {
         return getPatch(Long.parseLong(revA), Long.parseLong(revB));
     }
 
-    private String getPatch(long revA, long revB) throws SVNException {
+    private String getPatch(long revA, long revB) throws SVNException, UnsupportedEncodingException {
         // Prepare required arguments.
         SVNURL svnURL = SVNURL.fromFile(new File(getRepoPrefix() + ownerName + "/" + projectName));
 
@@ -239,7 +237,7 @@ public class SVNRepository implements PlayRepository {
         diffClient.doDiff(svnURL, null, SVNRevision.create(revA), SVNRevision.create(revB),
                 SVNDepth.INFINITY, true, byteArrayOutputStream);
 
-        return byteArrayOutputStream.toString();
+        return byteArrayOutputStream.toString(Config.getCharset().name());
     }
 
     @Override

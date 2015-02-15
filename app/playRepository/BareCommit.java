@@ -26,6 +26,7 @@ import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
+import utils.Config;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,8 +37,9 @@ import java.nio.channels.OverlappingFileLockException;
 
 import static org.eclipse.jgit.lib.Constants.HEAD;
 import static org.eclipse.jgit.lib.Constants.OBJ_BLOB;
-import static utils.LineEnding.*;
-import static playRepository.BareRepository.*;
+import static playRepository.BareRepository.findFileLineEnding;
+import static utils.LineEnding.addEOL;
+import static utils.LineEnding.changeLineEnding;
 
 public class BareCommit {
     private PersonIdent personIdent;
@@ -138,7 +140,7 @@ public class BareCommit {
 
         boolean isInsertedInTree = false;
         while(!treeParser.eof()){
-            String entryName = new String(treeParser.getEntryPathBuffer(), 0, treeParser.getEntryPathLength());
+            String entryName = new String(treeParser.getEntryPathBuffer(), 0, treeParser.getEntryPathLength(), Config.getCharset());
             String nameForComparison = entryName;
 
             if (treeParser.getEntryFileMode() == FileMode.TREE){
@@ -149,12 +151,12 @@ public class BareCommit {
                 isInsertedInTree = true;
             } else if (nameForComparison.compareTo(fileName) > 0 && isInsertedInTree == false) {
                 formatter.append(fileName, FileMode.REGULAR_FILE, fileObjectId);
-                formatter.append(entryName.getBytes()
+                formatter.append(entryName.getBytes(Config.getCharset())
                         , treeParser.getEntryFileMode()
                         , treeParser.getEntryObjectId());
                 isInsertedInTree = true;
             } else {
-                formatter.append(entryName.getBytes()
+                formatter.append(entryName.getBytes(Config.getCharset())
                         , treeParser.getEntryFileMode()
                         , treeParser.getEntryObjectId());
             }
@@ -174,7 +176,8 @@ public class BareCommit {
     }
 
     private ObjectId createGitObjectWithText(String contents) throws IOException {
-        return objectInserter.insert(OBJ_BLOB, contents.getBytes(), 0, contents.getBytes().length);
+        byte[] bytes = contents.getBytes(Config.getCharset());
+        return objectInserter.insert(OBJ_BLOB, bytes, 0, bytes.length);
     }
 
     private void refUpdate(ObjectId commitId, String refName) throws IOException {

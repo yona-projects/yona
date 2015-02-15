@@ -162,14 +162,14 @@ public class Global extends GlobalSettings {
             }
 
             private void replaceSiteSecretKey(String seed) throws IOException {
-                SecureRandom random = new SecureRandom(seed.getBytes());
+                SecureRandom random = new SecureRandom(seed.getBytes(Config.getCharset()));
                 String secret = new BigInteger(130, random).toString(32);
 
                 Path path = Paths.get("conf/application.conf");
                 byte[] bytes = Files.readAllBytes(path);
-                String config = new String(bytes);
+                String config = new String(bytes, Config.getCharset());
                 config = config.replace(DEFAULT_SECRET, secret);
-                Files.write(path, config.getBytes());
+                Files.write(path, config.getBytes(Config.getCharset()));
             }
 
             private boolean hasError(Form<User> newUserForm) {

@@ -26,6 +26,7 @@ import play.Configuration;
 import play.mvc.Http;
 
 import java.net.*;
+import java.nio.charset.Charset;
 import java.util.Enumeration;
 
 public class Config {
@@ -270,5 +271,9 @@ public class Config {
         } else {
             return user + "@" + config.getString(prefix + ".domain", getHostname());
         }
+    }
+
+    public static Charset getCharset() {
+        return Charset.forName("UTF-8");
     }
 }

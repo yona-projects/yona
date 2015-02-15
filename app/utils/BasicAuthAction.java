@@ -62,7 +62,7 @@ public class BasicAuthAction extends Action<Object> {
         String userpassBase64 = credentials.substring(6);
         byte[] userpassBytes;
 
-        userpassBytes = Base64.decodeBase64(userpassBase64.getBytes());
+        userpassBytes = Base64.decodeBase64(userpassBase64);
 
         // Use ISO-8859-1 only and not others, even if in RFC 2616, Section 2.2 "Basic Rules" allows
         // TEXT to be encoded according to the rules of RFC 2047.
