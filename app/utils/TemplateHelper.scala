@@ -519,7 +519,7 @@ object TemplateHelper {
     }
 
     def getCorrectedPath(filePath:String, fileName:String):String = {
-      if((filePath != "") && (filePath.substring(filePath.length() - 1) == "/")){
+      if(StringUtils.isNotEmpty(filePath) && (filePath.substring(filePath.length() - 1) == "/")){
         filePath + fileName
       } else {
         filePath + "/" + fileName
