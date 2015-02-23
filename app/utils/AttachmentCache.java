@@ -36,9 +36,10 @@ public class AttachmentCache {
      */
     public static List<Attachment> get(ResourceType containerType, String containerId) {
         String cacheKey = containerType.name() + containerId;
-        Object cachedData = Cache.get(cacheKey);
+        @SuppressWarnings("unchecked")
+        List<Attachment> cachedData = (List<Attachment>)Cache.get(cacheKey);
         if (cachedData != null) {
-            return (List<Attachment>) cachedData;
+            return cachedData;
         } else {
             return null;
         }
@@ -72,9 +73,10 @@ public class AttachmentCache {
      */
     public static List<Attachment> get(Resource container) {
         String cacheKey = cacheKey(container);
-        Object cachedData = Cache.get(cacheKey);
+        @SuppressWarnings("unchecked")
+        List<Attachment> cachedData = (List<Attachment>)Cache.get(cacheKey);
         if (cachedData != null) {
-            return (List<Attachment>) cachedData;
+            return cachedData;
         } else {
             return null;
         }
