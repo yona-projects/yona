@@ -227,11 +227,11 @@
         }
 
         function _onBeforeLoadIssueList(){
-            yobi.ui.Spinner.show();
+            NProgress.start();
         }
 
         function _onLoadIssueList(){
-            yobi.ui.Spinner.hide();
+            NProgress.done();
 
             _initElement(htInitialOptions);
             _initPagination();

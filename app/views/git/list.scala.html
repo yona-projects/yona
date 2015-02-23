@@ -55,10 +55,10 @@
         // show spinners
         $(document).on({
             "pjax:send": function(){
-                yobi.ui.Spinner.show();
+                NProgress.start();
             },
             "pjax:complete": function(){
-                yobi.ui.Spinner.hide();
+                NProgress.done();
             }
         });
     });

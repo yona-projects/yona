@@ -67,7 +67,7 @@ $(function(){
         }
 
         elements.commentForm.data("onsubmit", true);
-        yobi.ui.Spinner.show();
+        NProgress.start();
         return true;
     }
 
@@ -98,7 +98,7 @@ $(function(){
      */
     function onKeydownWindow(evt){
         if (isEscapeKeyPressed(evt) && isOnSubmit()){
-            yobi.ui.Spinner.hide();
+            NProgress.done();
             elements.commentForm.data("onsubmit", false);
         }
     }

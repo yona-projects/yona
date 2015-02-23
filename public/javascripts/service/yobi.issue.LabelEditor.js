@@ -613,7 +613,7 @@
                 "project.id" : elements.editCategoryForm.data("projectId")
             };
 
-            yobi.ui.Spinner.show();
+            NProgress.start();
 
             $.ajax(elements.editCategoryForm.data("categoryUpdateUri"), {
                 "method": "put",
@@ -624,7 +624,7 @@
                 _showError(res, "label.category.edit");
             }).always(function(){
                 elements.editCategoryForm.modal("hide");
-                yobi.ui.Spinner.hide();
+                NProgress.done();
             });
         }
 
@@ -678,7 +678,7 @@
                 return false;
             }
 
-            yobi.ui.Spinner.show();
+            NProgress.start();
 
             $.ajax(elements.editLabelForm.data("updateUri"), {
                 "method": "put",
@@ -689,7 +689,7 @@
                 _showError(res, "label.edit");
             }).always(function(){
                 elements.editLabelForm.modal("hide");
-                yobi.ui.Spinner.hide();
+                NProgress.done();
             });
         }
 
