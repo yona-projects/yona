@@ -36,7 +36,7 @@ import java.util.*;
 import static models.enumeration.ResourceType.ISSUE_COMMENT;
 import static models.enumeration.ResourceType.ISSUE_POST;
 
-public class SearchCondition extends AbstractPostingApp.SearchCondition {
+public class SearchCondition extends AbstractPostingApp.SearchCondition implements Cloneable {
     public String state;
     public Boolean commentedCheck;
     public Long milestoneId;
