@@ -344,7 +344,7 @@ public class SVNRepository implements PlayRepository {
 
     @Override
     public boolean isFile(String path, String revStr) throws SVNException {
-        return isFile(path, Long.valueOf(revStr));
+        return isFile(path, Long.parseLong(revStr));
     }
 
 
