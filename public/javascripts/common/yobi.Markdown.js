@@ -38,7 +38,6 @@ yobi.Markdown = (function(htOptions){
      * @param {Hash Table} htOptions
      */
     function _initVar(htOptions){
-        htVar.htFilter = new Filter();
         htVar.sMarkdownRendererUrl = htOptions.sMarkdownRendererUrl;
 
         htVar.htMarkedOption = {
@@ -69,7 +68,7 @@ yobi.Markdown = (function(htOptions){
      * @return {String}
      */
     function _renderMarkdown(sText) {
-        return htVar.htFilter.sanitize(marked(sText, htVar.htMarkedOption)).xss();
+        return $yobi.xssClean(marked(sText, htVar.htMarkedOption));
     }
 
     /**
@@ -125,7 +124,6 @@ yobi.Markdown = (function(htOptions){
         $(elContainer).on("click", 'a[data-mode="preview"]', function(weEvt){
             var welPreview = $(weEvt.delegateTarget).find("div.markdown-preview");
             var sContentBody = welTextarea.val();
-            welPreview.html(sContentBody);
 
             _replaceAutoLink(welPreview, sContentBody);
 

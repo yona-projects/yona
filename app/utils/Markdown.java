@@ -32,6 +32,7 @@ import javax.script.ScriptEngineManager;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.lang.System;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -122,8 +123,7 @@ public class Markdown {
     private static String sanitize(String source) {
         try {
             Object filter = engine.eval("new Filter();");
-            Object sanitize = ((Invocable) engine).invokeMethod(filter, "sanitize", source);
-            return new JSInvocable((Invocable) engine, sanitize).invoke("xss");
+            return (String) ((Invocable) engine).invokeMethod(filter, "defence", source);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }

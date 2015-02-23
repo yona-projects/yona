@@ -412,6 +412,12 @@ $yobi = yobi.Common = (function(){
         return null;
     }
 
+    function xssClean(str) {
+      var filter = new Filter();
+
+      return filter.defence(str);
+    }
+
     /* public Interface */
     return {
         "setScriptPath"   : setScriptPath,
@@ -430,7 +436,8 @@ $yobi = yobi.Common = (function(){
         "nl2br"     : nl2br,
         "tmpl"      : processTpl,
         "htmlspecialchars": htmlspecialchars,
-        "isImageFile": isImageFile
+        "isImageFile": isImageFile,
+        "xssClean" : xssClean
     };
 })();
 
