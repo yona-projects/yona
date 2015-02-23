@@ -75,9 +75,6 @@ public class IssueApp extends AbstractPostingApp {
         Page<Issue> issues = el.findPagingList(itemsPerPage).getPage(searchCondition.pageNum);
 
         switch(format){
-            case EXCEL_EXT:
-                return issuesAsExcel(project, el);
-
             case "pjax":
                 return issuesAsPjax(project, issues, searchCondition);
 
