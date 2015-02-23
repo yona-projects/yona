@@ -66,7 +66,7 @@ public class NotificationEvent extends Model {
     @Id
     public Long id;
 
-    public static Finder<Long, NotificationEvent> find = new Finder<>(Long.class, NotificationEvent.class);
+    public static final Finder<Long, NotificationEvent> find = new Finder<>(Long.class, NotificationEvent.class);
 
     public String title;
 

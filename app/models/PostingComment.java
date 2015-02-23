@@ -28,7 +28,7 @@ import javax.persistence.*;
 @Entity
 public class PostingComment extends Comment {
     private static final long serialVersionUID = 1L;
-    public static Finder<Long, PostingComment> find = new Finder<>(Long.class, PostingComment.class);
+    public static final Finder<Long, PostingComment> find = new Finder<>(Long.class, PostingComment.class);
 
     @ManyToOne
     public Posting posting;

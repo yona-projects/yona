@@ -40,7 +40,7 @@ import java.util.Set;
 public class Watch extends UserAction {
     private static final long serialVersionUID = 1L;
 
-    public static Finder<Long, Watch> find = new Finder<>(Long.class, Watch.class);
+    public static final Finder<Long, Watch> find = new Finder<>(Long.class, Watch.class);
 
     public static List<Watch> findBy(ResourceType resourceType, String resourceId) {
         return findBy(find, resourceType, resourceId);

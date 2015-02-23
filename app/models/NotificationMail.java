@@ -69,7 +69,7 @@ public class NotificationMail extends Model {
     @OneToOne
     public NotificationEvent notificationEvent;
 
-    public static Finder<Long, NotificationMail> find = new Finder<>(Long.class,
+    public static final Finder<Long, NotificationMail> find = new Finder<>(Long.class,
             NotificationMail.class);
 
     public static void onStart() {

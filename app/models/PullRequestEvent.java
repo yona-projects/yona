@@ -20,26 +20,25 @@
  */
 package models;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-
-import javax.persistence.*;
-
-import org.apache.commons.lang3.StringUtils;
 import models.enumeration.EventType;
 import models.enumeration.State;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import play.db.ebean.Model;
 import utils.EventConstants;
 import utils.JodaDateUtil;
 
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+
 @Entity
 public class PullRequestEvent extends Model implements TimelineItem {
 
     private static final long serialVersionUID = 1981361242582594128L;
-    public static Finder<Long, PullRequestEvent> finder = new Finder<>(Long.class, PullRequestEvent.class);
+    public static final Finder<Long, PullRequestEvent> finder = new Finder<>(Long.class, PullRequestEvent.class);
 
     @Id
     public Long id;
