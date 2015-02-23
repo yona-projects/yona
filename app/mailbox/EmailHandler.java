@@ -43,6 +43,7 @@ import utils.AccessControl;
 import utils.Config;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.mail.Address;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -351,6 +352,16 @@ class EmailHandler {
         return projects;
     }
 
+    /**
+     * Returns the threads to which the given message is sent.
+     *
+     * The threads are determined by message-ids in In-Reply-To and References
+     * headers and the detail part of the recipients' email addresses.
+     *
+     * @param msg
+     * @return
+     * @throws MessagingException
+     */
     private static Set<Resource> getThreads(IMAPMessage msg) throws MessagingException {
         // Get message-ids from In-Reply-To and References headers.
         Set<String> messageIds = new HashSet<>();
@@ -388,7 +399,30 @@ class EmailHandler {
             }
         }
 
+        for (EmailAddressWithDetail address : getMailAddressesToYobi(msg.getAllRecipients())) {
+            Resource thread = getResourceFromDetail(address.getDetail());
+            if (thread != null) {
+                threads.add(thread);
+            }
+        }
+
         return threads;
+    }
+
+    private static @Nullable Resource getResourceFromDetail(@Nullable String detail) {
+        if (detail == null) {
+            return null;
+        }
+
+        // detail = <owner>/<project>/<path>
+        // path = <resource-type>/<resource-id>
+        String[] segments = detail.split("/", 3);
+
+        if (segments.length < 3) {
+            return null;
+        }
+
+        return Resource.findByPath(segments[2]);
     }
 
     private static Project getProjectFromDetail(String detail) throws IllegalDetailException {
