@@ -22,7 +22,6 @@ package controllers;
 
 import play.data.DynamicForm;
 import models.Project;
-import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Markdown;
@@ -30,7 +29,6 @@ import utils.Markdown;
 import static play.data.Form.form;
 
 public class MarkdownApp extends Controller {
-    @Transactional
     public static Result render(String ownerName, String projectName) {
         DynamicForm dynamicForm = form().bindFromRequest();
         String source = dynamicForm.get("body");

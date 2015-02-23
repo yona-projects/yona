@@ -50,7 +50,6 @@ import java.util.List;
 import java.util.Map;
 
 @AnonymousCheck
-@Transactional
 public class IssueApp extends AbstractPostingApp {
     private static final String EXCEL_EXT = "xls";
     private static final Integer ITEMS_PER_PAGE_MAX = 45;
@@ -273,6 +272,7 @@ public class IssueApp extends AbstractPostingApp {
         return ok(create.render("title.newIssue", new Form<>(Issue.class), project));
     }
 
+    @Transactional
     @With(NullProjectCheckAction.class)
     public static Result massUpdate(String ownerName, String projectName) {
         Form<IssueMassUpdate> issueMassUpdateForm
@@ -390,6 +390,7 @@ public class IssueApp extends AbstractPostingApp {
         }
     }
 
+    @Transactional
     @IsCreatable(ResourceType.ISSUE_POST)
     public static Result newIssue(String ownerName, String projectName) {
         Form<Issue> issueForm = new Form<>(Issue.class).bindFromRequest();
@@ -455,6 +456,7 @@ public class IssueApp extends AbstractPostingApp {
         return ok(edit.render("title.editIssue", editForm, issue, project));
     }
 
+    @Transactional
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.ISSUE_POST)
     public static Result nextState(String ownerName, String projectName, Long number) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
@@ -556,6 +558,7 @@ public class IssueApp extends AbstractPostingApp {
     /**
      * @ see {@link AbstractPostingApp#delete(play.db.ebean.Model, models.resource.Resource, Call)}
      */
+    @Transactional
     @With(NullProjectCheckAction.class)
     public static Result deleteIssue(String ownerName, String projectName, Long number) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
@@ -572,6 +575,7 @@ public class IssueApp extends AbstractPostingApp {
     /**
      * @see {@link AbstractPostingApp#newComment(models.Comment, play.data.Form}
      */
+    @Transactional
     @With(NullProjectCheckAction.class)
     public static Result newComment(String ownerName, String projectName, Long number) throws IOException {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
@@ -650,6 +654,7 @@ public class IssueApp extends AbstractPostingApp {
     /**
      * @see {@link AbstractPostingApp#delete(play.db.ebean.Model, models.resource.Resource, Call)}
      */
+    @Transactional
     @With(NullProjectCheckAction.class)
     public static Result deleteComment(String ownerName, String projectName, Long issueNumber,
             Long commentId) {

@@ -27,7 +27,6 @@ import com.avaje.ebean.SqlRow;
 import controllers.annotation.AnonymousCheck;
 import models.Label;
 import org.apache.commons.lang3.StringUtils;
-import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -41,7 +40,6 @@ import static com.avaje.ebean.Expr.icontains;
 import static play.libs.Json.toJson;
 
 @AnonymousCheck
-@Transactional
 public class LabelApp extends Controller {
     private static final int MAX_FETCH_LABELS = 1000;
 

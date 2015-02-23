@@ -35,7 +35,6 @@ import utils.HttpUtil;
 import utils.RouteUtil;
 import org.apache.commons.lang3.StringUtils;
 
-@Transactional
 public class WatchApp extends Controller {
     public static Result watch(ResourceParam resourceParam) {
         User user = UserApp.currentUser();
@@ -54,6 +53,7 @@ public class WatchApp extends Controller {
         return ok();
     }
 
+    @Transactional
     public static Result unwatch(ResourceParam resourceParam) {
         User user = UserApp.currentUser();
         Resource resource = resourceParam.resource;

@@ -35,9 +35,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 @AnonymousCheck
-@Transactional
 public class EnrollOrganizationApp extends Controller {
 
+    @Transactional
     public static Result enroll(String organizationName) {
         ValidationResult result = validateForEnroll(organizationName);
         if (result.hasError()) {
@@ -72,6 +72,7 @@ public class EnrollOrganizationApp extends Controller {
         return new ValidationResult(null, false);
     }
 
+    @Transactional
     public static Result cancelEnroll(String organizationName) {
         ValidationResult result = validateForCancelEnroll(organizationName);
         if (result.hasError()) {

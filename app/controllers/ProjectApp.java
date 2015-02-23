@@ -72,7 +72,6 @@ import static utils.LogoUtil.*;
 import static utils.TemplateHelper.*;
 
 @AnonymousCheck
-@Transactional
 public class ProjectApp extends Controller {
 
     private static final int ISSUE_MENTION_SHOW_LIMIT = 2000;
@@ -173,6 +172,7 @@ public class ProjectApp extends Controller {
         return ok(setting.render("title.projectSetting", projectForm, project, repository.getBranchNames()));
     }
 
+    @Transactional
     public static Result newProject() throws Exception {
         Form<Project> filledNewProjectForm = form(Project.class).bindFromRequest();
         String owner = filledNewProjectForm.field("owner").value();
@@ -236,6 +236,7 @@ public class ProjectApp extends Controller {
         return newProjectForm.hasErrors();
     }
 
+    @Transactional
     @IsAllowed(Operation.UPDATE)
     public static Result settingProject(String ownerId, String projectName)
             throws IOException, NoSuchAlgorithmException, UnsupportedOperationException, ServletException {
@@ -335,6 +336,7 @@ public class ProjectApp extends Controller {
         return ok(delete.render("title.projectDelete", projectForm, project));
     }
 
+    @Transactional
     @IsAllowed(Operation.DELETE)
     public static Result deleteProject(String ownerId, String projectName) throws Exception {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
@@ -349,6 +351,7 @@ public class ProjectApp extends Controller {
         return redirect(routes.Application.index());
     }
 
+    @Transactional
     @IsAllowed(Operation.UPDATE)
     public static Result members(String loginId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
@@ -522,6 +525,7 @@ public class ProjectApp extends Controller {
         return ok(transfer.render("title.projectTransfer", projectForm, project));
     }
 
+    @Transactional
     @IsAllowed(Operation.DELETE)
     public static Result transferProject(String ownerId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
@@ -563,6 +567,7 @@ public class ProjectApp extends Controller {
         return redirect(url);
     }
 
+    @Transactional
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     public static synchronized Result acceptTransfer(Long id, String confirmKey) throws IOException, ServletException {
         ProjectTransfer pt = ProjectTransfer.findValidOne(id);
@@ -796,6 +801,7 @@ public class ProjectApp extends Controller {
         }
     }
 
+    @Transactional
     @With(DefaultProjectCheckAction.class)
     @IsAllowed(Operation.UPDATE)
     public static Result newMember(String ownerId, String projectName) {
@@ -861,6 +867,7 @@ public class ProjectApp extends Controller {
      * @param userId
      * @return the result
      */
+    @Transactional
     @With(DefaultProjectCheckAction.class)
     public static Result deleteMember(String ownerId, String projectName, Long userId) {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
@@ -894,6 +901,7 @@ public class ProjectApp extends Controller {
      * @param userId the user id
      * @return
      */
+    @Transactional
     @IsAllowed(Operation.UPDATE)
     public static Result editMember(String ownerId, String projectName, Long userId) {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
@@ -1031,6 +1039,7 @@ public class ProjectApp extends Controller {
      * @param projectName the project name
      * @return the result
      */
+    @Transactional
     @With(DefaultProjectCheckAction.class)
     public static Result attachLabel(String ownerId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
@@ -1091,6 +1100,7 @@ public class ProjectApp extends Controller {
      * @param id the id
      * @return the result
      */
+    @Transactional
     @With(DefaultProjectCheckAction.class)
     public static Result detachLabel(String ownerId, String projectName, Long id) {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
@@ -1117,6 +1127,7 @@ public class ProjectApp extends Controller {
         return status(Http.Status.NO_CONTENT);
     }
 
+    @Transactional
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.DELETE)
     public static Result deletePushedBranch(String ownerId, String projectName, Long id) {
