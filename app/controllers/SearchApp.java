@@ -26,14 +26,12 @@ import models.*;
 import models.enumeration.Operation;
 import models.enumeration.SearchType;
 import org.apache.commons.lang3.StringUtils;
-import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.ErrorViews;
 import views.html.search.*;
 
 @AnonymousCheck
-@Transactional
 public class SearchApp extends Controller {
 
     private static final PageParam DEFAULT_PAGE = new PageParam(0, 20);

@@ -39,7 +39,6 @@ import java.util.Set;
  * The Controller which plays a role in voting in the issue.
  */
 @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
-@Transactional
 public class VoteApp extends Controller {
 
     /**
@@ -52,6 +51,7 @@ public class VoteApp extends Controller {
      * @param issueNumber
      * @return
      */
+    @Transactional
     @IsAllowed(Operation.READ)
     public static Result vote(String ownerName, String projectName, Long issueNumber) {
 
@@ -75,6 +75,7 @@ public class VoteApp extends Controller {
      * @param issueNumber
      * @return
      */
+    @Transactional
     @IsAllowed(Operation.READ)
     public static Result unvote(String ownerName, String projectName, Long issueNumber) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
@@ -87,6 +88,7 @@ public class VoteApp extends Controller {
         return redirect(call);
     }
 
+    @Transactional
     @IsAllowed(Operation.READ)
     public static Result voteComment(String user, String project, Long number, Long commentId) {
         IssueComment issueComment = IssueComment.find.byId(commentId);
@@ -99,6 +101,7 @@ public class VoteApp extends Controller {
         return redirect(RouteUtil.getUrl(issueComment));
     }
 
+    @Transactional
     @IsAllowed(Operation.READ)
     public static Result unvoteComment(String user, String project, Long number, Long commentId) {
         IssueComment issueComment = IssueComment.find.byId(commentId);

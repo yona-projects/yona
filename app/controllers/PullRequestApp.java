@@ -66,7 +66,6 @@ import java.util.Map;
 
 @IsOnlyGitAvailable
 @AnonymousCheck
-@Transactional
 public class PullRequestApp extends Controller {
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
@@ -110,6 +109,7 @@ public class PullRequestApp extends Controller {
         return ok(clone.render("fork", forkProject));
     }
 
+    @Transactional
     @IsCreatable(ResourceType.FORK)
     public static Result doClone(String userName, String projectName) {
         Form<Project> form = new Form<>(Project.class).bindFromRequest();
@@ -232,6 +232,7 @@ public class PullRequestApp extends Controller {
                 mergeResult.conflicts()));
     }
 
+    @Transactional
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsCreatable(ResourceType.FORK)
     public static Result newPullRequest(String userName, String projectName) throws IOException, GitAPIException {
@@ -382,6 +383,7 @@ public class PullRequestApp extends Controller {
         return ok(views.html.git.viewChanges.render(project, pullRequest, commitId));
     }
 
+    @Transactional
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(value = Operation.ACCEPT, resourceType = ResourceType.PULL_REQUEST)
     public static Promise<Result> accept(final String userName, final String projectName,
@@ -427,6 +429,7 @@ public class PullRequestApp extends Controller {
         PullRequestEvent.addFromNotificationEvent(notiEvent, pullRequest);
     }
 
+    @Transactional
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(value = Operation.CLOSE, resourceType = ResourceType.PULL_REQUEST)
     public static Result close(String userName, String projectName, Long pullRequestNumber) {
@@ -442,6 +445,7 @@ public class PullRequestApp extends Controller {
         return redirect(call);
     }
 
+    @Transactional
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(value = Operation.REOPEN, resourceType = ResourceType.PULL_REQUEST)
     public static Result open(String userName, String projectName, Long pullRequestNumber) {
@@ -479,6 +483,7 @@ public class PullRequestApp extends Controller {
         return ok(edit.render("title.editPullRequest", editForm, fromProject, fromBranches, toBranches, pullRequest));
     }
 
+    @Transactional
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
     public static Result editPullRequest(String userName, String projectName, Long pullRequestNumber) {
@@ -512,6 +517,7 @@ public class PullRequestApp extends Controller {
         return redirect(routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, pullRequest.number));
     }
 
+    @Transactional
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
     public static Result deleteFromBranch(String userName, String projectName, Long pullRequestNumber) {
@@ -523,6 +529,7 @@ public class PullRequestApp extends Controller {
         return redirect(routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, pullRequestNumber));
     }
 
+    @Transactional
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
     public static Result restoreFromBranch(String userName, String projectName, Long pullRequestNumber) {
