@@ -48,9 +48,10 @@ can have multiple recipients, the projects to which the email will be posted
 can be more than one.
 
 If the received email is reply to another notification email, the received
-email will be posted as a comment of the resource on which the notification is
-based. Mailbox determines the resource by message-id stored in 'In-Reply-To'
-and/or 'References' header of the received email.
+email will be posted as a comment of the resources on which the notification is
+based. Mailbox determines the resources by message-ids, which is stored in
+'In-Reply-To' and/or 'References' header, and resource path, if the detail part
+includes: e.g.  'issue_post/123' of 'owner/project/issue_post/123'.
 
 If Yobi failed to post an email, it replies to the sender with an email which
 contains the reason and help message.

@@ -176,10 +176,10 @@ public abstract class Resource {
 
     public String getDetail() {
         Project project = getProject();
-        String type = getType().asPathSegment();
+        String path = getPath();
 
-        if (project != null && type != null) {
-            return project + "/" + type;
+        if (project != null && path != null) {
+            return project + "/" + path;
         } else {
             return null;
         }
@@ -208,6 +208,10 @@ public abstract class Resource {
 
     @Override
     public String toString() {
+        return getPath();
+    }
+
+    private String getPath() {
         return getType().resource() + "/" + getId();
     }
 
