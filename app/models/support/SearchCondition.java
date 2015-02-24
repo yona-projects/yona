@@ -256,7 +256,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
             Junction<Issue> junction = el.disjunction();
             junction.icontains("title", filter)
             .icontains("body", filter);
-            List<Object> ids = null;
+            List<Object> ids;
             if( project == null){
                 ids = Issue.finder.where()
                         .icontains("comments.contents", filter).findIds();

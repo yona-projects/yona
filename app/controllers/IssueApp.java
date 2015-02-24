@@ -312,7 +312,7 @@ public class IssueApp extends AbstractPostingApp {
                 if(hasAssignee(issue)) {
                     oldAssignee = issue.assignee.user;
                 }
-                Assignee newAssignee = null;
+                Assignee newAssignee;
                 if (issueMassUpdate.assignee.isAnonymous()) {
                     newAssignee = null;
                 } else {
