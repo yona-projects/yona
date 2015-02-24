@@ -22,7 +22,9 @@ package models;
 
 import play.db.ebean.Model;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.OneToOne;
 
 @Entity
 public class ProjectMenuSetting extends Model {

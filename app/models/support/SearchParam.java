@@ -20,7 +20,7 @@
  */
 package models.support;
 
-import models.enumeration.*;
+import models.enumeration.Matching;
 
 public class SearchParam {
 

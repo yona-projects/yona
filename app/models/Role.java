@@ -20,16 +20,15 @@
  */
 package models;
 
-import java.util.ArrayList;
-import java.util.List;
+import models.enumeration.RoleType;
+import play.db.ebean.Model;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
-
-import models.enumeration.RoleType;
-import play.db.ebean.Model;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Role extends Model {

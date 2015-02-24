@@ -27,7 +27,9 @@ import play.Configuration;
 import play.db.ebean.Model;
 
 import javax.persistence.*;
-import java.util.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 
 @Entity

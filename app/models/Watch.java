@@ -30,7 +30,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import utils.AccessControl;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;

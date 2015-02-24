@@ -20,7 +20,6 @@
  */
 package models;
 
-import utils.AttachmentCache;
 import controllers.AttachmentApp;
 import models.enumeration.ResourceType;
 import models.resource.GlobalResource;
@@ -33,6 +32,7 @@ import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import play.libs.Akka;
 import scala.concurrent.duration.Duration;
+import utils.AttachmentCache;
 import utils.FileUtil;
 import utils.JodaDateUtil;
 

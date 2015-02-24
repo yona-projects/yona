@@ -20,14 +20,13 @@
  */
 package models.resource;
 
-import models.Unwatch;
-import models.Watch;
-
 import com.avaje.ebean.EbeanServer;
 import com.avaje.ebean.Query;
 import com.avaje.ebean.Transaction;
 import com.avaje.ebean.event.BeanPersistAdapter;
 import com.avaje.ebean.event.BeanPersistRequest;
+import models.Unwatch;
+import models.Watch;
 
 /**
  * @see com.avaje.ebean.event.BeanPersistController

@@ -21,7 +21,6 @@
 package models;
 
 import play.data.validation.Constraints;
-import utils.ReservedWordsValidator;
 
 public class AuthInfo {
     @Constraints.Required

@@ -22,7 +22,7 @@ package models;
 
 import models.enumeration.ResourceType;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
 import java.util.List;
 
 @Entity

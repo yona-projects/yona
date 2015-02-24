@@ -23,11 +23,11 @@ package models;
 import models.enumeration.ResourceType;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
-
 import org.joda.time.Duration;
 import play.data.format.Formats;
 import play.data.validation.Constraints;
-import play.db.ebean.*;
+import play.db.ebean.Model;
+import play.db.ebean.Transactional;
 import utils.JodaDateUtil;
 
 import javax.persistence.*;

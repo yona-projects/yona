@@ -20,7 +20,7 @@
  */
 package models.support;
 
-import java.util.*;
+import java.util.LinkedHashMap;
 
 public class Options extends LinkedHashMap<String, String> {
     private static final long serialVersionUID = 1L;

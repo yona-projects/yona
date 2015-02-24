@@ -20,9 +20,9 @@
  */
 package models;
 
-import java.util.Set;
-
 import models.resource.ResourceConvertible;
+
+import java.util.Set;
 
 /**
  * @see models.resource.ResourceConvertible

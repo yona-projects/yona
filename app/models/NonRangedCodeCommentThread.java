@@ -20,9 +20,10 @@
  */
 package models;
 
+import org.apache.commons.lang3.StringUtils;
+
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Keesun Baik

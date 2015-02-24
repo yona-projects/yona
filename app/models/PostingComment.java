@@ -23,7 +23,8 @@ package models;
 import models.enumeration.ResourceType;
 import models.resource.Resource;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
 
 @Entity
 public class PostingComment extends Comment {

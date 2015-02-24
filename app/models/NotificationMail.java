@@ -20,8 +20,8 @@
  */
 package models;
 
-import mailbox.EmailAddressWithDetail;
 import info.schleichardt.play2.mailplugin.Mailer;
+import mailbox.EmailAddressWithDetail;
 import models.enumeration.ResourceType;
 import models.enumeration.UserState;
 import models.resource.Resource;
@@ -43,11 +43,11 @@ import utils.Config;
 import utils.Markdown;
 import utils.Url;
 
+import javax.annotation.Nullable;
 import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import javax.annotation.Nullable;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
