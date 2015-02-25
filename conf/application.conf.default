@@ -29,7 +29,7 @@ application.secret="VA2v:_I=h9>?FYOH:@ZhW]01P<mWZAKlQ>kk>Bo`mdCiA>pDw64FcBuZdDh<
 
 # The application languages
 # ~~~~~
-application.langs="en, ko, ja"
+application.langs="en-US, ko-KR, ja-JP"
 
 # Global object class
 # ~~~~~
