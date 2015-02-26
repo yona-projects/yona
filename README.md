@@ -20,7 +20,7 @@ To increase productivity and quality of your software Yobi offers many features 
 
 License
 --
-Copyright 2014 NAVER Corp. under the Apache License, Version 2.0
+Copyright 2015 NAVER Corp. under the Apache License, Version 2.0
 
 ## How to install
 
