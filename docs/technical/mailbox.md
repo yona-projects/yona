@@ -39,7 +39,7 @@ Mailbox handles the fetched emails immediately. See "Handling the emails".
 Yobi posts the fetched emails as an issue or a comment if possible.
 
 Mailbox determines the author by the sender's email address from 'From' header of
-the email.
+the email. Emails from the sender who is not a user of Yobi are ignored.
 
 Mailbox determines the projects by the detail parts, which comes after plus
 sign in local part, e.g. owner/project from yobi+owner/project@mail.com, of the
