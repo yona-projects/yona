@@ -193,6 +193,13 @@
          * @private
          */
         function _initPjax(){
+            var isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+            var isSafari = navigator.userAgent.indexOf('Safari') != -1 && navigator.userAgent.indexOf('Chrome') == -1;
+            // Workaround for pjax bug result from bfcache
+            // https://developer.mozilla.org/en-US/docs/Using_Firefox_1.5_caching
+            if(isFirefox || isSafari){
+                return;
+            }
             var htPjaxOptions = {
                 "fragment": "div[pjax-container]",
                 "timeout" : 3000
