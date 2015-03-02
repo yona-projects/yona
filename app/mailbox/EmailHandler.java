@@ -256,30 +256,44 @@ class EmailHandler {
         }
     }
 
+    private static class MailHeader {
+        private final IMAPMessage message;
+        private final String name;
+
+        public MailHeader(@Nonnull IMAPMessage message, @Nonnull String name) {
+            this.message = message;
+            this.name = name;
+        }
+
+        public boolean containsIgnoreCase(@Nonnull String expectedValue) throws MessagingException {
+            String[] values = message.getHeader(name);
+
+            if (values == null) {
+                return false;
+            }
+
+            for (String value : values) {
+                int semicolon = value.indexOf(';');
+                if (semicolon >= 0) {
+                    value = value.substring(0, semicolon);
+                }
+                if (value.trim().equalsIgnoreCase(expectedValue)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
     /**
      * @param   message
-     * @return  true if the given message has one or more Auto-Submitted header
-     *          whose value is "auto-replied".
+     * @return  true if the given message looks like auto-replied.
      * @throws  MessagingException
      */
     private static boolean isAutoReplied(IMAPMessage message) throws MessagingException {
-        String[] values = message.getHeader("Auto-Submitted");
-
-        if (values == null) {
-            return false;
-        }
-
-        for (String value : values) {
-            int semicolon = value.indexOf(';');
-            if (semicolon >= 0) {
-                value = value.substring(0, semicolon);
-            }
-            if (value.trim().toLowerCase().equals("auto-replied")) {
-                return true;
-            }
-        }
-
-        return false;
+        return new MailHeader(message, "Auto-Submitted").containsIgnoreCase("auto-replied")
+            || new MailHeader(message, "X-Naver-Absent").containsIgnoreCase("yes");
     }
 
     private static void createResources(IMAPMessage msg, User sender, List<String> errors)
