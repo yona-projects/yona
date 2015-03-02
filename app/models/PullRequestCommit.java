@@ -23,6 +23,7 @@ package models;
 import java.util.Date;
 import java.util.List;
 
+import javax.annotation.Nonnull;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -30,6 +31,7 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
 
+import org.apache.commons.lang3.StringUtils;
 import play.db.ebean.Model;
 import playRepository.GitCommit;
 import utils.JodaDateUtil;
@@ -67,6 +69,23 @@ public class PullRequestCommit extends Model implements TimelineItem {
 
     public String getCommitMessage() {
         return commitMessage;
+    }
+
+    public @Nonnull String getCommitShortMessage() {
+        if (StringUtils.isEmpty(commitMessage)) {
+            return "";
+        }
+
+        if (!commitMessage.contains("\n")) {
+            return commitMessage;
+        }
+
+        String[] segments = commitMessage.split("\n");
+        if (segments.length > 0) {
+            return segments[0];
+        }
+
+        return "";
     }
 
     public String getCommitId() {

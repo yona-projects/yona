@@ -25,6 +25,8 @@ import models.*;
 import models.enumeration.EventType;
 import models.enumeration.State;
 
+import java.util.List;
+
 public abstract class PullRequestActor extends UntypedActor {
 
     protected void processPullRequestMerging(PullRequestEventMessage message, PullRequest pullRequest) {
@@ -36,6 +38,7 @@ public abstract class PullRequestActor extends UntypedActor {
 
             if (mergeResult.hasDiffCommits()) {
                 mergeResult.saveCommits();
+                NotificationEvent.afterPullRequestCommitChanged(message.getSender(), pullRequest);
                 if (!mergeResult.getNewCommits().isEmpty()) {
                     PullRequestEvent.addCommitEvents(message.getSender(), pullRequest,
                             mergeResult.getNewCommits(),
