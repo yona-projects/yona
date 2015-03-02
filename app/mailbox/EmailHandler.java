@@ -217,6 +217,10 @@ class EmailHandler {
 
             author = User.findByEmail(senderAddress.getAddress());
 
+            if (author.isAnonymous()) {
+                continue;
+            }
+
             try {
                 createResources(msg, author, errors);
             } catch (MailHandlerException e) {
