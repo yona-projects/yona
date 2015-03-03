@@ -24,6 +24,7 @@
 app.description = Web-based platform for collaborative software development
 app.name = Yobi
 app.restart.notice = Server needs to be restarted.
+app.restart.updateSecretYourself = Please update application.secret with random text.
 app.restart.welcome = Welcome!
 app.welcome = Tada! Welcome to {0}!
 app.welcome.project = Project

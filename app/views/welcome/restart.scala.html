@@ -18,6 +18,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
+@(hasFailedToUpdateSecret: Boolean = false)
 @import utils.TemplateHelper._
 <!DOCTYPE html>
 <html>
@@ -57,6 +58,9 @@
                 <h3>@Messages("app.restart.welcome")</h3>
                 <p class="secret-box txt-center">
                     @Html(Messages("app.restart.notice"))
+                    @if(hasFailedToUpdateSecret) {
+                        @Html(Messages("app.restart.updateSecretYourself"))
+                    }
                 </p>
             </div>
         </div>
