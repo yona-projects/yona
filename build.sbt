@@ -70,6 +70,9 @@ buildInfoKeys := Seq[BuildInfoKey](name, version)
 
 buildInfoPackage := "yobi"
 
+mappings in Universal :=
+    (mappings in Universal).value.filterNot { case (_, file) => file.startsWith("conf/") }
+
 lazy val yobi = (project in file("."))
       .enablePlugins(PlayScala)
       .enablePlugins(SbtWeb)
