@@ -73,6 +73,15 @@ buildInfoPackage := "yobi"
 mappings in Universal :=
     (mappings in Universal).value.filterNot { case (_, file) => file.startsWith("conf/") }
 
+NativePackagerKeys.bashScriptExtraDefines += """# Added by build.sbt
+    |YOBI_HOME=$(cd "$(realpath "$(dirname "$(realpath "$0")")")/.."; pwd -P)
+    |
+    |yobi_config_file="$YOBI_HOME"/conf/application.conf
+    |yobi_log_config_file="$YOBI_HOME"/conf/application-logger.xml
+    |[ -f "$yobi_config_file" ] && addJava "-Dconfig.file=$yobi_config_file"
+    |[ -f "$yobi_log_config_file" ] && addJava "-Dlogger.file=$yobi_log_config_file"
+    |""".stripMargin
+
 lazy val yobi = (project in file("."))
       .enablePlugins(PlayScala)
       .enablePlugins(SbtWeb)
