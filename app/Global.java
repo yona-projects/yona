@@ -146,7 +146,7 @@ public class Global extends GlobalSettings {
                     }
 
                     User siteAdmin = SiteAdmin.updateDefaultSiteAdmin(newSiteAdminUserForm.get());
-                    replaceSiteSecretKey(createSeed(siteAdmin.password));
+                    replaceSiteSecretKey(createSeed(siteAdmin.loginId + ":" + siteAdmin.password));
                     isRestartRequired = true;
                     return Promise.pure((Result) ok(restart.render()));
                 } else {
