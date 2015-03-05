@@ -481,10 +481,12 @@ public class NotificationEvent extends Model {
         builder.append(Messages.get("notification.pullrequest.current.commits"));
         builder.append("\n");
         for (PullRequestCommit commit : commits) {
-            builder.append(commit.getCommitShortId());
-            builder.append(" ");
-            builder.append(commit.getCommitShortMessage());
-            builder.append("\n");
+            if (commit.state == PullRequestCommit.State.CURRENT) {
+                builder.append(commit.getCommitShortId());
+                builder.append(" ");
+                builder.append(commit.getCommitShortMessage());
+                builder.append("\n");
+            }
         }
         return builder.toString();
     }
