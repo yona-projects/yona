@@ -20,6 +20,7 @@
  */
 package models;
 
+import models.enumeration.EventType;
 import play.mvc.Http.Request;
 
 public class PullRequestEventMessage {
@@ -28,6 +29,7 @@ public class PullRequestEventMessage {
     private Project project;
     private String branch;
     private PullRequest pullRequest;
+    private EventType eventType;
 
     public PullRequestEventMessage(User sender, Request request, Project project, String branch) {
         this.sender = sender;
@@ -40,6 +42,11 @@ public class PullRequestEventMessage {
         this.sender = sender;
         this.request = request;
         this.pullRequest = pullRequest;
+    }
+
+    public PullRequestEventMessage(User sender, Request request, PullRequest pullRequest, EventType eventType) {
+        this(sender, request, pullRequest);
+        this.eventType = eventType;
     }
 
     public User getSender() {
@@ -60,5 +67,9 @@ public class PullRequestEventMessage {
 
     public PullRequest getPullRequest() {
         return pullRequest;
+    }
+
+    public boolean isNewPullRequest() {
+        return eventType != null && eventType == EventType.NEW_PULL_REQUEST;
     }
 }
