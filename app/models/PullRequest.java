@@ -59,6 +59,7 @@ import playRepository.GitRepository;
 import utils.Constants;
 import utils.JodaDateUtil;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.persistence.*;
 import javax.persistence.OrderBy;
@@ -597,11 +598,43 @@ public class PullRequest extends Model implements ResourceConvertible {
         return Watch.findActualWatchers(actualWatchers, asResource());
     }
 
+    /**
+     * Make merge commit message e.g.
+     *
+     * Merge branch 'dev' of dlab/hive into 'next'
+     *
+     * from pull-request 10
+     *
+     * @param commits
+     * @return
+     * @throws IOException
+     */
     private String makeMergeCommitMessage(List<GitCommit> commits) throws IOException {
         StringBuilder builder = new StringBuilder();
-        builder.append(String.format("Merge branch '%s' of %s/%s\n\n",
-                this.fromBranch.replace("refs/heads/", ""), fromProject.owner, fromProject.name));
-        builder.append("from pull-request " + number + "\n\n");
+        builder.append("Merge branch ");
+        builder.append("\'");
+        builder.append(Repository.shortenRefName(fromBranch));
+        builder.append("\'");
+
+        if (!fromProject.equals(toProject)) {
+            builder.append(" of ");
+            builder.append(fromProject.owner);
+            builder.append("/");
+            builder.append(fromProject.name);
+        }
+
+        if (toBranch.equals("refs/heads/master")) {
+            builder.append("\n\n");
+        } else {
+            builder.append(" into ");
+            builder.append("\'");
+            builder.append(Repository.shortenRefName(toBranch));
+            builder.append("\'");
+            builder.append("\n\n");
+        }
+        builder.append("from pull-request ");
+        builder.append(number);
+        builder.append("\n\n");
         addCommitMessages(commits, builder);
         addReviewers(builder);
         return builder.toString();
