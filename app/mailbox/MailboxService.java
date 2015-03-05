@@ -157,6 +157,10 @@ public class MailboxService {
             return;
         }
 
+        if (!imapConfig.getBoolean("use")) {
+            return;
+        }
+
         List<User> users = User.find.where()
                 .ilike("email", imapConfig.getString("user") + "+%").findList();
 
