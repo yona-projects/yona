@@ -133,11 +133,11 @@ public class GitRepository implements PlayRepository {
                                                 boolean alternatesMergeRepo) {
         try {
             RepositoryBuilder repo = new RepositoryBuilder()
-                    .setGitDir(new File(getGitDirectory(ownerName, projectName)));
+                    .setGitDir(getGitDirectory(ownerName, projectName));
 
             if (alternatesMergeRepo) {
-                repo.addAlternateObjectDirectory(new File(getDirectoryForMergingObjects(ownerName,
-                        projectName)));
+                repo.addAlternateObjectDirectory(getDirectoryForMergingObjects(ownerName,
+                        projectName));
             }
 
             return repo.build();
@@ -922,7 +922,7 @@ public class GitRepository implements PlayRepository {
      * @return
      * @see #getGitDirectory(String, String)
      */
-    public static String getGitDirectory(Project project) {
+    public static File getGitDirectory(Project project) {
         return getGitDirectory(project.owner, project.name);
     }
 
@@ -937,8 +937,7 @@ public class GitRepository implements PlayRepository {
      * @throws IOException
      */
     public static String getGitDirectoryURL(Project project) throws IOException {
-        String currentDirectory = new java.io.File( "." ).getCanonicalPath();
-        return currentDirectory + "/" + getGitDirectory(project);
+        return getGitDirectory(project).getCanonicalPath();
     }
 
     /**
@@ -951,8 +950,16 @@ public class GitRepository implements PlayRepository {
      * @param projectName
      * @return
      */
-    public static String getGitDirectory(String ownerName, String projectName) {
-        return getRepoPrefix() + ownerName + "/" + projectName + ".git";
+    public static File getGitDirectory(String ownerName, String projectName) {
+        return new File(getRootDirectory(), ownerName + "/" + projectName + ".git");
+    }
+
+    private static File getRootDirectory() {
+        return new File(utils.Config.getYobiHome(), getRepoPrefix());
+    }
+
+    private static File getRootDirectoryForMerging() {
+        return new File(utils.Config.getYobiHome(), getRepoForMergingPrefix());
     }
 
     /**
@@ -968,20 +975,18 @@ public class GitRepository implements PlayRepository {
      * * @see <a href="https://www.kernel.org/pub/software/scm/git/docs/gitglossary.html#def_bare_repository">bare repository</a>
      */
     public static void cloneRepository(String gitUrl, Project forkingProject) throws GitAPIException {
-        String directory = getGitDirectory(forkingProject);
         Git.cloneRepository()
                 .setURI(gitUrl)
-                .setDirectory(new File(directory))
+                .setDirectory(getGitDirectory(forkingProject))
                 .setCloneAllBranches(true)
                 .setBare(true)
                 .call();
     }
 
     public static void cloneRepository(String gitUrl, Project forkingProject, String authId, String authPw) throws GitAPIException {
-        String directory = getGitDirectory(forkingProject);
         Git.cloneRepository()
                 .setURI(gitUrl)
-                .setDirectory(new File(directory))
+                .setDirectory(getGitDirectory(forkingProject))
                 .setCloneAllBranches(true)
                 .setBare(true)
                 .setCredentialsProvider(new UsernamePasswordCredentialsProvider(authId, authPw))
@@ -1011,12 +1016,12 @@ public class GitRepository implements PlayRepository {
      * @param projectName
      * @return
      */
-    public static String getDirectoryForMerging(String owner, String projectName) {
-        return getRepoForMergingPrefix() + owner + "/" + projectName + ".git";
+    public static File getDirectoryForMerging(String owner, String projectName) {
+        return new File(getRootDirectoryForMerging(), owner + "/" + projectName + ".git");
     }
 
-    public static String getDirectoryForMergingObjects(String owner, String projectName) {
-        return getDirectoryForMerging(owner, projectName) + "/.git/objects";
+    public static File getDirectoryForMergingObjects(String owner, String projectName) {
+        return new File(getDirectoryForMerging(owner, projectName), ".git/objects");
     }
 
     @SuppressWarnings("unchecked")
@@ -1228,12 +1233,12 @@ public class GitRepository implements PlayRepository {
     }
 
     public static Repository buildMergingRepository(Project project) {
-        String workingTree = GitRepository.getDirectoryForMerging(project.owner, project.name);
+        File workingDirectory = GitRepository.getDirectoryForMerging(project.owner, project.name);
 
         try {
-            File gitDir = new File(workingTree + "/.git");
+            File gitDir = new File(workingDirectory + "/.git");
             if(!gitDir.exists()) {
-                return cloneRepository(project, workingTree).getRepository();
+                return cloneRepository(project, workingDirectory).getRepository();
             } else {
                 return new RepositoryBuilder().setGitDir(gitDir).build();
             }
@@ -1242,10 +1247,10 @@ public class GitRepository implements PlayRepository {
         }
     }
 
-    private static Git cloneRepository(Project project, String workingTreePath) throws GitAPIException, IOException {
+    private static Git cloneRepository(Project project, File workingDirectory) throws GitAPIException, IOException {
         return Git.cloneRepository()
                 .setURI(GitRepository.getGitDirectoryURL(project))
-                .setDirectory(new File(workingTreePath))
+                .setDirectory(workingDirectory)
                 .call();
     }
 
@@ -1859,10 +1864,10 @@ public class GitRepository implements PlayRepository {
         WindowCacheConfig config = new WindowCacheConfig();
         config.install();
 
-        File srcGitDirectory = new File(getGitDirectory(srcProjectOwner, srcProjectName));
-        File destGitDirectory = new File(getGitDirectory(desrProjectOwner, destProjectName));
-        File srcGitDirectoryForMerging = new File(getDirectoryForMerging(srcProjectOwner, srcProjectName));
-        File destGitDirectoryForMerging = new File(getDirectoryForMerging(desrProjectOwner, destProjectName));
+        File srcGitDirectory = getGitDirectory(srcProjectOwner, srcProjectName);
+        File destGitDirectory = getGitDirectory(desrProjectOwner, destProjectName);
+        File srcGitDirectoryForMerging = getDirectoryForMerging(srcProjectOwner, srcProjectName);
+        File destGitDirectoryForMerging = getDirectoryForMerging(desrProjectOwner, destProjectName);
         srcGitDirectory.setWritable(true);
         srcGitDirectoryForMerging.setWritable(true);
 

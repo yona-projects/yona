@@ -75,6 +75,7 @@ mappings in Universal :=
 
 NativePackagerKeys.bashScriptExtraDefines += """# Added by build.sbt
     |YOBI_HOME=$(cd "$(realpath "$(dirname "$(realpath "$0")")")/.."; pwd -P)
+    |addJava "-Dyobi.home=$YOBI_HOME"
     |
     |yobi_config_file="$YOBI_HOME"/conf/application.conf
     |yobi_log_config_file="$YOBI_HOME"/conf/application-logger.xml

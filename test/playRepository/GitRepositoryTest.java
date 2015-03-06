@@ -204,8 +204,8 @@ public class GitRepositoryTest {
         Project original = createProject(userName, projectName);
         Project fork = createProject("keesun", projectName);
 
-        support.Files.rm_rf(new File(GitRepository.getGitDirectory(original)));
-        support.Files.rm_rf(new File(GitRepository.getGitDirectory(fork)));
+        support.Files.rm_rf(GitRepository.getGitDirectory(original));
+        support.Files.rm_rf(GitRepository.getGitDirectory(fork));
 
         GitRepository fromRepo = new GitRepository(userName, projectName);
         fromRepo.create();
@@ -215,7 +215,7 @@ public class GitRepositoryTest {
         GitRepository.cloneRepository(gitUrl, fork);
 
         // Then
-        File file = new File(GitRepository.getGitDirectory(fork));
+        File file = GitRepository.getGitDirectory(fork);
         assertThat(file.exists()).isTrue();
     }
 
