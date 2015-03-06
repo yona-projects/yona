@@ -78,9 +78,12 @@ public class Global extends GlobalSettings {
         NotificationMail.onStart();
         NotificationEvent.onStart();
         Attachment.onStart();
-        YobiUpdate.onStart();
         AccessControl.onStart();
-        mailboxService.start();
+
+        if (!isSecretInvalid) {
+            YobiUpdate.onStart();
+            mailboxService.start();
+        }
     }
 
     private boolean equalsDefaultSecret() {
