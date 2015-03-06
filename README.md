@@ -122,11 +122,6 @@ It will downloaded addtional files and compile sources.
 
 If you want to run Yobi in development mode, use **run**. You can see more detailed errors and can use dynamic compilation.
 
-Also, you can configure start options.
-If your system's memory is over than 4G, we recommend to use follow options.
-
-    _JAVA_OPTIONS="-Xmx2048m -Xms1024m" activator "start -DapplyEvolutions.default=true -Dhttp.port=9000"
-
 #### Connect with browser
 
     http://127.0.0.1:9000
@@ -150,7 +145,21 @@ In installed directory, download latest release file and unzip it.
 
 ** Be careful! Don't overwrite or delete `yobi.h2.db` file, `repo` & `uploads` directory! **
 
-#### Backup
+### Options
+
+When start yobi, You can specify the home directory that data and configuration
+to read from and store into. If you want to use `/home/user/.yobi` as the home
+directory, set 'yobi.home' property as follows:
+
+    bin/yobi -Dyobi.home=/home/user/.yobi
+
+You can also specify Java options with `_JAVA_OPTIONS` environment variable. If
+the memory of your system equals to or greater than 4GB, we recommend to start
+Yobi as follows:
+
+    _JAVA_OPTIONS="-Xmx2048m -Xms1024m" activator "start -DapplyEvolutions.default=true -Dhttp.port=9000"
+
+### Backup
 
 Copy the below file and directories to another place.
 
@@ -282,12 +291,6 @@ case2. 단순히 최신 안정버전을 내려받고자 할 때는 아래 링크
 추가로 필요한 파일들을 web에서 내려받은 다음 소스 파일들을 컴파일 후 운영 모드(production mode)로 실행합니다.
 개발 모드(development mode)로 실행하고자 할 경우에는 **start** 명령어 대신에 **run** 명령어로 실행합니다.
 
-시작 옵션은 조정가능합니다. 만약 시스템 메모리가 4기가 이상이라면
-아래 옵션으로 실행하는걸 권장합니다.
-
-    _JAVA_OPTIONS="-Xmx2048m -Xms1024m" activator "start -DapplyEvolutions.default=true -Dhttp.port=9000"
-    
-
 #### 브라우저로 접속
 
     http://127.0.0.1:9000
@@ -310,6 +313,18 @@ case2. 압축파일을 내려받을 경우
 
 **주의사항! `yobi.h2.db` 파일, `repo`와 `uploads` 디렉터리를 삭제하거나 덮어쓰지 않도록 주의하세요!**
 
+### 옵션
+
+Yobi가 파일을 불러오고 저장할 홈 디렉토리를 `yobi.home` 속성을 통해 지정할
+수 있습니다. 예를 들어, /home/user/.yobi를 홈 디렉토리로 사용하려면 Yobi를
+시작할 때 다음과 같이 yobi.home 프로퍼티를 지정합니다.
+
+    bin/yobi -Dyobi.home=/home/user/.yobi
+
+`_JAVA_OPTIONS` 환경변수를 이용해 자바 옵션을 지정할 수도 있습니다. 시스템
+메모리가 4기가 이상이라면, 다음과 같은 옵션으로 실행하는걸 권장합니다.
+
+    _JAVA_OPTIONS="-Xmx2048m -Xms1024m" activator "start -DapplyEvolutions.default=true -Dhttp.port=9000"
 
 ### 백업하기
 
