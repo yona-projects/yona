@@ -174,10 +174,10 @@ public class Config {
             return email;
         }
 
-        email = (new SiteAdmin()).admin.email;
+        models.User admin = (new SiteAdmin()).admin;
 
-        if (email != null) {
-            return email;
+        if (admin != null && admin.email != null) {
+            return admin.email;
         }
 
         return "yobi@yobi.io";
