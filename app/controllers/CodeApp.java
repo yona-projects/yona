@@ -94,7 +94,7 @@ public class CodeApp extends Controller {
         path = HttpUtil.decodePathSegment(path);
 
         PlayRepository repository = RepositoryService.getRepository(project);
-        List<String> branches = repository.getBranchNames();
+        List<String> branches = repository.getRefNames();
         List<ObjectNode> recursiveData = RepositoryService.getMetaDataFromAncestorDirectories(
                 repository, branch, path);
 

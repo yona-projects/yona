@@ -33,7 +33,6 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.RawText;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
-import org.tigris.subversion.javahl.ClientException;
 import org.tmatesoft.svn.core.*;
 import org.tmatesoft.svn.core.io.SVNRepositoryFactory;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
@@ -148,7 +147,7 @@ public class SVNRepository implements PlayRepository {
     @Override
     public ObjectNode getMetaDataFromPath(String branch, String path) throws
             IOException, SVNException {
-        List<String> branches = getBranchNames();
+        List<String> branches = getRefNames();
         if (!branches.contains(branch)) {
             return null;
         }
@@ -301,7 +300,7 @@ public class SVNRepository implements PlayRepository {
     }
 
     @Override
-    public List<String> getBranchNames() {
+    public List<String> getRefNames() {
         ArrayList<String> branches = new ArrayList<>();
         branches.add(SVNRevision.HEAD.getName());
         return branches;
