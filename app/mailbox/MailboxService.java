@@ -74,6 +74,8 @@ public class MailboxService {
     private Thread idleThread;
     private Cancellable pollingSchedule;
     private boolean isStopping = false;
+    private static String IMAP_USE_KEY = "imap.use";
+    private static boolean IMAP_USE_DEFAULT = true;
 
     /**
      * Among the given {@code keys}, returns the keys which don't have a matched
@@ -157,7 +159,7 @@ public class MailboxService {
             return;
         }
 
-        if (!imapConfig.getBoolean("use")) {
+        if (!Configuration.root().getBoolean(IMAP_USE_KEY, IMAP_USE_DEFAULT)) {
             return;
         }
 
