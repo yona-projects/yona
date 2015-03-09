@@ -281,8 +281,7 @@ public class PullRequestApp extends Controller {
         NotificationEvent notiEvent = NotificationEvent.afterNewPullRequest(pullRequest);
         PullRequestEvent.addFromNotificationEvent(notiEvent, pullRequest);
 
-        PullRequestEventMessage message = new PullRequestEventMessage(
-                UserApp.currentUser(), request(), pullRequest);
+        PullRequestEventMessage message = new PullRequestEventMessage(UserApp.currentUser(), request(), pullRequest, notiEvent.eventType);
         Akka.system().actorOf(Props.create(PullRequestMergingActor.class)).tell(message, null);
 
         return redirect(pullRequestCall);

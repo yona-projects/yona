@@ -38,8 +38,10 @@ public abstract class PullRequestActor extends UntypedActor {
 
             if (mergeResult.hasDiffCommits()) {
                 mergeResult.saveCommits();
-                NotificationEvent.afterPullRequestCommitChanged(message.getSender(), pullRequest);
                 if (!mergeResult.getNewCommits().isEmpty()) {
+                    if (!message.isNewPullRequest()) {
+                        NotificationEvent.afterPullRequestCommitChanged(message.getSender(), pullRequest);
+                    }
                     PullRequestEvent.addCommitEvents(message.getSender(), pullRequest,
                             mergeResult.getNewCommits(),
                             getCommitEventOldValue(oldMergeCommitId, pullRequest.mergedCommitIdTo));
