@@ -26,7 +26,9 @@ import models.User;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.*;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 import org.tmatesoft.svn.core.SVNException;
 import playRepository.Commit;
@@ -276,6 +278,10 @@ public class AutoLinkRenderer {
     private Link toValidSHALink(String prefix, Project project, String sha) {
         if (project != null) {
             try {
+                if (!project.isCodeAvailable()) {
+                    return Link.EMPTY_LINK;
+                }
+
                 PlayRepository repository = RepositoryService.getRepository(project);
 
                 if (repository != null) {

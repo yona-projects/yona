@@ -571,6 +571,10 @@ public class Project extends Model implements LabelOwner {
         this.update();
     }
 
+    public boolean isCodeAvailable() {
+        return menuSetting == null || menuSetting.code;
+    }
+
     public enum State {
         PUBLIC, PRIVATE, ALL
     }
