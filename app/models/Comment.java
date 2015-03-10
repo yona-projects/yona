@@ -88,7 +88,7 @@ abstract public class Comment extends Model implements TimelineItem, ResourceCon
     }
 
     protected void updateMention() {
-        Mention.add(this.asResource(), NotificationEvent.getMentionedUsers(this.contents));
+        Mention.update(this.asResource(), NotificationEvent.getMentionedUsers(this.contents));
     }
 
     public void delete() {

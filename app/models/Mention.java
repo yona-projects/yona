@@ -55,7 +55,7 @@ public class Mention extends Model {
      * @param resource the resource mentioning the users
      * @param mentionedUsers the users mentioned by the resource
      */
-    public static void add(Resource resource, Set<User> mentionedUsers) {
+    public static void update(Resource resource, Set<User> mentionedUsers) {
         for (Mention mention : find.where().eq("resourceType", resource.getType()).eq("resourceId",
                 resource.getId()).findList()) {
             if (mentionedUsers.contains(mention.user)) {
