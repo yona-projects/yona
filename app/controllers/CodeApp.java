@@ -98,6 +98,10 @@ public class CodeApp extends Controller {
         List<ObjectNode> recursiveData = RepositoryService.getMetaDataFromAncestorDirectories(
                 repository, branch, path);
 
+        if (recursiveData == null) {
+            return notFound(ErrorViews.NotFound.render());
+        }
+
         return ok(view.render(project, branches, recursiveData, branch, path));
     }
 
