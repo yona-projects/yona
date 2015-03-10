@@ -87,6 +87,12 @@ abstract public class Comment extends Model implements TimelineItem, ResourceCon
         getParent().update();
     }
 
+    @Transactional
+    public void update() {
+        super.update();
+        updateMention();
+    }
+
     protected void updateMention() {
         Mention.update(this.asResource(), NotificationEvent.getMentionedUsers(this.contents));
     }
