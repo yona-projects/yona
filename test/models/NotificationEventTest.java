@@ -26,6 +26,7 @@ import org.junit.Test;
 
 
 import java.util.HashSet;
+import java.util.Set;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -104,4 +105,37 @@ public class NotificationEventTest extends ModelTest<NotificationEvent> {
         // Then
         assertThat(event.receivers).containsOnly(off);
     }
+
+    @Test
+    public void getNewMentionedUsers1() {
+        // Given
+        String loginId = "doortts";
+        String oldBody = "I'm @yobi";
+        String newBody = "I'm @" + loginId;
+
+        // When
+        Set<User> newMentionedUsers = NotificationEvent.getNewMentionedUsers(oldBody, newBody);
+
+        // Then
+        User newMentionedUser = User.findByLoginId(loginId);
+        assertThat(newMentionedUsers.size() == 1).isTrue();
+        assertThat(newMentionedUsers.contains(newMentionedUser)).isTrue();
+    }
+
+    @Test
+    public void getNewMentionedUsers2() {
+        // Given
+        String loginId = "laziel";
+        String oldBody = "They are @yobi and @doortts";
+        String newBody = "They are @" + loginId + " and @unknownUserLoginId";
+
+        // When
+        Set<User> newMentionedUsers = NotificationEvent.getNewMentionedUsers(oldBody, newBody);
+
+        // Then
+        User newMentionedUser = User.findByLoginId(loginId);
+        assertThat(newMentionedUsers.size() == 1).isTrue();
+        assertThat(newMentionedUsers.contains(newMentionedUser)).isTrue();
+    }
+
 }
