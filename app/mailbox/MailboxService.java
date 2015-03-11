@@ -91,7 +91,7 @@ public class MailboxService {
      * @param   keys
      * @return  the keys which don't have a matched value
      */
-    private static Set<String> getNotConfiguredKeys(Configuration config, String... keys) {
+    private static Set<String> getMissingKeys(Configuration config, String... keys) {
         Set<String> requiredKeys = new HashSet<>(Arrays.asList(keys));
         requiredKeys.removeAll(config.keys());
         return requiredKeys;
@@ -105,13 +105,13 @@ public class MailboxService {
      */
     private IMAPStore connect() throws MessagingException {
         final Configuration config = Configuration.root();
-        Set<String> notConfiguredKeys =
-                getNotConfiguredKeys(config, HOST.getName(), USER.getName(), PASSWORD.getName());
+        Set<String> missingKeys =
+                getMissingKeys(config, HOST.getName(), USER.getName(), PASSWORD.getName());
 
-        if (!notConfiguredKeys.isEmpty()) {
+        if (missingKeys.size() > 0) {
             throw new IllegalStateException(
                     "Cannot connect to the IMAP server because these are" +
-                            " not configured: " + notConfiguredKeys);
+                            " not configured: " + missingKeys);
         }
 
         Properties props = new Properties();
