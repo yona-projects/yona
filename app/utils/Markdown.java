@@ -26,6 +26,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import javax.annotation.Nonnull;
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -145,7 +146,7 @@ public class Markdown {
         }
     }
 
-    public static String render(String source) {
+    public static String render(@Nonnull String source) {
         try {
             Object options = engine.eval("new Object({gfm: true, tables: true, breaks: true, " +
                     "pedantic: false, sanitize: false, smartLists: true});");
@@ -157,12 +158,12 @@ public class Markdown {
         }
     }
 
-    public static String render(String source, Project project, boolean breaks) {
+    public static String render(@Nonnull String source, Project project, boolean breaks) {
         AutoLinkRenderer autoLinkRenderer = new AutoLinkRenderer(renderWithHighlight(source, breaks), project);
         return autoLinkRenderer.render();
     }
 
-    public static String render(String source, Project project) {
+    public static String render(@Nonnull String source, Project project) {
         return render(source, project, true);
     }
 }
