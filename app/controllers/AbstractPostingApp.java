@@ -51,13 +51,9 @@ public class AbstractPostingApp extends Controller {
         }
     }
 
-    public static Result saveComment(final Comment comment, Form<? extends Comment> commentForm, final Call toView, Runnable containerUpdater) {
-        if (commentForm.hasErrors()) {
-            flash(Constants.WARNING, "post.comment.empty");
-            return redirect(toView);
-        }
-
+    public static Comment saveComment(final Comment comment, Runnable containerUpdater) {
         containerUpdater.run(); // this updates comment.issue or comment.posting;
+
         if(comment.id != null && AccessControl.isAllowed(UserApp.currentUser(), comment.asResource(), Operation.UPDATE)) {
             comment.update();
         } else {
@@ -65,15 +61,11 @@ public class AbstractPostingApp extends Controller {
             comment.save();
         }
 
-
         // Attach all of the files in the current user's temporary storage.
         attachUploadFilesToPost(comment.asResource());
 
-        String urlToView = RouteUtil.getUrl(comment);
-        NotificationEvent.afterNewComment(comment);
-        return redirect(urlToView);
+        return comment;
     }
-
 
     protected static Result delete(Model target, Resource resource, Call redirectTo) {
         if (!AccessControl.isAllowed(UserApp.currentUser(), resource, Operation.DELETE)) {
