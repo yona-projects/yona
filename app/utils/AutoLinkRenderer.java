@@ -278,7 +278,7 @@ public class AutoLinkRenderer {
     private Link toValidSHALink(String prefix, Project project, String sha) {
         if (project != null) {
             try {
-                if (!project.isCodeAvailable()) {
+                if (!project.isCodeAvailable() || !project.isGit()) {
                     return Link.EMPTY_LINK;
                 }
 
