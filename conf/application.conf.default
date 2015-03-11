@@ -42,6 +42,7 @@ application.langs="en, ko, ja"
 # You can declare as many datasources as you want.
 # By convention, the default datasource is named `default`
 #
+ebeanconfig.datasource.default=default
 # H2 Configuration
  db.default.driver=org.h2.Driver
 # db.default.url="jdbc:h2:mem:yobi;MODE=PostgreSQL;DB_CLOSE_DELAY=-1"
