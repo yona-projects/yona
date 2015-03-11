@@ -84,8 +84,8 @@ public class MailboxService {
     private final Config.Key<String> USER = new Config.Key<>("imap.user");
 
     /**
-     * Among the given {@code keys}, returns the keys which don't have a matched
-     * value in the given {@code config}.
+     * Among the given {@code keys}, returns the keys that does not exist in
+     * the given {@code config}.
      *
      * @param   config
      * @param   keys
