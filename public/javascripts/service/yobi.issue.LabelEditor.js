@@ -403,6 +403,7 @@
             var targetButton = $(evt.target);
             var targetColor = _getRefinedHexColor(targetButton.css('background-color'));
 
+            elements.inputColor.val(targetColor);
             elements.inputColor.focus();
             elements.colorsWrap.find(".btn-preset-color").removeClass("active");
             targetButton.addClass("active");
