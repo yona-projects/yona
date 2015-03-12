@@ -63,4 +63,4 @@ You can add and remove users to group and change member's authroization.
 
 `Group Admin` has the same as project admin authorization on the group's all projects, can show group's all projects on group page and can configure group setting.
 
-`Group Participant` has the same as project participant authorization on only group's protected projects, can show group's protected and public projects on group page.
+`Group Participant` has the same as project participant authorization of group's protected and public projects and can see these projects on group page.
