@@ -80,7 +80,7 @@
                                     || '<div title="[${stateLabel}] ${name}">${name}</div>';
 
                 var formattedResult = $yobi.tmpl(tplMilestoneItem, {
-                    "name" : itemObject.text.trim(),
+                    "name" : itemObject.text.trim().replace('<', '&lt;'),
                     "state": milestoneState,
                     "stateLabel": milestoneStateLabel
                 });

@@ -920,6 +920,10 @@
         return this.str;
     }
 
+    Filter.prototype.defence = function(str) {
+        return this.sanitize(str).xss();
+    }
+
     Filter.prototype.entityDecode = function() {
         this.modify(decode(this.str));
         return this.str;

@@ -515,7 +515,9 @@
                 aCrumbs.push('<a href="' + sLink + '">' + sName + '</a>');
             });
 
-            htElement.welBreadCrumbs.html(aCrumbs.join(""));
+            var breadcrumb = $yobi.xssClean(aCrumbs.join(""));
+
+            htElement.welBreadCrumbs.html(breadcrumb);
         }
 
         _init(htOptions || {});
