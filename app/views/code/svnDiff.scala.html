@@ -40,7 +40,7 @@
                     <span class="d-caret"><span class="caret"></span></span>
                 </button>
                 <ul class="dropdown-menu">
-                @defining(RepositoryService.getRepository(project).getBranchNames()) { branches =>
+                @defining(RepositoryService.getRepository(project).getRefNames()) { branches =>
                     @for(branch <- branches){
                         @common.branchItem("history", project, branch, null,
                             StringUtils.equals(branch, selectedBranch))

@@ -56,7 +56,7 @@ public interface PlayRepository {
 
     public abstract Commit getCommit(String rev) throws IOException, SVNException;
 
-    public abstract List<String> getBranchNames();
+    public abstract List<String> getRefNames();
 
     public abstract ObjectNode getMetaDataFromPath(String branch, String path) throws IOException, SVNException, GitAPIException;
 
