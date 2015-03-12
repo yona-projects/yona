@@ -293,6 +293,11 @@ public class NotificationMail extends Model {
             Lang lang = Lang.apply(langCode);
 
             String message = event.getMessage(lang);
+
+            if (message == null) {
+                return;
+            }
+
             String urlToView = event.getUrlToView();
 
             email.setSubject(event.title);
