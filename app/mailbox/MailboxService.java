@@ -30,6 +30,7 @@ import play.Configuration;
 import play.Logger;
 import play.libs.Akka;
 import scala.concurrent.duration.Duration;
+import utils.Config;
 import utils.Diagnostic;
 import utils.SimpleDiagnostic;
 
@@ -75,51 +76,51 @@ public class MailboxService {
     private Cancellable pollingSchedule;
     private boolean isStopping = false;
 
+    private final Config.Key<Boolean> USE = new Config.Key<>("imap.use", true);
+    private final Config.Key<String> FOLDER = new Config.Key<>("imap.folder", "inbox");
+    private final Config.Key<String> HOST = new Config.Key<>("imap.host");
+    private final Config.Key<String> PASSWORD = new Config.Key<>("imap.password");
+    private final Config.Key<Boolean> SSL = new Config.Key<>("imap.ssl", false);
+    private final Config.Key<String> USER = new Config.Key<>("imap.user");
+
     /**
-     * Among the given {@code keys}, returns the keys which don't have a matched
-     * value in the given {@code config}.
+     * Among the given {@code keys}, returns the keys that does not exist in
+     * the given {@code config}.
      *
      * @param   config
      * @param   keys
      * @return  the keys which don't have a matched value
      */
-    private static Set<String> getNotConfiguredKeys(Configuration config, String... keys) {
-        Set<String> notConfigured = new HashSet<>();
-        Map<String, Object> configMap = config.asMap();
-        for (String key : keys) {
-            if (!configMap.containsKey(key)) {
-                notConfigured.add(key);
-            }
-        }
-        return notConfigured;
+    private static Set<String> getMissingKeys(Configuration config, String... keys) {
+        Set<String> requiredKeys = new HashSet<>(Arrays.asList(keys));
+        requiredKeys.removeAll(config.keys());
+        return requiredKeys;
     }
 
     /**
-     * Connect to the IMAP server configured by the given {@code imapConfig}.
+     * Connects to the configured IMAP server.
      *
-     * @param imapConfig
      * @return the store to be connected
      * @throws MessagingException
      */
-    private IMAPStore connect(Configuration imapConfig) throws MessagingException {
-        Set<String> notConfiguredKeys =
-                getNotConfiguredKeys(imapConfig, "host", "user", "password");
+    private IMAPStore connect() throws MessagingException {
+        final Configuration config = Configuration.root();
+        Set<String> missingKeys =
+                getMissingKeys(config, HOST.getName(), USER.getName(), PASSWORD.getName());
 
-        if (!notConfiguredKeys.isEmpty()) {
+        if (missingKeys.size() > 0) {
             throw new IllegalStateException(
                     "Cannot connect to the IMAP server because these are" +
-                            " not configured: " + notConfiguredKeys);
+                            " not configured: " + missingKeys);
         }
 
         Properties props = new Properties();
-        String s = imapConfig.getBoolean("ssl", false) ? "s" : "";
+        String s = Config.get(SSL) ? "s" : "";
         props.setProperty("mail.store.protocol", "imap" + s);
 
         Session session = getDefaultInstance(props, null);
         store = (IMAPStore) session.getStore();
-        store.connect(imapConfig.getString("host"),
-                imapConfig.getString("user"),
-                imapConfig.getString("password"));
+        store.connect(Config.get(HOST), Config.get(USER), Config.get(PASSWORD));
         return store;
 
     }
@@ -150,19 +151,17 @@ public class MailboxService {
      * Start Mailbox Service.
      */
     public void start() {
-        final Configuration imapConfig = Configuration.root().getConfig("imap");
-
-        if (imapConfig == null) {
+        if (Config.get(HOST) == null) {
             play.Logger.info("Mailbox Service doesn't start because IMAP server is not configured.");
             return;
         }
 
-        if (!imapConfig.getBoolean("use")) {
+        if (!Config.get(USE)) {
             return;
         }
 
         List<User> users = User.find.where()
-                .ilike("email", imapConfig.getString("user") + "+%").findList();
+                .ilike("email", Config.get(USER) + "+%").findList();
 
         if (users.size() == 1) {
             Logger.warn("There is a user whose email is danger: " + users);
@@ -172,9 +171,8 @@ public class MailboxService {
         }
 
         try {
-            store = connect(imapConfig);
-            folder = (IMAPFolder) store.getFolder(
-                    imapConfig.getString("folder", "inbox"));
+            store = connect();
+            folder = (IMAPFolder) store.getFolder(Config.get(FOLDER));
             folder.open(Folder.READ_ONLY);
         } catch (Exception e) {
             play.Logger.error("Failed to open IMAP folder", e);
@@ -214,14 +212,11 @@ public class MailboxService {
      * @throws  MessagingException
      */
     private IMAPFolder reopenFolder() throws MessagingException {
-        final Configuration imapConfig = Configuration.root().getConfig("imap");
-
         if (store == null || !store.isConnected()) {
-            store = connect(imapConfig);
+            store = connect();
         }
 
-        IMAPFolder folder = (IMAPFolder) store.getFolder(
-                imapConfig.getString("folder", "inbox"));
+        IMAPFolder folder = (IMAPFolder) store.getFolder(Config.get(FOLDER));
         folder.open(Folder.READ_ONLY);
 
         return folder;
