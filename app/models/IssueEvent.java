@@ -27,7 +27,9 @@ import play.Configuration;
 import play.db.ebean.Model;
 
 import javax.persistence.*;
-import java.util.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 
 @Entity
@@ -55,7 +57,7 @@ public class IssueEvent extends Model implements TimelineItem {
     private static final int DRAFT_TIME_IN_MILLIS = Configuration.root()
         .getMilliseconds("application.issue-event.draft-time", 30 * 1000L).intValue();
 
-    public static Finder<Long, IssueEvent> find = new Finder<>(Long.class,
+    public static final Finder<Long, IssueEvent> find = new Finder<>(Long.class,
             IssueEvent.class);
 
     /**

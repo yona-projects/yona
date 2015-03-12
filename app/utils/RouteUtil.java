@@ -34,7 +34,7 @@ import playRepository.Commit;
 import utils.TemplateHelper.DiffRenderer$;
 
 public class RouteUtil {
-    public static DiffRenderer$ diffRenderer = new DiffRenderer$();
+    public static final DiffRenderer$ diffRenderer = new DiffRenderer$();
 
     public static String getUrl(ResourceType resourceType, String resourceId) {
         Long longId = Long.valueOf(resourceId);

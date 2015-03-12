@@ -20,7 +20,6 @@
  */
 package models;
 
-import errors.PullRequestException;
 import org.apache.commons.lang3.time.DateUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -65,8 +64,7 @@ public class PullRequestTest extends ModelTest<PullRequest> {
     private Project forkedProject;
 
     @Before
-    public void initRepositories() throws IOException, GitAPIException, ServletException,
-            PullRequestException, SVNException {
+    public void initRepositories() throws Exception {
         GitRepository.setRepoPrefix(REPO_PREFIX);
 
         app = support.Helpers.makeTestApplication();
@@ -124,7 +122,7 @@ public class PullRequestTest extends ModelTest<PullRequest> {
     }
 
     @After
-    public void after() {
+    public void after() throws Exception {
         rm_rf(new File(REPO_PREFIX));
         rm_rf(new File(LOCAL_REPO_PREFIX));
         Helpers.stop(app);

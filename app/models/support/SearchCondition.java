@@ -36,7 +36,7 @@ import java.util.*;
 import static models.enumeration.ResourceType.ISSUE_COMMENT;
 import static models.enumeration.ResourceType.ISSUE_POST;
 
-public class SearchCondition extends AbstractPostingApp.SearchCondition {
+public class SearchCondition extends AbstractPostingApp.SearchCondition implements Cloneable {
     public String state;
     public Boolean commentedCheck;
     public Long milestoneId;
@@ -256,7 +256,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
             Junction<Issue> junction = el.disjunction();
             junction.icontains("title", filter)
             .icontains("body", filter);
-            List<Object> ids = null;
+            List<Object> ids;
             if( project == null){
                 ids = Issue.finder.where()
                         .icontains("comments.contents", filter).findIds();

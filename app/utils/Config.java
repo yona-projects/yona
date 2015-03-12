@@ -26,6 +26,7 @@ import play.Configuration;
 import play.mvc.Http;
 
 import java.net.*;
+import java.nio.charset.Charset;
 import java.util.Enumeration;
 
 public class Config {
@@ -55,10 +56,6 @@ public class Config {
 
     public static String getHostport(String defaultValue) {
         play.Configuration config = play.Configuration.root();
-
-        if (config == null) {
-            return defaultValue;
-        }
 
         String hostname = play.Configuration.root().getString("application.hostname");
 
@@ -106,11 +103,9 @@ public class Config {
     public static String getHostname() {
         play.Configuration config = play.Configuration.root();
 
-        if (config != null) {
-            String hostname = play.Configuration.root().getString("application.hostname");
-            if (hostname != null && !hostname.isEmpty()) {
-                return hostname;
-            }
+        String hostname = play.Configuration.root().getString("application.hostname");
+        if (hostname != null && !hostname.isEmpty()) {
+            return hostname;
         }
 
         try {
@@ -138,10 +133,6 @@ public class Config {
 
     public static String getScheme(String defaultValue) {
         play.Configuration config = play.Configuration.root();
-
-        if (config == null) {
-            return defaultValue;
-        }
 
         String scheme = config.getString("application.scheme");
 
@@ -280,5 +271,9 @@ public class Config {
         } else {
             return user + "@" + config.getString(prefix + ".domain", getHostname());
         }
+    }
+
+    public static Charset getCharset() {
+        return Charset.forName("UTF-8");
     }
 }

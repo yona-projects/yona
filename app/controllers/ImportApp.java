@@ -42,6 +42,7 @@ import views.html.project.importing;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 import static play.data.Form.form;
 
@@ -57,7 +58,7 @@ public class ImportApp extends Controller {
     }
 
     @Transactional
-    public static Result newProject() throws GitAPIException, IOException {
+    public static Result newProject() throws Exception {
         if( !AccessControl.isGlobalResourceCreatable(UserApp.currentUser()) ){
             return forbidden("'" + UserApp.currentUser().name + "' has no permission");
         }
@@ -180,7 +181,7 @@ public class ImportApp extends Controller {
             result = badRequest(create.render("title.newProject", newProjectForm, orgUserList));
         }
 
-        if (ownerIsUser && UserApp.currentUser().id != user.id) {
+        if (ownerIsUser && !Objects.equals(UserApp.currentUser().id, user.id)) {
             newProjectForm.reject("owner", "project.owner.invalidate");
             hasError = true;
             result = badRequest(create.render("title.newProject", newProjectForm, orgUserList));

@@ -42,7 +42,7 @@ public interface PlayRepository {
 
     public abstract byte[] getRawFile(String revision, String path) throws IOException, SVNException;
 
-    public abstract void delete();
+    public abstract void delete() throws Exception;
 
     public abstract String getPatch(String commitId) throws IOException, SVNException;
 

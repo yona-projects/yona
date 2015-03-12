@@ -46,7 +46,7 @@ public class MomentUtil {
 
         try {
             is = Thread.currentThread().getContextClassLoader().getResourceAsStream(MOMENT_JS_FILE);
-            reader = new InputStreamReader(is);
+            reader = new InputStreamReader(is, Config.getCharset());
             _engine.eval(reader);
         } catch (Exception ex) {
             throw new RuntimeException(ex);

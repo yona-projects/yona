@@ -20,19 +20,22 @@
  */
 package models.support;
 
-import models.*;
-import java.util.List;
-import com.avaje.ebean.Junction;
-import models.enumeration.Direction;
 import com.avaje.ebean.ExpressionList;
+import com.avaje.ebean.Junction;
 import controllers.AbstractPostingApp;
+import models.CommentThread;
+import models.Project;
+import models.ReviewComment;
+import models.enumeration.Direction;
 import org.apache.commons.lang.StringUtils;
+
+import java.util.List;
 
 
 /**
  * The class for searching, sorting and filtering in review menu of a project.
  */
-public class ReviewSearchCondition extends AbstractPostingApp.SearchCondition {
+public class ReviewSearchCondition extends AbstractPostingApp.SearchCondition implements Cloneable {
     public String state;
     public Long authorId;
     public Long participantId;

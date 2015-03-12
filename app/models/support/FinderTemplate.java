@@ -20,11 +20,12 @@
  */
 package models.support;
 
-import com.avaje.ebean.*;
+import com.avaje.ebean.ExpressionList;
+import com.avaje.ebean.Page;
+import play.db.ebean.Model;
 
-import play.db.ebean.*;
-
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
 
 public class FinderTemplate {
 

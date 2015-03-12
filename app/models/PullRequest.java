@@ -571,9 +571,9 @@ public class PullRequest extends Model implements ResourceConvertible {
         return destination;
     }
 
-    public void updateMergedCommitId(Merger.MergeResult merger) {
-        mergedCommitIdFrom = merger.getLeftParentId().getName();
-        mergedCommitIdTo = merger.getMergeCommitId().getName();
+    public void updateMergedCommitId(Merger.MergeResult mergeResult) {
+        mergedCommitIdFrom = mergeResult.getLeftParentId().getName();
+        mergedCommitIdTo = mergeResult.getMergeCommitId().getName();
         update();
     }
 

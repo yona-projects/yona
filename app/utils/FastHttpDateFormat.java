@@ -14,14 +14,15 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
 package utils;
 
-import play.*;
-
-import java.text.*;
-import java.util.*;
-import java.util.concurrent.*;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Utility class to generate HTTP dates.
@@ -34,28 +35,31 @@ public final class FastHttpDateFormat {
     // -------------------------------------------------------------- Variables
 
 
-    protected static final int CACHE_SIZE =
+    private static final int CACHE_SIZE =
         Integer.parseInt(System.getProperty("org.apache.tomcat.util.http.FastHttpDateFormat.CACHE_SIZE", "1000"));
 
 
     /**
-     * HTTP date format.
+     * The only date format permitted when generating HTTP headers.
      */
-    protected static final SimpleDateFormat format =
-        new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
+    public static final String RFC1123_DATE =
+            "EEE, dd MMM yyyy HH:mm:ss zzz";
+
+    private static final SimpleDateFormat format =
+            new SimpleDateFormat(RFC1123_DATE, Locale.US);
 
 
     /**
      * The set of SimpleDateFormat formats to use in getDateHeader().
      */
-    protected static final SimpleDateFormat formats[] = {
-        new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US),
+    private static final SimpleDateFormat formats[] = {
+        new SimpleDateFormat(RFC1123_DATE, Locale.US),
         new SimpleDateFormat("EEEEEE, dd-MMM-yy HH:mm:ss zzz", Locale.US),
         new SimpleDateFormat("EEE MMMM d HH:mm:ss yyyy", Locale.US)
     };
 
 
-    protected final static TimeZone gmtZone = TimeZone.getTimeZone("GMT");
+    private static final TimeZone gmtZone = TimeZone.getTimeZone("GMT");
 
 
     /**
@@ -75,27 +79,27 @@ public final class FastHttpDateFormat {
     /**
      * Instant on which the currentDate object was generated.
      */
-    protected static long currentDateGenerated = 0L;
+    private static volatile long currentDateGenerated = 0L;
 
 
     /**
      * Current formatted date.
      */
-    protected static String currentDate = null;
+    private static String currentDate = null;
 
 
     /**
      * Formatter cache.
      */
-    protected static final ConcurrentHashMap<Long, String> formatCache =
-        new ConcurrentHashMap<>(CACHE_SIZE);
+    private static final ConcurrentHashMap<Long, String> formatCache =
+            new ConcurrentHashMap<>(CACHE_SIZE);
 
 
     /**
      * Parser cache.
      */
-    protected static final ConcurrentHashMap<String, Long> parseCache =
-        new ConcurrentHashMap<>(CACHE_SIZE);
+    private static final ConcurrentHashMap<String, Long> parseCache =
+            new ConcurrentHashMap<>(CACHE_SIZE);
 
 
     // --------------------------------------------------------- Public Methods
@@ -110,8 +114,8 @@ public final class FastHttpDateFormat {
         if ((now - currentDateGenerated) > 1000) {
             synchronized (format) {
                 if ((now - currentDateGenerated) > 1000) {
-                    currentDateGenerated = now;
                     currentDate = format.format(new Date(now));
+                    currentDateGenerated = now;
                 }
             }
         }
@@ -126,26 +130,24 @@ public final class FastHttpDateFormat {
     public static final String formatDate
         (long value, DateFormat threadLocalformat) {
 
-        Long longValue = value;
+        Long longValue = new Long(value);
         String cachedDate = formatCache.get(longValue);
-        if (cachedDate != null)
+        if (cachedDate != null) {
             return cachedDate;
+        }
 
-        String newDate;
+        String newDate = null;
         Date dateValue = new Date(value);
         if (threadLocalformat != null) {
             newDate = threadLocalformat.format(dateValue);
             updateFormatCache(longValue, newDate);
         } else {
-            synchronized (formatCache) {
-                synchronized (format) {
-                    newDate = format.format(dateValue);
-                }
-                updateFormatCache(longValue, newDate);
+            synchronized (format) {
+                newDate = format.format(dateValue);
             }
+            updateFormatCache(longValue, newDate);
         }
         return newDate;
-
     }
 
 
@@ -155,27 +157,24 @@ public final class FastHttpDateFormat {
     public static final long parseDate(String value,
                                        DateFormat[] threadLocalformats) {
 
-        Logger.debug("parseDate " + value);
         Long cachedDate = parseCache.get(value);
-        if (cachedDate != null)
-            return cachedDate;
+        if (cachedDate != null) {
+            return cachedDate.longValue();
+        }
 
-        Long date;
+        Long date = null;
         if (threadLocalformats != null) {
             date = internalParseDate(value, threadLocalformats);
             updateParseCache(value, date);
         } else {
-            synchronized (parseCache) {
-                date = internalParseDate(value, formats);
-                updateParseCache(value, date);
-            }
+            date = internalParseDate(value, formats);
+            updateParseCache(value, date);
         }
         if (date == null) {
             return (-1L);
-        } else {
-            return date;
         }
 
+        return date.longValue();
     }
 
 
@@ -188,13 +187,14 @@ public final class FastHttpDateFormat {
         for (int i = 0; (date == null) && (i < formats.length); i++) {
             try {
                 date = formats[i].parse(value);
-            } catch (ParseException ignored) {
+            } catch (ParseException e) {
+                // Ignore
             }
         }
         if (date == null) {
             return null;
         }
-        return date.getTime();
+        return new Long(date.getTime());
     }
 
 

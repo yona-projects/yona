@@ -20,7 +20,6 @@
  */
 package models;
 
-import com.avaje.ebean.RawSql;
 import com.avaje.ebean.RawSqlBuilder;
 import controllers.UserApp;
 import controllers.routes;
@@ -42,7 +41,6 @@ import play.libs.Akka;
 import playRepository.*;
 import scala.concurrent.duration.Duration;
 import utils.AccessControl;
-import utils.Config;
 import utils.EventConstants;
 import utils.RouteUtil;
 
@@ -52,7 +50,10 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -66,7 +67,7 @@ public class NotificationEvent extends Model {
     @Id
     public Long id;
 
-    public static Finder<Long, NotificationEvent> find = new Finder<>(Long.class, NotificationEvent.class);
+    public static final Finder<Long, NotificationEvent> find = new Finder<>(Long.class, NotificationEvent.class);
 
     public String title;
 

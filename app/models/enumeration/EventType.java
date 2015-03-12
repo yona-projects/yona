@@ -22,7 +22,10 @@ package models.enumeration;
 
 import play.i18n.Messages;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 public enum EventType {
 

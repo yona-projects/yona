@@ -35,6 +35,7 @@ import models.enumeration.State;
 import models.resource.Resource;
 import models.support.SearchCondition;
 import org.apache.commons.lang3.time.DateUtils;
+import org.apache.shiro.util.CollectionUtils;
 import play.data.Form;
 import play.data.format.Formats;
 import play.i18n.Messages;
@@ -68,11 +69,8 @@ public class Issue extends AbstractPosting implements LabelOwner {
     @Formats.DateTime(pattern = "yyyy-MM-dd")
     public Date dueDate;
 
-    public static List<State> availableStates = new ArrayList<>();
-    static {
-        availableStates.add(State.OPEN);
-        availableStates.add(State.CLOSED);
-    }
+    public static final List<State> availableStates =
+            Collections.unmodifiableList(CollectionUtils.asList(State.OPEN, State.CLOSED));
 
     @ManyToOne
     public Milestone milestone;
@@ -371,7 +369,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
             return otherAssignee == null || otherAssignee.user == null || otherAssignee.user.isAnonymous();
         }
         if (otherAssignee == null || otherAssignee.user == null || otherAssignee.user.isAnonymous()) {
-            return assignee == null || assignee.user == null || assignee.user.isAnonymous();
+            return assignee.user.isAnonymous();
         }
         return assignee.equals(otherAssignee) || assignee.user.equals(otherAssignee.user);
     }

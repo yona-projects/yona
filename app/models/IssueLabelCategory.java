@@ -21,10 +21,10 @@
 package models;
 
 import models.enumeration.ResourceType;
-import play.db.ebean.Model;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
 import play.data.validation.Constraints.Required;
+import play.db.ebean.Model;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;

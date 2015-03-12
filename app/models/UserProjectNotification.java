@@ -39,7 +39,7 @@ public class UserProjectNotification extends Model {
 
     private static final long serialVersionUID = 1L;
 
-    public static Finder<Long, UserProjectNotification> find = new Finder<>(Long.class, UserProjectNotification.class);
+    public static final Finder<Long, UserProjectNotification> find = new Finder<>(Long.class, UserProjectNotification.class);
 
     @Id
     public Long id;

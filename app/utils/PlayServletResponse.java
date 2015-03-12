@@ -25,6 +25,7 @@ import play.mvc.Http.Response;
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.*;
 
 public class PlayServletResponse implements HttpServletResponse {
@@ -116,7 +117,9 @@ public class PlayServletResponse implements HttpServletResponse {
         this.statusLock = new Object();
         this.inputStream = new PipedInputStream();
         this.outputStream = new ChunkedOutputStream(new PipedOutputStream(this.inputStream));
-        this.pw = new PrintWriter(this.outputStream);
+        this.pw = new PrintWriter(
+                new BufferedWriter(new OutputStreamWriter(this.outputStream, Config.getCharset())),
+                false);
     }
 
     @Override
@@ -221,7 +224,7 @@ public class PlayServletResponse implements HttpServletResponse {
 
     @Override
     public void addDateHeader(String name, long date) {
-        addHeader(name, FastHttpDateFormat.formatDate(date, FastHttpDateFormat.format));
+        addHeader(name, FastHttpDateFormat.formatDate(date, null));
     }
 
     @Override
@@ -329,7 +332,7 @@ public class PlayServletResponse implements HttpServletResponse {
 
     @Override
     public void setDateHeader(String name, long date) {
-        this.response.setHeader(name, FastHttpDateFormat.formatDate(date, FastHttpDateFormat.format));
+        this.response.setHeader(name, FastHttpDateFormat.formatDate(date, null));
     }
 
     @Override

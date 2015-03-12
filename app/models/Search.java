@@ -20,7 +20,10 @@
  */
 package models;
 
-import com.avaje.ebean.*;
+import com.avaje.ebean.Expr;
+import com.avaje.ebean.ExpressionList;
+import com.avaje.ebean.Junction;
+import com.avaje.ebean.Page;
 import models.enumeration.Operation;
 import models.enumeration.ProjectScope;
 import models.enumeration.UserState;

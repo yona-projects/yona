@@ -98,7 +98,7 @@ public class CodeHistoryApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         PlayRepository repository = RepositoryService.getRepository(project);
 
-        Commit commit = null;
+        Commit commit;
 
         try {
             commit = repository.getCommit(commitId);

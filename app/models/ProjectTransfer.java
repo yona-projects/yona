@@ -38,7 +38,7 @@ public class ProjectTransfer extends Model implements ResourceConvertible {
 
     private static final long serialVersionUID = 1L;
 
-    public static Finder<Long, ProjectTransfer> find = new Finder<>(Long.class, ProjectTransfer.class);
+    public static final Finder<Long, ProjectTransfer> find = new Finder<>(Long.class, ProjectTransfer.class);
 
     @Id
     public Long id;

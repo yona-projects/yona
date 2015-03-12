@@ -654,7 +654,7 @@ public class PullRequestApp extends Controller {
 
     }
 
-    public static class SearchCondition {
+    public static class SearchCondition implements Cloneable {
         public Project project;
         public String filter;
         public Long contributorId;

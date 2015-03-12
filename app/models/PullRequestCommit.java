@@ -20,28 +20,22 @@
  */
 package models;
 
-import java.util.Date;
-import java.util.List;
-
-import javax.annotation.Nonnull;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.Transient;
-
 import org.apache.commons.lang3.StringUtils;
 import play.db.ebean.Model;
 import playRepository.GitCommit;
 import utils.JodaDateUtil;
+
+import javax.annotation.Nonnull;
+import javax.persistence.*;
+import java.util.Date;
+import java.util.List;
 
 @Entity
 public class PullRequestCommit extends Model implements TimelineItem {
 
     private static final long serialVersionUID = -4343181252386722689L;
 
-    public static Finder<Long, PullRequestCommit> find = new Finder<>(Long.class, PullRequestCommit.class);
+    public static final Finder<Long, PullRequestCommit> find = new Finder<>(Long.class, PullRequestCommit.class);
 
     @Id
     public String id;

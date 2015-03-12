@@ -20,35 +20,33 @@
  */
 package models;
 
-import java.text.SimpleDateFormat;
-import java.util.*;
-
-import javax.persistence.*;
-import javax.persistence.OrderBy;
-import javax.persistence.criteria.Expression;
-
 import com.avaje.ebean.*;
 import controllers.UserApp;
-import models.enumeration.*;
+import models.enumeration.ResourceType;
+import models.enumeration.RoleType;
+import models.enumeration.UserState;
 import models.resource.GlobalResource;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
-
 import models.support.UserComparator;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.crypto.hash.Sha256Hash;
 import org.apache.shiro.util.ByteSource;
 import play.data.format.Formats;
 import play.data.validation.Constraints;
-import play.data.validation.Constraints.*;
+import play.data.validation.Constraints.Pattern;
+import play.data.validation.Constraints.Required;
+import play.data.validation.Constraints.ValidateWith;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
-import scala.reflect.internal.Trees;
 import play.i18n.Messages;
 import utils.JodaDateUtil;
 import utils.ReservedWordsValidator;
 
-import static com.avaje.ebean.Expr.eq;
+import javax.persistence.*;
+import javax.persistence.OrderBy;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Table(name = "n4user")
 @Entity

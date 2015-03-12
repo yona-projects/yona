@@ -34,6 +34,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 
 public class Markdown {
 
@@ -50,15 +51,15 @@ public class Markdown {
 
         try {
             is = Thread.currentThread().getContextClassLoader().getResourceAsStream(XSS_JS_FILE);
-            reader = new InputStreamReader(is);
+            reader = new InputStreamReader(is, Config.getCharset());
             _engine.eval(reader);
 
             is = Thread.currentThread().getContextClassLoader().getResourceAsStream(MARKED_JS_FILE);
-            reader = new InputStreamReader(is);
+            reader = new InputStreamReader(is, Config.getCharset());
             _engine.eval(reader);
 
             is = Thread.currentThread().getContextClassLoader().getResourceAsStream(HIGHLIGHT_JS_FILE);
-            reader = new InputStreamReader(is);
+            reader = new InputStreamReader(is, Config.getCharset());
             _engine.eval(reader);
         } catch (Exception ex) {
             throw new RuntimeException(ex);

@@ -20,9 +20,10 @@
  */
 package models.support;
 
-import models.enumeration.*;
+import models.enumeration.Matching;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SearchParams {
 

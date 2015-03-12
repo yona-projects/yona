@@ -20,11 +20,10 @@
  */
 package models.support;
 
-import java.util.Map;
-
 import com.google.common.collect.MapMaker;
-
 import play.db.ebean.Model;
+
+import java.util.Map;
 
 public class ModelLock<T extends Model> {
     private final Map<T, Object> locks = new MapMaker().weakValues().makeMap();

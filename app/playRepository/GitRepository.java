@@ -162,7 +162,7 @@ public class GitRepository implements PlayRepository {
     }
 
     public static void cloneLocalRepository(Project originalProject, Project forkProject)
-            throws IOException, GitAPIException {
+            throws Exception {
         try {
             cloneHardLinkedRepository(originalProject, forkProject);
         } catch (Exception e) {
@@ -638,7 +638,7 @@ public class GitRepository implements PlayRepository {
      * initializing {@code Cache} used in the repository.
      */
     @Override
-    public void delete() {
+    public void delete() throws Exception {
         repository.close();
         WindowCacheConfig config = new WindowCacheConfig();
         config.install();
@@ -1065,8 +1065,8 @@ public class GitRepository implements PlayRepository {
             if (diffs.size() > BLAME_FILE_LIMIT) {
                 String msg = String.format("Reject to get related authors " +
                         "from changes because of performance issue: The " +
-                        "changes include %n files and it exceeds our limit " +
-                        "of '%n' files.", diffs.size(), BLAME_FILE_LIMIT);
+                        "changes include %d files and it exceeds our limit " +
+                        "of '%d' files.", diffs.size(), BLAME_FILE_LIMIT);
                 throw new LimitExceededException(msg);
             }
 

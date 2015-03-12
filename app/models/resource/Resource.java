@@ -258,7 +258,7 @@ public abstract class Resource {
             return null;
         }
 
-        ResourceType resourceType = null;
+        ResourceType resourceType;
 
         try {
             resourceType = ResourceType.getValue(segments[0]);
