@@ -284,33 +284,6 @@ public class Config {
         return Charset.forName("UTF-8");
     }
 
-    public static class Key<T> {
-        private final String name;
-        private final T defaultValue;
-
-        public Key(String name, T defaultValue) {
-            this.name = name;
-            this.defaultValue = defaultValue;
-        }
-
-        public Key(String name) {
-            this(name, null);
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public T getDefault() {
-            return defaultValue;
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <T> T get(Key<T> key) {
-        return (T) Configuration.root().getObject(key.getName(), key.getDefault());
-    }
-
     public static String getYobiHome() {
         return System.getProperty("yobi.home");
     }
