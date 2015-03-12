@@ -33,6 +33,7 @@ import play.db.ebean.Model;
 import play.libs.Akka;
 import scala.concurrent.duration.Duration;
 import utils.AttachmentCache;
+import utils.Config;
 import utils.FileUtil;
 import utils.JodaDateUtil;
 
@@ -277,7 +278,11 @@ public class Attachment extends Model implements ResourceConvertible {
      * @return the file
      */
     public File getFile() {
-        return new File(uploadDirectory, this.hash);
+        return new File(getUploadDirectory(), this.hash);
+    }
+
+    public static File getUploadDirectory() {
+        return new File(utils.Config.getYobiHome(), uploadDirectory);
     }
 
     /**
@@ -300,7 +305,7 @@ public class Attachment extends Model implements ResourceConvertible {
      * @return true if the file exists
      */
     public static boolean fileExists(String hash) {
-        return new File(uploadDirectory, hash).isFile();
+        return new File(getUploadDirectory(), hash).isFile();
     }
 
     /**
@@ -577,7 +582,7 @@ public class Attachment extends Model implements ResourceConvertible {
 
     // Create the upload directory if it doesn't exist.
     private static File createUploadDirectory() throws NotDirectoryException {
-        File uploads = new File(uploadDirectory);
+        File uploads = getUploadDirectory();
         uploads.mkdirs();
         if (!uploads.isDirectory()) {
             throw new NotDirectoryException(

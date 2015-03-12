@@ -201,14 +201,12 @@ public class SVNRepository implements PlayRepository {
 
     @Override
     public void create() throws SVNException {
-        String svnPath = new File(SVNRepository.getRepoPrefix() + ownerName + "/" + projectName)
-                .getAbsolutePath();
-        SVNRepositoryFactory.createLocalRepository(new File(svnPath), true, false);
+        SVNRepositoryFactory.createLocalRepository(getDirectory(), true, false);
     }
 
     @Override
     public void delete() throws Exception {
-        FileUtil.rm_rf(new File(getRepoPrefix() + ownerName + "/" + projectName));
+        FileUtil.rm_rf(getDirectory());
     }
 
     @Override
@@ -224,7 +222,7 @@ public class SVNRepository implements PlayRepository {
 
     private String getPatch(long revA, long revB) throws SVNException, UnsupportedEncodingException {
         // Prepare required arguments.
-        SVNURL svnURL = SVNURL.fromFile(new File(getRepoPrefix() + ownerName + "/" + projectName));
+        SVNURL svnURL = SVNURL.fromFile(getDirectory());
 
         // Get diffClient.
         SVNClientManager clientManager = SVNClientManager.newInstance();
@@ -253,7 +251,7 @@ public class SVNRepository implements PlayRepository {
     public List<Commit> getHistory(int page, int limit, String until, String path) throws
             IOException, GitAPIException, SVNException {
         // Get the repository
-        SVNURL svnURL = SVNURL.fromFile(new File(repoPrefix + ownerName + "/" + projectName));
+        SVNURL svnURL = SVNURL.fromFile(getDirectory());
         org.tmatesoft.svn.core.io.SVNRepository repository = SVNRepositoryFactory.create(svnURL);
 
         // path to get log
@@ -287,7 +285,7 @@ public class SVNRepository implements PlayRepository {
     public Commit getCommit(String revNumber) throws IOException, SVNException {
         long rev = Integer.parseInt(revNumber);
         String[] paths = {"/"};
-        SVNURL svnURL = SVNURL.fromFile(new File(getRepoPrefix() + ownerName + "/" + projectName));
+        SVNURL svnURL = SVNURL.fromFile(getDirectory());
         org.tmatesoft.svn.core.io.SVNRepository repository = SVNRepositoryFactory.create(svnURL);
 
         for(Object entry : repository.log(paths, null, rev, rev, false, false)) {
@@ -326,8 +324,7 @@ public class SVNRepository implements PlayRepository {
     }
 
     private org.tmatesoft.svn.core.io.SVNRepository getSVNRepository() throws SVNException {
-        SVNURL svnURL = SVNURL.fromFile(new File(getRepoPrefix() + ownerName + "/" +
-                projectName));
+        SVNURL svnURL = SVNURL.fromFile(getDirectory());
 
         return SVNRepositoryFactory.create(svnURL);
     }
@@ -376,7 +373,7 @@ public class SVNRepository implements PlayRepository {
         SVNURL svnURL;
         org.tmatesoft.svn.core.io.SVNRepository repository = null;
         try {
-            svnURL = SVNURL.fromFile(new File(repoPrefix + ownerName + "/" + projectName));
+            svnURL = SVNURL.fromFile(getDirectory());
             repository = SVNRepositoryFactory.create(svnURL);
             return repository.getLatestRevision() == 0;
         } catch (SVNException e) {
@@ -389,8 +386,8 @@ public class SVNRepository implements PlayRepository {
     }
 
     public boolean move(String srcProjectOwner, String srcProjectName, String desrProjectOwner, String destProjectName) {
-        File src = new File(getRepoPrefix() + srcProjectOwner + "/" + srcProjectName);
-        File dest = new File(getRepoPrefix() + desrProjectOwner + "/" + destProjectName);
+        File src = new File(getRootDirectory(), srcProjectOwner + "/" + srcProjectName);
+        File dest = new File(getRootDirectory(), desrProjectOwner + "/" + destProjectName);
         src.setWritable(true);
 
         try {
@@ -406,6 +403,10 @@ public class SVNRepository implements PlayRepository {
 
     @Override
     public File getDirectory() {
-        return new File(getRepoPrefix() + ownerName + "/" + projectName);
+        return new File(getRootDirectory(), ownerName + "/" + projectName);
+    }
+
+    public static File getRootDirectory() {
+        return new File(Config.getYobiHome(), getRepoPrefix());
     }
 }

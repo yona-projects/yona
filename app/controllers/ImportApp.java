@@ -109,7 +109,7 @@ public class ImportApp extends Controller {
 
         if (!filledNewProjectForm.errors().isEmpty()) {
             List<OrganizationUser> orgUserList = OrganizationUser.findByAdmin(UserApp.currentUser().id);
-            FileUtil.rm_rf(new File(GitRepository.getGitDirectory(project)));
+            FileUtil.rm_rf(GitRepository.getGitDirectory(project));
             return badRequest(importing.render("title.newProject", filledNewProjectForm, orgUserList));
         } else {
             return redirect(routes.ProjectApp.project(project.owner, project.name));

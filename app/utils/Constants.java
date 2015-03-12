@@ -28,8 +28,6 @@ public class Constants {
     public static final String TITLE = "title";
     public static final String DESCRIPTION = "description";
 
-    public static final String DEFAULT_LOGO_PATH = "public/uploadFiles/";
-
     public static final String RESOURCE_KEY_DELIM = "_";
     public static final String ADMIN_LOGIN_ID = "admin";
 

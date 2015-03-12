@@ -40,6 +40,7 @@ public class Helpers {
         config.put("ebean.default", "models.*");
         config.put("application.secret", "foo");
         config.put("application.context", "/");
+        config.put("smtp.user", "yobi");
         return config;
     }
 

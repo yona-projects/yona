@@ -52,7 +52,6 @@ public class Application extends Controller {
     }
 
     public static Result init() {
-        makeUploadFolder();
         makeTestRepository();
         return redirect(routes.Application.index());
     }
@@ -61,10 +60,6 @@ public class Application extends Controller {
 
     public static Result jsMessages() {
         return ok(messages.generate("Messages")).as("application/javascript");
-    }
-
-    private static void makeUploadFolder() {
-        new File("public/uploadFiles/").mkdir();
     }
 
     private static void makeTestRepository() {

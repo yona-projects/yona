@@ -20,13 +20,20 @@
  */
 package utils;
 
+import com.typesafe.config.ConfigFactory;
 import models.SiteAdmin;
 import org.apache.commons.lang3.ObjectUtils;
 import play.Configuration;
 import play.mvc.Http;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.*;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Enumeration;
 
 public class Config {
@@ -174,10 +181,10 @@ public class Config {
             return email;
         }
 
-        email = (new SiteAdmin()).admin.email;
+        models.User admin = (new SiteAdmin()).admin;
 
-        if (email != null) {
-            return email;
+        if (admin != null && admin.email != null) {
+            return admin.email;
         }
 
         return "yobi@yobi.io";
@@ -302,5 +309,13 @@ public class Config {
     @SuppressWarnings("unchecked")
     public static <T> T get(Key<T> key) {
         return (T) Configuration.root().getObject(key.getName(), key.getDefault());
+    }
+
+    public static String getYobiHome() {
+        return System.getProperty("yobi.home");
+    }
+
+    public static String getYobiHome(String defaultValue) {
+        return System.getProperty("yobi.home", defaultValue);
     }
 }

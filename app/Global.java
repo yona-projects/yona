@@ -19,35 +19,40 @@
  * limitations under the License.
  */
 
-import mailbox.MailboxService;
 import com.avaje.ebean.Ebean;
+import com.typesafe.config.ConfigFactory;
 import controllers.SvnApp;
 import controllers.UserApp;
 import controllers.routes;
+import mailbox.MailboxService;
 import models.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.cookie.DateUtils;
 import play.Application;
+import play.Configuration;
 import play.GlobalSettings;
 import play.Play;
 import play.api.mvc.Handler;
 import play.data.Form;
+import play.libs.F.Promise;
 import play.mvc.Action;
 import play.mvc.Http;
 import play.mvc.Http.RequestHeader;
-import play.mvc.Result;
-import play.libs.F.Promise;
-
 import play.mvc.Result;
 import play.mvc.Results;
 import utils.*;
 import views.html.welcome.restart;
 import views.html.welcome.secret;
 
+import javax.annotation.Nonnull;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.net.InetAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -64,8 +69,67 @@ public class Global extends GlobalSettings {
 
     private boolean isSecretInvalid = false;
     private boolean isRestartRequired = false;
-
     private MailboxService mailboxService = new MailboxService();
+    private boolean hasFailedToUpdateSecretKey = false;
+
+    private ConfigFile configFile = new ConfigFile("config", "application.conf");
+    private ConfigFile loggerConfigFile = new ConfigFile("logger", "application-logger.xml");
+
+    @Override
+    public Configuration onLoadConfig(play.Configuration config, File path, ClassLoader classloader) {
+        initLoggerConfig();
+        return initConfig(classloader);
+    }
+
+    /**
+     * Creates application.xml by default if necessary
+     *
+     * @param   classloader
+     * @return  the configuration read from the created file,
+     *          or null if this method didn't create the file.
+     */
+    private Configuration initConfig(ClassLoader classloader) {
+        if (configFile.isLocationSpecified()) {
+            return null;
+        }
+
+        try {
+            if (configFile.getPath().toFile().exists()) {
+                return null;
+            }
+        } catch (URISyntaxException e) {
+            play.Logger.error("Failed to check whether the config file exists", e);
+            return null;
+        }
+
+        try {
+            configFile.createByDefault();
+            return new Configuration(ConfigFactory.load(classloader,
+                    ConfigFactory.parseFileAnySyntax(configFile.getPath().toFile())));
+        } catch (Exception e) {
+            play.Logger.error("Failed to initialize configuration", e);
+            return null;
+        }
+    }
+
+    /**
+     * Creates application-logger.xml by default if necessary
+     *
+     * Note: This method creates application-logger.xml even if logger.xml exists.
+     */
+    private void initLoggerConfig() {
+        try {
+            if (!loggerConfigFile.isLocationSpecified() && !loggerConfigFile.getPath().toFile().exists()) {
+                try {
+                    loggerConfigFile.createByDefault();
+                } catch (Exception e) {
+                    play.Logger.error("Failed to initialize logger configuration", e);
+                }
+            }
+        } catch (URISyntaxException e) {
+            play.Logger.error("Failed to check whether the logger config file exists", e);
+        }
+    }
 
     @Override
     public void onStart(Application app) {
@@ -78,9 +142,12 @@ public class Global extends GlobalSettings {
         NotificationMail.onStart();
         NotificationEvent.onStart();
         Attachment.onStart();
-        YobiUpdate.onStart();
         AccessControl.onStart();
-        mailboxService.start();
+
+        if (!isSecretInvalid) {
+            YobiUpdate.onStart();
+            mailboxService.start();
+        }
     }
 
     private boolean equalsDefaultSecret() {
@@ -126,7 +193,7 @@ public class Global extends GlobalSettings {
         return new Action.Simple() {
             @Override
             public Promise<Result> call(Http.Context ctx) throws Throwable {
-                return Promise.pure((Result) ok(restart.render()));
+                return Promise.pure((Result) ok(restart.render(hasFailedToUpdateSecretKey)));
             }
         };
     }
@@ -143,9 +210,14 @@ public class Global extends GlobalSettings {
                     }
 
                     User siteAdmin = SiteAdmin.updateDefaultSiteAdmin(newSiteAdminUserForm.get());
-                    replaceSiteSecretKey(createSeed(siteAdmin.password));
+                    try {
+                        updateSiteSecretKey(createSeed(siteAdmin.loginId + ":" + siteAdmin.password));
+                    } catch (Exception e) {
+                        play.Logger.warn("Failed to update secret key", e);
+                        hasFailedToUpdateSecretKey = true;
+                    }
                     isRestartRequired = true;
-                    return Promise.pure((Result) ok(restart.render()));
+                    return Promise.pure((Result) ok(restart.render(hasFailedToUpdateSecretKey)));
                 } else {
                     return Promise.pure((Result) ok(secret.render(SiteAdmin.SITEADMIN_DEFAULT_LOGINID, new Form<>(User.class))));
                 }
@@ -161,15 +233,18 @@ public class Global extends GlobalSettings {
                 return seed;
             }
 
-            private void replaceSiteSecretKey(String seed) throws IOException {
+            private void updateSiteSecretKey(String seed) throws Exception {
                 SecureRandom random = new SecureRandom(seed.getBytes(Config.getCharset()));
                 String secret = new BigInteger(130, random).toString(32);
 
-                Path path = Paths.get("conf/application.conf");
-                byte[] bytes = Files.readAllBytes(path);
+                if (configFile.isExternal()) {
+                    throw new Exception("Cowardly refusing to update an external file: " + configFile.getPath());
+                }
+
+                byte[] bytes = Files.readAllBytes(configFile.getPath());
                 String config = new String(bytes, Config.getCharset());
                 config = config.replace(DEFAULT_SECRET, secret);
-                Files.write(path, config.getBytes(Config.getCharset()));
+                Files.write(configFile.getPath(), config.getBytes(Config.getCharset()));
             }
 
             private boolean hasError(Form<User> newUserForm) {
@@ -240,4 +315,75 @@ public class Global extends GlobalSettings {
         return Promise.pure((Result) badRequest(ErrorViews.BadRequest.render()));
     }
 
+    private static class ConfigFile {
+        private static final String CONFIG_DIRNAME = "conf";
+        private final String fileName;
+        private final String defaultFileName;
+        private final String propertyGroup;
+
+        ConfigFile(String propertyGroup, String fileName) {
+            this.propertyGroup = propertyGroup;
+            this.fileName = fileName;
+            this.defaultFileName = fileName + ".default";
+        }
+
+        String getProperty(@Nonnull String key) {
+            return System.getProperty(propertyGroup + "." + key);
+        }
+
+        String getProperty(@Nonnull String key, String defaultValue) {
+            return System.getProperty(propertyGroup + "." + key, defaultValue);
+        }
+
+        /**
+         * The location of the config file is specified by user
+         */
+        boolean isLocationSpecified() {
+            return (getProperty("resource") != null)
+                || (getProperty("file") != null)
+                || (getProperty("url") != null);
+        }
+
+        void createByDefault() throws IOException, URISyntaxException {
+            InputStream stream = Config.class.getClassLoader().getResourceAsStream(defaultFileName);
+
+            getPath().toFile().getParentFile().mkdirs();
+
+            if (stream != null) {
+                Files.copy(stream, getPath());
+            } else {
+                Files.copy(getDirectoryPath().resolve(defaultFileName), getPath());
+            }
+        }
+
+        /**
+         * @return the path to the configuration file
+         * @throws java.lang.IllegalStateException
+         */
+        Path getPath() throws URISyntaxException {
+            if (getProperty("url") != null) {
+                return Paths.get(new URI(getProperty("url")));
+            }
+
+            if (getProperty("file") != null) {
+                return Paths.get(getProperty("file"));
+            }
+
+            String filename = getProperty("resource", fileName);
+
+            return getDirectoryPath().resolve(filename);
+        }
+
+        /**
+         * @return the path to the directory to store configuration files
+         */
+        static Path getDirectoryPath() {
+            return Paths.get(Config.getYobiHome(""), CONFIG_DIRNAME);
+        }
+
+        boolean isExternal() throws IOException, URISyntaxException {
+            return !FileUtil.isSubpathOf(getPath(), getDirectoryPath()) &&
+                   !FileUtil.isSubpathOf(getPath(), Paths.get(Config.getYobiHome()));
+        }
+    }
 }

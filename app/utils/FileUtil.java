@@ -29,6 +29,7 @@ import org.mozilla.universalchardet.UniversalDetector;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 
 public class FileUtil {
 
@@ -144,5 +145,26 @@ public class FileUtil {
     public static String getCharset(MediaType mediaType) {
         return mediaType.hasParameters()
                 ? mediaType.getParameters().get("charset") : null;
+    }
+
+    /**
+     * Checks whether the subpath is a subpath of the given path
+     *
+     * @param subpath
+     * @param path
+     * @return true if the subpath is a subpath of the given path
+     * @throws IOException
+     */
+    public static boolean isSubpathOf(Path subpath, Path path) throws IOException {
+        return isSubpathOf(subpath, path, true);
+    }
+
+    public static boolean isSubpathOf(Path subpath, Path path, boolean resolveSymlink) throws IOException {
+        if (resolveSymlink) {
+            path = path.toRealPath();
+            subpath = subpath.toRealPath();
+        }
+
+        return subpath.normalize().startsWith(path.normalize());
     }
 }

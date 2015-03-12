@@ -24,6 +24,7 @@
 app.description = 웹기반 소프트웨어 개발 플랫폼
 app.name = Yobi
 app.restart.notice = 서버를 재시작해야합니다.
+app.restart.updateSecretYourself = application.secret을 무작위 문자열로 변경해주십시오.
 app.restart.welcome = 환영합니다!
 app.welcome = {0}를 시작합니다!
 app.welcome.project = 프로젝트
