@@ -29,7 +29,7 @@ Copyright 2015 NAVER Corp. under the Apache License, Version 2.0
     java -version
     javac -version
 
-JDK version 7(1.7) is required.
+JDK version 7(1.7) or 8(1.8) is required.
 
 ### Download Play Activator
 
@@ -164,7 +164,7 @@ Yobi는 Apache 2.0 라이선스로 제공됩니다.
     java -version
     javac -version
 
-JDK 7(1.7)이어야 합니다.
+JDK 7(1.7) 혹은 8(1.8) 이어야 합니다.
 
 ### Play Activator 내려 받기
 
