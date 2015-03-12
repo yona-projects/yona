@@ -34,7 +34,7 @@ public class PasswordResetAppTest {
     @Test
     public void testRequestResetPassword_validLoginIdAndEmailAddress() {
         Map<String, String> config = support.Helpers.makeTestConfig();
-        config.put("application.langs", "ko");
+        config.put("application.langs", "ko-KR");
 
         running(support.Helpers.makeTestApplication(config), new Runnable() {
             public void run() {

@@ -4,6 +4,11 @@ Yobi v0.8.0 Release Notes
 Backward compatibility notes
 ----------------------------
 
+If you are upgrading from any previous version, You may need to update
+conf/application.conf for backward compatibility.
+
+### Use explicit path to database
+
 If you are using implicit relative path for the db.default.url,
 then you have to change it to use explicit relative path like:
 
@@ -12,6 +17,14 @@ then you have to change it to use explicit relative path like:
 
     TO BE:
     db.default.url="jdbc:h2:file:./yobi;MODE=PostgreSQL"
+
+### Specify country code
+
+Since Yobi 0.8.0, language codes are changed to include country code to fix the
+bug that i18n does not work for some browsers. So you have to country code
+after every language code as follows:
+
+    application.langs="en-US, ko-KR, ja-JP"
 
 Updates since v0.7.2
 ------------------
