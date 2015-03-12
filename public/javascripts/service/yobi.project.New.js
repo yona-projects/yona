@@ -158,7 +158,7 @@
                 return false;
             }
 
-            yobi.ui.Spinner.show();
+            NProgress.start();
         }
 
         /**

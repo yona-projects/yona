@@ -157,7 +157,7 @@
 
         function _requestFolderList(){
             if(htVar.aPathQueue.length === 0){
-                yobi.ui.Spinner.hide();
+                NProgress.done();
                 htVar.aWelList.forEach(function(welList){
                     welList.css("display", "block");
                 });
@@ -184,11 +184,11 @@
             var nNewDepth = nParentDepth + 1;
             _setIndentByDepth(nNewDepth);
 
-            yobi.ui.Spinner.show();
+            NProgress.start();
             $.ajax(sURL, {
                 "success": function(oRes){
                     if(_isListExistsByPath(sTargetPath)){
-                        yobi.ui.Spinner.hide();
+                        NProgress.done();
                         return;
                     }
 
@@ -212,10 +212,10 @@
                         });
                     }
 
-                    yobi.ui.Spinner.hide();
+                    NProgress.done();
                 },
                 "error"  : function(){
-                    yobi.ui.Spinner.hide();
+                    NProgress.done();
                 }
             });
         }

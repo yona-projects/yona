@@ -89,7 +89,7 @@
                 $('span.warning').hide();
                 $('span.msg').html(aErrors[0].message).show();
             } else {
-                yobi.ui.Spinner.show();
+                NProgress.start();
             }
         }
 

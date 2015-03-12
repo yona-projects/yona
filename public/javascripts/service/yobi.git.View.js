@@ -121,7 +121,8 @@
 
             if(htElement.welBtnAccept.length > 0 && htElement.welBtnAccept.data("requestAs")){
                 htElement.welBtnAccept.data("requestAs").on("beforeRequest", function(){
-                    yobi.ui.Spinner.show({"bUseDimmer": true});
+                    htElement.welBtnAccept.attr('disabled','disabled');
+                    NProgress.start();
                 });
             }
         }

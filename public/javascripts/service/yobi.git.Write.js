@@ -131,7 +131,7 @@
 
             _showMergeResult({"message" : Messages("pullRequest.is.merging")});
 
-            yobi.ui.Spinner.show();
+            NProgress.start();
 
             $.ajax(vars.mergeResultURL, {
                 "data": data
@@ -139,7 +139,7 @@
             .done(_onSuccessMergeResult)
             .fail(_onErrorMergeResult)
             .always(function(){
-                yobi.ui.Spinner.hide();
+                NProgress.done();
             });
         }
 
