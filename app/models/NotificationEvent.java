@@ -544,8 +544,11 @@ public class NotificationEvent extends Model {
 
         NotificationEvent notiEvent = createFrom(author, comment);
         notiEvent.title = formatReplyTitle(post);
-        notiEvent.receivers = getReceivers(post, author);
         notiEvent.eventType = eventType;
+        Set<User> receivers = getReceivers(post, author);
+        receivers.addAll(getMentionedUsers(comment.contents));
+        receivers.remove(author);
+        notiEvent.receivers = receivers;
         notiEvent.oldValue = null;
         notiEvent.newValue = comment.contents;
         notiEvent.resourceType = comment.asResource().getType();
