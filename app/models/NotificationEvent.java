@@ -126,6 +126,7 @@ public class NotificationEvent extends Model {
             case NEW_PULL_REQUEST:
             case NEW_COMMIT:
             case ISSUE_BODY_CHANGED:
+            case COMMENT_UPDATED:
                 return newValue;
             case NEW_REVIEW_COMMENT:
                 try {
@@ -538,18 +539,26 @@ public class NotificationEvent extends Model {
         NotificationEvent.add(forNewComment(comment, UserApp.currentUser()));
     }
 
-    public static NotificationEvent forNewComment(Comment comment, User author) {
+    public static NotificationEvent forComment(Comment comment, User author, EventType eventType) {
         AbstractPosting post = comment.getParent();
 
         NotificationEvent notiEvent = createFrom(author, comment);
         notiEvent.title = formatReplyTitle(post);
         notiEvent.receivers = getReceivers(post, author);
-        notiEvent.eventType = NEW_COMMENT;
+        notiEvent.eventType = eventType;
         notiEvent.oldValue = null;
         notiEvent.newValue = comment.contents;
         notiEvent.resourceType = comment.asResource().getType();
         notiEvent.resourceId = comment.asResource().getId();
         return notiEvent;
+    }
+
+    public static NotificationEvent forUpdatedComment(Comment comment, User author) {
+        return forComment(comment, author, COMMENT_UPDATED);
+    }
+
+    public static NotificationEvent forNewComment(Comment comment, User author) {
+        return forComment(comment, author, NEW_COMMENT);
     }
 
     public static void afterNewCommentWithState(Comment comment, State state) {
@@ -1131,5 +1140,9 @@ public class NotificationEvent extends Model {
                 "where t0.id = " + user.id + " and t1.id IS NOT NULL ";
 
         return find.setRawSql(RawSqlBuilder.parse(sql).create()).findList().size();
+    }
+
+    public static void afterCommentUpdated(Comment comment) {
+        NotificationEvent.add(forUpdatedComment(comment, UserApp.currentUser()));
     }
 }

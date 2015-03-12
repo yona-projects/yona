@@ -599,12 +599,23 @@ public class IssueApp extends AbstractPostingApp {
         final IssueComment comment = commentForm.get();
 
         IssueComment existingComment = IssueComment.find.where().eq("id", comment.id).findUnique();
-        if( existingComment != null){
-            existingComment.contents = comment.contents;
-            return saveComment(existingComment, commentForm, redirectTo, getContainerUpdater(issue, comment));
-        } else {
-            return saveComment(comment, commentForm, redirectTo, getContainerUpdater(issue, comment));
+
+        if (commentForm.hasErrors()) {
+            flash(Constants.WARNING, "common.comment.empty");
+            return redirect(routes.IssueApp.issue(project.owner, project.name, number));
         }
+
+        Comment savedComment;
+        if (existingComment != null) {
+            existingComment.contents = comment.contents;
+            savedComment = saveComment(existingComment, getContainerUpdater(issue, comment));
+            NotificationEvent.afterCommentUpdated(savedComment);
+        } else {
+            savedComment = saveComment(comment, getContainerUpdater(issue, comment));
+            NotificationEvent.afterNewComment(savedComment);
+        }
+
+        return redirect(RouteUtil.getUrl(savedComment));
     }
 
     private static Runnable getContainerUpdater(final Issue issue, final IssueComment comment) {
