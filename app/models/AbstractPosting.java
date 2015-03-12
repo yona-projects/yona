@@ -252,7 +252,7 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
 
     protected void updateMention() {
         if (this.body != null) {
-            Mention.add(this.asResource(), NotificationEvent.getMentionedUsers(this.body));
+            Mention.update(this.asResource(), NotificationEvent.getMentionedUsers(this.body));
         }
     }
 
