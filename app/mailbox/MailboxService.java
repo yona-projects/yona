@@ -74,8 +74,14 @@ public class MailboxService {
     private Thread idleThread;
     private Cancellable pollingSchedule;
     private boolean isStopping = false;
-    private static String IMAP_USE_KEY = "imap.use";
-    private static boolean IMAP_USE_DEFAULT = true;
+    private final static String IMAP_USE_KEY = "imap.use";
+    private final static boolean IMAP_USE_DEFAULT = true;
+    private final static String IMAP_FOLDER_KEY = "imap.folder";
+    private final static String IMAP_FOLDER_DEFAULT = "inbox";
+    private final static String IMAP_HOST_KEY = "imap.host";
+    private final static String IMAP_PASSWORD_KEY = "imap.password";
+    private final static String IMAP_SSL_KEY = "imap.ssl";
+    private final static String IMAP_USER_KEY = "imap.user";
 
     /**
      * Among the given {@code keys}, returns the keys that does not exist in
@@ -86,26 +92,21 @@ public class MailboxService {
      * @return  the keys which don't have a matched value
      */
     private static Set<String> getMissingKeys(Configuration config, String... keys) {
-        Set<String> notConfigured = new HashSet<>();
-        Map<String, Object> configMap = config.asMap();
-        for (String key : keys) {
-            if (!configMap.containsKey(key)) {
-                notConfigured.add(key);
-            }
-        }
-        return notConfigured;
+        Set<String> requiredKeys = new HashSet<>(Arrays.asList(keys));
+        requiredKeys.removeAll(config.keys());
+        return requiredKeys;
     }
 
     /**
-     * Connect to the IMAP server configured by the given {@code imapConfig}.
+     * Connects to the configured IMAP server.
      *
-     * @param imapConfig
      * @return the store to be connected
      * @throws MessagingException
      */
-    private IMAPStore connect(Configuration imapConfig) throws MessagingException {
+    private IMAPStore connect() throws MessagingException {
+        final Configuration config = Configuration.root();
         Set<String> missingKeys =
-                getMissingKeys(imapConfig, "host", "user", "password");
+                getMissingKeys(config, IMAP_HOST_KEY, IMAP_USER_KEY, IMAP_PASSWORD_KEY);
 
         if (missingKeys.size() > 0) {
             throw new IllegalStateException(
@@ -114,14 +115,14 @@ public class MailboxService {
         }
 
         Properties props = new Properties();
-        String s = imapConfig.getBoolean("ssl", false) ? "s" : "";
+        String s = config.getBoolean(IMAP_SSL_KEY, false) ? "s" : "";
         props.setProperty("mail.store.protocol", "imap" + s);
 
         Session session = getDefaultInstance(props, null);
         store = (IMAPStore) session.getStore();
-        store.connect(imapConfig.getString("host"),
-                imapConfig.getString("user"),
-                imapConfig.getString("password"));
+        store.connect(config.getString(IMAP_HOST_KEY),
+                config.getString(IMAP_USER_KEY),
+                config.getString(IMAP_PASSWORD_KEY));
         return store;
 
     }
@@ -152,19 +153,19 @@ public class MailboxService {
      * Start Mailbox Service.
      */
     public void start() {
-        final Configuration imapConfig = Configuration.root().getConfig("imap");
-
-        if (imapConfig == null) {
+        if (Configuration.root().getString(IMAP_HOST_KEY) == null) {
             play.Logger.info("Mailbox Service doesn't start because IMAP server is not configured.");
             return;
         }
 
-        if (!Configuration.root().getBoolean(IMAP_USE_KEY, IMAP_USE_DEFAULT)) {
+        Configuration config = Configuration.root();
+
+        if (!config.getBoolean(IMAP_USE_KEY, IMAP_USE_DEFAULT)) {
             return;
         }
 
         List<User> users = User.find.where()
-                .ilike("email", imapConfig.getString("user") + "+%").findList();
+                .ilike("email", config.getString(IMAP_USER_KEY) + "+%").findList();
 
         if (users.size() == 1) {
             Logger.warn("There is a user whose email is danger: " + users);
@@ -174,9 +175,9 @@ public class MailboxService {
         }
 
         try {
-            store = connect(imapConfig);
+            store = connect();
             folder = (IMAPFolder) store.getFolder(
-                    imapConfig.getString("folder", "inbox"));
+                    config.getString(IMAP_FOLDER_KEY, IMAP_FOLDER_DEFAULT));
             folder.open(Folder.READ_ONLY);
         } catch (Exception e) {
             play.Logger.error("Failed to open IMAP folder", e);
@@ -216,14 +217,12 @@ public class MailboxService {
      * @throws  MessagingException
      */
     private IMAPFolder reopenFolder() throws MessagingException {
-        final Configuration imapConfig = Configuration.root().getConfig("imap");
-
         if (store == null || !store.isConnected()) {
-            store = connect(imapConfig);
+            store = connect();
         }
 
         IMAPFolder folder = (IMAPFolder) store.getFolder(
-                imapConfig.getString("folder", "inbox"));
+                Configuration.root().getString(IMAP_FOLDER_KEY, IMAP_FOLDER_DEFAULT));
         folder.open(Folder.READ_ONLY);
 
         return folder;
