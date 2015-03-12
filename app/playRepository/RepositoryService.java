@@ -85,12 +85,18 @@ public class RepositoryService {
         ObjectNode metaData;
 
         metaData = repository.getMetaDataFromPath(branch, "");
+        if (metaData == null) {
+            return null;
+        }
         metaData.put("path", "");
         recursiveData.add(metaData);
         for(int i = 0; i < pathLength; i++){
             partialPath = (partialPath.equals("")) ? pathArray[i] : partialPath + "/" + pathArray[i];
             if (!repository.isIntermediateFolder(partialPath)) {
                 metaData = repository.getMetaDataFromPath(branch, partialPath);
+                if (metaData == null) {
+                    return null;
+                }
                 metaData.put("path", partialPath);
                 recursiveData.add(metaData);
             }
