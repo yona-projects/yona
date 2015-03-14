@@ -926,4 +926,12 @@ public class UserApp extends Controller {
             return forbidden(json);
         }
     }
+
+    public static boolean isSiteAdminLoggedInSession(){
+        if(SiteAdmin.SITEADMIN_DEFAULT_LOGINID.equals(session().get(SESSION_LOGINID))){
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
