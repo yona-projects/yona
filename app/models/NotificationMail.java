@@ -263,11 +263,14 @@ public class NotificationMail extends Model {
     }
 
     private static void sendMail(NotificationEvent event, List<User> receivers, String langCode) {
+        if (receivers.isEmpty()) {
+            return;
+        }
+
         final EventEmail email = new EventEmail(event);
 
         try {
             email.setFrom(Config.getEmailFromSmtp(), event.getSender().name);
-            email.addTo(Config.getEmailFromSmtp(), utils.Config.getSiteName());
 
             String replyTo = getReplyTo(event.getResource());
             boolean acceptsReply = false;
@@ -285,7 +288,7 @@ public class NotificationMail extends Model {
             }
 
             if (email.getToAddresses().isEmpty()) {
-                return;
+                email.addTo(Config.getEmailFromSmtp(), utils.Config.getSiteName());
             }
 
             // FIXME: gmail은 From과 To에 같은 주소가 있으면 reply-to를 무시한다.
