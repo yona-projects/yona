@@ -191,7 +191,8 @@ application.update.repositoryUrl = "http://repo.yobi.io/naver/yobi"
 # specifier for Yobi version to download like "0.5.7".
 application.update.releaesUrlFormat = "https://github.com/naver/yobi/releases/tag/v%s"
 
-#customize play default thread pool size
+# customize play default thread pool size
+# see: https://www.playframework.com/documentation/2.3.x/ThreadPools
 play {
   akka {
     event-handlers = ["akka.event.Logging$DefaultLogger", "akka.event.slf4j.Slf4jEventHandler"]
@@ -199,8 +200,8 @@ play {
     actor {
       default-dispatcher = {
         fork-join-executor {
-          parallelism-min = 400
-          parallelism-max = 400
+          parallelism-min = 50
+          parallelism-max = 300
         }
       }
     }
