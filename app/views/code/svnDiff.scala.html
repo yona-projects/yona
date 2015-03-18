@@ -179,7 +179,6 @@
             "sParentCommitId": "@if(parentCommit != null){@parentCommit.getId}",
             "sCommitId"      : "@commit.getId",
             "sTplFileURL"    : "@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, "${commitId}", "${path}")",
-            "sTplRawURL"     : "@routes.CodeApp.showRawFile(project.owner, project.name, "${commitId}", "${path}")"
         });
 
         yobi.Mention({

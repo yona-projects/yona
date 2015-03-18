@@ -51,7 +51,6 @@
             htVar.sParentCommitId = htOptions.sParentCommitId;
             htVar.sCommitId = htOptions.sCommitId;
             htVar.sTplFileURL = htOptions.sTplFileURL;
-            htVar.sTplRawURL = htOptions.sTplRawURL;
             htVar.rxSlashes = /\//g;
 
             // 미니맵
