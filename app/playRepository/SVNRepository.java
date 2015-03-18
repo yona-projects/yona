@@ -89,9 +89,13 @@ public class SVNRepository implements PlayRepository {
 
     @Override
     public ObjectNode getMetaDataFromPath(String path) throws SVNException, IOException {
+        return getMetaDataFromPath(-1, path);
+    }
+
+    private ObjectNode getMetaDataFromPath(int revision, String path) throws SVNException, IOException {
         org.tmatesoft.svn.core.io.SVNRepository repository = getSVNRepository();
 
-        SVNNodeKind nodeKind = repository.checkPath(path , -1 );
+        SVNNodeKind nodeKind = repository.checkPath(path , revision);
 
         if(nodeKind == SVNNodeKind.DIR){
             ObjectNode result = Json.newObject();
@@ -143,13 +147,16 @@ public class SVNRepository implements PlayRepository {
     }
 
     @Override
-    public ObjectNode getMetaDataFromPath(String branch, String path) throws
+    public ObjectNode getMetaDataFromPath(String revision, String path) throws
             IOException, SVNException {
-        List<String> branches = getRefNames();
-        if (!branches.contains(branch)) {
-            return null;
+        int revisionNumber = -1;
+        try {
+            revisionNumber = Integer.parseInt(revision);
+        } catch (NumberFormatException e) {
+            play.Logger.info("Illegal SVN revision: " + revision);
         }
-        return getMetaDataFromPath(path);
+
+        return getMetaDataFromPath(revisionNumber, path);
     }
 
     private ObjectNode fileAsJson(String path, org.tmatesoft.svn.core.io.SVNRepository repository) throws SVNException, IOException {
