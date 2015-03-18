@@ -226,15 +226,7 @@ public class AccessControl {
      * @return true if the user has the permission
      */
     private static boolean isProjectResourceAllowed(User user, Project project, Resource resource, Operation operation) {
-        if (OrganizationUser.isAdmin(project.organization, user)) {
-            return true;
-        }
-
-        if (user.isSiteManager()
-                || user.isManagerOf(project)
-                || isAllowedIfAuthor(user, resource)
-                || isAllowedIfAssignee(user, resource)
-                || isAllowedIfGroupMember(project, user)) {
+        if (user.isSiteManager()) {
             return true;
         }
 
@@ -253,6 +245,17 @@ public class AccessControl {
                 default:
                     return false;
             }
+        }
+
+        if (OrganizationUser.isAdmin(project.organization, user)) {
+            return true;
+        }
+
+        if (user.isManagerOf(project)
+                || isAllowedIfAuthor(user, resource)
+                || isAllowedIfAssignee(user, resource)
+                || isAllowedIfGroupMember(project, user)) {
+            return true;
         }
 
         // Some resource's permission depends on their container.
