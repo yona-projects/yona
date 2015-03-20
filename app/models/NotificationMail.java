@@ -20,6 +20,7 @@
  */
 package models;
 
+import com.google.common.collect.Lists;
 import info.schleichardt.play2.mailplugin.Mailer;
 import mailbox.EmailAddressWithDetail;
 import models.enumeration.ResourceType;
@@ -238,6 +239,12 @@ public class NotificationMail extends Model {
             return;
         }
 
+        final int partialRecipientSize = getPartialRecipientSize(receivers);
+
+        if (partialRecipientSize <= 0) {
+            return;
+        }
+
         HashMap<String, List<User>> usersByLang = new HashMap<>();
 
         for (User receiver : receivers) {
@@ -251,24 +258,52 @@ public class NotificationMail extends Model {
         }
 
         for (String langCode : usersByLang.keySet()) {
-            List<User> users = usersByLang.get(langCode);
+            List<List<User>> subLists = Lists.partition(usersByLang.get(langCode), partialRecipientSize);
 
-            if (recipientLimit == RECIPIENT_NO_LIMIT) {
-                sendMail(event, users, langCode);
-            } else {
-                int usersSize = users.size();
-                int fromIndex, toIndex = 0;
-                while (toIndex < usersSize) {
-                    fromIndex = toIndex;
-                    toIndex = Math.min(toIndex + recipientLimit, usersSize);
-                    sendMail(event, users.subList(fromIndex, toIndex), langCode);
-                }
+            for (List<User> list : subLists) {
+                Set<MailRecipient> toList = getToList(list);
+                Set<MailRecipient> bccList = getBccList(list);
+                sendMail(event, toList, bccList, langCode);
             }
         }
     }
 
-    private static void sendMail(NotificationEvent event, List<User> receivers, String langCode) {
-        if (receivers.isEmpty()) {
+    private static int getPartialRecipientSize(Set<User> receivers) {
+        if (recipientLimit == RECIPIENT_NO_LIMIT) {
+            return receivers.size();
+        }
+
+        return (hideAddress) ? recipientLimit - getDefaultToList().size() : recipientLimit;
+    }
+
+    private static Set<MailRecipient> getToList(List<User> users) {
+        return (hideAddress) ? getDefaultToList() : getMailRecipientsFromUsers(users);
+    }
+
+    private static Set<MailRecipient> getBccList(List<User> users) {
+        return (hideAddress) ? getMailRecipientsFromUsers(users) : new HashSet<MailRecipient>();
+    }
+
+    private static Set<MailRecipient> getDefaultToList() {
+        Set<MailRecipient> list = new HashSet<>();
+
+        list.add(new MailRecipient(Config.getEmailFromSmtp(), Config.getSiteName()));
+
+        return list;
+    }
+
+    private static Set<MailRecipient> getMailRecipientsFromUsers(List<User> users) {
+        Set<MailRecipient> list = new HashSet<>();
+
+        for (User user : users) {
+            list.add(new MailRecipient(user.email, user.name));
+        }
+
+        return list;
+    }
+
+    private static void sendMail(NotificationEvent event, Set<MailRecipient> toList, Set<MailRecipient> bccList, String langCode) {
+        if (toList.isEmpty()) {
             return;
         }
 
@@ -284,16 +319,12 @@ public class NotificationMail extends Model {
                 acceptsReply = true;
             }
 
-            for (User receiver : receivers) {
-                if (hideAddress) {
-                    email.addBcc(receiver.email, receiver.name);
-                } else {
-                    email.addTo(receiver.email, receiver.name);
-                }
+            for (MailRecipient recipient : toList) {
+                email.addTo(recipient.email, recipient.name);
             }
 
-            if (email.getToAddresses().isEmpty()) {
-                email.addTo(Config.getEmailFromSmtp(), utils.Config.getSiteName());
+            for (MailRecipient recipient : bccList) {
+                email.addBcc(recipient.email, recipient.name);
             }
 
             // FIXME: gmail은 From과 To에 같은 주소가 있으면 reply-to를 무시한다.
