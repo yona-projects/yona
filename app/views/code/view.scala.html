@@ -110,7 +110,10 @@
         $("#branches").on("change", function(event){
             location.href= $(this).val();
         });
-        
+
+        // help popover at open with browser button
+        $("#open-in-browser").popover({trigger: "hover", placement: "top"});
+
         $yobi.loadModule("code.Browser", {
             "sProjectName": "@project.name",
             "sInitialPath": "@path",

@@ -26,13 +26,11 @@
 @import utils.Markdown
 
 @getRevIdString(revId:String) = @{
-    var revIdString = "";
     if(project.vcs.equalsIgnoreCase("git")) {
-        revIdString = branchItemName(branch)
+        branchItemName(branch)
     } else {
-        revIdString = revId;
+        revId
     }
-    revIdString
 }
 
 @defining(path.substring(path.lastIndexOf("/") + 1)) { fileName =>
@@ -75,7 +73,7 @@
                 <i class="yobicon-download-alt yobicon-white vmiddle"></i> Raw
             </a>
             }
-            <a href="@pathToOpenFile" class="ybtn" target="_blank">
+            <a id="open-in-browser" href="@pathToOpenFile" class="ybtn" target="_blank" data-content='@Messages("code.open.desc")'>
                 <i class="yobicon-download-alt yobicon-white vmiddle"></i> @Messages("code.open")
             </a>
             <a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), path)" class="ybtn">@Messages("code.history")</a>
