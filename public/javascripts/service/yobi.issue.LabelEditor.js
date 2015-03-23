@@ -48,6 +48,7 @@
          * @private
          */
         function _initElement(options){
+
             elements.list = $(options.list);
             elements.form = $(options.form);
             elements.formInput = elements.form.find('input,button[type=submit]');
@@ -335,12 +336,7 @@
          * @private
          */
         function _reloadLabelList(){
-            $.ajax(vars.listURL, {
-                "method" : "get",
-                "headers": {"X-PJAX": true}
-            }).done(function(res){
-                elements.list.html(res);
-            });
+            document.location.reload(true);
         }
 
         /**
