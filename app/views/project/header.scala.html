@@ -27,6 +27,24 @@
 @import models.enumeration.Operation
 @import controllers.UserApp
 
+@watchHelpMessages = {
+    <div class="pop-content">
+        <p>@Messages("notification.help")</p>
+        <ul class="icons-ul">
+            <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.new")</li>
+            <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.new.comment")</li>
+            <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.update.issue")</li>
+            <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.update.pullrequest")</li>
+        </ul>
+    </div>
+}
+
+@amIWatching = @{
+    if(User.isWatching(project)) {
+        "watch-on"
+    }
+}
+
 <div class="project-header-outer" style="background-image:url(@urlToProjectBG(project))">
     <div class="project-header-inner">
         <div class="project-header-wrap">
@@ -94,52 +112,38 @@
                     }
                     @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.WATCH)) {
                     <li>
+                        <div class="btn-group dropdown watch-btn">
+                            <button class="btn disabled watcher-count nofocus no-border @amIWatching" data-toggle="tooltip" title="@Messages("project.watcher.number")">@project.getWatchingCount</button>
                         @if(User.isWatching(project)) {
-                        <button class="ybtn ybtn-watching ybtn-small dropdown-toggle" tyle="button" data-toggle="dropdown">
-                            <i class="yobicon-eye"></i> @Messages("project.watching")
-                        </button>
-                        } else {
-                        <button class="ybtn ybtn-small dropdown-toggle" type="button" data-toggle="dropdown">
-                            <i class="yobicon-eye-off"></i> @Messages("project.watch")
-                        </button>
-                        }
-                        <div class="dropdown-menu flat right title">
-                            @if(User.isWatching(project)){
-                            <div class="pop-title">@Messages("project.you.are.watching", project.name)</div>
-                            <div class="pop-content">
-                                <p>@Messages("notification.help")</p>
-                                <ul class="icons-ul">
-                                    <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.new")</li>
-                                    <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.new.comment")</li>
-                                    <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.update.issue")</li>
-                                    <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.update.pullrequest")</li>
-                                </ul>
-                            </div>
-                            <div class="pop-content btn-wrap">
-                                <a class="ybtn
+                            <div class="dropdown-menu flat right title">
+                                <div class="pop-title">@Messages("project.you.are.watching", project.name)</div>
+                                @watchHelpMessages
+                                <div class="pop-content btn-wrap">
+                                    <a class="ybtn
                                  watchBtn " href="@routes.WatchProjectApp.unwatch(project.owner, project.name)">
-                                    <i class="yobicon-eye-off"></i>
-                                    @Messages("project.unwatch")
-                                </a>
+                                        <i class="yobicon-eye-off"></i>
+                                        @Messages("project.unwatch")
+                                    </a>
+                                </div>
                             </div>
-                            } else {
-                            <div class="pop-title">@Messages("project.you.are.not.watching", project.name)</div>
-                            <div class="pop-content">
-                                <p>@Messages("notification.will.help")</p>
-                                <ul class="icons-ul">
-                                    <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.new")</li>
-                                    <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.new.comment")</li>
-                                    <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.update.issue")</li>
-                                    <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.update.pullrequest")</li>
-                                </ul>
+                            <button class="btn nofocus no-border down-arrow" type="button" data-toggle="dropdown">
+                                @Messages("project.unwatch")
+                            </button>
+                        } else {
+                            <div class="dropdown-menu flat right title">
+                                <div class="pop-title">@Messages("project.you.are.not.watching", project.name)</div>
+                                @watchHelpMessages
+                                <div class="pop-content btn-wrap">
+                                    <a class="ybtn ybtn-watching watchBtn" href="@routes.WatchProjectApp.watch(project.owner, project.name)">
+                                        <i class="yobicon-eye"></i>
+                                        @Messages("project.watch")
+                                    </a>
+                                </div>
                             </div>
-                            <div class="pop-content btn-wrap">
-                                <a class="ybtn ybtn-watching watchBtn" href="@routes.WatchProjectApp.watch(project.owner, project.name)">
-                                    <i class="yobicon-eye"></i>
-                                    @Messages("project.watch")
-                                </a>
-                            </div>
-                            }
+                            <button class="btn nofocus no-border down-arrow" type="button" data-toggle="dropdown">
+                                @Messages("project.watch")
+                            </button>
+                        }
                         </div>
                     </li>
                     }
