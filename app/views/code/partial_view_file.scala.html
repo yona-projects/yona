@@ -25,10 +25,21 @@
 @import java.net.URLEncoder
 @import utils.Markdown
 
+@getRevIdString(revId:String) = @{
+    var revIdString = "";
+    if(project.vcs.equalsIgnoreCase("git")) {
+        revIdString = branchItemName(branch)
+    } else {
+        revIdString = revId;
+    }
+    revIdString
+}
+
 @defining(path.substring(path.lastIndexOf("/") + 1)) { fileName =>
 @defining(getFileRev(project.vcs, files)) { revId=>
 @defining(routes.CodeApp.showRawFile(project.owner, project.name, revId, path)) { filePath =>
-@defining(routes.CodeApp.openFile(project.owner, project.name, revId, path)) { pathToOpenFile =>
+@defining(getRevIdString(revId)){ revIdString =>
+@defining(routes.CodeApp.openFile(project.owner, project.name, revIdString, path)) { pathToOpenFile =>
 <div class="file-wrap" data-type="file">
     <div class="file-header nm">
         <div id="fileInfo" class="file-info">
@@ -113,6 +124,7 @@
     }
     }
 </div>
+}
 }
 }
 }

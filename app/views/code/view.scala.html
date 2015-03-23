@@ -79,7 +79,7 @@
                 <select id="branches" data-toggle="select2" data-format="branch" data-dropdown-css-class="branches"
                         class="pull-left @if(fieldText(recursiveData{0}, "type").eq("file")){mb10}">
                 @for(branchName <- branches){
-                    <option value="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branchName, "UTF-8"), path)"
+                    <option value="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branchItemName(branchName), "UTF-8"), path)"
                             @if(branchItemName(branchName) == branchItemName(branch)){ selected }>
                         @branchName
                     </option>
