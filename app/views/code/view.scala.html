@@ -107,6 +107,10 @@
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/moment-with-langs.min.js")"></script>
 <script type="text/javascript">
     $(document).ready(function(){
+        $("#branches").on("change", function(event){
+            location.href= $(this).val();
+        });
+        
         $yobi.loadModule("code.Browser", {
             "sProjectName": "@project.name",
             "sInitialPath": "@path",
