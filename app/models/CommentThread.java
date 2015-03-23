@@ -28,6 +28,7 @@ import play.data.format.Formats;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 
+import javax.annotation.Nullable;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Date;
@@ -168,7 +169,10 @@ public class CommentThread extends Model implements ResourceConvertible {
      * @return
      */
 
-    public static int countReviewsBy(Long projectId, ReviewSearchCondition cond) {
+    public static int countReviewsBy(Long projectId, @Nullable ReviewSearchCondition cond) {
+        if(cond == null){
+            cond = new ReviewSearchCondition();
+        }
         return cond.asExpressionList(Project.find.byId(projectId)).findRowCount();
     }
 
