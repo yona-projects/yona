@@ -45,10 +45,18 @@ application.langs="en-US, ko-KR, ja-JP"
 # H2 Configuration
  db.default.driver=org.h2.Driver
 # db.default.url="jdbc:h2:mem:yobi;MODE=PostgreSQL;DB_CLOSE_DELAY=-1"
- db.default.url="jdbc:h2:file:./yobi;MODE=PostgreSQL"
+ db.default.url="jdbc:h2:file:./yobi;MODE=PostgreSQL;MVSTORE=FALSE;MVCC=FALSE"
 # db.default.user=sa
 # db.default.password=sa
 db.default.logStatements=true
+db.default.partitionCount=20
+db.default.maxConnectionsPerPartition=10
+db.default.minConnectionsPerPartition=2
+db.default.acquireIncrement=4
+db.default.acquireRetryAttempts=3
+db.default.acquireRetryDelay=1 seconds
+db.default.connectionTimeout=3 second
+db.default.statementsCacheSize=1000
 
 # MySQL Configuration
 # db.default.driver=com.mysql.jdbc.Driver
@@ -85,7 +93,7 @@ applyEvolutions.default=true
 # ~~~~~
 
 # Server name used by servlet, as the value of "Server" field in HTTP response message.
-application.server="Play/2.1"
+application.server="Play/2.3"
 
 # Components used to construct the URL to this application.
 application.scheme="http"
@@ -183,7 +191,8 @@ application.update.repositoryUrl = "http://repo.yobi.io/naver/yobi"
 # specifier for Yobi version to download like "0.5.7".
 application.update.releaesUrlFormat = "https://github.com/naver/yobi/releases/tag/v%s"
 
-#customize play default thread pool size
+# customize play default thread pool size
+# see: https://www.playframework.com/documentation/2.3.x/ThreadPools
 play {
   akka {
     event-handlers = ["akka.event.Logging$DefaultLogger", "akka.event.slf4j.Slf4jEventHandler"]
@@ -191,8 +200,8 @@ play {
     actor {
       default-dispatcher = {
         fork-join-executor {
-          parallelism-min = 400
-          parallelism-max = 400
+          parallelism-min = 50
+          parallelism-max = 300
         }
       }
     }
@@ -220,3 +229,9 @@ akka {
     }
   }
 }
+
+# If you want allowing to access yobi pages logged in users only, set it false
+application.allowsAnonymousAccess = true
+
+# No referrer information is to be leaked when following the link from yobi pages. If you don't want, set it false
+application.noreferrer = true
