@@ -46,6 +46,9 @@
 </head>
 
 <body class="@theme">
+    @if(UserApp.isSiteAdminLoggedInSession){
+        <div class="admin-logged-in-affix" data-spy="affix" data-offset-top="30">@Messages("user.siteAdminLoggedInAffix") <span class="small-font">@Messages("user.siteAdminLoggedInAffix.maxim")</span></div>
+    }
 @partial_update_notification()
 @content
 @common.scripts()
