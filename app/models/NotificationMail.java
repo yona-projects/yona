@@ -139,10 +139,14 @@ public class NotificationMail extends Model {
                                     .orderBy("notificationEvent.created ASC").findList();
 
                     for (NotificationMail mail: mails) {
-                        NotificationEvent event = mail.notificationEvent;
-                        mail.delete();
-                        if (event.resourceExists()) {
-                            sendNotification(event);
+                        try {
+                            NotificationEvent event = mail.notificationEvent;
+                            mail.delete();
+                            if (event.resourceExists()) {
+                                sendNotification(event);
+                            }
+                        } catch (Exception e) {
+                            play.Logger.warn("Failed to send a notification mail", e);
                         }
                     }
                 }
