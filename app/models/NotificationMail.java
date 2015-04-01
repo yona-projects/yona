@@ -139,10 +139,11 @@ public class NotificationMail extends Model {
                                     .orderBy("notificationEvent.created ASC").findList();
 
                     for (NotificationMail mail: mails) {
-                        if (mail.notificationEvent.resourceExists()) {
-                            sendNotification(mail.notificationEvent);
-                        }
+                        NotificationEvent event = mail.notificationEvent;
                         mail.delete();
+                        if (event.resourceExists()) {
+                            sendNotification(event);
+                        }
                     }
                 }
             },
