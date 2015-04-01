@@ -52,7 +52,9 @@ public class PullRequestEvent extends Model implements TimelineItem {
 
     public Date created;
 
+    @Lob
     public String oldValue;
+    @Lob
     public String newValue;
 
     @Override

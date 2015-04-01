@@ -46,6 +46,7 @@ public class PullRequestCommit extends Model implements TimelineItem {
     public String commitId;
     public Date authorDate;
     public Date created;
+    @Lob
     public String commitMessage;
     public String commitShortId;
     public String authorEmail;
