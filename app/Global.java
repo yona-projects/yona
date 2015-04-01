@@ -45,6 +45,7 @@ import views.html.welcome.restart;
 import views.html.welcome.secret;
 
 import javax.annotation.Nonnull;
+import javax.persistence.PersistenceException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -303,7 +304,13 @@ public class Global extends GlobalSettings {
         AccessLogger.log(request, null, Http.Status.INTERNAL_SERVER_ERROR);
 
         if (Play.isProd()) {
-            return Promise.pure((Result) Results.internalServerError(views.html.error.internalServerError_default.render("error.internalServerError")));
+            String messageKey;
+            if (t.getCause() instanceof PersistenceException && StringUtils.contains(t.getMessage(), "timed out")){
+                messageKey = "error.timeout";
+            } else {
+                messageKey = "error.internalServerError";
+            }
+            return Promise.pure((Result) Results.internalServerError(views.html.error.internalServerError_default.render(messageKey)));
         } else {
             return super.onError(request, t);
         }
