@@ -114,7 +114,7 @@ public class NotificationMail extends Model {
                     try {
                         sendMail();
                     } catch (Exception e) {
-                        play.Logger.warn("Failed to send notification mail", e);
+                        play.Logger.warn("Error occured while sending notification mails", e);
                     }
                 }
 
@@ -139,10 +139,15 @@ public class NotificationMail extends Model {
                                     .orderBy("notificationEvent.created ASC").findList();
 
                     for (NotificationMail mail: mails) {
-                        if (mail.notificationEvent.resourceExists()) {
-                            sendNotification(mail.notificationEvent);
+                        try {
+                            NotificationEvent event = mail.notificationEvent;
+                            mail.delete();
+                            if (event.resourceExists()) {
+                                sendNotification(event);
+                            }
+                        } catch (Exception e) {
+                            play.Logger.warn("Error occured while sending a notification mail", e);
                         }
-                        mail.delete();
                     }
                 }
             },
