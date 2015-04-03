@@ -180,7 +180,11 @@ public class Global extends GlobalSettings {
         return new Action.Simple() {
             public Promise<Result> call(Http.Context ctx) throws Throwable {
                 UserApp.initTokenUser();
-                UserApp.updatePreferredLanguage();
+                try {
+                    UserApp.updatePreferredLanguage();
+                } catch (Exception e) {
+                    play.Logger.warn("Failed to update the preferred language", e);
+                }
                 ctx.response().setHeader("Date", DateUtils.formatDate(new Date()));
                 ctx.response().setHeader("Cache-Control", "no-cache");
                 Promise<Result> promise = delegate.call(ctx);
