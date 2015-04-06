@@ -225,6 +225,7 @@ fork.help.message.2 = Once you fork a project, you can contribute your code to t
 fork.help.title = Fork this project''s repository.
 fork.original = Forked from
 fork.redirect.exist = Move to the forked project
+git.error.permission = ''{0}'' has no permission to ''{1}/{2}''.
 issue.assignToAuthor = Assign to author
 issue.assignToMe = Assign to me
 issue.assignee = Assignee
