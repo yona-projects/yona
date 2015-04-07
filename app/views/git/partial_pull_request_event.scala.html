@@ -125,7 +125,7 @@
                     }
                     <div class="date" title="@getDateString(commit.authorDate)">@utils.TemplateHelper.agoOrDateString(commit.authorDate)</div>
                     
-                    @common.commitMsg(commit.commitMessage.split("\n")(0), commit.commitMessage,
+                    @common.commitMsg(commit.getCommitMessage.split("\n")(0), commit.getCommitMessage,
                         routes.PullRequestApp.specificChange(pull.toProject.owner, pull.toProject.name, pull.number, commit.commitId).toString)
                 }
                 </li>
