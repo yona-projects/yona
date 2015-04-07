@@ -67,6 +67,7 @@ public class PullRequestCommit extends Model implements TimelineItem {
     }
 
     public @Nonnull String getCommitShortMessage() {
+        String commitMessage = getCommitMessage();
         if (StringUtils.isEmpty(commitMessage)) {
             return "";
         }
