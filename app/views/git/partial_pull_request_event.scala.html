@@ -52,7 +52,7 @@
 @defining(User.findByLoginId(event.senderLoginId)) { user =>
     @event.eventType match {
         case EventType.PULL_REQUEST_REVIEW_STATE_CHANGED => {
-            @if(event.newValue == PullRequestReviewAction.DONE.name) {
+            @if(event.getNewValue == PullRequestReviewAction.DONE.name) {
             <li class="event" id="comment-@event.id">
                 <span class="state changed">@Messages("pullRequest.review")</span>
                 @Html(Messages("notification.pullrequest.reviewed",linkToUser(user.loginId, user.name)))
@@ -72,14 +72,14 @@
         }
         case EventType.PULL_REQUEST_STATE_CHANGED => {
         <li class="event" id="comment-@event.id">
-            <span class="state @event.newValue">@Messages("pullRequest.event." + event.newValue)</span>
-            @State.getValue(event.newValue) match {
+            <span class="state @event.getNewValue">@Messages("pullRequest.event." + event.getNewValue)</span>
+            @State.getValue(event.getNewValue) match {
                 case State.MERGED => {
-                    @Html(Messages("pullRequest.event.message." + event.newValue, linkToUser(user.loginId, user.name),
+                    @Html(Messages("pullRequest.event.message." + event.getNewValue, linkToUser(user.loginId, user.name),
                         linkToCommit(event.pullRequest.toProject, event.pullRequest.mergedCommitIdTo)))
                 }
                 case _ => {
-                    @Html(Messages("pullRequest.event.message." + event.newValue, linkToUser(user.loginId, user.name)))
+                    @Html(Messages("pullRequest.event.message." + event.getNewValue, linkToUser(user.loginId, user.name)))
                 }
             }
             <span class="date">
@@ -90,8 +90,8 @@
 
         case EventType.PULL_REQUEST_MERGED => {
         <li class="event" id="comment-@event.id">
-            <span class="state @event.newValue">@Messages("pullRequest.event." + event.newValue)</span>
-            @Html(Messages("pullRequest.event.message." + event.newValue, linkToUser(user.loginId, user.name)))
+            <span class="state @event.getNewValue">@Messages("pullRequest.event." + event.getNewValue)</span>
+            @Html(Messages("pullRequest.event.message." + event.getNewValue, linkToUser(user.loginId, user.name)))
             <span class="date">
                 <a href="#event-@event.id" title="@getDateString(event.getDate())">@agoOrDateString(event.getDate())</a>
             </span>
@@ -105,8 +105,8 @@
             <span class="date">
                 <a href="#event-@event.id" title="@getDateString(event.getDate())">@agoOrDateString(event.getDate())</a>
             </span>
-            @if(event.oldValue != null) {
-            <a href="@urlToCompare(pull.toProject, event.oldValue)" class="ybtn ybtn-mini">@Messages("pullRequest.additional.changes")</a>
+            @if(event.getOldValue != null) {
+            <a href="@urlToCompare(pull.toProject, event.getOldValue)" class="ybtn ybtn-mini">@Messages("pullRequest.additional.changes")</a>
             }
 
             <ul class="commit-list">
