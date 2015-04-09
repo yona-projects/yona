@@ -55,6 +55,7 @@ yobi.CodeCommentBlock = (function(){
     function _attachEvent(){
         htElement.welContainer.on("mouseup", _onMouseUpOnDiff);
         htElement.welContainer.on("mousedown", "td.code pre", _onMouseDownOnDiff);
+        htElement.mouseEventStart = {};
     }
 
     /**
@@ -65,8 +66,11 @@ yobi.CodeCommentBlock = (function(){
             return;
         }
 
+        htElement.mouseEventStart = this;
         _unwrapAll();
-        window.getSelection().removeAllRanges();
+
+        removeRanges();
+
     }
 
     /**
@@ -103,8 +107,9 @@ yobi.CodeCommentBlock = (function(){
         }
 
         // get anchor, focus row (TR) from selected text node
-        var welAnchor = $(oSelection.anchorNode.parentElement).closest("tr");
-        var welFocus = $(oSelection.focusNode.parentElement).closest("tr");
+        var welAnchor = $(oSelection.getRangeAt(0).startContainer).closest("tr");
+        var welFocus = $(oSelection.getRangeAt(oSelection.rangeCount-1).endContainer).closest("tr");
+
 
         // data-line attribute is required on both of anchor and focus
         if(typeof welAnchor.data("line") === "undefined" || typeof welFocus.data("line") === "undefined"){
@@ -146,30 +151,38 @@ yobi.CodeCommentBlock = (function(){
     function _setBlockDataBySelection(){
         // get anchor, focus row (TR) from selected text node
         var oSelection = document.getSelection();
-        var welAnchor = $(oSelection.anchorNode.parentNode).closest("tr");
-        var welFocus = $(oSelection.focusNode.parentNode).closest("tr");
+
+        var anchor = oSelection.getRangeAt(0);
+        var focus = (oSelection.rangeCount ===1) ? anchor : oSelection.getRangeAt(oSelection.rangeCount-1);
+
+        var welAnchor = $(anchor.startContainer).closest("tr");
+        var welFocus = $(focus.endContainer).closest("tr");
+
         var welTable = welAnchor.closest("table");
 
         // detect whether is reversed
         var nAnchorIndex = welAnchor.index();
         var nFocusIndex = welFocus.index();
-        var nAnchorOffset = oSelection.anchorOffset;
-        var nFocusOffset = oSelection.focusOffset;
-        var bIsReversed = (nAnchorIndex > nFocusIndex) ||
+
+        var nAnchorOffset = anchor.startOffset;
+        var nFocusOffset = focus.endOffset;
+
+        var startIndex = $(htElement.mouseEventStart).closest("tr").index();
+
+        var bIsReversed = (nAnchorIndex < startIndex) ||
                           (nAnchorIndex === nFocusIndex && nAnchorOffset > nFocusOffset);
-        var welStartLine = bIsReversed ? welFocus : welAnchor;
-        var welEndLine = bIsReversed ? welAnchor : welFocus;
+
 
         htBlockInfo = {
             "bIsReversed" : bIsReversed,
-            "nStartLine"  : welStartLine.data("line"),
-            "sStartType"  : welStartLine.data("type"),
-            "sStartSide"  : welStartLine.data("type") === 'remove' ? 'A' : 'B',
-            "nStartColumn": bIsReversed ? oSelection.focusOffset  : oSelection.anchorOffset,
-            "nEndLine"    : welEndLine.data("line"),
-            "sEndType"    : welEndLine.data("type"),
-            "sEndSide"    : welEndLine.data("type") === 'remove' ? 'A' : 'B',
-            "nEndColumn"  : bIsReversed ? oSelection.anchorOffset : oSelection.focusOffset,
+            "nStartLine"  : welAnchor.data("line"),
+            "sStartType"  : welAnchor.data("type"),
+            "sStartSide"  : welAnchor.data("type") === 'remove' ? 'A' : 'B',
+            "nStartColumn": nAnchorOffset,
+            "nEndLine"    : welFocus.data("line"),
+            "sEndType"    : welFocus.data("type"),
+            "sEndSide"    : welFocus.data("type") === 'remove' ? 'A' : 'B',
+            "nEndColumn"  : nFocusOffset,
             "sPathA"      : welTable.data("pathA"),
             "sPathB"      : welTable.data("pathB"),
             "sPrevCommitId": welTable.data("commitA"),
@@ -270,6 +283,7 @@ yobi.CodeCommentBlock = (function(){
     function _wrapByOffset(htOffset){
         _unwrapAll();
         _wrapOnDiff(htOffset);
+        removeRanges();
     }
 
     /**
@@ -277,6 +291,8 @@ yobi.CodeCommentBlock = (function(){
      * @private
      */
     function _wrapOnDiff(htOffset){
+        removeRanges();
+
         var htElements = _getElementsByOffsetOptions(htOffset);
         if(!htElements.elStartLine || !htElements.elEndLine){
             return false;
@@ -310,7 +326,7 @@ yobi.CodeCommentBlock = (function(){
             oRange.surroundContents(elBlock);
         });
 
-        document.getSelection().removeAllRanges();
+
     }
 
     /**
@@ -388,6 +404,7 @@ yobi.CodeCommentBlock = (function(){
         $('[data-toggle="comment-block"]').each(_unwrapCommentBlock);
 
         _onUnwrapAllCodeCommentBlock();
+        removeRanges();
     }
 
     /**
@@ -418,6 +435,14 @@ yobi.CodeCommentBlock = (function(){
      */
     function _getBlockData(){
         return htBlockInfo;
+    }
+
+    function removeRanges() {
+      if (window.getSelection) {  // all browsers, except IE before version 9
+        window.getSelection().removeAllRanges();
+      } else {
+        document.selection.empty();
+      }
     }
 
     // public interface
