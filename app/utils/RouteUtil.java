@@ -22,6 +22,7 @@
 package utils;
 
 import controllers.CodeHistoryApp;
+import controllers.routes;
 import models.*;
 import models.enumeration.ResourceType;
 import models.resource.Resource;
@@ -78,6 +79,13 @@ public class RouteUtil {
                 controllers.routes.UserApp.userInfo$default$3(),
                 controllers.routes.UserApp.userInfo$default$4()
         ).url();
+    }
+
+    public static String getUrl(Organization org) {
+        if (org == null) return null;
+        org.refresh();
+
+        return controllers.routes.OrganizationApp.organization(org.name).url();
     }
 
     public static String getUrl(Project project) {
