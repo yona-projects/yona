@@ -64,10 +64,10 @@
          * attach event
          */
         function _attachEvent(){
-            htElement.welInputLoginId.focusout(_onBlurInputLoginId);
-            htElement.welInputEmail.focusout(_onBlurInputEmail);
-            htElement.welInputPassword.focusout(_onBlurInputPassword);
-            htElement.welInputPassword2.focusout(_onBlurInputPassword);
+            htElement.welInputLoginId.on('focusout', _onBlurInputLoginId);
+            htElement.welInputEmail.on('focusout', _onBlurInputEmail);
+            htElement.welInputPassword.on('keyup', _onValidInputPassword);
+            htElement.welInputPassword2.on('keyup', _onValidInputPasswordCheck);
         }
 
         function _onBlurInputLoginId(){
@@ -86,15 +86,43 @@
         }
 
         function _onBlurInputEmail(){
+
             var welInput = $(this);
 
-            if(welInput.val() !== ""){
+            if($.trim(welInput.val()) !== ""){
                 doesExists(welInput, htVar.sEmailCheckUrl);
             }
         }
 
-        function _onBlurInputPassword(){
-            htVar.oValidator._validateForm();
+        function _onValidInputPassword(){
+
+            clearTimeout(htVar.oDelay);
+
+            htVar.oDelay = setTimeout(checkPassword, 300);
+        }
+
+        function checkPassword() {
+          hideErrorMessage(htElement.welInputPassword);
+
+          if($.trim(htElement.welInputPassword.val()).length < 4) {
+            showErrorMessage(htElement.welInputPassword, Messages("validation.tooShortPassword"));
+          }
+
+          checkPasswordConfirm();
+        }
+
+        function _onValidInputPasswordCheck() {
+          clearTimeout(htVar.oDelay);
+
+          htVar.oDelay = setTimeout(checkPasswordConfirm, 200);
+        }
+
+        function checkPasswordConfirm() {
+          hideErrorMessage(htElement.welInputPassword2);
+
+          if (htElement.welInputPassword2.val() !== htElement.welInputPassword.val()) {
+            showErrorMessage(htElement.welInputPassword2, Messages("validation.passwordMismatch"));
+          }
         }
 
         /**
@@ -102,6 +130,7 @@
          * @param {String} sURL
          */
         function doesExists(welInput, sURL){
+
             $.ajax({
                 "url": sURL + welInput.val()
             }).done(function(htData){
@@ -128,7 +157,7 @@
             ];
 
             htVar.oValidator = new FormValidator('signup', aRules, _onFormValidate);
-            htVar.oValidator.registerCallback('check_loginId', _onValidateLoginId)
+            htVar.oValidator.registerCallback('check_loginId', _onValidateLoginId);
 
             // set error message
             htVar.oValidator.setMessage('check_loginId', Messages("validation.allowedCharsForLoginId"));
