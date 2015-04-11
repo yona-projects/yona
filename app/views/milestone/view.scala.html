@@ -62,7 +62,7 @@
                 <div class="attachments" data-resource-type="@ResourceType.MILESTONE" data-resource-id="@milestone.id"></div>
             </div>
 
-            <div class="actrow right-txt" style="padding: 15px 0; clear:both;">
+            <div class="actrow right-txt row-fluid" style="padding: 15px 0; clear:both;">
                 <a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="ybtn pull-left">@Messages("button.list")</a>
 
                 @if(isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.DELETE)){
