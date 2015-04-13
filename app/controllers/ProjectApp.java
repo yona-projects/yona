@@ -602,11 +602,11 @@ public class ProjectApp extends Controller {
         project.update();
 
         // Change roles.
-        if (!newOwnerUser.isAnonymous()) {
-            ProjectUser.assignRole(newOwnerUser.id, project.id, RoleType.MANAGER);
-        }
         if (ProjectUser.isManager(pt.sender.id, project.id)) {
             ProjectUser.assignRole(pt.sender.id, project.id, RoleType.MEMBER);
+        }
+        if (!newOwnerUser.isAnonymous()) {
+            ProjectUser.assignRole(newOwnerUser.id, project.id, RoleType.MANAGER);
         }
 
         // Change the tranfer's status to be accepted.
