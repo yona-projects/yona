@@ -29,11 +29,11 @@ import play.i18n.Messages;
 import play.mvc.Action;
 import play.mvc.Http.Context;
 import play.mvc.Result;
-import play.mvc.Result;
 import play.libs.F.Promise;
 import utils.AccessControl;
 import utils.AccessLogger;
 import utils.ErrorViews;
+import utils.RedirectUtil;
 
 import static play.mvc.Controller.flash;
 
@@ -58,6 +58,11 @@ public abstract class AbstractProjectCheckAction<T> extends Action<T> {
         Promise<Result> promise;
 
         if (project == null) {
+            Project previousProject = Project.findByPreviousPlaceOf(ownerLoginId, projectName);
+            if (previousProject != null) {
+                return RedirectUtil.redirect(previousProject);
+            }
+
             if (UserApp.currentUser() == User.anonymous){
                 flash("failed", Messages.get("error.auth.unauthorized.waringMessage"));
                 promise = Promise.pure((Result) forbidden(ErrorViews.Forbidden.render("error.forbidden.or.notfound", context.request().path())));

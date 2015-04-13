@@ -89,7 +89,12 @@ public class GitApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         if (project == null) {
-            return notFound();
+            Project previousProject = Project.findByPreviousPlaceOf(ownerName, projectName);
+            if (previousProject != null) {
+                project = previousProject;
+            } else {
+                return notFound();
+            }
         }
 
         if (!project.vcs.equals(RepositoryService.VCS_GIT)) {
@@ -146,5 +151,4 @@ public class GitApp extends Controller {
             throws UnsupportedOperationException, IOException, ServletException {
         return GitApp.service(ownerName, projectName, service, false);
     }
-
 }

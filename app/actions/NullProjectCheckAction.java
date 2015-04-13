@@ -28,10 +28,10 @@ import play.i18n.Messages;
 import play.mvc.Action;
 import play.mvc.Http;
 import play.mvc.Result;
-import play.mvc.Result;
 import play.libs.F.Promise;
 import utils.AccessLogger;
 import utils.ErrorViews;
+import utils.RedirectUtil;
 
 import static play.mvc.Controller.flash;
 
@@ -54,6 +54,10 @@ public class NullProjectCheckAction extends Action<Void> {
 
         if (project == null) {
             Promise<Result> promise;
+            Project previousProject = Project.findByPreviousPlaceOf(ownerLoginId, projectName);
+            if (previousProject != null) {
+                return RedirectUtil.redirect(previousProject);
+            }
 
             if (UserApp.currentUser() == User.anonymous){
                 flash("failed", Messages.get("error.auth.unauthorized.waringMessage"));
