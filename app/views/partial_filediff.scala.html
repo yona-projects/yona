@@ -152,11 +152,14 @@
           </div>
         </div>
         <div class="diff-partial-file">
-          <span class="filename" title="@fileHeader">@if(StringUtils.isNotEmpty(diff.pathA)){--- @diff.pathA}</span>
-          @if(StringUtils.isNotEmpty(diff.pathB)){<span class="pathB">+++ @diff.pathB</span>}
+          <span class="filename" >@fileHeader</span>
         </div>
       </div>
       <div class="diff-partial-code" data-hashcode="@diff.hashCode">
+        <div class="patch-header">
+            @if(StringUtils.isNotEmpty(diff.pathA)){<div class="path">--- @diff.pathA</div>}
+            @if(StringUtils.isNotEmpty(diff.pathB)){<div class="path">+++ @diff.pathB</div>}
+        </div>
         <table class="diff-container show-comments"
                data-path-a="@diff.pathA" data-path-b="@diff.pathB"
                data-commit-a="@diff.commitA" data-commit-b="@diff.commitB"
