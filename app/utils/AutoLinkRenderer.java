@@ -21,6 +21,7 @@
 package utils;
 
 import models.Issue;
+import models.Organization;
 import models.Project;
 import models.User;
 import org.apache.commons.lang.ArrayUtils;
@@ -59,7 +60,7 @@ import java.util.regex.Pattern;
  * </pre>
  */
 public class AutoLinkRenderer {
-    private static final String PATH_PATTERN_STR = "[a-zA-Z0-9-./]+";
+    private static final String PATH_PATTERN_STR = "[a-zA-Z0-9-_./]+";
     private static final String ISSUE_PATTERN_STR = "\\d+";
     private static final String SHA_PATTERN_STR = "[a-f0-9]{7,40}";
 
@@ -309,8 +310,13 @@ public class AutoLinkRenderer {
 
     private static Link toValidUserLink(String userId) {
         User user = User.findByLoginId(userId);
+        Organization org = Organization.findByName(userId);
 
-        if (user.isAnonymous()) {
+        if(org != null) {
+            return new Link(RouteUtil.getUrl(org), "@" + org.name);
+        }
+
+        if (user.isAnonymous() ) {
             return Link.EMPTY_LINK;
         } else {
             return new Link(RouteUtil.getUrl(user), "@" + user.loginId);
