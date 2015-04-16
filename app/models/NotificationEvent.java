@@ -96,6 +96,21 @@ public class NotificationEvent extends Model {
     @OneToOne(mappedBy="notificationEvent", cascade = CascadeType.ALL)
     public NotificationMail notificationMail;
 
+    /**
+     * Returns receivers.
+     *
+     * This is much faster than field access to {@link #receivers}.
+     *
+     * @return receivers
+     */
+    public Set<User> findReceivers() {
+        String sql = "select n4user.id from n4user where id in (select n4user_id " +
+                     "from notification_event_n4user where " +
+                     "notification_event_id = '" + id + "')";
+
+        return User.find.setRawSql(RawSqlBuilder.parse(sql).create()).findSet();
+    }
+
     public String getOldValue() {
         return oldValue;
     }

@@ -221,7 +221,7 @@ public class NotificationMail extends Model {
      * @see <a href="https://github.com/nforge/yobi/blob/master/docs/technical/watch.md>watch.md</a>
      */
     private static void sendNotification(NotificationEvent event) {
-        Set<User> receivers = event.receivers;
+        Set<User> receivers = event.findReceivers();
 
         // Remove inactive users.
         Iterator<User> iterator = receivers.iterator();
