@@ -21,10 +21,7 @@
 package controllers;
 
 import actions.DefaultProjectCheckAction;
-import com.avaje.ebean.Expr;
-import com.avaje.ebean.ExpressionList;
-import com.avaje.ebean.Junction;
-import com.avaje.ebean.Page;
+import com.avaje.ebean.*;
 
 import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
@@ -61,6 +58,7 @@ import views.html.project.setting;
 import views.html.project.transfer;
 import views.html.project.change_vcs;
 
+import javax.annotation.Nonnull;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -376,6 +374,7 @@ public class ProjectApp extends Controller {
         collectAuthorAndCommenter(project, number, userList, resourceType);
         addProjectMemberList(project, userList);
         addGroupMemberList(project, userList);
+        addProjectAuthorsAndWatchersList(project, userList);
 
         userList.remove(UserApp.currentUser());
         userList.add(UserApp.currentUser()); //send me last at list
@@ -801,6 +800,18 @@ public class ProjectApp extends Controller {
         }
     }
 
+    private static void addProjectAuthorsAndWatchersList(Project project, List<User> userList) {
+        if(project == null){
+            return;
+        }
+
+        for (User user : findAuthorsAndWatchers(project)) {
+            if (!userList.contains(user)) {
+                userList.add(user);
+            }
+        }
+    }
+
     @Transactional
     @With(DefaultProjectCheckAction.class)
     @IsAllowed(Operation.UPDATE)
@@ -1137,4 +1148,36 @@ public class ProjectApp extends Controller {
         }
         return ok();
     }
+
+    public static Set<User> findAuthorsAndWatchers(@Nonnull Project project) {
+        Set<User> allAuthors = new LinkedHashSet<>();
+
+        allAuthors.addAll(getIssueUsers(project));
+        allAuthors.addAll(getPostingUsers(project));
+        allAuthors.addAll(getPullRequestUsers(project));
+        allAuthors.addAll(getWatchedUsers(project));
+
+        return allAuthors;
+    }
+
+    private static Set<User> getPostingUsers(Project project) {
+        String postSql = "SELECT distinct author_id id FROM posting where project_id=" + project.id;
+        return User.find.setRawSql(RawSqlBuilder.parse(postSql).create()).findSet();
+    }
+
+    private static Set<User> getIssueUsers(Project project) {
+        String issueSql = "SELECT distinct author_id id FROM ISSUE where project_id=" + project.id;
+        return User.find.setRawSql(RawSqlBuilder.parse(issueSql).create()).findSet();
+    }
+
+    private static Set<User> getPullRequestUsers(Project project) {
+        String postSql = "SELECT distinct contributor_id id FROM pull_request where to_project_id=" + project.id;
+        return User.find.setRawSql(RawSqlBuilder.parse(postSql).create()).findSet();
+    }
+
+    private static Set<User> getWatchedUsers(Project project) {
+        String postSql = "SELECT distinct user_id id FROM watch where resource_type='PROJECT' and resource_id=" + project.id;
+        return User.find.setRawSql(RawSqlBuilder.parse(postSql).create()).findSet();
+    }
+
 }
