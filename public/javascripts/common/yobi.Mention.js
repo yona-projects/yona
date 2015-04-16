@@ -115,8 +115,14 @@ yobi.Mention = function(htOptions) {
             "url"        : htVar.url,
             "type"       : "get",
             "contentType": "application/json",
-            "dataType"   : "json"
-        }).done(_onLoadUserList);
+            "dataType"   : "json",
+            "beforeSend" : function() {
+                NProgress.start();
+            }
+        }).done(function(data){
+            NProgress.done();
+            _onLoadUserList(data);
+        });
     }
 
     function _onLoadUserList(aData){
