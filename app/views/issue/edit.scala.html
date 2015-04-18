@@ -71,6 +71,14 @@
                     @** end of fileUploader **@
 
                     <div class=" actrow right-txt">
+                        @if(issue.isAuthoredBy(UserApp.currentUser())){
+                        <span class="send-notification-check">
+                            <label class="checkbox inline">
+                                <input type="checkbox" name="notificationMail" id="notificationMail" value="yes" checked>
+                                <strong>@Messages("notification.send.mail")</strong>
+                            </label>
+                        </span>
+                        }
                         <button type="submit" class="ybtn ybtn-info">@Messages("button.save")</button><!--
                      --><a href="javascript:history.back();" class="ybtn">@Messages("button.cancel")</a>
                     </div>

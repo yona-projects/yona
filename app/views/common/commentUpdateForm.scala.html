@@ -18,18 +18,26 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(commentId:Long, action:String, contents:String)
+@(comment:Comment, action:String, contents:String)
 
-<div id="comment-editform-@commentId" class="comment-update-form">
+<div id="comment-editform-@comment.id" class="comment-update-form">
     <form action="@action" method="post">
-        <input type="hidden" name="id" value="@commentId">
+        <input type="hidden" name="id" value="@comment.id">
 
         <div class="write-comment-box">
             <div class="write-comment-wrap">
                 @common.editor("contents", contents,"", "update-comment-body")
 
                 <div class="right-txt comment-update-button">
-                    <button type="button" class="ybtn ybtn-cancel" data-comment-id="@commentId">@Messages("button.cancel")</button>
+                    @if(comment.isAuthoredBy(UserApp.currentUser())){
+                    <span class="send-notification-check" data-toggle='popover' data-trigger="hover" data-placement="top" data-content="@Messages("notification.send.mail.warning")">
+                        <label class="checkbox inline">
+                            <input type="checkbox" name="notificationMail" id="notificationMail" value="yes" checked>
+                            <strong>@Messages("notification.send.mail")</strong>
+                        </label>
+                    </span>
+                    }
+                    <button type="button" class="ybtn ybtn-cancel" data-comment-id="@comment.id">@Messages("button.cancel")</button>
                     <button type="submit" class="ybtn ybtn-info">@Messages("button.save")</button>
                 </div>
             </div>

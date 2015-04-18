@@ -234,6 +234,9 @@ public class BoardApp extends AbstractPostingApp {
             @Override
             public void run() {
                 post.comments = original.comments;
+                if(isSelectedToSendNotificationMail() || !original.isAuthoredBy(UserApp.currentUser())){
+                    NotificationEvent.afterNewPost(post);
+                }
             }
         };
 
@@ -294,7 +297,9 @@ public class BoardApp extends AbstractPostingApp {
         if (existingComment != null) {
             existingComment.contents = comment.contents;
             savedComment = saveComment(existingComment, getContainerUpdater(posting, comment));
-            NotificationEvent.afterCommentUpdated(savedComment);
+            if(isSelectedToSendNotificationMail() || !existingComment.isAuthoredBy(UserApp.currentUser())){
+                NotificationEvent.afterCommentUpdated(savedComment);
+            }
         } else {
             savedComment = saveComment(comment, getContainerUpdater(posting, comment));
             NotificationEvent.afterNewComment(savedComment);

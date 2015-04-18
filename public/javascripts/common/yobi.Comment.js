@@ -53,6 +53,7 @@ yobi.Comment = (function(){
 
         $('#comment-editform-' + commentId).toggle();
         $('#comment-body-' + commentId).toggle();
+        $("[data-toggle='popover']").popover();
     }
 
     /**

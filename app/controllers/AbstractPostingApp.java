@@ -33,6 +33,8 @@ import play.i18n.Messages;
 import play.mvc.*;
 import utils.*;
 
+import java.util.Map;
+
 @AnonymousCheck
 public class AbstractPostingApp extends Controller {
     public static final int ITEMS_PER_PAGE = 15;
@@ -155,5 +157,19 @@ public class AbstractPostingApp extends Controller {
             return false;
         }
         return StringUtils.isNotBlank(files[0]);
+    }
+
+    protected static boolean isSelectedToSendNotificationMail() {
+        Map<String,String[]> data;
+        if (isMultiPartFormData()) {
+            data = request().body().asMultipartFormData().asFormUrlEncoded();
+        } else {
+            data = request().body().asFormUrlEncoded();
+        }
+        return "yes".equalsIgnoreCase(HttpUtil.getFirstValueFromQuery(data, "notificationMail"));
+    }
+
+    private static boolean isMultiPartFormData() {
+        return request().body().asMultipartFormData() != null;
     }
 }

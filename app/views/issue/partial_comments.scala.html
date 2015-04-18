@@ -144,7 +144,7 @@
                 </span>
             </div>
 
-            @common.commentUpdateForm(comment.id, routes.IssueApp.newComment(project.owner, project.name, issue.getNumber).toString(), comment.contents)
+            @common.commentUpdateForm(comment, routes.IssueApp.newComment(project.owner, project.name, issue.getNumber).toString(), comment.contents)
 
             <div id="comment-body-@comment.id">
                 <div class="comment-body markdown-wrap" data-via-email="@OriginalEmail.exists(comment.asResource)">@Html(Markdown.render(comment.contents, project))</div>
