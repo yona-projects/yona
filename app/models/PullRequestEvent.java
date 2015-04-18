@@ -68,7 +68,7 @@ public class PullRequestEvent extends Model implements TimelineItem {
         event.senderLoginId = notiEvent.getSender().loginId;
         event.pullRequest = pullRequest;
         event.eventType = notiEvent.eventType;
-        event.oldValue = notiEvent.oldValue;
+        event.oldValue = notiEvent.getOldValue();
         event.newValue = notiEvent.newValue;
 
         add(event);
@@ -160,5 +160,13 @@ public class PullRequestEvent extends Model implements TimelineItem {
         Collections.sort(commits, TimelineItem.DESC);
 
         return commits;
+    }
+
+    public String getOldValue() {
+        return oldValue;
+    }
+
+    public String getNewValue() {
+        return newValue;
     }
 }
