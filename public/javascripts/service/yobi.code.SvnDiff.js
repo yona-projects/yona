@@ -50,8 +50,8 @@
             htVar.sUnwatchUrl = htOptions.sUnwatchUrl;
             htVar.sParentCommitId = htOptions.sParentCommitId;
             htVar.sCommitId = htOptions.sCommitId;
+            htVar.sCodeURL = htOptions.sCodeURL;
             htVar.sTplFileURL = htOptions.sTplFileURL;
-            htVar.sTplRawURL = htOptions.sTplRawURL;
             htVar.rxSlashes = /\//g;
 
             // 미니맵
@@ -445,7 +445,7 @@
         }
 
         function _makeCommitLink(sPath,sCommitId) {
-            var sURL = $yobi.tmpl(htVar.sTplFileURL, {"commitId":sCommitId, "path":sPath});
+            var sURL = htVar.sCodeURL + "/" + sCommitId + "/" + sPath;
             var welCommit = $('<div/>',{class:'diff-partial-commit-id'});
             var welCommitLink = $('<a/>',{href:sURL,target:'_blink'}).text(sCommitId);
             welCommit.append(welCommitLink);

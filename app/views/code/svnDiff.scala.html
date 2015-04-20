@@ -178,8 +178,7 @@
             "sUnwatchUrl"    : "@routes.WatchApp.unwatch(commit.asResource(project).asParameter)",
             "sParentCommitId": "@if(parentCommit != null){@parentCommit.getId}",
             "sCommitId"      : "@commit.getId",
-            "sTplFileURL"    : "@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, "${commitId}", "${path}")",
-            "sTplRawURL"     : "@routes.CodeApp.showRawFile(project.owner, project.name, "${commitId}", "${path}")"
+            "sCodeURL"       : "@routes.CodeApp.codeBrowser(project.owner, project.name)"
         });
 
         yobi.Mention({
