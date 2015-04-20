@@ -80,7 +80,7 @@ or using web browser (for windows)
 
 #### Change directory to unzipped directory
 
-    cd typesafe-activator-1.2.10-minimal
+    cd activator-1.2.10-minimal
 
 #### Download Yobi
 
@@ -253,7 +253,7 @@ JDK 7(1.7) 혹은 8(1.8) 이어야 합니다.
 
 #### 압축을 푼 다음 하위 디렉터리로 이동
 
-    cd typesafe-activator-1.2.10-minimal
+    cd activator-1.2.10-minimal
 
 #### Yobi 소스 내려 받기
 
