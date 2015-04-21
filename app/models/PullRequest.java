@@ -657,7 +657,7 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     private void addCommitMessages(List<GitCommit> commits, StringBuilder builder) {
-        builder.append(String.format("* %s:\n", this.fromBranch));
+        builder.append(String.format("* %s:\n", Repository.shortenRefName(this.fromBranch)));
         for(GitCommit gitCommit : commits) {
             builder.append(String.format("  %s\n", gitCommit.getShortMessage()));
         }
