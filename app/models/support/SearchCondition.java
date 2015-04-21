@@ -306,7 +306,8 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         }
 
         if (CollectionUtils.isNotEmpty(labelIds)) {
-            el.in("labels.id", labelIds);
+            Set<IssueLabel> labels = IssueLabel.finder.where().idIn(new ArrayList<>(labelIds)).findSet();
+            el.in("id", Issue.finder.where().in("labels", labels).findIds());
         }
 
         if (StringUtils.isNotBlank(orderBy)) {
