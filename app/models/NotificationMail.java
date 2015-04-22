@@ -22,11 +22,16 @@ package models;
 
 import com.google.common.collect.Lists;
 import info.schleichardt.play2.mailplugin.Mailer;
+import notification.INotificationEvent;
+import notification.INotificationMail;
 import mailbox.EmailAddressWithDetail;
+import models.enumeration.EventType;
 import models.enumeration.ResourceType;
 import models.enumeration.UserState;
 import models.resource.Resource;
+import notification.MergedNotificationMail;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.mail.HtmlEmail;
 import org.joda.time.DateTime;
 import org.jsoup.Jsoup;
@@ -57,8 +62,10 @@ import java.net.URISyntaxException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static models.enumeration.EventType.*;
+
 @Entity
-public class NotificationMail extends Model {
+public class NotificationMail extends Model implements INotificationMail {
     private static final long serialVersionUID = 1L;
     private static final int RECIPIENT_NO_LIMIT = 0;
     static boolean hideAddress = true;
@@ -135,13 +142,19 @@ public class NotificationMail extends Model {
                 private void sendMail() {
                     Date createdUntil = DateTime.now().minusMillis
                             (MAIL_NOTIFICATION_DELAY_IN_MILLIS).toDate();
-                    List<NotificationMail> mails = find.where()
+                    List<? extends INotificationMail> mails = find.where()
                                     .lt("notificationEvent.created", createdUntil)
                                     .orderBy("notificationEvent.created ASC").findList();
 
-                    for (NotificationMail mail: mails) {
+                    try {
+                        mails = mergeMails(mails);
+                    } catch (Exception e) {
+                        play.Logger.warn("Failed to group mails", e);
+                    }
+
+                    for (INotificationMail mail: mails) {
                         try {
-                            NotificationEvent event = mail.notificationEvent;
+                            INotificationEvent event = mail.getEvent();
                             mail.delete();
                             if (event.resourceExists()) {
                                 sendNotification(event);
@@ -157,14 +170,109 @@ public class NotificationMail extends Model {
     }
 
     /**
+     * Groups mails by resource, sender and receivers
+     *
+     * Each mail is one of:
+     *
+     * a. a notification mail
+     * b. a merged notification mail of a pair: a notification to open or close
+     *    an issue or a review thread, and a previous notification to comment on
+     *    the resource by the same user
+     *
+     * @param mails orderd by created date
+     * @return
+     */
+    private static List<INotificationMail> mergeMails(List<? extends INotificationMail> mails) {
+        // Hash key to get a notification email by resource and sender
+        class EventHashKey {
+            private final Resource resource;
+            private final User sender;
+
+            @Override
+            public boolean equals(Object o) {
+                if (this == o) return true;
+                if (o == null || getClass() != o.getClass()) return false;
+
+                EventHashKey that = (EventHashKey) o;
+
+                if (resource != null ? !resource.equals(that.resource) : that.resource != null) return false;
+                if (sender != null ? !sender.equals(that.sender) : that.sender != null) return false;
+
+                return true;
+            }
+
+            @Override
+            public int hashCode() {
+                int result = resource != null ? resource.hashCode() : 0;
+                result = 31 * result + (sender != null ? sender.hashCode() : 0);
+                return result;
+            }
+
+            public EventHashKey(INotificationEvent event) {
+                this(event.getResource(), event.getSender());
+            }
+
+            public EventHashKey(Resource resource, User sender) {
+                this.resource = resource;
+                this.sender = sender;
+            }
+        }
+
+        List<INotificationMail> result = new ArrayList<>();
+        Map<EventHashKey, MergedNotificationMail> stateChangedMails = new HashMap<>();
+
+        // Merge events
+        for (Iterator<INotificationMail> iterator = new LinkedList<>(mails).descendingIterator();
+             iterator.hasNext();) {
+            INotificationMail mail = iterator.next();
+
+            INotificationEvent event = mail.getEvent();
+
+            if (event == null) {
+                play.Logger.warn(
+                        String.format("Possible bug: a notification event '%s' has null event.", mail));
+                continue;
+            }
+
+            if (event.getType().equals(ISSUE_STATE_CHANGED) ||
+                    event.getType().equals(REVIEW_THREAD_STATE_CHANGED)) {
+                // Collect state-change events
+                stateChangedMails.put(new EventHashKey(event), new MergedNotificationMail(mail));
+            } else if (event.getType().equals(EventType.NEW_COMMENT) ||
+                    event.getType().equals(EventType.NEW_REVIEW_COMMENT)) {
+                // If the current event is for commenting then find the matched
+                // state-change event and merge the two events.
+                EventHashKey key = new EventHashKey(
+                        event.getResource().getContainer(),
+                        event.getSender());
+                MergedNotificationMail stateChangedMail = stateChangedMails.remove(key);
+                if (stateChangedMail != null && ObjectUtils.equals(
+                        stateChangedMail.getEvent().findReceivers(), event.findReceivers())) {
+                    stateChangedMail.merge(mail);
+                    continue;
+                }
+            }
+
+            result.add(0, mail);
+        }
+
+        return result;
+    }
+
+    @Override
+    public INotificationEvent getEvent() {
+        return notificationEvent;
+    }
+
+    /**
      * An email which has Message-ID and/or References header based the given
      * NotificationEvent if possible. The headers help MUA to bind the emails
      * into a thread.
      */
     public static class EventEmail extends HtmlEmail {
-        private NotificationEvent event;
+        private INotificationEvent event;
 
-        public EventEmail(NotificationEvent event) {
+        public EventEmail(INotificationEvent event) {
             this.event = event;
         }
 
@@ -173,7 +281,7 @@ public class NotificationMail extends Model {
             return new MimeMessage(aSession) {
                 @Override
                 protected void updateMessageID() throws MessagingException {
-                    if (event != null && event.eventType.isCreating()) {
+                    if (event != null && event.getType().isCreating()) {
                         setHeader("Message-ID",
                                 event.getResource().getMessageId());
                     } else {
@@ -184,13 +292,13 @@ public class NotificationMail extends Model {
         }
 
         public void addReferences() {
-            if (event == null || event.resourceType == null ||
-                    event.resourceId == null) {
+            if (event == null || event.getResourceType() == null ||
+                    event.getResourceId() == null) {
                 return;
             }
 
             Resource resource = Resource.get(
-                    event.resourceType, event.resourceId);
+                    event.getResourceType(), event.getResourceId());
 
             if (resource == null) {
                 return;
@@ -221,7 +329,7 @@ public class NotificationMail extends Model {
      * @param event
      * @see <a href="https://github.com/nforge/yobi/blob/master/docs/technical/watch.md>watch.md</a>
      */
-    private static void sendNotification(NotificationEvent event) {
+    private static void sendNotification(INotificationEvent event) {
         Set<User> receivers = event.findReceivers();
 
         // Remove inactive users.
@@ -302,7 +410,7 @@ public class NotificationMail extends Model {
         return list;
     }
 
-    private static void sendMail(NotificationEvent event, Set<MailRecipient> toList, Set<MailRecipient> bccList, String langCode) {
+    private static void sendMail(INotificationEvent event, Set<MailRecipient> toList, Set<MailRecipient> bccList, String langCode) {
         if (toList.isEmpty()) {
             return;
         }
@@ -339,7 +447,7 @@ public class NotificationMail extends Model {
 
             String urlToView = event.getUrlToView();
 
-            email.setSubject(event.title);
+            email.setSubject(event.getTitle());
             Resource resource = event.getResource();
             if (resource.getType() == ResourceType.ISSUE_COMMENT) {
                 IssueComment issueComment = IssueComment.find.byId(Long.valueOf(resource.getId()));
@@ -349,7 +457,7 @@ public class NotificationMail extends Model {
             email.setTextMsg(getPlainMessage(lang, message, Url.create(urlToView), acceptsReply));
             email.setCharset("utf-8");
             email.addReferences();
-            email.setSentDate(event.created);
+            email.setSentDate(event.getCreatedDate());
             Mailer.send(email);
             String escapedTitle = email.getSubject().replace("\"", "\\\"");
             Set<InternetAddress> recipients = new HashSet<>();
@@ -485,4 +593,5 @@ public class NotificationMail extends Model {
 
         return msg;
     }
+
 }

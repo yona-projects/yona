@@ -23,6 +23,7 @@ package models;
 import com.avaje.ebean.RawSqlBuilder;
 import controllers.UserApp;
 import controllers.routes;
+import notification.INotificationEvent;
 import models.enumeration.*;
 import models.resource.GlobalResource;
 import models.resource.Resource;
@@ -61,7 +62,7 @@ import java.util.regex.Pattern;
 import static models.enumeration.EventType.*;
 
 @Entity
-public class NotificationEvent extends Model {
+public class NotificationEvent extends Model implements INotificationEvent {
     private static final long serialVersionUID = 1L;
 
     @Id
@@ -462,6 +463,31 @@ public class NotificationEvent extends Model {
             default:
                 return RouteUtil.getUrl(resourceType, resourceId);
         }
+    }
+
+    @Override
+    public Date getCreatedDate() {
+        return created;
+    }
+
+    @Override
+    public String getTitle() {
+        return title;
+    }
+
+    @Override
+    public EventType getType() {
+        return eventType;
+    }
+
+    @Override
+    public ResourceType getResourceType() {
+        return resourceType;
+    }
+
+    @Override
+    public String getResourceId() {
+        return resourceId;
     }
 
 
