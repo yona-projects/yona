@@ -59,6 +59,11 @@
             htElement.welRepoAuthCheck = $("#useRepoAuth");
             htElement.welRepoAuthWrap = $("#repoAuth");
             htElement.waRepoAuthInput = htElement.welRepoAuthWrap.find("input");
+
+            htElement.welMenuSettingCode = $("#menuSettingCode");
+            htElement.welMenuSettingPullRequest = $("#menuSettingPullRequest");
+            htElement.welReviewerCountDisable = $('#reviewerCountDisable')
+            htElement.welMenuSettingReview = $("#menuSettingReview");
         }
 
         /**
@@ -69,6 +74,10 @@
             htElement.welInputProjectOwner.on("change", _onChangeProjectOwner);
             htElement.welForm.on("submit", _validateForm);
             htElement.welRepoAuthCheck.on("change", _onChangeRepoAuthCheck);
+
+            htElement.welMenuSettingCode.on('click', _onClickMenuSettingCode);
+            htElement.welMenuSettingPullRequest.on('click', _onClickMenuSettingPullRequest);
+            htElement.welMenuSettingReview.on('click', _onClickMenuSettingReview);
         }
 
         function _onChangeRepoAuthCheck(){
@@ -185,6 +194,38 @@
                     }).popover("show");
                 }
             }
+        }
+
+        function _onClickMenuSettingCode() {
+            var isChecked = $(this).prop("checked");
+            
+            if (!isChecked) {
+                htElement.welMenuSettingCode.prop("checked", false);
+                htElement.welMenuSettingPullRequest.prop("checked", false);
+                htElement.welMenuSettingReview.prop("checked", false);
+                
+                htElement.welReviewerCountSettingPanel.hide();
+                htElement.welDefaultBranceSettingPanel.hide();
+                htElement.welSubMenuProjectChangeVCS.hide();
+            }
+        }
+
+        function _onClickMenuSettingPullRequest() {
+            var isChecked = $(this).prop("checked");
+            
+            if(isChecked) {
+                htElement.welMenuSettingCode.prop("checked", true);
+            } else {
+                htElement.welReviewerCountSettingPanel.hide();    
+            }   
+        }
+
+        function _onClickMenuSettingReview() {
+            var isChecked = $(this).prop("checked");
+            
+            if(isChecked) {
+                htElement.welMenuSettingCode.prop("checked", true);
+            }     
         }
 
         _init(htOptions || {});

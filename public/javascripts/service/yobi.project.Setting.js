@@ -56,6 +56,7 @@
             htElement.welReviewerCount = $("#welReviewerCount");
             htElement.welMenuSettingCode = $("#menuSettingCode");
             htElement.welMenuSettingPullRequest = $("#menuSettingPullRequest");
+            htElement.welReviewerCountDisable = $('#reviewerCountDisable')
             htElement.welMenuSettingReview = $("#menuSettingReview");
             htElement.welReviewerCountSettingPanel = $("#reviewerCountSettingPanel");
             htElement.welDefaultBranceSettingPanel = $("#defaultBranceSettingPanel");
@@ -67,10 +68,12 @@
          */
         function _attachEvent(){
             htElement.welInputLogo.change(_onChangeLogoPath);
+            
             htElement.welBtnSave.click(_onClickBtnSave);
-            htElement.welMenuSettingCode.click(_onClickMenuSettingCode);
-            htElement.welMenuSettingPullRequest.click(_onClickMenuSettingCode);
-            htElement.welMenuSettingReview.click(_onClickMenuSettingCode);
+            
+            htElement.welMenuSettingCode.on('click', _onClickMenuSettingCode);
+            htElement.welMenuSettingPullRequest.on('click', _onClickMenuSettingPullRequest);
+            htElement.welMenuSettingReview.on('click', _onClickMenuSettingReview);
 
             if(htElement.welReviewerCount.data("value") === true) {
                 htElement.welReviewerCount.show();
@@ -112,18 +115,37 @@
 
         function _onClickMenuSettingCode() {
             var isChecked = $(this).prop("checked");
-            htElement.welMenuSettingCode.prop("checked", isChecked);
-            htElement.welMenuSettingPullRequest.prop("checked", isChecked);
-            htElement.welMenuSettingReview.prop("checked", isChecked);
-            if (isChecked) {
-                htElement.welReviewerCountSettingPanel.show();
-                htElement.welDefaultBranceSettingPanel.show();
-                htElement.welSubMenuProjectChangeVCS.show();
-            } else {
+            
+            if (!isChecked) {
+                htElement.welMenuSettingCode.prop("checked", false);
+                htElement.welMenuSettingPullRequest.prop("checked", false);
+                htElement.welMenuSettingReview.prop("checked", false);
+                htElement.welReviewerCountDisable.trigger('click');
+                
                 htElement.welReviewerCountSettingPanel.hide();
                 htElement.welDefaultBranceSettingPanel.hide();
                 htElement.welSubMenuProjectChangeVCS.hide();
             }
+        }
+
+        function _onClickMenuSettingPullRequest() {
+            var isChecked = $(this).prop("checked");
+            
+            if(isChecked) {
+                htElement.welMenuSettingCode.prop("checked", true);
+                htElement.welReviewerCountSettingPanel.show();    
+            } else {
+                htElement.welReviewerCountSettingPanel.hide();    
+                htElement.welReviewerCountDisable.trigger('click');
+            }   
+        }
+
+        function _onClickMenuSettingReview() {
+            var isChecked = $(this).prop("checked");
+            
+            if(isChecked) {
+                htElement.welMenuSettingCode.prop("checked", true);
+            }     
         }
 
         _init(htOptions);
