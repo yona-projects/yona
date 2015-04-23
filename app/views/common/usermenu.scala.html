@@ -24,23 +24,11 @@
 <ul class="gnb-usermenu">
     @requestHeader.session.get("loginId") match {
       case Some(loginId) => {
-        <li class="gnb-usermenu-dropdown">
-            <a href="javascript:void(0);" class="gnb-dropdown-toggle dropdwon-box-btn" data-toggle="dropdown">
-                <i class="yobicon-plus"></i>
-                <span class="caret"></span>
-            </a>
-            <ul class="dropdown-menu flat right">
-                <li>
-                    <a href="@routes.ProjectApp.newProjectForm()">
-                        @Messages("button.newProject")
-                    </a>
-                </li>
-                <li>
-                    <a href="@routes.OrganizationApp.newForm()">
-                        @Messages("title.newOrganization")
-                    </a>
-                </li>
-            </ul>
+        <li class="gnb-usermenu-item">
+          <a href="@routes.Application.index()" class="user-item-btn">@Messages("notification")</a>
+        </li>
+        <li class="gnb-usermenu-item">
+          <a href="@routes.IssueApp.userIssues()" class="user-item-btn">@Messages("issue.myIssue")</a>
         </li>
         @if(UserApp.currentUser.isSiteManager) {
         <li class="gnb-usermenu-item">
@@ -54,14 +42,12 @@
                 <span class="avatar-wrap smaller">
                     <img src="@User.findByLoginId(loginId).avatarUrl" />
                 </span>
+                <span class="caret-text">@User.findByLoginId(loginId).name</span>
                 <span class="caret"></span>
             </a>
             <ul class="dropdown-menu flat right">
                 <li class="title">
                     @User.findByLoginId(loginId).name <span class="disabled">@{"@"}@loginId</span>
-                </li>
-                <li>
-                    <a href="@routes.IssueApp.userIssues()">@Messages("issue.myIssue")</a>
                 </li>
                 <li>
                     <a href="@routes.UserApp.userInfo(loginId)">@Messages("userinfo.profile")</a>
@@ -112,16 +98,34 @@
                 }
             </ul>
         </li>
+          <li class="gnb-usermenu-dropdown">
+              <a href="javascript:void(0);" class="gnb-dropdown-toggle dropdwon-box-btn" data-toggle="dropdown">
+                  <i class="yobicon-plus"></i>
+                  <span class="caret"></span>
+              </a>
+              <ul class="dropdown-menu flat right">
+                  <li>
+                      <a href="@routes.ProjectApp.newProjectForm()">
+                      @Messages("button.newProject")
+                      </a>
+                  </li>
+                  <li>
+                      <a href="@routes.OrganizationApp.newForm()">
+                      @Messages("title.newOrganization")
+                      </a>
+                  </li>
+              </ul>
+          </li>
       }
       case None => {
+        <li class="gnb-usermenu-item">
+          <a href="@routes.UserApp.loginForm()" class="user-item-btn" data-login="required">
+          @Messages("title.login")
+          </a>
+        </li>
         <li>
             <a href="@routes.UserApp.signupForm()" class="ybtn ybtn-success">
                 @Messages("title.signup")
-            </a>
-        </li>
-        <li class="gnb-usermenu-item">
-            <a href="@routes.UserApp.loginForm()" class="user-item-btn" data-login="required">
-                @Messages("title.login")
             </a>
         </li>
       }

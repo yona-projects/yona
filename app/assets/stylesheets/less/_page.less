@@ -99,6 +99,15 @@
             float:left;
             position: relative;
 
+            &:after {
+                content: "|";
+                color: #788ba7;
+            }
+
+            &:last-child:after {
+                content: "";
+            }
+
             a {
                 padding:10px;
                 float: none;
@@ -139,10 +148,24 @@
         padding:0;
         list-style: none;
 
-        li {
+        > li {
             float:left;
-            margin:5px 0 5px 10px;
+            margin:5px 0;
             position: relative;
+
+            &:after {
+                content: "|";
+                color: #788ba7;
+            }
+
+            &:last-child {
+                margin-left:10px;
+
+                &:after {
+                    content: "";
+                }
+
+            }
 
             form {
               margin:0;
@@ -173,10 +196,18 @@
                 font-size: 14px;
                 color:#788ba7;
 
+                > a {
+                    padding:0 10px;
+                }
+
                 .gnb-dropdown-toggle {
                     display:inline-block;
                     line-height: 30px;
                     .transition(all 0.15s ease);
+
+                    .caret-text {
+                        padding:0 2px;
+                    }
 
                     .caret {
                         margin-left: 5px;
@@ -213,11 +244,6 @@
                         }
                     }
 
-                    .avatar-wrap {
-                        width:30px;
-                        height: 30px;
-                        vertical-align: top;
-                    }
                 }
             }
         }
