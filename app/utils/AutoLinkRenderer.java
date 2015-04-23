@@ -20,12 +20,14 @@
  */
 package utils;
 
+import controllers.UserApp;
 import models.Issue;
 import models.Organization;
 import models.Project;
 import models.User;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -319,7 +321,13 @@ public class AutoLinkRenderer {
         if (user.isAnonymous() ) {
             return Link.EMPTY_LINK;
         } else {
-            return new Link(RouteUtil.getUrl(user), "@" + user.loginId);
+            String avatarImage;
+            if( user.avatarUrl().equals(UserApp.DEFAULT_AVATAR_URL) ){
+                avatarImage = "";
+            } else {
+                avatarImage = "<img src='" + user.avatarUrl() + "' class='avatar-wrap smaller no-margin-no-padding vertical-top' alt='@" + user.loginId + "'> ";
+            }
+            return new Link(RouteUtil.getUrl(user), "no-text-decoration", "<span data-toggle='popover' data-placement='top' data-trigger='hover' data-html='true' data-content=\"" + StringEscapeUtils.escapeHtml4(avatarImage + user.name) + "\">" + user.loginId + "</span>");
         }
     }
 

@@ -88,7 +88,9 @@
                         <strong>@comment.authorLoginId </strong>
                     </a>
                 </span>
-                <a href="#comment-@comment.id" class="ago" title="@JodaDateUtil.getDateString(comment.createdDate)">@utils.TemplateHelper.agoOrDateString(comment.createdDate)</a>
+                <span class="ago-date">
+                    <a href="#comment-@comment.id" class="ago" title="@JodaDateUtil.getDateString(comment.createdDate)">@utils.TemplateHelper.agoOrDateString(comment.createdDate)</a>
+                </span>
                 <span class="act-row pull-right">
                     @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.READ) && comment.isInstanceOf[IssueComment]) {
                         @defining(comment.asInstanceOf[IssueComment]) { issueComment =>

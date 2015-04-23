@@ -113,6 +113,8 @@ $yobi = yobi.Common = (function(){
             oModule = oModule[sDepth];
         }
 
+        $("[data-toggle=popover]").popover();
+
         // temporary code for compatibility with nForge
         var oInstance;
         if(typeof oModule == "undefined"){
