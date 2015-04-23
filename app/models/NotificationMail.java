@@ -115,7 +115,7 @@ public class NotificationMail extends Model {
                     try {
                         sendMail();
                     } catch (Exception e) {
-                        play.Logger.warn("Error occured while sending notification mails", e);
+                        play.Logger.warn("Error occurred while sending notification mails", e);
                     }
                 }
 
@@ -147,7 +147,7 @@ public class NotificationMail extends Model {
                                 sendNotification(event);
                             }
                         } catch (Exception e) {
-                            play.Logger.warn("Error occured while sending a notification mail", e);
+                            play.Logger.warn("Error occurred while sending a notification mail", e);
                         }
                     }
                 }
