@@ -51,4 +51,6 @@ public interface INotificationEvent {
     boolean resourceExists();
 
     Set<User> findReceivers();
+
+    void setReceivers(Set<User> b);
 }

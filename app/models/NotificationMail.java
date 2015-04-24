@@ -23,13 +23,13 @@ package models;
 import com.google.common.collect.Lists;
 import info.schleichardt.play2.mailplugin.Mailer;
 import notification.INotificationEvent;
-import notification.INotificationMail;
 import mailbox.EmailAddressWithDetail;
 import models.enumeration.EventType;
 import models.enumeration.ResourceType;
 import models.enumeration.UserState;
 import models.resource.Resource;
-import notification.MergedNotificationMail;
+import notification.MergedNotificationEvent;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.mail.HtmlEmail;
@@ -65,7 +65,7 @@ import java.util.concurrent.TimeUnit;
 import static models.enumeration.EventType.*;
 
 @Entity
-public class NotificationMail extends Model implements INotificationMail {
+public class NotificationMail extends Model {
     private static final long serialVersionUID = 1L;
     private static final int RECIPIENT_NO_LIMIT = 0;
     static boolean hideAddress = true;
@@ -142,20 +142,21 @@ public class NotificationMail extends Model implements INotificationMail {
                 private void sendMail() {
                     Date createdUntil = DateTime.now().minusMillis
                             (MAIL_NOTIFICATION_DELAY_IN_MILLIS).toDate();
-                    List<? extends INotificationMail> mails = find.where()
+                    List<NotificationMail> mails = find.where()
                                     .lt("notificationEvent.created", createdUntil)
                                     .orderBy("notificationEvent.created ASC").findList();
 
+                    List<INotificationEvent> events = extractEventsAndDelete(mails);
+
+                    List<? extends INotificationEvent> mergedEvents = new ArrayList<>();
                     try {
-                        mails = mergeMails(mails);
+                        mergedEvents = mergeEvents(events);
                     } catch (Exception e) {
-                        play.Logger.warn("Failed to group mails", e);
+                        play.Logger.warn("Failed to group events", e);
                     }
 
-                    for (INotificationMail mail: mails) {
+                    for (INotificationEvent event : mergedEvents) {
                         try {
-                            INotificationEvent event = mail.getEvent();
-                            mail.delete();
                             if (event.resourceExists()) {
                                 sendNotification(event);
                             }
@@ -164,26 +165,55 @@ public class NotificationMail extends Model implements INotificationMail {
                         }
                     }
                 }
+
+                /**
+                 * Extracts events from the given mails and delete the mails.
+                 *
+                 * Collects {@link models.NotificationMail#notificationEvent}
+                 * field of the given mails, delete the mails and return the
+                 * events.
+                 *
+                 * If an exception occurs while deleting a mail, the event from
+                 * the email is not collected and the exception is logged with
+                 * a warning message.
+                 *
+                 * @param mails
+                 * @return a list of events
+                 */
+                private List<INotificationEvent> extractEventsAndDelete(List<NotificationMail> mails) {
+                    List<INotificationEvent> events = new ArrayList<>();
+                    for (NotificationMail mail : mails) {
+                        try {
+                            INotificationEvent event = mail.notificationEvent;
+                            mail.delete();
+                            events.add(event);
+                        } catch (Exception e) {
+                            Logger.warn("Error occurred while collecting notification events", e);
+                        }
+                    }
+                    return events;
+                }
             },
             Akka.system().dispatcher()
         );
     }
 
+
     /**
-     * Groups mails by resource, sender and receivers
+     * Groups events by resource, sender and receivers
      *
-     * Each mail is one of:
+     * Each event is one of:
      *
-     * a. a notification mail
-     * b. a merged notification mail of a pair: a notification to open or close
+     * a. a notification event
+     * b. a merged notification event of a pair: a notification to open or close
      *    an issue or a review thread, and a previous notification to comment on
      *    the resource by the same user
      *
-     * @param mails orderd by created date
+     * @param events orderd by created date
      * @return
      */
-    private static List<INotificationMail> mergeMails(List<? extends INotificationMail> mails) {
-        // Hash key to get a notification email by resource and sender
+    private static List<? extends INotificationEvent> mergeEvents(List<INotificationEvent> events) {
+        // Hash key to get a notification event by resource and sender
         class EventHashKey {
             private final Resource resource;
             private final User sender;
@@ -218,26 +248,17 @@ public class NotificationMail extends Model implements INotificationMail {
             }
         }
 
-        List<INotificationMail> result = new ArrayList<>();
-        Map<EventHashKey, MergedNotificationMail> stateChangedMails = new HashMap<>();
+        List<MergedNotificationEvent> result = new LinkedList<>();
+        Map<EventHashKey, ListIterator<MergedNotificationEvent>> stateChangedEvents = new HashMap<>();
 
         // Merge events
-        for (Iterator<INotificationMail> iterator = new LinkedList<>(mails).descendingIterator();
-             iterator.hasNext();) {
-            INotificationMail mail = iterator.next();
-
-            INotificationEvent event = mail.getEvent();
-
-            if (event == null) {
-                play.Logger.warn(
-                        String.format("Possible bug: a notification event '%s' has null event.", mail));
-                continue;
-            }
+        for (ListIterator<INotificationEvent> it = events.listIterator(events.size()); it.hasPrevious();) {
+            INotificationEvent event = it.previous();
 
             if (event.getType().equals(ISSUE_STATE_CHANGED) ||
                     event.getType().equals(REVIEW_THREAD_STATE_CHANGED)) {
                 // Collect state-change events
-                stateChangedMails.put(new EventHashKey(event), new MergedNotificationMail(mail));
+                stateChangedEvents.put(new EventHashKey(event), result.listIterator(0));
             } else if (event.getType().equals(EventType.NEW_COMMENT) ||
                     event.getType().equals(EventType.NEW_REVIEW_COMMENT)) {
                 // If the current event is for commenting then find the matched
@@ -245,23 +266,46 @@ public class NotificationMail extends Model implements INotificationMail {
                 EventHashKey key = new EventHashKey(
                         event.getResource().getContainer(),
                         event.getSender());
-                MergedNotificationMail stateChangedMail = stateChangedMails.remove(key);
-                if (stateChangedMail != null && ObjectUtils.equals(
-                        stateChangedMail.getEvent().findReceivers(), event.findReceivers())) {
-                    stateChangedMail.merge(mail);
-                    continue;
+                ListIterator<MergedNotificationEvent> iter = stateChangedEvents.remove(key);
+
+                if (iter != null) {
+                    MergedNotificationEvent stateChangedEvent = iter.next();
+                    Set<User> stateReceivers = stateChangedEvent.findReceivers();
+                    Set<User> commentReceivers = event.findReceivers();
+
+                    if (ObjectUtils.equals(stateReceivers, commentReceivers)) {
+                        stateChangedEvent.merge(event);
+                        // No need to add the current event because it was merged.
+                        continue;
+                    } else {
+                        // If the receivers to state-change and the receivers to
+                        // comment differ from each other, split the
+                        // notifications into three.
+
+                        // a. the notification of both of state-change and comment
+                        Set<User> intersect = new HashSet<>(
+                                CollectionUtils.intersection(stateReceivers, commentReceivers));
+                        MergedNotificationEvent mergedEvent = new MergedNotificationEvent(
+                                stateChangedEvent, Arrays.asList(event, stateChangedEvent));
+                        mergedEvent.setReceivers(intersect);
+                        iter.add(mergedEvent);
+
+                        // b. the notification of comment only
+                        MergedNotificationEvent commentEvent = new MergedNotificationEvent(event);
+                        commentReceivers.removeAll(intersect);
+                        commentEvent.setReceivers(commentReceivers);
+
+                        // c. the notification of stage-change only
+                        stateReceivers.removeAll(intersect);
+                        stateChangedEvent.setReceivers(stateReceivers);
+                    }
                 }
             }
 
-            result.add(0, mail);
+            result.add(0, new MergedNotificationEvent(event));
         }
 
         return result;
-    }
-
-    @Override
-    public INotificationEvent getEvent() {
-        return notificationEvent;
     }
 
     /**

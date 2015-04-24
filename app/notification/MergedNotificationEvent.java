@@ -33,11 +33,16 @@ import java.util.*;
 public class MergedNotificationEvent implements INotificationEvent {
     private final List<INotificationEvent> messageSources;
     private final INotificationEvent main;
+    private Set<User> receivers;
 
     public MergedNotificationEvent(@Nonnull INotificationEvent main,
                                    @Nonnull List<INotificationEvent> messageSources) {
         this.main = main;
         this.messageSources = new ArrayList<>(messageSources);
+    }
+
+    public MergedNotificationEvent(@Nonnull INotificationEvent main) {
+        this(main, Arrays.asList(main));
     }
 
     @Override
@@ -96,6 +101,19 @@ public class MergedNotificationEvent implements INotificationEvent {
 
     @Override
     public Set<User> findReceivers() {
-        return main.findReceivers();
+        if (receivers != null) {
+            return receivers;
+        } else {
+            return main.findReceivers();
+        }
+    }
+
+    @Override
+    public void setReceivers(@Nonnull Set<User> receivers) {
+        this.receivers = receivers;
+    }
+
+    public void merge(INotificationEvent event) {
+        this.messageSources.add(event);
     }
 }

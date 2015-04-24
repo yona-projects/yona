@@ -112,6 +112,11 @@ public class NotificationEvent extends Model implements INotificationEvent {
         return User.find.setRawSql(RawSqlBuilder.parse(sql).create()).findSet();
     }
 
+    @Override
+    public void setReceivers(Set<User> receivers) {
+        throw new UnsupportedOperationException();
+    }
+
     public String getOldValue() {
         return oldValue;
     }
