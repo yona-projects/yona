@@ -119,8 +119,11 @@
                                 <div class="pop-title">@Messages("project.you.are.watching", project.name)</div>
                                 @watchHelpMessages
                                 <div class="pop-content btn-wrap">
-                                    <a class="ybtn
-                                 watchBtn " href="@routes.WatchProjectApp.unwatch(project.owner, project.name)">
+                                    <a class="ybtn" href="@routes.UserApp.editUserInfoByTabForm("notifications")#@project.id">
+                                        <i class="yobicon-alert2"></i>
+                                        @Messages("userinfo.changeNotifications")
+                                    </a>
+                                    <a class="ybtn ybtn-watching watchBtn" href="@routes.WatchProjectApp.unwatch(project.owner, project.name)">
                                         <i class="yobicon-eye-off"></i>
                                         @Messages("project.unwatch")
                                     </a>
@@ -134,6 +137,10 @@
                                 <div class="pop-title">@Messages("project.you.are.not.watching", project.name)</div>
                                 @watchHelpMessages
                                 <div class="pop-content btn-wrap">
+                                    <a class="ybtn" href="@routes.UserApp.editUserInfoByTabForm("notifications")#@project.id">
+                                        <i class="yobicon-alert2"></i>
+                                        @Messages("userinfo.changeNotifications")
+                                    </a>
                                     <a class="ybtn ybtn-watching watchBtn" href="@routes.WatchProjectApp.watch(project.owner, project.name)">
                                         <i class="yobicon-eye"></i>
                                         @Messages("project.watch")
