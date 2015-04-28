@@ -47,11 +47,12 @@
                 </div>
             </div>
 
-            <div class="codediff-wrap mt10 @if(requestHeader.cookies.get("diffs-only") != null){diffs-only}">
-                <button type="button" class="ybtn ybtn-default btn-show-reviewcards">
+            <div class="codediff-wrap mt10 @if(pull.commentThreads.size == 0) {diffs-only}">
+              @if(pull.commentThreads.size > 0) {
+              <button type="button" class="ybtn ybtn-default btn-show-reviewcards">
                     <i class="yobicon-restore"></i>
                 </button>
-
+                }
                 <div id="changes" class="diffs-wrap">
                     <div id="commits" class="btn-group auto mb10">
                         <button class="btn dropdown-toggle auto" data-toggle="dropdown">
@@ -150,7 +151,7 @@
                     }
                     @** // BlockComment **@
                 </div>
-
+                @if(pull.commentThreads.size > 0) {
                 <div class="review-wrap">
                     <div class="review-container">
                         <button type="button" class="ybtn ybtn-default btn-hide-reviewcards">
@@ -171,8 +172,10 @@
                                 @partial_reviewlist(pull.getCommentThreadsByState(CommentThread.ThreadState.CLOSED))
                             </div>
                         </div>
+
                     </div>
                 </div>
+                }
             </div>
         </div>
     </div>

@@ -111,12 +111,6 @@
             htElement.waBtnToggleReviewWrap.on("click", function(){
                 htElement.welContainer.toggleClass("diffs-only");
 
-                if (htElement.welContainer.hasClass("diffs-only")) {
-                    $.cookie("diffs-only", true, {"expire": 365});
-                } else {
-                    $.removeCookie("diffs-only");
-                }
-
                 var positionTop =  10;
                 if(htElement.welReviewContainer.offset().top - positionTop < $(document).scrollTop()){
                     htElement.welReviewContainer
