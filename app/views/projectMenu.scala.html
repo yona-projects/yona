@@ -36,6 +36,10 @@
         routes.PullRequestApp.pullRequests(project.owner, project.name)
     }
 }
+
+@reviewCount = @{
+    CommentThread.countReviewsBy(project.id, null)
+}
 <div class="project-menu-outer">
     <div class="project-menu-inner">
         <ul class="project-menu-nav project-menu-gruop">
@@ -76,7 +80,8 @@
             @if(project.menuSetting.review) {
                 <li class="@isActiveMenu(MenuType.PROJECT_REVIEW)">
                     <a href="@routes.ReviewThreadApp.reviewThreads(project.owner, project.name)">
-                    @Messages("menu.review")
+                        @Messages("menu.review")
+                        @if(reviewCount > 0){<span class="project-menu-count">@reviewCount</span>}
                     </a>
                 </li>
             }
