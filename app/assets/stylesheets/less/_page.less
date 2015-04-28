@@ -92,20 +92,22 @@
         margin-left:15px;
         list-style: none;
         font-size: 14px;
-        color:#788ba7;
+        color: #a2a2a2;
         display:block;
 
         li {
             float:left;
             position: relative;
 
-            &:after {
-                content: "|";
-                color: #788ba7;
-            }
+            &.divider {
+                line-height: 40px;
+                font-size: 12px;
 
-            &:last-child:after {
-                content: "";
+                &:after {
+                    content: "|";
+                    color: #a2a2a2;
+                    .opacity(35);
+                }
             }
 
             a {
@@ -153,18 +155,18 @@
             margin:5px 0;
             position: relative;
 
-            &:after {
-                content: "|";
-                color: #788ba7;
+            &.divider {
+                line-height: 30px;
+
+                &:after {
+                    content: "|";
+                    color: #788ba7;
+                    .opacity(35);
+                }
             }
 
             &:last-child {
                 margin-left:10px;
-
-                &:after {
-                    content: "";
-                }
-
             }
 
             form {
