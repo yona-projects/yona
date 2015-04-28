@@ -147,8 +147,9 @@ public class PullRequest extends Model implements ResourceConvertible {
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
         name = "pull_request_reviewers",
-        joinColumns = @JoinColumn(name = "pull_request_id"),
-        inverseJoinColumns = @JoinColumn(name = "user_id")
+        joinColumns = @JoinColumn(name = "pull_request_id", unique = false),
+        inverseJoinColumns = @JoinColumn(name = "user_id", unique = false),
+        uniqueConstraints = @UniqueConstraint(columnNames = {"pull_request_id", "user_id"})
     )
     public Set<User> reviewers = new HashSet<>();
 
