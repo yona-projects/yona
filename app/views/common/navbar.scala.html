@@ -55,9 +55,6 @@
             <li class="@isActiveMenu(MenuType.PROJECTS)">
                 <a href="@routes.ProjectApp.projects()">@Messages("title.projectList")</a>
             </li>
-            <li class="@isActiveMenu(MenuType.HELP)">
-                <a href="@routes.HelpApp.help()">@Messages("title.help")</a>
-            </li>
             @if(appFeedbackUrl){
             <li>
                 <a href="@appFeedbackUrl" target="_blank">@Messages("title.yobi.feedback")</a>
