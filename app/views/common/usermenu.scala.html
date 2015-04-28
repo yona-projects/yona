@@ -24,18 +24,21 @@
 <ul class="gnb-usermenu">
     @requestHeader.session.get("loginId") match {
       case Some(loginId) => {
-        <li class="gnb-usermenu-item">
+       <li class="gnb-usermenu-item">
           <a href="@routes.Application.index()" class="user-item-btn">@Messages("notification")</a>
-        </li>
-        <li class="gnb-usermenu-item">
+       </li>
+       <li class="divider"></li>
+       <li class="gnb-usermenu-item">
           <a href="@routes.IssueApp.userIssues()" class="user-item-btn">@Messages("issue.myIssue")</a>
         </li>
+        <li class="divider"></li>
         @if(UserApp.currentUser.isSiteManager) {
         <li class="gnb-usermenu-item">
             <a href="@routes.SiteApp.userList()" data-toggle="tooltip" title="@Messages("menu.siteAdmin")" data-placement="bottom" class="usermenu-icon-button">
                 <i class="yobicon-wrench"></i>
             </a>
         </li>
+        <li class="divider"></li>
         }
         <li class="gnb-usermenu-dropdown">
             <a href="javascript:void(0);" class="gnb-dropdown-toggle" data-toggle="dropdown">
@@ -98,24 +101,24 @@
                 }
             </ul>
         </li>
-          <li class="gnb-usermenu-dropdown">
-              <a href="javascript:void(0);" class="gnb-dropdown-toggle dropdwon-box-btn" data-toggle="dropdown">
-                  <i class="yobicon-plus"></i>
-                  <span class="caret"></span>
-              </a>
-              <ul class="dropdown-menu flat right">
-                  <li>
-                      <a href="@routes.ProjectApp.newProjectForm()">
-                      @Messages("button.newProject")
-                      </a>
-                  </li>
-                  <li>
-                      <a href="@routes.OrganizationApp.newForm()">
-                      @Messages("title.newOrganization")
-                      </a>
-                  </li>
-              </ul>
-          </li>
+      <li class="gnb-usermenu-dropdown">
+          <a href="javascript:void(0);" class="gnb-dropdown-toggle dropdwon-box-btn" data-toggle="dropdown">
+              <i class="yobicon-plus"></i>
+              <span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu flat right">
+              <li>
+                  <a href="@routes.ProjectApp.newProjectForm()">
+                  @Messages("button.newProject")
+                  </a>
+              </li>
+              <li>
+                  <a href="@routes.OrganizationApp.newForm()">
+                  @Messages("title.newOrganization")
+                  </a>
+              </li>
+          </ul>
+      </li>
       }
       case None => {
         <li class="gnb-usermenu-item">
@@ -123,6 +126,7 @@
           @Messages("title.login")
           </a>
         </li>
+        <li class="divider"></li>
         <li>
             <a href="@routes.UserApp.signupForm()" class="ybtn ybtn-success">
                 @Messages("title.signup")
