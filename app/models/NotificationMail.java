@@ -274,7 +274,7 @@ public class NotificationMail extends Model {
                     Set<User> commentReceivers = event.findReceivers();
 
                     if (ObjectUtils.equals(stateReceivers, commentReceivers)) {
-                        stateChangedEvent.merge(event);
+                        stateChangedEvent.getMessageSources().add(0, event);
                         // No need to add the current event because it was merged.
                         continue;
                     } else {
@@ -285,6 +285,7 @@ public class NotificationMail extends Model {
                         // a. the notification of both of state-change and comment
                         Set<User> intersect = new HashSet<>(
                                 CollectionUtils.intersection(stateReceivers, commentReceivers));
+
                         MergedNotificationEvent mergedEvent = new MergedNotificationEvent(
                                 stateChangedEvent, Arrays.asList(event, stateChangedEvent));
                         mergedEvent.setReceivers(intersect);

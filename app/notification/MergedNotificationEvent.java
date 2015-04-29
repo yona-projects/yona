@@ -38,7 +38,7 @@ public class MergedNotificationEvent implements INotificationEvent {
     public MergedNotificationEvent(@Nonnull INotificationEvent main,
                                    @Nonnull List<INotificationEvent> messageSources) {
         this.main = main;
-        this.messageSources = new ArrayList<>(messageSources);
+        this.messageSources = new LinkedList<>(messageSources);
     }
 
     public MergedNotificationEvent(@Nonnull INotificationEvent main) {
@@ -113,7 +113,7 @@ public class MergedNotificationEvent implements INotificationEvent {
         this.receivers = receivers;
     }
 
-    public void merge(INotificationEvent event) {
-        this.messageSources.add(event);
+    public List<INotificationEvent> getMessageSources() {
+        return messageSources;
     }
 }
