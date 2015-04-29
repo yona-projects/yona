@@ -64,7 +64,7 @@
                 <div class="attachments" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.MILESTONE.toString(), milestone.id.toString()))"></div>
             </div>
 
-            <div class="actrow right-txt" style="padding: 15px 0; clear:both;">
+            <div class="actrow right-txt row-fluid" style="padding: 15px 0; clear:both;">
                 <a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="ybtn pull-left">@Messages("button.list")</a>
 
                 @if(isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.DELETE)){
