@@ -41,7 +41,8 @@ libraryDependencies ++= Seq(
   "org.jsoup" % "jsoup" % "1.7.2",
   "com.googlecode.juniversalchardet" % "juniversalchardet" % "1.0.3",
   "org.mockito" % "mockito-all" % "1.9.0" % "test",
-  "com.github.zafarkhaja" % "java-semver" % "0.7.2"
+  "com.github.zafarkhaja" % "java-semver" % "0.7.2",
+  "com.google.guava" % "guava" % "18.0"
 )
 
 val projectSettings = Seq(
