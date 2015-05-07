@@ -47,9 +47,12 @@
                     }
                 </a>
                 <div class="title-wrap">
-                    <span class="post-id">#@issue.getNumber</span>
                     <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)" class="title">
-                        @issue.title
+                    <span class="post-id">#@issue.getNumber</span>
+                    </a>
+                        @showHeaderWordsInBracketsIfExist(issue.title)
+                    <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)" class="title">
+                        @removeHeaderWords(issue.title)
                     </a>
                 </div>
                 <div class="infos">
