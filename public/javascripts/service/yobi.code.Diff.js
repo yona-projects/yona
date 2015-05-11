@@ -128,7 +128,7 @@
             $(".diff-partial-code").on("scroll", function(){
                 var welPartial = $(this);
                 var sHashCode = $(this).data("hashcode");
-                htVar.htThreadWrap[sHashCode] = htVar.htThreadWrap[sHashCode] || welPartial.find(".comment-thread-wrap,.review-form");
+                htVar.htThreadWrap[sHashCode] = htVar.htThreadWrap[sHashCode] || welPartial.find(".comment-thread-wrap");
                 htVar.htThreadWrap[sHashCode].css("margin-left", welPartial.scrollLeft() + "px");
             });
 
