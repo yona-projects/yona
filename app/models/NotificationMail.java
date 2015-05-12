@@ -133,10 +133,10 @@ public class NotificationMail extends Model {
                  * or not.
                  */
                 private void sendMail() {
-                    Date sinceDate = DateTime.now().minusMillis
+                    Date createdUntil = DateTime.now().minusMillis
                             (MAIL_NOTIFICATION_DELAY_IN_MILLIS).toDate();
                     List<NotificationMail> mails = find.where()
-                                    .lt("notificationEvent.created", sinceDate)
+                                    .lt("notificationEvent.created", createdUntil)
                                     .orderBy("notificationEvent.created ASC").findList();
 
                     for (NotificationMail mail: mails) {
