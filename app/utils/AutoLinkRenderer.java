@@ -321,7 +321,7 @@ public class AutoLinkRenderer {
             } else {
                 avatarImage = "<img src='" + user.avatarUrl() + "' class='avatar-wrap smaller no-margin-no-padding vertical-top' alt='@" + user.loginId + "'> ";
             }
-            return new Link(RouteUtil.getUrl(user), "no-text-decoration", "<span data-toggle='popover' data-placement='top' data-trigger='hover' data-html='true' data-content=\"" + StringEscapeUtils.escapeHtml4(avatarImage + user.name) + "\">" + user.loginId + "</span>");
+            return new Link(RouteUtil.getUrl(user), "no-text-decoration", "<span data-toggle='popover' data-placement='top' data-trigger='hover' data-html='true' data-content=\"" + StringEscapeUtils.escapeHtml4(avatarImage + user.name) + "\">@" + user.loginId + "</span>");
         }
     }
 
