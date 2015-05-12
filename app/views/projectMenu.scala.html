@@ -40,6 +40,7 @@
 @reviewCount = @{
     CommentThread.countReviewsBy(project.id, null)
 }
+
 <div class="project-menu-outer">
     <div class="project-menu-inner">
         <ul class="project-menu-nav project-menu-gruop">
@@ -96,6 +97,9 @@
                 <li class="@isActiveMenu(MenuType.BOARD)">
                     <a href="@routes.BoardApp.posts(project.owner, project.name)">
                         @Messages("menu.board")
+                        @if(Posting.countPostings(project) > 0){
+                            <span class="project-menu-count">@Posting.countPostings(project)</span>
+                        }
                     </a>
                 </li>
             }
