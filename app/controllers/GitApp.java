@@ -27,6 +27,9 @@ import javax.servlet.ServletException;
 import models.Project;
 import models.enumeration.Operation;
 
+import com.github.zafarkhaja.semver.Version;
+import play.api.i18n.Lang;
+import play.i18n.Messages;
 import play.mvc.Controller;
 import play.mvc.Result;
 import play.mvc.With;
@@ -34,6 +37,7 @@ import playRepository.PlayRepository;
 import playRepository.RepositoryService;
 import utils.AccessControl;
 import utils.BasicAuthAction;
+import utils.Config;
 
 public class GitApp extends Controller {
 
@@ -53,6 +57,26 @@ public class GitApp extends Controller {
         return AccessControl
                 .isAllowed(UserApp.currentUser(), repository.asResource(), operation);
 
+    }
+
+    /**
+     * Checks whether the Git client allows Content-Type has a charset.
+     *
+     * Charset is allowed since Git 2.1.0.
+     *
+     * @param userAgent
+     * @return
+     */
+    private static boolean isCharsetAllowed(String userAgent) {
+        try {
+            String version = Config.semverize(userAgent.substring(userAgent.indexOf('/') + 1));
+            if (Version.valueOf(version).greaterThanOrEqualTo(Version.forIntegers(2, 1, 0))) {
+                return true;
+            }
+        } catch (Exception e) {
+            return false;
+        }
+        return false;
     }
 
     public static Result service(String ownerName, String projectName, String service,
@@ -78,14 +102,17 @@ public class GitApp extends Controller {
             if (user.isAnonymous()) {
                 return BasicAuthAction.unauthorized(response());
             } else {
-                // If you want the Git client showing your custom message to
-                // the user, the Content-Type should be exact "text/plain"
-                // without any parameter. For more details, see the code at
-                // https://github.com/git/git/commit/426e70d4a11ce3b4f70636d57c6a0ab16ae08a00#diff-eea0ad565ec5903a11b6023755d491cfR154
-                response().setHeader("Content-Type", "text/plain");
-                return forbidden(
-                        String.format("'%s' has no permission to '%s/%s'.",
-                            user.loginId, ownerName, projectName));
+                String contentType = "text/plain", message;
+                if (isCharsetAllowed(request().getHeader("User-Agent"))) {
+                    contentType += ";charset=" + Config.getCharset();
+                    message = Messages.get(
+                            "git.error.permission", user.loginId, ownerName, projectName);
+                } else {
+                    message = Messages.get(Lang.defaultLang(),
+                            "git.error.permission", user.loginId, ownerName, projectName);
+                }
+                response().setHeader("Content-Type", contentType);
+                return forbidden(message);
             }
         }
 
