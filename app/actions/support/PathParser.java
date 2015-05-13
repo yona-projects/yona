@@ -23,23 +23,32 @@ package actions.support;
 import org.apache.commons.lang3.StringUtils;
 import play.mvc.Http;
 
+import javax.annotation.Nonnull;
+
 /**
  * Parse URLs related with Project.
  * Extracts required information from URL with specific pattern, /{user.loginId}/{project.name}/**.
  *
- * @author Wansoon Park, Keesun Baik
+ * @author Wansoon Park
+ * @author Keesun Baik
  */
 public class PathParser {
     private static final String DELIM = "/";
-    private String[] pathSegments;
+    @Nonnull private final String[] pathSegments;
 
     public PathParser(String path) {
         this.pathSegments = StringUtils.split(path, DELIM);
+        if (this.pathSegments == null) {
+            throw new NullPointerException();
+        }
     }
 
     public PathParser(String contextPath, String path) {
         String contextRemovedPath = StringUtils.removeStart(path, contextPath);
         this.pathSegments = StringUtils.split(contextRemovedPath, DELIM);
+        if (this.pathSegments == null) {
+            throw new NullPointerException();
+        }
     }
 
     public PathParser(Http.Context context) {
