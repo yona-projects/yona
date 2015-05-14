@@ -589,13 +589,6 @@ public class IssueApp extends AbstractPostingApp {
             return badRequest(commentFormValidationResult(project, commentForm));
         }
 
-        if( containsStateTransitionRequest() ){
-            toNextState(number, project);
-            IssueEvent.addFromNotificationEvent(
-                    NotificationEvent.afterStateChanged(issue.previousState(), issue),
-                    issue, UserApp.currentUser().loginId);
-        }
-
         final IssueComment comment = commentForm.get();
 
         IssueComment existingComment = IssueComment.find.where().eq("id", comment.id).findUnique();
@@ -613,6 +606,13 @@ public class IssueApp extends AbstractPostingApp {
         } else {
             savedComment = saveComment(comment, getContainerUpdater(issue, comment));
             NotificationEvent.afterNewComment(savedComment);
+        }
+
+        if( containsStateTransitionRequest() ){
+            toNextState(number, project);
+            IssueEvent.addFromNotificationEvent(
+                    NotificationEvent.afterStateChanged(issue.previousState(), issue),
+                    issue, UserApp.currentUser().loginId);
         }
 
         return redirect(RouteUtil.getUrl(savedComment));
