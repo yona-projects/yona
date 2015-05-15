@@ -38,12 +38,14 @@ To get detail information see `docs/technical/access-control.md`
 
 The value means number of minimum reviewers to merge pull requests.
 
-Each pull request should be reviewed by others greater than or equal to the value to be accepted.
+Each pull request should be reviewed by users greater than or equal to the value to be accepted.
 
 
 ## Default Branch
 
-The value means default branch on `Code` menu. Also it means default `to branch` on new pull request page.
+This option is only shown when project repository type is GIT.
+
+The value means a branch HEAD of git repository points to. Also the value is default branch on `Code` menu and default `to branch` on new pull request page.
 
 
 ## Menu Setting
