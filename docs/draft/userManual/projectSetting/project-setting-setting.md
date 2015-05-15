@@ -4,15 +4,15 @@ You can change a project settings if you have the project's administrator permis
 
 Project's logo, name, description, share option and member can be configured.
 
-* Go to the project of which you have authroization. <그림 삽입>
-* Click 'Project Setting Button'.
-* Click `Setting` tab and change project's logo, name, description and share option. <그림 삽입>
+* Go to the project of which you have authroization.
+* Click 'Project Setting Button' on top right of a project.
+* Click `Setting` tab and change project's logo, name, description and share option.
+
 
 ## Logo
 
 A Project logo is displayed on top of a project page and everywhere projects are listed when setting is done.
 
-<그림 삽입>
 
 ## Name
 
@@ -21,16 +21,35 @@ A project name can be changed. If the name is changed, it affects below.
 * `URL` related to source code repository will be changed.
 * Everywhere the name is shown.
 
+
 ## Description
 
 You can alter a project description. The explanation changed will be shown on project main page, `Project List` and `Group Page`.
 
-<그림 삽입>
 
 ## Share Option
 
-You can change share option.
+You can change share option (public, protected, private). Protected option is shown when a project is group project.
 
-Setting to public allows all users to access and watch all items. Setting to private prohibits users who are not member of a project from accessing and watching.
+To get detail information see `docs/technical/access-control.md`
 
-<group public 설명 추가해야 함>
+
+## Reviewer
+
+The value means number of minimum reviewers to merge pull requests.
+
+Each pull request should be reviewed by others greater than or equal to the value to be accepted.
+
+
+## Default Branch
+
+The value means default branch on `Code` menu. Also it means default `to branch` on new pull request page.
+
+
+## Menu Setting
+
+Using menu setting, you can select menus you want to show.
+
+There are code, issue, pull request, review, milestone and board options you can select.
+
+Although you do not select some options, data about it are not deleted. These are just invisible.
