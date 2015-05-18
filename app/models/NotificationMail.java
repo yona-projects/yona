@@ -283,8 +283,8 @@ public class NotificationMail extends Model {
                         // notifications into three.
 
                         // a. the notification of both of state-change and comment
-                        Set<User> intersect = new HashSet<>(
-                                CollectionUtils.intersection(stateReceivers, commentReceivers));
+                        Set<User> intersect = new HashSet<>(stateReceivers);
+                        intersect.retainAll(commentReceivers);
 
                         MergedNotificationEvent mergedEvent = new MergedNotificationEvent(
                                 stateChangedEvent, Arrays.asList(event, stateChangedEvent));
