@@ -146,16 +146,15 @@ public class NotificationMail extends Model {
                                     .lt("notificationEvent.created", createdUntil)
                                     .orderBy("notificationEvent.created ASC").findList();
 
-                    List<INotificationEvent> events = extractEventsAndDelete(mails);
+                    List<? extends INotificationEvent> events = extractEventsAndDelete(mails);
 
-                    List<? extends INotificationEvent> mergedEvents = new ArrayList<>();
                     try {
-                        mergedEvents = mergeEvents(events);
+                        events = mergeEvents(events);
                     } catch (Exception e) {
                         play.Logger.warn("Failed to group events", e);
                     }
 
-                    for (INotificationEvent event : mergedEvents) {
+                    for (INotificationEvent event : events) {
                         try {
                             if (event.resourceExists()) {
                                 sendNotification(event);
@@ -212,7 +211,8 @@ public class NotificationMail extends Model {
      * @param events orderd by created date
      * @return
      */
-    private static List<? extends INotificationEvent> mergeEvents(List<INotificationEvent> events) {
+    private static List<? extends INotificationEvent> mergeEvents(
+            List<? extends INotificationEvent> events) {
         // Hash key to get a notification event by resource and sender
         class EventHashKey {
             private final Resource resource;
@@ -252,7 +252,8 @@ public class NotificationMail extends Model {
         Map<EventHashKey, MergedNotificationEvent> stateChangedEvents = new HashMap<>();
 
         // Merge events
-        for (ListIterator<INotificationEvent> it = events.listIterator(events.size()); it.hasPrevious();) {
+        for (ListIterator<? extends INotificationEvent> it = events.listIterator(events.size());
+             it.hasPrevious();) {
             INotificationEvent event = it.previous();
 
             if (event.getType().equals(ISSUE_STATE_CHANGED) ||
