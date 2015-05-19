@@ -262,7 +262,10 @@ public class NotificationMail extends Model {
                 MergedNotificationEvent stateChangedEvent = new MergedNotificationEvent(event);
                 stateChangedEvents.put(new EventHashKey(event), stateChangedEvent);
                 result.add(0, stateChangedEvent);
-            } else if (event.getType().equals(EventType.NEW_COMMENT) ||
+                continue;
+            }
+
+            if (event.getType().equals(EventType.NEW_COMMENT) ||
                     event.getType().equals(EventType.NEW_REVIEW_COMMENT)) {
                 // If the current event is for commenting then find the matched
                 // state-change event and merge the two events.
@@ -297,14 +300,17 @@ public class NotificationMail extends Model {
                         MergedNotificationEvent commentEvent = new MergedNotificationEvent(event);
                         commentReceivers.removeAll(intersect);
                         commentEvent.setReceivers(commentReceivers);
+                        result.add(0, commentEvent);
 
                         // c. the notification of stage-change only
                         stateReceivers.removeAll(intersect);
                         stateChangedEvent.setReceivers(stateReceivers);
+                        continue;
                     }
                 }
-                result.add(0, new MergedNotificationEvent(event));
             }
+
+            result.add(0, new MergedNotificationEvent(event));
         }
 
         return result;
