@@ -12,7 +12,7 @@ libraryDependencies ++= Seq(
   javaEbean,
   cache,
   // Add your project dependencies here,
-  "com.h2database" % "h2" % "1.4.184",
+  "com.h2database" % "h2" % "1.3.176",
   // Core Library
   "org.eclipse.jgit" % "org.eclipse.jgit" % "3.5.3.201412180710-r",
   // Smart HTTP Servlet
