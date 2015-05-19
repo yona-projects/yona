@@ -146,16 +146,15 @@ public class NotificationMail extends Model {
                                     .lt("notificationEvent.created", createdUntil)
                                     .orderBy("notificationEvent.created ASC").findList();
 
-                    List<INotificationEvent> events = extractEventsAndDelete(mails);
+                    List<? extends INotificationEvent> events = extractEventsAndDelete(mails);
 
-                    List<? extends INotificationEvent> mergedEvents = new ArrayList<>();
                     try {
-                        mergedEvents = mergeEvents(events);
+                        events = mergeEvents(events);
                     } catch (Exception e) {
                         play.Logger.warn("Failed to group events", e);
                     }
 
-                    for (INotificationEvent event : mergedEvents) {
+                    for (INotificationEvent event : events) {
                         try {
                             if (event.resourceExists()) {
                                 sendNotification(event);
@@ -212,7 +211,8 @@ public class NotificationMail extends Model {
      * @param events orderd by created date
      * @return
      */
-    private static List<? extends INotificationEvent> mergeEvents(List<INotificationEvent> events) {
+    private static List<? extends INotificationEvent> mergeEvents(
+            List<? extends INotificationEvent> events) {
         // Hash key to get a notification event by resource and sender
         class EventHashKey {
             private final Resource resource;
@@ -249,16 +249,19 @@ public class NotificationMail extends Model {
         }
 
         List<MergedNotificationEvent> result = new LinkedList<>();
-        Map<EventHashKey, ListIterator<MergedNotificationEvent>> stateChangedEvents = new HashMap<>();
+        Map<EventHashKey, MergedNotificationEvent> stateChangedEvents = new HashMap<>();
 
         // Merge events
-        for (ListIterator<INotificationEvent> it = events.listIterator(events.size()); it.hasPrevious();) {
+        for (ListIterator<? extends INotificationEvent> it = events.listIterator(events.size());
+             it.hasPrevious();) {
             INotificationEvent event = it.previous();
 
             if (event.getType().equals(ISSUE_STATE_CHANGED) ||
                     event.getType().equals(REVIEW_THREAD_STATE_CHANGED)) {
                 // Collect state-change events
-                stateChangedEvents.put(new EventHashKey(event), result.listIterator(0));
+                MergedNotificationEvent stateChangedEvent = new MergedNotificationEvent(event);
+                stateChangedEvents.put(new EventHashKey(event), stateChangedEvent);
+                result.add(0, stateChangedEvent);
             } else if (event.getType().equals(EventType.NEW_COMMENT) ||
                     event.getType().equals(EventType.NEW_REVIEW_COMMENT)) {
                 // If the current event is for commenting then find the matched
@@ -266,10 +269,9 @@ public class NotificationMail extends Model {
                 EventHashKey key = new EventHashKey(
                         event.getResource().getContainer(),
                         event.getSender());
-                ListIterator<MergedNotificationEvent> iter = stateChangedEvents.remove(key);
+                MergedNotificationEvent stateChangedEvent = stateChangedEvents.remove(key);
 
-                if (iter != null) {
-                    MergedNotificationEvent stateChangedEvent = iter.next();
+                if (stateChangedEvent != null) {
                     Set<User> stateReceivers = stateChangedEvent.findReceivers();
                     Set<User> commentReceivers = event.findReceivers();
 
@@ -282,14 +284,14 @@ public class NotificationMail extends Model {
                         // comment differ from each other, split the
                         // notifications into three.
 
-                        // a. the notification of both of state-change and comment
-                        Set<User> intersect = new HashSet<>(
-                                CollectionUtils.intersection(stateReceivers, commentReceivers));
+                        Set<User> intersect = new HashSet<>(stateReceivers);
+                        intersect.retainAll(commentReceivers);
 
+                        // a. the notification of both of state-change and comment
                         MergedNotificationEvent mergedEvent = new MergedNotificationEvent(
                                 stateChangedEvent, Arrays.asList(event, stateChangedEvent));
                         mergedEvent.setReceivers(intersect);
-                        iter.add(mergedEvent);
+                        result.add(0, mergedEvent);
 
                         // b. the notification of comment only
                         MergedNotificationEvent commentEvent = new MergedNotificationEvent(event);
@@ -301,9 +303,8 @@ public class NotificationMail extends Model {
                         stateChangedEvent.setReceivers(stateReceivers);
                     }
                 }
+                result.add(0, new MergedNotificationEvent(event));
             }
-
-            result.add(0, new MergedNotificationEvent(event));
         }
 
         return result;
