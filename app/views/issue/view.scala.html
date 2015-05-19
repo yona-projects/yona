@@ -110,9 +110,9 @@
                                 <button id="watch-button" type="button" class="ybtn @if(issue.getWatchers.contains(UserApp.currentUser())) {ybtn-watching}"
                                         data-toggle="button" data-watching="@if(issue.getWatchers.contains(UserApp.currentUser())){true}else{false}">
                                 @if(issue.getWatchers.contains(UserApp.currentUser())) {
-                                    @Messages("project.unwatch")
+                                    @Messages("issue.unwatch")
                                 } else {
-                                    @Messages("project.watch")
+                                    @Messages("issue.watch")
                                 }
                                 </button>
                             }
