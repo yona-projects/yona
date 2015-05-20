@@ -24,7 +24,9 @@
 @import utils.JodaDateUtil
 
 @siteLayout(utils.Config.getSiteName, utils.MenuType.SITE_HOME) {
-    @if(currentUser != User.anonymous){
+    @if(currentUser == User.anonymous){
+    @partial_intro()
+    } else {
     <div class="page-wrap-outer">
         <div class="page-wrap">
             <div class="site-guide-outer hide">
