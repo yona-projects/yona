@@ -144,7 +144,7 @@
             </div>
             <div class="span10 cu-desc">
               @defining(newProjectForm.field("vcs").value){ vcsFormField =>
-              <select id="vcs" name="vcs" data-toggle="select2" data-dropdown-css-class="select2-without-searchbox" class="mb10 mt5">
+              <select id="vcs" name="vcs" data-toggle="select2" data-dropdown-css-class="select2-without-searchbox" class="mb10 mt5" style="min-width: 220px;">
                 @RepositoryService.vcsTypes.map{ v =>
                 <option value="@v._1"
                 @if((vcsFormField == null && v._1 == "GIT") || (vcsFormField == v._1)){
