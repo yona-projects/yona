@@ -34,12 +34,12 @@
                     <div class="inner left">
                         <div class="title-wrap">
                             <label for="title">@Messages("milestone.form.title")</label>
-                            <input type="text" name="title" id="title" placeholder="">
+                            <input type="text" name="title" id="title" placeholder="" value="@form.data().get("title")">
                         </div>
                         <div class="content-wrap">
                             <label for="contents">@Messages("milestone.form.content")</label>
                             <div style="position: relative;">
-                                @common.editor("contents")
+                                @common.editor("contents", form.data().get("contents"))
                             </div>
                         </div>
 
@@ -61,7 +61,7 @@
                         <hr/>
                         <p>@Messages("milestone.form.dueDate")</p>
                         <label for="dueDate">
-                            <input type="text" name="dueDate" id="dueDate" class="validate due-date">
+                            <input type="text" name="dueDate" id="dueDate" class="validate due-date" value="@form.data().get("dueDate")">
                         </label>
                         <div id="datepicker" class="date-picker"></div>
 
