@@ -3,16 +3,11 @@
 To access the repository managed by the project, you need the repository URL.
 
 1. Go to the project.
-1. Move mouse pointer on a box left of `Copy URL` button.
-
-<그림 삽입>
-
+1. Click the box on the left of the 'Copy URL' button.
 
 # Copying Repository URL
 
 To copy the repository URL
 
-1. Click `Copy URL`.
-1. Then URL is stored to clipboard.
-
-<그림 삽입>
+1. Click the `Copy URL` button.
+1. Then, the URL will be stored in a clipboard.
