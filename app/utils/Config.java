@@ -62,8 +62,6 @@ public class Config {
     }
 
     public static String getHostport(String defaultValue) {
-        play.Configuration config = play.Configuration.root();
-
         String hostname = play.Configuration.root().getString("application.hostname");
 
         if (hostname != null && !hostname.isEmpty()) {
