@@ -37,6 +37,8 @@
         <a href="@routes.ProjectApp.members(project.owner, project.name)">@Messages("project.member")@if(project.enrolledUsers.size>0){<span class="num-badge">@project.enrolledUsers.size</span>}</a></li>
     <li id="subMenuIssueLabel" class="@isActiveSubMenu(routes.IssueLabelApp.labelsForm(project.owner, project.name))">
         <a href="@routes.IssueLabelApp.labelsForm(project.owner, project.name)">@Messages("issue.label")</a></li>
+    <li id="subMenuWebhook" class="@isActiveSubMenu(routes.ProjectApp.webhooks(project.owner, project.name))">
+        <a href="@routes.ProjectApp.webhooks(project.owner, project.name)">@Messages("project.webhook")</a></li>
     <li id="subMenuProjectTransfer" class="@isActiveSubMenu(routes.ProjectApp.transferForm(project.owner, project.name))">
         <a href="@routes.ProjectApp.transferForm(project.owner, project.name)">@Messages("project.transfer")</a></li>
     <li id="subMenuProjectDelete" class="@isActiveSubMenu(routes.ProjectApp.deleteForm(project.owner, project.name))">
