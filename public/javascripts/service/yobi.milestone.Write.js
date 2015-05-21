@@ -42,7 +42,7 @@
          */
         function _initVar(htOptions){
             htVar.sDateFormat  = htOptions.sDateFormat  || "YYYY-MM-DD";
-            htVar.rxDateFormat = htOptions.rxDateFormat || /\d{4}-\d{2}-\d{2}/;
+            htVar.rxDateFormat = htOptions.rxDateFormat || /\d{4}-\d{2}-\d{2}$/;
             htVar.sTplFileItem = $('#tplAttachedFile').text();
         }
 

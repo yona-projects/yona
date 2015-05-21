@@ -88,7 +88,7 @@ public class MilestoneApp extends Controller {
     /**
      * when: POST /:user/:project/milestones
      *
-     * @see {@link #validate(models.Project, play.data.Form)}
+     * @see {@link #validateTitle(models.Project, play.data.Form)}
      */
     @Transactional
     @IsCreatable(ResourceType.MILESTONE)
@@ -96,7 +96,8 @@ public class MilestoneApp extends Controller {
         Form<Milestone> milestoneForm = new Form<>(Milestone.class).bindFromRequest();
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
-        validate(project, milestoneForm);
+        validateTitle(project, milestoneForm);
+        validateDueDate(milestoneForm);
         if (milestoneForm.hasErrors()) {
             return ok(create.render("title.newMilestone", milestoneForm, project));
         } else {
@@ -115,10 +116,16 @@ public class MilestoneApp extends Controller {
         }
     }
 
-    private static void validate(Project project, Form<Milestone> milestoneForm) {
+    private static void validateTitle(Project project, Form<Milestone> milestoneForm) {
         if (!Milestone.isUniqueProjectIdAndTitle(project.id, milestoneForm.field("title").value())) {
             milestoneForm.reject("title", "milestone.title.duplicated");
             flash(Constants.WARNING, "milestone.title.duplicated");
+        }
+    }
+
+    private static void validateDueDate(Form<Milestone> milestoneForm) {
+        if (milestoneForm.hasErrors() && milestoneForm.errors().containsKey("dueDate")) {
+            flash(Constants.WARNING, "milestone.error.duedateFormat");
         }
     }
 
@@ -146,8 +153,9 @@ public class MilestoneApp extends Controller {
         Milestone original = Milestone.findById(milestoneId);
 
         if(!original.title.equals(milestoneForm.field("title").value())) {
-            validate(project, milestoneForm);
+            validateTitle(project, milestoneForm);
         }
+        validateDueDate(milestoneForm);
         if (milestoneForm.hasErrors()) {
             return ok(edit.render("title.editMilestone", milestoneForm, milestoneId, project));
         } else {
