@@ -35,6 +35,7 @@ import play.mvc.Result;
 import utils.Config;
 import utils.Constants;
 import utils.PasswordReset;
+import utils.Url;
 import views.html.site.lostPassword;
 import views.html.user.login;
 import views.html.user.resetPassword;
@@ -92,11 +93,7 @@ public class PasswordResetApp extends Controller {
     }
 
     private static String getResetPasswordUrl(String hashString) {
-        Configuration config = play.Play.application().configuration();
-        String hostname = config.getString("application.hostname");
-        if(hostname == null) hostname = request().host();
-
-        return "http://" + hostname + "/resetPassword?s=" + hashString;
+        return Url.create(controllers.routes.PasswordResetApp.resetPasswordForm(hashString).url());
     }
 
     public static Result resetPasswordForm(String hashString){
