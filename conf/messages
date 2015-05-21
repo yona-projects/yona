@@ -777,6 +777,7 @@ site.project.delete = Delete project
 site.project.deleteConfirm = Do you really want to delete this project?
 site.project.filter = Enter project name you want to find.
 site.resetPasswordEmail.invalidRequest = Invalid password reset request
+site.resetPasswordEmail.wrongUrl = Wrong url to reset password.
 site.resetPasswordEmail.mailContents = Copy the following URL and paste it to browser''s URL bar
 site.resetPasswordEmail.title = Password reset request
 site.search = Site search

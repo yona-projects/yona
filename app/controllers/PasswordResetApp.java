@@ -34,6 +34,7 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Config;
 import utils.Constants;
+import utils.ErrorViews;
 import utils.PasswordReset;
 import utils.Url;
 import views.html.site.lostPassword;
@@ -110,6 +111,7 @@ public class PasswordResetApp extends Controller {
             Logger.debug("Password was reset");
         } else {
             Logger.debug("Not a valid request!");
+            return badRequest(ErrorViews.BadRequest.render("site.resetPasswordEmail.wrongUrl"));
         }
         flash(Constants.WARNING, "user.loginWithNewPassword");
         return ok(login.render("title.login", form(AuthInfo.class), null));
