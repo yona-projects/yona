@@ -4,30 +4,190 @@ Yobi v0.8.0 Release Notes
 Backward compatibility notes
 ----------------------------
 
-If you are upgrading from any previous version, You may need to update
-conf/application.conf for backward compatibility.
+### Use Activator
 
-### Use explicit path to database
-
-If you are using implicit relative path for the db.default.url,
-then you have to change it to use explicit relative path like:
-
-    AS IS:
-    db.default.url="jdbc:h2:file:yobi;MODE=PostgreSQL"
-
-    TO BE:
-    db.default.url="jdbc:h2:file:./yobi;MODE=PostgreSQL"
+Finally we have upgraded the Play Framework from 2.1 to 2.3. You should use
+`activator` instead of `play` when build or run Yobi. Read README.md for more
+details.
 
 ### Specify country code
 
 Since Yobi 0.8.0, language codes are changed to include country code to fix the
-bug that i18n does not work for some browsers. So you have to country code
-after every language code as follows:
+bug that i18n does not work for some browsers. So you have to update your
+configuration file(conf/application.conf by default) as follows:
 
     application.langs="en-US, ko-KR, ja-JP"
 
-Updates since v0.7.2
+Updates since v0.7.3
+--------------------
+
+New Features
+
+* Mailbox: Users can send an email to the email address defined by
+  imap.address to post an issue or reply to the notification email to post
+  a comment. See docs/technical/mailbox.md for its internal operation. (116aec9)
+* Users can install Yobi from package. See "Install from binary" in README.md
+  for more details. (162dd32)
+* Diagnostics: Site Administrators can check problems of Yobi in Site Admin
+  > Diagnostics page. It diagnoses the problems of Mailbox, missing
+  application.port and so on. (cca0ece)
+
+Enhancements
+
+* Java 8 is supported.
+* PullRequest: A merge commit message contains the branch to be merged and does
+  not contain the repository the merged commits come from if it is not remote.
+  (7099e70)
+* PullRequest: A Notification is sent after commits of a pullrequest are
+  updated. (aca8b34)
+* Notification: Split emails to avoid number of recipients exceeded the limit
+  specified by `application.notification.bymail.recipientLimit`. (cbcda46)
+* Project description is rendered to HTML in markdown syntax. (17eac7c)
+* Users can modify revision property of their SVN repository. It allows svnsync
+  to sync a SVN repsitory with another one. (badd3df)
+* Notification: Emails do not contain the unnecessary default recipient if
+  application.notification.bymail.hideAddress = true. (7c0a9c3)
+* PullRequest: When a merge commit message is genereated, the redundant prefix
+  of refname, like refs/heads/, is ommited. (0474202)
+* If a user comment on an issue or review thread and close it immediately, Yobi
+  sends a notification email only once that describes both of the events.
+  (767f294)
+* Yobi as a git server says in user's preferred language. (1e9b9ee)
+* Project Watch button has a number of watchers and a link to the Notification
+  Settings page. (b751c05)
+
+UI
+
+* Progressbar instead of spinner, while loading a page. (a9bbe14)
+* In My Dropdown menu, Groups are listed up to 10 instead of 5. (f2f6150)
+* Menu Setting in the Project Setting page does not display unnecessary
+  checkboxes for Review and PullRequest if Code is unchecked to be hidden.
+  (904c0fb)
+* Folder Jumping: In Code Browser, Users can go directly the first descendant
+  directory which has a regular file. (7e6f9e9)
+* Yobi displays appropriate warning message when database timeout occurs.
+  (9310254)
+* PullRequest: In the dropdown list for commits of pullrequest, the commit ids
+  are aligned prettier by using fixed font. (066c87c)
+* When mentioning a user, the autocomplete list includes the author and project
+  watchers. (677ff7a)
+* When a cursor is on a mentioned username, a tooltip displays the user's name
+  and avatar. (dbcebe6)
+* PullRequest: The review list is hidden if no review thread exists. (e7df11d)
+* GlobalNavigation is improved and looks better. (51de4da, 802ec6e)
+* Mention: Show a progressbar while fetching items for autocomplete from the
+  server. (b3a324d)
+* Project Menu: Review item has a number badge as issue item and pullrequest
+  item does. (f43df15)
+* Project Menu: Number badges look better. (e8fe8fc)
+
+Performance
+
+* Most of view pages becomes faster by preventing n+1 select. (93cb022)
+* Finding projects and issuses by labels becomes faster by using in()
+  expression. (861b3fc)
+* Attachments are cached. (0a863e5)
+* Project's dashboard becomes faster by reduing queries. (621b4b8)
+* Site home becomes faster by optimizing the query. (e2dd660)
+* Notification: Sending email becomes much faster by making getting receivers
+  150x faster. (ea7febc)
+
+Documentation
+
+* docs/ko/technical/access-control.md describes about Group. (7141245)
+* Java Coding Guidelines is added. (191431e)
+* The copyright notice of third-party softwares is added. (7633242)
+
+Internal changes
+
+* Raw queries about User model was changed for compatibility. (9088b76)
+* findbugs was introduced. (ca48c65)
+* Yobi has "Property", a key-value pair table to store any value in the
+  Database. (2468b37)
+* ebeanconfig.datasource.default was added into conf/application.conf.default
+  to make sure it can be configured.
+
+Fixes since v0.7.3
 ------------------
 
-* Updated H2 database to v1.4.184. (45e1288)
-
+* Notifications for comment editing is not sent to mentioned people. (cd67cfb)
+* My Issues: If an comment mentioned me once, the comment never disappeared in
+  the list of mention issues although the comment is modified and the mention
+  is removed. (ae715e3)
+* PJAX sometimes did not work for firefox and safari. (b8f5c1e)
+* Notification emails for updated comment had same message-id with the
+  event when the comment was created. (01eb2fc)
+* Server error occured when access a file or a directory that does not exist or
+  root directory of an empty commit. (f739919)
+* Selected branch for each commit was incorrect and useless. (c13745d)
+* IssueLabel: When edit a label, the color code was not updated even if you
+  clicked color scheme button. (fedd18f)
+* Messages are not shown in preferred language with someweb browsers. (43d2c6b)
+* Failed to defence XSS attack after markdown rendering on server. (39fab71)
+* When an issue is modified, notification emails were sent to all of mentioned
+  users. (1e3d867)
+* The notice status of a post could not be modified. (97e05b7)
+* While rendering markdown text, A SHA-1 hash was rendered to a Git commit
+  even if the project does not have a Git repository. (923dc51, d73fc5b)
+* `Create new project` button on group's view was shown always although current
+  user is not a group admin. (516077a)
+* Notification emails for pushing commits of a project had a same message-id.
+  (461f44d)
+* Users could vote to an issue several times. (6a6e6f7)
+* Server error occured when a user access a user page with an empty daysAgo
+  cookie. (ad3a136)
+* Server error occured if there are several pull-request-commits whose commit
+  id equals to each other. (e0a43b3)
+* A pullrequest might display duplicated reviewers if the user clicked review
+  button several times. (02c3929)
+* The alert message for project deletion was incorrect. (11a99bc)
+* In group-overview.md, Description about permission of group members was
+  incorrect. (f906078)
+* Markdown: The path to highlight-js-file was incorrect. (348529f)
+* Firefox displayed unnecessary spin-button in pagination input box. (9fb5fcc)
+* References header of notification email was incorrect. (6299412)
+* Site Administrator did not have admin privilege to groups. (bd17dce)
+* Review comment for new or deleted file was missed. (b705300)
+* Code Browser could not open some directories because of ConcurrentException.
+  (e66433a)
+* Users cannot change the title of a merged pullrequest. (790d76e)
+* Server error occured when trying to change the name of a group if the name
+  has a whitespace character. (a4dee0c)
+* In an issue list page of a project, "Assigned to me" and "Created by me"
+  filter did not work if I am a member of the group to which the project
+  belongs but not a member of the project. (7f465fd)
+* In signup page, validation messages did not disappeared even if invalid
+  fields was fixed. (c2836e5)
+* CodeBrowser: Urls to files at a specific revision of SVN repository was
+  incorrect. (857020a)
+* IssueLabel: Updating issue labels did not affect the web page immediately.
+  (bc8bb6f)
+* An server error might occured rarely when getting an attachment. (80c653a)
+* Yobi was sending a notification email endlessly if it failed to delete the
+  email from the sending queue. (2799c86)
+* Markdown: Words broke incorrectly by line break. (67179e2)
+* Diff: Users could not drag and copy paths of compared files. (d62acd8)
+* In project creation page and project setting page, the dropdown list to
+  choose code repository type was broken. (1868e84)
+* A potentional bug existed because of missing 'Lob' annotation on some fields
+  in PullRequestEvent and PullRequestCommit. (98680a4)
+* Firefox users could not select a block of code while doing code review.
+  (8399d8a)
+* My Issues worked incorrectly because of bfcache bug. (f3d68d8)
+* README: The highlight to warning message was incorrect. (6780694)
+* The list button in milestone view page was placed incorrectly. (b51cd09)
+* An error occured when sorting issues, filtered by label, by duedate. (c44efc8)
+* The form to comment a review message on code narrowed while scrolling the
+  rendered diff horizontally. (a1b94f0)
+* Review comments in a thread could be ordered incorrectly. (417df18)
+* When a user tried to reset password via email, the url to reset password
+  might be incorrect. (5056d18)
+* The select box to choose vcs for new project was broken in Safari. (c42580f)
+* A lot of error pages were not displayed to anonymous. (31c6c07)
+* While a user tried to reset the password via email and it failed, Yobi
+  responded success. (3baa7db)
+* An error might occur when update a group member's role to "member". (942ec6a)
+* Duedate of milestone was not validated correctly. (b377be2)
+* When a manager of a project transfer the project to self to own the project,
+  the manager became a member, not a manager nor an owner, of the project,
+  contray to expectation. (c82d13a)
