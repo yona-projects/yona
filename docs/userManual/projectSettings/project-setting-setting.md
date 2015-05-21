@@ -1,36 +1,40 @@
 # Setting Project
 
-You can change a project settings if you have the project's administrator permissions.
+You can change project settings if you are the project administrator.
 
 Project's logo, name, description, share option and member can be configured.
 
-* Go to the project of which you have authroization. <그림 삽입>
-* Click 'Project Setting Button'.
-* Click `Setting` tab and change project's logo, name, description and share option. <그림 삽입>
+* Go to the project of which you have authroization.
+* Click the 'Project Settings' button.
+* Click `Settings` tab and change project's logo, name, description or share option.
 
-## Logo
 
-A Project logo is displayed on top of a project page and everywhere projects are listed when setting is done.
+Name
+----
 
-<그림 삽입>
+You can change project names.
 
-## Name
+If a project name is changed, the project and the repository URL will be changed.
 
-A project name can be changed. If the name is changed, it affects below.
 
-* `URL` related to source code repository will be changed.
-* Everywhere the name is shown.
-
-## Description
+Description
+-----------
 
 You can alter a project description. The explanation changed will be shown on project main page, `Project List` and `Group Page`.
 
-<그림 삽입>
+You can alter a project description. After changing your project description, the description shown on 'Project List' and 'Group page' will also be updated.
 
-## Share Option
+
+Share Option
+------------
 
 You can change share option.
 
-Setting to public allows all users to access and watch all items. Setting to private prohibits users who are not member of a project from accessing and watching.
+Making your project `public` will allow all users to access or watch every item on your project.
 
-<group public 설명 추가해야 함>
+Making your project `private` will prohibit non-members of the project from accessing the project.
+
+Making your project `protected` will prohibit non-members of the project and the project's group from accessing the project.
+
+To get information more detail, see `docs/ko/technical/access-control.md`.
+
