@@ -1138,6 +1138,42 @@ public class ProjectApp extends Controller {
         return status(Http.Status.NO_CONTENT);
     }
 
+    /**
+     * @param ownerId the owner login id
+     * @param projectName the project name
+     * @return
+     */
+    @IsAllowed(Operation.UPDATE)
+    public static Result webhooks(String ownerId, String projectName) {
+        Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
+
+        return ok(views.html.project.webhooks.render(
+                "project.webhook",
+                Webhook.findByProject(project.id),
+                project));
+    }
+
+    @Transactional
+    @IsAllowed(Operation.UPDATE)
+    public static Result newWebhook(String ownerId, String projectName) {
+        if(HttpUtil.isJSONPreferred(request())){
+            return ok("{}");
+        }
+        return redirect(routes.ProjectApp.webhooks(ownerId, projectName));
+    }
+
+    @Transactional
+    @IsAllowed(Operation.UPDATE)
+    public static Result deleteWebhook(String ownerId, String projectName, Long id) {
+        Webhook webhook = Webhook.find.byId(id);
+        if (webhook != null) {
+            webhook.delete();
+            return ok();
+        } else {
+            notFound(ErrorViews.NotFound.render("error.notfound"));
+        }
+    }
+
     @Transactional
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.DELETE)

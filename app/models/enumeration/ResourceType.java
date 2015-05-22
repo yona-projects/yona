@@ -56,6 +56,7 @@ public enum ResourceType {
     ORGANIZATION("organization"),
     PROJECT_TRANSFER("project_transfer"),
     ISSUE_LABEL_CATEGORY("issue_label_category"),
+    WEBHOOK("webhook"),
     NOT_A_RESOURCE("");
 
     private String resource;
