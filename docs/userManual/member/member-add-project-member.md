@@ -1,33 +1,35 @@
 # Member registration
 
-You can collaborate with members once you are registered as a project's member.
+You can collaborate with members once you are registered as a project member.
 
-## Requesting registration
 
-* Go to a project you want to join
-* Click `Requesting Registration icon`.
-* Click `New Enrollment` on popup.
+Requesting registration
+-----------------------
 
-<그림 삽입>
+1. Go to a project you want to join
+1. Click the button like upper body on the top right of the project page and on the left of `Watch` button.
+1. Click the `Send sign-up request` button on the popup.
 
-You will then see a icon been changed to blue and you can be a member when administrators accept your request.
+You will then see an icon changed to blue and you will be a member when administrators accept your request.
 
-## Accepting requests
 
-If someone rqeusts member registration, you can see it in `Project Setting` > `Member`.
+Accepting requests
+------------------
 
-<그림 삽입>
+If someone requests member registration, you can see and accept it.
 
-Click `Add` button left of the member
+1. Go to the project.
+1. Click the sawlike `Project Settings` button.
+1. Click the `Member` tab.
+1. Click the `Add` button on the right of the member.
 
-<그림 삽입>
 
-## Canceling Requesting registration
+Canceling requests
+------------------
 
-To cancel requesting registration :
+To cancel requesting registration:
 
-* Go to a project to which you request member registration.
-* Click `Member Registration`
-* Click `Cancel Enrollment` on popup
+1. Go to the project.
+1. Click the button like upper body on the top right of the project page and on the left of `Watch` button.
+1. Click the `Cancel sign-up request` button on the popup.
 
-<그림 삽입>
