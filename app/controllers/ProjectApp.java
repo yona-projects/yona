@@ -1156,9 +1156,13 @@ public class ProjectApp extends Controller {
     @Transactional
     @IsAllowed(Operation.UPDATE)
     public static Result newWebhook(String ownerId, String projectName) {
-        if(HttpUtil.isJSONPreferred(request())){
-            return ok("{}");
-        }
+        Form<Webhook> addWebhookForm = form(Webhook.class).bindFromRequest();
+        Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
+
+        Webhook.create(project.id,
+                        addWebhookForm.field("payload_url").value(),
+                        addWebhookForm.field("secret").value());
+
         return redirect(routes.ProjectApp.webhooks(ownerId, projectName));
     }
 

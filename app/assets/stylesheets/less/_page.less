@@ -604,7 +604,7 @@
                 color: #2cb400;
             }
         }
-        
+
         .d2-program:hover {
             background-color:#5f5f5f;
             text-decoration:none;
@@ -2140,7 +2140,7 @@ label.inline-list {
                     &.over { color:#f36c22; }
                 }
             }
-            
+
             .progress-wrap {
                 overflow: hidden;
                 color: #999;
@@ -3069,7 +3069,7 @@ div.markdown-loader {
     min-height: 140px;
     padding: 15px 20px;
     text-align: left;
-    clear: both;    
+    clear: both;
 }
 
 div.markdown-preview {
@@ -3482,9 +3482,9 @@ label.issue-item-row {
                 text-decoration: none;
             }
 
-            &.name { 
+            &.name {
                 color : #333;
-                
+
                 &:hover {
                     color:#333;
                 }
@@ -3534,7 +3534,7 @@ label.issue-item-row {
                     &.item-icon {
                         background-color:#F7F7F7;
                         color:#3592b5;
-                        font-size: 9px; 
+                        font-size: 9px;
                         padding-top:2px;
                         line-height: 12px;
                         border-left:1px solid #EEE;
@@ -3542,7 +3542,7 @@ label.issue-item-row {
                         &:first-child {
                             border-left:none;
                         }
-                        
+
                         &.strong {
                             color:@primary;
                         }
@@ -3686,7 +3686,7 @@ label.issue-item-row {
             min-height:30px;
         }
 
-       
+
         .write-comment-box { padding:0; margin-top:20px; }
     }
 
@@ -5665,7 +5665,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         text-decoration:none;
         background-color:#fafafa;
     }
-    
+
     &.open {
         .box-shadow(inset 5px 0px 0px @state-open);
     }
@@ -5849,7 +5849,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         margin-top: 15px;
         font-weight: normal;
         padding:0 15px;
-        
+
         strong {
             color:#f36c22;
         }
@@ -5956,7 +5956,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         margin-top:10px;
         font-size: 13px;
         color:#999;
-        padding-left:20px;  
+        padding-left:20px;
 
         &.np {
             padding-left:0 !important;
@@ -5974,7 +5974,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         }
     }
 
-    .user-link { 
+    .user-link {
         color: #3592b5 !important;
         font-weight: bold;
     }
@@ -6130,6 +6130,81 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     }
 }
 
+.webhook-editor-wrap {
+    .new-webhook-wrap {
+        margin:30px auto;
+
+        .form-legend {
+            display:block;
+            margin-bottom:10px;
+        }
+        .form-wrap {
+            position:relative;
+            display:inline-block;
+            vertical-align:top;
+        }
+        .input-webhook-payload {
+            width:355px;
+        }
+        .input-webhook-secret {
+            width:214px;
+        }
+        .btn-submit {
+            vertical-align: top;
+            min-width:100px;
+        }
+    }
+
+    .webhook-list-wrap {
+        margin:0 auto;
+
+        .list-head {
+            border:1px solid #ddd;
+            border-width:2px 0px 0px;
+            background: #fafafa;
+
+            .payload-url {
+                padding-right:18px;
+                line-height:30px;
+                text-align:right;
+            }
+            .secret {
+                padding-left:8px;
+                line-height:30px;
+            }
+        }
+        .list-item {
+            border-top:1px solid #ddd;
+
+            .table {
+                .webhook-secret {
+                    display: block;
+                    max-width: 50%;
+                    font-size: 12px;
+                }
+                tr {
+                    border-bottom: 1px solid #ddd;
+                    &:last-of-type {
+                        border-bottom: none;
+                    }
+                }
+                td {
+                    border-top: none;
+                    &.info {
+                        width: 150px;
+                        text-align: right;
+                    }
+                    &.actions {
+                        width: 150px;
+                        text-align: right;
+                        padding-right: 1px;
+                    }
+                }
+            }
+        }
+    }
+}
+
 .category-exclusive {
     margin-right:5px;
     vertical-align: middle;
@@ -6234,4 +6309,3 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 .watch-btn > button {
   padding: 4px 10px;
 }
-

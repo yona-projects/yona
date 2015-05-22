@@ -107,9 +107,20 @@ public class Webhook extends Model implements ResourceConvertible {
         return find.where().eq("project.id", projectId).findList();
     }
 
-    public static List<Webhook> findWebhookListByProject(Long projectId) {
-        return find.fetch("webhook").fetch("payload_url", "secret").where()
-                .eq("project.id", projectId).findList();
+    public static void create(Long projectId, String payloadUrl, String secret) {
+        Webhook webhook = new Webhook(projectId, payloadUrl, secret);
+        webhook.save();
+    }
+
+    public static void delete(Long webhookId, Long projectId) {
+        Webhook.findByIds(webhookId, projectId).delete();
+    }
+
+    public static Webhook findByIds(Long webhookId, Long projectId) {
+        return find.where()
+                .eq("webhook.id", webhookId)
+                .eq("project.id", projectId)
+                .findUnique();
     }
 
     /**
