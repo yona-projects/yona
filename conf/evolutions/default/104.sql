@@ -5,6 +5,7 @@ create table webhook (
   project_id                bigint not null,
   payload_url               varchar(4000) not null,
   secret                    varchar(256),
+  created_at                timestamp,
   constraint pk_webhook primary key (id))
 ;
 

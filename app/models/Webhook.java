@@ -20,19 +20,32 @@
  */
 package models;
 
+import java.io.IOException;
+
 import models.enumeration.ResourceType;
 import models.resource.GlobalResource;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+
 import play.data.validation.Constraints.Required;
 import play.db.ebean.Model;
+import play.libs.Json;
+import play.libs.ws.*;
+import play.libs.F.Function;
+import play.libs.F.Promise;
 
 import javax.persistence.*;
 import java.util.Set;
 import java.util.List;
+import java.util.Date;
+import java.lang.Object;
+import java.text.SimpleDateFormat;
 
 /**
- * A label to be attached to a project
+ * A webhook to be sent by events in project
  */
 @Entity
 public class Webhook extends Model implements ResourceConvertible {
@@ -65,6 +78,12 @@ public class Webhook extends Model implements ResourceConvertible {
     public String secret;
 
     /**
+     * Payload URL of webhook.
+     */
+    @Required
+    public Date createdAt;
+
+    /**
      * Construct a webhook by the given {@code payloadUrl} and {@code secret}.
      *
      * @param projectId the ID of project which will have this webhook
@@ -78,6 +97,7 @@ public class Webhook extends Model implements ResourceConvertible {
         this.project = Project.find.byId(projectId);
         this.payloadUrl = payloadUrl;
         this.secret = secret;
+        this.createdAt = new Date();
     }
 
     /**
@@ -124,6 +144,55 @@ public class Webhook extends Model implements ResourceConvertible {
                 .eq("webhook.id", webhookId)
                 .eq("project.id", projectId)
                 .findUnique();
+    }
+    
+    public void sendRequestToPayloadUrl(String[] eventTypes) {
+        String requestBodyString = buildRequestBody(eventTypes);
+
+        WSRequestHolder requestHolder = WS.url(this.payloadUrl);
+        requestHolder
+            .setHeader("Content-Type", "application/json")
+            .setHeader("User-Agent", "Yobi-Hookshot")
+            .post(requestBodyString);
+        // TODO: Handle response
+    }
+
+    private String buildRequestBody(String[] eventTypes) {
+        ObjectNode requestBody = Json.newObject();
+        ObjectNode configJSON = Json.newObject();
+        ObjectNode hookInfoJSON = Json.newObject();
+        ObjectNode repositoryJSON = Json.newObject();
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode eventTypesArray = mapper.createArrayNode();
+
+        requestBody.put("hook_id", this.id);
+
+        configJSON.put("url", this.payloadUrl);
+        configJSON.put("content_type", "json");
+        configJSON.put("secret", this.secret);
+
+        hookInfoJSON.put("id", this.id);
+        hookInfoJSON.put("name", "web");
+        hookInfoJSON.put("active", true);
+        for (String eventType : eventTypes) {
+            eventTypesArray.add(eventType);
+        }
+        hookInfoJSON.put("events", eventTypesArray);
+        hookInfoJSON.put("config", configJSON);
+        hookInfoJSON.put("created_at", new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss'Z'").format(this.createdAt));
+        // TODO: put updated_at property when we support editing webhook.
+
+        requestBody.put("hook", hookInfoJSON);
+
+        repositoryJSON.put("id", project.id);
+        repositoryJSON.put("name", project.name);
+        repositoryJSON.put("owner", project.owner);
+        repositoryJSON.put("html_url", project.siteurl);
+        repositoryJSON.put("overview", project.overview);
+
+        requestBody.put("repository", repositoryJSON);
+
+        return Json.stringify(requestBody);
     }
 
     /**
