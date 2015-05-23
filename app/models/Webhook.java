@@ -108,8 +108,11 @@ public class Webhook extends Model implements ResourceConvertible {
     }
 
     public static void create(Long projectId, String payloadUrl, String secret) {
-        Webhook webhook = new Webhook(projectId, payloadUrl, secret);
-        webhook.save();
+        if (!payloadUrl.isEmpty()) {
+            Webhook webhook = new Webhook(projectId, payloadUrl, secret);
+            webhook.save();
+        }
+        // TODO : Raise appropriate error when required field is empty
     }
 
     public static void delete(Long webhookId, Long projectId) {

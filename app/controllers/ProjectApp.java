@@ -1157,11 +1157,12 @@ public class ProjectApp extends Controller {
     @IsAllowed(Operation.UPDATE)
     public static Result newWebhook(String ownerId, String projectName) {
         Form<Webhook> addWebhookForm = form(Webhook.class).bindFromRequest();
+
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
 
         Webhook.create(project.id,
-                        addWebhookForm.field("payload_url").value(),
-                        addWebhookForm.field("secret").value());
+            addWebhookForm.field("payload_url").value(),
+            addWebhookForm.field("secret").value());
 
         return redirect(routes.ProjectApp.webhooks(ownerId, projectName));
     }
