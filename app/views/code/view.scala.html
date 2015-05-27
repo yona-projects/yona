@@ -79,7 +79,7 @@
                 <select id="branches" data-toggle="select2" data-format="branch" data-dropdown-css-class="branches"
                         class="pull-left @if(fieldText(recursiveData{0}, "type").eq("file")){mb10}">
                 @for(branchName <- branches){
-                    <option value="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branchName, "UTF-8"), path)"
+                    <option value="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branchItemName(branchName), "UTF-8"), path)"
                             @if(branchItemName(branchName) == branchItemName(branch)){ selected }>
                         @branchName
                     </option>
@@ -107,6 +107,13 @@
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/moment-with-langs.min.js")"></script>
 <script type="text/javascript">
     $(document).ready(function(){
+        $("#branches").on("change", function(event){
+            location.href= $(this).val();
+        });
+
+        // help popover at open with browser button
+        $("#open-in-browser").popover({trigger: "hover", placement: "top"});
+
         $yobi.loadModule("code.Browser", {
             "sProjectName": "@project.name",
             "sInitialPath": "@path",
