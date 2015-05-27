@@ -1,71 +1,70 @@
 # Receiving Notifications
 
-Use `Watching` to show and receive notifications through Yobi main page and emails when there are changes in projects.
+Use 'Watching' to show and receive notifications on the main page of Yobi and from emails when changes are made in projects.
 
-## Watching
 
-You can show `Watching` button in below
+Watching
+--------
+
+You can see the 'Watching' button on the following pages:
 
 * Projects
-* Posts on board
-* Each commits of `Code` and `Pull Request`
-* Items of `Pull Requests`
-* Items of `Issues`
+* Issues
+* Posts
+* Pull requests
+* Commits in `Code` menu
 
-You have to have authorization to use `Watching`.  While everyone can use `Watching` on public projects, private projects are only allowed for members.
+You should have authorizations to use `Watching`. While anyone can watch public project through 'Watching', for private project, only members of the private one can watch it.
 
 ### Watching Projects
 
 On circumstances like those below you can get notifications through `Watching Project`.
 
-* New Issue
-* New Posting
-* New PullRequest
-* Changed Issue's State
-* Changed Issue's Assignee
-* Changed PullRequest's State
-* New Comment on a Posting or a Issue
-* New Comment on a PullRequest
+* New issues
+* New posts
+* New pull requests
+* Issue status changes
+* Issue assignee changes
+* Pull request status changes
+* New comments on posts or issues
+* New comments on pull requests
 * Requests for joining projects
-* PullRequest is Merged
-* Issue Referred from Commit
-* PullRequest Commit Change
-* New Commits on a Project
-* PullRequest Review Action Changed
-* Issue Referred from PullRequest
-* Changed Issue's Body
-* Review Thread State Change
-* Requests for joining group
+* Pull request merges
+* Issue mentions in commits
+* Pull request commit changes
+* New commits on projects
+* Pull request review action changes
+* Issue mentions in pull requests
+* Issue body changes
+* Review thread state changes
+* Requests for joining groups
+* Comment updates
 
-For `Watching Project` :
+To watch projects:
 
-1. Go to a project you want.
-2. Click `Watch`.
-3. Click `Watch` on popup.
+1. Go to a project.
+1. Click the `Watch` button.
+1. Click the `Watch` button on the popup.
 
-<그림 삽입>
-
-You basically will get notifications on all above conditions. But you can configure notification settings in more detail. In this case, refer `Notification Setting`.
+You basically will get notifications on all above conditions. But you can configure notification settings in more detail. In this case, refer `docs/userManual/notification/notification-setting.md`.
 
 
-## Unwatching
+Unwatching
+----------
 
 If you do not want to receive notifications any more, use `Unwatch`.
 
 ### Unwatching projects
 
-To unwatch projects :
+To unwatch projects:
 
-* Go to a project you watch.
-* Click `Watching` and `Unwatch` on popup.
+1. Go to a project you watch.
+1. Click the `Watching` button.
+1. Click the `Unwatch` button on the popup.
 
-<그림 삽입>
+### Unwatching boards, issues and pull requests
 
-### Unwatching Boards, Issues and Pull Requests
+To unwatch individual items:
 
-To unwatch individual items :
-
-* Go to a items on the `Board`, `Issues` or `Pull Request`.
-* Click `Unwatch` to stop getting notifications.
-
-<그림 삽입>
+1. Go to an items on the `Board`, `Issues` or `Pull Request`.
+1. Click the `Unwatch` button to stop getting notifications.
