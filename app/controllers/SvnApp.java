@@ -108,7 +108,12 @@ public class SvnApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
         if (project == null) {
-            return notFound();
+            Project previousProject = Project.findByPreviousPlaceOf(userName, projectName);
+            if (previousProject != null) {
+                project = previousProject;
+            } else {
+                return notFound();
+            }
         }
 
         if (!project.vcs.equals(RepositoryService.VCS_SUBVERSION)) {

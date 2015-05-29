@@ -263,6 +263,7 @@ public class ProjectApp extends Controller {
         }
 
         if (!project.name.equals(updatedProject.name)) {
+            updatedProject.recordRenameOrTransferHistoryIfLastChangePassed24HoursFrom(project);
             if (!repository.renameTo(updatedProject.name)) {
                 throw new FileOperationException("fail repository rename to " + project.owner + "/" + updatedProject.name);
             }
@@ -592,6 +593,7 @@ public class ProjectApp extends Controller {
         Organization newOwnerOrg = Organization.findByName(pt.destination);
 
         // Change the project's information.
+        project.recordRenameOrTransferHistoryIfLastChangePassed24HoursFrom(project);
         project.owner = pt.destination;
         project.name = newProjectName;
         if (newOwnerOrg != null) {
