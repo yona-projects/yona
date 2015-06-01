@@ -203,7 +203,7 @@ Yobi는 Apache 2.0 라이선스로 제공됩니다.
 
 #### 설치
 
-Yobi 최신 버전(http://yobi.io/yobi.zip)을 다운받아서 압축을 풉니다. 예를 들어
+Yobi 최신 버전을 http://yobi.io/yobi.zip 에서 다운받아 압축을 풉니다. 예를 들어
 wget으로 받아서 unzip으로 압축을 푼다면:
 
     wget http://yobi.io/yobi.zip
