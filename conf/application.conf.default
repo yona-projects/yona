@@ -231,8 +231,5 @@ akka {
   }
 }
 
-# If you want allowing to access yobi pages logged in users only, set it false
-application.allowsAnonymousAccess = true
-
 # No referrer information is to be leaked when following the link from yobi pages. If you don't want, set it false
 application.noreferrer = true
