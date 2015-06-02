@@ -8,8 +8,8 @@ CREATE INDEX ix_project_previous_01 ON project(previous_owner_login_id, previous
 
 # --- !Downs
 
+DROP INDEX IF EXISTS ix_project_previous_01;
+
 ALTER TABLE project DROP COLUMN IF EXISTS previous_name;
 ALTER TABLE project DROP COLUMN IF EXISTS previous_owner_login_id;
 ALTER TABLE project DROP COLUMN IF EXISTS previous_name_changed_time;
-
-DROP INDEX IF EXISTS ix_project_previous_01;
