@@ -75,7 +75,8 @@ mappings in Universal :=
     (mappings in Universal).value.filterNot { case (_, file) => file.startsWith("conf/") }
 
 NativePackagerKeys.bashScriptExtraDefines += """# Added by build.sbt
-    |YOBI_HOME=$(cd "$(realpath "$(dirname "$(realpath "$0")")")/.."; pwd -P)
+    |[ -n "$YOBI_HOME" ] && addJava "-Duser.dir=$YOBI_HOME"
+    |[ -z "$YOBI_HOME" ] && YOBI_HOME=$(cd "$(realpath "$(dirname "$(realpath "$0")")")/.."; pwd -P)
     |addJava "-Dyobi.home=$YOBI_HOME"
     |
     |yobi_config_file="$YOBI_HOME"/conf/application.conf
