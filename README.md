@@ -147,11 +147,16 @@ In installed directory, download latest release file and unzip it.
 
 ### Options
 
-When start yobi, You can specify the home directory that data and configuration
-to read from and store into. If you want to use `/home/user/.yobi` as the home
-directory, set 'yobi.home' property as follows:
+When start yobi, You can specify the home directory to contain data for Yobi.
+If you want to use `/home/user/.yobi` as the home directory, set 'yobi.home'
+property as follows:
 
     bin/yobi -Dyobi.home=/home/user/.yobi
+
+Note: Yobi doesn't load the configuration files from the home directory. If you
+want to do that, specify the path to the config files as follows:
+
+    bin/yobi -Dyobi.home=/home/user/.yobi -Dconfig.file=/home/user/.yobi/conf/application.conf -Dlogger.file=/home/user/.yobi/conf/application-logger.xml
 
 You can also specify Java options with `_JAVA_OPTIONS` environment variable. If
 the memory of your system equals to or greater than 4GB, we recommend to start
@@ -320,6 +325,12 @@ Yobi가 파일을 불러오고 저장할 홈 디렉토리를 `yobi.home` 속성�
 시작할 때 다음과 같이 yobi.home 프로퍼티를 지정합니다.
 
     bin/yobi -Dyobi.home=/home/user/.yobi
+
+주의: 위와 같이 실행해도 설정 파일은 홈 디렉토리에서 불러오지 않습니다. 설정
+파일도 홈 디렉토리에서 불러오려면 다음과 같이 직접 설정 파일의 위치를
+지정합니다.
+
+    bin/yobi -Dyobi.home=/home/user/.yobi -Dconfig.file=/home/user/.yobi/conf/application.conf -Dlogger.file=/home/user/.yobi/conf/application-logger.xml
 
 `_JAVA_OPTIONS` 환경변수를 이용해 자바 옵션을 지정할 수도 있습니다. 시스템
 메모리가 4기가 이상이라면, 다음과 같은 옵션으로 실행하는걸 권장합니다.

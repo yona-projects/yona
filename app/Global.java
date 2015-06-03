@@ -83,7 +83,7 @@ public class Global extends GlobalSettings {
     }
 
     /**
-     * Creates application.xml by default if necessary
+     * Creates application.conf by default if necessary
      *
      * @param   classloader
      * @return  the configuration read from the created file,
