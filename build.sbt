@@ -83,6 +83,8 @@ NativePackagerKeys.bashScriptExtraDefines += """# Added by build.sbt
     |yobi_log_config_file="$YOBI_HOME"/conf/application-logger.xml
     |[ -f "$yobi_config_file" ] && addJava "-Dconfig.file=$yobi_config_file"
     |[ -f "$yobi_log_config_file" ] && addJava "-Dlogger.file=$yobi_log_config_file"
+    |
+    |addJava "-DapplyEvolutions.default=true"
     |""".stripMargin
 
 lazy val yobi = (project in file("."))
