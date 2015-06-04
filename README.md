@@ -116,7 +116,7 @@ Required files will be download automatically. In the first time, it may take ab
 
 #### Type start command in console
 
-    start -DapplyEvolutions.default=true -Dhttp.port=9000
+    start
 
 It will downloaded addtional files and compile sources.
 
@@ -126,9 +126,7 @@ If you want to run Yobi in development mode, use **run**. You can see more detai
 
     http://127.0.0.1:9000
 
-If you want to change port, check your permission to use 80 port
-
-See [http://www.playframework.com/documentation/2.3.6/Production](http://www.playframework.com/documentation/2.3.6/Production)
+If you want to change port, check your permission to use 80 port. See 'Options' section for more information.
 
 #### Upgrade Yobi
 
@@ -144,6 +142,8 @@ In installed directory, download latest release file and unzip it.
 	https://github.com/naver/yobi/archive/master.zip
 
 **Be careful! Don't overwrite or delete `yobi.h2.db` file, `repo` & `uploads` directory!**
+
+**If you are installing Yobi in Windows system, you may need set `applyEvolutions.default` Java property to true. See 'Options' section for more information**
 
 ### Options
 
@@ -163,6 +163,65 @@ the memory of your system equals to or greater than 4GB, we recommend to start
 Yobi as follows:
 
     _JAVA_OPTIONS="-Xmx2048m -Xms2048m" activator "start -DapplyEvolutions.default=true -Dhttp.port=9000"
+
+#### Linux and OSX
+
+When start yobi, you can specify the home directory to contain data, the
+database file and configiuration files for Yobi. For example, if you want to
+use `/home/user/.yobi` as the home directory, set YOBI_HOME as follows:
+
+    YOBI_HOME=/home/user/.yobi bin/yobi
+
+You can also specify Java options with `_JAVA_OPTIONS` environment variable. If
+the memory of your system equals to or greater than 4GB, we recommend to start
+Yobi as follows:
+
+    _JAVA_OPTIONS="-Xmx2048m -Xms2048m" bin/yobi
+
+Yobi use 9000 port for HTTP connection by default. If you want to use another
+port, set http.port Java property.
+
+    _JAVA_OPTIONS="-Dhttp.port=80" bin/yobi
+
+#### Windows
+
+When start yobi, you can specify the data directory, the config file, the
+config file for logger with yobi.home, config.file and logger.file as follows:
+
+    SET JAVA_OPTS=-Dyobi.home=/home/user/.yobi -Dconfig.file=/home/user/.yobi/conf/application.conf -Dlogger.file=/home/user/.yobi/conf/application-logger.xml
+    bin\yobi.bat
+
+You can specify the database file in `application.conf` as follows:
+
+    db.default.url="jdbc:h2:file:/home/nori/.yobi/yobi"
+
+You can also specify Java options with `_JAVA_OPTIONS` environment variable. If
+the memory of your system equals to or greater than 4GB, we recommend to start
+Yobi as follows:
+
+    SET JAVA_OPTS=-Xmx2048m -Xms2048m
+    bin\yobi.bat
+
+Yobi use 9000 port for HTTP connection by default. If you want to use another
+port, set http.port Java property.
+
+    _JAVA_OPTIONS=-Dhttp.port=80
+    bin\yobi.bat
+
+If you are upgrading Yobi from the previous version, the upgrade may fail with
+a warning message that says you need migration as follows:
+
+    [warn] play - Your production database [default] needs evolutions!
+
+In such case, set `applyEvolutions.default` Java property to true and restart
+Yobi.
+
+    SET JAVA_OPTS=-DapplyEvolutions.default=true
+    bin\yobi.bat
+
+#### For more information about options
+
+See [http://www.playframework.com/documentation/2.3.6/Production](http://www.playframework.com/documentation/2.3.6/Production).
 
 ### Backup
 
@@ -291,17 +350,20 @@ case2. 단순히 최신 안정버전을 내려받고자 할 때는 아래 링크
 
 #### 콘솔이 뜨면 start 명령어로 기동
 
-    start -DapplyEvolutions.default=true -Dhttp.port=9000
+    start
 
 추가로 필요한 파일들을 web에서 내려받은 다음 소스 파일들을 컴파일 후 운영 모드(production mode)로 실행합니다.
 개발 모드(development mode)로 실행하고자 할 경우에는 **start** 명령어 대신에 **run** 명령어로 실행합니다.
+
+**주의사항: 설정 파일 및 데이터가 기본적으로 target/universal/stage 디렉토리에
+저장됩니다. 이 디렉토리는 activator clean 실행시 모두 삭제되므로, 아래의 옵션
+설정방법을 보고 데이터가 저장될 디렉토리를 설정하시는 것이 좋습니다**
 
 #### 브라우저로 접속
 
     http://127.0.0.1:9000
 
-80 포트 등으로 포트를 변경하고 싶을 경우에는 해당 포트가 사용가능한지 확인 한 다음 80 포트를 사용할 수 있는 계정으로 실행합니다.
-관련해서는 [http://www.playframework.com/documentation/2.3.6/Production](http://www.playframework.com/documentation/2.3.6/Production) 부분을 확인해 주세요.
+80 포트 등으로 포트를 변경하고 싶을 경우에는 해당 포트가 사용가능한지 확인 한 다음 80 포트를 사용할 수 있는 계정으로 실행합니다. 포트 변경 방법에 대해서는 '옵션' 문단을 읽어주세요.
 
 #### 업그레이드 하기
 
@@ -318,24 +380,68 @@ case2. 압축파일을 내려받을 경우
 
 **주의사항! `yobi.h2.db` 파일, `repo`와 `uploads` 디렉터리를 삭제하거나 덮어쓰지 않도록 주의하세요!**
 
+**윈도에서 업그레이드하는 경우, -DapplyEvolutions.default=true 설정이 필요할
+수 있습니다. 자세한 것은 아래 옵션 설정 설명을 보세요**
+
 ### 옵션
 
-Yobi가 파일을 불러오고 저장할 홈 디렉토리를 `yobi.home` 속성을 통해 지정할
-수 있습니다. 예를 들어, /home/user/.yobi를 홈 디렉토리로 사용하려면 Yobi를
-시작할 때 다음과 같이 yobi.home 프로퍼티를 지정합니다.
+#### Linux, OSX의 경우
 
-    bin/yobi -Dyobi.home=/home/user/.yobi
+`YOBI_HOME` 속성을 통해 Yobi가 데이터, 데이터베이스, 설정파일을 불러오고 저장할
+홈 디렉토리를 지정할 수 있습니다. 예를 들어, /home/user/.yobi를 홈 디렉토리로
+사용하려면 Yobi를 시작할 때 다음과 같이 지정합니다.
 
-주의: 위와 같이 실행해도 설정 파일은 홈 디렉토리에서 불러오지 않습니다. 설정
-파일도 홈 디렉토리에서 불러오려면 다음과 같이 직접 설정 파일의 위치를
-지정합니다.
+    YOBI_HOME=/home/user/.yobi bin/yobi
 
-    bin/yobi -Dyobi.home=/home/user/.yobi -Dconfig.file=/home/user/.yobi/conf/application.conf -Dlogger.file=/home/user/.yobi/conf/application-logger.xml
-
-`_JAVA_OPTIONS` 환경변수를 이용해 자바 옵션을 지정할 수도 있습니다. 시스템
+`_JAVA_OPTIONS` 환경변수를 이용해 자바 환경 변수를 지정할 수도 있습니다. 시스템
 메모리가 4기가 이상이라면, 다음과 같은 옵션으로 실행하는걸 권장합니다.
 
-    _JAVA_OPTIONS="-Xmx2048m -Xms2048m" activator "start -DapplyEvolutions.default=true -Dhttp.port=9000"
+    _JAVA_OPTIONS="-Xmx2048m -Xms2048m" bin/yobi
+
+기본적으로 9000번 포트를 사용하지만, 다른 포트를 사용하고 싶다면 http.port 자바
+환경변수를 수정합니다.
+
+    _JAVA_OPTIONS="-Dhttp.port=80" bin/yobi
+
+#### Windows의 경우
+
+Yobi를 시작할 때, 데이터 디렉토리, 설정파일, 로그 설정파일의 위치를 각각
+yobi.home, config.file, logger.file 자바 프로퍼티로 지정할 수 있습니다.
+
+    SET JAVA_OPTS=-Dyobi.home=/home/user/.yobi -Dconfig.file=/home/user/.yobi/conf/application.conf -Dlogger.file=/home/user/.yobi/conf/application-logger.xml
+    bin\yobi.bat
+
+데이터베이스가 저장될 파일은 다음과 같이 application.conf 설정 파일에서 지정할
+수 있습니다.
+
+    db.default.url="jdbc:h2:file:/home/nori/.yobi/yobi"
+
+`_JAVA_OPTIONS` 환경변수를 이용해 자바 환경 변수를 지정할 수도 있습니다. 시스템
+메모리가 4기가 이상이라면, 다음과 같은 옵션으로 실행하는걸 권장합니다.
+
+    SET JAVA_OPTS=-Xmx2048m -Xms2048m
+    bin\yobi.bat
+
+기본적으로 9000번 포트를 사용하지만, 다른 포트를 사용하고 싶다면 http.port 자바
+환경변수를 수정합니다.
+
+    _JAVA_OPTIONS=-Dhttp.port=80
+    bin\yobi.bat
+
+업그레이드를 하는 경우 다음과 같이 데이터베이스 스키마 마이그레이션이
+필요하다는 경고 메시지와 함께 실행이 되지 않는 상황을 겪을 수 있습니다.
+
+    [warn] play - Your production database [default] needs evolutions!
+
+그런 경우에는 자동으로 마이그레이션이 되도록 다음과 같이
+applyEvolutions.default 자바 프로퍼티를 true로 설정합니다.
+
+    SET JAVA_OPTS=-DapplyEvolutions.default=true
+    bin\yobi.bat
+
+#### 옵션에 대한 더 자세한 설명
+
+[http://www.playframework.com/documentation/2.3.6/Production](http://www.playframework.com/documentation/2.3.6/Production) 부분을 확인해 주세요.
 
 ### 백업하기
 
