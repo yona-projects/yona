@@ -162,7 +162,7 @@ You can also specify Java options with `_JAVA_OPTIONS` environment variable. If
 the memory of your system equals to or greater than 4GB, we recommend to start
 Yobi as follows:
 
-    _JAVA_OPTIONS="-Xmx2048m -Xms1024m" activator "start -DapplyEvolutions.default=true -Dhttp.port=9000"
+    _JAVA_OPTIONS="-Xmx2048m -Xms2048m" activator "start -DapplyEvolutions.default=true -Dhttp.port=9000"
 
 ### Backup
 
@@ -335,7 +335,7 @@ Yobi가 파일을 불러오고 저장할 홈 디렉토리를 `yobi.home` 속성�
 `_JAVA_OPTIONS` 환경변수를 이용해 자바 옵션을 지정할 수도 있습니다. 시스템
 메모리가 4기가 이상이라면, 다음과 같은 옵션으로 실행하는걸 권장합니다.
 
-    _JAVA_OPTIONS="-Xmx2048m -Xms1024m" activator "start -DapplyEvolutions.default=true -Dhttp.port=9000"
+    _JAVA_OPTIONS="-Xmx2048m -Xms2048m" activator "start -DapplyEvolutions.default=true -Dhttp.port=9000"
 
 ### 백업하기
 
