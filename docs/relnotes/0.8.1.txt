@@ -1,0 +1,10 @@
+Yobi v0.8.1 Release Notes
+=========================
+
+Fixes since v0.8.1
+------------------
+
+* Text color was dimmed. (17fd679)
+* README: Fix the incorrect download link to Yobi. (d25914b)
+* application.allowsAnonymousAccess was duplicated in application.conf. (d046a60)
+* A lot of problems occurred when install and start Yobi. (37b97bb)
