@@ -1146,6 +1146,10 @@ public class ProjectApp extends Controller {
     @IsAllowed(Operation.UPDATE)
     public static Result webhooks(String ownerId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
+        if (project == null) {
+            // Return 404 Not Found if the project does not exist.
+            return notFound(ErrorViews.NotFound.render());
+        }
 
         return ok(views.html.project.webhooks.render(
                 "project.webhook",
@@ -1156,13 +1160,20 @@ public class ProjectApp extends Controller {
     @Transactional
     @IsAllowed(Operation.UPDATE)
     public static Result newWebhook(String ownerId, String projectName) {
-        Form<Webhook> addWebhookForm = form(Webhook.class).bindFromRequest();
-
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
+        if (project == null) {
+            // Return 404 Not Found if the project does not exist.
+            return notFound(ErrorViews.NotFound.render());
+        }
+
+        Form<Webhook> addWebhookForm = form(Webhook.class).bindFromRequest();
+        if (validateWebhookForm(addWebhookForm)) {
+            return badRequest(ErrorViews.BadRequest.render());
+        }
 
         Webhook.create(project.id,
-            addWebhookForm.field("payload_url").value(),
-            addWebhookForm.field("secret").value());
+                        addWebhookForm.field("payload_url").value(),
+                        addWebhookForm.field("secret").value());
 
         return redirect(routes.ProjectApp.webhooks(ownerId, projectName));
     }
@@ -1177,6 +1188,26 @@ public class ProjectApp extends Controller {
         } else {
             notFound(ErrorViews.NotFound.render("error.notfound"));
         }
+    }
+
+    private static boolean validateWebhookForm (Form<Webhook> addWebhookForm) {
+        String payloadUrl = addWebhookForm.field("payload_url").value(),
+                secretToken = addWebhookForm.field("secret").value();
+
+        if (payloadUrl.length() > 2000) {
+            Logger.warn("payload");
+            addWebhookForm.errors().remove("payload_url");
+            addWebhookForm.reject("payload_url", "project.webhook.payloadUrl.tooLong");
+            return true;
+        }
+        if (secretToken.length() > 250) {
+            Logger.warn("secret");
+            addWebhookForm.errors().remove("secret");
+            addWebhookForm.reject("secret", "project.webhook.secret.tooLong");
+            return true;
+        }
+
+        return false;
     }
 
     @Transactional

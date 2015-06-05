@@ -3,7 +3,7 @@
 create table webhook (
   id                        bigint not null,
   project_id                bigint not null,
-  payload_url               varchar(4000) not null,
+  payload_url               varchar(2048) not null,
   secret                    varchar(256),
   created_at                timestamp,
   constraint pk_webhook primary key (id))
