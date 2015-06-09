@@ -36,6 +36,7 @@ import play.libs.Json;
 import play.libs.ws.*;
 import play.libs.F.Function;
 import play.libs.F.Promise;
+import play.Logger;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
@@ -154,8 +155,20 @@ public class Webhook extends Model implements ResourceConvertible {
         requestHolder
                 .setHeader("Content-Type", "application/json")
                 .setHeader("User-Agent", "Yobi-Hookshot")
-                .post(requestBodyString);
-        // TODO: Handle response
+                .post(requestBodyString)
+                .map(
+                    new Function<WSResponse, Integer>() {
+                        public Integer apply(WSResponse response) {
+                            int statusCode = response.getStatus();
+                            String statusText = response.getStatusText();
+                            if (statusCode < 200 || statusCode >= 300) {
+                                // Unsuccessful status code - log error.
+                                Logger.warn("[Webhook] Request responded code " + Integer.toString(statusCode) + ": " + statusText);
+                            }
+                            return 0;
+                        }
+                    }
+                );
     }
 
     private String buildRequestBody(String[] eventTypes) {
