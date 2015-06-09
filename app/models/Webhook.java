@@ -38,6 +38,7 @@ import play.libs.F.Function;
 import play.libs.F.Promise;
 
 import javax.persistence.*;
+import javax.validation.constraints.Size;
 import java.util.Set;
 import java.util.List;
 import java.util.Date;
@@ -62,7 +63,6 @@ public class Webhook extends Model implements ResourceConvertible {
     /**
      * Project which have this webhook.
      */
-    @Required
     @ManyToOne
     public Project project;
 
@@ -70,17 +70,18 @@ public class Webhook extends Model implements ResourceConvertible {
      * Payload URL of webhook.
      */
     @Required
+    @Size(max=2000, message="project.webhook.payloadUrl.tooLong")
     public String payloadUrl;
 
     /**
      * Secret token for server identity.
      */
+    @Size(max=250, message="project.webhook.secret.tooLong")
     public String secret;
 
     /**
      * Payload URL of webhook.
      */
-    @Required
     public Date createdAt;
 
     /**
@@ -151,9 +152,9 @@ public class Webhook extends Model implements ResourceConvertible {
 
         WSRequestHolder requestHolder = WS.url(this.payloadUrl);
         requestHolder
-            .setHeader("Content-Type", "application/json")
-            .setHeader("User-Agent", "Yobi-Hookshot")
-            .post(requestBodyString);
+                .setHeader("Content-Type", "application/json")
+                .setHeader("User-Agent", "Yobi-Hookshot")
+                .post(requestBodyString);
         // TODO: Handle response
     }
 

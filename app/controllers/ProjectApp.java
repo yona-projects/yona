@@ -1163,19 +1163,22 @@ public class ProjectApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
         if (project == null) {
             // Return 404 Not Found if the project does not exist.
-            return notFound(ErrorViews.NotFound.render());
+            return notFound();
         }
 
         Form<Webhook> addWebhookForm = form(Webhook.class).bindFromRequest();
-        if (validateWebhookForm(addWebhookForm)) {
-            return badRequest(ErrorViews.BadRequest.render());
+        if (addWebhookForm == null) {
+            Logger.warn("Failed creating webhook: got null form from newWebhook request");
+            return badRequest();
+        } else if (addWebhookForm.hasErrors()) {
+            return badRequest(addWebhookForm.errorsAsJson());
         }
 
         Webhook.create(project.id,
-                        addWebhookForm.field("payload_url").value(),
+                        addWebhookForm.field("payloadUrl").value(),
                         addWebhookForm.field("secret").value());
 
-        return redirect(routes.ProjectApp.webhooks(ownerId, projectName));
+        return created();
     }
 
     @Transactional
@@ -1186,28 +1189,8 @@ public class ProjectApp extends Controller {
             webhook.delete();
             return ok();
         } else {
-            notFound(ErrorViews.NotFound.render("error.notfound"));
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
-    }
-
-    private static boolean validateWebhookForm (Form<Webhook> addWebhookForm) {
-        String payloadUrl = addWebhookForm.field("payload_url").value(),
-                secretToken = addWebhookForm.field("secret").value();
-
-        if (payloadUrl.length() > 2000) {
-            Logger.warn("payload");
-            addWebhookForm.errors().remove("payload_url");
-            addWebhookForm.reject("payload_url", "project.webhook.payloadUrl.tooLong");
-            return true;
-        }
-        if (secretToken.length() > 250) {
-            Logger.warn("secret");
-            addWebhookForm.errors().remove("secret");
-            addWebhookForm.reject("secret", "project.webhook.secret.tooLong");
-            return true;
-        }
-
-        return false;
     }
 
     @Transactional

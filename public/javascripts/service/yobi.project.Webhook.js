@@ -24,6 +24,7 @@
     var oNS = $yobi.createNamespace(ns);
     oNS.container[oNS.name] = function(options){
 
+        var vars = {};
         var elements = {};
 
         /**
@@ -32,7 +33,8 @@
          * @private
          */
         function _init(options){
-            _initElement();
+            _initElement(options);
+            _initVar(options);
             _attachEvent();
         }
 
@@ -41,8 +43,21 @@
          * @param options
          * @private
          */
-        function _initElement(){
+        function _initElement(options){
+            elements.form = $(options.form);
             elements.webhookListWrap = $(".webhook-list-wrap");
+            elements.payloadUrl = elements.form.find('input[name="payloadUrl"]');
+            elements.secret = elements.form.find('input[name="secret"]');
+        }
+
+        /**
+         * Initialize variables
+         *
+         * @param options
+         * @private
+         */
+        function _initVar(options) {
+            vars.actionURL = elements.form.prop("action");
         }
 
         /**
@@ -50,7 +65,81 @@
          * @private
          */
         function _attachEvent(){
+            elements.form.on("submit", _onSubmitForm);
             elements.webhookListWrap.on("click", "[data-delete-uri]", _onClickBtnDeleteWebhook);
+        }
+
+        /**
+         * "submit" event handler of form
+         * After Validate form before submit, send request via $.ajax
+         *
+         * @returns {boolean}
+         * @private
+         */
+        function _onSubmitForm() {
+            if (!_isFormValid()) {
+                return false;
+            }
+
+            // Send request to add webhook.
+            _requestAddWebhook({
+                "payloadUrl" : elements.payloadUrl.val(),
+                "secret"     : elements.secret.val()
+            });
+
+            return false;
+        }
+
+        /**
+         * Returns whether is form valid
+         * and shows error if invalid.
+         *
+         * @returns {boolean}
+         * @private
+         */
+        function _isFormValid(){
+            if (elements.payloadUrl.val().length === 0) {
+                $yobi.alert(Messages("project.webhook.payloadUrl.empty"));
+                return false;
+            }
+
+            return true;
+        }
+
+        /**
+         * Send request to add webhook with given data
+         * called from _onSubmitForm.
+         *
+         * @param requestData
+         * @private
+         */
+        function _requestAddWebhook(requestData){
+            $.ajax(vars.actionURL, {
+                "method": "post",
+                "data"  : requestData
+            })
+            .done(function(res){
+                if (res instanceof Object){
+                    document.location.reload(true);
+                    return;
+                }
+
+                $yobi.alert(Messages("project.webhook.error.creationFailed"));
+            })
+            .fail(function(res) {
+                try {
+                    var error = JSON.parse(res.responseText);
+                    var errorText = Messages("project.webhook.failedTo", Messages("project.webhook.new"));
+
+                    for (var key in error) {
+                        errorText += "\n" + error[key];
+                    }
+
+                    $yobi.alert(errorText);
+                } catch(e) {
+                    $yobi.alert(Messages("error.failedTo", Messages("project.webhook.new"), res.status, res.statusText));
+                }
+            });
         }
 
         /**
