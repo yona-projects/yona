@@ -29,6 +29,7 @@ import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
 import models.resource.GlobalResource;
 import models.resource.Resource;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
@@ -43,6 +44,7 @@ import utils.FileUtil;
 import utils.JodaDateUtil;
 import validation.ExConstraints;
 
+import javax.annotation.Nonnull;
 import javax.persistence.*;
 import javax.servlet.ServletException;
 import java.io.IOException;
@@ -134,6 +136,10 @@ public class Project extends Model implements LabelOwner {
 
     @OneToOne(mappedBy = "project", cascade = CascadeType.ALL)
     public ProjectMenuSetting menuSetting;
+
+    private String previousOwnerLoginId;
+    private String previousName;
+    private Long previousNameChangedTime;
 
     /**
      * @see {@link User#SITE_MANAGER_ID}
@@ -581,6 +587,27 @@ public class Project extends Model implements LabelOwner {
         return menuSetting == null || menuSetting.code;
     }
 
+    /**
+     * When a project is renamed or transferred, record it's previous location and change time
+     *
+     * @param project
+     */
+    public void recordRenameOrTransferHistoryIfLastChangePassed24HoursFrom(@Nonnull Project project) {
+        if(isRenamedOrTransferredIn24Hours(project)) {
+            this.previousNameChangedTime = DateTime.now().getMillis();
+            this.previousName = project.name;
+            this.previousOwnerLoginId = project.owner;
+        }
+    }
+
+    private static boolean isRenamedOrTransferredIn24Hours(@Nonnull Project project) {
+        return project.previousNameChangedTime == null || hasPassed24hoursFrom(project.previousNameChangedTime);
+    }
+
+    private static boolean hasPassed24hoursFrom(Long time) {
+        return new Duration(DateTime.now().getMillis() - time).getStandardHours() > 24;
+    }
+
     public enum State {
         PUBLIC, PRIVATE, ALL
     }
@@ -785,6 +812,51 @@ public class Project extends Model implements LabelOwner {
             return RepositoryService.VCS_SUBVERSION;
         } else {
             return RepositoryService.VCS_GIT;
+        }
+    }
+
+    /**
+     * Find project with previous owner and previous project name
+     *
+     * when to use:
+     *  When specific project can't be found.
+     *
+     *  In some cases, it is reasonable to assume that project was moved or transferred.
+     *  In that case, try this method.
+     *
+     *  This method is intended to be used at controllers.
+     *
+     * @param previousOwnerLoginid
+     * @param previousName
+     * @return
+     */
+
+    public static Project findByPreviousPlaceOf(String previousOwnerLoginid, String previousName) {
+        List<Project> projects = find.where().ieq("previousOwnerLoginId", previousOwnerLoginid).ieq("previousName", previousName)
+            .setOrderBy("previousNameChangedTime desc").findList();
+        if(CollectionUtils.isEmpty(projects)){
+            return null;
+        }
+        return projects.get(0);  // Choose latest
+    }
+
+    public boolean hasOldPlace(){
+        if(StringUtils.isBlank(this.previousName)){
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    public String getOldPlace(){
+        if(this.previousOwnerLoginId == null){
+            return "";
+        }
+
+        if(hasOldPlace()){
+            return this.previousOwnerLoginId + "/" + this.previousName;
+        } else {
+            return "";
         }
     }
 }

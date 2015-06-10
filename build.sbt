@@ -3,7 +3,7 @@ import java.nio.file.Paths
 
 name := """yobi"""
 
-version := "0.8.0"
+version := "0.9.0-SNAPSHOT"
 
 libraryDependencies ++= Seq(
   // Add your project dependencies here,
@@ -76,13 +76,16 @@ mappings in Universal :=
     (mappings in Universal).value.filterNot { case (_, file) => file.startsWith("conf/") }
 
 NativePackagerKeys.bashScriptExtraDefines += """# Added by build.sbt
-    |YOBI_HOME=$(cd "$(realpath "$(dirname "$(realpath "$0")")")/.."; pwd -P)
+    |[ -n "$YOBI_HOME" ] && addJava "-Duser.dir=$YOBI_HOME"
+    |[ -z "$YOBI_HOME" ] && YOBI_HOME=$(cd "$(realpath "$(dirname "$(realpath "$0")")")/.."; pwd -P)
     |addJava "-Dyobi.home=$YOBI_HOME"
     |
     |yobi_config_file="$YOBI_HOME"/conf/application.conf
     |yobi_log_config_file="$YOBI_HOME"/conf/application-logger.xml
     |[ -f "$yobi_config_file" ] && addJava "-Dconfig.file=$yobi_config_file"
     |[ -f "$yobi_log_config_file" ] && addJava "-Dlogger.file=$yobi_log_config_file"
+    |
+    |addJava "-DapplyEvolutions.default=true"
     |""".stripMargin
 
 lazy val yobi = (project in file("."))

@@ -41,6 +41,12 @@
     CommentThread.countReviewsBy(project.id, null)
 }
 
+@countingBadge(counting:Integer) = @{
+    if(counting != null && counting > 0){
+        Html("<span class=\"project-menu-count\">" + counting + "</span>")
+    }
+}
+
 <div class="project-menu-outer">
     <div class="project-menu-inner">
         <ul class="project-menu-nav project-menu-gruop">
@@ -59,10 +65,7 @@
             @if(project.menuSetting.issue) {
                 <li class="@isActiveMenu(MenuType.ISSUE)">
                     <a href="@routes.IssueApp.issues(project.owner, project.name, "open")">
-                        @Messages("menu.issue")
-                        @if(Issue.countIssues(project.id, State.OPEN) > 0){
-                        <span class="project-menu-count">@Issue.countIssues(project.id, State.OPEN)</span>
-                        }
+                        @Messages("menu.issue") @countingBadge(Issue.countIssues(project.id, State.OPEN))
                     </a>
                 </li>
             }
@@ -70,10 +73,7 @@
                 @if(project.vcs.equals("GIT")){
                     <li class="@isActiveMenu(MenuType.PULL_REQUEST)">
                     <a href="@getPullRequestURL(project)">
-                        @Messages("menu.pullRequest")
-                        @if(PullRequest.countOpenedPullRequests(project) > 0){
-                        <span class="project-menu-count">@PullRequest.countOpenedPullRequests(project)</span>
-                        }
+                        @Messages("menu.pullRequest") @countingBadge(PullRequest.countOpenedPullRequests(project))
                     </a>
                 </li>
                 }
@@ -81,8 +81,7 @@
             @if(project.menuSetting.review) {
                 <li class="@isActiveMenu(MenuType.PROJECT_REVIEW)">
                     <a href="@routes.ReviewThreadApp.reviewThreads(project.owner, project.name)">
-                        @Messages("menu.review")
-                        @if(reviewCount > 0){<span class="project-menu-count">@reviewCount</span>}
+                        @Messages("menu.review") @countingBadge(reviewCount)
                     </a>
                 </li>
             }
@@ -111,9 +110,7 @@
                     <a href="@routes.ProjectApp.settingForm(project.owner, project.name)">
                         <i class="yobicon-cog"></i>
                         <span class="blind">@Messages("menu.admin")</span>
-                        @if(project.enrolledUsers.size > 0){
-                        <span class="project-menu-count">@project.enrolledUsers.size</span>
-                        }
+                        @countingBadge(project.enrolledUsers.size)
                     </a>
                 <li>
             </ul>

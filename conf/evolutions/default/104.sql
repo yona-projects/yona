@@ -1,19 +1,15 @@
 # --- !Ups
 
-create table webhook (
-  id                        bigint not null,
-  project_id                bigint not null,
-  payload_url               varchar(2048) not null,
-  secret                    varchar(256),
-  created_at                timestamp,
-  constraint pk_webhook primary key (id))
-;
+ALTER TABLE PROJECT ADD previous_name VARCHAR(255);
+ALTER TABLE PROJECT ADD previous_owner_login_id VARCHAR(255);
+ALTER TABLE PROJECT ADD previous_name_changed_time BIGINT;
 
-create sequence webhook_seq;
-alter table webhook add constraint fk_project_webhook foreign key (project_id) references project (id) on delete restrict on update restrict;
+CREATE INDEX ix_project_previous_01 ON project(previous_owner_login_id, previous_name);
 
 # --- !Downs
 
-drop table if exists webhook;
+DROP INDEX IF EXISTS ix_project_previous_01;
 
-drop sequence if exists webhook_seq;
+ALTER TABLE project DROP COLUMN IF EXISTS previous_name;
+ALTER TABLE project DROP COLUMN IF EXISTS previous_owner_login_id;
+ALTER TABLE project DROP COLUMN IF EXISTS previous_name_changed_time;

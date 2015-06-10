@@ -15,7 +15,7 @@
 * Using issues
 * Using milestones
 
-### Account
+### Accounts
 * Signing up
 * Changing account information
 
@@ -27,6 +27,9 @@
 * Receiving notifications
 * Setting notifications
 
-### Project Setting
+### Project Settings
 * Setting projects
 * Deleting projects
+
+### Groups
+* Creating and setting groups

@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import play.mvc.Http;
 
 import javax.annotation.Nonnull;
+import java.util.Arrays;
 
 /**
  * Parse URLs related with Project.
@@ -71,4 +72,11 @@ public class PathParser {
         return DELIM + StringUtils.join(this.pathSegments, DELIM);
     }
 
+    public String restOfPathExceptOwnerAndProjectName() {
+        if(pathSegments != null && pathSegments.length > 2){
+            return StringUtils.join(Arrays.copyOfRange(pathSegments, 2, pathSegments.length), "/");
+        } else {
+            return "";
+        }
+    }
 }

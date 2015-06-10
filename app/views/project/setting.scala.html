@@ -24,6 +24,12 @@
 @import utils.TemplateHelper._
 @import utils.TemplateHelper.Branches._
 
+@oldPlace() = @{
+    if(project.hasOldPlace){
+        Html("<div>" + Messages("project.previous.place", " <span style='color: red'>" + project.getOldPlace + "</span></div>"))
+    }
+}
+
 @projectLayout(message, project, utils.MenuType.PROJECT_SETTING) {
 @projectMenu(project, utils.MenuType.PROJECT_SETTING, "")
 <div class="page-wrap-outer">
@@ -58,7 +64,8 @@
                             <label for="project-name">@Messages("project.name.placeholder")</label>
                         </dt>
                         <dd>
-                            <input id="project-name" type="text" name="name" maxlength="250" value="@project.name">
+                            <input id="project-name" type="text" name="name" data-trigger="popover" data-content='@Messages("project.transfer.description6")' data-placement="left" data-trigger="focus" maxlength="250" value="@project.name">
+                            @oldPlace()<br/>
                         </dd>
                         <dt>
                             <label for="project-desc">@Messages("project.description.placeholder")</label>
@@ -168,6 +175,8 @@
 <script type="text/javascript">
     $(document).ready(function(){
         $yobi.loadModule("project.Setting");
+
+        $("#project-name").popover();
     });
 </script>
 
