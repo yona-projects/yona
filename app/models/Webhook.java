@@ -151,24 +151,29 @@ public class Webhook extends Model implements ResourceConvertible {
     public void sendRequestToPayloadUrl(String[] eventTypes) {
         String requestBodyString = buildRequestBody(eventTypes);
 
-        WSRequestHolder requestHolder = WS.url(this.payloadUrl);
-        requestHolder
-                .setHeader("Content-Type", "application/json")
-                .setHeader("User-Agent", "Yobi-Hookshot")
-                .post(requestBodyString)
-                .map(
-                    new Function<WSResponse, Integer>() {
-                        public Integer apply(WSResponse response) {
-                            int statusCode = response.getStatus();
-                            String statusText = response.getStatusText();
-                            if (statusCode < 200 || statusCode >= 300) {
-                                // Unsuccessful status code - log error.
-                                Logger.warn("[Webhook] Request responded code " + Integer.toString(statusCode) + ": " + statusText);
+        try {
+            WSRequestHolder requestHolder = WS.url(this.payloadUrl);
+            requestHolder
+                    .setHeader("Content-Type", "application/json")
+                    .setHeader("User-Agent", "Yobi-Hookshot")
+                    .post(requestBodyString)
+                    .map(
+                            new Function<WSResponse, Integer>() {
+                                public Integer apply(WSResponse response) {
+                                    int statusCode = response.getStatus();
+                                    String statusText = response.getStatusText();
+                                    if (statusCode < 200 || statusCode >= 300) {
+                                        // Unsuccessful status code - log some information in server.
+                                        Logger.info("[Webhook] Request responded code " + Integer.toString(statusCode) + ": " + statusText);
+                                    }
+                                    return 0;
+                                }
                             }
-                            return 0;
-                        }
-                    }
-                );
+                    );
+        } catch (Exception e) {
+            // Request failed (Dead end point or invalid payload URL) - log some information in server.
+            Logger.info("[Webhook] Request failed at given payload URL: " + this.payloadUrl);
+        }
     }
 
     private String buildRequestBody(String[] eventTypes) {
