@@ -67,6 +67,8 @@
         function _attachEvent(){
             elements.form.on("submit", _onSubmitForm);
             elements.webhookListWrap.on("click", "[data-delete-uri]", _onClickBtnDeleteWebhook);
+            elements.payloadUrl.on("keypress", _SubmitFormWhenEnterKeyPressed);
+            elements.secret.on("keypress", _SubmitFormWhenEnterKeyPressed);
         }
 
         /**
@@ -152,6 +154,21 @@
         function _onClickBtnDeleteWebhook(evt){
             // TODO: Decide whether to show confirm modal or not
             _requestRemoveWebhook(evt.target);
+        }
+
+        /**
+         * Submit form when enter(but not with ctrl) pressed.
+         * @private
+         */
+        function _SubmitFormWhenEnterKeyPressed(evt) {
+            var keyCode = (evt.keyCode) ? evt.keyCode : evt.which;
+
+            if (keyCode == 13) {
+                // Enter key pressed - Ignore ctrl+enter. (will be invoked from default Yobi shortcut)
+                evt.preventDefault();
+                !(evt.metaKey || evt.ctrlKey) && _onSubmitForm();
+                return false;
+            }
         }
 
         /**
