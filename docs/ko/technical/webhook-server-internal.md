@@ -32,34 +32,64 @@ Yobi의 웹후크 기능은 프로젝트 내의 특정 이벤트(푸시, 코드 
 웹후크 작동
 --------
 
-등록된 웹후크는 웹후크가 등록된 프로젝트에서 특정 이벤트가 발생했을때 작동한다.
+등록된 웹후크는 웹후크가 등록된 프로젝트에서 특정 이벤트가 발생했을때 작동한다. 현재는 push event에 대해서만 구현이 되어 있다.
 
-프로젝트 내에서 발생하는 이벤트에 따른 웹후크의 작동 명세는 `app.playRepository.hooks.RequestByWebhooks`에 정의되어 있다. 현재는 해당 hook이 `app.playRepository.RepositoryService.PostReceiveHook`에 등록이 되어있어 push 이벤트에 대해 반응을 하며, 향후 이벤트의 종류를 확장할 시 이와 같이 `RequestByWebhooks`을 필요한 이벤트에 걸어줌으로서 알맞게 대응할 수 있다.
+Push event가 발생하면 Yobi는 `playRepository.RepositoryService.PostReceiveHook`을 동작하여 사전에 정의된 hook들을 실행한다. 이때 `actors.CommitsNotificationActor`를 통해 `model.NotificationEvent.afterNewCommits`가 호출되며, 이곳에서 Yobi는 Project에 걸려 있는 webhook들을 iterate하며 해당하는 payload URL들에 POST 요청을 전송한다. 향후 이벤트의 종류를 확장할 시 이와 같이 `playRepository.RepositoryService`의 알맞은 곳에 이벤트가 invoke되도록 정의를 해줌으로서 적절하게 대응할 수 있다.
 
 웹후크가 작동할 시, 서버는 웹후크에 등록된 Payload URL로 HTTP POST 요청을 전송한다. 요청을 보낼 시 payload에는 웹후크 이벤트의 정보가 담긴 JSON object가 포함된다. 전송되는 JSON object의 예시는 아래와 같다.
 ```
 {
-    "hook_id":41,
-    "hook":{
-        "id":41,
-        "name":"web",
-        "active":true,
-        "events":[
-            "push"
-        ],
-        "config":{
-            "url":"http://your.url/for/webhook",
-            "content_type":"json",
-            "secret":"your-webhook-token"
+    "ref":[
+        "refs/heads/master"
+    ],
+    "commits":[
+        {
+            "id":"c2f9f27ea16004020d1f4e846217c2825d217a12",
+            "message":"test\n",
+            "timestamp":"2015-06-12T04:41:21+0900",
+            "url":"http://localhost:9000/dddeeee/commit/c2f9f27ea16004020d1f4e846217c2825d217a12",
+            "author":{
+                "name":"hello",
+                "email":"hello@hello.com"
+            },
+            "committer":{
+                "name":"hello",
+                "email":"hello@hello.com"
+            }
+        }
+    ],
+    "head_commit":{
+        "id":"c2f9f27ea16004020d1f4e846217c2825d217a12",
+        "message":"test\n",
+        "timestamp":"2015-06-12T04:41:21+0900",
+        "url":"http://localhost:9000/dddeeee/commit/c2f9f27ea16004020d1f4e846217c2825d217a12",
+        "author":{
+            "name":"hello",
+            "email":"hello@hello.com"
         },
-        "created_at":"2015-06-05T12:42:43Z"
+        "committer":{
+            "name":"hello",
+            "email":"hello@hello.com"
+        }
+    },
+    "sender":{
+        "login":"hello",
+        "id":2,
+        "avatar_url":"/assets/images/default-avatar-128.png",
+        "type":"User",
+        "site_admin":false
+    },
+    "pusher":{
+        "name":"hello",
+        "email":"hello@hello.com"
     },
     "repository":{
         "id":33,
-        "name":"your-project",
-        "owner":"your-user-name",
-        "html_url":"http://url-of.yobi:9000/project-name",
-        "overview":"project-overview"
+        "name":"dddeeee",
+        "owner":"hello",
+        "html_url":"/hello/dddeeee",
+        "overview":"eee",
+        "private":false
     }
 }
 ```
