@@ -46,6 +46,11 @@ import java.util.Date;
 import java.lang.Object;
 import java.text.SimpleDateFormat;
 
+import playRepository.GitCommit;
+import org.eclipse.jgit.revwalk.RevCommit;
+
+import utils.RouteUtil;
+
 /**
  * A webhook to be sent by events in project
  */
@@ -148,8 +153,8 @@ public class Webhook extends Model implements ResourceConvertible {
                 .findUnique();
     }
     
-    public void sendRequestToPayloadUrl(String[] eventTypes) {
-        String requestBodyString = buildRequestBody(eventTypes);
+    public void sendRequestToPayloadUrl(String[] eventTypes, List<RevCommit> commits, List<String> refNames, User sender, String title) {
+        String requestBodyString = buildRequestBody(eventTypes, commits, refNames, sender, title);
 
         try {
             WSRequestHolder requestHolder = WS.url(this.payloadUrl);
@@ -176,42 +181,74 @@ public class Webhook extends Model implements ResourceConvertible {
         }
     }
 
-    private String buildRequestBody(String[] eventTypes) {
+    private String buildRequestBody(String[] eventTypes, List<RevCommit> commits, List<String> refNames, User sender, String title) {
         ObjectNode requestBody = Json.newObject();
-        ObjectNode configJSON = Json.newObject();
-        ObjectNode hookInfoJSON = Json.newObject();
+        ObjectNode senderJSON = Json.newObject();
+        ObjectNode pusherJSON = Json.newObject();
         ObjectNode repositoryJSON = Json.newObject();
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode eventTypesArray = mapper.createArrayNode();
+        ArrayNode refNamesArray = mapper.createArrayNode();
+        ArrayNode commitsArray = mapper.createArrayNode();
 
-        requestBody.put("hook_id", this.id);
-
-        configJSON.put("url", this.payloadUrl);
-        configJSON.put("content_type", "json");
-        configJSON.put("secret", this.secret);
-
-        hookInfoJSON.put("id", this.id);
-        hookInfoJSON.put("name", "web");
-        hookInfoJSON.put("active", true);
-        for (String eventType : eventTypes) {
-            eventTypesArray.add(eventType);
+        for (String refName : refNames) {
+            refNamesArray.add(refName);
         }
-        hookInfoJSON.put("events", eventTypesArray);
-        hookInfoJSON.put("config", configJSON);
-        hookInfoJSON.put("created_at", new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss'Z'").format(this.createdAt));
-        // TODO: put updated_at property when we support editing webhook.
+        requestBody.put("ref", refNamesArray);
 
-        requestBody.put("hook", hookInfoJSON);
+        for (RevCommit commit : commits) {
+            commitsArray.add(buildJSONFromCommit(project, commit));
+        }
+        requestBody.put("commits", commitsArray);
+        requestBody.put("head_commit", commitsArray.get(0));
+
+        senderJSON.put("login", sender.loginId);
+        senderJSON.put("id", sender.id);
+        senderJSON.put("avatar_url", sender.avatarUrl());
+        senderJSON.put("type", "User");
+        senderJSON.put("site_admin", sender.isSiteManager());
+        requestBody.put("sender", senderJSON);
+
+        pusherJSON.put("name", sender.name);
+        pusherJSON.put("email", sender.email);
+        requestBody.put("pusher", pusherJSON);
 
         repositoryJSON.put("id", project.id);
         repositoryJSON.put("name", project.name);
         repositoryJSON.put("owner", project.owner);
-        repositoryJSON.put("html_url", project.siteurl);
-        repositoryJSON.put("overview", project.overview);
-
+        repositoryJSON.put("html_url", RouteUtil.getUrl(project));
+        repositoryJSON.put("overview", project.overview);   // Description.
+        repositoryJSON.put("private", project.isPrivate());
         requestBody.put("repository", repositoryJSON);
 
         return Json.stringify(requestBody);
+    }
+
+    private ObjectNode buildJSONFromCommit(Project project, RevCommit commit) {
+        GitCommit gitCommit = new GitCommit(commit);
+        ObjectNode commitJSON = Json.newObject();
+        ObjectNode authorJSON = Json.newObject();
+        ObjectNode committerJSON = Json.newObject();
+
+        commitJSON.put("id", gitCommit.getFullId());
+        commitJSON.put("message", gitCommit.getMessage());
+        commitJSON.put("timestamp",
+                new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssZ").
+                        format(new Date(gitCommit.getCommitTime() * 1000L)));
+        commitJSON.put("url", project.siteurl+"/commit/"+gitCommit.getFullId());
+
+        authorJSON.put("name", gitCommit.getAuthorName());
+        authorJSON.put("email", gitCommit.getAuthorEmail());
+        committerJSON.put("name", gitCommit.getCommitterName());
+        committerJSON.put("email", gitCommit.getCommitterEmail());
+        // TODO : Add 'username' property (howto?)
+
+        commitJSON.put("author", authorJSON);
+        commitJSON.put("committer", committerJSON);
+
+        // TODO : Add added, removed, modified file list (not supported by JGit?)
+
+        return commitJSON;
     }
 
     /**

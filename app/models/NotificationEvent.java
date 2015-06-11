@@ -28,6 +28,7 @@ import models.enumeration.*;
 import models.resource.GlobalResource;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
+import models.Webhook;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang3.StringUtils;
@@ -863,6 +864,13 @@ public class NotificationEvent extends Model implements INotificationEvent {
         notiEvent.resourceType = project.asResource().getType();
         notiEvent.resourceId = project.asResource().getId();
         NotificationEvent.add(notiEvent);
+
+        List<Webhook> webhookList = Webhook.findByProject(project.id);
+        for (Webhook webhook : webhookList) {
+            // Send push event via webhook payload URLs.
+            String[] eventTypes = {"push"};
+            webhook.sendRequestToPayloadUrl(eventTypes, commits, refNames, sender, title);
+        }
     }
 
     public static NotificationEvent afterReviewed(PullRequest pullRequest, PullRequestReviewAction reviewAction) {

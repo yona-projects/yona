@@ -271,7 +271,6 @@ public class RepositoryService {
         hooks.add(new IssueReferredFromCommitEvent(project, currentUser));
         hooks.add(new PullRequestCheck(currentUser, request, project));
         hooks.add(new NotifyPushedCommits(project, currentUser));
-        hooks.add(new RequestByWebhooks(project, currentUser));
         return PostReceiveHookChain.newChain(hooks);
     }
 
