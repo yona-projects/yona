@@ -54,11 +54,8 @@
               </span>
             </td>
             <td class="actions">
-              <button type="button"
-                class="ybtn ybtn-danger ybtn-small"
-                data-webhook-id="@webhook.id"
-                data-delete-uri="@routes.ProjectApp.deleteWebhook(project.owner, project.name, webhook.id)">
-                  @Messages("button.delete")
+              <button type="button" class="ybtn ybtn-danger ybtn-small" data-request-method="delete" data-request-uri="@routes.ProjectApp.deleteWebhook(project.owner, project.name, webhook.id)">
+                @Messages("button.delete")
               </button>
             </td>
           </tr>

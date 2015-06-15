@@ -1150,7 +1150,7 @@ public class ProjectApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
         if (project == null) {
             // Return 404 Not Found if the project does not exist.
-            return notFound(ErrorViews.NotFound.render());
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
         return ok(views.html.project.webhooks.render(
@@ -1165,7 +1165,7 @@ public class ProjectApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
         if (project == null) {
             // Return 404 Not Found if the project does not exist.
-            return notFound();
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
         Form<Webhook> addWebhookForm = form(Webhook.class).bindFromRequest();
@@ -1173,14 +1173,14 @@ public class ProjectApp extends Controller {
             Logger.warn("Failed creating webhook: got null form from newWebhook request");
             return badRequest();
         } else if (addWebhookForm.hasErrors()) {
-            return badRequest(addWebhookForm.errorsAsJson());
+            return badRequest(ErrorViews.BadRequest.render());
         }
 
         Webhook.create(project.id,
                         addWebhookForm.field("payloadUrl").value(),
                         addWebhookForm.field("secret").value());
 
-        return created();
+        return redirect(routes.ProjectApp.webhooks(project.owner, project.name));
     }
 
     @Transactional
