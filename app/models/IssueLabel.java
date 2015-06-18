@@ -82,7 +82,6 @@ public class IssueLabel extends Model implements ResourceConvertible {
                 .eq("project.id", project.id)
                 .eq("category", category)
                 .eq("name", name)
-                .eq("color", color)
                 .findRowCount() > 0;
     }
 
