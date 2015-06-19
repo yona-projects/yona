@@ -41,7 +41,7 @@
   @webhooks.map { webhook =>
     <div class="row-fluid list-item" data-webhook-id="@webhook.id">
       <div class="span8">
-        <h6 class="right-txt mr20">
+        <h6 class="mr20 truncate">
           @webhook.payloadUrl
         </h6>
       </div>
@@ -49,7 +49,7 @@
         <table class="table nm">
           <tr>
             <td>
-              <span class="webhook-secret">
+              <span class="webhook-secret truncate">
                   @webhook.secret
               </span>
             </td>

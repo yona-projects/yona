@@ -6156,46 +6156,45 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     }
 
     .webhook-list-wrap {
-        margin:0 auto;
+        margin: 0 auto;
 
         .list-head {
-            border:1px solid #ddd;
-            border-width:2px 0px 0px;
+            border: 1px solid #ddd;
+            border-width: 0px 0px 2px;
             background: #fafafa;
 
-            .payload-url {
-                padding-right:18px;
-                line-height:30px;
-                text-align:right;
-            }
-            .secret {
-                padding-left:8px;
-                line-height:30px;
+            .payload-url, .secret {
+                padding-left: 8px;
+                line-height: 30px;
             }
         }
         .list-item {
-            border-top:1px solid #ddd;
+            border-bottom:1px solid #ddd;
+
+            h6 {
+                padding-left: 8px;
+            }
+
+            .truncate {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
 
             .table {
+                table-layout: fixed;
+
                 .webhook-secret {
                     display: block;
-                    max-width: 50%;
                     font-size: 12px;
-                }
-                tr {
-                    border-bottom: 1px solid #ddd;
-                    &:last-of-type {
-                        border-bottom: none;
-                    }
                 }
                 td {
                     border-top: none;
                     &.info {
                         width: 150px;
-                        text-align: right;
                     }
                     &.actions {
-                        width: 150px;
+                        width: 80px;
                         text-align: right;
                         padding-right: 1px;
                     }
