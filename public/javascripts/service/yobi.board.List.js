@@ -26,6 +26,14 @@
         var htElement = {};
         var htOrderMap = {"asc": "desc", "desc": "asc"};
 
+        function _initImplicitTitlePrefix() {
+            $(".title-prefix").on("click", function(){
+                var filterInput = $("input[name*='filter']");
+                filterInput.val($(this).text());
+                filterInput.closest("form").submit();
+            });
+        }
+
         /**
          * initialize
          * @param {Hash Table} htOptions
@@ -33,8 +41,8 @@
         function _init(htOptions){
             _initElement(htOptions || {});
             _attachEvent();
-
             _initPagination(htOptions);
+            _initImplicitTitlePrefix();
         }
 
         /**

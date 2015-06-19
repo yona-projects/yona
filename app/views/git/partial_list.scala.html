@@ -39,8 +39,9 @@
                 </a>
                 <div class="title-wrap">
                     <span class="post-id">@req.number</span>
+                    @showHeaderWordsInBracketsIfExist(req.title)
                     <a href="@routes.PullRequestApp.pullRequest(req.toProject.owner, req.toProject.name, req.number)" class="title @if(req.isConflict == true) {conflict}">
-                        @req.title
+                        @removeHeaderWords(req.title)
                     </a>
                 </div>
                 <div class="infos">
@@ -109,5 +110,13 @@
 <script type="text/javascript">
     $(function(){
         yobi.Pagination.update($("#pagination"), @page.getTotalPageCount);
+
+        (function _initImplicitTitlePrefix() {
+            $(".title-prefix").on("click", function(){
+                var filterInput = $("input[name*='filter']");
+                filterInput.val($(this).text());
+                filterInput.closest("form").submit();
+            });
+        })();
     });
 </script>

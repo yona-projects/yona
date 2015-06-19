@@ -1,5 +1,6 @@
 package utils
 
+import org.apache.commons.lang3
 import org.apache.commons.lang3.StringUtils
 import play.mvc.Call
 import org.joda.time.DateTimeConstants
@@ -12,21 +13,16 @@ import java.net.URI
 import playRepository.DiffLine
 import playRepository.DiffLineType
 import models.CodeRange.Side
+import scala.StringBuilder
 import scala.collection.JavaConversions._
 import views.html.partial_diff_comment_on_line
 import views.html.partial_diff_line
 import views.html.git.partial_pull_request_event
-import models.Organization
-import models.PullRequestEvent
-import models.PullRequest
-import models.Project
-import models.Issue
+import models._
 import java.net.URLEncoder
 import scala.annotation.tailrec
 import playRepository.FileDiff
 import play.api.i18n.Lang
-import models.CodeCommentThread
-import models.CommentThread
 import play.twirl.api.Html
 
 object TemplateHelper {
@@ -552,4 +548,43 @@ object TemplateHelper {
 
   }
 
+  def showHeaderWordsInBracketsIfExist(title: String) = {
+    val prefixes =  new StringBuilder
+    for(prefix <- extractHeaderWordsInBrackets(title) if prefix.trim.indexOf("[") == 0 ){
+      if(prefix.contains("]")){
+        prefixes.append("<a href='javascript:void(0)' class='title-prefix'>" + prefix.trim + "</a>")
+      }
+    }
+
+    if(!madeByHeaderWordsOnly(title)){
+      Html(prefixes.toString)
+    }
+  }
+  
+  def removeHeaderWords(title: String):String = {
+    if(madeByHeaderWordsOnly(title)){
+      return title
+    } else {
+      return title.replace(findHeaderWords(title).toString(),"")
+    }
+  }
+
+  private def findHeaderWords(title: String): StringBuilder = {
+    val prefixes = new StringBuilder
+    for (prefix <- extractHeaderWordsInBrackets(title) if prefix.trim.indexOf("[") == 0) {
+      if (prefix.contains("]")) {
+        prefixes.append(prefix)
+      }
+    }
+    prefixes
+  }
+
+  private def madeByHeaderWordsOnly(title: String): Boolean = {
+    title.trim.indexOf("]") + 1 == title.trim.length ||
+      StringUtils.isEmpty(title.replace(findHeaderWords(title),"").trim)
+  }
+
+  private def extractHeaderWordsInBrackets(title: String): Array[String] = {
+    return title.split("(=\\[)|(?<=\\])")
+  }
 }
