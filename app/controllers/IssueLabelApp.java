@@ -35,6 +35,7 @@ import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
+import utils.AccessControl;
 import utils.ErrorViews;
 import utils.HttpUtil;
 
@@ -465,5 +466,21 @@ public class IssueLabelApp extends Controller {
         map.put("name", category.name);
         map.put("isExclusive", "" + category.isExclusive);
         return map;
+    }
+
+    @IsCreatable(ResourceType.ISSUE_LABEL)
+    public static Result copyLabels(String ownerName, String projectName) {
+        Map<String, String[]> form = request().body().asFormUrlEncoded();
+        String fromOwner = HttpUtil.getFirstValueFromQuery(form, "owner");
+        String fromProjectName = HttpUtil.getFirstValueFromQuery(form, "projectName");
+
+        Project fromProject = Project.findByOwnerAndProjectName(fromOwner, fromProjectName);
+        Project toProject = Project.findByOwnerAndProjectName(ownerName, projectName);
+
+        if( fromProject != null && toProject != null
+                && AccessControl.isAllowed(UserApp.currentUser(), fromProject.labelsAsResource(), Operation.READ)){
+            IssueLabel.copyIssueLabels(fromProject, toProject);
+        }
+        return redirect(controllers.routes.IssueLabelApp.labelsForm(ownerName, projectName));
     }
 }

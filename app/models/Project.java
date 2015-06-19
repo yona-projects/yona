@@ -138,6 +138,9 @@ public class Project extends Model implements LabelOwner {
     private String previousName;
     private Long previousNameChangedTime;
 
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
+    public List<IssueLabel> issueLabels;
+
     /**
      * @see {@link User#SITE_MANAGER_ID}
      * @see {@link RoleType#SITEMANAGER}
