@@ -2,10 +2,10 @@
 
 You can manage project members if you are a project manager. You can delete and change authorizations of members.
 
-There are two kinds of authroization, member and manager. Please refer `docs/ko/technical/access-control.md`.
+There are two kinds of authorization, member and manager. Please refer `docs/ko/technical/access-control.md`.
 
 
-Changing member authroization
+Changing member authorization
 ------------------------------
 
 1. Go to a project.

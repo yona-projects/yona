@@ -8,7 +8,7 @@ Creating projects
 
 In order to create a project, click the `+` button and `Create new project` on the top right of the page.
 
-### Crerate a new project
+### Create a new project
 
 Fill out the form and click the `Create a project` button.
 

@@ -14,7 +14,7 @@ Every log which is written to `root.log` also written to standard output, but
 the formats can be differ. See `conf/application-logger.xml`, the configuration
 for logging, for the difference between two formats.
 
-Loggin Configuration
+Logging Configuration
 --------------------
 
 You can configure logging in `conf/application-logger.xml`. See LOGBack
@@ -66,8 +66,8 @@ entry, as follows:
 * Ident field is always filled with "-".
 * Processing time is filled with "-" if serving a request is failed.
 * For chunked encoding, the time taken to generate response body, e.g. the time
-  taken to read a file from a disk and write it to stream to provides it as
-  a attachment a user requests, is not included in the processing time.
+  taken to read a file from a disk and write it to stream to provide it as
+  an attachment a user requests, is not included in the processing time.
 
 References
 ----------

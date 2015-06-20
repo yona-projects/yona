@@ -9,7 +9,7 @@ yobi.Attachments 는 게시판/이슈/코드보내기와 같이 첨부파일 목
 
 yobi.Files
 ----
-먼저 yobi.Files.init() 으로 서버측 API 주소를 설정해야 한다.
+먼저 yobi.Files.init() 으로 서버 측 API 주소를 설정해야 한다.
 공통 페이지인 views/scripts.scala.html 에서 이미 yobi.Files.init() 을 아래와 같이 호출하고 있으므로
 개별 페이지에서는 별도로 호출하지 않아도 무방하다.
 
@@ -65,10 +65,10 @@ XHR2 사용 가능 환경에서는 File, FileList, Blob 객체도 인자로 줄 
 사용 가능한 커스텀 이벤트는 아래와 같으며 .attach("이벤트명", function(){}); 로
 핸들러를 지정하고 같은 방식으로 .detach() 를 이용해 핸들러를 제거할 수 있다.
 
-- beforeUpload: 업로드 시작 전 이벤트. 핸들러 함수는 여러개 지정할 수 있는데 단 하나라도 false 를 명시적으로 반환하면 업로드를 중단한다
+- beforeUpload: 업로드 시작 전 이벤트. 핸들러 함수는 여러 개 지정할 수 있는데 단 하나라도 false 를 명시적으로 반환하면 업로드를 중단한다
 - uploadProgress: 업로드 진행 상태 처리를 위한 이벤트
 - successUpload: 업로드 성공(완료) 시 발생하는 이벤트
-- errorUpload: 업로드 실패시 발생하는 이벤트
+- errorUpload: 업로드 실패 시 발생하는 이벤트
 
 예: 기본 사용법
 ```
@@ -119,7 +119,7 @@ yobi.Attachments 와 연계하여 사용할 것이 아니라면 반환값은 무
 yobi.Attachments
 ----
 
-yobi.Files 가 서버와의 통신을 담당하고 yobi.Attachments 는 커스텀 이벤트 핸들러를 이용해 화면에 첨부된 파일 목록을 나타내는데 사용한다.
+yobi.Files 가 서버와의 통신을 담당하고 yobi.Attachments 는 커스텀 이벤트 핸들러를 이용해 화면에 첨부된 파일 목록을 나타내는 데 사용한다.
 파일 업로더와 함께 사용할 수도 있고, 단순히 resourceType 과 resourceId 만 지정해서 기존에 첨부된 파일 목록을 표현할 수도 있다.
 yobi.Files 와 달리 new yobi.Attachments 로 인스턴스를 생성하여 사용한다.
 

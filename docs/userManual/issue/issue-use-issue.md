@@ -16,11 +16,11 @@ Creating new issues
 
 You can choose an assignee on the issue.
 
-1. Click the `Assignee` drop down box on the right of the the issue page.
+1. Click the `Assignee` drop down box on the right of the issue page.
 1. You will see project members.
 1. Click a member to which you want to assign the issue
 
-To assign an issue to an member means that the member should solve the issue. 
+To assign an issue to a member means that the member should solve the issue. 
 
 Issues are filtered by project member names on `Issues` page.
 
@@ -30,7 +30,7 @@ You can do schedule management after assigning milestones to issues.
 
 See `docs/userManual/issue/issue-use-milestone.md` to get more information.
 
-### Lables
+### Labels
 
 You can label issues for categorizing and searching. One or more labels can be added to an issue.
 

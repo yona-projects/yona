@@ -24,12 +24,12 @@ You can change your group name, description and avatar through `Group Setting`.
 1. Go to the group page.
 1. Click the sawlike `Group Setting` button.
 1. Click the `Setting` tab.
-1. Change your avatar, name and decription.
+1. Change your avatar, name and description.
 
 
 ## Managing members
 
-You can add and remove users from you group and change the member's right.
+You can add and remove users from your group and change the member's right.
 
 ### Adding members
 
@@ -51,7 +51,7 @@ You can add and remove users from you group and change the member's right.
 1. Go to the group page.
 1. Click the sawlike `Group Setting` button.
 1. Click the `Group Member` tab.
-1. Click the combobox at the right of a member and select a authroization type.
+1. Click the combobox at the right of a member and select an authroization type.
 
 
 ## Authorizations
