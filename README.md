@@ -84,18 +84,18 @@ or using web browser (for windows)
 
 #### Download Yobi
 
-Case1. using [git client](http://git-scm.com/) (recommended)
+Case1. Using [git client](http://git-scm.com/) (recommended)
     
     git clone https://github.com/naver/yobi.git
 
 or 
 
-Case2. Just download latest stable release
+Case2. Just download the latest stable release
 If you want to download one of the stable releases, you can download a compressed file by clicking the URL below. And then name it a yobi and unzip it.
 
     https://github.com/naver/yobi/archive/master.zip
     
-**Caution! in case2, You might come across troubles when you try to upgrade Yobi.**
+**Caution! In case2, You might come across troubles when you try to upgrade Yobi.**
 
 > You can locate your own Yobi directory in any other place. Please note that you must add Play Activator home path to $PATH environment in that case.
 
@@ -118,7 +118,7 @@ Required files will be download automatically. In the first time, it may take ab
 
     start
 
-It will downloaded addtional files and compile sources.
+It will download additional files and compile sources.
 
 If you want to run Yobi in development mode, use **run**. You can see more detailed errors and can use dynamic compilation.
 
@@ -130,14 +130,14 @@ If you want to change port, check your permission to use 80 port. See 'Options' 
 
 #### Upgrade Yobi
 
-Case1. using git client (recommended)
+Case1. Using git client (recommended)
 In installed directory, just type git update command.
 
 	git pull https://github.com/naver/yobi.git master
 
-Case2. download zip file
+Case2. Download zip file
 
-In installed directory, download latest release file and unzip it.
+In installed directory, download the latest release file and unzip it.
 
 	https://github.com/naver/yobi/archive/master.zip
 
@@ -167,7 +167,7 @@ Yobi as follows:
 #### Linux and OSX
 
 When start yobi, you can specify the home directory to contain data, the
-database file and configiuration files for Yobi. For example, if you want to
+database file and configuration files for Yobi. For example, if you want to
 use `/home/user/.yobi` as the home directory, set YOBI_HOME as follows:
 
     YOBI_HOME=/home/user/.yobi bin/yobi
@@ -249,7 +249,7 @@ Yobi 소개
 --
 Yobi (구 nFORGE)는 협업 개발을 위한 프로젝트 호스팅 SW입니다. 
 
-- 버그나 이슈을 관리할 수 있는 이슈 트래커
+- 버그나 이슈를 관리할 수 있는 이슈 트래커
 - 각종 문서와 정보를 간편하게 공유할 수 있는 게시판
 - 소스코드의 변경내역을 편리하게 관리할 수 있는 형상관리 도구 git/svn 기본 내장
 - 협업개발을 위한 코드 주고받기
@@ -275,12 +275,12 @@ wget으로 받아서 unzip으로 압축을 푼다면:
 
 #### 실행
 
-압축이 풀린 디렉토리로 이동해서 yobi를 실행합니다. 디렉토리가 yobi-1.0.0 이라면:
+압축이 풀린 디렉터리로 이동해서 yobi를 실행합니다. 디렉터리가 yobi-1.0.0 이라면:
 
     cd yobi-1.0.0
     bin/yobi
 
-**주의**: 윈도우 사용자는 bin/yobi 대신 bin/yobi.bat을 실행해야합니다.
+**주의**: 윈도우 사용자는 bin/yobi 대신 bin/yobi.bat을 실행해야 합니다.
 
 이제 웹 브라우저로 http://127.0.0.1:9000 에 접속하면 환영 페이지를 보실 수 있습니다.
 
@@ -311,7 +311,7 @@ JDK 7(1.7) 혹은 8(1.8) 이어야 합니다.
 
     http://downloads.typesafe.com/typesafe-activator/1.2.10/typesafe-activator-1.2.10-minimal.zip
 
-#### 압축풀기
+#### 압축 풀기
 
     unzip typesafe-activator-1.2.10-minimal.zip
 
@@ -325,11 +325,11 @@ case1. [git 클라이언트](http://git-scm.com)를 이용한 다운로드 (추�
     
     git clone https://github.com/naver/yobi.git
     
-case2. 단순히 최신 안정버전을 내려받고자 할 때는 아래 링크를 이용해서 압축파일을 내려받은 다음 yobi를 폴더이름으로해서 해제합니다.
+case2. 단순히 최신 안정버전을 내려받고자 할 때는 아래 링크를 이용해서 압축파일을 내려받은 다음 yobi를 폴더이름으로 해서 해제합니다.
 
 	git pull https://github.com/naver/yobi.git master
     
-주의! case2의 경우, 업그레이드를 할 때 문제가 생길 수 있습니다.
+주의! case2의 경우, 업그레이드할 때 문제가 생길 수 있습니다.
 
 > 임의의 장소에 Yobi 디렉터리를 위치시킬 경우에는 activator 실행파일이 있는 Play Activator 디렉터리를 $PATH 환경변수에 추가해 주세요.
 
@@ -346,7 +346,7 @@ case2. 단순히 최신 안정버전을 내려받고자 할 때는 아래 링크
 
     ..\activator
 
-실행하면 필요한 파일들을 web에서 내려받습니다. 첫 실행시 네트워크 상황에 따라 10여분 가까이 소요될 수 있습니다.
+실행하면 필요한 파일들을 web에서 내려받습니다. 첫 실행 시 네트워크 상황에 따라 10여 분 가까이 소요될 수 있습니다.
 
 #### 콘솔이 뜨면 start 명령어로 기동
 
@@ -355,17 +355,17 @@ case2. 단순히 최신 안정버전을 내려받고자 할 때는 아래 링크
 추가로 필요한 파일들을 web에서 내려받은 다음 소스 파일들을 컴파일 후 운영 모드(production mode)로 실행합니다.
 개발 모드(development mode)로 실행하고자 할 경우에는 **start** 명령어 대신에 **run** 명령어로 실행합니다.
 
-**주의사항: 설정 파일 및 데이터가 기본적으로 target/universal/stage 디렉토리에
-저장됩니다. 이 디렉토리는 activator clean 실행시 모두 삭제되므로, 아래의 옵션
-설정방법을 보고 데이터가 저장될 디렉토리를 설정하시는 것이 좋습니다**
+**주의사항: 설정 파일 및 데이터가 기본적으로 target/universal/stage 디렉터리에
+저장됩니다. 이 디렉터리는 activator clean 실행 시 모두 삭제되므로, 아래의 옵션
+설정방법을 보고 데이터가 저장될 디렉터리를 설정하시는 것이 좋습니다**
 
 #### 브라우저로 접속
 
     http://127.0.0.1:9000
 
-80 포트 등으로 포트를 변경하고 싶을 경우에는 해당 포트가 사용가능한지 확인 한 다음 80 포트를 사용할 수 있는 계정으로 실행합니다. 포트 변경 방법에 대해서는 '옵션' 문단을 읽어주세요.
+80 포트 등으로 포트를 변경하고 싶을 경우에는 해당 포트가 사용 가능한지 확인한 다음 80 포트를 사용할 수 있는 계정으로 실행합니다. 포트 변경 방법에 대해서는 '옵션' 문단을 읽어주세요.
 
-#### 업그레이드 하기
+#### 업그레이드하기
 
 case1. git 클라이언트를 이용 (추천)
 설치된 디렉터리에서, 아래와 같은 git 명령어를 이용합니다
@@ -388,7 +388,7 @@ case2. 압축파일을 내려받을 경우
 #### Linux, OSX의 경우
 
 `YOBI_HOME` 속성을 통해 Yobi가 데이터, 데이터베이스, 설정파일을 불러오고 저장할
-홈 디렉토리를 지정할 수 있습니다. 예를 들어, /home/user/.yobi를 홈 디렉토리로
+홈 디렉터리를 지정할 수 있습니다. 예를 들어, /home/user/.yobi를 홈 디렉터리로
 사용하려면 Yobi를 시작할 때 다음과 같이 지정합니다.
 
     YOBI_HOME=/home/user/.yobi bin/yobi
@@ -405,7 +405,7 @@ case2. 압축파일을 내려받을 경우
 
 #### Windows의 경우
 
-Yobi를 시작할 때, 데이터 디렉토리, 설정파일, 로그 설정파일의 위치를 각각
+Yobi를 시작할 때, 데이터 디렉터리, 설정파일, 로그 설정파일의 위치를 각각
 yobi.home, config.file, logger.file 자바 프로퍼티로 지정할 수 있습니다.
 
     SET JAVA_OPTS=-Dyobi.home=/home/user/.yobi -Dconfig.file=/home/user/.yobi/conf/application.conf -Dlogger.file=/home/user/.yobi/conf/application-logger.xml
@@ -417,7 +417,7 @@ yobi.home, config.file, logger.file 자바 프로퍼티로 지정할 수 있습�
     db.default.url="jdbc:h2:file:/home/nori/.yobi/yobi"
 
 `_JAVA_OPTIONS` 환경변수를 이용해 자바 환경 변수를 지정할 수도 있습니다. 시스템
-메모리가 4기가 이상이라면, 다음과 같은 옵션으로 실행하는걸 권장합니다.
+메모리가 4기가 이상이라면, 다음과 같은 옵션으로 실행하는 걸 권장합니다.
 
     SET JAVA_OPTS=-Xmx2048m -Xms2048m
     bin\yobi.bat
@@ -429,7 +429,7 @@ yobi.home, config.file, logger.file 자바 프로퍼티로 지정할 수 있습�
     bin\yobi.bat
 
 업그레이드를 하는 경우 다음과 같이 데이터베이스 스키마 마이그레이션이
-필요하다는 경고 메시지와 함께 실행이 되지 않는 상황을 겪을 수 있습니다.
+필요하다는 경고 메시지와 함께 실행되지 않는 상황을 겪을 수 있습니다.
 
     [warn] play - Your production database [default] needs evolutions!
 
