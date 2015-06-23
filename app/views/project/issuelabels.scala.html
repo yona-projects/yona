@@ -30,6 +30,16 @@
       @partial_settingmenu(project)
 
       @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
+      <form id="copyLabel" action="@routes.IssueLabelApp.copyLabels(project.owner, project.name)" method="post" class="new-label-wrap">
+        <strong class="form-legend">@Messages("label.copy.append")</strong>
+        <div class="form-wrap">
+        <input type="text" name="owner" class="input-label mr5" placeholder='@Messages("project.owner")'>
+        <input type="text" name="projectName" class="input-label" placeholder='@Messages("project.name")'>
+        </div>
+        <button type="submit" class="ybtn ybtn-info btn-submit">@Messages("label.copy")</button>
+        <div>@Messages("label.copy.description")</div>
+        <div>@Messages("label.copy.description2")</div>
+      </form>
       <form id="frmNewLabel" action="@routes.IssueLabelApp.newLabel(project.owner, project.name)" method="post" class="new-label-wrap">
         <strong class="form-legend">@Messages("label.new")</strong>
         <div class="form-wrap">

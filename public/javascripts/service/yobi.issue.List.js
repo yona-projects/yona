@@ -28,6 +28,14 @@
         var htElement = {};
         var htInitialOptions = {};
 
+        function _initImplicitTitlePrefix() {
+            $(".title-prefix").on("click", function(){
+                var filterInput = $("input[name*='filter']");
+                filterInput.val($(this).text());
+                filterInput.closest("form").submit();
+            });
+        }
+
         /**
          * initialize
          */
@@ -36,6 +44,7 @@
             _attachEvent();
             _initPagination();
             _initPjax();
+            _initImplicitTitlePrefix();
 
             htInitialOptions = htOptions || {};
         }
@@ -237,6 +246,7 @@
             _initPagination();
             _initSelect2();
             _initCalendar();
+            _initImplicitTitlePrefix();
         }
 
         /**

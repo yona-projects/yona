@@ -23,11 +23,14 @@ package models;
 import models.enumeration.ResourceType;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
+import org.apache.commons.collections.CollectionUtils;
 import play.data.validation.Constraints.Required;
 import play.db.ebean.Model;
 
+import javax.annotation.Nonnull;
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -72,6 +75,60 @@ public class IssueLabel extends Model implements ResourceConvertible {
                 .findList();
     }
 
+    public static void copyIssueLabels(Project fromProject, Project toProject){
+        List<IssueLabel> fromLabels = findByProject(fromProject);
+        if(CollectionUtils.isEmpty(fromLabels)){
+            return;
+        }
+
+        toProject.issueLabels = new ArrayList<>();
+        for(IssueLabel fromLabel: fromLabels){
+            IssueLabel copiedLabel = copyIssueLabel(toProject, fromLabel);
+            if(!copiedLabel.exists()){
+                toProject.issueLabels.add(copiedLabel);
+            }
+        }
+        toProject.update();
+    }
+
+    /**
+     * Copy IssueLabel to toProject.
+     * If same label already exists in the {@code toProject}, it doesn't save and just reuse it.
+     *
+     * @param toProject
+     * @param fromLabel
+     * @return copied {@code IssueLabel}
+     */
+    private static IssueLabel copyIssueLabel(@Nonnull Project toProject, @Nonnull IssueLabel fromLabel) {
+        IssueLabel label = new IssueLabel();
+        label.name = fromLabel.name;
+        label.color = fromLabel.color;
+        label.category = copyIssueLabelCategory(toProject, fromLabel);
+        label.project = toProject;
+        return label;
+    }
+
+    /**
+     * Copy IssueLabelCategory.
+     * If same category already exists in the {@code toProject}, it doesn't save and just reuse it.
+     *
+     * @param toProject
+     * @param fromLabel
+     * @return copied {@code IssueLabelCategory}
+     */
+    private static IssueLabelCategory copyIssueLabelCategory(@Nonnull Project toProject, @Nonnull IssueLabel fromLabel) {
+        IssueLabelCategory category = new IssueLabelCategory();
+        category.name = fromLabel.category.name;
+        category.project = toProject;
+        category.isExclusive = fromLabel.category.isExclusive;
+        if(category.exists()){
+            category = IssueLabelCategory.findBy(category);
+        } else {
+            category.save();
+        }
+        return category;
+    }
+
     public String toString() {
         return category.name + " - " + name;
     }
@@ -82,7 +139,6 @@ public class IssueLabel extends Model implements ResourceConvertible {
                 .eq("project.id", project.id)
                 .eq("category", category)
                 .eq("name", name)
-                .eq("color", color)
                 .findRowCount() > 0;
     }
 

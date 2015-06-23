@@ -190,6 +190,7 @@ GET            /:user/:project/issue/label/category/:id                         
 PUT            /:user/:project/issue/label/category/:id                               controllers.IssueLabelApp.updateCategory(user, project, id:Long)
 POST           /:user/:project/issue/label/categories                                 controllers.IssueLabelApp.newCategory(user, project)
 DELETE         /:user/:project/issue/label/category/:id                               controllers.IssueLabelApp.deleteCategory(user, project, id: Long)
+POST           /:user/:project/copyLabels                                             controllers.IssueLabelApp.copyLabels(user, project)
 
 # Git
 GET            /:ownerName/:project/info/refs                                         controllers.GitApp.advertise(ownerName:String, project:String, service:String ?= null)
@@ -267,7 +268,7 @@ GET            /unwatch                                                         
 # Statistics
 GET            /:user/:project/statistics                                             controllers.StatisticsApp.statistics(user, project)
 GET            /:user                                                                 controllers.UserApp.userInfo(user, groups:String ?= "own", daysAgo :Int ?= 0, selected: String ?= "projects")
-POST            /:user                                                                 controllers.UserApp.resetUserPasswordBySiteManager(user)
+POST           /:user                                                                 controllers.UserApp.resetUserPasswordBySiteManager(user)
 
 # Watching Projects
 POST           /:user/:project/watch                                                  controllers.WatchProjectApp.watch(user, project)
