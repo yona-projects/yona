@@ -329,7 +329,7 @@ case2. 단순히 최신 안정버전을 내려받고자 할 때는 아래 링크
 
 	git pull https://github.com/naver/yobi.git master
     
-주의! case2의 경우, 업그레이드할 때 문제가 생길 수 있습니다.
+주의! case2의 경우, 업그레이드 할 때 문제가 생길 수 있습니다.
 
 > 임의의 장소에 Yobi 디렉터리를 위치시킬 경우에는 activator 실행파일이 있는 Play Activator 디렉터리를 $PATH 환경변수에 추가해 주세요.
 
