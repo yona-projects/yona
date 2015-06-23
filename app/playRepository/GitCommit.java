@@ -174,6 +174,10 @@ public class GitCommit extends Commit {
         return revCommit.abbreviate(7).name();
     }
 
+    public String getFullId() {
+        return revCommit.name();
+    }
+
     // Imported from
     // https://github.com/eclipse/jgit/blob/v3.0.0.201305080800-m7/org.eclipse.jgit/src/org/eclipse/jgit/revwalk/RevCommit.java
     // and modified by Yi EungJun

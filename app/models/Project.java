@@ -105,6 +105,9 @@ public class Project extends Model implements LabelOwner {
     public List<Project> forkingProjects;
 
     @OneToMany(mappedBy = "project")
+    public Set<Webhook> webhooks;
+
+    @OneToMany(mappedBy = "project")
     public Set<Assignee> assignees;
 
     public Date lastPushedDate;
@@ -651,6 +654,10 @@ public class Project extends Model implements LabelOwner {
 
         for (Assignee assignee : assignees) {
             assignee.delete();
+        }
+
+        for (Webhook webhook : webhooks) {
+            webhook.delete();
         }
 
         for(Posting posting : posts) {

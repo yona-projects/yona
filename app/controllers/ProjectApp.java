@@ -1140,6 +1140,61 @@ public class ProjectApp extends Controller {
         return status(Http.Status.NO_CONTENT);
     }
 
+    /**
+     * @param ownerId the owner login id
+     * @param projectName the project name
+     * @return
+     */
+    @IsAllowed(Operation.UPDATE)
+    public static Result webhooks(String ownerId, String projectName) {
+        Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
+        if (project == null) {
+            // Return 404 Not Found if the project does not exist.
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
+        }
+
+        return ok(views.html.project.webhooks.render(
+                "project.webhook",
+                Webhook.findByProject(project.id),
+                project));
+    }
+
+    @Transactional
+    @IsAllowed(Operation.UPDATE)
+    public static Result newWebhook(String ownerId, String projectName) {
+        Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
+        if (project == null) {
+            // Return 404 Not Found if the project does not exist.
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
+        }
+
+        Form<Webhook> addWebhookForm = form(Webhook.class).bindFromRequest();
+        if (addWebhookForm == null) {
+            Logger.warn("Failed creating webhook: got null form from newWebhook request");
+            return badRequest();
+        } else if (addWebhookForm.hasErrors()) {
+            return badRequest(ErrorViews.BadRequest.render());
+        }
+
+        Webhook.create(project.id,
+                        addWebhookForm.field("payloadUrl").value(),
+                        addWebhookForm.field("secret").value());
+
+        return redirect(routes.ProjectApp.webhooks(project.owner, project.name));
+    }
+
+    @Transactional
+    @IsAllowed(Operation.UPDATE)
+    public static Result deleteWebhook(String ownerId, String projectName, Long id) {
+        Webhook webhook = Webhook.find.byId(id);
+        if (webhook != null) {
+            webhook.delete();
+            return ok();
+        } else {
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
+        }
+    }
+
     @Transactional
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.DELETE)

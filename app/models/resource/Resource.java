@@ -89,6 +89,9 @@ public abstract class Resource {
             case COMMENT_THREAD:
                 finder = CommentThread.find;
                 break;
+            case WEBHOOK:
+                finder = Webhook.find;
+                break;
             default:
                 throw new IllegalArgumentException(getInvalidResourceTypeMessage(type));
         }
@@ -155,6 +158,8 @@ public abstract class Resource {
                 break;
             case COMMENT_THREAD:
                 return CommentThread.find.byId(longId).asResource();
+            case WEBHOOK:
+                return Webhook.find.byId(longId).asResource();
             default:
                 throw new IllegalArgumentException(getInvalidResourceTypeMessage(resourceType));
         }
