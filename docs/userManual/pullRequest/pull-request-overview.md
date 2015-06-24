@@ -1,6 +1,6 @@
 # Pull Request
 
-By using `Pull Request` you can let the original project members know the code changes you've made and ask them to review the code, and you can discuss the alterations with the members. Also your code can be merged when the code review is done.
+By using `Pull Request` you can let the original project members know the code changes you've made and ask them to review the code, and you can discuss the alterations with the members. Also, your code can be merged when the code review is done.
 
 `Pull Request`, however, is only available for projects using a git repository.
 

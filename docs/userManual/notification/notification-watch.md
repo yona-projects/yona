@@ -52,7 +52,7 @@ You basically will get notifications on all above conditions. But you can config
 Unwatching
 ----------
 
-If you do not want to receive notifications any more, use `Unwatch`.
+If you do not want to receive notifications anymore, use `Unwatch`.
 
 ### Unwatching projects
 
@@ -66,5 +66,5 @@ To unwatch projects:
 
 To unwatch individual items:
 
-1. Go to an items on the `Board`, `Issues` or `Pull Request`.
+1. Go to items on the `Board`, `Issues` or `Pull Request`.
 1. Click the `Unwatch` button to stop getting notifications.

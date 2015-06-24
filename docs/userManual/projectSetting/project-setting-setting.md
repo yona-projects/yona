@@ -4,7 +4,7 @@ You can change a project settings if you have the project's administrator permis
 
 Project's logo, name, description, share option and member can be configured.
 
-* Go to the project of which you have authroization.
+* Go to the project of which you have authorization.
 * Click 'Project Setting Button' on top right of a project.
 * Click `Setting` tab and change project's logo, name, description and share option.
 
@@ -45,7 +45,7 @@ Each pull request should be reviewed by users greater than or equal to the value
 
 This option is only shown when project repository type is GIT.
 
-The value means a branch HEAD of git repository points to. Also the value is default branch on `Code` menu and default `to branch` on new pull request page.
+The value means a branch HEAD of git repository points to. Also, the value is default branch on `Code` menu and default `to branch` on new pull request page.
 
 
 ## Menu Setting

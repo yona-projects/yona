@@ -23,7 +23,7 @@ cp yobi.h2.db yobi.h2.db.bak
 Just copy existing file like yobi.h2.db to another name.
 And if there is something wrong, then just rename it to yobi.h2.db and run the Yobi with it.
 
-## 2. checkout to export-import branch
+## 2. Checkout to export-import branch
 
 On the remote repository(mainstream), There is a branch named, export-import.
 It supports data backup and restore.

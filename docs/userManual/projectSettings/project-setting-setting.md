@@ -4,7 +4,7 @@ You can change project settings if you are the project administrator.
 
 Project's logo, name, description, share option and member can be configured.
 
-* Go to the project of which you have authroization.
+* Go to the project of which you have authorization.
 * Click the 'Project Settings' button.
 * Click `Settings` tab and change project's logo, name, description or share option.
 

@@ -38,8 +38,8 @@
 
 ## $yobi.loadModule 사용법
 * 만약 yobi.module.Name 이라는 이름의 모듈을 정의한 경우 아래와 같다
-* 첫번째 인자: yobi. 을 제외한 모듈 이름
-* 두번째 인자: 해당 모듈 초기화 함수에 제공될 옵션 객체(Object)
+* 첫 번째 인자: yobi. 을 제외한 모듈 이름
+* 두 번째 인자: 해당 모듈 초기화 함수에 제공될 옵션 객체(Object)
 
 >       $yobi.loadModule("module.Name", {
 >            "sOption": "Option Value"
@@ -50,7 +50,7 @@
     이미 페이지 내에 `<script>` 태그를 이용해 포함한 경우에는 동적 로딩은 시도되지 않는다.
     동적 로딩을 시도하는 파일 경로는 `javascripts/service/yobi.(module.Name).js` 이다.
 * 자바스크립트 파일 로딩이 완료되어 모듈 코드를 사용할 수 있을 때 자동으로 초기화를 시도하며 내부적으로 수행되는 코드는 아래와 같다.
-    이 중 htOption 변수는 $yobi.loadModule() 의 두번째 인자와 동일하다
+    이 중 htOption 변수는 $yobi.loadModule() 의 두 번째 인자와 동일하다
 
 >        new yobi.module.Name(htOption)
 
@@ -60,7 +60,7 @@
 ## 기타
 
 * 최상위 객체에 대한 prototype 확장은 사용하지 않는다. 이는 모든 코드에 영향을 미칠 수 있으며 코드 유지보수를 어렵게 만든다
-* 전역 함수, 전역 변수는 최소화 한다. 네임스페이스를 활용하여 코드의 유효 범위를 한정한다
+* 전역 함수, 전역 변수는 최소화한다. 네임스페이스를 활용하여 코드의 유효 범위를 한정한다
 * HTML 템플릿은 되도록 자바스크립트 파일 내에 포함하지 않는다
 * HTML 템플릿은 정적 페이지내에 `<script type="text/x-jquery-tmpl">` 형태로 위치시키고 자바스크립트는 그 내용을 활용하는 형태로 작성한다
 * HTML 템플릿 문법($.tmpl)은 https://github.com/BorisMoore/jquery-tmpl 참조

@@ -3,8 +3,8 @@ Yobi 는 현재 요청의 사용자를 얻기 위해 session, token, context 정
 session
 -------
 
-- 로그인시 생성되어 브라우저 종료 시점까지 보관되는 cookie 이다.
-- 사용자가 로그아웃 하면 삭제된다.
+- 로그인 시 생성되어 브라우저 종료 시점까지 보관되는 cookie 이다.
+- 사용자가 로그아웃하면 삭제된다.
 - userId(고유ID), logindId(로그인ID), userName(이름) 을 key 로 사용해서 `encoded data` 를 만들고 이를 하나의 cookie value 로 저장한다.
 - `encoded data` 는 각각의 key-value 쌍을 `key:value` 형태의 string 으로 만들고 이를 url encode 한 뒤, `%00` 으로 연결한 값이다.
     - ex) userId%3A1%00loginId%3Atest%00userName%3Atestname
@@ -16,8 +16,8 @@ session
 token
 -----
 
-- 로그인 유지 기능을 선택하고 로그인시 생성되어 30일간 보관되는 cookie 이다.
-- 사용자가 로그아웃 하면 삭제된다.
+- 로그인 유지 기능을 선택하고 로그인 시 생성되어 30일간 보관되는 cookie 이다.
+- 사용자가 로그아웃하면 삭제된다.
 - 로그인 유지를 위한 정보(로그인ID, hash 값)를 저장한다.
 - `yobi.token` 이란 이름을 사용하며 값을 `로그인ID:hash` 형태로 저장한다.
 - `hash` 는 [Sha256Hash#toBase64()](http://shiro.apache.org/static/1.2.1/apidocs/org/apache/shiro/crypto/hash/Sha256Hash.html) 을 이용해서 얻는다. `source` 로 plain password 를, `salt` 로 사용자별 random 생성된 값을, `hashIterations` 으로 1024 상수 값을 사용한다.
@@ -52,7 +52,7 @@ notes
 -----
 
 - `UserApp#currentUser()` 에서 session 정보가 없을 경우 context, token 정보까지 활용하게 되는데 controller 에 action composition 이 적용되어 있을 경우 `UserApp#initTokenUser()` 보다 먼저 실행 될 수 있기 때문이다. (아래 action composition 실행 순서를 참고)
-- context 를 사용해서 `UserApp#initTokenUser()` 의 결과를 저장해 두는건 하나의 요청 내에서 `UserApp#currentUser()` 의 결과가 token 정보를 중복활용하는 것을 방지하기 위해서이다.
+- context 를 사용해서 `UserApp#initTokenUser()` 의 결과를 저장해 두는 건 하나의 요청 내에서 `UserApp#currentUser()` 의 결과가 token 정보를 중복 활용하는 것을 방지하기 위해서이다.
 
 action composition 실행 순서
 ---------------------------

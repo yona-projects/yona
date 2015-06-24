@@ -4,7 +4,7 @@
 
 A label has name and color and is included in a category.
 
-One or more lables can be attached to an issue.
+One or more labels can be attached to an issue.
 
 
 Category
@@ -38,7 +38,7 @@ or
 To go to the `Issue Label` page, you should be a project manager.
 
 
-Creating lables
+Creating labels
 ---------------
 
 To create labels:

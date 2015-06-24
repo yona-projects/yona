@@ -1,7 +1,7 @@
 Java Coding Guidelines
 ======================
 
-This document describes the guildeline you should follow when write code for
+This document describes the guideline you should follow when write code for
 Yobi in Java.
 
 In this document, The words "MUST", "MUST NOT", "SHOULD", "SHOULD NOT" and
