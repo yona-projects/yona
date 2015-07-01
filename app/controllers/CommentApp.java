@@ -21,6 +21,7 @@
 package controllers;
 
 import controllers.annotation.AnonymousCheck;
+import models.Comment;
 import models.enumeration.Operation;
 import models.resource.Resource;
 import play.db.ebean.Transactional;
@@ -54,5 +55,8 @@ public class CommentApp extends Controller {
         }
     }
 
+    public static boolean isCurrentUserTheAuthor(Comment comment){
+        return UserApp.currentUser().loginId.equals(comment.authorLoginId);
+    }
 
 }

@@ -23,6 +23,7 @@ package models;
 import com.avaje.ebean.annotation.Transactional;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.Duration;
@@ -30,6 +31,7 @@ import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import utils.JodaDateUtil;
 
+import javax.annotation.Nonnull;
 import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.MappedSuperclass;
@@ -152,5 +154,9 @@ abstract public class Comment extends Model implements TimelineItem, ResourceCon
                 .append(authorLoginId)
                 .append(authorName)
                 .toHashCode();
+    }
+
+    public boolean isAuthoredBy(@Nonnull User user){
+        return StringUtils.equalsIgnoreCase(this.authorLoginId, user.loginId);
     }
 }

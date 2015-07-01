@@ -23,6 +23,7 @@ package models;
 import models.enumeration.ResourceType;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
+import org.apache.commons.lang.StringUtils;
 import org.joda.time.Duration;
 import play.data.format.Formats;
 import play.data.validation.Constraints;
@@ -30,6 +31,7 @@ import play.db.ebean.Model;
 import play.db.ebean.Transactional;
 import utils.JodaDateUtil;
 
+import javax.annotation.Nonnull;
 import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.Date;
@@ -257,4 +259,8 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
     }
 
     public abstract void checkLabels() throws IssueLabel.IssueLabelException;
+
+    public boolean isAuthoredBy(@Nonnull User user){
+        return StringUtils.equalsIgnoreCase(this.authorLoginId, user.loginId);
+    }
 }
