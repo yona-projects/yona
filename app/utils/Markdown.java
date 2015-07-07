@@ -153,7 +153,7 @@ public class Markdown {
      * @param options
      * @return the rendered result or the source if timeout occurs
      */
-    private static String renderByMarked(@Nonnull String source, Object options) throws InterruptedException {
+    private static String renderByMarked(@Nonnull final String source, final Object options) throws InterruptedException {
         if (source.isEmpty()) {
             return source;
         }
