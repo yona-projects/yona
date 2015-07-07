@@ -21,6 +21,7 @@
 package mailbox;
 
 import com.sun.mail.imap.IMAPMessage;
+import com.googlecode.htmlcompressor.compressor.HtmlCompressor;
 import mailbox.exceptions.IssueNotFound;
 import mailbox.exceptions.MailHandlerException;
 import mailbox.exceptions.PermissionDenied;
@@ -89,9 +90,7 @@ public class CreationViaEmail {
                 comment.asResource());
 
         if (new ContentType(parsedMessage.type).match(MimeType.HTML)) {
-            // replace cid with attachments
-            comment.contents = replaceCidWithAttachments(
-                    comment.contents, relatedAttachments);
+            comment.contents = postprocessForHTML(comment.contents, relatedAttachments);
             comment.update();
         }
 
@@ -102,6 +101,23 @@ public class CreationViaEmail {
                 message.getAllRecipients(), author);
 
         return comment;
+    }
+
+    /**
+     * Does postprocessing for HTML document.
+     *
+     * 1. Replaces cid with attachments.
+     * 2. Removes newlines between HTML tags which will make the result rendered
+     *    by markdown ugly.
+     *
+     * @param contents
+     * @param relatedAttachments
+     * @return
+     */
+    private static String postprocessForHTML(
+            String contents, Map<String, Attachment> relatedAttachments) {
+        return new HtmlCompressor().compress(
+                replaceCidWithAttachments(contents, relatedAttachments));
     }
 
     private static Comment makeNewComment(Resource target, User sender, String body) throws IssueNotFound, PostingNotFound {
@@ -174,9 +190,7 @@ public class CreationViaEmail {
                 issue.asResource());
 
         if (new ContentType(parsedMessage.type).match(MimeType.HTML)) {
-            // replace cid with attachments
-            issue.body = replaceCidWithAttachments(
-                    issue.body, relatedAttachments);
+            issue.body = postprocessForHTML(issue.body, relatedAttachments);
             issue.update();
         }
 
