@@ -3,7 +3,7 @@ import java.nio.file.Paths
 
 name := """yobi"""
 
-version := "0.8.2-SNAPSHOT"
+version := "0.8.2"
 
 libraryDependencies ++= Seq(
   // Add your project dependencies here,
