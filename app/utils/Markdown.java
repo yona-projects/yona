@@ -21,6 +21,7 @@
 package utils;
 
 import models.Project;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -33,10 +34,8 @@ import javax.script.ScriptEngineManager;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.lang.System;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
 
 public class Markdown {
 
@@ -138,7 +137,7 @@ public class Markdown {
                     "highlight : function(sCode, sLang) { " +
                     "if(sLang) { try { return hljs.highlight(sLang.toLowerCase(), sCode).value;" +
                     " } catch(oException) { return sCode; } } }});");
-            String rendered = (String) ((Invocable) engine).invokeFunction("marked", source, options);
+            String rendered = renderByMarked(source, options);
             rendered = removeJavascriptInHref(rendered);
             rendered = checkReferrer(rendered);
             return sanitize(rendered);
@@ -147,13 +146,49 @@ public class Markdown {
         }
     }
 
+    /**
+     * Renders the source with Marked.
+     *
+     * @param source
+     * @param options
+     * @return the rendered result or the source if timeout occurs
+     */
+    private static String renderByMarked(@Nonnull String source, Object options) throws InterruptedException {
+        if (source.isEmpty()) {
+            return source;
+        }
+
+        // Try to render and wait at most 5 seconds.
+        final String[] rendered = new String[1];
+        @SuppressWarnings("deprecation")
+        Thread marked = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    rendered[0] = (String) ((Invocable) engine).invokeFunction(
+                            "marked", source, options);
+                } catch (Exception e) {
+                    play.Logger.error("[Markdown] Failed to render: " + source, e);
+                }
+            }
+        };
+        marked.start();
+        marked.join(5000);
+
+        if (rendered[0] == null) {
+            // This is the only way to stop the script engine. Thread.interrupt does not work.
+            marked.stop();
+            return "<pre>" + StringEscapeUtils.escapeHtml(source) + "</pre>";
+        } else {
+            return rendered[0];
+        }
+    }
+
     public static String render(@Nonnull String source) {
         try {
             Object options = engine.eval("new Object({gfm: true, tables: true, breaks: true, " +
                     "pedantic: false, sanitize: false, smartLists: true});");
-            String rendered = (String) ((Invocable) engine).invokeFunction("marked", source,
-                    options);
-            return sanitize(rendered);
+            return sanitize(renderByMarked(source, options));
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }

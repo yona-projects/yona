@@ -1,0 +1,11 @@
+Yobi v0.8.2 Release Notes
+=========================
+
+Fixes since v0.8.1
+------------------
+
+* Server error while rendering markdown text because of a Jsoup bug (b1d4bb9)
+* Ugly newlines of issues posted by email (a5c9992)
+* System might freeze because of markdown text which takes a long time to be
+  rendered. (ad9b0aa)
+* findbugs did not work on Java 8. (4ada856)
