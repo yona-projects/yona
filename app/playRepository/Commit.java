@@ -44,6 +44,10 @@ public abstract class Commit {
     public abstract int getParentCount();
 
     public Set<User> getWatchers(Project project) {
+        return getWatchers(project, true);
+    }
+
+    public Set<User> getWatchers(Project project, boolean allowedWatchersOnly) {
         Set<User> actualWatchers = new HashSet<>();
 
         // Add the author
@@ -76,7 +80,7 @@ public abstract class Commit {
             }
         }
 
-        return Watch.findActualWatchers(actualWatchers, asResource(project));
+        return Watch.findActualWatchers(actualWatchers, asResource(project), allowedWatchersOnly);
     }
 
     public static Project getProjectFromResourceId(String resourceId) {

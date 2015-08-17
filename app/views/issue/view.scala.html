@@ -107,9 +107,9 @@
                     <div class="pull-left">
                         <div>
                             @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.WATCH)) {
-                                <button id="watch-button" type="button" class="ybtn @if(issue.getWatchers.contains(UserApp.currentUser())) {ybtn-watching}"
-                                        data-toggle="button" data-watching="@if(issue.getWatchers.contains(UserApp.currentUser())){true}else{false}">
-                                @if(issue.getWatchers.contains(UserApp.currentUser())) {
+                                <button id="watch-button" type="button" class="ybtn @if(issue.getWatchers(false).contains(UserApp.currentUser())) {ybtn-watching}"
+                                        data-toggle="button" data-watching="@if(issue.getWatchers(false).contains(UserApp.currentUser())){true}else{false}">
+                                @if(issue.getWatchers(false).contains(UserApp.currentUser())) {
                                     @Messages("issue.unwatch")
                                 } else {
                                     @Messages("issue.watch")

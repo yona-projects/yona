@@ -157,7 +157,10 @@ public class Watch extends UserAction {
         return isWatching(UserApp.currentUser(), resource.getType(), resource.getId());
     }
 
-    public static Set<User> findActualWatchers(final Set<User> baseWatchers, final Resource resource) {
+    public static Set<User> findActualWatchers(
+            final Set<User> baseWatchers,
+            final Resource resource,
+            boolean allowedWatchersOnly) {
         Set<User> actualWatchers = new HashSet<>();
         actualWatchers.addAll(baseWatchers);
 
@@ -172,12 +175,14 @@ public class Watch extends UserAction {
         actualWatchers.removeAll(findUnwatchers(resource));
 
         // Filter the watchers who has no permission to read this resource.
-        CollectionUtils.filter(actualWatchers, new Predicate() {
-            @Override
-            public boolean evaluate(Object watcher) {
-                return AccessControl.isAllowed((User) watcher, resource, Operation.READ);
-            }
-        });
+        if (allowedWatchersOnly) {
+            CollectionUtils.filter(actualWatchers, new Predicate() {
+                @Override
+                public boolean evaluate(Object watcher) {
+                    return AccessControl.isAllowed((User) watcher, resource, Operation.READ);
+                }
+            });
+        }
         return actualWatchers;
     }
 
