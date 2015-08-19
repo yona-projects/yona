@@ -222,13 +222,9 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
         // default implementation for convenience
     }
 
-    /**
-     * @see {@link #getWatchers()}
-     * @see <a href="https://github.com/nforge/yobi/blob/master/docs/technical/watch.md>watch.md</a>
-     */
     @Transient
     public Set<User> getWatchers() {
-        return getWatchers(new HashSet<User>());
+        return getWatchers(true);
     }
 
     /**
@@ -236,7 +232,16 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
      * @see <a href="https://github.com/nforge/yobi/blob/master/docs/technical/watch.md>watch.md</a>
      */
     @Transient
-    public Set<User> getWatchers(Set<User> baseWatchers) {
+    public Set<User> getWatchers(boolean allowedWatchersOnly) {
+        return getWatchers(new HashSet<User>(), allowedWatchersOnly);
+    }
+
+    /**
+     * @see {@link #getWatchers()}
+     * @see <a href="https://github.com/nforge/yobi/blob/master/docs/technical/watch.md>watch.md</a>
+     */
+    @Transient
+    public Set<User> getWatchers(Set<User> baseWatchers, boolean allowedWatchersOnly) {
         Set<User> actualWatchers = new HashSet<>();
 
         actualWatchers.addAll(baseWatchers);
@@ -249,7 +254,7 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
             }
         }
 
-        return Watch.findActualWatchers(actualWatchers, asResource());
+        return Watch.findActualWatchers(actualWatchers, asResource(), allowedWatchersOnly);
     }
 
     protected void updateMention() {

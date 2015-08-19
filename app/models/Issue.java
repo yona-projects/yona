@@ -348,20 +348,25 @@ public class Issue extends AbstractPosting implements LabelOwner {
         return AbstractPosting.findByNumber(finder, project, number);
     }
 
+    @Transient
+    public Set<User> getWatchers() {
+        return getWatchers(true);
+    }
+
     /**
      * Returns all users watching or voting the issue.
      *
      * @return The set watching and voting the issue.
      */
     @Transient
-    public Set<User> getWatchers() {
+    public Set<User> getWatchers(boolean allowedWatchersOnly) {
         Set<User> baseWatchers = new HashSet<>();
         if (assignee != null) {
             baseWatchers.add(assignee.user);
         }
         baseWatchers.addAll(this.voters);
 
-        return super.getWatchers(baseWatchers);
+        return super.getWatchers(baseWatchers, allowedWatchersOnly);
     }
 
     public boolean assignedUserEquals(Assignee otherAssignee) {

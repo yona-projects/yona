@@ -57,8 +57,8 @@
         <div class="board-footer board-actrow">
             <div class="pull-left">
                 @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.WATCH)) {
-                    <button id="watch-button" type="button" class="ybtn @if(pull.getWatchers.contains(UserApp.currentUser())) { ybtn-watching }" data-toggle="button" data-watching="@if(pull.getWatchers.contains(UserApp.currentUser())){true}else{false}">
-                    @if(pull.getWatchers.contains(UserApp.currentUser())) {
+                    <button id="watch-button" type="button" class="ybtn @if(pull.getWatchers(false).contains(UserApp.currentUser())) { ybtn-watching }" data-toggle="button" data-watching="@if(pull.getWatchers(false).contains(UserApp.currentUser())){true}else{false}">
+                    @if(pull.getWatchers(false).contains(UserApp.currentUser())) {
                         @Messages("project.unwatch")
                     } else {
                         @Messages("project.watch")

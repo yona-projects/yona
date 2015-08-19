@@ -165,7 +165,8 @@ public class WatchTest extends ModelTest<Watch> {
         baseWatchers.add(base_watcher_not_member);
 
         // When
-        Set<User> actualWatchers = Watch.findActualWatchers(baseWatchers, resource_of_private_project);
+        Set<User> actualWatchers = Watch.findActualWatchers(baseWatchers,
+                resource_of_private_project, true);
 
         // Then
         assertThat(actualWatchers).containsOnly(watch_isssue, watch_project);

@@ -770,21 +770,16 @@ public class User extends Model implements ResourceConvertible {
 
     @Override
     public boolean equals(Object o) {
-        if(!(o instanceof User)) {
-            return false;
-        }
-        if(o == this) {
-            return true;
-        }
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
         User user = (User) o;
-        return this.id.equals(user.id) && this.loginId.equals(user.loginId);
+
+        return !(id != null ? !id.equals(user.id) : user.id != null);
     }
 
     @Override
     public int hashCode() {
-      int result = super.hashCode();
-      result = result * 37 + (this.id != null ? this.id.hashCode() : 0);
-      result = result * 37 + (this.loginId != null ? this.loginId.hashCode() : 0);
-      return result;
+        return id != null ? id.hashCode() : 0;
     }
 }

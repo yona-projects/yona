@@ -584,6 +584,10 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     public Set<User> getWatchers() {
+        return getWatchers(true);
+    }
+
+    public Set<User> getWatchers(boolean allowedWatchersOnly) {
         Set<User> actualWatchers = new HashSet<>();
 
         actualWatchers.add(this.contributor);
@@ -596,7 +600,7 @@ public class PullRequest extends Model implements ResourceConvertible {
             }
         }
 
-        return Watch.findActualWatchers(actualWatchers, asResource());
+        return Watch.findActualWatchers(actualWatchers, asResource(), allowedWatchersOnly);
     }
 
     /**

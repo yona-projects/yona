@@ -176,7 +176,9 @@ List[playRepository.FileDiff],path:String)
             </div>
         </div>
 
-        <button id="watch-button" type="button" class="pull-left ybtn @if(commit.getWatchers(project).contains(UserApp.currentUser())) { active ybtn-watching }" data-toggle="button">@Messages("notification.watch")</button>
+        <button id="watch-button" type="button" class="pull-left ybtn @if(commit.getWatchers
+                (project, false).contains(UserApp.currentUser())) { active ybtn-watching }"
+        data-toggle="button">@Messages("notification.watch")</button>
 
         <a href="@routes.CodeHistoryApp.history(project.owner, project.name, selectedBranch, path)" class="ybtn pull-right">@Messages("button.list")</a>
     </div>
