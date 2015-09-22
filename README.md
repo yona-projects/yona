@@ -1,4 +1,4 @@
-﻿<a name="english"></a>
+<a name="english"></a>
 [[한국어]](#korean)
 Yobi
 =======
@@ -133,13 +133,13 @@ If you want to change port, check your permission to use 80 port. See 'Options' 
 Case1. Using git client (recommended)
 In installed directory, just type git update command.
 
-	git pull https://github.com/naver/yobi.git master
+    git pull https://github.com/naver/yobi.git master
 
 Case2. Download zip file
 
 In installed directory, download the latest release file and unzip it.
 
-	https://github.com/naver/yobi/archive/master.zip
+    https://github.com/naver/yobi/archive/master.zip
 
 **Be careful! Don't overwrite or delete `yobi.h2.db` file, `repo` & `uploads` directory!**
 
@@ -227,8 +227,8 @@ See [http://www.playframework.com/documentation/2.3.6/Production](http://www.pla
 
 Copy the below file and directories to another place.
 
-	file: yobi.h2.db
-	directory: repo, uploads
+    file: yobi.h2.db
+    directory: repo, uploads
 
 <br/>
 <br/>
@@ -327,7 +327,7 @@ case1. [git 클라이언트](http://git-scm.com)를 이용한 다운로드 (추�
     
 case2. 단순히 최신 안정버전을 내려받고자 할 때는 아래 링크를 이용해서 압축파일을 내려받은 다음 yobi를 폴더이름으로 해서 해제합니다.
 
-	git pull https://github.com/naver/yobi.git master
+    git pull https://github.com/naver/yobi.git master
     
 주의! case2의 경우, 업그레이드 할 때 문제가 생길 수 있습니다.
 
@@ -370,13 +370,13 @@ case2. 단순히 최신 안정버전을 내려받고자 할 때는 아래 링크
 case1. git 클라이언트를 이용 (추천)
 설치된 디렉터리에서, 아래와 같은 git 명령어를 이용합니다
 
-	git pull https://github.com/naver/yobi.git master
+    git pull https://github.com/naver/yobi.git master
 
 case2. 압축파일을 내려받을 경우
 
 설치된 디렉터리에서, 최신 릴리즈의 압축파일을 내려받아 Yobi가 설치된 디렉터리에 압축파일을 풉니다.
 
-	https://github.com/naver/yobi/archive/master.zip
+    https://github.com/naver/yobi/archive/master.zip
 
 **주의사항! `yobi.h2.db` 파일, `repo`와 `uploads` 디렉터리를 삭제하거나 덮어쓰지 않도록 주의하세요!**
 
@@ -447,5 +447,56 @@ applyEvolutions.default 자바 프로퍼티를 true로 설정합니다.
 
 특별히 외부 DB를 사용하지 않는다면 아래 내용을 잘 백업해서 보관해 주시면 됩니다.
 
-	file: yobi.h2.db
-	directory: repo, uploads
+    file: yobi.h2.db
+    directory: repo, uploads
+
+
+
+이하 내용은 [alzkdpf](https://github.com/alzkdpf)님께서 보충해 주신 0.7.3 에서 0.8.x로 업데이트 방법 가이드이며 소스코드를 이용해서 Yobi를 설치한 경우를 가정해 설명되어 있습니다.
+(고맙습니다 [alzkdpf](https://github.com/alzkdpf)님)
+
+0.7.3 에서 0.8 업데이트 방법
+--
+- 기본 백업방법 : [상단의 백업하기 참조](https://github.com/naver/yobi#백업하기)
+- DB 백업 및 복원
+- conf 설정
+
+## DB 백업 방법
+` !! [주의사항] 백업 및 복구 작업은 절대로 운영중에 수행하지 마세요 !! `
+
+Yobi 0.7.3이 설치된 디렉토리(예: ~/play-2.1.0/yobi)에서:
+
+#### 방법 1. 단순 파일 복사를 이용한 백업 (yobi.h2.db 사본 생성)
+    cp yobi.h2.db yobi.h2.db.bak
+#### 방법 2. DB 전체를 sql 파일로 추출하는 방법
+    java -cp ../repository/local/com.h2database/h2/1.3.168/jars/h2.jar org.h2.tools.Recover
+#### 방법 3. sql을 파일을 추출하면서 압축까지 하는 방법
+    java -cp ../repository/local/com.h2database/h2/1.3.168/jars/h2.jar org.h2.tools.Script -url jdbc:h2:file:yobi -user "" -script ./backup_file_name.zip -options compression zip
+
+**Note**: 단순 파일 복사는 운영중에는 사용하지 않는걸 권합니다. 운영상태에서는 sql 파일이나 zip파일로 백업하는 방법을 권장드리며 추후에도 h2 라이브러리를 활용해 백업 및 복원을 추천드립니다.
+
+## DB 복원 방법
+` !! [주의사항] 백업 및 복구 작업은 절대로 운영중에 수행하지 마세요 !! `
+
+Yobi 0.8이 설치된 디렉토리(예: ~/activator-1.2.10-minimal/yobi)에서:
+
+#### 방법 1. 단순 파일 복사를 이용한 백업 (yobi.h2.db 사본을 이용)
+    cp yobi.h2.db.bak yobi.h2.db
+
+#### 방법 2. 추출한 sql 파일을 이용해서 복원하는 경우
+    java -cp ./target/universal/stage/lib/com.h2database.h2-1.3.176.jar org.h2.tools.RunScript -url jdbc:h2:file:yobi -user "" -script yobi.h2.sql
+
+#### 방법 3. zip 으로 압축된 형태의 sql 파일을 이용해서 복원 할 경우
+    java -cp ./target/universal/stage/lib/com.h2database.h2-1.3.176.jar org.h2.tools.RunScript -url jdbc:h2:file:yobi -user "" script ./backup_file_name.zip -options compression zip
+
+### application.conf 설정
+application.secret을 사용하던 0.7.3 버전에서 확인후 0.8 로 붙여넣기 합니다.
+
+
+### DB관련 작업을 한 후 정상적으로 페이지가 뜨지 않을 경우 아래 항목을 확인해 주세요.
+
+- application.conf 가 제대로 읽히는지
+- application.secret 적용여부
+- db.default.url 확인 
+
+기타 관련해서는 [이슈 #924](https://github.com/naver/yobi/issues/924)을 참고해 주세요
