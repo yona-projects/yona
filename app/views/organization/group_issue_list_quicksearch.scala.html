@@ -1,0 +1,66 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2015 NAVER Corp.
+* http://yobi.io
+*
+* @author Suwon Chae
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@(param:models.support.SearchCondition)
+
+<ul class="lst-stacked unstyled">
+    <li @if(param.assigneeId == null && param.authorId == null && param.mentionId == null){class="active"}>
+        <a pjax-filter href="#"
+           data-assignee-id=""
+           data-author-id=""
+           data-mention-id=""
+           data-project-names="@param.projectNames"
+           data-milestone-id="@param.milestoneId">
+            @Messages("issue.list.all")
+        </a>
+    </li>
+    @if(!UserApp.currentUser().isAnonymous()){
+    <li @if(param.assigneeId == UserApp.currentUser().id){ class="active"}>
+        <a pjax-filter href="#"
+            data-author-id=""
+            data-assignee-id="@UserApp.currentUser.id"
+            data-project-names="@param.projectNames"
+            data-milestone-id="@param.milestoneId"
+            data-mention-id="">
+            @Messages("issue.list.assignedToMe")
+        </a>
+    </li>
+    <li @if(param.authorId == UserApp.currentUser().id){ class="active"}>
+        <a pjax-filter href="#"
+            data-author-id="@UserApp.currentUser.id"
+            data-assignee-id=""
+            data-milestone-id="@param.milestoneId"
+            data-project-names="@param.projectNames"
+            data-mention-id="">
+            @Messages("issue.list.authoredByMe")
+        </a>
+    </li>
+    <li @if(param.mentionId == UserApp.currentUser().id){ class="active"}>
+        <a pjax-filter href="#"
+            data-author-id=""
+            data-assignee-id=""
+            data-milestone-id="@param.milestoneId"
+            data-project-names="@param.projectNames"
+            data-mention-id="@UserApp.currentUser.id">
+            @Messages("issue.list.mentionedOfMe")
+        </a>
+    </li>
+    }
+</ul>

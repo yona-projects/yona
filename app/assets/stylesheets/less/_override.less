@@ -19,7 +19,7 @@
     .transition(all 0.3s ease);
 
     &:hover {
-        background-color:#e6e6e6;
+        background-color: #fafafa;
         .transition(all 0.1s linear);
     }
 
@@ -168,7 +168,6 @@
     margin-top:4px;
 
     input {
-        border: 1px solid rgba(0,0,0,0.15);
         background: #fff url('@{select2-image-path}/select2.png') no-repeat 100% -22px;
 
         &.select2-active {
@@ -276,8 +275,7 @@
 
     &.select2-container-active {
         .select2-choices {
-            border: 1px solid rgba(0,0,0,0.15);
-            border-bottom:0;
+            border: 1px solid @primary;
             background-image:none;
             outline:none;
             .box-shadow(none);

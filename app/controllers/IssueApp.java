@@ -43,7 +43,9 @@ import play.libs.Json;
 import play.mvc.*;
 import utils.*;
 import views.html.issue.*;
+import views.html.organization.group_issue_list;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
@@ -53,6 +55,24 @@ import java.util.Map;
 public class IssueApp extends AbstractPostingApp {
     private static final String EXCEL_EXT = "xls";
     private static final Integer ITEMS_PER_PAGE_MAX = 45;
+
+    @AnonymousCheck(requiresLogin = false, displaysFlashMessage = true)
+    public static Result organizationIssues(@Nonnull String organizationName, @Nonnull String state, @Nonnull String format, int pageNum) throws WriteException, IOException {
+        // SearchCondition from param
+        Form<models.support.SearchCondition> issueParamForm = new Form<>(models.support.SearchCondition.class);
+        models.support.SearchCondition searchCondition = issueParamForm.bindFromRequest().get();
+        searchCondition.pageNum = pageNum - 1;
+
+        Integer itemsPerPage = getItemsPerPage();
+        Organization organization = Organization.findByName(organizationName);
+        if (organization == null) {
+            return notFound(ErrorViews.NotFound.render("error.notfound.organization"));
+        }
+        ExpressionList<Issue> el = searchCondition.asExpressionList(organization);
+        Page<Issue> issues = el.findPagingList(itemsPerPage).getPage(searchCondition.pageNum);
+
+        return ok(group_issue_list.render("title.issueList", issues, searchCondition, organization));
+    }
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     public static Result userIssues(String state, String format, int pageNum) throws WriteException, IOException {

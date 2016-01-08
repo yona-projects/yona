@@ -32,6 +32,7 @@ import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -49,8 +50,11 @@ import views.html.board.create;
 import views.html.board.edit;
 import views.html.board.list;
 import views.html.board.view;
+import views.html.organization.group_board_list;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -58,6 +62,7 @@ import static com.avaje.ebean.Expr.icontains;
 
 public class BoardApp extends AbstractPostingApp {
     public static class SearchCondition extends AbstractPostingApp.SearchCondition {
+        public List<String> projectNames;
         private ExpressionList<Posting> asExpressionList(Project project) {
             ExpressionList<Posting> el = Posting.finder.where().eq("project.id", project.id);
 
@@ -71,6 +76,73 @@ public class BoardApp extends AbstractPostingApp {
 
             return el;
         }
+
+        private ExpressionList<Posting> asExpressionList(@Nonnull Organization organization) {
+            ExpressionList<Posting> el = Posting.finder.where();
+
+            if(isFilteredByProject()){
+                el.in("project.id", getFilteredProjectIds(organization));
+            } else {
+                el.in("project.id", getVisibleProjectIds(organization));
+            }
+
+            if (filter != null) {
+                el.or(icontains("title", filter), icontains("body", filter));
+            }
+
+            if (StringUtils.isNotBlank(orderBy)) {
+                el.orderBy(orderBy + " " + orderDir);
+            }
+
+            return el;
+        }
+
+        private boolean isFilteredByProject() {
+            return CollectionUtils.isNotEmpty(projectNames);
+        }
+
+        private List<Long> getFilteredProjectIds(@Nonnull Organization organization) {
+            List<Long> projectIdsFilter = new ArrayList<>();
+            for(String projectName: projectNames){
+                for(Project project: organization.projects){
+                    if(project.name.equalsIgnoreCase(projectName)
+                            && getVisibleProjectIds(organization).contains(project.id.toString())) {
+                        projectIdsFilter.add(project.id);
+                        break;
+                    }
+                }
+            }
+            return projectIdsFilter;
+        }
+
+        private List<String> getVisibleProjectIds(Organization organization) {
+            List<Project> projects = organization.getVisibleProjects(UserApp.currentUser());
+            List<String> projectsIds = new ArrayList<String>();
+            for (Project project : projects) {
+                projectsIds.add(project.id.toString());
+            }
+            return projectsIds;
+        }
+    }
+
+    @AnonymousCheck(requiresLogin = false, displaysFlashMessage = true)
+    public static Result organizationBoards(@Nonnull String organizationName, int pageNum) {
+
+        Form<SearchCondition> postParamForm = new Form<>(SearchCondition.class);
+        SearchCondition searchCondition = postParamForm.bindFromRequest().get();
+        searchCondition.pageNum = pageNum - 1;
+        if (searchCondition.orderBy.equals("id")) {
+            searchCondition.orderBy = "createdDate";
+        }
+
+        Organization organization = Organization.findByName(organizationName);
+        if (organization == null) {
+            return notFound(ErrorViews.NotFound.render("error.notfound.organization"));
+        }
+        ExpressionList<Posting> el = searchCondition.asExpressionList(organization);
+        Page<Posting> posts = el.findPagingList(ITEMS_PER_PAGE).getPage(searchCondition.pageNum);
+
+        return ok(group_board_list.render("menu.board", organization, posts, searchCondition, null));
     }
 
     @IsAllowed(value = Operation.READ, resourceType = ResourceType.PROJECT)

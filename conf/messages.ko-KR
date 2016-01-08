@@ -460,6 +460,7 @@ organization.setting =  그룹 설정
 organization.settingFrom = 설정
 organization.you.may.want.to.be.a.member = {0} 그룹 멤버로 등록 요청을 할 수 있습니다.
 organization.you.want.to.be.a.member = {0} 그룹 멤버로 등록 요청했습니다.
+organization.choose.projects = 프로젝트 선택
 post.author = 글쓴이
 post.comment.empty = 댓글 내용은 반드시 입력해야 합니다.
 post.createdDate = 작성일
@@ -869,6 +870,7 @@ title.rememberMe = 로그인 유지하기
 title.resetPassword = 비밀번호 재설정
 title.resetPasswordFor = <span class="highlight">{0}</span> 비밀번호 재설정
 title.search = 검색
+title.searchByKeyword = 키워드로 검색
 title.sendMail = 메일 발송
 title.signup = 회원 가입
 title.signupFor = <span class="highlight">{0}</span> 회원가입

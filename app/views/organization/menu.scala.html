@@ -18,14 +18,24 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(org:Organization)
+@(org:Organization)(implicit request: RequestHeader)
 
 <div class="project-menu-outer">
     <div class="project-menu-inner">
         <ul class="project-menu-nav project-menu-gruop">
-            <li >
+            <li class="@if(request.path.endsWith(org.name)){active}">
                 <a href="@routes.OrganizationApp.organization(org.name)">
                     @Messages("title.organizationHome")
+                </a>
+            </li>
+            <li class="@if(request.path.contains(org.name + "/issues")){active}">
+                <a href="@routes.IssueApp.organizationIssues(org.name)">
+                @Messages("menu.issue")
+                </a>
+            </li>
+            <li class="@if(request.path.contains(org.name + "/boards")){active}">
+                <a href="@routes.BoardApp.organizationBoards(org.name)">
+                @Messages("menu.board")
                 </a>
             </li>
         </ul>

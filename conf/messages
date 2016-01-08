@@ -461,6 +461,7 @@ organization.setting = Group Setting
 organization.settingFrom = Setting
 organization.you.may.want.to.be.a.member = You may want to be a member of {0} group.
 organization.you.want.to.be.a.member = You want to be a member of {0} group.
+organization.choose.projects = Choose projects
 post.author = Author
 post.createdDate = Created date
 post.delete.confirm = Once you delete the post, you won''t be able to recover it. Do you still want to delete this post?
@@ -874,6 +875,7 @@ title.rememberMe = Stay logged in
 title.resetPassword = Reset password
 title.resetPasswordFor = Reset password for <span class="highlight">{0}</span>
 title.search = Search
+title.searchByKeyword = Search by keyword
 title.sendMail = Send email
 title.signup = Sign up
 title.signupFor = Sign up for <span class="highlight">{0}</span>

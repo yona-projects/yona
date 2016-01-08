@@ -247,6 +247,14 @@
             _initSelect2();
             _initCalendar();
             _initImplicitTitlePrefix();
+            _addEventAtOrganizationIssueSearchPage();
+        }
+
+        function _addEventAtOrganizationIssueSearchPage() {
+            // pjax reset previous events, so it is required adding event again.
+            $("#projects" ).on("change", function(){
+                $("#search" ).submit();
+            });
         }
 
         /**
