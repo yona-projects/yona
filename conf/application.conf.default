@@ -46,7 +46,7 @@ ebeanconfig.datasource.default=default
 # H2 Configuration
  db.default.driver=org.h2.Driver
 # db.default.url="jdbc:h2:mem:yobi;MODE=PostgreSQL;DB_CLOSE_DELAY=-1"
- db.default.url="jdbc:h2:file:./yobi;MODE=PostgreSQL;MV_STORE=FALSE;MVCC=FALSE;CACHE_SIZE=131072"
+ db.default.url="jdbc:h2:file:./yobi;MODE=PostgreSQL;MV_STORE=FALSE;MVCC=FALSE;CACHE_SIZE=131072;AUTO_SERVER=TRUE"
 # db.default.user=sa
 # db.default.password=sa
 db.default.logStatements=true
