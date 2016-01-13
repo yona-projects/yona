@@ -30,23 +30,29 @@
 
 @makeFilterLink(fieldName:String, orderBy:String, orderDir:String, fieldText:String) = {
 	@if(orderBy.equals(fieldName)) {
-		<a href="@urlToList?orderBy=@fieldName&orderDir=@if(orderDir.equals("desc")){asc}else{desc}" class="filter active"><i class="ico btn-gray-arrow @if(orderDir.equals("desc")){ down }"></i>@fieldText</a>
+		<a href="@urlToList?filter=@param.filter&labelIds=@param.labelIds&orderBy=@fieldName&orderDir=@if(orderDir.equals("desc")){asc}else{desc}" class="filter active"><i class="ico btn-gray-arrow @if(orderDir.equals("desc")){ down }"></i>@fieldText</a>
 	} else {
-	    <a href="@urlToList?orderBy=@fieldName&orderDir=desc" class="filter"><i class="ico btn-gray-arrow down"></i>@fieldText</a>
+	    <a href="@urlToList?filter=@param.filter&labelIds=@param.labelIds&orderBy=@fieldName&orderDir=desc" class="filter"><i class="ico btn-gray-arrow down"></i>@fieldText</a>
 	}
 }
 
 @projectLayout(title, project, utils.MenuType.BOARD) {
 @projectMenu(project, utils.MenuType.BOARD, "main-menu-only")
+<link rel="stylesheet" href="@routes.IssueLabelApp.labelStyles(project.owner, project.name)" type="text/css" />
 <div class="page-wrap-outer">
-    <div class="project-page-wrap">
+    <div class="post-list project-page-wrap">
         <div class="search-wrap underline">
-            <form id="option_form" method="get" class="pull-left">
+            <form id="option_form" action="@routes.BoardApp.posts(project.owner, project.name)" method="get" class="pull-left">
                 <input type="hidden" name="orderBy"  value="@param.orderBy">
                 <input type="hidden" name="orderDir" value="@param.orderDir">
                 <div class="search-bar">
                     <input name="filter" class="textbox" type="text" placeholder="@Messages("project.searchPlaceholder")" value="@param.filter">
                     <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                </div>
+                <div class="board-labels">
+                @if(!IssueLabel.findByProject(project).isEmpty){
+                    @issue.partial_select_label(IssueLabel.findByProject(project), param.labelIdSet)
+                }
                 </div>
             </form>
             <div class="pull-right">
@@ -107,6 +113,11 @@
                 "N": "@routes.BoardApp.newPostForm(project.owner, project.name)"
             });
         }
+
+        $('.board-labels select').on('change', function(e){
+            $("#option_form").submit();
+        });
 	});
 </script>
+@common.select2()
 }

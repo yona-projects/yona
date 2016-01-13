@@ -10,7 +10,9 @@ import utils.JodaDateUtil;
 
 import javax.persistence.*;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.avaje.ebean.Expr.eq;
 
@@ -26,6 +28,19 @@ public class Posting extends AbstractPosting {
 
     @OneToMany(cascade = CascadeType.ALL)
     public List<PostingComment> comments;
+
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    public Set<IssueLabel> labels;
+
+    public Set<Long> getLabelIds() {
+        Set<Long> labelIds = new HashSet<>();
+
+        for(IssueLabel label : this.labels){
+            labelIds.add(label.id);
+        }
+
+        return labelIds;
+    }
 
     public Posting(Project project, User author, String title, String body) {
         super(project, author, title, body);

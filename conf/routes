@@ -21,6 +21,10 @@ GET            /UIKit                                                           
 # Search
 GET            /search                                                                controllers.SearchApp.searchInAll()
 
+GET            /-_-api                                                                controllers.Application.index()
+GET            /-_-api/v1/                                                            controllers.Application.index()
+POST           /-_-api/v1/owners/:owner/projects/:projectName/:number                 controllers.BoardApi.updatePostLabel(owner:String, projectName:String, number:Long)
+
 # Import
 GET            /import                                                                controllers.ImportApp.importForm()
 POST           /import                                                                controllers.ImportApp.newProject()

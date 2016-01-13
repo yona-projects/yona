@@ -67,6 +67,9 @@ public class IssueLabel extends Model implements ResourceConvertible {
     @ManyToMany(mappedBy="labels", fetch = FetchType.EAGER)
     public Set<Issue> issues;
 
+    @ManyToMany(mappedBy="labels", fetch = FetchType.EAGER)
+    public Set<Posting> postings;
+
     public static List<IssueLabel> findByProject(Project project) {
         return finder.where()
                 .eq("project.id", project.id)

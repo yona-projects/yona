@@ -21,21 +21,17 @@
 package controllers;
 
 import actions.NullProjectCheckAction;
-
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
-
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
 import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import play.data.Form;
 import play.db.ebean.Transactional;
 import play.libs.Json;
@@ -54,20 +50,25 @@ import views.html.organization.group_board_list;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static com.avaje.ebean.Expr.icontains;
 
 public class BoardApp extends AbstractPostingApp {
     public static class SearchCondition extends AbstractPostingApp.SearchCondition {
         public List<String> projectNames;
+        public String [] labelIds;
+        public Set<Long> labelIdSet = new HashSet<>();
         private ExpressionList<Posting> asExpressionList(Project project) {
             ExpressionList<Posting> el = Posting.finder.where().eq("project.id", project.id);
 
             if (filter != null) {
                 el.or(icontains("title", filter), icontains("body", filter));
+            }
+
+            if (CollectionUtils.isNotEmpty(labelIdSet)) {
+                Set<IssueLabel> labels = IssueLabel.finder.where().idIn(new ArrayList<>(labelIdSet)).findSet();
+                el.in("id", Posting.finder.where().in("labels", labels).findIds());
             }
 
             if (StringUtils.isNotBlank(orderBy)) {
@@ -155,6 +156,8 @@ public class BoardApp extends AbstractPostingApp {
         if (searchCondition.orderBy.equals("id")) {
             searchCondition.orderBy = "createdDate";
         }
+        searchCondition.labelIdSet.addAll(LabelApp.getLabelIds(request()));
+        searchCondition.labelIdSet.remove(null);
 
         ExpressionList<Posting> el = searchCondition.asExpressionList(project);
         el.eq("notice", false);

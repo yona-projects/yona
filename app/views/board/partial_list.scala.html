@@ -64,7 +64,10 @@
         <span class="infos-item item-count-groups">
             @countHtml("comments",routes.BoardApp.post(project.owner, project.name, post.getNumber).toString() + "#comments", post.numOfComments)
         </span>
-        }       
+        }
+        @for(label <- post.labels) {
+            <a href="#" class="label issue-label list-label active" data-category-id="@label.category.id" data-label-id="@label.id">@label.name</a>
+        }
     </div>
 </li>
 }
