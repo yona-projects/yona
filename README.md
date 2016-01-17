@@ -1,8 +1,41 @@
+
+**Yona는 개발 중단된 [Yobi](https://github.com/naver/yobi)를 이어나가기 위해 만들어진 fork 프로젝트입니다. 아직 하단 문서의 이름표기는 update 되어 있지 않습니다.**
+
+
+Yobi 에서 Yona 로 변경 방법
+===
+
+- 새로 설치하는 분은 본문의 내용대로 파일을 내려 받아서 설치하면 됩니다.
+- 기존 yobi를 설치해서 사용하시는 분들은 아래 설정을 수정하시면 이후 yona 버전으로 업데이트를 받으실 수 있습니다.
+
+application.conf
+------------
+
+- 추가
+```
+application.update.check.use = true
+```
+- 값 변경
+```
+# Application feedback url at top layout menu. You can remove feedback menu by commenting it.
+application.feedback.url="https://github.com/doortts/yona/issues"
+
+application.update.repositoryUrl = "http://repo.yona.io/yona/yona"
+application.update.releaesUrlFormat = "https://github.com/doortts/yona/releases/tag/v%s"
+```
+
+git remote 변경
+--------------
+git remote set-url origin https://github.com/doortts/yona
+
+이하는 이전 README 내용입니다.
+---
+
 <a name="english"></a>
 [[한국어]](#korean)
 Yobi
 =======
-[![Build Status](https://travis-ci.org/naver/yobi.png?branch=master)](https://travis-ci.org/naver/yobi)
+[![Build Status](https://travis-ci.org/doortts/yona.png?branch=next)](https://travis-ci.org/doortts/yona)
 
 Yobi is a web-based project hosting software.
 
