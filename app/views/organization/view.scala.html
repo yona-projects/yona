@@ -44,6 +44,12 @@
 }
 }
 
+@amIWatching(project:Project) = {
+    @if(User.isWatching(project)) {
+        "watch-on"
+    }
+}
+
 @organizationLayout(org.name, utils.MenuType.NONE, org) {
 @header(org)
 @menu(org)
@@ -117,7 +123,12 @@
                                 </ul>
                                 <p>
                                     @Html(Messages("project.onmember", User.findUsersByProject(project.id).size))
-                                    <i class="yobicon-eye yobicon-middle"></i> @Html(Messages("project.onwatching", project.getWatchingCount))
+                                <i class="yobicon-eye"></i> @Html(Messages("project.onwatching", project.getWatchingCount))
+                                    @if(User.isWatching(project)) {
+                                        <i class="yobicon-lightbulb ramp-on" data-toggle="tooltip" title="@Messages("project.default.group.watching")"></i>
+                                    } else {
+                                        <i class="yobicon-lightbulb ramp-off" data-toggle="tooltip" title="@Messages("project.you.are.not.watching", "")"></i>
+                                    }
                                 </p>
                             </div>
                         </div>

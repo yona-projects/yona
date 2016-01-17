@@ -196,6 +196,7 @@ public class ProjectApp extends Controller {
         RepositoryService.createRepository(project);
 
         saveProjectMenuSetting(project);
+        Watch.watch(project.asResource());
 
         return redirect(routes.ProjectApp.project(project.owner, project.name));
     }
@@ -840,6 +841,7 @@ public class ProjectApp extends Controller {
         if(HttpUtil.isJSONPreferred(request())){
             return ok("{}");
         }
+        Watch.watch(newMember, project.asResource());
         return redirect(routes.ProjectApp.members(ownerId, projectName));
     }
 
