@@ -58,7 +58,7 @@ public class Config {
 
     public static String getSiteName() {
         return ObjectUtils.defaultIfNull(
-                play.Configuration.root().getString("application.siteName"), "Yobi");
+                play.Configuration.root().getString("application.siteName"), "Yona");
     }
 
     public static String getHostport(String defaultValue) {

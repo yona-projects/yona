@@ -259,8 +259,11 @@ public class SiteApp extends Controller {
         Exception exception = null;
 
         try {
-            currentVersion = Config.getCurrentVersion();
-            YobiUpdate.refreshVersionToUpdate();
+            boolean useUpdateCheck = play.Configuration.root().getBoolean("application.update.check.use");
+            if(useUpdateCheck){
+                currentVersion = Config.getCurrentVersion();
+                YobiUpdate.refreshVersionToUpdate();
+            }
         } catch (Exception e) {
             exception = e;
         }

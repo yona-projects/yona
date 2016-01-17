@@ -31,35 +31,34 @@
         <div class="page-wrap">
             <div class="site-guide-outer hide">
                 <h3>
-                    <i class="yobicon-emo-wink"></i>
-                    @Messages("app.welcome",utils.Config.getSiteName)
-                    <span>@Messages("app.description")</span>
+                    <span>@Messages("app.welcome",utils.Config.getSiteName) - @Messages("app.description")</span>
                 </h3>
-                <div class="site-guide-inner">
-                    <ul class="guide-wrap row-fluid">
-                        <li class="span4">
-                            <h4>@Messages("app.welcome.project")</h4>
-                            <p>@Messages("app.welcome.project.desc")</p>
+                <table class="welcome-table table borderless">
+                    <tr>
+                        <td>
                             <a href="@routes.ProjectApp.newProjectForm()" class="ybtn ybtn-success">
-                                @Messages("button.newProject")
+                            @Messages("button.newProject")
                             </a>
-                        </li>
-                        <li class="span4">
-                            <h4>@Messages("app.welcome.group")</h4>
-                            <p>@Messages("app.welcome.group.desc")</p>
+                        </td>
+                        <td>@Messages("app.welcome.project.desc")</td>
+                    </tr>
+                    <tr>
+                        <td>
                             <a href="@routes.OrganizationApp.newForm()" class="ybtn ybtn-success">
-                                @Messages("title.newOrganization")
+                            @Messages("title.newOrganization")
                             </a>
-                        </li>
-                        <li class="span4">
-                            <h4>@Messages("app.welcome.searchProject")</h4>
-                            <p>@Messages("app.welcome.searchProject.desc")</p>
+                        </td>
+                        <td>@Messages("app.welcome.group.desc")</td>
+                    </tr>
+                    <tr>
+                        <td>
                             <a href="@routes.ProjectApp.projects()" class="ybtn ybtn-success">
-                                @Messages("title.projectList")
+                            @Messages("title.projectList")
                             </a>
-                        </li>
-                    </ul>
-                </div>
+                        </td>
+                        <td>@Messages("app.welcome.searchProject.desc")</td>
+                    </tr>
+                </table>
             </div>
             <div class="guide-toggle">
                 <button class="btn-transparent" id="toggleIntro"><i class="yobicon-resizev"></i></button>

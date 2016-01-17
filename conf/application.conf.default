@@ -4,12 +4,12 @@
 # Site Name
 # ~~~~~~~~~
 # The name of your website
-application.siteName="Yobi"
+application.siteName="Yona"
 
 # Anonymous access
 # ~~~~~~~~~~~~~~~~
 # This site allows anonymous access. (default: true)
-# If this is false, Yobi refuses anonymous access to any page except for the
+# If this is false, Yona refuses anonymous access to any page except for the
 # ones to be needed for login, login and creating accout.
 # NOTE: Even if this is false, anyone can create a account freely. If you don't
 # want to allow that, set signup.require.confirm to false.
@@ -45,8 +45,8 @@ application.langs="en-US, ko-KR, ja-JP"
 ebeanconfig.datasource.default=default
 # H2 Configuration
  db.default.driver=org.h2.Driver
-# db.default.url="jdbc:h2:mem:yobi;MODE=PostgreSQL;DB_CLOSE_DELAY=-1"
- db.default.url="jdbc:h2:file:./yobi;MODE=PostgreSQL;MV_STORE=FALSE;MVCC=FALSE;CACHE_SIZE=131072;AUTO_SERVER=TRUE"
+# db.default.url="jdbc:h2:mem:yona;MODE=PostgreSQL;DB_CLOSE_DELAY=-1"
+ db.default.url="jdbc:h2:file:./yona;MODE=PostgreSQL;MV_STORE=FALSE;MVCC=FALSE;CACHE_SIZE=131072;AUTO_SERVER=TRUE"
 # db.default.user=sa
 # db.default.password=sa
 db.default.logStatements=true
@@ -61,12 +61,12 @@ db.default.statementsCacheSize=1000
 
 # MySQL Configuration
 # db.default.driver=com.mysql.jdbc.Driver
-# db.default.url="jdbc:mysql://127.0.0.1:3306/yobi?characterEncoding=utf-8"
-# db.default.user=yobi
+# db.default.url="jdbc:mysql://127.0.0.1:3306/yona?characterEncoding=utf-8"
+# db.default.user=yona
 # db.default.password=""
 
 # Local
-# db.default.url="jdbc:postgresql://localhost:5432/yobi"
+# db.default.url="jdbc:postgresql://localhost:5432/yona"
 # db.default.user=postgres
 # db.default.password=password
 
@@ -102,7 +102,7 @@ application.scheme="http"
 # application.port="8080"
 
 # Application feedback url at top layout menu. You can remove feedback menu by commenting it.
-application.feedback.url="https://github.com/naver/yobi/issues"
+application.feedback.url="https://github.com/doortts/yona/issues"
 
 # Mailer
 # ~~~~~~
@@ -112,7 +112,7 @@ smtp.host = smtp.gmail.com
 smtp.port = 465
 smtp.ssl = true
 #smtp.user = yourGmailId
-smtp.user = yobiproject.mail
+smtp.user = yona.mail
 # Be careful!!!
 smtp.password = yourGmailPassword
 smtp.domain = gmail.com
@@ -130,10 +130,10 @@ smtp.archive.size = 5
 #
 # If you want to use this feature, your IMAP server has to be configured to
 # support the address alias using '+' sign, also known as 'subaddressing' or
-# 'detailed addressing'. For example, emails to 'yobi+issue@yourmail.com' have
-# to be delivered to 'yobi@yourmail.com'.
+# 'detailed addressing'. For example, emails to 'yona+issue@yourmail.com' have
+# to be delivered to 'yona@yourmail.com'.
 #
-# SECURITY WARNING: Yobi believes the email address in From header of the
+# SECURITY WARNING: Yona believes the email address in From header of the
 # received email is truthful and use it for authentication without doubt. To
 # avoid this problem, your imap server must deny every email whose From header
 # is forged.
@@ -144,10 +144,10 @@ smtp.archive.size = 5
 imap.use = false
 imap.host = imap.googlemail.com
 imap.ssl = true
-imap.user = "your-yobi-email-address@gmail.com"
-# The email address of Yobi. Mailbox Service processes an email only if its
+imap.user = "your-yona-email-address@gmail.com"
+# The email address of Yona. Mailbox Service processes an email only if its
 # address is as follows.
-imap.address = "your-yobi-email-address@gmail.com"
+imap.address = "your-yona-email-address@gmail.com"
 # Be careful!!!
 imap.password = yourGmailPassword
 imap.folder = inbox
@@ -184,13 +184,14 @@ application.notification.draft-time = 30s
 
 # Software Update
 # ~~~~~~~~~~~~~~~
-# Check for updates of Yobi at this interval if it is grater than 0.
+# Check for updates of Yona at this interval if it is grater than 0.
 application.update.notification.interval = 1h
-# A url to the git repository for Yobi releases.
-application.update.repositoryUrl = "http://repo.yobi.io/naver/yobi"
-# A format to construct the url to latest Yobi release. "%s" is a format
-# specifier for Yobi version to download like "0.5.7".
-application.update.releaesUrlFormat = "https://github.com/naver/yobi/releases/tag/v%s"
+# A url to the git repository for Yona releases.
+application.update.check.use = true
+application.update.repositoryUrl = "http://repo.yona.io/yona/yona"
+# A format to construct the url to latest Yona release. "%s" is a format
+# specifier for Yona version to download like "0.5.7".
+application.update.releaesUrlFormat = "https://github.com/doortts/yona/releases/tag/v%s"
 
 # customize play default thread pool size
 # see: https://www.playframework.com/documentation/2.3.x/ThreadPools
@@ -231,5 +232,5 @@ akka {
   }
 }
 
-# No referrer information is to be leaked when following the link from yobi pages. If you don't want, set it false
+# No referrer information is to be leaked when following the link from yona pages. If you don't want, set it false
 application.noreferrer = true
