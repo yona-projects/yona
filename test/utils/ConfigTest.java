@@ -20,12 +20,11 @@
  */
 package utils;
 
-import java.util.Map;
-
 import org.junit.Test;
-
 import play.test.FakeApplication;
 import play.test.Helpers;
+
+import java.util.Map;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -97,7 +96,7 @@ public class ConfigTest {
         additionalConfiguration.put("application.siteName", null);
         app = support.Helpers.makeTestApplication(additionalConfiguration);
         Helpers.start(app);
-        assertThat(Config.getSiteName()).isEqualTo("Yobi");
+        assertThat(Config.getSiteName()).isEqualTo("Yona");
         Helpers.stop(app);
     }
 

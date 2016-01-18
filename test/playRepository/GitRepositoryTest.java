@@ -37,10 +37,7 @@ import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.treewalk.TreeWalk;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.TestWatcher;
 import play.test.FakeApplication;
 import play.test.Helpers;
@@ -195,7 +192,7 @@ public class GitRepositoryTest {
         assertThat(tagHistory2.get(1).getMessage()).isEqualTo("commit 1");
     }
 
-    @Test
+    @Test @Ignore
     public void cloneRepository() throws Exception {
         // Given
         String userName = "whiteship";
