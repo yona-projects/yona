@@ -18,10 +18,10 @@ application.update.check.use = true
 - 값 변경
 ```
 # Application feedback url at top layout menu. You can remove feedback menu by commenting it.
-application.feedback.url="https://github.com/doortts/yona/issues"
+application.feedback.url="https://github.com/yona-projects/yona/issues"
 
-application.update.repositoryUrl = "http://repo.yona.io/yona/yona"
-application.update.releaesUrlFormat = "https://github.com/doortts/yona/releases/tag/v%s"
+application.update.repositoryUrl = "https://github.com/yona-projects/yona"
+application.update.releaesUrlFormat = "https://github.com/yona-projects/yona/releases/tag/v%s"
 ```
 
 git remote 변경
