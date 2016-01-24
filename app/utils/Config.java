@@ -185,7 +185,7 @@ public class Config {
             return admin.email;
         }
 
-        return "yobi@yobi.io";
+        return "yona@yona.io";
     }
 
     public static String getEmailFromSmtp() {
@@ -256,7 +256,7 @@ public class Config {
      * @return  the current version
      */
     public static String getCurrentVersion() {
-        return yobi.BuildInfo.version();
+        return yona.BuildInfo.version();
     }
 
     public static String getEmailFromImap() {
