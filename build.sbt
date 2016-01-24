@@ -1,7 +1,7 @@
 import com.typesafe.config._
 import java.nio.file.Paths
 
-name := """yobi"""
+name := """yona"""
 
 version := "0.9.0-SNAPSHOT"
 
@@ -14,6 +14,8 @@ libraryDependencies ++= Seq(
   cache,
   // Add your project dependencies here,
   "com.h2database" % "h2" % "1.3.176",
+  // JDBC driver for mariadb
+  "org.mariadb.jdbc" % "mariadb-java-client" % "1.3.4",
   // Core Library
   "org.eclipse.jgit" % "org.eclipse.jgit" % "3.5.3.201412180710-r",
   // Smart HTTP Servlet
@@ -71,7 +73,7 @@ sourceGenerators in Compile <+= buildInfo
 
 buildInfoKeys := Seq[BuildInfoKey](name, version)
 
-buildInfoPackage := "yobi"
+buildInfoPackage := "yona"
 
 mappings in Universal :=
     (mappings in Universal).value.filterNot { case (_, file) => file.startsWith("conf/") }
