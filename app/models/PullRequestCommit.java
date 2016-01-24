@@ -38,7 +38,7 @@ public class PullRequestCommit extends Model implements TimelineItem {
     public static final Finder<Long, PullRequestCommit> find = new Finder<>(Long.class, PullRequestCommit.class);
 
     @Id
-    public String id;
+    public Long id;
 
     @ManyToOne
     public PullRequest pullRequest;
