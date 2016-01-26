@@ -50,8 +50,10 @@ public class IssueEvent extends Model implements TimelineItem {
     @Enumerated(EnumType.STRING)
     public EventType eventType;
 
+    @Lob
     public String oldValue;
 
+    @Lob
     public String newValue;
 
     private static final int DRAFT_TIME_IN_MILLIS = Configuration.root()

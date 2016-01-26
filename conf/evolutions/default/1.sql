@@ -112,8 +112,8 @@ create table issue_event (
   sender_email              varchar(255),
   issue_id                  bigint,
   event_type                varchar(34),
-  old_value                 varchar(255),
-  new_value                 varchar(255),
+  old_value                 longtext,
+  new_value                 longtext,
   constraint ck_issue_event_event_type check (event_type in ('NEW_ISSUE','NEW_POSTING','NEW_PULL_REQUEST','ISSUE_STATE_CHANGED','ISSUE_ASSIGNEE_CHANGED','PULL_REQUEST_STATE_CHANGED','NEW_COMMENT','NEW_REVIEW_COMMENT','MEMBER_ENROLL_REQUEST','PULL_REQUEST_MERGED','ISSUE_REFERRED_FROM_COMMIT','PULL_REQUEST_COMMIT_CHANGED','NEW_COMMIT','PULL_REQUEST_REVIEW_STATE_CHANGED','ISSUE_BODY_CHANGED','ISSUE_REFERRED_FROM_PULL_REQUEST','REVIEW_THREAD_STATE_CHANGED','ORGANIZATION_MEMBER_ENROLL_REQUEST','COMMENT_UPDATED')),
   constraint pk_issue_event primary key (id))
 ;
