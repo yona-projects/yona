@@ -25,8 +25,6 @@ import models.*;
 import models.enumeration.EventType;
 import models.enumeration.State;
 
-import java.util.List;
-
 public abstract class PullRequestActor extends UntypedActor {
 
     protected void processPullRequestMerging(PullRequestEventMessage message, PullRequest pullRequest) {
@@ -49,9 +47,11 @@ public abstract class PullRequestActor extends UntypedActor {
                 }
             } else {
                 mergeResult.setMergedStateOfPullRequest(message.getSender());
-                NotificationEvent notiEvent = NotificationEvent.afterPullRequestUpdated(message.getSender(),
-                        pullRequest, pullRequest.state, State.MERGED);
-                PullRequestEvent.addFromNotificationEvent(notiEvent, pullRequest);
+                if (pullRequest.state != State.MERGED) {
+                    NotificationEvent notiEvent = NotificationEvent.afterPullRequestUpdated(message.getSender(),
+                            pullRequest, pullRequest.state, State.MERGED);
+                    PullRequestEvent.addFromNotificationEvent(notiEvent, pullRequest);
+                }
             }
 
             if (!wasConflict && mergeResult.conflicts()) {

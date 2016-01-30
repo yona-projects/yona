@@ -96,11 +96,11 @@ public class Issue extends AbstractPosting implements LabelOwner {
     public Set<User> voters = new HashSet<>();
 
     @Transient
-    @Formula(select = "case when due_date is null then cast('0001-01-01 00:00:00' as timestamp) else due_date end")
+    @Formula(select = "case when due_date is null then cast('0001-01-01 00:00:00' as datetime) else due_date end")
     public Date dueDateDesc;
 
     @Transient
-    @Formula(select = "case when due_date is null then cast('9999-12-31 23:59:59' as timestamp) else due_date end")
+    @Formula(select = "case when due_date is null then cast('9999-12-31 23:59:59' as datetime) else due_date end")
     public Date dueDateAsc;
 
     public Issue(Project project, User author, String title, String body) {
@@ -535,6 +535,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
         return finder.where()
                 .eq("project", project)
                 .eq("labels", label)
+                .eq("state", State.OPEN)
                 .findRowCount();
     }
 
@@ -542,6 +543,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
         return finder.where()
                 .eq("project", project)
                 .eq("assignee", assignee)
+                .eq("state", State.OPEN)
                 .findRowCount();
     }
 
@@ -549,6 +551,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
         return finder.where()
                 .eq("project", project)
                 .eq("milestone", milestone)
+                .eq("state", State.OPEN)
                 .findRowCount();
     }
 

@@ -35,7 +35,7 @@ public class PullRequestMergingActor extends PullRequestActor {
         }
 
         PullRequestEventMessage message = (PullRequestEventMessage) object;
-        PullRequest pullRequest = message.getPullRequest();
+        PullRequest pullRequest = PullRequest.findById(message.getPullRequest().id);
 
         pullRequest.startMerge();
         pullRequest.update();

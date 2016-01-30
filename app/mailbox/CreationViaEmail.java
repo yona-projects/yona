@@ -183,13 +183,12 @@ public class CreationViaEmail {
         Issue issue = new Issue(project, sender, subject, parsedMessage.body);
         issue.save();
 
-        NotificationEvent event = NotificationEvent.forNewIssue(issue, sender);
-
         Map<String, Attachment> relatedAttachments = saveAttachments(
                 parsedMessage.attachments,
                 issue.asResource());
 
         if (new ContentType(parsedMessage.type).match(MimeType.HTML)) {
+            issue.refresh();
             issue.body = postprocessForHTML(issue.body, relatedAttachments);
             issue.update();
         }
@@ -197,6 +196,7 @@ public class CreationViaEmail {
         new OriginalEmail(messageId, issue.asResource()).save();
 
         // Add the event
+        NotificationEvent event = NotificationEvent.forNewIssue(issue, sender);
         addEvent(event, recipients, sender);
 
         return issue;

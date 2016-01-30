@@ -335,7 +335,7 @@ public class Project extends Model implements LabelOwner {
         Issue issue = Issue.finder.where().eq("project.id", id).order().desc("number").findList().get(0);
         issue.refresh();
 
-        return issue.number == null ? 0l : issue.number;
+        return issue.number == null ? 0L : issue.number;
     }
 
     private void setLastIssueNumber(Long number) {
@@ -354,7 +354,7 @@ public class Project extends Model implements LabelOwner {
         Posting posting = Posting.finder.where().eq("project.id", id).order().desc("number").findList().get(0);
         posting.refresh();
 
-        return posting.number == null ? 0l : posting.number;
+        return posting.number == null ? 0L : posting.number;
     }
 
     private void setLastPostingNumber(Long number) {
