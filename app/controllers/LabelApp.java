@@ -87,7 +87,7 @@ public class LabelApp extends Controller {
                     .createSqlQuery(sqlString)
                     .setParameter("category", "%" + query.toLowerCase() + "%");
             sqlCountQuery = Ebean
-                    .createSqlQuery("SELECT COUNT(*) AS cnt FROM (" + sqlString + ")")
+                    .createSqlQuery("SELECT COUNT(*) AS cnt FROM (" + sqlString + ") categories")
                     .setParameter("category", "%" + query.toLowerCase() + "%");
         } else {
             String sqlString =
@@ -95,7 +95,7 @@ public class LabelApp extends Controller {
             sqlQuery = Ebean
                     .createSqlQuery(sqlString);
             sqlCountQuery = Ebean
-                    .createSqlQuery("SELECT COUNT(*) AS cnt FROM (" + sqlString + ")");
+                    .createSqlQuery("SELECT COUNT(*) AS cnt FROM (" + sqlString + ") categories");
         }
 
         int cnt = sqlCountQuery.findUnique().getInteger("cnt");

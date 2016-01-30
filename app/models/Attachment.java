@@ -22,7 +22,6 @@ import play.db.ebean.Model;
 import play.libs.Akka;
 import scala.concurrent.duration.Duration;
 import utils.AttachmentCache;
-import utils.Config;
 import utils.FileUtil;
 import utils.JodaDateUtil;
 
@@ -31,7 +30,6 @@ import javax.persistence.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.NotDirectoryException;
-import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -320,9 +318,13 @@ public class Attachment extends Model implements ResourceConvertible {
         // the problem. If you do that, blocking of project deletion causes
         // that all requests to attachments (even a user avatars you can see in
         // most of pages) are blocked.
+        boolean isSafelyDeleted;
         if (!exists(this.hash)) {
             try {
-                Files.delete(Paths.get(uploadDirectory, this.hash));
+                isSafelyDeleted = Files.deleteIfExists(getFile().toPath());
+                if(!isSafelyDeleted){
+                    play.Logger.error("tried to delete already deleted: " + this);
+                }
             } catch (Exception e) {
                 play.Logger.error("Failed to delete: " + this, e);
             }

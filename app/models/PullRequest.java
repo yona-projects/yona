@@ -59,7 +59,6 @@ import playRepository.GitRepository;
 import utils.Constants;
 import utils.JodaDateUtil;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.persistence.*;
 import javax.persistence.OrderBy;
@@ -677,7 +676,6 @@ public class PullRequest extends Model implements ResourceConvertible {
         this.state = state;
         this.received = JodaDateUtil.now();
         this.receiver = updater;
-        this.update();
     }
 
     public void reopen() {

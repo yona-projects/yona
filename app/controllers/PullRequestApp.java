@@ -28,7 +28,6 @@ import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
 import controllers.annotation.IsOnlyGitAvailable;
-import errors.PullRequestException;
 import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
@@ -47,7 +46,6 @@ import play.libs.F.Promise;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
-import play.mvc.Result;
 import playRepository.GitBranch;
 import playRepository.GitRepository;
 import playRepository.RepositoryService;
@@ -55,6 +53,8 @@ import utils.*;
 import views.html.error.notfound;
 import views.html.git.*;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -63,6 +63,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @IsOnlyGitAvailable
 @AnonymousCheck
@@ -81,7 +82,7 @@ public class PullRequestApp extends Controller {
 
     private static String findDestination(String forkOwner) {
         Organization organization = Organization.findByName(forkOwner);
-        if (OrganizationUser.isAdmin(organization, UserApp.currentUser())) {
+        if (UserApp.currentUser().isAdminOf(organization)) {
             return forkOwner;
         }
         return UserApp.currentUser().loginId;
@@ -195,7 +196,7 @@ public class PullRequestApp extends Controller {
         Project selectedProject = project;
         if(isToProject && project.isForkedFromOrigin() && project.originalProject.menuSetting.code
                 && project.originalProject.menuSetting.pullRequest) {
-                selectedProject = project.originalProject;
+            selectedProject = project.originalProject;
         }
 
         if(StringUtils.isNumeric(projectId)) {
@@ -232,15 +233,38 @@ public class PullRequestApp extends Controller {
                 mergeResult.conflicts()));
     }
 
-    @Transactional
+    static class PullRequestCreationResult {
+        PullRequestCreationResult(@Nonnull Result result, PullRequestEventMessage message) {
+            this.result = Objects.requireNonNull(result);
+            this.message = message;
+        }
+
+        // This should be called after creation of a pull request
+        void runMergingActor() {
+            if (message != null) {
+                Akka.system().actorOf(Props.create(PullRequestMergingActor.class)).tell(message, null);
+            }
+        }
+
+        @Nonnull Result result;
+        @Nullable private PullRequestEventMessage message;
+    }
+
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsCreatable(ResourceType.FORK)
     public static Result newPullRequest(String userName, String projectName) throws IOException, GitAPIException {
+        PullRequestCreationResult result = createPullRequest(userName, projectName);
+        result.runMergingActor();
+        return result.result;
+    }
+
+    @Transactional
+    private static PullRequestCreationResult createPullRequest(String userName, String projectName) throws IOException, GitAPIException {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
         ValidationResult validation = validateBeforePullRequest(project);
         if(validation.hasError()) {
-            return validation.getResult();
+            return new PullRequestCreationResult(validation.getResult(), null);
         }
 
         Form<PullRequest> form = new Form<>(PullRequest.class).bindFromRequest();
@@ -248,14 +272,17 @@ public class PullRequestApp extends Controller {
         if(form.hasErrors()) {
             List<GitBranch> fromBranches = new GitRepository(project).getBranches();
             List<GitBranch> toBranches = new GitRepository(project.originalProject).getBranches();
-            return ok(create.render("title.newPullRequest", new Form<>(PullRequest.class), project, null, null, null, fromBranches, toBranches, null));
+            return new PullRequestCreationResult(
+                    ok(create.render("title.newPullRequest", new Form<>(PullRequest.class), project, null, null, null, fromBranches, toBranches, null)),
+                    null);
         }
 
         PullRequest pullRequest = form.get();
 
         if (pullRequest.body == null) {
-            return status(REQUEST_ENTITY_TOO_LARGE,
-                    ErrorViews.RequestTextEntityTooLarge.render());
+            return new PullRequestCreationResult(
+                    status(REQUEST_ENTITY_TOO_LARGE, ErrorViews.RequestTextEntityTooLarge.render()),
+                    null);
         }
 
         pullRequest.created = JodaDateUtil.now();
@@ -267,7 +294,9 @@ public class PullRequestApp extends Controller {
 
         PullRequest sentRequest = PullRequest.findDuplicatedPullRequest(pullRequest);
         if(sentRequest != null) {
-            return redirect(routes.PullRequestApp.pullRequest(pullRequest.toProject.owner, pullRequest.toProject.name, sentRequest.number));
+            return new PullRequestCreationResult(
+                    redirect(routes.PullRequestApp.pullRequest(pullRequest.toProject.owner, pullRequest.toProject.name, sentRequest.number)),
+                    null);
         }
 
         pullRequest.save();
@@ -282,9 +311,8 @@ public class PullRequestApp extends Controller {
         PullRequestEvent.addFromNotificationEvent(notiEvent, pullRequest);
 
         PullRequestEventMessage message = new PullRequestEventMessage(UserApp.currentUser(), request(), pullRequest, notiEvent.eventType);
-        Akka.system().actorOf(Props.create(PullRequestMergingActor.class)).tell(message, null);
 
-        return redirect(pullRequestCall);
+        return new PullRequestCreationResult(redirect(pullRequestCall), message);
     }
 
     private static void validateForm(Form<PullRequest> form) {
@@ -383,7 +411,7 @@ public class PullRequestApp extends Controller {
 
     @IsAllowed(value = Operation.READ, resourceType = ResourceType.PULL_REQUEST)
     public static Result specificChange(String userName, String projectName,
-                                            long pullRequestNumber, String commitId) {
+                                        long pullRequestNumber, String commitId) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
         return ok(views.html.git.viewChanges.render(project, pullRequest, commitId));
@@ -393,7 +421,7 @@ public class PullRequestApp extends Controller {
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(value = Operation.ACCEPT, resourceType = ResourceType.PULL_REQUEST)
     public static Promise<Result> accept(final String userName, final String projectName,
-                                final long pullRequestNumber) {
+                                         final long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         final PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
 
@@ -444,6 +472,7 @@ public class PullRequestApp extends Controller {
 
         State beforeState = pullRequest.state;
         pullRequest.close();
+        pullRequest.update();
 
         Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
         addNotification(pullRequest, beforeState, State.CLOSED);
@@ -464,6 +493,7 @@ public class PullRequestApp extends Controller {
 
         State beforeState = pullRequest.state;
         pullRequest.reopen();
+        pullRequest.update();
 
         Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
         addNotification(pullRequest, beforeState, State.OPEN);

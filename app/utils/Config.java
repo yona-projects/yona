@@ -47,7 +47,7 @@ public class Config {
                 Configuration config = Configuration.root();
 
                 if (config.getInt("application.port") != null
-                        && config.getInt("application.hostname") == null) {
+                        && config.getString("application.hostname") == null) {
                     return "application.port may be ignored because " +
                             "application.hostname is not configured.";
                 } else {

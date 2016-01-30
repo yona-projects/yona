@@ -111,6 +111,9 @@ public class User extends Model implements ResourceConvertible {
     @Transient
     private Map<Long, Boolean> projectMembersMemo = new HashMap<>();
 
+    @Transient
+    private Map<String, Boolean> orgMembersMemo = new HashMap<>();
+
     /**
      * used for enabling remember me feature
      *
@@ -195,6 +198,35 @@ public class User extends Model implements ResourceConvertible {
 
     public User(Long id) {
         this.id = id;
+    }
+
+    public boolean isMemberOf(Organization organization) {
+        return isMemberOf(organization, RoleType.ORG_MEMBER);
+    }
+
+    public boolean isAdminOf(Organization organization) {
+        return isMemberOf(organization, RoleType.ORG_ADMIN);
+    }
+
+    public boolean isMemberOf(Organization org, RoleType roleType) {
+        if (org == null) {
+            return false;
+        }
+
+        String key = org.id + ":" + roleType.toString();
+
+        Boolean value = orgMembersMemo.get(key);
+
+        if (value == null) {
+            int rowCount = OrganizationUser.find.where().eq("organization.id", org.id)
+                    .eq("user.id", id)
+                    .eq("role.id", Role.findByRoleType(roleType).id)
+                    .findRowCount();
+            value = rowCount > 0;
+            orgMembersMemo.put(key, value);
+        }
+
+        return value;
     }
 
     public String getPreferredLanguage() {
@@ -615,6 +647,7 @@ public class User extends Model implements ResourceConvertible {
     }
 
     public void changeState(UserState state) {
+        refresh();
         this.state = state;
         lastStateModifiedDate = new Date();
 
