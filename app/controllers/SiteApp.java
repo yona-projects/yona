@@ -21,7 +21,9 @@
 package controllers;
 
 import com.avaje.ebean.Page;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import controllers.annotation.AnonymousCheck;
+import data.DataService;
 import info.schleichardt.play2.mailplugin.Mailer;
 import models.*;
 import models.enumeration.State;
@@ -30,13 +32,20 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.SimpleEmail;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.springframework.format.datetime.DateFormatter;
 import play.Configuration;
 import play.Logger;
 import play.db.ebean.Transactional;
-import views.html.site.*;
-import play.mvc.*;
+import play.mvc.Controller;
+import play.mvc.Http;
+import play.mvc.Result;
+import play.mvc.With;
 import utils.*;
+import views.html.site.*;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 import static play.libs.Json.toJson;
@@ -44,7 +53,7 @@ import static play.libs.Json.toJson;
 /**
  * The Class SiteApp.
  */
- @With(SiteManagerAuthAction.class)
+@With(SiteManagerAuthAction.class)
 @AnonymousCheck
 public class SiteApp extends Controller {
 
@@ -279,4 +288,37 @@ public class SiteApp extends Controller {
     public static Result diagnose() {
         return ok(diagnostic.render("title.siteSetting", Diagnostic.checkAll()));
     }
+
+    public static Result data() {
+        return ok(data.render("title.siteSetting"));
+    }
+
+    public static Result exportData() throws JsonProcessingException {
+        Date date = new Date();
+        DateFormatter formatter = new DateFormatter("yyyyMMddHHmm");
+        String formattedDate = formatter.print(date, Locale.getDefault());
+
+        InputStream in = new DataService().exportData();
+        response().setContentType("application/x-download");
+        response().setHeader("Content-disposition","attachment; filename=yobi-data-" + formattedDate + ".json");
+
+        return ok(in);
+    }
+
+    public static Result importData() throws IOException {
+        Http.MultipartFormData body = request().body().asMultipartFormData();
+        Http.MultipartFormData.FilePart yobiData = body.getFile("data");
+        if (yobiData != null) {
+            File file = yobiData.getFile();
+            try {
+                new DataService().importData(file);
+                return redirect(routes.Application.index());
+            } catch (Exception e) {
+                return badRequest(ErrorViews.BadRequest.render());
+            }
+        } else {
+            return redirect(routes.SiteApp.data());
+        }
+    }
+
 }

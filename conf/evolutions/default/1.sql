@@ -1,6 +1,3 @@
-# --- Created by Ebean DDL
-# To stop Ebean DDL generation, remove this comment and start using Evolutions
-
 # --- !Ups
 
 create table assignee (
@@ -21,6 +18,7 @@ create table attachment (
   created_date              datetime,
   constraint ck_attachment_container_type check (container_type in ('ISSUE_POST','ISSUE_ASSIGNEE','ISSUE_STATE','ISSUE_CATEGORY','ISSUE_MILESTONE','ISSUE_LABEL','BOARD_POST','BOARD_CATEGORY','BOARD_NOTICE','CODE','MILESTONE','WIKI_PAGE','PROJECT_SETTING','SITE_SETTING','USER','USER_AVATAR','PROJECT','ATTACHMENT','ISSUE_COMMENT','NONISSUE_COMMENT','LABEL','PROJECT_LABELS','FORK','COMMIT_COMMENT','PULL_REQUEST','COMMIT','COMMENT_THREAD','REVIEW_COMMENT','ORGANIZATION','PROJECT_TRANSFER','ISSUE_LABEL_CATEGORY','WEBHOOK','NOT_A_RESOURCE')),
   constraint pk_attachment primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table comment_thread (
@@ -46,6 +44,7 @@ create table comment_thread (
   constraint ck_comment_thread_start_side check (start_side in ('A','B')),
   constraint ck_comment_thread_end_side check (end_side in ('A','B')),
   constraint pk_comment_thread primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table commit_comment (
@@ -62,6 +61,7 @@ create table commit_comment (
   commit_id                 varchar(255),
   constraint ck_commit_comment_side check (side in ('A','B')),
   constraint pk_commit_comment primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table email (
@@ -71,6 +71,7 @@ create table email (
   valid                     tinyint(1) default 0,
   token                     varchar(255),
   constraint pk_email primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table issue (
@@ -92,6 +93,7 @@ create table issue (
   constraint ck_issue_state check (state in (0,1,2,3,4,5,6)),
   constraint uq_issue_1 unique (project_id,number),
   constraint pk_issue primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table issue_comment (
@@ -103,6 +105,7 @@ create table issue_comment (
   author_name               varchar(255),
   issue_id                  bigint,
   constraint pk_issue_comment primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table issue_event (
@@ -116,6 +119,7 @@ create table issue_event (
   new_value                 longtext,
   constraint ck_issue_event_event_type check (event_type in ('NEW_ISSUE','NEW_POSTING','NEW_PULL_REQUEST','ISSUE_STATE_CHANGED','ISSUE_ASSIGNEE_CHANGED','PULL_REQUEST_STATE_CHANGED','NEW_COMMENT','NEW_REVIEW_COMMENT','MEMBER_ENROLL_REQUEST','PULL_REQUEST_MERGED','ISSUE_REFERRED_FROM_COMMIT','PULL_REQUEST_COMMIT_CHANGED','NEW_COMMIT','PULL_REQUEST_REVIEW_STATE_CHANGED','ISSUE_BODY_CHANGED','ISSUE_REFERRED_FROM_PULL_REQUEST','REVIEW_THREAD_STATE_CHANGED','ORGANIZATION_MEMBER_ENROLL_REQUEST','COMMENT_UPDATED')),
   constraint pk_issue_event primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table issue_label (
@@ -125,6 +129,7 @@ create table issue_label (
   name                      varchar(255),
   project_id                bigint,
   constraint pk_issue_label primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table issue_label_category (
@@ -133,6 +138,7 @@ create table issue_label_category (
   name                      varchar(255),
   is_exclusive              tinyint(1) default 0,
   constraint pk_issue_label_category primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table label (
@@ -141,6 +147,7 @@ create table label (
   name                      varchar(255),
   constraint uq_label_1 unique (category,name),
   constraint pk_label primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table mention (
@@ -150,6 +157,7 @@ create table mention (
   user_id                   bigint,
   constraint ck_mention_resource_type check (resource_type in ('ISSUE_POST','ISSUE_ASSIGNEE','ISSUE_STATE','ISSUE_CATEGORY','ISSUE_MILESTONE','ISSUE_LABEL','BOARD_POST','BOARD_CATEGORY','BOARD_NOTICE','CODE','MILESTONE','WIKI_PAGE','PROJECT_SETTING','SITE_SETTING','USER','USER_AVATAR','PROJECT','ATTACHMENT','ISSUE_COMMENT','NONISSUE_COMMENT','LABEL','PROJECT_LABELS','FORK','COMMIT_COMMENT','PULL_REQUEST','COMMIT','COMMENT_THREAD','REVIEW_COMMENT','ORGANIZATION','PROJECT_TRANSFER','ISSUE_LABEL_CATEGORY','WEBHOOK','NOT_A_RESOURCE')),
   constraint pk_mention primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table milestone (
@@ -162,6 +170,7 @@ create table milestone (
   constraint ck_milestone_state check (state in (0,1,2,3,4,5,6)),
   constraint uq_milestone_1 unique (project_id,title),
   constraint pk_milestone primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table notification_event (
@@ -177,6 +186,7 @@ create table notification_event (
   constraint ck_notification_event_resource_type check (resource_type in ('ISSUE_POST','ISSUE_ASSIGNEE','ISSUE_STATE','ISSUE_CATEGORY','ISSUE_MILESTONE','ISSUE_LABEL','BOARD_POST','BOARD_CATEGORY','BOARD_NOTICE','CODE','MILESTONE','WIKI_PAGE','PROJECT_SETTING','SITE_SETTING','USER','USER_AVATAR','PROJECT','ATTACHMENT','ISSUE_COMMENT','NONISSUE_COMMENT','LABEL','PROJECT_LABELS','FORK','COMMIT_COMMENT','PULL_REQUEST','COMMIT','COMMENT_THREAD','REVIEW_COMMENT','ORGANIZATION','PROJECT_TRANSFER','ISSUE_LABEL_CATEGORY','WEBHOOK','NOT_A_RESOURCE')),
   constraint ck_notification_event_event_type check (event_type in ('NEW_ISSUE','NEW_POSTING','NEW_PULL_REQUEST','ISSUE_STATE_CHANGED','ISSUE_ASSIGNEE_CHANGED','PULL_REQUEST_STATE_CHANGED','NEW_COMMENT','NEW_REVIEW_COMMENT','MEMBER_ENROLL_REQUEST','PULL_REQUEST_MERGED','ISSUE_REFERRED_FROM_COMMIT','PULL_REQUEST_COMMIT_CHANGED','NEW_COMMIT','PULL_REQUEST_REVIEW_STATE_CHANGED','ISSUE_BODY_CHANGED','ISSUE_REFERRED_FROM_PULL_REQUEST','REVIEW_THREAD_STATE_CHANGED','ORGANIZATION_MEMBER_ENROLL_REQUEST','COMMENT_UPDATED')),
   constraint pk_notification_event primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table notification_mail (
@@ -191,6 +201,7 @@ create table organization (
   created                   datetime,
   descr                     varchar(255),
   constraint pk_organization primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table organization_user (
@@ -199,6 +210,7 @@ create table organization_user (
   organization_id           bigint,
   role_id                   bigint,
   constraint pk_organization_user primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table original_email (
@@ -211,6 +223,7 @@ create table original_email (
   constraint uq_original_email_message_id unique (message_id),
   constraint uq_original_email_1 unique (resource_type,resource_id),
   constraint pk_original_email primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table posting (
@@ -229,6 +242,7 @@ create table posting (
   readme                    tinyint(1) default 0,
   constraint uq_posting_1 unique (project_id,number),
   constraint pk_posting primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table posting_comment (
@@ -240,6 +254,7 @@ create table posting_comment (
   author_name               varchar(255),
   posting_id                bigint,
   constraint pk_posting_comment primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table project (
@@ -263,6 +278,7 @@ create table project (
   previous_name_changed_time bigint,
   constraint ck_project_project_scope check (project_scope in ('PRIVATE','PROTECTED','PUBLIC')),
   constraint pk_project primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table project_menu_setting (
@@ -287,6 +303,7 @@ create table project_transfer (
   accepted                  tinyint(1) default 0,
   new_project_name          varchar(255),
   constraint pk_project_transfer primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table project_user (
@@ -312,6 +329,7 @@ create table property (
   value                     varchar(255),
   constraint ck_property_name check (name in ('MAILBOX_LAST_SEEN_UID','MAILBOX_LAST_UID_VALIDITY')),
   constraint pk_property primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table pull_request (
@@ -336,6 +354,7 @@ create table pull_request (
   number                    bigint,
   constraint ck_pull_request_state check (state in (0,1,2,3,4,5,6)),
   constraint pk_pull_request primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table pull_request_commit (
@@ -350,6 +369,7 @@ create table pull_request_commit (
   state                     varchar(7),
   constraint ck_pull_request_commit_state check (state in ('PRIOR','CURRENT')),
   constraint pk_pull_request_commit primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table pull_request_event (
@@ -362,6 +382,7 @@ create table pull_request_event (
   new_value                 longtext,
   constraint ck_pull_request_event_event_type check (event_type in ('NEW_ISSUE','NEW_POSTING','NEW_PULL_REQUEST','ISSUE_STATE_CHANGED','ISSUE_ASSIGNEE_CHANGED','PULL_REQUEST_STATE_CHANGED','NEW_COMMENT','NEW_REVIEW_COMMENT','MEMBER_ENROLL_REQUEST','PULL_REQUEST_MERGED','ISSUE_REFERRED_FROM_COMMIT','PULL_REQUEST_COMMIT_CHANGED','NEW_COMMIT','PULL_REQUEST_REVIEW_STATE_CHANGED','ISSUE_BODY_CHANGED','ISSUE_REFERRED_FROM_PULL_REQUEST','REVIEW_THREAD_STATE_CHANGED','ORGANIZATION_MEMBER_ENROLL_REQUEST','COMMENT_UPDATED')),
   constraint pk_pull_request_event primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table project_pushed_branch (
@@ -370,6 +391,7 @@ create table project_pushed_branch (
   name                      varchar(255),
   project_id                bigint,
   constraint pk_project_pushed_branch primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table recently_visited_projects (
@@ -387,6 +409,7 @@ create table review_comment (
   author_name               varchar(255),
   thread_id                 bigint,
   constraint pk_review_comment primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table role (
@@ -394,6 +417,7 @@ create table role (
   name                      varchar(255),
   active                    tinyint(1) default 0,
   constraint pk_role primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table site_admin (
@@ -409,6 +433,7 @@ create table unwatch (
   resource_id               varchar(255),
   constraint ck_unwatch_resource_type check (resource_type in ('ISSUE_POST','ISSUE_ASSIGNEE','ISSUE_STATE','ISSUE_CATEGORY','ISSUE_MILESTONE','ISSUE_LABEL','BOARD_POST','BOARD_CATEGORY','BOARD_NOTICE','CODE','MILESTONE','WIKI_PAGE','PROJECT_SETTING','SITE_SETTING','USER','USER_AVATAR','PROJECT','ATTACHMENT','ISSUE_COMMENT','NONISSUE_COMMENT','LABEL','PROJECT_LABELS','FORK','COMMIT_COMMENT','PULL_REQUEST','COMMIT','COMMENT_THREAD','REVIEW_COMMENT','ORGANIZATION','PROJECT_TRANSFER','ISSUE_LABEL_CATEGORY','WEBHOOK','NOT_A_RESOURCE')),
   constraint pk_unwatch primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table n4user (
@@ -425,6 +450,7 @@ create table n4user (
   lang                      varchar(255),
   constraint ck_n4user_state check (state in ('ACTIVE','LOCKED','DELETED')),
   constraint pk_n4user primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table user_project_notification (
@@ -436,6 +462,7 @@ create table user_project_notification (
   constraint ck_user_project_notification_notification_type check (notification_type in ('NEW_ISSUE','NEW_POSTING','NEW_PULL_REQUEST','ISSUE_STATE_CHANGED','ISSUE_ASSIGNEE_CHANGED','PULL_REQUEST_STATE_CHANGED','NEW_COMMENT','NEW_REVIEW_COMMENT','MEMBER_ENROLL_REQUEST','PULL_REQUEST_MERGED','ISSUE_REFERRED_FROM_COMMIT','PULL_REQUEST_COMMIT_CHANGED','NEW_COMMIT','PULL_REQUEST_REVIEW_STATE_CHANGED','ISSUE_BODY_CHANGED','ISSUE_REFERRED_FROM_PULL_REQUEST','REVIEW_THREAD_STATE_CHANGED','ORGANIZATION_MEMBER_ENROLL_REQUEST','COMMENT_UPDATED')),
   constraint uq_user_project_notification_1 unique (project_id,user_id,notification_type),
   constraint pk_user_project_notification primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table watch (
@@ -445,6 +472,7 @@ create table watch (
   resource_id               varchar(255),
   constraint ck_watch_resource_type check (resource_type in ('ISSUE_POST','ISSUE_ASSIGNEE','ISSUE_STATE','ISSUE_CATEGORY','ISSUE_MILESTONE','ISSUE_LABEL','BOARD_POST','BOARD_CATEGORY','BOARD_NOTICE','CODE','MILESTONE','WIKI_PAGE','PROJECT_SETTING','SITE_SETTING','USER','USER_AVATAR','PROJECT','ATTACHMENT','ISSUE_COMMENT','NONISSUE_COMMENT','LABEL','PROJECT_LABELS','FORK','COMMIT_COMMENT','PULL_REQUEST','COMMIT','COMMENT_THREAD','REVIEW_COMMENT','ORGANIZATION','PROJECT_TRANSFER','ISSUE_LABEL_CATEGORY','WEBHOOK','NOT_A_RESOURCE')),
   constraint pk_watch primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 create table webhook (
@@ -454,6 +482,7 @@ create table webhook (
   secret                    varchar(250),
   created_at                datetime,
   constraint pk_webhook primary key (id))
+  row_format=compressed, key_block_size=8
 ;
 
 
