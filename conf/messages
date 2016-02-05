@@ -786,7 +786,7 @@ site.features.codeManagement = Your code is safely stored in a version controlle
 site.features.codeReview = Review all changes in code with your team before merging. Code discussion will help you improve your code.
 site.features.issueTracker = Yona provides an issue tracker to help you deal with your issues more easily and clearly.
 site.features.privateRepositories = Keep your code private at your private repositories.
-site.features.unlimitedProjects = Create repositories as many as you want. You are only limited by your imagination.
+site.features.unlimitedProjects = Work based on project/organization which supported by proper roles
 site.features.workTeam = Yona provides simple and easy team management tool to help you build teams for each project.
 site.mail.body = Body
 site.mail.fail = Failed to send a mail.
@@ -889,7 +889,7 @@ title.signup = Sign up
 title.signupFor = Sign up for <span class="highlight">{0}</span>
 title.siteSetting = Site settings
 title.text = Title
-title.unlimitedProjects = Unlimited project creation
+title.unlimitedProjects = Project/Organization based work
 title.watching = Watching
 title.workTeam = Team play
 title.yobi.feedback = Feedback
