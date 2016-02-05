@@ -818,7 +818,7 @@ public class UserApp extends Controller {
         return User.anonymous;
     }
 
-    private static boolean isUseSignUpConfirm(){
+    public static boolean isUseSignUpConfirm(){
         Configuration config = play.Play.application().configuration();
         String useSignUpConfirm = config.getString("signup.require.confirm");
         return useSignUpConfirm != null && useSignUpConfirm.equals("true");

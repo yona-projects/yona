@@ -880,6 +880,8 @@ title.searchByKeyword = 키워드로 검색
 title.sendMail = 메일 발송
 title.signup = 멤버 가입
 title.signupFor = <span class="highlight">{0}</span> 멤버 가입
+title.signupConfirmDesc = 가입 후 사용을 위해서는 관리자의 승인이 필요합니다
+title.signupConfirmDesc2 = <span class="obfuscate">{0}</span>으로 문의하세요
 title.siteSetting = 사이트 설정
 title.text = 제목
 title.unlimitedProjects = 프로젝트/그룹 기반으로 작업
