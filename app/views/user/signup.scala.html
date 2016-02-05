@@ -31,6 +31,12 @@
     <p class="tag-line">@Messages("app.description")</p>
   </div>
 
+  @if(UserApp.isUseSignUpConfirm){
+    <div class="center-txt">
+      <p>@Messages("title.signupConfirmDesc")</p>
+      <p>@Html(Messages("title.signupConfirmDesc2", new StringBuilder(User.findByLoginId(SiteAdmin.SITEADMIN_DEFAULT_LOGINID).email).reverse().toString()))</p>
+    </div>
+  }
   <div class="signup-form-wrap frm-wrap">
     <form action="@routes.UserApp.newUser()" method="post" name="signup">
       <dl>
