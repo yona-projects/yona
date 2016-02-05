@@ -80,12 +80,12 @@ mappings in Universal :=
     (mappings in Universal).value.filterNot { case (_, file) => file.startsWith("conf/") }
 
 NativePackagerKeys.bashScriptExtraDefines += """# Added by build.sbt
-    |[ -n "$YOBI_HOME" ] && addJava "-Duser.dir=$YOBI_HOME"
-    |[ -z "$YOBI_HOME" ] && YOBI_HOME=$(cd "$(realpath "$(dirname "$(realpath "$0")")")/.."; pwd -P)
-    |addJava "-Dyobi.home=$YOBI_HOME"
+    |[ -n "$YONA_HOME" ] && addJava "-Duser.dir=$YONA_HOME"
+    |[ -z "$YONA_HOME" ] && YONA_HOME=$(cd "$(realpath "$(dirname "$(realpath "$0")")")/.."; pwd -P)
+    |addJava "-Dyobi.home=$YONA_HOME"
     |
-    |yobi_config_file="$YOBI_HOME"/conf/application.conf
-    |yobi_log_config_file="$YOBI_HOME"/conf/application-logger.xml
+    |yobi_config_file="$YONA_HOME"/conf/application.conf
+    |yobi_log_config_file="$YONA_HOME"/conf/application-logger.xml
     |[ -f "$yobi_config_file" ] && addJava "-Dconfig.file=$yobi_config_file"
     |[ -f "$yobi_log_config_file" ] && addJava "-Dlogger.file=$yobi_log_config_file"
     |

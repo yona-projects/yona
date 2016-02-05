@@ -35,7 +35,7 @@ application.langs="en-US, ko-KR, ja-JP"
 # ~~~~~
 # Define the Global object class for this application.
 # Default to Global in the root package.
- application.global=Global
+application.global=Global
 
 # Database configuration
 # ~~~~~
@@ -44,26 +44,32 @@ application.langs="en-US, ko-KR, ja-JP"
 #
 ebeanconfig.datasource.default=default
 # H2 Configuration
- db.default.driver=org.h2.Driver
+# db.default.driver=org.h2.Driver
 # db.default.url="jdbc:h2:mem:yona;MODE=PostgreSQL;DB_CLOSE_DELAY=-1"
- db.default.url="jdbc:h2:file:./yona;MODE=PostgreSQL;MV_STORE=FALSE;MVCC=FALSE;CACHE_SIZE=131072;AUTO_SERVER=TRUE"
+# db.default.url="jdbc:h2:file:./yona;MODE=PostgreSQL;MV_STORE=FALSE;MVCC=FALSE;CACHE_SIZE=131072;AUTO_SERVER=TRUE"
 # db.default.user=sa
 # db.default.password=sa
-db.default.logStatements=true
-db.default.partitionCount=20
-db.default.maxConnectionsPerPartition=10
-db.default.minConnectionsPerPartition=2
-db.default.acquireIncrement=4
-db.default.acquireRetryAttempts=3
-db.default.acquireRetryDelay=1 seconds
-db.default.connectionTimeout=3 second
-db.default.statementsCacheSize=1000
+# db.default.logStatements=true
+# db.default.partitionCount=20
+# db.default.maxConnectionsPerPartition=10
+# db.default.minConnectionsPerPartition=2
+# db.default.acquireIncrement=4
+# db.default.acquireRetryAttempts=3
+# db.default.acquireRetryDelay=1 seconds
+# db.default.connectionTimeout=3 second
+# db.default.statementsCacheSize=1000
 
 # MySQL Configuration
 # db.default.driver=com.mysql.jdbc.Driver
 # db.default.url="jdbc:mysql://127.0.0.1:3306/yona?characterEncoding=utf-8"
 # db.default.user=yona
 # db.default.password=""
+
+# MariaDB
+db.default.driver=org.mariadb.jdbc.Driver
+db.default.url="jdbc:mariadb://127.0.0.1:3306/yona?useServerPrepStmts=true"
+db.default.user=yona
+db.default.password="password"
 
 # Local
 # db.default.url="jdbc:postgresql://localhost:5432/yona"
@@ -102,7 +108,7 @@ application.scheme="http"
 # application.port="8080"
 
 # Application feedback url at top layout menu. You can remove feedback menu by commenting it.
-application.feedback.url="https://github.com/doortts/yona/issues"
+application.feedback.url="https://github.com/yona-projects/yona/issues"
 
 # Mailer
 # ~~~~~~
@@ -111,9 +117,8 @@ application.feedback.url="https://github.com/doortts/yona/issues"
 smtp.host = smtp.gmail.com
 smtp.port = 465
 smtp.ssl = true
-#smtp.user = yourGmailId
-smtp.user = yona.mail
-# Be careful!!!
+smtp.user = yourGmailId
+# Be careful!!! Not to leak password
 smtp.password = yourGmailPassword
 smtp.domain = gmail.com
 #true to use mock mailer for testing, false for using real mail server
@@ -185,13 +190,13 @@ application.notification.draft-time = 30s
 # Software Update
 # ~~~~~~~~~~~~~~~
 # Check for updates of Yona at this interval if it is grater than 0.
-application.update.notification.interval = 1h
+application.update.notification.interval = 6h
 # A url to the git repository for Yona releases.
 application.update.check.use = true
-application.update.repositoryUrl = "http://repo.yona.io/yona/yona"
+application.update.repositoryUrl = "https://github.com/yona-projects/yona"
 # A format to construct the url to latest Yona release. "%s" is a format
 # specifier for Yona version to download like "0.5.7".
-application.update.releaesUrlFormat = "https://github.com/doortts/yona/releases/tag/v%s"
+application.update.releaesUrlFormat = "https://github.com/yona-projects/yona/releases/tag/v%s"
 
 # customize play default thread pool size
 # see: https://www.playframework.com/documentation/2.3.x/ThreadPools
