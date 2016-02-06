@@ -2730,7 +2730,9 @@ label.inline-list {
 }
 
 .attachments {
-    ul { list-style-type:none; margin:0; margin-left:18px; }
+    ul {
+        list-style-type:none;
+    }
 
     .yobicon-paperclip {
         vertical-align: middle;
@@ -2744,11 +2746,14 @@ label.inline-list {
         margin-left:5px;
     }
     .download {
-        margin-left:5px;
         i,span { vertical-align: middle;}
     }
     .attach {
         line-height: 23px;
+        width: 100%;
+    }
+    .attaches {
+        margin-right: 30px;
     }
 }
 
@@ -2809,7 +2814,9 @@ label.inline-list {
                 .meta-info {
                     height:22px;
                     padding:5px 15px;
-                    background-color:#f8f8f8;
+
+                    margin-bottom: 0;
+                    background-color: #F7F7F7;
 
                     .yobicon-comment {vertical-align: middle;}
 
@@ -2848,7 +2855,11 @@ label.inline-list {
                         }
                     }
 
-                    .comment_author {font-size:13px; margin-right:5px; }
+                    .comment_author {
+                        font-size:13px;
+                        margin-right:5px;
+                        color: #3f3e40;
+                    }
                     .ago {
                         color:#7F8C8D;
 
@@ -2859,8 +2870,8 @@ label.inline-list {
                 }
 
                 .attach {
-                    color: #4489A4;
-                    padding:7px 10px;
+                    color: #9E9E9E;
+                    padding:7px 15px;
                     background-color:#f8f8f8;
                     border-top:1px solid #BDC3C7;
                     border-left:1px solid #BDC3C7;
@@ -2882,9 +2893,15 @@ label.inline-list {
 
                 .comment-body {
                     font-size: 13px;
-                    padding:0 15px;
+                    padding:15px;
+                    :first-child {
+                        margin-top: 0;
+                    }
+                    :last-child {
+                        margin-bottom: 0;
+                    }
 
-                    a { font-weight:bold;}
+                        a { font-weight:bold;}
                 }
 
             }
@@ -2894,12 +2911,20 @@ label.inline-list {
 
             &.author {
                 .media-body {
-                    &:before { background-color: #E5F0FC; }
+                    &:before {
+                        background-color: #DEEEB3;
+                    }
+                    border: 1px solid #8BC34A;
                 }
 
-                .meta-info { background-color:#E5F0FC; }
+                .meta-info {
+                    background-color: #DEEEB3;
+                }
 
-                .attach { background-color:#E5F0FC; }
+                .attach {
+                    border-top: none;
+                    border-left: none;
+                }
             }
         }
 
