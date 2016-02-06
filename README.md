@@ -242,6 +242,8 @@ case2. 압축파일을 내려받을 경우
 
 ### 옵션
 
+[간단한 재시작 쉘 예제](https://github.com/yona-projects/yona/blob/next/restart.sh)
+
 #### Linux, OSX의 경우
 
 `YONA_HOME` 속성을 통해 Yona가 데이터, 데이터베이스, 설정파일을 불러오고 저장할
@@ -273,9 +275,6 @@ yona.home, config.file, logger.file 자바 프로퍼티로 지정할 수 있습�
 
     SET JAVA_OPTS=-Xmx2048m -Xms2048m
     bin\yona.bat
-
-YONA_HOME=/data/yona;export YONA_HOME
-_JAVA_OPTIONS="-Xmx2048m -Xms1024m -Dyobi.home=$YONA_HOME -Dconfig.file=$YONA_HOME/conf/application.conf -Dlogger.file=$YONA_HOME/conf/application-logger.xml"  /home/doortts/apps/play2/activator "start -DapplyEvolutions.default=true -Dhttp.port=9000"
 
 기본적으로 9000번 포트를 사용하지만, 다른 포트를 사용하고 싶다면 http.port 자바
 환경변수를 수정합니다.
