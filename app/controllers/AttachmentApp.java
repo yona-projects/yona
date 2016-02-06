@@ -20,13 +20,13 @@
  */
 package controllers;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import controllers.annotation.AnonymousCheck;
 import models.Attachment;
 import models.User;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import org.apache.commons.lang3.StringUtils;
-import com.fasterxml.jackson.databind.JsonNode;
 import play.Configuration;
 import play.Logger;
 import play.mvc.Controller;
@@ -38,6 +38,7 @@ import utils.HttpUtil;
 import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -69,8 +70,13 @@ public class AttachmentApp extends Controller {
         }
 
         // Attach the file to the user who upload it.
+        //
+        // Filename normalization is applied for windows which use NFC
+        // See: https://docs.oracle.com/javase/tutorial/i18n/text/normalizerapi.html
         Attachment attach = new Attachment();
-        boolean isCreated = attach.store(file, filePart.getFilename(), uploader.asResource());
+        boolean isCreated = attach.store(file,
+                Normalizer.normalize(filePart.getFilename(), Normalizer.Form.NFC),
+                uploader.asResource());
 
         // The request has been fulfilled and resulted in a new resource being
         // created. The newly created resource can be referenced by the URI(s)
@@ -222,6 +228,7 @@ public class AttachmentApp extends Controller {
                         attach.asResource(), Operation.READ)) {
                     throw new PermissionDeniedException();
                 }
+                attach.name = Normalizer.normalize(attach.name, Normalizer.Form.NFC);
                 attachments.add(extractFileMetaDataFromAttachementAsMap(attach));
             }
             files.put("attachments", attachments);
