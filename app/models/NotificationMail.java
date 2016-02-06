@@ -468,7 +468,7 @@ public class NotificationMail extends Model {
         }
 
         final EventEmail email = new EventEmail(event);
-
+        email.setCharset("utf-8");
         try {
             email.setFrom(Config.getEmailFromSmtp(), event.getSender().name);
 
@@ -507,7 +507,7 @@ public class NotificationMail extends Model {
             }
             email.setHtmlMsg(getHtmlMessage(lang, message, urlToView, resource, acceptsReply));
             email.setTextMsg(getPlainMessage(lang, message, Url.create(urlToView), acceptsReply));
-            email.setCharset("utf-8");
+
             email.addReferences();
             email.setSentDate(event.getCreatedDate());
             Mailer.send(email);
