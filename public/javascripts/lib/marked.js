@@ -770,6 +770,7 @@
 
   function Renderer(options) {
     this.options = options || {};
+
   }
 
   Renderer.prototype.code = function(code, lang, escaped) {
@@ -804,12 +805,13 @@
   };
 
   Renderer.prototype.heading = function(text, level, raw) {
+    var idText = this.options.headerPrefix
+          // refer from https://github.com/tadoli/marked/commit/7d3c20313d8be2da898c9924dd12effc78e726b1
+          + raw.toLowerCase().replace(/[^\w|ㄱ-ㅎ|ㅏ-ㅣ|가-힣]+/g, '-');
     return '<h'
         + level
-        + ' id="'
-        + this.options.headerPrefix
-        + raw.toLowerCase().replace(/[^\w]+/g, '-')
-        + '">'
+        + ' id="' + idText + '">'
+        + '<a href="#' + idText + '" class="head-anchor">#</a>'
         + text
         + '</h'
         + level
