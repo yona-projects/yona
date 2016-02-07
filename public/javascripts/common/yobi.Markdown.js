@@ -93,6 +93,7 @@ yobi.Markdown = (function(htOptions){
             "data": {"body": sContentBody, "breaks": (welTarget.hasClass('readme-body') ? false : true)},
             "success": function(data){
                 welTarget.html(data);
+                _postMarkdownRender();
             }
         });
     }
@@ -107,6 +108,17 @@ yobi.Markdown = (function(htOptions){
         var sContentBody  = (sMarkdownText) ? _renderMarkdown(sMarkdownText) : welTarget.html();
         $('.markdown-loader').remove();
         welTarget.html(sContentBody).removeClass('markdown-before');
+    }
+
+    function _postMarkdownRender(){
+        // Make first li font bold when multi-depth list is used
+        var ul = $(".markdown-wrap > ul");
+        ul.find("> li > ul").parent().closest('ul').css('font-weight', 'bold');  //ul > ul
+        ul.find("> li > ol").parent().closest('ul').css('font-weight', 'bold');  //ul > ol
+
+        var ol = $(".markdown-wrap > ol");
+        ol.find("> li > ul").parent().closest('ol').css('font-weight', 'bold');  //ol > ul
+        ol.find("> li > ol").parent().closest('ol').css('font-weight', 'bold');  //ol > ol
     }
 
     /**
