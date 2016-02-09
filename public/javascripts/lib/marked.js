@@ -811,8 +811,8 @@
     return '<h'
         + level
         + ' id="' + idText + '">'
-        + '<a href="#' + idText + '" class="head-anchor">#</a>'
         + text
+        + '<a href="#' + idText + '" class="head-anchor">#</a>'
         + '</h'
         + level
         + '>\n';
