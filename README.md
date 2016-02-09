@@ -88,6 +88,17 @@ create database yona
 ;
 ```
 
+그리고 긴 글자 컬럼의 index 처리를 위해 아래 구문을 실행합니다.
+```
+set global innodb_file_format = BARRACUDA;
+set global innodb_large_prefix = ON;
+```
+
+참고로 위 명령을 실행하지 않으면 인덱스 생성시 아래와 같은 오류를 만나게 됩니다.
+```
+Specified key was too long; max key length is 767 bytes [ERROR:1071, SQLSTATE:42000]
+```
+
 yona 유저에게 yona 데이터베이스 권한 부여
 
 ```
@@ -324,7 +335,6 @@ applyEvolutions.default 자바 프로퍼티를 true로 설정합니다.
 [[한국어]](#korean)
 Yona
 =======
-[![Build Status](https://travis-ci.org/doortts/yona.png?branch=next)](https://travis-ci.org/doortts/yona)
 
 Yona is a web-based project hosting software.
 
