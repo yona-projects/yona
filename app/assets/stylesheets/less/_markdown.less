@@ -30,27 +30,8 @@
 
   .anchor(){
     .head-anchor {
-      float: left;
-      position: absolute;
+      margin-left: 3px;
       opacity: 0;
-      margin-left: -18px;
-      color: #555;
-    }
-    &:hover {
-      border-left: 5px solid #fff;
-      .head-anchor {
-        opacity: 1;
-      }
-    }
-  }
-
-  .anchor-noborder(){
-    .head-anchor {
-      float: left;
-      position: absolute;
-      opacity: 0;
-      margin-left: -18px;
-      color: #555;
     }
     &:hover {
       .head-anchor {
@@ -61,8 +42,10 @@
 
   h1 {
     font-size:2.5em;
-    padding-left: 8px;
-    margin: 1em -14px 15px;
+    padding-left: 10px;
+    margin-top: 1em;
+    margin-bottom: 15px;
+    margin-left: -16px;
     border-left: 5px solid #FFCB6B;
     .anchor();
     width: 95%;
@@ -73,22 +56,23 @@
     border-bottom:1px solid #ddd;
     font-size:1.6em;
     width: 95%;
-    .anchor-noborder();
+    .anchor();
   }
 
   h3 {
     margin:1em 0 5px;
     font-size:1.5em;
-    .anchor-noborder();
+    .anchor();
   }
 
   h4 {
-    font-size:1em;
-    .anchor-noborder();
+    font-size: 1.25em;
+    .anchor();
   }
 
   h5 {
-    .anchor-noborder();
+    font-size: 15px;
+    .anchor();
   }
 
   hr {
@@ -109,7 +93,6 @@
   code {
     padding: 0px 5px;
     border: 1px solid #ddd;
-    background-color: #f8f8f8;
     border-radius: 3px;
     font-family:@fixed-font-family;
 
@@ -159,10 +142,11 @@
   }
 
   pre {
-    background-color:#f8f8f8;
+    background-color:#EFEFEF;
     padding: 10px;
     margin:10px 0;
     word-break : normal;
+    border: none;
 
     code {
       marign : 0;
