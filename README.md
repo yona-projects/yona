@@ -55,8 +55,6 @@ Yona는 앞으로 기본DB를 MariaDB를 사용할 예정입니다. 다만 Yona 
 
 #### MariaDB 설치
 
-##### 서버 설치
-
 아래 설명은 진행 과정만 참고만 하시고 실제로는 MariaDB 10.1.10 이상을 설치해 주세요
 
 1. Linux 
@@ -64,6 +62,8 @@ Yona는 앞으로 기본DB를 MariaDB를 사용할 예정입니다. 다만 Yona 
 2. Mac
    - brew install 을 이용해서 설치를 권장합니다.
    - https://mariadb.com/blog/installing-mariadb-10010-mac-os-x-homebrew
+3. Ubuntu
+   - https://mariadb.com/my_portal/download/10.1#ubuntu
 
 ##### DB 설치후 유저 및 Databae 생성 
 
@@ -82,21 +82,13 @@ create user 'yona'@'localhost'  IDENTIFIED BY 'yonadan';
 DB 생성 UTF8 확장문자열을 저장할 수 있는 포맷으로 지정해서 생성합니다.
 
 ```
+set global innodb_file_format = BARRACUDA;
+set global innodb_large_prefix = ON;
+
 create database yona
   DEFAULT CHARACTER SET utf8mb4
   DEFAULT COLLATE utf8mb4_bin
 ;
-```
-
-그리고 긴 글자 컬럼의 index 처리를 위해 아래 구문을 실행합니다.
-```
-set global innodb_file_format = BARRACUDA;
-set global innodb_large_prefix = ON;
-```
-
-참고로 위 명령을 실행하지 않으면 인덱스 생성시 아래와 같은 오류를 만나게 됩니다.
-```
-Specified key was too long; max key length is 767 bytes [ERROR:1071, SQLSTATE:42000]
 ```
 
 yona 유저에게 yona 데이터베이스 권한 부여
@@ -113,7 +105,32 @@ mysql -uyona -p'yonadan'
 use yona
 ```
 
-잘 진행되었으면 이제 Yona 를 설치합니다. 혹시 custom 설정을 할 예정이면 [my.cnf 위치 탐색순서](https://mariadb.com/kb/en/mariadb/configuring-mariadb-with-mycnf/) 를 보고 적당한 곳에 my.cnf 파일을 위치시키세요.
+/etc/my.cnf 파일을 만들어서 아래 내용을 추가해 주세요. (windows 나 mac os 에서는 작업하지 않아도 무방합니다)
+
+```
+[mysqld]
+collation-server = utf8mb4_unicode_ci
+lower_case_table_names=1
+```
+
+꼭 /etc 아래가 아니더라도 [my.cnf 위치 탐색순서](https://mariadb.com/kb/en/mariadb/configuring-mariadb-with-mycnf/) 를 보고 적당한 곳에 my.cnf 파일을 만들어서 넣어도 무방합니다. 
+
+
+DB를 설치한 유저로 DB를 재시작합니다. (root나 sudo 설치했을 경우 명령어 앞에 sudo를 붙여주세요)
+```
+service mysql restart
+
+혹은
+
+/etc/init.d/mysql restart
+
+혹은
+
+mysql.server restart
+```
+참고: http://coolestguidesontheplanet.com/start-stop-mysql-from-the-command-line-terminal-osx-linux/
+
+DB가 정상적으로 재시작되었으면 이제 Yona 를 설치합니다. 
 
 #### Yona 설치
 
@@ -124,6 +141,16 @@ wget으로 받아서 unzip으로 압축을 푼다면 미리 다운로드 링크 
 
     wget https://github.com/yona-projects/yona/releases/download/v1.0.0/yona.zip
     unzip yona.zip
+
+### application.conf 파일등 생성하기
+
+압축이 풀린 곳으로 이동해서 ./bin/yona 을 실행합니다.
+```
+cd yona
+./bin/yona
+```
+
+실행하면 패스워드가 틀렸다는 에러와 함께 실행이 종료 될겁니다. 이제 압축을 풀었을때는 안 보였던 conf 디렉터리가 보일 겁니다. 
 
 #### DB 설정 수정
 
@@ -143,14 +170,16 @@ db.default.password="yonadan"
 
 #### 실행
 
-압축이 풀린 디렉터리로 이동해서 yona를 실행합니다. 디렉터리가 yona-1.0.0 이라면:
+압축이 풀린 디렉터리로 이동해서 다시 yona를 실행합니다.
 
-    cd yona-1.0.0
+    cd yona
     bin/yona
 
 **주의**: 윈도우 사용자는 bin/yona 대신 bin/yona.bat을 실행해야 합니다.
 
-이제 웹 브라우저로 http://127.0.0.1:9000 에 접속하면 환영 페이지를 보실 수 있습니다.
+이제 웹 브라우저로 http://127.0.0.1:9000 에 접속하면 환영 페이지를 보실 수 있습니다. 
+어드민 설정을 마치고 다시 쉘을 시작합니다.
+
 
 #### 업그레이드
 
@@ -158,98 +187,13 @@ db.default.password="yonadan"
 풉니다. **주의사항! `repo`와 `uploads` 디렉터리를 삭제하거나
 덮어쓰지 않도록 주의하세요!**
 
-### 소스 코드에서 빌드하기
 
-#### JDK version 확인
+### 소스코드를 직접 내려 받아서 빌드 실행하기
 
-    java -version
-    javac -version
+자신의 입맛에 맛게 코드를 직접 수정해서 작업하거나 코드를 기여하고 싶을 경우에는 코드 저장소로부터 코드를 직접 내려받아서 빌드/실행하는 것도 가능합니다.
 
-JDK 7(1.7) 혹은 8(1.8) 이어야 합니다.
+[소스코드를 직접 내려 받아서 실행하기](https://repo.yona.io/yona-projects/yona/post/5)를 참고해 주세요
 
-#### Play Activator 내려 받기
-
-    curl -O http://downloads.typesafe.com/typesafe-activator/1.2.10/typesafe-activator-1.2.10-minimal.zip
-
-혹은
-
-    wget http://downloads.typesafe.com/typesafe-activator/1.2.10/typesafe-activator-1.2.10-minimal.zip
-
-웹 브라우저에서 (이를테면, MS윈도우즈 사용자일 경우)
-
-    http://downloads.typesafe.com/typesafe-activator/1.2.10/typesafe-activator-1.2.10-minimal.zip
-
-#### 압축 풀기
-
-    unzip typesafe-activator-1.2.10-minimal.zip
-
-#### 압축을 푼 다음 하위 디렉터리로 이동
-
-    cd activator-1.2.10-minimal
-
-#### Yona 소스 내려 받기
-
-case1. [git 클라이언트](http://git-scm.com)를 이용한 다운로드 (추천)
-    
-    git clone https://github.com/yona-projects/yona.git
-    
-case2. 단순히 최신 안정버전을 내려받고자 할 때는 아래 링크를 이용해서 압축파일을 내려받은 다음 yona를 폴더이름으로 해서 해제합니다.
-
-    git pull https://github.com/yona-projects/yona.git master
-    
-주의! case2의 경우, 업그레이드 할 때 문제가 생길 수 있습니다.
-
-> 임의의 장소에 Yona 디렉터리를 위치시킬 경우에는 activator 실행파일이 있는 Play Activator 디렉터리를 $PATH 환경변수에 추가해 주세요.
-
-#### clone 받은 Yona 디렉터리로 이동
-(혹은 압축을 해제한 디렉터리로 이동)
-
-    cd yona
-
-#### 상단에 있는 activator 실행파일 실행
-
-    ../activator
-
-혹은 (윈도우 사용자일 경우)
-
-    ..\activator
-
-실행하면 필요한 파일들을 web에서 내려받습니다. 첫 실행 시 네트워크 상황에 따라 10여 분 가까이 소요될 수 있습니다.
-
-#### 콘솔이 뜨면 start 명령어로 기동
-
-    start
-
-추가로 필요한 파일들을 web에서 내려받은 다음 소스 파일들을 컴파일 후 운영 모드(production mode)로 실행합니다.
-개발 모드(development mode)로 실행하고자 할 경우에는 **start** 명령어 대신에 **run** 명령어로 실행합니다.
-
-**주의사항: 설정 파일 및 데이터가 기본적으로 target/universal/stage 디렉터리에
-저장됩니다. 이 디렉터리는 activator clean 실행 시 모두 삭제되므로, 아래의 옵션
-설정방법을 보고 데이터가 저장될 디렉터리를 설정하시는 것이 좋습니다**
-
-#### 브라우저로 접속
-
-    http://127.0.0.1:9000
-
-80 포트 등으로 포트를 변경하고 싶을 경우에는 해당 포트가 사용 가능한지 확인한 다음 80 포트를 사용할 수 있는 계정으로 실행합니다. 포트 변경 방법에 대해서는 '옵션' 문단을 읽어주세요.
-
-#### 업그레이드하기
-
-case1. git 클라이언트를 이용 (추천)
-설치된 디렉터리에서, 아래와 같은 git 명령어를 이용합니다
-
-    git pull https://github.com/yona-projects/yona.git master
-
-case2. 압축파일을 내려받을 경우
-
-설치된 디렉터리에서, 최신 릴리즈의 압축파일을 내려받아 Yona가 설치된 디렉터리에 압축파일을 풉니다.
-
-    https://github.com/yona-projects/yona/archive/master.zip
-
-**주의사항! `yona.h2.db` 파일, `repo`와 `uploads` 디렉터리를 삭제하거나 덮어쓰지 않도록 주의하세요!**
-
-**윈도에서 업그레이드하는 경우, -DapplyEvolutions.default=true 설정이 필요할
-수 있습니다. 자세한 것은 아래 옵션 설정 설명을 보세요**
 
 ### 옵션
 
@@ -310,13 +254,13 @@ applyEvolutions.default 자바 프로퍼티를 true로 설정합니다.
 
 ### 백업하기
 
-특별히 외부 DB를 사용하지 않는다면 아래 내용을 잘 백업해서 보관해 주시면 됩니다.
+DB 백업은 https://mariadb.com/kb/en/mariadb/backup-and-restore-overview/ 를 참고해 주세요
 
-    DB: https://mariadb.com/kb/en/mariadb/backup-and-restore-overview/
+코드 저장소의 파일과 업로드 파일은 아래 디렉터리에 저장됩니다. 
+
     directory: repo, uploads
 
-
-만약 0.7.x 에서 0.8.x 먼저 업그레이드를 수행해야 할 경우라면 아래 링키를 참고해 주세요.
+주기적으로 두 디렉터리는 따로 잘 백업해 주세요. 
 
 
 ### DB관련 작업을 한 후 정상적으로 페이지가 뜨지 않을 경우 아래 항목을 확인해 주세요.
@@ -325,7 +269,7 @@ applyEvolutions.default 자바 프로퍼티를 true로 설정합니다.
 - application.secret 적용여부
 - db.default.url 확인 
 
-기타 관련해서는 [이슈 #924](https://github.com/yona-projects/yona/issues/924)을 참고해 주세요
+기타 관련해서는 [이슈 #924](https://github.com/naver/yobi/issues/924)을 참고해 주세요
 
 <br/>
 <br/>
