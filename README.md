@@ -14,13 +14,13 @@ Yona?
 Yona는 팀이 개발을 진행하는데 그 속도를 높이고 효율을 증가시키기 위해 만들어졌습니다.
 
 - 이슈 트래커: 기간이나 마일스톤과 함께 업무를 관리할 수 있는 이슈 트래커
-  - 특히 `내 이슈` 기능은 업무처리를 통합된 화면에서 보고 해야 할 일, 언급된 일 등에 집중해서 쉽게 편하게 관리가능합니다.
+  - 특히 `내 이슈` 기능은 업무처리를 통합된 화면에서 보고, 해야 할 일 / 언급된 일 등에 집중해서 쉽고 편하게 관리할 수 있습니다.
 - 게시판: 각종 문서나 파일을 쉽게 공유할 수 있는 게시판
-- 코드저장소: 코드 개발에 필요한 git/svn 저장소 기능
-- 코드주고받기(pull request): 협업개발을 위한 코드 주고받기(pull request)
-- 코드리뷰: 블럭단위로 코멘트를 남길 수 있으며 리뷰진행 여부를 확인 가능한 강력한 코드리뷰 기능
-- 그룹(organization): 일정 멤버들이 여러개의 프로젝트를 그룹으로 관리 수 있게 도와주는 강력한 그룹(organization) 기능
-- 메일연동: 각종 이벤트들을 설정에 따라 메일로 받을 수 있으며 또한 메일로 이슈나 댓글을 등록할 수 있습니다.
+- 코드 저장소: 코드 개발에 필요한 Git / SVN 저장소 기능
+- 코드 주고받기(Pull request): 협업 개발을 위한 코드 주고받기(Pull request)
+- 코드 리뷰: 블럭 단위로 코멘트를 남길 수 있으며 리뷰 진행 여부를 확인 가능한 강력한 코드 리뷰 기능
+- 그룹(Organization): 일정 멤버들이 여러개의 프로젝트를 그룹으로 관리 수 있게 도와주는 강력한 그룹(Organization) 기능
+- 메일 연동: 각종 이벤트들을 설정에 따라 메일로 받을 수 있으며 또한 메일로 이슈나 댓글을 등록할 수 있습니다.
 
 등을 비롯하여 일상적인 업무에서 개발 전반에 이르는 다양한 기능을 포함하고 있습니다.
 
@@ -44,7 +44,7 @@ Yobi에서 Yona로 업그레이드 하려는 경우
 Yona 설치
 ---
 
-Yona는 기본적으로 다음 2 단계로 설치됩니다.
+Yona는 기본적으로 다음 2단계로 설치됩니다.
 
 - MariaDB설치
 - Yona 설치
@@ -60,14 +60,16 @@ Yona는 앞으로 기본DB를 MariaDB를 사용할 예정입니다. 다만 Yona 
 아래 설명은 진행 과정만 참고만 하시고 실제로는 MariaDB 10.1.10 이상을 설치해 주세요
 
 1. Linux 
-   - CentOS: https://www.vultr.com/docs/install-mariadb-10-0-on-centos-6
+   - SUSE: https://mariadb.com/my_portal/download/10.1#sles
+   - CentOS: https://mariadb.com/my_portal/download/10.1#rhel
+   - RedHat: https://mariadb.com/my_portal/download/10.1#rhel
+   - Ubuntu: https://mariadb.com/my_portal/download/10.1#ubuntu
+   - Debian: https://mariadb.com/my_portal/download/10.1#debian
 2. Mac
    - brew install 을 이용해서 설치를 권장합니다.
    - https://mariadb.com/blog/installing-mariadb-10010-mac-os-x-homebrew
-3. Ubuntu
-   - https://mariadb.com/my_portal/download/10.1#ubuntu
 
-##### DB 설치후 유저 및 Databae 생성 
+##### DB 설치후 유저 및 Database 생성 
 
 기본 진행 내용은 MariaDB에 root 유저로 접속한 다음 yona 유저를 만들고 DB를 만들고 해당 DB의 모든 권한을 yona 유저에게 주는 작업입니다.
 
@@ -78,7 +80,7 @@ mysql -uroot
 
 yona 유저 생성. password는 IDENTIFIED BY 다음에 지정한 문자가 됩니다. 아래 예)에서는 yonadan
 ```
-create user 'yona'@'localhost'  IDENTIFIED BY 'yonadan';
+create user 'yona'@'localhost' IDENTIFIED BY 'yonadan';
 ```
 
 DB 생성 UTF8 확장문자열을 저장할 수 있는 포맷으로 지정해서 생성합니다.
@@ -146,10 +148,10 @@ wget으로 받아서 unzip으로 압축을 푼다면 미리 다운로드 링크 
 
 ### application.conf 파일등 생성하기
 
-압축이 풀린 곳으로 이동해서 ./bin/yona 을 실행합니다. (Java 8 이상이 필요합니다)
+압축이 풀린 곳으로 이동해서 bin/yona 을 실행합니다. (Java 8 이상이 필요합니다)
 ```
 cd yona
-./bin/yona
+bin/yona
 ```
 
 실행하면 패스워드가 틀렸다는 에러와 함께 실행이 종료 될겁니다. 이제 압축을 풀었을때는 안 보였던 conf 디렉터리가 보일 겁니다. 
@@ -168,7 +170,7 @@ db.default.password="yonadan"
 ...
 ```
 
-`yonadan`은 예시일뿐 그대로 사용하지 않는 걸 권장드립니다. 
+`yonadan`은 예시일뿐 그대로 사용하지 않는 걸 권장합니다. 
 
 #### 실행
 
@@ -186,7 +188,9 @@ db.default.password="yonadan"
 #### 업그레이드
 
 설치할 때와 똑같이, 최신 버전을 내려받아 Yona가 설치된 디렉터리에 압축파일을
-풉니다. **주의사항! `repo`와 `uploads` 디렉터리를 삭제하거나
+풉니다.
+
+**주의사항! `repo`와 `uploads` 디렉터리를 삭제하거나
 덮어쓰지 않도록 주의하세요!**
 
 
