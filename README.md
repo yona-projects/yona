@@ -144,7 +144,7 @@ wget으로 받아서 unzip으로 압축을 푼다면 미리 다운로드 링크 
 
 ### application.conf 파일등 생성하기
 
-압축이 풀린 곳으로 이동해서 ./bin/yona 을 실행합니다.
+압축이 풀린 곳으로 이동해서 ./bin/yona 을 실행합니다. (Java 8 이상이 필요합니다)
 ```
 cd yona
 ./bin/yona
