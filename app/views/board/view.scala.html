@@ -171,6 +171,9 @@
             }).error(function(response){
             });
         });
+
+        // detect comment which contains mention at me
+        $(".comment-body:contains('@UserApp.currentUser().loginId')").closest(".comment").addClass("mentioned");
 	});
 </script>
 @common.select2()
