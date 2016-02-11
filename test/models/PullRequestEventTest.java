@@ -20,14 +20,14 @@
  */
 package models;
 
-import static org.fest.assertions.Assertions.*;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
+import org.junit.Test;
 
 import java.text.ParseException;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateUtils;
-import org.junit.*;
+import static org.fest.assertions.Assertions.assertThat;
 
 public class PullRequestEventTest extends ModelTest<PullRequestEventTest> {
     @Test
@@ -36,7 +36,7 @@ public class PullRequestEventTest extends ModelTest<PullRequestEventTest> {
         PullRequestCommit first = createPullRequestCommit("2013-12-01");
         PullRequestCommit second = createPullRequestCommit("2013-12-02");
         PullRequestCommit third = createPullRequestCommit("2013-12-03");
-        String[] ids = {first.id, second.id, third.id};
+        Long[] ids = {first.id, second.id, third.id};
 
         PullRequestEvent event = new PullRequestEvent();
         event.newValue = StringUtils.join(ids, PullRequest.DELIMETER);

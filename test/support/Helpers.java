@@ -20,23 +20,24 @@
  */
 package support;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import models.Issue;
 import models.Posting;
 import models.Project;
 import models.PullRequest;
-
 import play.Application;
 import play.GlobalSettings;
 import play.test.FakeApplication;
 import utils.YamlUtil;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class Helpers {
     public static Map<String, String> makeTestConfig() {
-        HashMap<String, String> config = new HashMap<>(play.test.Helpers.inMemoryDatabase());
+        Map<String, String> map = new HashMap<>();
+        map.put("MODE", "MySQL");
+        HashMap<String, String> config = new HashMap<>(play.test.Helpers.inMemoryDatabase("test"));
         config.put("ebean.default", "models.*");
         config.put("application.secret", "foo");
         config.put("application.context", "/");
