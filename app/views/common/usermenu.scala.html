@@ -22,8 +22,7 @@
 @import utils.TemplateHelper._
 @orderString = @{"createdDate DESC"}
 <ul class="gnb-usermenu">
-    @requestHeader.session.get("loginId") match {
-      case Some(loginId) => {
+    @if( !UserApp.currentUser().isAnonymous()) {
        <li class="gnb-usermenu-item">
           <a href="@routes.Application.index()" class="user-item-btn">@Messages("notification")</a>
        </li>
@@ -43,17 +42,17 @@
         <li class="gnb-usermenu-dropdown">
             <a href="javascript:void(0);" class="gnb-dropdown-toggle" data-toggle="dropdown">
                 <span class="avatar-wrap smaller">
-                    <img src="@User.findByLoginId(loginId).avatarUrl" />
+                    <img src="@UserApp.currentUser().avatarUrl" />
                 </span>
-                <span class="caret-text">@User.findByLoginId(loginId).name</span>
+                <span class="caret-text">@UserApp.currentUser().name</span>
                 <span class="caret"></span>
             </a>
             <ul class="dropdown-menu flat right">
                 <li class="title">
-                    @User.findByLoginId(loginId).name <span class="disabled">@{"@"}@loginId</span>
+                    @UserApp.currentUser().name <span class="disabled">@{"@"}@UserApp.currentUser().loginId</span>
                 </li>
                 <li>
-                    <a href="@routes.UserApp.userInfo(loginId)">@Messages("userinfo.profile")</a>
+                    <a href="@routes.UserApp.userInfo(UserApp.currentUser().loginId)">@Messages("userinfo.profile")</a>
                 </li>
                 <li>
                     <a href="@routes.UserApp.editUserInfoForm()">
@@ -119,8 +118,7 @@
               </li>
           </ul>
       </li>
-      }
-      case None => {
+      } else {
         <li class="gnb-usermenu-item">
           <a href="@routes.UserApp.loginForm()" class="user-item-btn" data-login="required">
           @Messages("title.login")
@@ -133,5 +131,4 @@
             </a>
         </li>
       }
-    }
 </ul>
