@@ -45,6 +45,7 @@ import utils.*;
 import views.html.user.*;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static play.data.Form.form;
 import static play.libs.Json.toJson;
@@ -53,6 +54,7 @@ public class UserApp extends Controller {
     public static final String SESSION_USERID = "userId";
     public static final String SESSION_LOGINID = "loginId";
     public static final String SESSION_USERNAME = "userName";
+    public static final String SESSION_KEY = "key";
     public static final String TOKEN = "yobi.token";
     public static final String TOKEN_SEPARATOR = ":";
     public static final int TOKEN_LENGTH = 2;
@@ -68,6 +70,7 @@ public class UserApp extends Controller {
     public static final String DEFAULT_GROUP = "own";
     public static final String DEFAULT_SELECTED_TAB = "projects";
     public static final String TOKEN_USER = "TOKEN_USER";
+    public static Map<String, User> sessionMap = new HashMap<>();
 
     @AnonymousCheck
     public static Result users(String query) {
@@ -366,14 +369,15 @@ public class UserApp extends Controller {
 
     private static User getUserFromSession() {
         String userId = session().get(SESSION_USERID);
+        String userKey = session().get(SESSION_KEY);
         if (userId == null) {
             return User.anonymous;
         }
         if (!StringUtils.isNumeric(userId)) {
             return invalidSession();
         }
-        User user = User.find.byId(Long.valueOf(userId));
-        if (user == null) {
+        User user = sessionMap.get(userKey);
+        if (user == null || !user.loginId.equals(userId)) {
             return invalidSession();
         }
         return user;
@@ -872,9 +876,13 @@ public class UserApp extends Controller {
     }
 
     public static void addUserInfoToSession(User user) {
+        String key = new Sha256Hash(new Date().toString(), ByteSource.Util.bytes(user.passwordSalt), 1024)
+                .toBase64();
+        sessionMap.put(key, user);
         session(SESSION_USERID, String.valueOf(user.id));
         session(SESSION_LOGINID, user.loginId);
         session(SESSION_USERNAME, user.name);
+        session(SESSION_KEY, key);
     }
 
     public static void updatePreferredLanguage() {
