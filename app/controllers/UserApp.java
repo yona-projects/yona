@@ -45,7 +45,6 @@ import utils.*;
 import views.html.user.*;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static play.data.Form.form;
 import static play.libs.Json.toJson;
@@ -70,7 +69,6 @@ public class UserApp extends Controller {
     public static final String DEFAULT_GROUP = "own";
     public static final String DEFAULT_SELECTED_TAB = "projects";
     public static final String TOKEN_USER = "TOKEN_USER";
-    public static Map<String, User> sessionMap = new HashMap<>();
 
     @AnonymousCheck
     public static Result users(String query) {
@@ -376,7 +374,7 @@ public class UserApp extends Controller {
         if (!StringUtils.isNumeric(userId)) {
             return invalidSession();
         }
-        User user = sessionMap.get(userKey);
+        User user = CacheStore.sessionMap.get(userKey);
         if (user == null || !user.loginId.equals(userId)) {
             return invalidSession();
         }
@@ -878,7 +876,7 @@ public class UserApp extends Controller {
     public static void addUserInfoToSession(User user) {
         String key = new Sha256Hash(new Date().toString(), ByteSource.Util.bytes(user.passwordSalt), 1024)
                 .toBase64();
-        sessionMap.put(key, user);
+        CacheStore.sessionMap.put(key, user);
         session(SESSION_USERID, String.valueOf(user.id));
         session(SESSION_LOGINID, user.loginId);
         session(SESSION_USERNAME, user.name);
