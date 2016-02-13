@@ -1,5 +1,7 @@
 <a name="korean"></a>
 [[English]](#english)
+
+[![Build Status](https://travis-ci.org/yona-projects/yona.svg?branch=master)](https://travis-ci.org/yona-projects/yona)
 Yona
 ====
 
