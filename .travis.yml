@@ -7,4 +7,4 @@ before_script:
   - unzip -q ${ACTIVATOR_ZIP_FILE}
   - set SBT_OPTS= -Xms256m Xmx52m -XX:MaxPermSize=512m
 script:
-  - activator-${ACTIVATOR_VERSION}-minimal/activator test
+  - activator-${ACTIVATOR_VERSION}-minimal/activator compile
