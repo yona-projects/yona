@@ -264,7 +264,7 @@ public class User extends Model implements ResourceConvertible {
      * @return User or {@link #anonymous}
      */
     public static User findByLoginId(String loginId) {
-        User user = find.where().ieq("loginId", loginId).findUnique();
+        User user = find.where().eq("loginId", loginId).findUnique();
         if (user == null) {
             return anonymous;
         }

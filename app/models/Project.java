@@ -41,6 +41,7 @@ import play.db.ebean.Model;
 import play.db.ebean.Transactional;
 import playRepository.*;
 import utils.FileUtil;
+import utils.CacheStore;
 import utils.JodaDateUtil;
 import validation.ExConstraints;
 
@@ -164,8 +165,14 @@ public class Project extends Model implements LabelOwner {
     }
 
     public static Project findByOwnerAndProjectName(String loginId, String projectName) {
-        return find.where().ieq("owner", loginId).ieq("name", projectName)
-                .findUnique();
+        String key = loginId + ":" + projectName;
+        Project project = CacheStore.projectMap.get(key);
+        if(project == null){
+            project= find.where().ieq("owner", loginId).ieq("name", projectName)
+                    .findUnique();
+            CacheStore.projectMap.put(key, project);
+        }
+        return project;
     }
 
     public static boolean exists(String loginId, String projectName) {
