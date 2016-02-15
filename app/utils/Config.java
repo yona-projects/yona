@@ -61,6 +61,10 @@ public class Config {
                 play.Configuration.root().getString("application.siteName"), "Yona");
     }
 
+    public static String getContextRoot(){
+        return play.Configuration.root().getString("application.context", "/");
+    }
+
     public static String getHostport(String defaultValue) {
         String hostname = play.Configuration.root().getString("application.hostname");
 
