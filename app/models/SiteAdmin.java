@@ -29,7 +29,6 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import java.util.Arrays;
-import java.util.Objects;
 
 @Entity
 public class SiteAdmin extends Model {
@@ -39,16 +38,13 @@ public class SiteAdmin extends Model {
     public Long id;
 
     @OneToOne
-    public static User admin;
+    public User admin;
     public static final String SITEADMIN_DEFAULT_LOGINID = "admin";
 
     public static final Model.Finder<Long, SiteAdmin> find = new Finder<>(Long.class, SiteAdmin.class);
 
     public static boolean exists(User user) {
-        if(admin == null){
-            SiteAdmin.admin = User.findByLoginId(SITEADMIN_DEFAULT_LOGINID);
-        }
-        return user != null && Objects.equals(SiteAdmin.admin.loginId, user.loginId);
+        return user != null && find.where().eq("admin.id", user.id).findRowCount() > 0;
     }
 
     public static User updateDefaultSiteAdmin(User user) {
