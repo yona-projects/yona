@@ -84,7 +84,7 @@
         <div class="board-body row-fluid">
             <div class="span9">
                 <div class="author-info">
-                    <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="usf-group">
+                    <a href="@userInfo(issue.authorLoginId)" class="usf-group">
                         <span class="avatar-wrap smaller">
                             <img src="@User.findByLoginId(issue.authorLoginId).avatarUrl" width="20" height="20">
                         </span>
@@ -184,7 +184,7 @@
                                     @partial_assignee(project, issue)
                                 } else {
                                     @if(isAssigned){
-                                    <a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)" class="usf-group">
+                                    <a href="@userInfo(issue.assignee.user.loginId)" class="usf-group">
                                         <span class="avatar-wrap smaller">
                                             <img src="@User.findByLoginId(issue.assignee.user.loginId).avatarUrl" width="20" height="20">
                                         </span>

@@ -20,6 +20,7 @@
 **@
 
 @(id:String, voters:Collection[User])
+@import utils.TemplateHelper._
 
 <div id="@id" class="modal hide voters-dialog">
     <div class="modal-header">
@@ -30,7 +31,7 @@
         <ul class="unstyled">
             @for(voter <- voters){
             <li>
-                <a href="@routes.UserApp.userInfo(voter.loginId)" class="usf-group" target="_blank">
+                <a href="@userInfo(voter.loginId)" class="usf-group" target="_blank">
                     <span class="avatar-wrap mlarge">
                         <img src="@voter.avatarUrl" width="40" height="40">
                     </span>

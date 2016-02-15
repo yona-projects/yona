@@ -28,7 +28,7 @@
 @import utils.Markdown
 
 @avatarByLoginId(loginId: String, loginName: String) = {
-    <a href="@routes.UserApp.userInfo(loginId)" class="usf-group" data-toggle="tooltip" data-placement="top" title="@loginName">
+    <a href="@userInfo(loginId)" class="usf-group" data-toggle="tooltip" data-placement="top" title="@loginName">
         <img src="@User.findByLoginId(loginId).avatarUrl" class="avatar-wrap small">
     </a>
 }
@@ -37,7 +37,7 @@
     @loginId match {
     case (loginId: String) => {
         @if(showAvatar){ @avatarByLoginId(loginId, loginName) }
-        <a href="@routes.UserApp.userInfo(loginId)" class="usf-group" data-toggle="tooltip" data-placement="top" title="@loginId">
+        <a href="@userInfo(loginId)" class="usf-group" data-toggle="tooltip" data-placement="top" title="@loginId">
             <strong>@loginName</strong>
         </a>
     }
@@ -77,14 +77,14 @@
     case (comment: Comment) => {
     <li class="comment @isAuthorComment(comment.authorLoginId)" id="comment-@comment.id">
         <div class="comment-avatar">
-            <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+            <a href="@userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
                 <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
             </a>
         </div>
         <div class="media-body">
             <div class="meta-info">
                 <span class="comment_author pull-left">
-                    <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+                    <a href="@userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
                         <strong>@comment.authorLoginId </strong>
                     </a>
                 </span>
@@ -112,7 +112,7 @@
                                 @partial_voter_list("voters-" + issueComment.id, issueComment.voters)
                             } else {
                                 @for(voter <- issueComment.voters){
-                                    <a href="@routes.UserApp.userInfo(voter.loginId)" class="avatar-wrap smaller" data-toggle="tooltip" data-placement="top" title="@voter.name" style="margin-right:3px;">
+                                    <a href="@userInfo(voter.loginId)" class="avatar-wrap smaller" data-toggle="tooltip" data-placement="top" title="@voter.name" style="margin-right:3px;">
                                         <img src="@User.findByLoginId(voter.loginId).avatarUrl">
                                     </a>
                                 }

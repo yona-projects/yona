@@ -587,4 +587,8 @@ object TemplateHelper {
   private def extractHeaderWordsInBrackets(title: String): Array[String] = {
     return title.split("(=\\[)|(?<=\\])")
   }
+
+  def userInfo(loginId: String) = {
+    Config.getContextRoot() + loginId
+  }
 }
