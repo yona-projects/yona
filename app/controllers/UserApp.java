@@ -233,17 +233,16 @@ public class UserApp extends Controller {
             return notFound(getObjectNodeWithMessage("user.deleted"));
         }
 
-        User authenticate = authenticateWithPlainPassword(sourceUser.loginId, authInfoForm.get().password);
+        User user = authenticateWithPlainPassword(sourceUser.loginId, authInfoForm.get().password);
 
-        if (!authenticate.isAnonymous()) {
-            addUserInfoToSession(authenticate);
-
+        if (!user.isAnonymous()) {
             if (authInfoForm.get().rememberMe) {
-                setupRememberMe(authenticate);
+                setupRememberMe(user);
             }
 
-            authenticate.lang = play.mvc.Http.Context.current().lang().code();
-            authenticate.update();
+            user.lang = play.mvc.Http.Context.current().lang().code();
+            user.update();
+            addUserInfoToSession(user);
 
             return ok("{}");
         }
@@ -375,7 +374,7 @@ public class UserApp extends Controller {
             return invalidSession();
         }
         User user = CacheStore.sessionMap.get(userKey);
-        if (user == null || !user.loginId.equals(userId)) {
+        if (user == null) {
             return invalidSession();
         }
         return user;
