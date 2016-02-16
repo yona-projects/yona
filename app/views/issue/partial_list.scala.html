@@ -32,14 +32,14 @@
 @for(issue <- issueList){
     @defining(User.findByLoginId(issue.authorLoginId)){ user =>
     <li class="post-item" id="issue-item-@issue.id" data-item="issue-item" data-value="@user.loginId @issue.getNumber @issue.title">
-        <div class="span9">
+        <div class="span9 span-hard-wrap">
             @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
-            <label for="issue-@issue.id" class="mass-update-check">
+            <label for="issue-@issue.id" class="mass-update-check hide-in-mobile">
                 <input id="issue-@issue.id" type="checkbox" name="checked-issue" data-toggle="issue-checkbox" data-issue-id="@issue.id" data-issue-labels="@issueLabels(issue)">
             </label>
             }
             <label for="issue-@issue.id" class="issue-item-row">
-                <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap mlarge" data-toggle="tooltip" data-placement="top" title="@user.loginId">
+                <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap mlarge hide-in-mobile" data-toggle="tooltip" data-placement="top" title="@user.loginId">
                     @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){
                         <img src="@urlToPicture(user.email, 32)">
                     } else {
@@ -93,7 +93,7 @@
                 </div>
             </label>
         </div>
-        <div class="span3">
+        <div class="span3 hide-in-mobile">
             <div class="mt5 pull-right">
                 @if(issue.assigneeName != null) {
                     <a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)" class="avatar-wrap assinee" data-toggle="tooltip" data-placement="top" title="@Messages("issue.assignee"): @issue.assigneeName">

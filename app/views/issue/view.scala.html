@@ -82,7 +82,7 @@
         @** Content body **@
         <!--board-body-->
         <div class="board-body row-fluid">
-            <div class="span9">
+            <div class="span9 span-left-pane">
                 <div class="author-info">
                     <a href="@userInfo(issue.authorLoginId)" class="usf-group">
                         <span class="avatar-wrap smaller">
@@ -169,7 +169,7 @@
                 @** // Comment **@
             </div>
 
-            <div class="span3 mb20">
+            <div class="span3 span-right-pane mb20">
                 <div class="issue-info">
                     <form id="issueUpdateForm" action="@routes.IssueApp.massUpdate(project.owner, project.name)" method="post">
                         <input type="hidden" name="issues[0].id" value="@issue.id" />
