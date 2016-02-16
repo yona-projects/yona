@@ -24,7 +24,7 @@
 @import utils.TemplateHelper._
 @defining(User.findByLoginId(post.authorLoginId)){ user =>
 <li class="post-item">
-    <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap mlarge" data-toggle="tooltip" data-placement="top" title="@user.loginId">
+    <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap mlarge hide-in-mobile" data-toggle="tooltip" data-placement="top" title="@user.loginId">
         @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){
             <img src="@urlToPicture(user.email, 32)">
         } else {

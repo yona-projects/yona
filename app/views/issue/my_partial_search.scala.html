@@ -34,11 +34,11 @@
 }
 
 <div pjax-container class="row-fluid issue-list-wrap">
-    <div class="span2">
+    <div class="span2 span-hard-wrap">
         <div class="inner advanced">
             @my_partial_list_quicksearch(param)
 
-            <hr>
+            <hr class="hide-in-mobile">
 
             <form id="search" name="search" action="@routes.IssueApp.userIssues()" method="get">
                 <input type="hidden" name="orderBy" value="@param.orderBy">
@@ -65,7 +65,7 @@
             }
         </div>
     </div>
-    <div class="span10" id="span10">
+    <div class="span10 span-hard-wrap" id="span10">
         <ul class="nav nav-tabs nm">
         @for(state <- Array(State.OPEN, State.CLOSED)) {
             <li @if(param.state == state.state) { class="active" } data-pjax>
