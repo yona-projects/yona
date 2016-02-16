@@ -37,11 +37,11 @@
 }
 
 <div pjax-container class="row-fluid issue-list-wrap">
-    <div class="span2">
+    <div class="span2 span-hard-wrap">
         @partial_list_quicksearch(param, project)
         @partial_searchform(param, project)
     </div>
-    <div class="span10" id="span10">
+    <div class="span10 span-hard-wrap" id="span10">
         <div class="pull-right">
             <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="ybtn ybtn-success">@Messages("issue.menu.new")</a>
         </div>

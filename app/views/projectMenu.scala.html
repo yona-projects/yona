@@ -52,20 +52,20 @@
         <ul class="project-menu-nav project-menu-gruop">
             <li class="@isActiveMenu(MenuType.PROJECT_HOME)">
                 <a href="@routes.ProjectApp.project(project.owner, project.name)">
-                    @Messages("title.projectHome")
+                    <span class="normal-title">@Messages("title.projectHome")</span><span class="short-title">H</span>
                 </a>
             </li>
             @if(project.menuSetting.code) {
                 <li class="@isActiveMenu(MenuType.CODE)">
                     <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">
-                        @Messages("menu.code")
+                        <span class="normal-title">@Messages("menu.code")</span><span class="short-title">C</span>
                     </a>
                 </li>
             }
             @if(project.menuSetting.issue) {
                 <li class="@isActiveMenu(MenuType.ISSUE)">
                     <a href="@routes.IssueApp.issues(project.owner, project.name, "open")">
-                        @Messages("menu.issue") @countingBadge(Issue.countIssues(project.id, State.OPEN))
+                        <span class="normal-title">@Messages("menu.issue")</span><span class="short-title">I</span> @countingBadge(Issue.countIssues(project.id, State.OPEN))
                     </a>
                 </li>
             }
@@ -73,7 +73,7 @@
                 @if(project.vcs.equals("GIT")){
                     <li class="@isActiveMenu(MenuType.PULL_REQUEST)">
                     <a href="@getPullRequestURL(project)">
-                        @Messages("menu.pullRequest") @countingBadge(PullRequest.countOpenedPullRequests(project))
+                        <span class="normal-title">@Messages("menu.pullRequest")</span><span class="short-title">P</span> @countingBadge(PullRequest.countOpenedPullRequests(project))
                     </a>
                 </li>
                 }
@@ -81,21 +81,21 @@
             @if(project.menuSetting.review) {
                 <li class="@isActiveMenu(MenuType.PROJECT_REVIEW)">
                     <a href="@routes.ReviewThreadApp.reviewThreads(project.owner, project.name)">
-                        @Messages("menu.review") @countingBadge(reviewCount)
+                        <span class="normal-title">@Messages("menu.review")</span><span class="short-title">R</span> @countingBadge(reviewCount)
                     </a>
                 </li>
             }
             @if(project.menuSetting.milestone) {
                 <li class="@isActiveMenu(MenuType.MILESTONE)">
                     <a href="@routes.MilestoneApp.milestones(project.owner, project.name)">
-                        @Messages("milestone")
+                        <span class="normal-title">@Messages("milestone")</span><span class="short-title">M</span>
                     </a>
                 </li>
             }
             @if(project.menuSetting.board) {
                 <li class="@isActiveMenu(MenuType.BOARD)">
                     <a href="@routes.BoardApp.posts(project.owner, project.name)">
-                        @Messages("menu.board")
+                        <span class="normal-title">@Messages("menu.board")</span><span class="short-title">B</span>
                         @if(Posting.countPostings(project) > 0){
                             <span class="project-menu-count">@Posting.countPostings(project)</span>
                         }
@@ -109,7 +109,7 @@
                 <li class="@isActiveMenu(MenuType.PROJECT_SETTING)">
                     <a href="@routes.ProjectApp.settingForm(project.owner, project.name)">
                         <i class="yobicon-cog"></i>
-                        <span class="blind">@Messages("menu.admin")</span>
+                        <span class="blind"><span class="normal-title">@Messages("menu.admin")</span></span>
                         @countingBadge(project.enrolledUsers.size)
                     </a>
                 <li>
