@@ -131,6 +131,9 @@ public class Markdown {
     }
 
     private static String renderWithHighlight(String source, boolean breaks) {
+        if(CacheStore.renderedMarkdown.asMap().containsKey(source.hashCode())){
+            return ZipUtil.decompress(CacheStore.renderedMarkdown.asMap().get(source.hashCode()));
+        }
         try {
             Object options = engine.eval("new Object({gfm: true, tables: true, breaks: " + breaks + ", " +
                     "pedantic: false, sanitize: false, smartLists: true," +
@@ -140,7 +143,9 @@ public class Markdown {
             String rendered = renderByMarked(source, options);
             rendered = removeJavascriptInHref(rendered);
             rendered = checkReferrer(rendered);
-            return sanitize(rendered);
+            String sanitized = sanitize(rendered);
+            CacheStore.renderedMarkdown.asMap().putIfAbsent(source.hashCode(), ZipUtil.compress(sanitized));
+            return sanitized;
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
@@ -185,10 +190,15 @@ public class Markdown {
     }
 
     public static String render(@Nonnull String source) {
+        if(CacheStore.renderedMarkdown.asMap().containsKey(source.hashCode())){
+            return ZipUtil.decompress(CacheStore.renderedMarkdown.asMap().get(source.hashCode()));
+        }
         try {
             Object options = engine.eval("new Object({gfm: true, tables: true, breaks: true, " +
                     "pedantic: false, sanitize: false, smartLists: true});");
-            return sanitize(renderByMarked(source, options));
+            String sanitized = sanitize(renderByMarked(source, options));
+            CacheStore.renderedMarkdown.asMap().putIfAbsent(source.hashCode(), ZipUtil.compress(sanitized));
+            return sanitized;
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
