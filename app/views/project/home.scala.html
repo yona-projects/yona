@@ -60,7 +60,7 @@
             }
         </div>
         <div class="row-fluid">
-            <div class="span9">
+            <div class="span9 span-left-pane">
                  <ul class="nav nav-tabs">
                     <li class="@isActiveTab("readme")">
                         <a href="@routes.ProjectApp.project(project.owner, project.name)">README</a>
@@ -102,7 +102,7 @@
                 </div>
             </div>
 
-            <div class="span3">
+            <div class="span3 span-right-pane">
                 <div class="bubble-wrap gray project-home">
                     <div class="project-btn-wrap">
                         @if(project.menuSetting.issue) {

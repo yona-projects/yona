@@ -1,83 +1,229 @@
-// responsive
+@media all and (max-width: 600px){
+    .span-left-pane {
+        width: 98% !important;
+    }
+    .span-right-pane {
+        display: none !important;
+    }
+    .gnb-search-form {
+        display: none !important;
+    }
+    .short-title {
+        display: block;
+    }
+    .normal-title {
+        display: none;
+    }
+    .project-menu-nav li a {
+        padding: 5px 15px 4px !important;
+    }
+    .project-menu-count {
+        position: absolute !important;
+        margin-top: -36px !important;
+    }
+
+    .hide-in-mobile {
+        display: none !important;
+    }
+
+    .watch-btn {
+        display: none;
+    }
+
+    .comment-body {
+        padding: 10px 10px !important;
+    }
+
+    .textarea-box {
+        padding-right: 2px !important;
+    }
+
+    // override @media(1199px)
+    .unsupported {
+        min-width: 10px !important;
+    }
+
+    .gnb-outer {
+        min-width: 10px !important;
+    }
+
+    .page-wrap-outer {
+        min-width: 10px !important;
+        padding: 2px !important;
+    }
+
+    .board-body {
+        .content {
+            padding: 0 !important;
+        }
+    }
+
+    .site-breadcrumb-outer {
+        min-width: 10px !important;
+    }
+    .project-header-outer {
+        min-width: 10px !important;
+    }
+
+    .project-menu-outer {
+        min-width: 10px !important;
+    }
+
+    .page-footer-outer {
+        min-width: 10px !important;
+    }
+
+    .comment-avatar {
+        display: none;
+    }
+    .media-body {
+        margin-left: 0 !important;
+        &:before {
+            display: none;
+        }
+        .resp-comment-avatar {
+            display: inline-block;
+        }
+        .avatar-wrap {
+            width: 24px !important;
+            height: 24px !important;
+        }
+    }
+
+    // other pages
+
+    .write-comment-box {
+        padding: 0;
+    }
+
+    .project-menu-count {
+
+    }
+
+    .project-menu-gruop {
+        margin-left: 15px !important;
+    }
+
+    .project-header-avatar {
+        left: 0 !important;
+        width: 50px !important;
+        height: 50px !important;
+        bottom: 0 !important;
+    }
+
+    .project-breadcrumb-wrap {
+        left: 60px !important;
+        bottom: 10px !important;
+    }
+
+    .span-hard-wrap {
+        min-width: 95%;
+        margin-bottom: 10px;
+    }
+    .nav-tabs li a {
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+    }
+}
+
 @media all and (max-width:1199px){
     .unsupported {
+        width: 100%;
+        max-width: 1199px;
         min-width: 1000px;
         padding: 0 10px;
 
         .unsupported-inner {
-            width:980px;
+            width:95%;
+            max-width: 980px;
         }
     }
 
     .gnb-outer {
+        width: 100%;
+        max-width: 1199px;
         min-width: 1000px;
         padding:0 10px;
 
         .gnb-inner {
-            width:980px;
+            width:95%;
+            max-width:980px;
         }
     }
 
     .search-box {
         input:focus {
-            width:250px;
+            max-width:250px;
         }
     }
 
     .page-wrap-outer {
+        max-width: 1199px;
         min-width: 1000px;
         padding:0 10px;
     }
 
     .page-wrap {
-        width:980px;
+        width: 95%;
+        max-width:980px;
     }
 
     .project-menu-inner {
-        width:980px;
+        width: 95%;
+        max-width:980px;
     }
 
     .project-page-wrap {
-        width: 980px;
+        width: 95%;
+        max-width:980px;
     }
 
     .site-breadcrumb-outer {
+        width: 100%;
+        max-width: 1199px;
         min-width: 1000px;
         padding:0 10px;
 
         .site-breadcrumb-inner {
-            width: 980px;
+            width: 95%;
+            max-width:980px;
         }
     }
     .project-header-outer {
+        max-width: 1199px;
         min-width: 1000px;
         padding:0 10px;
 
         .project-header-inner {
             .project-header-wrap {
-                width: 980px;
+                width: 95%;
+                max-width: 980px;
             }
         }
     }
 
     .project-menu-outer {
+        max-width: 1199px;
         min-width: 1000px;
         padding:0 10px;
 
         .project-menu-inner {
-            width: 980px;
+            width: 95%;
+            max-width: 980px;
         }
     }
 
     .project-home-header {
         .project-clone-wrap {
             .project-clone-url {
-                width: 125px;
+                width: 100px;
+                max-width: 125px;
             }
 
             &:hover {
                 .project-clone-url {
-                    width:250px;
+                    width: 100%;
+                    max-width:250px;
                 }
             }
         }
@@ -114,15 +260,18 @@
     }
 
     .site-setting-wrap {
-        width:980px;
+        width: 95%;
+        max-width:980px;
     }
 
     .page-footer-outer {
+        max-width: 1199px;
         min-width: 1000px;
         padding:10px;
 
         .page-footer {
-             width:980px;
+            width: 95%;
+            max-width:980px;
         }
     }
 
