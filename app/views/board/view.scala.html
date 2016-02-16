@@ -42,13 +42,18 @@
     <div class="project-page-wrap board-view">
     	@** Post Info **@
         <div class="board-header issue">
-            <div class="pull-right mr10 mt10">
+            <div class="pull-right mr10 mt10 hide-in-mobile">
                 <div class="date" title="@JodaDateUtil.getDateString(post.createdDate)">
                     @agoOrDateString(post.createdDate)
                 </div>
             </div>
             <div class="title">
                 <strong class="board-id">@post.getNumber</strong> @post.title
+                <div class="pull-right hide show-in-mobile" style="font-size: 0.7em">
+                    <div class="date" title="@JodaDateUtil.getDateString(post.createdDate)">
+                    @agoOrDateString(post.createdDate)
+                    </div>
+                </div>
             </div>
         </div>
 

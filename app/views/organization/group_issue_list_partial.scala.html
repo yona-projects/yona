@@ -32,8 +32,8 @@
 @for(issue <- issueList){
 @defining(User.findByLoginId(issue.authorLoginId)){ user =>
     <li class="post-item" id="issue-item-@issue.id">
-        <div class="span10">
-            <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap mlarge" data-toggle="tooltip" data-placement="top" title="@user.loginId">
+        <div class="span10 span-hard-wrap">
+            <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap mlarge hide-in-mobile" data-toggle="tooltip" data-placement="top" title="@user.loginId">
                 @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){
                     <img src="@urlToPicture(user.email, 32)">
                 } else {
@@ -57,10 +57,6 @@
                 <span class="infos-item" title="@JodaDateUtil.getDateString(issue.createdDate)">
                 @agoOrDateString(issue.createdDate)
                 </span>
-
-                <a href="@routes.ProjectApp.project(issue.project.owner,issue.project.name)" class="infos-link-item group-project-name pull-left">
-                @issue.project.name
-                </a>
 
                 @if(issue.milestone != null && issue.project != null && issue.project.menuSetting != null && issue.project.menuSetting.milestone) {
                 <span class="infos-item mileston-tag">
@@ -91,7 +87,7 @@
                 }
             </div>
         </div>
-        <div class="span2">
+        <div class="span2 hide-in-mobile">
             <div class="mt5 pull-right">
                 @if(issue.assigneeName != null) {
                     <a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)" class="avatar-wrap assinee" data-toggle="tooltip" data-placement="top" title="@Messages("issue.assignee"): @issue.assigneeName">
