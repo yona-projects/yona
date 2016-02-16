@@ -57,7 +57,7 @@
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
         <div class="project-home-header row-fluid">
-            <div class="span9">
+            <div class="span9 span-hard-wrap">
                 <div class="project-overview">
                     <h3><span id="project-description">@org.descr</span></h3>
                 </div>
@@ -78,7 +78,7 @@
                     @for(project <- org.getVisibleProjects(UserApp.currentUser())) {
                     <li class="project" data-item="project-item" data-value="@project.name @project.overview">
                         <div class="info-wrap">
-                            <div class="owner-avatar-wrap">
+                            <div class="owner-avatar-wrap hide-in-mobile">
                                 <a href="@routes.ProjectApp.project(project.owner,project.name)">
                                     <img src="@urlToProjectLogo(project)" alt="@project.name"/>
                                 </a>
@@ -136,7 +136,7 @@
                     }
                 </ul>
             </div>
-            <div class="span3">
+            <div class="span3 span-hard-wrap">
                 <div class="bubble-wrap gray project-home">
                     <div class="inner member-info">
                         <header>
