@@ -29,7 +29,7 @@
     @for(req <- page.getList.iterator) {
     @defining(User.findByLoginId(req.contributor.loginId)){ user =>
         <li class="post-item">
-            <div class="span10">
+            <div class="span10 span-hard-wrap">
                 <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap mlarge" data-toggle="tooltip" data-placement="top" title="@user.loginId">
                     @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){
                         <img src="@urlToPicture(user.email, 32)">
@@ -83,14 +83,14 @@
                     }
                 </div>
             </div>
-            <div class="span2">
-                <div class="mt5 pull-right">
+            <div class="span2 hide-in-mobile">
+                <div class="mt5 pull-right hide-in-mobile">
                     @if(req.receiver != null) {
-                        <a href="@routes.UserApp.userInfo(req.receiver.loginId)" class="avatar-wrap assinee hide-in-mobile" data-toggle="tooltip" data-placement="top" title="" data-original-title="@req.receiver.name">
+                        <a href="@routes.UserApp.userInfo(req.receiver.loginId)" class="avatar-wrap assinee" data-toggle="tooltip" data-placement="top" title="" data-original-title="@req.receiver.name">
                             <img src="@req.receiver.avatarUrl" width="32" height="32" alt="@req.receiver.name">
                         </a>
                     } else {
-                        <div class="empty-avatar-wrap hide-in-mobile">&nbsp;</div>
+                        <div class="empty-avatar-wrap">&nbsp;</div>
                     }
                 </div>
                 <div class="state @if(req.isConflict == true) {conflict} else { @req.state.toString.toLowerCase} pull-right">@if(req.isConflict == true) {@Messages("pullRequest.state.conflict")} else {@Messages("pullRequest.state." + req.state.toString.toLowerCase)}</div>
