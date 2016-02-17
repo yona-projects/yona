@@ -23,10 +23,10 @@
 @orderString = @{"createdDate DESC"}
 <ul class="gnb-usermenu">
     @if( !UserApp.currentUser().isAnonymous()) {
-       <li class="gnb-usermenu-item">
+       <li class="gnb-usermenu-item hide-in-mobile">
           <a href="@routes.Application.index()" class="user-item-btn">@Messages("notification")</a>
        </li>
-       <li class="divider"></li>
+       <li class="divider hide-in-mobile"></li>
        <li class="gnb-usermenu-item">
           <a href="@routes.IssueApp.userIssues()" class="user-item-btn">@Messages("issue.myIssue")</a>
         </li>

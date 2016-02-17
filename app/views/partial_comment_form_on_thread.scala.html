@@ -38,7 +38,7 @@
   <div class="write-comment-form">
     <form action="@urlToPostNewComment(thread)" method="post" enctype="multipart/form-data" class="review-form" style="display:block;">
       <input type="hidden" name="thread.id" value="@thread.id">
-      <div class="author-info-wrap pull-left">
+      <div class="author-info-wrap pull-left hide-in-mobile">
         <div class="author-info">
           <a href="@routes.UserApp.userInfo(UserApp.currentUser().loginId)" class="avatar-wrap medium"
              title="@UserApp.currentUser().name" data-toggle="tooltip" data-placement="top">
