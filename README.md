@@ -60,14 +60,15 @@ Yona는 앞으로 기본DB를 MariaDB를 사용할 예정입니다. 다만 Yona 
 아래 설명은 진행 과정만 참고만 하시고 실제로는 MariaDB 10.1.10 이상을 설치해 주세요
 
 1. Linux 
-   - SUSE: https://mariadb.com/my_portal/download/10.1#sles
-   - CentOS: https://mariadb.com/my_portal/download/10.1#rhel
-   - RedHat: https://mariadb.com/my_portal/download/10.1#rhel
-   - Ubuntu: https://mariadb.com/my_portal/download/10.1#ubuntu
-   - Debian: https://mariadb.com/my_portal/download/10.1#debian
+   - 배포본의 저장소 및 설치 스크립트는 다음 선택 페이지의 설명을 참고하여 설치 합니다.
+   - [Setting up MariaDB Repositories](https://downloads.mariadb.org/mariadb/repositories/)
+  
 2. Mac
    - brew install 을 이용해서 설치를 권장합니다.
    - https://mariadb.com/blog/installing-mariadb-10010-mac-os-x-homebrew
+
+3. Window
+   - https://downloads.mariadb.org/mariadb/10.1.11/#os_group=windows
 
 ##### DB 설치후 유저 및 Database 생성 
 
