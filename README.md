@@ -67,7 +67,7 @@ Yona는 앞으로 기본DB를 MariaDB를 사용할 예정입니다. 다만 Yona 
    - brew install 을 이용해서 설치를 권장합니다.
    - https://mariadb.com/blog/installing-mariadb-10010-mac-os-x-homebrew
 
-3. Window
+3. Windows
    - https://downloads.mariadb.org/mariadb/10.1.11/#os_group=windows
 
 ##### DB 설치후 유저 및 Database 생성 
