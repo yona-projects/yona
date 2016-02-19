@@ -110,32 +110,29 @@ mysql -uyona -p'yonadan'
 use yona
 ```
 
-/etc/my.cnf 파일을 만들어서 아래 내용을 추가해 주세요. (windows 나 mac os 에서는 작업하지 않아도 무방합니다)
+/etc/my.cnf 파일을 만들어서 아래 내용을 추가해 주세요. 
+(mac os 유저의 경우에는 db 실행유저의 ~/.my.cnf에 아래 내용을 추가해 주세요)
+샘플참고: https://github.com/yona-projects/yona/blob/next/support-script/mariadb/my.cnf
 
 ```
+[client]
+default-character-set=utf8mb4
+
+[mysql]
+default-character-set=utf8mb4
+
 [mysqld]
-collation-server = utf8mb4_unicode_ci
+collation-server=utf8mb4_unicode_ci
+init-connect='SET NAMES utf8mb4'
+character-set-server=utf8mb4
 lower_case_table_names=1
+innodb_file_format=barracuda
+innodb_large_prefix=on
 ```
 
-꼭 /etc 아래가 아니더라도 [my.cnf 위치 탐색순서](https://mariadb.com/kb/en/mariadb/configuring-mariadb-with-mycnf/) 를 보고 적당한 곳에 my.cnf 파일을 만들어서 넣어도 무방합니다. 
+꼭 /etc 아래가 아니더라도 [my.cnf 위치 탐색순서](https://mariadb.com/kb/en/mariadb/configuring-mariadb-with-mycnf/) 를 보고 적당한 곳에 my.cnf 파일을 만들어서 넣어도 무방하다고 알려져 있습니다. (Mac OS 유저는 우선은 위 설명대로 해주세요. 추가 확인이 필요합니다)
 
-
-DB를 설치한 유저로 DB를 재시작합니다. (root나 sudo 설치했을 경우 명령어 앞에 sudo를 붙여주세요)
-```
-service mysql restart
-
-혹은
-
-/etc/init.d/mysql restart
-
-혹은
-
-mysql.server restart
-```
-참고: http://coolestguidesontheplanet.com/start-stop-mysql-from-the-command-line-terminal-osx-linux/
-
-DB가 정상적으로 재시작되었으면 이제 Yona 를 설치합니다. 
+이제 Yona 를 설치합니다. 
 
 #### Yona 설치
 
@@ -186,6 +183,11 @@ db.default.password="yonadan"
 이제 웹 브라우저로 http://127.0.0.1:9000 에 접속하면 환영 페이지를 보실 수 있습니다. 
 어드민 설정을 마치고 다시 쉘을 시작합니다.
 
+만약 콘솔에 DB 관련 에러 특히 
+```
+[error] play - Specified key was too long; max key length is 767 bytes [ERROR:1071, SQLSTATE:42000] 
+```
+가 발생할 경우 문서 하단의 `MariaDB 767 byte 에러` 항목을 참고해 주세요
 
 #### 업그레이드
 
@@ -276,6 +278,60 @@ DB 백업은 https://mariadb.com/kb/en/mariadb/backup-and-restore-overview/ 를 
 - application.conf 가 제대로 읽히는지
 - application.secret 적용여부
 - db.default.url 확인 
+
+### MariaDB 재시작 방법
+자주하진 마세요!
+DB를 설치한 유저로 DB를 재시작합니다. (root나 sudo 설치했을 경우 명령어 앞에 sudo를 붙여주세요)
+```
+service mysql restart
+
+혹은
+
+/etc/init.d/mysql restart
+
+혹은
+
+mysql.server restart
+```
+참고: http://coolestguidesontheplanet.com/start-stop-mysql-from-the-command-line-terminal-osx-linux/
+
+DB가 정상적으로 재시작되었으면 
+
+### MariaDB 767 byte 에러
+```
+[info] play - database [default] connected at jdbc:mysql://127.0.0.1:3306/yona 
+[error] play - Specified key was too long; max key length is 767 bytes [ERROR:1071, SQLSTATE:42000] 
+Oops, cannot start the server. 
+@6p6j2gap7: Database 'default' is in an inconsistent state!
+```
+이런 에러가 나오는 경우는 아래 두 가지 옵션이 정상적으로 반영되지 않아서 입니다.
+```
+innodb_file_format=barracuda
+innodb_large_prefix=on
+```
+
+위 내용은 my.cnf 에 추가한다음 DB를 시작해 주세요.
+재시작후 root 유저로 접속해서 
+```
+
+MariaDB [(none)]> SHOW VARIABLES LIKE 'innodb_lar%';
++---------------------+-------+
+| Variable_name       | Value |
++---------------------+-------+
+| innodb_large_prefix | ON    |
++---------------------+-------+
+
+MariaDB [(none)]> SHOW VARIABLES LIKE 'innodb_file%';
++--------------------------+-----------+
+| Variable_name            | Value     |
++--------------------------+-----------+
+| innodb_file_format       | Barracuda |
+| innodb_file_format_check | ON        |
+| innodb_file_format_max   | Barracuda |
+| innodb_file_per_table    | ON        |
++--------------------------+-----------+
+```
+처럼 on 되어 있고 file format도 barracuda로 되어 있는지 확인해 보세요.
 
 기타 관련해서는 [이슈 #924](https://github.com/naver/yobi/issues/924)을 참고해 주세요
 
