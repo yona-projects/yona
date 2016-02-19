@@ -3,8 +3,6 @@
 @REM Environment:
 @REM JAVA_HOME - location of a JDK home dir (optional if java on path)
 @REM JAVA_OPTS  - JVM options (optional)
-@REM Configuration:
-@REM YONA_config.txt found in the YONA_HOME.
 @setlocal enabledelayedexpansion
 
 @echo off
@@ -146,7 +144,6 @@ goto end
 set ERROR_CODE=1
 
 :end
-
 @endlocal
 
 exit /B %ERROR_CODE%
