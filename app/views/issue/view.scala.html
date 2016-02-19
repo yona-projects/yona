@@ -68,7 +68,7 @@
     <div class="project-page-wrap board-view">
         @** Post Info **@
         <div class="board-header issue">
-            <div class="pull-right mr10 mt10">
+            <div class="pull-right mr10 mt10 hide-in-mobile">
                 <div class="date" title="@JodaDateUtil.getDateString(issue.createdDate)">
                     @agoOrDateString(issue.createdDate)
                 </div>
@@ -76,25 +76,30 @@
             </div>
             <div class="title">
                 <strong class="board-id">#@issue.getNumber</strong> @issue.title
+                <div class="pull-right hide show-in-mobile" style="font-size: 0.7em">
+                    <span class="date" title="@JodaDateUtil.getDateString(issue.createdDate)">
+                    @agoOrDateString(issue.createdDate)
+                    </span>
+                    <span class="badge badge-small badge-issue-@issue.state.state.toLowerCase">@Messages("issue.state." + issue.state.state)</span>
+                </div>
             </div>
         </div>
-
         @** Content body **@
         <!--board-body-->
         <div class="board-body row-fluid">
-            <div class="span9">
+            <div class="span9 span-left-pane">
                 <div class="author-info">
-                    <a href="@userInfo(issue.authorLoginId)" class="usf-group">
-                        <span class="avatar-wrap smaller">
-                            <img src="@User.findByLoginId(issue.authorLoginId).avatarUrl" width="20" height="20">
-                        </span>
-                        @if(issue.authorLoginId != null){
-                        <strong class="name">@issue.authorName</strong>
-                        <span class="loginid"> <strong>@{"@"}</strong>@issue.authorLoginId</span>
-                        } else {
-                        <strong class="name">@Messages("issue.noAuthor")</strong>
-                        }
-                    </a>
+                        <a href="@userInfo(issue.authorLoginId)" class="usf-group">
+                            <span class="avatar-wrap smaller">
+                                <img src="@User.findByLoginId(issue.authorLoginId).avatarUrl" width="20" height="20">
+                            </span>
+                            @if(issue.authorLoginId != null){
+                                <strong class="name">@issue.authorName</strong>
+                                <span class="loginid"> <strong>@{"@"}</strong>@issue.authorLoginId</span>
+                            } else {
+                                <strong class="name">@Messages("issue.noAuthor")</strong>
+                            }
+                        </a>
                 </div>
 
                 @if(StringUtils.isEmpty(issue.body)){
@@ -169,7 +174,7 @@
                 @** // Comment **@
             </div>
 
-            <div class="span3 mb20">
+            <div class="span3 span-right-pane mb20">
                 <div class="issue-info">
                     <form id="issueUpdateForm" action="@routes.IssueApp.massUpdate(project.owner, project.name)" method="post">
                         <input type="hidden" name="issues[0].id" value="@issue.id" />

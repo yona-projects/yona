@@ -373,7 +373,10 @@ public class UserApp extends Controller {
         if (!StringUtils.isNumeric(userId)) {
             return invalidSession();
         }
-        User user = CacheStore.sessionMap.get(userKey);
+        User user = null;
+        if (userKey != null){
+            user = CacheStore.sessionMap.get(userKey);
+        }
         if (user == null) {
             return invalidSession();
         }

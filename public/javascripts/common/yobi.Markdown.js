@@ -93,7 +93,6 @@ yobi.Markdown = (function(htOptions){
             "data": {"body": sContentBody, "breaks": (welTarget.hasClass('readme-body') ? false : true)},
             "success": function(data){
                 welTarget.html(data);
-                _postMarkdownRender();
             }
         });
     }
@@ -110,6 +109,7 @@ yobi.Markdown = (function(htOptions){
         welTarget.html(sContentBody).removeClass('markdown-before');
     }
 
+    // Deprecated. so never call this method
     function _postMarkdownRender(){
         // Make first li font bold when multi-depth list is used
         var ul = $(".markdown-wrap > ul");

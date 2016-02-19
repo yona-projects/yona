@@ -55,7 +55,7 @@
             </div>
 
             <div class="row-fluid">
-                <div class="span9">
+                <div class="span9 span-left-pane">
                     <dl>
                         <dd style="position: relative;">
                             @common.editor("body", "", "tabindex=2", "content-body")
@@ -73,7 +73,7 @@
                      --><a href="javascript:history.back();" class="ybtn">@Messages("button.cancel")</a>
                     </div>
                 </div>
-                <div class="span3">
+                <div class="span3 span-hard-wrap">
                     @if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_ASSIGNEE)) {
                     <dl class="issue-option">
                          <dt>@Messages("issue.assignee")</dt>

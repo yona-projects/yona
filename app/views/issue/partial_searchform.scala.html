@@ -26,7 +26,7 @@
     <input type="hidden" name="orderBy" value="@param.orderBy">
     <input type="hidden" name="orderDir" value="@param.orderDir">
     <input type="hidden" name="state" value="@param.state">
-    <hr>
+    <hr class="hide-in-mobile">
     <div class="search">
         <div class="search-bar">
             <input name="filter" class="textbox full" type="text" value="@param.filter" data-search="filter">
@@ -34,7 +34,7 @@
         </div>
     </div>
 
-    <div id="advanced-search-form" class="srch-advanced">
+    <div id="advanced-search-form" class="srch-advanced hide-in-mobile">
         <dl class="issue-option">
             <dt>@Messages("issue.author")</dt>
             <dd>

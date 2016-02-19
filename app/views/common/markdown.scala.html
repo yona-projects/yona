@@ -34,15 +34,5 @@ $(document).ready(function(){
     // Reusable markdown renderer
     yobi.Markdown.init(htOptions);
 
-    // Make first li font bold when multi-depth list is used
-    // Fix: In a technical reason duplicated codes are exists at _postMarkdownRender of
-    // yobi.Markdown.js
-    var ul = $(".markdown-wrap > ul");
-    ul.find("> li > ul").parent().closest('ul').css('font-weight', 'bold');  //ul > ul
-    ul.find("> li > ol").parent().closest('ul').css('font-weight', 'bold');  //ul > ol
-
-    var ol = $(".markdown-wrap > ol");
-    ol.find("> li > ul").parent().closest('ol').css('font-weight', 'bold');  //ol > ul
-    ol.find("> li > ol").parent().closest('ol').css('font-weight', 'bold');  //ol > ol
 });
 </script>

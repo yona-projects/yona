@@ -1,83 +1,469 @@
-// responsive
+@media all and (max-width: 640px){
+    .markdown-wrap {
+        ul, ol {
+            padding: 0 0 0 1.5em !important;
+        }
+    }
+    .post-list-wrap {
+        .post-item {
+            padding: 10px 0 !important;
+        }
+    }
+    .site-guide-outer {
+        margin: 40px 0 0 !important;
+    }
+    .board-comment-wrap .comments .event .commit-list{
+        margin: 10px 0 !important;
+    }
+    .dropdown-toggle .d-label {
+        width: inherit !important;
+    }
+    .yobiDialog {
+        padding: 5px 5px !important;
+        width: 85% !important;
+    }
+    .modal {
+        left: inherit !important;
+        margin-left: inherit !important;
+        width: inherit !important;
+    }
+    .inner-bubble .text.uname {
+        width: inherit !important;
+    }
+
+    .input-webhook-payload {
+        width: inherit !important;
+    }
+
+    .box-wrap {
+        padding: 10px 0 !important;
+        .setting-box.left .logo-wrap {
+            width: 100px !important;
+            height: 100px !important;
+        }
+        .setting-box.right {
+            padding-left: 0 !important;
+            border-left: none !important;
+        }
+        .textarea {
+            width: inherit !important;
+        }
+    }
+
+    .codediff-wrap .review-wrap .review-container {
+        position: inherit !important;
+    }
+
+    .diff-body .diff-partial-outer {
+        margin-left: 15px;
+    }
+    .review-form .write-comment-box {
+        margin-left: 0 !important;
+    }
+
+    .codediff-wrap {
+        .diffs-wrap {
+            margin-right: inherit !important;
+
+        }
+        .review-wrap {
+            position: inherit !important;
+        }
+    }
+    // hack for iphone to prevent zoom?
+    input[type='text'],
+    input[type='number'],
+    input[type='password'],
+    textarea {
+        font-size: 16px !important;
+    }
+
+    //
+
+    .search-wrap {
+        height: inherit !important;
+    }
+    .gnb-inner .logo:after {
+        margin-left: inherit !important;
+    }
+    .media-body .meta-info {
+        padding: 5px 5px !important;
+    }
+    .comments .event {
+        padding-left: 5px !important;
+    }
+    .markdown-wrap {
+        p, ul, ol {
+            font-size: 15px !important;
+        }
+    }
+    .board-header .date {
+        margin-right: 5px !important;
+    }
+    .badge-small {
+        margin-right: 0 !important;
+        padding: 5px 5px;
+    }
+    .admin-logged-in-affix{
+      width: auto !important;
+    }
+    //login modal
+    .modal {
+        left: inherit;
+        margin-right: 0 !important;
+    }
+    .loginDialog {
+        margin-left: 0 !important;
+        width: 100% !important;
+        .login-form-wrap{
+            width: inherit;
+            .text {
+                width: 95%;
+            }
+        }
+    }
+    // loginfor
+    .login-form-wrap {
+        width: 95% !important;
+        .text {
+            width: 95% !important;
+        }
+    }
+
+    .signup-form-wrap {
+        width: 95% !important;
+        .popover.left {
+            left: 24.375px !important;
+            .popover-content {
+                width: 150px !important;
+            }
+        }
+        .text {
+            width: 40% !important;
+        }
+        dl {
+            text-align: right;
+        }
+    }
+
+    // gnb
+    .gnb-usermenu-item {
+        color: #5dbbe0 !important;
+    }
+    .gnb-usermenu-dropdown {
+        color: #5dbbe0 !important;
+    }
+    .span-left-pane {
+        width: 98% !important;
+    }
+    .span-right-pane {
+        display: none !important;
+    }
+    .gnb-search-form {
+        display: none !important;
+    }
+    .short-title {
+        display: block;
+    }
+    .normal-title {
+        display: none;
+    }
+    .project-menu-nav li a {
+        padding: 5px 12px 4px 12px !important;
+    }
+    .project-menu-count {
+        position: absolute !important;
+        margin-top: -36px !important;
+    }
+
+    .show-in-mobile {
+        display: block !important;
+    }
+
+    .hide-in-mobile {
+        display: none !important;
+    }
+
+    .watch-btn {
+        display: none;
+    }
+
+    .comment-body {
+        padding: 10px 10px !important;
+    }
+    .textarea-box {
+        textarea {
+            width: 100%;
+        }
+    }
+
+    .content-wrap .text {
+        width: 95%;
+    }
+    // override @media(1199px)
+    .unsupported {
+        min-width: 10px !important;
+    }
+
+    .gnb-outer {
+        min-width: 10px !important;
+    }
+
+    .page-wrap-outer {
+        min-width: 10px !important;
+        padding: 2px !important;
+    }
+
+    .board-body {
+        .content {
+        }
+    }
+
+    .site-breadcrumb-outer {
+        min-width: 10px !important;
+    }
+    .project-header-outer {
+        min-width: 10px !important;
+    }
+
+    .project-menu-outer {
+        min-width: 10px !important;
+    }
+
+    .project-page-wrap {
+        margin-top: 5px !important;
+    }
+
+    .page-footer-outer {
+        min-width: 10px !important;
+    }
+
+    .comment-avatar {
+        display: none;
+    }
+    .media-body {
+        margin-left: 0 !important;
+        &:before {
+            display: none;
+        }
+        .resp-comment-avatar {
+            display: inline-block;
+        }
+        .avatar-wrap {
+            width: 24px !important;
+            height: 24px !important;
+        }
+    }
+
+    // other pages
+
+    .write-comment-box {
+        padding: 0;
+    }
+
+    .project-menu-count {
+        background: none;
+        color: inherit;
+        font-weight: bold;
+    }
+
+    .project-menu-gruop {
+        margin-left: 0 !important;
+    }
+
+    .project-header-avatar {
+        left: 0 !important;
+        width: 50px !important;
+        height: 50px !important;
+        bottom: -6px !important;
+        border: 1px solid #f9f9f9 !important;
+    }
+
+    .project-breadcrumb-wrap {
+        left: 52px !important;
+        bottom: 5px !important;
+        .project-name, .project-author {
+            font-size: 0.7em;
+        }
+    }
+
+    .dropdown-menu.flat {
+        .pop-title{
+            white-space: normal !important;
+        }
+        &.right {
+            width: 250px !important;
+            right: 0 !important;
+            left: inherit !important;
+        }
+        .pop-content {
+            white-space: normal !important;
+        }
+    }
+
+    .project-header-wrap .project-util-wrap {
+        bottom: 10px !important;
+        right: -25px !important;
+    }
+
+    .span-hard-wrap {
+        min-width: 95%;
+        margin-left: 0 !important;
+    }
+    .nav-tabs li a {
+        padding-left: 5px !important;
+        padding-right: 5px !important;
+    }
+
+    .readme .readme-wrap .readme-body {
+        padding: 0;
+    }
+
+    .search-wrap.underline{
+        border-bottom: none !important;
+    }
+    .search-bar {
+        margin: 5px 0;
+        .textbox {
+            width: inherit !important;
+        }
+    }
+
+    .board-labels {
+        width: 70px !important;
+    }
+
+    .project-selects {
+        width: 100px !important;
+    }
+
+    .post-list {
+        .ybtn-success {
+            margin-top: 6px;
+        }
+        .search-wrap form {
+            width: inherit !important;
+            .search-bar {
+                width: 120px !important;
+            }
+        }
+    }
+
+    .siteintro .siteintro-cover {
+        overflow: inherit;
+        width: inherit;
+    }
+    .feature-wrap {
+        width: inherit !important;
+        li {
+            width: 95% !important;
+            margin-top: 0 !important;
+            margin-left: 0 !important;
+        }
+    }
+}
+
 @media all and (max-width:1199px){
     .unsupported {
+        width: 100%;
+        max-width: 1199px;
         min-width: 1000px;
         padding: 0 10px;
 
         .unsupported-inner {
-            width:980px;
+            width:95%;
+            max-width: 980px;
         }
     }
 
     .gnb-outer {
+        max-width: 1199px;
         min-width: 1000px;
         padding:0 10px;
 
         .gnb-inner {
-            width:980px;
+            width:100%;
+            max-width:980px;
         }
     }
 
     .search-box {
         input:focus {
-            width:250px;
+            max-width:250px;
         }
     }
 
     .page-wrap-outer {
+        max-width: 1199px;
         min-width: 1000px;
         padding:0 10px;
     }
 
     .page-wrap {
-        width:980px;
+        width: 95%;
+        max-width:980px;
     }
 
     .project-menu-inner {
-        width:980px;
+        width: 95%;
+        max-width:980px;
     }
 
     .project-page-wrap {
-        width: 980px;
+        width: 97%;
+        max-width:980px;
+        .project-breadcrumb {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
     }
 
     .site-breadcrumb-outer {
+        width: 100%;
+        max-width: 1199px;
         min-width: 1000px;
         padding:0 10px;
 
         .site-breadcrumb-inner {
-            width: 980px;
+            width: 95%;
+            max-width:980px;
         }
     }
     .project-header-outer {
+        max-width: 1199px;
         min-width: 1000px;
         padding:0 10px;
 
         .project-header-inner {
             .project-header-wrap {
-                width: 980px;
+                width: 95%;
+                max-width: 980px;
             }
         }
     }
 
     .project-menu-outer {
+        max-width: 1199px;
         min-width: 1000px;
         padding:0 10px;
 
         .project-menu-inner {
-            width: 980px;
+            width: 95%;
+            max-width: 980px;
         }
     }
 
     .project-home-header {
         .project-clone-wrap {
             .project-clone-url {
-                width: 125px;
+                width: 100px;
+                max-width: 125px;
             }
 
             &:hover {
                 .project-clone-url {
-                    width:250px;
+                    width: 100%;
+                    max-width:250px;
                 }
             }
         }
@@ -114,15 +500,18 @@
     }
 
     .site-setting-wrap {
-        width:980px;
+        width: 95%;
+        max-width:980px;
     }
 
     .page-footer-outer {
+        max-width: 1199px;
         min-width: 1000px;
         padding:10px;
 
         .page-footer {
-             width:980px;
+            width: 95%;
+            max-width:980px;
         }
     }
 

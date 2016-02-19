@@ -84,6 +84,11 @@
         <div class="media-body">
             <div class="meta-info">
                 <span class="comment_author pull-left">
+                    <span class="resp-comment-avatar">
+                        <a href="@userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+                            <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
+                        </a>
+                    </span>
                     <a href="@userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
                         <strong>@comment.authorLoginId </strong>
                     </a>

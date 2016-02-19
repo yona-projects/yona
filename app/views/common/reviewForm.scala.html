@@ -25,7 +25,7 @@
 
 <div id="review-form" class="review-form">
     <form action="@action" method="post" enctype="multipart/form-data">
-        <div class="author-info-wrap pull-left">
+        <div class="author-info-wrap pull-left hide-in-mobile">
             <div class="author-info">
                 @defining(UserApp.currentUser()){ currentUser =>
                 <a href="@routes.UserApp.userInfo(currentUser.loginId)" class="avatar-wrap medium" data-toggle="tooltip" data-placement="top" title="" data-original-title="@currentUser.name">

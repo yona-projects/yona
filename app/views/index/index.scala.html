@@ -65,7 +65,7 @@
             </div>
             <div class="page on-fold-intro">
                 <div class="row-fluid content-container">
-                    <div class="span8 main-stream">
+                    <div class="span8 main-stream hide-in-mobile">
                          <ul class="nav nav-tabs">
                             <li class="active">
                                 <a href="@routes.Application.index()">@Messages("notification")</a>
@@ -78,7 +78,7 @@
                             @partial_notifications(0, 20)
                         </ul>
         	        </div>
-                    <div class="span4">
+                    <div class="span4 span-hard-wrap">
                         <ul class="nav nav-tabs nm">
                             <li class="active">
                                 <a href="#myPorjectList" data-toggle="tab">

@@ -44,7 +44,7 @@
 
 <div class="project-page-wrap">
     <div class="row-fluid issue-list-wrap">
-        <div class="span2 search-wrap">
+        <div class="span2 search-wrap span-hard-wrap">
             <div class="inner advanced">
                 <ul class="lst-stacked unstyled">
                     <li @if(param.participantId == null && param.authorId == null){class="active"}>
@@ -72,15 +72,15 @@
                     <input type="hidden" name="orderDir" value="@param.orderDir">
                     <input type="hidden" name="orderBy" value="@param.orderBy">
                     <input type="hidden" name="state" value="@param.state">
-                    <hr>
-                    <div class="search-bar">
+                    <hr class="hide-in-mobile">
+                    <div class="search-bar span-hard-wrap">
                         <input name="filter" class="textbox full" type="text" value="@param.filter">
                         <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
                     </div>
                 </form>
             </div>
         </div>
-        <div class="span10">
+        <div class="span10 span-hard-wrap">
             <div class="pull-right filters">
                 @makeSortLink("createdDate", Messages("common.order.date"))
             </div>

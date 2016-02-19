@@ -3,6 +3,10 @@
     color:#202020;
 }
 
+.short-title {
+    display: none;
+}
+
 .unsupported {
     text-align: center;
     font-size: 14px;
@@ -2561,7 +2565,7 @@ label.inline-list {
         }
         .readme-body {
             padding: 25px;
-            font-size: 14px;
+            font-size: 1.2em;
         }
     }
 }
@@ -2888,7 +2892,7 @@ label.inline-list {
                 }
 
                 .comment-body {
-                    font-size: 13px;
+                    font-size: 1.05em;
                     padding:15px 20px;
                     :first-child {
                         margin-top: 0;
@@ -2954,7 +2958,7 @@ label.inline-list {
 
         .event {
             padding: 10px 0 10px 55px;
-            font-size: 14px;
+            font-size: 1em;
             line-height: 30px;
 
             .state {
@@ -3106,9 +3110,9 @@ div.markdown-loader {
 }
 
 div.markdown-preview {
-    font-size: 13px;
+    font-size: 1.1em;
     overflow-x:auto;
-    margin:0px;
+    margin: 0;
     vertical-align : middle;
     border:2px solid #ccc;
     .border-radius(0 0 3px 3px);
@@ -3564,7 +3568,6 @@ label.issue-item-row {
                     float: left;
 
                     &.item-icon {
-                        background-color:#F7F7F7;
                         color:#3592b5;
                         font-size: 9px;
                         padding-top:2px;
@@ -5185,7 +5188,7 @@ label.issue-item-row {
         .border-radius(0 0 3px 3px);
         width: 100%;
         resize:vertical !important;
-        font-size: 12px;
+        font-size: 1em;
     }
 }
 
@@ -6422,4 +6425,8 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 .obfuscate {
     unicode-bidi: bidi-override;
     direction: rtl;
+}
+
+.resp-comment-avatar {
+    display: none;
 }

@@ -1,16 +1,47 @@
 // readme style
+@font-face {
+  font-family: 'NanumBarunGothicWeb';
+  src: url('http://deview.kr/font/NanumBarunGothicWebLight.woff')  format('woff');
+}
+
+@font-face {
+  font-family: nbg;
+  font-style: normal;
+  font-weight: 400;
+  src: local('Nanum Barun Gothic Light'), local('Nanum Barun Gothic-Light'), local('NanumBarunGothicLight');
+  src: url(http://deview.kr/font/NanumBarunGothicWebLight.eot);
+  src: url(http://deview.kr/font/NanumBarunGothicWebLight.eot?#iefix) format('embedded-opentype'), local('※'), url(http://deview.kr/font/NanumBarunGothicWebLight.woff) format('woff')
+}
+
+@font-face {
+  font-family: av;
+  src: url(http://deview.kr/font/Avenir-Light.eot);
+  src: local('※'), url(http://deview.kr/font/Avenir-Light.woff) format('woff')
+}
+
 .markdown-wrap {
-  font-size: 14px;
+  font-size: 1.1em;
   clear: both;
-  overflow:auto;
+  overflow: auto;
+  font-family: 'SF UI DISPLAY', "Helvetica Neue", "Helvetica", "Arial", 'NanumGothic', "Apple SD Gothic Neo", "맑은 고딕", sans-serif;
 
   ul, ol {
+    padding: 5px 0 5px 2.5em;
     font-weight: normal;
-    margin-left: 5px;
+    margin-left: 0;
   }
 
-  ul > li > p {
+  li {
+    margin-bottom: 5px;
+  }
+  li > ul {
     margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  li > p {
+    margin-top: 0;
+    margin-bottom: 5px;
   }
 
   a {
@@ -43,7 +74,7 @@
   h1 {
     font-size:2.5em;
     padding-left: 10px;
-    margin-top: 1em;
+    margin-top: 1.5em;
     margin-bottom: 15px;
     margin-left: -16px;
     border-left: 5px solid #FFCB6B;
@@ -52,8 +83,7 @@
   }
 
   h2 {
-    margin:1em 0 15px;
-    border-bottom:1px solid #ddd;
+    margin:1.2em 0 15px;
     font-size:1.7em;
     width: 95%;
     .anchor();
@@ -88,6 +118,7 @@
 
   p {
     margin : 15px 0;
+    line-height: 1.7em;
   }
 
   blockquote {
@@ -120,13 +151,12 @@
   }
 
   ul {
-     padding:0px 20px;
      line-height:20px;
      list-style:disc;
   }
 
    li{
-     line-height:24px;
+     line-height: 1.6em;
   }
 
   ul ul, ol ul {
@@ -140,12 +170,12 @@
   
 
   ol{
-     padding:0px 20px;
-     line-height:20px;
+     line-height: 1.6em;
      list-style:decimal;
   }
 
   pre {
+    font-size: 1em;
     background-color:#EFEFEF;
     padding: 10px;
     margin:10px 0;
@@ -153,7 +183,7 @@
     border: none;
 
     code {
-      marign : 0;
+      margin : 0;
       padding: 0;
       border : none;
     }
