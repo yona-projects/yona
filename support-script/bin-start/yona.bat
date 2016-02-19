@@ -2,7 +2,7 @@
 @REM
 @REM Environment:
 @REM JAVA_HOME - location of a JDK home dir (optional if java on path)
-@REM CFG_OPTS  - JVM options (optional)
+@REM JAVA_OPTS  - JVM options (optional)
 @REM Configuration:
 @REM YONA_config.txt found in the YONA_HOME.
 @setlocal enabledelayedexpansion
@@ -16,18 +16,6 @@ set "APP_LIB_DIR=%YONA_HOME%\lib\"
 rem Detect if we were double clicked, although theoretically A user could
 rem manually run cmd /c
 for %%x in (%cmdcmdline%) do if %%~x==/c set DOUBLECLICKED=1
-
-rem FIRST we load the config file of extra options.
-set "CFG_FILE=%YONA_HOME%\YONA_config.txt"
-set CFG_OPTS=
-if exist %CFG_FILE% (
-  FOR /F "tokens=* eol=# usebackq delims=" %%i IN ("%CFG_FILE%") DO (
-    set DO_NOT_REUSE_ME=%%i
-    rem ZOMG (Part #2) WE use !! here to delay the expansion of
-    rem CFG_OPTS, otherwise it remains "" for this loop.
-    set CFG_OPTS=!CFG_OPTS! !DO_NOT_REUSE_ME!
-  )
-)
 
 rem We use the value of the JAVACMD environment variable if defined
 set _JAVACMD=%JAVACMD%
@@ -68,10 +56,9 @@ if "%JAVAOK%"=="false" (
   exit /B 1
 )
 
-
-rem We use the value of the JAVA_OPTS environment variable if defined, rather than the config.
+rem if not defined JAVA_OPTS, set JAVA_OPTS environment variable for config files.
+if "%JAVA_OPTS%"=="" SET JAVA_OPTS=-Dyona.home=%YONA_HOME% -Dconfig.file=%YONA_HOME%\conf\application.conf -Dlogger.file=%YONA_HOME%\conf\application-logger.xml
 set _JAVA_OPTS=%JAVA_OPTS%
-if "%_JAVA_OPTS%"=="" set _JAVA_OPTS=%CFG_OPTS%
 
 rem We keep in _JAVA_PARAMS all -J-prefixed and -D-prefixed arguments
 rem "-J" is stripped, "-D" is left as is, and everything is appended to JAVA_OPTS
