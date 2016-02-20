@@ -28,10 +28,8 @@ public class CacheStore {
             .maximumSize(MAXIMUM_CACHED_MARKDOWN_ENTRY)
             .build(
                     new CacheLoader<Integer, byte[]>() {
-                        public Map<Integer, byte[]> renderedMarkdownMap = new ConcurrentHashMap<>();
-
                         public byte[] load(@Nonnull Integer key) {
-                            return renderedMarkdownMap.get(key);
+                            return null;
                         }
                     });
 }
