@@ -49,10 +49,7 @@ import javax.annotation.Nonnull;
 import javax.persistence.*;
 import javax.servlet.ServletException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 public class Project extends Model implements LabelOwner {
@@ -170,7 +167,9 @@ public class Project extends Model implements LabelOwner {
         if(project == null){
             project= find.where().ieq("owner", loginId).ieq("name", projectName)
                     .findUnique();
-            CacheStore.projectMap.put(key, project);
+            if(project != null){
+                CacheStore.projectMap.putIfAbsent(key, project);
+            }
         }
         return project;
     }

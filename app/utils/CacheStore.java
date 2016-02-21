@@ -7,7 +7,6 @@ import models.Project;
 import models.User;
 
 import javax.annotation.Nonnull;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -16,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class CacheStore {
     public static Map<String, User> sessionMap = new ConcurrentHashMap<>();
-    public static Map<String, Project> projectMap = new HashMap<>();
+    public static Map<String, Project> projectMap = new ConcurrentHashMap<>();
     public static final int MAXIMUM_CACHED_MARKDOWN_ENTRY = 10000;
 
     /**
