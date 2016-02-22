@@ -629,7 +629,6 @@ public class Project extends Model implements LabelOwner {
      */
     @Override
     public void delete() {
-        deleteProjectVisitations();
         deleteProjectTransfer();
         deleteFork();
         deleteCommentThreads();
@@ -671,13 +670,6 @@ public class Project extends Model implements LabelOwner {
         }
 
         super.delete();
-    }
-
-    private void deleteProjectVisitations() {
-        List<ProjectVisitation> pvs = ProjectVisitation.findByProject(this);
-        for (ProjectVisitation pv : pvs) {
-            pv.delete();
-        }
     }
 
     private void deleteProjectTransfer() {

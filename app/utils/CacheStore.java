@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class CacheStore {
     public static Map<String, User> sessionMap = new ConcurrentHashMap<>();
+    public static Map<String, User> userMap = new ConcurrentHashMap<>();
     public static Map<String, Project> projectMap = new ConcurrentHashMap<>();
     public static final int MAXIMUM_CACHED_MARKDOWN_ENTRY = 10000;
 

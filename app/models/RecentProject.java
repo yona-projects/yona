@@ -11,6 +11,7 @@ import java.util.Comparator;
 import java.util.List;
 
 @Entity
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "project_id"}))
 public class RecentProject extends Model {
     private static final long serialVersionUID = 7306890271871188281L;
     public static int MAX_RECENT_LIST_PER_USER = 5;
