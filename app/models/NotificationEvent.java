@@ -689,7 +689,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
         }
 
         if (issue.assignee != null) {
-            notiEvent.newValue = User.find.byId(issue.assignee.user.id).loginId;
+            notiEvent.newValue = User.findByIdUsingCache(issue.assignee.user.id).loginId;
         }
         notiEvent.title = formatReplyTitle(issue);
         notiEvent.receivers = receivers;
