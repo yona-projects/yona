@@ -77,14 +77,14 @@
                         <li class="empty">@Messages("organization.is.empty")</li>
                     }
                 }
-                @defining(UserApp.currentUser.getVisitedProjects(10)){ visitedProjects =>
+                @defining(UserApp.currentUser.getVisitedProjects){ visitedProjects =>
                     <li class="title">
                         @Messages("project.recently.visited")
                         <span class="numberic">@visitedProjects.size</span>
                     </li>
                     @if(visitedProjects.size > 0) {
-                        @for(visited <- visitedProjects){
-                            <li><a href="@routes.ProjectApp.project(visited.project.owner, visited.project.name)">@if(hasProjectLogo(visited.project)){<img src="@urlToProjectLogo(visited.project)">} else{<span class="dummy-25px"> </span>} <span class="bold">@visited.project.name</span> <span class="darkgray-txt small-font margin-right-15">of @visited.project.owner</span></a></li>
+                        @for(project <- visitedProjects){
+                            <li><a href="@routes.ProjectApp.project(project.owner, project.name)">@if(hasProjectLogo(project)){<img src="@urlToProjectLogo(project)">} else{<span class="dummy-25px"> </span>} <span class="bold">@project.name</span> <span class="darkgray-txt small-font margin-right-15">of @project.owner</span></a></li>
                         }
                     } else {
                         @defining(Project.findProjectsCreatedByUser(UserApp.currentUser.loginId, orderString)) { myProjects =>

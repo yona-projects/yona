@@ -34,14 +34,14 @@
 }
 </ul>
 }
-@defining(currentUser.getVisitedProjects(20)){ visitedProjects =>
+@defining(currentUser.getVisitedProjects){ visitedProjects =>
 <ul class="tab-pane unstyled my-project-item active" id="recentlyVisited">
-@for(visited <- visitedProjects){
-    <li class="my-list-item" data-item="my-item" data-value="@if(visited.project.owner != currentUser.loginId) {@visited.project.owner / }@visited.project.name">
-        @if(hasProjectLogo(visited.project)){<img src="@urlToProjectLogo(visited.project)" alt="@visited.project.name"/>} else{<span class="dummy-25px"> </span>}<a href="@routes.ProjectApp.project(visited.project.owner, visited.project.name)" class="project-name">
-            <strong>@visited.project.name @if(visited.project.isPrivate){ <i class="yobicon-lock yobicon-small"></i> }</strong>
+@for(project <- visitedProjects){
+    <li class="my-list-item" data-item="my-item" data-value="@if(project.owner != currentUser.loginId) {@project.owner / }@project.name">
+        @if(hasProjectLogo(project)){<img src="@urlToProjectLogo(project)" alt="@project.name"/>} else{<span class="dummy-25px"> </span>}<a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">
+            <strong>@project.name @if(project.isPrivate){ <i class="yobicon-lock yobicon-small"></i> }</strong>
         </a>
-        <span class="gray-txt small-font">of <a href="@routes.UserApp.userInfo(visited.project.owner)" >@visited.project.owner</a></span>
+        <span class="gray-txt small-font">of <a href="@routes.UserApp.userInfo(project.owner)" >@project.owner</a></span>
     </li>
 }
 </ul>    
