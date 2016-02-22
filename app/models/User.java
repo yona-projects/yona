@@ -721,16 +721,16 @@ public class User extends Model implements ResourceConvertible {
     }
 
     public void visits(Project project) {
-        this.recentlyVisitedProjects = RecentlyVisitedProjects.addNewVisitation(this, project);
-        this.update();
+        RecentProject.addNew(this, project);
     }
 
-    public List<ProjectVisitation> getVisitedProjects(int size) {
-        if(size < 1 || this.recentlyVisitedProjects == null) {
+    public List<Project> getVisitedProjects() {
+        List<Project> projects = RecentProject.getRecentProjects(this);
+        if(projects == null || projects.size() == 0){
             return new ArrayList<>();
         }
 
-        return this.recentlyVisitedProjects.findRecentlyVisitedProjects(size);
+        return projects;
     }
 
     public List<Organization> getOrganizations(int size) {
