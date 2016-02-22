@@ -55,7 +55,7 @@ if "%JAVAOK%"=="false" (
 )
 
 rem if not defined JAVA_OPTS, set JAVA_OPTS environment variable for config files.
-if "%JAVA_OPTS%"=="" SET JAVA_OPTS=-Dyona.home=%YONA_HOME% -Dconfig.file=%YONA_HOME%\conf\application.conf -Dlogger.file=%YONA_HOME%\conf\application-logger.xml
+if "%JAVA_OPTS%"=="" SET JAVA_OPTS=-Dyona.home=%YONA_HOME% -Dconfig.file=%YONA_HOME%\conf\application.conf -Dlogger.file=%YONA_HOME%\conf\application-logger.xml -DapplyEvolutions.default=true
 set _JAVA_OPTS=%JAVA_OPTS%
 
 rem We keep in _JAVA_PARAMS all -J-prefixed and -D-prefixed arguments
