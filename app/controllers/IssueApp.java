@@ -226,6 +226,7 @@ public class IssueApp extends AbstractPostingApp {
         return ok(listData);
     }
 
+    @Transactional
     @With(NullProjectCheckAction.class)
     public static Result issue(String ownerName, String projectName, Long number) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
