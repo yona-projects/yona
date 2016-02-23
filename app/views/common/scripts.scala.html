@@ -163,5 +163,10 @@
         });
 
         yobi.OriginalMessage.hide($("[data-via-email]"));
+
+        $('a[class="title"]').on('click', function(){
+            NProgress.set(0.7);
+            NProgress.start();
+        });
     });
 </script>
