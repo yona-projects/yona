@@ -535,9 +535,9 @@ object TemplateHelper {
       Html("""<span class="count-groups item-icon %s">
         <i class="yobicon-%s"></i>
       </span>
-      <span class="count-groups item-count">
+      <span class="count-groups item-count %s">
         <a href="%s">%d</a>
-      </span> """.format(strong, icon, link, count))
+      </span> """.format(strong, icon, strong, link, count))
   }
 
   def isMarkdownExtension(path: String):Boolean = {
