@@ -29,3 +29,4 @@ conf/application.conf
 *.log
 conf/generated.keystore
 conf/application-logger.xml
+.java-version
