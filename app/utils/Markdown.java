@@ -45,10 +45,10 @@ public class Markdown {
     private static ScriptEngine engine = buildEngine();
 
     private static ScriptEngine buildEngine() {
-        ScriptEngineManager manager = new ScriptEngineManager(null);
+        ScriptEngineManager manager = new ScriptEngineManager();
         InputStream is = null;
         Reader reader = null;
-        ScriptEngine _engine = manager.getEngineByName("JavaScript");
+        ScriptEngine _engine = manager.getEngineByName("rhino");
 
         try {
             is = Thread.currentThread().getContextClassLoader().getResourceAsStream(XSS_JS_FILE);
