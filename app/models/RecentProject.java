@@ -2,6 +2,7 @@ package models;
 
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
+import play.libs.F;
 
 import javax.annotation.Nonnull;
 import javax.persistence.*;
@@ -14,7 +15,7 @@ import java.util.List;
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "project_id"}))
 public class RecentProject extends Model {
     private static final long serialVersionUID = 7306890271871188281L;
-    public static int MAX_RECENT_LIST_PER_USER = 5;
+    public static int MAX_RECENT_LIST_PER_USER = 10;
 
     public static Finder<Long, RecentProject> find = new Finder<>(Long.class, RecentProject.class);
 
@@ -47,8 +48,19 @@ public class RecentProject extends Model {
         return found;
     }
 
+    public static void addNew(final User user, final Project project){
+        F.Promise<Void> promise = F.Promise.promise(
+                new F.Function0<Void>() {
+                    public Void apply() {
+                        addVisitHistory(user, project);
+                        return null;
+                    }
+                }
+        );
+    }
+
     @Transactional
-    public static void addNew(User user, Project project){
+    private static void addVisitHistory(User user, Project project){
         try {
             deletePrevious(user, project);
 
@@ -75,7 +87,7 @@ public class RecentProject extends Model {
     private static void deleteOldestIfOverflow(User user) {
         List<RecentProject> recentProjects = find.where()
                 .eq("userId", user.id).findList();
-        if(recentProjects.size() > MAX_RECENT_LIST_PER_USER){
+        while(recentProjects.size() > MAX_RECENT_LIST_PER_USER){
             Comparator<RecentProject> comparator = new Comparator<RecentProject>() {
                 @Override
                 public int compare(RecentProject p1, RecentProject p2) {
