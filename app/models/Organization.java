@@ -67,15 +67,12 @@ public class Organization extends Model implements ResourceConvertible {
 
     public String descr;
 
-    @Transient
-    public String lowerName;
-
     public void add(OrganizationUser ou) {
         this.users.add(ou);
     }
 
     public static Organization findByName(String name) {
-        return find.where().eq("lowerName", name).findUnique();
+        return find.where().ieq("name", name).findUnique();
     }
 
     public static boolean isNameExist(String name) {
