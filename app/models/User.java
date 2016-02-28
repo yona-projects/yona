@@ -174,6 +174,9 @@ public class User extends Model implements ResourceConvertible {
      */
     public String lang;
 
+    @Transient
+    public Long lastVisitedProjectId;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     public List<OrganizationUser> organizationUsers;
 
@@ -746,7 +749,10 @@ public class User extends Model implements ResourceConvertible {
     }
 
     public void visits(Project project) {
-        RecentProject.addNew(this, project);
+        if(!Objects.equals(project.id, this.lastVisitedProjectId)){
+            this.lastVisitedProjectId = project.id;
+            RecentProject.addNew(this, project);
+        }
     }
 
     public List<Project> getVisitedProjects() {
