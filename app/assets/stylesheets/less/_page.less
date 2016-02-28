@@ -3540,7 +3540,7 @@ label.issue-item-row {
     .infos {
         display:block;
         line-height: 20px;
-        font-size:11px;
+        font-size:12px;
         color:#999;
 
         .infos-item {
@@ -3566,9 +3566,9 @@ label.issue-item-row {
                     text-align: center;
                     padding:0 5px;
                     float: left;
+                    color: darkmagenta;
 
                     &.item-icon {
-                        color:#3592b5;
                         font-size: 9px;
                         padding-top:2px;
                         line-height: 12px;
@@ -3584,7 +3584,10 @@ label.issue-item-row {
                     }
 
                     &.item-count {
-                        padding:0 7px;
+                        &.strong {
+                            color:@primary;
+                        }
+                        padding:0 7px 0 0;
                     }
                 }
             }
