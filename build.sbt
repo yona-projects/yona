@@ -15,7 +15,7 @@ libraryDependencies ++= Seq(
   // Add your project dependencies here,
   "com.h2database" % "h2" % "1.3.176",
   // JDBC driver for mariadb
-  "org.mariadb.jdbc" % "mariadb-java-client" % "1.3.5",
+  "org.mariadb.jdbc" % "mariadb-java-client" % "1.3.6",
   // Core Library
   "org.eclipse.jgit" % "org.eclipse.jgit" % "3.5.3.201412180710-r",
   // Smart HTTP Servlet
