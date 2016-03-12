@@ -36,7 +36,13 @@
   }
   li > ul {
     margin-bottom: 0;
-    padding-bottom: 0;
+    :last-of-type {
+      padding-bottom: 0;
+    }
+    pre {
+      padding-bottom: 10px !important;
+    }
+    padding: 5px 0 2px 2.5em;
   }
 
   li > p {
