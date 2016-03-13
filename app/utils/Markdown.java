@@ -131,8 +131,10 @@ public class Markdown {
     }
 
     private static String renderWithHighlight(String source, boolean breaks) {
-        if(CacheStore.renderedMarkdown.asMap().containsKey(source.hashCode())){
-            return ZipUtil.decompress(CacheStore.renderedMarkdown.asMap().get(source.hashCode()));
+        int sourceHashCode = source.hashCode();
+        byte [] cached = CacheStore.renderedMarkdown.getIfPresent(sourceHashCode);
+        if(cached != null){
+            return ZipUtil.decompress(cached);
         }
         try {
             Object options = engine.eval("new Object({gfm: true, tables: true, breaks: " + breaks + ", " +
@@ -144,7 +146,7 @@ public class Markdown {
             rendered = removeJavascriptInHref(rendered);
             rendered = checkReferrer(rendered);
             String sanitized = sanitize(rendered);
-            CacheStore.renderedMarkdown.asMap().putIfAbsent(source.hashCode(), ZipUtil.compress(sanitized));
+            CacheStore.renderedMarkdown.put(sourceHashCode, ZipUtil.compress(sanitized));
             return sanitized;
         } catch (Exception ex) {
             throw new RuntimeException(ex);
@@ -190,14 +192,16 @@ public class Markdown {
     }
 
     public static String render(@Nonnull String source) {
-        if(CacheStore.renderedMarkdown.asMap().containsKey(source.hashCode())){
-            return ZipUtil.decompress(CacheStore.renderedMarkdown.asMap().get(source.hashCode()));
+        int sourceHashCode = source.hashCode();
+        byte [] cached = CacheStore.renderedMarkdown.getIfPresent(sourceHashCode);
+        if(cached != null){
+            return ZipUtil.decompress(cached);
         }
         try {
             Object options = engine.eval("new Object({gfm: true, tables: true, breaks: true, " +
                     "pedantic: false, sanitize: false, smartLists: true});");
             String sanitized = sanitize(renderByMarked(source, options));
-            CacheStore.renderedMarkdown.asMap().putIfAbsent(source.hashCode(), ZipUtil.compress(sanitized));
+            CacheStore.renderedMarkdown.put(sourceHashCode, ZipUtil.compress(sanitized));
             return sanitized;
         } catch (Exception ex) {
             throw new RuntimeException(ex);
