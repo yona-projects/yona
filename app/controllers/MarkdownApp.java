@@ -20,21 +20,20 @@
  */
 package controllers;
 
-import play.data.DynamicForm;
+import com.fasterxml.jackson.databind.JsonNode;
 import models.Project;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Markdown;
 
-import static play.data.Form.form;
-
 public class MarkdownApp extends Controller {
     public static Result render(String ownerName, String projectName) {
-        DynamicForm dynamicForm = form().bindFromRequest();
-        String source = dynamicForm.get("body");
+        JsonNode requestJson = request().body().asJson();
+        String body = requestJson.findPath("body").textValue();
+        boolean breaks = requestJson.findPath("breaks").asBoolean();
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
-        boolean breaks = Boolean.valueOf(dynamicForm.get("breaks"));
 
-        return ok(Markdown.render(source, project, breaks));
+        return ok(Markdown.render(body, project, breaks));
     }
+
 }

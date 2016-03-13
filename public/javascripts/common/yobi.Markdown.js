@@ -88,9 +88,15 @@ yobi.Markdown = (function(htOptions){
     }
 
     function _render(welTarget, sContentBody) {
+        var source = {
+            "body": sContentBody,
+            "breaks": (welTarget.hasClass('readme-body') ? false : true)
+        };
+
         $.ajax(htVar.sMarkdownRendererUrl,{
             "type": "post",
-            "data": {"body": sContentBody, "breaks": (welTarget.hasClass('readme-body') ? false : true)},
+            "contentType":"application/json; charset=utf-8",
+            "data": JSON.stringify(source),
             "success": function(data){
                 welTarget.html(data);
             }
