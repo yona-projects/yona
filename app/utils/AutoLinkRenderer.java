@@ -125,55 +125,58 @@ public class AutoLinkRenderer {
     }
 
     public String render() {
-        return this
-                .parse(PATH_WITH_ISSUE_PATTERN, new ToLink() {
-                    @Override
-                    public Link toLink(Matcher matcher) {
-                        String path = matcher.group(1);
-                        String issueNumber = matcher.group(2);
+        this.parse(PATH_WITH_ISSUE_PATTERN, new ToLink() {
+            @Override
+            public Link toLink(Matcher matcher) {
+                String path = matcher.group(1);
+                String issueNumber = matcher.group(2);
 
-                        Project project = getProjectFromPath(path);
-                        return toValidIssueLink(path, project, issueNumber);
-                    }
-                })
-                .parse(ISSUE_PATTERN, new ToLink() {
-                    @Override
-                    public Link toLink(Matcher matcher) {
-                        return toValidIssueLink(project, matcher.group(1));
-                    }
-                })
-                .parse(PATH_WITH_SHA_PATTERN, new ToLink() {
-                    @Override
-                    public Link toLink(Matcher matcher) {
-                        String path = matcher.group(1);
-                        String SHA = matcher.group(2);
+                Project project = getProjectFromPath(path);
+                return toValidIssueLink(path, project, issueNumber);
+            }
+        });
 
-                        Project project = getProjectFromPath(path);
-                        return toValidSHALink(path, project, SHA);
-                    }
-                })
-                .parse(SHA_PATTERN, new ToLink() {
-                    @Override
-                    public Link toLink(Matcher matcher) {
-                        return toValidSHALink(project, matcher.group(1));
-                    }
-                })
-                .parse(LOGIN_ID_PATTERN_ALLOW_FORWARD_SLASH_PATTERN, new ToLink() {
-                    @Override
-                    public Link toLink(Matcher matcher) {
-                        String path = matcher.group(1);
+        parse(ISSUE_PATTERN, new ToLink() {
+            @Override
+            public Link toLink(Matcher matcher) {
+                return toValidIssueLink(project, matcher.group(1));
+            }
+        });
 
-                        int slashIndex = path.indexOf("/");
+        parse(PATH_WITH_SHA_PATTERN, new ToLink() {
+            @Override
+            public Link toLink(Matcher matcher) {
+                String path = matcher.group(1);
+                String SHA = matcher.group(2);
 
-                        if (slashIndex > -1) {
-                            return toValidProjectLink(path.substring(0, slashIndex), path.substring(slashIndex + 1));
-                        } else {
-                            return toValidUserLink(path);
-                        }
-                    }
-                })
+                Project project = getProjectFromPath(path);
+                return toValidSHALink(path, project, SHA);
+            }
+        });
 
-                .body;
+        parse(SHA_PATTERN, new ToLink() {
+            @Override
+            public Link toLink(Matcher matcher) {
+                return toValidSHALink(project, matcher.group(1));
+            }
+        });
+
+        parse(LOGIN_ID_PATTERN_ALLOW_FORWARD_SLASH_PATTERN, new ToLink() {
+            @Override
+            public Link toLink(Matcher matcher) {
+                String path = matcher.group(1);
+
+                int slashIndex = path.indexOf("/");
+
+                if (slashIndex > -1) {
+                    return toValidProjectLink(path.substring(0, slashIndex), path.substring(slashIndex + 1));
+                } else {
+                    return toValidUserLink(path);
+                }
+            }
+        });
+
+        return this.body;
     }
 
     private AutoLinkRenderer parse(Pattern pattern, ToLink toLink) {
@@ -192,7 +195,7 @@ public class AutoLinkRenderer {
             List<TextNode> textNodeList = el.textNodes();
 
             for (TextNode node : textNodeList) {
-                String result = convertLink(node.text(), pattern, toLink);
+                String result = convertLink(node.toString(), pattern, toLink);
                 node.text(StringUtils.EMPTY);
                 node.after(result);
             }
