@@ -163,15 +163,17 @@ public class Project extends Model implements LabelOwner {
 
     public static Project findByOwnerAndProjectName(String loginId, String projectName) {
         String key = loginId + ":" + projectName;
-        Project project = CacheStore.projectMap.get(key);
-        if(project == null){
-            project= find.where().ieq("owner", loginId).ieq("name", projectName)
+        Long projectId = CacheStore.projectMap.get(key);
+        if(projectId == null || projectId == 0){
+            Project project= find.where().ieq("owner", loginId).ieq("name", projectName)
                     .findUnique();
             if(project != null){
-                CacheStore.projectMap.putIfAbsent(key, project);
+                CacheStore.projectMap.put(key, project.id);
             }
+            return project;
+        } else {
+            return find.byId(projectId);
         }
-        return project;
     }
 
     public static boolean exists(String loginId, String projectName) {

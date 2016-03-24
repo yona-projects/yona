@@ -50,4 +50,28 @@ public class ProjectMenuSetting extends Model {
         this.milestone = projectMenuSetting.milestone;
         this.board = projectMenuSetting.board;
     }
+
+    public void updateMenuSetting(ProjectMenuSetting setting){
+        this.code = setting.code;
+        this.issue = setting.issue;
+        this.pullRequest = setting.pullRequest;
+        this.review = setting.review;
+        this.milestone = setting.milestone;
+        this.board = setting.board;
+        this.update();
+    }
+
+    @Override
+    public String toString() {
+        return "ProjectMenuSetting{" +
+                "id=" + id +
+                ", project=" + project +
+                ", code=" + code +
+                ", issue=" + issue +
+                ", pullRequest=" + pullRequest +
+                ", review=" + review +
+                ", milestone=" + milestone +
+                ", board=" + board +
+                '}';
+    }
 }

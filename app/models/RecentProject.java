@@ -42,7 +42,10 @@ public class RecentProject extends Model {
         List<Project> found = new ArrayList<>();
 
         for(RecentProject rp: recentProjects){
-            found.add(0, Project.findByOwnerAndProjectName(rp.owner, rp.projectName));
+            Project byOwnerAndProjectName = Project.findByOwnerAndProjectName(rp.owner, rp.projectName);
+            if(byOwnerAndProjectName != null){
+                found.add(0, byOwnerAndProjectName);
+            }
         }
 
         return found;
