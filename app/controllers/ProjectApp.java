@@ -287,8 +287,7 @@ public class ProjectApp extends Controller {
         if (project.menuSetting == null) {
             updatedProjectMenuSetting.save();
         } else {
-            updatedProjectMenuSetting.id = project.menuSetting.id;
-            updatedProjectMenuSetting.update();
+            project.menuSetting.updateMenuSetting(updatedProjectMenuSetting);
         }
     }
 
