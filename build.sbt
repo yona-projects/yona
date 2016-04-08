@@ -3,7 +3,7 @@ import java.nio.file.Paths
 
 name := """yona"""
 
-version := "1.0.0"
+version := "1.0.1"
 
 libraryDependencies ++= Seq(
   // Add your project dependencies here,
@@ -91,6 +91,10 @@ NativePackagerKeys.bashScriptExtraDefines += """# Added by build.sbt
     |[ -f "$yobi_log_config_file" ] && addJava "-Dlogger.file=$yobi_log_config_file"
     |
     |addJava "-DapplyEvolutions.default=true"
+    |""".stripMargin
+
+NativePackagerKeys.batScriptExtraDefines += """# Added by build.sbt
+    | if "%JAVA_OPTS%"=="" SET JAVA_OPTS=-Duser.dir=%YONA_HOME% -Dyona.home=%YONA_HOME% -Dconfig.file=%YONA_HOME%\conf\application.conf -Dlogger.file=%YONA_HOME%\conf\application-logger.xml -DapplyEvolutions.default=true
     |""".stripMargin
 
 lazy val yobi = (project in file("."))
