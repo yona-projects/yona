@@ -23,11 +23,11 @@ libraryDependencies ++= Seq(
   // Symlink support for Java7
   "org.eclipse.jgit" % "org.eclipse.jgit.java7" % "3.5.3.201412180710-r",
   // svnkit
-  "sonia.svnkit" % "svnkit" % "1.8.5-scm2",
+  "org.tmatesoft.svnkit" % "svnkit" % "1.8.12",
   // svnkit-dav
   "sonia.svnkit" % "svnkit-dav" % "1.8.5-scm2",
   // javahl
-  "sonia.svnkit" % "svnkit-javahl16" % "1.8.5-scm2",
+  "org.tmatesoft.svnkit" % "svnkit-javahl16" % "1.8.11",
   "net.sourceforge.jexcelapi" % "jxl" % "2.6.10",
 // shiro
   "org.apache.shiro" % "shiro-core" % "1.2.1",
@@ -57,6 +57,7 @@ val projectSettings = Seq(
   resolvers += "scm-manager release repository" at "http://maven.scm-manager.org/nexus/content/groups/public",
   resolvers += "tmatesoft release repository" at "http://maven.tmatesoft.com/content/repositories/releases",
   resolvers += "julienrf.github.com" at "http://julienrf.github.com/repo/",
+  resolvers += "opencast-public" at "http://repository.opencastproject.org/nexus/content/repositories/public",
   TwirlKeys.templateImports in Compile += "models.enumeration._",
   TwirlKeys.templateImports in Compile += "scala.collection.JavaConversions._",
   TwirlKeys.templateImports in Compile += "play.core.j.PlayMagicForJava._",
@@ -93,7 +94,7 @@ NativePackagerKeys.bashScriptExtraDefines += """# Added by build.sbt
     |addJava "-DapplyEvolutions.default=true"
     |""".stripMargin
 
-NativePackagerKeys.batScriptExtraDefines += """# Added by build.sbt
+NativePackagerKeys.batScriptExtraDefines += """
     | if "%JAVA_OPTS%"=="" SET JAVA_OPTS=-Duser.dir=%YONA_HOME% -Dyona.home=%YONA_HOME% -Dconfig.file=%YONA_HOME%\conf\application.conf -Dlogger.file=%YONA_HOME%\conf\application-logger.xml -DapplyEvolutions.default=true
     |""".stripMargin
 
