@@ -2,7 +2,6 @@ package utils;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import models.User;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -11,8 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * CacheStore
  */
 public class CacheStore {
-    public static Map<String, User> sessionMap = new ConcurrentHashMap<>();
-    public static Map<String, User> userMap = new ConcurrentHashMap<>();
+    public static Map<String, Long> sessionMap = new ConcurrentHashMap<>();
     public static Map<String, Long> projectMap = new ConcurrentHashMap<>();
     public static final int MAXIMUM_CACHED_MARKDOWN_ENTRY = 10000;
 

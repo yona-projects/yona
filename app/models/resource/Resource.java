@@ -133,7 +133,7 @@ public abstract class Resource {
                 resource = Posting.finder.byId(longId).asResource();
                 break;
             case USER:
-                resource = User.findByIdUsingCache(longId).asResource();
+                resource = User.find.byId(longId).asResource();
                 break;
             case PROJECT:
                 resource = Project.find.byId(longId).asResource();
@@ -150,7 +150,7 @@ public abstract class Resource {
             case PULL_REQUEST:
                 return PullRequest.finder.byId(longId).asResource();
             case USER_AVATAR:
-                return User.findByIdUsingCache(longId).avatarAsResource();
+                return User.find.byId(longId).avatarAsResource();
             case REVIEW_COMMENT:
                 return ReviewComment.find.byId(longId).asResource();
             case ORGANIZATION:
