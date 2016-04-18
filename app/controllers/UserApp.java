@@ -374,8 +374,8 @@ public class UserApp extends Controller {
             return invalidSession();
         }
         User user = null;
-        if (userKey != null){
-            user = CacheStore.sessionMap.get(userKey);
+        if (userKey != null && CacheStore.sessionMap.get(userKey) != null){
+            user = User.find.byId(CacheStore.sessionMap.get(userKey));
         }
         if (user == null) {
             return invalidSession();
@@ -878,7 +878,7 @@ public class UserApp extends Controller {
     public static void addUserInfoToSession(User user) {
         String key = new Sha256Hash(new Date().toString(), ByteSource.Util.bytes(user.passwordSalt), 1024)
                 .toBase64();
-        CacheStore.sessionMap.put(key, user);
+        CacheStore.sessionMap.put(key, user.id);
         session(SESSION_USERID, String.valueOf(user.id));
         session(SESSION_LOGINID, user.loginId);
         session(SESSION_USERNAME, user.name);
