@@ -3,7 +3,7 @@ import java.nio.file.Paths
 
 name := """yona"""
 
-version := "1.0.1"
+version := "1.0.2"
 
 libraryDependencies ++= Seq(
   // Add your project dependencies here,
