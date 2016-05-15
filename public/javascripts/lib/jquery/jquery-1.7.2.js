@@ -3956,7 +3956,7 @@
             rNonWord = /\W/;
 
 // Here we check if the JavaScript engine is using some sort of
-// optimization where it does not always call our comparision
+// optimization where it does not always call our comparsion
 // function. If that is the case, discard the hasDuplicate value.
 //   Thus far that includes Google Chrome.
         [0, 0].sort(function() {
