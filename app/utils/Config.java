@@ -293,4 +293,8 @@ public class Config {
     public static String getYobiHome(String defaultValue) {
         return System.getProperty("yobi.home", defaultValue);
     }
+
+    public static boolean getDisplayPrivateRepositories() {
+        return Configuration.root().getBoolean("application.displayPrivateRepositories");
+    }
 }
