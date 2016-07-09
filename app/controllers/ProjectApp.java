@@ -996,7 +996,7 @@ public class ProjectApp extends Controller {
         }
 
         User user = UserApp.currentUser();
-        if (!user.isSiteManager()) {
+        if (!user.isSiteManager() && !Config.getDisplayPrivateRepositories()) {
             if(user.isAnonymous()) {
                 el.eq("projectScope", ProjectScope.PUBLIC);
             } else {

@@ -239,3 +239,6 @@ akka {
 
 # No referrer information is to be leaked when following the link from yona pages. If you don't want, set it false
 application.noreferrer = true
+
+# Display private repositories in the list
+application.displayPrivateRepositories = false
