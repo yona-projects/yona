@@ -232,8 +232,8 @@ db.default.password="yonadan"
 Yona를 시작할 때, 데이터 디렉터리, 설정파일, 로그 설정파일의 위치를 각각
 yona.home, config.file, logger.file 자바 프로퍼티로 지정할 수 있습니다.
 
-    SET JAVA_OPTS=-Dyona.home=/home/user/.yona -Dconfig.file=/home/user/.yona/conf/application.conf -Dlogger.file=/home/user/.yona/conf/application-logger.xml
-    bin\yona.bat
+SET JAVA_OPTS=-Dyona.home=C:\yona-1.0.2 -Dconfig.file=C:\yona-1.0.2\conf\application.conf -Dlogger.file=C:\yona-1.0.2\conf\application-logger.xml
+bin\yona.bat
 
 `_JAVA_OPTIONS` 환경변수를 이용해 자바 환경 변수를 지정할 수도 있습니다. 시스템
 메모리가 4기가 이상이라면, 다음과 같은 옵션으로 실행하는 걸 권장합니다.
