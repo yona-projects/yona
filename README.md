@@ -106,7 +106,7 @@ GRANT ALL ON yona.* to 'yona'@'localhost';
 참고로 -p 다음에 쓴 글자가 위에서 만든 패스워드입니다.
 
 ```
-mysql -uyona -p'yonadan'
+mysql -u yona -p"yonadan"
 use yona
 ```
 
