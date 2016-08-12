@@ -183,6 +183,10 @@ db.default.password="yonadan"
 이제 웹 브라우저로 http://127.0.0.1:9000 에 접속하면 환영 페이지를 보실 수 있습니다. 
 어드민 설정을 마치고 다시 쉘을 시작합니다.
 
+**유의! windows os 사용자의 경우**
+[#windows의-경우](https://github.com/yona-projects/yona#windows의-경우)를 꼭 참고해주세요
+
+
 만약 콘솔에 DB 관련 에러 특히 
 ```
 [error] play - Specified key was too long; max key length is 767 bytes [ERROR:1071, SQLSTATE:42000] 
@@ -230,7 +234,7 @@ db.default.password="yonadan"
 #### Windows의 경우
 
 Yona를 시작할 때, 데이터 디렉터리, 설정파일, 로그 설정파일의 위치를 각각
-yona.home, config.file, logger.file 자바 프로퍼티로 지정할 수 있습니다.
+yona.home, config.file, logger.file 자바 프로퍼티로 지정해서 실행해주세요!
 
 SET JAVA_OPTS=-Dyona.home=C:\yona-1.0.2 -Dconfig.file=C:\yona-1.0.2\conf\application.conf -Dlogger.file=C:\yona-1.0.2\conf\application-logger.xml
 bin\yona.bat
