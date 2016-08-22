@@ -2,6 +2,7 @@ package utils;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import models.Project;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,4 +23,16 @@ public class CacheStore {
     public static Cache<Integer, byte[]> renderedMarkdown = CacheBuilder.newBuilder()
             .maximumSize(MAXIMUM_CACHED_MARKDOWN_ENTRY)
             .build();
+
+
+    public static void refreshProjectMap(){
+        for (Map.Entry<String, Long> entry: projectMap.entrySet()) {
+            String[] keys = entry.getKey().split(":");
+            Project project= Project.find.where().ieq("owner", keys[0]).ieq("name", keys[1])
+                    .findUnique();
+            if(project == null){
+                projectMap.remove(entry.getKey());
+            }
+        }
+    }
 }
