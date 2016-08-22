@@ -631,6 +631,7 @@ public class Project extends Model implements LabelOwner {
      */
     @Override
     public void delete() {
+        CacheStore.refreshProjectMap();
         deleteProjectTransfer();
         deleteFork();
         deleteCommentThreads();

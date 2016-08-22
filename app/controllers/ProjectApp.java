@@ -268,6 +268,7 @@ public class ProjectApp extends Controller {
             if (!repository.renameTo(updatedProject.name)) {
                 throw new FileOperationException("fail repository rename to " + project.owner + "/" + updatedProject.name);
             }
+            CacheStore.refreshProjectMap();
         }
 
         updatedProject.update();
@@ -341,6 +342,7 @@ public class ProjectApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
         project.delete();
         RepositoryService.deleteRepository(project);
+        CacheStore.refreshProjectMap();
 
         if (HttpUtil.isRequestedWithXHR(request())){
             response().setHeader("Location", routes.Application.index().toString());
@@ -618,6 +620,7 @@ public class ProjectApp extends Controller {
 
         // If the opposite request is exists, delete it.
         ProjectTransfer.deleteExisting(project, pt.sender, pt.destination);
+        CacheStore.refreshProjectMap();
 
         return redirect(routes.ProjectApp.project(project.owner, project.name));
     }
