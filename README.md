@@ -53,7 +53,10 @@ Yona는 앞으로 기본DB를 MariaDB를 사용할 예정입니다. 다만 Yona 
 [yona-1.0-h2.zip](https://github.com/yona-projects/yona/releases/tag/v1.0.0) MariaDB로 변경이 어렵거나 간편하게 설치해서 사용하실때는 이쪽을 이용해 주세요.
 
 관련해서는 다음 링크를 참고해 주세요
-[Yona가 MariaDB를 기본 DB로 사용하게 된 이유](https://repo.yona.io/yona-projects/yona/post/4)
+- [Yona가 MariaDB를 기본 DB로 사용하게 된 이유](https://repo.yona.io/yona-projects/yona/post/4)
+
+그리고 Docker 를 이용해 설치하실분은 
+  - [pokev25](https://github.com/pokev25) 님의 https://github.com/pokev25/docker-yona 를 이용해주세요
 
 #### MariaDB 설치
 
