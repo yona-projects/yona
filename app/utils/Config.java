@@ -295,6 +295,6 @@ public class Config {
     }
 
     public static boolean getDisplayPrivateRepositories() {
-        return Configuration.root().getBoolean("application.displayPrivateRepositories");
+        return Configuration.root().getBoolean("application.displayPrivateRepositories", Boolean.FALSE);
     }
 }
