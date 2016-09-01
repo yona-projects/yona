@@ -1,50 +1,367 @@
+<a name="korean"></a>
+[[English]](#english)
 
-**Yona는 개발 중단된 [Yobi](https://github.com/naver/yobi)를 이어나가기 위해 만들어진 fork 프로젝트입니다. 아직 하단 문서의 이름표기는 update 되어 있지 않습니다.**
+[![Build Status](https://travis-ci.org/yona-projects/yona.svg?branch=master)](https://travis-ci.org/yona-projects/yona)
+Yona
+====
+
+21세기 협업 개발 플랫폼
+
+DEMO: [http://yona.io](http://yona.io)
+
+Yona?
+--
+Yona는 팀이 개발을 진행하는데 그 속도를 높이고 효율을 증가시키기 위해 만들어졌습니다.
+
+- 이슈 트래커: 기간이나 마일스톤과 함께 업무를 관리할 수 있는 이슈 트래커
+  - 특히 `내 이슈` 기능은 업무처리를 통합된 화면에서 보고, 해야 할 일 / 언급된 일 등에 집중해서 쉽고 편하게 관리할 수 있습니다.
+- 게시판: 각종 문서나 파일을 쉽게 공유할 수 있는 게시판
+- 코드 저장소: 코드 개발에 필요한 Git / SVN 저장소 기능
+- 코드 주고받기(Pull request): 협업 개발을 위한 코드 주고받기(Pull request)
+- 코드 리뷰: 블럭 단위로 코멘트를 남길 수 있으며 리뷰 진행 여부를 확인 가능한 강력한 코드 리뷰 기능
+- 그룹(Organization): 일정 멤버들이 여러개의 프로젝트를 그룹으로 관리 수 있게 도와주는 강력한 그룹(Organization) 기능
+- 메일 연동: 각종 이벤트들을 설정에 따라 메일로 받을 수 있으며 또한 메일로 이슈나 댓글을 등록할 수 있습니다.
+
+등을 비롯하여 일상적인 업무에서 개발 전반에 이르는 다양한 기능을 포함하고 있습니다.
+
+왜 Yona를 써야 하나? (Why Yona?)
+---
+[왜 Yona를 써야 하나? (Why Yona?)](https://repo.yona.io/yona-projects/yona/post/3)를 참고해 주세요
+
+라이선스
+--
+Yona는 Apache 2.0 라이선스로 제공됩니다.
 
 
-Yobi 에서 Yona 로 변경 방법
+Yona 설치 방법
 ===
 
-- 새로 설치하는 분은 본문의 내용대로 파일을 내려 받아서 설치하면 됩니다.
-- 기존 yobi를 설치해서 사용하시는 분들은 아래 설정을 수정하시면 이후 yona 버전으로 업데이트를 받으실 수 있습니다.
-
-application.conf
-------------
-
-- 추가
-```
-application.update.check.use = true
-```
-- 값 변경
-```
-# Application feedback url at top layout menu. You can remove feedback menu by commenting it.
-application.feedback.url="https://github.com/yona-projects/yona/issues"
-
-application.update.repositoryUrl = "https://github.com/yona-projects/yona"
-application.update.releaesUrlFormat = "https://github.com/yona-projects/yona/releases/tag/v%s"
-```
-
-git remote 변경
---------------
-git remote set-url origin https://github.com/doortts/yona
-
-이하는 이전 README 내용입니다.
+Yobi에서 Yona로 업그레이드 하려는 경우
 ---
+1. 하단의 설치방법을 참고해서 Yona를 설치 합니다.
+2. [Yobi 에서 Yona로 Migration 하는 방법](https://repo.yona.io/yona-projects/yona/post/1)을 참고해서 마이그레이션을 진행합니다.
+
+Yona 설치
+---
+
+Yona는 기본적으로 다음 2단계로 설치됩니다.
+
+- MariaDB설치
+- Yona 설치
+
+Yona는 앞으로 기본DB를 MariaDB를 사용할 예정입니다. 다만 Yona 1.0 기준으로 yona-h2.zip 을 따로 제공합니다.
+[yona-1.0-h2.zip](https://github.com/yona-projects/yona/releases/tag/v1.0.0) MariaDB로 변경이 어렵거나 간편하게 설치해서 사용하실때는 이쪽을 이용해 주세요.
+
+관련해서는 다음 링크를 참고해 주세요
+- [Yona가 MariaDB를 기본 DB로 사용하게 된 이유](https://repo.yona.io/yona-projects/yona/post/4)
+
+그리고 Docker 를 이용해 설치하실분은 
+  - [pokev25](https://github.com/pokev25) 님의 https://github.com/pokev25/docker-yona 를 이용해주세요
+
+#### MariaDB 설치
+
+아래 설명은 진행 과정만 참고만 하시고 실제로는 MariaDB 10.1.10 이상을 설치해 주세요
+
+1. Linux 
+   - 배포본의 저장소 및 설치 스크립트는 다음 선택 페이지의 설명을 참고하여 설치 합니다.
+   - [Setting up MariaDB Repositories](https://downloads.mariadb.org/mariadb/repositories/)
+  
+2. Mac
+   - brew install 을 이용해서 설치를 권장합니다.
+   - https://mariadb.com/blog/installing-mariadb-10010-mac-os-x-homebrew
+
+3. Windows
+   - https://downloads.mariadb.org/mariadb/10.1.11/#os_group=windows
+
+##### DB 설치후 유저 및 Database 생성 
+
+기본 진행 내용은 MariaDB에 root 유저로 접속한 다음 yona 유저를 만들고 DB를 만들고 해당 DB의 모든 권한을 yona 유저에게 주는 작업입니다.
+
+MariaDB root 유저로 접속
+```
+mysql -uroot 
+```
+
+yona 유저 생성. password는 IDENTIFIED BY 다음에 지정한 문자가 됩니다. 아래 예)에서는 yonadan
+```
+create user 'yona'@'localhost' IDENTIFIED BY 'yonadan';
+```
+
+DB 생성 UTF8 확장문자열을 저장할 수 있는 포맷으로 지정해서 생성합니다.
+
+```
+set global innodb_file_format = BARRACUDA;
+set global innodb_large_prefix = ON;
+
+create database yona
+  DEFAULT CHARACTER SET utf8mb4
+  DEFAULT COLLATE utf8mb4_bin
+;
+```
+
+yona 유저에게 yona 데이터베이스 권한 부여
+
+```
+GRANT ALL ON yona.* to 'yona'@'localhost';
+```
+
+`exit`명령어로 쉘로 빠져 나온 다음 yona 유저로 정상 접속되고 yona DB가 사용 가능한지 확인해 봅니다.
+참고로 -p 다음에 쓴 글자가 위에서 만든 패스워드입니다.
+
+```
+mysql -u yona -p"yonadan"
+use yona
+```
+
+/etc/my.cnf 파일을 만들어서 아래 내용을 추가해 주세요. 
+(mac os 유저의 경우에는 db 실행유저의 ~/.my.cnf에 아래 내용을 추가해 주세요)
+샘플참고: https://github.com/yona-projects/yona/blob/next/support-script/mariadb/my.cnf
+
+```
+[client]
+default-character-set=utf8mb4
+
+[mysql]
+default-character-set=utf8mb4
+
+[mysqld]
+collation-server=utf8mb4_unicode_ci
+init-connect='SET NAMES utf8mb4'
+character-set-server=utf8mb4
+lower_case_table_names=1
+innodb_file_format=barracuda
+innodb_large_prefix=on
+```
+
+꼭 /etc 아래가 아니더라도 [my.cnf 위치 탐색순서](https://mariadb.com/kb/en/mariadb/configuring-mariadb-with-mycnf/) 를 보고 적당한 곳에 my.cnf 파일을 만들어서 넣어도 무방하다고 알려져 있습니다. (Mac OS 유저는 우선은 위 설명대로 해주세요. 추가 확인이 필요합니다)
+
+이제 Yona 를 설치합니다. 
+
+#### Yona 설치
+
+Yona 최신 버전을 https://github.com/yona-projects/yona/releases 에서 다운받아 압축을 풉니다. 
+wget으로 받아서 unzip으로 압축을 푼다면 미리 다운로드 링크 주소를 확인한 다음 내려받습니다.
+
+예)
+
+    wget https://github.com/yona-projects/yona/releases/download/v1.0.0/yona.zip
+    unzip yona.zip
+
+### application.conf 파일등 생성하기
+
+압축이 풀린 곳으로 이동해서 bin/yona 을 실행합니다. (Java 8 이상이 필요합니다)
+**주의**: 아래와 같이 yona 설치 폴더에서 실행하여야 합니다. 또한 윈도우 사용자는 bin/yona 대신 bin/yona.bat을 실행해야 합니다.
+
+```
+cd yona
+bin/yona
+```
+
+실행하면 패스워드가 틀렸다는 에러와 함께 실행이 종료 될겁니다. 이제 압축을 풀었을때는 안 보였던 conf 디렉터리가 보일 겁니다. 
+
+#### DB 설정 수정
+
+앞서 설치한 MariaDB에 맞게 DB 연결 설정을 수정해야 합니다.
+
+conf 폴더 아래의 application.conf 파일에서 아래 부분에서 password를 위에서 설정한 password로 수정해 주세요
+```
+...
+db.default.driver=org.mariadb.jdbc.Driver
+db.default.url="jdbc:mariadb://127.0.0.1:3306/yona?useServerPrepStmts=true"
+db.default.user=yona
+db.default.password="yonadan"
+...
+```
+
+`yonadan`은 예시일뿐 그대로 사용하지 않는 걸 권장합니다. 
+
+#### 실행
+
+압축이 풀린 디렉터리로 이동해서 다시 yona를 실행합니다.
+
+    cd yona
+    bin/yona
+
+
+이제 웹 브라우저로 http://127.0.0.1:9000 에 접속하면 환영 페이지를 보실 수 있습니다. 
+어드민 설정을 마치고 다시 쉘을 시작합니다.
+
+**유의! windows os 사용자의 경우**
+[#windows의-경우](https://github.com/yona-projects/yona#windows의-경우)를 꼭 참고해주세요
+
+
+만약 콘솔에 DB 관련 에러 특히 
+```
+[error] play - Specified key was too long; max key length is 767 bytes [ERROR:1071, SQLSTATE:42000] 
+```
+가 발생할 경우 문서 하단의 `MariaDB 767 byte 에러` 항목을 참고해 주세요
+
+#### 업그레이드
+
+설치할 때와 똑같이, 최신 버전을 내려받아 Yona가 설치된 디렉터리에 압축파일을
+풉니다.
+
+**주의사항! `repo`와 `uploads` 디렉터리를 삭제하거나
+덮어쓰지 않도록 주의하세요!**
+
+
+### 소스코드를 직접 내려 받아서 빌드 실행하기
+
+자신의 입맛에 맛게 코드를 직접 수정해서 작업하거나 코드를 기여하고 싶을 경우에는 코드 저장소로부터 코드를 직접 내려받아서 빌드/실행하는 것도 가능합니다.
+
+[소스코드를 직접 내려 받아서 실행하기](https://repo.yona.io/yona-projects/yona/post/5)를 참고해 주세요
+
+
+### 옵션
+
+[간단한 재시작 쉘 예제](https://github.com/yona-projects/yona/blob/next/restart.sh)
+
+#### Linux, OSX의 경우
+
+`YONA_HOME` 속성을 통해 Yona가 데이터, 데이터베이스, 설정파일을 불러오고 저장할
+홈 디렉터리를 지정할 수 있습니다. 예를 들어, /home/user/.yona를 홈 디렉터리로
+사용하려면 Yona를 시작할 때 다음과 같이 지정합니다.
+
+    YONA_HOME=/home/user/.yona bin/yona
+
+`_JAVA_OPTIONS` 환경변수를 이용해 자바 환경 변수를 지정할 수도 있습니다. 시스템
+메모리가 4기가 이상이라면, 다음과 같은 옵션으로 실행하는걸 권장합니다.
+
+    _JAVA_OPTIONS="-Xmx2048m -Xms2048m" bin/yona
+
+기본적으로 9000번 포트를 사용하지만, 다른 포트를 사용하고 싶다면 http.port 자바
+환경변수를 수정합니다.
+
+    _JAVA_OPTIONS="-Dhttp.port=80" bin/yona
+
+#### Windows의 경우
+
+Yona를 시작할 때, YONA_HOME 폴더의 위치를 지정해서 아래 명령순서로 실행해주세요!
+아래 내용이 들어가 있는 run.bat을 따로 만드셔도 좋습니다!
+
+```
+SET YONA_HOME=c:\yona\yona-1.0.4
+SET JAVA_OPTS=-Dyona.home=%YONA_HOME% -Dconfig.file=%YONA_HOME%\conf\application.conf -Dlogger.file=%YONA_HOME%\conf\application-logger.xml
+bin\yona.bat
+```
+
+`_JAVA_OPTIONS` 환경변수를 이용해 자바 환경 변수를 지정할 수도 있습니다. 시스템
+메모리가 4기가 이상이라면, 다음과 같은 옵션으로 실행하는 걸 권장합니다.
+
+    SET JAVA_OPTS=-Xmx2048m -Xms2048m
+    bin\yona.bat
+
+기본적으로 9000번 포트를 사용하지만, 다른 포트를 사용하고 싶다면 http.port 자바
+환경변수를 수정합니다.
+
+    _JAVA_OPTIONS=-Dhttp.port=80
+    bin\yona.bat
+
+업그레이드를 하는 경우 다음과 같이 데이터베이스 스키마 마이그레이션이
+필요하다는 경고 메시지와 함께 실행되지 않는 상황을 겪을 수 있습니다.
+
+    [warn] play - Your production database [default] needs evolutions!
+
+그런 경우에는 자동으로 마이그레이션이 되도록 다음과 같이
+applyEvolutions.default 자바 프로퍼티를 true로 설정합니다.
+
+    SET JAVA_OPTS=-DapplyEvolutions.default=true
+    bin\yona.bat
+
+#### 옵션에 대한 더 자세한 설명
+
+[http://www.playframework.com/documentation/2.3.6/Production](http://www.playframework.com/documentation/2.3.6/Production) 부분을 확인해 주세요.
+
+### 백업하기
+
+DB 백업은 https://mariadb.com/kb/en/mariadb/backup-and-restore-overview/ 를 참고해 주세요
+
+코드 저장소의 파일과 업로드 파일은 아래 디렉터리에 저장됩니다. 
+
+    directory: repo, uploads
+
+주기적으로 두 디렉터리는 따로 잘 백업해 주세요. 
+
+
+### DB관련 작업을 한 후 정상적으로 페이지가 뜨지 않을 경우 아래 항목을 확인해 주세요.
+
+- application.conf 가 제대로 읽히는지
+- application.secret 적용여부
+- db.default.url 확인 
+
+### MariaDB 재시작 방법
+자주하진 마세요!
+DB를 설치한 유저로 DB를 재시작합니다. (root나 sudo 설치했을 경우 명령어 앞에 sudo를 붙여주세요)
+```
+service mysql restart
+
+혹은
+
+/etc/init.d/mysql restart
+
+혹은
+
+mysql.server restart
+```
+참고: http://coolestguidesontheplanet.com/start-stop-mysql-from-the-command-line-terminal-osx-linux/
+
+DB가 정상적으로 재시작되었으면 
+
+### MariaDB 767 byte 에러
+```
+[info] play - database [default] connected at jdbc:mysql://127.0.0.1:3306/yona 
+[error] play - Specified key was too long; max key length is 767 bytes [ERROR:1071, SQLSTATE:42000] 
+Oops, cannot start the server. 
+@6p6j2gap7: Database 'default' is in an inconsistent state!
+```
+이런 에러가 나오는 경우는 아래 두 가지 옵션이 정상적으로 반영되지 않아서 입니다.
+```
+innodb_file_format=barracuda
+innodb_large_prefix=on
+```
+
+위 내용은 my.cnf 에 추가한다음 DB를 시작해 주세요.
+재시작후 root 유저로 접속해서 
+```
+
+MariaDB [(none)]> SHOW VARIABLES LIKE 'innodb_lar%';
++---------------------+-------+
+| Variable_name       | Value |
++---------------------+-------+
+| innodb_large_prefix | ON    |
++---------------------+-------+
+
+MariaDB [(none)]> SHOW VARIABLES LIKE 'innodb_file%';
++--------------------------+-----------+
+| Variable_name            | Value     |
++--------------------------+-----------+
+| innodb_file_format       | Barracuda |
+| innodb_file_format_check | ON        |
+| innodb_file_format_max   | Barracuda |
+| innodb_file_per_table    | ON        |
++--------------------------+-----------+
+```
+처럼 on 되어 있고 file format도 barracuda로 되어 있는지 확인해 보세요.
+
+기타 관련해서는 [이슈 #924](https://github.com/naver/yobi/issues/924)을 참고해 주세요
+
+<br/>
+<br/>
+<br/>
 
 <a name="english"></a>
 [[한국어]](#korean)
-Yobi
+Yona
 =======
-[![Build Status](https://travis-ci.org/doortts/yona.png?branch=next)](https://travis-ci.org/doortts/yona)
 
-Yobi is a web-based project hosting software.
+Yona is a web-based project hosting software.
 
 
-What is Yobi?
+What is Yona?
 --
 
-Yobi is a web-based project hosting software.
-To increase productivity and quality of your software Yobi offers many features including
+Yona is a web-based project hosting software.
+To increase productivity and quality of your software Yona offers many features including
 
 - Issue tracker to manage bugs and issues
 - Bulletin board to share documents
@@ -62,29 +379,29 @@ How to install
 
 #### Install
 
-Download the latest version of Yobi from http://yobi.io/yobi.zip and unzip it.
+Download the latest version of Yona from http://yona.io/yona.zip and unzip it.
 If you have wget and unzip:
 
-    wget http://yobi.io/yobi.zip
-    unzip yobi.zip
+    wget http://yona.io/yona.zip
+    unzip yona.zip
 
 #### Start
 
-Go the directory and start Yobi. If the directory is yobi-1.0.0:
+Go the directory and start Yona. If the directory is yona-1.0.0:
 
-    cd yobi-1.0.0
-    bin/yobi
+    cd yona-1.0.0
+    bin/yona
 
-**Note**: If you are using Windows, run "bin/yobi.bat" instead of "bin/yobi".
+**Note**: If you are using Windows, run "bin/yona.bat" instead of "bin/yona".
 
 Open http://127.0.0.1:9000 with your web browser then you can see the welcome
 page.
 
 #### Upgrade
 
-Download the latest version of Yobi and unzip it.
+Download the latest version of Yona and unzip it.
 
-**Note: Don't overwrite or delete `yobi.h2.db` file, `repo` & `uploads` directory!**
+**Note: Don't overwrite or delete `yona.h2.db` file, `repo` & `uploads` directory!**
 
 ### Build from source
 
@@ -115,26 +432,26 @@ or using web browser (for windows)
 
     cd activator-1.2.10-minimal
 
-#### Download Yobi
+#### Download Yona
 
 Case1. Using [git client](http://git-scm.com/) (recommended)
     
-    git clone https://github.com/naver/yobi.git
+    git clone https://github.com/yona-projects/yona.git
 
 or 
 
 Case2. Just download the latest stable release
-If you want to download one of the stable releases, you can download a compressed file by clicking the URL below. And then name it a yobi and unzip it.
+If you want to download one of the stable releases, you can download a compressed file by clicking the URL below. And then name it a yona and unzip it.
 
-    https://github.com/naver/yobi/archive/master.zip
+    https://github.com/yona-projects/yona/archive/master.zip
     
-**Caution! In case2, You might come across troubles when you try to upgrade Yobi.**
+**Caution! In case2, You might come across troubles when you try to upgrade Yona.**
 
-> You can locate your own Yobi directory in any other place. Please note that you must add Play Activator home path to $PATH environment in that case.
+> You can locate your own Yona directory in any other place. Please note that you must add Play Activator home path to $PATH environment in that case.
 
-#### Change directory to cloned Yobi directory (or cd to your unzipped file directory)
+#### Change directory to cloned Yona directory (or cd to your unzipped file directory)
 
-    cd yobi
+    cd yona
 
 #### Run Play Activator
 
@@ -153,7 +470,7 @@ Required files will be download automatically. In the first time, it may take ab
 
 It will download additional files and compile sources.
 
-If you want to run Yobi in development mode, use **run**. You can see more detailed errors and can use dynamic compilation.
+If you want to run Yona in development mode, use **run**. You can see more detailed errors and can use dynamic compilation.
 
 #### Connect with browser
 
@@ -161,96 +478,96 @@ If you want to run Yobi in development mode, use **run**. You can see more detai
 
 If you want to change port, check your permission to use 80 port. See 'Options' section for more information.
 
-#### Upgrade Yobi
+#### Upgrade Yona
 
 Case1. Using git client (recommended)
 In installed directory, just type git update command.
 
-    git pull https://github.com/naver/yobi.git master
+    git pull https://github.com/yona-projects/yona.git master
 
 Case2. Download zip file
 
 In installed directory, download the latest release file and unzip it.
 
-    https://github.com/naver/yobi/archive/master.zip
+    https://github.com/yona-projects/yona/archive/master.zip
 
-**Be careful! Don't overwrite or delete `yobi.h2.db` file, `repo` & `uploads` directory!**
+**Be careful! Don't overwrite or delete `yona.h2.db` file, `repo` & `uploads` directory!**
 
-**If you are installing Yobi in Windows system, you may need set `applyEvolutions.default` Java property to true. See 'Options' section for more information**
+**If you are installing Yona in Windows system, you may need set `applyEvolutions.default` Java property to true. See 'Options' section for more information**
 
 ### Options
 
-When start yobi, You can specify the home directory to contain data for Yobi.
-If you want to use `/home/user/.yobi` as the home directory, set 'yobi.home'
+When start yona, You can specify the home directory to contain data for Yona.
+If you want to use `/home/user/.yona` as the home directory, set 'yona.home'
 property as follows:
 
-    bin/yobi -Dyobi.home=/home/user/.yobi
+    bin/yona -Dyona.home=/home/user/.yona
 
-Note: Yobi doesn't load the configuration files from the home directory. If you
+Note: Yona doesn't load the configuration files from the home directory. If you
 want to do that, specify the path to the config files as follows:
 
-    bin/yobi -Dyobi.home=/home/user/.yobi -Dconfig.file=/home/user/.yobi/conf/application.conf -Dlogger.file=/home/user/.yobi/conf/application-logger.xml
+    bin/yona -Dyona.home=/home/user/.yona -Dconfig.file=/home/user/.yona/conf/application.conf -Dlogger.file=/home/user/.yona/conf/application-logger.xml
 
 You can also specify Java options with `_JAVA_OPTIONS` environment variable. If
 the memory of your system equals to or greater than 4GB, we recommend to start
-Yobi as follows:
+Yona as follows:
 
     _JAVA_OPTIONS="-Xmx2048m -Xms2048m" activator "start -DapplyEvolutions.default=true -Dhttp.port=9000"
 
 #### Linux and OSX
 
-When start yobi, you can specify the home directory to contain data, the
-database file and configuration files for Yobi. For example, if you want to
-use `/home/user/.yobi` as the home directory, set YOBI_HOME as follows:
+When start yona, you can specify the home directory to contain data, the
+database file and configuration files for Yona. For example, if you want to
+use `/home/user/.yona` as the home directory, set YONA_HOME as follows:
 
-    YOBI_HOME=/home/user/.yobi bin/yobi
+    YONA_HOME=/home/user/.yona bin/yona
 
 You can also specify Java options with `_JAVA_OPTIONS` environment variable. If
 the memory of your system equals to or greater than 4GB, we recommend to start
-Yobi as follows:
+Yona as follows:
 
-    _JAVA_OPTIONS="-Xmx2048m -Xms2048m" bin/yobi
+    _JAVA_OPTIONS="-Xmx2048m -Xms2048m" bin/yona
 
-Yobi use 9000 port for HTTP connection by default. If you want to use another
+Yona use 9000 port for HTTP connection by default. If you want to use another
 port, set http.port Java property.
 
-    _JAVA_OPTIONS="-Dhttp.port=80" bin/yobi
+    _JAVA_OPTIONS="-Dhttp.port=80" bin/yona
 
 #### Windows
 
-When start yobi, you can specify the data directory, the config file, the
-config file for logger with yobi.home, config.file and logger.file as follows:
+When start yona, you can specify the data directory, the config file, the
+config file for logger with yona.home, config.file and logger.file as follows:
 
-    SET JAVA_OPTS=-Dyobi.home=/home/user/.yobi -Dconfig.file=/home/user/.yobi/conf/application.conf -Dlogger.file=/home/user/.yobi/conf/application-logger.xml
-    bin\yobi.bat
+    SET JAVA_OPTS=-Dyona.home=/home/user/.yona -Dconfig.file=/home/user/.yona/conf/application.conf -Dlogger.file=/home/user/.yona/conf/application-logger.xml
+    bin\yona.bat
 
 You can specify the database file in `application.conf` as follows:
 
-    db.default.url="jdbc:h2:file:/home/nori/.yobi/yobi"
+    db.default.url="jdbc:h2:file:/home/nori/.yona/yona"
 
 You can also specify Java options with `_JAVA_OPTIONS` environment variable. If
 the memory of your system equals to or greater than 4GB, we recommend to start
-Yobi as follows:
+Yona as follows:
 
     SET JAVA_OPTS=-Xmx2048m -Xms2048m
-    bin\yobi.bat
+    bin\yona.bat
 
-Yobi use 9000 port for HTTP connection by default. If you want to use another
+Yona use 9000 port for HTTP connection by default. If you want to use another
 port, set http.port Java property.
 
     _JAVA_OPTIONS=-Dhttp.port=80
-    bin\yobi.bat
+    bin\yona.bat
 
-If you are upgrading Yobi from the previous version, the upgrade may fail with
+If you are upgrading Yona from the previous version, the upgrade may fail with
 a warning message that says you need migration as follows:
 
     [warn] play - Your production database [default] needs evolutions!
 
 In such case, set `applyEvolutions.default` Java property to true and restart
-Yobi.
+Yona.
 
     SET JAVA_OPTS=-DapplyEvolutions.default=true
-    bin\yobi.bat
+    bin\yona.bat
 
 #### For more information about options
 
@@ -260,276 +577,5 @@ See [http://www.playframework.com/documentation/2.3.6/Production](http://www.pla
 
 Copy the below file and directories to another place.
 
-    file: yobi.h2.db
+    file: yona.h2.db
     directory: repo, uploads
-
-<br/>
-<br/>
-<br/>
-
-<a name="korean"></a>
-# for korean
-[[English]](#english)
-
-Yobi
-===========
-
-협업 개발 플랫폼
-
-Official Site: [http://yobi.io](http://yobi.io)
-
-Yobi 소개
---
-Yobi (구 nFORGE)는 협업 개발을 위한 프로젝트 호스팅 SW입니다. 
-
-- 버그나 이슈를 관리할 수 있는 이슈 트래커
-- 각종 문서와 정보를 간편하게 공유할 수 있는 게시판
-- 소스코드의 변경내역을 편리하게 관리할 수 있는 형상관리 도구 git/svn 기본 내장
-- 협업개발을 위한 코드 주고받기
-
-등을 비롯하여 팀 개발을 위한 다양한 기능을 포함하고 있습니다.
-
-
-라이선스
---
-Yobi는 Apache 2.0 라이선스로 제공됩니다.
-
-## 설치하기
-
-### 다운받아 설치하기
-
-#### 설치
-
-Yobi 최신 버전을 http://yobi.io/yobi.zip 에서 다운받아 압축을 풉니다. 예를 들어
-wget으로 받아서 unzip으로 압축을 푼다면:
-
-    wget http://yobi.io/yobi.zip
-    unzip yobi.zip
-
-#### 실행
-
-압축이 풀린 디렉터리로 이동해서 yobi를 실행합니다. 디렉터리가 yobi-1.0.0 이라면:
-
-    cd yobi-1.0.0
-    bin/yobi
-
-**주의**: 윈도우 사용자는 bin/yobi 대신 bin/yobi.bat을 실행해야 합니다.
-
-이제 웹 브라우저로 http://127.0.0.1:9000 에 접속하면 환영 페이지를 보실 수 있습니다.
-
-#### 업그레이드
-
-설치할 때와 똑같이, 최신 버전을 내려받아 Yobi가 설치된 디렉터리에 압축파일을
-풉니다. **주의사항! `yobi.h2.db` 파일, `repo`와 `uploads` 디렉터리를 삭제하거나
-덮어쓰지 않도록 주의하세요!**
-
-### 소스 코드에서 빌드하기
-
-#### JDK version 확인
-
-    java -version
-    javac -version
-
-JDK 7(1.7) 혹은 8(1.8) 이어야 합니다.
-
-#### Play Activator 내려 받기
-
-    curl -O http://downloads.typesafe.com/typesafe-activator/1.2.10/typesafe-activator-1.2.10-minimal.zip
-
-혹은
-
-    wget http://downloads.typesafe.com/typesafe-activator/1.2.10/typesafe-activator-1.2.10-minimal.zip
-
-웹 브라우저에서 (이를테면, MS윈도우즈 사용자일 경우)
-
-    http://downloads.typesafe.com/typesafe-activator/1.2.10/typesafe-activator-1.2.10-minimal.zip
-
-#### 압축 풀기
-
-    unzip typesafe-activator-1.2.10-minimal.zip
-
-#### 압축을 푼 다음 하위 디렉터리로 이동
-
-    cd activator-1.2.10-minimal
-
-#### Yobi 소스 내려 받기
-
-case1. [git 클라이언트](http://git-scm.com)를 이용한 다운로드 (추천)
-    
-    git clone https://github.com/naver/yobi.git
-    
-case2. 단순히 최신 안정버전을 내려받고자 할 때는 아래 링크를 이용해서 압축파일을 내려받은 다음 yobi를 폴더이름으로 해서 해제합니다.
-
-    git pull https://github.com/naver/yobi.git master
-    
-주의! case2의 경우, 업그레이드 할 때 문제가 생길 수 있습니다.
-
-> 임의의 장소에 Yobi 디렉터리를 위치시킬 경우에는 activator 실행파일이 있는 Play Activator 디렉터리를 $PATH 환경변수에 추가해 주세요.
-
-#### clone 받은 Yobi 디렉터리로 이동
-(혹은 압축을 해제한 디렉터리로 이동)
-
-    cd yobi
-
-#### 상단에 있는 activator 실행파일 실행
-
-    ../activator
-
-혹은 (윈도우 사용자일 경우)
-
-    ..\activator
-
-실행하면 필요한 파일들을 web에서 내려받습니다. 첫 실행 시 네트워크 상황에 따라 10여 분 가까이 소요될 수 있습니다.
-
-#### 콘솔이 뜨면 start 명령어로 기동
-
-    start
-
-추가로 필요한 파일들을 web에서 내려받은 다음 소스 파일들을 컴파일 후 운영 모드(production mode)로 실행합니다.
-개발 모드(development mode)로 실행하고자 할 경우에는 **start** 명령어 대신에 **run** 명령어로 실행합니다.
-
-**주의사항: 설정 파일 및 데이터가 기본적으로 target/universal/stage 디렉터리에
-저장됩니다. 이 디렉터리는 activator clean 실행 시 모두 삭제되므로, 아래의 옵션
-설정방법을 보고 데이터가 저장될 디렉터리를 설정하시는 것이 좋습니다**
-
-#### 브라우저로 접속
-
-    http://127.0.0.1:9000
-
-80 포트 등으로 포트를 변경하고 싶을 경우에는 해당 포트가 사용 가능한지 확인한 다음 80 포트를 사용할 수 있는 계정으로 실행합니다. 포트 변경 방법에 대해서는 '옵션' 문단을 읽어주세요.
-
-#### 업그레이드하기
-
-case1. git 클라이언트를 이용 (추천)
-설치된 디렉터리에서, 아래와 같은 git 명령어를 이용합니다
-
-    git pull https://github.com/naver/yobi.git master
-
-case2. 압축파일을 내려받을 경우
-
-설치된 디렉터리에서, 최신 릴리즈의 압축파일을 내려받아 Yobi가 설치된 디렉터리에 압축파일을 풉니다.
-
-    https://github.com/naver/yobi/archive/master.zip
-
-**주의사항! `yobi.h2.db` 파일, `repo`와 `uploads` 디렉터리를 삭제하거나 덮어쓰지 않도록 주의하세요!**
-
-**윈도에서 업그레이드하는 경우, -DapplyEvolutions.default=true 설정이 필요할
-수 있습니다. 자세한 것은 아래 옵션 설정 설명을 보세요**
-
-### 옵션
-
-#### Linux, OSX의 경우
-
-`YOBI_HOME` 속성을 통해 Yobi가 데이터, 데이터베이스, 설정파일을 불러오고 저장할
-홈 디렉터리를 지정할 수 있습니다. 예를 들어, /home/user/.yobi를 홈 디렉터리로
-사용하려면 Yobi를 시작할 때 다음과 같이 지정합니다.
-
-    YOBI_HOME=/home/user/.yobi bin/yobi
-
-`_JAVA_OPTIONS` 환경변수를 이용해 자바 환경 변수를 지정할 수도 있습니다. 시스템
-메모리가 4기가 이상이라면, 다음과 같은 옵션으로 실행하는걸 권장합니다.
-
-    _JAVA_OPTIONS="-Xmx2048m -Xms2048m" bin/yobi
-
-기본적으로 9000번 포트를 사용하지만, 다른 포트를 사용하고 싶다면 http.port 자바
-환경변수를 수정합니다.
-
-    _JAVA_OPTIONS="-Dhttp.port=80" bin/yobi
-
-#### Windows의 경우
-
-Yobi를 시작할 때, 데이터 디렉터리, 설정파일, 로그 설정파일의 위치를 각각
-yobi.home, config.file, logger.file 자바 프로퍼티로 지정할 수 있습니다.
-
-    SET JAVA_OPTS=-Dyobi.home=/home/user/.yobi -Dconfig.file=/home/user/.yobi/conf/application.conf -Dlogger.file=/home/user/.yobi/conf/application-logger.xml
-    bin\yobi.bat
-
-데이터베이스가 저장될 파일은 다음과 같이 application.conf 설정 파일에서 지정할
-수 있습니다.
-
-    db.default.url="jdbc:h2:file:/home/nori/.yobi/yobi"
-
-`_JAVA_OPTIONS` 환경변수를 이용해 자바 환경 변수를 지정할 수도 있습니다. 시스템
-메모리가 4기가 이상이라면, 다음과 같은 옵션으로 실행하는 걸 권장합니다.
-
-    SET JAVA_OPTS=-Xmx2048m -Xms2048m
-    bin\yobi.bat
-
-기본적으로 9000번 포트를 사용하지만, 다른 포트를 사용하고 싶다면 http.port 자바
-환경변수를 수정합니다.
-
-    _JAVA_OPTIONS=-Dhttp.port=80
-    bin\yobi.bat
-
-업그레이드를 하는 경우 다음과 같이 데이터베이스 스키마 마이그레이션이
-필요하다는 경고 메시지와 함께 실행되지 않는 상황을 겪을 수 있습니다.
-
-    [warn] play - Your production database [default] needs evolutions!
-
-그런 경우에는 자동으로 마이그레이션이 되도록 다음과 같이
-applyEvolutions.default 자바 프로퍼티를 true로 설정합니다.
-
-    SET JAVA_OPTS=-DapplyEvolutions.default=true
-    bin\yobi.bat
-
-#### 옵션에 대한 더 자세한 설명
-
-[http://www.playframework.com/documentation/2.3.6/Production](http://www.playframework.com/documentation/2.3.6/Production) 부분을 확인해 주세요.
-
-### 백업하기
-
-특별히 외부 DB를 사용하지 않는다면 아래 내용을 잘 백업해서 보관해 주시면 됩니다.
-
-    file: yobi.h2.db
-    directory: repo, uploads
-
-
-
-이하 내용은 [alzkdpf](https://github.com/alzkdpf)님께서 보충해 주신 0.7.3 에서 0.8.x로 업데이트 방법 가이드이며 소스코드를 이용해서 Yobi를 설치한 경우를 가정해 설명되어 있습니다.
-(고맙습니다 [alzkdpf](https://github.com/alzkdpf)님)
-
-0.7.3 에서 0.8 업데이트 방법
---
-- 기본 백업방법 : [상단의 백업하기 참조](https://github.com/naver/yobi#백업하기)
-- DB 백업 및 복원
-- conf 설정
-
-## DB 백업 방법
-` !! [주의사항] 백업 및 복구 작업은 절대로 운영중에 수행하지 마세요 !! `
-
-Yobi 0.7.3이 설치된 디렉토리(예: ~/play-2.1.0/yobi)에서:
-
-#### 방법 1. 단순 파일 복사를 이용한 백업 (yobi.h2.db 사본 생성)
-    cp yobi.h2.db yobi.h2.db.bak
-#### 방법 2. DB 전체를 sql 파일로 추출하는 방법
-    java -cp ../repository/local/com.h2database/h2/1.3.168/jars/h2.jar org.h2.tools.Recover
-#### 방법 3. sql을 파일을 추출하면서 압축까지 하는 방법
-    java -cp ../repository/local/com.h2database/h2/1.3.168/jars/h2.jar org.h2.tools.Script -url jdbc:h2:file:yobi -user "" -script ./backup_file_name.zip -options compression zip
-
-**Note**: 단순 파일 복사는 운영중에는 사용하지 않는걸 권합니다. 운영상태에서는 sql 파일이나 zip파일로 백업하는 방법을 권장드리며 추후에도 h2 라이브러리를 활용해 백업 및 복원을 추천드립니다.
-
-## DB 복원 방법
-` !! [주의사항] 백업 및 복구 작업은 절대로 운영중에 수행하지 마세요 !! `
-
-Yobi 0.8이 설치된 디렉토리(예: ~/activator-1.2.10-minimal/yobi)에서:
-
-#### 방법 1. 단순 파일 복사를 이용한 백업 (yobi.h2.db 사본을 이용)
-    cp yobi.h2.db.bak yobi.h2.db
-
-#### 방법 2. 추출한 sql 파일을 이용해서 복원하는 경우
-    java -cp ./target/universal/stage/lib/com.h2database.h2-1.3.176.jar org.h2.tools.RunScript -url jdbc:h2:file:yobi -user "" -script yobi.h2.sql
-
-#### 방법 3. zip 으로 압축된 형태의 sql 파일을 이용해서 복원 할 경우
-    java -cp ./target/universal/stage/lib/com.h2database.h2-1.3.176.jar org.h2.tools.RunScript -url jdbc:h2:file:yobi -user "" script ./backup_file_name.zip -options compression zip
-
-### application.conf 설정
-application.secret을 사용하던 0.7.3 버전에서 확인후 0.8 로 붙여넣기 합니다.
-
-
-### DB관련 작업을 한 후 정상적으로 페이지가 뜨지 않을 경우 아래 항목을 확인해 주세요.
-
-- application.conf 가 제대로 읽히는지
-- application.secret 적용여부
-- db.default.url 확인 
-
-기타 관련해서는 [이슈 #924](https://github.com/naver/yobi/issues/924)을 참고해 주세요
