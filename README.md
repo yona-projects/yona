@@ -236,11 +236,14 @@ db.default.password="yonadan"
 
 #### Windows의 경우
 
-Yona를 시작할 때, 데이터 디렉터리, 설정파일, 로그 설정파일의 위치를 각각
-yona.home, config.file, logger.file 자바 프로퍼티로 지정해서 실행해주세요!
+Yona를 시작할 때, YONA_HOME 폴더의 위치를 지정해서 아래 명령순서로 실행해주세요!
+아래 내용이 들어가 있는 run.bat을 따로 만드셔도 좋습니다!
 
-SET JAVA_OPTS=-Dyona.home=C:\yona-1.0.2 -Dconfig.file=C:\yona-1.0.2\conf\application.conf -Dlogger.file=C:\yona-1.0.2\conf\application-logger.xml
+```
+SET YONA_HOME=c:\yona\yona-1.0.4
+SET JAVA_OPTS=-Dyona.home=%YONA_HOME% -Dconfig.file=%YONA_HOME%\conf\application.conf -Dlogger.file=%YONA_HOME%\conf\application-logger.xml
 bin\yona.bat
+```
 
 `_JAVA_OPTIONS` 환경변수를 이용해 자바 환경 변수를 지정할 수도 있습니다. 시스템
 메모리가 4기가 이상이라면, 다음과 같은 옵션으로 실행하는 걸 권장합니다.
