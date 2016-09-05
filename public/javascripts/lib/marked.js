@@ -24,8 +24,7 @@
     def: /^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +["(]([^\n]+)[")])? *(?:\n+|$)/,
     table: noop,
     paragraph: /^((?:[^\n]+\n?(?!hr|heading|lheading|blockquote|tag|def))+)\n*/,
-    text: /^[^\n]+/,
-    pre : /^ *<pre(?:\s+[^>]*)*\s*> *(\S+)? *\n([\s\S]+?)\s*\1 *(?:\n+|$)/
+    text: /^[^\n]+/
   };
 
   block.bullet = /(?:[*+-]|\d+\.)/;
@@ -191,16 +190,6 @@
           type: 'code',
           lang: cap[2],
           text: cap[3] || ''
-        });
-        continue;
-      }
-
-      // pre
-      if (cap = this.rules.pre.exec(src)) {
-        src = src.substring(cap[0].length);
-        this.tokens.push({
-          type: 'pre',
-          text: cap[2]
         });
         continue;
       }
@@ -373,7 +362,7 @@
               : 'html',
           pre: !this.options.sanitizer
           && (cap[1] === 'pre' || cap[1] === 'script' || cap[1] === 'style'),
-          text: (cap[1]=='script' && this.options.script==false ? escape(cap[0]) : cap[0])
+          text: cap[0]
         });
         continue;
       }
@@ -396,7 +385,7 @@
           type: 'table',
           header: cap[1].replace(/^ *| *\| *$/g, '').split(/ *\| */),
           align: cap[2].replace(/^ *|\| *$/g, '').split(/ *\| */),
-          cells: cap[3].replace(/(?: *\| *)?\n$/, '').split('\n')
+          cells: cap[3].replace(/\n$/, '').split('\n')
         };
 
         for (i = 0; i < item.align.length; i++) {
@@ -412,6 +401,9 @@
         }
 
         for (i = 0; i < item.cells.length; i++) {
+          if (!item.cells[i].match(/\|$/)) {
+            item.cells[i] = item.cells[i] + "\|";
+          }
           item.cells[i] = item.cells[i]
               .replace(/^ *\| *| *\| *$/g, '')
               .split(/ *\| */);
@@ -622,7 +614,7 @@
             ? this.options.sanitizer
             ? this.options.sanitizer(cap[0])
             : escape(cap[0])
-            : this.renderer.html(cap[0]);
+            : cap[0]
         continue;
       }
 
@@ -770,7 +762,6 @@
 
   function Renderer(options) {
     this.options = options || {};
-
   }
 
   Renderer.prototype.code = function(code, lang, escaped) {
@@ -1004,11 +995,6 @@
             this.token.lang,
             this.token.escaped);
       }
-      case 'pre': {
-        return '<pre>'
-            + escape(this.token.text)
-            + '</pre>\n'
-      }
       case 'table': {
         var header = ''
             , body = ''
@@ -1108,11 +1094,12 @@
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
-        .replace(/'/g, '\'');
+        .replace(/'/g, '&#39;');
   }
 
   function unescape(html) {
-    return html.replace(/&([#\w]+);/g, function(_, n) {
+    // explicitly match decimal, hex, and named HTML entities
+    return html.replace(/&(#(?:\d+)|(?:#x[0-9A-Fa-f]+)|(?:\w+));?/g, function(_, n) {
       n = n.toLowerCase();
       if (n === 'colon') return ':';
       if (n.charAt(0) === '#') {
@@ -1260,7 +1247,6 @@
     tables: true,
     breaks: false,
     pedantic: false,
-    script : false,
     sanitize: false,
     sanitizer: null,
     mangle: true,
