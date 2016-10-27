@@ -1255,7 +1255,7 @@
     highlight: null,
     langPrefix: 'lang-',
     smartypants: false,
-    headerPrefix: '',
+    headerPrefix: 'yb-header-',
     renderer: new Renderer,
     xhtml: false
   };
