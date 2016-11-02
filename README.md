@@ -7,7 +7,9 @@ Yona
 
 21세기 협업 개발 플랫폼
 
-DEMO: [http://yona.io](http://yona.io)
+DEMO: [http://repo.yona.io](http://repo.yona.io)
+
+Official Site: [http://yona.io](http://yona.io)
 
 Yona?
 --
