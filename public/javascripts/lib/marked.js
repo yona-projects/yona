@@ -1247,6 +1247,7 @@
     tables: true,
     breaks: false,
     pedantic: false,
+    script : false,
     sanitize: false,
     sanitizer: null,
     mangle: true,
