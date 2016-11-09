@@ -21,11 +21,11 @@ package controllers;
 
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.annotation.Transactional;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.annotation.AnonymousCheck;
 import models.*;
 import models.enumeration.Operation;
 import models.enumeration.UserState;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.crypto.RandomNumberGenerator;
@@ -43,6 +43,7 @@ import play.mvc.*;
 import play.mvc.Http.Cookie;
 import utils.*;
 import views.html.user.*;
+import org.joda.time.LocalDateTime;
 
 import java.util.*;
 
@@ -579,6 +580,14 @@ public class UserApp extends Controller {
                 return ok(edit_notifications.render(userForm, user));
             case EMAILS:
                 return ok(edit_emails.render(userForm, user));
+            case TOKEN_RESET:
+                user.token = null;
+            case TOKEN:
+                if( StringUtils.isEmpty(user.token)){
+                    user.token = new Sha256Hash(LocalDateTime.now().toString()).toBase64();
+                    user.save();
+                }
+                return ok(edit_token.render(userForm, user));
             default:
             case PROFILE:
                 return ok(edit.render(userForm, user));
@@ -589,7 +598,9 @@ public class UserApp extends Controller {
         PROFILE("profile"),
         PASSWORD("password"),
         NOTIFICATIONS("notifications"),
-        EMAILS("emails");
+        EMAILS("emails"),
+        TOKEN("token"),
+        TOKEN_RESET("token_reset");
 
         private String tabId;
 

@@ -40,4 +40,9 @@
     @Messages("userinfo.changeEmails")
     </a>
   </li>
+  <li @if(tabId == "token"){ class="active" }>
+    <a href="@routes.UserApp.editUserInfoByTabForm("token")">
+    @Messages("userinfo.token")
+    </a>
+  </li>
 </ul>

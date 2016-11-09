@@ -1,0 +1,53 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2012 NAVER Corp.
+* http://yobi.io
+*
+* @author Ahn Hyeok Jun
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@(userForm: play.data.Form[User], user:User)
+
+@import helper._
+@import utils.TemplateHelper._
+
+@siteLayout(user.loginId, utils.MenuType.USER) {
+<div class="site-breadcrumb-outer">
+    <div class="site-breadcrumb-inner">
+        <h3>@Messages("userinfo.token")</h3>
+    </div>
+</div>
+<div class="page-wrap-outer">
+    <div class="page-wrap">
+        @partial_edit_tabmenu("token")
+        <div class="token-generate">
+            <form id="frmBasic" method="post" action="@routes.UserApp.editUserInfoByTabForm("token_reset")" class="pull-left" style="width:100%">
+                <div>@Messages("userinfo.token")</div>
+                <div>
+                    <input onClick="this.setSelectionRange(0, this.value.length)" size="45" style="width: 90%" type="text" name="name" class="text" value="@user.token" readonly>
+                </div>
+                <div>
+                    <button type="submit" class="ybtn ybtn-success">@Messages("userinfo.recreateToken")</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(function(){
+        $yobi.loadModule("user.Setting");
+    });
+</script>
+}
