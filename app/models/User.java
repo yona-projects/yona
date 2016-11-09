@@ -97,6 +97,7 @@ public class User extends Model implements ResourceConvertible {
     public String passwordSalt;
     @Constraints.Email(message = "user.wrongEmail.alert")
     public String email;
+    public String token;
 
     @Transient
     private Boolean siteManager;
