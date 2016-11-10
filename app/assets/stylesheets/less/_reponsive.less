@@ -1,7 +1,30 @@
 @media all and (max-width: 640px){
+    .board-actrow {
+        padding: 2px;
+    }
+    .board-comment-wrap {
+        padding: 2px;
+    }
+    .post-list-wrap {
+        margin-left: 10px;
+    }
     .markdown-wrap {
         ul, ol {
             padding: 0 0 0 1.5em !important;
+        }
+        p, ul, ol {
+            font-size: 16px !important;
+        }
+        img {
+            padding: 0 !important;
+            box-shadow: none !important;
+
+            margin-left: auto !important;
+            margin-right: auto !important;
+            max-width: 100vw !important;
+            position: relative;
+            left: -15px;
+            display: block;
         }
     }
     .post-list-wrap {
@@ -95,11 +118,7 @@
     .comments .event {
         padding-left: 5px !important;
     }
-    .markdown-wrap {
-        p, ul, ol {
-            font-size: 16px !important;
-        }
-    }
+
     .board-header .date {
         margin-right: 5px !important;
     }
@@ -157,7 +176,7 @@
         color: #5dbbe0 !important;
     }
     .span-left-pane {
-        width: 98% !important;
+        width: 100% !important;
     }
     .span-right-pane {
         display: none !important;
@@ -214,12 +233,12 @@
 
     .page-wrap-outer {
         min-width: 10px !important;
-        padding: 2px !important;
+        padding: 0 !important;
     }
 
     .board-body {
         .content {
-            padding: 0 5px;
+            padding: 0 15px;
         }
     }
 
@@ -232,10 +251,6 @@
 
     .project-menu-outer {
         min-width: 10px !important;
-    }
-
-    .project-page-wrap {
-        margin-top: 5px !important;
     }
 
     .page-footer-outer {
@@ -307,7 +322,6 @@
 
     .project-header-wrap .project-util-wrap {
         bottom: 10px !important;
-        right: -25px !important;
     }
 
     .span-hard-wrap {
@@ -414,7 +428,8 @@
     }
 
     .project-page-wrap {
-        width: 97%;
+        width: 100%;
+        margin-top: 5px !important;
         max-width:980px;
         .project-breadcrumb {
             font-size: 1.5em;
