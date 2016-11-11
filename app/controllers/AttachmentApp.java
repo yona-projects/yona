@@ -62,7 +62,7 @@ public class AttachmentApp extends Controller {
         }
         File file = filePart.getFile();
 
-        User uploader = UserApp.currentUser();
+        User uploader = accessedWithToken(request().getHeader("Yona-Token"));
 
         // Anonymous cannot upload a file.
         if (uploader.isAnonymous()) {
@@ -117,6 +117,19 @@ public class AttachmentApp extends Controller {
             // Why not 204? Because 204 doesn't allow response to have a body,
             // so we cannot tell what is same with the file you try to add.
             return ok(responseBody);
+        }
+    }
+
+    private static User accessedWithToken(String token){
+        User user = null;
+        if(token != null) {
+            user = User.find.where().eq("token", token).findUnique();
+        }
+
+        if(user == null){
+            return User.anonymous;
+        } else {
+            return user;
         }
     }
 
