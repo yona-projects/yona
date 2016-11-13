@@ -58,6 +58,7 @@ public class AccessControl {
      * @return true if the user has the permission
      */
     public static boolean isProjectResourceCreatable(User user, Project project, ResourceType resourceType) {
+        user = User.findUserIfTokenExist(user);
         // Anonymous user cannot create anything.
         if (user == null || user.isAnonymous()) {
             return false;

@@ -86,11 +86,15 @@ public class Attachment extends Model implements ResourceConvertible {
      * @return an attachment which matches up with the given one.
      */
     private static Attachment findBy(Attachment attach) {
-        return find.where()
+         List<Attachment> list = find.where()
                 .eq("name", attach.name)
                 .eq("hash", attach.hash)
                 .eq("containerType", attach.containerType)
-                .eq("containerId", attach.containerId).findUnique();
+                .eq("containerId", attach.containerId).findList();
+        if( list.size() > 0) {
+            return list.get(0);
+        }
+        return null;
     }
 
     /**

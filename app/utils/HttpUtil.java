@@ -74,8 +74,7 @@ public class HttpUtil {
      *
      * @param request  the request of the client
      * @param types    the supported types
-     * @return the most preferred type; {@code null} if the client has no
-     *         preference among the supported types.
+     * @return the most preferred type;
      */
     public static String getPreferType(Http.Request request, String ... types) {
         // acceptedTypes is sorted by preference.
@@ -86,7 +85,7 @@ public class HttpUtil {
                 }
             }
         }
-        return null;
+        return "text/html";  // Default fallback. Should not be null!
     }
 
     /**

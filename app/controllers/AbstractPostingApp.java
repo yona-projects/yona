@@ -20,6 +20,7 @@
  */
 package controllers;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import controllers.annotation.AnonymousCheck;
 import models.*;
 import models.enumeration.Direction;
@@ -130,6 +131,23 @@ public class AbstractPostingApp extends Controller {
                     temporaryUploadFiles);
             if( attachedFileCount != temporaryUploadFiles.length){
                 flash(Constants.TITLE, Messages.get("post.popup.fileAttach.hasMissing", temporaryUploadFiles.length - attachedFileCount));
+                flash(Constants.DESCRIPTION, Messages.get("post.popup.fileAttach.hasMissing.description", getTemporaryFilesServerKeepUpTimeOfMinuntes()));
+            }
+        }
+    }
+
+    public static void attachUploadFilesToPost(JsonNode files, Resource resource) {
+        if(files.isArray() && files.size() > 0){
+            String [] fileIds = new String[files.size()];
+            int idx = 0;
+            for (JsonNode fileNo : files) {
+                fileIds[idx] = fileNo.asText();
+                idx++;
+            }
+            int attachedFileCount = Attachment.moveOnlySelected(UserApp.currentUser().asResource(), resource,
+                    fileIds);
+            if( attachedFileCount != files.size()){
+                flash(Constants.TITLE, Messages.get("post.popup.fileAttach.hasMissing", files.size() - attachedFileCount));
                 flash(Constants.DESCRIPTION, Messages.get("post.popup.fileAttach.hasMissing.description", getTemporaryFilesServerKeepUpTimeOfMinuntes()));
             }
         }
