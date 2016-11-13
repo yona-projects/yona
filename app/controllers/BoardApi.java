@@ -9,13 +9,16 @@ package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import models.IssueLabel;
-import models.Posting;
-import models.Project;
+import controllers.annotation.IsCreatable;
+import models.*;
+import models.enumeration.ResourceType;
+import org.joda.time.DateTime;
 import play.db.ebean.Transactional;
 import play.libs.Json;
 import play.mvc.Result;
+import utils.JodaDateUtil;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -34,7 +37,6 @@ public class BoardApi extends AbstractPostingApp {
         Set<IssueLabel> labels = new HashSet<>();
 
         for(JsonNode node: json){
-            System.out.println("node: " + node);
             Long labelId = Long.parseLong(node.asText());
             labels.add(IssueLabel.finder.byId(labelId));
         }
@@ -48,4 +50,42 @@ public class BoardApi extends AbstractPostingApp {
         return ok(result);
     }
 
+    @Transactional
+    @IsCreatable(ResourceType.BOARD_POST)
+    public static Result newPostByJson(String owner, String projectName) {
+        ObjectNode result = Json.newObject();
+        JsonNode json = request().body().asJson();
+        if(json == null) {
+            return badRequest("Expecting Json data");
+        }
+
+        Project project = Project.findByOwnerAndProjectName(owner, projectName);
+
+        User user = User.findUserIfTokenExist(UserApp.currentUser());
+        JsonNode files = json.findValue("temporaryUploadFiles");
+
+        final Posting post = new Posting();
+
+        post.createdDate = getCreatedDate(json.findValue("created").asLong());
+        post.updatedDate = getCreatedDate(json.findValue("created").asLong());
+        post.setAuthor(user);
+        post.project = project;
+        post.title = json.findValue("title").asText();
+        post.body = json.findValue("body").asText();
+        if(json.findValue("id") != null && json.findValue("id").asLong() > 0){
+            post.saveWithNumber(json.findValue("id").asLong());
+        } else {
+            post.save();
+        }
+        attachUploadFilesToPost(files, post.asResource());
+
+        return ok(result);
+    }
+
+    private static Date getCreatedDate(long timestamp){
+        if(timestamp == 0){
+            return JodaDateUtil.now();
+        }
+        return new DateTime(timestamp * 1000).toDate();
+    }
 }

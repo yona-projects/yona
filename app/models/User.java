@@ -275,6 +275,30 @@ public class User extends Model implements ResourceConvertible {
         }
     }
 
+    public static User findByUserToken(String token){
+        User user = null;
+        if(token != null) {
+            user = User.find.where().eq("token", token).findUnique();
+        }
+
+        if(user != null){
+            return user;
+        }
+
+        return User.anonymous;
+    }
+
+    public static User findUserIfTokenExist(User user){
+        if(!user.isAnonymous()){
+            return user;
+        }
+        String userToken = play.mvc.Http.Context.current().request().getHeader(UserApp.USER_TOKEN_HEADER);
+        if( userToken != null) {
+            return User.findByUserToken(userToken);
+        }
+        return User.anonymous;
+    }
+
     /**
      *
      * Find a user by email account.

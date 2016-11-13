@@ -36,6 +36,7 @@ import utils.ErrorViews;
 import utils.RedirectUtil;
 
 import static play.mvc.Controller.flash;
+import static play.mvc.Http.Context.current;
 
 /**
  * Checks if the project which meets the request of a pattern,
@@ -49,9 +50,20 @@ import static play.mvc.Controller.flash;
 public abstract class AbstractProjectCheckAction<T> extends Action<T> {
     @Override
     public final Promise<Result> call(Context context) throws Throwable {
+        String ownerLoginId = null;
+        String projectName = null;
+
         PathParser parser = new PathParser(context);
-        String ownerLoginId = parser.getOwnerLoginId();
-        String projectName = parser.getProjectName();
+        if (current().request().getHeader(UserApp.USER_TOKEN_HEADER) != null) {
+            // eg. context.request().path() : /-_-api/v1/owners/doortts/projects/Test/posts
+            String[] base = context.request().path().split("/owners/");
+            String[] partial = base[1].split("/");
+            ownerLoginId = partial[0];
+            projectName = partial[2];
+        } else {
+            ownerLoginId = parser.getOwnerLoginId();
+            projectName = parser.getProjectName();
+        }
 
         Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
 

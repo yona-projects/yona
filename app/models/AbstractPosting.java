@@ -143,6 +143,14 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
     }
 
     @Transactional
+    public void saveWithNumber(long number) {
+        this.number = number;
+        numOfComments = computeNumOfComments();
+        super.save();
+        updateMention();
+    }
+
+    @Transactional
     public void update() {
         numOfComments = computeNumOfComments();
         super.update();

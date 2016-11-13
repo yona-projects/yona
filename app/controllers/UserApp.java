@@ -70,6 +70,7 @@ public class UserApp extends Controller {
     public static final String DEFAULT_GROUP = "own";
     public static final String DEFAULT_SELECTED_TAB = "projects";
     public static final String TOKEN_USER = "TOKEN_USER";
+    public static final String USER_TOKEN_HEADER = "Yona-Token";
 
     @AnonymousCheck
     public static Result users(String query) {
@@ -360,6 +361,11 @@ public class UserApp extends Controller {
     public static User currentUser() {
         User user = getUserFromSession();
         if (!user.isAnonymous()) {
+            return user;
+        } else {
+            user = User.findUserIfTokenExist(user);
+        }
+        if(!user.isAnonymous()) {
             return user;
         }
         return getUserFromContext();
