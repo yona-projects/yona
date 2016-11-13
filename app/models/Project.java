@@ -645,10 +645,6 @@ public class Project extends Model implements LabelOwner {
             }
         }
 
-        for (Label label : labels) {
-            label.delete(this);
-            label.update();
-        }
 
         // Issues must be deleted before issue labels because issues may refer
         // issue labels.
@@ -672,6 +668,11 @@ public class Project extends Model implements LabelOwner {
             posting.delete();
         }
 
+        for (Label label : labels) {
+            label.delete(this);
+            label.update();
+        }
+        
         super.delete();
     }
 
