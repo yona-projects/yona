@@ -35,8 +35,9 @@
         case _ => routes.BoardApp.posts(project.owner, project.name).toString
     }
 }
+@titleForOGTag = @{post.title + " |:| " + post.body.substring(0, Math.min(post.body.length, 200))}
 
-@projectLayout(post.title, project, utils.MenuType.BOARD){
+@projectLayout(titleForOGTag, project, utils.MenuType.BOARD){
 @projectMenu(project, utils.MenuType.BOARD, "main-menu-only")
 <div class="page-wrap-outer">
     <div class="project-page-wrap board-view">
