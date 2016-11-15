@@ -62,7 +62,9 @@
     }
 }
 
-@projectLayout(getTitle(issue), project, utils.MenuType.ISSUE){
+@titleForOGTag = @{getTitle(issue) + " |:| " + issue.body.substring(0, Math.min(issue.body.length, 200))}
+
+@projectLayout(titleForOGTag, project, utils.MenuType.ISSUE){
 @projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
 <div class="page-wrap-outer">
     <div class="project-page-wrap board-view">

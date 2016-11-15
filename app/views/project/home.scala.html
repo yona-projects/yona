@@ -32,7 +32,7 @@
     if (tab == tabId) {"active"}
 }
 
-@projectLayout(message, project, utils.MenuType.PROJECT_HOME) {
+@projectLayout(project.name + " |:| " + project.overview, project, utils.MenuType.PROJECT_HOME) {
 @projectMenu(project, utils.MenuType.PROJECT_HOME, "")
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
