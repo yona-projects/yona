@@ -1,0 +1,52 @@
+@**
+* Yona, 21c Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp.
+* https://yona.io
+**@
+@(title: String)(theme:String)(content: Html)
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>@title</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta http-equiv="cache-control" content="no-cache">
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.ico")">
+        <link href='https://fonts.googleapis.com/css?family=Montserrat' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Indie+Flower' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Muli' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" type="text/css" media="all" href="@routes.Assets.at("bootstrap/css/bootstrap.css")">
+        <link rel="stylesheet" type="text/css" media="all" href="@routes.Assets.at("stylesheets/yobicon/style.css")">
+        <link rel="stylesheet" type="text/css" media="all" href="@routes.Assets.at("javascripts/lib/select2/select2.css")"/>
+        <link rel="stylesheet" type="text/css" media="all" href="@routes.Assets.at("javascripts/lib/pikaday/pikaday.css")" />
+        <link rel="stylesheet" type="text/css" media="all" href="@routes.Assets.at("stylesheets/yobi.css")">
+        <link rel='stylesheet' href="@routes.Assets.at("javascripts/lib/nprogress/nprogress.css")"/>
+
+        <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/nprogress/nprogress.js")"></script>
+        <script type="text/javascript">
+                NProgress.configure({ minimum: 0.6 });
+        </script>
+        <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery/jquery-1.9.0.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery/jquery.browser.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery/jquery.pjax.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yobi.Common.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/vendor.js")"></script>
+        <script type="text/javascript" src="@routes.Assets.at("javascripts/service/yona.Migration.js")"></script>
+    </head>
+
+    <body class="@theme">
+        @if(UserApp.isSiteAdminLoggedInSession){
+            <div class="admin-logged-in-affix" data-spy="affix" data-offset-top="30">@Messages("user.siteAdminLoggedInAffix") <span class="small-font">@Messages("user.siteAdminLoggedInAffix.maxim")</span></div>
+        }
+        @partial_update_notification()
+        @common.navbar(utils.MenuType.SITE_HOME, null, null)
+
+        @content
+
+        @common.scripts()
+    </body>
+</html>
+
