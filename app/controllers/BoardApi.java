@@ -9,8 +9,10 @@ package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
 import models.*;
+import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import org.joda.time.DateTime;
 import play.db.ebean.Transactional;
@@ -48,6 +50,18 @@ public class BoardApi extends AbstractPostingApp {
         result.put("id", project.owner);
         result.put("labels", toJson(posting.labels.size()));
         return ok(result);
+    }
+
+    @IsAllowed(value = Operation.READ, resourceType = ResourceType.BOARD_POST)
+    public static Result getPosts(String owner, String projectName, Long number) {
+        Project project = Project.findByOwnerAndProjectName(owner, projectName);
+        Posting post = Posting.findByNumber(project, number);
+
+        ObjectNode json = Json.newObject();
+        json.put("title", post.title);
+        json.put("body", post.body);
+        json.put("author", post.authorLoginId);
+        return ok(json);
     }
 
     @Transactional

@@ -9,6 +9,17 @@ GET            /navitest                                                        
 
 # Home page
 GET            /                                                                      controllers.Application.index()
+
+# Migration support page
+GET            /migration                                                             controllers.MigrationApp.migration()
+GET            /migration/projects                                                    controllers.MigrationApp.projects()
+GET            /migration/:owner/projects/:projectName                                controllers.MigrationApp.project(owner, projectName)
+GET            /migration/:owner/projects/:projectName/labels                         controllers.MigrationApp.exportLabels(owner, projectName)
+GET            /migration/:owner/projects/:projectName/issuelabel                     controllers.MigrationApp.exportIssueLabelPairs(owner, projectName)
+GET            /migration/:owner/projects/:projectName/milestones                     controllers.MigrationApp.exportMilestones(owner, projectName)
+GET            /migration/:owner/projects/:projectName/issues                         controllers.MigrationApp.exportIssues(owner, projectName)
+GET            /migration/:owner/projects/:projectName/posts                          controllers.MigrationApp.exportPosts(owner, projectName)
+
 # Map static resources from the /public folder to the /assets URL path
 GET            /messages.js                                                           controllers.Application.jsMessages()
 GET            /favicon.ico                                                           controllers.Assets.at(path="/public", file="images/favicon.ico")

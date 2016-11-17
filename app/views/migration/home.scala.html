@@ -1,0 +1,151 @@
+@import org.apache.commons.lang.StringUtils
+@(title: String, code:String, token:String)
+
+@migrationPageLayout(utils.Config.getSiteName)("") {
+    <div ng-app="yona.migration" ng-controller="MigrationController as vm" class="yobi-migration" ng-init="vm.setUserToken('@token');vm.yobiUser = '@UserApp.currentUser().loginId';vm.yobiUserEmail = '@UserApp.currentUser().email'">
+        <div class="header-pannel" ng-if="'@token'">
+            <div class="comeback-text pull-right">Yona to Github<span class="midium-font"></span></div>
+            <div class="row title-text-bg">
+                <div id="system-msg" class="well board" ng-cloak>
+                    <div class="messages" ng-repeat="msg in vm.systemMessages track by $index">
+                        {{::msg}}</div>
+                    <div class="error-data" ng-if="vm.importResult.errorData.length > 0">{{vm.importResult.errorData}}</div>
+                </div>
+            </div>
+            <div class="status">
+                <div class="row">
+                    <div class="head-title row-fluid" ng-cloak>
+                        <div class="source-title span5">
+                            <div class="project-name warn" ng-if="!vm.source.owner">Source 프로젝트를 선택해 주세요</div>
+                            <div class="project-name" ng-if="vm.source.owner">{{vm.source.owner}}/{{vm.source.projectName}}</div>
+                        </div>
+                        <div class="arrow span1"><i class="yobicon-arrow-right-alt"></i></div>
+                        <div class="destination-title span6">
+                            <div class="project-name warn" ng-if="!vm.destination.owner">Destination 프로젝트를 선택해 주세요</div>
+                            <div class="project-name" ng-if="vm.destination.owner">{{vm.destination.owner}}/{{vm.destination.projectName}}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row source-destination" >
+                <div class="source-project span4">
+                    <div class="header" ng-cloak>Source {{vm.sourceProjects.length}} 개</div>
+                    <div class="search left-border"><input tabindex="1" type="text" class="search-query" name="target-filter" ng-model="source.full_name" placeholder="Search.." autofocus></div>
+                    <div class="left-project-list">
+                        <div class="project-list" ng-repeat="repo in vm.sourceProjects | filter:source:strict" ng-click="vm.getSourceProject(repo.owner, repo.projectName);vm.selectSourceProject(repo.full_name)" ng-class="{'selected': repo.full_name == vm.selectedSourceName }" ng-cloak>
+                            <div class="owner" ng-if="vm.isNewOwner(repo)">{{repo.owner}}</div>
+                            <div class="project-name"><a href="http://yobi.navercorp.com/{{repo.full_name}}" target="_blank">
+                                {{repo.projectName}}</a></div>
+                            <div class="metainfo-sm">
+                                {{repo.owner}} {{repo.members}}명 <i class="yobicon-lock yobicon-small" ng-if="repo.private"></i></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="destination-project span4" @if(StringUtils.isNotBlank(token)) {
+                    ng-init="vm.getDestinationProjects();vm.getCurrentGithubUser()"}>
+                    <div class="header" ng-cloak>Destination {{vm.destinationProjects.length}} 개</div>
+                    <div class="search"><input type="text" tabindex="2" class="search-query" name="target-filter" ng-model="destination.full_name" placeholder="Search.."></div>
+                    <div class="destination-project-list">
+                        <div class="project-list" ng-repeat="repo in vm.destinationProjects | filter:destination:strict" ng-click="vm.setDestination(repo);vm.selectDestinationProject(repo.full_name)" ng-class="{'selected': repo.full_name == vm.selectedDestinationName }" ng-cloak>
+                            <div class="owner" ng-if="vm.isNewOwner(repo)">{{::repo.owner.login}}</div>
+                            <div class="project-name"><a href="{{repo.html_url}}" target="_blank">{{repo.name}}</a></div>
+                            <div class="metainfo-sm">
+                                {{repo.owner.login}} <i class="yobicon-lock yobicon-small" ng-if="repo.private"></i>
+                            </div>
+                            <div class="warn-no-worker" ng-show="repo.full_name == vm.destination.full_name && vm.showWorkerWarning" ng-cloak>
+                                <div class="label label-important">Admin에 {{vm.CONFIG.DEFAULT_WORKER}} 유저가 없음</div>
+                                <div>{{vm.CONFIG.DEFAULT_WORKER}} 유저가 대상 프로젝트/그룹의 admin으로 추가되어 있어야 합니다. 그렇지 않을 경우 {{vm.CONFIG.DEFAULT_WORKER}} 대신 사용자 아이디가 작성자로 표시됩니다.
+                                </div>
+                                <div ng-if="repo.owner.type === 'Organization' && vm.showNotAdminWarning">
+                                    <div class="label label-warning">사용자가 Admin인 프로젝트가 아닙니다.</div>
+                                    <div>{{vm.CONFIG.DEFAULT_WORKER}}, {{vm.currentGithubUser.login}} 둘 다 Admin이 아닌 프로젝트로는 마이그레이션을 진행할 수 없습니다!</div>
+                                </div>
+                            </div>
+                            <div class="warn-user-project" ng-show="repo.full_name == vm.destination.full_name && vm.showUserProjectWarning" ng-cloak>
+                                <div class="label label-important">User Project</div>
+                                <div>Organization 소속의 프로젝트가 아닌 경우에는 마이그레이션시에 {{vm.CONFIG.DEFAULT_WORKER}} 대신 사용자 계정이 사용됩니다.</div>
+                            </div>
+                            <div ng-if="repo.owner.type === 'User' && repo.owner.login !== vm.currentGithubUser.login">
+                                <div class="label label-warning">사용자가 Admin인 프로젝트가 아닙니다.</div>
+                                <div>Admin이 아닌 프로젝트로는 마이그레이션을 진행할 수 없습니다!</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="span6 status">
+                    <div class="progress row">
+                        <div class="bar span10" ng-cloak ng-class="vm.importResult.count/vm.expectedImportCount*100<100 ? 'bar-danger' : 'bar-success'" style="width: {{vm.importResult.count/vm.expectedImportCount*100 || 0 }}%">
+                            {{vm.importResult.count}}/{{vm.expectedImportCount}}</div>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th colspan="2">Migration 대상</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody ng-cloak>
+                            <tr>
+                                <td class="left-title">마일스톤</td><td class="left-title">{{vm.source.milestoneCount}}</td>
+                                <td ng-class="vm.destination.milestones.length > 0?'alert-bg':''">
+                                    <import-warning type="마일스톤" data="vm.destination.milestones"></import-Warning>
+                                    <div class="btn-group"><button class="btn btn-danger" ng-click="vm.importMilestones()" ng-if="vm.destination.projectName" ng-disabled="!vm.source.milestoneCount || vm.importBtnDisabled" ng-cloak>
+                                        마일스톤 옮기기</button></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="left-title">이슈</td><td class="left-title"><span>{{vm.source.issueCount}}</span></td>
+                                <td ng-class="vm.destination.issues.length > 0?'alert-bg':''">
+                                    <div class="text-align-left caution" ng-if="vm.destination.projectName">
+                                        마일스톤이 존재할 경우 마일스톤을 먼저 옮겨 놓지 않으면 마일스톤이 지정되지 않은 상태로 이슈가 이동됩니다.
+                                    </div>
+                                    <import-warning type="이슈" data="vm.destination.issues"></import-Warning>
+                                    <div class="btn-group"><button class="btn btn-danger" ng-click="vm.importIssues(vm.source)" ng-if="vm.destination.projectName" ng-disabled="!vm.source.issueCount || vm.importBtnDisabled" ng-cloak>
+                                        이슈 옮기기</button></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="left-title">게시글</td><td class="left-title"><span>{{vm.source.postCount}}</span></td>
+                                <td ng-class="vm.destination.posts.length > 0?'alert-bg':''">
+                                    <div class="text-align-left caution" ng-if="vm.destination.projectName">
+                                        기존 게시글은 '게시글'라벨을 붙여 이슈로 옮겨집니다.
+                                    </div>
+                                    <div class="text-align-left caution" ng-if="vm.showMoreDesc">(만약 먼저 마이그레이션 작업을 진행한 이슈의 개수가 많을 경우 대상 프로젝트에 게시글이 보이는 시점까지는 상당한 시간이 소요될 수 있습니다. 진행바가 정상적으로 완료되었으면 차분히 기다려 주세요.)</div>
+                                    <import-warning type="게시글" data="vm.destination.posts"></import-Warning>
+                                    <div class="btn-group"><button class="btn btn-danger" ng-click="vm.showMoreDesc=!vm.showMoreDesc;vm.importPosts()" ng-if="vm.destination.projectName" ng-disabled="!vm.source.postCount || vm.importBtnDisabled" ng-cloak>
+                                        게시글 옮기기</button></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="td-title left-title">첨부파일</td>
+                                <td colspan="2" class="text-align-left">
+                                    <div class="label label-warning">
+                                        단일 파일기준 50M 미만 크기의 첨부파일만 이동됩니다!
+                                    </div>
+                                    <div class="caution">
+                                        Yona to Githbub 마이그레이션 가이드를 꼭 읽어주세요.
+                                    </div>
+                                    <div class="btn-group pull-right"><button class="btn btn-danger" data-toggle="tooltip" data-placement="top" title="사전 wiki 생성을 잊었을 경우" ng-click="vm.showMoreDesc=!vm.showMoreDesc;vm.delegateAttachmentsMigration(true)" ng-if="vm.destination.projectName" ng-disabled="!vm.source.postCount && !vm.source.issueCount || vm.importBtnDisabled" ng-cloak>파일이동만 다시 한번 더 요청하기</button></div>
+                                </td>
+                            </tr>
+                    <tbody>
+                    </table>
+                    <div class="left-title" ng-cloak>
+                        기존 이슈 담당자<span ng-if="vm.source.assignees"> ({{vm.source.assignees.length}})</span>
+                    </div>
+                    <div class="caution" ng-if="vm.destination.projectName">
+                        대응되는 새 프로젝트 소속의 담당자 id를 입력해 주세요. 만약 지정하지 않으면 기존 담당자의 이슈는 담당자가 해제된 상태로 이전됩니다.</div>
+                    <div>
+                        <table class="table table-bordered" ng-if="vm.source.assignees.length > 0" ng-show="vm.destination.projectName" ng-cloak>
+                            <tr ng-repeat="assignee in vm.source.assignees" class="assignee">
+                                <td>{{assignee.name}}<br/>@@{{assignee.login}}</td>
+                                <td>
+                                    <input ng-keyup="vm.userExistAtDestinationProject(vm.destination, assignee.login)" type="text" placeholder="지정되지 않음" ng-model="vm.destination.assignees[assignee.login].login" ng-init="vm.getAssigneeFromLocal(assignee.login)"><i class="yobicon-check-circle" ng-if="vm.destination.assignees[assignee.login].login && vm.destination.assignees[assignee.login].confirmed"></i><i class="yobicon-delete-circle-alt" ng-if="vm.destination.assignees[assignee.login].login && vm.destination.assignees[assignee.login].confirmed === false"></i></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}

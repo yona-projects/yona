@@ -30,3 +30,4 @@ conf/application.conf
 conf/generated.keystore
 conf/application-logger.xml
 .java-version
+migration-client

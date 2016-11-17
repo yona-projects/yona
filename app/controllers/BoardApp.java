@@ -1,22 +1,8 @@
 /**
- * Yobi, Project Hosting SW
+ * Yobire, Project Hosting SW
  *
- * Copyright 2012 NAVER Corp.
- * http://yobi.io
- *
- * @author Sangcheol Hwang
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * @author Suwon Chae
+ * Copyright 2016 the original author or authors.
  */
 package controllers;
 
@@ -36,6 +22,7 @@ import play.data.Form;
 import play.db.ebean.Transactional;
 import play.libs.Json;
 import play.mvc.Call;
+import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.With;
 import playRepository.BareCommit;
@@ -53,6 +40,10 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.avaje.ebean.Expr.icontains;
+import static controllers.MigrationApp.composeCommentsJson;
+import static controllers.MigrationApp.composePlainCommentsJson;
+import static controllers.MigrationApp.exportPosts;
+import static play.libs.Json.toJson;
 
 public class BoardApp extends AbstractPostingApp {
     public static class SearchCondition extends AbstractPostingApp.SearchCondition {
@@ -254,8 +245,12 @@ public class BoardApp extends AbstractPostingApp {
         if (request().getHeader("Accept").contains("application/json")) {
             ObjectNode json = Json.newObject();
             json.put("title", post.title);
+            json.put("created_at", post.createdDate.getTime());
             json.put("body", post.body);
             json.put("author", post.authorLoginId);
+            json.put("authorName", post.authorName);
+            json.put("attachments", toJson(Attachment.findByContainer(post.asResource())));
+            json.put("comments", toJson(composePlainCommentsJson(post, ResourceType.NONISSUE_COMMENT)));
             return ok(json);
         }
 
