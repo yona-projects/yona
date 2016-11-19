@@ -280,22 +280,6 @@ public class MigrationApp {
         return sb;
     }
 
-    private static StringBuilder addAttachmentsStringWithLocalDir(@NotNull StringBuilder sb, ResourceType type, String id){
-        try {
-            List<Map<String, String>> attachments = AttachmentApp.getFileList(type.toString(), id).get("attachments");
-            if(attachments.size()>0){
-                addListHeader(sb);
-            }
-            for(Map<String, String> attachment: attachments){
-                sb.append(String.format("\n[%s](./attachments/%s/%s)", attachment.get("name"), attachment.get("id"),
-                        attachment.get("name").replaceAll("#", "%23")));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return sb;
-    }
-
     private static ObjectNode composePostJson(Posting posting) {
         String originalPostingLink = String.format("%s/%s/post/%s",
                 YONA_SERVER + posting.project.owner, posting.project.name, posting.getNumber());
@@ -397,13 +381,12 @@ public class MigrationApp {
     public static List<ObjectNode> composePlainCommentsJson(AbstractPosting posting, ResourceType type) {
         List<ObjectNode> comments = new ArrayList<>();
         for (Comment comment : posting.getComments()) {
-            StringBuilder sb = new StringBuilder();
             ObjectNode commentNode = Json.newObject();
-            commentNode.put("created_at",comment.createdDate.getTime());
-            sb = addAttachmentsStringWithLocalDir(sb, type, comment.id.toString());
+            commentNode.put("type", comment.asResource().getType().toString());
             commentNode.put("authorId", comment.authorLoginId);
             commentNode.put("authorName", comment.authorName);
-            commentNode.put("body", sb.toString());
+            commentNode.put("created_at",comment.createdDate.getTime());
+            commentNode.put("body", comment.contents);
             commentNode.put("attachments", toJson(Attachment.findByContainer(comment.asResource())));
             comments.add(commentNode);
         }
