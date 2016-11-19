@@ -167,7 +167,7 @@
         });
 
         $('.board-labels select').on('change', function(e){
-            var url = "@Html(routes.BoardApi.updatePostLabel(project.owner, project.name, post.getNumber).toString())";
+            var url = "@Html(controllers.api.routes.BoardApi.updatePostLabel(project.owner, project.name, post.getNumber).toString())";
             $.ajax({
                 url: url,
                 method: "POST",

@@ -1,14 +1,15 @@
 /**
- * Yobire, Project Hosting SW
+ * Yona, Project Hosting SW
  *
- * @author Suwon Chae
  * Copyright 2016 the original author or authors.
  */
 
-package controllers;
+package controllers.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import controllers.AbstractPostingApp;
+import controllers.UserApp;
 import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
 import models.*;

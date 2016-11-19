@@ -1,7 +1,6 @@
 /**
- * Yobire, Project Hosting SW
+ * Yona, Project Hosting SW
  *
- * @author Suwon Chae
  * Copyright 2016 the original author or authors.
  */
 package controllers;
@@ -127,7 +126,7 @@ public class MigrationApp {
         return ok(result);
     }
 
-    private static List<ObjectNode> getAssginees(Project project) {
+    public static List<ObjectNode> getAssginees(Project project) {
         List<ObjectNode> members = new ArrayList<>();
         for(Assignee assignee: project.assignees){
             ObjectNode member = Json.newObject();
@@ -387,7 +386,11 @@ public class MigrationApp {
             commentNode.put("authorName", comment.authorName);
             commentNode.put("created_at",comment.createdDate.getTime());
             commentNode.put("body", comment.contents);
-            commentNode.put("attachments", toJson(Attachment.findByContainer(comment.asResource())));
+
+            List<Attachment> attachments = Attachment.findByContainer(comment.asResource());
+            if(attachments.size() > 0) {
+                commentNode.put("attachments", toJson(attachments));
+            }
             comments.add(commentNode);
         }
         return comments;

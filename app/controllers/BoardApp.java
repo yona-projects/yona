@@ -1,7 +1,6 @@
 /**
- * Yobire, Project Hosting SW
+ * Yona, Project Hosting SW
  *
- * @author Suwon Chae
  * Copyright 2016 the original author or authors.
  */
 package controllers;
