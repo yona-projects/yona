@@ -245,10 +245,11 @@ public class BoardApp extends AbstractPostingApp {
         if (request().getHeader("Accept").contains("application/json")) {
             ObjectNode json = Json.newObject();
             json.put("title", post.title);
-            json.put("created_at", post.createdDate.getTime());
-            json.put("body", post.body);
+            json.put("type", post.asResource().getType().toString());
             json.put("author", post.authorLoginId);
             json.put("authorName", post.authorName);
+            json.put("created_at", post.createdDate.getTime());
+            json.put("body", post.body);
             json.put("attachments", toJson(Attachment.findByContainer(post.asResource())));
             json.put("comments", toJson(composePlainCommentsJson(post, ResourceType.NONISSUE_COMMENT)));
             return ok(json);
