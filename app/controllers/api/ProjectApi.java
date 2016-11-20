@@ -8,6 +8,8 @@ package controllers.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import controllers.MigrationApp;
+import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import models.*;
 import models.enumeration.Operation;
@@ -41,6 +43,8 @@ public class ProjectApi extends Controller {
         json.put("milestoneCount", project.milestones.size());
         json.put("issues", composePosts(project, Issue.finder));
         json.put("posts", composePosts(project, Posting.finder));
+        json.put("milestones", toJson(project.milestones.stream()
+                .map(MigrationApp::composeMilestoneJson).collect(Collectors.toList())));
         return ok(json);
     }
 
@@ -54,6 +58,7 @@ public class ProjectApi extends Controller {
 
     private static ObjectNode getResult(AbstractPosting posting) {
         ObjectNode json = Json.newObject();
+        json.put("id", posting.getNumber());
         json.put("title", posting.title);
         json.put("type", posting.asResource().getType().toString());
         json.put("author", posting.authorLoginId);
@@ -63,6 +68,8 @@ public class ProjectApi extends Controller {
 
         if(posting.asResource().getType() == ResourceType.ISSUE_POST){
             Optional.ofNullable(((Issue)posting).assignee).ifPresent(assignee -> json.put("assignee", assignee.user.loginId));
+            Optional.ofNullable(((Issue)posting).milestone).ifPresent(milestone -> json.put("milestone", milestone.title));
+            Optional.ofNullable(((Issue)posting).milestone).ifPresent(milestone -> json.put("milestoneId", milestone.id));
         }
         List<Attachment> attachments = Attachment.findByContainer(posting.asResource());
         if(attachments.size() > 0) {
