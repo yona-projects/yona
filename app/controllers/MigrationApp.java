@@ -210,7 +210,7 @@ public class MigrationApp {
         return ok(exportData);
     }
 
-    private static ObjectNode composeMilestoneJson(Milestone m) {
+    public static ObjectNode composeMilestoneJson(Milestone m) {
         ObjectNode node = Json.newObject();
         node.put("id", m.id);
         node.put("title", m.title);
@@ -381,6 +381,7 @@ public class MigrationApp {
         List<ObjectNode> comments = new ArrayList<>();
         for (Comment comment : posting.getComments()) {
             ObjectNode commentNode = Json.newObject();
+            commentNode.put("id", comment.id);
             commentNode.put("type", comment.asResource().getType().toString());
             commentNode.put("authorId", comment.authorLoginId);
             commentNode.put("authorName", comment.authorName);
