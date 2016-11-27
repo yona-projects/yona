@@ -15,11 +15,14 @@ import models.*;
 import models.enumeration.ResourceType;
 import models.support.IssueLabelAggregate;
 import org.apache.commons.lang.StringUtils;
+import play.Configuration;
+import play.i18n.Messages;
 import play.libs.F;
 import play.libs.F.Promise;
 import play.libs.Json;
 import play.libs.ws.WS;
 import play.mvc.Result;
+import utils.ErrorViews;
 import views.html.migration.home;
 
 import javax.validation.constraints.NotNull;
@@ -34,6 +37,7 @@ import java.util.stream.Collectors;
 
 import static play.libs.Json.toJson;
 import static play.mvc.Http.Context.Implicit.request;
+import static play.mvc.Results.forbidden;
 import static play.mvc.Results.ok;
 
 @AnonymousCheck
@@ -43,8 +47,13 @@ public class MigrationApp {
     private static final String YONA_SERVER = "/";
 
 
+
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     public static Promise<Result> migration() {
+        final boolean isAllowed = Configuration.root().getBoolean("github.allow.migration", false);
+        if(!isAllowed){
+            return Promise.pure(forbidden(ErrorViews.Forbidden.render("error.forbidden.or.not.allowed")));
+        }
         String authProcessingCode = request().getQueryString("code");
 
         if(StringUtils.isNotBlank(authProcessingCode)){
@@ -57,9 +66,9 @@ public class MigrationApp {
     }
 
     private static Promise<String> getOAuthToken(String code) {
-        final String CLIENT_ID = "e7f9ad76a3a4ba19b2a5";
-        final String CLIENT_SECRET = "32e7fb33ee5c42501cb2aac9a6f6c485bf285cf5";
         final String ACCESS_TOKEN_URL = "https://github.com/login/oauth/access_token";
+        final String CLIENT_ID = Configuration.root().getString("github.client.id");
+        final String CLIENT_SECRET = Configuration.root().getString("github.client.secret");
 
         return WS.url(ACCESS_TOKEN_URL)
                 .setContentType("application/x-www-form-urlencoded")

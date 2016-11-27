@@ -237,3 +237,12 @@ application.noreferrer = true
 
 # Display private repositories in the list
 application.displayPrivateRepositories = false
+
+
+# Github Migration
+# ~~~~~~~~~~~~~~~~~
+# User can migrate their own projects to github
+#
+github.allow.migration = false
+github.client.id = "TYPE YOUR GITHUB CILENT ID"
+github.client.secret = "TYPE YOUR GITHUB CILENT SECRET"

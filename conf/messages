@@ -194,6 +194,7 @@ error.badrequest.only.available.for.git = This request is only supported in a gi
 error.failedTo = Failed to {0}<br>({1} {2})
 error.forbidden = You are not authorized
 error.forbidden.or.notfound = Project not exists or unauthorized user
+error.forbidden.or.not.allowed = Forbidden or not allowed request
 error.timeout = Your request could not be processed because of server timeout
 error.internalServerError = Server error has occurred; service is not available
 error.notfound = Page not found
