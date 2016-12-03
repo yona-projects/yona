@@ -42,6 +42,9 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
     @Lob
     public String body;
 
+    @Lob
+    public String history;
+
     @Constraints.Required
     @Formats.DateTime(pattern = "YYYY/MM/DD/hh/mm/ss")
     public Date createdDate;
