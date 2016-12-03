@@ -64,15 +64,15 @@
                     @common.partial_history(post)
                 </div>
             }
-          <div class="board-labels pull-right">
-            @if(!IssueLabel.findByProject(project).isEmpty){
-                @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){
-                    @issue.partial_select_label(IssueLabel.findByProject(project), post.getLabelIds)
-                } else {
-                    @issue.partial_show_selected_label(post.labels.toList, "")
-                }
+        </div>
+        <div class="board-labels pull-right">
+        @if(!IssueLabel.findByProject(project).isEmpty){
+            @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){
+                @issue.partial_select_label(IssueLabel.findByProject(project), post.getLabelIds)
+            } else {
+                @issue.partial_show_selected_label(post.labels.toList, "")
             }
-            </div>
+        }
         </div>
         @if(StringUtils.isEmpty(post.body)){
             <div class="content empty-content"></div>
