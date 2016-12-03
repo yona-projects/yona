@@ -180,6 +180,7 @@ public class AbstractPostingApp extends Controller {
     }
 
     private static String getDiffText(String oldValue, String newValue) {
+        final int EQUAL_TEXT_ELLIPSIS_SIZE = 300;
         diff_match_patch dmp = new diff_match_patch();
         StringBuilder sb = new StringBuilder();
         if (oldValue != null) {
@@ -193,7 +194,16 @@ public class AbstractPostingApp extends Controller {
                         sb.append("</span>");
                         break;
                     case EQUAL:
-                        sb.append(diff.text);
+                        int textLength = diff.text.length();
+                        if(textLength > EQUAL_TEXT_ELLIPSIS_SIZE) {
+                            sb.append(diff.text.substring(0, 150))
+                                    .append("<span class='diff-ellipsis'>...\n")
+                                    .append("......\n")
+                                    .append("...</span>")
+                                    .append(diff.text.substring(textLength - 150));
+                        } else {
+                            sb.append(diff.text);
+                        }
                         break;
                     case INSERT:
                         sb.append("<span class='diff-added'>");
