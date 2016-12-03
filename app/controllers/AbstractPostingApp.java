@@ -199,6 +199,7 @@ public class AbstractPostingApp extends Controller {
                             sb.append(diff.text.substring(0, 150))
                                     .append("<span class='diff-ellipsis'>...\n")
                                     .append("......\n")
+                                    .append("......\n")
                                     .append("...</span>")
                                     .append(diff.text.substring(textLength - 150));
                         } else {
