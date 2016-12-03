@@ -22,7 +22,10 @@ package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import controllers.annotation.AnonymousCheck;
-import models.*;
+import models.AbstractPosting;
+import models.Attachment;
+import models.Comment;
+import models.IssueLabel;
 import models.enumeration.Direction;
 import models.enumeration.Operation;
 import models.resource.Resource;
@@ -31,10 +34,17 @@ import org.apache.commons.lang3.StringUtils;
 import play.data.Form;
 import play.db.ebean.Model;
 import play.i18n.Messages;
-import play.mvc.*;
+import play.mvc.Call;
+import play.mvc.Controller;
+import play.mvc.Http;
+import play.mvc.Result;
 import utils.*;
 
+import java.util.LinkedList;
 import java.util.Map;
+
+import static utils.JodaDateUtil.getDateString;
+import static utils.diff_match_patch.Diff;
 
 @AnonymousCheck
 public class AbstractPostingApp extends Controller {
@@ -107,6 +117,9 @@ public class AbstractPostingApp extends Controller {
         posting.authorName = original.authorName;
         posting.project = original.project;
         posting.setNumber(original.getNumber());
+        if (!StringUtils.defaultString(original.body, "").equals(StringUtils.defaultString(posting.body, ""))) {
+            posting.history = addToHistory(original, posting) + StringUtils.defaultString(original.history, "");
+        }
         preUpdateHook.run();
 
         try {
@@ -122,6 +135,77 @@ public class AbstractPostingApp extends Controller {
         attachUploadFilesToPost(original.asResource());
 
         return redirect(redirectTo);
+    }
+
+    private static String addToHistory(AbstractPosting original, AbstractPosting posting) {
+        diff_match_patch dmp = new diff_match_patch();
+        LinkedList<diff_match_patch.Diff> diffs = dmp.diff_main(original.body, posting.body);
+        dmp.diff_cleanupSemanticLossless(diffs);
+
+        return (getHistoryMadeBy(posting, diffs) + getDiffText(original.body, posting.body) + "\n").replaceAll("\n", "</br>\n");
+    }
+
+    private static String getHistoryMadeBy(AbstractPosting posting, LinkedList<diff_match_patch.Diff> diffs) {
+        int insertions = 0;
+        int deletions = 0;
+        for (Diff diff : diffs) {
+            switch (diff.operation) {
+                case DELETE:
+                    deletions++;
+                    break;
+                case INSERT:
+                    insertions++;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("<div class='history-made-by'>").append(UserApp.currentUser().name)
+                .append("(").append(UserApp.currentUser().loginId).append(") ");
+        if (insertions > 0) {
+            sb.append("<span class='added'> ")
+                    .append(" + ")
+                    .append(insertions).append(" </span>");
+        }
+        if (deletions > 0) {
+            sb.append("<span class='deleted'> ")
+                    .append(" - ")
+                    .append(deletions).append(" </span>");
+        }
+        sb.append(" at ").append(getDateString(posting.updatedDate, "yyyy-MM-dd h:mm:ss a")).append("</div><hr/>\n");
+
+        return sb.toString();
+    }
+
+    private static String getDiffText(String oldValue, String newValue) {
+        diff_match_patch dmp = new diff_match_patch();
+        StringBuilder sb = new StringBuilder();
+        if (oldValue != null) {
+            LinkedList<diff_match_patch.Diff> diffs = dmp.diff_main(oldValue, newValue);
+            dmp.diff_cleanupSemanticLossless(diffs);
+            for(Diff diff: diffs){
+                switch (diff.operation) {
+                    case DELETE:
+                        sb.append("<span class='diff-deleted'>");
+                        sb.append(diff.text.replaceAll("\n", "&nbsp;\n"));
+                        sb.append("</span>");
+                        break;
+                    case EQUAL:
+                        sb.append(diff.text);
+                        break;
+                    case INSERT:
+                        sb.append("<span class='diff-added'>");
+                        sb.append(diff.text.replaceAll("\n", "&nbsp;\n"));
+                        sb.append("</span>");
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+        return sb.toString();
     }
 
     public static void attachUploadFilesToPost(Resource resource) {

@@ -2695,8 +2695,12 @@ label.inline-list {
 
 .board-body {
     .author-info {
-        display:block;
+        display:inline-block;
         margin:10px 20px;
+    }
+
+    .posting-history {
+        display: inline-block;
     }
 
     .content {
@@ -3852,6 +3856,32 @@ label.issue-item-row {
     vertical-align:middle;
     overflow: hidden;
 }
+
+#-yona-posting-history{
+    .history-made-by{
+        font-size: 16px;
+        background-color: #eee;
+        line-height: 40px;
+    }
+    .added {
+        background-color: #abdd52;
+        padding: 5px;
+    }
+    .deleted {
+        background-color: #fda9a6;
+        padding: 5px;
+    }
+    .diff-added {
+        background-color: #abdd52;
+        padding: 2px;
+    }
+    .diff-deleted {
+        background-color: #fda9a6;
+        text-decoration: line-through;
+        padding: 2px;
+    }
+}
+
 .voter-list {
     display:block;
     height:30px;
