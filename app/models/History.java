@@ -20,6 +20,8 @@
  */
 package models;
 
+import org.apache.commons.lang3.StringUtils;
+import play.Configuration;
 import playRepository.Commit;
 
 import java.util.*;
@@ -83,7 +85,12 @@ public class History {
     }
 
     public void setUrl(String url) {
-        this.url = url;
+        String contextRoot = Configuration.root().getString("application.context");
+        if(StringUtils.isBlank(contextRoot)){
+            this.url = url;
+        } else {
+            this.url = (contextRoot + "/" + url).replaceAll("//","/");
+        }
     }
 
     public String getUserPageUrl() {

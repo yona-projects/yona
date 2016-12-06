@@ -6,6 +6,12 @@
 # The name of your website
 application.siteName="Yona"
 
+# Application Context
+# ~~~~~~~~~~~~~~~~~~~
+# If you want your own application context root, you can set it.
+# Don't miss first / (slash) letter!
+# application.context = /myroot
+
 # Anonymous access
 # ~~~~~~~~~~~~~~~~
 # This site allows anonymous access. (default: true)
