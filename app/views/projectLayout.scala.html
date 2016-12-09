@@ -22,7 +22,7 @@
 
 @import utils._
 
-@layout(Messages(title) + " (" + project.name + ")")("prj") {
+@layout(Messages(title) + " - " + project.owner + "/" + project.name)("prj") {
     @common.navbar(menuType, project, null)
     
     @views.html.project.header(project)
