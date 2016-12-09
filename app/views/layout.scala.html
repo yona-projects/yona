@@ -7,7 +7,7 @@
 @(title: String)(theme:String)(content: Html)
 @titleArray = @{title.split(" \\|:\\| ")}
 <!DOCTYPE html>
-<html>
+<html lang="@UserApp.currentUser().getPreferredLanguage">
 <head>
 <meta charset="utf-8">
 <title>@titleArray(0)</title>
