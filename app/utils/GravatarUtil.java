@@ -27,7 +27,7 @@ import java.net.URLEncoder;
 
 public class GravatarUtil {
 
-    public static final String DEFAULT_GRAVATAR_URL = "http://ko.gravatar.com/userimage/53495145/0eaeeb47c620542ad089f17377298af6.png";
+    public static final String DEFAULT_GRAVATAR_URL = "https://ko.gravatar.com/userimage/53495145/0eaeeb47c620542ad089f17377298af6.png";
     public static final int DEFAULT_SIZE = 80;
 
     public static String getAvatar(String email) {
@@ -40,7 +40,7 @@ public class GravatarUtil {
 
     public static String getAvatar(String email, int size, String defaultImageUrl) {
         try {
-            String url = "http://www.gravatar.com/avatar/" + MD5Util.md5Hex(email) + "?s=" + size;
+            String url = "https://www.gravatar.com/avatar/" + MD5Util.md5Hex(email) + "?s=" + size;
             if(StringUtils.isNotEmpty(defaultImageUrl)) {
                 url += "&d=" + URLEncoder.encode(defaultImageUrl, "UTF-8");
             }
