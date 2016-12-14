@@ -589,9 +589,12 @@ span.issue-label {
     .toast {
         position:relative;
         display:inline-block;
-        width: 300px; height: 50px;
-        margin: 10px; padding: 10px;
-        outline:none; text-align: center;
+        width: 300px;
+        word-break: keep-all;
+        word-wrap: break-word;
+        margin: 10px;
+        padding: 10px;
+        outline:none;
         font-weight: bold;
 
         border: 2px solid @primary;

@@ -1,6 +1,9 @@
-/* ===================================================
- * bootstrap-transition.js v2.3.1
- * http://twitter.github.com/bootstrap/javascript.html#transitions
+/*
+ *  Yona, 21st Century Project Hosting SW
+ *  <p>
+ *  Copyright Yona & Yobi Authors & NAVER Corp.
+ *  https://yona.io
+ */rap/javascript.html#transitions
  * ===================================================
  * Copyright 2012 Twitter, Inc.
  *
