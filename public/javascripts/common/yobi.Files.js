@@ -57,7 +57,7 @@ yobi.Files = (function(){
                        && (navigator.userAgent.indexOf("FireFox") === -1); // and not FireFox
 
         // maximum filesize (<= 2,147,483,454 bytes = 2Gb)
-        htVar.nMaxFileSize = 2147483454;
+        htVar.nMaxFileSize = htOptions.maxFileSize || 2147483454;
     }
 
     /**
@@ -122,7 +122,7 @@ yobi.Files = (function(){
         // check maximum filesize (<= 2,147,483,454 bytes) if available
         if(oFile.size && oFile.size > htVar.nMaxFileSize){
             return _onErrorSubmit(nSubmitId, {
-                "status"    : 0,
+                "status"    : humanize.filesize(oFile.size),
                 "statusText": Messages("error.toolargefile", humanize.filesize(htVar.nMaxFileSize))
             }, sNamespace);
         }

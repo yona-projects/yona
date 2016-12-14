@@ -107,7 +107,8 @@
         // yobi.Files
         yobi.Files.init({
             "sListURL"  : "@routes.AttachmentApp.getFileList()",
-            "sUploadURL": "@routes.AttachmentApp.uploadFile()"
+            "sUploadURL": "@routes.AttachmentApp.uploadFile()",
+            "maxFileSize": "@play.Configuration.root().getLong("application.maxFileSize", 2147483454L)"  // 2Gb
         });
 
         // ajax for issue link detail(ui.IssuePreview)
