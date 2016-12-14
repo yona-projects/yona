@@ -841,7 +841,7 @@ public class UserApp extends Controller {
 
     public static boolean isUseSignUpConfirm(){
         Configuration config = play.Play.application().configuration();
-        String useSignUpConfirm = config.getString("signup.require.confirm");
+        String useSignUpConfirm = config.getString("signup.require.admin.confirm");
         return useSignUpConfirm != null && useSignUpConfirm.equals("true");
     }
 
