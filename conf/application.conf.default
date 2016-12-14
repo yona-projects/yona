@@ -21,6 +21,10 @@ application.siteName="Yona"
 # want to allow that, set signup.require.confirm to true.
 application.allowsAnonymousAccess=true
 
+# If you wants to make the user available to use yona
+# after the server administrator approved,uncomment below
+# signup.require.admin.confirm = true
+
 # Notification
 # ~~~~~
 # Notfication email is delivered by default.
@@ -162,9 +166,6 @@ imap.folder = inbox
 %prod.http.port=80
 %prod.application.log=INFO
 %prod.application.mode=prod
-
-#if you want to use sign-up is confirmed by site admin, uncomment below
-#signup.require.confirm = true
 
 # User uploaded temporary files cleanup schedule (sec, default 24hour: 24*60*60 = 86400)
 # application.temporaryfiles.keep-up.time = 86400
