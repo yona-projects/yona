@@ -19,8 +19,16 @@
 * limitations under the License.
 **@
 @(project: Project, branches: List[playRepository.GitBranch], head: playRepository.GitBranch)
+@defaultBranch = @{
+    if(project.defaultBranch().lastIndexOf("/") > 0){
+        project.defaultBranch().substring(project.defaultBranch().lastIndexOf("/") + 1)
+    } else {
+        project.defaultBranch()
+    }
+}
 
 @import utils.AccessControl._
+@import java.net.URLEncoder
 
 @projectLayout(Messages("title.branches"), project, utils.MenuType.CODE) {
 @projectMenu(project, utils.MenuType.CODE, "main-menu-only")
@@ -30,10 +38,10 @@
             <div class="code-browse-wrap">
                 <ul class="nav nav-tabs" style="margin-bottom:20px;">
                     <li>
-                        <a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, "HEAD", "")">@Messages("code.files")</a>
+                        <a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, defaultBranch, "")">@Messages("code.files")</a>
                     </li>
                     <li>
-                        <a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a>
+                        <a href="@routes.CodeHistoryApp.history(project.owner, project.name, defaultBranch, "")">@Messages("code.commits")</a>
                     </li>
                     @if(project.isGit) {
                     <li class="active">
