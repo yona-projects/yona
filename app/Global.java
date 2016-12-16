@@ -27,7 +27,6 @@ import controllers.routes;
 import mailbox.MailboxService;
 import models.*;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.impl.cookie.DateUtils;
 import play.Application;
 import play.Configuration;
 import play.GlobalSettings;
@@ -58,7 +57,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
-import java.util.Date;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 import static play.data.Form.form;
 import static play.mvc.Results.badRequest;
@@ -185,7 +186,7 @@ public class Global extends GlobalSettings {
                 } catch (Exception e) {
                     play.Logger.warn("Failed to update the preferred language", e);
                 }
-                ctx.response().setHeader("Date", DateUtils.formatDate(new Date()));
+                ctx.response().setHeader("Date", DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now(ZoneId.of("GMT"))));
                 ctx.response().setHeader("Cache-Control", "no-cache");
                 Promise<Result> promise = delegate.call(ctx);
                 AccessLogger.log(request, promise, start);

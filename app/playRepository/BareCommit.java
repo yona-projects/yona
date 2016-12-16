@@ -89,7 +89,7 @@ public class BareCommit {
         } catch (OverlappingFileLockException e) {
             play.Logger.error("Overlapping File Lock Error: " + e.getMessage());
         } finally {
-            objectInserter.release();
+            objectInserter.close();
             repository.close();
             refHeadFileLock.release();
         }
@@ -193,7 +193,7 @@ public class BareCommit {
     }
 
     private boolean hasOldCommit(String refName) throws IOException {
-        return this.repository.getRef(refName).getObjectId() != null;
+        return this.repository.findRef(refName).getObjectId() != null;
     }
 
     private PersonIdent getPersonIdent() {
@@ -215,18 +215,18 @@ public class BareCommit {
     }
 
     public void setHeadObjectId(String refName) throws IOException {
-        if(this.repository.getRef(refName).getObjectId() == null){
+        if(this.repository.findRef(refName).getObjectId() == null){
             this.headObjectId = ObjectId.zeroId();
         } else {
-            this.headObjectId = this.repository.getRef(refName).getObjectId();
+            this.headObjectId = this.repository.findRef(refName).getObjectId();
         }
     }
 
     public ObjectId getCurrentMomentHeadObjectId() throws IOException {
-        if( this.repository.getRef(refName).getObjectId() == null ){
+        if( this.repository.findRef(refName).getObjectId() == null ){
             return ObjectId.zeroId();
         } else {
-            return this.repository.getRef(refName).getObjectId();
+            return this.repository.findRef(refName).getObjectId();
         }
     }
 
@@ -245,7 +245,7 @@ public class BareCommit {
             }
 
             refHeadFile = new File(repository.getDirectory().getPath(),
-                    repository.getRef(refName).getLeaf().getName());
+                    repository.findRef(refName).getLeaf().getName());
             if(refHeadFile.exists()){
                 channel = new RandomAccessFile(refHeadFile, "rw").getChannel();
                 lock = channel.lock();

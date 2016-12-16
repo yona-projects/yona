@@ -16,13 +16,12 @@ libraryDependencies ++= Seq(
   "com.h2database" % "h2" % "1.3.176",
   // JDBC driver for mariadb
   "org.mariadb.jdbc" % "mariadb-java-client" % "1.3.6",
-  "net.contentobjects.jnotify" % "jnotify" % "0.94",
   // Core Library
-  "org.eclipse.jgit" % "org.eclipse.jgit" % "3.5.3.201412180710-r",
+  "org.eclipse.jgit" % "org.eclipse.jgit" % "4.5.0.201609210915-r",
   // Smart HTTP Servlet
-  "org.eclipse.jgit" % "org.eclipse.jgit.http.server" % "3.5.3.201412180710-r",
-  // Symlink support for Java7
-  "org.eclipse.jgit" % "org.eclipse.jgit.java7" % "3.5.3.201412180710-r",
+  "org.eclipse.jgit" % "org.eclipse.jgit.http.server" % "4.5.0.201609210915-r",
+  // JGit Large File Storage
+  "org.eclipse.jgit" % "org.eclipse.jgit.lfs" % "4.5.0.201609210915-r",
   // svnkit
   "org.tmatesoft.svnkit" % "svnkit" % "1.8.12",
   // svnkit-dav
@@ -54,7 +53,8 @@ libraryDependencies ++= Seq(
 
 val projectSettings = Seq(
   // Add your own project settings here
-  resolvers += "jgit-repository" at "http://download.eclipse.org/jgit/maven",
+  resolvers += "jgit-repository" at "https://repo.eclipse.org/content/groups/releases/",
+  resolvers += "java-semVer" at "http://oss.sonatype.org/content/repositories/snapshots/",
   resolvers += "scm-manager release repository" at "http://maven.scm-manager.org/nexus/content/groups/public",
   resolvers += "tmatesoft release repository" at "http://maven.tmatesoft.com/content/repositories/releases",
   resolvers += "julienrf.github.com" at "http://julienrf.github.com/repo/",
@@ -124,3 +124,6 @@ lazy val yobi = (project in file("."))
           </FindBugsFilter>
         )
       )
+
+
+fork in run := true
