@@ -39,6 +39,7 @@ import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNDiffClient;
 import org.tmatesoft.svn.core.wc.SVNRevision;
 import play.libs.Json;
+import play.mvc.Results;
 import utils.Config;
 import utils.FileUtil;
 import utils.GravatarUtil;
@@ -411,6 +412,11 @@ public class SVNRepository implements PlayRepository {
     @Override
     public File getDirectory() {
         return new File(getRootDirectory(), ownerName + "/" + projectName);
+    }
+
+    @Override
+    public void getArchive(Results.Chunks.Out<byte[]> out, String branchName) {
+
     }
 
     public static File getRootDirectory() {

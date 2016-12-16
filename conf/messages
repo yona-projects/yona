@@ -95,6 +95,7 @@ code.copyCommitId.copied = Commit ID is copied
 code.copyUrl = Copy URL
 code.copyUrl.copied = URL is copied
 code.deletedPath = {0} (deleted)
+code.download = Download as .zip file
 code.eolMissing = No newline at end of file
 code.fileDiffLimitExceeded = Up to {0} files will be displayed.
 code.fileModeChanged = File mode has changed

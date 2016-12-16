@@ -20,6 +20,8 @@
  */
 package playRepository;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.UserApp;
 import controllers.routes;
 import models.Project;
@@ -33,19 +35,20 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.Tika;
 import org.apache.tika.metadata.Metadata;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.eclipse.jgit.api.ArchiveCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.LogCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.archive.ZipFormat;
 import org.eclipse.jgit.attributes.AttributesNode;
 import org.eclipse.jgit.attributes.AttributesNodeProvider;
 import org.eclipse.jgit.attributes.AttributesRule;
 import org.eclipse.jgit.blame.BlameResult;
 import org.eclipse.jgit.diff.*;
 import org.eclipse.jgit.diff.Edit.Type;
+import org.eclipse.jgit.errors.AmbiguousObjectException;
+import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
-import org.eclipse.jgit.internal.storage.dfs.DfsRepository;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.lib.RefUpdate.Result;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -63,8 +66,9 @@ import org.eclipse.jgit.util.FileUtils;
 import org.eclipse.jgit.util.io.NullOutputStream;
 import org.tmatesoft.svn.core.SVNException;
 import play.Logger;
-import play.api.Play;
 import play.libs.Json;
+import play.mvc.Results.Chunks;
+import utils.ChunkedOutputStream;
 import utils.FileUtil;
 import utils.GravatarUtil;
 
@@ -1939,5 +1943,24 @@ public class GitRepository implements PlayRepository {
 
     public Repository getRepository() {
         return repository;
+    }
+
+    public void getArchive(Chunks.Out<byte[]> out, String branchName){
+        Git git = new Git(getRepository());
+        ArchiveCommand.registerFormat("zip", new ZipFormat());
+        try {
+            ChunkedOutputStream cos = new ChunkedOutputStream(out, 16384);
+            git.archive()
+                    .setTree(getRepository().resolve(branchName))
+                    .setFormat("zip")
+                    .setOutputStream(cos)
+                    .call();
+        } catch (IncorrectObjectTypeException | AmbiguousObjectException | GitAPIException e) {
+            play.Logger.error(e.getMessage());
+        } catch (IOException e){
+            play.Logger.error(e.getMessage());
+        } finally{
+            ArchiveCommand.unregisterFormat("zip");
+        }
     }
 }

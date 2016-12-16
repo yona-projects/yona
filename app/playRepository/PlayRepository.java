@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import models.resource.Resource;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.tmatesoft.svn.core.SVNException;
+import play.mvc.Results.Chunks;
 
 import java.io.File;
 import java.io.IOException;
@@ -79,4 +80,6 @@ public interface PlayRepository {
     boolean move(String srcProjectOwner, String srcProjectName, String desrProjectOwner, String destProjectName);
 
     public File getDirectory();
+
+    public void getArchive(Chunks.Out<byte[]> out, String branchName);
 }

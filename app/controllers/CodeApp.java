@@ -21,6 +21,7 @@
 package controllers;
 
 import actions.DefaultProjectCheckAction;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import models.Project;
@@ -28,10 +29,16 @@ import models.enumeration.Operation;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.tika.Tika;
 import org.apache.tika.mime.MediaType;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.eclipse.jgit.api.ArchiveCommand;
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.archive.ZipFormat;
 import org.tmatesoft.svn.core.SVNException;
-import play.mvc.*;
+import play.mvc.Controller;
+import play.mvc.Http;
+import play.mvc.Result;
+import play.mvc.With;
+import playRepository.GitRepository;
 import playRepository.PlayRepository;
 import playRepository.RepositoryService;
 import utils.ErrorViews;
@@ -116,6 +123,38 @@ public class CodeApp extends Controller {
         } else {
             return notFound();
         }
+    }
+
+    @With(DefaultProjectCheckAction.class)
+    public static Result download(String userName, String projectName, String branch, String path)
+            throws UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException {
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
+
+        if (!RepositoryService.VCS_GIT.equals(project.vcs) && !RepositoryService.VCS_SUBVERSION.equals(project.vcs)) {
+            return status(Http.Status.NOT_IMPLEMENTED, project.vcs + " is not supported!");
+        }
+
+        final String targetBranch = HttpUtil.decodePathSegment(branch);
+        final String targetPath = HttpUtil.decodePathSegment(path);
+
+        PlayRepository repository = RepositoryService.getRepository(project);
+        List<ObjectNode> recursiveData = RepositoryService.getMetaDataFromAncestorDirectories(
+                repository, targetBranch, targetPath);
+
+        if (recursiveData == null) {
+            return notFound(ErrorViews.NotFound.render());
+        }
+
+        // Prepare a chunked text stream
+        Chunks<byte[]> chunks = new ByteChunks() {
+            // Called when the stream is ready
+            public void onReady(Chunks.Out<byte[]> out) {
+                repository.getArchive(out, targetBranch);
+            }
+        };
+
+        response().setHeader("Content-Disposition", "attachment; filename=" + projectName + "-" + branch + ".zip");
+        return ok(chunks);
     }
 
     @With(DefaultProjectCheckAction.class)
