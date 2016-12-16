@@ -22,6 +22,8 @@ libraryDependencies ++= Seq(
   "org.eclipse.jgit" % "org.eclipse.jgit.http.server" % "4.5.0.201609210915-r",
   // JGit Large File Storage
   "org.eclipse.jgit" % "org.eclipse.jgit.lfs" % "4.5.0.201609210915-r",
+  // JGit Archive Formats
+  "org.eclipse.jgit" % "org.eclipse.jgit.archive" % "4.5.0.201609210915-r",
   // svnkit
   "org.tmatesoft.svnkit" % "svnkit" % "1.8.12",
   // svnkit-dav
@@ -68,7 +70,6 @@ val projectSettings = Seq(
   includeFilter in (Assets, LessKeys.less) := "*.less",
   excludeFilter in (Assets, LessKeys.less) := "_*.less",
   javaOptions in test ++= Seq("-Xmx2g", "-Xms1g", "-XX:MaxPermSize=1g", "-Dfile.encoding=UTF-8"),
-  javacOptions ++= Seq("-Xlint:all", "-Xlint:-path"),
   scalacOptions ++= Seq("-feature")
 )
 

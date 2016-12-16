@@ -89,6 +89,12 @@
                     <a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), "")">@project.name</a>
                     @makeBreadCrumbs(path)
                 </div>
+                @if(project.isGit) {
+                <div class="pull-right">
+                    <a href="@routes.CodeApp.download(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"))" class="ybtn">
+                        @Messages("code.download")</a>
+                </div>
+                }
             </div>
 
             <div class="code-viewer-wrap">
