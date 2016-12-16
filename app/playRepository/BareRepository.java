@@ -76,7 +76,7 @@ public class BareRepository {
 
     public static ObjectId getFileObjectId(Repository repository, String fileNameWithPath) throws IOException {
         TreeWalk treeWalk = new TreeWalk(repository);
-        RevTree revTree = getRevTreeFromRef(repository, repository.getRef(HEAD));
+        RevTree revTree = getRevTreeFromRef(repository, repository.findRef(HEAD));
         if( revTree == null ){
             return ObjectId.zeroId();
         }
@@ -88,7 +88,7 @@ public class BareRepository {
 
     private static ObjectId getFirstFoundREADMEfileObjectId(Repository repository) throws IOException {
         TreeWalk treeWalk = new TreeWalk(repository);
-        RevTree revTree = getRevTreeFromRef(repository, repository.getRef(HEAD));
+        RevTree revTree = getRevTreeFromRef(repository, repository.findRef(HEAD));
         if( revTree == null ){
             return ObjectId.zeroId();
         }

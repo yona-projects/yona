@@ -434,7 +434,7 @@ public class PullRequest extends Model implements ResourceConvertible {
                 String refName = getNameOfRefToMerged();
                 RevCommit commit = null;
                 try {
-                    ObjectId objectId = getRepository().getRef(refName).getObjectId();
+                    ObjectId objectId = getRepository().findRef(refName).getObjectId();
                     commit = new RevWalk(getRepository()).parseCommit(objectId);
                 } catch (Exception e) {
                     play.Logger.info("Failed to get the merged branch", e);
@@ -471,7 +471,7 @@ public class PullRequest extends Model implements ResourceConvertible {
                 ObjectInserter inserter = getRepository().newObjectInserter();
                 mergeCommitId = inserter.insert(mergeCommit);
                 inserter.flush();
-                inserter.release();
+                inserter.close();
 
                 return new MergeRefUpdate(mergeCommitId, whoMerges);
             }
