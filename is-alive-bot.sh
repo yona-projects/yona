@@ -81,6 +81,10 @@ isDown=false
 echo ""
 echo "Monitoring started... $(date +%Y-%m-%d" "%H:%M:%S)"
 echo ""
+
+message="Monitoring started... - $YONA_SERVER"
+sendMessageToTelegram
+
 while true
 do
     NOW=$(date +%Y-%m-%d" "%H:%M:%S)
