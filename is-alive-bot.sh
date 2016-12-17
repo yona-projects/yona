@@ -18,7 +18,7 @@ USER_CHAT_ID=""
 YONA_SERVER="http://127.0.0.1:9000"
 
 # Polling Time (sec)
-POLLING_TIME=60
+POLLING_TIME=6
 
 # Configurations end here...
 
@@ -38,22 +38,27 @@ else
     API_TOKEN=$1
 fi
 
-if [ -z $USER_CHAT_ID ] && [ -z $2 ]
-    then
-    echo "---------------------------------------------------"
-    echo "Find chat id of user or group with your own eyes.. "
-    echo "---------------------------------------------------"
-    echo ""
-    curl -sL https://api.telegram.org/bot$API_TOKEN/getUpdates
-    echo ""
-    echo "---------------------------------------------------"
-    echo ""
-    echo "and then retry..."
-    echo "sh is-alive-bot.sh API_TOKEN USER_CHAT_ID"
-    echo ""
-    echo "ex>"
-    echo "sh is-alive-bot.sh 328394984:AAFhL69afasfqjtUtIeRSzIagVYw7H3zF4 2156789"
-    exit 1;
+if [ -z $USER_CHAT_ID ]
+  then
+    if [ -z $2 ]
+        then
+        echo "---------------------------------------------------"
+        echo "Find chat id of user or group with your own eyes.. "
+        echo "---------------------------------------------------"
+        echo ""
+        curl -sL https://api.telegram.org/bot$API_TOKEN/getUpdates
+        echo ""
+        echo "---------------------------------------------------"
+        echo ""
+        echo "and then retry..."
+        echo "sh is-alive-bot.sh API_TOKEN USER_CHAT_ID"
+        echo ""
+        echo "ex>"
+        echo "sh is-alive-bot.sh 328394984:AAFhL69afasfqjtUtIeRSzIagVYw7H3zF4 2156789"
+        exit 1;
+        else
+        USER_CHAT_ID=$2
+    fi
 fi
 
 ### preparing for message and server status check
