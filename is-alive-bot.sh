@@ -18,7 +18,7 @@ USER_CHAT_ID=""
 YONA_SERVER="http://127.0.0.1:9000"
 
 # Polling Time (sec)
-POLLING_TIME=6
+POLLING_TIME=60
 
 # Configurations end here...
 
