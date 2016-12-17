@@ -13,12 +13,20 @@ API_TOKEN=""
 # USER_CHAT_ID=123456789
 USER_CHAT_ID=""
 
-# Yona Server
-# YONA_SERVER="http://my-yona-server.com"
-YONA_SERVER="http://127.0.0.1:9000"
+# TARGET_SERVER="http://my-yona-server.com"
+TARGET_SERVER="http://127.0.0.1:9000"
+
+CHECK_URL="$TARGET_SERVER/-_-api/v1/hello"
+
+EXPECTED_STATUS_CODE=200
 
 # Polling Time (sec)
 POLLING_TIME=60
+
+# Messages
+messageOnDown="Yona is unavaliable!"
+messageOnRevive="Yona comeback!"
+
 
 # Configurations end here...
 
@@ -32,6 +40,8 @@ if [ $# -eq 0 ]
         echo ""
         echo "ex>"
         echo "sh is-alive-bot.sh 328394984:AAFhL69afasfqjtUtIeRSzIagVYw7H3zF4"
+        echo ""
+        echo "See: https://core.telegram.org/bots#3-how-do-i-create-a-bot"
         exit 1
     fi
 else
@@ -44,6 +54,8 @@ if [ -z $USER_CHAT_ID ]
         then
         echo "---------------------------------------------------"
         echo "Find chat id of user or group with your own eyes.. "
+        echo ""
+        echo "..chat\":{ \"id\": 621884 ...  <= user or group id!"
         echo "---------------------------------------------------"
         echo ""
         curl -sL https://api.telegram.org/bot$API_TOKEN/getUpdates
@@ -63,15 +75,11 @@ fi
 
 ### preparing for message and server status check
 
-message=""
-messageOnDown="Yona is unavaliable!"
-messageOnRevive="Yona comeback!"
-
 sendMessageToTelegram() {
   curl -s \
     -X POST \
     https://api.telegram.org/bot$API_TOKEN/sendMessage \
-    -d text="$message" \
+    -d text="$1" \
     -d chat_id=$USER_CHAT_ID > /dev/null
 }
 
@@ -82,29 +90,26 @@ echo ""
 echo "Monitoring started... $(date +%Y-%m-%d" "%H:%M:%S)"
 echo ""
 
-message="Monitoring started... - $YONA_SERVER"
-sendMessageToTelegram
+sendMessageToTelegram "Monitoring started... - $TARGET_SERVER"
 
 while true
 do
     NOW=$(date +%Y-%m-%d" "%H:%M:%S)
-    curl -sL -H "Accept: application/json" $YONA_SERVER/-_-api/v1/hello | grep "\"ok\":true" > /dev/null
-    if [ $? != 0 ]
+    response=$(curl -I $CHECK_URL 2> /dev/null | head -n 1 | cut -d$' ' -f2)
+    if [ -z $response ] || [ $response != $EXPECTED_STATUS_CODE ]
         then
             if [ $isDown == false ] 
                 then
                     echo "Sending message - $messageOnDown - $NOW" 
                     isDown=true
-                    message="$messageOnDown - $YONA_SERVER"
-                    sendMessageToTelegram
+                    sendMessageToTelegram "$messageOnDown $response - $TARGET_SERVER"
             fi
         else
             if [ $isDown == true ] 
                 then
                 echo "Sending message - $messageOnRevive - $NOW" 
                 isDown=false
-                message="$messageOnRevive - $YONA_SERVER"
-                sendMessageToTelegram
+                sendMessageToTelegram "$messageOnRevive - $TARGET_SERVER"
             fi
     fi
     sleep $POLLING_TIME
