@@ -80,74 +80,89 @@
     			@makeFilterLink("dueDate", param.orderBy, param.orderDir, Messages("common.order.dueDate"))
     			@makeFilterLink("completionRate", param.orderBy, param.orderDir, Messages("common.order.completionRate"))
     		</div>
+            <div class="pull-left search search-bar">
+                <input name="filter" class="textbox" type="text" placeholder="@Messages("search.title")" value="">
+                <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+            </div>
     		}
         </div>
 
-        <ul class="milestones">
-            @for(milestone <- milestones){
-            <li class="milestone">
-                <div class="infos">
-                	<div class="meta-info">
-                        <strong class="version"></strong>
-                        <a href="@routes.MilestoneApp.milestone(project.owner, project.name, milestone.id)" class="title">@milestone.title</a>
-                        @if(milestone.state != State.CLOSED) {
-                            @if(param.state.equals("all")) {
+        <div class="row-fluid">
+            <div>
+                <ul class="milestones">
+                @for(milestone <- milestones){
+                    <li class="milestone">
+                        <div class="infos">
+                            <div class="meta-info">
+                                <strong class="version"></strong>
+                                <a href="@routes.MilestoneApp.milestone(project.owner, project.name, milestone.id)" class="milestone-name">@milestone.title</a>
                                 <span class="sp">|</span>
-                                <span class="state nm open">@Messages("milestone.state." + milestone.state.state)</span>
-                            }
-                            @if(milestone.dueDate != null) {
-                            <span class="sp">|</span>
-                            <span class="due-date @if(milestone.isOverDueDate){over}">
-                                @Messages("label.dueDate")
-                                <strong>@milestone.getDueDateString</strong>
-                                <span class="date">
-                                    (@milestone.until)
-                                </span>
-                            </span>
-                            }
-                        } else {
-                            @if(param.state.equals("all")) {
-                                <span class="sp">|</span>
-                                <span class="state nm closed">@Messages("milestone.state." + milestone.state.state)</span>
-                            }
-                            @if(milestone.dueDate != null) {
-                            <span class="sp">|</span>
-                            <span class="due-date ml5">
-                                @Messages("label.dueDate")
-                                <strong>@milestone.getDueDateString</strong>
-                            </span>
-                            }
-                        }
-                        <div class="pull-right">
-                            <strong class="title">@milestone.getNumClosedIssues / @(milestone.getNumOpenIssues + milestone.getNumClosedIssues)</strong>
+                                <span class="issue-item">@milestone.getNumClosedIssues / @(milestone.getNumOpenIssues + milestone.getNumClosedIssues)</span>
+                                @if(milestone.state != State.CLOSED) {
+                                    @if(param.state.equals("all")) {
+                                        <span class="sp">|</span>
+                                        <span class="state nm open">@Messages("milestone.state." + milestone.state.state)</span>
+                                    }
+                                    @if(milestone.dueDate != null) {
+                                        <span class="sp">|</span>
+                                        <span class="due-date @if(milestone.isOverDueDate){over}">
+                                            @Messages("label.dueDate")
+                                            <strong>@milestone.getDueDateString</strong>
+                                            <span class="date">
+                                                (@milestone.until)
+                                            </span>
+                                        </span>
+                                    }
+                                } else {
+                                    @if(param.state.equals("all")) {
+                                        <span class="sp">|</span>
+                                        <span class="state nm closed">@Messages("milestone.state." + milestone.state.state)</span>
+                                    }
+                                    @if(milestone.dueDate != null) {
+                                        <span class="sp">|</span>
+                                        <span class="due-date ml5">
+                                            @Messages("label.dueDate")
+                                            <strong>@milestone.getDueDateString</strong>
+                                        </span>
+                                    }
+                                }
+                                <div class="pull-right">
+                                    <span class="number completion-rate">@if(milestone.getNumOpenIssues + milestone.getNumClosedIssues > 0) { @milestone.getCompletionRate % }</span>
+                                </div>
+                            </div>
+
+                            <div class="progress-wrap">
+                                <div class="progress progress-success">
+                                    <div class="bar" style="width: @milestone.getCompletionRate%;"></div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                        <div>
+                        @for(issue <- Issue.findByMilestone(milestone)){
+                            <a class="issue-link" href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)" target="_blank">
+                            <div class="issue-item"><span class="item-name">@issue.title @if(issue.assignee != null){- @issue.assignee.user.name}</span> @if(issue.isOpen){<span class="status-label">@Messages("issue.state.open")</span>}</div>
+                            </a>
+                        }
+                        </div>
+                    </li>
+                }
+                </ul>
+            </div>
+        </div>
 
-                    <div class="progress-wrap">
-    					<div class="progress progress-success">
-    						<div class="bar" style="width: @milestone.getCompletionRate%;"></div>
-    					</div>
-                    </div>
-                </div>
-
-                <div class="completion-rate">
-                    @if(milestone.getNumOpenIssues + milestone.getNumClosedIssues > 0) {
-                    @milestone.getCompletionRate
-                    <i>%</i>
-                    } else {
-                        -
-                    }
-    			</div>
-
-            </li>
-            }
-        </ul>
         }
     </div>
 </div>
 @if(project.menuSetting.milestone) {
 <script type="text/javascript">
     $(document).ready(function () {
+        // search by keyword
+        $(".textbox").on("keyup", function() {
+            var value = $(this).val().toLowerCase().trim();
+            $(".issue-link").each(function() {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) !== -1);
+            });
+        });
         yobi.ShortcutKey.setKeymapLink({
             "N": "@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)"
         });

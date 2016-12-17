@@ -138,6 +138,13 @@
 <link rel="stylesheet" href="@routes.IssueLabelApp.labelStyles(project.owner, project.name)" type="text/css" />
 <script type="text/javascript">
     $(document).ready(function(){
+        // when a user click head of title, it works like issue filter
+        $(".title-prefix").on('click', function () {
+            $(".textbox").val($(this).text());
+            $(".post-item").hide();
+            $("li[data-value*='"+$(".textbox").val() + "']").show();
+            $(".textbox").focus();
+        });
         $yobi.loadModule("milestone.View", {
             "sMilestoneId" : "@milestone.id",
             "sURLLabels"   : "@routes.IssueApp.issues(project.owner, project.name)"
