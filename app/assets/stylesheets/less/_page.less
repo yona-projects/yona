@@ -2134,13 +2134,31 @@ label.inline-list {
     margin: 0;
 
     .milestone {
-        border-bottom: 1px solid @gray-d4;
         padding: 15px 0px; /* 15px 30px;*/
         overflow: hidden;
         &:last-of-type { border-bottom:none; }
 
+        .bar{
+            background: #E7D62E linear-gradient(to bottom, #D9C936, #E7D62E) !important;
+        }
+        .issue-item {
+            font-size: 16px;
+            padding: 5px;
+            .item-name {
+                border: 1px solid white;
+                background-color: white;
+                vertical-align: middle;
+            }
+            .status-label {
+                font-size: 10px;
+                color: white;
+                border: 1px solid #468847;
+                background-color: #468847;
+                vertical-align: text-bottom;
+            }
+        }
         .infos {
-            width: 80%; /*700px*; /*660px;*/
+            width: 100%; /*700px*; /*660px;*/
             float: left;
             .contributors {
                 margin: 0;
@@ -2158,8 +2176,20 @@ label.inline-list {
             }
             .meta-info {
                 margin:5px 0 10px;
-                .title    { font-size:20px; font-weight:bold; }
-                .sp       { margin: 0 5px; color:#E4E4E4; }
+                .milestone-name {
+                    font-size: 20px;
+                    font-weight: bold;
+                }
+                .number {
+                    font-size:20px;
+                }
+                .percentage   {
+                    font-weight:bold;
+                }
+                .sp       {
+                    margin: 0 5px;
+                    color:#E4E4E4;
+                }
                 .due-date {
                     color: #666;
                     &.over { color:#f36c22; }
@@ -2173,7 +2203,7 @@ label.inline-list {
                 margin-top:15px;
 
                 .progress {
-                    height:14px;
+                    height:8px;
                 }
 
             }
@@ -2192,9 +2222,6 @@ label.inline-list {
         }
         .completion-rate {
             text-align: center;
-            font-size: 56px;
-            line-height: 1; /*1.3;*/
-            letter-spacing: -5px;
             &.done {
                 color: @orange;
             }
