@@ -28,7 +28,8 @@ if [ $# -eq 0 ]
   then
     if [ -z $API_TOKEN ]
         then
-        echo "Telegram Bot api token is reqruied!\n"
+        echo "Telegram Bot api token is reqruied!"
+        echo ""
         echo "ex>"
         echo "sh is-alive-bot.sh 328394984:AAFhL69afasfqjtUtIeRSzIagVYw7H3zF4"
         exit 1
@@ -37,14 +38,23 @@ else
     API_TOKEN=$1
 fi
 
-if [ -z $USER_CHAT_ID ]
+if [ -z $USER_CHAT_ID ] && [ -z $2 ]
     then
+    echo "---------------------------------------------------"
+    echo "Find chat id of user or group with your own eyes.. "
+    echo "---------------------------------------------------"
+    echo ""
     curl -sL https://api.telegram.org/bot$API_TOKEN/getUpdates
-    echo "\n\n Find chat id of user or group with your own eyes.. "
-    echo "and set it as USER_CHAT_ID. sorry..\n"
+    echo ""
+    echo "---------------------------------------------------"
+    echo ""
+    echo "and then retry..."
+    echo "sh is-alive-bot.sh API_TOKEN USER_CHAT_ID"
+    echo ""
+    echo "ex>"
+    echo "sh is-alive-bot.sh 328394984:AAFhL69afasfqjtUtIeRSzIagVYw7H3zF4 2156789"
     exit 1;
 fi
-
 
 ### preparing for message and server status check
 
@@ -63,6 +73,9 @@ sendMessageToTelegram() {
 # it is used for one time message sending
 isDown=false
 
+echo ""
+echo "Monitoring started... $(date +%Y-%m-%d" "%H:%M:%S)"
+echo ""
 while true
 do
     NOW=$(date +%Y-%m-%d" "%H:%M:%S)
