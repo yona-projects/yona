@@ -40,8 +40,8 @@ import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
 import playRepository.*;
-import utils.FileUtil;
 import utils.CacheStore;
+import utils.FileUtil;
 import utils.JodaDateUtil;
 import validation.ExConstraints;
 
@@ -49,7 +49,10 @@ import javax.annotation.Nonnull;
 import javax.persistence.*;
 import javax.servlet.ServletException;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 @Entity
 public class Project extends Model implements LabelOwner {
@@ -92,6 +95,8 @@ public class Project extends Model implements LabelOwner {
     private long lastIssueNumber;
 
     private long lastPostingNumber;
+
+    public boolean isCodeAccessibleMemberOnly;
 
     @ManyToMany
     public Set<Label> labels;
@@ -173,6 +178,16 @@ public class Project extends Model implements LabelOwner {
             return project;
         } else {
             return find.byId(projectId);
+        }
+    }
+
+    public boolean hasMember(User user) {
+        if (user.isMemberOf(this) ||
+                user.isManagerOf(this) ||
+                user.isSiteManager()) {
+            return true;
+        } else {
+            return false;
         }
     }
 

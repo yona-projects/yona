@@ -87,6 +87,14 @@
                         <span class="note">@Messages("project.private.notice")</span>
                     </div>
                 </div>
+                <div class="box-wrap middle">
+                    <div class="cu-label">@Messages("project.codeAccessible")</div>
+                    <div class="cu-desc">
+                        <input name="isCodeAccessibleMemberOnly" type="radio" id="codeAccessibleMemberOnly" class="radio-btn" value="true" @if(project.isCodeAccessibleMemberOnly){checked="checked"}><label for="codeAccessibleMemberOnly" class="bg-radiobtn label-public">@Messages("button.yes")</label>
+                        <input name="isCodeAccessibleMemberOnly" type="radio" id="codeAccessibleAnyone" class="radio-btn" value="false" @if(!project.isCodeAccessibleMemberOnly){checked="checked"}><label for="codeAccessibleAnyone" class="bg-radiobtn label-private">@Messages("button.no")</label>
+                        <span class="note"></span>
+                    </div>
+                </div>
 
                 @if(project.vcs.equals("GIT")){
                 <div class="box-wrap middle reviewer-count-wrap" id="reviewerCountSettingPanel" style="@if(!project.menuSetting.code){display:none;}">

@@ -67,6 +67,11 @@ public class CodeApp extends Controller {
             return status(Http.Status.NOT_IMPLEMENTED, project.vcs + " is not supported!");
         }
 
+        // Only members can access code?
+        if(project.isCodeAccessibleMemberOnly && !project.hasMember(UserApp.currentUser())) {
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
+        }
+
         PlayRepository repository = RepositoryService.getRepository(project);
 
         if(repository.isEmpty()) {

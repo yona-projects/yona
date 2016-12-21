@@ -501,6 +501,7 @@ project.changeVCS.error = Cann''t Repository Type
 project.changeVCS.requestion = Do you want to change the repository to {0}?
 project.changeVCS.reaccept = Are you sure?
 project.changeVCS.this = Change Repository Type.
+project.codeAccessible = Only project members can access to code or related menus
 project.codeUpdate = Latest code update
 project.create = Create a project
 project.created = Created date
