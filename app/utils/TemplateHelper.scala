@@ -143,7 +143,7 @@ object TemplateHelper {
   def urlToProjectBG(project: Project) = {
     models.Attachment.findByContainer(project.asResource) match {
       case files if files.size > 0 => routes.AttachmentApp.getFile(files.head.id)
-      case _ => routes.Assets.at("images/project_default.png")
+      case _ => routes.Assets.at("images/project_default.jpg")
     }
   }
 
