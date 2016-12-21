@@ -501,6 +501,7 @@ project.changeVCS.error = 코드 저장소를 변경할 수 없습니다.
 project.changeVCS.requestion = 코드 저장소 타입을 {0}으로 변경하시겠습니까?
 project.changeVCS.reaccept = 정말로 변경하시겠습니까?
 project.changeVCS.this = 코드 저장소 타입을 변경합니다.
+project.codeAccessible = 프로젝트 멤버만 코드 및 관련 메뉴에 접근 가능
 project.codeUpdate = 마지막 코드 업데이트
 project.create = 프로젝트 생성
 project.created = 생성일

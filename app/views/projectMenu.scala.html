@@ -56,11 +56,13 @@
                 </a>
             </li>
             @if(project.menuSetting.code) {
-                <li class="@isActiveMenu(MenuType.CODE)">
-                    <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">
-                        <span class="menu-name">@Messages("menu.code")</span><span class="short-menu">C</span>
-                    </a>
-                </li>
+                @if(!project.isCodeAccessibleMemberOnly || project.hasMember(UserApp.currentUser())) {
+                    <li class="@isActiveMenu(MenuType.CODE)">
+                        <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">
+                            <span class="menu-name">@Messages("menu.code")</span><span class="short-menu">C</span>
+                        </a>
+                    </li>
+                }
             }
             @if(project.menuSetting.issue) {
                 <li class="@isActiveMenu(MenuType.ISSUE)">
@@ -69,8 +71,8 @@
                     </a>
                 </li>
             }
-            @if(project.menuSetting.pullRequest) {
-                @if(project.vcs.equals("GIT")){
+            @if(project.menuSetting.pullRequest && project.vcs.equals("GIT")) {
+                @if(!project.isCodeAccessibleMemberOnly || project.hasMember(UserApp.currentUser())) {
                     <li class="@isActiveMenu(MenuType.PULL_REQUEST)">
                     <a href="@getPullRequestURL(project)">
                         <span class="menu-name">@Messages("menu.pullRequest")</span><span class="short-menu">P</span> @countingBadge(PullRequest.countOpenedPullRequests(project))
@@ -79,11 +81,14 @@
                 }
             }
             @if(project.menuSetting.review) {
-                <li class="@isActiveMenu(MenuType.PROJECT_REVIEW)">
-                    <a href="@routes.ReviewThreadApp.reviewThreads(project.owner, project.name)">
-                        <span class="menu-name">@Messages("menu.review")</span><span class="short-menu">R</span> @countingBadge(reviewCount)
-                    </a>
-                </li>
+                @if(!project.isCodeAccessibleMemberOnly || project.hasMember(UserApp.currentUser())) {
+                    <li class="@isActiveMenu(MenuType.PROJECT_REVIEW)">
+                        <a href="@routes.ReviewThreadApp.reviewThreads(project.owner, project.name)">
+                            <span class="menu-name">@Messages("menu.review")</span><span class="short-menu">
+                            R</span> @countingBadge(reviewCount)
+                        </a>
+                    </li>
+                }
             }
             @if(project.menuSetting.milestone) {
                 <li class="@isActiveMenu(MenuType.MILESTONE)">

@@ -339,6 +339,12 @@ public class PullRequestApp extends Controller {
 
     private static Result pullRequests(String userName, String projectName, Category category) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
+
+        // Only members can access code?
+        if(project.isCodeAccessibleMemberOnly && !project.hasMember(UserApp.currentUser())) {
+                return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
+        }
+
         SearchCondition condition = Form.form(SearchCondition.class).bindFromRequest().get();
         condition.setProject(project).setCategory(category);
         Page<PullRequest> page = PullRequest.findPagingList(condition);

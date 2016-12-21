@@ -20,14 +20,9 @@
  */
 package controllers;
 
-import java.io.IOException;
-
-import javax.servlet.ServletException;
-
+import com.github.zafarkhaja.semver.Version;
 import models.Project;
 import models.enumeration.Operation;
-
-import com.github.zafarkhaja.semver.Version;
 import play.api.i18n.Lang;
 import play.i18n.Messages;
 import play.mvc.Controller;
@@ -38,6 +33,9 @@ import playRepository.RepositoryService;
 import utils.AccessControl;
 import utils.BasicAuthAction;
 import utils.Config;
+
+import javax.servlet.ServletException;
+import java.io.IOException;
 
 public class GitApp extends Controller {
 
@@ -102,6 +100,13 @@ public class GitApp extends Controller {
         }
 
         models.User user = UserApp.currentUser();
+
+        // Only members can access code?
+        // Only members can access code?
+        if(project.isCodeAccessibleMemberOnly && !project.hasMember(UserApp.currentUser())) {
+            return forbidden(Messages.get(Lang.defaultLang(),
+                        "git.error.permission", user.loginId, ownerName, projectName));
+        }
 
         if (!isAllowed(project, service)) {
             if (user.isAnonymous()) {
