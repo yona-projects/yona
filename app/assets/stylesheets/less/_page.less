@@ -2139,27 +2139,49 @@ label.inline-list {
         &:last-of-type { border-bottom:none; }
 
         .bar{
-            background: #E7D62E linear-gradient(to bottom, #D9C936, #E7D62E) !important;
+            background: #fd6956 !important;
         }
+
+        .state-label {
+            font-size: 13px;
+            padding: 5px 0 3px;
+            display: inline-block;
+            min-width: 13px;
+            color: white;
+            border-radius: 5px;
+            text-align: center;
+            line-height: 14px;
+            margin-right: 3px;
+
+            &.open {
+                color: white;
+            }
+            &.closed {
+                color: #2196F3;
+            }
+        }
+
         .issue-item {
             font-size: 16px;
-            padding: 5px;
+            padding: 3px;
             .item-name {
-                border: 1px solid white;
                 background-color: white;
                 vertical-align: middle;
             }
-            .status-label {
-                font-size: 10px;
-                color: white;
-                border: 1px solid #468847;
-                background-color: #468847;
-                vertical-align: text-bottom;
+            .number {
+                font-family: menlo, Consolas, monospace, sans-serif;
+                font-size: 12px;
+                color: gray;
+                min-width: 35px;
+                padding-right: 5px;
+                display: inline-block;
+                text-align: right;
+                margin-right: 3px;
             }
         }
+
         .infos {
             width: 100%; /*700px*; /*660px;*/
-            float: left;
             .contributors {
                 margin: 0;
                 list-style: none;

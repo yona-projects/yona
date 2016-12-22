@@ -138,11 +138,26 @@
                             </div>
                         </div>
                         <div>
-                        @for(issue <- Issue.findByMilestone(milestone)){
-                            <a class="issue-link" href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)" target="_blank">
-                            <div class="issue-item"><span class="item-name">@issue.title @if(issue.assignee != null){- @issue.assignee.user.name}</span> @if(issue.isOpen){<span class="status-label">@Messages("issue.state.open")</span>}</div>
-                            </a>
-                        }
+                            <div></div>
+                            <div>
+                            @for(issue <- Issue.findOpenIssuesByMilestone(milestone)){
+
+                                <a class="issue-link" href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)" target="_blank"><div class="issue-item">
+                                        <span class="state-label open"></span><span class="item-name"><span class="number">#@issue.getNumber</span>@issue.title @if(issue.assignee != null){- @issue.assignee.user.name}</span>
+                                    </div>
+                                </a>
+                            }
+                            </div>
+                            <div></div>
+                            <div>
+                            @for(issue <- Issue.findClosedIssuesByMilestone(milestone)){
+                                <a class="issue-link" href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)" target="_blank">
+                                    <div class="issue-item">
+                                        <span class="state-label closed"><i class=" yobicon-checkmark"></i></span><span class="item-name"><span class="number">#@issue.getNumber</span>@issue.title @if(issue.assignee != null){- @issue.assignee.user.name}</span>
+                                    </div>
+                                </a>
+                            }
+                            </div>
                         </div>
                     </li>
                 }
