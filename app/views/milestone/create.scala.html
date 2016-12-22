@@ -18,59 +18,85 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(title:String, form: play.data.Form[Milestone], project: Project)
+@(title:String, milestoneForm: play.data.Form[Milestone], project: Project)
 
+@import helper._
 @import utils.TemplateHelper._
 @import models.enumeration._
 @import scala.collection.Map
 
 @projectLayout(title, project, utils.MenuType.MILESTONE) {
 @projectMenu(project, utils.MenuType.MILESTONE, "")
-<div class="page-wrap-outer">
+
     <div class="page-wrap-outer">
         <div class="project-page-wrap">
-            <div class="form-wrap milestone frm-wrap">
-                <form class="nm" action="@routes.MilestoneApp.newMilestone(project.owner, project.name)" method="post">
-                    <div class="inner left">
-                        <div class="title-wrap">
-                            <label for="title">@Messages("milestone.form.title")</label>
-                            <input type="text" name="title" id="title" placeholder="" value="@form.data().get("title")">
+            <div class="content-wrap frm-wrap">
+                @form(action = routes.MilestoneApp.newMilestone(project.owner, project.name), 'id -> "milestone-form") {
+                    <div class="row-fluid">
+                        <div class="span12">
+                            <dl>
+                                <dd>
+                                @defining(milestoneForm.errors().get("title")) { errors =>
+                                    <input type="text" id="title" name="title" value="@milestoneForm.data().get("title")" class="zen-mode text title @if(errors != null) {error}" maxlength="250" tabindex="1" placeholder="@Messages("title.text")">
+                                @if(errors != null) {
+                                    <div class="message">
+                                    @for(error <- errors) {
+                                        <div>@Messages(error.message)</div>
+                                    }
+                                    </div>
+                                }
+                                }
+                                </dd>
+                            </dl>
                         </div>
-                        <div class="content-wrap">
-                            <label for="contents">@Messages("milestone.form.content")</label>
-                            <div style="position: relative;">
-                                @common.editor("contents", form.data().get("contents"))
+
+                        <div class="row-fluid">
+                            <div class="span9 span-left-pane">
+                                <dl>
+                                    <dd style="position: relative;">
+                                    @common.editor("contents", milestoneForm.data().get("contents"), "tabindex=2", "content-body")
+                                    </dd>
+                                </dl>
+
+                                @** fileUploader **@
+                                @if(!UserApp.currentUser.isAnonymous) {
+                                    @common.fileUploader(ResourceType.MILESTONE, null)
+                                }
+                                @** end of fileUploader **@
+
+                                <div class=" actrow right-txt">
+                                    <button type="submit" class="ybtn ybtn-info">@Messages("button.save")</button><!--
+                                --><a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="ybtn">@Messages("button.cancel")</a>
+                                </div>
+                            </div>
+                            <div class="span3 span-hard-wrap">
+                                <dl class="issue-option">
+                                    <dt>@Messages("milestone.form.state")</dt>
+                                    <dd>
+                                        <div>
+                                            <input type="radio" name="state" value="@State.OPEN" id="milestone-open" class="radio-btn" checked="checked"><label for="milestone-open" class="bold">@Messages("milestone.state.open")</label>&nbsp;
+                                            <input type="radio" name="state" value="@State.CLOSED" id="milestone-close" class="radio-btn" ><label for="milestone-close" class="bold">@Messages("milestone.state.closed")</label>
+                                        </div>
+                                    </dd>
+                                </dl>
+                                <dl class="issue-option">
+                                    <dt>@Messages("milestone.form.dueDate")</dt>
+                                    <dd>
+                                        <div>
+                                            <label for="dueDate">
+                                            <input type="text" name="dueDate" id="dueDate" class="validate due-date" value="@milestoneForm.data().get("dueDate")">
+                                            </label>
+                                            <div id="datepicker" class="date-picker"></div>
+                                        </div>
+                                    </dd>
+                                </dl>
                             </div>
                         </div>
-
-                        @common.fileUploader(ResourceType.MILESTONE, null)
-
-                        <div class="actions mt20">
-                            <button type="submit" class="ybtn ybtn-success">@Messages("button.save")</button>
-                            <a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="ybtn">@Messages("button.cancel")</a>
-                        </div>
                     </div>
-
-                    <div class="inner right bubble-wrap gray">
-                        <p>@Messages("milestone.form.state")</p>
-                        <div>
-                               <input type="radio" name="state" value="@State.OPEN" id="milestone-open" class="radio-btn" checked="checked"><label for="milestone-open" class="bold">@Messages("milestone.state.open")</label>
-                               &nbsp;
-                               <input type="radio" name="state" value="@State.CLOSED" id="milestone-close" class="radio-btn"><label for="milestone-close" class="bold">@Messages("milestone.state.closed")</label>
-                        </div>
-                        <hr/>
-                        <p>@Messages("milestone.form.dueDate")</p>
-                        <label for="dueDate">
-                            <input type="text" name="dueDate" id="dueDate" class="validate due-date" value="@form.data().get("dueDate")">
-                        </label>
-                        <div id="datepicker" class="date-picker"></div>
-
-                    </div>
-                </form>
+                } @** end of form **@
             </div>
         </div>
     </div>
-</div>
 @common.markdown(project)
 
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.css")">
