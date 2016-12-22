@@ -139,7 +139,7 @@ public class MilestoneApp extends Controller {
         Milestone milestone = Milestone.findById(milestoneId);
 
         Form<Milestone> editForm = new Form<>(Milestone.class).fill(milestone);
-        return ok(edit.render("title.editMilestone", editForm, milestoneId, project));
+        return ok(edit.render("title.editMilestone", editForm, milestone, project));
     }
 
     /**
@@ -157,7 +157,7 @@ public class MilestoneApp extends Controller {
         }
         validateDueDate(milestoneForm);
         if (milestoneForm.hasErrors()) {
-            return ok(edit.render("title.editMilestone", milestoneForm, milestoneId, project));
+            return ok(edit.render("title.editMilestone", milestoneForm, original, project));
         } else {
             Milestone existingMilestone = Milestone.findById(milestoneId);
             Milestone milestone = milestoneForm.get();
