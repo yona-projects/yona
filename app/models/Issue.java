@@ -356,6 +356,14 @@ public class Issue extends AbstractPosting implements LabelOwner {
         return finder.where().eq("milestone.id", milestone.id).findList();
     }
 
+    public static List<Issue> findClosedIssuesByMilestone(Milestone milestone) {
+        return finder.where().eq("milestone.id", milestone.id).eq("state", State.CLOSED).findList();
+    }
+
+    public static List<Issue> findOpenIssuesByMilestone(Milestone milestone) {
+        return finder.where().eq("milestone.id", milestone.id).eq("state", State.OPEN).findList();
+    }
+
     @Transient
     public Set<User> getWatchers() {
         return getWatchers(true);
