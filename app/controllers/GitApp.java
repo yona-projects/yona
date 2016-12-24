@@ -37,6 +37,8 @@ import utils.Config;
 import javax.servlet.ServletException;
 import java.io.IOException;
 
+import static utils.HttpUtil.decodeUrlString;
+
 public class GitApp extends Controller {
 
     public static boolean isSupportedService(String service) {
@@ -148,7 +150,7 @@ public class GitApp extends Controller {
             // but we don't support that.
             return forbidden("Unsupported service: getanyfile");
         }
-        return GitApp.service(ownerName, projectName, service, true);
+        return GitApp.service(ownerName, decodeUrlString(projectName), service, true);
     }
 
     @With(BasicAuthAction.class)

@@ -62,7 +62,7 @@ import java.util.regex.Pattern;
  * </pre>
  */
 public class AutoLinkRenderer {
-    private static final String PATH_PATTERN_STR = "[a-zA-Z0-9-_./]+";
+    private static final String PATH_PATTERN_STR = "[a-zA-Z0-9-_.가-힣/]+";
     private static final String ISSUE_PATTERN_STR = "\\d+";
     private static final String SHA_PATTERN_STR = "[a-f0-9]{7,40}";
 

@@ -54,6 +54,8 @@ import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.List;
 
+import static utils.HttpUtil.encodeUrlString;
+
 @AnonymousCheck
 public class CodeApp extends Controller {
     public static String hostName;
@@ -218,7 +220,7 @@ public class CodeApp extends Controller {
         if (project == null) {
             return null;
         } else if (RepositoryService.VCS_GIT.equals(project.vcs)) {
-            return utils.Url.createWithContext(Arrays.asList(project.owner, project.name));
+            return utils.Url.createWithContext(Arrays.asList(project.owner, encodeUrlString(project.name)));
         } else if (RepositoryService.VCS_SUBVERSION.equals(project.vcs)) {
             return utils.Url.createWithContext(Arrays.asList("svn", project.owner, project.name));
         } else {
