@@ -54,6 +54,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import static utils.HttpUtil.decodeUrlString;
+
 @Entity
 public class Project extends Model implements LabelOwner {
     private static final long serialVersionUID = 1L;
@@ -65,7 +67,7 @@ public class Project extends Model implements LabelOwner {
     public Long id;
 
     @Constraints.Required
-    @Constraints.Pattern("^[a-zA-Z0-9-_\\.]+$")
+    @Constraints.Pattern("^[a-zA-Z0-9-_\\.가-힣]+$")
     @ExConstraints.Restricted({".", "..", ".git"})
     public String name;
 
@@ -162,15 +164,15 @@ public class Project extends Model implements LabelOwner {
 
     public static Page<Project> findByName(String name, int pageSize,
                                            int pageNum) {
-        return find.where().ilike("name", "%" + name + "%")
+        return find.where().ilike("name", "%" + decodeUrlString(name) + "%")
                 .findPagingList(pageSize).getPage(pageNum);
     }
 
     public static Project findByOwnerAndProjectName(String loginId, String projectName) {
-        String key = loginId + ":" + projectName;
+        String key = loginId + ":" + decodeUrlString(projectName);
         Long projectId = CacheStore.projectMap.get(key);
         if(projectId == null || projectId == 0){
-            Project project= find.where().ieq("owner", loginId).ieq("name", projectName)
+            Project project= find.where().ieq("owner", loginId).ieq("name", decodeUrlString(projectName))
                     .findUnique();
             if(project != null){
                 CacheStore.projectMap.put(key, project.id);
@@ -199,7 +201,7 @@ public class Project extends Model implements LabelOwner {
 
     public static boolean projectNameChangeable(Long id, String userName,
                                                 String projectName) {
-        int findRowCount = find.where().ieq("name", projectName)
+        int findRowCount = find.where().ieq("name", decodeUrlString(projectName))
                 .ieq("owner", userName).ne("id", id).findRowCount();
         return (findRowCount == 0);
     }

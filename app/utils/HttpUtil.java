@@ -196,4 +196,26 @@ public class HttpUtil {
             return null;
         }
     }
+
+    public static String decodeUrlString(String str) {
+        String targetStr = str;
+        try {
+            targetStr = URLDecoder.decode(str, "UTF8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } finally {
+            return targetStr;
+        }
+    }
+
+    public static String encodeUrlString(String str) {
+        String targetStr = str;
+        try {
+            targetStr = URLEncoder.encode(str, "UTF8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } finally {
+            return targetStr;
+        }
+    }
 }

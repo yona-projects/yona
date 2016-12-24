@@ -45,7 +45,7 @@
     			@Html(Messages("code.nohead"))
     @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
                 <h5>@Messages("code.nohead.clone", utils.Config.getSiteName)</h5>
-    			<pre><code>git clone @getCodeURL(project)
+    			<pre><code>git clone @getCodeURL(project) @project.name
 cd @project.name/
 echo "# @project.name" > README.md
 git add README.md
