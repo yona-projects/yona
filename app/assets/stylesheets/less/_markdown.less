@@ -17,7 +17,15 @@
   font-size: 1.15em;
   clear: both;
   overflow: auto;
-  font-family: "Apple SD Gothic Neo", "Noto Sans", "New Roboto", "Nanum Gothic", "Malgun Gothic", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Malgun Gothic", "Helvetica Neue", "Apple SD Gothic Neo", "Nanum Barun Gothic Light", "Nanum Barun Gothic", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-feature-settings: "kern" 1;
+  -moz-font-feature-settings: "kern" 1;
+  -o-font-feature-settings: "kern" 1;
+  font-feature-settings: "kern" 1;
+  font-kerning: normal;
+
   word-wrap: break-word;
 
   ul, ol {
@@ -43,6 +51,11 @@
   li > p {
     margin-top: 0;
     margin-bottom: 5px;
+  }
+
+  ul > li > p {
+    margin-top: 16px;
+    margin-bottom: 16px;
   }
 
   a {
@@ -147,6 +160,9 @@
     color: #777;
   }
 
+  li > img {
+    max-width:80%;
+  }
   img{
     max-width:100%;
     margin:10px 0; padding: 10px;
