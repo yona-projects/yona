@@ -20,6 +20,7 @@
  */
 package controllers;
 
+import actions.CodeAccessCheckAction;
 import actions.DefaultProjectCheckAction;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.annotation.AnonymousCheck;
@@ -29,16 +30,12 @@ import models.enumeration.Operation;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.tika.Tika;
 import org.apache.tika.mime.MediaType;
-import org.eclipse.jgit.api.ArchiveCommand;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.archive.ZipFormat;
 import org.tmatesoft.svn.core.SVNException;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.With;
-import playRepository.GitRepository;
 import playRepository.PlayRepository;
 import playRepository.RepositoryService;
 import utils.ErrorViews;
@@ -95,7 +92,7 @@ public class CodeApp extends Controller {
         return redirect(routes.CodeApp.codeBrowserWithBranch(userName, projectName, defaultBranch, ""));
     }
 
-    @With(DefaultProjectCheckAction.class)
+    @With(CodeAccessCheckAction.class)
     public static Result codeBrowserWithBranch(String userName, String projectName, String branch, String path)
         throws UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
@@ -119,7 +116,7 @@ public class CodeApp extends Controller {
         return ok(view.render(project, branches, recursiveData, branch, path));
     }
 
-    @With(DefaultProjectCheckAction.class)
+    @With(CodeAccessCheckAction.class)
     public static Result ajaxRequest(String userName, String projectName, String path) throws Exception{
         PlayRepository repository = RepositoryService.getRepository(userName, projectName);
         path = HttpUtil.decodePathSegment(path);
@@ -132,7 +129,7 @@ public class CodeApp extends Controller {
         }
     }
 
-    @With(DefaultProjectCheckAction.class)
+    @With(CodeAccessCheckAction.class)
     public static Result download(String userName, String projectName, String branch, String path)
             throws UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
@@ -164,7 +161,7 @@ public class CodeApp extends Controller {
         return ok(chunks);
     }
 
-    @With(DefaultProjectCheckAction.class)
+    @With(CodeAccessCheckAction.class)
     public static Result ajaxRequestWithBranch(String userName, String projectName, String branch, String path)
             throws UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException{
         CodeApp.hostName = request().host();
@@ -180,7 +177,7 @@ public class CodeApp extends Controller {
         }
     }
 
-    @With(DefaultProjectCheckAction.class)
+    @With(CodeAccessCheckAction.class)
     public static Result showRawFile(String userName, String projectName, String revision, String path) throws Exception{
         path = HttpUtil.decodePathSegment(path);
         revision = HttpUtil.decodePathSegment(revision);
@@ -200,7 +197,7 @@ public class CodeApp extends Controller {
         return ok(fileAsRaw).as(mediaTypeString);
     }
 
-    @With(DefaultProjectCheckAction.class)
+    @With(CodeAccessCheckAction.class)
     public static Result showImageFile(String userName, String projectName, String revision, String path) throws Exception{
         revision = HttpUtil.decodePathSegment(revision);
         path = HttpUtil.decodePathSegment(path);

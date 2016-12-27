@@ -49,8 +49,14 @@ public class GitApp extends Controller {
     private static boolean isAllowed(Project project, String service) throws
             UnsupportedOperationException, IOException, ServletException {
         Operation operation = Operation.UPDATE;
+
         if (service.equals("git-upload-pack")) {
             operation = Operation.READ;
+        }
+
+        // Only members can access code?
+        if(project.isCodeAccessibleMemberOnly && !project.hasMember(UserApp.currentUser())) {
+            operation = Operation.UPDATE;
         }
 
         PlayRepository repository = RepositoryService.getRepository(project);
@@ -102,13 +108,6 @@ public class GitApp extends Controller {
         }
 
         models.User user = UserApp.currentUser();
-
-        // Only members can access code?
-        // Only members can access code?
-        if(project.isCodeAccessibleMemberOnly && !project.hasMember(UserApp.currentUser())) {
-            return forbidden(Messages.get(Lang.defaultLang(),
-                        "git.error.permission", user.loginId, ownerName, projectName));
-        }
 
         if (!isAllowed(project, service)) {
             if (user.isAnonymous()) {
