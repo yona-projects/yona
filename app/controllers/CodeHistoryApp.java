@@ -20,6 +20,7 @@
  */
 package controllers;
 
+import actions.CodeAccessCheckAction;
 import actions.DefaultProjectCheckAction;
 import actions.NullProjectCheckAction;
 import controllers.annotation.AnonymousCheck;
@@ -33,12 +34,18 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.tmatesoft.svn.core.SVNException;
 import play.data.Form;
-import play.mvc.*;
+import play.mvc.Call;
+import play.mvc.Controller;
+import play.mvc.Result;
+import play.mvc.With;
 import playRepository.Commit;
 import playRepository.FileDiff;
 import playRepository.PlayRepository;
 import playRepository.RepositoryService;
-import utils.*;
+import utils.AccessControl;
+import utils.ErrorViews;
+import utils.HttpUtil;
+import utils.RouteUtil;
 import views.html.code.diff;
 import views.html.code.history;
 import views.html.code.nohead;
@@ -56,14 +63,14 @@ public class CodeHistoryApp extends Controller {
     private static final int HISTORY_ITEM_LIMIT = 25;
 
 
-    @With(DefaultProjectCheckAction.class)
+    @With(CodeAccessCheckAction.class)
     public static Result historyUntilHead(String ownerName, String projectName) throws IOException,
             UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
         return history(ownerName, projectName, null, null);
     }
 
-    @IsAllowed(Operation.READ)
+    @With(CodeAccessCheckAction.class)
     public static Result history(String ownerName, String projectName, String branch, String path) throws IOException,
             UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
@@ -91,7 +98,7 @@ public class CodeHistoryApp extends Controller {
         }
     }
 
-    @IsAllowed(Operation.READ)
+    @With(CodeAccessCheckAction.class)
     public static Result show(String ownerName, String projectName, String commitId)
             throws IOException, UnsupportedOperationException, ServletException, GitAPIException,
             SVNException, NoSuchMethodException {

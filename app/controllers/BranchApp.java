@@ -20,6 +20,7 @@
  */
 package controllers;
 
+import actions.CodeAccessCheckAction;
 import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import controllers.annotation.IsOnlyGitAvailable;
@@ -31,6 +32,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import play.mvc.Controller;
 import play.mvc.Result;
+import play.mvc.With;
 import playRepository.GitBranch;
 import playRepository.GitRepository;
 import utils.HttpUtil;
@@ -47,7 +49,7 @@ import java.util.List;
 @AnonymousCheck
 public class BranchApp extends Controller {
 
-    @IsAllowed(Operation.READ)
+    @With(CodeAccessCheckAction.class)
     public static Result branches(String loginId, String projectName) throws IOException, GitAPIException {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
         GitRepository gitRepository = new GitRepository(project);
