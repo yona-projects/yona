@@ -1018,6 +1018,11 @@
     }
 }
 
+#notification-more {
+    margin-top: 20px;
+    width: 95%;
+}
+
 .content-container {
     .main-stream {
         margin-bottom:15px;
@@ -1036,21 +1041,16 @@
             .notification-stream {
                 clear:both;
                 color:#DDD;
-                padding-left:50px;
+                padding: 5px 5px 5px 25px;
                 position:relative;
-                padding-bottom:15px;
+                background-color: #fbfbfb;
+                margin-top: 3px;
 
-                &:before {
-                    position:absolute;
-                    top:0px;
-                    left:17px;
-                    content:' ';
-                    border-left:1px solid #d2d2d2;
-                    width: 1px;
-                    height: 100%;
+                cursor:pointer;
+
+                &:hover {
+                    background: #f1f1f1;
                 }
-
-
 
                 &:first-child  {
                     &:before { top:20px }
@@ -1063,59 +1063,42 @@
                 .stream-type {
                     display:inline-block;
                     padding:4px 6px;
-                    border: 4px solid @state-open;
-                    .border-radius(50%);
-                    background: #FFF;
-                    position:absolute;
-                    top:12px;
-                    left:0;
-                    color:@state-open;
+                    color: #4caf50;
                     text-align:center;
                     line-height:20px;
-                    font-size:16px;
+                    font-size:20px;
                     font-weight:bold;
-                    vertical-align: middle;
+                    vertical-align: top;
+                    margin-top: 2px;
 
                     &.closed {border: 4px solid @state-closed; color:@state-closed;}
                     &.changed {border: 4px solid @state-changed;color:@state-changed;}
                     &.rejected {border: 4px solid @state-rejected;color:@state-rejected;}
                     &.warning {border : 4px solid @state-warning;color:@state-warning;}
                     &.merged {border: 4px solid @state-merged;color:@state-merged;}
+                    &.comment2 {
+                        color: #8b008b;
+                    }
+                    &.info {
+                        color: #999;
+                    }
+                    &.list-alt {
+                        color: orange;
+                    }
+                    &.ellipsis-horizontal {
+                        color: grey;
+                    }
                 }
 
                 .stream-desc {
-                    border:1px solid #E0E0E0;
-                    border-radius : 5px;
                     padding:4px 7px 7px 7px;
-                    cursor:pointer;
-                    background:#F8F8F8;
-
-                    &:hover {
-                        background:#F8FBFC;
-
-                        &:before {
-                            background:#F8FBFC;
-                        }
-                    }
-
-                    &:before {
-                        position:absolute;
-                        top:24px;
-                        left:45px;
-                        content:' ';
-                        border:1px solid #E0E0E0;
-                        width: 9px;
-                        height: 9px;
-                        border-width: 0 0 1px 1px;
-                        border-style: solid;
-                        border-color: #e5e5e5;
-                        background: #F8F8F8;
-                        .rotate(45deg);
-                    }
+                    display:inline-block;
+                    width: 90%;
 
                     .stream-info {
-
-                        .avatar-wrap { float:left; margin-top:3px; margin-right:15px;}
+                        .avatar-wrap {
+                            margin-top:3px;
+                        }
 
                         .title {
                             color:#51aacc;
@@ -1128,7 +1111,6 @@
 
                         .meta {
                             font-size:12px;
-                            padding-left:55px;
                             color:#bbb;
                             margin-top:5px;
 

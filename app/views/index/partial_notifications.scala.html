@@ -27,14 +27,14 @@
     notifytype match {
         case EventType.NEW_COMMENT
              | EventType.NEW_REVIEW_COMMENT
-             | EventType.REVIEW_THREAD_STATE_CHANGED => { "comments"}
+             | EventType.REVIEW_THREAD_STATE_CHANGED => { "comment2"}
         case EventType.NEW_ISSUE | EventType.ISSUE_STATE_CHANGED => {
-            if(state=="closed") "science closed"
-            else "science"
+            if(state=="closed") "list-alt closed"
+            else "list-alt"
         }
-        case EventType.ISSUE_ASSIGNEE_CHANGED => { "ftpaccounts changed" }
-        case EventType.NEW_POSTING => { "notes" }
-        case EventType.NEW_PULL_REQUEST | EventType.PULL_REQUEST_STATE_CHANGED => {
+        case EventType.ISSUE_ASSIGNEE_CHANGED => { "friends changed" }
+        case EventType.NEW_POSTING => { "edit2" }
+        case EventType.NEW_PULL_REQUEST | EventType.PULL_REQUEST_COMMIT_CHANGED | EventType.PULL_REQUEST_STATE_CHANGED => {
             if(state=="closed") "merge closed"
             else if(state=="merged") "merge merged"
             else  "merge"
@@ -46,7 +46,9 @@
         }
         case EventType.NEW_COMMIT =>{"push"}
         case EventType.PULL_REQUEST_REVIEW_STATE_CHANGED => {"preview changed"}
-        case _ => {"info"}
+        case EventType.ISSUE_BODY_CHANGED => {"ellipsis-horizontal"}
+        case EventType.COMMENT_UPDATED => {"ellipsis-horizontal"}
+        case _ => {"megaphone"}
     }
 }
 
@@ -61,19 +63,10 @@
     <li class="notification-stream">
         @defining(User.find.byId(noti.senderId)){ user =>
         <div class="stream-type @notifycationIcon(noti.eventType,noti.newValue)">
-            <i class="yobicon-@notifycationIcon(noti.eventType,noti.newValue)"></i>
+                <i class="yobicon-@notifycationIcon(noti.eventType,noti.newValue)"></i>
         </div>
         <div class="stream-desc" data-target="message-@noti.id" data-toggle="learnmore">
             <div class="stream-info">
-                @if(user != null){
-                <a class="avatar-wrap mlarge" href="@routes.UserApp.userInfo(user.loginId)">
-                    <img src="@user.avatarUrl" >
-                </a>
-                } else {
-                <div class="avatar-wrap mlarge">
-                    <img src="@routes.Assets.at("images/default-avatar-64.png")" width="42" height="42">
-                </div>
-                }
                 <div class="title">
                     @noti.getUrlToView match {
                         case null => { @noti.title }
@@ -81,9 +74,18 @@
                     }
                 </div>
                 <div class="message-wrap nowrap" id="message-@noti.id">
-                    <div class="message">@noti.getMessage</div>
+                    <div class="message">@Html(noti.getMessage.replaceAll("\n", "<br/>\n"))</div>
                 </div>
                 <div class="meta">
+                    @if(user != null){
+                        <a class="avatar-wrap smaller" href="@routes.UserApp.userInfo(user.loginId)">
+                            <img src="@user.avatarUrl" >
+                        </a>
+                    } else {
+                        <div class="smaller">
+                            <img src="@routes.Assets.at("images/default-avatar-64.png")" width="42" height="42">
+                        </div>
+                    }
                     <a href="@routes.UserApp.userInfo(user.loginId)" class="author">@user.name</a> @@@user.loginId
                     <span class="ago pull-right" title="@JodaDateUtil.getDateString(noti.created)">
                         @agoOrDateString(noti.created)
