@@ -70,7 +70,7 @@ public class User extends Model implements ResourceConvertible {
 
     public static final Long SITE_MANAGER_ID = 1l;
 
-    public static final String LOGIN_ID_PATTERN = "[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*";
+    public static final String LOGIN_ID_PATTERN = "[a-zA-Z0-9가-힣-]+([_.][a-zA-Z0-9가-힣-]+)*";
     public static final String LOGIN_ID_PATTERN_ALLOW_FORWARD_SLASH = "[a-zA-Z0-9-/]+([_.][a-zA-Z0-9-/]+)*";
 
     public static final User anonymous = new NullUser();

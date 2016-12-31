@@ -39,7 +39,7 @@
          */
         function _initVar(htOptions){
             htVar.sFormName = htOptions.sFormName || "new-org";
-            htVar.rxOrgName = /^[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*$/;
+            htVar.rxOrgName = /^[a-zA-Z0-9-가-힣]+([_.][a-zA-Z0-9-가-힣]+)*$/;
         }
 
         /**
