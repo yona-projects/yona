@@ -40,7 +40,7 @@
          * initialize variables
          */
         function _initVar(htOptions){
-            htVar.rxPrjName = /^[0-9A-Za-z-_\.]+$/;
+            htVar.rxPrjName = /^[0-9A-Za-z-_\.가-힣]+$/;
             htVar.aReservedWords = [".", "..", ".git"];
         }
 

@@ -46,6 +46,7 @@ import play.i18n.Messages;
 import play.libs.Akka;
 import scala.concurrent.duration.Duration;
 import utils.Config;
+import utils.HttpUtil;
 import utils.Markdown;
 import utils.Url;
 
@@ -555,7 +556,7 @@ public class NotificationMail extends Model {
         if (detail != null) {
             EmailAddressWithDetail addr =
                     new EmailAddressWithDetail(Config.getEmailFromImap());
-            addr.setDetail(detail);
+            addr.setDetail(HttpUtil.encodeUrlString(detail));
             return addr.toString();
         } else {
             return null;
@@ -640,7 +641,7 @@ public class NotificationMail extends Model {
                 "notification.replyOrLinkToView" : "notification.linkToView";
 
         if (url != null) {
-            msg += String.format("\n\n--\n" + Messages.get(lang, messageKey, url));
+            msg += String.format("\n\n--\n" + HttpUtil.decodeUrlString(Messages.get(lang, messageKey, url)));
         }
 
         return msg;
