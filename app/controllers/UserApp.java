@@ -196,12 +196,21 @@ public class UserApp extends Controller {
             if(StringUtils.isEmpty(redirectUrl)){
                 return redirect(routes.Application.index());
             } else {
-                return redirect(redirectUrl);
+                return redirect(encodedPath(redirectUrl));
             }
         }
 
         flash(Constants.WARNING, "user.login.invalid");
         return redirect(routes.UserApp.loginForm());
+    }
+
+    private static String encodedPath(String path){
+        String[] paths = path.split("/");
+        String[] encodedPaths = new String[paths.length];
+        for (int i=0; i< paths.length; i++) {
+            encodedPaths[i] = HttpUtil.encodeUrlString(paths[i]);
+        }
+        return String.join("/", encodedPaths);
     }
 
     /**
