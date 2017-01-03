@@ -20,36 +20,32 @@
  */
 package models;
 
-import java.io.IOException;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import models.enumeration.ResourceType;
 import models.resource.GlobalResource;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-
+import org.eclipse.jgit.revwalk.RevCommit;
+import play.Logger;
 import play.data.validation.Constraints.Required;
 import play.db.ebean.Model;
-import play.libs.Json;
-import play.libs.ws.*;
 import play.libs.F.Function;
-import play.libs.F.Promise;
-import play.Logger;
-
-import javax.persistence.*;
-import javax.validation.constraints.Size;
-import java.util.Set;
-import java.util.List;
-import java.util.Date;
-import java.lang.Object;
-import java.text.SimpleDateFormat;
-
+import play.libs.Json;
+import play.libs.ws.WS;
+import play.libs.ws.WSRequestHolder;
+import play.libs.ws.WSResponse;
 import playRepository.GitCommit;
-import org.eclipse.jgit.revwalk.RevCommit;
-
 import utils.RouteUtil;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.validation.constraints.Size;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
 
 /**
  * A webhook to be sent by events in project
@@ -170,6 +166,7 @@ public class Webhook extends Model implements ResourceConvertible {
                                     if (statusCode < 200 || statusCode >= 300) {
                                         // Unsuccessful status code - log some information in server.
                                         Logger.info("[Webhook] Request responded code " + Integer.toString(statusCode) + ": " + statusText);
+                                        Logger.info("[Webhook] Request payload: " + requestBodyString);
                                     }
                                     return 0;
                                 }
