@@ -53,6 +53,8 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
     public Organization organization;
     public List<String> projectNames;
 
+    public Long commenterId;
+
     @Formats.DateTime(pattern = "yyyy-MM-dd")
     public Date dueDate;
 
@@ -72,6 +74,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         one.labelIds = new HashSet<>(this.labelIds);
         one.authorId = this.authorId;
         one.assigneeId = this.assigneeId;
+        one.commenterId = this.commenterId;
         one.mentionId = this.mentionId;
         one.dueDate = this.dueDate;
         one.projectNames = this.projectNames;
@@ -135,6 +138,11 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
 
     public SearchCondition setAssigneeId(Long assigneeId) {
         this.assigneeId = assigneeId;
+        return this;
+    }
+
+    public SearchCondition setCommenterId(Long commenterId) {
+        this.commenterId = commenterId;
         return this;
     }
 
@@ -220,6 +228,23 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         }
     }
 
+    private void setCommenterIfExist(ExpressionList<Issue> el, Project project) {
+        // TODO: access control
+        if (commenterId != null) {
+            User commenter = User.find.byId(commenterId);
+            if(!commenter.isAnonymous()) {
+                List<Long> ids = getCommentedIssueIds(commenter, project);
+
+                if (ids.isEmpty()) {
+                    // No need to progress because the query matches nothing.
+                    el.idEq(-1);
+                } else {
+                    el.idIn(ids);
+                }
+            }
+        }
+    }
+
     private void setAssigneeIfExists(ExpressionList<Issue> el) {
         if (assigneeId != null) {
             if (assigneeId.equals(User.anonymous.id)) {
@@ -252,6 +277,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
 
         setAssigneeIfExists(el);
         setAuthorIfExist(el);
+        setCommenterIfExist(el, null);
         setMentionedIssuesIfExist(el);
         setFilteredStringIfExist(el);
 
@@ -292,6 +318,33 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
                 }
             }
         }
+    }
+
+    private List<Long> getCommentedIssueIds(User commenter, Project project) {
+        Set<Long> issueIds = new HashSet<>();
+
+        for (Comment comment : IssueComment.find.where()
+                .eq("authorId", commenter.id)
+                .findList()) {
+
+            switch (comment.asResource().getType()) {
+                case ISSUE_COMMENT:
+                    if(project == null) {
+                        issueIds.add(comment.getParent().id);
+                        break;
+                    } else {
+                        if(comment.getParent().project.id.equals(project.id)){
+                            issueIds.add(comment.getParent().id);
+                        }
+                    }
+                    break;
+                default:
+                    play.Logger.warn("'" + comment.asResource().getType() + "' is not supported.");
+                    break;
+            }
+        }
+
+        return new ArrayList<>(issueIds);
     }
 
     private List<Long> getMentioningIssueIds(User mentionUser) {
@@ -367,6 +420,8 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
                 el.eq("assignee.project.id", project.id);
             }
         }
+
+        setCommenterIfExist(el, project);
 
         if (milestoneId != null) {
             if (milestoneId.equals(Milestone.NULL_MILESTONE_ID)) {

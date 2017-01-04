@@ -20,37 +20,55 @@
 **@
 @(param:models.support.SearchCondition, project:Project)
 
-@paramForEveryone = @{ param.clone().setState(param.state).setAssigneeId(null).setAuthorId(null) }
-@paramForIssuesAssignedToMe = @{ param.clone().setState(param.state).setAssigneeId(UserApp.currentUser().id).setAuthorId(null) }
-@paramForIssuesAuthoredByMe = @{ param.clone().setState(param.state).setAssigneeId(null).setAuthorId(UserApp.currentUser().id) }
+@paramForEveryone = @{ param.clone().setState(param.state).setAssigneeId(null).setAuthorId(null).setCommenterId(null) }
+@paramForIssuesAssignedToMe = @{ param.clone().setState(param.state).setAssigneeId(UserApp.currentUser().id).setAuthorId(null).setCommenterId(null) }
+@paramForIssuesAuthoredByMe = @{ param.clone().setState(param.state).setAssigneeId(null).setAuthorId(UserApp.currentUser().id).setCommenterId(null) }
+@paramForIssuesCommentedByMe = @{ param.clone().setState(param.state).setAssigneeId(null).setAuthorId(null).setCommenterId(UserApp.currentUser().id) }
 
 <ul class="lst-stacked unstyled">
-    <li @if(param.assigneeId == null && param.authorId == null){class="active"}>
+    <li @if(param.assigneeId == null && param.authorId == null && param.commenterId == null){class="active"}>
         <a pjax-filter href="#"
-           data-assignee-id=""
-           data-author-id=""
-           data-milestone-id="@param.milestoneId">
-            @Messages("issue.list.all")
+            data-assignee-id=""
+            data-author-id=""
+            data-commenter-id=""
+            data-milestone-id="@param.milestoneId">
+            @if(param.state.equals("closed")){
+                @Messages("issue.list.all.closed")
+            } else {
+                @Messages("issue.list.all.open")
+            }
             <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, paramForEveryone)</span>
         </a>
     </li>
     @if(!UserApp.currentUser().isAnonymous){
     <li @if(param.assigneeId == UserApp.currentUser().id){ class="active"}>
         <a pjax-filter href="#"
-           data-assignee-id="@UserApp.currentUser.id"
-           data-author-id=""
-           data-milestone-id="@param.milestoneId">
+            data-assignee-id="@UserApp.currentUser.id"
+            data-author-id=""
+            data-commenter-id=""
+            data-milestone-id="@param.milestoneId">
             @Messages("issue.list.assignedToMe")
             <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, paramForIssuesAssignedToMe)</span>
         </a>
     </li>
     <li @if(param.authorId == UserApp.currentUser().id){ class="active"}>
         <a pjax-filter href="#"
-           data-assignee-id=""
-           data-author-id="@UserApp.currentUser.id"
-           data-milestone-id="@param.milestoneId">
+            data-assignee-id=""
+            data-author-id="@UserApp.currentUser.id"
+            data-commenter-id=""
+            data-milestone-id="@param.milestoneId">
             @Messages("issue.list.authoredByMe")
             <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, paramForIssuesAuthoredByMe)</span>
+        </a>
+    </li>
+    <li @if(param.commenterId == UserApp.currentUser().id){ class="active"}>
+        <a pjax-filter href="#"
+            data-assignee-id=""
+            data-author-id=""
+            data-commenter-id="@UserApp.currentUser.id"
+            data-milestone-id="@param.milestoneId">
+            @Messages("issue.list.commentedByMe")
+            <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, paramForIssuesCommentedByMe)</span>
         </a>
     </li>
     }
