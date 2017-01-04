@@ -6,18 +6,12 @@
 **@
 @(title:String, issue:Issue, issueForm: play.data.Form[Issue], commentForm: play.data.Form[Comment],project:Project)
 @import org.apache.commons.lang.StringUtils
-@import helper._
-@import scala.collection.mutable.Map
 @import models.enumeration.ResourceType
 @import models.enumeration.Operation
 @import models.Milestone
-@import java.net._
-@import java.text.SimpleDateFormat
-@import java.security.MessageDigest
 @import utils.JodaDateUtil
 @import utils.TemplateHelper._
 @import utils.AccessControl._
-@import utils.Config
 @import play.libs.Json.toJson
 @import utils.Markdown
 
@@ -49,6 +43,8 @@
 }
 
 @titleForOGTag = @{getTitle(issue) + " |:| " + issue.body.substring(0, Math.min(issue.body.length, 200))}
+
+@conatinsCurrentUserInWatchers = @{issue.getWatchers(false).contains(UserApp.currentUser())}
 
 @projectLayout(titleForOGTag, project, utils.MenuType.ISSUE){
 @projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
@@ -105,15 +101,16 @@
                     <div class="pull-left">
                         <div>
                             @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.WATCH)) {
-                                <button id="watch-button" type="button" class="ybtn @if(issue.getWatchers(false).contains(UserApp.currentUser())) {ybtn-watching}"
-                                        data-toggle="button" data-watching="@if(issue.getWatchers(false).contains(UserApp.currentUser())){true}else{false}">
-                                @if(issue.getWatchers(false).contains(UserApp.currentUser())) {
+                                <button id="watch-button" type="button" class="ybtn @if(conatinsCurrentUserInWatchers) {ybtn-watching}"
+                                        data-toggle="button" data-watching="@conatinsCurrentUserInWatchers">
+                                @if(conatinsCurrentUserInWatchers) {
                                     @Messages("issue.unwatch")
                                 } else {
                                     @Messages("issue.watch")
                                 }
                                 </button>
                             }
+                            @Html(showWatchers(issue))
 
                             <div id="vote" class="vote-wrap">
                                 @if(isResourceCreatable(UserApp.currentUser, issue.asResource(), ResourceType.ISSUE_COMMENT)) {
@@ -154,7 +151,7 @@
                         <a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)" class="ybtn">@Messages("button.edit")</a>
                     }
                 </div>
-
+                <div class="watcher-list">@Html(watcherList(issue))</div>
                 @** Comment **@
                 <div id="comments" class="board-comment-wrap">
                     <div id="timeline">
@@ -369,6 +366,10 @@
 
         // detect comment which contains mention at me
         $(".comment-body:contains('@UserApp.currentUser().loginId')").closest(".comment").addClass("mentioned");
+
+        $(".show-watchers").on("click", function(){
+            $(".watcher-list").toggle();
+        })
     });
 </script>
 }
