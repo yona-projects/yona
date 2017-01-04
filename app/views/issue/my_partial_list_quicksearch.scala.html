@@ -26,6 +26,7 @@
         <a pjax-filter href="#"
             data-author-id=""
             data-assignee-id="@UserApp.currentUser.id"
+            data-commenter-id=""
             data-milestone-id="@param.milestoneId"
             data-mention-id="">
             @Messages("issue.list.assignedToMe")
@@ -35,15 +36,27 @@
         <a pjax-filter href="#"
             data-author-id="@UserApp.currentUser.id"
             data-assignee-id=""
+            data-commenter-id=""
             data-milestone-id="@param.milestoneId"
             data-mention-id="">
             @Messages("issue.list.authoredByMe")
+        </a>
+    </li>
+    <li @if(param.commenterId == UserApp.currentUser().id){ class="active"}>
+        <a pjax-filter href="#"
+        data-author-id=""
+        data-assignee-id=""
+        data-commenter-id="@UserApp.currentUser.id"
+        data-milestone-id="@param.milestoneId"
+        data-mention-id="">
+        @Messages("issue.list.commentedByMe")
         </a>
     </li>
     <li @if(param.mentionId == UserApp.currentUser().id){ class="active"}>
         <a pjax-filter href="#"
             data-author-id=""
             data-assignee-id=""
+            data-commenter-id=""
             data-milestone-id="@param.milestoneId"
             data-mention-id="@UserApp.currentUser.id">
             @Messages("issue.list.mentionedOfMe")
