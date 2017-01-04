@@ -1,6 +1,5 @@
 package utils
 
-import org.apache.commons.lang3
 import org.apache.commons.lang3.StringUtils
 import play.mvc.Call
 import org.joda.time.DateTimeConstants
@@ -10,22 +9,55 @@ import controllers.routes
 import controllers.UserApp
 import views.html._
 import java.net.URI
+
 import playRepository.DiffLine
 import playRepository.DiffLineType
 import models.CodeRange.Side
-import scala.StringBuilder
-import scala.collection.JavaConversions._
+
 import views.html.partial_diff_comment_on_line
 import views.html.partial_diff_line
 import views.html.git.partial_pull_request_event
 import models._
 import java.net.URLEncoder
+
 import scala.annotation.tailrec
 import playRepository.FileDiff
 import play.api.i18n.Lang
 import play.twirl.api.Html
+import collection.convert.wrapAll._
+import scala.util.control.Breaks._
 
 object TemplateHelper {
+
+  def watcherList(posting: AbstractPosting): String = {
+    val LIMIT = 100
+    var counter = 0
+    var str =  ""
+    val watchers = posting.getWatchers
+    breakable {
+      for(watcher <- watchers){
+        counter += 1
+        if(counter > LIMIT) break
+        var dummy = watcher.toString  // ebean eagerly loading hack
+        str += "<a href='" + userInfo(watcher.loginId) + "' class='watcher-name'>" + watcher.name + "</a>"
+      }
+    }
+
+    if( watchers.size > LIMIT ) {
+      str += Messages.get("watchers.more", (watchers.size - LIMIT).toString)
+    }
+    str
+  }
+
+  def showWatchers(posting: AbstractPosting): String = {
+    if(posting.getWatchers.size > 1){
+      "<div class='show-watchers' data-toggle='tooltip' data-placement='top' data-trigger='hover' data-html='true' title='" + Messages.get("watchers") + "'>" +
+      "<button id='watch-button' type='button' class='ybtn'><i class='yobicon-emo-coffee'></i> " + posting.getWatchers.size.toString + "</button>" +
+      "</div>"
+    } else {
+      ""
+    }
+  }
 
   def buildQueryString(call: Call, queryMap: Map[String, String]): String = {
     val baseUrl = call.toString

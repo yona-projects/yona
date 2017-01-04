@@ -23,6 +23,8 @@
 }
 @titleForOGTag = @{post.title + " |:| " + post.body.substring(0, Math.min(post.body.length, 200))}
 
+@conatinsCurrentUserInWatchers = @{post.getWatchers(false).contains(UserApp.currentUser())}
+
 @projectLayout(titleForOGTag, project, utils.MenuType.BOARD){
 @projectMenu(project, utils.MenuType.BOARD, "main-menu-only")
 <div class="page-wrap-outer">
@@ -84,10 +86,11 @@
     	<div class="board-footer board-actrow">
     	    <div class="pull-left">
                 @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.WATCH)){
-                    <button id="watch-button" type="button" class="ybtn @if(post.getWatchers(false).contains(UserApp.currentUser())){ybtn-watching}" data-toggle="button" data-watching="@if(post.getWatchers(false).contains(UserApp.currentUser())){true}else{false}">
-                    @if(post.getWatchers(false).contains(UserApp.currentUser())) { @Messages("project.unwatch") } else { @Messages("project.watch") }
+                    <button id="watch-button" type="button" class="ybtn @if(conatinsCurrentUserInWatchers){ybtn-watching}" data-toggle="button" data-watching="@conatinsCurrentUserInWatchers">
+                    @if(conatinsCurrentUserInWatchers) { @Messages("post.unwatch") } else { @Messages("post.watch") }
                     </button>
                 }
+                @Html(showWatchers(post))
             </div>
 
             @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.DELETE)){
@@ -99,6 +102,7 @@
             }
     	</div>
 
+        <div class="watcher-list">@Html(watcherList(post))</div>
     	@** Comment **@
     	<div id="comments" class="board-comment-wrap">
             @partial_comments(project, post)
@@ -176,6 +180,10 @@
 
         // detect comment which contains mention at me
         $(".comment-body:contains('@UserApp.currentUser().loginId')").closest(".comment").addClass("mentioned");
+
+        $(".show-watchers").on("click", function(){
+            $(".watcher-list").toggle();
+        })
 	});
 </script>
 @common.select2()
