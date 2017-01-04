@@ -249,7 +249,7 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
 
         actualWatchers.add(getAuthor());
         for (Comment c : getComments()) {
-            User user = User.find.byId(c.id);
+            User user = User.find.byId(c.authorId);
             if (user != null) {
                 actualWatchers.add(user);
             }
