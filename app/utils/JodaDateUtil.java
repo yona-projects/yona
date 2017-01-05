@@ -32,7 +32,7 @@ public class JodaDateUtil {
     }
     public static String getDateString(Date date, String format) {
         if(StringUtils.isEmpty(format)) {
-            format = "yyyy-MM-dd HH:mm:ss";
+            format = "yyyy-MM-dd h:mm:ss a";
         }
         SimpleDateFormat sdf = new SimpleDateFormat(format);
         return sdf.format(date);

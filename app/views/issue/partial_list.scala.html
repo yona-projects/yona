@@ -57,20 +57,20 @@
                 </div>
                 <div class="infos">
                     @if(user.name){
-                        <a href="@routes.UserApp.userInfo(user.loginId)" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="top" title="@user.loginId">
+                        <a href="@routes.UserApp.userInfo(user.loginId)" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="bottom" title="@user.loginId">
                             @user.name
                         </a>
                     } else {
                         <span class="infos-item">@Messages("issue.noAuthor")</span>
                     }
 
-                    <span class="infos-item" title="@JodaDateUtil.getDateString(issue.createdDate)">
+                    <span class="infos-item" data-toggle="tooltip" data-placement="bottom" title="@JodaDateUtil.getDateString(issue.createdDate)">
                         @agoOrDateString(issue.createdDate)
                     </span>
 
                     @if(project.menuSetting.milestone && issue.milestone != null) {
                     <span class="infos-item mileston-tag">
-                        <a href="@routes.MilestoneApp.milestone(project.owner, project.name, issue.milestone.id)" data-toggle="tooltip" data-placement="top" title="@Messages("milestone")">
+                        <a href="@routes.MilestoneApp.milestone(project.owner, project.name, issue.milestone.id)" data-toggle="tooltip" data-placement="bottom" title="@Messages("milestone")">
                             @issue.milestone.title
                         </a>
                     </span>
