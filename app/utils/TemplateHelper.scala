@@ -50,7 +50,7 @@ object TemplateHelper {
   }
 
   def showWatchers(posting: AbstractPosting): String = {
-    if(posting.getWatchers.size > 1){
+    if(posting.getWatchers.size > 1 && UserApp.currentUser() != User.anonymous){
       "<div class='show-watchers' data-toggle='tooltip' data-placement='top' data-trigger='hover' data-html='true' title='" + Messages.get("watchers") + "'>" +
       "<button id='watch-button' type='button' class='ybtn'><i class='yobicon-emo-coffee'></i> " + posting.getWatchers.size.toString + "</button>" +
       "</div>"
