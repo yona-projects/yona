@@ -33,7 +33,7 @@
 @defining(User.findByLoginId(issue.authorLoginId)){ user =>
     <li class="post-item" id="issue-item-@issue.id">
         <div class="span10 span-hard-wrap">
-            <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap mlarge hide-in-mobile" data-toggle="tooltip" data-placement="top" title="@user.loginId">
+            <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap mlarge hide-in-mobile" data-toggle="tooltip" data-placement="bottom" title="@user.loginId">
                 @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){
                     <img src="@urlToPicture(user.email, 32)">
                 } else {
@@ -51,20 +51,20 @@
             </div>
             <div class="infos">
                 @if(user.name){
-                    <a href="@routes.UserApp.userInfo(user.loginId)" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="top" title="@user.loginId">
+                    <a href="@routes.UserApp.userInfo(user.loginId)" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="bottom" title="@user.loginId">
                         @user.name
                     </a>
                 } else {
                     <span class="infos-item">@Messages("issue.noAuthor")</span>
                 }
 
-                <span class="infos-item" title="@JodaDateUtil.getDateString(issue.createdDate)">
+                <span class="infos-item" data-toggle="tooltip" data-placement="bottom" title="@JodaDateUtil.getDateString(issue.createdDate)">
                     @agoOrDateString(issue.createdDate)
                 </span>
 
                 @if(issue.milestone != null && issue.project != null && issue.project.menuSetting != null && issue.project.menuSetting.milestone) {
                 <span class="infos-item mileston-tag">
-                    <a href="@routes.MilestoneApp.milestone(issue.project.owner, issue.project.name, issue.milestone.id)" data-toggle="tooltip" data-placement="top" title="@Messages("milestone")">
+                    <a href="@routes.MilestoneApp.milestone(issue.project.owner, issue.project.name, issue.milestone.id)" data-toggle="tooltip" data-placement="bottom" title="@Messages("milestone")">
                         @issue.milestone.title
                     </a>
                 </span>
@@ -89,7 +89,7 @@
         <div class="span2 hide-in-mobile">
             <div class="mt5 pull-right hide-in-mobile">
                 @if(issue.assigneeName != null) {
-                    <a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)" class="avatar-wrap assinee" data-toggle="tooltip" data-placement="top" title="@Messages("issue.assignee"): @issue.assigneeName">
+                    <a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)" class="avatar-wrap assinee" data-toggle="tooltip" data-placement="bottom" title="@Messages("issue.assignee"): @issue.assigneeName">
                         <img src="@issue.assignee.user.avatarUrl" width="32" height="32" alt="@issue.assigneeName">
                     </a>
                 } else {
