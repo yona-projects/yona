@@ -548,9 +548,9 @@ object TemplateHelper {
 
     def getCorrectedPath(filePath:String, fileName:String):String = {
       if(StringUtils.isNotEmpty(filePath) && (filePath.substring(filePath.length() - 1) == "/")){
-        filePath + fileName
+        filePath + HttpUtil.encodeUrlString(fileName)
       } else {
-        filePath + "/" + fileName
+        filePath + "/" + HttpUtil.encodeUrlString(fileName)
       }
     }
 
