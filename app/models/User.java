@@ -253,6 +253,7 @@ public class User extends Model implements ResourceConvertible {
     public static Long create(User user) {
         user.createdDate = JodaDateUtil.now();
         user.save();
+        CacheStore.yonaUsers.put(user.id, user);
         return user.id;
     }
 
@@ -469,6 +470,7 @@ public class User extends Model implements ResourceConvertible {
         User user = findByLoginId(loginId);
         user.password = new Sha256Hash(newPassword, ByteSource.Util.bytes(user.passwordSalt), 1024)
                 .toBase64();
+        CacheStore.yonaUsers.put(user.id, user);
         user.save();
     }
 
@@ -577,11 +579,13 @@ public class User extends Model implements ResourceConvertible {
     public void enroll(Project project) {
         getEnrolledProjects().add(project);
         this.update();
+        CacheStore.yonaUsers.put(this.id, this);
     }
 
     public void enroll(Organization organization) {
         getEnrolledOrganizations().add(organization);
         this.update();
+        CacheStore.yonaUsers.put(this.id, this);
     }
 
     /**
@@ -592,11 +596,13 @@ public class User extends Model implements ResourceConvertible {
     public void cancelEnroll(Project project) {
         getEnrolledProjects().remove(project);
         this.update();
+        CacheStore.yonaUsers.put(this.id, this);
     }
 
     public void cancelEnroll(Organization organization) {
         getEnrolledOrganizations().remove(organization);
         this.update();
+        CacheStore.yonaUsers.put(this.id, this);
     }
 
     /**
@@ -626,6 +632,7 @@ public class User extends Model implements ResourceConvertible {
         for (Assignee assignee : Assignee.finder.where().eq("user.id", id).findList()) {
             assignee.delete();
         }
+        CacheStore.yonaUsers.invalidate(this.id);
         super.delete();
     }
 
@@ -654,6 +661,7 @@ public class User extends Model implements ResourceConvertible {
         }
 
         update();
+        CacheStore.yonaUsers.put(this.id, this);
     }
 
     public String avatarUrl() {
@@ -816,6 +824,7 @@ public class User extends Model implements ResourceConvertible {
         this.add(ou);
         organization.add(ou);
         this.update();
+        CacheStore.yonaUsers.put(this.id, this);
     }
 
     private void add(OrganizationUser ou) {
