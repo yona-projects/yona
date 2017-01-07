@@ -37,6 +37,7 @@ public class PostingComment extends Comment {
     public PostingComment(Posting posting, User author, String contents) {
         super(author, contents);
         this.posting = posting;
+        this.projectId = posting.project.id;
     }
 
     /**
