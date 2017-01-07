@@ -3,9 +3,9 @@
     <conversionRule conversionWord="coloredLevel" converterClass="play.api.Logger$ColoredLevel" />
 
     <appender name="ACCESS_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${application.home}/logs/access.log</file>
+        <file>${yona.data}/logs/access.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${application.home}/logs/access.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${yona.data}/logs/access.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>
@@ -14,9 +14,9 @@
     </appender>
 
     <appender name="APPLICATION_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${application.home}/logs/application.log</file>
+        <file>${yona.data}/logs/application.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${application.home}/logs/application.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${yona.data}/logs/application.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>
@@ -25,9 +25,9 @@
     </appender>
 
     <appender name="MAIL_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${application.home}/logs/mail.log</file>
+        <file>${yona.data}/logs/mail.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${application.home}/logs/mail.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${yona.data}/logs/mail.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>
@@ -36,9 +36,9 @@
     </appender>
 
     <appender name="ROOT_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${application.home}/logs/root.log</file>
+        <file>${yona.data}/logs/root.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${application.home}/logs/root.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${yona.data}/logs/root.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>

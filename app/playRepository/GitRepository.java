@@ -961,11 +961,11 @@ public class GitRepository implements PlayRepository {
     }
 
     private static File getRootDirectory() {
-        return new File(utils.Config.getYobiHome(), getRepoPrefix());
+        return new File(utils.Config.getYonaDataDir(), getRepoPrefix());
     }
 
     private static File getRootDirectoryForMerging() {
-        return new File(utils.Config.getYobiHome(), getRepoForMergingPrefix());
+        return new File(utils.Config.getYonaDataDir(), getRepoForMergingPrefix());
     }
 
     /**

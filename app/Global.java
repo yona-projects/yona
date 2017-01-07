@@ -390,12 +390,12 @@ public class Global extends GlobalSettings {
          * @return the path to the directory to store configuration files
          */
         static Path getDirectoryPath() {
-            return Paths.get(Config.getYobiHome(""), CONFIG_DIRNAME);
+            return Paths.get(Config.getYonaDataDir(""), CONFIG_DIRNAME);
         }
 
         boolean isExternal() throws IOException, URISyntaxException {
             return !FileUtil.isSubpathOf(getPath(), getDirectoryPath()) &&
-                   !FileUtil.isSubpathOf(getPath(), Paths.get(Config.getYobiHome()));
+                   !FileUtil.isSubpathOf(getPath(), Paths.get(Config.getYonaDataDir()));
         }
     }
 }

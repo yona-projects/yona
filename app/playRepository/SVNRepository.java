@@ -420,6 +420,6 @@ public class SVNRepository implements PlayRepository {
     }
 
     public static File getRootDirectory() {
-        return new File(Config.getYobiHome(), getRepoPrefix());
+        return new File(Config.getYonaDataDir(), getRepoPrefix());
     }
 }
