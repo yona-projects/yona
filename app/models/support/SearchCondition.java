@@ -326,24 +326,15 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         for (Comment comment : IssueComment.find.where()
                 .eq("authorId", commenter.id)
                 .findList()) {
-
-            switch (comment.asResource().getType()) {
-                case ISSUE_COMMENT:
-                    if(project == null) {
-                        issueIds.add(comment.getParent().id);
-                        break;
-                    } else {
-                        if(comment.getParent().project.id.equals(project.id)){
-                            issueIds.add(comment.getParent().id);
-                        }
-                    }
-                    break;
-                default:
-                    play.Logger.warn("'" + comment.asResource().getType() + "' is not supported.");
-                    break;
+            if (project == null) {
+                issueIds.add(comment.getParent().id);
+                break;
+            } else {
+                if (comment.projectId.equals(project.id)) {
+                    issueIds.add(comment.getParent().id);
+                }
             }
         }
-
         return new ArrayList<>(issueIds);
     }
 
@@ -417,7 +408,9 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
                 el.isNull("assignee");
             } else {
                 el.eq("assignee.user.id", assigneeId);
-                el.eq("assignee.project.id", project.id);
+                if(project != null) {
+                    el.eq("assignee.project.id", project.id);
+                }
             }
         }
 

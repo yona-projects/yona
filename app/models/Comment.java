@@ -55,6 +55,7 @@ abstract public class Comment extends Model implements TimelineItem, ResourceCon
     public Long authorId;
     public String authorLoginId;
     public String authorName;
+    public Long projectId;
 
     public Comment() {
         createdDate = new Date();
