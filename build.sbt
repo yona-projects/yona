@@ -89,8 +89,12 @@ NativePackagerKeys.bashScriptExtraDefines += """# Added by build.sbt
     |[ -z "$YONA_HOME" ] && YONA_HOME=$(cd "$(realpath "$(dirname "$(realpath "$0")")")/.."; pwd -P)
     |addJava "-Dyobi.home=$YONA_HOME"
     |
-    |yobi_config_file="$YONA_HOME"/conf/application.conf
-    |yobi_log_config_file="$YONA_HOME"/conf/application-logger.xml
+    |[ -z "$YONA_DATA" ] && YONA_DATA=$(cd "$(realpath "$(dirname "$(realpath "$0")")")/.."; pwd -P)
+    |addJava "-Dyona.data=$YONA_DATA"
+    |addJava "-Dapplication.home=$YONA_DATA"
+    |
+    |yobi_config_file="$YONA_DATA"/conf/application.conf
+    |yobi_log_config_file="$YONA_DATA"/conf/application-logger.xml
     |[ -f "$yobi_config_file" ] && addJava "-Dconfig.file=$yobi_config_file"
     |[ -f "$yobi_log_config_file" ] && addJava "-Dlogger.file=$yobi_log_config_file"
     |
@@ -98,7 +102,7 @@ NativePackagerKeys.bashScriptExtraDefines += """# Added by build.sbt
     |""".stripMargin
 
 NativePackagerKeys.batScriptExtraDefines += """
-    | if "%JAVA_OPTS%"=="" SET JAVA_OPTS=-Duser.dir=%YONA_HOME% -Dyona.home=%YONA_HOME% -Dconfig.file=%YONA_HOME%\conf\application.conf -Dlogger.file=%YONA_HOME%\conf\application-logger.xml -DapplyEvolutions.default=true
+    | if "%JAVA_OPTS%"=="" SET JAVA_OPTS=-Duser.dir=%YONA_HOME% -Dyona.data=%YONA_DATA% -Dconfig.file=%YONA_DATA%\conf\application.conf -Dlogger.file=%YONA_DATA%\conf\application-logger.xml -DapplyEvolutions.default=true
     |""".stripMargin
 
 lazy val yobi = (project in file("."))

@@ -38,6 +38,7 @@ import java.util.Enumeration;
 
 public class Config {
     public static final String DEFAULT_SCHEME = "http";
+    private static final String YONA_DATA = "yona.data"; //property from java -Dyona.data option string
 
     public static void onStart() {
         Diagnostic.register(new SimpleDiagnostic() {
@@ -286,12 +287,12 @@ public class Config {
         return Charset.forName("UTF-8");
     }
 
-    public static String getYobiHome() {
-        return System.getProperty("yobi.home");
+    public static String getYonaDataDir() {
+        return System.getProperty(YONA_DATA);
     }
 
-    public static String getYobiHome(String defaultValue) {
-        return System.getProperty("yobi.home", defaultValue);
+    public static String getYonaDataDir(String defaultValue) {
+        return System.getProperty(YONA_DATA, defaultValue);
     }
 
     public static boolean getDisplayPrivateRepositories() {

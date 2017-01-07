@@ -2,9 +2,8 @@
 # User this restart shell just for example
 #
 PORT=9000
-YONA_HOME=/data/yona;export YONA_HOME
-PLAY2_HOME=/home/doortts/apps/play2
+YONA_DATA=/yona-data;export YONA_DATA
 
-pid=`fuser $PORT/tcp`
+pid=`ps -ef | grep java | grep com.typesafe.play | awk '{print $2}'`
 kill $pid
-_JAVA_OPTIONS="-Xmx2048m -Xms1024m -Dyobi.home=$YONA_HOME -Dconfig.file=$YONA_HOME/conf/application.conf -Dlogger.file=$YONA_HOME/conf/application-logger.xml"  $PLAY2_HOME/activator "start -DapplyEvolutions.default=true -Dhttp.port=$PORT"
+_JAVA_OPTIONS="-Xmx2048m -Xms1024m -Dyona.data=$YONA_DATA -DapplyEvolutions.default=true -Dhttp.port=$PORT" bin/yona

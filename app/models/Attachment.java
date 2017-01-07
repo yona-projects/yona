@@ -271,7 +271,7 @@ public class Attachment extends Model implements ResourceConvertible {
     }
 
     public static File getUploadDirectory() {
-        return new File(utils.Config.getYobiHome(), uploadDirectory);
+        return new File(utils.Config.getYonaDataDir(), uploadDirectory);
     }
 
     /**
