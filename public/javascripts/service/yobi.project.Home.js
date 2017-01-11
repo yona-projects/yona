@@ -31,7 +31,6 @@
             _initVar(htOpt);
             _initElement(htOptions);
             _attachEvent();
-            _initLabels();
 
 //            _resizeProjectInfo();
         }
@@ -60,50 +59,7 @@
             htElement.welInputCloneURL =$('#cloneURL');
             htElement.welBtnCopy   = $('#cloneURLBtn');
 
-            // project label
-            htElement.welLabelBoard = htOptions.welLabelBoard;
-            htElement.welLabelEditorToggle = htOptions.welLabelEditorToggle;
-
-            htElement.welInputCategory = $('#label-input-template').tmpl();
-            htElement.welSubmitCategory = $('#label-submit-template').tmpl();
-            htElement.welInputCategory.attr('placeholder', Messages('label.addNewCategory'));
-            htElement.welInputCategory.keypress(_onKeyPressNewCategory);
-            htElement.welSubmitCategory.click(_onClickNewCategory);
-
-            htElement.welInputLabel = $('#label-input-template').tmpl();
-            htElement.welSubmitLabel = $('#label-submit-template').tmpl();
-            htElement.welInputLabel.keypress(_onKeyPressNewLabel);
-            htElement.welInputLabel.attr('placeholder', Messages('label.new'));
-            htElement.welSubmitLabel.click(_submitLabel);
-
-            htElement.welInputLabelBox = $('<p>')
-                .append(htElement.welInputLabel)
-                .append(htElement.welSubmitLabel);
-
-            htElement.welInputCategoryBox = $('<p>')
-                .append(htElement.welInputCategory)
-                .append(htElement.welSubmitCategory);
-
-            htElement.welBtnPlusLabel = welBtnPlus.clone();
-            htElement.welBtnPlusCategory = welBtnPlus.clone();
-
-            htElement.aLabel = [];
-            htElement.htCategory = {};
-            htElement.aBtnPlusLabel = [];
-
-            htElement.welNewCategory = $('<li>')
-                .append(htElement.welBtnPlusCategory);
-
-            htElement.welLabelBoard.append(htElement.welNewCategory);
-
             htElement.welAlertLeave = $("#alertLeave");
-
-            /*
-            htElement.welHome = $(".project-home");
-            htElement.welHomeLogo = htElement.welHome.find(".logo");
-            htElement.welHomeInfo = htElement.welHome.find(".project-info");
-            htElement.welHomeMember = htElement.welHome.find(".member-info");
-            */
         }
 
         /**
@@ -111,29 +67,6 @@
          */
         function _attachEvent(){
             htElement.welRepoURL.click(_onClickRepoURL);
-            htElement.welLabelEditorToggle.on('click', function() {
-                if ($(this).hasClass('active')) {
-                    // Now inactive
-                    $(this).removeClass('active');
-                    $(this).text(Messages("button.edit"));
-                    _hideLabelEditor();
-                } else {
-                    // Now active
-                    $(this).addClass('active');
-                    $(this).text(Messages("button.done"));
-                    _showLabelEditor();
-                }
-            });
-
-            new yobi.ui.Typeahead(htElement.welInputCategory, {
-                "sActionURL": htVar.sURLLabelCategories,
-                "htData": {
-                    "project_id": htVar.nProjectId,
-                    "limit": 8
-                }
-            });
-
-            htElement.welBtnPlusCategory.click(_onClickPlusCategory);
 
             htElement.welBtnCopy.zclip({
                 "path": htVar.sURLZeroClipboard,
