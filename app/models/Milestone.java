@@ -60,7 +60,7 @@ public class Milestone extends Model implements ResourceConvertible {
     @Formats.DateTime(pattern = "yyyy-MM-dd")
     public Date dueDate;
 
-    @Constraints.Required @Lob
+    @Lob
     public String contents;
 
     @Constraints.Required

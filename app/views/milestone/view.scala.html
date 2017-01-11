@@ -20,6 +20,7 @@
 **@
 @(title: String, milestone: models.Milestone, project: Project, issueState:State)
 @import scala.collection.immutable._
+@import org.apache.commons.lang.StringUtils
 @import utils.TemplateHelper._
 @import utils.AccessControl._
 @import models.support.SearchCondition
@@ -59,10 +60,15 @@
             <div class="progress progress-success">
                 <div class="bar" style="width: @milestone.getCompletionRate%;"></div>
             </div>
-            <div class="milestone-desc">
-                <div class="markdown-wrap">@Html(Markdown.render(milestone.contents, milestone.project))</div>
-                <div class="attachments" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.MILESTONE.toString(), milestone.id.toString()))"></div>
-            </div>
+                @if(StringUtils.isEmpty(milestone.contents)){
+                    <div class="content empty-content"></div>
+                } else {
+                    <div class="milestone-desc">
+                        <div class="markdown-wrap">@Html(Markdown.render(milestone.contents, milestone.project))</div>
+                        <div class="attachments" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.MILESTONE.toString(), milestone.id.toString()))"></div>
+                    </div>
+                }
+
 
             <div class="actrow right-txt row-fluid" style="padding: 15px 0; clear:both;">
                 <a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="ybtn pull-left">@Messages("button.list")</a>

@@ -23,6 +23,7 @@ package controllers;
 import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
+import models.AbstractPosting;
 import models.Attachment;
 import models.Milestone;
 import models.Project;
@@ -103,15 +104,10 @@ public class MilestoneApp extends Controller {
         } else {
             Milestone newMilestone = milestoneForm.get();
 
-            if (newMilestone.contents == null) {
-                return status(REQUEST_ENTITY_TOO_LARGE,
-                        ErrorViews.RequestTextEntityTooLarge.render());
-            }
-
             newMilestone.project = project;
             newMilestone.dueDate = JodaDateUtil.lastSecondOfDay(newMilestone.dueDate);
             Milestone.create(newMilestone);
-            Attachment.moveAll(UserApp.currentUser().asResource(), newMilestone.asResource());
+            AbstractPostingApp.attachUploadFilesToPost(newMilestone.asResource());
             return redirect(routes.MilestoneApp.milestone(userName, projectName, newMilestone.id));
         }
     }
