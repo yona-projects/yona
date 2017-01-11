@@ -918,6 +918,7 @@ user.enroll.failed = Failed to Sign-up. Server error may have occurred or the re
 user.enroll.failed.client = Failed to Sign-up. The request is invalid.\nPlease ask site admin.
 user.enroll.failed.network = Failed to Sign-up because network trouble.\nPlease ask site admin.
 user.enroll.failed.server = Failed to Sign-up because server error has occurred.\nPlease ask site admin.
+user.files = My files
 user.isAlreadySignupUser = Already signed up?
 user.isLocked = Is the user account locked out?
 user.locked = This user account is locked

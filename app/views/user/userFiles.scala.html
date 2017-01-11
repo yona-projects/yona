@@ -1,0 +1,80 @@
+@**
+* Yona, 21st Century Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp.
+* https://yona.io
+**@
+@import utils.MenuType._
+@(title: String, currentPage: com.avaje.ebean.Page[Attachment])
+
+@import utils.JodaDateUtil._
+@import utils.FileUtil._
+
+@preview(attachment: Attachment) = @{
+    var previewFile = ""
+    if(attachment.mimeType.startsWith("image/")){
+        previewFile = "<img src='" + routes.AttachmentApp.getFile(attachment.id).toString + "'>";
+    }
+    Html(previewFile)
+}
+
+@siteLayout(utils.Config.getSiteName, SITE_HOME) {
+    <link rel="stylesheet" type="text/css" media="all" href="@routes.Assets.at("stylesheets/filetype.css")">
+    <div>
+        <button class="btn-transparent" id="toggleIntro"></button>
+    </div>
+    <div class="page-wrap-outer">
+        <div class="page-wrap">
+            @views.html.common.mySeriesMenuTab(TAB_MY_FILES)
+            <div class="user-file-search search search-bar">
+                <input name="filter" class="textbox" type="text" placeholder="@Messages("search.title")" value="">
+                <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+            </div>
+            <div class="attachment-files">
+                <div class="attachment-files-header row">
+                    <div class="span2 header-preview">Preview</div>
+                    <div class="span4 header-file-name">Filename</div>
+                    <div class="span2 header-size">Size</div>
+                    <div class="span2">Download</div>
+                    <div class="span2 file-date">Date</div>
+                    <div class="span1 header-location">Location</div>
+                </div>
+                @for(attachment <- currentPage.getList){
+                    <div class="attachment-file-detail row">
+                        <div class="file-preview span2"><a href="@routes.AttachmentApp.getFile(attachment.id)" target="_blank">@preview(attachment)</a></div>
+                        <div class="span4 file-name"><a href="@routes.AttachmentApp.getFile(attachment.id)" target="_blank"><i class="icon text-icon"></i>@attachment.name</a></div>
+                        <div class="span2 file-size">@humanReadableByteCount(attachment.size, true)</div>
+                        <div class="span2 file-download"><a href="@routes.AttachmentApp.getFile(attachment.id)?action=download"><button type="button" class="ybtn"><i class="yobicon-cloud-download"></i></button> </a></div>
+                        <div class="span2 file-date">@socialDate(attachment.createdDate)</div>
+                        <div class="span1 file-location">location</div>
+                    </div>
+                }
+            </div>
+        </div>
+        <!-- pagination.js will fill here. -->
+        <div id="pagination"></div>
+    </div>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/filetype.js")"></script>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $(".attachment-file-detail").hover(
+                    function() {
+                        $(this).addClass('hover');
+                    }, function () {
+                        $(this).removeClass("hover");
+                    }
+            );
+            $('.file-name').each(function(){
+                var that = $(this);
+                fileType.some(function(item){
+                    if( item[0].test(that.text()) ) {
+                        that.find('i').removeClass('text-icon').addClass(item[1] + " font-larger");
+                        return true;
+                    }
+                });
+            });
+
+            yobi.Pagination.update($("#pagination"), @currentPage.getTotalPageCount);
+        });
+    </script>
+}

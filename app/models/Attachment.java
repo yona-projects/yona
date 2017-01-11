@@ -5,8 +5,10 @@
  */
 package models;
 
+import com.avaje.ebean.Page;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import controllers.AttachmentApp;
+import controllers.UserApp;
 import models.enumeration.ResourceType;
 import models.resource.GlobalResource;
 import models.resource.Resource;
@@ -59,7 +61,8 @@ public class Attachment extends Model implements ResourceConvertible {
     public Long size;
     public String containerId;
 
-    private Date createdDate;
+    public Date createdDate;
+    public String ownerLoginId;
 
     /**
      * Finds an attachment which matches the given one.
@@ -515,6 +518,9 @@ public class Attachment extends Model implements ResourceConvertible {
         return save(moveFileIntoUploadDirectory(tmpFile, tempFileHash), fileName, container);
     }
 
+    public static Page<Attachment> findByUser(User user, int pageSize, int pageNo){
+        return Attachment.find.where().eq("owner_login_id", user.loginId).order("created_date desc").findPagingList(pageSize).getPage(pageNo - 1);
+    }
     /**
      * Save this attachment with metadata from the given arguments.
      *
@@ -534,6 +540,7 @@ public class Attachment extends Model implements ResourceConvertible {
         this.createdDate = JodaDateUtil.now();
         this.hash = file.getName();
         this.size = file.length();
+        this.ownerLoginId = UserApp.currentUser().loginId;
         if (this.mimeType == null) {
             this.mimeType = FileUtil.detectMediaType(file, name).toString();
         }
@@ -581,5 +588,4 @@ public class Attachment extends Model implements ResourceConvertible {
         }
         return uploads;
     }
-
 }

@@ -6525,3 +6525,75 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         }
     }
 }
+
+.attachment-files {
+    .attachment-files-header {
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
+        padding: 10px 5px;
+        background-color: #f1f1f1;
+        border-radius: 5px;
+        margin-bottom: 10px;
+        margin-left: auto !important;
+        .header-preview {
+            margin-left: auto;
+        }
+        .header-file-name {
+            text-align: center;
+        }
+        .header-size {
+            text-align: right;
+        }
+        .header-location {
+            text-align: center;
+        }
+    }
+    .attachment-file-detail {
+        padding: 5px;
+        font-family: @fixed-font-family;
+        line-height: 30px;
+        border-bottom: 1px solid #eee;
+        margin-left: auto !important;
+        .file-preview {
+            max-height: 80px;
+            overflow: hidden;
+            margin-left: auto;
+            img {
+                border: 1px solid #333;
+                max-width: 140px;
+                box-sizing: border-box;
+            }
+        }
+        .file-name {
+            font-size: 14px;
+            .icon:before {
+                padding-right: 5px;
+            }
+        }
+        .file-size {
+            text-align: right;
+        }
+        .file-download {
+            font-size: 16px;
+            text-align: center;
+        }
+        .file-date {
+            text-align: right;
+        }
+
+        .file-location {
+            text-align: center;
+        }
+    }
+    .hover {
+        background-color: #f1f1f1;
+    }
+}
+
+.user-file-search {
+    margin-bottom: 10px;
+    input {
+        width: 100% !important;
+    }
+}
