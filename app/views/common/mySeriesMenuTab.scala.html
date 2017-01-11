@@ -1,0 +1,20 @@
+@**
+* Yona, 21st Century Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp.
+* https://yona.io
+**@
+@(viewType:utils.MenuType)
+@import utils.MenuType._
+@isActive(current:utils.MenuType, target:utils.MenuType) = @{
+    var active = ""
+    if(current == target) {
+        active = " class=active "
+    }
+    active
+}
+<ul class="nav nav-tabs">
+    <li @isActive(viewType, TAB_NOTI)><a href="@routes.Application.index()">@Messages("notification")</a></li>
+    <li @isActive(viewType, TAB_MY_ISSUES)><a href="@routes.IssueApp.userIssues()">@Messages("issue.myIssue")</a></li>
+    <li @isActive(viewType, TAB_MY_FILES)><a href="@routes.UserApp.userFiles()">@Messages("user.files")</a></li>
+</ul>

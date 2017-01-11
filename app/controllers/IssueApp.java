@@ -616,24 +616,13 @@ public class IssueApp extends AbstractPostingApp {
 
         final IssueComment comment = commentForm.get();
 
-        IssueComment existingComment = IssueComment.find.where().eq("id", comment.id).findUnique();
 
         if (commentForm.hasErrors()) {
             flash(Constants.WARNING, "common.comment.empty");
             return redirect(routes.IssueApp.issue(project.owner, project.name, number));
         }
 
-        Comment savedComment;
-        if (existingComment != null) {
-            existingComment.contents = comment.contents;
-            savedComment = saveComment(existingComment, getContainerUpdater(issue, comment));
-            if(isSelectedToSendNotificationMail() || !existingComment.isAuthoredBy(UserApp.currentUser())){
-                NotificationEvent.afterCommentUpdated(savedComment);
-            }
-        } else {
-            savedComment = saveComment(comment, getContainerUpdater(issue, comment));
-            NotificationEvent.afterNewComment(savedComment);
-        }
+        Comment savedComment = saveComment(project, issue, comment);
 
         if( containsStateTransitionRequest() ){
             toNextState(number, project);
@@ -643,6 +632,23 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         return redirect(RouteUtil.getUrl(savedComment));
+    }
+
+    private static Comment saveComment(Project project, Issue issue, IssueComment comment) {
+        Comment savedComment;
+        IssueComment existingComment = IssueComment.find.where().eq("id", comment.id).findUnique();
+        if (existingComment != null) {
+            existingComment.contents = comment.contents;
+            savedComment = saveComment(existingComment, getContainerUpdater(issue, comment));
+            if(isSelectedToSendNotificationMail() || !existingComment.isAuthoredBy(UserApp.currentUser())){
+                NotificationEvent.afterCommentUpdated(savedComment);
+            }
+        } else {
+            comment.projectId = project.id;
+            savedComment = saveComment(comment, getContainerUpdater(issue, comment));
+            NotificationEvent.afterNewComment(savedComment);
+        }
+        return savedComment;
     }
 
     private static Runnable getContainerUpdater(final Issue issue, final IssueComment comment) {

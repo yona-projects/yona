@@ -21,7 +21,6 @@ import play.data.Form;
 import play.db.ebean.Transactional;
 import play.libs.Json;
 import play.mvc.Call;
-import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.With;
 import playRepository.BareCommit;
@@ -39,9 +38,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.avaje.ebean.Expr.icontains;
-import static controllers.MigrationApp.composeCommentsJson;
 import static controllers.MigrationApp.composePlainCommentsJson;
-import static controllers.MigrationApp.exportPosts;
 import static play.libs.Json.toJson;
 
 public class BoardApp extends AbstractPostingApp {
@@ -356,14 +353,20 @@ public class BoardApp extends AbstractPostingApp {
         }
 
         final PostingComment comment = commentForm.get();
-        PostingComment existingComment = PostingComment.find.where().eq("id", comment.id).findUnique();
 
         if (commentForm.hasErrors()) {
             flash(Constants.WARNING, "common.comment.empty");
             return redirect(routes.BoardApp.post(project.owner, project.name, number));
         }
 
+        Comment savedComment = saveComment(project, posting, comment);
+
+        return redirect(RouteUtil.getUrl(savedComment));
+    }
+
+    private static Comment saveComment(Project project, Posting posting, PostingComment comment) {
         Comment savedComment;
+        PostingComment existingComment = PostingComment.find.where().eq("id", comment.id).findUnique();
         if (existingComment != null) {
             existingComment.contents = comment.contents;
             savedComment = saveComment(existingComment, getContainerUpdater(posting, comment));
@@ -371,11 +374,11 @@ public class BoardApp extends AbstractPostingApp {
                 NotificationEvent.afterCommentUpdated(savedComment);
             }
         } else {
+            comment.projectId = project.id;
             savedComment = saveComment(comment, getContainerUpdater(posting, comment));
             NotificationEvent.afterNewComment(savedComment);
         }
-
-        return redirect(RouteUtil.getUrl(savedComment));
+        return savedComment;
     }
 
     private static Runnable getContainerUpdater(final Posting posting, final PostingComment comment) {

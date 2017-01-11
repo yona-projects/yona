@@ -22,10 +22,7 @@ package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import controllers.annotation.AnonymousCheck;
-import models.AbstractPosting;
-import models.Attachment;
-import models.Comment;
-import models.IssueLabel;
+import models.*;
 import models.enumeration.Direction;
 import models.enumeration.Operation;
 import models.resource.Resource;

@@ -20,6 +20,7 @@
 package controllers;
 
 import com.avaje.ebean.ExpressionList;
+import com.avaje.ebean.Page;
 import com.avaje.ebean.annotation.Transactional;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.annotation.AnonymousCheck;
@@ -32,18 +33,20 @@ import org.apache.shiro.crypto.RandomNumberGenerator;
 import org.apache.shiro.crypto.SecureRandomNumberGenerator;
 import org.apache.shiro.crypto.hash.Sha256Hash;
 import org.apache.shiro.util.ByteSource;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.joda.time.LocalDateTime;
 import play.Configuration;
 import play.Logger;
 import play.Play;
 import play.data.Form;
 import play.i18n.Messages;
 import play.libs.Json;
-import play.mvc.*;
+import play.mvc.BodyParser;
+import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Http.Cookie;
+import play.mvc.Result;
 import utils.*;
 import views.html.user.*;
-import org.joda.time.LocalDateTime;
 
 import java.util.*;
 
@@ -441,6 +444,20 @@ public class UserApp extends Controller {
     private static User invalidToken() {
         response().discardCookie(TOKEN);
         return User.anonymous;
+    }
+
+    @AnonymousCheck
+    public static Result userFiles(){
+        final int USER_FILES_COUNT_PER_PAGE = 50;
+        String pageNumString = request().getQueryString("pageNum");
+        int pageNum = 1;
+
+        if (StringUtils.isNotEmpty(pageNumString)){
+            pageNum = Integer.parseInt(pageNumString);
+        }
+
+        Page<Attachment> page = Attachment.findByUser(currentUser(), USER_FILES_COUNT_PER_PAGE, pageNum);
+        return ok(userFiles.render("User Files", page));
     }
 
     @AnonymousCheck

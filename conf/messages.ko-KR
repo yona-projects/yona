@@ -919,6 +919,7 @@ user.enroll.failed = 멤버 등록 요청에 실패하였습니다. 서버에 �
 user.enroll.failed.client = 멤버 등록 요청에 실패하였습니다. 올바른 요청이 아닙니다.\n관리자에게 문의해주세요.
 user.enroll.failed.network = 네트워크 문제로 인해 멤버 등록 요청에 실패하였습니다.\n관리자에게 문의해주세요.
 user.enroll.failed.server = 서버의 문제로 인해 멤버 등록 요청에 실패하였습니다.\n관리자에게 문의해주세요.
+user.files = 내 파일
 user.isAlreadySignupUser = 이미 가입하셨나요?
 user.isLocked = 잠김여부
 user.locked = 잠긴 사용자 계정입니다.
