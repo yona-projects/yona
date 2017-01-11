@@ -38,8 +38,10 @@ public class RouteUtil {
     public static final DiffRenderer$ diffRenderer = new DiffRenderer$();
 
     public static String getUrl(ResourceType resourceType, String resourceId) {
-        Long longId = Long.valueOf(resourceId);
+        return getUrl(resourceType, Long.valueOf(resourceId));
+    }
 
+    public static String getUrl(ResourceType resourceType, Long longId) {
         try {
             switch(resourceType) {
                 case ISSUE_POST:
