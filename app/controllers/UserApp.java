@@ -450,13 +450,14 @@ public class UserApp extends Controller {
     public static Result userFiles(){
         final int USER_FILES_COUNT_PER_PAGE = 50;
         String pageNumString = request().getQueryString("pageNum");
+        String filter = request().getQueryString("filter");
         int pageNum = 1;
 
         if (StringUtils.isNotEmpty(pageNumString)){
             pageNum = Integer.parseInt(pageNumString);
         }
 
-        Page<Attachment> page = Attachment.findByUser(currentUser(), USER_FILES_COUNT_PER_PAGE, pageNum);
+        Page<Attachment> page = Attachment.findByUser(currentUser(), USER_FILES_COUNT_PER_PAGE, pageNum, filter);
         return ok(userFiles.render("User Files", page));
     }
 

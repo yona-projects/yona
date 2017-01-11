@@ -26,10 +26,12 @@
     <div class="page-wrap-outer">
         <div class="page-wrap">
             @views.html.common.mySeriesMenuTab(TAB_MY_FILES)
+            <form action="@routes.UserApp.userFiles()">
             <div class="user-file-search search search-bar">
                 <input name="filter" class="textbox" type="text" placeholder="@Messages("search.title")" value="">
                 <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
             </div>
+            </form>
             <div class="attachment-files">
                 <div class="attachment-files-header row">
                     <div class="span2 header-preview">Preview</div>
@@ -72,6 +74,10 @@
                         return true;
                     }
                 });
+            });
+
+            $('.user-file-search > button').on('submit', function () {
+                console.log('searche!');
             });
 
             yobi.Pagination.update($("#pagination"), @currentPage.getTotalPageCount);
