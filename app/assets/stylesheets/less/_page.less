@@ -742,7 +742,7 @@
         padding:55px 0 65px;
 
         background-position: bottom;
-        background-size: 100% 170px;
+        background-size: 100vw 170px;
         background-repeat : no-repeat;
         overflow:auto;
         width:750px;
@@ -825,21 +825,13 @@
         overflow: hidden;
         margin-top:10px;
         margin-bottom:40px;
-        width:980px;
 
         li {
             position:relative;
-            float: left;
-            width: 280px;
-            margin-top:30px;
-            margin-left:70px;
-            -webkit-box-sizing: border-box;
-            -moz-box-sizing: border-box;
+            display: inline-block;
+            width: 330px;
+            margin-left:40px;
             box-sizing: border-box;
-
-            &:first-child, &:nth-child(4) {
-                margin-left:0;
-            }
 
             .feature-image {
                 color:@yobi-primary;
@@ -853,6 +845,7 @@
             .feature-info {
                 display:block;
                 margin-left:55px;
+                height: 100px;
 
                 .feature-title {
                     padding: 0;
