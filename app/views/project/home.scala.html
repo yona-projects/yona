@@ -137,47 +137,6 @@
                             }
                         }
                     }
-
-                    <div class="inner project-info">
-                        <header>
-                            <h3>@Messages("project.info")</h3>
-                            @if(isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)){
-                            <button type="button" class="ybtn ybtn-minimum" data-toggle="button" id="label-editor-toggle"><i class="yobicon-edit"></i> @Messages("button.edit")</button>
-                            }
-                        </header>
-                        <ul class="infos" id="label-board">
-                            <!-- labels are added here by yobi.project.Home.js -->
-                        </ul>
-
-                        <script id="label-delete-button-template" type="text/x-jquery-tmpl">
-                            <a href="javascript:void(0)">&times;</a>
-                        </script>
-
-                        <script id="label-template" type="text/x-jquery-tmpl">
-                            <span class="label">${name}</span>
-                        </script>
-
-                        <script id="category-template" type="text/x-jquery-tmpl">
-                            <li class="info" data-category="${category}">
-                                <strong>${category} : </strong>
-                                <span class="label-list"></span>
-                            </li>
-                        </script>
-
-                        <script id="plus-button-template" type="text/x-jquery-tmpl">
-                            <button class="ybtn ybtn-minimum">
-                                <i class="yobicon-plus"></i>
-                            </button>
-                        </script>
-
-                        <script id="label-input-template" type="text/x-jquery-tmpl">
-                            <input type="text" autocomplete="off" class="text" style="margin-bottom: 0px;">
-                        </script>
-
-                        <script id="label-submit-template" type="text/x-jquery-tmpl">
-                            <button type="button" class="ybtn ybtn-mini">@Messages("button.add")</button>
-                        </script>
-                    </div>
                     <div class="inner member-info">
                         <header>
                             <h3>@Messages("project.members")</h3>
