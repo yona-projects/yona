@@ -249,7 +249,7 @@ public class AbstractPostingApp extends Controller {
         return AttachmentApp.TEMPORARYFILES_KEEPUP_TIME_MILLIS/(60*1000l);
     }
 
-    private static String[] getTemporaryFileListFromHiddenForm() {
+    public static String[] getTemporaryFileListFromHiddenForm() {
         Http.MultipartFormData body = request().body().asMultipartFormData();
         if (body == null) {
             return new String[] {};
