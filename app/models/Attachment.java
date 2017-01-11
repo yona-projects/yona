@@ -14,6 +14,7 @@ import models.resource.GlobalResource;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.config.TikaConfig;
 import org.apache.tika.mime.MimeTypeException;
 import play.data.validation.Constraints;
@@ -520,8 +521,19 @@ public class Attachment extends Model implements ResourceConvertible {
         return save(moveFileIntoUploadDirectory(tmpFile, tempFileHash), fileName, container);
     }
 
-    public static Page<Attachment> findByUser(User user, int pageSize, int pageNo){
-        return Attachment.find.where().eq("owner_login_id", user.loginId).order("created_date desc").findPagingList(pageSize).getPage(pageNo - 1);
+    public static Page<Attachment> findByUser(User user, int pageSize, int pageNo, String filter){
+        if (StringUtils.isEmpty(filter)) {
+            return Attachment.find.where()
+                    .eq("owner_login_id", user.loginId)
+                    .order("created_date desc")
+                    .findPagingList(pageSize).getPage(pageNo - 1);
+        } else {
+            return Attachment.find.where()
+                    .eq("owner_login_id", user.loginId)
+                    .ilike("name", "%" + filter + "%")
+                    .order("created_date desc")
+                    .findPagingList(pageSize).getPage(pageNo - 1);
+        }
     }
     /**
      * Save this attachment with metadata from the given arguments.
