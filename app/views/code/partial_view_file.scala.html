@@ -110,7 +110,7 @@
           @if(isMarkdownExtension(path)) {
           <div id="codeVal" class="markdown-wrap codebrowser-markdown">
             @if(files.get("data") != null){
-            @Html(Markdown.render(fieldText(files, "data"), project))
+            @Html(Markdown.renderFileInCodeBrowser(fieldText(files, "data"), project))
             }
           </div>
           } else {

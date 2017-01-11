@@ -16,7 +16,6 @@ import models.enumeration.ResourceType;
 import models.support.IssueLabelAggregate;
 import org.apache.commons.lang.StringUtils;
 import play.Configuration;
-import play.i18n.Messages;
 import play.libs.F;
 import play.libs.F.Promise;
 import play.libs.Json;

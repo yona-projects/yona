@@ -45,7 +45,7 @@
           <a href="@routes.BoardApp.newPostForm(project.owner, project.name)?readme=true" class="ybtn vmiddle ml5">@Messages("button.edit")</a>
       }
     </header>
-    <div class="readme-body markdown-wrap">@Html(Markdown.render(project.readme, project, false))</div>
+    <div class="readme-body markdown-wrap">@Html(Markdown.renderFileInCodeBrowser(project.readme, project))</div>
   </div>
 }
 @common.markdown(project)
