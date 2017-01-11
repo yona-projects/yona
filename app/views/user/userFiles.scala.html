@@ -9,6 +9,7 @@
 
 @import utils.JodaDateUtil._
 @import utils.FileUtil._
+@import utils.RouteUtil._
 
 @preview(attachment: Attachment) = @{
     var previewFile = ""
@@ -16,6 +17,15 @@
         previewFile = "<img src='" + routes.AttachmentApp.getFile(attachment.id).toString + "'>";
     }
     Html(previewFile)
+}
+
+@link(attachment: Attachment) = @{
+    val url = getUrl(attachment.containerType, attachment.containerId)
+    if(url != null){
+        Html("<a href='" + url + "' target='_blank'>" + url + "</a>")
+    } else {
+        ""
+    }
 }
 
 @siteLayout(utils.Config.getSiteName, SITE_HOME) {
@@ -34,21 +44,21 @@
             </form>
             <div class="attachment-files">
                 <div class="attachment-files-header row">
-                    <div class="span2 header-preview">Preview</div>
+                    <div class="span1 header-preview">Preview</div>
                     <div class="span4 header-file-name">Filename</div>
                     <div class="span2 header-size">Size</div>
-                    <div class="span2">Download</div>
+                    <div class="span1">Download</div>
                     <div class="span2 file-date">Date</div>
-                    <div class="span1 header-location">Location</div>
+                    <div class="span4 header-location">Location</div>
                 </div>
                 @for(attachment <- currentPage.getList){
                     <div class="attachment-file-detail row">
-                        <div class="file-preview span2"><a href="@routes.AttachmentApp.getFile(attachment.id)" target="_blank">@preview(attachment)</a></div>
+                        <div class="file-preview span1"><a href="@routes.AttachmentApp.getFile(attachment.id)" target="_blank">@preview(attachment)</a></div>
                         <div class="span4 file-name"><a href="@routes.AttachmentApp.getFile(attachment.id)" target="_blank"><i class="icon text-icon"></i>@attachment.name</a></div>
                         <div class="span2 file-size">@humanReadableByteCount(attachment.size, true)</div>
-                        <div class="span2 file-download"><a href="@routes.AttachmentApp.getFile(attachment.id)?action=download"><button type="button" class="ybtn"><i class="yobicon-cloud-download"></i></button> </a></div>
+                        <div class="span1 file-download"><a href="@routes.AttachmentApp.getFile(attachment.id)?action=download"><button type="button" class="ybtn"><i class="yobicon-cloud-download"></i></button> </a></div>
                         <div class="span2 file-date">@socialDate(attachment.createdDate)</div>
-                        <div class="span1 file-location">location</div>
+                        <div class="span4 file-location">@link(attachment)</div>
                     </div>
                 }
             </div>
