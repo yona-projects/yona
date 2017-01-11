@@ -394,6 +394,36 @@
     .label-editor-wrap .new-label-wrap .btn-submit {
         margin: 10px 0;
     }
+
+    .attachment-files {
+        font-size: 12px;
+        .attachment-files-header {
+            display: none;
+        }
+        .attachment-file-detail {
+            .file-preview {
+                height: 75px;
+            }
+            .file-name {
+                display: block;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-break: keep-all;
+                white-space: nowrap;
+            }
+            .file-size {
+                text-align: left;
+            }
+            .file-date {
+                display: block;
+                text-align: left;
+            }
+            .file-location {
+                font-size: 12px;
+                display: block;
+            }
+        }
+    }
 }
 
 @media all and (max-width:1199px){
@@ -405,6 +435,7 @@
             }
             .header-size {
                 max-width: 80px;
+                display: block;
             }
         }
         .attachment-file-detail {
@@ -417,8 +448,12 @@
                 max-width: 80px;
                 font-size: 12px;
             }
+            .file-date {
+                display: block;
+            }
             .file-location {
                 font-size: 12px;
+                display: block;
             }
         }
     }
