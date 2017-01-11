@@ -22,6 +22,7 @@ package utils;
 
 import models.Project;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -215,5 +216,19 @@ public class Markdown {
 
     public static String render(@Nonnull String source, Project project) {
         return render(source, project, true);
+    }
+
+    public static String renderFileInCodeBrowser(@Nonnull String source, Project project) {
+        String relativeLinksToCodeBrowserPath = replaceContentsLinkToCodeBrowerPath(project, source);
+        AutoLinkRenderer autoLinkRenderer = new AutoLinkRenderer(renderWithHighlight(relativeLinksToCodeBrowserPath, true), project);
+        return autoLinkRenderer.render();
+    }
+
+    private static String replaceContentsLinkToCodeBrowerPath(Project project, String text){
+        String root = play.Configuration.root().getString("application.context", "");
+        if (StringUtils.isNotEmpty(root)) {
+            root = "/" + root;
+        }
+        return text.replaceAll("\\[(?<text>[^\\]]*)\\]\\(\\.?+/?+(?<link>[^\\)]*)\\)", "[$1](/" + root + project.owner + "/" + project.name + "/files/" + project.defaultBranch().replaceAll("refs/heads/", "") + "/$2)");
     }
 }
