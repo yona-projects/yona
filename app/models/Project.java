@@ -54,6 +54,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import static utils.CacheStore.getProjectCacheKey;
+import static utils.CacheStore.projectMap;
 import static utils.HttpUtil.decodeUrlString;
 
 @Entity
@@ -169,7 +171,7 @@ public class Project extends Model implements LabelOwner {
     }
 
     public static Project findByOwnerAndProjectName(String loginId, String projectName) {
-        String key = decodeUrlString(loginId) + ":" + decodeUrlString(projectName);
+        String key = getProjectCacheKey(loginId, projectName);
         Long projectId = CacheStore.projectMap.get(key);
         if(projectId == null || projectId == 0){
             Project project= find.where().ieq("owner", decodeUrlString(loginId)).ieq("name", decodeUrlString(projectName))
@@ -649,6 +651,7 @@ public class Project extends Model implements LabelOwner {
     @Override
     public void delete() {
         CacheStore.refreshProjectMap();
+        projectMap.remove(getProjectCacheKey(this.owner, this.name));
         deleteProjectTransfer();
         deleteFork();
         deleteCommentThreads();

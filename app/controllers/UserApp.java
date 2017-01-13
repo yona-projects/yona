@@ -622,8 +622,9 @@ public class UserApp extends Controller {
                     user.save();
                 }
                 return ok(edit_token.render(userForm, user));
-            default:
             case PROFILE:
+                return ok(edit.render(userForm, user));
+            default:
                 return ok(edit.render(userForm, user));
         }
     }
@@ -700,6 +701,7 @@ public class UserApp extends Controller {
 
         Email.deleteOtherInvalidEmails(user.email);
         user.update();
+        CacheStore.yonaUsers.put(user.id, user);
         return redirect(routes.UserApp.userInfo(user.loginId, DEFAULT_GROUP, DAYS_AGO, DEFAULT_SELECTED_TAB));
     }
 

@@ -66,6 +66,8 @@ import java.util.*;
 
 import static play.data.Form.form;
 import static play.libs.Json.toJson;
+import static utils.CacheStore.getProjectCacheKey;
+import static utils.CacheStore.projectMap;
 import static utils.LogoUtil.*;
 import static utils.TemplateHelper.*;
 
@@ -197,6 +199,7 @@ public class ProjectApp extends Controller {
 
         saveProjectMenuSetting(project);
         Watch.watch(project.asResource());
+        projectMap.put(getProjectCacheKey(project.owner, project.name), project.id);
 
         return redirect(routes.ProjectApp.project(project.owner, project.name));
     }
