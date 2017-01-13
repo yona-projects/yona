@@ -785,6 +785,7 @@ public class User extends Model implements ResourceConvertible {
     public void removeEmail(Email email) {
         emails.remove(email);
         email.delete();
+        CacheStore.yonaUsers.put(this.id, this);
     }
 
     public void visits(Project project) {
