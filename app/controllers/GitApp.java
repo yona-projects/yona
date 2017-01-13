@@ -120,7 +120,7 @@ public class GitApp extends Controller {
                             "git.error.permission", user.loginId, ownerName, projectName);
                 } else {
                     message = Messages.get(Lang.defaultLang(),
-                            "git.error.permission", user.loginId, ownerName, projectName);
+                            "git.error.notAllowedCharset", user.loginId, ownerName, projectName);
                 }
                 response().setHeader("Content-Type", contentType);
                 return forbidden(message);
