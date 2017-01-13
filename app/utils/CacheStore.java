@@ -8,6 +8,8 @@ import models.User;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static utils.HttpUtil.decodeUrlString;
+
 /**
  * CacheStore
  */
@@ -29,6 +31,10 @@ public class CacheStore {
             .maximumSize(MAXIMUM_CACHED_YONA_USER_ENTRY)
             .build();
 
+
+    public static String getProjectCacheKey(String loginId, String projectName) {
+        return decodeUrlString(loginId) + ":" + decodeUrlString(projectName);
+    }
 
     public static void refreshProjectMap(){
         for (Map.Entry<String, Long> entry: projectMap.entrySet()) {
