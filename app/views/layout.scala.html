@@ -29,11 +29,8 @@
 <link rel="stylesheet" type="text/css" media="all" href="@routes.Assets.at("javascripts/lib/pikaday/pikaday.css")" />
 <link rel="stylesheet" type="text/css" media="all" href="@routes.Assets.at("stylesheets/yobi.css")">
 <link rel='stylesheet' href="@routes.Assets.at("javascripts/lib/nprogress/nprogress.css")"/>
-
 <script type="text/javascript" src="@routes.Assets.at("javascripts/yona-layout.js")"></script>
-<script type="text/javascript">
-    NProgress.configure({ minimum: 0.7 });
-</script>
+
 </head>
 
 <body class="@theme">
@@ -43,5 +40,9 @@
 @partial_update_notification()
 @content
 @common.scripts()
+
+<script type="text/javascript">
+        NProgress.configure({ minimum: 0.7 });
+</script>
 </body>
 </html>

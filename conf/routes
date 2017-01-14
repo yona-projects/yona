@@ -35,6 +35,7 @@ GET            /search                                                          
 GET            /-_-api                                                                 controllers.Application.index()
 GET            /-_-api/v1/                                                             controllers.Application.index()
 GET            /-_-api/v1/owners/:owner/projects/:projectName/exports                  controllers.api.ProjectApi.exports(owner:String, projectName:String)
+GET            /-_-api/v1/owners/:owner/projects/:projectName/posts/$number<[0-9]+>/watchers   controllers.api.WatcherApi.getWatchers(owner:String, projectName:String, number:Long)
 POST           /-_-api/v1/owners/:owner/projects/:projectName/posts                    controllers.api.BoardApi.newPostByJson(owner:String, projectName:String)
 POST           /-_-api/v1/owners/:owner/projects/:projectName/postlabel/:number        controllers.api.BoardApi.updatePostLabel(owner:String, projectName:String, number:Long)
 GET            /-_-api/v1/hello                                                        controllers.api.GlobalApi.hello()

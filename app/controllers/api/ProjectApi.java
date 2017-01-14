@@ -9,7 +9,6 @@ package controllers.api;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.MigrationApp;
-import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import models.*;
 import models.enumeration.Operation;
@@ -19,7 +18,8 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static controllers.MigrationApp.composePlainCommentsJson;
