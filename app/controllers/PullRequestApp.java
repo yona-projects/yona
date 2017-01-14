@@ -337,6 +337,7 @@ public class PullRequestApp extends Controller {
         return pullRequests(userName, projectName, Category.SENT);
     }
 
+    @Transactional
     private static Result pullRequests(String userName, String projectName, Category category) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 

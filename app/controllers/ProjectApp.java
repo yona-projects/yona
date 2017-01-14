@@ -111,15 +111,18 @@ public class ProjectApp extends Controller {
     }
 
     @IsAllowed(Operation.READ)
+    @Transactional
     public static Result project(String ownerId, String projectName)
             throws IOException, ServletException, SVNException, GitAPIException {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
-        List<History> histories = getProjectHistory(ownerId, project);
-
-        UserApp.currentUser().visits(project);
+        List<History> histories = null;
 
         String tabId = StringUtils.defaultIfBlank(request().getQueryString("tabId"), "readme");
+        if(!tabId.equals("readme")){
+            histories = getProjectHistory(ownerId, project);
+        }
 
+        UserApp.currentUser().visits(project);
         return ok(home.render(getTitleMessage(tabId), project, histories, tabId));
     }
 

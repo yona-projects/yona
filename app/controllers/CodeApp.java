@@ -32,6 +32,7 @@ import org.apache.tika.Tika;
 import org.apache.tika.mime.MediaType;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.tmatesoft.svn.core.SVNException;
+import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -58,6 +59,7 @@ public class CodeApp extends Controller {
     public static String hostName;
 
     @IsAllowed(Operation.READ)
+    @Transactional
     public static Result codeBrowser(String userName, String projectName)
             throws IOException, UnsupportedOperationException, ServletException {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
