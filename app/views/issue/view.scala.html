@@ -151,7 +151,7 @@
                         <a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)" class="ybtn">@Messages("button.edit")</a>
                     }
                 </div>
-                <div class="watcher-list">@Html(watcherList(issue))</div>
+                <div class="watcher-list"></div>
                 @** Comment **@
                 <div id="comments" class="board-comment-wrap">
                     <div id="timeline">
@@ -332,6 +332,7 @@
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.css")">
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.caret.min.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/common/yobi.WatcherList.js")"></script>
 <script type="text/javascript">
     $(function(){
         // yobi.issue.View
@@ -367,9 +368,14 @@
         // detect comment which contains mention at me
         $(".comment-body:contains('@UserApp.currentUser().loginId')").closest(".comment").addClass("mentioned");
 
-        $(".show-watchers").on("click", function(){
-            $(".watcher-list").toggle();
-        })
+        // Watcher List
+        var watcherApiUrl = "@api.routes.WatcherApi.getWatchers(project.owner, project.name, issue.getNumber)?type=issues";
+        $("#watch-button").on('click', function () {
+            setTimeout(function () {
+                watcherListApi(watcherApiUrl);
+            }, 1000);
+        });
+        watcherListApi(watcherApiUrl);
     });
 </script>
 }

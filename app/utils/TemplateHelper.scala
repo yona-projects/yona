@@ -29,34 +29,10 @@ import scala.util.control.Breaks._
 
 object TemplateHelper {
 
-  def watcherList(posting: AbstractPosting): String = {
-    val LIMIT = 100
-    var counter = 0
-    var str =  ""
-    val watchers = posting.getWatchers
-    breakable {
-      for(watcher <- watchers){
-        counter += 1
-        if(counter > LIMIT) break
-        var dummy = watcher.toString  // ebean eagerly loading hack
-        str += "<a href='" + userInfo(watcher.loginId) + "' class='watcher-name'>" + watcher.name + "</a>"
-      }
-    }
-
-    if( watchers.size > LIMIT ) {
-      str += Messages.get("watchers.more", (watchers.size - LIMIT).toString)
-    }
-    str
-  }
-
   def showWatchers(posting: AbstractPosting): String = {
-    if(posting.getWatchers.size > 1 && UserApp.currentUser() != User.anonymous){
       "<div class='show-watchers' data-toggle='tooltip' data-placement='top' data-trigger='hover' data-html='true' title='" + Messages.get("watchers") + "'>" +
-      "<button id='watch-button' type='button' class='ybtn'><i class='yobicon-emo-coffee'></i> " + posting.getWatchers.size.toString + "</button>" +
+      "<button id='watcher-list-button' type='button' class='ybtn'><i class='yobicon-emo-coffee'></i><span class='watcherCount'></span></button>" +
       "</div>"
-    } else {
-      ""
-    }
   }
 
   def buildQueryString(call: Call, queryMap: Map[String, String]): String = {

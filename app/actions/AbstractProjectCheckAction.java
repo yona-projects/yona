@@ -30,10 +30,7 @@ import play.mvc.Action;
 import play.mvc.Http.Context;
 import play.mvc.Result;
 import play.libs.F.Promise;
-import utils.AccessControl;
-import utils.AccessLogger;
-import utils.ErrorViews;
-import utils.RedirectUtil;
+import utils.*;
 
 import static play.mvc.Controller.flash;
 import static play.mvc.Http.Context.current;
@@ -54,12 +51,11 @@ public abstract class AbstractProjectCheckAction<T> extends Action<T> {
         String projectName = null;
 
         PathParser parser = new PathParser(context);
-        if (current().request().getHeader(UserApp.USER_TOKEN_HEADER) != null) {
+        PathVariable pathVariable = new PathVariable(current().request().path());
+        if (pathVariable.isApiCall()) {
             // eg. context.request().path() : /-_-api/v1/owners/doortts/projects/Test/posts
-            String[] base = context.request().path().split("/owners/");
-            String[] partial = base[1].split("/");
-            ownerLoginId = partial[0];
-            projectName = partial[2];
+            ownerLoginId = pathVariable.getPathVariable("owners");
+            projectName = pathVariable.getPathVariable("projects");
         } else {
             ownerLoginId = parser.getOwnerLoginId();
             projectName = parser.getProjectName();

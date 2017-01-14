@@ -55,7 +55,8 @@
                     <span class="menu-name">@Messages("title.projectHome")</span><span class="short-menu">H</span>
                 </a>
             </li>
-            @if(project.menuSetting.code) {
+            @defining(project.menuSetting){ menuSetting =>
+            @if(menuSetting.code) {
                 @if(!project.isCodeAccessibleMemberOnly || project.hasMember(UserApp.currentUser())) {
                     <li class="@isActiveMenu(MenuType.CODE)">
                         <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">
@@ -64,14 +65,14 @@
                     </li>
                 }
             }
-            @if(project.menuSetting.issue) {
+            @if(menuSetting.issue) {
                 <li class="@isActiveMenu(MenuType.ISSUE)">
                     <a href="@routes.IssueApp.issues(project.owner, project.name, "open")">
                         <span class="menu-name">@Messages("menu.issue")</span><span class="short-menu">I</span> @countingBadge(Issue.countIssues(project.id, State.OPEN))
                     </a>
                 </li>
             }
-            @if(project.menuSetting.pullRequest && project.vcs.equals("GIT")) {
+            @if(menuSetting.pullRequest && project.vcs.equals("GIT")) {
                 @if(!project.isCodeAccessibleMemberOnly || project.hasMember(UserApp.currentUser())) {
                     <li class="@isActiveMenu(MenuType.PULL_REQUEST)">
                     <a href="@getPullRequestURL(project)">
@@ -80,7 +81,7 @@
                 </li>
                 }
             }
-            @if(project.menuSetting.review) {
+            @if(menuSetting.review) {
                 @if(!project.isCodeAccessibleMemberOnly || project.hasMember(UserApp.currentUser())) {
                     <li class="@isActiveMenu(MenuType.PROJECT_REVIEW)">
                         <a href="@routes.ReviewThreadApp.reviewThreads(project.owner, project.name)">
@@ -90,14 +91,14 @@
                     </li>
                 }
             }
-            @if(project.menuSetting.milestone) {
+            @if(menuSetting.milestone) {
                 <li class="@isActiveMenu(MenuType.MILESTONE)">
                     <a href="@routes.MilestoneApp.milestones(project.owner, project.name)">
                         <span class="menu-name">@Messages("milestone")</span><span class="short-menu">M</span>
                     </a>
                 </li>
             }
-            @if(project.menuSetting.board) {
+            @if(menuSetting.board) {
                 <li class="@isActiveMenu(MenuType.BOARD)">
                     <a href="@routes.BoardApp.posts(project.owner, project.name)">
                         <span class="menu-name">@Messages("menu.board")</span><span class="short-menu">B</span>
@@ -107,6 +108,7 @@
                     </a>
                 </li>
             }
+        }
         </ul>
         @if(AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)){
         <div class="project-setting">
@@ -125,21 +127,22 @@
 </div>
 <script type="text/javascript">
 $(document).ready(function(){
+    @defining(project.menuSetting) { menuSetting =>
     var htKeyMap = {
         "H": "@routes.ProjectApp.project(project.owner, project.name)"
-        @if(project.menuSetting.board) {
+        @if(menuSetting.board) {
             ,"B": "@routes.BoardApp.posts(project.owner, project.name)"
         }
-        @if(project.menuSetting.code) {
+        @if(menuSetting.code) {
             ,"C": "@routes.CodeApp.codeBrowser(project.owner, project.name)"
         }
-        @if(project.menuSetting.issue) {
+        @if(menuSetting.issue) {
             ,"I": "@routes.IssueApp.issues(project.owner, project.name,"open")"
         }
-        @if(project.menuSetting.milestone) {
+        @if(menuSetting.milestone) {
             ,"M": "@routes.MilestoneApp.milestones(project.owner, project.name)"
         }
-        @if(project.menuSetting.pullRequest && project.vcs.equals("GIT")){
+        @if(menuSetting.pullRequest && project.vcs.equals("GIT")){
            ,"F": "@getPullRequestURL(project)"
         }
         @requestHeader.session.get("loginId") match {
@@ -147,6 +150,7 @@ $(document).ready(function(){
             case _ => { }
         }
     };
+    }
 
     $yobi.loadModule("project.Global", {
         "htKeyMap": htKeyMap,
