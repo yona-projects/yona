@@ -60,7 +60,7 @@
 
         @if(post.numOfComments >0){
         <span class="infos-item item-count-groups">
-            @countHtml("comment2",routes.BoardApp.post(project.owner, project.name, post.getNumber).toString() + "#comments", post.numOfComments)
+            @views.html.common.commentCount(routes.BoardApp.post(project.owner, project.name, post.getNumber).toString()+"#comments", post.numOfComments, true)
         </span>
         }
         @for(label <- post.labels) {

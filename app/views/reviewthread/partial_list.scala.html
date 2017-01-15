@@ -55,12 +55,11 @@
                     @agoOrDateString(thread.createdDate)
                 </span>
                 @defining(thread.reviewComments.size-1) { numberOfComments =>
-
                     @if(numberOfComments > 0) {
-                    <span class="infos-item item-count-groups">
-                        @countHtml("comment2",DiffRenderer.urlToCommentThread(thread), numberOfComments)
-                    </span>
-                    }       
+                        <span class="infos-item item-count-groups">
+                        @views.html.common.commentCount(DiffRenderer.urlToCommentThread(thread), numberOfComments, true)
+                        </span>
+                    }
                 }
             </div>
         </li>
