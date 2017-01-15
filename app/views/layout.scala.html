@@ -43,26 +43,28 @@
 @content
 @common.scripts()
     </div>
-    <div id="mySidenav" class="sidenav">
-        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-        <a href="#">About</a>
-        <a href="#">Services</a>
-        <a href="#">Clients</a>
-        <a href="#">Contact</a>
-    </div>
+
     <script type="text/javascript">
-            NProgress.configure({ minimum: 0.7 });
+        $(function() {
+            NProgress.configure({minimum: 0.7});
             /* Set the width of the side navigation to 250px and the right margin of the page content to 250px */
-            function openNav() {
-                document.getElementById("mySidenav").style.width = "350px";
-                document.getElementById("main").addEventListener("click", closeNav, true);
-            }
+
+            $("#open-btn").on("click", function () {
+                var $sidebar = $("#mySidenav");
+                if( $sidebar.width() !== 0){
+                    $sidebar.width("0").css("border", "none");
+                    document.getElementById("main").removeEventListener("click", closeNav, true);
+                } else {
+                    $sidebar.width("400px").css("border", "1px solid #999");
+                    document.getElementById("main").addEventListener("click", closeNav, true);
+                }
+            });
 
             /* Set the width of the side navigation to 0 and the left margin of the page content to 0 */
             function closeNav() {
                 document.getElementById("mySidenav").style.width = "0";
-                document.getElementById("main").removeEventListener("click", closeNav, true);
             }
+        });
     </script>
 </body>
 </html>
