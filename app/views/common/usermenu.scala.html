@@ -7,10 +7,36 @@
 @(project:Project)
 @import utils.TemplateHelper._
 @orderString = @{"createdDate DESC"}
+<div id="mySidenav" class="sidenav">
+    <div class="span5 right-menu span-hard-wrap">
+        <ul class="nav nav-tabs nm">
+            <li class="myProjectList active">
+                <a href="#myProjectList" data-toggle="tab">
+                @Messages("title.project")
+                </a>
+            </li>
+            <li class="myOrganizationList">
+                <a href="#myOrganizationList" data-toggle="tab">
+                @Messages("title.organization")
+                </a>
+            </li>
+        </ul>
+        <div class="tab-content tab-box">
+            <div class="tab-content">
+                <div class="tab-pane user-project-list active" id="myProjectList">
+                @views.html.index.myProjectList(UserApp.currentUser())
+                </div>
+                <div class="tab-pane user-project-list" id="myOrganizationList">
+                @views.html.index.myOrganizationList(UserApp.currentUser())
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <ul class="gnb-usermenu">
     @if( !UserApp.currentUser().isAnonymous()) {
         <li class="gnb-usermenu-item hide-in-mobile">
-            <span onclick="openNav()" class="user-item-btn">open</span>
+            <span id="open-btn" class="user-item-btn">open</span>
         </li>
        <li class="gnb-usermenu-item hide-in-mobile">
           <a href="@routes.Application.index()" class="user-item-btn">@Messages("notification")</a>
