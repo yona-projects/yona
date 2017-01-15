@@ -29,7 +29,7 @@
 @projectMenu(project, utils.MenuType.BOARD, "main-menu-only")
 <div class="page-wrap-outer">
     <div class="project-page-wrap board-view">
-    	@** Post Info **@
+        @** Post Info **@
         <div class="board-header issue">
             <div class="pull-right mr10 mt10 hide-in-mobile">
                 <div class="date" title="@JodaDateUtil.getDateString(post.createdDate)">
@@ -37,103 +37,130 @@
                 </div>
             </div>
             <div class="title">
-                <strong class="board-id">@post.getNumber</strong> @post.title
+                <strong class="board-id">#@post.getNumber</strong> @post.title
                 <div class="pull-right hide show-in-mobile" style="font-size: 0.7em">
-                    <div class="date" title="@JodaDateUtil.getDateString(post.createdDate)">
+                    <span class="date" title="@JodaDateUtil.getDateString(post.createdDate)">
                     @agoOrDateString(post.createdDate)
-                    </div>
+                    </span>
                 </div>
             </div>
         </div>
 
-    	@** Content body **@
-    	<div class="board-body">
-        <div class="author-info">
-          <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="usf-group">
-            <span class="avatar-wrap smaller">
-              <img src="@User.findByLoginId(post.authorLoginId).avatarUrl" width="20" height="20">
-            </span>
-            @if(post.authorLoginId != null){
-              <strong class="name">@post.authorName</strong>
-              <span class="loginid"> <strong>@{"@"}</strong>@post.authorLoginId</span>
-            } else {
-              <strong class="name">@Messages("common.noAuthor")</strong>
-            }
-          </a>
-            @if(post.history != null){
+        @** Content body **@
+        <div class="board-body row-fluid">
+            <div class="span9 span-left-pane">
+                <div class="author-info">
+                        <a href="@userInfo(post.authorLoginId)" class="usf-group">
+                            <span class="avatar-wrap smaller">
+                                <img src="@User.findByLoginId(post.authorLoginId).avatarUrl" width="20" height="20">
+                            </span>
+                            @if(post.authorLoginId != null){
+                                <strong class="name">@post.authorName</strong>
+                                <span class="loginid"> <strong>@{"@"}</strong>@post.authorLoginId</span>
+                            } else {
+                                <strong class="name">@Messages("common.noAuthor")</strong>
+                            }
+                        </a>
+                </div>
+                @if(post.history != null){
                 <div class="posting-history">
                     <a href="#-yona-posting-history" data-toggle="modal">@Messages("change.history")</a>
                     @common.partial_history(post)
                 </div>
-            }
-        </div>
-        <div class="board-labels pull-right">
-        @if(!IssueLabel.findByProject(project).isEmpty){
-            @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){
-                @issue.partial_select_label(IssueLabel.findByProject(project), post.getLabelIds, "", "", project)
-            } else {
-                @issue.partial_show_selected_label(post.labels.toList, "")
-            }
-        }
-        </div>
-        @if(StringUtils.isEmpty(post.body)){
-            <div class="content empty-content"></div>
-        } else {
-            <div class="content markdown-wrap">@Html(Markdown.render(post.body, post.asResource().getProject()))</div>
-        }
-        <div class="attachments" id="attachments" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.BOARD_POST.toString(), post.id.toString()))"></div>
-    	</div>
-    	<div class="board-footer board-actrow">
-    	    <div class="pull-left">
-                @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.WATCH)){
-                    <button id="watch-button" type="button" class="ybtn @if(conatinsCurrentUserInWatchers){ybtn-watching}" data-toggle="button" data-watching="@conatinsCurrentUserInWatchers">
-                    @if(conatinsCurrentUserInWatchers) { @Messages("post.unwatch") } else { @Messages("post.watch") }
-                    </button>
                 }
-                @Html(showWatchers(post))
+                @if(StringUtils.isEmpty(post.body)){
+                    <div class="content empty-content"></div>
+                } else {
+                    <div class="content markdown-wrap">@Html(Markdown.render(post.body, post.project))</div>
+                }
+                <div class="attachments" id="attachments" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.BOARD_POST.toString(), post.id.toString()))"></div>
+                <div class="board-actrow right-txt">
+                    <div class="pull-left">
+                        <div>
+                            @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.WATCH)) {
+                                <button id="watch-button" type="button" class="ybtn @if(conatinsCurrentUserInWatchers) {ybtn-watching}"
+                                        data-toggle="button" data-watching="@conatinsCurrentUserInWatchers">
+                                @if(conatinsCurrentUserInWatchers) {
+                                    @Messages("post.unwatch")
+                                } else {
+                                    @Messages("post.watch")
+                                }
+                                </button>
+                            }
+                            @Html(showWatchers(post))
+                        </div>
+                    </div>
+
+                    @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.DELETE)) {
+                            <a href="#deleteConfirm" data-toggle="modal" class="ybtn ybtn-danger">@Messages("button.delete")</a>
+                    }
+
+                    @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)) {
+                        <a href="@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)" class="ybtn">@Messages("button.edit")</a>
+                    }
+                </div>
+                <div class="watcher-list"></div>
+                @** Comment **@
+                <div id="comments" class="board-comment-wrap">
+                    <div id="timeline">
+                        <div class="timeline-list">
+                        @partial_comments(project, post)
+                        </div>
+                    </div>
+                    @common.commentForm(post.asResource(), ResourceType.NONISSUE_COMMENT, routes.BoardApp.newComment(project.owner, project.name, post.getNumber).toString())
+                </div>
+                @** // Comment **@
             </div>
 
-            @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.DELETE)){
-            <a href="#deleteConfirm" class="ybtn ybtn-danger" data-toggle="modal">@Messages("button.delete")</a>
-            }
+            <div class="span3 span-right-pane mb20">
+                <div class="issue-info board-labels">
+                        <dl>
+                            @if(project.menuSetting.board) {
+                                <dd class="project-btn-item">
+                                    <a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="ybtn ybtn-success" target="_blank">@Messages("post.write")</a>
+                                </dd>
+                            }
+                        </dl>
+                        @**<!-- labels -->**@
+                        @if(!IssueLabel.findByProject(project).isEmpty){
+                            @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){
+                                @issue.partial_select_label(IssueLabel.findByProject(project), post.getLabelIds, "", "", project)
+                            } else {
+                                @issue.partial_show_selected_label(post.labels.toList, "")
+                            }
+                        }
+                        @**<!-- // -->**@
+                </div>
+            </div>
+        </div>
 
-            @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){
-            <a href="@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)" class="ybtn">@Messages("button.edit")</a>
-            }
-    	</div>
 
-        <div class="watcher-list"></div>
-    	@** Comment **@
-    	<div id="comments" class="board-comment-wrap">
-            @partial_comments(project, post)
-
-            @common.commentForm(post.asResource(), ResourceType.NONISSUE_COMMENT, routes.BoardApp.newComment(project.owner, project.name, post.getNumber).toString())
-    	</div>
-
-        <a href="@urlToPostings" class="ybtn pull-left">@Messages("button.list")</a>
-
-    	@help.keymap("boardDetail", project)
+        <div class="board-footer">
+            <a href="@urlToPostings" class="ybtn pull-left" data-button="historyBack">@Messages("button.list")</a>
+            @help.keymap("boardDetail", project)
+        </div>
     </div>
-</div>
-<script type="text/x-jquery-tmpl" id="tplAttachedFile"><!--
-	--><li class="attached-file" data-name="${fileName}" data-href="${fileHref}" data-mime="${mimeType}" data-size="${fileSize}">
-    <strong>${fileName}(${fileSizeReadable})${notice}</strong><!--
-	--><a class="attached-delete"><i class="ico btn-delete"></i></a></li>
-</script>
 
-@** Confirm to delete post **@
-<div id="deleteConfirm" class="modal hide fade">
-	<div class="modal-header">
-		<button type="button" class="close" data-dismiss="modal">×</button>
-		<h3>@Messages("button.confirm")</h3>
-	</div>
-	<div class="modal-body">
-		<p>@Messages("post.delete.confirm")</p>
-	</div>
-	<div class="modal-footer">
-		<button type="button" class="ybtn ybtn-danger" data-request-method="delete" data-request-uri="@routes.BoardApp.deletePost(project.owner, project.name, post.getNumber)">@Messages("button.yes")</button>
-		<button type="button" class="ybtn" data-dismiss="modal">@Messages("button.no")</button>
-	</div>
+    <script type="text/x-jquery-tmpl" id="tplAttachedFile"><!--
+        --><li class="attached-file" data-name="${fileName}" data-href="${fileHref}" data-mime="${mimeType}" data-size="${fileSize}">
+        <strong>${fileName}(${fileSizeReadable})${notice}</strong><!--
+        --><a class="attached-delete"><i class="ico btn-delete"></i></a></li>
+    </script>
+
+    @** Confirm to delete post **@
+    <div id="deleteConfirm" class="modal hide fade">
+    	<div class="modal-header">
+    		<button type="button" class="close" data-dismiss="modal">×</button>
+    		<h3>@Messages("issue.delete")</h3>
+    	</div>
+    	<div class="modal-body">
+    		<p>@Messages("post.delete.confirm")</p>
+    	</div>
+    	<div class="modal-footer">
+    		<button type="button" class="ybtn ybtn-danger" data-request-method="delete" data-request-uri="@routes.BoardApp.deletePost(project.owner, project.name, post.getNumber)">@Messages("button.yes")</button>
+    		<button type="button" class="ybtn" data-dismiss="modal">@Messages("button.no")</button>
+    	</div>
+    </div>
 </div>
 @common.markdown(project)
 @common.commentDeleteModal()
@@ -144,53 +171,53 @@
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yobi.WatcherList.js")"></script>
 <script type="text/javascript">
-	$(document).ready(function(){
-		$yobi.loadModule("board.View", {
-            "sWatchUrl"  : "@routes.WatchApp.watch(post.asResource.asParameter)",
-            "sUnwatchUrl": "@routes.WatchApp.unwatch(post.asResource.asParameter)"
-		});
-
-        // yobi.ShortcutKey
-        yobi.ShortcutKey.setKeymapLink({
-            "L": "@urlToPostings"
-            @if(project.menuSetting.board) {
-            ,"N": "@routes.BoardApp.newPostForm(project.owner, project.name)"
-            }
-            @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){
-           ,"E": "@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)"
-            }
-        });
-
-        // yobi.Mention
-        yobi.Mention({
-            "target": "textarea[id^=editor-]",
-            "url"   : "@Html(routes.ProjectApp.mentionList(project.owner, project.name, post.getNumber, post.asResource().getType.resource()).toString())"
-        });
-
-        $('.board-labels select').on('change', function(e){
-            var url = "@Html(controllers.api.routes.BoardApi.updatePostLabel(project.owner, project.name, post.getNumber).toString())";
-            $.ajax({
-                url: url,
-                method: "POST",
-                data: JSON.stringify(e.val),
-                contentType: "application/json; charset=UTF-8"
-            }).done(function(response) {
-            }).error(function(response){
+        $(document).ready(function(){
+            $yobi.loadModule("board.View", {
+                "sWatchUrl"  : "@routes.WatchApp.watch(post.asResource.asParameter)",
+                "sUnwatchUrl": "@routes.WatchApp.unwatch(post.asResource.asParameter)"
             });
-        });
 
-        // detect comment which contains mention at me
-        $(".comment-body:contains('@UserApp.currentUser().loginId')").closest(".comment").addClass("mentioned");
+            // yobi.ShortcutKey
+            yobi.ShortcutKey.setKeymapLink({
+                "L": "@urlToPostings"
+                @if(project.menuSetting.board) {
+                ,"N": "@routes.BoardApp.newPostForm(project.owner, project.name)"
+                }
+                @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){
+                ,"E": "@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)"
+                }
+            });
 
-        // Watcher List
-        var watcherApiUrl = "@api.routes.WatcherApi.getWatchers(project.owner, project.name, post.getNumber)?type=posts";
-        $("#watch-button").on('click', function () {
-            setTimeout(function () {
-                watcherListApi(watcherApiUrl);
-            }, 1000);
+            // yobi.Mention
+            yobi.Mention({
+                "target": "textarea[id^=editor-]",
+                "url"   : "@Html(routes.ProjectApp.mentionList(project.owner, project.name, post.getNumber, post.asResource().getType.resource()).toString())"
+            });
+
+            $('.board-labels select').on('change', function(e){
+                var url = "@Html(controllers.api.routes.BoardApi.updatePostLabel(project.owner, project.name, post.getNumber).toString())";
+                $.ajax({
+                    url: url,
+                    method: "POST",
+                    data: JSON.stringify(e.val),
+                    contentType: "application/json; charset=UTF-8"
+                }).done(function(response) {
+                }).error(function(response){
+                });
+            });
+
+            // detect comment which contains mention at me
+            $(".comment-body:contains('@UserApp.currentUser().loginId')").closest(".comment").addClass("mentioned");
+
+            // Watcher List
+            var watcherApiUrl = "@api.routes.WatcherApi.getWatchers(project.owner, project.name, post.getNumber)?type=posts";
+            $("#watch-button").on('click', function () {
+                setTimeout(function () {
+                    watcherListApi(watcherApiUrl);
+                }, 1000);
+            });
+            watcherListApi(watcherApiUrl);
         });
-        watcherListApi(watcherApiUrl);
-	});
 </script>
 @common.select2()
 }
