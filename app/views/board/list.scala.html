@@ -51,7 +51,7 @@
                 </div>
                 <div class="board-labels">
                 @if(!IssueLabel.findByProject(project).isEmpty){
-                    @issue.partial_select_label(IssueLabel.findByProject(project), param.labelIdSet)
+                    @issue.partial_select_label(IssueLabel.findByProject(project), param.labelIdSet, "", "", project)
                 }
                 </div>
             </form>

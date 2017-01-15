@@ -284,7 +284,7 @@
                         @**<!-- labels -->**@
                         @if(!IssueLabel.findByProject(project).isEmpty){
                             @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)){
-                                @partial_select_label(IssueLabel.findByProject(project), issue.getLabelIds)
+                                @partial_select_label(IssueLabel.findByProject(project), issue.getLabelIds, "", "", project)
                             } else {
                                 @partial_show_selected_label(issue.labels.toList, routes.IssueApp.issues(project.owner, project.name, issue.state.state(), "html", 1).toString)
                             }

@@ -19,12 +19,12 @@
 * limitations under the License.
 **@
 @(labels:List[models.IssueLabel], selectedLabelIds:Set[Long] = null,
-  wrapperCSSClassName:String = "", additionalAttr:String = "")
+  wrapperCSSClassName:String = "", additionalAttr:String = "", project:Project)
 
 @if(!labels.isEmpty){
 <dl class="@wrapperCSSClassName">
   <dt>
-    @Messages("label")
+      @Messages("label") @if(UserApp.currentUser().isManagerOf(project)){<a href="@routes.IssueLabelApp.labelsForm(project.owner, project.name)" target="_blank" class="label-edit">[@Messages("button.edit")]</a>}
   </dt>
   <dd>
     <select name="labelIds" multiple="multiple" data-search="labelIds"
