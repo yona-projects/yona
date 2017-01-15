@@ -1,22 +1,8 @@
 @**
-* Yobi, Project Hosting SW
+* Yona, 21st Century Project Hosting SW
 *
-* Copyright 2014 NAVER Corp.
-* http://yobi.io
-*
-* @author Suwon Chae
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*   http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
+* Copyright Yona & Yobi Authors & NAVER Corp.
+* https://yona.io
 **@
 @(issueList:Collection[Issue], searchCondition:models.support.SearchCondition, pageIndex:Int, totalPageCount:Int, project:Project)
 @import java.util
@@ -30,7 +16,8 @@
 
 <ul class="post-list-wrap">
 @for(issue <- issueList){
-@defining(User.findByLoginId(issue.authorLoginId)){ user =>
+    @defining(issue.project){ project =>
+    @defining(User.findByLoginId(issue.authorLoginId)){ user =>
     <li class="post-item" id="issue-item-@issue.id">
         <div class="span10 span-hard-wrap">
             <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap mlarge hide-in-mobile" data-toggle="tooltip" data-placement="bottom" title="@user.loginId">
@@ -41,11 +28,7 @@
                 }
             </a>
             <div class="title-wrap">
-                <a href="@routes.ProjectApp.project(issue.project.owner,issue.project.name)" class="title project">
-                    @issue.project.name
-                </a>
-                <span class="post-id">#@issue.getNumber</span>
-                <a href="@routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.getNumber)" class="title">
+                <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)" class="title">
                     @issue.title
                 </a>
             </div>
@@ -62,9 +45,16 @@
                     @agoOrDateString(issue.createdDate)
                 </span>
 
-                @if(issue.milestone != null && issue.project != null && issue.project.menuSetting != null && issue.project.menuSetting.milestone) {
+                <span class="infos-item project-name">
+                <a href="@routes.ProjectApp.project(project.owner,project.name)" class="title project" data-toggle="tooltip" data-placement="bottom" title="@Messages("project.name")">
+                @project.name
+                </a>
+                </span>
+                <span class="infos-item post-id">#@issue.getNumber</span>
+
+                @if(issue.milestone != null && project != null && project.menuSetting != null && project.menuSetting.milestone) {
                 <span class="infos-item mileston-tag">
-                    <a href="@routes.MilestoneApp.milestone(issue.project.owner, issue.project.name, issue.milestone.id)" data-toggle="tooltip" data-placement="bottom" title="@Messages("milestone")">
+                    <a href="@routes.MilestoneApp.milestone(project.owner, project.name, issue.milestone.id)" data-toggle="tooltip" data-placement="bottom" title="@Messages("milestone")">
                         @issue.milestone.title
                     </a>
                 </span>
@@ -73,16 +63,16 @@
                 @if(issue.comments.size>0 || issue.voters.size>0) {
                 <span class="infos-item item-count-groups">
                     @if(issue.comments.size>0){
-                        @countHtml("comments",routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.getNumber).toString() + "#comments", issue.comments.size )
+                        @countHtml("comment2",routes.IssueApp.issue(project.owner, project.name, issue.getNumber).toString() + "#comments", issue.comments.size )
                     }
                     @if(issue.voters.size>0){
-                        @countHtml("hearts",routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.getNumber).toString() + "#vote", issue.voters.size, "strong" )
+                        @countHtml("hearts",routes.IssueApp.issue(project.owner, project.name, issue.getNumber).toString() + "#vote", issue.voters.size, "strong" )
                     }
                 </span>
                 }
 
                 @for(label <- issue.labels.toList.sortBy(r => (r.category.name, r.name))) {
-                    <a href="@urlToList(issue.project, searchCondition.state)&labelIds=@label.id" class="label issue-label list-label" data-label-id="@label.id" style="background:@label.color">@label.name</a>
+                    <a href="@urlToList(project, searchCondition.state)&labelIds=@label.id" class="label issue-label list-label" data-label-id="@label.id" style="background:@label.color">@label.name</a>
                 }
             </div>
         </div>
@@ -108,6 +98,7 @@
             }
         </div>
     </li>
+    }
 }
 }
 </ul>
