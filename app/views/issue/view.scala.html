@@ -171,6 +171,11 @@
 
                         @**<!-- assignee  -->**@
                         <dl>
+                            @if(project.menuSetting.issue) {
+                                <dd class="project-btn-item">
+                                    <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="ybtn ybtn-success" target="_blank">@Messages("button.newIssue")</a>
+                                </dt>
+                            }
                             <dt>@Messages("issue.assignee")</dt>
 
                             <dd>
