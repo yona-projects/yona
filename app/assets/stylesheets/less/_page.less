@@ -2870,7 +2870,7 @@ label.inline-list {
 
                         .vote-heart-on {
                             font-size:16px;
-                            color:@yobi-link;
+                            color:@primary;
                             opacity:1.0;
                         }
 
@@ -3589,6 +3589,18 @@ label.issue-item-row {
                 .border-radius(3px);
                 line-height: 14px;
                 margin-top:2px;
+                .comments-count:hover {
+                    color: lighten(@darkmagenta, 10%);
+                }
+                .vote-count:hover {
+                    color: lighten(@primary, 10%);
+                }
+                .vote-color {
+                    color: @primary;
+                }
+                .comments-count-color {
+                    color: @darkmagenta;
+                }
 
                 .count-groups {
                     margin:0 auto;
@@ -3596,7 +3608,6 @@ label.issue-item-row {
                     text-align: center;
                     padding:0 5px;
                     float: left;
-                    color: darkmagenta;
 
                     &.item-icon {
                         font-size: 9px;
@@ -3607,16 +3618,9 @@ label.issue-item-row {
                         &:first-child {
                             border-left:none;
                         }
-
-                        &.strong {
-                            color:@primary;
-                        }
                     }
 
                     &.item-count {
-                        &.strong {
-                            color:@primary;
-                        }
                         padding:0 7px 0 0;
                     }
                 }

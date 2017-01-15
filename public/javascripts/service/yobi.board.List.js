@@ -43,6 +43,15 @@
             _attachEvent();
             _initPagination(htOptions);
             _initImplicitTitlePrefix();
+            _listHoverEffect();
+        }
+
+        function _listHoverEffect(){
+            $(".post-list-wrap > .post-item").not(".notice-wrap > .post-item").hover(function () {
+                $(this).css("background-color", "#fafafa");
+            }, function () {
+                $(this).css("background-color", "#fff");
+            });
         }
 
         /**
