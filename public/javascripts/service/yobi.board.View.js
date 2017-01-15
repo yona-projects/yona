@@ -37,6 +37,7 @@
 
             _initFileUploader();
             _initFileDownloader();
+            _affixIssueInfoWrap();
         }
 
         /**
@@ -58,6 +59,7 @@
 
             htElement.welAttachments = $(".attachments");
             htElement.welBtnWatch = $('#watch-button');
+            htElement.issueInfoWrap = $(".issue-info");
         }
 
         /**
@@ -105,6 +107,14 @@
             htElement.welAttachments.each(function(i, elContainer){
                 if(!$(elContainer).data("isYobiAttachment")){
                     (new yobi.Attachments({"elContainer": elContainer}));
+                }
+            });
+        }
+
+        function _affixIssueInfoWrap(){
+            htElement.issueInfoWrap.affix({
+                "offset": {
+                    "top": htElement.issueInfoWrap.offset().top - 10
                 }
             });
         }
