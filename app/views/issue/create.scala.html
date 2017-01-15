@@ -119,7 +119,7 @@
                         </dd>
                     </dl>
 
-                    @partial_select_label(IssueLabel.findByProject(project), null, "issue-option", "data-close-on-select=false")
+                    @partial_select_label(IssueLabel.findByProject(project), null, "issue-option", "data-close-on-select=false", project)
                 </div>
             </div>
         </div>
