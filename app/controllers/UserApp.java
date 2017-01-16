@@ -52,6 +52,7 @@ import java.util.*;
 
 import static play.data.Form.form;
 import static play.libs.Json.toJson;
+import static utils.HtmlUtil.defaultSanitize;
 
 public class UserApp extends Controller {
     public static final String SESSION_USERID = "userId";
@@ -663,7 +664,7 @@ public class UserApp extends Controller {
     public static Result editUserInfo() {
         Form<User> userForm = new Form<>(User.class).bindFromRequest("name", "email");
         String newEmail = userForm.data().get("email");
-        String newName = userForm.data().get("name");
+        String newName = defaultSanitize(userForm.data().get("name"));
         User user = UserApp.currentUser();
 
         if (StringUtils.isEmpty(newEmail)) {

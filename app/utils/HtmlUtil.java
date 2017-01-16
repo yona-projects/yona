@@ -1,6 +1,8 @@
 package utils;
 
 import org.apache.commons.lang.StringUtils;
+import org.owasp.html.PolicyFactory;
+import org.owasp.html.Sanitizers;
 
 /**
  * Yobi, Project Hosting SW
@@ -23,6 +25,17 @@ import org.apache.commons.lang.StringUtils;
  * limitations under the License.
  */
 public class HtmlUtil {
+    /**
+     * Just plain default sanitize
+     * eg. It is used when user change their name.
+     * @param source
+     * @return sanitized text
+     */
+    public static String defaultSanitize(String source){
+        PolicyFactory policy = Sanitizers.FORMATTING;
+        return  policy.sanitize(source);
+    }
+
     public static String boolToCheckedString(boolean bool){
         if (bool == true) {
             return "checked";

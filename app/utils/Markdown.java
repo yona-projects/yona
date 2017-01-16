@@ -27,6 +27,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.owasp.html.HtmlPolicyBuilder;
+import org.owasp.html.PolicyFactory;
+import org.owasp.html.Sanitizers;
 
 import javax.annotation.Nonnull;
 import javax.script.Invocable;
@@ -44,6 +47,15 @@ public class Markdown {
     private static final String MARKED_JS_FILE = "public/javascripts/lib/marked.js";
     private static final String HIGHLIGHT_JS_FILE = "public/javascripts/lib/highlight/highlight.pack.js";
     private static ScriptEngine engine = buildEngine();
+    private static PolicyFactory sanitizerPolicy = Sanitizers.FORMATTING
+            .and(Sanitizers.LINKS)
+            .and(Sanitizers.IMAGES)
+            .and(Sanitizers.STYLES)
+            .and(Sanitizers.TABLES)
+            .and(Sanitizers.BLOCKS)
+            .and(new HtmlPolicyBuilder().allowElements("pre").toFactory())
+            .and(new HtmlPolicyBuilder()
+                    .allowAttributes("class", "id").globally().toFactory());
 
     private static ScriptEngine buildEngine() {
         ScriptEngineManager manager = new ScriptEngineManager();
@@ -123,12 +135,7 @@ public class Markdown {
     }
 
     private static String sanitize(String source) {
-        try {
-            Object filter = engine.eval("new Filter();");
-            return (String) ((Invocable) engine).invokeMethod(filter, "defence", source);
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
+        return  sanitizerPolicy.sanitize(source);
     }
 
     private static String renderWithHighlight(String source, boolean breaks) {
