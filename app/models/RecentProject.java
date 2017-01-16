@@ -98,6 +98,7 @@ public class RecentProject extends Model {
                 }
             };
             RecentProject oldest = Collections.min(recentProjects, comparator);
+            oldest.refresh();
             oldest.delete();
         }
     }
