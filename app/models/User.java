@@ -49,6 +49,8 @@ import javax.persistence.OrderBy;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static utils.HtmlUtil.defaultSanitize;
+
 @Table(name = "n4user")
 @Entity
 public class User extends Model implements ResourceConvertible {
@@ -220,6 +222,7 @@ public class User extends Model implements ResourceConvertible {
      */
     public static Long create(User user) {
         user.createdDate = JodaDateUtil.now();
+        user.name = defaultSanitize(user.name);
         user.save();
         CacheStore.yonaUsers.put(user.id, user);
         return user.id;
@@ -609,7 +612,7 @@ public class User extends Model implements ResourceConvertible {
         lastStateModifiedDate = new Date();
 
         if (this.state == UserState.DELETED) {
-            name = "DELETED";
+            name = "[DELETED]" + this.name;
             oldPassword = "";
             password = "";
             passwordSalt = "";
