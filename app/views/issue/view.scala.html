@@ -377,7 +377,7 @@
         var watcherApiUrl = "@api.routes.WatcherApi.getWatchers(project.owner, project.name, issue.getNumber)?type=issues";
         $("#watch-button").on('click', function () {
             setTimeout(function () {
-                watcherListApi(watcherApiUrl);
+                watcherListApi(watcherApiUrl, "@routes.UserApp.userInfo(UserApp.currentUser().loginId)");
             }, 1000);
         });
         watcherListApi(watcherApiUrl);
