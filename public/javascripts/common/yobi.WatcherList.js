@@ -2,8 +2,8 @@ var apiUrlMemo;
 $(".show-watchers").on("click", function () {
     $(".watcher-list").toggle();
 });
-function watcherListApi(apiUrl){
 
+function watcherListApi(apiUrl, currentUserInfoUrl){
     if (apiUrl) {
         apiUrlMemo = apiUrl;
     }
@@ -11,7 +11,12 @@ function watcherListApi(apiUrl){
     $.get(apiUrl || apiUrlMemo)
         .done(function (data) {
             var watcherList = "";
-            if( data.watchersInList > 0 ){
+            if ( data.watchersInList && data.watchersInList === 1 && data.watchers[0].url === currentUserInfoUrl) {
+                $(".show-watchers").css("display", "none");
+                return;
+            }
+
+            if( data.watchersInList > 1 ){
                 $(".watcherCount").text(" " + data.totalWatchers);
                 $(".show-watchers").css("display", "inline-block");
                 data.watchers.forEach(function (watcher) {
