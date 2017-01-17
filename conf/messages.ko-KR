@@ -984,5 +984,5 @@ viaEmail.help.errorSingleLine = 보내주신 이메일을 {0}가 처리하지 �
 viaEmail.help.hello = {0}님 안녕하세요.
 viaEmail.help.intro = {0}에 이메일을 보내는 방법에 대한 도움말을 보내드립니다. 도움이 되었으면 좋겠습니다.
 viaEmail.help.title = 이메일로 {0} 사용하는 법
-watchers = 지켜보는 사람
+watchers = 이 글을 지켜보는 사람
 watchers.more = 외 {0}명
