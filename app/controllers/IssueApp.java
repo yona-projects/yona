@@ -47,6 +47,7 @@ import views.html.organization.group_issue_list;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -174,7 +175,7 @@ public class IssueApp extends AbstractPostingApp {
     private static Result issuesAsExcel(Project project, ExpressionList<Issue> el) throws WriteException, IOException {
         byte[] excelData = Issue.excelFrom(el.findList());
         String filename = HttpUtil.encodeContentDisposition(
-                project.name + "_issues_" + JodaDateUtil.today().getTime() + "." + EXCEL_EXT);
+                project.name + "_issues_" +  JodaDateUtil.getDateStringWithoutSpace(new Date()) + "." + EXCEL_EXT);
 
         response().setHeader("Content-Type", new Tika().detect(filename));
         response().setHeader("Content-Disposition", "attachment; " + filename);

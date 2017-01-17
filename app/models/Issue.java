@@ -23,12 +23,14 @@ package models;
 import com.avaje.ebean.Ebean;
 import com.avaje.ebean.Page;
 import com.avaje.ebean.annotation.Formula;
+import controllers.routes;
 import jxl.Workbook;
 import jxl.format.Alignment;
 import jxl.format.Border;
 import jxl.format.BorderLineStyle;
 import jxl.format.Colour;
 import jxl.format.*;
+import jxl.format.VerticalAlignment;
 import jxl.write.*;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
@@ -61,7 +63,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
     public static final Finder<Long, Issue> finder = new Finder<>(Long.class, Issue.class);
 
     public static final String DEFAULT_SORTER = "createdDate";
-    public static final String TO_BE_ASSIGNED = "TBA";
+    public static final String TO_BE_ASSIGNED = "";
     public static final Pattern ISSUE_PATTERN = Pattern.compile("#\\d+");
 
     public State state;
@@ -228,43 +230,30 @@ public class Issue extends AbstractPosting implements LabelOwner {
         WritableWorkbook workbook;
         WritableSheet sheet;
 
-        WritableFont wf1 = new WritableFont(WritableFont.TIMES, 13, WritableFont.BOLD, false,
-                UnderlineStyle.SINGLE, Colour.BLUE_GREY, ScriptStyle.NORMAL_SCRIPT);
-        WritableCellFormat cf1 = new WritableCellFormat(wf1);
-        cf1.setBorder(Border.ALL, BorderLineStyle.DOUBLE);
-        cf1.setAlignment(Alignment.CENTRE);
-
-        WritableFont wf2 = new WritableFont(WritableFont.TAHOMA, 11, WritableFont.NO_BOLD, false, UnderlineStyle.NO_UNDERLINE, Colour.BLACK, ScriptStyle.NORMAL_SCRIPT);
-        WritableCellFormat cf2 = new WritableCellFormat(wf2);
-        cf2.setShrinkToFit(true);
-        cf2.setBorder(Border.ALL, BorderLineStyle.THIN);
-        cf2.setAlignment(Alignment.CENTRE);
-
-        DateFormat valueFormatDate = new DateFormat("yyyy-MM-dd HH:mm:ss");
-        WritableCellFormat cfDate = new WritableCellFormat(valueFormatDate);
-        cfDate.setFont(wf2);
-        cfDate.setShrinkToFit(true);
-        cfDate.setBorder(Border.ALL, BorderLineStyle.THIN);
-        cfDate.setAlignment(Alignment.CENTRE);
+        WritableCellFormat headerCellFormat = getHeaderCellFormat();
+        WritableCellFormat bodyCellFormat = getBodyCellFormat();
+        WritableCellFormat dateCellFormat = getDateCellFormat();
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         workbook = Workbook.createWorkbook(bos);
         sheet = workbook.createSheet(String.valueOf(JodaDateUtil.today().getTime()), 0);
 
-        String[] labalArr = {"ID", "STATE", "TITLE", "ASSIGNEE", "DATE"};
+        String[] titles = {"No", Messages.get("issue.state"), Messages.get("title"), Messages.get("issue.assignee"), Messages.get("issue.label"), "Date", "Link"};
 
-        for (int i = 0; i < labalArr.length; i++) {
-            sheet.addCell(new jxl.write.Label(i, 0, labalArr[i], cf1));
+        for (int i = 0; i < titles.length; i++) {
+            sheet.addCell(new jxl.write.Label(i, 0, titles[i], headerCellFormat));
             sheet.setColumnView(i, 20);
         }
-        for (int i = 1; i < issueList.size() + 1; i++) {
-            Issue issue = issueList.get(i - 1);
-            int colcnt = 0;
-            sheet.addCell(new jxl.write.Label(colcnt++, i, issue.id.toString(), cf2));
-            sheet.addCell(new jxl.write.Label(colcnt++, i, issue.state.toString(), cf2));
-            sheet.addCell(new jxl.write.Label(colcnt++, i, issue.title, cf2));
-            sheet.addCell(new jxl.write.Label(colcnt++, i, getAssigneeName(issue.assignee), cf2));
-            sheet.addCell(new jxl.write.DateTime(colcnt++, i, issue.createdDate, cfDate));
+        for (int idx = 1; idx < issueList.size() + 1; idx++) {
+            Issue issue = issueList.get(idx - 1);
+            int columnPos = 0;
+            sheet.addCell(new jxl.write.Label(columnPos++, idx, issue.getNumber().toString(), bodyCellFormat));
+            sheet.addCell(new jxl.write.Label(columnPos++, idx, issue.state.toString(), bodyCellFormat));
+            sheet.addCell(new jxl.write.Label(columnPos++, idx, issue.title, bodyCellFormat));
+            sheet.addCell(new jxl.write.Label(columnPos++, idx, getAssigneeName(issue.assignee), bodyCellFormat));
+            sheet.addCell(new jxl.write.Label(columnPos++, idx, getIssueLabels(issue), bodyCellFormat));
+            sheet.addCell(new jxl.write.DateTime(columnPos++, idx, issue.createdDate, dateCellFormat));
+            sheet.addCell(new jxl.write.Label(columnPos++, idx, controllers.routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.number).toString(), bodyCellFormat));
         }
         workbook.write();
 
@@ -277,6 +266,48 @@ public class Issue extends AbstractPosting implements LabelOwner {
         }
 
         return bos.toByteArray();
+    }
+
+    private static String getIssueLabels(Issue issue) {
+        StringBuilder labels = new StringBuilder();
+        for(IssueLabel issueLabel: issue.getLabels()){
+            labels.append(issueLabel.name + ", ");
+        }
+        return labels.toString().replaceAll(", $", "");
+    }
+
+    private static WritableCellFormat getDateCellFormat() throws WriteException {
+        WritableFont baseFont= new WritableFont(WritableFont.ARIAL, 12, WritableFont.NO_BOLD, false, UnderlineStyle.NO_UNDERLINE, Colour.BLACK, ScriptStyle.NORMAL_SCRIPT);
+        DateFormat valueFormatDate = new DateFormat("yyyy-MM-dd HH:mm:ss");
+        WritableCellFormat cellFormat = new WritableCellFormat(valueFormatDate);
+        cellFormat.setFont(baseFont);
+        cellFormat.setShrinkToFit(true);
+        cellFormat.setBorder(Border.ALL, BorderLineStyle.THIN);
+        cellFormat.setAlignment(Alignment.CENTRE);
+        cellFormat.setVerticalAlignment(VerticalAlignment.TOP);
+        return cellFormat;
+    }
+
+    private static WritableCellFormat getBodyCellFormat() throws WriteException {
+        WritableFont baseFont = new WritableFont(WritableFont.ARIAL, 12, WritableFont.NO_BOLD, false, UnderlineStyle.NO_UNDERLINE, Colour.BLACK, ScriptStyle.NORMAL_SCRIPT);
+        return getBodyCellFormat(baseFont);
+    }
+
+    private static WritableCellFormat getBodyCellFormat(WritableFont baseFont) throws WriteException {
+        WritableCellFormat cellFormat = new WritableCellFormat(baseFont);
+        cellFormat.setBorder(Border.ALL, BorderLineStyle.THIN);
+        cellFormat.setWrap(true);
+        cellFormat.setVerticalAlignment(VerticalAlignment.TOP);
+        return cellFormat;
+    }
+
+    private static WritableCellFormat getHeaderCellFormat() throws WriteException {
+        WritableFont headerFont = new WritableFont(WritableFont.ARIAL, 14, WritableFont.BOLD, false,
+                UnderlineStyle.NO_UNDERLINE, Colour.BLACK, ScriptStyle.NORMAL_SCRIPT);
+        WritableCellFormat headerCell = new WritableCellFormat(headerFont);
+        headerCell.setBorder(Border.ALL, BorderLineStyle.DOUBLE);
+        headerCell.setAlignment(Alignment.CENTRE);
+        return headerCell;
     }
 
     private static String getAssigneeName(Assignee assignee) {
