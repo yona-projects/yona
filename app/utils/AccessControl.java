@@ -254,8 +254,7 @@ public class AccessControl {
 
         if (user.isManagerOf(project)
                 || isAllowedIfAuthor(user, resource)
-                || isAllowedIfAssignee(user, resource)
-                || isAllowedIfGroupMember(project, user)) {
+                || isAllowedIfAssignee(user, resource)) {
             return true;
         }
 
@@ -294,8 +293,7 @@ public class AccessControl {
             if (resource.getType() == ResourceType.CODE) {
                 return false;
             }
-            return user.isMemberOf(project)
-                    || isAllowedIfGroupMember(project, user);
+            return user.isMemberOf(project);
         case ACCEPT:
         case CLOSE:
         case REOPEN:
