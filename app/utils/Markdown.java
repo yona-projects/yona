@@ -48,11 +48,13 @@ public class Markdown {
     private static final String HIGHLIGHT_JS_FILE = "public/javascripts/lib/highlight/highlight.pack.js";
     private static ScriptEngine engine = buildEngine();
     private static PolicyFactory sanitizerPolicy = Sanitizers.FORMATTING
-            .and(Sanitizers.LINKS)
             .and(Sanitizers.IMAGES)
             .and(Sanitizers.STYLES)
             .and(Sanitizers.TABLES)
             .and(Sanitizers.BLOCKS)
+            .and(new HtmlPolicyBuilder()
+                    .allowStandardUrlProtocols().allowElements("a")
+                    .allowAttributes("href").onElements("a").toFactory())
             .and(new HtmlPolicyBuilder().allowElements("pre").toFactory())
             .and(new HtmlPolicyBuilder()
                     .allowAttributes("class", "id").globally().toFactory());
