@@ -1,23 +1,9 @@
 /**
- * Yobi, Project Hosting SW
- *
- * Copyright 2012 NAVER Corp.
- * http://yobi.io
- *
- * @author yoon
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+ * Yona, 21st Century Project Hosting SW
+ * <p>
+ * Copyright Yona & Yobi Authors & NAVER Corp.
+ * https://yona.io
+ **/
 package models;
 
 import com.avaje.ebean.Ebean;
@@ -36,6 +22,7 @@ import models.enumeration.ResourceType;
 import models.enumeration.State;
 import models.resource.Resource;
 import models.support.SearchCondition;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.shiro.util.CollectionUtils;
 import play.data.Form;
@@ -55,9 +42,6 @@ import java.util.regex.Pattern;
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"project_id", "number"}))
 public class Issue extends AbstractPosting implements LabelOwner {
-    /**
-     * @author Yobi TEAM
-     */
     private static final long serialVersionUID = -2409072006294045262L;
 
     public static final Finder<Long, Issue> finder = new Finder<>(Long.class, Issue.class);
@@ -238,7 +222,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
         workbook = Workbook.createWorkbook(bos);
         sheet = workbook.createSheet(String.valueOf(JodaDateUtil.today().getTime()), 0);
 
-        String[] titles = {"No", Messages.get("issue.state"), Messages.get("title"), Messages.get("issue.assignee"), Messages.get("issue.label"), "Date", "Link"};
+        String[] titles = {"No", Messages.get("issue.state"), Messages.get("title"), Messages.get("issue.assignee"), Messages.get("issue.label"), "Created", "Due Date", "Source"};
 
         for (int i = 0; i < titles.length; i++) {
             sheet.addCell(new jxl.write.Label(i, 0, titles[i], headerCellFormat));
@@ -253,15 +237,14 @@ public class Issue extends AbstractPosting implements LabelOwner {
             sheet.addCell(new jxl.write.Label(columnPos++, idx, getAssigneeName(issue.assignee), bodyCellFormat));
             sheet.addCell(new jxl.write.Label(columnPos++, idx, getIssueLabels(issue), bodyCellFormat));
             sheet.addCell(new jxl.write.DateTime(columnPos++, idx, issue.createdDate, dateCellFormat));
+            sheet.addCell(new jxl.write.Label(columnPos++, idx, JodaDateUtil.geYMDDate(issue.dueDate), bodyCellFormat));
             sheet.addCell(new jxl.write.Label(columnPos++, idx, controllers.routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.number).toString(), bodyCellFormat));
         }
         workbook.write();
 
         try {
             workbook.close();
-        } catch (WriteException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (WriteException | IOException e) {
             e.printStackTrace();
         }
 
@@ -278,7 +261,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
 
     private static WritableCellFormat getDateCellFormat() throws WriteException {
         WritableFont baseFont= new WritableFont(WritableFont.ARIAL, 12, WritableFont.NO_BOLD, false, UnderlineStyle.NO_UNDERLINE, Colour.BLACK, ScriptStyle.NORMAL_SCRIPT);
-        DateFormat valueFormatDate = new DateFormat("yyyy-MM-dd HH:mm:ss");
+        DateFormat valueFormatDate = new DateFormat("yyyy-MM-dd HH:mm");
         WritableCellFormat cellFormat = new WritableCellFormat(valueFormatDate);
         cellFormat.setFont(baseFont);
         cellFormat.setShrinkToFit(true);
