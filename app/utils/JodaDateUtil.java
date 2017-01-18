@@ -103,4 +103,21 @@ public class JodaDateUtil {
 
         return momentFromNow(date, Locale.getDefault().getLanguage());
     }
+
+    public static String getDateStringWithoutSpace(Date date){
+        if (date == null) {
+            date = new Date();
+        }
+        DateTime dateTime = new DateTime(date);
+        return dateTime.toString("yyyyMMddHHmm", Locale.getDefault());
+    }
+
+
+    public static String geYMDDate(Date date){
+        if (date == null) {
+            return "";
+        }
+        DateTime dateTime = new DateTime(date);
+        return dateTime.toString("yyyy-MM-dd", Locale.getDefault());
+    }
 }
