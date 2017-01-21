@@ -7,9 +7,10 @@
 .sidenav {
   width: 0; /* 0 width - change this with JavaScript */
   position: absolute; /* Stay in place */
-  z-index: 99999;
+  z-index: 999;
   top: 40px;
   right: 0;
+  box-shadow: 3px 3px 10px;
   &:active{
     border-left: 1px solid #555555;
     border-bottom: 1px solid #555555;
@@ -17,7 +18,7 @@
   background-color: white;
   overflow-x: hidden; /* Disable horizontal scroll */
   overflow-y: auto;
-  padding-top: 30px; /* Place content 60px from the top */
+  padding-top: 10px;
   transition: 0.2s; /* 0.5 second transition effect to slide in the sidenav */
 
   &::-webkit-scrollbar {
@@ -34,11 +35,28 @@
 
 
 /* The navigation menu links */
-.sidenav a {
-  text-decoration: none;
-  font-size: 12px;
-  display: block;
-  transition: 0.3s
+.sidenav {
+  a {
+    text-decoration: none;
+    transition: 0.3s
+  }
+
+  div.user-menu-wrap{
+    text-align: right;
+  }
+
+  span.user-menu {
+    padding: 5px;
+    color: black;
+    font-weight: bold;
+  }
+}
+
+.nav-subtab.unstyled {
+  color: black;
+  a:hover {
+    color: black;
+  }
 }
 
 /* Position and style the close button (top right corner) */

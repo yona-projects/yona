@@ -52,35 +52,13 @@
             </div>
             <div class="page on-fold-intro">
                 <div class="row-fluid content-container">
-                    <div class="span7 main-stream hide-in-mobile">
+                    <div class="span7 main-stream">
                         @views.html.common.mySeriesMenuTab(TAB_NOTI)
                         <ul class="activity-streams notification-wrap unstyled">
                             @partial_notifications(0, 20)
                         </ul>
         	        </div>
-                    <div class="span5 right-menu span-hard-wrap">
-                        <ul class="nav nav-tabs nm">
-                            <li class="myProjectList active">
-                                <a href="#myProjectList" data-toggle="tab">
-                                    @Messages("title.project")
-                                </a>
-                            </li>
-                            <li class="myOrganizationList">
-                                <a href="#myOrganizationList" data-toggle="tab">
-                                    @Messages("title.organization")
-                                </a>
-                            </li>
-                        </ul>
-                        <div class="tab-content tab-box">
-                            <div class="tab-content">
-                                <div class="tab-pane user-project-list active" id="myProjectList">
-                                    @myProjectList(currentUser)
-                                </div>
-                                <div class="tab-pane user-project-list" id="myOrganizationList">
-                                    @myOrganizationList(currentUser)
-                                </div>
-                            </div>
-                        </div>     
+                    <div class="span5 index-menu right-menu span-hard-wrap">
         	       </div>
                 </div>
             </div>
@@ -114,26 +92,15 @@
                 $(welMessage).css('min-height',nHeight);
             });
 
-            // used for new project list ui
-            $(".right-menu").on('click', ".myProjectList, a[href='#recentlyVisited'], a[href='#createdByMe'], a[href='#watching'], a[href='#joinmember']", function() {
-                setTimeout(function focusToProjectSearchInput() {
-                    $('.project-search').focus();
-                }, 200);
+            // Show side bar menu default and focus to search box
+            var viewSize = $(window).width();
+            if( viewSize < 720) {
+                $("#mySidenav").width("100vw").css("border", "1px solid #ccc");
+            } else {
+                $("#mySidenav").width("400px").css("border", "1px solid #ccc");
+            }
+            $(".search-input").focus();
 
-            });
-            $('.myOrganizationList').on('click', function focusToOrgSearchInput(){
-                setTimeout(function () {
-                    $('.org-search').focus();
-                }, 200);
-            });
-
-            // search by keyword
-            $(".search-input").on("keyup", function() {
-                var value = $(this).val().toLowerCase().trim();
-                $(".user-li").each(function() {
-                    $(this).toggle($(this).text().toLowerCase().indexOf(value) !== -1);
-                });
-            });
         });
     </script>
 }

@@ -1064,11 +1064,11 @@
                     vertical-align: top;
                     margin-top: 2px;
 
-                    &.closed {border: 4px solid @state-closed; color:@state-closed;}
-                    &.changed {border: 4px solid @state-changed;color:@state-changed;}
-                    &.rejected {border: 4px solid @state-rejected;color:@state-rejected;}
-                    &.warning {border : 4px solid @state-warning;color:@state-warning;}
-                    &.merged {border: 4px solid @state-merged;color:@state-merged;}
+                    &.closed {color:@state-closed;}
+                    &.changed {color:@state-changed;}
+                    &.rejected {color:@state-rejected;}
+                    &.warning {color:@state-warning;}
+                    &.merged {color:@state-merged;}
                     &.comment2 {
                         color: #8b008b;
                     }
@@ -6610,4 +6610,8 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 }
 .label-edit {
     color: @blue2
+}
+
+.right-menu{
+    margin-left: 10px;
 }

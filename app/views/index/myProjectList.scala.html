@@ -36,6 +36,10 @@
         <div>
             <div class="search-result">
                 <div class="tab-pane myproject-list-wrap active" >
+                    <div class="group">
+                        <input class="search-input project-search" type="text" id="query" autofocus autocomplete="off" placeholder="Type name">
+                        <span class="bar"></span>
+                    </div>
                     <div class="subtab-wrap">
                         <ul class="nav-subtab unstyled">
                             <li class="active">
@@ -61,10 +65,6 @@
                         </ul>
                     </div>
                     <div class="tab-content">
-                        <div class="group">
-                            <input class="search-input project-search" type="text" id="query" autofocus autocomplete="off" placeholder="Type name">
-                            <span class="bar"></span>
-                        </div>
                         @displayProjects("recentlyVisited", currentUser.getVisitedProjects, true)
                         @displayProjects("watching", currentUser.getWatchingProjects("name ASC"))
                         @displayProjects("createdByMe", Project.findProjectsCreatedByUser(currentUser.loginId, "name ASC"))
