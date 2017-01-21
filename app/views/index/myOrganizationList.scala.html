@@ -1,34 +1,44 @@
 @**
-* Yobi, Project Hosting SW
+* Yona, 21st Century Project Hosting SW
 *
-* Copyright 2014 NAVER Corp.
-* http://yobi.io
-*
-* @author Changsung Kim
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*   http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
+* Copyright Yona & Yobi Authors & NAVER Corp.
+* https://yona.io
 **@
-@(currentUser:models.User)
+@(currentUser:User)
 @import utils.TemplateHelper._
 
-<ul class="unstyled my-project-item">
-@defining(Organization.findOrganizationsByUserLoginId(UserApp.currentUser.loginId)) { organizations =>
+@displayProjects(title:String, organizations:List[Organization], isActive:Boolean = false) = {
+@if(organizations.isEmpty) {
+    <div id='no-result' class="no-result">No results</div>
+} else {
+    <ul class="tab-pane user-ul @if(isActive){active}" id="@title">
     @for(organization <- organizations){
-        <li class="my-list-item" data-item="my-item" data-value="@organization.name">
-            @if(hasOrganizationLogo(organization)){<img src="@urlToOrganizationLogo(organization)">}else{<span class="dummy-25px"> </span>}<a href="@routes.OrganizationApp.organization(organization.name)">
-                <span class="bold">@organization.name</span>
-            </a>
+        <li class="user-li">
+            <div class="project-list project-flex-container">
+                <div class="project-item project-item-container">
+                    <div class="flex-item site-logo">
+                        <i class="project-avatar">@if(hasOrganizationLogo(organization)){<img class="logo" src="@urlToOrganizationLogo(organization)">}else{<span class="dummy-25px"> </span>}</i>
+                    </div>
+                    <div class="projectName-owner flex-item">
+                        <div class="project-name flex-item"><a href="@routes.OrganizationApp.organization(organization.name)" >@organization.name</a></div>
+                    </div>
+                </div>
+                <div class="star-project flex-item">
+                    <label>
+                        <i class="star material-icons">star</i>
+                    </label>
+                </div>
+            </div>
         </li>
     }
+    </ul>
 }
-</ul>
+}
+
+    <div class="search-result">
+        <div class="group">
+            <input class="search-input org-search" type="text" id="query" autofocus autocomplete="off" placeholder="Type name">
+            <span class="bar"></span>
+        </div>
+        @displayProjects("recentlyVisited", Organization.findOrganizationsByUserLoginId(UserApp.currentUser.loginId))
+    </div>
