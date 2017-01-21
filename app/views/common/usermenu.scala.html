@@ -9,6 +9,11 @@
 @orderString = @{"createdDate DESC"}
 <div id="mySidenav" class="sidenav">
     <div class="span5 right-menu span-hard-wrap">
+        <div class="row-fluid user-menu-wrap">
+            <span class="user-menu"><a href="@routes.UserApp.userInfo(UserApp.currentUser().loginId)">@Messages("userinfo.profile")</a></span>
+            <span class="user-menu"><a href="@routes.UserApp.editUserInfoForm()">@Messages("userinfo.accountSetting")</a></span>
+            <span class="user-menu"><a href="@routes.UserApp.logout()">@Messages("title.logout")</a></span>
+        </div>
         <ul class="nav nav-tabs nm">
             <li class="myProjectList active">
                 <a href="#myProjectList" data-toggle="tab">
@@ -35,9 +40,6 @@
 </div>
 <ul class="gnb-usermenu">
     @if( !UserApp.currentUser().isAnonymous()) {
-        <li class="gnb-usermenu-item hide-in-mobile">
-            <span id="open-btn" class="user-item-btn">open</span>
-        </li>
        <li class="gnb-usermenu-item hide-in-mobile">
           <a href="@routes.Application.index()" class="user-item-btn">@Messages("notification")</a>
        </li>
@@ -54,66 +56,14 @@
         </li>
         <li class="divider"></li>
         }
-        <li class="gnb-usermenu-dropdown">
-            <a href="javascript:void(0);" class="gnb-dropdown-toggle" data-toggle="dropdown">
+        <li class="gnb-usermenu-dropdown" id="sidebar-open-btn">
+            <a href="javascript:void(0);" class="gnb-dropdown-toggle">
                 <span class="avatar-wrap smaller">
                     <img src="@UserApp.currentUser().avatarUrl" />
                 </span>
                 <span class="caret-text">@UserApp.currentUser().name</span>
                 <span class="caret"></span>
             </a>
-            <ul class="dropdown-menu flat right">
-                <li class="title">
-                    @UserApp.currentUser().name <span class="disabled">@{"@"}@UserApp.currentUser().loginId</span>
-                </li>
-                <li>
-                    <a href="@routes.UserApp.userInfo(UserApp.currentUser().loginId)">@Messages("userinfo.profile")</a>
-                </li>
-                <li>
-                    <a href="@routes.UserApp.editUserInfoForm()">
-                        @Messages("userinfo.accountSetting")
-                    </a>
-                </li>
-                <li>
-                    <a href="@routes.UserApp.logout()">
-                        @Messages("title.logout")
-                    </a>
-                </li>
-                @defining(UserApp.currentUser.getOrganizations(10)) { groups =>
-                    <li class="title">
-                        @Messages("title.organization")
-                        <span class="numberic">@groups.size</span>
-                    </li>
-                    @if(groups.size > 0) {
-                        @for(organization <- groups){
-                            <li><a href="@routes.OrganizationApp.organization(organization.name)">@if(hasOrganizationLogo(organization)){<img src="@urlToOrganizationLogo(organization)">}else{<span class="dummy-25px"> </span>} <span class="bold">@organization.name</span></a></li>
-                        }
-                    } else {
-                        <li class="empty">@Messages("organization.is.empty")</li>
-                    }
-                }
-                @defining(UserApp.currentUser.getVisitedProjects){ visitedProjects =>
-                    <li class="title">
-                        @Messages("project.recently.visited")
-                        <span class="numberic">@visitedProjects.size</span>
-                    </li>
-                    @if(visitedProjects.size > 0) {
-                        @for(project <- visitedProjects){
-                            <li><a href="@routes.ProjectApp.project(project.owner, project.name)">@if(hasProjectLogo(project)){<img src="@urlToProjectLogo(project)">} else{<span class="dummy-25px"> </span>} <span class="bold">@project.name</span> <span class="darkgray-txt small-font margin-right-15">of @project.owner</span></a></li>
-                        }
-                    } else {
-                        @defining(Project.findProjectsCreatedByUser(UserApp.currentUser.loginId, orderString)) { myProjects =>
-                            @if(myProjects.size > 0) {
-                                @for(project <- myProjects){
-                                    <li>@if(hasProjectLogo(project)){<img src="@urlToProjectLogo(project)">} <a href="@routes.ProjectApp.project(project.owner, project.name)"><span class="bold">@project.name</span> <span class="darkgray-txt small-font margin-right-15">of @project.owner</span></a></li>
-                                }
-                            } else {
-                                <li class="empty">@Messages("project.is.empty")</li>
-                            }
-                        }
-                    }
-                }
-            </ul>
         </li>
       <li class="gnb-usermenu-dropdown">
           <a href="javascript:void(0);" class="gnb-dropdown-toggle dropdwon-box-btn" data-toggle="dropdown">
