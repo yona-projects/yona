@@ -506,7 +506,7 @@ span.issue-label {
 }
 
 .subtab-wrap {
-    padding:5px 10px;
+    padding:10px 10px 5px 10px;
 }
 
 .nav-subtab {
@@ -520,18 +520,21 @@ span.issue-label {
 
         a {
             display: block;
-            padding:3px; 
+            padding: 5px 10px;
 
             &:hover {
                 text-decoration: none;
-                border-bottom:2px solid @primary;
+                border-bottom: 1px solid @primary;
             }
         }
 
         &.active {
             a {
-                border-bottom:2px solid @primary;
-                font-weight: bold;
+                text-decoration: none;
+                background-color: @primary;
+                color: #fcfcfc;
+                border-bottom: 1px solid @primary;
+                border-radius: 3px;
             }
         }
     }

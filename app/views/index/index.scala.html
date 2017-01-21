@@ -52,63 +52,31 @@
             </div>
             <div class="page on-fold-intro">
                 <div class="row-fluid content-container">
-                    <div class="span8 main-stream hide-in-mobile">
+                    <div class="span7 main-stream hide-in-mobile">
                         @views.html.common.mySeriesMenuTab(TAB_NOTI)
                         <ul class="activity-streams notification-wrap unstyled">
                             @partial_notifications(0, 20)
                         </ul>
         	        </div>
-                    <div class="span4 span-hard-wrap">
+                    <div class="span5 right-menu span-hard-wrap">
                         <ul class="nav nav-tabs nm">
-                            <li class="active">
-                                <a href="#myPorjectList" data-toggle="tab">
+                            <li class="myProjectList active">
+                                <a href="#myProjectList" data-toggle="tab">
                                     @Messages("title.project")
                                 </a>
                             </li>
-                            <li>
+                            <li class="myOrganizationList">
                                 <a href="#myOrganizationList" data-toggle="tab">
                                     @Messages("title.organization")
                                 </a>
                             </li>
                         </ul>
                         <div class="tab-content tab-box">
-                            <div class="tab-searchbox">
-                                <div class="search-bar">
-                                    <input name="mylist-filter" id="mylist-filter" class="textbox full" type="text" value="" data-toggle="item-search" data-items="my-item">
-                                    <button type="button" class="search-btn"><i class="yobicon-search"></i></button>
-                                </div>
-                            </div>
                             <div class="tab-content">
-                                <div class="tab-pane myproject-list-wrap active" id="myPorjectList">
-                                    <div class="subtab-wrap">
-                                        <ul class="nav-subtab unstyled">
-                                            <li class="active">
-                                                <a href="#recentlyVisited" data-toggle="tab">
-                                                    @Messages("title.recently.visited")
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a href="#createdByMe" data-toggle="tab">
-                                                    @Messages("title.createdByMe")
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a href="#watching" data-toggle="tab">
-                                                    @Messages("title.watching")
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a href="#joinmember" data-toggle="tab">
-                                                    @Messages("title.joinmember")
-                                                </a>
-                                            </li>
-                                        </ul>    
-                                    </div>
-                                    <div class="tab-content">
-                                        @myProjectList(currentUser)
-                                    </div>
+                                <div class="tab-pane user-project-list active" id="myProjectList">
+                                    @myProjectList(currentUser)
                                 </div>
-                                <div class="tab-pane myorganization-list-wrap" id="myOrganizationList">
+                                <div class="tab-pane user-project-list" id="myOrganizationList">
                                     @myOrganizationList(currentUser)
                                 </div>
                             </div>
@@ -146,6 +114,26 @@
                 $(welMessage).css('min-height',nHeight);
             });
 
+            // used for new project list ui
+            $(".right-menu").on('click', ".myProjectList, a[href='#recentlyVisited'], a[href='#createdByMe'], a[href='#watching'], a[href='#joinmember']", function() {
+                setTimeout(function focusToProjectSearchInput() {
+                    $('.project-search').focus();
+                }, 200);
+
+            });
+            $('.myOrganizationList').on('click', function focusToOrgSearchInput(){
+                setTimeout(function () {
+                    $('.org-search').focus();
+                }, 200);
+            });
+
+            // search by keyword
+            $(".search-input").on("keyup", function() {
+                var value = $(this).val().toLowerCase().trim();
+                $(".user-li").each(function() {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) !== -1);
+                });
+            });
         });
     </script>
 }
