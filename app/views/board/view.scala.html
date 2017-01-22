@@ -91,6 +91,7 @@
                         </div>
                     </div>
 
+                    <a href="@urlToPostings" class="ybtn" data-button="historyBack"><i class="yobicon-angle-left"></i> @Messages("button.list")</a>
                     @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.DELETE)) {
                             <a href="#deleteConfirm" data-toggle="modal" class="ybtn ybtn-danger">@Messages("button.delete")</a>
                     }
@@ -136,7 +137,6 @@
 
 
         <div class="board-footer">
-            <a href="@urlToPostings" class="ybtn pull-left" data-button="historyBack">@Messages("button.list")</a>
             @help.keymap("boardDetail", project)
         </div>
     </div>
