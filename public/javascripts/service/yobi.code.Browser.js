@@ -164,7 +164,7 @@
                 return false;
             }
 
-            var sTargetPath = htVar.aPathQueue.shift();
+            var sTargetPath = decodeURI(htVar.aPathQueue.shift());
             var welTarget = $('[data-targetpath="' + sTargetPath + '"]');
 
             if(_isListExistsByPath(sTargetPath)){
@@ -510,6 +510,7 @@
             var aCrumbs = ['<a href="' + htVar.sBasePathURL + '">' + htVar.sProjectName + '</a>'];
 
             aPathQueue.forEach(function(sPath){
+                sPath = decodeURI(sPath);
                 sLink = _getCorrectedPath(htVar.sBasePathURL, sPath);
                 sName = sPath.split("/").pop();
                 aCrumbs.push('<a href="' + sLink + '">' + sName + '</a>');
