@@ -255,12 +255,12 @@ public class Project extends Model implements LabelOwner {
     }
 
     public static List<Project> findProjectsCreatedByUser(String loginId, String orderString) {
-        List<Project> userProjectList = find.where().eq("owner", loginId).findList();
         if( orderString == null ){
-            return userProjectList;
+            return find.where().eq("owner", loginId).orderBy("createdDate desc").findList();
+        } else {
+            return find.where().eq("owner", loginId).orderBy(orderString).findList();
         }
 
-        return Ebean.filter(Project.class).sort(orderString).filter(userProjectList);
     }
 
     public Date lastUpdateDate() {

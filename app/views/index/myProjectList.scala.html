@@ -67,7 +67,7 @@
                     <div class="tab-content">
                         @displayProjects("recentlyVisited", currentUser.getVisitedProjects, true)
                         @displayProjects("watching", currentUser.getWatchingProjects("name ASC"))
-                        @displayProjects("createdByMe", Project.findProjectsCreatedByUser(currentUser.loginId, "name ASC"))
+                            @displayProjects("createdByMe", Project.findProjectsCreatedByUser(currentUser.loginId, "createdDate desc"))
                         @displayProjects("joinmember", Project.findProjectsJustMemberAndNotOwner(currentUser, "name ASC"))
                     </div>
                 </div>
