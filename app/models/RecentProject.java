@@ -37,14 +37,15 @@ public class RecentProject extends Model {
     @Transactional
     public static List<Project> getRecentProjects(@Nonnull User user){
         List<RecentProject> recentProjects = find.where()
-                .eq("userId", user.id).findList();
+                .eq("userId", user.id).orderBy("id desc").findList();
 
         List<Project> found = new ArrayList<>();
 
+        // remove deleted projects
         for(RecentProject rp: recentProjects){
             Project byOwnerAndProjectName = Project.findByOwnerAndProjectName(rp.owner, rp.projectName);
             if(byOwnerAndProjectName != null){
-                found.add(0, byOwnerAndProjectName);
+                found.add(byOwnerAndProjectName);
             }
         }
 
