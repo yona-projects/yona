@@ -93,14 +93,16 @@
             });
 
             // Show side bar menu default and focus to search box
-            var viewSize = $(window).width();
-            if( viewSize < 720) {
-                $("#mySidenav").width("100vw").css("border", "1px solid #ccc");
-            } else {
-                $("#mySidenav").width("400px").css("border", "1px solid #ccc");
+            var requiredLoggedIn = $("#required-logged-in").length === 1;
+            if(!requiredLoggedIn){
+                var viewSize = $(window).width();
+                if( viewSize < 720) {
+                    $("#mySidenav").width("100vw").css("border", "1px solid #ccc");
+                } else {
+                    $("#mySidenav").width("400px").css("border", "1px solid #ccc");
+                }
+                $(".search-input").focus();
             }
-            $(".search-input").focus();
-
         });
     </script>
 }
