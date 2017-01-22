@@ -1032,14 +1032,20 @@
             }
 
             .notification-stream {
-                clear:both;
-                color:#DDD;
+                clear: both;
+                color: #DDD;
                 padding: 5px 5px 5px 25px;
-                position:relative;
-                background-color: #fbfbfb;
-                margin-top: 3px;
-
-                cursor:pointer;
+                position: relative;
+                cursor: pointer;
+                border-bottom: 1px solid #ddd;
+                .more {
+                    background-color: #E0E0E0;
+                    padding: 0 10px 5px;
+                    display: inline-block;
+                    color: #888;
+                    line-height: 10px;
+                    border-radius: 2px;
+                }
 
                 &:hover {
                     background: #f1f1f1;
@@ -1063,6 +1069,14 @@
                     font-weight:bold;
                     vertical-align: top;
                     margin-top: 2px;
+                    &.updated {
+                        font-size: 14px;
+                        font-weight: bold;
+                        color: #FF9800;
+                        border: 1px solid;
+                        border-radius: 3px;
+                        padding: 2px;
+                    }
 
                     &.closed {color:@state-closed;}
                     &.changed {color:@state-changed;}
@@ -1095,7 +1109,7 @@
 
                         .title {
                             color:#51aacc;
-                            font-size:13px;
+                            font-size:14px;
                             font-weight:bold;
                             overflow:hidden;
                             text-overflow: ellipsis;
@@ -1116,7 +1130,7 @@
 
                         .message-wrap {
                             margin-top:3px;
-                            font-size:12px;
+                            font-size:14px;
                             color:#888;
                             overflow:hidden;
                             line-height:20px;

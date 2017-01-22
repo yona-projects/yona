@@ -62,9 +62,15 @@
     @for(noti <- notifications){
     <li class="notification-stream">
         @defining(User.find.byId(noti.senderId)){ user =>
-        <div class="stream-type @notifycationIcon(noti.eventType,noti.newValue)">
+        @if(noti.eventType.equals(EventType.ISSUE_BODY_CHANGED) || noti.eventType.equals(EventType.COMMENT_UPDATED) ){
+            <div class="stream-type updated">
+                <i>Edit</i>
+            </div>
+        } else {
+            <div class="stream-type @notifycationIcon(noti.eventType,noti.newValue)">
                 <i class="yobicon-@notifycationIcon(noti.eventType,noti.newValue)"></i>
-        </div>
+            </div>
+        }
         <div class="stream-desc" data-target="message-@noti.id" data-toggle="learnmore">
             <div class="stream-info">
                 <div class="title">
@@ -102,10 +108,31 @@
 <li><a href="javascript: void(0);" id="notification-more" class="ybtn">More</a></li>
 <script type="text/javascript">
     $(document).ready(function(){
+        function checkOverflow(el) {
+            var curOverflow = el.style.overflow;
+
+            if (!curOverflow || curOverflow === "visible")
+                el.style.overflow = "hidden";
+
+            var isOverflowing = el.clientWidth < el.scrollWidth
+                    || el.clientHeight < el.scrollHeight;
+
+            el.style.overflow = curOverflow;
+
+            return isOverflowing;
+        }
+
         $("#notification-more").click(function() {
             $("#notification-more").remove();
             $.get("@routes.NotificationApp.notifications(from + size, size)", function(data) {
                 $('.activity-streams').append(data);
+                $(".more").remove();
+                $(".message-wrap").each(function(index, value){
+                    var $this = $(this);
+                    if(checkOverflow($this[0])){
+                        $this.after("<div class='more'>...</div>");
+                    }
+                });
             });
         });
     });

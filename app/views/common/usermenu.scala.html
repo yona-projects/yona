@@ -12,7 +12,7 @@
         <div class="row-fluid user-menu-wrap">
             <span class="user-menu"><a href="@routes.UserApp.userInfo(UserApp.currentUser().loginId)">@Messages("userinfo.profile")</a></span>
             <span class="user-menu"><a href="@routes.UserApp.editUserInfoForm()">@Messages("userinfo.accountSetting")</a></span>
-            <span class="user-menu"><a href="@routes.UserApp.logout()">@Messages("title.logout")</a></span>
+            <span class="logout label"><a href="@routes.UserApp.logout()">@Messages("title.logout")</a></span>
         </div>
         <ul class="nav nav-tabs nm">
             <li class="myProjectList active">
