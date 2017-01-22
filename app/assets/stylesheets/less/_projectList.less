@@ -11,6 +11,7 @@
 @orange:  #d28445;
 @cyan:    #75b5aa;
 @pink:    #ff00cc;
+@violet:  #9c27b0;
 
 /* fallback */
 @font-face {
@@ -34,6 +35,16 @@
   direction: ltr;
   -webkit-font-feature-settings: 'liga';
   -webkit-font-smoothing: antialiased;
+}
+
+.logout {
+  font-weight: normal !important;
+  &:hover {
+    background-color: @violet;
+  }
+  a:hover {
+    color: white;
+  }
 }
 
 .user-project-list {
@@ -221,7 +232,7 @@
     font-size: 16px;
     text-align: center;
     margin-top: 10px;
-    margin-bottom: -25px;
+    margin-bottom: 25px;
   }
 
   footer {

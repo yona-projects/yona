@@ -863,6 +863,7 @@ title.newMilestone = 새 마일스톤
 title.newOrganization = 새 그룹 만들기
 title.newProject = 새 프로젝트 시작
 title.newPullRequest = 코드 보내기
+title.no.results = 결과 없음
 title.organization = 그룹
 title.organizationHome = 홈
 title.post.notExistingPage = 페이지를 찾지 못했습니다.
@@ -889,6 +890,7 @@ title.signupConfirmDesc = 가입 후 사용을 위해서는 관리자의 승인�
 title.signupConfirmDesc2 = <span class="obfuscate">{0}</span>으로 문의하세요
 title.siteSetting = 사이트 설정
 title.text = 제목
+title.type.name = 검색할 이름
 title.unlimitedProjects = 프로젝트/그룹 기반으로 작업
 title.watching = 지켜보는
 title.workTeam = 팀 구성

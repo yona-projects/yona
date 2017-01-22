@@ -871,6 +871,7 @@ title.newMilestone = New milestone
 title.newOrganization = New Group
 title.newProject = Create new project
 title.newPullRequest = Send pull request
+title.no.results = No results
 title.organization = Groups
 title.organizationHome = Group Home
 title.post.notExistingPage = Page not found
@@ -897,6 +898,7 @@ title.signupConfirmDesc = It is required admission of admin for activation.
 title.signupConfirmDesc2 = If you needed, contact to <span class="obfuscate">{0}</span>
 title.siteSetting = Site settings
 title.text = Title
+title.type.name = Type name
 title.unlimitedProjects = Project / Organization 
 title.watching = Watching
 title.workTeam = Team play
