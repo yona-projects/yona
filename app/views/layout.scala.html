@@ -49,6 +49,7 @@
             NProgress.configure({minimum: 0.7});
 
             /* Set side navigation */
+            // Also, see index.scala.html for home page menu sliding actions !!
             var $sidebar = $("#mySidenav");
 
             $("#main").on("click", function(event){
@@ -58,8 +59,6 @@
             });
 
             $("#sidebar-open-btn").on("click", function (event) {
-                $(".index-menu").hide();
-
                 if( $sidebar.width() !== 0){
                     closeSidebar($sidebar);
                 } else {
@@ -69,19 +68,14 @@
 
             function closeSidebar($sidebar) {
                 $sidebar.width("0").css("border", "none");
-                $(".index-menu").show();
-                $(".main-stream").removeClass("span7").addClass("span12");
+                $(".main-stream").removeClass("span8").addClass("span12");
             }
 
             function openSidebar($sidebar){
-                $sidebar.width("400px").css("border", "1px solid #ccc");
-                $(".main-stream").removeClass("span12").addClass("span7");
+                $sidebar.width("420px").css("border", "1px solid #ccc");
+                $(".main-stream").removeClass("span12").addClass("span8");
                 $(".search-input").focus();
             }
-
-            var KEY_CODE = {
-                ESC: 27
-            };
 
             // used for new project list ui
             $(".right-menu").on('click', ".myProjectList, a[href='#recentlyVisited'], a[href='#createdByMe'], a[href='#watching'], a[href='#joinmember']", function() {
@@ -115,9 +109,8 @@
                 });
             }).on("keydown.moveCursorFromInputform", function(e) {
                 switch (e.keyCode) {
-                    case KEY_CODE.ESC:
-                        $sidebar.width("0").css("border", "none");
-                        $indexMenu.show();
+                    case 27:   // ESC
+                        closeSidebar($sidebar);
                         break;
                     default:
                         break;
