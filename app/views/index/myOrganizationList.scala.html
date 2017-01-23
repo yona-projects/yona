@@ -37,7 +37,7 @@
 
     <div class="search-result">
         <div class="group">
-            <input class="search-input org-search" type="text" id="query" autofocus autocomplete="off" placeholder="Type name">
+            <input class="search-input org-search" type="text" id="query" autocomplete="off" placeholder="Type name">
             <span class="bar"></span>
         </div>
         @displayProjects("recentlyVisited", Organization.findOrganizationsByUserLoginId(UserApp.currentUser.loginId))
