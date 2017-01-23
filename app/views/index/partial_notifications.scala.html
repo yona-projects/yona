@@ -64,7 +64,7 @@
         @defining(User.find.byId(noti.senderId)){ user =>
         @if(noti.eventType.equals(EventType.ISSUE_BODY_CHANGED) || noti.eventType.equals(EventType.COMMENT_UPDATED) ){
             <div class="stream-type updated">
-                <i>Edit</i>
+                Edit
             </div>
         } else {
             <div class="stream-type @notifycationIcon(noti.eventType,noti.newValue)">
@@ -103,8 +103,7 @@
     </li>
     }
 }
-
-@if(NotificationEvent.getNotificationsCount(UserApp.currentUser()) > size){
+@if( NotificationEvent.findByReceiver(UserApp.currentUser, from, size).size != 0){
 <li><a href="javascript: void(0);" id="notification-more" class="ybtn">More</a></li>
 <script type="text/javascript">
     $(document).ready(function(){
