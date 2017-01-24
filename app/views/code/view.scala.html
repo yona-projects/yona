@@ -86,8 +86,7 @@
                 }
                 </select>
                 <div id="breadcrumbs" class="code-breadcrumb-wrap ml10 pull-left">
-                    <a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), "")">@project.name</a>
-                    @makeBreadCrumbs(path)
+                    <a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), "")">@project.name</a>@makeBreadCrumbs(path)
                 </div>
                 @if(project.isGit) {
                 <div class="pull-right">
