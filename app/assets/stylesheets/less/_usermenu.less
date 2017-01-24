@@ -62,10 +62,6 @@
     padding: 10px 0 5px 0;
   }
 
-  ul {
-    display: inline-block;
-  }
-
   .result-snackbar {
     position: absolute;
     left: 0;
@@ -292,6 +288,8 @@
 
   .star {
     color: #f4f4f4;
+    vertical-align: bottom;
+    height: 15px;
   }
   .starred {
     color: red;
@@ -299,7 +297,6 @@
 
   .star-project {
     width: 29px;
-    padding-top: 5px;
     min-height: 35px;
     flex-shrink: 0;
   }
@@ -740,9 +737,14 @@
 .nav-subtab.unstyled {
   color: black;
   background-color: #eee;
+  display: inline-block;
   a:hover {
     color: black;
   }
+}
+
+.nav-subtab li a {
+  padding: 5px 16px;
 }
 
 /* Position and style the close button (top right corner) */
