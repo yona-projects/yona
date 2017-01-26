@@ -139,7 +139,7 @@
                         }
                     }
 
-                    @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.UPDATE)) {
+                    @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.READ)) {
                         <button type="button" class="btn-transparent-with-fontsize-lineheight ml10" data-toggle="comment-edit" data-comment-id="@comment.id" title="@Messages("common.comment.edit")"><i class="yobicon-edit-2"></i></button>
                     }
 

@@ -67,6 +67,7 @@ button.prevPage = 이전 페이지
 button.save = 저장
 button.selectAll = 전체 선택
 button.selectFile = 파일 선택
+button.show.original = 원문 보기
 button.signup = {0} 시작 하기
 button.submitForm = 폼 전송
 button.upload = 파일 올리기
