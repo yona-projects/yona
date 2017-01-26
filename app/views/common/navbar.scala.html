@@ -71,7 +71,7 @@
                     <div class="btn-group">
                         <button class="ybtn dropdown-toggle" data-toggle="dropdown" type="button" id="gnb-search-scope-title">
                             @if(project != null) {
-                                @Messages("search.scope.porject")
+                                @Messages("search.scope.project")
                             } else {
                                 @Messages("search.scope.group")
                             }
@@ -80,7 +80,7 @@
                             @if(project != null) {
                             <li>
                                 <a href="#" data-toggle="search-scope" data-action="@routes.SearchApp.searchInAProject(project.owner, project.name)">
-                                    @Messages("search.scope.porject")
+                                    @Messages("search.scope.project")
                                 </a>
                             </li>
                             @if(project.hasGroup) {
