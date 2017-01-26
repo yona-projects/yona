@@ -79,7 +79,8 @@
                             </label>
                         </span>
                         }
-                        <button type="submit" class="ybtn ybtn-info">@Messages("button.save")</button><!--
+                        @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+                        <button type="submit" class="ybtn ybtn-info">@Messages("button.save")</button>}<!--
                      --><a href="javascript:history.back();" class="ybtn">@Messages("button.cancel")</a>
                     </div>
                 </div>

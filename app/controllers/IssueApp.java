@@ -468,7 +468,7 @@ public class IssueApp extends AbstractPostingApp {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         Issue issue = Issue.findByNumber(project, number);
 
-        if (!AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+        if (!AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(), Operation.READ)) {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 

@@ -261,7 +261,7 @@ public class BoardApp extends AbstractPostingApp {
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
         Posting posting = Posting.findByNumber(project, number);
 
-        if (!AccessControl.isAllowed(UserApp.currentUser(), posting.asResource(), Operation.UPDATE)) {
+        if (!AccessControl.isAllowed(UserApp.currentUser(), posting.asResource(), Operation.READ)) {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 

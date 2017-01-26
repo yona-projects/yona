@@ -67,6 +67,7 @@ button.prevPage = Previous page
 button.save = Save
 button.selectAll = Select all
 button.selectFile = Select file
+button.show.original = See text
 button.signup = Sign up for {0}
 button.submitForm = Submit form
 button.upload = File upload

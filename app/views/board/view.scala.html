@@ -98,6 +98,8 @@
 
                     @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)) {
                         <a href="@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)" class="ybtn">@Messages("button.edit")</a>
+                    } else {
+                        <a href="@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)" class="ybtn">@Messages("button.show.original")</a>
                     }
                 </div>
                 <div class="watcher-list"></div>

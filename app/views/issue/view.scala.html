@@ -150,6 +150,8 @@
 
                     @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
                         <a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)" class="ybtn">@Messages("button.edit")</a>
+                    } else {
+                        <a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)" class="ybtn">@Messages("button.show.original")</a>
                     }
                 </div>
                 <div class="watcher-list"></div>
