@@ -4,10 +4,10 @@
 * Copyright Yona & Yobi Authors & NAVER Corp.
 * https://yona.io
 **@
-@(organization: Organization, favored:Boolean)
+@(organization: Organization, favored:Boolean, isLast:Boolean = false)
 @import utils.TemplateHelper._
 
-<li class="user-li" onclick="window.location='@routes.OrganizationApp.organization(organization.name)';">
+<li class="user-li @if(isLast){favored}" onclick="window.location='@routes.OrganizationApp.organization(organization.name)';">
     <div class="org-list project-flex-container">
         <div class="project-item project-item-container">
             <div class="flex-item site-logo">

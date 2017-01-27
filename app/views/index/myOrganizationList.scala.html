@@ -13,9 +13,12 @@
     } else {
         <ul class="tab-pane user-ul @if(isActive) {active}" id="@title">
             @for(organization <- favoredOrganizations) {
-                @myOrganizationList_partial(organization, true)
+                @if(favoredOrganizations.last.equals(organization)){
+                    @myOrganizationList_partial(organization, true, true)
+                } else {
+                    @myOrganizationList_partial(organization, true)
+                }
             }
-            @if(favoredOrganizations.nonEmpty){<li class="favored"></li>}
             @for(organization <- organizations) {
                 @if(!favoredOrganizations.contains(organization)) {
                     @myOrganizationList_partial(organization, false)

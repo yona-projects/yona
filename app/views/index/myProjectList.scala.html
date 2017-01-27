@@ -13,9 +13,12 @@
     } else {
         <ul class="tab-pane user-ul @if(isActive){active}" id="@title">
         @for(project <- favoredProjects){
-            @myProjectList_partial(project, true)
+            @if(favoredProjects.last.equals(project)){
+                @myProjectList_partial(project, true, true)
+            } else {
+                @myProjectList_partial(project, true)
+            }
         }
-        @if(favoredProjects.nonEmpty){<li class="favored"></li>}
         @for(project <- projects){
             @if(!favoredProjects.contains(project)){
                 @myProjectList_partial(project, false)
