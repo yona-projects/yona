@@ -74,6 +74,9 @@
     margin: 10px 0;
     padding: 0;
     list-style-type: none;
+    .favored {
+      border-bottom: 1px dashed #7b1fa2;
+    }
   }
 
   .user-li {
@@ -292,10 +295,10 @@
     height: 15px;
   }
   .starred {
-    color: red;
+    color: #e91e63;
   }
 
-  .star-project {
+  .star-project, .star-org {
     width: 29px;
     min-height: 35px;
     flex-shrink: 0;
@@ -544,7 +547,7 @@
     border-bottom: 1px dashed #7b1fa2;
   }
 
-  .project-list{
+  .project-list, .org-list {
     &:hover {
       background-color: #eee;
     }

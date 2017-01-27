@@ -64,6 +64,7 @@
                     closeSidebar($sidebar);
                 } else {
                     openSidebar($sidebar);
+                    updateStar();
                 }
             });
 
@@ -80,6 +81,7 @@
 
             // used for new project list ui
             $(".right-menu").on('click', ".myProjectList, a[href='#recentlyVisited'], a[href='#createdByMe'], a[href='#watching'], a[href='#joinmember']", function() {
+                updateStar();
                 setTimeout(function focusToProjectSearchInput() {
                     var $projectSearch = $('.project-search');
                     var $orgSearch = $('.org-search');
@@ -117,6 +119,53 @@
                         break;
                 }
             });
+
+            $(".project-list > .star-project").on("click", function toggleProjectFavorite(e) {
+                e.stopPropagation();
+                var that = $(this);
+                $.post("@api.routes.UserApi.toggleFoveriteProject("")" + that.data("projectId"))
+                        .done(function (data) {
+                            if(data.favored){
+                                that.find('i').addClass("starred");
+                            } else {
+                                that.find('i').removeClass("starred");
+                            }
+                        })
+                        .fail(function (data) {
+                            $yobi.alert("Update failed: " + JSON.parse(data.responseText).reason);
+                        });
+            });
+
+            $(".org-list > .star-org").on("click", function toggleOrgFavorite(e) {
+                e.stopPropagation();
+                var that = $(this);
+                $.post("@api.routes.UserApi.toggleFoveriteOrganization("")" + that.data("organizationId"))
+                        .done(function (data) {
+                            if(data.favored){
+                                that.find('i').addClass("starred");
+                            } else {
+                                that.find('i').removeClass("starred");
+                            }
+                        })
+                        .fail(function (data) {
+                            $yobi.alert("Update failed: " + JSON.parse(data.responseText).reason);
+                        });
+            });
+
+            // This method intended to sync sub tab list of projects
+            function updateStar(){
+                $.get("@api.routes.UserApi.getFoveriteProjects()")
+                        .done(function(data){
+                            $(".star-project").each(function () {
+                                var $this = $(this);
+                                if (data.projectIds.includes($this.data("projectId"))) {
+                                    $this.find("i").addClass("starred");
+                                } else {
+                                    $this.find("i").removeClass("starred");
+                                }
+                            });
+                        });
+            }
         });
     </script>
 </body>
