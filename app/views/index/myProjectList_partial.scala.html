@@ -4,10 +4,10 @@
 * Copyright Yona & Yobi Authors & NAVER Corp.
 * https://yona.io
 **@
-@(project:Project, favored:Boolean)
+@(project:Project, favored:Boolean, isLast:Boolean = false)
 @import utils.TemplateHelper._
 
-<li class="user-li" onclick="window.location='@routes.ProjectApp.project(project.owner, project.name)';">
+<li class="user-li @if(isLast){favored}" onclick="window.location='@routes.ProjectApp.project(project.owner, project.name)';">
     <div class="project-list project-flex-container">
         <div class="project-item project-item-container">
             <div class="flex-item site-logo">

@@ -39,11 +39,12 @@
 
 .logout {
   font-weight: normal !important;
+  color: white !important;
+
   &:hover {
     background-color: @violet;
   }
   a:hover {
-    color: white;
     text-decoration: none;
   }
 }
@@ -290,7 +291,6 @@
   }
 
   .star {
-    color: #f4f4f4;
     vertical-align: bottom;
     height: 15px;
   }
@@ -302,6 +302,10 @@
     width: 29px;
     min-height: 35px;
     flex-shrink: 0;
+    color: #f4f4f4;
+    &:hover {
+      color: white;
+    }
   }
 
   .user-desc {
@@ -732,8 +736,11 @@
   }
 
   span.user-menu {
-    padding: 5px;
+    margin-left: 5px;
+    margin-right: 5px;
+    padding: 3px;
     color: black;
+    font-size: 12px;
   }
 }
 
