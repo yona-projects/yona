@@ -174,6 +174,12 @@ public class User extends Model implements ResourceConvertible {
     @OneToMany(mappedBy = "user")
     public List<Mention> mentions;
 
+    @OneToMany(mappedBy = "user")
+    public List<FavoriteProject> favoriteProjects;
+
+    @OneToMany(mappedBy = "user")
+    public List<FavoriteOrganization> favoriteOrganizations;
+
     /**
      * The user's preferred language code which can be recognized by {@link play.api.i18n.Lang#get},
      * such as "ko", "en-US" or "ja". This field is used as a language for notification mail.
@@ -856,5 +862,73 @@ public class User extends Model implements ResourceConvertible {
     @Override
     public int hashCode() {
         return id != null ? id.hashCode() : 0;
+    }
+
+    public List<Project> getFavoriteProjects() {
+        List<Project> projects = new ArrayList<>();
+        for (FavoriteProject favoriteProject : this.favoriteProjects) {
+            projects.add(favoriteProject.project);
+        }
+
+        return projects;
+    }
+
+    public boolean toggleFavoriteProject(Long projectId) {
+        for (FavoriteProject favoriteProject : this.favoriteProjects) {
+            if( favoriteProject.project.id.equals(projectId) ){
+                removeFavoriteProject(projectId);
+                this.favoriteProjects.remove(favoriteProject);
+                return false;
+            }
+        }
+
+        FavoriteProject favoriteProject = new FavoriteProject(this, Project.find.byId(projectId));
+        this.favoriteProjects.add(favoriteProject);
+        favoriteProject.save();
+        return true;
+    }
+
+    private void removeFavoriteProject(Long projectId) {
+        List<FavoriteProject> list = FavoriteProject.finder.where()
+                .eq("user.id", this.id)
+                .eq("project.id", projectId).findList();
+
+        if(list != null && list.size() > 0){
+            list.get(0).delete();
+        }
+    }
+
+    public List<Organization> getFavoriteOrganizations() {
+        List<Organization> organizations = new ArrayList<>();
+        for (FavoriteOrganization favoriteOrganization : this.favoriteOrganizations) {
+            organizations.add(favoriteOrganization.organization);
+        }
+
+        return organizations;
+    }
+
+    public boolean toggleFavoriteOrganization(Long organizationId) {
+        for (FavoriteOrganization favoriteOrganization : this.favoriteOrganizations) {
+            if( favoriteOrganization.organization.id.equals(organizationId) ){
+                removeFavoriteOrganization(organizationId);
+                this.favoriteOrganizations.remove(favoriteOrganization);
+                return false;
+            }
+        }
+
+        FavoriteOrganization favoriteOrganization = new FavoriteOrganization(this, Organization.find.byId(organizationId));
+        this.favoriteOrganizations.add(favoriteOrganization);
+        favoriteOrganization.save();
+        return true;
+    }
+
+    private void removeFavoriteOrganization(Long organizationId) {
+        List<FavoriteOrganization> list = FavoriteOrganization.finder.where()
+                .eq("user.id", this.id)
+                .eq("organization.id", organizationId).findList();
+
+        if(list != null && list.size() > 0){
+            list.get(0).delete();
+        }
     }
 }

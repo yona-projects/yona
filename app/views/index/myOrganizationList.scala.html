@@ -7,31 +7,22 @@
 @(currentUser:User)
 @import utils.TemplateHelper._
 
-@displayProjects(title:String, organizations:List[Organization], isActive:Boolean = false) = {
-@if(organizations.isEmpty) {
-    <div id="@title" class="no-result tab-pane user-ul @if(isActive){active}">@Messages("title.no.results")</div>
-} else {
-    <ul class="tab-pane user-ul @if(isActive){active}" id="@title">
-    @for(organization <- organizations){
-        <li class="user-li">
-            <div class="project-list project-flex-container">
-                <div class="project-item project-item-container">
-                    <div class="flex-item site-logo">
-                        <i class="project-avatar">@if(hasOrganizationLogo(organization)){<img class="logo" src="@urlToOrganizationLogo(organization)">}else{<span class="dummy-25px"> </span>}</i>
-                    </div>
-                    <div class="projectName-owner flex-item" onclick="window.location='@routes.OrganizationApp.organization(organization.name)';">
-                        <div class="project-name org-name flex-item"><a href="@routes.OrganizationApp.organization(organization.name)">@organization.name</a></div>
-                        <div class="project-owner flex-item"></div>
-                    </div>
-                </div>
-                <div class="star-project flex-item">
-                    <i class="star material-icons">star</i>
-                </div>
-            </div>
-        </li>
+@displayOrganizations(title:String, organizations:List[Organization], favoredOrganizations:List[Organization],  isActive:Boolean = false) = {
+    @if(organizations.isEmpty && favoredOrganizations.isEmpty) {
+        <div id="@title" class="no-result tab-pane user-ul @if(isActive) {active}">@Messages("title.no.results")</div>
+    } else {
+        <ul class="tab-pane user-ul @if(isActive) {active}" id="@title">
+            @for(organization <- favoredOrganizations) {
+                @myOrganizationList_partial(organization, true)
+            }
+            @if(favoredOrganizations.nonEmpty){<li class="favored"></li>}
+            @for(organization <- organizations) {
+                @if(!favoredOrganizations.contains(organization)) {
+                    @myOrganizationList_partial(organization, false)
+                }
+            }
+        </ul>
     }
-    </ul>
-}
 }
 
     <div class="search-result">
@@ -39,5 +30,5 @@
             <input class="search-input org-search" type="text" id="query" autocomplete="off" placeholder="@Messages("title.type.name")">
             <span class="bar"></span>
         </div>
-        @displayProjects("recentlyVisited", Organization.findOrganizationsByUserLoginId(UserApp.currentUser.loginId))
+        @displayOrganizations("organizations", Organization.findOrganizationsByUserLoginId(UserApp.currentUser.loginId), currentUser.getFavoriteOrganizations)
     </div>

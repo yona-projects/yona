@@ -39,6 +39,10 @@ GET            /-_-api/v1/owners/:owner/projects/:projectName/posts/$number<[0-9
 POST           /-_-api/v1/owners/:owner/projects/:projectName/posts                    controllers.api.BoardApi.newPostByJson(owner:String, projectName:String)
 POST           /-_-api/v1/owners/:owner/projects/:projectName/postlabel/:number        controllers.api.BoardApi.updatePostLabel(owner:String, projectName:String, number:Long)
 GET            /-_-api/v1/hello                                                        controllers.api.GlobalApi.hello()
+GET            /-_-api/v1/favoriteProjects                                             controllers.api.UserApi.getFoveriteProjects
+POST           /-_-api/v1/favoriteProjects/:projectId                                  controllers.api.UserApi.toggleFoveriteProject(projectId:String)
+GET            /-_-api/v1/favoriteOrganizations                                        controllers.api.UserApi.getFoveriteOrganizations
+POST           /-_-api/v1/favoriteOrganizations/:organizationId                        controllers.api.UserApi.toggleFoveriteOrganization(organizationId:String)
 
 
 

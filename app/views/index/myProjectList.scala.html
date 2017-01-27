@@ -7,28 +7,31 @@
 @(currentUser:User)
 @import utils.TemplateHelper._
 
+@displayProjectsWithFavored(title:String, projects:List[Project], favoredProjects:List[Project], isActive:Boolean = false) = {
+    @if(projects.isEmpty && favoredProjects.isEmpty) {
+        <div id="@title" class="no-result tab-pane user-ul @if(isActive){active}">@Messages("title.no.results")</div>
+    } else {
+        <ul class="tab-pane user-ul @if(isActive){active}" id="@title">
+        @for(project <- favoredProjects){
+            @myProjectList_partial(project, true)
+        }
+        @if(favoredProjects.nonEmpty){<li class="favored"></li>}
+        @for(project <- projects){
+            @if(!favoredProjects.contains(project)){
+                @myProjectList_partial(project, false)
+            }
+        }
+        </ul>
+    }
+}
+
 @displayProjects(title:String, projects:List[Project], isActive:Boolean = false) = {
     @if(projects.isEmpty) {
         <div id="@title" class="no-result tab-pane user-ul @if(isActive){active}">@Messages("title.no.results")</div>
     } else {
         <ul class="tab-pane user-ul @if(isActive){active}" id="@title">
         @for(project <- projects){
-            <li class="user-li" onclick="window.location='@routes.ProjectApp.project(project.owner, project.name)';">
-                <div class="project-list project-flex-container">
-                    <div class="project-item project-item-container">
-                        <div class="flex-item site-logo">
-                            <i class="project-avatar">@if(hasProjectLogo(project)){<a href="@routes.ProjectApp.project(project.owner, project.name)" ><img class="logo" src="@urlToProjectLogo(project)"></a>}else{<span class="dummy-25px"> </span>}</i>
-                        </div>
-                        <div class="projectName-owner flex-item">
-                            <div class="project-name flex-item"><a href="@routes.ProjectApp.project(project.owner, project.name)">@project.name @if(project.isPrivate){<i class="yobicon-lock yobicon-small"></i>}</a></div>
-                            <div class="project-owner flex-item"><a href="@routes.UserApp.userInfo(project.owner)" >@project.owner</a></div>
-                        </div>
-                    </div>
-                    <div class="star-project flex-item">
-                        <i class="star material-icons">star</i>
-                    </div>
-                </div>
-            </li>
+            @myProjectList_partial(project, false)
         }
         </ul>
     }
@@ -65,7 +68,7 @@
                         </ul>
                     </div>
                     <div class="tab-content">
-                        @displayProjects("recentlyVisited", currentUser.getVisitedProjects, true)
+                        @displayProjectsWithFavored("recentlyVisited", currentUser.getVisitedProjects, currentUser.getFavoriteProjects, true)
                         @displayProjects("watching", currentUser.getWatchingProjects("name ASC"))
                         @displayProjects("createdByMe", Project.findProjectsCreatedByUser(currentUser.loginId, "createdDate desc"))
                         @displayProjects("joinmember", Project.findProjectsJustMemberAndNotOwner(currentUser, "name ASC"))
