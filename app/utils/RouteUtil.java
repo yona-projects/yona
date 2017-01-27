@@ -60,6 +60,10 @@ public class RouteUtil {
                     return getUrl(ReviewComment.find.byId(longId));
                 case COMMENT_THREAD:
                     return getUrl(CommentThread.find.byId(longId));
+                case USER_AVATAR:
+                    return getUrl(User.find.byId(longId));
+                case PROJECT:
+                    return getUrl(Project.find.byId(longId));
                 default:
                     throw new IllegalArgumentException(
                             Resource.getInvalidResourceTypeMessage(resourceType));
