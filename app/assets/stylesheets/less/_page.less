@@ -6552,6 +6552,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 }
 
 .attachment-files {
+    color: gray;
     .attachment-files-header {
         font-size: 16px;
         font-weight: bold;
@@ -6578,15 +6579,15 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         padding: 5px;
         font-family: @fixed-font-family;
         line-height: 30px;
+        border: 1px solid #fff;
         border-bottom: 1px solid #eee;
         margin-left: auto !important;
         .file-preview {
-            max-height: 80px;
+            max-height: 40px;
             overflow: hidden;
             margin-left: auto;
             img {
-                border: 1px solid #777;
-                max-width: 60px;
+                max-width: 40px;
                 box-sizing: border-box;
             }
         }
@@ -6596,6 +6597,8 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
                 padding-right: 5px;
             }
             font-family: @base-font-family;
+            font-weight: bold;
+            color: black;
         }
         .file-size {
             text-align: right;
@@ -6617,7 +6620,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         }
     }
     .hover {
-        background-color: #f1f1f1;
+        border: 1px solid #10A2E4;
     }
 }
 
