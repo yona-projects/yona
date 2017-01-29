@@ -57,7 +57,7 @@
                         <div class="span5 file-name"><a href="@routes.AttachmentApp.getFile(attachment.id)" target="_blank"><i class="icon text-icon"></i>@attachment.name</a></div>
                         <div class="span1 file-size">@humanReadableByteCount(attachment.size, true)</div>
                         <div class="span1 file-download"><a href="@routes.AttachmentApp.getFile(attachment.id)?action=download"><button type="button" class="ybtn"><i class="yobicon-cloud-download"></i></button> </a></div>
-                        <div class="span2 file-date">@socialDate(attachment.createdDate)</div>
+                        <div class="span2 file-date">@getDateString(attachment.createdDate, "yyyy-MM-dd h:mm a")</div>
                         <div class="span4 file-location">@link(attachment)</div>
                     </div>
                 }
