@@ -1,7 +1,7 @@
 package utils
 
 import org.apache.commons.lang3.StringUtils
-import play.mvc.Call
+import play.mvc.{Call, Http}
 import org.joda.time.DateTimeConstants
 import org.apache.commons.io.FilenameUtils
 import play.i18n.Messages
@@ -13,7 +13,6 @@ import java.net.URI
 import playRepository.DiffLine
 import playRepository.DiffLineType
 import models.CodeRange.Side
-
 import views.html.partial_diff_comment_on_line
 import views.html.partial_diff_line
 import views.html.git.partial_pull_request_event

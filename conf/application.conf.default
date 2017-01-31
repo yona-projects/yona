@@ -254,8 +254,17 @@ github.allow.migration = false
 github.client.id = "TYPE YOUR GITHUB CILENT ID"
 github.client.secret = "TYPE YOUR GITHUB CILENT SECRET"
 
-
 # Attachment Upload File Size Limit
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # 2,147,483,454 bytes = 2Gb
 application.maxFileSize = 2147483454
+
+# Social Login Support
+# ~~~~~~~~~~~~~~~~~~~~
+# Social login settings for Yona
+# Detail settings are described at conf/play-authenticate/mine.conf
+
+# Prevent using Yona's own login system
+application.use.social.login.only = true
+
+include "social-login.conf"
