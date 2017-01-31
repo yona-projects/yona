@@ -1,42 +1,61 @@
 /**
- * Yobi, Project Hosting SW
- *
- * Copyright 2012 NAVER Corp.
- * http://yobi.io
- *
- * @author Sangcheol Hwang
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+ * Yona, 21st Century Project Hosting SW
+ * <p>
+ * Copyright Yona & Yobi Authors & NAVER Corp.
+ * https://yona.io
+ **/
 package controllers;
 
+import com.feth.play.module.pa.PlayAuthenticate;
 import controllers.annotation.AnonymousCheck;
+import jsmessages.JsMessages;
 import models.Project;
+import models.UserCredential;
 import play.Logger;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
 import playRepository.RepositoryService;
 import views.html.error.notfound_default;
 import views.html.index.index;
-import jsmessages.JsMessages;
 
-import java.io.File;
+import static com.feth.play.module.pa.controllers.Authenticate.*;
 
 public class Application extends Controller {
+    public static final String FLASH_MESSAGE_KEY = "message";
+    public static final String FLASH_ERROR_KEY = "error";
 
     @AnonymousCheck
     public static Result index() {
         return ok(index.render(UserApp.currentUser()));
+    }
+
+    public static Result oAuth(final String provider) {
+        return authenticate(provider);
+    }
+
+    public static Result oAuthLogout() {
+        UserApp.logout();
+        return logout();
+    }
+
+    public static Result oAuthDenied(final String providerKey) {
+        noCache(response());
+        flash(FLASH_ERROR_KEY,
+                "You need to accept the OAuth connection in order to use this website!");
+        return redirect(routes.Application.index());
+    }
+
+    public static UserCredential getLocalUser(final Http.Session session) {
+        final UserCredential localUser = UserCredential.findByAuthUserIdentity(PlayAuthenticate
+                .getUser(session));
+        return localUser;
+    }
+
+    public static UserCredential getLocalUser() {
+        final UserCredential localUser = UserCredential.findByAuthUserIdentity(PlayAuthenticate
+                .getUser(session()));
+        return localUser;
     }
 
     public static Result removeTrailer(String paths){

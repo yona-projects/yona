@@ -10,6 +10,12 @@ GET            /navitest                                                        
 # Home page
 GET            /                                                                      controllers.Application.index()
 
+# Play!Authenticate
+GET     /logout                            controllers.Application.oAuthLogout
+GET     /authenticate/:provider            controllers.Application.oAuth(provider: String)
+GET     /authenticate/:provider/denied     controllers.Application.oAuthDenied(provider: String)
+GET     /restricted                        controllers.Restricted.index
+
 # Migration support page
 GET            /migration                                                             controllers.MigrationApp.migration()
 GET            /migration/projects                                                    controllers.MigrationApp.projects()

@@ -6,13 +6,32 @@
 **@
 @(project:Project)
 @import utils.TemplateHelper._
+@import com.feth.play.module.pa.PlayAuthenticate._
+@import com.feth.play.module.pa.views.html._
+@import play.mvc.Http._;
 @orderString = @{"createdDate DESC"}
+@if(UserApp.currentUser().isAnonymous){
+    @currentAuth() { auth => @{
+            if(auth == null) {
+                val url = storeOriginalUrl(Context.current())
+            } else {
+                UserApp.linkWithExistedOrCreateLocalUser()
+            }
+        }
+    }
+}
 <div id="mySidenav" class="sidenav">
     <div class="span5 right-menu span-hard-wrap">
         <div class="row-fluid user-menu-wrap">
             <span class="user-menu"><a href="@routes.UserApp.userInfo(UserApp.currentUser().loginId)">@Messages("userinfo.profile")</a></span>
             <span class="user-menu"><a href="@routes.UserApp.editUserInfoForm()">@Messages("userinfo.accountSetting")</a></span>
-            <a href="@routes.UserApp.logout()"><span class="user-menu logout label">@Messages("title.logout")</span></a>
+            @currentAuth() { auth =>
+                @if(auth != null) {
+                    <a href="@routes.Application.oAuthLogout"><span class="user-menu logout label">@Messages("title.logout")</span></a>
+                } else {
+                    <a href="@routes.UserApp.logout()"><span class="user-menu logout label">@Messages("title.logout")</span></a>
+                }
+            }
         </div>
         <ul class="nav nav-tabs nm">
             <li class="myProjectList active">

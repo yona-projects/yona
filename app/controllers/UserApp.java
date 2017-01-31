@@ -1,28 +1,16 @@
 /**
- * Yobi, Project Hosting SW
- *
- * Copyright 2013 NAVER Corp.
- * http://yobi.io
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
+ * Yona, 21st Century Project Hosting SW
+ * <p>
+ * Copyright Yona & Yobi Authors & NAVER Corp.
+ * https://yona.io
+ **/
 package controllers;
 
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
 import com.avaje.ebean.annotation.Transactional;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.feth.play.module.pa.PlayAuthenticate;
 import controllers.annotation.AnonymousCheck;
 import models.*;
 import models.enumeration.Operation;
@@ -121,7 +109,14 @@ public class UserApp extends Controller {
         if(StringUtils.isEmpty(redirectUrl) && !StringUtils.equals(loginFormUrl, referer)) {
             redirectUrl = request().getHeader("Referer");
         }
-        return ok(login.render("title.login", form(AuthInfo.class), redirectUrl));
+
+        //Assume oAtuh is passed but not linked with existed account
+        if(PlayAuthenticate.isLoggedIn(session())){
+            UserApp.linkWithExistedOrCreateLocalUser();
+            return redirect(redirectUrl);
+        } else {
+            return ok(login.render("title.login", form(AuthInfo.class), redirectUrl));
+        }
     }
 
     public static Result logout() {
@@ -329,6 +324,56 @@ public class UserApp extends Controller {
                 addUserInfoToSession(user);
             }
             return redirect(routes.Application.index());
+        }
+    }
+
+    private static String newLoginIdWithoutDup(final String candidate, int num) {
+        String newLoginIdSuggestion = candidate + "" + num;
+        if(User.findByLoginId(newLoginIdSuggestion).isAnonymous()){
+            return newLoginIdSuggestion;
+        } else {
+            num = num + 1;
+            return newLoginIdWithoutDup(newLoginIdSuggestion, num);
+        }
+    }
+
+    public static void createLocalUserWithOAuth(UserCredential userCredential){
+        User user = new User();
+        String loginIdCandidate = userCredential.email.substring(0, userCredential.email.indexOf("@"));
+
+        user.loginId = generateLoginId(user, loginIdCandidate);
+        user.name = userCredential.name;
+        user.email = userCredential.email;
+
+        RandomNumberGenerator rng = new SecureRandomNumberGenerator();
+        user.password = rng.nextBytes().toBase64();  // random password because created with oAuth
+
+        User created = createNewUser(user);
+
+        if (created.state == UserState.LOCKED) {
+            flash(Constants.INFO, "user.signup.requested");
+        } else {
+            addUserInfoToSession(created);
+        }
+
+        //Also, update userCredential
+        userCredential.loginId = created.loginId;
+        userCredential.user = created;
+        userCredential.update();
+    }
+
+    private static String generateLoginId(User user, String loginIdCandidate) {
+        String loginId = null;
+        User sameLoginIdUser = User.findByLoginId(loginIdCandidate);
+        if (sameLoginIdUser.isAnonymous()) {
+            return loginIdCandidate;
+        } else {
+            sameLoginIdUser = User.findByLoginId(loginIdCandidate + "-yona");
+            if (sameLoginIdUser.isAnonymous()) {
+                return loginIdCandidate + "-yona";   // first dup, then use suffix "-yona"
+            } else {
+                return newLoginIdWithoutDup(loginIdCandidate, 2);
+            }
         }
     }
 
@@ -934,6 +979,28 @@ public class UserApp extends Controller {
         session(SESSION_LOGINID, user.loginId);
         session(SESSION_USERNAME, user.name);
         session(SESSION_KEY, key);
+    }
+
+    public static void linkWithExistedOrCreateLocalUser() {
+        final UserCredential oAuthUser = UserCredential.findByAuthUserIdentity(PlayAuthenticate
+                .getUser(Http.Context.current().session()));
+        User user = null;
+        if (oAuthUser.loginId == null) {
+            user = User.findByEmail(oAuthUser.email);
+        } else {
+            user = User.findByLoginId(oAuthUser.loginId);
+        }
+
+        if(PlayAuthenticate.isLoggedIn(session()) && user.isAnonymous()){
+            createLocalUserWithOAuth(oAuthUser);
+        } else {
+            if (oAuthUser.loginId == null) {
+                oAuthUser.loginId = user.loginId;
+                oAuthUser.user = user;
+                oAuthUser.update();
+            }
+            UserApp.addUserInfoToSession(user);
+        }
     }
 
     public static void updatePreferredLanguage() {

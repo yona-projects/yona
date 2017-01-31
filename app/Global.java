@@ -20,6 +20,9 @@
  */
 
 import com.avaje.ebean.Ebean;
+import com.feth.play.module.pa.PlayAuthenticate;
+import com.feth.play.module.pa.exceptions.AccessDeniedException;
+import com.feth.play.module.pa.exceptions.AuthException;
 import com.typesafe.config.ConfigFactory;
 import controllers.SvnApp;
 import controllers.UserApp;
@@ -34,11 +37,8 @@ import play.Play;
 import play.api.mvc.Handler;
 import play.data.Form;
 import play.libs.F.Promise;
-import play.mvc.Action;
-import play.mvc.Http;
+import play.mvc.*;
 import play.mvc.Http.RequestHeader;
-import play.mvc.Result;
-import play.mvc.Results;
 import utils.*;
 import views.html.welcome.restart;
 import views.html.welcome.secret;
@@ -63,6 +63,7 @@ import java.time.format.DateTimeFormatter;
 
 import static play.data.Form.form;
 import static play.mvc.Results.badRequest;
+import static play.mvc.Results.redirect;
 
 
 public class Global extends GlobalSettings {
@@ -76,10 +77,12 @@ public class Global extends GlobalSettings {
 
     private ConfigFile configFile = new ConfigFile("config", "application.conf");
     private ConfigFile loggerConfigFile = new ConfigFile("logger", "application-logger.xml");
+    private ConfigFile oAuthProviderConfFile = new ConfigFile("conf", "social-login.conf");
 
     @Override
     public Configuration onLoadConfig(play.Configuration config, File path, ClassLoader classloader) {
         initLoggerConfig();
+        initAuthProviderConfig();
         return initConfig(classloader);
     }
 
@@ -133,6 +136,23 @@ public class Global extends GlobalSettings {
         }
     }
 
+    /**
+     * Creates play-authenticate/mine.conf by default if necessary
+     */
+    private void initAuthProviderConfig() {
+        try {
+            if (!oAuthProviderConfFile.isLocationSpecified() && !oAuthProviderConfFile.getPath().toFile().exists()) {
+                try {
+                    oAuthProviderConfFile.createByDefault();
+                } catch (Exception e) {
+                    play.Logger.error("Failed to initialize social-login.conf", e);
+                }
+            }
+        } catch (URISyntaxException e) {
+            play.Logger.error("Failed to check whether the social-login.conf file exists", e);
+        }
+    }
+
     @Override
     public void onStart(Application app) {
         isSecretInvalid = equalsDefaultSecret();
@@ -150,6 +170,59 @@ public class Global extends GlobalSettings {
             YobiUpdate.onStart();
             mailboxService.start();
         }
+
+        PlayAuthenticate.setResolver(new PlayAuthenticate.Resolver() {
+
+            @Override
+            public Call login() {
+                // Your login page
+                return routes.Application.index();
+            }
+
+            @Override
+            public Call afterAuth() {
+                // The user will be redirected to this page after authentication
+                // if no original URL was saved
+                return routes.Application.index();
+            }
+
+            @Override
+            public Call afterLogout() {
+                return routes.Application.index();
+            }
+
+            @Override
+            public Call auth(final String provider) {
+                return routes.Application.oAuth(provider);
+            }
+
+            @Override
+            public Call onException(final AuthException e) {
+                if (e instanceof AccessDeniedException) {
+                    return routes.Application
+                            .oAuthDenied(((AccessDeniedException) e)
+                                    .getProviderKey());
+                }
+
+                // more custom problem handling here...
+
+                return super.onException(e);
+            }
+
+            @Override
+            public Call askLink() {
+                // We don't support moderated account linking in this sample.
+                // See the play-authenticate-usage project for an example
+                return null;
+            }
+
+            @Override
+            public Call askMerge() {
+                // We don't support moderated account merging in this sample.
+                // See the play-authenticate-usage project for an example
+                return null;
+            }
+        });
     }
 
     private boolean equalsDefaultSecret() {
