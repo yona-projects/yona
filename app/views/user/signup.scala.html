@@ -39,6 +39,11 @@
   }
   <div class="signup-form-wrap frm-wrap">
     <form action="@routes.UserApp.newUser()" method="post" name="signup">
+    @if(UserApp.useSocialLoginOnly) {
+      <div class="btns-row nm">
+      @Messages("app.warn.support.social.login.only")
+      </div>
+    } else {
       <dl>
         <dt>
           <label for="loginId">@Messages("user.signupId")</label>
@@ -83,6 +88,7 @@
       <div class="act-row">
         @Messages("user.isAlreadySignupUser") <a href="@routes.UserApp.loginForm()" class="go-login">@Messages("title.login")</a>
       </div>
+    }
     </form>
   </div>
 </div>

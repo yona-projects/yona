@@ -26,6 +26,7 @@ app.name = Yona
 app.restart.notice = 서버를 재시작해야합니다.
 app.restart.updateSecretYourself = application.secret을 무작위 문자열로 변경해주십시오.
 app.restart.welcome = 환영합니다!
+app.warn.support.social.login.only = 소셜 로그인을 통한 로그인만 가능합니다.
 app.welcome = {0}
 app.welcome.project = 프로젝트
 app.welcome.project.desc = 당신만의 프로젝트를 만들어 보세요

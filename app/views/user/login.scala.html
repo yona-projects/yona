@@ -32,6 +32,11 @@
   <div class="login-form-wrap frm-wrap">
     <form action="@routes.UserApp.login()" method="POST">
       <input type="hidden" name="redirectUrl" value="@redirectUrl" />
+      @if(UserApp.useSocialLoginOnly){
+        <div class="btns-row nm">
+        @Messages("app.warn.support.social.login.only")
+        </div>
+      } else {
       <dl>
         <dt>
           <label for="loginIdOrEmailD">@Messages("user.login.key")</label>
@@ -51,6 +56,7 @@
       <div class="btns-row">
         <button type="submit" class="ybtn ybtn-primary ybtn-large ybtn-fullsize">@Messages("button.login")</button>
       </div>
+      }
 
       <div class="btns-row nm">
       @currentAuth() { auth =>
@@ -61,7 +67,7 @@
         }
       }
       </div>
-
+      @if(!UserApp.useSocialLoginOnly) {
       <div class="act-row mt5">
         <div class="remember-me-wrap pull-left">
           <input id="remember-me" type="checkbox" name="rememberMe" class="checkbox" checked>
@@ -72,6 +78,7 @@
           <a href="@routes.PasswordResetApp.lostPassword">@Messages("title.forgotpassword")</a>
         </div>
       </div>
+      }
     </form>
   </div>
 </div>
