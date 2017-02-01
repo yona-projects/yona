@@ -23,6 +23,7 @@ import org.apache.shiro.crypto.hash.Sha256Hash;
 import org.apache.shiro.util.ByteSource;
 import org.joda.time.LocalDateTime;
 import play.Configuration;
+import play.GlobalSettings;
 import play.Logger;
 import play.Play;
 import play.data.Form;
@@ -63,6 +64,11 @@ public class UserApp extends Controller {
     public static final String DEFAULT_SELECTED_TAB = "projects";
     public static final String TOKEN_USER = "TOKEN_USER";
     public static final String USER_TOKEN_HEADER = "Yona-Token";
+
+    public static final boolean useSocialLoginOnly = play.Configuration.root()
+            .getBoolean("application.use.social.login.only", false);
+    public static final String FLASH_MESSAGE_KEY = "message";
+    public static final String FLASH_ERROR_KEY = "error";
 
     @AnonymousCheck
     public static Result users(String query) {
@@ -127,6 +133,11 @@ public class UserApp extends Controller {
     }
 
     public static Result login() {
+        if(useSocialLoginOnly){
+            flash(FLASH_ERROR_KEY,
+                    Messages.get("app.warn.support.social.login.only"));
+            return Application.index();
+        }
         if (HttpUtil.isJSONPreferred(request())) {
             return loginByAjaxRequest();
         } else {

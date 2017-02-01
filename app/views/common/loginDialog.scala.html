@@ -24,6 +24,11 @@
       <button type="button" class="close" data-dismiss="modal" aria-hidden="true" class="mr10">&times;</button>
     </div>
     <form action="@routes.UserApp.login()" method="post" class="frm-wrap login-form-wrap">
+      @if(UserApp.useSocialLoginOnly){
+        <div class="btns-row nm">
+          @Messages("app.warn.support.social.login.only")
+        </div>
+      } else {
       <dl>
         <dt>
           <label for="loginIdOrEmailD">@Messages("user.login.key")</label>
@@ -48,6 +53,7 @@
       <div class="btns-row nm">
         <button type="submit" class="ybtn ybtn-primary fullsize">@Messages("button.login")</button>
       </div>
+      }
 
       <div class="btns-row nm">
         @currentAuth() { auth =>
@@ -58,17 +64,19 @@
           }
         }
       </div>
-      <div class="act-row right-txt mt20">
-        <div class="pull-left">
-          <input id="remember-meD" type="checkbox" name="rememberMe" class="checkbox" checked>
-          <label for="remember-meD" class="bg-checkbox">@Messages("title.rememberMe")</label>
-        </div>
+      @if(!UserApp.useSocialLoginOnly) {
+        <div class="act-row right-txt mt20">
+          <div class="pull-left">
+            <input id="remember-meD" type="checkbox" name="rememberMe" class="checkbox" checked>
+            <label for="remember-meD" class="bg-checkbox">@Messages("title.rememberMe")</label>
+          </div>
 
-        <a href="@routes.PasswordResetApp.lostPassword()">@Messages("title.resetPassword")</a>
-        <span class="gray-txt ml10 mr10">|</span>
-        <a href="@routes.UserApp.signupForm">@Messages("title.signup")</a>
-      </div>
-    </form>
+          <a href="@routes.PasswordResetApp.lostPassword()">@Messages("title.resetPassword")</a>
+          <span class="gray-txt ml10 mr10">|</span>
+          <a href="@routes.UserApp.signupForm">@Messages("title.signup")</a>
+        </div>
+      }
+      </form>
   </div>
 </div>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery/jquery-ui-1.10.4.custom.min.js")"></script>

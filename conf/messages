@@ -36,6 +36,7 @@ app.welcome.searchProject.desc = Find a project which you are interested in
 app.welcome.submit = Submit
 app.welcome.warning.desc = Caution: Password MUST be kept secret.
 app.welcome.warning.title = Create website-admin account
+app.warn.support.social.login.only = Only allow sign-in via social login
 branch.recently.update = Last updated
 button.add = Add
 button.apply = Apply
