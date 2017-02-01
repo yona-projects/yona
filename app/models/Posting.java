@@ -26,6 +26,9 @@ public class Posting extends AbstractPosting {
     public boolean notice;
     public boolean readme;
 
+    @Transient
+    public String issueTemplate;
+
     @OneToMany(cascade = CascadeType.ALL)
     public List<PostingComment> comments;
 

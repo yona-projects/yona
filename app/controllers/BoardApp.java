@@ -17,6 +17,7 @@ import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import play.api.data.validation.ValidationError;
 import play.data.Form;
 import play.db.ebean.Transactional;
 import play.libs.Json;
@@ -167,6 +168,10 @@ public class BoardApp extends AbstractPostingApp {
             preparedBodyText = BareRepository.readREADME(project);
         }
 
+        if(issueTemplateEditRequested()){
+            preparedBodyText = StringUtils.defaultIfBlank(project.getIssueTemplate(), "");
+        }
+
         return ok(create.render("post.new", new Form<>(Posting.class), project, isAllowedToNotice, preparedBodyText));
     }
 
@@ -176,6 +181,10 @@ public class BoardApp extends AbstractPostingApp {
 
     private static boolean readmeEditRequested() {
         return request().getQueryString("readme") != null;
+    }
+
+    private static boolean issueTemplateEditRequested() {
+        return request().getQueryString("issueTemplate") != null;
     }
 
     @Transactional
@@ -209,6 +218,12 @@ public class BoardApp extends AbstractPostingApp {
                 commitReadmeFile(project, post);
             }
         }
+
+        if (post.issueTemplate != null) {
+            commitIssueTemplateFile(project, post);
+            return redirect(routes.ProjectApp.project(project.owner, projectName));
+        }
+
         post.save();
         attachUploadFilesToPost(post.asResource());
         NotificationEvent.afterNewPost(post);
@@ -223,6 +238,16 @@ public class BoardApp extends AbstractPostingApp {
         BareCommit bare = new BareCommit(project, UserApp.currentUser());
         try{
             bare.commitTextFile("README.md", post.body, post.title);
+        } catch (IOException e) {
+            e.printStackTrace();
+            play.Logger.error(e.getMessage());
+        }
+    }
+
+    private static void commitIssueTemplateFile(Project project, Posting post){
+        BareCommit bare = new BareCommit(project, UserApp.currentUser());
+        try{
+            bare.commitTextFile("ISSUE_TEMPLATE.md", post.body, post.title);
         } catch (IOException e) {
             e.printStackTrace();
             play.Logger.error(e.getMessage());

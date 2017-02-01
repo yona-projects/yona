@@ -1,23 +1,9 @@
 /**
- * Yobi, Project Hosting SW
- *
- * Copyright 2012 NAVER Corp.
- * http://yobi.io
- *
- * @author Tae
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+ * Yona, 21st Century Project Hosting SW
+ * <p>
+ * Copyright Yona & Yobi Authors & NAVER Corp.
+ * https://yona.io
+ **/
 package controllers;
 
 import actions.NullProjectCheckAction;
@@ -290,7 +276,8 @@ public class IssueApp extends AbstractPostingApp {
     @IsCreatable(ResourceType.ISSUE_POST)
     public static Result newIssueForm(String ownerName, String projectName) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
-        return ok(create.render("title.newIssue", new Form<>(Issue.class), project));
+        String issueTemplate = StringUtils.defaultIfBlank(project.getIssueTemplate(), "");
+        return ok(create.render("title.newIssue", new Form<>(Issue.class), project, issueTemplate));
     }
 
     @Transactional
@@ -418,7 +405,8 @@ public class IssueApp extends AbstractPostingApp {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         if (issueForm.hasErrors()) {
-            return badRequest(create.render("error.validation", issueForm, project));
+            String issueTemplate = StringUtils.defaultIfBlank(project.getIssueTemplate(), "");
+            return badRequest(create.render("error.validation", issueForm, project, issueTemplate));
         }
 
         final Issue newIssue = issueForm.get();
