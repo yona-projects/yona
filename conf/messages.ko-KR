@@ -818,6 +818,7 @@ site.resetPasswordEmail.invalidRequest = 잘못된 비밀번호 재 설정 요�
 site.resetPasswordEmail.wrongUrl = 비밀번호 재설정 URL이 잘못되었습니다.
 site.resetPasswordEmail.mailContents = 아래 URL을 브라우저 주소창에 붙여 넣으세요
 site.resetPasswordEmail.title = 비밀번호 재 설정
+site.resetPasswordEmail.desc = 만약 현재 비밀번호가 기억나지 않거나 소셜 로그인을 통해 자동 로그인 된 경우라면..
 site.search = 사이트 검색
 site.sidebar = 사이트 관리
 site.sidebar.data = 데이터

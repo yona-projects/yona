@@ -10,6 +10,9 @@ import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
 import com.avaje.ebean.annotation.Transactional;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.feth.play.module.mail.Mailer;
+import com.feth.play.module.mail.Mailer.Mail;
+import com.feth.play.module.mail.Mailer.Mail.Body;
 import com.feth.play.module.pa.PlayAuthenticate;
 import controllers.annotation.AnonymousCheck;
 import models.*;
@@ -23,7 +26,6 @@ import org.apache.shiro.crypto.hash.Sha256Hash;
 import org.apache.shiro.util.ByteSource;
 import org.joda.time.LocalDateTime;
 import play.Configuration;
-import play.GlobalSettings;
 import play.Logger;
 import play.Play;
 import play.data.Form;
@@ -39,6 +41,7 @@ import views.html.user.*;
 
 import java.util.*;
 
+import static com.feth.play.module.mail.Mailer.getEmailName;
 import static play.data.Form.form;
 import static play.libs.Json.toJson;
 import static utils.HtmlUtil.defaultSanitize;
@@ -121,7 +124,7 @@ public class UserApp extends Controller {
             UserApp.linkWithExistedOrCreateLocalUser();
             return redirect(redirectUrl);
         } else {
-            return ok(login.render("title.login", form(AuthInfo.class), redirectUrl));
+            return ok(views.html.user.login.render("title.login", form(AuthInfo.class), redirectUrl));
         }
     }
 
@@ -349,15 +352,14 @@ public class UserApp extends Controller {
     }
 
     public static void createLocalUserWithOAuth(UserCredential userCredential){
-        User user = new User();
         String loginIdCandidate = userCredential.email.substring(0, userCredential.email.indexOf("@"));
 
+        User user = new User();
         user.loginId = generateLoginId(user, loginIdCandidate);
         user.name = userCredential.name;
         user.email = userCredential.email;
 
-        RandomNumberGenerator rng = new SecureRandomNumberGenerator();
-        user.password = rng.nextBytes().toBase64();  // random password because created with oAuth
+        user.password = (new SecureRandomNumberGenerator()).nextBytes().toBase64();  // random password because created with OAuth
 
         User created = createNewUser(user);
 
@@ -371,10 +373,42 @@ public class UserApp extends Controller {
         userCredential.loginId = created.loginId;
         userCredential.user = created;
         userCredential.update();
+
+        sendMailAboutUserCreationByOAuth(userCredential, created);
+    }
+
+    private static void sendMailAboutUserCreationByOAuth(UserCredential userCredential, User created) {
+        Mail mail = new Mail("New account for Yona", getNewAccountMailBody(created), new String[] { getEmailName(userCredential.name, userCredential.email) });
+        Mailer mailer = Mailer.getCustomMailer(Configuration.root().getConfig("play-easymail"));
+        mailer.sendMail(mail);
+    }
+
+    private static Body getNewAccountMailBody(User user){
+        String passwordResetUrl = getServeIndexPageUrl() + routes.PasswordResetApp.lostPassword();
+        String html =  "ID: " + user.loginId + "<br/>\n"
+                + "PW: " + user.password + "<br/>\n"
+                + "Email: " + user.email + "<br/>\n<br/>\n<br/>\n"
+                + "Password reset: <a href='" + passwordResetUrl + "' target='_blank'>"
+                + passwordResetUrl + "</a><br/>\n<br/>\n";
+        String text =  "ID: " + user.loginId + "\n"
+                + "PW: " + user.password + "\n"
+                + "Email: " + user.email + "\n\n\n"
+                + "Password reset: " + passwordResetUrl + "\n\n";
+        return new Body(text, html);
+    }
+
+    private static String getServeIndexPageUrl(){
+        StringBuilder url = new StringBuilder();
+        if(request().secure()){
+            url.append("https://");
+        } else {
+            url.append("http://");
+        }
+        url.append(request().host());
+        return url.toString();
     }
 
     private static String generateLoginId(User user, String loginIdCandidate) {
-        String loginId = null;
         User sameLoginIdUser = User.findByLoginId(loginIdCandidate);
         if (sameLoginIdUser.isAnonymous()) {
             return loginIdCandidate;
