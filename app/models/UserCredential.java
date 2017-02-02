@@ -139,4 +139,7 @@ public class UserCredential extends Model {
         return LinkedAccount.findByProviderKey(this, providerKey);
     }
 
+    public static List<UserCredential> findByUserId(Long id){
+        return find.where().eq("user.id", id).findList();
+    }
 }
