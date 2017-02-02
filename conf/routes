@@ -5,8 +5,6 @@
 # This fake route is required to submit a seed to generate Site Secret.
 POST           /                                                                      controllers.Application.fake()
 
-GET            /navitest                                                              controllers.Application.navi()
-
 # Home page
 GET            /                                                                      controllers.Application.index()
 
