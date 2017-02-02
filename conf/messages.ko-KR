@@ -918,6 +918,7 @@ user.avatar.onlyImage = 이미지 파일만 올리실 수 있습니다.
 user.avatar.uploadError = 아바타 이미지를 업로드 할 수 없었습니다.\n관리자에게 문의해주세요
 user.confirmPassword = 비밀번호 확인
 user.confirmPassword.alert = 입력한 두 비밀번호가 서로 일치하지 않습니다
+user.connected.social.login = 연결된 소셜 로그인
 user.currentPassword = 현재 비밀번호
 user.deleted = 삭제된 사용자 계정입니다.
 user.email = 이메일
