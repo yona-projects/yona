@@ -1,3 +1,4 @@
+1500:com.typesafe.plugin.CommonsMailerPlugin
 10005:service.YonaUserServicePlugin
 10010:com.feth.play.module.pa.providers.oauth2.google.GoogleAuthProvider
 10020:com.feth.play.module.pa.providers.oauth2.github.GithubAuthProvider

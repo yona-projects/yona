@@ -35,6 +35,10 @@
 
         <form id="frmBasic" method="post" action="@routes.UserApp.editUserInfo" class="pull-left">
         <dl>
+            <dt>@Messages("user.loginId")</dt>
+            <dd class="mt10">
+                <input type="text" class="text" value="@user.loginId" readonly>
+            </dd>
           <dt>@Messages("user.name")</dt>
           <dd class="mt10">
             <input type="text" name="name" class="text" value="@user.name">
