@@ -587,6 +587,9 @@ public class UserApp extends Controller {
         sortDatum(postings, issues, pullRequests, milestones);
 
         sortByLastPushedDateAndName(projects);
+        if (user.isAnonymous()) {
+            return notFound(ErrorViews.NotFound.render("user.notExists.name"));
+        }
         return ok(view.render(user, groupNames, projects, postings, issues, pullRequests, milestones, daysAgo, selected));
     }
 
