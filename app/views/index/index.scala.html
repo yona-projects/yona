@@ -126,10 +126,10 @@
                     setTimeout(function () {
                         $("#main").off("click");
                     }, 1000);
+                    $(".search-input").focus();
                 } else {
                     $("#mySidenav").width("100vw").css("border", "1px solid #ccc");
                 }
-                $(".search-input").focus();
             }
 
             if ($(".admin-logged-in-affix").length === 1) {
