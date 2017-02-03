@@ -52,7 +52,9 @@
       @currentAuth() { auth =>
         @if(auth == null) {
           @forProviders() { p =>
-            <a href="@p.getUrl()" class="ybtn oauth-login-btn">@Html(providerWithLogo(p.getKey()))</a>
+            @if(isAllowedOAuthProvider(p.getKey)) {
+              <a href="@p.getUrl()" class="ybtn oauth-login-btn">@Html(providerWithLogo(p.getKey()))</a>
+            }
           }
         }
       }

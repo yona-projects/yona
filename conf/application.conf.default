@@ -267,9 +267,27 @@ application.maxFileSize = 2147483454
 # Social Login Support
 # ~~~~~~~~~~~~~~~~~~~~
 # Social login settings for Yona
-# Detail settings are described at conf/play-authenticate/mine.conf
+# Detail settings are described at social-login.conf
 
 # Prevent using Yona's own login system
-application.use.social.login.only = true
+application.use.social.login.only = false
+
+# Allowed OAuth social login provider
+# choice: github, google
+application.social.login.support = "github, google"
+
+# If you enable to use social login, set followings
+play-easymail {
+  from {
+    # Mailing from address
+    email="your@mail-adress.com"
+
+    # Mailing name
+    name="Yona Admin"
+
+    # Seconds between sending mail through Akka (defaults to 1)
+    # delay=1
+  }
+}
 
 include "social-login.conf"
