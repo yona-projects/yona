@@ -1,0 +1,110 @@
+MariaDB 설치
+===
+
+아래 설명은 진행 과정만 참고만 하시고 실제로는 MariaDB 10.1.10 이상을 설치해 주세요
+
+1. Linux 
+   - 배포본의 저장소 및 설치 스크립트는 다음 선택 페이지의 설명을 참고하여 설치 합니다.
+   - [Setting up MariaDB Repositories](https://downloads.mariadb.org/mariadb/repositories/)
+  
+2. Mac
+   - brew install 을 이용해서 설치를 권장합니다.
+   - https://mariadb.com/blog/installing-mariadb-10010-mac-os-x-homebrew
+
+3. Windows
+   - https://downloads.mariadb.org/mariadb/10.1.11/#os_group=windows
+
+##### DB 설치후 유저 및 Database 생성 
+
+기본 진행 내용은 MariaDB에 root 유저로 접속한 다음 yona 유저를 만들고 DB를 만들고 해당 DB의 모든 권한을 yona 유저에게 주는 작업입니다.
+
+MariaDB root 유저로 접속
+```
+mysql -uroot 
+```
+
+yona 유저 생성. password는 IDENTIFIED BY 다음에 지정한 문자가 됩니다. 아래 예)에서는 yonadan
+```
+create user 'yona'@'localhost' IDENTIFIED BY 'yonadan';
+```
+
+DB 생성 UTF8 확장문자열을 저장할 수 있는 포맷으로 지정해서 생성합니다.
+
+```
+set global innodb_file_format = BARRACUDA;
+set global innodb_large_prefix = ON;
+
+create database yona
+  DEFAULT CHARACTER SET utf8mb4
+  DEFAULT COLLATE utf8mb4_bin
+;
+```
+
+yona 유저에게 yona 데이터베이스 권한 부여
+
+```
+GRANT ALL ON yona.* to 'yona'@'localhost';
+```
+
+`exit`명령어로 쉘로 빠져 나온 다음 yona 유저로 정상 접속되고 yona DB가 사용 가능한지 확인해 봅니다.
+참고로 -p 다음에 쓴 글자가 위에서 만든 패스워드입니다.
+
+```
+mysql -u yona -p'yonadan'
+use yona
+```
+
+/etc/my.cnf 파일을 만들어서 아래 내용을 추가해 주세요. 
+(mac os 유저의 경우에는 db 실행유저의 ~/.my.cnf에 아래 내용을 추가해 주세요)
+샘플참고: https://github.com/yona-projects/yona/blob/next/support-script/mariadb/my.cnf
+
+- Unicode 4Byte 확장 문자열을 지원하기 위해 utf8mb4를 사용하도록 되어 있습니다.
+- lower_case_table_name=1 는 테이블명이나 컬럼명 조회시 대소문자를 구분하지 않도록 만드는 옵션입니다.
+- collation-server 는 정렬시의 기준옵션을 설정하는 부분입니다.
+
+```
+[client]
+default-character-set=utf8mb4
+
+[mysql]
+default-character-set=utf8mb4
+
+[mysqld]
+collation-server=utf8mb4_unicode_ci
+init-connect='SET NAMES utf8mb4'
+character-set-server=utf8mb4
+lower_case_table_names=1
+innodb_file_format=barracuda
+innodb_large_prefix=on
+```
+
+꼭 /etc 아래가 아니더라도 [my.cnf 위치 탐색순서](https://mariadb.com/kb/en/mariadb/configuring-mariadb-with-mycnf/) 를 보고 적당한 곳에 my.cnf 파일을 만들어서 넣어도 무방하다고 알려져 있습니다. (Mac OS 유저는 우선은 위 설명대로 해주세요. 추가 확인이 필요합니다)
+
+이제 Yona 를 설치합니다. 
+
+
+-- 이하 내용은 참고용입니다 -- 
+
+### 만약 DB관련 작업을 한 후 정상적으로 페이지가 뜨지 않을 경우 아래 항목을 확인해 주세요.
+
+- application.conf 가 제대로 읽히는지
+- application.secret 적용여부
+- db.default.url 확인 
+
+### MariaDB 재시작 방법
+자주하진 마세요!
+DB를 설치한 유저로 DB를 재시작합니다. (root나 sudo 설치했을 경우 명령어 앞에 sudo를 붙여주세요)
+```
+service mysql restart
+
+혹은
+
+/etc/init.d/mysql restart
+
+혹은
+
+mysql.server restart
+```
+참고: http://coolestguidesontheplanet.com/start-stop-mysql-from-the-command-line-terminal-osx-linux/
+
+DB가 정상적으로 재시작되었으면 
