@@ -40,7 +40,9 @@ public class Markdown {
             .and(Sanitizers.BLOCKS)
             .and(new HtmlPolicyBuilder()
                     .allowStandardUrlProtocols().allowElements("a")
-                    .allowAttributes("href").onElements("a").toFactory())
+                    .allowAttributes("href").onElements("a")
+                    .allowAttributes("name").onElements("a")
+                    .allowAttributes("target").onElements("a").toFactory())
             .and(new HtmlPolicyBuilder().allowElements("pre").toFactory())
             .and(new HtmlPolicyBuilder()
                     .allowAttributes("class", "id").globally().toFactory());
@@ -214,9 +216,24 @@ public class Markdown {
     }
 
     public static String renderFileInCodeBrowser(@Nonnull String source, Project project) {
+        String imageLinkFilter = replaceImageLinkPath(project, source);
+        AutoLinkRenderer autoLinkRenderer = new AutoLinkRenderer(renderWithHighlight(imageLinkFilter, true), project);
+        return autoLinkRenderer.render();
+    }
+
+    public static String renderFileInReadme(@Nonnull String source, Project project) {
         String relativeLinksToCodeBrowserPath = replaceContentsLinkToCodeBrowerPath(project, source);
         AutoLinkRenderer autoLinkRenderer = new AutoLinkRenderer(renderWithHighlight(relativeLinksToCodeBrowserPath, true), project);
         return autoLinkRenderer.render();
+    }
+
+    private static String replaceImageLinkPath(Project project, String text){
+        String root = play.Configuration.root().getString("application.context", "");
+        if (StringUtils.isNotEmpty(root)) {
+            root = "/" + root;
+        }
+        final String imageLink = "!\\[(?<text>[^\\]]*)\\]\\(\\/?(?!https\\:|http\\:|ftp\\:|file\\:)(?<link>[^\\)]*)\\)";
+        return text.replaceAll(imageLink, "![$1](/" + root + project.owner + "/" + project.name + "/files/" + project.defaultBranch().replaceAll("refs/heads/", "") + "/$2)");
     }
 
     private static String replaceContentsLinkToCodeBrowerPath(Project project, String text){
@@ -224,7 +241,11 @@ public class Markdown {
         if (StringUtils.isNotEmpty(root)) {
             root = "/" + root;
         }
-        final String regexString = "\\[(?<text>[^\\]]*)\\]\\(\\/?(?!https\\:|http\\:|ftp\\:|file\\:)(?<link>[^\\)]*)\\)";
-        return text.replaceAll(regexString, "[$1](/" + root + project.owner + "/" + project.name + "/files/" + project.defaultBranch().replaceAll("refs/heads/", "") + "/$2)");
+        final String imageLink = "!\\[(?<text>[^\\]]*)\\]\\(\\/?(?!https\\:|http\\:|ftp\\:|file\\:)(?<link>[^\\)]*)\\)";
+        final String normalLocalLink = "(?<space>[^!])\\[(?<text>[^\\]]*)\\]\\(\\/?(?!https\\:|http\\:|ftp\\:|file\\:)(?<link>[^\\)]*)\\)";
+        String imageFilteredText = text.replaceAll(imageLink, "![$1](/" + root + project.owner + "/" + project.name + "/files/" + project.defaultBranch().replaceAll("refs/heads/", "") + "/$2)");
+        return imageFilteredText.replaceAll(normalLocalLink, "$1[$2](/" + root + project.owner + "/" + project.name + "/code/" + project.defaultBranch().replaceAll("refs/heads/", "") + "/$3)");
+
     }
+
 }
