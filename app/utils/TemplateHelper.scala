@@ -1,6 +1,6 @@
 package utils
 
-import org.apache.commons.lang3.StringUtils
+import org.apache.commons.lang3.{ArrayUtils, StringUtils}
 import play.mvc.{Call, Http}
 import org.joda.time.DateTimeConstants
 import org.apache.commons.io.FilenameUtils
@@ -18,15 +18,22 @@ import views.html.partial_diff_line
 import views.html.git.partial_pull_request_event
 import models._
 import java.net.URLEncoder
+import java.util
 
 import scala.annotation.tailrec
 import playRepository.FileDiff
 import play.api.i18n.Lang
 import play.twirl.api.Html
+
 import collection.convert.wrapAll._
 import scala.util.control.Breaks._
 
 object TemplateHelper {
+  def isAllowedOAuthProvider(provider: String): Boolean = {
+    val allowedProviders = play.Configuration.root.getString("application.social.login.support", "").replaceAll(" ", "").split(",")
+    play.Logger.error(allowedProviders.toStream.contains(provider) + ":" + provider + ":" + play.Configuration.root.getString("application.social.login.support", "").replaceAll(" ", ""))
+    allowedProviders.toStream.contains(provider)
+  }
 
   def showWatchers(posting: AbstractPosting): String = {
       "<div class='show-watchers' data-toggle='tooltip' data-placement='top' data-trigger='hover' data-html='true' title='" + Messages.get("watchers") + "'>" +
