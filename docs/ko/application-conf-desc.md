@@ -1,3 +1,40 @@
+application.conf 설명
+===
+
+conf 디렉터리의 application.conf 를 통해 설정 가능한 기능들
+----
+- 사이트 이름 설정
+    - application.siteName="Yona"
+- 어플리케이션 루트 설정
+- 로그인 하지 않은 유저 접근 제한 여부
+    - application.allowsAnonymousAccess=true
+- 가입 후 관리자가 승인을 해야만 활동 가능하도록 제한하는 기능
+    - notification.bymail.enabled = true
+- 알림메일 발송 여부
+    - notification.bymail.enabled = true
+- 서버 고유 보안키 (어드민 계정 리셋시에 필요함)
+- 언어 표시 우선순위 
+- DB 접속설정
+- HTTP 헤더에 표시할 서버 이름
+- HTTPS 설정
+- EMAIL 설정
+- 알리메일 발송 지연시간
+- Yona 페이지에서 링크로 타 사이트로 이동했을때 referer 헤더에서 Yona를 숨기는 기능
+    - application.noreferrer = true
+- 프로젝트 목록보기에서 private 프로젝트를 표시해 줄지 여부
+    - application.displayPrivateRepositories = false
+- Github 으로 이전(Migration)기능 활성화 여부
+    - github.allow.migration = false
+- 최대 단일 첨부파일 사이즈 조정(기본 2Gb)
+    - application.maxFileSize = 2147483454
+- 오직 소셜로그인(Github/Gmail)을 통한 가입/로그인만으로 제한 (자체 계정 생성 및 로그인 금지)
+    - application.use.social.login.only = true
+
+
+application.conf 기본 설정
+-----
+
+```
 # This is the main configuration file for the application.
 # ~~~~~
 
@@ -36,7 +73,7 @@ notification.bymail.enabled = true
 # The secret key is used to secure cryptographics functions.
 # If you deploy your application to several instances be sure to use the same key!
 #
-# If you want to reset admin account, set this value to default.
+# If you want to reset admin account, set this value to default. 
 # Default: "VA2v:_I=h9>?FYOH:@ZhW]01P<mWZAKlQ>kk>Bo`mdCiA>pDw64FcBuZdDh<47Ew"
 application.secret="VA2v:_I=h9>?FYOH:@ZhW]01P<mWZAKlQ>kk>Bo`mdCiA>pDw64FcBuZdDh<47Ew"
 
@@ -48,7 +85,7 @@ application.langs="en-US, ko-KR, ja-JP"
 # ~~~~~
 # Define the Global object class for this application.
 # Default to Global in the root package.
- application.global=Global
+application.global=Global
 
 # Database configuration
 # ~~~~~
@@ -57,26 +94,32 @@ application.langs="en-US, ko-KR, ja-JP"
 #
 ebeanconfig.datasource.default=default
 # H2 Configuration
- db.default.driver=org.h2.Driver
+# db.default.driver=org.h2.Driver
 # db.default.url="jdbc:h2:mem:yona;MODE=PostgreSQL;DB_CLOSE_DELAY=-1"
- db.default.url="jdbc:h2:file:./yona;MODE=PostgreSQL;MV_STORE=FALSE;MVCC=FALSE;CACHE_SIZE=131072;AUTO_SERVER=TRUE"
+# db.default.url="jdbc:h2:file:./yona;MODE=PostgreSQL;MV_STORE=FALSE;MVCC=FALSE;CACHE_SIZE=131072;AUTO_SERVER=TRUE"
 # db.default.user=sa
 # db.default.password=sa
-db.default.logStatements=true
-db.default.partitionCount=20
-db.default.maxConnectionsPerPartition=10
-db.default.minConnectionsPerPartition=2
-db.default.acquireIncrement=4
-db.default.acquireRetryAttempts=3
-db.default.acquireRetryDelay=1 seconds
-db.default.connectionTimeout=3 second
-db.default.statementsCacheSize=1000
+# db.default.logStatements=true
+# db.default.partitionCount=20
+# db.default.maxConnectionsPerPartition=10
+# db.default.minConnectionsPerPartition=2
+# db.default.acquireIncrement=4
+# db.default.acquireRetryAttempts=3
+# db.default.acquireRetryDelay=1 seconds
+# db.default.connectionTimeout=3 second
+# db.default.statementsCacheSize=1000
 
 # MySQL Configuration
 # db.default.driver=com.mysql.jdbc.Driver
 # db.default.url="jdbc:mysql://127.0.0.1:3306/yona?characterEncoding=utf-8"
 # db.default.user=yona
 # db.default.password=""
+
+# MariaDB
+db.default.driver=org.mariadb.jdbc.Driver
+db.default.url="jdbc:mariadb://127.0.0.1:3306/yona?useServerPrepStmts=true"
+db.default.user=yona
+db.default.password="password"
 
 # Local
 # db.default.url="jdbc:postgresql://localhost:5432/yona"
@@ -124,9 +167,8 @@ application.feedback.url="https://github.com/yona-projects/yona/issues"
 smtp.host = smtp.gmail.com
 smtp.port = 465
 smtp.ssl = true
-#smtp.user = yourGmailId
-smtp.user = yona.mail
-# Be careful!!!
+smtp.user = yourGmailId
+# Be careful!!! Not to leak password
 smtp.password = yourGmailPassword
 smtp.domain = gmail.com
 #true to use mock mailer for testing, false for using real mail server
@@ -195,13 +237,13 @@ application.notification.draft-time = 30s
 # Software Update
 # ~~~~~~~~~~~~~~~
 # Check for updates of Yona at this interval if it is grater than 0.
-application.update.notification.interval = 1h
+application.update.notification.interval = 6h
 # A url to the git repository for Yona releases.
 application.update.check.use = true
-application.update.repositoryUrl = "http://repo.yona.io/yona/yona"
+application.update.repositoryUrl = "https://github.com/yona-projects/yona"
 # A format to construct the url to latest Yona release. "%s" is a format
 # specifier for Yona version to download like "0.5.7".
-application.update.releaesUrlFormat = "https://github.com/doortts/yona/releases/tag/v%s"
+application.update.releaesUrlFormat = "https://github.com/yona-projects/yona/releases/tag/v%s"
 
 # customize play default thread pool size
 # see: https://www.playframework.com/documentation/2.3.x/ThreadPools
@@ -265,27 +307,10 @@ application.maxFileSize = 2147483454
 # Social Login Support
 # ~~~~~~~~~~~~~~~~~~~~
 # Social login settings for Yona
-# Detail settings are described at social-login.conf
+# Detail settings are described at conf/play-authenticate/mine.conf
 
 # Prevent using Yona's own login system
-application.use.social.login.only = false
-
-# Allowed OAuth social login provider
-# choice: github, google
-application.social.login.support = "github, google"
-
-# If you enable to use social login, set followings
-play-easymail {
-  from {
-    # Mailing from address
-    email="your@mail-adress.com"
-
-    # Mailing name
-    name="Yona Admin"
-
-    # Seconds between sending mail through Akka (defaults to 1)
-    # delay=1
-  }
-}
+application.use.social.login.only = true
 
 include "social-login.conf"
+```
