@@ -31,7 +31,6 @@ import scala.util.control.Breaks._
 object TemplateHelper {
   def isAllowedOAuthProvider(provider: String): Boolean = {
     val allowedProviders = play.Configuration.root.getString("application.social.login.support", "").replaceAll(" ", "").split(",")
-    play.Logger.error(allowedProviders.toStream.contains(provider) + ":" + provider + ":" + play.Configuration.root.getString("application.social.login.support", "").replaceAll(" ", ""))
     allowedProviders.toStream.contains(provider)
   }
 
