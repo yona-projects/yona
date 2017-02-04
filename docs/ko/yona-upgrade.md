@@ -16,8 +16,9 @@ v1.3 이전 버전에서 v1.3 이상으로 업그레이드를 할 경우
 
 - 다음 3가지를 수정해 주셔야 합니다.
    - logger 설정파일내의 변수 설정
-   - social login 설정을 위해 application.conf 파일 맨 아래에 include "social-login.conf" 추가
-       - [소셜로그인 설정](yona-social-login-settings.md) 참고
+   - social login 설정을 위해 application.conf 파일 맨 아래에 다음 두 항목을 추가. [소셜로그인 설정](yona-social-login-settings.md) 참고
+       - application.social.login.support = "github, google"
+       - include "social-login.conf" 
    - 보관이 필요한 파일들을 특정 폴더로 옮겨 놓은 다음 YONA_HOME대신 YONA_DATA로 지정해서 실행
 
 ### 상세설명
