@@ -47,12 +47,12 @@ Yona 배포판
 - MariaDB 버전
   - 기본 권장 버전
   - yona-v1.3.0-bin.zip 같은 형식으로 파일로 배포
-  - DB 설치에 노력이 들지만 안정적으로 운영이 가능
+  - DB 설치에 약간의 시간이 필요하지만 안정적으로 운영이 가능
 - H2 DB 내장형
-  - DB설정없이 내려받아서 바로 실행해서 쓸 수 있는 버전
+  - DB 설정없이 내려받아서 바로 실행해서 쓸 수 있는 버전
   - yona-h2-v1.3.0-bin.zip 같은 형식으로 파일로 배포
-  - USB 등에 담아서 이동해가면서 사용하거나 작업후 통채로 zip으로 묶어서 들고 다니는 것이 가능함
-  - 대규모 작업 등에는 적합하지 않음. 참고: [Yona가 MariaDB를 기본 DB로 사용하게 된 이유](https://repo.yona.io/yona-projects/yona/post/4)
+  - USB 등에 담아서 이동해가면서 사용하거나 작업후 통째로 zip으로 묶어서 들고 다니는 것이 가능함
+  - 대규모 사이트에서 사용하기에는 적합하지 않음. 참고: [Yona가 MariaDB를 기본 DB로 사용하게 된 이유](https://repo.yona.io/yona-projects/yona/post/4)
 
 Yona 설치
 ---
@@ -107,15 +107,15 @@ Yona Distribution
 ---
 Currently, Yona offers two distributions per version.
 
-- MariaDB version
-   - Basic recommended version
-   - Distributed as a file in the similar format as yona-v1.3.0-bin.zip
-   - It takes a little effort to install DB, but it can be operated stably.
-- Embedded H2 DB
-   - A version that can be downloaded and run immediately. No need to setting a DB.
-   - Distributed as a file in the similar format as yona-h2-v1.3.0-bin.zip
-   - It can be used portable. For example, along with USB etc. And it can be carried around with zip as a whole of work.
-   - Not suitable for large-scale work.
+- MariaDB Version
+  - Recommended version.
+  - Distributed as a file in the similar format as yona-v1.3.0-bin.zip
+  - It takes a little effort to install DB, but it can be operated stably.
+- Embedded H2 DB Version
+  - Portable version that can be downloaded and run immediately. No need to setting a DB.
+  - Distributed as a file in the similar format as yona-h2-v1.3.0-bin.zip
+  - It can be used portable. For example, along with USB etc. And it can be carried around with zip as a whole of work.
+  - Not suitable for large-scale team. (over 500 people)
 
 
 How to install
