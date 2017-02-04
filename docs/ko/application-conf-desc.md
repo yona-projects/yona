@@ -29,6 +29,8 @@ conf 디렉터리의 application.conf 를 통해 설정 가능한 기능들
     - application.maxFileSize = 2147483454
 - 오직 소셜로그인(Github/Gmail)을 통한 가입/로그인만으로 제한 (자체 계정 생성 및 로그인 금지)
     - application.use.social.login.only = true
+- 지원 소셜로그인 제공자 설정 가능
+    - application.social.login.support = "github, google"
 
 
 application.conf 기본 설정
@@ -311,6 +313,10 @@ application.maxFileSize = 2147483454
 
 # Prevent using Yona's own login system
 application.use.social.login.only = true
+
+# Allowed OAuth social login provider
+# choice: github, google
+application.social.login.support = "github, google"
 
 include "social-login.conf"
 ```
