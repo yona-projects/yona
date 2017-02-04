@@ -7,7 +7,7 @@ v1.3 이상
 - 실행시 사용했던 YONA_DATA 환경변수를 지정합니다.
 - bin/yona 를 실행합니다.
 
-참고: [Yona 실행 및 재시작 방법](yona-run-and-restart)
+참고: [Yona 실행 및 재시작 방법](yona-run-and-restart.md)
 
 
 v1.3 이전 버전에서 v1.3 이상으로 업그레이드를 할 경우
