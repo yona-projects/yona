@@ -64,7 +64,7 @@ YONA_DATA=/yona-data;export YONA_DATA
 bin/yona
 ```
 
-이어서 본격적인 실행 방법에 대해서는 [yona-run-and-upgrade.md](yona-run-and-upgrade.md)를 참고해주세요.
+이어서 본격적인 실행 방법에 대해서는 [yona-run-and-restart.md](yona-run-and-restart.md)를 참고해주세요.
 
 만약 사용버전이 v1.3 이전일 경우에는 [yona-run-under-v1.3](yona-run-under-v1.3.md) 를 참고해주세요.
 
