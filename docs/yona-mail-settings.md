@@ -1,11 +1,10 @@
-각종 알림을 메일로 발송하도록 설정하는 방법
+How to set up sending notifications by email
 ===
 
-메일 발송 기능
+Mail sending function
 ----
-- conf 디렉터리에 있는 application.conf 파일을 열어 Mailer 항목내용을 수정합니다. 
-- 주의할 부분!!
-   - `smtp.mock = true`로 되어 있는 부분을 false로 바꿔야 실제 메일이 발송됩니다.
+- Open the application.conf file in the conf directory to modify the contents of the Mailer entry.
+- You must change `smtp.mock = true` to false, then the actual mail will be sent.
 
 
 ```
@@ -26,10 +25,10 @@ smtp.mock = true
 smtp.archive.size = 5
 ```
 
-메일로 Yona에 이슈나 댓글이 등록될 수 있게 설정하는 방법
+How to set up an issue or comment on Yona by mail
 ---
-- Yona는 MailBox 기능을 이용해서 알림메일에 직접 답장을 해서 댓글을 등록하거나 특정 프로젝트로 메일을 이용해 이슈를 등록하는 기능을 제공하고 있습니다.
-- 이 기능을 사용하려면 메일박스 설정을 해야 합니다.
+- Yona uses the MailBox function to reply directly to the notification mail and register the comment, or to register the issue by mail to a specific project.
+- To use this function, you have to set up mailbox.
 
 ```
 # Mailbox Service

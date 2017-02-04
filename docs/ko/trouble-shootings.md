@@ -31,3 +31,13 @@ applyEvolutions.default 자바 프로퍼티를 true로 설정합니다.
 
     SET JAVA_OPTS=-DapplyEvolutions.default=true
     bin\yona
+
+### RuntimeException: Provider 'google' missing needed setting 'clientId'
+
+application.conf 파일에서 관련 설정을 읽어 들일 수 없을때 발상하는 오류.
+
+application.conf 맨 하단에 아래 설정을 추가해 주세요.
+
+```
+include "social-login.conf"
+```

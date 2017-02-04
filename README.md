@@ -107,15 +107,16 @@ Yona Distribution
 ---
 Currently, Yona offers two distributions per version.
 
-- MariaDB Version
-  - Recommended version.
-  - Distributed as a file in the similar format as yona-v1.3.0-bin.zip
-  - It takes a little effort to install DB, but it can be operated stably.
-- Embedded H2 DB Version
-  - Portable version that can be downloaded and run immediately. No need to setting a DB.
-  - Distributed as a file in the similar format as yona-h2-v1.3.0-bin.zip
-  - It can be used portable. For example, along with USB etc. And it can be carried around with zip as a whole of work.
-  - Not suitable for large-scale team. (over 500 people)
+#### MariaDB Version
+- Recommended version.
+- Distributed as a file in the similar format as yona-v1.3.0-bin.zip
+- It takes a little effort to install DB, but it can be operated stably.
+
+#### Embedded H2 DB Version
+- Portable version that can be downloaded and run immediately. No need to setting a DB.
+- Distributed as a file in the similar format as yona-h2-v1.3.0-bin.zip
+- It can be used portable. For example, along with USB etc. And it can be carried around with zip as a whole of work.
+ - Not suitable for large-scale team. (over 500 people)
 
 
 How to install
