@@ -82,6 +82,8 @@ innodb_large_prefix=on
 
 이제 Yona 를 설치합니다. 
 
+[Install Yona Server](install-yona-server.md)
+
 
 -- 이하 내용은 참고용입니다 -- 
 

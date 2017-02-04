@@ -1,31 +1,32 @@
-Yona 설치
+Yona Install
 ===
 
-Yona 최신 버전을 https://github.com/yona-projects/yona/releases 에서 다운받아 압축을 풉니다. 
-wget으로 받아서 unzip으로 압축을 푼다면 미리 다운로드 링크 주소를 확인한 다음 내려받습니다.
+Download the latest version of Yona from https://github.com/yona-projects/yona/releases and unzip it.
+Also, consider to use wget like followings.
 
-예)
+ex)
 
     wget https://github.com/yona-projects/yona/releases/download/v1.3.0/yona-v1.3.0-bin.zip
     unzip yona.zip
 
-### application.conf 파일 등 설정파일 생성하기
+### application.conf generating and setting
 
-압축이 풀린 곳으로 이동해서 bin/yona 을 실행합니다. (Java 8 이상이 필요합니다)
-**주의**: 아래와 같이 yona 설치 폴더에서 실행하여야 합니다. 또한 윈도우 사용자는 bin/yona 대신 bin/yona.bat을 실행해야 합니다.
+Go to the unpacked location and run `bin/yona`. (Requires Java 8 or later)
+**Note**: You should run it from yona installation folder as below. Windows users should also run `bin/yona.bat` instead of `bin/yona`.
 
 ```
 cd yona
 bin/yona
 ```
 
-실행하면 패스워드가 틀렸다는 에러와 함께 실행이 종료 될겁니다. 이제 압축을 풀었을때는 안 보였던 conf 디렉터리가 보일 겁니다. 
+Execution will terminate with an error that the password is wrong. It's noraml. Don't worry. :)
+You should now see the conf directory that you were not able to see when you extracted it.
 
-#### DB 설정 수정
+#### DB configuration
 
-앞서 설치한 MariaDB에 맞게 DB 연결 설정을 수정해야 합니다.
+You need to modify the DB connection settings to connect the MariaDB you installed earlier.
 
-conf 폴더 아래의 application.conf 파일에서 아래 부분에서 password를 위에서 설정한 password로 수정해 주세요
+In the application.conf file under the conf folder, change the password in the following section to the db password set above
 ```
 ...
 db.default.driver=org.mariadb.jdbc.Driver
@@ -35,36 +36,32 @@ db.default.password="yonadan"
 ...
 ```
 
-`yonadan`은 예시일뿐 그대로 사용하지 않는 걸 권장합니다. 
+`yonadan` is just example, recommed change it to your own password.
 
 
-본격적인 첫 화면 보기 위한 실행
+Run for first page
 ----
 
-yona v1.3 이상부터는 data 폴더만 지정해주면 어느 위치에서 yona를 실행시켜도 무방하게 변경되었습니다. 이후에 버전 업그레이드시에도 특별히 데이터 폴더들을 옮기거나 할 필요가 없습니다.
-
-- conf 폴더와 각종 데이터를 유지할 폴더를 하나 만듭니다.
+- Create a folder to hold various data including conf folder.
 ```
-예)
+ex)
 
 /yona-data
 ```
-- conf 폴더를 위에서 만든 /yona-data로 복사합니다.
+- copy conf folder to `/yona-data` created above.
 ```
-예) 현재 위치가 /Users/doortts/Download/yona-v1.3.0-bin 이라고 가정했을때 
+Ex) Assuming your current location is /Users/doortts/Download/yona-v1.3.0-bin
 
 cp -r conf /yona-data
 ```
 
-- YONA_DATA 환경변수를 지정하고 Yona 실행
+- Specify the YONA_DATA environment variable and run Yona
 ```
-예) 현재 위치가 /Users/doortts/Download/yona-v1.3.0-bin 이라고 가정했을때 
+Ex) Assuming your current location is /Users/doortts/Download/yona-v1.3.0-bin
 
 YONA_DATA=/yona-data;export YONA_DATA
 bin/yona
 ```
 
-이어서 본격적인 실행 방법에 대해서는 [yona-run-and-upgrade.md](yona-run-and-upgrade.md)를 참고해주세요.
-
-만약 사용버전이 v1.3 이전일 경우에는 [yona-run-under-v1.3](yona-run-under-v1.3.md) 를 참고해주세요.
+Then, please refer to [yona-run-and-upgrade.md](yona-run-and-upgrade.md) for details.
 
