@@ -71,7 +71,7 @@
           </label>
           }
 
-          <input type="hidden" id="issueTemplate" name="issueTemplate" @boolToCheckedString(!requestHeader.getQueryString("issueTemplate").equals(None))>
+          <input type="hidden" id="issueTemplate" name="issueTemplate" value="@requestHeader.getQueryString("issueTemplate")">
           @if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.COMMIT)){
             @if(project.isGit && !requestHeader.getQueryString("readme").equals(None)){
             <label class="checkbox">
