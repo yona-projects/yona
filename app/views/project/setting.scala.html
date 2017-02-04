@@ -74,12 +74,14 @@
                         <span class="note">@Messages("project.private.notice")</span>
                     </div>
                 </div>
+            @if(project.vcs.equals("GIT")) {
                 <div class="box-wrap middle">
                     <div class="cu-label">@Messages("issue.template")</div>
                     <div class="cu-desc">
                         <a href="@routes.BoardApp.newPostForm(project.owner, project.name)?issueTemplate=true" class="ybtn" target="_blank">@Messages("issue.template.edit")</a>
                     </div>
                 </div>
+            }
                 <div class="box-wrap middle">
                     <div class="cu-label">@Messages("project.codeAccessible")</div>
                     <div class="cu-desc">
