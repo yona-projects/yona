@@ -219,7 +219,7 @@ public class BoardApp extends AbstractPostingApp {
             }
         }
 
-        if (post.issueTemplate != null) {
+        if (post.issueTemplate.equals("true")) {
             commitIssueTemplateFile(project, post);
             return redirect(routes.ProjectApp.project(project.owner, projectName));
         }
