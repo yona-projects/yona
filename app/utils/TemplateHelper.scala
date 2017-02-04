@@ -546,10 +546,19 @@ object TemplateHelper {
 
     def getCorrectedPath(filePath:String, fileName:String):String = {
       if(StringUtils.isNotEmpty(filePath) && (filePath.substring(filePath.length() - 1) == "/")){
-        filePath + HttpUtil.encodeUrlString(fileName)
+        filePath + getEncodeEachPathName(fileName)
       } else {
-        filePath + "/" + HttpUtil.encodeUrlString(fileName)
+        filePath + "/" + getEncodeEachPathName(fileName)
       }
+    }
+
+    def getEncodeEachPathName(path: String): String ={
+      val paths = path.split("/")
+      var encodedPaths = new Array[String](paths.length)
+      for ( i <- 0 until paths.length ) {
+        encodedPaths(i) = HttpUtil.encodeUrlString(paths(i))
+      }
+      encodedPaths.mkString("/")
     }
 
     def getFileRev(vcsType:String, file:com.fasterxml.jackson.databind.JsonNode):String = {
