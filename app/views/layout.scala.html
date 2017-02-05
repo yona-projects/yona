@@ -89,7 +89,9 @@
                 setTimeout(function focusToProjectSearchInput() {
                     var $projectSearch = $('.project-search');
                     var $orgSearch = $('.org-search');
-                    $projectSearch.focus();
+                    if (viewSize > 720) {
+                        $projectSearch.focus();
+                    }
                     if(!$projectSearch.val()){
                         $projectSearch.val($orgSearch.val());
                     }
@@ -102,7 +104,9 @@
                 setTimeout(function () {
                     var $projectSearch = $('.project-search');
                     var $orgSearch = $('.org-search');
-                    $orgSearch.focus();
+                    if (viewSize > 720) {
+                        $orgSearch.focus();
+                    }
                     $orgSearch.val($projectSearch.val());
                     $projectSearch.val("");
                 }, 200);
