@@ -468,9 +468,7 @@
         }
     }
     .unsupported {
-        width: 100%;
-        max-width: 1199px;
-        min-width: 1000px;
+        width: 100vw;
         padding: 0 10px;
 
         .unsupported-inner {
@@ -481,12 +479,13 @@
 
     .gnb-outer {
         max-width: 1199px;
-        min-width: 1000px;
+        width: 100%;
         padding:0 10px;
+        box-sizing: border-box;
 
         .gnb-inner {
-            width:100%;
             max-width:980px;
+            width: 100%;
         }
     }
 
@@ -498,8 +497,9 @@
 
     .page-wrap-outer {
         max-width: 1199px;
-        min-width: 1000px;
         padding:0 10px;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .page-wrap {
@@ -525,8 +525,8 @@
     .site-breadcrumb-outer {
         width: 100%;
         max-width: 1199px;
-        min-width: 1000px;
         padding:0 10px;
+        box-sizing: border-box;
 
         .site-breadcrumb-inner {
             width: 95%;
@@ -610,12 +610,10 @@
 
     .page-footer-outer {
         max-width: 1199px;
-        min-width: 1000px;
         padding:10px;
 
         .page-footer {
-            width: 95%;
-            max-width:980px;
+            width: 100%;
         }
     }
 
