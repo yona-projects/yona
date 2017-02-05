@@ -16,6 +16,8 @@ v1.3 이전 버전에서 v1.3 이상으로 업그레이드를 할 경우
 
 - 다음 3가지를 수정해 주셔야 합니다.
    - logger 설정파일내의 변수 설정
+       - conf 폴더의 application-logger.xml 파일을 열어서 `${application.home}` 로 되어 있는 부분을 `${yona.data}` 로 변경합니다. (총 8부분)
+       - 참고 샘플: https://github.com/yona-projects/yona/blob/master/conf/application-logger.xml.default 
    - social login 설정을 위해 application.conf 파일 맨 아래에 다음 두 항목을 추가. [소셜로그인 설정](yona-social-login-settings.md) 참고
        - application.social.login.support = "github, google"
        - include "social-login.conf" 
