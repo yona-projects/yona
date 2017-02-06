@@ -323,13 +323,15 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
     private List<Long> getCommentedIssueIds(User commenter, Project project) {
         Set<Long> issueIds = new HashSet<>();
 
-        for (Comment comment : IssueComment.find.where()
+        List<IssueComment> comments = IssueComment.find.where()
                 .eq("authorId", commenter.id)
-                .findList()) {
-            if (project == null) {
+                .findList();
+        if (project == null) {
+            for (Comment comment : comments) {
                 issueIds.add(comment.getParent().id);
-                break;
-            } else {
+            }
+        } else{
+            for (Comment comment : comments) {
                 if (comment.projectId.equals(project.id)) {
                     issueIds.add(comment.getParent().id);
                 }
