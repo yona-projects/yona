@@ -108,6 +108,8 @@ NativePackagerKeys.bashScriptExtraDefines += """# Added by build.sbt
     |""".stripMargin
 
 NativePackagerKeys.batScriptExtraDefines += """
+    | set "YONA_OPTS=-DapplyEvolutions.default=true"
+    | if "%YONA_DATA%"=="" set "YONA_DATA=%~dp0\\.."
     | if "%JAVA_OPTS%"=="" SET JAVA_OPTS=-Duser.dir=%YONA_HOME% -Dyona.data=%YONA_DATA% -Dconfig.file=%YONA_DATA%\conf\application.conf -Dlogger.file=%YONA_DATA%\conf\application-logger.xml -DapplyEvolutions.default=true
     |""".stripMargin
 
