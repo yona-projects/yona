@@ -14,6 +14,9 @@ MariaDB 설치
 3. Windows
    - https://downloads.mariadb.org/mariadb/10.1.11/#os_group=windows
 
+
+이하는 Linux/Unix 기반의 설명입니다. Windows OS 유저는 [MariaDB 설치 (Windows)](https://github.com/yona-projects/yona/wiki/MariaDB-%EC%84%A4%EC%B9%98-%28Windows%29) 를 참고해서 진행해주세요.
+
 ##### DB 설치후 유저 및 Database 생성 
 
 기본 진행 내용은 MariaDB에 root 유저로 접속한 다음 yona 유저를 만들고 DB를 만들고 해당 DB의 모든 권한을 yona 유저에게 주는 작업입니다.
@@ -32,6 +35,7 @@ DB 생성 UTF8 확장문자열을 저장할 수 있는 포맷으로 지정해서
 
 ```
 set global innodb_file_format = BARRACUDA;
+set global innodb_file_format_max = BARRACUDA;
 set global innodb_large_prefix = ON;
 
 create database yona
@@ -109,4 +113,3 @@ mysql.server restart
 ```
 참고: http://coolestguidesontheplanet.com/start-stop-mysql-from-the-command-line-terminal-osx-linux/
 
-DB가 정상적으로 재시작되었으면 
