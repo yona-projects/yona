@@ -9,7 +9,7 @@ conf 디렉터리의 application.conf 를 통해 설정 가능한 기능들
 - 로그인 하지 않은 유저 접근 제한 여부
     - application.allowsAnonymousAccess=true
 - 가입 후 관리자가 승인을 해야만 활동 가능하도록 제한하는 기능
-    - notification.bymail.enabled = true
+    - signup.require.admin.confirm = true
 - 알림메일 발송 여부
     - notification.bymail.enabled = true
 - 서버 고유 보안키 (어드민 계정 리셋시에 필요함)
