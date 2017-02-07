@@ -12,6 +12,9 @@ libraryDependencies ++= Seq(
   javaEbean,
   javaWs,
   cache,
+  // for ARM64
+  "net.java.dev.jna" % "jna" % "4.3.0",
+  "net.java.dev.jna" % "jna-platform" % "4.3.0",
   // PlayAuthenticat for social login
   // https://github.com/joscha/play-authenticate
   "com.feth" %% "play-authenticate" % "0.6.9",
@@ -37,7 +40,7 @@ libraryDependencies ++= Seq(
   // javahl
   "org.tmatesoft.svnkit" % "svnkit-javahl16" % "1.8.11",
   "net.sourceforge.jexcelapi" % "jxl" % "2.6.10",
-// shiro
+  // shiro
   "org.apache.shiro" % "shiro-core" % "1.2.1",
   // commons-codec
   "commons-codec" % "commons-codec" % "1.2",
