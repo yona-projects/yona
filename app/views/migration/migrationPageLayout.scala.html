@@ -23,6 +23,7 @@
         <link rel="stylesheet" type="text/css" media="all" href="@routes.Assets.at("javascripts/lib/select2/select2.css")"/>
         <link rel="stylesheet" type="text/css" media="all" href="@routes.Assets.at("javascripts/lib/pikaday/pikaday.css")" />
         <link rel="stylesheet" type="text/css" media="all" href="@routes.Assets.at("stylesheets/yobi.css")">
+        <link rel="stylesheet" type="text/css" media="all" href="@routes.Assets.at("stylesheets/usermenu.css")">
         <link rel='stylesheet' href="@routes.Assets.at("javascripts/lib/nprogress/nprogress.css")"/>
 
         <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/nprogress/nprogress.js")"></script>
@@ -47,6 +48,138 @@
         @content
 
         @common.scripts()
+
+        <script type="text/javascript">
+                $(function() {
+                    NProgress.configure({minimum: 0.7});
+
+                    /* Set side navigation */
+                    // Also, see index.scala.html for home page menu sliding actions !!
+                    var $sidebar = $("#mySidenav");
+                    var viewSize = $(window).width();
+
+                    $("#main").on("click", function(event){
+                        if( $sidebar.width() !== 0 && $(event.target).parents("#mySidenav").length == 0) {
+                            closeSidebar($sidebar);
+                        }
+                    });
+
+                    $("#sidebar-open-btn").on("click", function (event) {
+                        event.stopPropagation();
+                        if( $sidebar.width() !== 0){
+                            closeSidebar($sidebar);
+                        } else {
+                            openSidebar($sidebar);
+                            updateStar();
+                        }
+                    });
+
+                    function closeSidebar($sidebar) {
+                        $sidebar.width("0").css("border", "none");
+                        $(".main-stream").removeClass("span8").addClass("span12");
+                    }
+
+                    function openSidebar($sidebar){
+                        $sidebar.width("420px").css("border", "1px solid #ccc");
+                        $(".main-stream").removeClass("span12").addClass("span8");
+                        if (viewSize > 720) {
+                            $(".search-input").focus();
+                        }
+                    }
+
+                    // used for new project list ui
+                    $(".right-menu").on('click', ".myProjectList, a[href='#recentlyVisited'], a[href='#createdByMe'], a[href='#watching'], a[href='#joinmember']", function() {
+                        updateStar();
+                        setTimeout(function focusToProjectSearchInput() {
+                            var $projectSearch = $('.project-search');
+                            var $orgSearch = $('.org-search');
+                            if (viewSize > 720) {
+                                $projectSearch.focus();
+                            }
+                            if(!$projectSearch.val()){
+                                $projectSearch.val($orgSearch.val());
+                            }
+                            $orgSearch.val("");
+                        }, 200);
+
+                    });
+
+                    $('.myOrganizationList').on('click', function focusToOrgSearchInput(){
+                        setTimeout(function () {
+                            var $projectSearch = $('.project-search');
+                            var $orgSearch = $('.org-search');
+                            if (viewSize > 720) {
+                                $orgSearch.focus();
+                            }
+                            $orgSearch.val($projectSearch.val());
+                            $projectSearch.val("");
+                        }, 200);
+                    });
+
+                    // search by keyword
+                    $(".search-input").on("keyup", function() {
+                        var value = $(this).val().toLowerCase().trim();
+                        $(".user-li").each(function() {
+                            $(this).toggle($(this).text().toLowerCase().indexOf(value) !== -1);
+                        });
+                    }).on("keydown.moveCursorFromInputform", function(e) {
+                        switch (e.keyCode) {
+                            case 27:   // ESC
+                                closeSidebar($sidebar);
+                                break;
+                            default:
+                                break;
+                        }
+                    });
+
+                    $(".project-list > .star-project").on("click", function toggleProjectFavorite(e) {
+                        e.stopPropagation();
+                        var that = $(this);
+                        $.post("@api.routes.UserApi.toggleFoveriteProject("")" + that.data("projectId"))
+                                .done(function (data) {
+                                    if(data.favored){
+                                        that.find('i').addClass("starred");
+                                    } else {
+                                        that.find('i').removeClass("starred");
+                                    }
+                                })
+                                .fail(function (data) {
+                                    $yobi.alert("Update failed: " + JSON.parse(data.responseText).reason);
+                                });
+                    });
+
+                    $(".org-list > .star-org").on("click", function toggleOrgFavorite(e) {
+                        e.stopPropagation();
+                        var that = $(this);
+                        $.post("@api.routes.UserApi.toggleFoveriteOrganization("")" + that.data("organizationId"))
+                                .done(function (data) {
+                                    if(data.favored){
+                                        that.find('i').addClass("starred");
+                                    } else {
+                                        that.find('i').removeClass("starred");
+                                    }
+                                })
+                                .fail(function (data) {
+                                    $yobi.alert("Update failed: " + JSON.parse(data.responseText).reason);
+                                });
+                    });
+
+                    // This method intended to sync sub tab list of projects
+                    function updateStar(){
+                        $.get("@api.routes.UserApi.getFoveriteProjects()")
+                                .done(function(data){
+                                    $(".star-project").each(function () {
+                                        var $this = $(this);
+                                        if (data.projectIds.includes($this.data("projectId"))) {
+                                            $this.find("i").addClass("starred");
+                                        } else {
+                                            $this.find("i").removeClass("starred");
+                                        }
+                                    });
+                                });
+                    }
+                });
+        </script>
     </body>
 </html>
 
