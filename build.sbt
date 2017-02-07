@@ -111,9 +111,8 @@ NativePackagerKeys.bashScriptExtraDefines += """# Added by build.sbt
     |""".stripMargin
 
 NativePackagerKeys.batScriptExtraDefines += """
-    | if "%YONA_DATA%"=="" set "YONA_DATA=%~dp0\\.."
     | set "APP_CLASSPATH=%APP_LIB_DIR%\*"
-    | set "YONA_OPTS=-DapplyEvolutions.default=true -Duser.dir=%YONA_HOME% -Dyona.data=%YONA_DATA% -Dconfig.file=%YONA_DATA%\conf\application.conf -Dlogger.file=%YONA_DATA%\conf\application-logger.xml"
+    | if NOT "%YONA_DATA%" == "" set "YONA_OPTS=-DapplyEvolutions.default=true -Duser.dir=%YONA_HOME% -Dyona.data=%YONA_DATA% -Dconfig.file=%YONA_DATA%\conf\application.conf -Dlogger.file=%YONA_DATA%\conf\application-logger.xml"
     |""".stripMargin
 
 lazy val yobi = (project in file("."))
