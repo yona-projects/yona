@@ -60,6 +60,9 @@ play-authenticate {
         # accessTokenUrl="https://your-github-enterprise/login/oauth/access_token"
         # userInfoUrl="https://your-github-enterprise/api/v3/user"
 
+        # Accessible scope
+        scope="user:email"
+
         # Following key values are used for test. You must set it your own values.
         clientId=add60851e36488138581
         clientSecret=3f9472dcd7cb4c3c09e06b03f97f1b5fe2315af3
