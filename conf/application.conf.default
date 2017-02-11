@@ -270,6 +270,9 @@ application.maxFileSize = 2147483454
 # Prevent using Yona's own login system
 application.use.social.login.only = false
 
+# If true, update local user name with social login account name
+application.use.social.login.name.sync = false
+
 # Allowed OAuth social login provider
 # choice: github, google
 application.social.login.support = "github, google"
