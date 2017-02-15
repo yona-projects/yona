@@ -42,10 +42,10 @@ public class YonaUserServicePlugin extends UserServicePlugin {
 		// ...and dont forget to sync the cache when users get deactivated/deleted
 		final UserCredential u = UserCredential.findByAuthUserIdentity(identity);
 		if(u != null) {
-			if(useSocialNameSync && identity instanceof BasicIdentity){
+			if(identity instanceof BasicIdentity){
 				BasicIdentity authUser = ((BasicIdentity) identity);
 				setStatusLoggedIn(u, authUser);
-				if(!u.name.equals(authUser.getName())){
+				if(useSocialNameSync && !u.name.equals(authUser.getName())){
 					updateLocalUserName(u, authUser);
 				}
 			}
