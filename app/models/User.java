@@ -700,7 +700,7 @@ public class User extends Model implements ResourceConvertible {
                 .orderBy().asc("t0.name")
                 .findList();
 
-        if (!users.contains(currentUser)) {
+        if (!users.contains(currentUser) && currentUser != User.anonymous) {
             users.add(currentUser);
             Collections.sort(users, new UserComparator());
         }
@@ -722,7 +722,7 @@ public class User extends Model implements ResourceConvertible {
                 .orderBy().asc("t0.name")
                 .findList();
 
-        if (!users.contains(currentUser)) {
+        if (!users.contains(currentUser) && currentUser != User.anonymous) {
             users.add(currentUser);
             Collections.sort(users, new UserComparator());
         }
