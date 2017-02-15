@@ -17,6 +17,7 @@ import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jgit.lib.ObjectId;
 import play.api.data.validation.ValidationError;
 import play.data.Form;
 import play.db.ebean.Transactional;
@@ -237,7 +238,8 @@ public class BoardApp extends AbstractPostingApp {
     private static void commitReadmeFile(Project project, Posting post){
         BareCommit bare = new BareCommit(project, UserApp.currentUser());
         try{
-            bare.commitTextFile("README.md", post.body, post.title);
+            ObjectId objectId = bare.commitTextFile("README.md", post.body, post.title);
+            play.Logger.debug("Online Commit: README " + project.name + ":" + objectId);
         } catch (IOException e) {
             e.printStackTrace();
             play.Logger.error(e.getMessage());
@@ -247,7 +249,8 @@ public class BoardApp extends AbstractPostingApp {
     private static void commitIssueTemplateFile(Project project, Posting post){
         BareCommit bare = new BareCommit(project, UserApp.currentUser());
         try{
-            bare.commitTextFile("ISSUE_TEMPLATE.md", post.body, post.title);
+            ObjectId objectId = bare.commitTextFile("ISSUE_TEMPLATE.md", post.body, post.title);
+            play.Logger.debug("Online Commit: ISSUE_TEMPLATE " + project.name + ":" + objectId);
         } catch (IOException e) {
             e.printStackTrace();
             play.Logger.error(e.getMessage());
@@ -260,7 +263,7 @@ public class BoardApp extends AbstractPostingApp {
         Posting post = Posting.findByNumber(project, number);
 
         if(post.readme && RepositoryService.VCS_GIT.equals(project.vcs)){
-            post.body = BareRepository.readREADME(project);
+            post.body = StringUtils.defaultString(BareRepository.readREADME(project));
         }
 
         if (request().getHeader("Accept").contains("application/json")) {
