@@ -4,9 +4,12 @@ import com.feth.play.module.pa.service.UserServicePlugin;
 import com.feth.play.module.pa.user.AuthUser;
 import com.feth.play.module.pa.user.AuthUserIdentity;
 import com.feth.play.module.pa.user.BasicIdentity;
+import controllers.UserApp;
 import models.User;
 import models.UserCredential;
 import play.Application;
+
+import javax.annotation.Nonnull;
 
 public class YonaUserServicePlugin extends UserServicePlugin {
     private static boolean useSocialNameSync = play.Configuration.root().getBoolean("application.use.social.login.name.sync", false);
@@ -19,7 +22,14 @@ public class YonaUserServicePlugin extends UserServicePlugin {
 	public Object save(final AuthUser authUser) {
 		final boolean isLinked = UserCredential.existsByAuthUserIdentity(authUser);
 		if (!isLinked) {
-			return UserCredential.create(authUser).id;
+			UserCredential userCredential = UserCredential.create(authUser);
+			User existed = User.findByEmail(userCredential.email);
+			if (existed.isAnonymous()) {
+				UserApp.createLocalUserWithOAuth(userCredential);
+			} else {
+				UserApp.addUserInfoToSession(existed);
+			}
+			return userCredential.id;
 		} else {
 			// we have this user already, so return null
 			return null;
@@ -43,6 +53,20 @@ public class YonaUserServicePlugin extends UserServicePlugin {
 		} else {
 			return null;
 		}
+	}
+
+	private void setStatusLoggedIn(@Nonnull UserCredential u, BasicIdentity authUser) {
+		User localUser = User.findByEmail(authUser.getEmail());
+		if(localUser.isAnonymous() && u.loginId == null){
+            UserApp.createLocalUserWithOAuth(u);
+        } else {
+            if (u.loginId == null) {
+                u.loginId = localUser.loginId;
+                u.user = localUser;
+                u.update();
+            }
+            UserApp.addUserInfoToSession(localUser);
+        }
 	}
 
 	private void updateLocalUserName(UserCredential u, BasicIdentity authUser) {

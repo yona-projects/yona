@@ -62,6 +62,8 @@
                 <a href="@p.getUrl" class="ybtn oauth-login-btn">@Html(providerWithLogo(p.getKey))</a>
               }
             }
+          } else {
+            <a href="@routes.Application.oAuthLogout()" class="ybtn oauth-login-btn">@Messages("title.logout")</a>
           }
         }
       </div>

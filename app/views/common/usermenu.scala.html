@@ -4,6 +4,7 @@
 * Copyright Yona & Yobi Authors & NAVER Corp.
 * https://yona.io
 **@
+@import org.apache.commons.lang3.StringUtils
 @(project:Project)
 @import utils.TemplateHelper._
 @import com.feth.play.module.pa.PlayAuthenticate._
@@ -13,13 +14,17 @@
 @if(UserApp.currentUser().isAnonymous){
     @currentAuth() { auth => @{
             if(auth == null) {
-                val url = storeOriginalUrl(Context.current())
-            } else {
-                UserApp.linkWithExistedOrCreateLocalUser()
+                val redirect = Context.current().request().getQueryString("redirectUrl")
+                if(StringUtils.isNotEmpty(redirect)) {
+                    val url = Context.current().session().put("pa.url.orig", redirect)
+                } else {
+                    val url = storeOriginalUrl(Context.current())
+                }
             }
         }
     }
 }
+
 <div id="mySidenav" class="sidenav">
     <div class="span5 right-menu span-hard-wrap">
         <div class="row-fluid user-menu-wrap">
