@@ -30,9 +30,6 @@ import utils.Config;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
 
 import static org.eclipse.jgit.lib.Constants.HEAD;
@@ -79,19 +76,18 @@ public class BareCommit {
             setRefName(HEAD);
         }
 
-        RefHeadFileLock refHeadFileLock = new RefHeadFileLock().invoke(this.refName);
         ObjectId commitId = null;
         try {
             this.objectInserter = this.repository.newObjectInserter();
             contents = addEOL(changeLineEnding(contents, findFileLineEnding(repository, fileNameWithPath)));
+            setHeadObjectId(this.refName);
             commitId = createCommitWithNewTree(createGitObjectWithText(contents));
-            refUpdate(commitId, refName);
+            RefUpdate.Result result = refUpdate(commitId, refName);
         } catch (OverlappingFileLockException e) {
             play.Logger.error("Overlapping File Lock Error: " + e.getMessage());
         } finally {
             objectInserter.close();
             repository.close();
-            refHeadFileLock.release();
         }
 
         return commitId;
@@ -180,7 +176,7 @@ public class BareCommit {
         return objectInserter.insert(OBJ_BLOB, bytes, 0, bytes.length);
     }
 
-    private void refUpdate(ObjectId commitId, String refName) throws IOException {
+    private RefUpdate.Result refUpdate(ObjectId commitId, String refName) throws IOException {
         RefUpdate ru = this.repository.updateRef(refName);
         ru.setForceUpdate(false);
         ru.setRefLogIdent(getPersonIdent());
@@ -188,8 +184,11 @@ public class BareCommit {
         if(hasOldCommit(refName)){
             ru.setExpectedOldObjectId(getCurrentMomentHeadObjectId());
         }
-        ru.setRefLogMessage(getCommitMessage(), false);
-        ru.update();
+        ru.setRefLogMessage(getCommitMessage(), true);
+
+        RefUpdate.Result result = ru.update();
+        play.Logger.debug("Online commit: HEAD[" + this.headObjectId + "]:" + result + " New:" + commitId);
+        return result;
     }
 
     private boolean hasOldCommit(String refName) throws IOException {
@@ -232,38 +231,5 @@ public class BareCommit {
 
     public void setRefName(String refName){
         this.refName = refName;
-    }
-
-    private class RefHeadFileLock {
-        private FileChannel channel;
-        private FileLock lock;
-        private File refHeadFile;
-
-        public RefHeadFileLock invoke(String refName) throws IOException {
-            if (!repository.getDirectory().exists()) {
-                throw new IllegalStateException("The repository seems not to be created");
-            }
-
-            refHeadFile = new File(repository.getDirectory().getPath(),
-                    repository.findRef(refName).getLeaf().getName());
-            if(refHeadFile.exists()){
-                channel = new RandomAccessFile(refHeadFile, "rw").getChannel();
-                lock = channel.lock();
-            }
-            setHeadObjectId(refName);
-            return this;
-        }
-
-        public void release() {
-            try {
-                if(refHeadFile.exists()) {
-                    if(lock != null) lock.release();
-                    if(channel != null) channel.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-                play.Logger.error(e.getMessage());
-            }
-        }
     }
 }
