@@ -11,6 +11,7 @@ import controllers.annotation.AnonymousCheck;
 import jsmessages.JsMessages;
 import models.Project;
 import models.UserCredential;
+import org.apache.commons.lang3.StringUtils;
 import play.Logger;
 import play.mvc.Controller;
 import play.mvc.Http;
@@ -36,7 +37,8 @@ public class Application extends Controller {
 
     public static Result oAuthLogout() {
         UserApp.logout();
-        return logout();
+        logout();
+        return returnToReferer();
     }
 
     public static Result oAuthDenied(final String providerKey) {
@@ -103,5 +105,9 @@ public class Application extends Controller {
     public static Result fake() {
         // Do not call this.
         return badRequest();
+    }
+
+    public static Result returnToReferer() {
+        return redirect(StringUtils.defaultString(request().getHeader("referer"), index().toString()));
     }
 }
