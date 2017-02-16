@@ -351,15 +351,31 @@ public class UserApp extends Controller {
         }
     }
 
-    public static boolean createLocalUserWithOAuth(UserCredential userCredential){
+    public static User createLocalUserWithOAuth(UserCredential userCredential){
         if(userCredential.email == null || "null".equalsIgnoreCase(userCredential.email)) {
             flash(FLASH_ERROR_KEY,
                     Messages.get("app.warn.cannot.access.email.information"));
             play.Logger.error("Cannot confirm email address of " + userCredential.id + ": " + userCredential.name);
             userCredential.delete();
             session().put("pa.url.orig", routes.Application.oAuthLogout().url());
-            return false;
+            return User.anonymous;
         }
+        User created = createUserDelegate(userCredential);
+
+        if (created.state == UserState.LOCKED) {
+            flash(Constants.INFO, "user.signup.requested");
+        }
+
+        //Also, update userCredential
+        userCredential.loginId = created.loginId;
+        userCredential.user = created;
+        userCredential.update();
+
+        sendMailAboutUserCreationByOAuth(userCredential, created);
+        return created;
+    }
+
+    private static User createUserDelegate(UserCredential userCredential) {
         String loginIdCandidate = userCredential.email.substring(0, userCredential.email.indexOf("@"));
 
         User user = new User();
@@ -369,21 +385,7 @@ public class UserApp extends Controller {
 
         user.password = (new SecureRandomNumberGenerator()).nextBytes().toBase64();  // random password because created with OAuth
 
-        User created = createNewUser(user);
-
-        if (created.state == UserState.LOCKED) {
-            flash(Constants.INFO, "user.signup.requested");
-        } else {
-            addUserInfoToSession(created);
-        }
-
-        //Also, update userCredential
-        userCredential.loginId = created.loginId;
-        userCredential.user = created;
-        userCredential.update();
-
-        sendMailAboutUserCreationByOAuth(userCredential, created);
-        return true;
+        return createNewUser(user);
     }
 
     private static void sendMailAboutUserCreationByOAuth(UserCredential userCredential, User created) {
@@ -1049,7 +1051,7 @@ public class UserApp extends Controller {
         }
 
         if(PlayAuthenticate.isLoggedIn(session()) && user.isAnonymous()){
-            return createLocalUserWithOAuth(oAuthUser);
+            return !createLocalUserWithOAuth(oAuthUser).isAnonymous();
         } else {
             if (oAuthUser.loginId == null) {
                 oAuthUser.loginId = user.loginId;

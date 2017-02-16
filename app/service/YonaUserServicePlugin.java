@@ -11,8 +11,9 @@ import play.Application;
 
 import javax.annotation.Nonnull;
 
+import static controllers.Application.useSocialNameSync;
+
 public class YonaUserServicePlugin extends UserServicePlugin {
-    private static boolean useSocialNameSync = play.Configuration.root().getBoolean("application.use.social.login.name.sync", false);
 
 	public YonaUserServicePlugin(final Application app) {
 		super(app);
@@ -57,16 +58,25 @@ public class YonaUserServicePlugin extends UserServicePlugin {
 
 	private void setStatusLoggedIn(@Nonnull UserCredential u, BasicIdentity authUser) {
 		User localUser = User.findByEmail(authUser.getEmail());
+		if(localUser.isAnonymous()){
+			localUser = User.findByEmail(u.email);
+		}
+
+		User willLoginUser = null;
 		if(localUser.isAnonymous() && u.loginId == null){
-            UserApp.createLocalUserWithOAuth(u);
-        } else {
-            if (u.loginId == null) {
-                u.loginId = localUser.loginId;
-                u.user = localUser;
-                u.update();
-            }
-            UserApp.addUserInfoToSession(localUser);
-        }
+			willLoginUser = UserApp.createLocalUserWithOAuth(u);
+		} else {
+			willLoginUser = localUser;
+			if(u.loginId == null){
+				u.loginId = willLoginUser.loginId;
+				u.user = willLoginUser;
+				u.update();
+			}
+		}
+
+		if(!willLoginUser.isAnonymous()){
+			UserApp.addUserInfoToSession(willLoginUser);
+		}
 	}
 
 	private void updateLocalUserName(UserCredential u, BasicIdentity authUser) {
@@ -77,6 +87,7 @@ public class YonaUserServicePlugin extends UserServicePlugin {
 		if(localUser != null){
             localUser.name = authUser.getName();
             localUser.update();
+			UserApp.addUserInfoToSession(localUser);
         }
 	}
 
