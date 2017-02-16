@@ -92,7 +92,9 @@
                             <img src="@routes.Assets.at("images/default-avatar-64.png")" width="42" height="42">
                         </div>
                     }
-                    <a href="@routes.UserApp.userInfo(user.loginId)" class="author">@user.name</a> @@@user.loginId
+                    @if(user != null) {
+                        <a href="@routes.UserApp.userInfo(user.loginId)" class="author">@user.name</a>@@@user.loginId
+                    }
                     <span class="ago pull-right" title="@JodaDateUtil.getDateString(noti.created)">
                         @agoOrDateString(noti.created)
                     </span>
