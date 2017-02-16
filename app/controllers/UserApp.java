@@ -351,7 +351,15 @@ public class UserApp extends Controller {
         }
     }
 
-    public static void createLocalUserWithOAuth(UserCredential userCredential){
+    public static boolean createLocalUserWithOAuth(UserCredential userCredential){
+        if(userCredential.email == null || "null".equalsIgnoreCase(userCredential.email)) {
+            flash(FLASH_ERROR_KEY,
+                    Messages.get("app.warn.cannot.access.email.information"));
+            play.Logger.error("Cannot confirm email address of " + userCredential.id + ": " + userCredential.name);
+            userCredential.delete();
+            session().put("pa.url.orig", routes.Application.oAuthLogout().url());
+            return false;
+        }
         String loginIdCandidate = userCredential.email.substring(0, userCredential.email.indexOf("@"));
 
         User user = new User();
@@ -375,6 +383,7 @@ public class UserApp extends Controller {
         userCredential.update();
 
         sendMailAboutUserCreationByOAuth(userCredential, created);
+        return true;
     }
 
     private static void sendMailAboutUserCreationByOAuth(UserCredential userCredential, User created) {
@@ -1029,7 +1038,7 @@ public class UserApp extends Controller {
         session(SESSION_KEY, key);
     }
 
-    public static void linkWithExistedOrCreateLocalUser() {
+    public static boolean linkWithExistedOrCreateLocalUser() {
         final UserCredential oAuthUser = UserCredential.findByAuthUserIdentity(PlayAuthenticate
                 .getUser(Http.Context.current().session()));
         User user = null;
@@ -1040,7 +1049,7 @@ public class UserApp extends Controller {
         }
 
         if(PlayAuthenticate.isLoggedIn(session()) && user.isAnonymous()){
-            createLocalUserWithOAuth(oAuthUser);
+            return createLocalUserWithOAuth(oAuthUser);
         } else {
             if (oAuthUser.loginId == null) {
                 oAuthUser.loginId = user.loginId;
@@ -1049,6 +1058,7 @@ public class UserApp extends Controller {
             }
             UserApp.addUserInfoToSession(user);
         }
+        return true;
     }
 
     public static void updatePreferredLanguage() {
