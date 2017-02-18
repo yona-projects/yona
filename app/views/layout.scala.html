@@ -76,11 +76,14 @@
             }
 
             function openSidebar($sidebar){
-                $sidebar.width("420px").css("border", "1px solid #ccc");
-                $(".main-stream").removeClass("span12").addClass("span8");
+                // 720px is a criteria to distinguish small devices
                 if (viewSize > 720) {
+                    $sidebar.width("420px").css("border", "1px solid #ccc");
                     $(".search-input").focus();
+                } else {
+                    $sidebar.width("100vw").css("border", "1px solid #ccc");
                 }
+                $(".main-stream").removeClass("span12").addClass("span8");
             }
 
             // used for new project list ui
