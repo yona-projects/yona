@@ -24,6 +24,7 @@ import com.avaje.ebean.Expr;
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Junction;
 import com.avaje.ebean.Page;
+import controllers.Application;
 import models.enumeration.Operation;
 import models.enumeration.ProjectScope;
 import models.enumeration.UserState;
@@ -496,7 +497,7 @@ public class Search {
 
     private static ExpressionList<Project> projectsEL(String keyword, User user) {
         ExpressionList<Project> el = Project.find.where();
-        if(user.isAnonymous()) {
+        if(user.isAnonymous() && !Application.HIDE_PROJECT_LISTING) {
             el.eq("projectScope", ProjectScope.PUBLIC);
             el.disjunction()
                 .icontains("overview", keyword)
@@ -505,17 +506,19 @@ public class Search {
         } else {
             Junction<Project> junction = el.conjunction();
             Junction<Project> pj = junction.disjunction();
-            pj.add(Expr.eq("projectScope", ProjectScope.PUBLIC)); // public
+            if (!Application.HIDE_PROJECT_LISTING) {
+                pj.add(Expr.eq("projectScope", ProjectScope.PUBLIC)); // public
+            }
             List<Organization> orgs = Organization.findOrganizationsByUserLoginId(user.loginId); // protected
-            if(!orgs.isEmpty()) {
+            if (!orgs.isEmpty()) {
                 pj.and(Expr.in("organization", orgs), Expr.eq("projectScope", ProjectScope.PROTECTED));
             }
             pj.add(Expr.eq("projectUser.user.id", user.id)); // private
             pj.endJunction();
             junction.disjunction()
-                .icontains("overview", keyword)
-                .icontains("name", keyword)
-            .endJunction();
+                    .icontains("overview", keyword)
+                    .icontains("name", keyword)
+                    .endJunction();
             junction.endJunction();
         }
         el.orderBy().asc("name");
