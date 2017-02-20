@@ -8,15 +8,6 @@
 @import com.feth.play.module.pa.views.html._
 @import utils.TemplateHelper._
 
-@providerWithLogo(provider:String) = @{
-  val googleLogo = routes.Assets.at("images/provider-logo/btn_google_light_normal_ios.svg")
-  provider match {
-    case "github" => s"""<span class="auth-provider-logo">$GithubLogo <span class="provider-name">Sign in with Github</span></span>"""
-    case "google" => s"""<span class="auth-provider-logo"><img src="$googleLogo" alt="login with Google"> Sign in with Google</span>"""
-    case _ => ""
-  }
-}
-
 <div id="loginDialog" class="modal hide loginDialog" tabindex="-1" role="dialog">
   <div class="modal-body">
     <div class="pull-right">
