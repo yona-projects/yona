@@ -1,26 +1,13 @@
 /**
- * Yobi, Project Hosting SW
- *
- * Copyright 2013 NAVER Corp.
- * http://yobi.io
- *
- * @author Yi EungJun
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+ * Yona, 21st Century Project Hosting SW
+ * <p>
+ * Copyright Yona & Yobi Authors & NAVER Corp.
+ * https://yona.io
+ **/
 package models;
 
 import com.google.common.collect.Lists;
+import controllers.Application;
 import info.schleichardt.play2.mailplugin.Mailer;
 import notification.INotificationEvent;
 import mailbox.EmailAddressWithDetail;
@@ -32,6 +19,7 @@ import notification.MergedNotificationEvent;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.HtmlEmail;
 import org.joda.time.DateTime;
 import org.jsoup.Jsoup;
@@ -395,6 +383,9 @@ public class NotificationMail extends Model {
         }
 
         receivers.remove(User.anonymous);
+        if(StringUtils.isNotEmpty(Application.ALLOWED_SENDING_MAIL_DOMAINS)) {
+            receivers.removeAll(getUsersUsingNoAcceptableEmails(receivers));
+        }
 
         if(receivers.isEmpty()) {
             return;
@@ -427,6 +418,37 @@ public class NotificationMail extends Model {
                 sendMail(event, toList, bccList, langCode);
             }
         }
+    }
+
+    private static String getDomainFromEmail(String email) {
+        if (email == null) {
+            return null;
+        }
+
+        int lastIndex = email.lastIndexOf('@');
+
+        return (lastIndex < 0 || lastIndex + 1 >= email.length()) ? null : email.substring(lastIndex + 1);
+    }
+
+    private static Set<User> getUsersUsingNoAcceptableEmails(Set<User> users) {
+        List<String> acceptableDomains = new ArrayList<>();
+
+        if(StringUtils.isNotEmpty(Application.ALLOWED_SENDING_MAIL_DOMAINS)){
+            for(String domain: Application.ALLOWED_SENDING_MAIL_DOMAINS.split(",")){
+                acceptableDomains.add(StringUtils.defaultString(domain, "").trim());
+            }
+        }
+
+        Set<User> filteredUsers = new HashSet<>();
+
+        for (User user : users) {
+            String domain = getDomainFromEmail(user.email);
+            if (domain == null || !acceptableDomains.contains(domain.toLowerCase())) {
+                filteredUsers.add(user);
+            }
+        }
+
+        return filteredUsers;
     }
 
     private static int getPartialRecipientSize(Set<User> receivers) {
