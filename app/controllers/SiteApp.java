@@ -40,6 +40,7 @@ import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.With;
+import scala.App;
 import utils.*;
 import views.html.site.*;
 
