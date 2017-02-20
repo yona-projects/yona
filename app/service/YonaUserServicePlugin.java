@@ -28,6 +28,7 @@ public class YonaUserServicePlugin extends UserServicePlugin {
 			if (existed.isAnonymous()) {
 				UserApp.createLocalUserWithOAuth(userCredential);
 			} else {
+				UserApp.setupRememberMe(existed);
 				UserApp.addUserInfoToSession(existed);
 			}
 			return userCredential.id;
@@ -75,6 +76,7 @@ public class YonaUserServicePlugin extends UserServicePlugin {
 		}
 
 		if(!willLoginUser.isAnonymous()){
+			UserApp.setupRememberMe(willLoginUser);
 			UserApp.addUserInfoToSession(willLoginUser);
 		}
 	}
