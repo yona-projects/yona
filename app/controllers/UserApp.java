@@ -983,7 +983,7 @@ public class UserApp extends Controller {
         return useSignUpConfirm;
     }
 
-    private static void setupRememberMe(User user) {
+    public static void setupRememberMe(User user) {
         response().setCookie(TOKEN, user.loginId + ":" + user.password, MAX_AGE);
         Logger.debug("remember me enabled");
     }
