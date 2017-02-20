@@ -30,8 +30,8 @@ GET            /favicon.ico                                                     
 GET            /assets/*file                                                          controllers.Assets.at(path="/public", file)
 
 # Bootstrapping for test
-GET            /init                                                                  controllers.Application.init()
-GET            /UIKit                                                                  controllers.Application.UIKit()
+GET            /_init                                                                  controllers.Application.init()
+GET            /_UIKit                                                                  controllers.Application.UIKit()
 
 # Search
 GET            /search                                                                 controllers.SearchApp.searchInAll()
@@ -51,8 +51,8 @@ POST           /-_-api/v1/favoriteOrganizations/:organizationId                 
 
 
 # Import
-GET            /import                                                                 controllers.ImportApp.importForm()
-POST           /import                                                                 controllers.ImportApp.newProject()
+GET            /_import                                                                 controllers.ImportApp.importForm()
+POST           /_import                                                                 controllers.ImportApp.newProject()
 
 # Organization
 GET            /organizations/new                                                      controllers.OrganizationApp.newForm()
@@ -292,7 +292,7 @@ DELETE         /:user/:project/code/:branch/                                    
 POST           /:user/:project/code/:branch/setAsDefault                              controllers.BranchApp.setAsDefault(user, project, branch)
 
 # Help
-GET            /help                                                                  controllers.HelpApp.help()
+GET            /_help                                                                  controllers.HelpApp.help()
 
 # Watch
 POST           /watch                                                                 controllers.WatchApp.watch(resource: models.resource.ResourceParam)
