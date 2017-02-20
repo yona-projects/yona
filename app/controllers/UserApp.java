@@ -603,12 +603,17 @@ public class UserApp extends Controller {
         List<Issue> issues = new ArrayList<>();
         List<PullRequest> pullRequests = new ArrayList<>();
         List<Milestone> milestones = new ArrayList<>();
+        List<Project> projects = new ArrayList<>();
 
-        List<Project> projects = collectProjects(loginId, user, groupNames);
-        collectDatum(projects, postings, issues, pullRequests, milestones, daysAgo);
-        sortDatum(postings, issues, pullRequests, milestones);
+        if(Application.HIDE_PROJECT_LISTING){
+            if(!UserApp.currentUser().isAnonymous() && UserApp.currentUser().loginId.equals(loginId)){
+                projects = collectProjects(loginId, user, groupNames);
+                collectDatum(projects, postings, issues, pullRequests, milestones, daysAgo);
+                sortDatum(postings, issues, pullRequests, milestones);
 
-        sortByLastPushedDateAndName(projects);
+                sortByLastPushedDateAndName(projects);
+            }
+        }
         if (user.isAnonymous()) {
             return notFound(ErrorViews.NotFound.render("user.notExists.name"));
         }

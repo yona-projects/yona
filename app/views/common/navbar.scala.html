@@ -54,11 +54,13 @@
             <li>
                 <a href="@routes.Application.index()" class="logo logo-letter">Y</a>
             </li>
-            <li class="@isActiveMenu(MenuType.PROJECTS)">
-                <a href="@routes.ProjectApp.projects()" class="show-progress-bar">@Messages("title.projectList")</a>
-            </li>
+            @if(!Application.HIDE_PROJECT_LISTING){
+                <li class="@isActiveMenu(MenuType.PROJECTS)">
+                    <a href="@routes.ProjectApp.projects()" class="show-progress-bar">@Messages("title.projectList")</a>
+                </li>
+                <li class="divider"></li>
+            }
             @if(appFeedbackUrl){
-            <li class="divider"></li>
             <li>
                 <a href="@appFeedbackUrl" target="_blank">@Messages("title.yobi.feedback")</a>
             </li>
