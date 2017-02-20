@@ -39,6 +39,7 @@ app.welcome.warning.title = Create website-admin account
 app.warn.support.social.login.only = Only allow sign-in via social login
 app.warn.cannot.access.email.information = Cannot confirm email address. If you are a Github/Github Enterprise user, please make sure that your personal email settings.
 branch.recently.update = Last updated
+browser.cache.refresh.message = If you see this message, please force-refresh (Ctrl-R or Cmd-R). If you keep seeing this message, leave it as an issue.
 button.add = Add
 button.apply = Apply
 button.back = Back

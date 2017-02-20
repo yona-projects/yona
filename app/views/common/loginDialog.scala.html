@@ -63,6 +63,9 @@
               }
             }
           } else {
+            @if(UserApp.currentUser().isAnonymous){
+              <div class="cache-warning">@Messages("browser.cache.refresh.message")</div>
+            }
             <a href="@routes.Application.oAuthLogout()" class="ybtn oauth-login-btn">@Messages("title.logout")</a>
           }
         }
