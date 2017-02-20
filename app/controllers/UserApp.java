@@ -113,6 +113,13 @@ public class UserApp extends Controller {
         return ok(toJson(users));
     }
 
+    public static void noCache(final Http.Response response) {
+        // http://stackoverflow.com/questions/49547/making-sure-a-web-page-is-not-cached-across-all-browsers
+        response.setHeader(Http.Response.CACHE_CONTROL, "no-cache, no-store, must-revalidate");  // HTTP 1.1
+        response.setHeader(Http.Response.PRAGMA, "no-cache");  // HTTP 1.0.
+        response.setHeader(Http.Response.EXPIRES, "0");  // Proxies.
+    }
+
     public static Result loginForm() {
         noCache(response());
         if(!UserApp.currentUser().isAnonymous()) {
