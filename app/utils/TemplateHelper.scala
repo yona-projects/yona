@@ -5,8 +5,7 @@ import play.mvc.{Call, Http}
 import org.joda.time.DateTimeConstants
 import org.apache.commons.io.FilenameUtils
 import play.i18n.Messages
-import controllers.routes
-import controllers.UserApp
+import controllers.{Application, UserApp, routes}
 import views.html._
 import java.net.URI
 
@@ -51,7 +50,7 @@ object TemplateHelper {
   def providerWithLogo(provider:String): String = {
     val googleLogo = routes.Assets.at("images/provider-logo/btn_google_light_normal_ios.svg")
     provider match {
-      case "github" => s"""<span class="auth-provider-logo">$GithubLogo <span class="provider-name">Sign in with Github</span></span>"""
+      case "github" => s"""<span class="auth-provider-logo">$GithubLogo <span class="provider-name">Sign in with ${Application.GITHUB_NAME}</span></span>"""
       case "google" => s"""<span class="auth-provider-logo"><img src="$googleLogo" alt="login with Google"> Sign in with Google</span>"""
       case _ => ""
     }

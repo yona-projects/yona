@@ -26,6 +26,7 @@ public class Application extends Controller {
     public static final String FLASH_MESSAGE_KEY = "message";
     public static final String FLASH_ERROR_KEY = "error";
     public static boolean useSocialNameSync = play.Configuration.root().getBoolean("application.use.social.login.name.sync", false);
+    public static String GITHUB_NAME = play.Configuration.root().getString("application.social.login.github.name", "github");
 
     @AnonymousCheck
     public static Result index() {
