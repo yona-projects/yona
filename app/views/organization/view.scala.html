@@ -137,6 +137,7 @@
                 </ul>
             </div>
             <div class="span3 span-hard-wrap">
+            @if(UserApp.currentUser().isMemberOf(org)) {
                 <div class="bubble-wrap gray project-home">
                     <div class="inner member-info">
                         <header>
@@ -168,6 +169,7 @@
                         </div>
                     </div>
                 </div>
+                }
             </div>
         </div>
     </div>

@@ -94,17 +94,24 @@
                             }
                             } 
                             @if(org != null) {
-                            <li>
-                                <a href="#" data-toggle="search-scope" data-action="@routes.SearchApp.searchInAGroup(org.name)">
-                                    @Messages("search.scope.group")
-                                </a>
-                            </li>
+                                @if(Application.HIDE_PROJECT_LISTING) {
+                                    @if(UserApp.currentUser().isMemberOf(org) || UserApp.currentUser().isAdminOf(org)){
+                                        <li>
+                                            <a href="#" data-toggle="search-scope" data-action="@routes.SearchApp.searchInAGroup(org.name)">
+                                            @Messages("search.scope.group")
+                                            </a>
+                                        </li>
+                                    }
+                                }
+
                             }
+                            @if(!Application.HIDE_PROJECT_LISTING || UserApp.currentUser().isSiteManager) {
                             <li>
                                 <a href="#" data-toggle="search-scope" data-action="@routes.SearchApp.searchInAll()">
                                     @Messages("search.scope.all")
                                 </a>
                             </li>
+                            }
                         </ul>
                     </div>
                     }

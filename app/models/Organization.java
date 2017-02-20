@@ -20,6 +20,7 @@
  */
 package models;
 
+import controllers.Application;
 import models.enumeration.RequestState;
 import models.enumeration.ResourceType;
 import models.resource.GlobalResource;
@@ -112,9 +113,11 @@ public class Organization extends Model implements ResourceConvertible {
                 }
             }
         } else {
-            for(Project project : this.projects) {
-                if(project.isPublic() || user.isMemberOf(project)) {
-                    result.add(project);
+            if(!Application.HIDE_PROJECT_LISTING){
+                for(Project project : this.projects) {
+                    if(project.isPublic() || user.isMemberOf(project)) {
+                        result.add(project);
+                    }
                 }
             }
         }

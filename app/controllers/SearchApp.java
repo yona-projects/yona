@@ -123,6 +123,13 @@ public class SearchApp extends Controller {
 
         Organization organization = Organization.findByName(organizationName);
         User user = UserApp.currentUser();
+
+        if (Application.HIDE_PROJECT_LISTING) {
+            if (!user.isMemberOf(organization) || !user.isAdminOf(organization)) {
+                return badRequest();
+            }
+        }
+
         SearchType searchType = SearchType.getValue(searchTypeValue);
 
         if(searchType == SearchType.NA || organization == null) {
