@@ -178,6 +178,7 @@ DELETE         /:user/:project/member/:id/delete                                
 GET            /:user/:project/webhooks                                               controllers.ProjectApp.webhooks(user, project)
 POST           /:user/:project/webhooks                                               controllers.ProjectApp.newWebhook(user, project)
 DELETE         /:user/:project/webhooks/:id                                           controllers.ProjectApp.deleteWebhook(user, project, id: Long)
+GET            /:user/:project/watchers                                               controllers.ProjectApp.watchers(user, project)
 DELETE         /:user/:project/pushedBranch/:id/delete                                controllers.ProjectApp.deletePushedBranch(user, project, id:Long)
 GET            /:user/:project/transfer                                               controllers.ProjectApp.transferForm(user, project)
 PUT            /:user/:project/transfer                                               controllers.ProjectApp.transferProject(user, project)
