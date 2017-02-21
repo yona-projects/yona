@@ -113,7 +113,7 @@
                     @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.WATCH)) {
                     <li>
                         <div class="btn-group dropdown watch-btn">
-                            <button class="btn disabled watcher-count nofocus no-border @amIWatching" data-toggle="tooltip" title="@Messages("project.watcher.number")">@project.getWatchingCount</button>
+                            <a class="btn watcher-count no-border @amIWatching" data-toggle="tooltip" title="@Messages("project.watcher.number")" href="@routes.ProjectApp.watchers(project.owner, project.name)">@project.getWatchingCount</a>
                         @if(User.isWatching(project)) {
                             <div class="dropdown-menu flat right title">
                                 <div class="pop-title">@Messages("project.you.are.watching", project.name)</div>

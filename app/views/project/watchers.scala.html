@@ -1,0 +1,30 @@
+@**
+* Yona, 21st Century Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp.
+* https://yona.io
+**@
+@(message: String, members: Set[User], project:Project)
+
+@projectLayout(message, project, utils.MenuType.PROJECT_SETTING) {
+    @projectMenu(project, utils.MenuType.NONE, "")
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
+            <h4><strong>@Messages("project.watcher.title")</strong></h4>
+            <p>@Messages("project.watcher.description")</p>
+            <ul class="members project row-fluid">
+                @for(member <- members){
+                    @if(member != null){
+                <li class="member span6 span-hard-wrap">
+                    <a href="@routes.UserApp.userInfo(member.loginId)" class="avatar-wrap mlarge pull-left mr10">
+                        <img src="@User.findByLoginId(member.loginId).avatarUrl" width="64" height="64">
+                    </a>
+                    <div class="member-name">@member.name</div>
+                    <div class="member-id">@{"@"}@member.loginId</div>
+                </li>
+                    }
+                }
+            </ul>
+        </div>
+    </div>
+}
