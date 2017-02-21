@@ -261,7 +261,14 @@ public class IssueLabelApp extends Controller {
         }
 
         IssueLabel label = IssueLabel.finder.byId(id);
+        IssueLabelCategory category = label.category;
         label.delete();
+
+        long labelCategoryRemainCount = IssueLabel.findByProject(label.project).stream().filter(lb -> lb.category.equals(category)).count();
+        if (labelCategoryRemainCount == 0) {
+            category.delete();
+        }
+
         return ok();
     }
 
@@ -390,6 +397,12 @@ public class IssueLabelApp extends Controller {
         }
 
         IssueLabelCategory category = form.get();
+
+        if (IssueLabelCategory.findByProject(category.project).stream()
+            .filter(lc -> lc.name.equals(category.name) && !lc.id.equals(category.id)).count() > 0) {
+            return badRequest(form.errorsAsJson());
+        }
+
         category.id = id;
         category.project =
             Project.findByOwnerAndProjectName(ownerName, projectName);
