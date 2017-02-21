@@ -36,6 +36,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.tmatesoft.svn.core.SVNException;
+
+import models.resource.Resource;
 import play.Logger;
 import play.data.Form;
 import play.data.validation.Constraints.PatternValidator;
@@ -366,6 +368,22 @@ public class ProjectApp extends Controller {
         return ok(views.html.project.members.render("title.projectMembers",
                 ProjectUser.findMemberListByProject(project.id), project,
                 Role.findProjectRoles()));
+    }
+
+    @Transactional
+    @IsAllowed(Operation.READ)
+    public static Result watchers(String loginId, String projectName) {
+        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+        Resource resource = project.asResource();
+        return ok(views.html.project.watchers.render(
+            "title.projectWatchers",
+            Watch.findActualWatchers(
+                Watch.findWatchers(resource.getType(), resource.getId()),
+                    resource,
+                    true
+                ),
+                project
+        ));
     }
 
     @IsAllowed(Operation.READ)
