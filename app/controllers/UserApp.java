@@ -42,6 +42,7 @@ import views.html.user.*;
 import java.util.*;
 
 import static com.feth.play.module.mail.Mailer.getEmailName;
+import static com.feth.play.module.pa.controllers.Authenticate.noCache;
 import static play.data.Form.form;
 import static play.libs.Json.toJson;
 import static utils.HtmlUtil.defaultSanitize;
@@ -108,12 +109,15 @@ public class UserApp extends Controller {
     }
 
     public static Result loginForm() {
+        noCache(response());
         if(!UserApp.currentUser().isAnonymous()) {
             return redirect(routes.Application.index());
         }
 
+
         String redirectUrl = request().getQueryString("redirectUrl");
         String loginFormUrl = routes.UserApp.loginForm().url();
+        play.Logger.error("UserApp.currentUser().isAnonymous() " + UserApp.currentUser().isAnonymous() + ": " + redirectUrl);
         String referer = request().getHeader("Referer");
         if(StringUtils.isEmpty(redirectUrl) && !StringUtils.equals(loginFormUrl, referer)) {
             redirectUrl = request().getHeader("Referer");
@@ -136,6 +140,7 @@ public class UserApp extends Controller {
     }
 
     public static Result login() {
+        noCache(response());
         if(useSocialLoginOnly){
             flash(FLASH_ERROR_KEY,
                     Messages.get("app.warn.support.social.login.only"));
@@ -144,6 +149,7 @@ public class UserApp extends Controller {
         if (HttpUtil.isJSONPreferred(request())) {
             return loginByAjaxRequest();
         } else {
+            play.Logger.error("---- hre");
             return loginByFormRequest();
         }
     }
@@ -219,6 +225,9 @@ public class UserApp extends Controller {
 
     private static String encodedPath(String path){
         String[] paths = path.split("/");
+        if(paths.length == 0){
+            return "/";
+        }
         String[] encodedPaths = new String[paths.length];
         for (int i=0; i< paths.length; i++) {
             encodedPaths[i] = HttpUtil.encodeUrlString(paths[i]);
