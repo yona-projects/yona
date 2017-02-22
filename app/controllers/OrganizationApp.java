@@ -351,6 +351,7 @@ public class OrganizationApp extends Controller {
 
         Organization original = Organization.find.byId(modifiedOrganization.id);
         original.updateWith(modifiedOrganization);
+        UserApp.currentUser().updateFavoriteOrganization(modifiedOrganization);
 
         return redirect(routes.OrganizationApp.settingForm(modifiedOrganization.name));
     }

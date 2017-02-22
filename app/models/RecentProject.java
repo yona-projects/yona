@@ -43,9 +43,9 @@ public class RecentProject extends Model {
 
         // remove deleted projects
         for(RecentProject rp: recentProjects){
-            Project byOwnerAndProjectName = Project.findByOwnerAndProjectName(rp.owner, rp.projectName);
-            if(byOwnerAndProjectName != null){
-                found.add(byOwnerAndProjectName);
+            Project project = Project.find.byId(rp.projectId);
+            if(project != null){
+                found.add(project);
             }
         }
 

@@ -203,6 +203,7 @@ public class ProjectApp extends Controller {
         saveProjectMenuSetting(project);
         Watch.watch(project.asResource());
         projectMap.put(getProjectCacheKey(project.owner, project.name), project.id);
+        UserApp.currentUser().visits(project);
 
         return redirect(routes.ProjectApp.project(project.owner, project.name));
     }
@@ -280,6 +281,7 @@ public class ProjectApp extends Controller {
         updatedProject.update();
 
         saveProjectMenuSetting(updatedProject);
+        UserApp.currentUser().updateFavoriteProject(updatedProject);
 
         return redirect(routes.ProjectApp.settingForm(ownerId, updatedProject.name));
     }
@@ -346,6 +348,10 @@ public class ProjectApp extends Controller {
     @IsAllowed(Operation.DELETE)
     public static Result deleteProject(String ownerId, String projectName) throws Exception {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
+        if (project == null) {
+            return redirect(routes.Application.index());
+        }
+        UserApp.currentUser().removeFavoriteProject(project.id);
         project.delete();
         RepositoryService.deleteRepository(project);
         CacheStore.refreshProjectMap();
