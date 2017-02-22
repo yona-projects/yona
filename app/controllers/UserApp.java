@@ -114,10 +114,8 @@ public class UserApp extends Controller {
             return redirect(routes.Application.index());
         }
 
-
         String redirectUrl = request().getQueryString("redirectUrl");
         String loginFormUrl = routes.UserApp.loginForm().url();
-        play.Logger.error("UserApp.currentUser().isAnonymous() " + UserApp.currentUser().isAnonymous() + ": " + redirectUrl);
         String referer = request().getHeader("Referer");
         if(StringUtils.isEmpty(redirectUrl) && !StringUtils.equals(loginFormUrl, referer)) {
             redirectUrl = request().getHeader("Referer");
@@ -149,7 +147,6 @@ public class UserApp extends Controller {
         if (HttpUtil.isJSONPreferred(request())) {
             return loginByAjaxRequest();
         } else {
-            play.Logger.error("---- hre");
             return loginByFormRequest();
         }
     }

@@ -58,9 +58,11 @@ public class YonaUserServicePlugin extends UserServicePlugin {
 	}
 
 	private void setStatusLoggedIn(@Nonnull UserCredential u, BasicIdentity authUser) {
-		User localUser = User.findByEmail(authUser.getEmail());
+		User localUser = User.findByEmail(authUser.getEmail()); //find with oAuth email address
 		if(localUser.isAnonymous()){
-			localUser = User.findByEmail(u.email);
+			localUser = User.findByEmail(u.email);  // 1st trial: same email address with local user credential
+			if(localUser == null) localUser =  User.find.byId(u.user.id); // 2nd trial: linked user
+			if(localUser == null) localUser = User.anonymous;
 		}
 
 		User willLoginUser = null;
