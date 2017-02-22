@@ -44,6 +44,7 @@ import utils.CacheStore;
 import utils.JodaDateUtil;
 import utils.ReservedWordsValidator;
 
+import javax.annotation.Nonnull;
 import javax.persistence.*;
 import javax.persistence.OrderBy;
 import java.text.SimpleDateFormat;
@@ -867,10 +868,26 @@ public class User extends Model implements ResourceConvertible {
     public List<Project> getFavoriteProjects() {
         List<Project> projects = new ArrayList<>();
         for (FavoriteProject favoriteProject : this.favoriteProjects) {
-            projects.add(favoriteProject.project);
+            projects.add(0, favoriteProject.project);
         }
 
         return projects;
+    }
+
+    public void updateFavoriteProject(@Nonnull Project project){
+        for (FavoriteProject favoriteProject : this.favoriteProjects) {
+            if (favoriteProject.project.id.equals(project.id)) {
+                favoriteProject.project.refresh();
+            }
+        }
+    }
+
+    public void updateFavoriteOrganization(@Nonnull Organization organization){
+        for (FavoriteOrganization favoriteOrganization : this.favoriteOrganizations) {
+            if (favoriteOrganization.organization.id.equals(organization.id)) {
+                favoriteOrganization.organization.refresh();
+            }
+        }
     }
 
     public boolean toggleFavoriteProject(Long projectId) {
@@ -888,12 +905,13 @@ public class User extends Model implements ResourceConvertible {
         return true;
     }
 
-    private void removeFavoriteProject(Long projectId) {
+    public void removeFavoriteProject(Long projectId) {
         List<FavoriteProject> list = FavoriteProject.finder.where()
                 .eq("user.id", this.id)
                 .eq("project.id", projectId).findList();
 
         if(list != null && list.size() > 0){
+            favoriteProjects.remove(list.get(0));
             list.get(0).delete();
         }
     }
@@ -901,7 +919,7 @@ public class User extends Model implements ResourceConvertible {
     public List<Organization> getFavoriteOrganizations() {
         List<Organization> organizations = new ArrayList<>();
         for (FavoriteOrganization favoriteOrganization : this.favoriteOrganizations) {
-            organizations.add(favoriteOrganization.organization);
+            organizations.add(0, favoriteOrganization.organization);
         }
 
         return organizations;
@@ -928,6 +946,7 @@ public class User extends Model implements ResourceConvertible {
                 .eq("organization.id", organizationId).findList();
 
         if(list != null && list.size() > 0){
+            favoriteOrganizations.remove(list.get(0));
             list.get(0).delete();
         }
     }
