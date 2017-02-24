@@ -1026,12 +1026,12 @@ public class UserApp extends Controller {
         RandomNumberGenerator rng = new SecureRandomNumberGenerator();
         user.passwordSalt = rng.nextBytes().toBase64();
         user.password = hashedPassword(user.password, user.passwordSalt);
-        User.create(user);
         if (isUseSignUpConfirm()) {
-            user.changeState(UserState.LOCKED);
+            user.state = UserState.LOCKED;
         } else {
-            user.changeState(UserState.ACTIVE);
+            user.state = UserState.ACTIVE;
         }
+        User.create(user);
         Email.deleteOtherInvalidEmails(user.email);
         return user;
     }
