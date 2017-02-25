@@ -50,7 +50,7 @@ public class Organization extends Model implements ResourceConvertible {
 
     @Constraints.Pattern(value = "^" + User.LOGIN_ID_PATTERN + "$", message = "user.wrongloginId.alert")
     @Constraints.Required
-    @Constraints.ValidateWith(ReservedWordsValidator.class)
+    @Constraints.ValidateWith(value = ReservedWordsValidator.class, message = "validation.reservedWord")
     public String name;
 
     @Formats.DateTime(pattern = "yyyy-MM-dd")

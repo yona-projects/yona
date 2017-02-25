@@ -88,7 +88,7 @@ public class User extends Model implements ResourceConvertible {
 
     @Pattern(value = "^" + LOGIN_ID_PATTERN + "$", message = "user.wrongloginId.alert")
     @Required
-    @ValidateWith(ReservedWordsValidator.class)
+    @ValidateWith(value = ReservedWordsValidator.class, message = "validation.reservedWord")
     public String loginId;
 
     /**
