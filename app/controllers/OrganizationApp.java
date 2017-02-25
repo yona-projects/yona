@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import play.data.Form;
 import play.data.validation.Validation;
+import play.data.validation.ValidationError;
 import play.db.ebean.Transactional;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -72,6 +73,12 @@ public class OrganizationApp extends Controller {
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     public static Result newOrganization() throws Exception {
         Form<Organization> newOrgForm = form(Organization.class).bindFromRequest();
+        if (newOrgForm.hasErrors()) {
+            play.Logger.warn("newOrgForm.errors().keySet() " + newOrgForm.error("name").messages());
+            flash(Constants.WARNING, newOrgForm.error("name").message());
+            return badRequest(create.render("title.newOrganization", newOrgForm));
+        }
+
         validate(newOrgForm);
         if (newOrgForm.hasErrors()) {
             flash(Constants.WARNING, newOrgForm.error("name").message());
@@ -87,6 +94,8 @@ public class OrganizationApp extends Controller {
     }
 
     private static void validate(Form<Organization> newOrgForm) {
+        Organization organization = newOrgForm.get();
+        play.Logger.error("org: " + organization.name);
         Set<ConstraintViolation<Organization>> results = Validation.getValidator().validate(newOrgForm.get());
         if (!results.isEmpty()) {
             newOrgForm.reject("name", "organization.name.alert");
