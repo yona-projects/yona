@@ -205,7 +205,7 @@ public class Attachment extends Model implements ResourceConvertible {
      * PlayFramework to the Upload Directory managed by Yobi.
      *
      * @param file
-     * @return SHA1 hash of the file
+     * @return SHA-256 hash of the file
      * @throws NoSuchAlgorithmException
      * @throws IOException
      */
@@ -214,7 +214,7 @@ public class Attachment extends Model implements ResourceConvertible {
         // Compute sha1 checksum.
         InputStream is = new FileInputStream(file);
         byte buf[] = new byte[10240];
-        MessageDigest algorithm = MessageDigest.getInstance("SHA1");
+        MessageDigest algorithm = MessageDigest.getInstance("SHA-256");
         for (int readSize = 0; readSize >= 0; readSize = is.read(buf)) {
             algorithm.update(buf, 0, readSize);
         }
@@ -242,7 +242,7 @@ public class Attachment extends Model implements ResourceConvertible {
      * Attaches an uploaded file to the given container with the given name.
      *
      * Moves an uploaded file to the Upload Directory and rename the file to
-     * its SHA1 hash. And it stores the metadata of the file in this entity.
+     * its SHA-256 hash. And it stores the metadata of the file in this entity.
      *
      * If there is an entity that has the same values with this entity already,
      * it means the container has the same attachment. If that is the case,
@@ -499,7 +499,7 @@ public class Attachment extends Model implements ResourceConvertible {
         byte buf[] = new byte[10240];
 
         // Compute hash and store the stream as a temp file
-        MessageDigest algorithm = MessageDigest.getInstance("SHA1");
+        MessageDigest algorithm = MessageDigest.getInstance("SHA-256");
         String tempFileHash;
         File tmpFile = File.createTempFile("yobi", null);
         FileOutputStream fos = new FileOutputStream(tmpFile);
@@ -544,9 +544,9 @@ public class Attachment extends Model implements ResourceConvertible {
      */
     private boolean save(File file, String fileName, Resource container) throws
             IOException {
-        // Store the file as its SHA1 hash in filesystem, and record its
-        // metadata - containerType, containerId, createdDate, name, size, hash and
-        // mimeType - in Database.
+        // Store the file as its SHA-256 hash in filesystem, and record its
+        // metadata - containerType, containerId, createdDate, name, size, hash
+        // and mimeType - in Database.
         this.containerType = container.getType();
         this.containerId = container.getId();
         this.createdDate = JodaDateUtil.now();
