@@ -59,7 +59,7 @@ public class UserApp extends Controller {
     public static final String DEFAULT_AVATAR_URL
             = routes.Assets.at("images/default-avatar-128.png").url();
     private static final int AVATAR_FILE_LIMIT_SIZE = 1024*1000*1; //1M
-    public static final int MAX_FETCH_USERS = 1000;
+    public static final int MAX_FETCH_USERS = 10;  //Match value to Typeahead deafult value at yobi.ui.Typeaheds.js
     private static final int HASH_ITERATIONS = 1024;
     public static final int DAYS_AGO = 7;
     public static final int UNDEFINED = 0;
@@ -76,10 +76,16 @@ public class UserApp extends Controller {
 
     @AnonymousCheck
     public static Result users(String query) {
-        if (!request().accepts("application/json")) {
+        String referer = StringUtils.defaultString(request().getHeader("referer"), "");
+        if (!referer.endsWith("members") || !request().accepts("application/json")) {
             return status(Http.Status.NOT_ACCEPTABLE);
         }
 
+        if(StringUtils.isEmpty(query)){
+            return ok(toJson(new ArrayList<>()));
+        }
+
+        List<Map<String, String>> users = new ArrayList<>();
         ExpressionList<User> el = User.find.select("loginId, name").where()
             .ne("state", UserState.DELETED).disjunction();
         el.icontains("loginId", query);
@@ -92,7 +98,6 @@ public class UserApp extends Controller {
             response().setHeader("Content-Range", "items " + MAX_FETCH_USERS + "/" + total);
         }
 
-        List<Map<String, String>> users = new ArrayList<>();
         for (User user : el.findList()) {
             StringBuilder sb = new StringBuilder();
             sb.append(String.format("<img class='mention_image' src='%s'>", user.avatarUrl()));
