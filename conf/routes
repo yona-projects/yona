@@ -47,6 +47,7 @@ GET            /-_-api/v1/favoriteProjects                                      
 POST           /-_-api/v1/favoriteProjects/:projectId                                  controllers.api.UserApi.toggleFoveriteProject(projectId:String)
 GET            /-_-api/v1/favoriteOrganizations                                        controllers.api.UserApi.getFoveriteOrganizations
 POST           /-_-api/v1/favoriteOrganizations/:organizationId                        controllers.api.UserApi.toggleFoveriteOrganization(organizationId:String)
+GET            /-_-api/v1/users                                                        controllers.UserApp.users(query: String ?= "")
 
 
 
@@ -79,7 +80,6 @@ POST           /organizations/:organizationName/cancel/enroll                   
 POST           /noti/toggle/:projectId/:notiType                                      controllers.WatchProjectApp.toggle(projectId: Long, notiType)
 
 # User
-GET            /users                                                                 controllers.UserApp.users(query: String ?= "")
 GET            /user/issues                                                           controllers.IssueApp.userIssues(state:String ?= "", format:String ?= "html", pageNum: Int ?= 1)
 GET            /user/files                                                            controllers.UserApp.userFiles()
 GET            /users/loginform                                                       controllers.UserApp.loginForm()

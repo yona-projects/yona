@@ -75,9 +75,9 @@
         function _initElement(sQuery){
             try {
                 htElement.welInput = $(sQuery);
-                htElement.welInput.typeahead({ minLength: htVar.htData.minLength || 0 });
-                htData = htElement.welInput.data('typeahead');
-                htData.items = htVar.htData.limit || 8;
+                htElement.welInput.typeahead({ minLength: htVar.htData.minLength || 0, items: 10 });
+                var htData = htElement.welInput.data('typeahead') || {};
+                htData.items = htVar.htData.limit || 10;
                 htData.source = htVar.htData.source || _onTypeAhead;
 
                 if(typeof htVar.htData.updater === "function"){
@@ -89,6 +89,7 @@
                 }
 
                 htData.minLength = htVar.htData.minLength || 0;
+                htElement.welInput.typeahead(htData);
             } catch (err){
                 if(typeof console == "object") {
                     console.log(err);
@@ -116,6 +117,7 @@
                     "sDataType" : "json",
                     "fOnLoad"    : function(oData, oStatus, oXHR){
                         var sContentRange = oXHR.getResponseHeader('Content-Range');
+                        console.log(oData);
 
                         htVar.bIsLastRangeEntire = _isEntireRange(sContentRange);
                         htVar.sLastQuery = sQuery;
