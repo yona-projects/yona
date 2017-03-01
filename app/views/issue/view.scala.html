@@ -14,6 +14,7 @@
 @import utils.AccessControl._
 @import play.libs.Json.toJson
 @import utils.Markdown
+@import models.enumeration.State
 
 @getTitle(issue:Issue) = @{ "#" + issue.getNumber + " " + issue.title }
 
@@ -43,6 +44,53 @@
 }
 
 @titleForOGTag = @{getTitle(issue) + " |:| " + issue.body.substring(0, Math.min(issue.body.length, 200))}
+
+@parentIssueId = @{
+    if(issue.parent != null){
+        issue.parent.id
+    } else {
+        issue.id
+    }
+}
+
+@showChildIssues(parentIssueId: Long) = {
+@defining(Issue.findByParentIssueIdAndState(parentIssueId, State.OPEN)) { openChildIssues =>
+    @defining(Issue.findByParentIssueIdAndState(parentIssueId, State.CLOSED)) { closedChildIssues =>
+        @if(!openChildIssues.isEmpty || !closedChildIssues.isEmpty) {
+            <div class="child-issues">
+                @defining(Issue.finder.byId(parentIssueId)) { parentIssue =>
+                    <div class="issue-item parent-issue"><a href="@routes.IssueApp.issue(project.owner, project.name, parentIssue.getNumber)" class="@if(parentIssue.id == issue.id){bold}">#@parentIssue.getNumber @parentIssue.title @if(parentIssue.assignee != null) {- @parentIssue.assignee.user.name}</a>
+                        @defining(getPercent(closedChildIssues.size.toDouble, (openChildIssues.size + closedChildIssues.size).toDouble)) { percentage =>
+                        <div class="upload-progress">
+                            <div class="bar @if(percentage == 100){done} else {grey}" style="width: @percentage%;" title="Subtask"></div>
+                        </div>
+                        <span class="@if(percentage == 100){txt-green}">@if(percentage != 100){@closedChildIssues.size/}@(openChildIssues.size + closedChildIssues.size)</span>
+                        <span class="parent-issue-state @parentIssue.state.state">@Messages("issue.state." + parentIssue.state.state)</span>
+                    </div>
+                }
+                }
+                <hr style="margin: 0"/>
+                @for(childIssue <- openChildIssues) {
+                    <div class="issue-item @if(childIssue.id == issue.id){bold}">
+                        <span class="state-label open"></span>
+                        <a href="@routes.IssueApp.issue(project.owner, project.name, childIssue.getNumber)">
+                            <span class="item-name">@childIssue.title @if(childIssue.assignee != null) {- @childIssue.assignee.user.name}</span>
+                        </a>
+                    </div>
+                }
+                @for(childIssue <- closedChildIssues) {
+                    <div class="issue-item @if(childIssue.id == issue.id){bold}">
+                        <span class="state-label closed"><i class=" yobicon-checkmark"></i></span>
+                        <a href="@routes.IssueApp.issue(project.owner, project.name, childIssue.getNumber)">
+                            <span class="item-name">@childIssue.title @if(childIssue.assignee != null) {- @childIssue.assignee.user.name}</span>
+                        </a>
+                    </div>
+                }
+            </div>
+        }
+    }
+}
+}
 
 @conatinsCurrentUserInWatchers = @{issue.getWatchers(false).contains(UserApp.currentUser())}
 
@@ -155,6 +203,13 @@
                     }
                 </div>
                 <div class="watcher-list"></div>
+                <div class="subtasks">
+                @if(issue.parent == null) {
+                    @showChildIssues(issue.id)
+                } else {
+                    @showChildIssues(issue.parent.id)
+                }
+                </div>
                 @** Comment **@
                 <div id="comments" class="board-comment-wrap">
                     <div id="timeline">
@@ -176,7 +231,7 @@
                         <dl>
                             @if(project.menuSetting.issue) {
                                 <dd class="project-btn-item">
-                                    <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="ybtn ybtn-success" target="_blank">@Messages("button.newIssue")</a>
+                                    <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)?parentIssueId=@parentIssueId" class="ybtn ybtn-success" target="_blank">@Messages("button.newIssue")</a>
                                 </dd>
                             }
                             <dt>@Messages("issue.assignee")</dt>

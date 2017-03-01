@@ -45,6 +45,8 @@
                     @agoOrDateString(issue.createdDate)
                 </span>
 
+                @partial_list_subtask(project, issue)
+
                 <span class="infos-item project-name">
                 <a href="@routes.ProjectApp.project(project.owner,project.name)" class="title project" data-toggle="tooltip" data-placement="bottom" title="@Messages("project.name")">
                 @project.name
@@ -53,7 +55,7 @@
                 <span class="infos-item post-id">#@issue.getNumber</span>
 
                 @if(issue.milestone != null && project != null && project.menuSetting != null && project.menuSetting.milestone) {
-                <span class="infos-item mileston-tag">
+                <span class="mileston-tag">
                     <a href="@routes.MilestoneApp.milestone(project.owner, project.name, issue.milestone.id)" data-toggle="tooltip" data-placement="bottom" title="@Messages("milestone")">
                         @issue.milestone.title
                     </a>

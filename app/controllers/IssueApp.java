@@ -417,6 +417,9 @@ public class IssueApp extends AbstractPostingApp {
                     ErrorViews.RequestTextEntityTooLarge.render());
         }
 
+        if(StringUtils.isNotEmpty(newIssue.parentIssueId)){
+            newIssue.parent = Issue.finder.byId(Long.valueOf(newIssue.parentIssueId));
+        }
         newIssue.createdDate = JodaDateUtil.now();
         newIssue.updatedDate = JodaDateUtil.now();
         newIssue.setAuthor(UserApp.currentUser());
@@ -511,6 +514,7 @@ public class IssueApp extends AbstractPostingApp {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         if (issueForm.hasErrors()) {
+            flash(Constants.WARNING, issueForm.error("name").message());
             return badRequest(edit.render("error.validation", issueForm, Issue.findByNumber(project, number), project));
         }
 
@@ -521,6 +525,7 @@ public class IssueApp extends AbstractPostingApp {
         issue.dueDate = JodaDateUtil.lastSecondOfDay(issue.dueDate);
 
         final Issue originalIssue = Issue.findByNumber(project, number);
+        updateSubtaskRelation(issue, originalIssue);
 
         Call redirectTo = routes.IssueApp.issue(project.owner, project.name, number);
 
@@ -545,6 +550,16 @@ public class IssueApp extends AbstractPostingApp {
         };
 
         return editPosting(originalIssue, issue, issueForm, redirectTo, preUpdateHook);
+    }
+
+    private static void updateSubtaskRelation(Issue issue, Issue originalIssue) {
+        if(StringUtils.isEmpty(issue.parentIssueId)){
+            issue.parent = null;
+        } else {
+            issue.parent = Issue.finder.byId(Long.valueOf(issue.parentIssueId));
+        }
+        originalIssue.parent = issue.parent;
+        originalIssue.update();
     }
 
     private static void setAssignee(Form<Issue> issueForm, Issue issue, Project project) {

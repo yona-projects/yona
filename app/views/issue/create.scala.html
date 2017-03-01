@@ -5,6 +5,7 @@
 * https://yona.io
 **@
 @import play.data.Form
+@import org.apache.commons.lang3.StringUtils
 @(title:String, issueForm: Form[Issue], project:Project, issueTemplate:String = "")
 @import helper._
 @import scala.collection.mutable.Map
@@ -13,6 +14,10 @@
 @import utils.AccessControl._
 @import utils.TemplateHelper._
 @import controllers.UserApp
+
+@parentIssueId = @{
+    play.mvc.Http.Context.current().request().getQueryString("parentIssueId")
+}
 
 @projectLayout(Messages(title), project, utils.MenuType.ISSUE) {
 @projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
@@ -23,12 +28,9 @@
         <div class="row-fluid">
             <div class="span12">
                 <dl>
-                    <dt>
-                        <label for="title">@Messages("title")</label>
-                    </dt>
                     <dd>
                     	@defining(issueForm.errors().get("title")) { errors =>
-                        <input type="text" id="title" name="title" value="" class="text title zen-mode @if(errors != null) {error}" maxlength="250" tabindex="1">
+                        <input type="text" id="title" name="title" placeholder="@Messages("title")" value="" class="text title zen-mode @if(errors != null) {error}" maxlength="250" tabindex="1">
     	                    @if(errors != null) {
     							<div class="message">
     							@for(error <- errors) {
@@ -36,6 +38,30 @@
     							}
     							</div>
     						}
+                        <div class="subtitle-message">+ Sub task</div>
+                        <div class="subtask-wrap">
+                            <div class="span3">
+                                <select id="projects" name="targetProjectName" data-format="projects" data-placeholder="@Messages("organization.choose.projects")" data-toggle="select2" data-container-css-class="fullsize" >
+                                    <option value="@project.name" data-avatar-url="@urlToProjectLogo(project)">@project.name</option>
+                                @for(project <- UserApp.currentUser().myProjects("")) {
+                                    <option value="@project.name" data-avatar-url="@urlToProjectLogo(project)">@project.name</option>
+                                }
+                                </select>
+                            </div>
+                            <div class="span8">
+                                <select id="parentId" name="parentIssueId" data-format="issues" data-placeholder="@Messages("organization.choose.projects")" data-toggle="select2" data-container-css-class="fullsize" >
+                                    <option disabled selected value> -- select an issue -- </option>
+                                    @if(StringUtils.isNotEmpty(parentIssueId)){
+                                        @defining(Issue.finder.byId(Long.parseLong(parentIssueId))) { issue =>
+                                            <option value="@parentIssueId" selected>#@issue.getNumber. @issue.title</option>
+                                        }
+                                    }
+                                @for(issue <- Issue.findByProject(project, "", 1)) {
+                                    <option value="@issue.id" @if(issue.id+"" == parentIssueId){selected}>#@issue.getNumber. @issue.title</option>
+                                }
+                                </select>
+                            </div>
+                        </div>
     					}
                     </dd>
                 </dl>
@@ -60,7 +86,7 @@
                      --><a href="javascript:history.back();" class="ybtn">@Messages("button.cancel")</a>
                     </div>
                 </div>
-                <div class="span3 span-hard-wrap">
+                <div class="span3 span-hard-wrap right-menu">
                     @if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_ASSIGNEE)) {
                     <dl class="issue-option">
                          <dt>@Messages("issue.assignee")</dt>

@@ -61,6 +61,11 @@
                     });
                 }
             },
+            "issues": function(itemObject){
+                return $yobi.tmpl($("#tplSelect2FormatIssues").text(), {
+                    "name"     : itemObject.text
+                });
+            },
             "user": function(itemObject){
                 var itemElement = $(itemObject.element);
                 var avatarURL = itemElement.data("avatarUrl");
