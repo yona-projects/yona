@@ -7,6 +7,7 @@
 package models;
 
 import com.avaje.ebean.Ebean;
+import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
 import com.avaje.ebean.annotation.Formula;
 import controllers.routes;
@@ -93,6 +94,12 @@ public class Issue extends AbstractPosting implements LabelOwner {
         super(project, author, title, body);
         this.state = State.OPEN;
     }
+
+    @Transient
+    public String parentIssueId;
+
+    @OneToOne
+    public Issue parent;
 
     public Issue() {
         super();
@@ -421,6 +428,24 @@ public class Issue extends AbstractPosting implements LabelOwner {
                 .ge("createdDate", JodaDateUtil.before(days)).order().desc("createdDate").findList();
     }
 
+    public static List<Issue> findByProject(Project project, String filter) {
+        ExpressionList<Issue> el = finder.where()
+                .eq("project.id", project.id);
+        if(StringUtils.isNotEmpty(filter)){
+            el.icontains("title", filter);
+        }
+        return el.order().desc("createdDate").findList();
+    }
+
+    public static List<Issue> findByProject(Project project, String filter, int limit) {
+        ExpressionList<Issue> el = finder.where()
+                .eq("project.id", project.id);
+        if(StringUtils.isNotEmpty(filter)){
+            el.icontains("title", filter);
+        }
+        return el.setMaxRows(10).order().desc("createdDate").findList();
+    }
+
     public static Page<Issue> findIssuesByState(int size, int pageNum, State state) {
         return finder.where().eq("state", state)
                 .order().desc("createdDate")
@@ -581,6 +606,31 @@ public class Issue extends AbstractPosting implements LabelOwner {
                 .findRowCount();
     }
 
+    public static List<Issue> findByParentIssueId(Long parentIssueId){
+        return finder.where()
+                .eq("parent.id", parentIssueId)
+                .findList();
+    }
 
+    public boolean hasChildIssue(){
+        List<Issue> issues = finder.where()
+                .eq("parent.id", this.id)
+                .setFirstRow(1)
+                .setMaxRows(1).findList();
+        return issues.size() > 0;
+    }
 
+    public static List<Issue> findByParentIssueIdAndState(Long parentIssueId, State state){
+        return finder.where()
+                .eq("parent.id", parentIssueId)
+                .eq("state", state)
+                .findList();
+    }
+
+    public static int countByParentIssueIdAndState(Long parentIssueId, State state){
+        return finder.where()
+                .eq("parent.id", parentIssueId)
+                .eq("state", state)
+                .findRowCount();
+    }
 }

@@ -1,0 +1,31 @@
+@**
+* Yona, 21st Century Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp.
+* https://yona.io
+**@
+@(project:Project, issue:Issue)
+
+@import utils.TemplateHelper._
+@import models.enumeration.State
+
+
+@if(issue.hasChildIssue) {
+    @defining(Issue.countByParentIssueIdAndState(issue.id, State.OPEN)) { openIssueCount =>
+        @defining(Issue.countByParentIssueIdAndState(issue.id, State.CLOSED)) { closedIssueCount =>
+            @defining(getPercent(closedIssueCount.toDouble, openIssueCount + closedIssueCount)) { percentage =>
+                <div class="upload-progress">
+                    <div class="bar @if(percentage == 100) {done} else {grey}" style="width: @percentage%;" title="Subtask"></div>
+                </div>
+                <span class="completion-ratio @if(percentage == 100){txt-green}">@if(percentage != 100){@closedIssueCount/}@(closedIssueCount + openIssueCount)</span>
+            }
+        }
+    }
+}
+@if(issue.parent != null){
+    <span class="infos-item subtask">
+    @defining(Issue.finder.byId(issue.parent.id)) { parentIssue =>
+        <a href="@routes.IssueApp.issue(project.owner, project.name, parentIssue.getNumber)">#@parentIssue.getNumber @parentIssue.title.take(5).trim()@if(parentIssue.title.size > 5){...}</a>
+    }
+    </span>
+}

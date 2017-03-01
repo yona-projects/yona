@@ -68,6 +68,9 @@ public class Posting extends AbstractPosting {
         return comments.size();
     }
 
+    @OneToOne
+    public Posting parent;
+
     public Posting() {
         super();
     }
