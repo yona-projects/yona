@@ -881,6 +881,7 @@ title.newOrganization = 새 그룹 만들기
 title.newProject = 새 프로젝트 시작
 title.newPullRequest = 코드 보내기
 title.no.results = 결과 없음
+title.options = 옵션
 title.organization = 그룹
 title.organizationHome = 홈
 title.post.notExistingPage = 페이지를 찾지 못했습니다.
