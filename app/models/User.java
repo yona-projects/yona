@@ -936,4 +936,14 @@ public class User extends Model implements ResourceConvertible {
             list.get(0).delete();
         }
     }
+
+    public List<Project> getIssueMovableProject(){
+        Set<Project> projects = new LinkedHashSet<>();
+        projects.addAll(getFavoriteProjects());
+        projects.addAll(getVisitedProjects());
+        projects.addAll(Project.findProjectsByMember(id));
+        List<Project> list = new ArrayList<>();
+        list.addAll(projects);
+        return list;
+    }
 }

@@ -13,20 +13,22 @@
     <div class="span3">
         <select id="targetProjectId" name="targetProjectId" data-format="projects" data-placeholder="@Messages("organization.choose.projects")" data-toggle="select2" data-container-css-class="fullsize" @if(!showOption){disabled}>
             <option value="@project.id" data-avatar-url="@urlToProjectLogo(project)">@project.name</option>
-            @for(project <- UserApp.currentUser().myProjects("")) {
-                <option value="@project.id" data-avatar-url="@urlToProjectLogo(project)">@project.name</option>
+            @for(movableProject <- UserApp.currentUser().getIssueMovableProject) {
+                @if(movableProject.id != project.id) {
+                    <option value="@movableProject.id" data-avatar-url="@urlToProjectLogo(movableProject)">@movableProject.name</option>
+                }
             }
         </select>
     </div>
     <div class="span6">
         <select id="parentId" name="parentIssueId" data-format="issues" data-placeholder="@Messages("organization.choose.projects")" data-toggle="select2" data-container-css-class="fullsize" @if(!showOption){disabled}>
-            <option value="" selected> -- select a parent issue -- </option>
+            <option value="" selected>@Messages("issue.subtask.select")</option>
             @if(Option(parentIssueId).isDefined){
                 @defining(Issue.finder.byId(parentIssueId)) { issue =>
                     <option value="@issue.id" selected>#@issue.getNumber. @issue.title</option>
                 }
             }
-            @for(issue <- Issue.findByProject(project, "", 1)) {
+            @for(issue <- Issue.findByProject(project, "", 1).filter(issue => issue.id != currentIssueId)) {
                 <option value="@issue.id" @if(issue.id == parentIssueId){selected}>#@issue.getNumber. @issue.title</option>
             }
         </select>

@@ -282,6 +282,7 @@ issue.noAuthor = 작성자 없음
 issue.noMilestone = 마일스톤 없음
 issue.noDuedate = 목표 완료일 없음
 issue.search = 검색
+issue.subtask.select = -- 서브 이슈로 만들고 싶으면 부모 이슈를 선택하세요 --
 issue.state = 상태
 issue.state.all = 전체
 issue.state.assigned = 할당됨

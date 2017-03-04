@@ -447,7 +447,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
         if(StringUtils.isNotEmpty(filter)){
             el.icontains("title", filter);
         }
-        return el.setMaxRows(10).order().desc("createdDate").findList();
+        return el.setMaxRows(100).order().desc("createdDate").findList();
     }
 
     public static Page<Issue> findIssuesByState(int size, int pageNum, State state) {

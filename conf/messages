@@ -282,6 +282,7 @@ issue.noAuthor = No author
 issue.noMilestone = No milestone
 issue.noDuedate = No due date
 issue.search = SEARCH
+issue.subtask.select = -- If you want to make a sub-issue, choose parent issue --
 issue.state = Status
 issue.state.all = All
 issue.state.assigned = Assigned
