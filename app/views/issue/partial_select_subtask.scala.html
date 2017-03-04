@@ -4,13 +4,13 @@
 * Copyright Yona & Yobi Authors & NAVER Corp.
 * https://yona.io
 **@
-@(project:Project, parentIssueId:Long)
+@(project:Project, parentIssueId:Long, showOption:Boolean = false)
 
 @import utils.TemplateHelper._
 
-<div class="subtask-wrap">
+<div class="subtask-wrap @if(showOption){show}">
     <div class="span3">
-        <select id="targetProjectId" name="targetProjectId" data-format="projects" data-placeholder="@Messages("organization.choose.projects")" data-toggle="select2" data-container-css-class="fullsize" disabled>
+        <select id="targetProjectId" name="targetProjectId" data-format="projects" data-placeholder="@Messages("organization.choose.projects")" data-toggle="select2" data-container-css-class="fullsize" @if(!showOption){disabled}>
             <option value="@project.id" data-avatar-url="@urlToProjectLogo(project)">@project.name</option>
             @for(project <- UserApp.currentUser().myProjects("")) {
                 <option value="@project.id" data-avatar-url="@urlToProjectLogo(project)">@project.name</option>
@@ -18,7 +18,7 @@
         </select>
     </div>
     <div class="span6">
-        <select id="parentId" name="parentIssueId" data-format="issues" data-placeholder="@Messages("organization.choose.projects")" data-toggle="select2" data-container-css-class="fullsize" disabled>
+        <select id="parentId" name="parentIssueId" data-format="issues" data-placeholder="@Messages("organization.choose.projects")" data-toggle="select2" data-container-css-class="fullsize" @if(!showOption){disabled}>
             <option value="" selected> -- select a parent issue -- </option>
             @if(Option(parentIssueId).isDefined){
                 @defining(Issue.finder.byId(parentIssueId)) { issue =>
