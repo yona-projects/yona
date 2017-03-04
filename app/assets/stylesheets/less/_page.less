@@ -2029,10 +2029,10 @@ label.inline-list {
 
 //-- filters
 .filter-wrap {
-    display: block;/*inline;*/
-    margin:15px 0 10px;
-    height:30px;
-    position:relative;
+    display: block;
+    margin: 5px 0 0;
+    height: 30px;
+    position: relative;
 
     &.small-heights{
         margin: 5px 0 0;
@@ -6651,7 +6651,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     }
 
     .issue-item {
-        font-size: 16px;
+        font-size: 14px;
         padding: 3px;
         .item-name {
             background-color: white;
@@ -6673,6 +6673,14 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 .subtasks {
     #simple-issue-list;
     margin-bottom: 15px;
+    margin-top: 40px;
+    .parent-issue {
+        font-size: 16px;
+    }
+    .parent-issue-delimeter {
+        margin: 5px 0 0 0;
+        border-top: dashed 1px #ddd;
+    }
 }
 
 .subtask {

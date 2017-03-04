@@ -617,11 +617,10 @@ public class Issue extends AbstractPosting implements LabelOwner {
     }
 
     public boolean hasChildIssue(){
-        List<Issue> issues = finder.where()
+        return finder.where()
                 .eq("parent.id", this.id)
-                .setFirstRow(1)
-                .setMaxRows(1).findList();
-        return issues.size() > 0;
+                .setMaxRows(1)
+                .findRowCount() > 0;
     }
 
     public static List<Issue> findByParentIssueIdAndState(Long parentIssueId, State state){
