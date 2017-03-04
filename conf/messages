@@ -882,6 +882,7 @@ title.newOrganization = New Group
 title.newProject = Create new project
 title.newPullRequest = Send pull request
 title.no.results = No results
+title.options = Options
 title.organization = Groups
 title.organizationHome = Group Home
 title.post.notExistingPage = Page not found
