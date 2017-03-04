@@ -5,6 +5,7 @@
 * https://yona.io
 **@
 @import play.data.Form
+@import org.apache.commons.lang3.StringUtils
 @(title:String, issueForm: Form[Issue], issue:Issue,  project:Project)
 @import helper._
 @import scala.collection.mutable.Map
@@ -50,7 +51,7 @@
     							}
     							</div>
     						}
-                          @partial_select_subtask(project, parentIssueId)
+                          @partial_select_subtask(project, parentIssueId, parentIssueId != null)
     					}
                     </dd>
                 </dl>
