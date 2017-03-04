@@ -30,7 +30,12 @@
                 <dl>
                     <dd>
                     	@defining(issueForm.errors().get("title")) { errors =>
-                        <input type="text" id="title" name="title" placeholder="@Messages("title")" value="" class="text title zen-mode @if(errors != null) {error}" maxlength="250" tabindex="1">
+                            <div class="span12">
+                                <div class="span11">
+                                    <input type="text" id="title" name="title" value="" class="text title @if(errors != null) {error}" maxlength="250" tabindex="1" placeholder="@Messages("title")">
+                                </div>
+                                <div class="span1"><div><div class="subtask-message">Options</div></div></div>
+                            </div>
     	                    @if(errors != null) {
     							<div class="message">
     							@for(error <- errors) {
@@ -38,30 +43,11 @@
     							}
     							</div>
     						}
-                        <div class="subtitle-message">+ Sub task</div>
-                        <div class="subtask-wrap">
-                            <div class="span3">
-                                <select id="projects" name="targetProjectName" data-format="projects" data-placeholder="@Messages("organization.choose.projects")" data-toggle="select2" data-container-css-class="fullsize" >
-                                    <option value="@project.name" data-avatar-url="@urlToProjectLogo(project)">@project.name</option>
-                                @for(project <- UserApp.currentUser().myProjects("")) {
-                                    <option value="@project.name" data-avatar-url="@urlToProjectLogo(project)">@project.name</option>
-                                }
-                                </select>
-                            </div>
-                            <div class="span8">
-                                <select id="parentId" name="parentIssueId" data-format="issues" data-placeholder="@Messages("organization.choose.projects")" data-toggle="select2" data-container-css-class="fullsize" >
-                                    <option disabled selected value> -- select an issue -- </option>
-                                    @if(StringUtils.isNotEmpty(parentIssueId)){
-                                        @defining(Issue.finder.byId(Long.parseLong(parentIssueId))) { issue =>
-                                            <option value="@parentIssueId" selected>#@issue.getNumber. @issue.title</option>
-                                        }
-                                    }
-                                @for(issue <- Issue.findByProject(project, "", 1)) {
-                                    <option value="@issue.id" @if(issue.id+"" == parentIssueId){selected}>#@issue.getNumber. @issue.title</option>
-                                }
-                                </select>
-                            </div>
-                        </div>
+                            @if(StringUtils.isNotEmpty(parentIssueId)) {
+                                @partial_select_subtask(project, Long.parseLong(parentIssueId))
+                            } else {
+                                @partial_select_subtask(project, null)
+                            }
     					}
                     </dd>
                 </dl>
@@ -149,6 +135,7 @@
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.css")">
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.caret.min.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.Subtask.js")"></script>
 <script type="text/javascript">
     $(function(){
         // yobi.issue.Write

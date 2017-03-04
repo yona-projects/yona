@@ -4,23 +4,22 @@
 * Copyright Yona & Yobi Authors & NAVER Corp.
 * https://yona.io
 **@
-@(project:Project, issue:Issue, parentIssueId:Long)
+@(project:Project, parentIssueId:Long)
 
 @import utils.TemplateHelper._
 
-<div class="subtitle-message">+ Sub task</div>
 <div class="subtask-wrap">
     <div class="span3">
-        <select id="projects" name="targetProjectName" data-format="projects" data-placeholder="@Messages("organization.choose.projects")" data-toggle="select2" data-container-css-class="fullsize" >
-            <option value="@project.name" data-avatar-url="@urlToProjectLogo(project)">@project.name</option>
+        <select id="targetProjectId" name="targetProjectId" data-format="projects" data-placeholder="@Messages("organization.choose.projects")" data-toggle="select2" data-container-css-class="fullsize" disabled>
+            <option value="@project.id" data-avatar-url="@urlToProjectLogo(project)">@project.name</option>
             @for(project <- UserApp.currentUser().myProjects("")) {
-                <option value="@project.name" data-avatar-url="@urlToProjectLogo(project)">@project.name</option>
+                <option value="@project.id" data-avatar-url="@urlToProjectLogo(project)">@project.name</option>
             }
         </select>
     </div>
-    <div class="span8">
-        <select id="parentId" name="parentIssueId" data-format="issues" data-placeholder="@Messages("organization.choose.projects")" data-toggle="select2" data-container-css-class="fullsize" >
-            <option value="" selected> -- select an issue -- </option>
+    <div class="span6">
+        <select id="parentId" name="parentIssueId" data-format="issues" data-placeholder="@Messages("organization.choose.projects")" data-toggle="select2" data-container-css-class="fullsize" disabled>
+            <option value="" selected> -- select a parent issue -- </option>
             @if(Option(parentIssueId).isDefined){
                 @defining(Issue.finder.byId(parentIssueId)) { issue =>
                     <option value="@issue.id" selected>#@issue.getNumber. @issue.title</option>

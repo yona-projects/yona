@@ -37,7 +37,12 @@
                     </dt>
                     <dd>
                     	@defining(issueForm.errors().get("title")) { errors =>
-                        <input type="text" id="title" name="title" value="@issue.title" class="zen-mode text title @if(errors != null) {error}" maxlength="250" tabindex="1" placeholder="@Messages("title.text")">
+                            <div class="span12">
+                                <div class="span11">
+                                    <input type="text" id="title" name="title" value="" class="text title @if(errors != null) {error}" maxlength="250" tabindex="1" placeholder="@Messages("title")">
+                                </div>
+                                <div class="span1 subtask-message">Options</div>
+                            </div>
     	                    @if(errors != null) {
     							<div class="message">
     							@for(error <- errors) {
@@ -45,7 +50,7 @@
     							}
     							</div>
     						}
-                          @partial_select_subtask(project, issue, parentIssueId)
+                          @partial_select_subtask(project, parentIssueId)
     					}
                     </dd>
                 </dl>
@@ -177,6 +182,7 @@
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.css")">
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.caret.min.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.Subtask.js")"></script>
 <script type="text/javascript">
     $(function(){
         // yobi.issue.Write

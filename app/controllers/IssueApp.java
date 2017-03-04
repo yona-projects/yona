@@ -410,6 +410,15 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         final Issue newIssue = issueForm.get();
+        if(StringUtils.isNotEmpty(newIssue.targetProjectId)){
+            Project toAnotherProject = Project.find.byId(Long.valueOf(newIssue.targetProjectId));
+            if(toAnotherProject == null){
+                flash(Constants.WARNING, Messages.get("error.notfound.project"));
+                return badRequest(create.render("title.newIssue", new Form<>(Issue.class), project, null));
+            } else {
+                project = toAnotherProject;
+            }
+        }
         removeAnonymousAssignee(newIssue);
 
         if (newIssue.body == null) {
