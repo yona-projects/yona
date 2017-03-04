@@ -4,8 +4,9 @@
 * Copyright Yona & Yobi Authors & NAVER Corp.
 * https://yona.io
 **@
-@(project:Project, parentIssueId:Long, showOption:Boolean = false)
+@(project:Project, parentIssueId:Long, currentIssueId:Long)
 
+@showOption = @{Option(parentIssueId).isDefined && Option(currentIssueId).isDefined}
 @import utils.TemplateHelper._
 
 <div class="subtask-wrap @if(showOption){show}">

@@ -44,9 +44,9 @@
     							</div>
     						}
                             @if(StringUtils.isNotEmpty(parentIssueId)) {
-                                @partial_select_subtask(project, Long.parseLong(parentIssueId), false)
+                                @partial_select_subtask(project, Long.parseLong(parentIssueId), null)
                             } else {
-                                @partial_select_subtask(project, null, false)
+                                @partial_select_subtask(project, null, null)
                             }
     					}
                     </dd>
