@@ -28,6 +28,7 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.apache.shiro.util.CollectionUtils;
 import play.data.Form;
 import play.data.format.Formats;
+import play.db.ebean.Model.Finder;
 import play.i18n.Messages;
 import utils.JodaDateUtil;
 
@@ -94,6 +95,9 @@ public class Issue extends AbstractPosting implements LabelOwner {
         super(project, author, title, body);
         this.state = State.OPEN;
     }
+
+    @Transient
+    public String targetProjectId;
 
     @Transient
     public String parentIssueId;
