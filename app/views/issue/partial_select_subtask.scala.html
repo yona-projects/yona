@@ -7,6 +7,7 @@
 @(project:Project, parentIssueId:Long, currentIssueId:Long)
 
 @showOption = @{Option(parentIssueId).isDefined && Option(currentIssueId).isDefined}
+@hasChildIssue = @{Option(currentIssueId).isDefined && Issue.finder.byId(currentIssueId).hasChildIssue}
 @import utils.TemplateHelper._
 
 <div class="subtask-wrap @if(showOption){show}">
@@ -22,14 +23,16 @@
     </div>
     <div class="span6">
         <select id="parentId" name="parentIssueId" data-format="issues" data-placeholder="@Messages("organization.choose.projects")" data-toggle="select2" data-container-css-class="fullsize" @if(!showOption){disabled}>
-            <option value="" selected>@Messages("issue.subtask.select")</option>
+            <option value="" selected>@if(hasChildIssue){이미 부모 이슈입니다.}else{@Messages("issue.subtask.select")}</option>
             @if(Option(parentIssueId).isDefined){
                 @defining(Issue.finder.byId(parentIssueId)) { issue =>
                     <option value="@issue.id" selected>#@issue.getNumber. @issue.title</option>
                 }
             }
             @for(issue <- Issue.findByProject(project, "", 1).filter(issue => issue.id != currentIssueId)) {
-                <option value="@issue.id" @if(issue.id == parentIssueId){selected}>#@issue.getNumber. @issue.title</option>
+                @if(issue.parent == null && !hasChildIssue) {
+                    <option value="@issue.id" @if(issue.id == parentIssueId) {selected}>#@issue.getNumber. @issue.title </option>
+                }
             }
         </select>
     </div>

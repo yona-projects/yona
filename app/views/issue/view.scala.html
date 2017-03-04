@@ -59,7 +59,7 @@
         @if(!openChildIssues.isEmpty || !closedChildIssues.isEmpty) {
             <div class="child-issues">
                 @defining(Issue.finder.byId(parentIssueId)) { parentIssue =>
-                    <div class="issue-item parent-issue"><a href="@routes.IssueApp.issue(project.owner, project.name, parentIssue.getNumber)" class="@if(parentIssue.id == issue.id){bold}">#@parentIssue.getNumber @parentIssue.title @if(parentIssue.assignee != null) {- @parentIssue.assignee.user.name}</a>
+                    <div class="issue-item parent-issue"><a href="@routes.IssueApp.issue(parentIssue.project.owner, parentIssue.project.name, parentIssue.getNumber)" class="@if(parentIssue.id == issue.id){bold}">#@parentIssue.getNumber @parentIssue.title @if(parentIssue.assignee != null) {- @parentIssue.assignee.user.name}</a>
                         @defining(getPercent(closedChildIssues.size.toDouble, (openChildIssues.size + closedChildIssues.size).toDouble)) { percentage =>
                         <div class="upload-progress">
                             <div class="bar @if(percentage == 100){done} else {grey}" style="width: @percentage%;" title="Subtask"></div>
@@ -73,7 +73,7 @@
                 @for(childIssue <- openChildIssues) {
                     <div class="issue-item @if(childIssue.id == issue.id){bold}">
                         <span class="state-label open"></span>
-                        <a href="@routes.IssueApp.issue(project.owner, project.name, childIssue.getNumber)">
+                        <a href="@routes.IssueApp.issue(childIssue.project.owner, childIssue.project.name, childIssue.getNumber)">
                             <span class="item-name">@childIssue.title @if(childIssue.assignee != null) {- @childIssue.assignee.user.name}</span>
                         </a>
                     </div>
@@ -81,7 +81,7 @@
                 @for(childIssue <- closedChildIssues) {
                     <div class="issue-item @if(childIssue.id == issue.id){bold}">
                         <span class="state-label closed"><i class=" yobicon-checkmark"></i></span>
-                        <a href="@routes.IssueApp.issue(project.owner, project.name, childIssue.getNumber)">
+                        <a href="@routes.IssueApp.issue(childIssue.project.owner, childIssue.project.name, childIssue.getNumber)">
                             <span class="item-name">@childIssue.title @if(childIssue.assignee != null) {- @childIssue.assignee.user.name}</span>
                         </a>
                     </div>
