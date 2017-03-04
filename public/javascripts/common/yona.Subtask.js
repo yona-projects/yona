@@ -7,4 +7,19 @@ $(function () {
             this.disabled = !this.disabled;
         });
     });
+
+    var initialProject = $("#targetProjectId");
+    var initialProjectId = initialProject.val();
+    initialProject.on("change", function(){
+        var parentId = $("#parentId");
+        console.log("$(this).val()", $(this).val());
+        if($(this).val() === initialProjectId){
+            parentId.prop("disabled", false);
+            parentId.trigger('change.select2');
+        } else {
+            parentId.val(parentId.find("option:first").val());
+            parentId.prop("disabled", true);
+            parentId.trigger('change.select2');
+        }
+    });
 });
