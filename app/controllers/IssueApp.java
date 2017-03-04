@@ -528,15 +528,34 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         final Issue issue = issueForm.get();
+
         setAssignee(issueForm, issue, project);
         removeAnonymousAssignee(issue);
         setMilestone(issueForm, issue);
         issue.dueDate = JodaDateUtil.lastSecondOfDay(issue.dueDate);
 
-        final Issue originalIssue = Issue.findByNumber(project, number);
+        Issue originalIssue = Issue.findByNumber(project, number);
+        if(StringUtils.isNotEmpty(issue.targetProjectId)){
+            Project toAnotherProject = Project.find.byId(Long.valueOf(issue.targetProjectId));
+            if(toAnotherProject == null){
+                flash(Constants.WARNING, Messages.get("error.notfound.project"));
+                return badRequest(edit.render("error.validation", issueForm, Issue.findByNumber(project, number), project));
+            } else if (!project.id.equals(toAnotherProject.id)){
+                originalIssue.project = toAnotherProject;
+                originalIssue.setNumber(Project.increaseLastIssueNumber(toAnotherProject.id));
+                originalIssue.createdDate = JodaDateUtil.now();
+                originalIssue.updatedDate = JodaDateUtil.now();
+                originalIssue.milestone = null;
+                for(IssueComment comment: originalIssue.comments){
+                    comment.projectId = originalIssue.project.id;
+                    comment.update();
+                }
+                originalIssue.update();
+            }
+        }
         updateSubtaskRelation(issue, originalIssue);
 
-        Call redirectTo = routes.IssueApp.issue(project.owner, project.name, number);
+        Call redirectTo = routes.IssueApp.issue(originalIssue.project.owner, originalIssue.project.name, originalIssue.getNumber());
 
         // preUpdateHook.run would be called just before this issue is updated.
         // It updates some properties only for issues, such as assignee or labels, but not for non-issues.
