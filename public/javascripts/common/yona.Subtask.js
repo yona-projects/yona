@@ -12,7 +12,6 @@ $(function () {
     var initialProjectId = initialProject.val();
     initialProject.on("change", function(){
         var parentId = $("#parentId");
-        console.log("$(this).val()", $(this).val());
         if($(this).val() === initialProjectId){
             parentId.prop("disabled", false);
             parentId.trigger('change.select2');
@@ -20,6 +19,7 @@ $(function () {
             parentId.val(parentId.find("option:first").val());
             parentId.prop("disabled", true);
             parentId.trigger('change.select2');
+            $yobi.notify("Create or Move to '" + initialProject.find(":selected").text() + "'", 3000);
         }
     });
 });
