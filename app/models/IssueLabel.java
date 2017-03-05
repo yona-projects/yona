@@ -102,7 +102,7 @@ public class IssueLabel extends Model implements ResourceConvertible {
      * @param fromLabel
      * @return copied {@code IssueLabel}
      */
-    private static IssueLabel copyIssueLabel(@Nonnull Project toProject, @Nonnull IssueLabel fromLabel) {
+    public static IssueLabel copyIssueLabel(@Nonnull Project toProject, @Nonnull IssueLabel fromLabel) {
         IssueLabel label = new IssueLabel();
         label.name = fromLabel.name;
         label.color = fromLabel.color;
@@ -143,6 +143,20 @@ public class IssueLabel extends Model implements ResourceConvertible {
                 .eq("category", category)
                 .eq("name", name)
                 .findRowCount() > 0;
+    }
+
+    @Transient
+    public IssueLabel findExistLabel() {
+        List<IssueLabel> list = finder.where()
+                .eq("project.id", project.id)
+                .eq("category", category)
+                .eq("name", name)
+                .findList();
+        if (list != null && list.size() > 0) {
+            return list.get(0);
+        } else {
+            return null;
+        }
     }
 
     @Override

@@ -33,10 +33,7 @@ import views.html.organization.group_issue_list;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @AnonymousCheck
 public class IssueApp extends AbstractPostingApp {
@@ -436,7 +433,9 @@ public class IssueApp extends AbstractPostingApp {
 
         newIssue.state = State.OPEN;
 
-        addLabels(newIssue, request());
+        if (newIssue.project.id.equals(Project.findByOwnerAndProjectName(ownerName, projectName).id)) {
+            addLabels(newIssue, request());
+        }
         setMilestone(issueForm, newIssue);
 
         newIssue.dueDate = JodaDateUtil.lastSecondOfDay(newIssue.dueDate);
@@ -467,6 +466,10 @@ public class IssueApp extends AbstractPostingApp {
     public static Result editIssueForm(String ownerName, String projectName, Long number) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         Issue issue = Issue.findByNumber(project, number);
+
+        if (issue == null) {
+            return notFound(ErrorViews.Forbidden.render("error.notfound", project));
+        }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(), Operation.READ)) {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
@@ -536,13 +539,13 @@ public class IssueApp extends AbstractPostingApp {
 
         Issue originalIssue = Issue.findByNumber(project, number);
         if(StringUtils.isNotEmpty(issue.targetProjectId)){
-            Project toAnotherProject = Project.find.byId(Long.valueOf(issue.targetProjectId));
-            if(toAnotherProject == null){
+            Project toOtherProject = Project.find.byId(Long.valueOf(issue.targetProjectId));
+            if(toOtherProject == null){
                 flash(Constants.WARNING, Messages.get("error.notfound.project"));
                 return badRequest(edit.render("error.validation", issueForm, Issue.findByNumber(project, number), project));
-            } else if (!project.id.equals(toAnotherProject.id)){
-                originalIssue.project = toAnotherProject;
-                originalIssue.setNumber(Project.increaseLastIssueNumber(toAnotherProject.id));
+            } else if (isRequestedToOtherProject(project, toOtherProject)) {
+                originalIssue.project = toOtherProject;
+                originalIssue.setNumber(Project.increaseLastIssueNumber(toOtherProject.id));
                 originalIssue.createdDate = JodaDateUtil.now();
                 originalIssue.updatedDate = JodaDateUtil.now();
                 originalIssue.milestone = null;
@@ -550,7 +553,13 @@ public class IssueApp extends AbstractPostingApp {
                     comment.projectId = originalIssue.project.id;
                     comment.update();
                 }
-                originalIssue.update();
+                if (UserApp.currentUser().isMemberOf(toOtherProject) && originalIssue.labels.size() > 0) {
+                    play.Logger.warn("--- transfered");
+                    transferLabels(originalIssue, toOtherProject);
+                } else {
+                    originalIssue.labels = new HashSet<>();
+                    originalIssue.update();
+                }
             }
         }
         updateSubtaskRelation(issue, originalIssue);
@@ -567,7 +576,12 @@ public class IssueApp extends AbstractPostingApp {
                 // Do not replace it to 'issue.comments = originalIssue.comments;'
                 issue.voters.addAll(originalIssue.voters);
                 issue.comments = originalIssue.comments;
-                addLabels(issue, request());
+                if(originalIssue.project.id.equals(Project.findByOwnerAndProjectName(ownerName, projectName).id)){
+                    addLabels(issue, request());
+                } else {
+                    play.Logger.warn("originalIssue.labels: " + originalIssue.labels.size());
+                    issue.labels = originalIssue.labels;
+                }
 
                 if(isSelectedToSendNotificationMail() || !originalIssue.isAuthoredBy(UserApp.currentUser())){
                     addAssigneeChangedNotification(issue, originalIssue);
@@ -580,6 +594,33 @@ public class IssueApp extends AbstractPostingApp {
         return editPosting(originalIssue, issue, issueForm, redirectTo, preUpdateHook);
     }
 
+    private static void transferLabels(Issue originalIssue, Project toProject) {
+        Set<IssueLabel> newLabels = new HashSet<>();
+
+        for (IssueLabel label : originalIssue.getLabels()) {
+            IssueLabel copiedLabel = IssueLabel.copyIssueLabel(toProject, label);
+            IssueLabel existedLabel = copiedLabel.findExistLabel();
+            if(existedLabel == null){
+                toProject.issueLabels.add(copiedLabel);
+                copiedLabel.issues.add(originalIssue);
+                copiedLabel.save();
+                toProject.update();
+            } else {
+                copiedLabel = existedLabel;
+                copiedLabel.issues.add(originalIssue);
+                copiedLabel.update();
+            }
+            newLabels.add(copiedLabel);
+        }
+
+        originalIssue.labels = new HashSet<>(newLabels);
+        originalIssue.update();
+    }
+
+    private static boolean isRequestedToOtherProject(Project project, Project toOtherProject) {
+        return !project.id.equals(toOtherProject.id);
+    }
+
     private static void updateSubtaskRelation(Issue issue, Issue originalIssue) {
         if(StringUtils.isEmpty(issue.parentIssueId)){
             issue.parent = null;
@@ -587,7 +628,9 @@ public class IssueApp extends AbstractPostingApp {
             issue.parent = Issue.finder.byId(Long.valueOf(issue.parentIssueId));
         }
         originalIssue.parent = issue.parent;
-        originalIssue.update();
+        if (originalIssue.parent != null) {
+            originalIssue.update();
+        }
     }
 
     private static void setAssignee(Form<Issue> issueForm, Issue issue, Project project) {
