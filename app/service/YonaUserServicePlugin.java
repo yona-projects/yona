@@ -7,11 +7,15 @@ import com.feth.play.module.pa.user.BasicIdentity;
 import controllers.UserApp;
 import models.User;
 import models.UserCredential;
+import models.enumeration.UserState;
 import play.Application;
+import utils.Constants;
 
 import javax.annotation.Nonnull;
 
 import static controllers.Application.useSocialNameSync;
+import static play.mvc.Controller.flash;
+import static play.mvc.Http.Context.Implicit.session;
 
 public class YonaUserServicePlugin extends UserServicePlugin {
 
@@ -26,8 +30,9 @@ public class YonaUserServicePlugin extends UserServicePlugin {
 			UserCredential userCredential = UserCredential.create(authUser);
 			User existed = User.findByEmail(userCredential.email);
 			if (existed.isAnonymous()) {
-				UserApp.createLocalUserWithOAuth(userCredential);
-			} else {
+				existed = UserApp.createLocalUserWithOAuth(userCredential);
+			}
+			if (existed.state == UserState.ACTIVE) {
 				UserApp.setupRememberMe(existed);
 				UserApp.addUserInfoToSession(existed);
 			}
@@ -57,7 +62,7 @@ public class YonaUserServicePlugin extends UserServicePlugin {
 		}
 	}
 
-	private void setStatusLoggedIn(@Nonnull UserCredential u, BasicIdentity authUser) {
+	private boolean setStatusLoggedIn(@Nonnull UserCredential u, BasicIdentity authUser) {
 		User localUser = User.findByEmail(authUser.getEmail()); //find with oAuth email address
 		if(localUser.isAnonymous()){
 			localUser = User.findByEmail(u.email);  // 1st trial: same email address with local user credential
@@ -77,9 +82,14 @@ public class YonaUserServicePlugin extends UserServicePlugin {
 			}
 		}
 
-		if(!willLoginUser.isAnonymous()){
+		if(!willLoginUser.isAnonymous() && willLoginUser.state == UserState.ACTIVE){
 			UserApp.setupRememberMe(willLoginUser);
 			UserApp.addUserInfoToSession(willLoginUser);
+			return true;
+		} else {
+			flash(Constants.WARNING, "user.locked");
+			forceOAuthLogout();
+			return false;
 		}
 	}
 
@@ -88,11 +98,14 @@ public class YonaUserServicePlugin extends UserServicePlugin {
 		u.update();
 
 		User localUser = User.findByEmail(authUser.getEmail());
-		if(localUser != null){
+		if(localUser != null && localUser.state == UserState.ACTIVE){
             localUser.name = authUser.getName();
             localUser.update();
 			UserApp.addUserInfoToSession(localUser);
-        }
+        } else {
+			flash(Constants.WARNING, "user.locked");
+			forceOAuthLogout();
+		}
 	}
 
 	@Override
@@ -109,4 +122,7 @@ public class YonaUserServicePlugin extends UserServicePlugin {
 		return null;
 	}
 
+	private static void forceOAuthLogout() {
+		session().put("pa.url.orig", controllers.routes.Application.oAuthLogout().url());
+	}
 }

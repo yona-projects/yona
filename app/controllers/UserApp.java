@@ -375,13 +375,14 @@ public class UserApp extends Controller {
                     Messages.get("app.warn.cannot.access.email.information"));
             play.Logger.error("Cannot confirm email address of " + userCredential.id + ": " + userCredential.name);
             userCredential.delete();
-            session().put("pa.url.orig", routes.Application.oAuthLogout().url());
+            forceOAuthLogout();
             return User.anonymous;
         }
         User created = createUserDelegate(userCredential);
 
         if (created.state == UserState.LOCKED) {
             flash(Constants.INFO, "user.signup.requested");
+            forceOAuthLogout();
         }
 
         //Also, update userCredential
@@ -391,6 +392,10 @@ public class UserApp extends Controller {
 
         sendMailAboutUserCreationByOAuth(userCredential, created);
         return created;
+    }
+
+    private static void forceOAuthLogout() {
+        session().put("pa.url.orig", routes.Application.oAuthLogout().url());
     }
 
     private static User createUserDelegate(UserCredential userCredential) {
