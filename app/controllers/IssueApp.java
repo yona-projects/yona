@@ -413,6 +413,10 @@ public class IssueApp extends AbstractPostingApp {
                 flash(Constants.WARNING, Messages.get("error.notfound.project"));
                 return badRequest(create.render("title.newIssue", new Form<>(Issue.class), project, null));
             } else {
+                if (!AccessControl.isProjectResourceCreatable(
+                        UserApp.currentUser(), toAnotherProject, ResourceType.ISSUE_POST)) {
+                    return forbidden(ErrorViews.Forbidden.render("error.forbidden", toAnotherProject));
+                }
                 project = toAnotherProject;
             }
         }
@@ -551,6 +555,10 @@ public class IssueApp extends AbstractPostingApp {
                 flash(Constants.WARNING, Messages.get("error.notfound.project"));
                 return badRequest(edit.render("error.validation", issueForm, Issue.findByNumber(project, number), project));
             } else if (isRequestedToOtherProject(project, toOtherProject)) {
+                if (!AccessControl.isProjectResourceCreatable(
+                        UserApp.currentUser(), toOtherProject, ResourceType.ISSUE_POST)) {
+                    return forbidden(ErrorViews.Forbidden.render("error.forbidden", toOtherProject));
+                }
                 moveIssueToOtherProject(originalIssue, toOtherProject);
             }
         }
