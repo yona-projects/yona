@@ -1,23 +1,9 @@
 /**
- * Yobi, Project Hosting SW
- *
- * Copyright 2013 NAVER Corp.
- * http://yobi.io
- *
- * @author Yi EungJun
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+ * Yona, 21st Century Project Hosting SW
+ * <p>
+ * Copyright Yona & Yobi Authors & NAVER Corp.
+ * https://yona.io
+ **/
 package models;
 
 import com.avaje.ebean.RawSqlBuilder;
@@ -89,10 +75,10 @@ public class NotificationEvent extends Model implements INotificationEvent {
     @Enumerated(EnumType.STRING)
     public EventType eventType;
 
-    @Lob
+    @Lob @Basic(fetch=FetchType.EAGER)
     public String oldValue;
 
-    @Lob
+    @Lob @Basic(fetch=FetchType.EAGER)
     public String newValue;
 
     @OneToOne(mappedBy="notificationEvent", cascade = CascadeType.ALL)
@@ -201,6 +187,8 @@ public class NotificationEvent extends Model implements INotificationEvent {
                 } else {
                     return Messages.get(lang, "notification.reviewthread.reopened");
                 }
+            case ISSUE_MOVED:
+                    return Messages.get(lang, "notification.type.issue.moved", oldValue, newValue);
             default:
                 return null;
         }
@@ -721,6 +709,19 @@ public class NotificationEvent extends Model implements INotificationEvent {
         notiEvent.eventType = EventType.ISSUE_BODY_CHANGED;
         notiEvent.oldValue = oldBody;
         notiEvent.newValue = issue.body;
+
+        NotificationEvent.add(notiEvent);
+
+        return notiEvent;
+    }
+
+    public static NotificationEvent afterIssueMoved(Project previous, Issue issue) {
+        NotificationEvent notiEvent = createFromCurrentUser(issue);
+        notiEvent.title = formatReplyTitle(issue);
+        notiEvent.receivers = getReceivers(issue);
+        notiEvent.eventType = ISSUE_MOVED;
+        notiEvent.oldValue = previous != null ? previous.owner + "/" + previous.name : null;
+        notiEvent.newValue = issue.project.owner + "/" + issue.project.name;
 
         NotificationEvent.add(notiEvent);
 

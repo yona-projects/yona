@@ -1,24 +1,9 @@
 @**
-/**
- * Yobi, Project Hosting SW
- *
- * Copyright 2013 NAVER Corp.
- * http://yobi.io
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Yona, 21st Century Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp.
+* https://yona.io
 **@
-
 @(project:Project, issue:Issue)
 
 @import utils.TemplateHelper._
@@ -59,6 +44,10 @@
 
 @linkToPullRequest(pull: PullRequest) ={
     <strong>@Messages("pullRequest")-@pull.number <a href="@routes.PullRequestApp.pullRequest(pull.toProject.owner, pull.toProject.name, pull.number)" class="link">@pull.title</a></strong>
+}
+
+@linkToProject(owner: String, name: String) ={
+    <strong><a href="@routes.ProjectApp.project(owner, name)" class="link">@owner/@name</a></strong>
 }
 
 @linkToCommit(commitId: String) ={
@@ -174,6 +163,10 @@
                         case EventType.ISSUE_REFERRED_FROM_COMMIT => {
                             <span class="state changed">@Messages("issue.event.referred.title")</span>
                             @Html(Messages("issue.event.referred",linkToUser(user.loginId, user.name),linkToCommit(event.newValue)))
+                        }
+                        case EventType.ISSUE_MOVED => {
+                            <span class="state changed">@Messages("issue.event.moved.title")</span>
+                            @Html(Messages("issue.event.moved", linkToUser(user.loginId, user.name), linkToProject(event.oldValue.split("/")(0), event.oldValue.split("/")(1))))
                         }
                         case EventType.ISSUE_REFERRED_FROM_PULL_REQUEST => {
                             <span class="state changed">@Messages("issue.event.referred.title")</span>

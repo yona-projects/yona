@@ -519,6 +519,13 @@ public class IssueApp extends AbstractPostingApp {
         }
     }
 
+    private static void addIssueMovedNotification(Project previous, Issue issue) {
+        if (isRequestedToOtherProject(previous, issue.project)) {
+            NotificationEvent notiEvent = NotificationEvent.afterIssueMoved(previous, issue);
+            IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
+        }
+    }
+
     @With(NullProjectCheckAction.class)
     public static Result editIssue(String ownerName, String projectName, Long number) {
         Form<Issue> issueForm = new Form<>(Issue.class).bindFromRequest();
@@ -544,22 +551,7 @@ public class IssueApp extends AbstractPostingApp {
                 flash(Constants.WARNING, Messages.get("error.notfound.project"));
                 return badRequest(edit.render("error.validation", issueForm, Issue.findByNumber(project, number), project));
             } else if (isRequestedToOtherProject(project, toOtherProject)) {
-                originalIssue.project = toOtherProject;
-                originalIssue.setNumber(Project.increaseLastIssueNumber(toOtherProject.id));
-                originalIssue.createdDate = JodaDateUtil.now();
-                originalIssue.updatedDate = JodaDateUtil.now();
-                originalIssue.milestone = null;
-                for(IssueComment comment: originalIssue.comments){
-                    comment.projectId = originalIssue.project.id;
-                    comment.update();
-                }
-                if (UserApp.currentUser().isMemberOf(toOtherProject) && originalIssue.labels.size() > 0) {
-                    play.Logger.warn("--- transfered");
-                    transferLabels(originalIssue, toOtherProject);
-                } else {
-                    originalIssue.labels = new HashSet<>();
-                    originalIssue.update();
-                }
+                moveIssueToOtherProject(originalIssue, toOtherProject);
             }
         }
         updateSubtaskRelation(issue, originalIssue);
@@ -576,11 +568,12 @@ public class IssueApp extends AbstractPostingApp {
                 // Do not replace it to 'issue.comments = originalIssue.comments;'
                 issue.voters.addAll(originalIssue.voters);
                 issue.comments = originalIssue.comments;
-                if(originalIssue.project.id.equals(Project.findByOwnerAndProjectName(ownerName, projectName).id)){
-                    addLabels(issue, request());
-                } else {
-                    play.Logger.warn("originalIssue.labels: " + originalIssue.labels.size());
+                final Project previous = Project.findByOwnerAndProjectName(ownerName, projectName);
+                if(isRequestedToOtherProject(originalIssue.project, previous)){
                     issue.labels = originalIssue.labels;
+                    addIssueMovedNotification(previous, issue);
+                } else {
+                    addLabels(issue, request());
                 }
 
                 if(isSelectedToSendNotificationMail() || !originalIssue.isAuthoredBy(UserApp.currentUser())){
@@ -592,6 +585,24 @@ public class IssueApp extends AbstractPostingApp {
         };
 
         return editPosting(originalIssue, issue, issueForm, redirectTo, preUpdateHook);
+    }
+
+    private static void moveIssueToOtherProject(Issue originalIssue, Project toOtherProject) {
+        originalIssue.project = toOtherProject;
+        originalIssue.setNumber(Project.increaseLastIssueNumber(toOtherProject.id));
+        originalIssue.createdDate = JodaDateUtil.now();
+        originalIssue.updatedDate = JodaDateUtil.now();
+        originalIssue.milestone = null;
+        for(IssueComment comment: originalIssue.comments){
+            comment.projectId = originalIssue.project.id;
+            comment.update();
+        }
+        if (UserApp.currentUser().isMemberOf(toOtherProject) && originalIssue.labels.size() > 0) {
+            transferLabels(originalIssue, toOtherProject);
+        } else {
+            originalIssue.labels = new HashSet<>();
+            originalIssue.update();
+        }
     }
 
     private static void transferLabels(Issue originalIssue, Project toProject) {
