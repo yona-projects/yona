@@ -2,6 +2,11 @@ $(function () {
     $(".subtask-message").on("click", function () {
         var subtaskWrap = $(".subtask-wrap");
         subtaskWrap.toggle();
+        if(subtaskWrap.is( ":visible" )){
+            $(this).addClass("option-on");
+        } else {
+            $(this).removeClass("option-on");
+        }
         var subtaskInputFields = subtaskWrap.find("select");
         subtaskInputFields.each(function(){
             this.disabled = !this.disabled;
@@ -19,7 +24,6 @@ $(function () {
             parentId.val(parentId.find("option:first").val());
             parentId.prop("disabled", true);
             parentId.trigger('change.select2');
-            $yobi.notify("Create or Move to '" + initialProject.find(":selected").text() + "'", 3000);
         }
     });
 });
