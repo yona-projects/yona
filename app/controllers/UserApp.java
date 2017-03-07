@@ -484,6 +484,12 @@ public class UserApp extends Controller {
 
     }
 
+    public static Result resetUserVisitedList() {
+        RecentProject.deleteAll(currentUser());
+        flash(Constants.INFO, "userinfo.reset.visited.project.list.done");
+        return redirect(routes.UserApp.editUserInfoForm());
+    }
+
     public static boolean isValidPassword(User currentUser, String password) {
         String hashedOldPassword = hashedPassword(password, currentUser.passwordSalt);
         return currentUser.password.equals(hashedOldPassword);

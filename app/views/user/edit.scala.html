@@ -71,6 +71,12 @@
           </div>
         </form>
 
+        <div class="reset-user-visited-list">
+            <hr/>
+            <form method="post" action="@routes.UserApp.resetUserVisitedList">
+                <button type="submit" class="ybtn">@Messages("userinfo.reset.visited.project.list")</button>
+            </form>
+        </div>
         <div id="avatarCropWrap" class="modal hide" role="dialog" data-backdrop="static">
           <div class="modal-header center-txt">
             <div class="avatar-wrap xlarge">

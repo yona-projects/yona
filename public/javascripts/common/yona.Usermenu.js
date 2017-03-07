@@ -92,6 +92,7 @@ $(function() {
                 that.find('i').addClass("starred");
             } else {
                 that.find('i').removeClass("starred");
+                that.parent(".project-list").remove();
             }
         })
             .fail(function (data) {

@@ -881,6 +881,7 @@ public class User extends Model implements ResourceConvertible {
             if( favoriteProject.project.id.equals(projectId) ){
                 removeFavoriteProject(projectId);
                 this.favoriteProjects.remove(favoriteProject);
+                RecentProject.deletePrevious(this, favoriteProject.project);
                 return false;
             }
         }
