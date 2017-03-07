@@ -1,0 +1,12 @@
+@**
+* Yona, 21st Century Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp.
+* https://yona.io
+**@
+<div class="tab-pane user-project-list active" id="myProjectList">
+@views.html.index.myProjectList(UserApp.currentUser())
+</div>
+<div class="tab-pane user-project-list" id="myOrganizationList">
+@views.html.index.myOrganizationList(UserApp.currentUser())
+</div>

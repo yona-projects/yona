@@ -96,6 +96,7 @@ POST           /user/resetPassword                                              
 POST           /user/resetVisitedList                                                 controllers.UserApp.resetUserVisitedList()
 GET            /user/isUsed                                                           controllers.UserApp.isUsed(name:String)
 GET            /user/isEmailExist                                                     controllers.UserApp.isEmailExist(email:String)
+GET            /user/usermenuTabContentList                                           controllers.UserApp.usermenuTabContentList()
 GET            /info/leave/:user/:project                                             controllers.UserApp.leave(user, project)
 POST           /user/email                                                            controllers.UserApp.addEmail()
 DELETE         /user/email/delete/:emailId                                            controllers.UserApp.deleteEmail(emailId:Long)

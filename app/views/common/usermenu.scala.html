@@ -5,7 +5,7 @@
 * https://yona.io
 **@
 @import org.apache.commons.lang3.StringUtils
-@(project:Project)
+@()
 @import utils.TemplateHelper._
 @import com.feth.play.module.pa.PlayAuthenticate._
 @import com.feth.play.module.pa.views.html._
@@ -51,13 +51,8 @@
             </li>
         </ul>
         <div class="tab-content tab-box">
-            <div class="tab-content">
-                <div class="tab-pane user-project-list active" id="myProjectList">
-                @views.html.index.myProjectList(UserApp.currentUser())
-                </div>
-                <div class="tab-pane user-project-list" id="myOrganizationList">
-                @views.html.index.myOrganizationList(UserApp.currentUser())
-                </div>
+            <div id="usermenu-tab-content-list" class="tab-content">
+                Loading...
             </div>
         </div>
     </div>
