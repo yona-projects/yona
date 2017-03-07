@@ -233,26 +233,50 @@ public class Issue extends AbstractPosting implements LabelOwner {
         workbook = Workbook.createWorkbook(bos);
         sheet = workbook.createSheet(String.valueOf(JodaDateUtil.today().getTime()), 0);
 
-        String[] titles = {"No", Messages.get("issue.state"), Messages.get("title"), Messages.get("issue.assignee"), Messages.get("issue.label"), "Created", "Due Date", "Source"};
+        String[] titles = {"No",
+                Messages.get("issue.state"),
+                Messages.get("title"),
+                Messages.get("issue.assignee"),
+                Messages.get("issue.content"),
+                Messages.get("issue.label"),
+                Messages.get("issue.createdDate"),
+                Messages.get("issue.dueDate"),
+                "URL",
+                Messages.get("common.comment"),
+                Messages.get("common.comment.author"),
+                Messages.get("common.comment.created")};
 
         for (int i = 0; i < titles.length; i++) {
             sheet.addCell(new jxl.write.Label(i, 0, titles[i], headerCellFormat));
             sheet.setColumnView(i, 20);
         }
+        int lineNumber = 0;
         for (int idx = 1; idx < issueList.size() + 1; idx++) {
             Issue issue = issueList.get(idx - 1);
-            int columnPos = 0;
-            sheet.addCell(new jxl.write.Label(columnPos++, idx, issue.getNumber().toString(), bodyCellFormat));
-            sheet.addCell(new jxl.write.Label(columnPos++, idx, issue.state.toString(), bodyCellFormat));
-            sheet.addCell(new jxl.write.Label(columnPos++, idx, issue.title, bodyCellFormat));
-            sheet.addCell(new jxl.write.Label(columnPos++, idx, getAssigneeName(issue.assignee), bodyCellFormat));
-            sheet.addCell(new jxl.write.Label(columnPos++, idx, getIssueLabels(issue), bodyCellFormat));
-            sheet.addCell(new jxl.write.DateTime(columnPos++, idx, issue.createdDate, dateCellFormat));
-            sheet.addCell(new jxl.write.Label(columnPos++, idx, JodaDateUtil.geYMDDate(issue.dueDate), bodyCellFormat));
-            sheet.addCell(new jxl.write.Label(columnPos++, idx, controllers.routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.number).toString(), bodyCellFormat));
-        }
-        workbook.write();
+            List<IssueComment> comments = issue.comments;
 
+            lineNumber++;
+            int columnPos = 0;
+            sheet.addCell(new jxl.write.Label(columnPos++, lineNumber, issue.getNumber().toString(), bodyCellFormat));
+            sheet.addCell(new jxl.write.Label(columnPos++, lineNumber, issue.state.toString(), bodyCellFormat));
+            sheet.addCell(new jxl.write.Label(columnPos++, lineNumber, issue.title, bodyCellFormat));
+            sheet.addCell(new jxl.write.Label(columnPos++, lineNumber, getAssigneeName(issue.assignee), bodyCellFormat));
+            sheet.addCell(new jxl.write.Label(columnPos++, lineNumber, issue.body, bodyCellFormat));
+            sheet.addCell(new jxl.write.Label(columnPos++, lineNumber, getIssueLabels(issue), bodyCellFormat));
+            sheet.addCell(new jxl.write.DateTime(columnPos++, lineNumber, issue.createdDate, dateCellFormat));
+            sheet.addCell(new jxl.write.Label(columnPos++, lineNumber, JodaDateUtil.geYMDDate(issue.dueDate), bodyCellFormat));
+            sheet.addCell(new jxl.write.Label(columnPos++, lineNumber, controllers.routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.number).toString(), bodyCellFormat));
+            if (comments.size() > 0) {
+                for (int j = 0; j < comments.size(); j++) {
+                    sheet.addCell(new jxl.write.Label(columnPos, lineNumber + j, comments.get(j).contents, bodyCellFormat));
+                    sheet.addCell(new jxl.write.Label(columnPos+1, lineNumber + j, comments.get(j).authorName, bodyCellFormat));
+                    sheet.addCell(new jxl.write.DateTime(columnPos + 2, lineNumber + j, comments.get(j).createdDate, dateCellFormat));
+                }
+                lineNumber = lineNumber + comments.size() - 1;
+            }
+        }
+
+        workbook.write();
         try {
             workbook.close();
         } catch (WriteException | IOException e) {
@@ -276,7 +300,6 @@ public class Issue extends AbstractPosting implements LabelOwner {
         WritableCellFormat cellFormat = new WritableCellFormat(valueFormatDate);
         cellFormat.setFont(baseFont);
         cellFormat.setShrinkToFit(true);
-        cellFormat.setBorder(Border.ALL, BorderLineStyle.THIN);
         cellFormat.setAlignment(Alignment.CENTRE);
         cellFormat.setVerticalAlignment(VerticalAlignment.TOP);
         return cellFormat;
@@ -289,8 +312,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
 
     private static WritableCellFormat getBodyCellFormat(WritableFont baseFont) throws WriteException {
         WritableCellFormat cellFormat = new WritableCellFormat(baseFont);
-        cellFormat.setBorder(Border.ALL, BorderLineStyle.THIN);
-        cellFormat.setWrap(true);
+        cellFormat.setBorder(Border.NONE, BorderLineStyle.THIN);
         cellFormat.setVerticalAlignment(VerticalAlignment.TOP);
         return cellFormat;
     }
@@ -299,7 +321,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
         WritableFont headerFont = new WritableFont(WritableFont.ARIAL, 14, WritableFont.BOLD, false,
                 UnderlineStyle.NO_UNDERLINE, Colour.BLACK, ScriptStyle.NORMAL_SCRIPT);
         WritableCellFormat headerCell = new WritableCellFormat(headerFont);
-        headerCell.setBorder(Border.ALL, BorderLineStyle.DOUBLE);
+        headerCell.setBorder(Border.ALL, BorderLineStyle.THIN);
         headerCell.setAlignment(Alignment.CENTRE);
         return headerCell;
     }
