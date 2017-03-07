@@ -987,6 +987,9 @@ public class ProjectApp extends Controller {
     }
 
     private static Result getPagingProjects(String query, int pageNum) {
+        if (pageNum < 1) {
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
+        }
         ExpressionList<Project> el = createProjectSearchExpressionList(query);
 
         Set<Long> labelIds = LabelApp.getLabelIds(request());
@@ -995,9 +998,16 @@ public class ProjectApp extends Controller {
         }
 
         el.orderBy("createdDate desc");
-        Page<Project> projects = el.findPagingList(PROJECT_COUNT_PER_PAGE).getPage(pageNum - 1);
+        Page<Project> projects = getProjectPage(pageNum, el);
+        if (projects.getList().size() == 0) {
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
+        }
 
         return ok(views.html.project.list.render("title.projectList", projects, query));
+    }
+
+    private static Page<Project> getProjectPage(int pageNum, ExpressionList<Project> el) {
+        return el.findPagingList(PROJECT_COUNT_PER_PAGE).getPage(pageNum - 1);
     }
 
     private static Result getProjectsToJSON(String query) {
@@ -1033,20 +1043,8 @@ public class ProjectApp extends Controller {
         }
 
         User user = UserApp.currentUser();
-        if (!user.isSiteManager() && !Config.getDisplayPrivateRepositories()) {
-            if(user.isAnonymous()) {
-                el.eq("projectScope", ProjectScope.PUBLIC);
-            } else {
-                Junction<Project> junction = el.conjunction();
-                Junction<Project> pj = junction.disjunction();
-                pj.add(Expr.eq("projectScope", ProjectScope.PUBLIC)); // public
-                List<Organization> orgs = Organization.findOrganizationsByUserLoginId(user.loginId); // protected
-                if(!orgs.isEmpty()) {
-                    pj.and(Expr.in("organization", orgs), Expr.eq("projectScope", ProjectScope.PROTECTED));
-                }
-                pj.add(Expr.eq("projectUser.user.id", user.id)); // private
-                pj.endJunction();
-            }
+        if (!user.isSiteManager() && !Config.displayPrivateRepositories()) {
+            el.eq("projectScope", ProjectScope.PUBLIC);
         }
 
         return el;

@@ -18,6 +18,9 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
+@import utils.Config
+@import utils.AccessControl
+@import models.enumeration.Operation;
 @(message: String, currentPage: com.avaje.ebean.Page[Project], filter:String)
 @import utils.TemplateHelper._
 @import utils.JodaDateUtil
@@ -25,7 +28,7 @@
 @siteLayout(message, utils.MenuType.PROJECTS) {
 <div class="site-breadcrumb-outer">
     <div class="site-breadcrumb-inner">
-        <h3>@Messages("title.projectList")</h3>
+        <h3>@Messages("project.public") @Messages("title.projectList")</h3>
     </div>
 </div>
 <div class="page-wrap-outer">
@@ -42,6 +45,7 @@
         </div>
     	<ul class="all-projects">
         @for(project <- currentPage.getList) {
+            @if(Config.displayPrivateRepositories() || AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)){
             <li class="project">
                 <div class="info-wrap">
                     <div class="owner-avatar-wrap">
@@ -94,6 +98,18 @@
                     }
                 </div>
             </li>
+            } else {
+                <li class="project" style="background-color: #fcfcfc;">
+                    <div class="info-wrap" style="opacity: 0.3">
+                        <div class="owner-avatar-wrap">
+                            <img src="@routes.Assets.at("images/project_default_logo.png")" alt="@project.name"/>
+                        </div>
+                        <div style="float:left; color: gray">
+                            You do not have permission to view this project's information
+                        </div>
+                    </div>
+                </li>
+            }
         }
     	</ul>
 
