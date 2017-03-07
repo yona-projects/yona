@@ -34,7 +34,6 @@ public class RecentProject extends Model {
         this.projectName = project.name;
     }
 
-    @Transactional
     public static List<Project> getRecentProjects(@Nonnull User user){
         List<RecentProject> recentProjects = find.where()
                 .eq("userId", user.id).orderBy("id desc").findList();
@@ -77,7 +76,7 @@ public class RecentProject extends Model {
         }
     }
 
-    private static void deletePrevious(User user, Project project) {
+    public static void deletePrevious(User user, Project project) {
         RecentProject existed = find.where()
                 .eq("userId", user.id)
                 .eq("projectId", project.id).findUnique();
@@ -101,6 +100,14 @@ public class RecentProject extends Model {
             RecentProject oldest = Collections.min(recentProjects, comparator);
             oldest.refresh();
             oldest.delete();
+        }
+    }
+
+    public static void deleteAll(User user) {
+        List<RecentProject> recentProjects = find.where()
+                .eq("userId", user.id).findList();
+        for (RecentProject rp : recentProjects) {
+            rp.delete();
         }
     }
 }

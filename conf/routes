@@ -93,6 +93,7 @@ GET            /user/editform/:tabId                                            
 POST            /user/editform/:tabId                                                  controllers.UserApp.editUserInfoByTabForm(tabId: String)
 POST           /user/edit                                                             controllers.UserApp.editUserInfo()
 POST           /user/resetPassword                                                    controllers.UserApp.resetUserPassword()
+POST           /user/resetVisitedList                                                 controllers.UserApp.resetUserVisitedList()
 GET            /user/isUsed                                                           controllers.UserApp.isUsed(name:String)
 GET            /user/isEmailExist                                                     controllers.UserApp.isEmailExist(email:String)
 GET            /info/leave/:user/:project                                             controllers.UserApp.leave(user, project)
