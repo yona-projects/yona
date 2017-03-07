@@ -1154,4 +1154,8 @@ public class UserApp extends Controller {
             return false;
         }
     }
+
+    public static Result usermenuTabContentList(){
+        return ok(views.html.common.usermenu_tab_content_list.render());
+    }
 }
