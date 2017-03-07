@@ -32,8 +32,8 @@ public class CacheStore {
             .build();
 
 
-    public static String getProjectCacheKey(String loginId, String projectName) {
-        return decodeUrlString(loginId) + ":" + decodeUrlString(projectName);
+    public static String getProjectCacheKey(String owner, String projectName) {
+        return decodeUrlString(owner) + ":" + decodeUrlString(projectName);
     }
 
     public static void refreshProjectMap(){
