@@ -295,7 +295,7 @@ public class Config {
         return System.getProperty(YONA_DATA, defaultValue);
     }
 
-    public static boolean getDisplayPrivateRepositories() {
+    public static boolean displayPrivateRepositories() {
         return Configuration.root().getBoolean("application.displayPrivateRepositories", Boolean.FALSE);
     }
 }
