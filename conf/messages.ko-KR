@@ -110,6 +110,7 @@ code.fullDiff = 전체 비교
 code.history = 변경이력
 code.isBinary = 이진 파일입니다
 code.looseFileSizeLimitForCodeBrowser = 사이트 관리자는 설정 파일의 "application.codeBrowser.viewer.maxFileSize" 값을 고쳐서 파일 크기 제한을 조절할 수 있습니다.
+code.new.file = 새 파일
 code.newer = 이전
 code.noChanges = 변경 없음
 code.nocommits = 커밋이 존재하지 않습니다

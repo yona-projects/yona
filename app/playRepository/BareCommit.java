@@ -22,15 +22,27 @@ package playRepository;
 
 import models.Project;
 import models.User;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.ConcurrentRefUpdateException;
+import org.eclipse.jgit.api.errors.JGitInternalException;
+import org.eclipse.jgit.dircache.DirCache;
+import org.eclipse.jgit.dircache.DirCacheBuilder;
+import org.eclipse.jgit.dircache.DirCacheEditor;
+import org.eclipse.jgit.dircache.DirCacheEntry;
+import org.eclipse.jgit.internal.JGitText;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
+import org.eclipse.jgit.treewalk.TreeWalk;
 import utils.Config;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.channels.OverlappingFileLockException;
+import java.text.MessageFormat;
 
 import static org.eclipse.jgit.lib.Constants.HEAD;
 import static org.eclipse.jgit.lib.Constants.OBJ_BLOB;
@@ -231,5 +243,135 @@ public class BareCommit {
 
     public void setRefName(String refName){
         this.refName = refName;
+    }
+
+    // Bare commit. It is referenced from https://gist.github.com/porcelli/3882505
+    public ObjectId commitTextFile(final String branchName, final String path, String text, final String message) throws IOException {
+        this.file = new File(this.repository.getDirectory(), path);
+        org.apache.commons.io.FileUtils.write(this.file, text);
+
+        ObjectId commitId = null;
+        Git git = new Git(this.repository);
+        try (final ObjectInserter inserter = git.getRepository().newObjectInserter()) {
+                // Create the in-memory index of the new/updated issue.
+                this.headObjectId = git.getRepository().resolve(this.refName + "^{commit}");
+                final DirCache index = createTemporaryIndex(git, this.headObjectId, path, file);
+                final ObjectId indexTreeId = index.writeTree(inserter);
+
+                // Create a commit object
+                final CommitBuilder commit = getCommitBuilder(message, indexTreeId);
+
+                // Insert the commit into the repository
+                commitId = inserter.insert(commit);
+                inserter.flush();
+
+                final RefUpdate ru = getRefUpdate(branchName, commitId, git);
+                final RefUpdate.Result rc = ru.forceUpdate();
+                switch (rc) {
+                    case NEW:
+                    case FORCED:
+                    case FAST_FORWARD:
+                        break;
+                    case REJECTED:
+                    case LOCK_FAILURE:
+                        throw new ConcurrentRefUpdateException(JGitText.get().couldNotLockHEAD, ru.getRef(), rc);
+                    default:
+                        throw new JGitInternalException(MessageFormat.format(JGitText.get().updatingRefFailed, Constants.HEAD, commitId.toString(), rc));
+                }
+        } catch (final Throwable t) {
+            throw new RuntimeException(t);
+        }
+
+        return commitId;
+    }
+
+    private RefUpdate getRefUpdate(String branchName, ObjectId commitId, Git git) throws IOException {
+        final RevWalk revWalk = new RevWalk(git.getRepository());
+        final RevCommit revCommit = revWalk.parseCommit(commitId);
+        final RefUpdate ru = git.getRepository().updateRef("refs/heads/" + branchName);
+        if (this.headObjectId == null) {
+            ru.setExpectedOldObjectId(ObjectId.zeroId());
+        } else {
+            ru.setExpectedOldObjectId(this.headObjectId);
+        }
+        ru.setNewObjectId(commitId);
+        ru.setRefLogMessage("commit: " + revCommit.getShortMessage(), false);
+        revWalk.close();
+        return ru;
+    }
+
+    private CommitBuilder getCommitBuilder(String message, ObjectId indexTreeId) {
+        final CommitBuilder commit = new CommitBuilder();
+        commit.setAuthor(this.getPersonIdent());
+        commit.setCommitter(this.getPersonIdent());
+        commit.setEncoding(Constants.CHARACTER_ENCODING);
+        commit.setMessage(message);
+        //headId can be null if the repository has no commit yet
+        if (this.headObjectId != null) {
+            commit.setParentId(this.headObjectId);
+        }
+        commit.setTreeId(indexTreeId);
+        return commit;
+    }
+
+    private static DirCache createTemporaryIndex(final Git git, final ObjectId headId, final String path, final File file) {
+        final DirCache inCoreIndex = DirCache.newInCore();
+        final DirCacheBuilder dcBuilder = inCoreIndex.builder();
+        final ObjectInserter inserter = git.getRepository().newObjectInserter();
+
+        try {
+            if (file != null) {
+                final DirCacheEntry dcEntry = new DirCacheEntry(path);
+                dcEntry.setLength(file.length());
+                dcEntry.setLastModified(file.lastModified());
+                dcEntry.setFileMode(FileMode.REGULAR_FILE);
+
+                final InputStream inputStream = new FileInputStream(file);
+                try {
+                    dcEntry.setObjectId(inserter.insert(Constants.OBJ_BLOB, file.length(), inputStream));
+                } finally {
+                    inputStream.close();
+                }
+
+                dcBuilder.add(dcEntry);
+            }
+
+            if (headId != null) {
+                final TreeWalk treeWalk = new TreeWalk(git.getRepository());
+                final int hIdx = treeWalk.addTree(new RevWalk(git.getRepository()).parseTree(headId));
+                treeWalk.setRecursive(true);
+
+                while (treeWalk.next()) {
+                    final String walkPath = treeWalk.getPathString();
+                    final CanonicalTreeParser hTree = treeWalk.getTree(hIdx, CanonicalTreeParser.class);
+
+                    if (!walkPath.equals(path)) {
+                        // add entries from HEAD for all other paths
+                        // create a new DirCacheEntry with data retrieved from HEAD
+                        final DirCacheEntry dcEntry = new DirCacheEntry(walkPath);
+                        dcEntry.setObjectId(hTree.getEntryObjectId());
+                        dcEntry.setFileMode(hTree.getEntryFileMode());
+
+                        // add to temporary in-core index
+                        dcBuilder.add(dcEntry);
+                    }
+                }
+                treeWalk.close();
+            }
+
+            dcBuilder.finish();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            inserter.close();
+        }
+
+        if (file == null) {
+            final DirCacheEditor editor = inCoreIndex.editor();
+            editor.add(new DirCacheEditor.DeleteTree(path));
+            editor.finish();
+        }
+
+        return inCoreIndex;
     }
 }

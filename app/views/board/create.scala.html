@@ -12,15 +12,34 @@
 @import utils.TemplateHelper._
 @import utils.HtmlUtil._
 @import models.enumeration._
-@implicitField = @{ helper.FieldConstructor(simpleForm) }
 
-@titleMessage = @{
-  if( !requestHeader.getQueryString("readme").equals(None) ) {
-      "Update README.md"
-  } else if( !requestHeader.getQueryString("issueTemplate").equals(None) ) {
-      "ISSUE_TEMPLATE.md: Project Issue Template"
-  }
-}
+    @implicitField = @{
+        helper.FieldConstructor(simpleForm)
+    }
+
+    @issueTemplate = @{
+        requestHeader.getQueryString("issueTemplate")
+    }
+
+    @titleMessage = @{
+        if(!requestHeader.getQueryString("readme").equals(None)) {
+            "Update README.md"
+        } else if(!issueTemplate.equals(None)) {
+            "ISSUE_TEMPLATE.md: Project Issue Template"
+        }
+    }
+
+    @path = @{
+        requestHeader.getQueryString("path")
+    }
+
+    @branch = @{
+        requestHeader.getQueryString("branch")
+    }
+
+    @isEdit = @{
+        !requestHeader.getQueryString("edit").equals(None)
+    }
 
 @projectLayout(title, project, utils.MenuType.BOARD) {
 @projectMenu(project, utils.MenuType.BOARD, "main-menu-only")
@@ -29,12 +48,9 @@
     <form action="@routes.BoardApp.newPost(project.owner, project.name)" method="post" enctype="multipart/form-data" class="nm">
       <div class="content-wrap frm-wrap">
         <dl>
-          <dt>
-            <label for="title">@Messages("title")</label>
-          </dt>
           <dd>
             @defining(form.errors().get("title")) { errors =>
-              <input type="text" id="title" name="title" class="zen-mode text title @if(errors != null) {error}" maxlength="250" tabindex="1" value="@titleMessage"/>
+              <input type="text" id="title" name="title" class="zen-mode text title @if(errors != null) {error}" maxlength="250" tabindex="1" value="@titleMessage" placeholder="@if(path.equals(None)){@Messages("title")}else{@Messages("code.commitMsg")}"/>
               @if(errors != null) {
                 <div class="message">
                 @for(error <- errors) {
@@ -45,18 +61,23 @@
             }
           </dd>
             <dd>
-            @if(!requestHeader.getQueryString("issueTemplate").equals(None)){
+            @if(!issueTemplate.equals(None)){
               <div class="attach-wrap">
                 <span class="help help-droppable">@Messages("issue.template.no.attachment.allow")</span>
               </div>
             }
+              @if(!path.equals(None)){
+                <div class="file-path-wrap">
+                  <span class="help file-path">@branch: /@path @if(!isEdit){<input type="text" name="new-file-name" class="new-file-name" value="" placeholder="filename.." tabindex="2">}</span>
+                </div>
+              }
             </dd>
           <dd style="position: relative;">
-            @common.editor("body", preparedPostBody, "tabindex=2")
+            @common.editor("body", preparedPostBody, "tabindex=3")
           </dd>
         </dl>
           @** fileUploader **@
-        @if(requestHeader.getQueryString("issueTemplate").equals(None)) {
+        @if(issueTemplate.equals(None) && path.equals(None)) {
           @if(!UserApp.currentUser.isAnonymous) {
             @common.fileUploader(ResourceType.BOARD_POST, null)
           }
@@ -64,14 +85,16 @@
         @** end of fileUploader **@
 
         <div class="right-txt mt10 mb10">
-          @if(isAllowedToNotice && requestHeader.getQueryString("issueTemplate").equals(None)){
+          @if(isAllowedToNotice && issueTemplate.equals(None) && path.equals(None)){
           <label class="checkbox">
             <input type="checkbox" id="notice" name="notice">
             @Messages("post.notice.label")
           </label>
           }
 
-          <input type="hidden" id="issueTemplate" name="issueTemplate" value="@requestHeader.getQueryString("issueTemplate")">
+          <input type="hidden" id="issueTemplate" name="issueTemplate" value="@issueTemplate">
+          <input type="hidden" id="branch" name="branch" value="@branch">
+          <input type="hidden" id="path" name="path" value="@path">
           @if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.COMMIT)){
             @if(project.isGit && !requestHeader.getQueryString("readme").equals(None)){
             <label class="checkbox">
@@ -107,6 +130,27 @@ $(function(){
         "target": 'textarea[id^=editor-]',
         "url"   : "@Html(routes.ProjectApp.mentionList(project.owner, project.name).toString())"
     });
+
+    // Followings are used for online commit
+  @if(!path.equals(None)) {
+    var textarea = $(".textarea-box > textarea");
+    if (textarea.val() !== "") {
+        textarea.css("overflow", "hidden");
+        textarea.css("height", "1px");
+        var newHeight = (25 + textarea.prop('scrollHeight'));
+        var minHeight = 300;
+        console.log(newHeight);
+        textarea.css("height", (minHeight > newHeight ? minHeight: newHeight) + "px");
+        textarea.css("overflow", "auto");
+    }
+
+    $(".new-file-name").on("keyup", function () {
+        $("#path").val("@path" + $(this).val());
+    });
+
+    $(".project-menu-gruop > li").removeClass("active");
+    $(".code-menu").addClass("active");
+  }
 });
 </script>
 }

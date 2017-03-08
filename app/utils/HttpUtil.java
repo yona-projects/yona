@@ -218,4 +218,14 @@ public class HttpUtil {
             return targetStr;
         }
     }
+
+    // It is made for path which contains UTF8 chars
+    public static String getEncodeEachPathName(String path){
+        String[] paths = path.split("/");
+        String[] encodedPaths = new String[paths.length];
+        for ( int i = 0; i < paths.length; i++ ) {
+            encodedPaths[i] = HttpUtil.encodeUrlString(paths[i]);
+        }
+        return String.join("/", encodedPaths);
+    }
 }

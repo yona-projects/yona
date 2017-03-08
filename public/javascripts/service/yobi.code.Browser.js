@@ -519,6 +519,23 @@
             var breadcrumb = $yobi.xssClean(aCrumbs.join(""));
 
             htElement.welBreadCrumbs.html(breadcrumb);
+
+            var path = window.location.hash.substr(1);
+            var $newFileLink = $("#new-file-link");
+            var newPath = updateQueryStringParameter($newFileLink.attr("href"), "path", path + "/");
+
+            $newFileLink.attr("href", newPath);
+        }
+
+        function updateQueryStringParameter(uri, key, value) {
+            var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
+            var separator = uri.indexOf('?') !== -1 ? "&" : "?";
+            if (uri.match(re)) {
+                return uri.replace(re, '$1' + key + "=" + value + '$2');
+            }
+            else {
+                return uri + separator + key + "=" + value;
+            }
         }
 
         _init(htOptions || {});

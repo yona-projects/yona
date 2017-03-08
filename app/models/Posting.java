@@ -29,6 +29,14 @@ public class Posting extends AbstractPosting {
     @Transient
     public String issueTemplate;
 
+    //ToDo: Sperate it from posting for online commit
+    @Transient
+    public String path;
+
+    //ToDo: Sperate it from posting for online commit
+    @Transient
+    public String branch;
+
     @OneToMany(cascade = CascadeType.ALL)
     public List<PostingComment> comments;
 

@@ -58,7 +58,7 @@
             @defining(project.menuSetting){ menuSetting =>
             @if(menuSetting.code) {
                 @if(!project.isCodeAccessibleMemberOnly || project.hasMember(UserApp.currentUser())) {
-                    <li class="@isActiveMenu(MenuType.CODE)">
+                    <li class="code-menu @isActiveMenu(MenuType.CODE)">
                         <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">
                             <span class="menu-name">@Messages("menu.code")</span><span class="short-menu">C</span>
                         </a>
