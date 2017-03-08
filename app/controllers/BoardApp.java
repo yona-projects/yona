@@ -18,7 +18,6 @@ import models.enumeration.ResourceType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.lib.ObjectId;
-import play.api.data.validation.ValidationError;
 import play.data.Form;
 import play.db.ebean.Transactional;
 import play.libs.Json;
@@ -173,6 +172,11 @@ public class BoardApp extends AbstractPostingApp {
             preparedBodyText = StringUtils.defaultIfBlank(project.getIssueTemplate(), "");
         }
 
+        if (textFileEditRequested()) {
+            preparedBodyText = GitUtil.getReadTextFile(project,
+                    getBranchNameFromQueryString(), request().getQueryString("path"));
+        }
+
         return ok(create.render("post.new", new Form<>(Posting.class), project, isAllowedToNotice, preparedBodyText));
     }
 
@@ -186,6 +190,14 @@ public class BoardApp extends AbstractPostingApp {
 
     private static boolean issueTemplateEditRequested() {
         return request().getQueryString("issueTemplate") != null;
+    }
+
+    private static boolean textFileEditRequested() {
+        return request().getQueryString("path") != null;
+    }
+
+    private static String getBranchNameFromQueryString() {
+        return request().getQueryString("branch");
     }
 
     @Transactional
@@ -223,6 +235,11 @@ public class BoardApp extends AbstractPostingApp {
         if (post.issueTemplate.equals("true")) {
             commitIssueTemplateFile(project, post);
             return redirect(routes.ProjectApp.project(project.owner, projectName));
+        }
+
+        if(StringUtils.isNotEmpty(post.path) && UserApp.currentUser().isMemberOf(project)){
+            GitUtil.commitTextFile(project, post.branch, post.path, post.body, post.title);
+            return redirect(routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, post.branch, HttpUtil.getEncodeEachPathName(post.path)));
         }
 
         post.save();

@@ -5,6 +5,7 @@
 * https://yona.io
 **@
 @import com.fasterxml.jackson.databind.node.ObjectNode
+@import org.apache.commons.io._
 @(project:Project, branches:List[String], recursiveData:List[ObjectNode], branch:String, path:String)
 
 @import utils.TemplateHelper._
@@ -34,6 +35,14 @@
             }
             Html("<a href=\"" + getCorrectedPath(basePath, partialPath) + "\">" + p + "</a>")
         }
+    }
+}
+
+@dir = @{
+    if(fieldText(recursiveData.last, "type").eq("folder") && path.length != 0){
+        path + "/"
+    } else {
+        FilenameUtils.getPath(path)
     }
 }
 
@@ -80,6 +89,11 @@
                     <a href="@routes.CodeApp.download(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"))" class="ybtn">
                         @Messages("code.download")</a>
                 </div>
+                    @if(!UserApp.currentUser().isAnonymous) {
+                        <div class="pull-right">
+                            <a id="new-file-link" href="@routes.BoardApp.newPostForm(project.owner, project.name)?path=@dir&branch=@branchItemName(branch)" class="ybtn">@Messages("code.new.file")</a>
+                        </div>
+                    }
                 }
             </div>
 

@@ -81,7 +81,9 @@
          */
         function _onSubmitForm(){
             if(htElement.welInputTitle.val() == ""){
-                $yobi.showAlert(Messages("post.error.emptyTitle"));
+                $yobi.showAlert(Messages("post.error.emptyTitle"), function() {
+                    $("#title").focus();
+                });
                 return false;
             }
 

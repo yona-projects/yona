@@ -59,6 +59,10 @@
             <a href="@filePath" class="ybtn" target="_blank">
                 <i class="yobicon-download-alt yobicon-white vmiddle"></i> Raw
             </a>
+                @if(!UserApp.currentUser().isAnonymous) {
+                    <a href="@routes.BoardApp.newPostForm(project.owner, project.name)?path=@path&branch=@branchItemName(branch)&edit=true" class="ybtn">
+                        Edit</a>
+                }
             }
             <a id="open-in-browser" href="@pathToOpenFile" class="ybtn" target="_blank" data-content='@Messages("code.open.desc")'>
                 <i class="yobicon-download-alt yobicon-white vmiddle"></i> @Messages("code.open")

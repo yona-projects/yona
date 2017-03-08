@@ -109,6 +109,7 @@ code.fullDiff = Full comparison
 code.history = Change history
 code.isBinary = Binary file is not shown
 code.looseFileSizeLimitForCodeBrowser = Site Administrator can loose the limit by modifying "application.codeBrowser.viewer.maxFileSize" in the configuration file.
+code.new.file = New file
 code.newer = Newer
 code.noChanges = No changes
 code.nocommits = No commit exists
