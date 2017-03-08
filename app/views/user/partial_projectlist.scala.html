@@ -1,22 +1,8 @@
 @**
-* Yobi, Project Hosting SW
+* Yona, 21st Century Project Hosting SW
 *
-* Copyright 2013 NAVER Corp.
-* http://yobi.io
-*
-* @author Suwon Chae
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*   http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
+* Copyright Yona & Yobi Authors & NAVER Corp.
+* https://yona.io
 **@
 @(project:Project, user:User)
 @import utils.JodaDateUtil._
@@ -25,49 +11,38 @@
 <li class="project">
     <div class="info-wrap">
         <div class="pull-left">
-            <a href="@routes.ProjectApp.project(project.owner, project.name)" class="avatar-wrap large">
+            <a href="@routes.ProjectApp.project(project.owner, project.name)" class="avatar-wrap small">
                 <img src="@urlToProjectLogo(project)">
             </a>
         </div>
         <div class="pull-left" style="margin-left: 10px;">
             <div class="header">
-                <a href="@routes.UserApp.userInfo(project.owner)" class="owner-name-small">@project.owner</a> / <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">@project.name</a>
+                <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">@project.name</a>
                 @if(project.isPrivate){ <i class="yobicon-lock yobicon-small"></i> }
-            </div>
-            @if(project.isForkedFromOrigin){
-            <div class="forked label">
-                <i class="yobicon-split yobicon-white vmiddle"></i>
-                @Messages("fork.original")
-                <span>/ <a href="@routes.UserApp.userInfo(project.originalProject.owner)">@project.originalProject.owner</a> / </span>
-                <a href="@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)">@project.originalProject.name</a>
-            </div>
-            }
-            <div class="desc tag">
-                @for(label <- project.labels) {
-                <span class="project-label @label.category.toLowerCase">@label.name</span>
+                @if(project.isForkedFromOrigin){
+                    <i class="yobicon-split yobicon-white vmiddle"></i>
+                    <span> <a href="@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)">@project.originalProject.owner/@project.originalProject.name</a></span>
                 }
             </div>
             <div class="desc">@project.overview</div>
             <div class="name-tag">
-                @Messages("project.create") <strong title="@getDateString(project.createdDate)">@agoOrDateString(project.createdDate)</strong>
-                @if(project.lastPushedDateAgo() != null) {, @Messages("project.codeUpdate") <strong title="@getDateString(project.lastPushedDate)">@agoOrDateString(project.lastPushedDate)}</strong>
+                @Html(Messages("project.onmember", User.findUsersByProject(project.id).size)) <a href="@routes.UserApp.userInfo(project.owner)" class="owner-name-small">@project.owner</a> <span title="@getDateString(project.createdDate)">@agoOrDateString(project.createdDate)</span>
+                @if(project.lastPushedDateAgo() != null) {, @Messages("project.codeUpdate") <span title="@getDateString(project.lastPushedDate)">@agoOrDateString(project.lastPushedDate)}</span>
             </div>
         </div>
     </div>
     <div class="stats-wrap pull-right">
         <div class="stats">
-            @Html(Messages("project.onmember", User.findUsersByProject(project.id).size))<br/>
-
             @if(UserApp.currentUser.loginId != project.owner ){
                 @if(User.isWatching(project)){
-                    <a href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="nbtn blue medium watchBtn">
+                    <a href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="ybtn watchBtn">
                         <i class="yobicon-eye-open yobicon-middle yobicon-white"></i>
-                        @Messages("notification.watch")
+                        @Messages("notification.unwatch")
                         <span class="num-badge">@project.getWatchingCount</span>
                     </a>
                 }
                 @if(!User.isWatching(project) && project.isPublic) {
-                    <a href="@routes.WatchProjectApp.watch(project.owner, project.name)" class="nbtn  medium watchBtn">
+                    <a href="@routes.WatchProjectApp.watch(project.owner, project.name)" class="ybtn watchBtn">
                         <i class="yobicon-eye-close yobicon-middle yobicon-white"></i>
                         @Messages("notification.watch")
                         <span class="num-badge">@project.getWatchingCount</span>

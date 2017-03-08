@@ -91,26 +91,28 @@
                             @Messages("project.projects") @showBadgeNumberIfExist(projects.size)
                         </a>
                     </li>
-                    <li class="@isActiveTab("postings")">
-                        <a href="#postings" data-toggle="tab">
-                            @Messages("menu.board") @showBadgeNumberIfExist(postings.size)
-                        </a>
-                    </li>
-                    <li class="@isActiveTab("pullRequests")">
-                        <a href="#pullRequests" data-toggle="tab">
-                            @Messages("menu.pullRequest") @showBadgeNumberIfExist(pullRequests.size)
-                        </a>
-                    </li>
-                    <li class="@isActiveTab("issues")">
-                        <a href="#issues" data-toggle="tab">
-                            @Messages("menu.issue") @showBadgeNumberIfExist(issues.size)
-                        </a>
-                    </li>
-                    <li class="@isActiveTab("milestones")">
-                        <a href="#milestones" data-toggle="tab">
-                            @Messages("milestone") @showBadgeNumberIfExist(milestones.size)
-                        </a>
-                    </li>
+                    @if(user.loginId.equals(UserApp.currentUser().loginId)) {
+                        <li class="@isActiveTab("postings")">
+                            <a href="#postings" data-toggle="tab">
+                                @Messages("menu.board") @showBadgeNumberIfExist(postings.size)
+                            </a>
+                        </li>
+                        <li class="@isActiveTab("pullRequests")">
+                            <a href="#pullRequests" data-toggle="tab">
+                                @Messages("menu.pullRequest") @showBadgeNumberIfExist(pullRequests.size)
+                            </a>
+                        </li>
+                        <li class="@isActiveTab("issues")">
+                            <a href="#issues" data-toggle="tab">
+                                @Messages("menu.issue") @showBadgeNumberIfExist(issues.size)
+                            </a>
+                        </li>
+                        <li class="@isActiveTab("milestones")">
+                            <a href="#milestones" data-toggle="tab">
+                                @Messages("milestone") @showBadgeNumberIfExist(milestones.size)
+                            </a>
+                        </li>
+                    }
                 </ul>
 
                 <div class="tab-content">
@@ -126,54 +128,56 @@
                             }
                         </ul>
                     </div>
-                    <div id="postings" class="tab-pane @isActiveTab("postings")">
-                        @if(postings.size==0){
-                            <div class="error-wrap">
-                                <p>@Messages("userinfo.daysAgo.prefix") @Messages("post.is.empty")</p>
-                            </div>
-                        }
-                        <ul class="post-list-wrap">
-                            @for(post <- postings){
+                    @if(user.loginId.equals(UserApp.currentUser().loginId)) {
+                        <div id="postings" class="tab-pane @isActiveTab("postings")">
+                            @if(postings.size == 0) {
+                                <div class="error-wrap">
+                                    <p>@Messages("userinfo.daysAgo.prefix") @Messages("post.is.empty")</p>
+                                </div>
+                            }
+                            <ul class="post-list-wrap">
+                            @for(post <- postings) {
                                 @partial_postings(post, post.project)
                             }
-                        </ul>
-                    </div>
-                    <div id="issues" class="tab-pane @isActiveTab("issues")">
-                        @if(issues.size==0){
-                            <div class="error-wrap">
-                                <p>@Messages("userinfo.daysAgo.prefix") @Messages("issue.is.empty")</p>
-                            </div>
-                        }
-                        <ul class="post-list-wrap row-fluid">
-                        @for(issue <- issues){
-                            @partial_issues(issue, issue.project)
-                        }
-                        </ul>
-                    </div>
-                    <div id="pullRequests" class="tab-pane @isActiveTab("pullRequests")">
-                        @if(pullRequests.size==0){
-                            <div class="error-wrap">
-                                <p>@Messages("userinfo.daysAgo.prefix") @Messages("pullRequest.is.empty")</p>
-                            </div>
-                        }
-                        <ul class="post-list-wrap  row-fluid">
-                        @for(pull <- pullRequests){
-                            @partial_pullRequests(pull, pull.toProject)
-                        }
-                        </ul>
-                    </div>
-                    <div id="milestones" class="tab-pane @isActiveTab("milestones")">
-                        @if(milestones.size==0){
-                            <div class="error-wrap">
-                                <p>@Messages("milestone.is.empty")</p>
-                            </div>
-                        }
-                        <ul class="milestones">
-                        @for(milestone <- milestones){
-                            @partial_milestones(milestone, milestone.project)
-                        }
-                        </ul>
-                    </div>
+                            </ul>
+                        </div>
+                        <div id="issues" class="tab-pane @isActiveTab("issues")">
+                            @if(issues.size == 0) {
+                                <div class="error-wrap">
+                                    <p>@Messages("userinfo.daysAgo.prefix") @Messages("issue.is.empty")</p>
+                                </div>
+                            }
+                            <ul class="post-list-wrap row-fluid">
+                            @for(issue <- issues) {
+                                @partial_issues(issue, issue.project)
+                            }
+                            </ul>
+                        </div>
+                        <div id="pullRequests" class="tab-pane @isActiveTab("pullRequests")">
+                            @if(pullRequests.size == 0) {
+                                <div class="error-wrap">
+                                    <p>@Messages("userinfo.daysAgo.prefix") @Messages("pullRequest.is.empty")</p>
+                                </div>
+                            }
+                            <ul class="post-list-wrap  row-fluid">
+                            @for(pull <- pullRequests) {
+                                @partial_pullRequests(pull, pull.toProject)
+                            }
+                            </ul>
+                        </div>
+                        <div id="milestones" class="tab-pane @isActiveTab("milestones")">
+                            @if(milestones.size == 0) {
+                                <div class="error-wrap">
+                                    <p>@Messages("milestone.is.empty")</p>
+                                </div>
+                            }
+                            <ul class="milestones">
+                            @for(milestone <- milestones) {
+                                @partial_milestones(milestone, milestone.project)
+                            }
+                            </ul>
+                        </div>
+                    }
                </div>
             </div>
         </section>
