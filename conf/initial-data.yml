@@ -5,6 +5,7 @@ users:
         loginId:        admin
         password:       5v4TVjzLo1bqullT1CU4/bENUNOUfX97WpdunGLvJvw=
         passwordSalt:   '[B@1032a4'
+        state: ACTIVE
         email:          project.yona@gmail.com
         createdDate:           2012-11-01 08:00:00
 
