@@ -4,6 +4,7 @@
 * Copyright Yona & Yobi Authors & NAVER Corp.
 * https://yona.io
 **@
+@import utils.LdapService
 @()
 @import com.feth.play.module.pa.views.html._
 @import utils.TemplateHelper._
@@ -20,18 +21,11 @@
         </div>
       } else {
       <dl>
-        <dt>
-          <label for="loginIdOrEmailD">@Messages("user.login.key")</label>
-        </dt>
         <dd>
-          <input id="loginIdOrEmailD" name="loginIdOrEmail" type="text" class="text email" autocomplete="off">
+          <input id="loginIdOrEmailD" name="loginIdOrEmail" type="text" class="text email" autocomplete="off" placeholder="@Messages("user.login.key")">
         </dd>
-
-        <dt>
-          <label for="passwordD">@Messages("user.password")</label>
-        </dt>
         <dd>
-          <input id="passwordD" name="password" type="password" class="text password" autocomplete="off">
+          <input id="passwordD" name="password" type="password" class="text password" autocomplete="off" placeholder="@Messages("user.password")">
         </dd>
       </dl>
 
