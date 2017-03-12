@@ -28,18 +28,11 @@
         </div>
       } else {
       <dl>
-        <dt>
-          <label for="loginIdOrEmailD">@Messages("user.login.key")</label>
-        </dt>
         <dd>
-          <input id="loginIdOrEmailD" name="loginIdOrEmail" type="text" class="text email" autocomplete="off">
+          <input id="loginIdOrEmailD" name="loginIdOrEmail" type="text" class="text email" autocomplete="off" placeholder="@Messages("user.login.key")">
         </dd>
-
-        <dt class="mt10">
-          <label for="password">@Messages("user.password")</label>
-        </dt>
         <dd>
-          <input id="password" name="password" type="password" class="text password" autocomplete="off">
+          <input id="password" name="password" type="password" class="text password" autocomplete="off" placeholder="@Messages("user.password")">
         </dd>
       </dl>
 
