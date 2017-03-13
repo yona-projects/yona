@@ -253,6 +253,9 @@ application.noreferrer = true
 # Display private repositories in the list
 application.displayPrivateRepositories = false
 
+# choice: "public" or "private"
+# default: "public"
+project.default.scope.when.create = "private"
 
 # Github Migration
 # ~~~~~~~~~~~~~~~~~

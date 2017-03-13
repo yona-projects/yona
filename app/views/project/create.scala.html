@@ -122,7 +122,7 @@
                 </li>
 
                 <li class="mt10">
-                  <input type="radio" id="private" name="projectScope" value="PRIVATE" class="radio-btn pull-left" @if(newProjectForm.field("projectScope").value == "PRIVATE" || Application.PRIVATE_IS_DEFAULT){ checked="checked" }>
+                  <input type="radio" id="private" name="projectScope" value="PRIVATE" class="radio-btn pull-left" @if(newProjectForm.field("projectScope").value == "PRIVATE" || Application.PRIVATE_IS_DEFAULT.equalsIgnoreCase("private")){ checked="checked" }>
                   <label for="private">
                     <strong class="ml5">@Messages("project.private")</strong>
                     <p class="note">
