@@ -7,7 +7,6 @@
 package controllers;
 
 import actions.CodeAccessCheckAction;
-import actions.DefaultProjectCheckAction;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
@@ -18,6 +17,7 @@ import org.apache.tika.Tika;
 import org.apache.tika.mime.MediaType;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.tmatesoft.svn.core.SVNException;
+import play.cache.Cache;
 import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Http;
@@ -36,6 +36,7 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import static utils.HttpUtil.encodeUrlString;
@@ -81,9 +82,9 @@ public class CodeApp extends Controller {
     }
 
     @With(CodeAccessCheckAction.class)
-    public static Result codeBrowserWithBranch(String userName, String projectName, String branch, String path)
+    public static Result codeBrowserWithBranch(String owner, String projectName, String branch, String path)
         throws UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException {
-        Project project = Project.findByOwnerAndProjectName(userName, projectName);
+        Project project = Project.findByOwnerAndProjectName(owner, projectName);
 
         if (!RepositoryService.VCS_GIT.equals(project.vcs) && !RepositoryService.VCS_SUBVERSION.equals(project.vcs)) {
             return status(Http.Status.NOT_IMPLEMENTED, project.vcs + " is not supported!");
@@ -94,9 +95,13 @@ public class CodeApp extends Controller {
 
         PlayRepository repository = RepositoryService.getRepository(project);
         List<String> branches = repository.getRefNames();
-        List<ObjectNode> recursiveData = RepositoryService.getMetaDataFromAncestorDirectories(
-                repository, branch, path);
-
+        String cacheKey = owner + ":" + projectName + ":" + branch + ":" + path + ":" + project.lastUpdateDate().getTime();
+        List<ObjectNode> recursiveData = (List<ObjectNode>) Cache.get(cacheKey);
+        if( recursiveData == null){
+            recursiveData = RepositoryService.getMetaDataFromAncestorDirectories(
+                    repository, branch, path);
+            Cache.set(cacheKey, recursiveData);
+        }
         if (recursiveData == null) {
             return notFound(ErrorViews.NotFound.render());
         }
