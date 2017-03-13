@@ -87,7 +87,11 @@ public class BasicAuthAction extends Action<Object> {
         User authUser = parseCredentials(credential);
 
         if (authUser != null) {
-            return UserApp.authenticateWithPlainPassword(authUser.loginId, authUser.password);
+            if (LdapService.useLdap) {
+                return  UserApp.authenticateWithLdap(authUser.loginId, authUser.password);
+            } else {
+                return UserApp.authenticateWithPlainPassword(authUser.loginId, authUser.password);
+            }
         } else {
             return User.anonymous;
         }

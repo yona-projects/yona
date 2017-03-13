@@ -18,6 +18,7 @@ import controllers.annotation.AnonymousCheck;
 import models.*;
 import models.enumeration.Operation;
 import models.enumeration.UserState;
+import models.support.LdapUser;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.crypto.RandomNumberGenerator;
@@ -39,6 +40,10 @@ import play.mvc.Result;
 import utils.*;
 import views.html.user.*;
 
+import javax.annotation.Nonnull;
+import javax.naming.AuthenticationException;
+import javax.naming.CommunicationException;
+import javax.naming.NamingException;
 import java.util.*;
 
 import static com.feth.play.module.mail.Mailer.getEmailName;
@@ -207,7 +212,12 @@ public class UserApp extends Controller {
             return redirect(getLoginFormURLWithRedirectURL());
         }
 
-        User authenticate = authenticateWithPlainPassword(sourceUser.loginId, authInfoForm.get().password);
+        User authenticate = User.anonymous;
+        if (LdapService.useLdap) {
+            authenticate =  authenticateWithLdap(authInfoForm.get().loginIdOrEmail, authInfoForm.get().password);
+        } else {
+            authenticate = authenticateWithPlainPassword(sourceUser.loginId, authInfoForm.get().password);
+        }
 
         if (!authenticate.isAnonymous()) {
             addUserInfoToSession(authenticate);
@@ -275,7 +285,12 @@ public class UserApp extends Controller {
             return notFound(getObjectNodeWithMessage("user.deleted"));
         }
 
-        User user = authenticateWithPlainPassword(sourceUser.loginId, authInfoForm.get().password);
+        User user = User.anonymous;
+        if (LdapService.useLdap) {
+            user =  authenticateWithLdap(authInfoForm.get().loginIdOrEmail, authInfoForm.get().password);
+        } else {
+            user = authenticateWithPlainPassword(sourceUser.loginId, authInfoForm.get().password);
+        }
 
         if (!user.isAnonymous()) {
             if (authInfoForm.get().rememberMe) {
@@ -378,7 +393,7 @@ public class UserApp extends Controller {
             forceOAuthLogout();
             return User.anonymous;
         }
-        User created = createUserDelegate(userCredential);
+        User created = createUserDelegate(userCredential.name, userCredential.email, null);
 
         if (created.state == UserState.LOCKED) {
             flash(Constants.INFO, "user.signup.requested");
@@ -398,15 +413,19 @@ public class UserApp extends Controller {
         session().put("pa.url.orig", routes.Application.oAuthLogout().url());
     }
 
-    private static User createUserDelegate(UserCredential userCredential) {
-        String loginIdCandidate = userCredential.email.substring(0, userCredential.email.indexOf("@"));
+    private static User createUserDelegate(@Nonnull String name, @Nonnull String email, String password) {
+        String loginIdCandidate = email.substring(0, email.indexOf("@"));
 
         User user = new User();
         user.loginId = generateLoginId(user, loginIdCandidate);
-        user.name = userCredential.name;
-        user.email = userCredential.email;
+        user.name = name;
+        user.email = email;
 
-        user.password = (new SecureRandomNumberGenerator()).nextBytes().toBase64();  // random password because created with OAuth
+        if(StringUtils.isEmpty(password)){
+            user.password = (new SecureRandomNumberGenerator()).nextBytes().toBase64();  // random password because created with OAuth
+        } else {
+            user.password = password;
+        }
 
         return createNewUser(user);
     }
@@ -1012,6 +1031,40 @@ public class UserApp extends Controller {
             return user;
         }
         return User.anonymous;
+    }
+
+    public static User authenticateWithLdap(String loginIdOrEmail, String password) {
+        LdapService ldapService = new LdapService();
+        try {
+            LdapUser ldapUser = ldapService.authenticate(loginIdOrEmail, password);
+            User localUserFoundByLdapLogin = User.findByEmail(ldapUser.getEmail());
+            if (localUserFoundByLdapLogin.isAnonymous()) {
+                User created = createUserDelegate(ldapUser.getDisplayName(), ldapUser.getEmail(), password);
+                if (created.state == UserState.LOCKED) {
+                    flash(Constants.INFO, "user.signup.requested");
+                    return User.anonymous;
+                }
+                return created;
+            } else {
+                if(!localUserFoundByLdapLogin.isSamePassword(password)) {
+                    User.resetPassword(localUserFoundByLdapLogin.loginId, password);
+                }
+                return localUserFoundByLdapLogin;
+            }
+        } catch (CommunicationException e) {
+            play.Logger.error("Cannot connect to ldap server \n" + e.getMessage());
+            e.printStackTrace();
+            return User.anonymous;
+        }
+        catch (AuthenticationException e) {
+            flash(Constants.WARNING, Messages.get("user.login.invalid"));
+            play.Logger.warn("login failed \n" + e.getMessage());
+            return User.anonymous;
+        } catch (NamingException e) {
+            play.Logger.error("Cannot connect to ldap server \n" + e.getMessage());
+            e.printStackTrace();
+            return User.anonymous;
+        }
     }
 
     public static boolean isUseSignUpConfirm(){
