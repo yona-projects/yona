@@ -282,6 +282,21 @@ application.use.social.login.name.sync = false
 # choice: github, google
 application.social.login.support = "github, google"
 
+# LDAP Login Support
+# ~~~~~~~~~~~~~~~~~
+#
+application.use.ldap.login.supoort = false
+ldap {
+    host = "ldap.forumsys.com"
+    # default: ldap.port=389, ldaps.port=636
+    port = 389
+    # protocol: ldap or ldaps. If you want to use SSL/TLS, use 'ldaps'
+    protocol = "ldap"
+    baseDN = "ou=scientists,dc=example,dc=com"
+    # If your ldap service's distinguishedName is 'CN=username,OU=user,DC=abc,DC=com', postfix is 'OU=xxx,DC=abc,DC=com'
+    distinguishedNamePostfix = "OU=user,DC=abc,DC=com"
+}
+
 # If you enable to use social login, set followings
 play-easymail {
   from {

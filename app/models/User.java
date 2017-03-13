@@ -464,10 +464,18 @@ public class User extends Model implements ResourceConvertible {
      */
     public static void resetPassword(String loginId, String newPassword) {
         User user = findByLoginId(loginId);
-        user.password = new Sha256Hash(newPassword, ByteSource.Util.bytes(user.passwordSalt), 1024)
-                .toBase64();
+        user.password = getHashedStringForPassword(newPassword, user.passwordSalt);
         CacheStore.yonaUsers.put(user.id, user);
         user.save();
+    }
+
+    public boolean isSamePassword(String newPassword) {
+        return this.password.equals(getHashedStringForPassword(newPassword, this.passwordSalt));
+    }
+
+    private static String getHashedStringForPassword(String newPassword, String salt) {
+        return new Sha256Hash(newPassword, ByteSource.Util.bytes(salt), 1024)
+                .toBase64();
     }
 
     @Override
