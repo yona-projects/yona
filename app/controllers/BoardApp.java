@@ -173,6 +173,11 @@ public class BoardApp extends AbstractPostingApp {
         }
 
         if (textFileEditRequested()) {
+            boolean isAllowedToFileEdit =
+                    AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.COMMIT);
+            if(!isAllowedToFileEdit){
+                return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
+            }
             preparedBodyText = GitUtil.getReadTextFile(project,
                     getBranchNameFromQueryString(), request().getQueryString("path"));
         }
