@@ -61,8 +61,11 @@ Yona는 기본적으로 다음 2단계로 설치됩니다.
 - [MariaDB 설치](docs/ko/install-mariadb.md)
 - [Yona 설치](docs/ko/install-yona-server.md)
 
-만약 [Docker](https://www.docker.com/)를 이용해 설치하실분은 [pokev25](https://github.com/pokev25) 님의 https://github.com/pokev25/docker-yona 를 이용해주세요
+#### Docker를 이용한 설치
+[Docker](https://www.docker.com/)를 이용해 설치하실분은 [pokev25](https://github.com/pokev25) 님의 https://github.com/pokev25/docker-yona 를 이용해주세요. 
 
+#### Amazon AWS 에 설치 
+https://okdevtv.com/mib/yona by [Kenu](https://www.facebook.com/kenu.heo)님
 
 Yona 실행 및 업그레이드/백업 및 복구/문제 해결
 ---
@@ -85,9 +88,10 @@ Yona 실행 및 업그레이드/백업 및 복구/문제 해결
 - [소셜 로그인 설정](docs/ko/yona-social-login-settings.md)
 
 <br/>
-<br/>
-<a name="english"></a>
-[[한국어]](#korean)
+
+<a name="english"></a>[[한국어]](#korean)
+
+
 Yona
 =======
 Yona is a web-based project hosting software.
