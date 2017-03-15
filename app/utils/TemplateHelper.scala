@@ -463,6 +463,7 @@ object TemplateHelper {
     }
 
     def urlToPostNewComment(thread: CommentThread) = {
+      thread.project.refresh()
       if(thread.isOnPullRequest){
         routes.PullRequestApp.newComment(thread.project.owner, thread.project.name, thread.pullRequest.id, _getCommitId(thread))
       } else {
