@@ -579,7 +579,9 @@ public class IssueApp extends AbstractPostingApp {
                 final Project previous = Project.findByOwnerAndProjectName(ownerName, projectName);
                 if(isRequestedToOtherProject(originalIssue.project, previous)){
                     issue.labels = originalIssue.labels;
-                    addIssueMovedNotification(previous, issue);
+                    if(!isFromMyOwnPrivateProject(previous)){
+                        addIssueMovedNotification(previous, issue);
+                    }
                 } else {
                     addLabels(issue, request());
                 }
@@ -593,6 +595,10 @@ public class IssueApp extends AbstractPostingApp {
         };
 
         return editPosting(originalIssue, issue, issueForm, redirectTo, preUpdateHook);
+    }
+
+    private static boolean isFromMyOwnPrivateProject(Project previous) {
+        return previous.isPrivate() && previous.owner.equalsIgnoreCase(UserApp.currentUser().loginId);
     }
 
     private static void moveIssueToOtherProject(Issue originalIssue, Project toOtherProject) {
