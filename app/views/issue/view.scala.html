@@ -133,7 +133,7 @@
                             }
                         </a>
                 </div>
-                @if(issue.history != null){
+                @if(StringUtils.isNotEmpty(issue.history)){
                 <div class="posting-history">
                     <a href="#-yona-posting-history" data-toggle="modal">@Messages("change.history")</a>
                     @common.partial_history(issue)

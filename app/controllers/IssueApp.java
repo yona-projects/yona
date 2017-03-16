@@ -579,7 +579,11 @@ public class IssueApp extends AbstractPostingApp {
                 final Project previous = Project.findByOwnerAndProjectName(ownerName, projectName);
                 if(isRequestedToOtherProject(originalIssue.project, previous)){
                     issue.labels = originalIssue.labels;
-                    addIssueMovedNotification(previous, issue);
+                    if(isFromMyOwnPrivateProject(previous)){
+                        issue.history = "";
+                    } else {
+                        addIssueMovedNotification(previous, issue);
+                    }
                 } else {
                     addLabels(issue, request());
                 }
