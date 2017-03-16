@@ -25,6 +25,13 @@
     }
 }
 
+@myOpenIssueCount = @{
+    val count = Issue.countOpenIssuesByUser(UserApp.currentUser())
+    if(count > 0) {
+        Html("<span class=\"counter-badge\">(" + count + ")</span>")
+    }
+}
+
 <div id="mySidenav" class="sidenav">
     <div class="span5 right-menu span-hard-wrap">
         <div class="row-fluid user-menu-wrap">
@@ -64,7 +71,7 @@
        </li>
        <li class="divider hide-in-mobile"></li>
        <li class="gnb-usermenu-item">
-          <a href="@routes.IssueApp.userIssues()" class="user-item-btn loggged-in">@Messages("issue.myIssue")</a>
+           <a href="@routes.IssueApp.userIssues()" class="user-item-btn loggged-in">@Messages("issue.myIssue")@myOpenIssueCount</a>
         </li>
         <li class="divider"></li>
         @if(UserApp.currentUser.isSiteManager) {
