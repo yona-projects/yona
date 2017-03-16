@@ -658,4 +658,11 @@ public class Issue extends AbstractPosting implements LabelOwner {
                 .eq("state", state)
                 .findRowCount();
     }
+
+    public static int countOpenIssuesByUser(User user) {
+        return finder.where()
+                .eq("assignee.user.id", user.id)
+                .eq("state", State.OPEN)
+                .findRowCount();
+    }
 }
