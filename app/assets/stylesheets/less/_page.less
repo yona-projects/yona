@@ -185,16 +185,34 @@
 
             &.gnb-usermenu-item {
                 font-size: 14px;
-                color: @low-white;
+                color: #a2a2a2;
 
                 a {
                     line-height: 30px;
                     padding:5px 10px;
                     text-decoration: none;
-                    .transition(color 0.15s);
 
                     &:hover {
-                        color: @blue;
+                        color: #fcfcfc;
+                        .counter-badge {
+                          color: #fcfcfc;
+                        }
+                    }
+
+                    .counter-badge {
+                        font-family: @fixed-font-family;
+                        display: inline-block;
+                        font-size: 12px;
+                        min-width: 8px;
+                        padding: 2px 2px 0 2px;
+                        text-align: center;
+                        color: black;
+                        background-color: rgba(255, 115, 50, 0.75);
+                        border-radius: 5px;
+                        line-height: 14px;
+                        vertical-align: middle;
+                        margin-left: 4px;
+                        margin-bottom: 3px;
                     }
 
                     &.usermenu-icon-button {
@@ -545,16 +563,6 @@
     font-family: @fixed-font-family;
     vertical-align: top;
     .border-radius(9px);
-}
-
-.counter-badge {
-    display: inline-block;
-    font-size: 12px;
-    padding: 0 3px;
-    text-align: center;
-    font-family: @fixed-font-family;
-    .border-radius(3px);
-    vertical-align: middle;
 }
 
 .project-new-posting {

@@ -28,7 +28,7 @@
 @myOpenIssueCount = @{
     val count = Issue.countOpenIssuesByUser(UserApp.currentUser())
     if(count > 0) {
-        Html("<span class=\"counter-badge\">(" + count + ")</span>")
+        Html("<span class=\"counter-badge\">" + count + "</span>")
     }
 }
 
