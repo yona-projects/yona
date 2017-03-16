@@ -191,14 +191,20 @@
                     var data = [evt.object];
                     var element = $(evt.object.element);
                     var select2Object = $(evt.target).data("select2");
+                    var oldData = select2Object.data()
 
                     // Remove label which category is same with selected label from current data
                     // if selected label belonged exclusive category
                     if(element.data("categoryIsExclusive")){
-                        var filtered = _filterLabelInSameCategory(evt.object, select2Object.data());
+                        var categoryId = $(evt.object.element).data("categoryId");
+                        var filtered = _filterLabelInSameCategory(categoryId, oldData);
                         data = data.concat(filtered);
+
+                        if(oldData.length != filtered.length){
+                            _unselect(select2Object, categoryId);
+                        }
                     } else {
-                        data = data.concat(select2Object.data());
+                        data = data.concat(oldData);
                     }
 
                     _rememberLastScrollTop();
@@ -206,7 +212,7 @@
                     // Set data as filtered
                     // and trigger "change" event
                     select2Object.data(data, true);
-
+                
                     if(select2Object.opts.closeOnSelect !== false){
                         select2Object.close();
                     }
@@ -215,9 +221,7 @@
                     return false;
                 }
 
-                function _filterLabelInSameCategory(label, currentData){
-                    var categoryId = $(label.element).data("categoryId");
-
+                function _filterLabelInSameCategory(categoryId, currentData){
                     return currentData.filter(function(data){
                         return (categoryId !== $(data.element).data("categoryId"));
                     });
@@ -239,6 +243,14 @@
 
                 function _onOpenIssueLabel(){
                     _restoreLastScrollTop();
+                }
+
+                // When select2 v3.x is migrated to v4.x, it will probably need to be updated.
+                function _unselect(select2Object, categoryId){
+                    select2Object.results.find(".select2-selected").filter(function(){
+                        var optionElement = $(this).data("select2-data").element; 
+                        return $(optionElement).data("categoryId") === categoryId; 
+                    }).removeClass("select2-selected");
                 }
             }
         };
