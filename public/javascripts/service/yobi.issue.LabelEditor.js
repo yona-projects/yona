@@ -200,12 +200,12 @@
             if(elements.inputCategory.val().length === 0 ||
                 elements.inputName.val().length === 0 ||
                 elements.inputColor.val().length === 0){
-                $yobi.alert(Messages("label.failed") + "\n" + Messages("label.error.empty"));
+                $yobi.alert(Messages("label.failedTo", Messages("label.add")) + "\n" + Messages("label.error.empty"));
                 return false;
             }
 
             if(_getRefinedHexColor(elements.inputColor.val()) === false){
-                $yobi.alert(Messages("label.failed") + "\n" + Messages("label.error.color", elements.inputColor.val()));
+                $yobi.alert(Messages("label.failedTo", Messages("label.add")) + "\n" + Messages("label.error.color", elements.inputColor.val()));
                 return false;
             }
 
