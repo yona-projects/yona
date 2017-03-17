@@ -1,7 +1,7 @@
 # --- !Ups
 
 create table linked_account (
-  id                        bigint auto_increment not null,
+  id                        bigint not null,
   user_credential_id        bigint,
   provider_user_id          varchar(255),
   provider_key              varchar(255),
@@ -9,7 +9,7 @@ create table linked_account (
 ;
 
 create table user_credential (
-  id                        bigint auto_increment not null,
+  id                        bigint not null,
   user_id                   bigint,
   login_id                  varchar(255),
   email                     varchar(255),
@@ -26,6 +26,8 @@ alter table linked_account add constraint fk_linked_account_user_1 foreign key (
 
 create index ix_linked_account_user_credential_1 on linked_account (user_credential_id);
 
+create sequence linked_account_seq;
+create sequence user_credential_seq; 
 
 # --- !Downs
 
