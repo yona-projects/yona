@@ -599,6 +599,10 @@ public class IssueApp extends AbstractPostingApp {
         return editPosting(originalIssue, issue, issueForm, redirectTo, preUpdateHook);
     }
 
+    private static boolean isFromMyOwnPrivateProject(Project previous) {
+        return previous.isPrivate() && previous.owner.equalsIgnoreCase(UserApp.currentUser().loginId);
+    }
+    
     private static void moveIssueToOtherProject(Issue originalIssue, Project toOtherProject) {
         originalIssue.project = toOtherProject;
         originalIssue.setNumber(Project.increaseLastIssueNumber(toOtherProject.id));

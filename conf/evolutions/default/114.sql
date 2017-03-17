@@ -31,10 +31,11 @@ create sequence user_credential_seq;
 
 # --- !Downs
 
-SET REFERENTIAL_INTEGRITY FALSE;
 
 drop table linked_account;
 
 drop table user_credential;
 
-SET REFERENTIAL_INTEGRITY TRUE;
+drop sequence linked_account_seq;
+drop sequence user_credential_seq; 
+

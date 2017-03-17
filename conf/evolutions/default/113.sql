@@ -15,6 +15,8 @@ CREATE TABLE favorite_project (
 CREATE index ix_favorite_project_user_1 ON favorite_project (user_id);
 CREATE index ix_favorite_project_project_2 ON favorite_project (project_id);
 
+create sequence favorite_project_seq;
+
 CREATE TABLE favorite_organization (
   id                        BIGINT AUTO_INCREMENT NOT NULL,
   user_id                   BIGINT,
@@ -30,6 +32,11 @@ CREATE TABLE favorite_organization (
 CREATE index ix_favorite_organization_user_1 ON favorite_organization (user_id);
 CREATE index ix_favorite_organization_organization_2 ON favorite_organization (organization_id);
 
+create sequence favorite_organization_seq;
+
 # --- !Downs
 DROP TABLE favorite_project;
 DROP TABLE favorite_organization;
+
+drop sequence favorite_project_seq;
+drop sequence favorite_organization_seq;
