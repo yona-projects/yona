@@ -25,11 +25,7 @@
 @defining(User.findByLoginId(post.authorLoginId)){ user =>
 <li class="post-item">
     <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap mlarge hide-in-mobile" data-toggle="tooltip" data-placement="bottom" title="@user.loginId">
-        @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){
-            <img src="@urlToPicture(user.email, 32)">
-        } else {
-            <img src="@user.avatarUrl" alt="@user.name" width="32" height="32"/>
-        }
+        <img src="@user.avatarUrl(64)" alt="@user.name" width="32" height="32"/>
     </a>
     <div class="title-wrap">
         @if(post.notice){

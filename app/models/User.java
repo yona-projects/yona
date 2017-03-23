@@ -6,7 +6,10 @@
  **/
 package models;
 
-import com.avaje.ebean.*;
+import com.avaje.ebean.Ebean;
+import com.avaje.ebean.ExpressionList;
+import com.avaje.ebean.Page;
+import com.avaje.ebean.RawSqlBuilder;
 import controllers.UserApp;
 import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
@@ -27,12 +30,12 @@ import play.db.ebean.Model;
 import play.db.ebean.Transactional;
 import play.i18n.Messages;
 import utils.CacheStore;
+import utils.GravatarUtil;
 import utils.JodaDateUtil;
 import utils.ReservedWordsValidator;
 
 import javax.annotation.Nonnull;
 import javax.persistence.*;
-import javax.persistence.OrderBy;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -671,7 +674,17 @@ public class User extends Model implements ResourceConvertible {
     public String avatarUrl() {
         Long avatarId = avatarId();
         if (avatarId == null) {
-            return UserApp.DEFAULT_AVATAR_URL;
+            return GravatarUtil.getAvatar(email, 64);
+        }
+        else {
+            return controllers.routes.AttachmentApp.getFile(avatarId).url();
+        }
+    }
+
+    public String avatarUrl(int size) {
+        Long avatarId = avatarId();
+        if (avatarId == null) {
+            return GravatarUtil.getAvatar(email, size);
         }
         else {
             return controllers.routes.AttachmentApp.getFile(avatarId).url();

@@ -52,7 +52,7 @@
                 <div class="author-info">
                         <a href="@userInfo(post.authorLoginId)" class="usf-group">
                             <span class="avatar-wrap smaller">
-                                <img src="@User.findByLoginId(post.authorLoginId).avatarUrl" width="20" height="20">
+                                <img src="@User.findByLoginId(post.authorLoginId).avatarUrl(32)" width="20" height="20">
                             </span>
                             @if(post.authorLoginId != null){
                                 <strong class="name">@post.authorName</strong>
