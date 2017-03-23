@@ -655,9 +655,7 @@ public class IssueApp extends AbstractPostingApp {
             issue.parent = Issue.finder.byId(Long.valueOf(issue.parentIssueId));
         }
         originalIssue.parent = issue.parent;
-        if (originalIssue.parent != null) {
-            originalIssue.update();
-        }
+        originalIssue.update();
     }
 
     private static void setAssignee(Form<Issue> issueForm, Issue issue, Project project) {
