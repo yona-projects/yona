@@ -407,7 +407,7 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         final Issue newIssue = issueForm.get();
-        if(StringUtils.isNotEmpty(newIssue.targetProjectId)){
+        if(hasTargetProject(newIssue)){
             Project toAnotherProject = Project.find.byId(Long.valueOf(newIssue.targetProjectId));
             if(toAnotherProject == null){
                 flash(Constants.WARNING, Messages.get("error.notfound.project"));
@@ -549,20 +549,25 @@ public class IssueApp extends AbstractPostingApp {
         issue.dueDate = JodaDateUtil.lastSecondOfDay(issue.dueDate);
 
         Issue originalIssue = Issue.findByNumber(project, number);
-        if(StringUtils.isNotEmpty(issue.targetProjectId)){
+        if(hasTargetProject(issue)) {
             Project toOtherProject = Project.find.byId(Long.valueOf(issue.targetProjectId));
-            if(toOtherProject == null){
+            if (toOtherProject == null) {
                 flash(Constants.WARNING, Messages.get("error.notfound.project"));
                 return badRequest(edit.render("error.validation", issueForm, Issue.findByNumber(project, number), project));
-            } else if (isRequestedToOtherProject(project, toOtherProject)) {
-                if (!AccessControl.isProjectResourceCreatable(
-                        UserApp.currentUser(), toOtherProject, ResourceType.ISSUE_POST)) {
-                    return forbidden(ErrorViews.Forbidden.render("error.forbidden", toOtherProject));
-                }
+            }
+
+            if (!AccessControl.isProjectResourceCreatable(
+                    UserApp.currentUser(), toOtherProject, ResourceType.ISSUE_POST)) {
+                return forbidden(ErrorViews.Forbidden.render("error.forbidden", toOtherProject));
+            }
+
+            if (isRequestedToOtherProject(project, toOtherProject)) {
                 moveIssueToOtherProject(originalIssue, toOtherProject);
+                issue.milestone = null;
+            } else {
+                updateSubtaskRelation(issue, originalIssue);
             }
         }
-        updateSubtaskRelation(issue, originalIssue);
 
         Call redirectTo = routes.IssueApp.issue(originalIssue.project.owner, originalIssue.project.name, originalIssue.getNumber());
 
@@ -599,6 +604,10 @@ public class IssueApp extends AbstractPostingApp {
         return editPosting(originalIssue, issue, issueForm, redirectTo, preUpdateHook);
     }
 
+    private static boolean hasTargetProject(Issue issue) {
+        return StringUtils.isNotEmpty(issue.targetProjectId);
+    }
+
     private static boolean isFromMyOwnPrivateProject(Project previous) {
         return previous.isPrivate() && previous.owner.equalsIgnoreCase(UserApp.currentUser().loginId);
     }
@@ -617,8 +626,8 @@ public class IssueApp extends AbstractPostingApp {
             transferLabels(originalIssue, toOtherProject);
         } else {
             originalIssue.labels = new HashSet<>();
-            originalIssue.update();
         }
+        originalIssue.update();
     }
 
     private static void transferLabels(Issue originalIssue, Project toProject) {
@@ -641,7 +650,6 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         originalIssue.labels = new HashSet<>(newLabels);
-        originalIssue.update();
     }
 
     private static boolean isRequestedToOtherProject(Project project, Project toOtherProject) {
