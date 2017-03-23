@@ -11,6 +11,7 @@
 @import utils.AccessControl._
 @import utils.TemplateHelper._
 @import utils.HtmlUtil._
+@import utils.LineEnding._
 @import models.enumeration._
 
     @implicitField = @{
@@ -95,6 +96,7 @@
           <input type="hidden" id="issueTemplate" name="issueTemplate" value="@issueTemplate">
           <input type="hidden" id="branch" name="branch" value="@branch">
           <input type="hidden" id="path" name="path" value="@path">
+          <input type="hidden" id="lineEnding" name="lineEnding" value="@findLineEnding(preparedPostBody)">
           @if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.COMMIT)){
             @if(project.isGit && !requestHeader.getQueryString("readme").equals(None)){
             <label class="checkbox">

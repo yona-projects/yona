@@ -37,6 +37,10 @@ public class Posting extends AbstractPosting {
     @Transient
     public String branch;
 
+    //ToDo: Sperate it from posting for online commit
+    @Transient
+    public String lineEnding;
+
     @OneToMany(cascade = CascadeType.ALL)
     public List<PostingComment> comments;
 

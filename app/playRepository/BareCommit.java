@@ -248,7 +248,7 @@ public class BareCommit {
     // Bare commit. It is referenced from https://gist.github.com/porcelli/3882505
     public ObjectId commitTextFile(final String branchName, final String path, String text, final String message) throws IOException {
         this.file = new File(this.repository.getDirectory(), path);
-        org.apache.commons.io.FileUtils.write(this.file, text);
+        org.apache.commons.io.FileUtils.writeStringToFile(this.file, text, "UTF-8");
 
         ObjectId commitId = null;
         Git git = new Git(this.repository);
