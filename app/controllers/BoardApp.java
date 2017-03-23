@@ -243,7 +243,8 @@ public class BoardApp extends AbstractPostingApp {
         }
 
         if(StringUtils.isNotEmpty(post.path) && UserApp.currentUser().isMemberOf(project)){
-            GitUtil.commitTextFile(project, post.branch, post.path, post.body, post.title);
+            GitUtil.commitTextFile(project, post.branch, post.path,
+                    LineEnding.changeLineEnding(post.body, post.lineEnding), post.title);
             return redirect(routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, post.branch, HttpUtil.getEncodeEachPathName(post.path)));
         }
 
