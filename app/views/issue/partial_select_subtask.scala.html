@@ -30,8 +30,8 @@
                 }
             }
             @for(issue <- Issue.findByProject(project, "", 1).filter(issue => issue.id != currentIssueId)) {
-                @if(issue.parent == null && !hasChildIssue) {
-                    <option value="@issue.id" @if(issue.id == parentIssueId) {selected}>#@issue.getNumber. @issue.title </option>
+                @if(issue.parent == null && !hasChildIssue && issue.id != parentIssueId) {
+                    <option value="@issue.id">#@issue.getNumber. @issue.title </option>
                 }
             }
         </select>
