@@ -28,7 +28,7 @@ import java.net.URLEncoder;
 public class GravatarUtil {
 
     public static final String DEFAULT_GRAVATAR_URL = "https://ko.gravatar.com/userimage/53495145/0eaeeb47c620542ad089f17377298af6.png";
-    public static final int DEFAULT_SIZE = 80;
+    public static final int DEFAULT_SIZE = 64;
 
     public static String getAvatar(String email) {
         return getAvatar(email, DEFAULT_SIZE);

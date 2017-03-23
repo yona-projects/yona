@@ -123,7 +123,7 @@
                 <div class="author-info">
                         <a href="@userInfo(issue.authorLoginId)" class="usf-group">
                             <span class="avatar-wrap smaller">
-                                <img src="@User.findByLoginId(issue.authorLoginId).avatarUrl" width="20" height="20">
+                                <img src="@User.findByLoginId(issue.authorLoginId).avatarUrl(32)" width="20" height="20">
                             </span>
                             @if(issue.authorLoginId != null){
                                 <strong class="name">@issue.authorName</strong>

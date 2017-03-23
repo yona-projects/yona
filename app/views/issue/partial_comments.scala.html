@@ -14,7 +14,7 @@
 
 @avatarByLoginId(loginId: String, loginName: String) = {
     <a href="@userInfo(loginId)" class="usf-group" data-toggle="tooltip" data-placement="top" title="@loginName">
-        <img src="@User.findByLoginId(loginId).avatarUrl" class="avatar-wrap small">
+        <img src="@getUserAvatarUrl(User.findByLoginId(loginId), 32)" class="avatar-wrap small">
     </a>
 }
 
@@ -67,7 +67,7 @@
     <li class="comment @isAuthorComment(comment.authorLoginId)" id="comment-@comment.id">
         <div class="comment-avatar">
             <a href="@userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
-                <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
+                <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl(64)" width="32" height="32" alt="@comment.authorLoginId">
             </a>
         </div>
         <div class="media-body">
@@ -75,7 +75,7 @@
                 <span class="comment_author pull-left">
                     <span class="resp-comment-avatar">
                         <a href="@userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
-                            <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
+                            <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl(64)" width="32" height="32" alt="@comment.authorLoginId">
                         </a>
                     </span>
                     <a href="@userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">

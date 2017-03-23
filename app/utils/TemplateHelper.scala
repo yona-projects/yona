@@ -109,7 +109,7 @@ object TemplateHelper {
     Messages.get(_key, count.toString)
   }
 
-  def urlToPicture(email: String, size: Int = 34) = {
+  def urlToPicture(email: String, size: Int = 64) = {
     GravatarUtil.getAvatar(email, size)
   }
 
@@ -162,8 +162,16 @@ object TemplateHelper {
     }
   }
 
-  def getUserAvatar(user: models.User, avatarSize:String = "small") = {
-    user.refresh();
+  def getUserAvatarUrl(user: models.User, avatarSize: Int): String = {
+    if (user.avatarUrl == UserApp.DEFAULT_AVATAR_URL) {
+      urlToPicture(user.email, avatarSize)
+    } else {
+      user.avatarUrl
+    }
+  }
+
+  def getUserAvatar(user: models.User, avatarSize:String = "small"): String = {
+    user.refresh()
     var userInfoURL = routes.UserApp.userInfo(user.loginId).toString()
 
     "<a href=\"" + userInfoURL + "\" class=\"usf-group\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"" + user.name + "\"><img src=\"" + user.avatarUrl + "\" class=\"avatar-wrap " + avatarSize + "\"></a>"
