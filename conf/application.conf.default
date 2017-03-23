@@ -255,7 +255,7 @@ application.displayPrivateRepositories = false
 
 # choice: "public" or "private"
 # default: "public"
-project.default.scope.when.create = "private"
+project.default.scope.when.create = "public"
 
 # Github Migration
 # ~~~~~~~~~~~~~~~~~
