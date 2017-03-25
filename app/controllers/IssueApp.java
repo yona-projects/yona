@@ -248,7 +248,7 @@ public class IssueApp extends AbstractPostingApp {
             result.put("id", issueInfo.getNumber());
             result.put("title", issueInfo.title);
             result.put("state", issueInfo.state.toString());
-            result.put("body", StringUtils.abbreviate(issueInfo.body, 1000));
+            result.put("body", StringUtils.abbreviate(issueInfo.body, 200));
             result.put("createdDate", issueInfo.createdDate.toString());
             result.put("link", routes.IssueApp.issue(project.owner, project.name, issueInfo.getNumber()).toString());
             return ok(result);
