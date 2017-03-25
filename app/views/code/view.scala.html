@@ -46,6 +46,14 @@
     }
 }
 
+@pathWithoutFileName(path:String) = @{
+    if(path.lastIndexOf("/") > 0){
+        path.substring(0, path.lastIndexOf("/"))
+    } else {
+        ""
+    }
+}
+
 @projectLayout(Messages("menu.code"), project, utils.MenuType.CODE){
 @projectMenu(project, utils.MenuType.CODE, "main-menu-only")
 <div class="page-wrap-outer">
@@ -53,11 +61,7 @@
         <div class="code-browse-wrap">
             @if(fieldText(recursiveData{0}, "type").eq("folder")){
             <ul class="nav nav-tabs">
-                @if(path.lastIndexOf("/") > 0){
-                <li class="active"><a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), path.substring(0, path.lastIndexOf("/")))">@Messages("code.files")</a></li>
-                } else {
-                <li class="active"><a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), path)">@Messages("code.files")</a></li>
-                }
+                <li class="active"><a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), pathWithoutFileName(path))">@Messages("code.files")</a></li>
                 @if(branch.eq("HEAD")){
                 <li><a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a></li>
                 } else {
