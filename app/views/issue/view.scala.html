@@ -22,7 +22,7 @@
 
 @urlToIssues = @{
   requestHeader.headers.get("Referer") match {
-    case Some(u) => urlToList(u, routes.IssueApp.issues(project.owner, project.name, "open").toString())
+    case Some(u) => urlToList(u, routes.IssueApp.issues(project.owner, project.name, issue.state.state()).toString())
     case _ => routes.IssueApp.issues(project.owner, project.name, "open").toString()
   }
 }
