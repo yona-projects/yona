@@ -67,7 +67,7 @@
                     <option value="">@Messages("common.order.all")</option>
                     <option value="@User.anonymous.id" @if(param.assigneeId != null && param.assigneeId == User.anonymous.id){ selected }>@Messages("issue.noAssignee")</option>
                     @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
-                    <option value="@UserApp.currentUser().id">@Messages("issue.list.assignedToMe")</a></option>
+                    <option value="@UserApp.currentUser().id">@Messages("issue.list.assignedToMe")</option>
                     }
                     @for(user <- User.findIssueAssigneeByProjectIdAndMe(UserApp.currentUser(), project.id)) {
                         <option value="@user.id"
@@ -126,10 +126,9 @@
                         }
                     }
                 }
-                }
             </dd>
         </dl>
-
+        }
         <dl class="issue-option">
             <dt>@Messages("issue.dueDate")</dt>
             <dd class="search search-bar">

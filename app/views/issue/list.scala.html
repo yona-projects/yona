@@ -6,8 +6,7 @@
 **@
 @import com.avaje.ebean.Page
 @import models.support.SearchCondition
-@(title: String, currentPage: Page[Issue], param:
-SearchCondition, project:Project)
+@(title: String, currentPage: Page[Issue], param: SearchCondition, project:Project)
 
 @projectLayout(Messages(title), project, utils.MenuType.ISSUE){
 @projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
