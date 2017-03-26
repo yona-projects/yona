@@ -132,7 +132,7 @@ $(function() {
                 .done(function(data){
                     $(".star-project").each(function () {
                         var $this = $(this);
-                        if (data.projectIds.includes($this.data("projectId"))) {
+                        if (data.projectIds.indexOf($this.data("projectId")) !== -1) {
                             $this.find("i").addClass("starred");
                         } else {
                             $this.find("i").removeClass("starred");
