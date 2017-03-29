@@ -62,11 +62,17 @@
                             }
                         </a>
                 </div>
-                @if(post.history != null){
-                <div class="posting-history">
-                    <a href="#-yona-posting-history" data-toggle="modal">@Messages("change.history")</a>
-                    @common.partial_history(post)
-                </div>
+                @if(StringUtils.isNotEmpty(post.history)){
+                    @if(UserApp.currentUser().isAnonymous){
+                        <div class="posting-history">
+                            <a href="@routes.UserApp.loginForm()?redirectUrl=@routes.BoardApp.post(project.owner, project.name, post.getNumber)" data-toggle="modal">@Messages("change.history")</a>
+                        </div>
+                    } else {
+                        <div class="posting-history">
+                            <a href="#-yona-posting-history" data-toggle="modal">@Messages("change.history")</a>
+                            @common.partial_history(post)
+                        </div>
+                    }
                 }
                 @if(StringUtils.isEmpty(post.body)){
                     <div class="content empty-content"></div>

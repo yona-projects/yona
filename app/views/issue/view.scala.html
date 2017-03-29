@@ -134,10 +134,16 @@
                         </a>
                 </div>
                 @if(StringUtils.isNotEmpty(issue.history)){
-                <div class="posting-history">
-                    <a href="#-yona-posting-history" data-toggle="modal">@Messages("change.history")</a>
-                    @common.partial_history(issue)
-                </div>
+                    @if(UserApp.currentUser().isAnonymous){
+                        <div class="posting-history">
+                            <a href="@routes.UserApp.loginForm()?redirectUrl=@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)" data-toggle="modal">@Messages("change.history")</a>
+                        </div>
+                    } else {
+                        <div class="posting-history">
+                            <a href="#-yona-posting-history" data-toggle="modal">@Messages("change.history")</a>
+                            @common.partial_history(issue)
+                        </div>
+                    }
                 }
                 @if(StringUtils.isEmpty(issue.body)){
                     <div class="content empty-content"></div>
