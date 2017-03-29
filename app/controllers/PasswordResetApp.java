@@ -43,7 +43,6 @@ import views.html.user.resetPassword;
 
 import static play.data.Form.form;
 
-@AnonymousCheck
 public class PasswordResetApp extends Controller {
 
     public static Result lostPassword(){
