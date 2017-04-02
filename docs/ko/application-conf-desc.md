@@ -31,7 +31,19 @@ conf 디렉터리의 application.conf 를 통해 설정 가능한 기능들
     - application.use.social.login.only = true
 - 지원 소셜로그인 제공자 설정 가능
     - application.social.login.support = "github, google"
-
+- 프로젝트 생성 시 기본 선택되는 있는 공개 범위 지정
+    - project.default.scope.when.create = "public"
+- 공개 프로젝트 목록을 숨기는 기능    
+    - application.hide.project.listing = false
+- Github Enterprise 연동시 추가 옵션
+    - 로그인 버튼 이름 변경
+       - application.social.login.github.name = "Github Enterprise"
+- 소셜 로그인시 사용자 이름 동기화 
+   - application.use.social.login.name.sync = false
+- 외부로 메일 전송을 제한하기 위한 이메일 발송 가능 목록 제한
+    - application.allowed.sending.mail.domains = "your-company.com, inner-email.com"
+- LDAP 로그인 지원
+    - application.use.ldap.login.supoort = false
 
 application.conf 기본 설정
 -----
@@ -75,7 +87,7 @@ notification.bymail.enabled = true
 # The secret key is used to secure cryptographics functions.
 # If you deploy your application to several instances be sure to use the same key!
 #
-# If you want to reset admin account, set this value to default. 
+# If you want to reset admin account, set this value to default.
 # Default: "VA2v:_I=h9>?FYOH:@ZhW]01P<mWZAKlQ>kk>Bo`mdCiA>pDw64FcBuZdDh<47Ew"
 application.secret="VA2v:_I=h9>?FYOH:@ZhW]01P<mWZAKlQ>kk>Bo`mdCiA>pDw64FcBuZdDh<47Ew"
 
@@ -292,6 +304,9 @@ application.noreferrer = true
 # Display private repositories in the list
 application.displayPrivateRepositories = false
 
+# choice: "public" or "private"
+# default: "public"
+project.default.scope.when.create = "public"
 
 # Github Migration
 # ~~~~~~~~~~~~~~~~~
@@ -309,14 +324,48 @@ application.maxFileSize = 2147483454
 # Social Login Support
 # ~~~~~~~~~~~~~~~~~~~~
 # Social login settings for Yona
-# Detail settings are described at conf/play-authenticate/mine.conf
+# Detail settings are described at social-login.conf
 
 # Prevent using Yona's own login system
-application.use.social.login.only = true
+application.use.social.login.only = false
+
+# If true, update local user name with social login account name
+application.use.social.login.name.sync = false
 
 # Allowed OAuth social login provider
 # choice: github, google
 application.social.login.support = "github, google"
 
-include "social-login.conf"
+# ALLOWED_SENDING_MAIL_DOMAINS
+# Default: "" <= Allow all
+application.allowed.sending.mail.domains = ""
+
+# LDAP Login Support
+# ~~~~~~~~~~~~~~~~~
+#
+application.use.ldap.login.supoort = false
+ldap {
+    host = "ldap.forumsys.com"
+    # default: ldap.port=389, ldaps.port=636
+    port = 389
+    # protocol: ldap or ldaps. If you want to use SSL/TLS, use 'ldaps'
+    protocol = "ldap"
+    baseDN = "ou=scientists,dc=example,dc=com"
+    # If your ldap service's distinguishedName is 'CN=username,OU=user,DC=abc,DC=com', postfix is 'OU=xxx,DC=abc,DC=com'
+    distinguishedNamePostfix = "OU=user,DC=abc,DC=com"
+}
+
+# If you enable to use social login, set followings
+play-easymail {
+  from {
+    # Mailing from address
+    email="your@mail-adress.com"
+
+    # Mailing name
+    name="Yona Admin"
+
+    # Seconds between sending mail through Akka (defaults to 1)
+    # delay=1
+  }
+}
 ```
