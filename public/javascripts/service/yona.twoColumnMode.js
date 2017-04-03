@@ -4,6 +4,8 @@
  * Copyright Yona & Yobi Authors & NAVER Corp.
  * https://yona.io
  **/
+var lastClicked = "";
+
 function _initTwoColumnMode(){
     var $twoColumnMode = $("#two-column-mode");
     var useTwoColumnMode = localStorage.getItem('useTwoColumnMode');
@@ -21,7 +23,6 @@ function _initTwoColumnMode(){
     }
 
     $twoColumnMode.on('click', function () {
-        console.log('this.checked', this.checked);
         if(this.checked){
             localStorage.setItem('useTwoColumnMode', true);
             attachPageSlideEvent($twoColumnMode, $title);
@@ -47,7 +48,16 @@ function _initTwoColumnMode(){
     }
 
     function bindFrameLoading() {
-        $title.on('click.iframeLoading', function () {
+        $title.on('click.iframeLoading', function (e) {
+            if(lastClicked === this){
+                if($('#pageslide').is(":visible")){
+                    $(".left-menu").hide(200);
+                }
+                return;
+            } else {
+                lastClicked = this;
+            }
+
             $(".left-menu").hide(200);
             setTimeout(function () {
                 $('#pageslide > iframe').ready(function () {
