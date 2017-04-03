@@ -46,6 +46,7 @@
             _initPjax();
             _initImplicitTitlePrefix();
             _listHoverEffect();
+            _initTwoColumnMode();
 
             htInitialOptions = htOptions || {};
         }
@@ -250,6 +251,7 @@
             _initImplicitTitlePrefix();
             _addEventAtOrganizationIssueSearchPage();
             _listHoverEffect();
+            _initTwoColumnMode();  // yona.twoColumnMode.js
         }
 
         function _listHoverEffect(){

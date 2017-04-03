@@ -19,14 +19,14 @@
 <ul class="post-list-wrap row-fluid">
 @for(issue <- issueList){
     @defining(User.findByLoginId(issue.authorLoginId)){ user =>
-    <li class="post-item" id="issue-item-@issue.id" data-item="issue-item" data-value="@user.loginId @issue.getNumber @issue.title">
+    <li class="post-item title" id="issue-item-@issue.id" data-item="issue-item" data-value="@user.loginId @issue.getNumber @issue.title" href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)">
         <div class="span9 span-hard-wrap">
             @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
             <label for="issue-@issue.id" class="mass-update-check hide-in-mobile">
                 <input id="issue-@issue.id" type="checkbox" name="checked-issue" data-toggle="issue-checkbox" data-issue-id="@issue.id" data-issue-labels="@issueLabels(issue)">
             </label>
             }
-            <label for="issue-@issue.id" class="issue-item-row">
+            <div for="issue-@issue.id" class="issue-item-row">
                 <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap mlarge hide-in-mobile" data-toggle="tooltip" data-placement="top" title="@user.loginId">
                         <img src="@User.findByLoginId(issue.authorLoginId).avatarUrl(64)" alt="@user.name" width="32" height="32"/>
                 </a>
@@ -77,7 +77,7 @@
                         <a href="#" class="label issue-label list-label active" data-category-id="@label.category.id" data-label-id="@label.id">@label.name</a>
                     }
                 </div>
-            </label>
+            </div>
         </div>
         <div class="span3 hide-in-mobile">
             <div class="mt5 pull-right">

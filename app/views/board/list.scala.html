@@ -1,22 +1,8 @@
 @**
-* Yobi, Project Hosting SW
+* Yona, 21st Century Project Hosting SW
 *
-* Copyright 2012 NAVER Corp.
-* http://yobi.io
-*
-* @author Sangcheol Hwang
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*   http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
+* Copyright Yona & Yobi Authors & NAVER Corp.
+* https://yona.io
 **@
 @(title:String, project:Project, page:com.avaje.ebean.Page[Posting], param:BoardApp.SearchCondition, notices:List[models.Posting])
 
@@ -49,11 +35,14 @@
                     <input name="filter" class="textbox" type="text" placeholder="@Messages("project.searchPlaceholder")" value="@param.filter">
                     <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
                 </div>
-                <div class="board-labels">
-                @if(!IssueLabel.findByProject(project).isEmpty){
-                    @issue.partial_select_label(IssueLabel.findByProject(project), param.labelIdSet, "", "", project)
+                @defining(IssueLabel.findByProject(project)) { labels =>
+                        @if(!labels.isEmpty) {
+                            <div class="board-labels">
+                            @issue.partial_select_label(labels, param.labelIdSet, "", "", project)
+                            </div>
+                        }
                 }
-                </div>
+                @common.twoColumnModeCheckboxArea(false)
             </form>
             <div class="pull-right">
                 <a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="ybtn ybtn-success">@Messages("post.write")</a>
@@ -101,6 +90,8 @@
         @help.keymap("boardList", project)
     </div>
 </div>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery.pageslide.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/service/yona.twoColumnMode.js")"></script>
 <script type="text/javascript">
 	$(document).ready(function() {
 		$yobi.loadModule("board.List", {

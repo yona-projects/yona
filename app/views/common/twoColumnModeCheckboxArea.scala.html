@@ -1,0 +1,20 @@
+@**
+* Yona, 21st Century Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp.
+* https://yona.io
+**@
+@(requireLeftMargin: Boolean = true)
+
+@additionalCssForLeftMargin = @{
+    if(requireLeftMargin) {
+        "pull-left absoluteAndLeftMargin"
+    } else {
+        ""
+    }
+}
+<div class="@additionalCssForLeftMargin two-column-icon mr10 hide-in-mobile" id="two-column-mode-checkbox" title='@Messages("common.two.column.mode")' data-content='@Messages("common.two.column.mode.desc")'>
+    <label class="checkbox">
+        <input id="two-column-mode" type="checkbox"> <i class="yobicon-explorerwindow"></i>
+    </label>
+</div>

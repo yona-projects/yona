@@ -19,6 +19,8 @@ models.support.SearchCondition, project:Project)
             @views.html.issue.my_partial_search(title, currentPage, param, project)
         </div>
     </div>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery.pageslide.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/service/yona.twoColumnMode.js")"></script>
     <script type="text/javascript">
       $(function(){
           $yobi.loadModule("issue.List");
