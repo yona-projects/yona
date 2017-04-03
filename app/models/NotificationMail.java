@@ -383,7 +383,7 @@ public class NotificationMail extends Model {
         }
 
         receivers.remove(User.anonymous);
-        if(StringUtils.isNotEmpty(Application.ALLOWED_SENDING_MAIL_DOMAINS)) {
+        if(StringUtils.isNotBlank(Application.ALLOWED_SENDING_MAIL_DOMAINS)) {
             receivers.removeAll(getUsersUsingNoAcceptableEmails(receivers));
         }
 
@@ -433,7 +433,7 @@ public class NotificationMail extends Model {
     private static Set<User> getUsersUsingNoAcceptableEmails(Set<User> users) {
         List<String> acceptableDomains = new ArrayList<>();
 
-        if(StringUtils.isNotEmpty(Application.ALLOWED_SENDING_MAIL_DOMAINS)){
+        if(StringUtils.isNotBlank(Application.ALLOWED_SENDING_MAIL_DOMAINS)){
             for(String domain: Application.ALLOWED_SENDING_MAIL_DOMAINS.split(",")){
                 acceptableDomains.add(StringUtils.defaultString(domain, "").trim());
             }
