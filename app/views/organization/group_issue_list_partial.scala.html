@@ -31,7 +31,7 @@
 <ul class="post-list-wrap">
 @for(issue <- issueList){
 @defining(User.findByLoginId(issue.authorLoginId)){ user =>
-    <li class="post-item" id="issue-item-@issue.id">
+    <li class="post-item title" id="issue-item-@issue.id" href="@routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.getNumber)">
         <div class="span10 span-hard-wrap">
             <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap mlarge hide-in-mobile" data-toggle="tooltip" data-placement="top" title="@user.loginId">
                 @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){

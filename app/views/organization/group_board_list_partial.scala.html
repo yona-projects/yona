@@ -23,7 +23,7 @@
 @import utils.JodaDateUtil
 @import utils.TemplateHelper._
 @defining(User.findByLoginId(post.authorLoginId)){ user =>
-<li class="post-item">
+<li class="post-item title" href="@routes.BoardApp.post(project.owner, project.name, post.getNumber)">
     <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap mlarge hide-in-mobile" data-toggle="tooltip" data-placement="top" title="@user.loginId">
         @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){
             <img src="@urlToPicture(user.email, 32)">

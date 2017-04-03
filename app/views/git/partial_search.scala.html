@@ -45,7 +45,7 @@
 }
 
   <div pjax-container class="row-fluid cb">
-    <div class="span2 search-wrap hide-in-mobile" style="padding-top:0;">
+    <div class="left-menu span2 search-wrap hide-in-mobile" style="padding-top:0;">
       <form id="search" name="search" action="@searchFormAction(condition.category)" method="get">
         <div class="search">
           <div class="search-bar">
@@ -88,6 +88,7 @@
           @partial_recently_pushed_branches(PushedBranch.findByOwnerAndOriginalProject(UserApp.currentUser, project))
         }
       }
+      @common.twoColumnModeCheckboxArea()
       <div class="pull-right">
         <a href="@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)" class="ybtn ybtn-success">
             @Messages("pullRequest.new")

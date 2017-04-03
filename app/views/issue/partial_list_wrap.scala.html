@@ -37,7 +37,7 @@
 }
 
 <div pjax-container class="row-fluid issue-list-wrap">
-    <div class="span2 span-hard-wrap">
+    <div class=" left-menu span2 span-hard-wrap">
         @partial_list_quicksearch(param, project)
         @partial_searchform(param, project)
     </div>
@@ -45,7 +45,7 @@
         <div class="pull-right">
             <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="ybtn ybtn-success">@Messages("issue.menu.new")</a>
         </div>
-
+        @common.twoColumnModeCheckboxArea()
         <ul class="nav nav-tabs nm">
         @for(state <- Array(State.OPEN, State.CLOSED)) {
             <li @if(param.state == state.state) { class="active" } data-pjax>
