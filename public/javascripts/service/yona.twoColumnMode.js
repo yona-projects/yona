@@ -38,7 +38,7 @@ function _initTwoColumnMode(){
 
     function attachPageSlideEvent(twoColumnMode, title){
         twoColumnMode.prop('checked', true);
-        title.pageslide({direction: "left"});
+        title.pageslide({direction: "left", speed: 0});
         $('.post-item').css("cursor", "pointer");
     }
 
@@ -51,14 +51,14 @@ function _initTwoColumnMode(){
         $title.on('click.iframeLoading', function (e) {
             if(lastClicked === this){
                 if($('#pageslide').is(":visible")){
-                    $(".left-menu").hide(200);
+                    $(".left-menu").hide(0);
                 }
                 return;
             } else {
                 lastClicked = this;
             }
 
-            $(".left-menu").hide(200);
+            $(".left-menu").hide(0);
             setTimeout(function () {
                 $('#pageslide > iframe').ready(function () {
                     NProgress.done();
