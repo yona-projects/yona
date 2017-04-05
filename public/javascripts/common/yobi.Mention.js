@@ -133,14 +133,18 @@ yobi.Mention = function(htOptions) {
                 at: "@",
                 limit: 10,
                 data: aData.result,
-                tpl: "<li data-value='@${loginid}'><img style='width:20px;height:20px;' src='${image}'> ${username} <small>${loginid}</small></li>",
-                show_the_at: true
+                displayTpl: "<li data-value='@${loginid}'><img style='width:20px;height:20px;' src='${image}'> ${name} <small>${loginid}</small></li>",
+                suspendOnComposing: false,
+                searchKey: "searchText",
+                insertTpl: "@${loginid}"
             })
             .atwho({
                 at: "#",
                 limit: 10,
-                tpl: '<li data-value="#${issueNo}"><small>#${issueNo}</small> ${title}</li>',
+                displayTpl: "<li data-value='#${issueNo}'><small>#${issueNo}</small> ${title}</li>",
                 data: aData.issues,
+                suspendOnComposing: false,
+                insertTpl: "#${issueNo}",
                 callbacks: {
                     sorter: function(query, items, searchKey) {
                         var item, i, len, results;

@@ -436,9 +436,10 @@ public class ProjectApp extends Controller {
     private static void addProjectNameToMentionList(List<Map<String, String>> users, Project project) {
         Map<String, String> projectUserMap = new HashMap<>();
         if(project != null){
-            projectUserMap.put("loginid", project.owner+"/" + project.name);
+            projectUserMap.put("loginid", project.owner + "/" + project.name);
             projectUserMap.put("username", project.name );
             projectUserMap.put("name", project.name);
+            projectUserMap.put("searchText", project.owner + "/" + project.name);
             projectUserMap.put("image", urlToProjectLogo(project).toString());
             users.add(projectUserMap);
         }
@@ -450,6 +451,7 @@ public class ProjectApp extends Controller {
             projectUserMap.put("loginid", project.organization.name);
             projectUserMap.put("username", project.organization.name);
             projectUserMap.put("name", project.organization.name);
+            projectUserMap.put("searchText", project.organization.name);
             projectUserMap.put("image", urlToOrganizationLogo(project.organization).toString());
             users.add(projectUserMap);
         }
@@ -807,8 +809,8 @@ public class ProjectApp extends Controller {
             Map<String, String> projectUserMap = new HashMap<>();
             if (user != null && !user.loginId.equals(Constants.ADMIN_LOGIN_ID)) {
                 projectUserMap.put("loginid", user.loginId);
-                projectUserMap.put("username", user.name);
-                projectUserMap.put("name", user.name + user.loginId);
+                projectUserMap.put("searchText", user.name + user.loginId);
+                projectUserMap.put("name", user.name);
                 projectUserMap.put("image", user.avatarUrl());
                 users.add(projectUserMap);
             }
