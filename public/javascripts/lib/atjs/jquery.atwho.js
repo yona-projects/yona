@@ -602,7 +602,11 @@
                 }))) {
                 return;
             }
-            if (this.app.iframe && !this.app.iframeAsRoot) {
+
+            // Monkey patching not to using iframe feature
+            var isInIframe = (window.location != window.parent.location) ? true : false;
+
+            if (this.app.iframe && !this.app.iframeAsRoot && !isInIframe) {
                 iframeOffset = $(this.app.iframe).offset();
                 c.left += iframeOffset.left;
                 c.top += iframeOffset.top;
@@ -995,7 +999,13 @@
 
         View.prototype.reposition = function(rect) {
             var _window, offset, overflowOffset, ref;
+            var isInIframe = this.context.app.iframe && !this.context.app.iframeAsRoot;
+
             _window = this.context.app.iframeAsRoot ? this.context.app.window : window;
+            if(isInIframe) {
+                _window = window.parent.frames[0];
+            }
+
             if (rect.bottom + this.$el.height() - $(_window).scrollTop() > $(_window).height()) {
                 rect.bottom = rect.top - this.$el.height();
             }
