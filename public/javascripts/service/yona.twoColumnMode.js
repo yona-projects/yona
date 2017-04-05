@@ -13,6 +13,11 @@ function _initTwoColumnMode(){
 
     $('#two-column-mode-checkbox').popover({trigger: "hover", placement: "top", delay: { show: 1000, hide: 100 }});
 
+    // when to check box click
+    $('.mass-update-check').on('click', function (e) {
+        e.stopPropagation();
+    });
+
     if( useTwoColumnMode  === 'true'){
         attachPageSlideEvent($twoColumnMode, $title);
         bindFrameLoading();
@@ -30,7 +35,7 @@ function _initTwoColumnMode(){
             $('#pageslide').html("<div>Loading...</div>");
         } else {
             localStorage.setItem('useTwoColumnMode', false);
-            $('.post-item').css("cursor", "");
+            $('.post-item').removeClass('highlightBg').css("cursor", "");
             unbindEvents();
         }
     });
@@ -39,6 +44,7 @@ function _initTwoColumnMode(){
 
     function attachPageSlideEvent(twoColumnMode, title){
         twoColumnMode.prop('checked', true);
+
         title.pageslide({direction: "left", speed: 0});
         $('.post-item').css("cursor", "pointer");
     }
@@ -50,6 +56,9 @@ function _initTwoColumnMode(){
 
     function bindFrameLoading() {
         $title.on('click.iframeLoading', function (e) {
+            $('.post-item').removeClass('highlightBg');
+            $(this).closest('.post-item').addClass('highlightBg');
+
             if(lastClicked === this){
                 if($('#pageslide').is(":visible")){
                     $(".left-menu").hide(0);
