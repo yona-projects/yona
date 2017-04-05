@@ -27,6 +27,7 @@ function _initTwoColumnMode(){
             localStorage.setItem('useTwoColumnMode', true);
             attachPageSlideEvent($twoColumnMode, $title);
             bindFrameLoading();
+            $('#pageslide').html("<div>Loading...</div>");
         } else {
             localStorage.setItem('useTwoColumnMode', false);
             $('.post-item').css("cursor", "");
@@ -53,12 +54,15 @@ function _initTwoColumnMode(){
                 if($('#pageslide').is(":visible")){
                     $(".left-menu").hide(0);
                 }
+                NProgress.done();
                 return;
             } else {
                 lastClicked = this;
             }
 
-            $(".left-menu").hide(0);
+            if($('#pageslide').is(":visible")){
+                $(".left-menu").hide(0);
+            }
             setTimeout(function () {
                 $('#pageslide > iframe').ready(function () {
                     NProgress.done();
