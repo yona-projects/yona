@@ -51,7 +51,7 @@
         } else {
             // Load a URL. Into an iframe?
             if( useIframe ) {
-                var iframe = $("<iframe />").attr({
+                var iframe = $("<iframe allowtransparency='true' />").attr({
                     src: url,
                     frameborder: 0,
                     hspace: 0
@@ -157,7 +157,10 @@
                 _start( settings.direction, settings.speed );
             });
         } else {
-            _load( settings.href, settings.iframe );
+            setTimeout(function () {
+                _load(settings.href, settings.iframe);
+            }, 300);
+            $("#pageslide > iframe").remove();
             if( $pageslide.is(':hidden') ) {
                 _start( settings.direction, settings.speed );
             }

@@ -32,7 +32,6 @@ function _initTwoColumnMode(){
             localStorage.setItem('useTwoColumnMode', true);
             attachPageSlideEvent($twoColumnMode, $title);
             bindFrameLoading();
-            $('#pageslide').html("<div>Loading...</div>");
         } else {
             localStorage.setItem('useTwoColumnMode', false);
             $('.post-item').removeClass('highlightBg').css("cursor", "");
