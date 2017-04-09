@@ -4,6 +4,8 @@
 Yona
 ====
 
+[![Join the chat at https://gitter.im/yona-projects/yona](https://badges.gitter.im/yona-projects/yona.svg)](https://gitter.im/yona-projects/yona?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 21세기 협업 개발 플랫폼
 
 DEMO: [http://repo.yona.io](http://repo.yona.io)
