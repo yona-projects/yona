@@ -320,6 +320,11 @@ public class User extends Model implements ResourceConvertible {
             return subEmail.user;
         }
 
+        User fallback = find.where().ieq("email", email).findUnique();
+        if (fallback != null) {
+            return fallback;
+        }
+
         User anonymous = new NullUser();
         anonymous.email = email;
         return anonymous;

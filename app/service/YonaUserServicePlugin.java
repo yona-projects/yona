@@ -66,7 +66,7 @@ public class YonaUserServicePlugin extends UserServicePlugin {
 		User localUser = User.findByEmail(authUser.getEmail()); //find with oAuth email address
 		if(localUser.isAnonymous()){
 			localUser = User.findByEmail(u.email);  // 1st trial: same email address with local user credential
-			if(localUser == null) localUser =  User.find.byId(u.user.id); // 2nd trial: linked user
+			if(localUser == null || localUser.isAnonymous()) localUser =  User.find.byId(u.user.id); // 2nd trial: linked user
 			if(localUser == null) localUser = User.anonymous;
 		}
 
