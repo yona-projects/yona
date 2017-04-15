@@ -137,8 +137,9 @@ public class AbstractPostingApp extends Controller {
 
     private static String addToHistory(AbstractPosting original, AbstractPosting posting) {
         diff_match_patch dmp = new diff_match_patch();
+        dmp.Diff_EditCost = 8;
         LinkedList<diff_match_patch.Diff> diffs = dmp.diff_main(original.body, posting.body);
-        dmp.diff_cleanupSemanticLossless(diffs);
+        dmp.diff_cleanupEfficiency(diffs);
 
         return (getHistoryMadeBy(posting, diffs) + getDiffText(original.body, posting.body) + "\n").replaceAll("\n", "</br>\n");
     }
@@ -178,35 +179,40 @@ public class AbstractPostingApp extends Controller {
     }
 
     private static String getDiffText(String oldValue, String newValue) {
-        final int EQUAL_TEXT_ELLIPSIS_SIZE = 300;
+        final int EQUAL_TEXT_ELLIPSIS_SIZE = 100;
         diff_match_patch dmp = new diff_match_patch();
+        dmp.Diff_EditCost = 8;
         StringBuilder sb = new StringBuilder();
         if (oldValue != null) {
             LinkedList<diff_match_patch.Diff> diffs = dmp.diff_main(oldValue, newValue);
-            dmp.diff_cleanupSemanticLossless(diffs);
+            dmp.diff_cleanupEfficiency(diffs);
             for(Diff diff: diffs){
                 switch (diff.operation) {
                     case DELETE:
                         sb.append("<span class='diff-deleted'>");
-                        sb.append(StringEscapeUtils.escapeHtml4(diff.text).replaceAll("\n", "&nbsp<br/>\n"));
+                        sb.append(StringEscapeUtils.escapeHtml4(diff.text));
                         sb.append("</span>");
                         break;
                     case EQUAL:
                         int textLength = diff.text.length();
                         if(textLength > EQUAL_TEXT_ELLIPSIS_SIZE) {
-                            sb.append(StringEscapeUtils.escapeHtml4(diff.text.substring(0, 150)))
-                                    .append("<span class='diff-ellipsis'>...\n")
+                            if(!diff.text.substring(0, 50).equals(oldValue.substring(0, 50))) {
+                                sb.append(StringEscapeUtils.escapeHtml4(diff.text.substring(0, 50)));
+                            }
+                            sb.append("<span class='diff-ellipsis'>...\n")
                                     .append("......\n")
                                     .append("......\n")
-                                    .append("...</span>")
-                                    .append(StringEscapeUtils.escapeHtml4(diff.text.substring(textLength - 150)));
+                                    .append("...</span>");
+                            if(!diff.text.substring(textLength - 50).equals(oldValue.substring(oldValue.length() - 50))) {
+                                    sb.append(StringEscapeUtils.escapeHtml4(diff.text.substring(textLength - 50)));
+                            }
                         } else {
                             sb.append(StringEscapeUtils.escapeHtml4(diff.text));
                         }
                         break;
                     case INSERT:
                         sb.append("<span class='diff-added'>");
-                        sb.append(StringEscapeUtils.escapeHtml4(diff.text).replaceAll("\n", "&nbsp<br/>\n"));
+                        sb.append(StringEscapeUtils.escapeHtml4(diff.text));
                         sb.append("</span>");
                         break;
                     default:
@@ -214,7 +220,7 @@ public class AbstractPostingApp extends Controller {
                 }
             }
         }
-        return sb.toString();
+        return sb.toString().replaceAll("\n", "&nbsp<br/>\n");
     }
 
     public static void attachUploadFilesToPost(Resource resource) {
