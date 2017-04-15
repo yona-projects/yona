@@ -7,7 +7,7 @@
 @(posting:models.AbstractPosting)
 
 @import utils.TemplateHelper._
-@import utils.HtmlUtil
+@import utils.Markdown
 
 <div id="-yona-posting-history" class="modal hide">
     <div class="modal-header">
@@ -16,7 +16,7 @@
     </div>
     <div class="modal-body">
         <p>
-            @Html(HtmlUtil.defaultSanitize(posting.history))
+            @Html(Markdown.sanitize(posting.history))
         </p>
     </div>
     <div class="modal-footer">

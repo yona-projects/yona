@@ -52,7 +52,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
     public static final String TO_BE_ASSIGNED = "";
     public static final Pattern ISSUE_PATTERN = Pattern.compile("#\\d+");
 
-    public State state;
+    public State state = State.OPEN;
 
     @Formats.DateTime(pattern = "yyyy-MM-dd")
     public Date dueDate;

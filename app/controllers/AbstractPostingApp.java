@@ -27,6 +27,7 @@ import models.enumeration.Direction;
 import models.enumeration.Operation;
 import models.resource.Resource;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import play.data.Form;
 import play.db.ebean.Model;
@@ -187,25 +188,25 @@ public class AbstractPostingApp extends Controller {
                 switch (diff.operation) {
                     case DELETE:
                         sb.append("<span class='diff-deleted'>");
-                        sb.append(diff.text.replaceAll("\n", "&nbsp;\n"));
+                        sb.append(StringEscapeUtils.escapeHtml4(diff.text).replaceAll("\n", "&nbsp<br/>\n"));
                         sb.append("</span>");
                         break;
                     case EQUAL:
                         int textLength = diff.text.length();
                         if(textLength > EQUAL_TEXT_ELLIPSIS_SIZE) {
-                            sb.append(diff.text.substring(0, 150))
+                            sb.append(StringEscapeUtils.escapeHtml4(diff.text.substring(0, 150)))
                                     .append("<span class='diff-ellipsis'>...\n")
                                     .append("......\n")
                                     .append("......\n")
                                     .append("...</span>")
-                                    .append(diff.text.substring(textLength - 150));
+                                    .append(StringEscapeUtils.escapeHtml4(diff.text.substring(textLength - 150)));
                         } else {
-                            sb.append(diff.text);
+                            sb.append(StringEscapeUtils.escapeHtml4(diff.text));
                         }
                         break;
                     case INSERT:
                         sb.append("<span class='diff-added'>");
-                        sb.append(diff.text.replaceAll("\n", "&nbsp;\n"));
+                        sb.append(StringEscapeUtils.escapeHtml4(diff.text).replaceAll("\n", "&nbsp<br/>\n"));
                         sb.append("</span>");
                         break;
                     default:
