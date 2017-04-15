@@ -124,7 +124,7 @@ public class Markdown {
         return source;
     }
 
-    private static String sanitize(String source) {
+    public static String sanitize(String source) {
         return  sanitizerPolicy.sanitize(source);
     }
 
