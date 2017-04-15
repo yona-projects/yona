@@ -51,6 +51,7 @@ import static com.feth.play.module.pa.controllers.Authenticate.noCache;
 import static play.data.Form.form;
 import static play.libs.Json.toJson;
 import static utils.HtmlUtil.defaultSanitize;
+import org.apache.commons.lang3.StringEscapeUtils;
 
 public class UserApp extends Controller {
     public static final String SESSION_USERID = "userId";
@@ -843,7 +844,7 @@ public class UserApp extends Controller {
             return badRequest(edit.render(userForm, user));
         }
         user.email = newEmail;
-        user.name = newName;
+        user.name = HtmlUtil.defaultSanitize(newName);
 
         try {
             Long avatarId = Long.valueOf(userForm.data().get("avatarId"));

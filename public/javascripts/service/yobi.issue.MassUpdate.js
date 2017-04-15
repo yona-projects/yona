@@ -226,7 +226,7 @@
                 // Label
                 for(sLabelId in htLabels[sCategory]){
                     htLabel = htLabels[sCategory][sLabelId];
-                    aHTML.push($yobi.tmpl(sTpl, htLabel));
+                    aHTML.push($.tmpl(sTpl, htLabel));
                 }
 
                 aHTML.push('<li class="divider"></li>');

@@ -51,18 +51,18 @@
                 }
 
                 if(_doesntHaveProjectAvatar()){
-                    return $yobi.tmpl($("#tplSelect2ProjectsWithoutAvatar").text(), {
+                    return $.tmpl($("#tplSelect2ProjectsWithoutAvatar").text(), {
                         "name"     : itemObject.text
                     });
                 } else {
-                    return $yobi.tmpl($("#tplSelect2Projects").text(), {
+                    return $.tmpl($("#tplSelect2Projects").text(), {
                         "avatarURL": avatarURL,
                         "name"     : itemObject.text.trim()
                     });
                 }
             },
             "issues": function(itemObject){
-                return $yobi.tmpl($("#tplSelect2FormatIssues").text(), {
+                return $.tmpl($("#tplSelect2FormatIssues").text(), {
                     "name"     : itemObject.text
                 });
             },
@@ -82,7 +82,7 @@
 
                 var loginId = itemElement.data("loginId") ? "@" + itemElement.data("loginId") : "";
 
-                var formattedResult = $yobi.tmpl(tplUserItem, {
+                var formattedResult = $.tmpl(tplUserItem, {
                     "avatarURL": avatarURL,
                     "name"     : itemObject.text.trim(),
                     "loginId"  : loginId
@@ -103,7 +103,7 @@
                 var tplMilestoneItem = $("#tplSElect2FormatMilestone").text()
                                     || '<div title="[${stateLabel}] ${name}">${name}</div>';
 
-                var formattedResult = $yobi.tmpl(tplMilestoneItem, {
+                var formattedResult = $.tmpl(tplMilestoneItem, {
                     "name" : itemObject.text.trim().replace('<', '&lt;'),
                     "state": milestoneState,
                     "stateLabel": milestoneStateLabel
@@ -128,7 +128,7 @@
                     };
                     var tpl = '<i class="${css}" data-toggle="tooltip" data-html="true" data-placement="right" title="${title}"></i><span>${text}</span>';
 
-                    return $yobi.tmpl(tpl, data);
+                    return $.tmpl(tpl, data);
                 }
 
                 return '<a class="label issue-label active static" data-label-id="' + labelId + '">' + text + '</a>';
@@ -157,7 +157,7 @@
 
                 // branchType will be "unknown"
                 // if selected branch name doesn't starts with /refs
-                var formattedResult = $yobi.tmpl(tplBranchItem, {
+                var formattedResult = $.tmpl(tplBranchItem, {
                     "branchType": branchType,
                     "branchName": branchName
                 });

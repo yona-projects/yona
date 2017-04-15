@@ -515,7 +515,7 @@
                 waTargets.each(function(i, el){
                     welTarget = $(el);
 
-                    aLinks.push($yobi.tmpl(htVar.sTplMiniMapLink, {
+                    aLinks.push($.tmpl(htVar.sTplMiniMapLink, {
                         "id"    : welTarget.attr("id"),
                         "top"   : Math.ceil(welTarget.offset().top * htVar.nMiniMapRatio),
                         "height": Math.ceil(welTarget.height() * htVar.nMiniMapRatio)
