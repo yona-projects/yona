@@ -99,6 +99,9 @@ yobi.Markdown = (function(htOptions){
             "data": JSON.stringify(source),
             "success": function(data){
                 welTarget.html(data);
+                $('pre code').each(function(i, block) {
+                    hljs.highlightBlock(block);
+                });
             }
         });
     }
