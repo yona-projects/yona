@@ -48,10 +48,10 @@ public class Markdown {
                     .allowAttributes("class", "id").globally().toFactory());
 
     private static ScriptEngine buildEngine() {
-        ScriptEngineManager manager = new ScriptEngineManager();
+        ScriptEngineManager manager = new ScriptEngineManager(null);
         InputStream is = null;
         Reader reader = null;
-        ScriptEngine _engine = manager.getEngineByName("rhino");
+        ScriptEngine _engine = manager.getEngineByName("JavaScript");
 
         try {
             is = Thread.currentThread().getContextClassLoader().getResourceAsStream(XSS_JS_FILE);
