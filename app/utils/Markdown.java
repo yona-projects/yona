@@ -62,9 +62,6 @@ public class Markdown {
             reader = new InputStreamReader(is, Config.getCharset());
             _engine.eval(reader);
 
-            is = Thread.currentThread().getContextClassLoader().getResourceAsStream(HIGHLIGHT_JS_FILE);
-            reader = new InputStreamReader(is, Config.getCharset());
-            _engine.eval(reader);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         } finally {
@@ -135,11 +132,14 @@ public class Markdown {
             return ZipUtil.decompress(cached);
         }
         try {
-            Object options = engine.eval("new Object({gfm: true, tables: true, breaks: " + breaks + ", " +
-                    "pedantic: false, sanitize: false, smartLists: true," +
-                    "highlight : function(sCode, sLang) { " +
-                    "if(sLang) { try { return hljs.highlight(sLang.toLowerCase(), sCode).value;" +
-                    " } catch(oException) { return sCode; } } }});");
+            Object options = engine.eval("new Object({ "
+                    + "    gfm: true, "
+                    + "    tables: true, "
+                    + "    breaks: true, "
+                    + "    pedantic: false, "
+                    + "    sanitize: false, "
+                    + "    smartLists: true "
+                    + "}) ");
             String rendered = renderByMarked(source, options);
             rendered = removeJavascriptInHref(rendered);
             rendered = checkReferrer(rendered);

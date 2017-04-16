@@ -25,6 +25,8 @@
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/marked.js")"></script>
 <script type="text/javascript">
 $(document).ready(function(){
+    hljs.configure({languages: []});
+    hljs.initHighlightingOnLoad();
     var htOptions = {};
 
     @if(project != null){
