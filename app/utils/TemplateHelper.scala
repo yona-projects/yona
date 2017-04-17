@@ -35,7 +35,7 @@ object TemplateHelper {
 
   def showWatchers(posting: AbstractPosting): String = {
       "<div class='show-watchers' data-toggle='tooltip' data-placement='top' data-trigger='hover' data-html='true' title='" + Messages.get("watchers") + "'>" +
-      "<button id='watcher-list-button' type='button' class='ybtn'><i class='yobicon-emo-coffee'></i><span class='watcherCount'></span></button>" +
+      "<button id='watcher-list-button' type='button' class='ybtn'><i class='yobicon-emo-happy'></i><span class='watcherCount'></span></button>" +
       "</div>"
   }
 

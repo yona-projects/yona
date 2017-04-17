@@ -164,8 +164,6 @@
                                 }
                                 </button>
                             }
-                            @Html(showWatchers(issue))
-
                             <div id="vote" class="vote-wrap">
                                 @if(isResourceCreatable(UserApp.currentUser, issue.asResource(), ResourceType.ISSUE_COMMENT)) {
                                     <a href="@urlToVote" class="ybtn @if(issue.isVotedBy(UserApp.currentUser)){ybtn-watching}" title="@getVoteButtonTitle"
@@ -190,6 +188,7 @@
                                     @partial_voters(issue, 3)
                                 }
                             </div>
+                            @Html(showWatchers(issue))
                         </div>
                     </div>
 
