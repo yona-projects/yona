@@ -28,6 +28,7 @@ import playRepository.RepositoryService;
 import utils.ErrorViews;
 import utils.FileUtil;
 import utils.HttpUtil;
+import utils.MenuType;
 import views.html.code.nohead;
 import views.html.code.nohead_svn;
 import views.html.code.view;
@@ -103,7 +104,7 @@ public class CodeApp extends Controller {
             Cache.set(cacheKey, recursiveData);
         }
         if (recursiveData == null) {
-            return notFound(ErrorViews.NotFound.render());
+            return notFound(ErrorViews.NotFound.render(branch, project, "code"));
         }
 
         return ok(view.render(project, branches, recursiveData, branch, path));
