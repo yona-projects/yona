@@ -101,7 +101,7 @@
             var aButtonStyles = htOptions.aButtonStyles || [];
 
             for(var i = 0, nLength = aButtonLabels.length; i < nLength; i++){
-                aButtonsHTML.push($.tmpl(htVar.sTplCustomButton, {
+                aButtonsHTML.push($yobi.tmpl(htVar.sTplCustomButton, {
                     "text" : aButtonLabels[i],
                     "class": aButtonStyles[i] || (aButtonStyles.length === 0 && i === nLength-1 ? "ybtn-primary" : "ybtn-default")
                 }));
