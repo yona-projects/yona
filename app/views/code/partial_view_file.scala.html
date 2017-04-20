@@ -11,12 +11,19 @@
 @import utils.TemplateHelper.CodeBrowser._
 @import java.net.URLEncoder
 @import utils.Markdown
+@import utils.LineEnding
 
 @getRevIdString(revId:String) = @{
     if(project.vcs.equalsIgnoreCase("git")) {
         branchItemName(branch)
     } else {
         revId
+    }
+}
+
+@getLineEndingtype() = @{
+    if(!files.get("isBinary").booleanValue()){
+        LineEnding.findLineEnding(fieldText(files, "data"))
     }
 }
 
@@ -53,6 +60,7 @@
                 </a>
             </span>
             <span id="commitMessage" class="commitMsg">@fieldText(files,"commitMessage")</span>
+            <span>@getLineEndingtype</span>
         </div>
         <div class="pull-right">
             @if(!files.get("isBinary").booleanValue()){
