@@ -59,6 +59,11 @@ public class IssueApp extends AbstractPostingApp {
     }
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
+    public static Result userIssuesPage() throws WriteException, IOException {
+        return controllers.IssueApp.userIssues("", "html", 1);
+    }
+
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     public static Result userIssues(String state, String format, int pageNum) throws WriteException, IOException {
         Project project = null;
         // SearchCondition from param

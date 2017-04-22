@@ -15,6 +15,7 @@ import com.feth.play.module.mail.Mailer.Mail;
 import com.feth.play.module.mail.Mailer.Mail.Body;
 import com.feth.play.module.pa.PlayAuthenticate;
 import controllers.annotation.AnonymousCheck;
+import jxl.write.WriteException;
 import models.*;
 import models.enumeration.Operation;
 import models.enumeration.UserState;
@@ -44,14 +45,13 @@ import javax.annotation.Nonnull;
 import javax.naming.AuthenticationException;
 import javax.naming.CommunicationException;
 import javax.naming.NamingException;
+import java.io.IOException;
 import java.util.*;
 
 import static com.feth.play.module.mail.Mailer.getEmailName;
-import static com.feth.play.module.pa.controllers.Authenticate.noCache;
 import static play.data.Form.form;
 import static play.libs.Json.toJson;
 import static utils.HtmlUtil.defaultSanitize;
-import org.apache.commons.lang3.StringEscapeUtils;
 
 public class UserApp extends Controller {
     public static final String SESSION_USERID = "userId";
@@ -1213,6 +1213,17 @@ public class UserApp extends Controller {
         } else {
             return false;
         }
+    }
+
+    @AnonymousCheck
+    public static Result setDefaultLoginPage() throws IOException, WriteException {
+        UserSetting userSetting = UserSetting.findByUser(UserApp.currentUser().id);
+        userSetting.loginDefaultPage = request().getQueryString("path");
+        userSetting.save();
+
+        ObjectNode json = Json.newObject();
+        json.put("defaultLoginPage", userSetting.loginDefaultPage);
+        return ok(json);
     }
 
     public static Result usermenuTabContentList(){

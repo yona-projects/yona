@@ -67,7 +67,7 @@
 <ul class="gnb-usermenu">
     @if( !UserApp.currentUser().isAnonymous()) {
        <li class="gnb-usermenu-item hide-in-mobile">
-          <a href="@routes.Application.index()" class="user-item-btn loggged-in">@Messages("notification")</a>
+          <a href="@routes.Application.notifications()" class="user-item-btn loggged-in">@Messages("notification")</a>
        </li>
        <li class="divider hide-in-mobile"></li>
        <li class="gnb-usermenu-item">
