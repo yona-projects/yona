@@ -383,7 +383,7 @@ public class User extends Model implements ResourceConvertible {
             el.endJunction();
         }
 
-        return el.findPagingList(USER_COUNT_PER_PAGE).getPage(pageNum);
+        return el.order().desc("createdDate").findPagingList(USER_COUNT_PER_PAGE).getPage(pageNum);
     }
 
     /**
