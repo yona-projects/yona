@@ -14,31 +14,38 @@
 
 @issueLabels(issue:Issue) = {@for(label <- issue.labels.toList.sortBy(r => (r.category.name, r.name))) {@label.category.name,@label.id,@label.name|}}
 
+@isAssignedToMeTab = @{
+    UserApp.currentUser().id == searchCondition.assigneeId
+}
+@isAuthoredMeTab = @{
+    UserApp.currentUser().id == searchCondition.authorId
+}
 <ul class="post-list-wrap">
 @for(issue <- issueList){
     @defining(issue.project){ project =>
     @defining(User.findByLoginId(issue.authorLoginId)){ user =>
     <li class="post-item title" id="issue-item-@issue.id" href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)">
         <div class="span10 span-hard-wrap">
-            <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap mlarge hide-in-mobile" data-toggle="tooltip" data-placement="bottom" title="@user.loginId">
-                @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){
-                    <img src="@urlToPicture(user.email, 32)">
-                } else {
-                    <img src="@user.avatarUrl" alt="@user.name" width="32" height="32"/>
-                }
-            </a>
             <div class="title-wrap">
                 <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)" class="title">
                     @issue.title
                 </a>
             </div>
             <div class="infos">
-                @if(user.name){
-                    <a href="@routes.UserApp.userInfo(user.loginId)" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="bottom" title="@user.loginId">
-                        @user.name
+                <span class="infos-item project-name">
+                    <a href="@routes.ProjectApp.project(project.owner,project.name)" class="title project" data-toggle="tooltip" data-placement="bottom" title="@Messages("project.name")">
+                    @project.name
                     </a>
-                } else {
-                    <span class="infos-item">@Messages("issue.noAuthor")</span>
+                </span>
+                <span class="infos-item post-id">#@issue.getNumber</span>
+                @if(!isAuthoredMeTab) {
+                    @if(user.name) {
+                        <a href="@routes.UserApp.userInfo(user.loginId)" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="bottom" title="@user.loginId">
+                        @user.name
+                        </a>
+                    } else {
+                        <span class="infos-item">@Messages("issue.noAuthor")</span>
+                    }
                 }
 
                 <span class="infos-item" data-toggle="tooltip" data-placement="bottom" title="@JodaDateUtil.getDateString(issue.createdDate)">
@@ -46,13 +53,6 @@
                 </span>
 
                 @partial_list_subtask(project, issue)
-
-                <span class="infos-item project-name">
-                <a href="@routes.ProjectApp.project(project.owner,project.name)" class="title project" data-toggle="tooltip" data-placement="bottom" title="@Messages("project.name")">
-                @project.name
-                </a>
-                </span>
-                <span class="infos-item post-id">#@issue.getNumber</span>
 
                 @if(issue.milestone != null && project != null && project.menuSetting != null && project.menuSetting.milestone) {
                 <span class="mileston-tag">
@@ -79,6 +79,7 @@
             </div>
         </div>
         <div class="span2 hide-in-mobile">
+            @if(!isAssignedToMeTab){
             <div class="mt5 pull-right hide-in-mobile">
                 @if(issue.assigneeName != null) {
                     <a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)" class="avatar-wrap assinee" data-toggle="tooltip" data-placement="bottom" title="@Messages("issue.assignee"): @issue.assigneeName">
@@ -88,6 +89,7 @@
                    <div class="empty-avatar-wrap">&nbsp;</div>
                 }
             </div>
+            }
             @if(issue.dueDate != null) {
             <div class="mr20 mt10 pull-right @if(issue.isOverDueDate) {overdue}" data-toggle="tooltip" data-placement="top" title="@issue.getDueDateString">
                 <i class="yobicon-clock2"></i> 
