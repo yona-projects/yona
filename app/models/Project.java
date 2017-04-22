@@ -152,6 +152,10 @@ public class Project extends Model implements LabelOwner {
 
     public static Page<Project> findByName(String name, int pageSize,
                                            int pageNum) {
+        if(StringUtils.isBlank(name)){
+            return find.where().order().desc("createdDate").findPagingList(pageSize).getPage(pageNum);
+        }
+
         return find.where().ilike("name", "%" + decodeUrlString(name) + "%")
                 .findPagingList(pageSize).getPage(pageNum);
     }
