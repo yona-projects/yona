@@ -25,7 +25,17 @@ models.support.SearchCondition, project:Project)
       $(function(){
           $yobi.loadModule("issue.List");
 
-
+          var $setDefaultLoginPage = $("#setDefaultLoginPage");
+          $setDefaultLoginPage.on('click', function(){
+              $.post("@routes.UserApp.setDefaultLoginPage()?path=" + $setDefaultLoginPage.data("url"))
+                      .done(function (data) {
+                          $yobi.notify("Set to default: " + data.defaultLoginPage, 3000);
+                          $setDefaultLoginPage.hide();
+                      })
+                      .fail(function (data) {
+                          $yobi.alert("set Default page failed: " + data);
+                      });
+          });
       });
     </script>
 }

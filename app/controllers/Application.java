@@ -10,7 +10,9 @@ import com.feth.play.module.pa.PlayAuthenticate;
 import controllers.annotation.AnonymousCheck;
 import jsmessages.JsMessages;
 import models.Project;
+import models.User;
 import models.UserCredential;
+import models.UserSetting;
 import org.apache.commons.lang3.StringUtils;
 import play.Logger;
 import play.mvc.Controller;
@@ -19,6 +21,7 @@ import play.mvc.Result;
 import playRepository.RepositoryService;
 import views.html.error.notfound_default;
 import views.html.index.index;
+import views.html.index.notifications;
 
 import static com.feth.play.module.pa.controllers.Authenticate.*;
 
@@ -33,7 +36,17 @@ public class Application extends Controller {
 
     @AnonymousCheck
     public static Result index() {
+        User user = UserApp.currentUser();
+        UserSetting userSetting = UserSetting.findByUser(user.id);
+        if(!user.isAnonymous() && StringUtils.isNotBlank(userSetting.loginDefaultPage)) {
+            return redirect(userSetting.loginDefaultPage);
+        }
         return ok(index.render(UserApp.currentUser()));
+    }
+
+    @AnonymousCheck
+    public static Result notifications() {
+        return ok(notifications.render(UserApp.currentUser()));
     }
 
     public static Result oAuth(final String provider) {

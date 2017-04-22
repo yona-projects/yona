@@ -7,6 +7,7 @@ POST           /                                                                
 
 # Home page
 GET            /                                                                      controllers.Application.index()
+GET            /notifications                                                         controllers.Application.notifications()
 
 # Play!Authenticate
 GET     /logout                            controllers.Application.oAuthLogout
@@ -48,6 +49,7 @@ POST           /-_-api/v1/favoriteProjects/:projectId                           
 GET            /-_-api/v1/favoriteOrganizations                                        controllers.api.UserApi.getFoveriteOrganizations
 POST           /-_-api/v1/favoriteOrganizations/:organizationId                        controllers.api.UserApi.toggleFoveriteOrganization(organizationId:String)
 GET            /-_-api/v1/users                                                        controllers.UserApp.users(query: String ?= "")
+POST           /-_-api/v1/user/defultLoginPage                                         controllers.UserApp.setDefaultLoginPage()
 
 
 
@@ -80,6 +82,7 @@ POST           /organizations/:organizationName/cancel/enroll                   
 POST           /noti/toggle/:projectId/:notiType                                      controllers.WatchProjectApp.toggle(projectId: Long, notiType)
 
 # User
+GET            /user/issues                                                           controllers.IssueApp.userIssuesPage()
 GET            /user/issues                                                           controllers.IssueApp.userIssues(state:String ?= "", format:String ?= "html", pageNum: Int ?= 1)
 GET            /user/files                                                            controllers.UserApp.userFiles()
 GET            /users/loginform                                                       controllers.UserApp.loginForm()

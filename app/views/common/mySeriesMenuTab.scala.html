@@ -13,8 +13,14 @@
     }
     active
 }
+
 <ul class="nav nav-tabs">
-    <li @isActive(viewType, TAB_NOTI)><a href="@routes.Application.index()">@Messages("notification")</a></li>
+    <li @isActive(viewType, TAB_NOTI)><a href="@routes.Application.notifications()">@Messages("notification")</a></li>
     <li @isActive(viewType, TAB_MY_ISSUES)><a href="@routes.IssueApp.userIssues()">@Messages("issue.myIssue")</a></li>
     <li @isActive(viewType, TAB_MY_FILES)><a href="@routes.UserApp.userFiles()">@Messages("user.files")</a></li>
+    <li>@if(isActive(viewType, TAB_NOTI) || isActive(viewType, TAB_MY_ISSUES)){
+        @if(!requestHeader.path.equals("/") && !requestHeader.path.substring(1).equals(UserSetting.findByUser(UserApp.currentUser().id).loginDefaultPage)){
+            <button id="setDefaultLoginPage" type="button" class="ybtn hide-in-mobile" data-url="@requestHeader.path.substring(1)" title="@Messages("button.setDefaultLoginPage")" data-trigger="hover"  data-placement="bottom" data-toggle="popover" data-content="@Messages("button.setDefaultLoginPage.desc")">@Messages("button.setDefaultLoginPage")</button>
+        }
+    }</li>
 </ul>

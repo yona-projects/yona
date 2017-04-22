@@ -1,0 +1,153 @@
+@**
+* Yona, 21st Century Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp.
+* https://yona.io
+**@
+@(currentUser:models.User)
+
+@import utils.TemplateHelper._
+@import utils.JodaDateUtil
+@import utils.MenuType._
+
+@siteLayout(utils.Config.getSiteName, utils.MenuType.SITE_HOME) {
+    @if(currentUser == User.anonymous){
+    @partial_intro()
+    } else {
+    <div class="page-wrap-outer">
+        <div class="page-wrap">
+            <div class="site-guide-outer hide">
+                <h3>
+                    <span>@Messages("app.welcome",utils.Config.getSiteName) - @Messages("app.description")</span>
+                </h3>
+                <table class="welcome-table table borderless">
+                    <tr>
+                        <td>
+                            <a href="@routes.ProjectApp.newProjectForm()" class="ybtn ybtn-success">
+                            @Messages("button.newProject")
+                            </a>
+                        </td>
+                        <td>@Messages("app.welcome.project.desc")</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="@routes.OrganizationApp.newForm()" class="ybtn ybtn-success">
+                            @Messages("title.newOrganization")
+                            </a>
+                        </td>
+                        <td>@Messages("app.welcome.group.desc")</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="@routes.ProjectApp.projects()" class="ybtn ybtn-success">
+                            @Messages("title.projectList")
+                            </a>
+                        </td>
+                        <td>@Messages("app.welcome.searchProject.desc")</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="guide-toggle">
+                <button class="btn-transparent" id="toggleIntro"><i class="yobicon-resizev"></i></button>
+            </div>
+            <div class="page on-fold-intro">
+                <div class="row-fluid content-container">
+                    <div class="span8 main-stream">
+                        @views.html.common.mySeriesMenuTab(TAB_NOTI)
+                        <ul class="activity-streams notification-wrap unstyled">
+                            @partial_notifications(0, 20)
+                        </ul>
+        	        </div>
+                    <div class="span4 index-menu right-menu span-hard-wrap">
+        	       </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    }
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $("#toggleIntro").click(function(){
+                var $outerGuide = $(".site-guide-outer");
+                $outerGuide.toggleClass("hide");
+                localStorage.setItem("yobi-intro", !$outerGuide.hasClass("hide"));
+            });
+
+            if(localStorage.getItem("yobi-intro") != "false"){
+                $(".site-guide-outer").removeClass("hide");
+            }
+
+            $('.notification-wrap').on('click','[data-toggle="learnmore"]',function(event) {
+                var $this = $(this);
+                $this.find(".more").toggle();
+                var sTargetId = $this.data('target'),
+                    welMessage = $('#'+sTargetId),
+                    nHeight;
+
+                if(event.target.localName =='a' || event.target.localName =='img') {
+                    return ;
+                }
+
+                welMessage.toggleClass('nowrap');
+
+                nHeight = (welMessage.hasClass('nowrap')) ? '' : $(welMessage).find('.message').height();
+
+                $(welMessage).css('min-height',nHeight);
+            });
+
+            function checkOverflow(el) {
+                var curOverflow = el.style.overflow;
+
+                if (!curOverflow || curOverflow === "visible")
+                    el.style.overflow = "hidden";
+
+                var isOverflowing = el.clientWidth < el.scrollWidth
+                        || el.clientHeight < el.scrollHeight;
+
+                el.style.overflow = curOverflow;
+
+                return isOverflowing;
+            }
+
+            $(".message-wrap").each(function(index, value){
+                var $this = $(this);
+                if(checkOverflow($this[0])){
+                    $this.after("<div class='more'>...</div>");
+                }
+            });
+
+            // Show side bar menu default and focus to search box
+            // Also, see layout.scala.html for normal user menu click !!
+            var requiredLoggedIn = $("#required-logged-in").length === 1;
+            if(!requiredLoggedIn){
+                var viewSize = $(window).width();
+                if( viewSize > 720) {
+                    $("#mySidenav").width("420px").css("border", "1px solid #ccc");
+                    setTimeout(function () {
+                        $("#main").off("click");
+                    }, 1000);
+                    $(".search-input").focus();
+                } else {
+                    $("#mySidenav").width("100vw").css("border", "1px solid #ccc");
+                }
+            }
+
+            if ($(".admin-logged-in-affix").length === 1) {
+                $(".sidenav").css("top", "84px");
+            }
+
+            var $setDefaultLoginPage = $("#setDefaultLoginPage");
+            $setDefaultLoginPage.popover();
+            $setDefaultLoginPage.on('click', function(){
+                $.post("@routes.UserApp.setDefaultLoginPage()?path=" + $setDefaultLoginPage.data("url"))
+                        .done(function (data) {
+                            $yobi.notify("Set to default: " + data.defaultLoginPage, 3000);
+                            $setDefaultLoginPage.hide();
+                        })
+                        .fail(function (data) {
+                            $yobi.alert("set Default page failed: " + data);
+                        });
+            });
+        });
+    </script>
+}
