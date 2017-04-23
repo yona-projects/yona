@@ -31,7 +31,7 @@
     <p class="tag-line">@Messages("app.description")</p>
   </div>
 
-  @if(UserApp.isUseSignUpConfirm){
+  @if(UserApp.isUsingSignUpConfirm){
     <div class="center-txt">
       <p>@Messages("title.signupConfirmDesc")</p>
       <p>@Html(Messages("title.signupConfirmDesc2", new StringBuilder(User.findByLoginId(SiteAdmin.SITEADMIN_DEFAULT_LOGINID).email).reverse().toString()))</p>

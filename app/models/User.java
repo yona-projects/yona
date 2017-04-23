@@ -973,4 +973,8 @@ public class User extends Model implements ResourceConvertible {
         list.addAll(projects);
         return list;
     }
+
+    public boolean isLocked() {
+        return this.state == UserState.LOCKED || this.state == UserState.DELETED;
+    }
 }

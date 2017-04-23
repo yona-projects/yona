@@ -21,9 +21,40 @@ application.siteName="Yona"
 # want to allow that, set signup.require.confirm to true.
 application.allowsAnonymousAccess=true
 
+#
+# Signup options
+# ~~~~~~~~~~~~~~
+
 # If you wants to make the user available to use yona
 # after the server administrator approved,uncomment below
+#
 # signup.require.admin.confirm = true
+
+# If you only want to allow for signing up in specific email domains,
+# use the following option.
+# application.allowed.sending.mail.domains = "gmail.com, your-company.com"
+# And "" is option for no restriction.
+#
+# application.allowed.sending.mail.domains = ""
+
+# If following email verification option is true, all user will be locked when it sign-up,
+# until user click the verification link of verification confirm mail
+#
+# application.use.email.verification = true
+
+# If you enable to use social login or email verification, set followings
+play-easymail {
+  from {
+    # Mailing from address
+    email="projects.yona@gmail.com"
+
+    # Mailing name
+    name="yona-no-reply"
+
+    # Seconds between sending mail through Akka (defaults to 1)
+    # delay=1
+  }
+}
 
 # Notification
 # ~~~~~
@@ -270,6 +301,8 @@ github.client.secret = "TYPE YOUR GITHUB CILENT SECRET"
 # 2,147,483,454 bytes = 2Gb
 application.maxFileSize = 2147483454
 
+
+
 # Social Login Support
 # ~~~~~~~~~~~~~~~~~~~~
 # Social login settings for Yona
@@ -298,20 +331,6 @@ ldap {
     baseDN = "ou=scientists,dc=example,dc=com"
     # If your ldap service's distinguishedName is 'CN=username,OU=user,DC=abc,DC=com', postfix is 'OU=xxx,DC=abc,DC=com'
     distinguishedNamePostfix = "OU=user,DC=abc,DC=com"
-}
-
-# If you enable to use social login, set followings
-play-easymail {
-  from {
-    # Mailing from address
-    email="your@mail-adress.com"
-
-    # Mailing name
-    name="Yona Admin"
-
-    # Seconds between sending mail through Akka (defaults to 1)
-    # delay=1
-  }
 }
 
 include "social-login.conf"

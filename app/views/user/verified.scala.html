@@ -1,0 +1,20 @@
+@**
+* Yona, 21st Century Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp.
+* https://yona.io
+**@
+@(message: String, loginId:String)
+
+@siteLayout(message, utils.MenuType.NONE) {
+<div class="page full">
+  <div class="center-wrap tag-line-wrap reset-password">
+    <h1 class="title">
+      @Html(Messages("user.verified"))
+    </h1>
+    <p>@loginId</p>
+    <hr />
+    <p class="tag-line">@Messages("user.verified.detail")</p>
+  </div>
+</div>
+}

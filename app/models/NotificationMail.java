@@ -435,7 +435,7 @@ public class NotificationMail extends Model {
 
         if(StringUtils.isNotBlank(Application.ALLOWED_SENDING_MAIL_DOMAINS)){
             for(String domain: Application.ALLOWED_SENDING_MAIL_DOMAINS.split(",")){
-                acceptableDomains.add(StringUtils.defaultString(domain, "").trim());
+                acceptableDomains.add(StringUtils.defaultString(domain, "").toLowerCase().trim());
             }
         }
 
@@ -449,6 +449,24 @@ public class NotificationMail extends Model {
         }
 
         return filteredUsers;
+    }
+
+    public static boolean isAllowedEmailDomains(String email) {
+        List<String> acceptableDomains = new ArrayList<>();
+
+        if(StringUtils.isBlank(Application.ALLOWED_SENDING_MAIL_DOMAINS)){
+            return true;
+        } else {
+            for (String domain : Application.ALLOWED_SENDING_MAIL_DOMAINS.split(",")) {
+                acceptableDomains.add(StringUtils.defaultString(domain, "").toLowerCase().trim());
+            }
+        }
+
+        String domain = getDomainFromEmail(email);
+        if(domain == null || !acceptableDomains.contains(domain.toLowerCase())) {
+            return false;
+        }
+        return true;
     }
 
     private static int getPartialRecipientSize(Set<User> receivers) {
