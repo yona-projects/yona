@@ -142,4 +142,18 @@ public class UserCredential extends Model {
     public static List<UserCredential> findByUserId(Long id){
         return find.where().eq("user.id", id).findList();
     }
+
+    @Override
+    public String toString() {
+        return "UserCredential{" +
+                "id=" + id +
+                ", user=" + user +
+                ", loginId='" + loginId + '\'' +
+                ", email='" + email + '\'' +
+                ", name='" + name + '\'' +
+                ", active=" + active +
+                ", emailValidated=" + emailValidated +
+                ", linkedAccounts=" + linkedAccounts +
+                '}';
+    }
 }

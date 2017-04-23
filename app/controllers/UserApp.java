@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.feth.play.module.mail.Mailer.getEmailName;
+import static models.NotificationMail.isAllowedEmailDomains;
 import static play.data.Form.form;
 import static play.libs.Json.toJson;
 import static utils.HtmlUtil.defaultSanitize;
@@ -79,6 +80,8 @@ public class UserApp extends Controller {
             .getBoolean("application.use.social.login.only", false);
     public static final String FLASH_MESSAGE_KEY = "message";
     public static final String FLASH_ERROR_KEY = "error";
+    private static boolean usingEmailVerification = play.Configuration.root()
+            .getBoolean("application.use.email.verification", false);
 
     @AnonymousCheck
     public static Result users(String query) {
@@ -201,7 +204,7 @@ public class UserApp extends Controller {
 
         User sourceUser = User.findByLoginKey(authInfoForm.get().loginIdOrEmail);
 
-        if (isUseSignUpConfirm()) {
+        if (isUsingSignUpConfirm()) {
             if (User.findByLoginId(sourceUser.loginId).state == UserState.LOCKED) {
                 flash(Constants.WARNING, "user.locked");
                 return redirect(getLoginFormURLWithRedirectURL());
@@ -220,6 +223,10 @@ public class UserApp extends Controller {
             authenticate = authenticateWithPlainPassword(sourceUser.loginId, authInfoForm.get().password);
         }
 
+        if(authenticate.isLocked()){
+            flash(Constants.WARNING, "user.locked");
+            return logout();
+        }
         if (!authenticate.isAnonymous()) {
             addUserInfoToSession(authenticate);
 
@@ -276,7 +283,7 @@ public class UserApp extends Controller {
 
         User sourceUser = User.findByLoginKey(authInfoForm.get().loginIdOrEmail);
 
-        if (isUseSignUpConfirm()) {
+        if (isUsingSignUpConfirm()) {
             if (User.findByLoginId(sourceUser.loginId).state == UserState.LOCKED) {
                 return forbidden(getObjectNodeWithMessage("user.locked"));
             }
@@ -291,6 +298,10 @@ public class UserApp extends Controller {
             user =  authenticateWithLdap(authInfoForm.get().loginIdOrEmail, authInfoForm.get().password);
         } else {
             user = authenticateWithPlainPassword(sourceUser.loginId, authInfoForm.get().password);
+        }
+
+        if(user.isLocked()){
+            return forbidden(getObjectNodeWithMessage("user.locked"));
         }
 
         if (!user.isAnonymous()) {
@@ -364,15 +375,27 @@ public class UserApp extends Controller {
         validate(newUserForm);
         if (newUserForm.hasErrors()) {
             return badRequest(signup.render("title.signup", newUserForm));
-        } else {
-            User user = createNewUser(newUserForm.get());
-            if (user.state == UserState.LOCKED) {
-                flash(Constants.INFO, "user.signup.requested");
-            } else {
-                addUserInfoToSession(user);
-            }
-            return redirect(routes.Application.index());
         }
+
+        if (!isAllowedEmailDomains(newUserForm.get().email)) {
+            flash(Constants.INFO, "user.unacceptable.email.domain");
+            return badRequest(signup.render("title.signup", newUserForm));
+        }
+
+        User user = createNewUser(newUserForm.get());
+        if (isUsingEmailVerification()) {
+            if (isAllowedEmailDomains(user.email)) {
+                flash(Constants.INFO, "user.verification.mail.sent");
+            } else {
+                flash(Constants.INFO, "user.unacceptable.email.domain");
+            }
+        }
+        if (user.state == UserState.LOCKED && isUsingSignUpConfirm()) {
+            flash(Constants.INFO, "user.signup.requested");
+        } else {
+            addUserInfoToSession(user);
+        }
+        return redirect(routes.Application.index());
     }
 
     private static String newLoginIdWithoutDup(final String candidate, int num) {
@@ -394,9 +417,18 @@ public class UserApp extends Controller {
             forceOAuthLogout();
             return User.anonymous;
         }
+        if (!isAllowedEmailDomains(userCredential.email)) {
+            flash(Constants.INFO, "user.unacceptable.email.domain");
+            userCredential.delete();
+            forceOAuthLogout();
+            return User.anonymous;
+        }
         User created = createUserDelegate(userCredential.name, userCredential.email, null);
 
-        if (created.state == UserState.LOCKED) {
+        if(isUsingEmailVerification() && created.isLocked()){
+            flash(Constants.INFO, "user.verification.mail.sent");
+            forceOAuthLogout();
+        } else if (created.state == UserState.LOCKED) {
             flash(Constants.INFO, "user.signup.requested");
             forceOAuthLogout();
         }
@@ -406,7 +438,6 @@ public class UserApp extends Controller {
         userCredential.user = created;
         userCredential.update();
 
-        sendMailAboutUserCreationByOAuth(userCredential, created);
         return created;
     }
 
@@ -431,24 +462,81 @@ public class UserApp extends Controller {
         return createNewUser(user);
     }
 
-    private static void sendMailAboutUserCreationByOAuth(UserCredential userCredential, User created) {
-        Mail mail = new Mail("New account for Yona", getNewAccountMailBody(created), new String[] { getEmailName(userCredential.name, userCredential.email) });
+    public static Result verifyUser(String loginId, String verificationCode){
+        if(!UserApp.currentUser().isAnonymous()) {
+            return redirect(routes.Application.index());
+        }
+        UserVerification uv = UserVerification.findbyLoginIdAndVerificationCode(loginId, verificationCode);
+        if(uv == null){
+            return notFound("Invalid verification");
+        }
+        if (uv.isValidDate()) {
+            User user = User.findByLoginId(loginId);
+            user.state = UserState.ACTIVE;
+            user.update();
+            uv.invalidate();
+            return ok(verified.render("", loginId));
+        }
+        return notFound("Invalid verification");
+    }
+
+    private static void sendMailAfterUserCreation(User created) {
+        if (!isAllowedEmailDomains(created.email)) {
+            flash(Constants.INFO, "user.unacceptable.email.domain");
+            return;
+        }
+        Mail mail = new Mail(Messages.get("user.verification.signup.confirm")
+                + ": " + getServeIndexPageUrl(),
+                getNewAccountMailBody(created),
+                new String[] { getEmailName(created.email, created.name) });
         Mailer mailer = Mailer.getCustomMailer(Configuration.root().getConfig("play-easymail"));
         mailer.sendMail(mail);
     }
 
     private static Body getNewAccountMailBody(User user){
         String passwordResetUrl = getServeIndexPageUrl() + routes.PasswordResetApp.lostPassword();
-        String html =  "ID: " + user.loginId + "<br/>\n"
-                + "PW: " + user.password + "<br/>\n"
-                + "Email: " + user.email + "<br/>\n<br/>\n<br/>\n"
-                + "Password reset: <a href='" + passwordResetUrl + "' target='_blank'>"
-                + passwordResetUrl + "</a><br/>\n<br/>\n";
-        String text =  "ID: " + user.loginId + "\n"
-                + "PW: " + user.password + "\n"
-                + "Email: " + user.email + "\n\n\n"
-                + "Password reset: " + passwordResetUrl + "\n\n";
-        return new Body(text, html);
+        StringBuilder html = new StringBuilder();
+        StringBuilder plainText = new StringBuilder();
+
+        if(isUsingEmailVerification()){
+            setVerificationMessage(user, html, plainText);
+        }
+        setSignupInfomation(user, passwordResetUrl, html, plainText);
+        return new Body(plainText.toString(), html.toString());
+    }
+
+    private static void setSignupInfomation(User user, String passwordResetUrl, StringBuilder html, StringBuilder plainText) {
+        html.append("URL: <a href='").append(getServeIndexPageUrl()).append("'>")
+                    .append(getServeIndexPageUrl()).append("</a><br/>\n")
+                .append("ID: ").append(user.loginId).append("<br/>\n")
+                .append("Email: ").append(user.email).append("<br/>\n<br/>\n")
+                .append("Password reset: <a href='").append(passwordResetUrl).append("' target='_blank'>")
+                .append(passwordResetUrl).append("</a><br/>\n");
+        plainText.append("URL: ").append(getServeIndexPageUrl()).append("\n")
+                .append("ID: ").append(user.loginId).append("\n")
+                .append("Email: ").append(user.email).append("\n\n")
+                .append("Password reset: ").append(passwordResetUrl).append("\n");
+    }
+
+    private static void setVerificationMessage(User user, StringBuilder html, StringBuilder plainText) {
+        UserVerification verification = UserVerification.findbyUser(user);
+        if(verification == null){
+            verification = UserVerification.newVerification(user);
+        }
+        String verificationUrl = getServeIndexPageUrl()
+                + routes.UserApp.verifyUser(user.loginId, verification.verificationCode).toString();
+        html.append("<h1>").append(Messages.get("user.verification")).append("</h1>\n");
+        html.append("<hr />\n");
+        html.append("<p><a href='").append(verificationUrl).append("'>")
+                .append(Messages.get("user.verification.link.click")).append("</a></p>\n");
+        html.append("<br />\n");
+        html.append("<br />\n");
+
+        plainText.append(Messages.get("user.verification")).append("\n");
+        plainText.append("--------------------------\n");
+        plainText.append(verificationUrl).append("\n");
+        plainText.append("\n");
+        plainText.append("\n");
     }
 
     private static String getServeIndexPageUrl(){
@@ -794,6 +882,10 @@ public class UserApp extends Controller {
         }
     }
 
+    private static boolean isUsingEmailVerification() {
+        return usingEmailVerification;
+    }
+
     private enum UserInfoFormTabType {
         PROFILE("profile"),
         PASSWORD("password"),
@@ -1068,7 +1160,7 @@ public class UserApp extends Controller {
         }
     }
 
-    public static boolean isUseSignUpConfirm(){
+    public static boolean isUsingSignUpConfirm(){
         Configuration config = play.Play.application().configuration();
         Boolean useSignUpConfirm = config.getBoolean("signup.require.admin.confirm");
         if(useSignUpConfirm == null) {
@@ -1114,17 +1206,24 @@ public class UserApp extends Controller {
         RandomNumberGenerator rng = new SecureRandomNumberGenerator();
         user.passwordSalt = rng.nextBytes().toBase64();
         user.password = hashedPassword(user.password, user.passwordSalt);
-        if (isUseSignUpConfirm()) {
+        if (isUsingSignUpConfirm() || isUsingEmailVerification()) {
             user.state = UserState.LOCKED;
         } else {
             user.state = UserState.ACTIVE;
         }
         User.create(user);
         Email.deleteOtherInvalidEmails(user.email);
+        if (isUsingEmailVerification()) {
+            UserVerification.newVerification(user);
+            sendMailAfterUserCreation(user);
+        }
         return user;
     }
 
     public static void addUserInfoToSession(User user) {
+        if(user.isLocked()){
+            return;
+        }
         String key = new Sha256Hash(new Date().toString(), ByteSource.Util.bytes(user.passwordSalt), 1024)
                 .toBase64();
         CacheStore.yonaUsers.put(user.id, user);
