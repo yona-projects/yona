@@ -379,6 +379,7 @@ public class UserApp extends Controller {
 
         if (!isAllowedEmailDomains(newUserForm.get().email)) {
             flash(Constants.INFO, "user.unacceptable.email.domain");
+            play.Logger.warn("Signup rejected: " + newUserForm.get().name + " with " + newUserForm.get().email);
             return badRequest(signup.render("title.signup", newUserForm));
         }
 
@@ -417,8 +418,10 @@ public class UserApp extends Controller {
             forceOAuthLogout();
             return User.anonymous;
         }
+
         if (!isAllowedEmailDomains(userCredential.email)) {
             flash(Constants.INFO, "user.unacceptable.email.domain");
+            play.Logger.warn("Signup rejected: " + userCredential.name + " with " + userCredential.email);
             userCredential.delete();
             forceOAuthLogout();
             return User.anonymous;
