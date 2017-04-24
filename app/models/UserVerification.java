@@ -33,7 +33,7 @@ public class UserVerification extends Model {
 
     public Long timestamp;
 
-    public static UserVerification newVerification(User user) {
+    public static synchronized UserVerification newVerification(User user) {
         UserVerification v = new UserVerification();
         v.user = user;
         v.loginId = user.loginId;
@@ -63,15 +63,27 @@ public class UserVerification extends Model {
     }
 
     public boolean isValidDate(){
-        if( this.timestamp + 60*60*24  > new Date().getTime()) {
+        if( this.timestamp + 60*60*24*1000  > new Date().getTime()) {
             return true;
         } else {
             this.delete();
+            play.Logger.error("Email validation is expired: " + this.loginId + ":" + this.verificationCode);
             return false;
         }
     }
 
     public void invalidate(){
         this.delete();
+    }
+
+    @Override
+    public String toString() {
+        return "UserVerification{" +
+                "id=" + id +
+                ", user=" + user +
+                ", loginId='" + loginId + '\'' +
+                ", verificationCode='" + verificationCode + '\'' +
+                ", timestamp=" + timestamp +
+                '}';
     }
 }
