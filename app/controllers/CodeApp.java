@@ -96,13 +96,22 @@ public class CodeApp extends Controller {
 
         PlayRepository repository = RepositoryService.getRepository(project);
         List<String> branches = repository.getRefNames();
-        String cacheKey = owner + ":" + projectName + ":" + branch + ":" + path + ":" + project.lastUpdateDate().getTime();
-        List<ObjectNode> recursiveData = (List<ObjectNode>) Cache.get(cacheKey);
-        if( recursiveData == null){
+        List<ObjectNode> recursiveData = null;
+
+        if(RepositoryService.VCS_GIT.equals(project.vcs)){
+            String cacheKey = owner + ":" + projectName + ":" + branch + ":" + path + ":" + project.lastUpdateDate().getTime();
+
+            recursiveData = (List<ObjectNode>) Cache.get(cacheKey);
+            if( recursiveData == null){
+                recursiveData = RepositoryService.getMetaDataFromAncestorDirectories(
+                        repository, branch, path);
+                Cache.set(cacheKey, recursiveData);
+            }
+        } else if (RepositoryService.VCS_SUBVERSION.equals(project.vcs)){  // svn doesn't use cache
             recursiveData = RepositoryService.getMetaDataFromAncestorDirectories(
                     repository, branch, path);
-            Cache.set(cacheKey, recursiveData);
         }
+
         if (recursiveData == null) {
             return notFound(ErrorViews.NotFound.render(branch, project, "code"));
         }
