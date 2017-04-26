@@ -245,7 +245,7 @@
                 if(htSortedData[sType] instanceof Array){
                     htSortedData[sType].forEach(function(htFile){
                         htFile = _getFileInfoForTpl(htFile, sTargetPath);
-                        aHTML.push($.tmpl(htVar.sTplListItem, htFile));
+                        aHTML.push($yobi.tmpl(htVar.sTplListItem, htFile));
                     });
                 }
             });
