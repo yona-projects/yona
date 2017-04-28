@@ -60,7 +60,8 @@ public class IssueApp extends AbstractPostingApp {
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     public static Result userIssuesPage() throws WriteException, IOException {
-        return controllers.IssueApp.userIssues("", "html", 1);
+        String pageNum = StringUtils.defaultIfBlank(request().getQueryString("pageNum"), "1");
+        return controllers.IssueApp.userIssues("", "html", Integer.parseInt(pageNum));
     }
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
