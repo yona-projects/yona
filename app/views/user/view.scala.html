@@ -26,6 +26,14 @@
     }
 }
 
+@isCurrentUsersPage = @{
+    if(UserApp.currentUser.loginId.equals(user.loginId)){
+        true
+    } else {
+        false
+    }
+}
+
 @siteLayout(user.loginId, utils.MenuType.USER) {
 <div class="site-breadcrumb-outer">
     <div class="site-breadcrumb-inner">
@@ -49,12 +57,12 @@
 
                 <ul class="unstyled lst-stacked" style="margin-top:20px;">
                     <li @if(groupNames.contains("own")){class="active"}>
-                    <a href="@routes.UserApp.userInfo(user.loginId, "own")">@Messages("project.createdByMe")<span class="num-badge pull-right">@Project.countProjectsCreatedByUser(user.loginId)</span></a>
+                    <a href="@routes.UserApp.userInfo(user.loginId, "own")">@Messages("project.createdByMe")<span class="num-badge pull-right">@if(isCurrentUsersPage){@Project.countProjectsCreatedByUser(user.loginId)}</span></a>
                     </li>
                     <li @if(groupNames.contains("member")){class="active"}>
-                    <a href="@routes.UserApp.userInfo(user.loginId, "member")">@Messages("project.default.group.member")<span class="num-badge pull-right">@Project.countProjectsJustMemberAndNotOwner(user.loginId)</span></a>
+                    <a href="@routes.UserApp.userInfo(user.loginId, "member")">@Messages("project.default.group.member")<span class="num-badge pull-right">@if(isCurrentUsersPage){@Project.countProjectsJustMemberAndNotOwner(user.loginId)}</span></a>
                     </li>
-                    @if(user.loginId == UserApp.currentUser.loginId){
+                    @if(isCurrentUsersPage){
                         <li @if(groupNames.contains("watching")){class="active"}>
                         <a href="@routes.UserApp.userInfo(user.loginId, "watching")">@Messages("project.default.group.watching")<span class="num-badge pull-right">@user.getWatchingProjects.size</span></a>
                         </li>
@@ -124,7 +132,10 @@
                         }
                         <ul class="user-streams all-projects">
                             @for(project <- projects){
-                                @partial_projectlist(project, user)
+                                @if(groupNames.contains("watching") && !isCurrentUsersPage){
+                                } else {
+                                    @partial_projectlist(project, user)
+                                }
                             }
                         </ul>
                     </div>

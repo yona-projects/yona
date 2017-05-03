@@ -843,7 +843,8 @@ public class UserApp extends Controller {
 
     private static void addProjectNotDupped(List<Project> target, List<Project> foundProjects) {
         for (Project project : foundProjects) {
-            if( !target.contains(project) ) {
+            if( !target.contains(project) &&
+                    AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
                 target.add(project);
             }
         }
