@@ -2338,7 +2338,7 @@
                         classNames = value.split( rspace );
 
                     while ( (className = classNames[ i++ ]) ) {
-                        // check each className given, space seperated list
+                        // check each className given, space separated list
                         state = isBool ? state : !self.hasClass( className );
                         self[ state ? "addClass" : "removeClass" ]( className );
                     }
@@ -3956,7 +3956,7 @@
             rNonWord = /\W/;
 
 // Here we check if the JavaScript engine is using some sort of
-// optimization where it does not always call our comparision
+// optimization where it does not always call our comparsion
 // function. If that is the case, discard the hasDuplicate value.
 //   Thus far that includes Google Chrome.
         [0, 0].sort(function() {
@@ -8249,7 +8249,7 @@
                                 xml;
 
                             // Firefox throws exceptions when accessing properties
-                            // of an xhr when a network error occured
+                            // of an xhr when a network error occurred
                             // http://helpful.knobs-dials.com/index.php/Component_returned_failure_code:_0x80040111_(NS_ERROR_NOT_AVAILABLE)
                             try {
 
