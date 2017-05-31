@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # User this restart shell just for example
 #
