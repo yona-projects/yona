@@ -24,7 +24,8 @@ public class LdapService {
     private static final String DN_POSTFIX = Play.application().configuration().getString("ldap.distinguishedNamePostfix", "");
     private static final String PROTOCOL = Play.application().configuration().getString("protocol", "ldap");
     private static final String LOGIN_PROPERTY = Play.application().configuration().getString("ldap.loginProperty", "sAMAccountName");
-    private static final String NAME_PROPERTY = Play.application().configuration().getString("ldap.nameProperty", "displayName");
+    private static final String DISPLAY_NAME_PROPERTY = Play.application().configuration().getString("ldap.displayNameProperty", "displayName");
+    private static final String USER_NAME_PROPERTY = Play.application().configuration().getString("ldap.userNameProperty", "CN");
     private static final int TIMEOUT = 5000; //ms
 
     public LdapUser authenticate(String username, String password) throws NamingException {
@@ -48,7 +49,7 @@ public class LdapService {
 
     private LdapUser getLdapUser(SearchResult searchResult) throws NamingException {
         Attributes attr = searchResult.getAttributes();
-        return new LdapUser(attr.get(NAME_PROPERTY),
+        return new LdapUser(attr.get(DISPLAY_NAME_PROPERTY),
                 attr.get("mail"),
                 attr.get(LOGIN_PROPERTY),
                 attr.get("department"));
@@ -66,7 +67,7 @@ public class LdapService {
         if(username.contains("@")){
             return username;
         } else {
-            return LOGIN_PROPERTY + "=" + username + "," +  DN_POSTFIX;
+            return USER_NAME_PROPERTY + "=" + username + "," +  DN_POSTFIX;
         }
     }
 
