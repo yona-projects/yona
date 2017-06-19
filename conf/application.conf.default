@@ -331,6 +331,9 @@ ldap {
     baseDN = "ou=scientists,dc=example,dc=com"
     # If your ldap service's distinguishedName is 'CN=username,OU=user,DC=abc,DC=com', postfix is 'OU=xxx,DC=abc,DC=com'
     distinguishedNamePostfix = "OU=user,DC=abc,DC=com"
+    loginProperty = "sAMAccountName"
+    displayNameProperty = "displayName"
+    userNameProperty = "cn"
 }
 
 include "social-login.conf"
