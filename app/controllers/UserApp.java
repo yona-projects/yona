@@ -309,6 +309,7 @@ public class UserApp extends Controller {
                 setupRememberMe(user);
             }
 
+            user.refresh();
             user.lang = play.mvc.Http.Context.current().lang().code();
             user.update();
             addUserInfoToSession(user);
@@ -1152,8 +1153,7 @@ public class UserApp extends Controller {
             play.Logger.error("Cannot connect to ldap server \n" + e.getMessage());
             e.printStackTrace();
             return User.anonymous;
-        }
-        catch (AuthenticationException e) {
+        } catch (AuthenticationException e) {
             flash(Constants.WARNING, Messages.get("user.login.invalid"));
             play.Logger.warn("login failed \n" + e.getMessage());
             return User.anonymous;

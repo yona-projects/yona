@@ -23,6 +23,9 @@ public class LdapService {
     private static final String BASE_DN = Play.application().configuration().getString("ldap.baseDN", "");
     private static final String DN_POSTFIX = Play.application().configuration().getString("ldap.distinguishedNamePostfix", "");
     private static final String PROTOCOL = Play.application().configuration().getString("protocol", "ldap");
+    private static final String LOGIN_PROPERTY = Play.application().configuration().getString("ldap.loginProperty", "sAMAccountName");
+    private static final String DISPLAY_NAME_PROPERTY = Play.application().configuration().getString("ldap.displayNameProperty", "displayName");
+    private static final String USER_NAME_PROPERTY = Play.application().configuration().getString("ldap.userNameProperty", "CN");
     private static final int TIMEOUT = 5000; //ms
 
     public LdapUser authenticate(String username, String password) throws NamingException {
@@ -46,9 +49,9 @@ public class LdapService {
 
     private LdapUser getLdapUser(SearchResult searchResult) throws NamingException {
         Attributes attr = searchResult.getAttributes();
-        return new LdapUser(attr.get("displayName"),
+        return new LdapUser(attr.get(DISPLAY_NAME_PROPERTY),
                 attr.get("mail"),
-                attr.get("sAMAccountName"),
+                attr.get(LOGIN_PROPERTY),
                 attr.get("department"));
     }
 
@@ -56,7 +59,7 @@ public class LdapService {
         if(username.contains("@")){
             return "mail";
         } else {
-            return "sAMAccountName";
+            return LOGIN_PROPERTY;
         }
     }
 
@@ -64,13 +67,13 @@ public class LdapService {
         if(username.contains("@")){
             return username;
         } else {
-            return "CN=" + username + ", " +  DN_POSTFIX;
+            return USER_NAME_PROPERTY + "=" + username + "," +  DN_POSTFIX;
         }
     }
 
     private SearchResult findUser(DirContext ctx, String username, String filter) throws NamingException {
 
-        String searchFilter = "(&(objectClass=user)(" + filter + "=" + username + "))";
+        String searchFilter = "(" + filter + "=" + username + ")";
 
         SearchControls searchControls = new SearchControls();
         searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
