@@ -309,6 +309,7 @@ public class UserApp extends Controller {
                 setupRememberMe(user);
             }
 
+            user.refresh();
             user.lang = play.mvc.Http.Context.current().lang().code();
             user.update();
             addUserInfoToSession(user);
