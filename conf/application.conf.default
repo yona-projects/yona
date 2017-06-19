@@ -333,7 +333,7 @@ ldap {
     distinguishedNamePostfix = "OU=user,DC=abc,DC=com"
     loginProperty = "sAMAccountName"
     displayNameProperty = "displayName"
-    userNameProperty = "cn"
+    userNameProperty = "CN"
 }
 
 include "social-login.conf"
