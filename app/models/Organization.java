@@ -104,7 +104,7 @@ public class Organization extends Model implements ResourceConvertible {
 
     public List<Project> getVisibleProjects(User user) {
         List<Project> result = new ArrayList<>();
-        if(OrganizationUser.isAdmin(this.id, user.id)) {
+        if(OrganizationUser.isAdmin(this.id, user.id) || user.isSiteManager()) {
             result.addAll(this.projects);
         } else if(OrganizationUser.isMember(this.id, user.id)) {
             for(Project project : this.projects) {
