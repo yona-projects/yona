@@ -22,6 +22,9 @@ public class JodaDateUtil {
             format = "yyyy-MM-dd h:mm:ss a";
         }
         SimpleDateFormat sdf = new SimpleDateFormat(format);
+        if (date == null) {
+            return "";
+        }
         return sdf.format(date);
     }
     public static Date today() {
