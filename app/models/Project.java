@@ -9,6 +9,7 @@ package models;
 import com.avaje.ebean.Ebean;
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
+import com.avaje.ebean.RawSqlBuilder;
 import models.enumeration.ProjectScope;
 import models.enumeration.RequestState;
 import models.enumeration.ResourceType;
@@ -35,10 +36,7 @@ import javax.annotation.Nonnull;
 import javax.persistence.*;
 import javax.servlet.ServletException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static utils.CacheStore.getProjectCacheKey;
 import static utils.CacheStore.projectMap;
@@ -173,6 +171,43 @@ public class Project extends Model implements LabelOwner {
         } else {
             return find.byId(projectId);
         }
+    }
+
+    public Set<User> findAuthors() {
+        Set<User> allAuthors = new LinkedHashSet<>();
+        allAuthors.addAll(getIssueUsers());
+        allAuthors.addAll(getPostingUsers());
+        allAuthors.addAll(getPullRequestUsers());
+
+        return allAuthors;
+    }
+
+    public Set<User> findAuthorsAndWatchers() {
+        Set<User> allAuthors = new LinkedHashSet<>();
+        allAuthors.addAll(findAuthors());
+        allAuthors.addAll(getWatchedUsers());
+
+        return allAuthors;
+    }
+
+    private Set<User> getIssueUsers() {
+        String issueSql = "SELECT distinct author_id id FROM ISSUE where project_id=" + this.id;
+        return User.find.setRawSql(RawSqlBuilder.parse(issueSql).create()).findSet();
+    }
+
+    private Set<User> getPostingUsers() {
+        String postSql = "SELECT distinct author_id id FROM posting where project_id=" + this.id;
+        return User.find.setRawSql(RawSqlBuilder.parse(postSql).create()).findSet();
+    }
+
+    private Set<User> getPullRequestUsers() {
+        String postSql = "SELECT distinct contributor_id id FROM pull_request where to_project_id=" + this.id;
+        return User.find.setRawSql(RawSqlBuilder.parse(postSql).create()).findSet();
+    }
+
+    public Set<User> getWatchedUsers() {
+        String postSql = "SELECT distinct user_id id FROM watch where resource_type='PROJECT' and resource_id=" + this.id;
+        return User.find.setRawSql(RawSqlBuilder.parse(postSql).create()).findSet();
     }
 
     public boolean hasMember(User user) {
