@@ -146,6 +146,18 @@ public class MigrationApp {
         return members;
     }
 
+    public static List<ObjectNode> getAuthors(Project project) {
+        List<ObjectNode> authors = new ArrayList<>();
+        for(User user: project.findAuthors()){
+            ObjectNode member = Json.newObject();
+            member.put("name", user.name);
+            member.put("login", user.loginId);
+            member.put("email", user.email);
+            authors.add(member);
+        }
+        return authors;
+    }
+
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     public static Result exportIssueLabelPairs(String owner, String projectName){
         ObjectNode issueLabelPairs = composeIssueLabelPairJson(owner, projectName);

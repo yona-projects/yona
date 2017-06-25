@@ -25,7 +25,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static controllers.MigrationApp.composePlainCommentsJson;
-import static controllers.MigrationApp.getAssginees;
+import static controllers.MigrationApp.*;
 import static models.AbstractPosting.findByProject;
 import static play.libs.Json.toJson;
 
@@ -40,6 +40,7 @@ public class ProjectApi extends Controller {
         json.put("projectName", project.name);
         json.put("projectDescription", project.overview);
         json.put("assignees", toJson(getAssginees(project).toArray()));
+        json.put("authors", toJson(getAuthors(project).toArray()));
         json.put("memberCount", project.members().size());
         json.put("members", project.members().size());
         Optional.ofNullable(project.members())

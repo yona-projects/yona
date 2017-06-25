@@ -828,7 +828,7 @@ public class ProjectApp extends Controller {
             return;
         }
 
-        for (User user : findAuthorsAndWatchers(project)) {
+        for (User user : project.findAuthorsAndWatchers()) {
             if (!userList.contains(user)) {
                 userList.add(user);
             }
@@ -1226,36 +1226,4 @@ public class ProjectApp extends Controller {
         }
         return ok();
     }
-
-    public static Set<User> findAuthorsAndWatchers(@Nonnull Project project) {
-        Set<User> allAuthors = new LinkedHashSet<>();
-
-        allAuthors.addAll(getIssueUsers(project));
-        allAuthors.addAll(getPostingUsers(project));
-        allAuthors.addAll(getPullRequestUsers(project));
-        allAuthors.addAll(getWatchedUsers(project));
-
-        return allAuthors;
-    }
-
-    private static Set<User> getPostingUsers(Project project) {
-        String postSql = "SELECT distinct author_id id FROM posting where project_id=" + project.id;
-        return User.find.setRawSql(RawSqlBuilder.parse(postSql).create()).findSet();
-    }
-
-    private static Set<User> getIssueUsers(Project project) {
-        String issueSql = "SELECT distinct author_id id FROM ISSUE where project_id=" + project.id;
-        return User.find.setRawSql(RawSqlBuilder.parse(issueSql).create()).findSet();
-    }
-
-    private static Set<User> getPullRequestUsers(Project project) {
-        String postSql = "SELECT distinct contributor_id id FROM pull_request where to_project_id=" + project.id;
-        return User.find.setRawSql(RawSqlBuilder.parse(postSql).create()).findSet();
-    }
-
-    private static Set<User> getWatchedUsers(Project project) {
-        String postSql = "SELECT distinct user_id id FROM watch where resource_type='PROJECT' and resource_id=" + project.id;
-        return User.find.setRawSql(RawSqlBuilder.parse(postSql).create()).findSet();
-    }
-
 }
