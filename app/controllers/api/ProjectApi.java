@@ -18,8 +18,10 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static controllers.MigrationApp.composePlainCommentsJson;
@@ -36,15 +38,19 @@ public class ProjectApi extends Controller {
         ObjectNode json = Json.newObject();
         json.put("owner", project.owner);
         json.put("projectName", project.name);
+        json.put("projectDescription", project.overview);
         json.put("assignees", toJson(getAssginees(project).toArray()));
         json.put("memberCount", project.members().size());
+        json.put("members", project.members().size());
+        Optional.ofNullable(project.members())
+                .ifPresent(members -> json.put("members", composeMembersJson(project)));
         json.put("issueCount", project.issues.size());
         json.put("postCount", project.posts.size());
         json.put("milestoneCount", project.milestones.size());
         json.put("issues", composePosts(project, Issue.finder));
         json.put("posts", composePosts(project, Posting.finder));
         json.put("milestones", toJson(project.milestones.stream()
-                .map(MigrationApp::composeMilestoneJson).collect(Collectors.toList())));
+                .map(MigrationApp::getMilestoneNode).collect(Collectors.toList())));
         return ok(json);
     }
 
@@ -58,18 +64,28 @@ public class ProjectApi extends Controller {
 
     private static ObjectNode getResult(AbstractPosting posting) {
         ObjectNode json = Json.newObject();
-        json.put("id", posting.getNumber());
+        json.put("number", posting.getNumber());
+        json.put("id", posting.id);
         json.put("title", posting.title);
         json.put("type", posting.asResource().getType().toString());
-        json.put("author", posting.authorLoginId);
-        json.put("authorName", posting.authorName);
-        json.put("created_at", posting.createdDate.getTime());
+        json.put("author", composeAuthorJson(posting.getAuthor()));
+        json.put("createdAt", posting.createdDate.getTime());
         json.put("body", posting.body);
 
         if(posting.asResource().getType() == ResourceType.ISSUE_POST){
-            Optional.ofNullable(((Issue)posting).assignee).ifPresent(assignee -> json.put("assignee", assignee.user.loginId));
-            Optional.ofNullable(((Issue)posting).milestone).ifPresent(milestone -> json.put("milestone", milestone.title));
-            Optional.ofNullable(((Issue)posting).milestone).ifPresent(milestone -> json.put("milestoneId", milestone.id));
+            Issue issue = ((Issue)posting);
+            Optional.ofNullable(issue.assignee)
+                    .ifPresent(assignee -> json.put("assignee", composeAssigneeJson(issue)));
+            Optional.ofNullable(issue.getLabels()).ifPresent(labels -> {
+                if (labels.size() > 0) {
+                    json.put("labels", composeLabelJson(labels));
+                }
+            });
+            Optional.ofNullable(issue.milestone).
+                    ifPresent(milestone -> json.put("milestoneId", milestone.id));
+            Optional.ofNullable(issue.milestone)
+                    .ifPresent(milestone -> json.put("milestoneTitle", milestone.title));
+
         }
         List<Attachment> attachments = Attachment.findByContainer(posting.asResource());
         if(attachments.size() > 0) {
@@ -81,5 +97,54 @@ public class ProjectApi extends Controller {
             json.put("comments", toJson(comments));
         }
         return json;
+    }
+
+    private static JsonNode composeAuthorJson(User user) {
+        ObjectNode authorNode = Json.newObject();
+        authorNode.put("loginId", user.loginId);
+        authorNode.put("name", user.name);
+        return authorNode;
+    }
+
+    // It may be looks like weired. But it is intended for future
+    // which may introduce multiple assignees feature
+    private static JsonNode composeAssigneeJson(Issue issue) {
+        List<ObjectNode> assignees = new ArrayList<>();
+        Assignee assignee = issue.assignee;
+
+        ObjectNode assigneelNode = Json.newObject();
+        assigneelNode.put("loginId", assignee.user.loginId);
+        assigneelNode.put("name", assignee.user.name);
+        assignees.add(assigneelNode);
+
+        return toJson(assignees);
+    }
+
+    private static JsonNode composeMembersJson(Project project){
+        List<ObjectNode> members = new ArrayList<>();
+
+        for(ProjectUser projectUser: project.members()){
+            User user = projectUser.user;
+            ObjectNode memberNode = Json.newObject();
+            memberNode.put("loginId", user.loginId);
+            memberNode.put("name", user.name);
+            memberNode.put("role", projectUser.role.name);
+            memberNode.put("email", user.email);
+            members.add(memberNode);
+        }
+
+        return toJson(members);
+    }
+
+    private static JsonNode composeLabelJson(Set<IssueLabel> issueLabels) {
+        List<ObjectNode> labels = new ArrayList<>();
+        for(IssueLabel label: issueLabels){
+            ObjectNode labelNode = Json.newObject();
+            labelNode.put("labelName", label.name);
+            labelNode.put("labelColor", label.color);
+            labelNode.put("labelCategory", label.category.name);
+            labels.add(labelNode);
+        }
+        return toJson(labels);
     }
 }
