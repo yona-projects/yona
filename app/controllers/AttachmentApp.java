@@ -38,6 +38,19 @@ public class AttachmentApp extends Controller {
     public static final long TEMPORARYFILES_KEEPUP_TIME_MILLIS = Configuration.root()
             .getMilliseconds("application.temporaryfiles.keep-up.time", 24 * 60 * 60 * 1000L);
 
+    private static User findUploader(Map<String,String[]> formUrlEncoded) {
+        if(formUrlEncoded == null) {
+            return UserApp.currentUser();
+        }
+        String authorEmail = HttpUtil.getFirstValueFromQuery(formUrlEncoded, "authorEmail");
+        User found = User.findByEmail(authorEmail);
+        if(found.isAnonymous()){
+            String authorLoginId = HttpUtil.getFirstValueFromQuery(formUrlEncoded, "authorLoginId");
+            return User.findByLoginId(authorLoginId);
+        }
+        return found;
+    }
+
     public static Result uploadFile() throws NoSuchAlgorithmException, IOException {
         // Get the file from request.
         FilePart filePart =
@@ -47,7 +60,7 @@ public class AttachmentApp extends Controller {
         }
         File file = filePart.getFile();
 
-        User uploader = UserApp.currentUser();
+        User uploader = findUploader(request().body().asMultipartFormData().asFormUrlEncoded());
         if (uploader.isAnonymous()) {
             uploader = User.findByUserToken(request().getHeader("Yona-Token"));
         }

@@ -63,7 +63,7 @@ public class ProjectApi extends Controller {
         return toJson(result);
     }
 
-    private static ObjectNode getResult(AbstractPosting posting) {
+    public static ObjectNode getResult(AbstractPosting posting) {
         ObjectNode json = Json.newObject();
         json.put("number", posting.getNumber());
         json.put("id", posting.id);
@@ -71,6 +71,7 @@ public class ProjectApi extends Controller {
         json.put("type", posting.asResource().getType().toString());
         json.put("author", composeAuthorJson(posting.getAuthor()));
         json.put("createdAt", posting.createdDate.getTime());
+        json.put("updatedAt", posting.updatedDate.getTime());
         json.put("body", posting.body);
 
         if(posting.asResource().getType() == ResourceType.ISSUE_POST){
@@ -104,12 +105,13 @@ public class ProjectApi extends Controller {
         ObjectNode authorNode = Json.newObject();
         authorNode.put("loginId", user.loginId);
         authorNode.put("name", user.name);
+        authorNode.put("email", user.email);
         return authorNode;
     }
 
     // It may be looks like weired. But it is intended for future
     // which may introduce multiple assignees feature
-    private static JsonNode composeAssigneeJson(Issue issue) {
+    public static JsonNode composeAssigneeJson(Issue issue) {
         List<ObjectNode> assignees = new ArrayList<>();
         Assignee assignee = issue.assignee;
 
