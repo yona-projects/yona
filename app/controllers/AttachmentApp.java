@@ -39,14 +39,19 @@ public class AttachmentApp extends Controller {
             .getMilliseconds("application.temporaryfiles.keep-up.time", 24 * 60 * 60 * 1000L);
 
     private static User findUploader(Map<String,String[]> formUrlEncoded) {
-        if(formUrlEncoded == null) {
+        if(formUrlEncoded == null || formUrlEncoded.isEmpty()) {
             return UserApp.currentUser();
         }
         String authorEmail = HttpUtil.getFirstValueFromQuery(formUrlEncoded, "authorEmail");
         User found = User.findByEmail(authorEmail);
         if(found.isAnonymous()){
             String authorLoginId = HttpUtil.getFirstValueFromQuery(formUrlEncoded, "authorLoginId");
-            return User.findByLoginId(authorLoginId);
+            User fallbackSearch = User.findByLoginId(authorLoginId);
+            if( fallbackSearch.isAnonymous() ) {
+                return UserApp.currentUser();
+            } else {
+                return fallbackSearch;
+            }
         }
         return found;
     }
