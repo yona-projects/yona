@@ -236,7 +236,7 @@ public class AbstractPostingApp extends Controller {
     }
 
     public static void attachUploadFilesToPost(JsonNode files, Resource resource) {
-        if(files.isArray() && files.size() > 0){
+        if(files != null && files.isArray() && files.size() > 0){
             String [] fileIds = new String[files.size()];
             int idx = 0;
             for (JsonNode fileNo : files) {

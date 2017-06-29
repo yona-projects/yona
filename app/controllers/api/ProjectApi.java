@@ -24,7 +24,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static controllers.MigrationApp.composePlainCommentsJson;
 import static controllers.MigrationApp.*;
 import static models.AbstractPosting.findByProject;
 import static play.libs.Json.toJson;
@@ -78,6 +77,7 @@ public class ProjectApi extends Controller {
             Issue issue = ((Issue)posting);
             Optional.ofNullable(issue.assignee)
                     .ifPresent(assignee -> json.put("assignee", composeAssigneeJson(issue)));
+            json.put("state", issue.state.toString());
             Optional.ofNullable(issue.getLabels()).ifPresent(labels -> {
                 if (labels.size() > 0) {
                     json.put("labels", composeLabelJson(labels));
@@ -94,7 +94,7 @@ public class ProjectApi extends Controller {
             json.put("attachments", toJson(attachments));
         }
 
-        List <ObjectNode> comments = composePlainCommentsJson(posting, ResourceType.NONISSUE_COMMENT);
+        List <ObjectNode> comments = composePlainCommentsJson(posting);
         if(comments.size() > 0){
             json.put("comments", toJson(comments));
         }
@@ -149,5 +149,25 @@ public class ProjectApi extends Controller {
             labels.add(labelNode);
         }
         return toJson(labels);
+    }
+
+    public static List<ObjectNode> composePlainCommentsJson(AbstractPosting posting) {
+        List<ObjectNode> comments = new ArrayList<>();
+        for (Comment comment : posting.getComments()) {
+            ObjectNode commentNode = Json.newObject();
+            commentNode.put("id", comment.id);
+            commentNode.put("type", comment.asResource().getType().toString());
+            User commentAuthor = User.find.byId(comment.authorId);
+            commentNode.put("author", composeAuthorJson(commentAuthor));
+            commentNode.put("createdAt",comment.createdDate.getTime());
+            commentNode.put("body", comment.contents);
+
+            List<Attachment> attachments = Attachment.findByContainer(comment.asResource());
+            if(attachments.size() > 0) {
+                commentNode.put("attachments", toJson(attachments));
+            }
+            comments.add(commentNode);
+        }
+        return comments;
     }
 }
