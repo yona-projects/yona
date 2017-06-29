@@ -6,21 +6,26 @@
 
 package controllers.api;
 
+import actions.NullProjectCheckAction;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import controllers.AbstractPostingApp;
-import controllers.UserApp;
+import controllers.*;
 import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
+import controllers.routes;
 import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import org.joda.time.DateTime;
+import play.data.Form;
 import play.db.ebean.Transactional;
 import play.libs.Json;
+import play.mvc.Call;
 import play.mvc.Result;
-import utils.JodaDateUtil;
+import play.mvc.With;
+import utils.*;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -62,10 +67,8 @@ public class IssueApi extends AbstractPostingApp {
     }
 
     @Transactional
-    @IsCreatable(ResourceType.BOARD_POST)
+    @IsCreatable(ResourceType.ISSUE_POST)
     public static Result newIssueByJson(String owner, String projectName) {
-        ObjectNode result = Json.newObject();
-        System.out.println("-----------" + request().body().asJson().textValue());
         JsonNode json = request().body().asJson();
         if(json == null) {
             return badRequest("Expecting Json data");
@@ -90,6 +93,46 @@ public class IssueApi extends AbstractPostingApp {
             issue.save();
         }
         attachUploadFilesToPost(files, issue.asResource());
+
+        ObjectNode result = Json.newObject();
+        result.put("status", 200);
+        result.put("location", controllers.routes.IssueApp.issue(project.owner, project.name, issue.getNumber()).toString());
+        return ok(result);
+    }
+
+    @Transactional
+    @IsCreatable(ResourceType.ISSUE_COMMENT)
+    public static Result newIssueCommentByJson(String ownerName, String projectName, Long number)
+            throws IOException {
+        JsonNode json = request().body().asJson();
+        if(json == null) {
+            return badRequest("Expecting Json data");
+        }
+
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+        final Issue issue = Issue.findByNumber(project, number);
+
+        if (!AccessControl.isResourceCreatable(
+                UserApp.currentUser(), issue.asResource(), ResourceType.ISSUE_COMMENT)) {
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
+        }
+
+        User user = findAuthor(json.findValue("author"));
+        String body = json.findValue("body").asText();
+
+        final IssueComment comment = new IssueComment(issue, user, body);
+
+        comment.createdDate = getCreatedDate(json.findValue("createdAt").asLong());
+        comment.setAuthor(user);
+        comment.issue = issue;
+        comment.save();
+
+        play.Logger.warn(json.findValue("temporaryUploadFiles").asText());
+        attachUploadFilesToPost(json.findValue("temporaryUploadFiles"), comment.asResource());
+
+        ObjectNode result = Json.newObject();
+        result.put("status", 200);
+        result.put("location", RouteUtil.getUrl(comment));
 
         return ok(result);
     }
