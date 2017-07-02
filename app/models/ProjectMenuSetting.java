@@ -42,6 +42,8 @@ public class ProjectMenuSetting extends Model {
     public boolean milestone;
     public boolean board;
 
+    public ProjectMenuSetting() {}
+
     public ProjectMenuSetting(ProjectMenuSetting projectMenuSetting) {
         this.code = projectMenuSetting.code;
         this.issue = projectMenuSetting.issue;

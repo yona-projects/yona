@@ -274,7 +274,7 @@ public class ProjectApp extends Controller {
         return redirect(routes.ProjectApp.settingForm(ownerId, updatedProject.name));
     }
 
-    private static void saveProjectMenuSetting(Project project) {
+    public static void saveProjectMenuSetting(Project project) {
         Form<ProjectMenuSetting> filledUpdatedProjectMenuSettingForm = form(ProjectMenuSetting.class).bindFromRequest();
         ProjectMenuSetting updatedProjectMenuSetting = filledUpdatedProjectMenuSettingForm.get();
 
