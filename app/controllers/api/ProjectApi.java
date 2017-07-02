@@ -8,25 +8,28 @@ package controllers.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import controllers.MigrationApp;
+import controllers.*;
 import controllers.annotation.IsAllowed;
 import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
+import models.enumeration.RoleType;
 import play.db.ebean.Model;
+import play.db.ebean.Transactional;
+import play.i18n.Messages;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
+import playRepository.RepositoryService;
+import utils.AccessControl;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import static controllers.MigrationApp.*;
 import static models.AbstractPosting.findByProject;
 import static play.libs.Json.toJson;
+import static utils.CacheStore.getProjectCacheKey;
+import static utils.CacheStore.projectMap;
 
 public class ProjectApi extends Controller {
 
@@ -38,6 +41,7 @@ public class ProjectApi extends Controller {
         json.put("owner", project.owner);
         json.put("projectName", project.name);
         json.put("projectDescription", project.overview);
+        json.put("projectVcs", project.vcs);
         json.put("assignees", toJson(getAssginees(project).toArray()));
         json.put("authors", toJson(getAuthors(project).toArray()));
         json.put("memberCount", project.members().size());
@@ -47,11 +51,173 @@ public class ProjectApi extends Controller {
         json.put("issueCount", project.issues.size());
         json.put("postCount", project.posts.size());
         json.put("milestoneCount", project.milestones.size());
+        json.put("labels", projectLabels(project));
         json.put("issues", composePosts(project, Issue.finder));
         json.put("posts", composePosts(project, Posting.finder));
         json.put("milestones", toJson(project.milestones.stream()
                 .map(MigrationApp::getMilestoneNode).collect(Collectors.toList())));
         return ok(json);
+    }
+
+    public static List<ObjectNode> getAssginees(Project project) {
+        List<ObjectNode> members = new ArrayList<>();
+        for(Assignee assignee: project.assignees){
+            ObjectNode member = Json.newObject();
+            member.put("loginId", assignee.user.loginId);
+            member.put("name", assignee.user.name);
+            member.put("email", assignee.user.email);
+            members.add(member);
+        }
+        return members;
+    }
+
+    public static List<ObjectNode> getAuthors(Project project) {
+        List<ObjectNode> authors = new ArrayList<>();
+        for(User user: project.findAuthors()){
+            ObjectNode member = Json.newObject();
+            member.put("loginId", user.loginId);
+            member.put("name", user.name);
+            member.put("email", user.email);
+            authors.add(member);
+        }
+        return authors;
+    }
+
+    @Transactional
+    public static Result newProject(String owner) throws Exception {
+        ObjectNode result = Json.newObject();
+        JsonNode json = request().body().asJson();
+        if (json == null) {
+            return badRequest(result.put("message", "Expecting Json data"));
+        }
+
+        User currentUser = UserApp.currentUser();
+        if (!currentUser.isSiteManager()) {
+            return badRequest(result.put("message", "User creation with api is allowed by Site admin only."));
+        }
+
+        Project existed = Project.findByOwnerAndProjectName(owner, json.findValue("projectName").asText());
+        if (existed != null) {
+            result.put("status", 409);
+            result.put("reason", "Conflict");
+            result.put("project", createdProjectNode(existed));
+            return badRequest(result);
+        }
+
+        Organization organization = Organization.findByName(owner);
+
+        if ((!AccessControl.isGlobalResourceCreatable(currentUser))
+                || (Organization.isNameExist(owner) && !OrganizationUser.isAdmin(organization.id, currentUser.id))) {
+            return forbidden(result.put("message", Messages.get("'" + currentUser.name + "' has no permission")));
+        }
+
+        Project project = new Project();
+        project.owner = owner;
+        project.name = json.findValue("projectName").asText();
+        project.overview = getProjectDescription(json);
+        project.vcs = getProjectVcs(json);
+
+        if (Organization.isNameExist(owner)) {
+            project.organization = organization;
+        }
+
+        ProjectUser.assignRole(User.SITE_MANAGER_ID, Project.create(project), RoleType.SITEMANAGER);
+        RepositoryService.createRepository(project);
+
+        // TODO project settings 도 export를 하는 것이 좋을 것 같다
+        saveMenuSettingsToDefault(project);
+        addProjectMembers(json, project);
+
+        projectMap.put(getProjectCacheKey(project.owner, project.name), project.id);
+
+        return created(createdProjectNode(project));
+    }
+
+    private static String getProjectDescription(JsonNode json) {
+        JsonNode projectDescription = json.findValue("projectDescription");
+        if (projectDescription == null) {
+            return "";
+        }
+        return projectDescription.asText();
+    }
+
+    private static void addProjectMembers(JsonNode json, Project project) {
+        JsonNode membersNode = json.findValue("members");
+
+        if(membersNode != null && membersNode.isArray()){
+            // find members and add members
+            for (JsonNode memberNode : membersNode) {
+                String mail = memberNode.findValue("email").asText();
+                User member = User.findByEmail(mail);
+                if(!member.isAnonymous()){
+                    String role = memberNode.findValue("role").asText();
+                    if("member".equalsIgnoreCase(role)){
+                        ProjectUser.assignRole(member.id, project.id, RoleType.MEMBER);
+                    } else if ("manager".equalsIgnoreCase(role)) {
+                        ProjectUser.assignRole(member.id, project.id, RoleType.MANAGER);
+                    } else {
+                        play.Logger.warn("Unknown role type: " + member);
+                    }
+                }
+            }
+            project.cleanEnrolledUsers();
+        }
+    }
+
+    private static String getProjectVcs(JsonNode json) {
+        JsonNode projectVcs = json.findValue("projectVcs");
+        if (projectVcs == null) {
+            return "GIT";
+        }
+        return projectVcs.asText();
+    }
+
+    private static JsonNode createdProjectNode(Project project) {
+        ObjectNode created = Json.newObject();
+        created.put("id", project.id);
+        created.put("owner", project.owner);
+        created.put("name", project.name);
+        created.put("overview", project.overview);
+        created.put("vcs", project.vcs);
+        return created;
+    }
+
+    private static void saveMenuSettingsToDefault(Project project) {
+        ProjectMenuSetting projectMenuSetting = new ProjectMenuSetting();
+        projectMenuSetting.code = true;
+        projectMenuSetting.issue = true;
+        projectMenuSetting.pullRequest = true;
+        projectMenuSetting.review = true;
+        projectMenuSetting.milestone = true;
+        projectMenuSetting.board = true;
+        projectMenuSetting.project = project;
+
+        projectMenuSetting.save();
+        project.menuSetting = projectMenuSetting;
+        project.update();
+    }
+
+    @IsAllowed(Operation.READ)
+    public static JsonNode projectLabels(Project project) {
+
+        Map<Long, Map<String, String>> labels = new HashMap<>();
+        for (Label label: project.labels) {
+            labels.put(label.id, convertToMap(label));
+        }
+
+        return toJson(labels);
+    }
+
+    /**
+     * convert from some part of {@link models.Label} to {@link java.util.Map}
+     * @param label {@link models.Label} object
+     * @return label's map data
+     */
+    private static Map<String, String> convertToMap(Label label) {
+        Map<String, String> tagMap = new HashMap<>();
+        tagMap.put("category", label.category);
+        tagMap.put("name", label.name);
+        return tagMap;
     }
 
     private static <T> JsonNode composePosts(Project project, Model.Finder<Long, T> finder) {
