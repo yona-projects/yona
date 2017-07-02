@@ -16,6 +16,7 @@ import controllers.routes;
 import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
+import models.enumeration.State;
 import org.joda.time.DateTime;
 import play.data.Form;
 import play.db.ebean.Transactional;
@@ -87,6 +88,8 @@ public class IssueApi extends AbstractPostingApp {
         issue.project = project;
         issue.title = json.findValue("title").asText();
         issue.body = json.findValue("body").asText();
+        issue.state = findIssueState(json);
+
         if(json.findValue("number") != null && json.findValue("number").asLong() > 0){
             issue.saveWithNumber(json.findValue("number").asLong());
         } else {
@@ -98,6 +101,17 @@ public class IssueApi extends AbstractPostingApp {
         result.put("status", 200);
         result.put("location", controllers.routes.IssueApp.issue(project.owner, project.name, issue.getNumber()).toString());
         return ok(result);
+    }
+
+    private static State findIssueState(JsonNode json){
+        JsonNode issueNode = json.findValue("state");
+        State state = State.OPEN;
+        if(issueNode != null) {
+            if ("CLOSED".equalsIgnoreCase(issueNode.asText())) {
+                state = State.CLOSED;
+            }
+        }
+        return state;
     }
 
     @Transactional
