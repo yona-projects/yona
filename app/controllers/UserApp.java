@@ -887,7 +887,7 @@ public class UserApp extends Controller {
         }
     }
 
-    private static boolean isUsingEmailVerification() {
+    public static boolean isUsingEmailVerification() {
         return usingEmailVerification;
     }
 
@@ -1206,7 +1206,7 @@ public class UserApp extends Controller {
         }
     }
 
-    private static User createNewUser(User user) {
+    public static User createNewUser(User user) {
         RandomNumberGenerator rng = new SecureRandomNumberGenerator();
         user.passwordSalt = rng.nextBytes().toBase64();
         user.password = hashedPassword(user.password, user.passwordSalt);
