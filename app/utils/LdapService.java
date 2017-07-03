@@ -6,6 +6,7 @@
  **/
 package utils;
 
+import models.User;
 import models.support.LdapUser;
 import play.Play;
 
@@ -67,6 +68,10 @@ public class LdapService {
         if(username.contains("@")){
             return username;
         } else {
+            User user = User.findByLoginId(username);
+            if(!user.isAnonymous()) {
+                return user.email;
+            }
             return USER_NAME_PROPERTY + "=" + username + "," +  DN_POSTFIX;
         }
     }

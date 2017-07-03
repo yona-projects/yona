@@ -1147,6 +1147,13 @@ public class UserApp extends Controller {
                 if(!localUserFoundByLdapLogin.isSamePassword(password)) {
                     User.resetPassword(localUserFoundByLdapLogin.loginId, password);
                 }
+
+                if (StringUtils.isNotEmpty(ldapUser.getDepartment())) {
+                    localUserFoundByLdapLogin.name = ldapUser.getDisplayName() + " [" + ldapUser.getDepartment() + "]";
+                } else {
+                    localUserFoundByLdapLogin.name = ldapUser.getDisplayName();
+                }
+                localUserFoundByLdapLogin.update();
                 return localUserFoundByLdapLogin;
             }
         } catch (CommunicationException e) {
