@@ -42,6 +42,8 @@ public class BasicAuthAction extends Action<Object> {
         // realm-value = quoted-string
 
         String challenge = "Basic realm=\"" + REALM + "\"";
+
+        play.Logger.error("-----------" + Http.HeaderNames.WWW_AUTHENTICATE +":" + challenge);
         response.setHeader(Http.HeaderNames.WWW_AUTHENTICATE, challenge);
         return unauthorized("Invalid username or password");
     }
@@ -82,13 +84,21 @@ public class BasicAuthAction extends Action<Object> {
         return authUser;
     }
 
+    // !! Important !! For ldap, intentionally, user email is used for ldap authentication
+    // instead of authUser.loginId.
     public User authenticate(Request request) throws UnsupportedEncodingException, MalformedCredentialsException {
         String credential = request.getHeader(Http.HeaderNames.AUTHORIZATION);
         User authUser = parseCredentials(credential);
-
+        
         if (authUser != null) {
+            String credentialKey = authUser.loginId;
             if (LdapService.useLdap) {
-                return  UserApp.authenticateWithLdap(authUser.loginId, authUser.password);
+                // Notice: Email is used for LDAP authentication
+                User targetUser = User.findByLoginId(authUser.loginId);
+                if(!targetUser.isAnonymous()) {
+                    credentialKey = targetUser.email;
+                }
+                return  UserApp.authenticateWithLdap(credentialKey, authUser.password);
             } else {
                 return UserApp.authenticateWithPlainPassword(authUser.loginId, authUser.password);
             }
