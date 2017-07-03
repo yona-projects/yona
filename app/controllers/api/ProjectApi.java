@@ -12,8 +12,10 @@ import controllers.*;
 import controllers.annotation.IsAllowed;
 import models.*;
 import models.enumeration.Operation;
+import models.enumeration.ProjectScope;
 import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
+import org.apache.commons.lang3.StringUtils;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
 import play.i18n.Messages;
@@ -27,6 +29,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static models.AbstractPosting.findByProject;
+import static models.enumeration.ProjectScope.PRIVATE;
 import static play.libs.Json.toJson;
 import static utils.CacheStore.getProjectCacheKey;
 import static utils.CacheStore.projectMap;
@@ -42,6 +45,7 @@ public class ProjectApi extends Controller {
         json.put("projectName", project.name);
         json.put("projectDescription", project.overview);
         json.put("projectVcs", project.vcs);
+        json.put("projectScope", getProjectScope(project));
         json.put("assignees", toJson(getAssginees(project).toArray()));
         json.put("authors", toJson(getAuthors(project).toArray()));
         json.put("memberCount", project.members().size());
@@ -57,6 +61,19 @@ public class ProjectApi extends Controller {
         json.put("milestones", toJson(project.milestones.stream()
                 .map(MigrationApp::getMilestoneNode).collect(Collectors.toList())));
         return ok(json);
+    }
+
+    private static String getProjectScope(Project project) {
+        switch (project.projectScope) {
+            case PRIVATE:
+                return "PRIVATE";
+            case PROTECTED:
+                return "PROTECTED";
+            case PUBLIC:
+                return "PUBLIC";
+            default:
+                return "PRIVATE";
+        }
     }
 
     public static List<ObjectNode> getAssginees(Project project) {
@@ -116,6 +133,7 @@ public class ProjectApi extends Controller {
         project.name = json.findValue("projectName").asText();
         project.overview = getProjectDescription(json);
         project.vcs = getProjectVcs(json);
+        project.projectScope = parseProjectScope(json);
 
         if (Organization.isNameExist(owner)) {
             project.organization = organization;
@@ -131,6 +149,24 @@ public class ProjectApi extends Controller {
         projectMap.put(getProjectCacheKey(project.owner, project.name), project.id);
 
         return created(createdProjectNode(project));
+    }
+
+    private static ProjectScope parseProjectScope(JsonNode json) {
+        JsonNode scopeNode = json.findValue("projectScope");
+        if(scopeNode == null || StringUtils.isEmpty(scopeNode.asText())) {
+            return ProjectScope.PRIVATE;
+        }
+
+        switch (scopeNode.asText()) {
+            case "PRIVATE":
+                return ProjectScope.PRIVATE;
+            case "PUBLIC":
+                return ProjectScope.PUBLIC;
+            case "PROTECTED":
+                return ProjectScope.PROTECTED;
+            default:
+                return ProjectScope.PRIVATE;
+        }
     }
 
     private static String getProjectDescription(JsonNode json) {
