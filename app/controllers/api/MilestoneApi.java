@@ -9,11 +9,8 @@ package controllers.api;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.AbstractPostingApp;
-import controllers.UserApp;
-import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
 import models.*;
-import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
 import org.joda.time.DateTime;
@@ -23,12 +20,9 @@ import play.libs.Json;
 import play.mvc.Result;
 import utils.*;
 
-import java.io.IOException;
-import java.text.DateFormat;
 import java.util.*;
 
 import static controllers.MigrationApp.getMilestoneNode;
-import static controllers.api.IssueApi.getCreatedDate;
 import static play.libs.Json.toJson;
 
 public class MilestoneApi extends AbstractPostingApp {
