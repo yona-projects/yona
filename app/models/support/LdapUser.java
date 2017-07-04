@@ -6,6 +6,8 @@
  **/
 package models.support;
 
+import org.apache.commons.lang3.StringUtils;
+
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 
@@ -23,7 +25,11 @@ public class LdapUser {
     }
 
     public String getDisplayName() {
-        return getString(this.displayName);
+        if (StringUtils.isNotBlank(getDepartment())) {
+            return getString(this.displayName) + " [" + getDepartment() + "]";
+        } else {
+            return getString(this.displayName);
+        }
     }
 
     private String getString(Attribute attr) {

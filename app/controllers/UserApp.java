@@ -431,7 +431,8 @@ public class UserApp extends Controller {
             forceOAuthLogout();
             return User.anonymous;
         }
-        User created = createUserDelegate(userCredential.name, userCredential.email, null);
+        CandidateUser candidateUser = new CandidateUser(userCredential.name, userCredential.email);
+        User created = createUserDelegate(candidateUser);
 
         if(isUsingEmailVerification() && created.isLocked()){
             flash(Constants.INFO, "user.verification.mail.sent");
@@ -453,18 +454,24 @@ public class UserApp extends Controller {
         session().put("pa.url.orig", routes.Application.oAuthLogout().url());
     }
 
-    private static User createUserDelegate(@Nonnull String name, @Nonnull String email, String password) {
-        String loginIdCandidate = email.substring(0, email.indexOf("@"));
+    private static User createUserDelegate(CandidateUser candidateUser) {
+        // . is replaced with - because of BasicAuth parsing case with id
+        String loginIdCandidate = candidateUser.getLoginId();
 
         User user = new User();
-        user.loginId = generateLoginId(user, loginIdCandidate);
-        user.name = name;
-        user.email = email;
 
-        if(StringUtils.isEmpty(password)){
+        if (StringUtils.isBlank(loginIdCandidate) || LdapService.USE_EMAIL_BASE_LOGIN) {
+            loginIdCandidate = candidateUser.getEmail().substring(0, candidateUser.getEmail().indexOf("@"));
+            user.loginId = generateLoginId(user, loginIdCandidate);
+        }
+
+        user.name = candidateUser.getName();
+        user.email = candidateUser.getEmail();
+
+        if(StringUtils.isEmpty(candidateUser.getPassword())){
             user.password = (new SecureRandomNumberGenerator()).nextBytes().toBase64();  // random password because created with OAuth
         } else {
-            user.password = password;
+            user.password = candidateUser.getPassword();
         }
 
         return createNewUser(user);
@@ -1142,7 +1149,13 @@ public class UserApp extends Controller {
             play.Logger.error("l: " + ldapUser);
             User localUserFoundByLdapLogin = User.findByEmail(ldapUser.getEmail());
             if (localUserFoundByLdapLogin.isAnonymous()) {
-                User created = createUserDelegate(ldapUser.getDisplayName(), ldapUser.getEmail(), password);
+                CandidateUser candidateUser = new CandidateUser(
+                        ldapUser.getDisplayName(),
+                        ldapUser.getEmail(),
+                        ldapUser.getUserLoginId(),
+                        password
+                );
+                User created = createUserDelegate(candidateUser);
                 if (created.state == UserState.LOCKED) {
                     flash(Constants.INFO, "user.signup.requested");
                     return User.anonymous;
@@ -1153,11 +1166,7 @@ public class UserApp extends Controller {
                     User.resetPassword(localUserFoundByLdapLogin.loginId, password);
                 }
 
-                if (StringUtils.isNotBlank(ldapUser.getDepartment())) {
-                    localUserFoundByLdapLogin.name = ldapUser.getDisplayName() + " [" + ldapUser.getDepartment() + "]";
-                } else {
-                    localUserFoundByLdapLogin.name = ldapUser.getDisplayName();
-                }
+                localUserFoundByLdapLogin.name = ldapUser.getDisplayName();
                 localUserFoundByLdapLogin.update();
                 return localUserFoundByLdapLogin;
             }

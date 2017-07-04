@@ -329,6 +329,9 @@ ldap {
     loginProperty = "sAMAccountName"
     displayNameProperty = "displayName"
     userNameProperty = "CN"
+    option {
+        useEmailBaseLogin = false
+    }
 }
 
 include "social-login.conf"

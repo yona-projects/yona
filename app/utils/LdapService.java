@@ -27,6 +27,8 @@ public class LdapService {
     private static final String LOGIN_PROPERTY = Play.application().configuration().getString("ldap.loginProperty", "sAMAccountName");
     private static final String DISPLAY_NAME_PROPERTY = Play.application().configuration().getString("ldap.displayNameProperty", "displayName");
     private static final String USER_NAME_PROPERTY = Play.application().configuration().getString("ldap.userNameProperty", "CN");
+    public static final boolean USE_EMAIL_BASE_LOGIN = Play.application().configuration().getBoolean("ldap" +
+            ".options.useEmailBaseLogin", false);
     private static final int TIMEOUT = 5000; //ms
 
     public LdapUser authenticate(String username, String password) throws NamingException {
@@ -38,7 +40,7 @@ public class LdapService {
         env.put("com.sun.jndi.ldap.connect.timeout", ""+(TIMEOUT));
         env.put(Context.PROVIDER_URL, PROTOCOL + "://" + HOST + ":" + PORT);
         env.put(Context.SECURITY_AUTHENTICATION, "simple");
-        play.Logger.error("getProperUsernameGuessing: " + getProperUsernameGuessing(guessedUserIdentity));
+        play.Logger.info("getProperUsernameGuessing: " + getProperUsernameGuessing(guessedUserIdentity));
         env.put(Context.SECURITY_PRINCIPAL, getProperUsernameGuessing(guessedUserIdentity));
         env.put(Context.SECURITY_CREDENTIALS, password);
 
@@ -53,11 +55,16 @@ public class LdapService {
     }
 
     private String guessedUser(String username) {
+        if(!USE_EMAIL_BASE_LOGIN){
+            return username;
+        }
+
         String guessedUserIdentity = username;
         User user = User.findByLoginId(username);
-        if(!user.isAnonymous()) {
+        if (!user.isAnonymous()) {
             guessedUserIdentity = user.email;
         }
+
         return guessedUserIdentity;
     }
 
@@ -89,7 +96,7 @@ public class LdapService {
 
         String searchFilter = "(" + filter + "=" + username + ")";
 
-        play.Logger.error("filter: " + searchFilter);
+        play.Logger.info("filter: " + searchFilter);
         SearchControls searchControls = new SearchControls();
         searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
 
