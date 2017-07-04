@@ -33,6 +33,8 @@ import play.mvc.Result;
 
 import java.io.UnsupportedEncodingException;
 
+import static utils.LdapService.USE_EMAIL_BASE_LOGIN;
+
 public class BasicAuthAction extends Action<Object> {
     private static final String REALM = "Yobi";
 
@@ -88,21 +90,23 @@ public class BasicAuthAction extends Action<Object> {
     public User authenticate(Request request) throws UnsupportedEncodingException, MalformedCredentialsException {
         String credential = request.getHeader(Http.HeaderNames.AUTHORIZATION);
         User authUser = parseCredentials(credential);
-        
-        if (authUser != null) {
+
+        if (authUser == null) {
+            return User.anonymous;
+        } else {
             String credentialKey = authUser.loginId;
             if (LdapService.useLdap) {
-                // Notice: Email is used for LDAP authentication
-                User targetUser = User.findByLoginId(authUser.loginId);
-                if(!targetUser.isAnonymous()) {
-                    credentialKey = targetUser.email;
+                if (USE_EMAIL_BASE_LOGIN) {
+                    // Notice: Email is used for LDAP authentication
+                    User targetUser = User.findByLoginId(authUser.loginId);
+                    if (!targetUser.isAnonymous()) {
+                        credentialKey = targetUser.email;
+                    }
                 }
-                return  UserApp.authenticateWithLdap(credentialKey, authUser.password);
-            } else {
-                return UserApp.authenticateWithPlainPassword(authUser.loginId, authUser.password);
+                return UserApp.authenticateWithLdap(credentialKey, authUser.password);
             }
-        } else {
-            return User.anonymous;
+
+            return UserApp.authenticateWithPlainPassword(credentialKey, authUser.password);
         }
     }
 
