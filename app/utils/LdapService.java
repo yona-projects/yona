@@ -29,6 +29,10 @@ public class LdapService {
     private static final String USER_NAME_PROPERTY = Play.application().configuration().getString("ldap.userNameProperty", "CN");
     public static final boolean USE_EMAIL_BASE_LOGIN = Play.application().configuration().getBoolean("ldap" +
             ".options.useEmailBaseLogin", false);
+    public static final boolean FAILLBACK_TO_LOCAL_LOGIN = Play.application().configuration().getBoolean("ldap" +
+            ".options.faillbackToLocalLogin", false);
+    private static final String EMAIL_PROPERTY = Play.application().configuration().getString("ldap" +
+            ".emailProperty", "mail");
     private static final int TIMEOUT = 5000; //ms
 
     public LdapUser authenticate(String username, String password) throws NamingException {
@@ -71,14 +75,14 @@ public class LdapService {
     private LdapUser getLdapUser(SearchResult searchResult) throws NamingException {
         Attributes attr = searchResult.getAttributes();
         return new LdapUser(attr.get(DISPLAY_NAME_PROPERTY),
-                attr.get("mail"),
+                attr.get(EMAIL_PROPERTY),
                 attr.get(LOGIN_PROPERTY),
                 attr.get("department"));
     }
 
     private String searchFilter(@Nonnull String username) {
         if(username.contains("@")){
-            return "mail";
+            return EMAIL_PROPERTY;
         } else {
             return LOGIN_PROPERTY;
         }

@@ -334,8 +334,11 @@ ldap {
     loginProperty = "sAMAccountName"
     displayNameProperty = "displayName"
     userNameProperty = "CN"
-    option {
-        useEmailBaseLogin = false
+    emailProperty = "mail"
+    options {
+      # If your LDAP configuration support email login
+      useEmailBaseLogin = false
+      faillbackToLocalLogin = false
     }
 }
 

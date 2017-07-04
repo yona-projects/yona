@@ -53,6 +53,7 @@ import static models.NotificationMail.isAllowedEmailDomains;
 import static play.data.Form.form;
 import static play.libs.Json.toJson;
 import static utils.HtmlUtil.defaultSanitize;
+import static utils.LdapService.FAILLBACK_TO_LOCAL_LOGIN;
 
 public class UserApp extends Controller {
     public static final String SESSION_USERID = "userId";
@@ -1177,6 +1178,10 @@ public class UserApp extends Controller {
         } catch (AuthenticationException e) {
             flash(Constants.WARNING, Messages.get("user.login.invalid"));
             play.Logger.warn("login failed \n" + e.getMessage());
+            if(FAILLBACK_TO_LOCAL_LOGIN){
+                play.Logger.warn("fallback to local login: " + loginIdOrEmail);
+                return authenticateWithPlainPassword(loginIdOrEmail, password);
+            }
             return User.anonymous;
         } catch (NamingException e) {
             play.Logger.error("Cannot connect to ldap server \n" + e.getMessage());
