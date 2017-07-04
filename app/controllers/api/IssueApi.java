@@ -6,30 +6,27 @@
 
 package controllers.api;
 
-import actions.NullProjectCheckAction;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.*;
 import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
-import controllers.routes;
 import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
 import org.joda.time.DateTime;
-import play.data.Form;
 import play.db.ebean.Transactional;
 import play.libs.Json;
-import play.mvc.Call;
 import play.mvc.Result;
-import play.mvc.With;
 import utils.*;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import static play.libs.Json.toJson;
 
@@ -70,25 +67,42 @@ public class IssueApi extends AbstractPostingApp {
     @Transactional
     @IsCreatable(ResourceType.ISSUE_POST)
     public static Result newIssueByJson(String owner, String projectName) {
+        ObjectNode result = Json.newObject();
         JsonNode json = request().body().asJson();
-        if(json == null) {
-            return badRequest("Expecting Json data");
+        if (json == null) {
+            return badRequest(result.put("message", "Expecting Json data"));
+        }
+
+        JsonNode issuesNode = json.findValue("issues");
+        if (issuesNode == null || !issuesNode.isArray()) {
+            return badRequest(result.put("message", "No issues key exists or value wasn't array!"));
         }
 
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
 
+        List<JsonNode> createdIssues = new ArrayList<>();
+        for (JsonNode issueNode : issuesNode) {
+            createdIssues.add(createIssuesNode(issueNode, project));
+        }
+
+        return created(toJson(createdIssues));
+    }
+
+    private static JsonNode createIssuesNode(JsonNode json, Project project) {
         JsonNode files = json.findValue("temporaryUploadFiles");
 
         final Issue issue = new Issue();
 
-        issue.createdDate = getCreatedDate(json.findValue("createdAt").asLong());
-        issue.updatedDate = getCreatedDate(json.findValue("updatedAt").asLong());
-        User user = findAuthor(json.findValue("author"));
-        issue.setAuthor(user);
+        issue.setAuthor(findAuthor(json.findValue("author")));
         issue.project = project;
         issue.title = json.findValue("title").asText();
         issue.body = json.findValue("body").asText();
         issue.state = findIssueState(json);
+        issue.createdDate = parseDateString(json.findValue("createdAt"));
+        issue.updatedDate = parseDateString(json.findValue("updatedAt"));
+        issue.assignee = findAssginee(json.findValue("assignees"), project);
+        issue.milestone = findMilestone(json.findValue("milestoneTitle"), project);
+        issue.dueDate = findDueDate(json.findValue("dueDate"));
 
         if(json.findValue("number") != null && json.findValue("number").asLong() > 0){
             issue.saveWithNumber(json.findValue("number").asLong());
@@ -98,9 +112,28 @@ public class IssueApi extends AbstractPostingApp {
         attachUploadFilesToPost(files, issue.asResource());
 
         ObjectNode result = Json.newObject();
-        result.put("status", 200);
+        result.put("status", 201);
         result.put("location", controllers.routes.IssueApp.issue(project.owner, project.name, issue.getNumber()).toString());
-        return ok(result);
+        return result;
+    }
+
+    private static Milestone findMilestone(JsonNode milestoneTitle, Project project) {
+        if(milestoneTitle != null){
+            return Milestone.findMilestoneByTitle(project, milestoneTitle.asText());
+        }
+        return null;
+    }
+
+    private static Date findDueDate(JsonNode dueDateNode) {
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd a hh:mm:ss Z", Locale.ENGLISH);
+        if(dueDateNode != null){
+            try {
+                return df.parse(dueDateNode.asText());
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
     }
 
     private static State findIssueState(JsonNode json){
@@ -136,7 +169,7 @@ public class IssueApi extends AbstractPostingApp {
 
         final IssueComment comment = new IssueComment(issue, user, body);
 
-        comment.createdDate = getCreatedDate(json.findValue("createdAt").asLong());
+        comment.createdDate = parseDateString(json.findValue("createdAt"));
         comment.setAuthor(user);
         comment.issue = issue;
         comment.save();
@@ -167,10 +200,28 @@ public class IssueApi extends AbstractPostingApp {
         return user;
     }
 
-    private static Date getCreatedDate(long timestamp){
-        if(timestamp == 0){
-            return JodaDateUtil.now();
+    private static Assignee findAssginee(JsonNode assigneesNode, @Nonnull Project project) {
+        if ( assigneesNode != null && assigneesNode.isArray() && assigneesNode.size() > 0) {
+            JsonNode assigneeNode = assigneesNode.get(0);
+            User user = User.findByEmail(assigneeNode.findValue("email").asText());
+            if(!user.isAnonymous()) {
+                return Assignee.add(user.id, project.id);
+            }
         }
-        return new DateTime(timestamp).toDate();
+        return null;
+    }
+
+    public static Date parseDateString(JsonNode dateStringNode){
+        if(dateStringNode == null) {
+            return null;
+        }
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd a hh:mm:ss Z", Locale.ENGLISH);
+        try {
+            return df.parse(dateStringNode.asText());
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 }

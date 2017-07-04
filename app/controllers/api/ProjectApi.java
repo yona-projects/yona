@@ -25,6 +25,11 @@ import play.mvc.Result;
 import playRepository.RepositoryService;
 import utils.AccessControl;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -35,6 +40,7 @@ import static utils.CacheStore.getProjectCacheKey;
 import static utils.CacheStore.projectMap;
 
 public class ProjectApi extends Controller {
+    private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
     @IsAllowed(Operation.DELETE)
     public static Result exports(String owner, String projectName) {
@@ -44,6 +50,7 @@ public class ProjectApi extends Controller {
         json.put("owner", project.owner);
         json.put("projectName", project.name);
         json.put("projectDescription", project.overview);
+        json.put("projectCreatedDate", getDateString(project.createdDate));
         json.put("projectVcs", project.vcs);
         json.put("projectScope", getProjectScope(project));
         json.put("assignees", toJson(getAssginees(project).toArray()));
@@ -59,7 +66,7 @@ public class ProjectApi extends Controller {
         json.put("issues", composePosts(project, Issue.finder));
         json.put("posts", composePosts(project, Posting.finder));
         json.put("milestones", toJson(project.milestones.stream()
-                .map(MigrationApp::getMilestoneNode).collect(Collectors.toList())));
+                .map(ProjectApi::getMilestoneNode).collect(Collectors.toList())));
         return ok(json);
     }
 
@@ -133,6 +140,7 @@ public class ProjectApi extends Controller {
         project.name = json.findValue("projectName").asText();
         project.overview = getProjectDescription(json);
         project.vcs = getProjectVcs(json);
+        project.createdDate = IssueApi.parseDateString(json.findValue("projectCreatedDate"));
         project.projectScope = parseProjectScope(json);
 
         if (Organization.isNameExist(owner)) {
@@ -271,14 +279,14 @@ public class ProjectApi extends Controller {
         json.put("title", posting.title);
         json.put("type", posting.asResource().getType().toString());
         json.put("author", composeAuthorJson(posting.getAuthor()));
-        json.put("createdAt", posting.createdDate.getTime());
-        json.put("updatedAt", posting.updatedDate.getTime());
+        json.put("createdAt", getDateString(posting.createdDate));
+        json.put("updatedAt", getDateString(posting.updatedDate));
         json.put("body", posting.body);
 
         if(posting.asResource().getType() == ResourceType.ISSUE_POST){
             Issue issue = ((Issue)posting);
             Optional.ofNullable(issue.assignee)
-                    .ifPresent(assignee -> json.put("assignee", composeAssigneeJson(issue)));
+                    .ifPresent(assignee -> json.put("assignees", composeAssigneeJson(issue)));
             json.put("state", issue.state.toString());
             Optional.ofNullable(issue.getLabels()).ifPresent(labels -> {
                 if (labels.size() > 0) {
@@ -289,6 +297,8 @@ public class ProjectApi extends Controller {
                     ifPresent(milestone -> json.put("milestoneId", milestone.id));
             Optional.ofNullable(issue.milestone)
                     .ifPresent(milestone -> json.put("milestoneTitle", milestone.title));
+            Optional.ofNullable(issue.dueDate).ifPresent(dueDate ->
+                    json.put("dueDate", getDateString(dueDate)));
 
         }
         List<Attachment> attachments = Attachment.findByContainer(posting.asResource());
@@ -301,6 +311,11 @@ public class ProjectApi extends Controller {
             json.put("comments", toJson(comments));
         }
         return json;
+    }
+
+    private static String getDateString(Date date) {
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd a hh:mm:ss Z", Locale.ENGLISH);
+        return df.format(date);
     }
 
     private static JsonNode composeAuthorJson(User user) {
@@ -320,6 +335,7 @@ public class ProjectApi extends Controller {
         ObjectNode assigneelNode = Json.newObject();
         assigneelNode.put("loginId", assignee.user.loginId);
         assigneelNode.put("name", assignee.user.name);
+        assigneelNode.put("email", assignee.user.email);
         assignees.add(assigneelNode);
 
         return toJson(assignees);
@@ -361,7 +377,7 @@ public class ProjectApi extends Controller {
             commentNode.put("type", comment.asResource().getType().toString());
             User commentAuthor = User.find.byId(comment.authorId);
             commentNode.put("author", composeAuthorJson(commentAuthor));
-            commentNode.put("createdAt",comment.createdDate.getTime());
+            commentNode.put("createdAt", getDateString(comment.createdDate));
             commentNode.put("body", comment.contents);
 
             List<Attachment> attachments = Attachment.findByContainer(comment.asResource());
@@ -371,5 +387,16 @@ public class ProjectApi extends Controller {
             comments.add(commentNode);
         }
         return comments;
+    }
+
+    public static ObjectNode getMilestoneNode(Milestone m) {
+        ObjectNode node = Json.newObject();
+        node.put("id", m.id);
+        node.put("title", m.title);
+        node.put("state", m.state.state());
+        node.put("description", m.contents);
+        Optional.ofNullable(m.dueDate).ifPresent(dueDate
+                -> node.put("dueDate", getDateString(dueDate)));
+        return node;
     }
 }
