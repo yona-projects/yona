@@ -31,21 +31,34 @@ public class LdapService {
 
     public LdapUser authenticate(String username, String password) throws NamingException {
 
+        String guessedUserIdentity = guessedUser(username);
+
         Hashtable<String, String> env = new Hashtable<>();
         env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
         env.put("com.sun.jndi.ldap.connect.timeout", ""+(TIMEOUT));
         env.put(Context.PROVIDER_URL, PROTOCOL + "://" + HOST + ":" + PORT);
         env.put(Context.SECURITY_AUTHENTICATION, "simple");
-        env.put(Context.SECURITY_PRINCIPAL, getProperUsernameGuessing(username));
+        play.Logger.error("getProperUsernameGuessing: " + getProperUsernameGuessing(guessedUserIdentity));
+        env.put(Context.SECURITY_PRINCIPAL, getProperUsernameGuessing(guessedUserIdentity));
         env.put(Context.SECURITY_CREDENTIALS, password);
 
         DirContext authContext = new InitialDirContext(env);
-        SearchResult searchResult = findUser(authContext, username, searchFilter(username));
+        SearchResult searchResult = findUser(authContext, guessedUserIdentity, searchFilter(guessedUserIdentity));
+
         if (searchResult != null) {
             return getLdapUser(searchResult);
         } else {
             return null;
         }
+    }
+
+    private String guessedUser(String username) {
+        String guessedUserIdentity = username;
+        User user = User.findByLoginId(username);
+        if(!user.isAnonymous()) {
+            guessedUserIdentity = user.email;
+        }
+        return guessedUserIdentity;
     }
 
     private LdapUser getLdapUser(SearchResult searchResult) throws NamingException {
@@ -68,10 +81,6 @@ public class LdapService {
         if(username.contains("@")){
             return username;
         } else {
-            User user = User.findByLoginId(username);
-            if(!user.isAnonymous()) {
-                return user.email;
-            }
             return USER_NAME_PROPERTY + "=" + username + "," +  DN_POSTFIX;
         }
     }
@@ -80,6 +89,7 @@ public class LdapService {
 
         String searchFilter = "(" + filter + "=" + username + ")";
 
+        play.Logger.error("filter: " + searchFilter);
         SearchControls searchControls = new SearchControls();
         searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
 

@@ -223,6 +223,10 @@ public class UserApp extends Controller {
             authenticate = authenticateWithPlainPassword(sourceUser.loginId, authInfoForm.get().password);
         }
 
+        if (!authenticate.isAnonymous()) {
+            authenticate.refresh();
+        }
+
         if(authenticate.isLocked()){
             flash(Constants.WARNING, "user.locked");
             return logout();
@@ -1135,6 +1139,7 @@ public class UserApp extends Controller {
         LdapService ldapService = new LdapService();
         try {
             LdapUser ldapUser = ldapService.authenticate(loginIdOrEmail, password);
+            play.Logger.error("l: " + ldapUser);
             User localUserFoundByLdapLogin = User.findByEmail(ldapUser.getEmail());
             if (localUserFoundByLdapLogin.isAnonymous()) {
                 User created = createUserDelegate(ldapUser.getDisplayName(), ldapUser.getEmail(), password);
