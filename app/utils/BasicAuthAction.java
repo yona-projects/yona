@@ -43,7 +43,6 @@ public class BasicAuthAction extends Action<Object> {
 
         String challenge = "Basic realm=\"" + REALM + "\"";
 
-        play.Logger.error("-----------" + Http.HeaderNames.WWW_AUTHENTICATE +":" + challenge);
         response.setHeader(Http.HeaderNames.WWW_AUTHENTICATE, challenge);
         return unauthorized("Invalid username or password");
     }
