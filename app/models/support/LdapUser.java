@@ -28,7 +28,7 @@ public class LdapUser {
 
     private String getString(Attribute attr) {
         try {
-            if (attr.get() == null){
+            if (attr == null || attr.get() == null){
                 return "";
             } else {
                 return attr.get().toString();

@@ -1153,7 +1153,7 @@ public class UserApp extends Controller {
                     User.resetPassword(localUserFoundByLdapLogin.loginId, password);
                 }
 
-                if (StringUtils.isNotEmpty(ldapUser.getDepartment())) {
+                if (StringUtils.isNotBlank(ldapUser.getDepartment())) {
                     localUserFoundByLdapLogin.name = ldapUser.getDisplayName() + " [" + ldapUser.getDepartment() + "]";
                 } else {
                     localUserFoundByLdapLogin.name = ldapUser.getDisplayName();
