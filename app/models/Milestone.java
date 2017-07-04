@@ -30,12 +30,14 @@ import models.support.FinderTemplate;
 import models.support.OrderParams;
 import models.support.SearchParams;
 import org.apache.commons.lang3.time.DateUtils;
+import org.apache.shiro.util.CollectionUtils;
 import play.data.format.Formats;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import play.i18n.Messages;
 import utils.JodaDateUtil;
 
+import javax.annotation.Nonnull;
 import javax.persistence.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -148,6 +150,14 @@ public class Milestone extends Model implements ResourceConvertible {
 
     public static List<Milestone> findOpenMilestones(Long projectId) {
         return Milestone.findMilestones(projectId, State.OPEN);
+    }
+
+    public static Milestone findMilestoneByTitle(@Nonnull Project project, String title) {
+        List<Milestone> milestones = find.where().eq("project.id", project.id).eq("title", title).findList();
+        if (CollectionUtils.isEmpty(milestones)) {
+            return null;
+        }
+        return milestones.get(0);
     }
 
     /**
