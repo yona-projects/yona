@@ -463,9 +463,10 @@ public class UserApp extends Controller {
 
         if (StringUtils.isBlank(loginIdCandidate) || LdapService.USE_EMAIL_BASE_LOGIN) {
             loginIdCandidate = candidateUser.getEmail().substring(0, candidateUser.getEmail().indexOf("@"));
-            user.loginId = generateLoginId(user, loginIdCandidate);
+            loginIdCandidate = generateLoginId(user, loginIdCandidate);
         }
 
+        user.loginId = loginIdCandidate;
         user.name = candidateUser.getName();
         user.email = candidateUser.getEmail();
 
