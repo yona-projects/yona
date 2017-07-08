@@ -66,6 +66,13 @@ public class IssueLabelCategory extends Model implements ResourceConvertible {
                 .findRowCount() > 0;
     }
 
+    public static IssueLabelCategory findByName(String name, Project project) {
+        return find.where()
+                .eq("project.id", project.id)
+                .eq("name", name)
+                .findUnique();
+    }
+
     public static IssueLabelCategory findBy(IssueLabelCategory instance) {
         return find.where()
                 .eq("project.id", instance.project.id)
@@ -98,5 +105,16 @@ public class IssueLabelCategory extends Model implements ResourceConvertible {
                 return ResourceType.ISSUE_LABEL_CATEGORY;
             }
         };
+    }
+
+    @Override
+    public String toString() {
+        return "IssueLabelCategory{" +
+                "id=" + id +
+                ", project=" + project +
+                ", name='" + name + '\'' +
+                ", labels=" + labels +
+                ", isExclusive=" + isExclusive +
+                '}';
     }
 }

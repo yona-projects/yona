@@ -104,6 +104,7 @@ public class IssueApi extends AbstractPostingApp {
         issue.assignee = findAssginee(json.findValue("assignees"), project);
         issue.milestone = findMilestone(json.findValue("milestoneTitle"), project);
         issue.dueDate = findDueDate(json.findValue("dueDate"));
+        updateLabels(json, issue, project);
         issue.numOfComments = 0;
 
         if(json.findValue("number") != null && json.findValue("number").asLong() > 0){
@@ -117,6 +118,25 @@ public class IssueApi extends AbstractPostingApp {
         result.put("status", 201);
         result.put("location", controllers.routes.IssueApp.issue(project.owner, project.name, issue.getNumber()).toString());
         return result;
+    }
+
+    private static void updateLabels(JsonNode json, Issue issue, Project project) {
+        JsonNode labelsNode = json.findValue("labels");
+        if (labelsNode != null && labelsNode.isArray()) {
+            for (JsonNode labelNode : labelsNode) {
+                IssueLabel issueLabel = IssueLabel.findByName(
+                        labelNode.findValue("labelName").asText(),
+                        labelNode.findValue("category").asText(),
+                        project);
+                if(issueLabel != null){
+                    play.Logger.warn("added " + issueLabel);
+                    if(issue.labels == null) {
+                        issue.labels = new HashSet<>();
+                    }
+                    issue.labels.add(issueLabel);
+                }
+            }
+        }
     }
 
     private static Milestone findMilestone(JsonNode milestoneTitle, Project project) {
