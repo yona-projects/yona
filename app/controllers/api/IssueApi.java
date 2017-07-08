@@ -28,6 +28,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static controllers.api.UserApi.createUserNode;
 import static play.libs.Json.toJson;
 
 public class IssueApi extends AbstractPostingApp {
@@ -66,7 +67,7 @@ public class IssueApi extends AbstractPostingApp {
 
     @Transactional
     @IsCreatable(ResourceType.ISSUE_POST)
-    public static Result newIssueByJson(String owner, String projectName) {
+    public static Result newIssues(String owner, String projectName) {
         ObjectNode result = Json.newObject();
         JsonNode json = request().body().asJson();
         if (json == null) {
@@ -103,6 +104,7 @@ public class IssueApi extends AbstractPostingApp {
         issue.assignee = findAssginee(json.findValue("assignees"), project);
         issue.milestone = findMilestone(json.findValue("milestoneTitle"), project);
         issue.dueDate = findDueDate(json.findValue("dueDate"));
+        issue.numOfComments = 0;
 
         if(json.findValue("number") != null && json.findValue("number").asLong() > 0){
             issue.saveWithNumber(json.findValue("number").asLong());
@@ -149,7 +151,7 @@ public class IssueApi extends AbstractPostingApp {
 
     @Transactional
     @IsCreatable(ResourceType.ISSUE_COMMENT)
-    public static Result newIssueCommentByJson(String ownerName, String projectName, Long number)
+    public static Result newIssueComment(String ownerName, String projectName, Long number)
             throws IOException {
         JsonNode json = request().body().asJson();
         if(json == null) {
@@ -178,18 +180,21 @@ public class IssueApi extends AbstractPostingApp {
         attachUploadFilesToPost(json.findValue("temporaryUploadFiles"), comment.asResource());
 
         ObjectNode result = Json.newObject();
-        result.put("status", 200);
+        result.put("status", 201);
         result.put("location", RouteUtil.getUrl(comment));
 
-        return ok(result);
+        return created(result);
     }
 
-    private static User findAuthor(JsonNode authorNode){
+    public static User findAuthor(JsonNode authorNode){
         if (authorNode != null) {
             String email = authorNode.findValue("email").asText();
             User originalAuthor = User.findByEmail(email);
             if (originalAuthor != null) {
                 return originalAuthor;
+            } else {
+                createUserNode(authorNode);
+                return User.findByEmail(email);
             }
         }
 
