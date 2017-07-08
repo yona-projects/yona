@@ -62,7 +62,7 @@ public class ProjectApi extends Controller {
         json.put("issueCount", project.issues.size());
         json.put("postCount", project.posts.size());
         json.put("milestoneCount", project.milestones.size());
-        json.put("labels", projectLabels(project));
+        json.put("labels", getAllLabels(project.issueLabels));
         json.put("issues", composePosts(project, Issue.finder));
         json.put("posts", composePosts(project, Posting.finder));
         json.put("milestones", toJson(project.milestones.stream()
@@ -358,6 +358,18 @@ public class ProjectApi extends Controller {
     }
 
     private static JsonNode composeLabelJson(Set<IssueLabel> issueLabels) {
+        List<ObjectNode> labels = new ArrayList<>();
+        for(IssueLabel label: issueLabels){
+            ObjectNode labelNode = Json.newObject();
+            labelNode.put("labelName", label.name);
+            labelNode.put("labelColor", label.color);
+            labelNode.put("labelCategory", label.category.name);
+            labels.add(labelNode);
+        }
+        return toJson(labels);
+    }
+
+    public static JsonNode getAllLabels(List<IssueLabel> issueLabels) {
         List<ObjectNode> labels = new ArrayList<>();
         for(IssueLabel label: issueLabels){
             ObjectNode labelNode = Json.newObject();

@@ -113,7 +113,7 @@ public class UserApi extends Controller {
         return created(toJson(createdUsers));
     }
 
-    private static JsonNode createUserNode(JsonNode userNode) {
+    public static JsonNode createUserNode(JsonNode userNode) {
         ObjectNode createdUserNode = Json.newObject();
 
         String loginId = userNode.findValue("loginId").asText();
