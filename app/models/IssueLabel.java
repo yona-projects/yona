@@ -159,6 +159,20 @@ public class IssueLabel extends Model implements ResourceConvertible {
         }
     }
 
+    @Transient
+    public static IssueLabel findByName(String labelName, String categoryName, Project project) {
+        List<IssueLabel> list = finder.where()
+                .eq("project.id", project.id)
+                .eq("category.name", categoryName)
+                .eq("name", labelName)
+                .findList();
+        if (list != null && list.size() > 0) {
+            return list.get(0);
+        } else {
+            return null;
+        }
+    }
+
     @Override
     public void delete() {
         for(Issue issue: issues) {

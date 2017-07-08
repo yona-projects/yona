@@ -1,6 +1,6 @@
 /**
  * Yona, 21st Century Project Hosting SW
- *
+ * <p>
  * Copyright 2016 the original author or authors.
  */
 
@@ -10,12 +10,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.*;
 import controllers.annotation.IsAllowed;
+import controllers.annotation.IsCreatable;
 import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ProjectScope;
 import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
 import org.apache.commons.lang3.StringUtils;
+import play.data.Form;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
 import play.i18n.Messages;
@@ -35,6 +37,7 @@ import java.util.stream.Collectors;
 
 import static models.AbstractPosting.findByProject;
 import static models.enumeration.ProjectScope.PRIVATE;
+import static play.data.Form.form;
 import static play.libs.Json.toJson;
 import static utils.CacheStore.getProjectCacheKey;
 import static utils.CacheStore.projectMap;
@@ -85,7 +88,7 @@ public class ProjectApi extends Controller {
 
     public static List<ObjectNode> getAssginees(Project project) {
         List<ObjectNode> members = new ArrayList<>();
-        for(Assignee assignee: project.assignees){
+        for (Assignee assignee : project.assignees) {
             ObjectNode member = Json.newObject();
             member.put("loginId", assignee.user.loginId);
             member.put("name", assignee.user.name);
@@ -97,7 +100,7 @@ public class ProjectApi extends Controller {
 
     public static List<ObjectNode> getAuthors(Project project) {
         List<ObjectNode> authors = new ArrayList<>();
-        for(User user: project.findAuthors()){
+        for (User user : project.findAuthors()) {
             ObjectNode member = Json.newObject();
             member.put("loginId", user.loginId);
             member.put("name", user.name);
@@ -161,7 +164,7 @@ public class ProjectApi extends Controller {
 
     private static ProjectScope parseProjectScope(JsonNode json) {
         JsonNode scopeNode = json.findValue("projectScope");
-        if(scopeNode == null || StringUtils.isEmpty(scopeNode.asText())) {
+        if (scopeNode == null || StringUtils.isEmpty(scopeNode.asText())) {
             return ProjectScope.PRIVATE;
         }
 
@@ -188,14 +191,14 @@ public class ProjectApi extends Controller {
     private static void addProjectMembers(JsonNode json, Project project) {
         JsonNode membersNode = json.findValue("members");
 
-        if(membersNode != null && membersNode.isArray()){
+        if (membersNode != null && membersNode.isArray()) {
             // find members and add members
             for (JsonNode memberNode : membersNode) {
                 String mail = memberNode.findValue("email").asText();
                 User member = User.findByEmail(mail);
-                if(!member.isAnonymous()){
+                if (!member.isAnonymous()) {
                     String role = memberNode.findValue("role").asText();
-                    if("member".equalsIgnoreCase(role)){
+                    if ("member".equalsIgnoreCase(role)) {
                         ProjectUser.assignRole(member.id, project.id, RoleType.MEMBER);
                     } else if ("manager".equalsIgnoreCase(role)) {
                         ProjectUser.assignRole(member.id, project.id, RoleType.MANAGER);
@@ -245,7 +248,7 @@ public class ProjectApi extends Controller {
     public static JsonNode projectLabels(Project project) {
 
         Map<Long, Map<String, String>> labels = new HashMap<>();
-        for (Label label: project.labels) {
+        for (Label label : project.labels) {
             labels.put(label.id, convertToMap(label));
         }
 
@@ -283,8 +286,8 @@ public class ProjectApi extends Controller {
         json.put("updatedAt", getDateString(posting.updatedDate));
         json.put("body", posting.body);
 
-        if(posting.asResource().getType() == ResourceType.ISSUE_POST){
-            Issue issue = ((Issue)posting);
+        if (posting.asResource().getType() == ResourceType.ISSUE_POST) {
+            Issue issue = ((Issue) posting);
             Optional.ofNullable(issue.assignee)
                     .ifPresent(assignee -> json.put("assignees", composeAssigneeJson(issue)));
             json.put("state", issue.state.toString());
@@ -302,12 +305,12 @@ public class ProjectApi extends Controller {
 
         }
         List<Attachment> attachments = Attachment.findByContainer(posting.asResource());
-        if(attachments.size() > 0) {
+        if (attachments.size() > 0) {
             json.put("attachments", toJson(attachments));
         }
 
-        List <ObjectNode> comments = composePlainCommentsJson(posting);
-        if(comments.size() > 0){
+        List<ObjectNode> comments = composePlainCommentsJson(posting);
+        if (comments.size() > 0) {
             json.put("comments", toJson(comments));
         }
         return json;
@@ -341,10 +344,10 @@ public class ProjectApi extends Controller {
         return toJson(assignees);
     }
 
-    private static JsonNode composeMembersJson(Project project){
+    private static JsonNode composeMembersJson(Project project) {
         List<ObjectNode> members = new ArrayList<>();
 
-        for(ProjectUser projectUser: project.members()){
+        for (ProjectUser projectUser : project.members()) {
             User user = projectUser.user;
             ObjectNode memberNode = Json.newObject();
             memberNode.put("loginId", user.loginId);
@@ -359,11 +362,11 @@ public class ProjectApi extends Controller {
 
     private static JsonNode composeLabelJson(Set<IssueLabel> issueLabels) {
         List<ObjectNode> labels = new ArrayList<>();
-        for(IssueLabel label: issueLabels){
+        for (IssueLabel label : issueLabels) {
             ObjectNode labelNode = Json.newObject();
             labelNode.put("labelName", label.name);
             labelNode.put("labelColor", label.color);
-            labelNode.put("labelCategory", label.category.name);
+            labelNode.put("category", label.category.name);
             labels.add(labelNode);
         }
         return toJson(labels);
@@ -371,11 +374,12 @@ public class ProjectApi extends Controller {
 
     public static JsonNode getAllLabels(List<IssueLabel> issueLabels) {
         List<ObjectNode> labels = new ArrayList<>();
-        for(IssueLabel label: issueLabels){
+        for (IssueLabel label : issueLabels) {
             ObjectNode labelNode = Json.newObject();
             labelNode.put("labelName", label.name);
             labelNode.put("labelColor", label.color);
-            labelNode.put("labelCategory", label.category.name);
+            labelNode.put("category", label.category.name);
+            labelNode.put("isExclusive", label.category.isExclusive);
             labels.add(labelNode);
         }
         return toJson(labels);
@@ -393,7 +397,7 @@ public class ProjectApi extends Controller {
             commentNode.put("body", comment.contents);
 
             List<Attachment> attachments = Attachment.findByContainer(comment.asResource());
-            if(attachments.size() > 0) {
+            if (attachments.size() > 0) {
                 commentNode.put("attachments", toJson(attachments));
             }
             comments.add(commentNode);
@@ -410,5 +414,79 @@ public class ProjectApi extends Controller {
         Optional.ofNullable(m.dueDate).ifPresent(dueDate
                 -> node.put("dueDate", getDateString(dueDate)));
         return node;
+    }
+
+    @Transactional
+    @IsCreatable(ResourceType.ISSUE_LABEL)
+    public static Result newLabel(String owner, String projectName) {
+        ObjectNode result = Json.newObject();
+        JsonNode json = request().body().asJson();
+        if (json == null) {
+            return badRequest(result.put("message", "Expecting Json data"));
+        }
+
+        JsonNode labelsNode = json.findValue("labels");
+        if (labelsNode == null || !labelsNode.isArray()) {
+            return badRequest(result.put("message", "No issues key exists or value wasn't array!"));
+        }
+
+        Project project = Project.findByOwnerAndProjectName(owner, projectName);
+
+        List<JsonNode> createdLabels = new ArrayList<>();
+
+        for (JsonNode labelNode : labelsNode) {
+            createdLabels.add(createLabelNode(labelNode, project));
+        }
+        project.update();
+
+        return created(toJson(createdLabels));
+    }
+
+    private static JsonNode createLabelNode(JsonNode json, Project project) {
+        String labelName = json.findValue("labelName").asText();
+        String labelColor = json.findValue("labelColor").asText();
+        String categoryName = json.findValue("category").asText();
+        boolean isExclusive = json.findValue("isExclusive").isBoolean();
+
+        IssueLabelCategory category = IssueLabelCategory.findByName(categoryName, project);
+        if (category == null) {
+            category = new IssueLabelCategory();
+            category.project = project;
+            category.name = categoryName;
+            category.save();
+        }
+
+        IssueLabel label = IssueLabel.findByName(labelName, categoryName, project);
+        if( label == null ) {
+            label = new IssueLabel();
+            label.category = category;
+            label.color = labelColor;
+            label.name = labelName;
+            label.project = project;
+            label.save();
+        } else {
+            return existedLabel(json);
+        }
+
+        ObjectNode result = Json.newObject();
+        result.put("status", 201);
+        result.put("label", label.name);
+        result.put("category", category.name);
+        result.put("labelColor", label.color);
+        result.put("isExclusive", category.isExclusive);
+
+        return result;
+    }
+
+    private static JsonNode existedLabel(JsonNode labelNode) {
+        ObjectNode createdUserNode = Json.newObject();
+        String message = Messages.get("label.error.duplicated");
+
+        createdUserNode.put("status", 409);
+        createdUserNode.put("reason", "Conflict");
+        createdUserNode.put("message", message);
+        createdUserNode.put("user", labelNode);
+
+        return createdUserNode;
     }
 }
