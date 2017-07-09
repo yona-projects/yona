@@ -178,7 +178,7 @@ public class Attachment extends Model implements ResourceConvertible {
         List<Attachment> attachments = Attachment.find.where().idIn(Arrays.asList(selectedFileIds)).findList();
         for (Attachment attachment : attachments) {
             if(attachment.containerId.equals(from.getId())
-                    && attachment.containerType == from.getType()){
+                    && attachment.containerType == from.getType() || UserApp.currentUser().isSiteManager()){
                 attachment.moveTo(to);
             }
         }
