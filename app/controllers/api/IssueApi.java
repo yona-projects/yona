@@ -129,7 +129,6 @@ public class IssueApi extends AbstractPostingApp {
                         labelNode.findValue("category").asText(),
                         project);
                 if(issueLabel != null){
-                    play.Logger.warn("added " + issueLabel);
                     if(issue.labels == null) {
                         issue.labels = new HashSet<>();
                     }
@@ -196,7 +195,6 @@ public class IssueApi extends AbstractPostingApp {
         comment.issue = issue;
         comment.save();
 
-        play.Logger.warn(json.findValue("temporaryUploadFiles").asText());
         attachUploadFilesToPost(json.findValue("temporaryUploadFiles"), comment.asResource());
 
         ObjectNode result = Json.newObject();
