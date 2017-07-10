@@ -144,8 +144,8 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
         try {
             numOfComments = computeNumOfComments();
             super.update();
-        } catch (OptimisticLockException ole) {
-            play.Logger.warn("OptimisticLockException: " + ole.getMessage());
+        } catch (PersistenceException ole) {
+            play.Logger.warn("PersistenceException: " + ole.getMessage());
         }
         updateMention();
     }
