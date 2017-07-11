@@ -64,12 +64,12 @@
                 <div class="project-search-wrap row-fluid mt10">
                     <div class="span7">
                         <div class="search-bar">
-                            <input name="mylist-filter" id="mylist-filter" class="textbox full" type="text" value="" data-toggle="item-search" data-items="project-item">
+                            <input name="mylist-filter" id="mylist-filter" class="textbox full" type="text" value="" data-toggle="item-search" data-items="project-item" placeholder="@Messages("title.type.name")">
                             <button type="button" class="search-btn"><i class="yobicon-search"></i></button>
                         </div>
                     </div>
                     @if(OrganizationUser.isAdmin(org, UserApp.currentUser) || UserApp.currentUser().isSiteManager) {
-                    <div class="span3">
+                    <div class="pull-right">
                         <a href="@routes.ProjectApp.newProjectForm()?owner=@org.name" class="ybtn ybtn-primary">@Messages("button.newProject")</a>
                     </div>
                     }
