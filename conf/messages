@@ -882,6 +882,7 @@ title.issueList = Issue list
 title.issueTracker = Issue tracker
 title.joinmember = Member
 title.keymap = Keyboard shortcuts
+title.list = All List
 title.login = Log in
 title.loginFor = Log in to <span class="highlight">{0}</span>
 title.logout = Log out
@@ -895,6 +896,7 @@ title.newProject = Create new project
 title.newPullRequest = Send pull request
 title.no.results = No results
 title.organization = Groups
+title.organization = Group List
 title.organizationHome = Group Home
 title.post.notExistingPage = Page not found
 title.privateProject = Private repositories

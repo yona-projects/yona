@@ -1,25 +1,12 @@
 /**
- * Yobi, Project Hosting SW
+ * Yona, Project Hosting SW
  *
- * Copyright 2013 NAVER Corp.
- * http://yobi.io
- *
- * @author Keesun Baik
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright 2017 the original author or authors.
  */
 package controllers;
 
+import com.avaje.ebean.ExpressionList;
+import com.avaje.ebean.Page;
 import controllers.annotation.AnonymousCheck;
 import models.*;
 import models.enumeration.Operation;
@@ -27,6 +14,7 @@ import models.enumeration.RequestState;
 import models.enumeration.RoleType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.collections.CollectionUtils;
 import play.data.Form;
 import play.data.validation.Validation;
 import play.data.validation.ValidationError;
@@ -456,5 +444,18 @@ public class OrganizationApp extends Controller {
         }
 
         return new ValidationResult(okWithLocation(routes.OrganizationApp.organization(organization.name).url()), false);
+    }
+
+    public static Result orgList(String query, int pageNum){
+        if(Application.HIDE_PROJECT_LISTING){
+            return forbidden(ErrorViews.Forbidden.render("error.auth.unauthorized.waringMessage"));
+        }
+
+        if (pageNum < 1) {
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
+        }
+        Page<Organization> orgs = Organization.findByNameLike(query).getPage(pageNum);
+
+        return ok(views.html.organization.list.render("title.projectList", orgs, query));
     }
 }

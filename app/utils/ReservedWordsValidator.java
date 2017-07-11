@@ -60,6 +60,9 @@ public class ReservedWordsValidator extends Validator<String> {
             }
         }
         RESERVED_WORDS.add("new");
+        RESERVED_WORDS.add("projects");
+        RESERVED_WORDS.add("orgs");
+        RESERVED_WORDS.add("organizations");
     }
 
     /**
