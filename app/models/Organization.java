@@ -83,7 +83,7 @@ public class Organization extends Model implements ResourceConvertible {
         return find.where().or(
                 Expr.like("name", "%" + name + "%"),
                 Expr.like("descr", "%" + name + "%")
-        ).findPagingList(30);
+        ).orderBy("id desc").findPagingList(30);
     }
 
     public static boolean isNameExist(String name) {
