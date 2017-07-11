@@ -20,6 +20,7 @@
  */
 package models;
 
+import com.avaje.ebean.Expr;
 import com.avaje.ebean.Page;
 import com.avaje.ebean.PagingList;
 import controllers.Application;
@@ -79,8 +80,10 @@ public class Organization extends Model implements ResourceConvertible {
     }
 
     public static PagingList<Organization> findByNameLike(String name) {
-        return find.where().ilike("name", "%" + name + "%")
-                .findPagingList(30);
+        return find.where().or(
+                Expr.like("name", "%" + name + "%"),
+                Expr.like("descr", "%" + name + "%")
+        ).findPagingList(30);
     }
 
     public static boolean isNameExist(String name) {
