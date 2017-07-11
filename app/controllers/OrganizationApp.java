@@ -454,7 +454,7 @@ public class OrganizationApp extends Controller {
         if (pageNum < 1) {
             return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
-        Page<Organization> orgs = Organization.findByNameLike(query).getPage(pageNum);
+        Page<Organization> orgs = Organization.findByNameLike(query).getPage(pageNum-1);
 
         return ok(views.html.organization.list.render("title.projectList", orgs, query));
     }
