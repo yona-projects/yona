@@ -67,7 +67,7 @@ public class AccessControl {
         // Site manager, Group admin, Project members can create anything.
         if (user.isSiteManager()
             || OrganizationUser.isAdmin(project.organization, user)
-            || user.isMemberOf(project)
+            || ProjectUser.isManager(user.id, project.id)
             || isAllowedIfGroupMember(project, user)) {
             return true;
         }
