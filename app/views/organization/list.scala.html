@@ -1,0 +1,104 @@
+@**
+* Yona, 21st Century Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp.
+* https://yona.io
+**@
+@import utils.Config
+@import utils.AccessControl
+@import models.enumeration.Operation;
+@(message: String, currentPage: com.avaje.ebean.Page[Organization], filter:String)
+@import utils.TemplateHelper._
+@import utils.JodaDateUtil
+
+@siteLayout(message, utils.MenuType.PROJECTS) {
+<div class="site-breadcrumb-outer">
+    <div class="site-breadcrumb-inner">
+        <div class="title_area">
+            <ul class="nav nav-tabs">
+                <li>
+                    <a href="@routes.ProjectApp.projects()">@Messages("project.public") @Messages("title" +
+                        ".projectList")</a>
+                </li>
+                <li class='active'>
+                    <a href="@routes.OrganizationApp.orgList()">@Messages("title.organization.list")</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+<div class="page-wrap-outer">
+    <div class="project-page-wrap">
+    	<div class="search-wrap">
+    		<div id="search" class="pull-left">
+    			<form action="@routes.ProjectApp.projects()" method="get">
+    				<div class="search-bar">
+                        <input name="filter" class="textbox" type="text" placeholder="@Messages("site.project.filter")" value="@filter">
+                        <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                    </div>
+    			</form>
+             </div>
+        </div>
+        @if(currentPage.getTotalRowCount == 0){
+            <div class="error-wrap">
+                <i class="ico ico-err1"></i>
+                <p>@Messages("organization.is.empty")</p>
+            </div>
+        } else {
+    	<ul class="all-projects">
+        @for(org <- currentPage.getList) {
+            @if(Config.displayPrivateRepositories() || AccessControl.isAllowed(UserApp.currentUser(), org.asResource(),
+                Operation.READ)){
+            <li class="project">
+                <div class="info-wrap">
+                    <div class="owner-avatar-wrap">
+                        <a href="@routes.OrganizationApp.organization(org.name)">
+                            @if(hasOrganizationLogo(org)){<img src="@urlToOrganizationLogo(org)" alt="@org.name"/>}
+                        </a>
+                    </div>
+                    <div style="float:left">
+                        <div class="header">
+                            <a href="@routes.OrganizationApp.organization(org.name)" class="black">@org.name</a>
+                        </div>
+                        <div class="desc">
+                        @org.descr
+                        </div>
+                        <p class="name-tag">
+                            created <strong title="@JodaDateUtil.getDateString(org.created)">@agoOrDateString(org.created)</strong>
+                        </p>
+                    </div>
+                </div>
+            </li>
+            } else {
+                <li class="project" style="background-color: #fcfcfc;">
+                    <div class="info-wrap" style="opacity: 0.3">
+                        <div class="owner-avatar-wrap">
+                            <img src="@routes.Assets.at("images/organization_default_logo.png")" alt="@org.name"/>
+                        </div>
+                        <div style="float:left; color: gray">
+                            You do not have permission to view this project's information
+                        </div>
+                    </div>
+                </li>
+            }
+        }
+    	</ul>
+
+    	<!-- pagination.js will fill here. -->
+    	<div id="pagination"></div>
+        }
+    </div>
+</div>
+<script type="text/javascript">
+$(document).ready(function(){
+    yobi.Pagination.update($("#pagination"), @currentPage.getTotalPageCount);
+
+    /*
+	$(".btn-advanced").click(function(){
+		$(".inner").toggleClass("advanced");
+	});
+	*/
+});
+</script>
+
+}

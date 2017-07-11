@@ -80,7 +80,8 @@
                         <div class="info-wrap">
                             <div class="owner-avatar-wrap hide-in-mobile">
                                 <a href="@routes.ProjectApp.project(project.owner,project.name)">
-                                    <img src="@urlToProjectLogo(project)" alt="@project.name"/>
+                                    @if(hasProjectLogo(project)){<img src="@urlToProjectLogo(project)" alt="@project" +
+                                            ".name"/>}
                                 </a>
                             </div>
                             <div style="float:left">

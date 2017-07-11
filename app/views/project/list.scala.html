@@ -14,13 +14,19 @@
 @siteLayout(message, utils.MenuType.PROJECTS) {
 <div class="site-breadcrumb-outer">
     <div class="site-breadcrumb-inner">
-        <h3>@Messages("project.public") @Messages("title.projectList")</h3>
+        <div class="title_area">
+            <ul class="nav nav-tabs">
+                <li class='active'><a href="@routes.ProjectApp.projects()">@Messages("project.public") @Messages("title" +
+                        ".projectList")</a></li>
+                <li><a href="@routes.OrganizationApp.orgList()">@Messages("title.organization.list")</a></li>
+            </ul>
+        </div>
     </div>
 </div>
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
     	<div class="search-wrap">
-    		<div id="search" class="pull-right">
+    		<div id="search" class="pull-left">
     			<form action="@routes.ProjectApp.projects()" method="get">
     				<div class="search-bar">
                         <input name="filter" class="textbox" type="text" placeholder="@Messages("site.project.filter")" value="@filter">
@@ -42,7 +48,7 @@
                 <div class="info-wrap">
                     <div class="owner-avatar-wrap">
                         <a href="@routes.ProjectApp.project(project.owner,project.name)">
-                            <img src="@urlToProjectLogo(project)" alt="@project.name"/>
+                            @if(hasProjectLogo(project)){<img src="@urlToProjectLogo(project)" alt="@project.name"/>}
                         </a>
                     </div>
                     <div style="float:left">

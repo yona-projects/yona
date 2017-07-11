@@ -884,6 +884,7 @@ title.issueList = 이슈 목록
 title.issueTracker = 이슈 트래커
 title.joinmember = 멤버로 참여중인
 title.keymap = 단축키 안내
+title.list = 전체 목록
 title.login = 로그인
 title.loginFor = <span class="highlight">{0}</span> 로그인
 title.logout = 로그아웃
@@ -897,6 +898,7 @@ title.newProject = 새 프로젝트 시작
 title.newPullRequest = 코드 보내기
 title.no.results = 결과 없음
 title.organization = 그룹
+title.organization.list = 그룹 목록
 title.organizationHome = 홈
 title.post.notExistingPage = 페이지를 찾지 못했습니다.
 title.privateProject = 비공개 프로젝트
