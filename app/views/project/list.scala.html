@@ -29,7 +29,8 @@
     		<div id="search" class="pull-left">
     			<form action="@routes.ProjectApp.projects()" method="get">
     				<div class="search-bar">
-                        <input name="filter" class="textbox" type="text" placeholder="@Messages("site.project.filter")" value="@filter">
+                        <input name="filter" class="textbox" type="text" placeholder="@Messages("site.project" +
+                                ".filter")" value="@filter" autofocus>
                         <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
                     </div>
     			</form>
