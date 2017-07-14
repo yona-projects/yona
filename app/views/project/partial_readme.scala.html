@@ -1,27 +1,17 @@
 @**
-* Yobi, Project Hosting SW
+* Yona, 21st Century Project Hosting SW
 *
-* Copyright 2013 NAVER Corp.
-* http://yobi.io
-*
-* @author Jihan Kim
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*   http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
+* Copyright Yona & Yobi Authors & NAVER Corp.
+* https://yona.io
 **@
 @(project: Project)
 @import utils.AccessControl._
 @import models.enumeration.ResourceType
 @import utils.Markdown
+
+@projectReadmePosting = @{
+  Posting.findREADMEPosting(project)
+}
 
 <div class="bubble-wrap gray readme">
 @if(project.readme == null){
@@ -45,7 +35,11 @@
           <a href="@routes.BoardApp.newPostForm(project.owner, project.name)?readme=true" class="ybtn vmiddle ml5">@Messages("button.edit")</a>
       }
     </header>
-    <div class="readme-body markdown-wrap">@Html(Markdown.renderFileInReadme(project.readme, project))</div>
+      @if(!project.menuSetting.code && projectReadmePosting != null) {
+        <div class="readme-body markdown-wrap">@Html(Markdown.render(projectReadmePosting.body, project))</div>
+      } else {
+        <div class="readme-body markdown-wrap">@Html(Markdown.renderFileInReadme(project.readme, project))</div>
+      }
   </div>
 }
 @common.markdown(project)
