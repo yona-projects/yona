@@ -296,7 +296,10 @@ github.client.secret = "TYPE YOUR GITHUB CILENT SECRET"
 # 2,147,483,454 bytes = 2Gb
 application.maxFileSize = 2147483454
 
-
+# Project Creation Menu Settings
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Default: "code, issue, pullRequest, review, milestone, board"
+project.creation.default.menus = "issue, milestone, board"
 
 # Social Login Support
 # ~~~~~~~~~~~~~~~~~~~~
