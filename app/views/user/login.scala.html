@@ -10,6 +10,12 @@
 @import com.feth.play.module.pa.PlayAuthenticate._;
 @import play.mvc.Http._;
 @import utils.TemplateHelper._
+@import org.apache.commons.lang3.StringUtils
+
+@isSocialLoginSupport = @{
+  val allowedProviders = play.Configuration.root.getString("application.social.login.support", "").replaceAll(" ", "").split(",")
+  allowedProviders.nonEmpty && StringUtils.isNotBlank(allowedProviders(0))
+}
 
 @siteLayout(message, utils.MenuType.NONE) {
 <div class="page full">
@@ -44,6 +50,11 @@
       <div class="btns-row nm">
       @currentAuth() { auth =>
         @if(auth == null) {
+          @if(isSocialLoginSupport) {
+            @if(!UserApp.useSocialLoginOnly) {
+              <div class="social-login-title-line"> @Messages("title.or") </div>
+            }
+          }
           @forProviders() { p =>
             @if(isAllowedOAuthProvider(p.getKey)) {
               <a href="@p.getUrl()" class="ybtn oauth-login-btn">@Html(providerWithLogo(p.getKey()))</a>
