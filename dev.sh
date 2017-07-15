@@ -2,8 +2,8 @@
 # User this restart shell just for example
 #
 PORT=9000
-YONA_DATA=.;export YONA_DATA
-act=/Users/doortts/dev/play2/activator
+YONA_DATA=/Users/doortts/apps/activator-1.2.10-minimal/yona;export YONA_DATA
+act=../activator
 
 pid=`ps -ef | grep java | grep activator-launch | awk '{print $2}'`
 kill $pid
