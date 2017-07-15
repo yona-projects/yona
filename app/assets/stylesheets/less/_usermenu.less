@@ -87,8 +87,12 @@
 
   .user-li {
     color: #000;
+    border-left: 1px solid #fff;
+    border-top: 1px solid #fff;
+    border-right: 1px solid #fff;
     &:hover {
       color: #3592B5;
+      border: 1px solid #3592B5 !important;
     }
     cursor: pointer;
   }
@@ -307,9 +311,9 @@
     width: 29px;
     min-height: 35px;
     flex-shrink: 0;
-    color: #f4f4f4;
+    color: #eee;
     &:hover {
-      color: white;
+      color: #e91e63;
     }
   }
 
@@ -450,11 +454,11 @@
       padding: 5px;
     }
     .project-name{
-      word-wrap: break-word;
       min-width: 50px;
       max-width: 220px;
       text-overflow: ellipsis;
       overflow: hidden;
+      white-space: nowrap;
       &.org-name {
         max-width: 320px;
       }
@@ -558,7 +562,6 @@
 
   .project-list, .org-list {
     &:hover {
-      background-color: #eee;
     }
   }
 

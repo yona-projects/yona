@@ -7,27 +7,6 @@
 @(currentUser:User)
 @import utils.TemplateHelper._
 
-@displayProjectsWithFavored(title:String, projects:List[Project], favoredProjects:List[Project], isActive:Boolean = false) = {
-    @if(projects.isEmpty && favoredProjects.isEmpty) {
-        <div id="@title" class="no-result tab-pane user-ul @if(isActive){active}">@Messages("title.no.results")</div>
-    } else {
-        <ul class="tab-pane user-ul @if(isActive){active}" id="@title">
-        @for(project <- favoredProjects){
-            @if(favoredProjects.last.equals(project)){
-                @myProjectList_partial(project, true, true)
-            } else {
-                @myProjectList_partial(project, true)
-            }
-        }
-        @for(project <- projects){
-            @if(!favoredProjects.contains(project)){
-                @myProjectList_partial(project, false)
-            }
-        }
-        </ul>
-    }
-}
-
 @displayProjects(title:String, projects:List[Project], isActive:Boolean = false) = {
     @if(projects.isEmpty) {
         <div id="@title" class="no-result tab-pane user-ul @if(isActive){active}">@Messages("title.no.results")</div>
@@ -71,7 +50,7 @@
                         </ul>
                     </div>
                     <div class="tab-content">
-                        @displayProjectsWithFavored("recentlyVisited", currentUser.getVisitedProjects, currentUser.getFavoriteProjects, true)
+                        @views.html.index.displayProjectsWithFavored("recentlyVisited", currentUser.getVisitedProjects, currentUser.getFavoriteProjects, true)
                         @displayProjects("watching", currentUser.getWatchingProjects("name ASC"))
                         @displayProjects("createdByMe", Project.findProjectsCreatedByUser(currentUser.loginId, "createdDate desc"))
                         @displayProjects("joinmember", Project.findProjectsJustMemberAndNotOwner(currentUser, "name ASC"))
