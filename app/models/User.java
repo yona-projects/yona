@@ -880,6 +880,7 @@ public class User extends Model implements ResourceConvertible {
     public List<Project> getFavoriteProjects() {
         List<Project> projects = new ArrayList<>();
         for (FavoriteProject favoriteProject : this.favoriteProjects) {
+            favoriteProject.project.refresh();
             projects.add(0, favoriteProject.project);
         }
 
@@ -932,6 +933,7 @@ public class User extends Model implements ResourceConvertible {
     public List<Organization> getFavoriteOrganizations() {
         List<Organization> organizations = new ArrayList<>();
         for (FavoriteOrganization favoriteOrganization : this.favoriteOrganizations) {
+            favoriteOrganization.organization.refresh();
             organizations.add(0, favoriteOrganization.organization);
         }
 

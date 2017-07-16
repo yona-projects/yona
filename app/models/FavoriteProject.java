@@ -8,10 +8,12 @@ package models;
 
 import play.db.ebean.Model;
 
+import javax.annotation.Nonnull;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
+import java.util.List;
 
 @Entity
 public class FavoriteProject extends Model {
@@ -35,5 +37,16 @@ public class FavoriteProject extends Model {
 
         this.owner = project.owner;
         this.projectName = project.name;
+    }
+
+    public static void updateFavoriteProject(@Nonnull Project project){
+        List<FavoriteProject> favoriteProjects = finder.where().eq("project.id", project.id).findList();
+
+        for (FavoriteProject favoriteProject : favoriteProjects) {
+            favoriteProject.project.refresh();
+            favoriteProject.owner = project.owner;
+            favoriteProject.projectName = project.name;
+            favoriteProject.update();
+        }
     }
 }
