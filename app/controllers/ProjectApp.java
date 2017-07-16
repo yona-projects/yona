@@ -270,6 +270,7 @@ public class ProjectApp extends Controller {
 
         saveProjectMenuSetting(updatedProject);
         UserApp.currentUser().updateFavoriteProject(updatedProject);
+        FavoriteProject.updateFavoriteProject(updatedProject);
 
         return redirect(routes.ProjectApp.settingForm(ownerId, updatedProject.name));
     }

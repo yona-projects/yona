@@ -12,6 +12,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
+import java.util.List;
 
 @Entity
 public class FavoriteOrganization extends Model {
@@ -33,5 +34,14 @@ public class FavoriteOrganization extends Model {
         this.organization = organization;
 
         this.organizationName = organization.name;
+    }
+
+    public static void updateFavoriteOrganization(Organization organization) {
+        List<FavoriteOrganization> organizationList = finder.where().eq("organization.id", organization.id).findList();
+        for(FavoriteOrganization favoriteOrganization: organizationList){
+            favoriteOrganization.organization.refresh();
+            favoriteOrganization.organizationName = organization.name;
+            favoriteOrganization.update();
+        }
     }
 }
