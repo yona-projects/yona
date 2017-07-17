@@ -128,7 +128,8 @@ yobi.Files = (function(){
         }
 
         var oData = new FormData();
-        oData.append("filePath", oFile, oFile.name);
+        var filename = oFile.name === 'image.png' ? nSubmitId + ".png" : oFile.name;
+        oData.append("filePath", oFile, filename);
 
         $.ajax({
             "type" : "post",
@@ -568,7 +569,10 @@ yobi.Files = (function(){
      * @return {Number}
      */
     function _getSubmitId(){
-        return parseInt(Math.random() * new Date().getTime());
+      var now = new Date();
+      return now.getFullYear() + '' + now.getMonth() + '' + now.getDate()
+            + '-' + now.getHours() + '' + now.getMinutes() + '' + now.getSeconds()
+            + '-' + now.getMilliseconds();
     }
 
     /**
