@@ -29,8 +29,8 @@ public class LdapService {
     private static final String USER_NAME_PROPERTY = Play.application().configuration().getString("ldap.userNameProperty", "CN");
     public static final boolean USE_EMAIL_BASE_LOGIN = Play.application().configuration().getBoolean("ldap" +
             ".options.useEmailBaseLogin", false);
-    public static final boolean FAILLBACK_TO_LOCAL_LOGIN = Play.application().configuration().getBoolean("ldap" +
-            ".options.faillbackToLocalLogin", false);
+    public static final boolean FALLBACK_TO_LOCAL_LOGIN = Play.application().configuration().getBoolean("ldap" +
+            ".options.fallbackToLocalLogin", false);
     private static final String EMAIL_PROPERTY = Play.application().configuration().getString("ldap" +
             ".emailProperty", "mail");
     private static final int TIMEOUT = 5000; //ms

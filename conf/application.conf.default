@@ -336,7 +336,7 @@ ldap {
     options {
       # If your LDAP configuration support email login
       useEmailBaseLogin = false
-      faillbackToLocalLogin = false
+      fallbackToLocalLogin = false
     }
 }
 
