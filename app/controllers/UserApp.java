@@ -1148,7 +1148,7 @@ public class UserApp extends Controller {
         LdapService ldapService = new LdapService();
         try {
             LdapUser ldapUser = ldapService.authenticate(loginIdOrEmail, password);
-            play.Logger.error("l: " + ldapUser);
+            play.Logger.debug("l: " + ldapUser);
             User localUserFoundByLdapLogin = User.findByEmail(ldapUser.getEmail());
             if (localUserFoundByLdapLogin.isAnonymous()) {
                 CandidateUser candidateUser = new CandidateUser(
