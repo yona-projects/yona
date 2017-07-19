@@ -138,7 +138,10 @@
                 </ul>
             </div>
             <div class="span3 span-hard-wrap">
-            @if(UserApp.currentUser().isMemberOf(org)) {
+            @if(UserApp.currentUser().isSiteManager()
+                    || UserApp.currentUser().isMemberOf(org)
+                    || OrganizationUser.isAdmin(org.id, UserApp.currentUser().id)
+            ) {
                 <div class="bubble-wrap gray project-home">
                     <div class="inner member-info">
                         <header>
