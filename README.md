@@ -113,6 +113,17 @@ Google Analytics
 application.send.yona.usage = true
 ```
 
+마이그레이션
+---
+- 기본적으로 Yona 에서 Github/Github Enterprise 로 이전하는 기능을 제공합니다.
+    - [Yona에서 Github으로 이사가는 방법](https://repo.yona.io/yona-projects/yona-help/post/4)
+    - [설정](https://github.com/yona-projects/yona/blob/master/conf/application.conf.default#L297)
+- [Yona Export](https://github.com/yona-projects/yona-export)
+    - 프로젝트 로컬 백업
+    - Yona 에서 다른 Yona 인스턴스로 이전 지원
+       - 일명 '출장용 Yona 기능'이라고도 할 수 있는 하는 기능입니다. 
+          - DB내장형 경량 Yona인, [Yona H2 Embedded 버전]을 사용해서 출장/파견 나가서 작업하다가 작업 완료후에 Export 받아서 본점 Yona에 Import 하는 것이 v1.6.0부터 가능합니다.
+    - Export 파일 포맷만 일치시킨다면 어떤 소스로부터도 마이그레이션이나 이동이 가능합니다
 
 
 <br/>
@@ -181,6 +192,25 @@ Server Settings
 ---
 - [application.conf Settings](docs/application-conf-desc.md)
 - [Social Login Settings](docs/yona-social-login-settings.md)
+
+Migration
+---
+- [Yona Export](https://github.com/yona-projects/yona-export)
+    - Support repository local backup
+    - Yona to another Yoan instance
+    - Any source corresponding to export format, can be imported into Yona
+- Support Yona to Github/Github Enterprise migration
+    - [See here](https://github.com/yona-projects/yona/blob/master/conf/application.conf.default#L297)
+    
+Google Analytics
+---
+- Basically, distributed Yona include Google Analytics. 
+- Yona는 설치형으로 제공되는 오픈소스라 지소적으로 개발/유지하기 위해 필수적인 요소인 설치정보가 필요합니다.
+- This data is used to better understand how users use Yona and make constantly improving Yona development.
+- To disable this for any reason, set the following option to false in conf/application.conf file.
+```
+application.send.yona.usage = true
+```
 
 Contribution
 ---
