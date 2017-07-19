@@ -1,8 +1,8 @@
 <a name="korean"></a>[[English]](#english)
 [![Build Status](https://travis-ci.org/yona-projects/yona.svg?branch=master)](https://travis-ci.org/yona-projects/yona)
 
-Yona
-====
+
+<img src='public/images/yona_logo.png' width='300px'>
 21세기 협업 개발 플랫폼
 
 DEMO: [http://repo.yona.io](http://repo.yona.io)
