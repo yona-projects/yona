@@ -33,6 +33,7 @@ public class Application extends Controller {
     public static String ALLOWED_SENDING_MAIL_DOMAINS = play.Configuration.root().getString("application.allowed.sending.mail.domains", "");
     public static String PRIVATE_IS_DEFAULT = play.Configuration.root().getString("project.default.scope.when.create", "public");
     public static boolean HIDE_PROJECT_LISTING = play.Configuration.root().getBoolean("application.hide.project.listing", false);
+    public static boolean SEND_YONA_USAGE =play.Configuration.root().getBoolean("application.send.yona.usage", true);
 
     @AnonymousCheck
     public static Result index() {
