@@ -11,16 +11,15 @@ Official Site: [http://yona.io](http://yona.io)
 
 Yona?
 --
-- 설치형 이슈트래커 + Git 코드 저장소
-- Yona는 팀이 업무와 개발을 진행하는데 그 속도와 효율을 증가시키기 위해 만들어졌습니다.
-- Naver를 비롯하여 게임회사, 통신회사 고객센터, 투자사, 학교, 기업등에서 실제 사용되고 있는 Real World Application 입니다
+- Git 저장소 기능이 내장된 설치형 이슈트래커
+- Naver를 비롯하여 게임회사, 통신회사 고객센터, 투자사, 학교, 기업등에서 수년 간 실제로 사용되어 왔고 개선되어 온(Real world battled) 애플리케이션입니다
 
 주요기능
 ---
 - 서비스 종료나 데이터 종속 걱정없는 설치형
 - 프로젝트 기반의 유연한 이슈트래커와 게시판
-   - 프로젝별 이슈 이동 가능
-   - 서브 태스크 지원
+   - 편리한 프로젝트간 이슈 이동
+   - 서브 태스크 이슈
    - 본문 변경이력 보기
    - 이슈 템플릿 기능
 - 자체 내장된 코드 저장소
@@ -36,13 +35,14 @@ Yona?
 - 한글 기반
    - 프로젝트 이름 및 그룹 이름에 한글을 사용가능
 - LDAP 지원
-- Github 마이그레이션 제공
-- 로그인 보안을 위한 소셜로그인 지원
-- 무료/오픈소스
+   - LDAP 장애시에도 사용가능한 기능 제공
+- 다른 제품이나 서비스로의 마이그레이션 기능 제공
+   - Github/Github Enterprise, 또 다른 Yona 인스턴스, Redmine 등
+- 로그인 관련 보안을 높일 수 있는 소셜로그인 지원
 
-등을 비롯하여 일상적인 업무에서 개발 전반에 이르는 다양한 기능을 포함하고 있습니다.
+등을 비롯하여 일상적인 업무에서 SW 개발 전반에 필요한 다양한 기능을 포함하고 있습니다.
 
-왜 Yona를 써야 하나요? (Why Yona?)
+추가 읽을거리
 ---
 - [왜 Yona를 써야 하나요? (Why Yona?)](https://repo.yona.io/yona-projects/yona/post/3)
 - [기본 워크플로우](https://repo.yona.io/yona-projects/yona-help/post/2)
@@ -63,11 +63,11 @@ Yona 배포판
 
 - MariaDB 버전
   - 기본 권장 버전
-  - yona-v1.3.0-bin.zip 같은 형식으로 파일로 배포
+  - yona-v1.6.0-bin.zip 같은 형식으로 파일로 배포
   - DB 설치에 약간의 시간이 필요하지만 안정적으로 운영이 가능
 - H2 DB 내장형
   - DB 설정없이 내려받아서 바로 실행해서 쓸 수 있는 버전
-  - yona-h2-v1.3.0-bin.zip 같은 형식으로 파일로 배포
+  - yona-h2-v1.6.0-bin.zip 같은 형식으로 파일로 배포
   - USB 등에 담아서 이동해가면서 사용하거나 작업후 통째로 zip으로 묶어서 들고 다니는 것이 가능함
   - 대규모 사이트에서 사용하기에는 적합하지 않음. 참고: [Yona가 MariaDB를 기본 DB로 사용하게 된 이유](https://repo.yona.io/yona-projects/yona/post/4)
 
@@ -104,6 +104,17 @@ Yona 실행 및 업그레이드/백업 및 복구/문제 해결
 - [application.conf 설명](docs/ko/application-conf-desc.md)
 - [소셜 로그인 설정](docs/ko/yona-social-login-settings.md)
 
+Google Analytics
+---
+- 기본적으로는 Google Analytics 가 활성화 되어 함께 배포됩니다. 
+- Yona는 설치형으로 제공되는 오픈소스라 지소적으로 개발/유지하기 위해 필수적인 요소인 설치정보가 필요합니다.
+- 만약 이부분에 대해 도움을 주기 곤란한 경우 application.conf 에서 아래 항목으로 false로 수정합니다.
+```
+application.send.yona.usage = true
+```
+
+
+
 <br/>
 
 <a name="english"></a>[[한국어]](#korean)
@@ -117,13 +128,17 @@ What is Yona?
 --
 Yona is designed to increase the speed and efficiency of your team's work and development.
 
-- Issue tracker to manage bugs and issues
-- Bulletin board to share documents
-- Git/SVN support embedded
-- Pull-request for collaborative coding
-- Block based code review
+- Issue tracker
+   - Transferable Issue
+   - Issue change history
+- Bulletin board
+- Embedded Git/SVN respository features 
+- Pull-request & Block based code review
 - Online Commit
 - LDAP support
+- Social Login
+- Migration from/to another service/instance
+   - Github/Github Enterprise, Redmine, Yona
 
 
 Yona Distribution
