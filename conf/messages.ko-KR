@@ -863,6 +863,7 @@ site.user.delete = 사용자 삭제
 site.user.deleteConfirm = 정말로 해당 사용자를 사이트에서 탈퇴시키겠습니까?
 site.userList.deleteAlert = 프로젝트의 유일한 관리자이므로 사이트에서 삭제할 수 없습니다.
 site.userList.deleted = 삭제된 사용자
+site.userList.guest = 게스트 사용자
 site.userList.locked = 계정이 잠긴 사용자
 site.userList.search = 찾으려는 사용자의 ID, 이름 또는 이메일을 입력하세요
 site.userList.unlocked = 활성화된 사용자

@@ -21,5 +21,5 @@
 package models.enumeration;
 
 public enum UserState {
-    ACTIVE, LOCKED, DELETED
+    ACTIVE, LOCKED, DELETED, GUEST
 }
