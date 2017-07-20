@@ -861,6 +861,7 @@ site.user.delete = Delete user
 site.user.deleteConfirm = Are you sure you want this user to leave?
 site.userList.deleteAlert = This user cannot be deleted because this user is the only manager of the project.
 site.userList.deleted = Deleted user
+site.userList.guest = Guest User
 site.userList.locked = Locked user
 site.userList.search = Find user by login ID, user name or email
 site.userList.unlocked = Unlocked user

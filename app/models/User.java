@@ -377,7 +377,11 @@ public class User extends Model implements ResourceConvertible {
         ExpressionList<User> el = User.find.where();
         el.ne("id",SITE_MANAGER_ID);
         el.ne("loginId",anonymous.loginId);
-        el.eq("state", state);
+        if( state == UserState.GUEST ) {
+            el.eq("isGuest", true);
+        } else {
+            el.eq("state", state);
+        }
 
         if(StringUtils.isNotBlank(query)) {
             el = el.disjunction();

@@ -43,6 +43,7 @@
       <li class="@isActiveTabMenu(UserState.ACTIVE)"><a href="@routes.SiteApp.userList()?state=@UserState.ACTIVE.name">@Messages("site.userList.unlocked")</a></li>
       <li class="@isActiveTabMenu(UserState.LOCKED)"><a href="@routes.SiteApp.userList()?state=@UserState.LOCKED.name">@Messages("site.userList.locked")</a></li>
       <li class="@isActiveTabMenu(UserState.DELETED)"><a href="@routes.SiteApp.userList()?state=@UserState.DELETED.name">@Messages("site.userList.deleted")</a></li>
+        <li class="@isActiveTabMenu(UserState.GUEST)"><a href="@routes.SiteApp.userList()?state=@UserState.GUEST.name">@Messages("site.userList.guest")</a></li>
     </ul>
     <div class="row-fluid listhead">
         <div class="span3 listhead-title">
