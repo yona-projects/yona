@@ -86,11 +86,11 @@
             <div class="span3 listitem-col">
                 <span class="email">@user.email</span>
             </div>
-            <div class="span2 listitem-col">
+            <div class="span2 listitem-col created-date">
                 <span>@socialDate(user.createdDate)</span>
             </div>
             @if(userState != UserState.DELETED) {
-            <div class="span5 listitem-col">
+            <div class="span5 listitem-col action-buttons">
                     <a class="ybtn @if(user.isGuest){ybtn-success}" data-request-method="post" data-request-uri="@routes.SiteApp.toggleGuestMode(user.loginId, user.state.name(), query)">
                     @if(user.isGuest){
                         @Messages("button.user.make.normal.mode")
