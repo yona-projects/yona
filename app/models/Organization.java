@@ -24,6 +24,7 @@ import com.avaje.ebean.Expr;
 import com.avaje.ebean.Page;
 import com.avaje.ebean.PagingList;
 import controllers.Application;
+import controllers.UserApp;
 import models.enumeration.RequestState;
 import models.enumeration.ResourceType;
 import models.resource.GlobalResource;
@@ -125,7 +126,7 @@ public class Organization extends Model implements ResourceConvertible {
         } else {
             if(!Application.HIDE_PROJECT_LISTING){
                 for(Project project : this.projects) {
-                    if(project.isPublic() || user.isMemberOf(project)) {
+                    if(project.isPublic() && !user.isGuest || user.isMemberOf(project)) {
                         result.add(project);
                     }
                 }

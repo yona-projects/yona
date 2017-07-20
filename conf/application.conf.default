@@ -21,6 +21,21 @@ application.siteName="Yona"
 # want to allow that, set signup.require.confirm to true.
 application.allowsAnonymousAccess=true
 
+# Guest User Id Rule
+# ~~~~~~~~~~~~~
+# If login id is created with following prefixes,
+# Yona treat that user is Guest User.
+# Guest user is extremely restricted in use of Yona.
+# They can not see any project listing of instance and
+# only create own account's projects.
+# In other words, they cannot create organization.
+# If multiple prefixes are needed, user , (comma)
+#
+# eg.
+# "PT_, GUEST_"
+
+application.guest.user.login.id.prefix = ""
+
 #
 # Signup options
 # ~~~~~~~~~~~~~~

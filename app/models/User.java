@@ -534,11 +534,8 @@ public class User extends Model implements ResourceConvertible {
     }
 
     public boolean isMemberOf(Project project) {
-        if (!projectMembersMemo.containsKey(project.id)) {
-            projectMembersMemo.put(project.id, ProjectUser.isMember(id, project.id));
-        }
-
-        return projectMembersMemo.get(project.id);
+        // TODO: Performance! Removed cache. If performance problem is occurred, fix it!
+        return ProjectUser.isMember(id, project.id);
     }
 
     public List<Project> getEnrolledProjects() {

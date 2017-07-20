@@ -67,7 +67,7 @@ public class AccessControl {
         // Site manager, Group admin, Project members can create anything.
         if (user.isSiteManager()
             || OrganizationUser.isAdmin(project.organization, user)
-            || ProjectUser.isManager(user.id, project.id)
+            || ProjectUser.isMember(user.id, project.id)
             || isAllowedIfGroupMember(project, user)) {
             return true;
         }
@@ -161,7 +161,7 @@ public class AccessControl {
                 if (project == null) {
                     return false;
                 }
-                return project.isPublic()
+                return project.isPublic() && !user.isGuest
                         || user.isMemberOf(project)
                         || isAdmin(project.organization, user)
                         || isAllowedIfGroupMember(project, user);
@@ -283,7 +283,7 @@ public class AccessControl {
         // See docs/technical/access-control.md for more information.
         switch(operation) {
         case READ:
-            return project.isPublic()
+            return project.isPublic() && !user.isGuest
                     || user.isMemberOf(project)
                     || isAllowedIfGroupMember(project, user);
         case UPDATE:
