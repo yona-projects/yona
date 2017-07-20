@@ -6,10 +6,18 @@
  **/
 package models.support;
 
+import controllers.Application;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static controllers.Application.GUEST_USER_LOGIN_ID_PREFIX;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 public class LdapUser {
     private Attribute displayName;
@@ -25,7 +33,7 @@ public class LdapUser {
     }
 
     public String getDisplayName() {
-        if (StringUtils.isNotBlank(getDepartment())) {
+        if (isNotBlank(getDepartment())) {
             return getString(this.displayName) + " [" + getDepartment() + "]";
         } else {
             return getString(this.displayName);
@@ -43,6 +51,29 @@ public class LdapUser {
             e.printStackTrace();
             return "";
         }
+    }
+
+    public boolean isGuestUser() {
+        if(isBlank(GUEST_USER_LOGIN_ID_PREFIX)){
+            return false;
+        }
+        List<String> prefixes = new ArrayList<>();
+
+        for(String idPrefix: GUEST_USER_LOGIN_ID_PREFIX.replaceAll(" ", "")
+                .split(",")){
+            String prefix = StringUtils.defaultString(idPrefix, "").toLowerCase().trim();
+            if (isNotBlank(prefix)) {
+                prefixes.add(prefix);
+            }
+        }
+
+        for (String prefix : prefixes) {
+            if(this.getUserLoginId().toLowerCase().startsWith(prefix.toLowerCase())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public String getEmail() {
@@ -64,6 +95,7 @@ public class LdapUser {
                 ", email='" + getEmail() + '\'' +
                 ", userId='" + getUserLoginId() + '\'' +
                 ", department='" + getDepartment() + '\'' +
+                ", isGuest='" + isGuestUser() + '\'' +
                 '}';
     }
 }

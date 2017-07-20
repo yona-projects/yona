@@ -34,6 +34,7 @@ public class Application extends Controller {
     public static String PRIVATE_IS_DEFAULT = play.Configuration.root().getString("project.default.scope.when.create", "public");
     public static boolean HIDE_PROJECT_LISTING = play.Configuration.root().getBoolean("application.hide.project.listing", false);
     public static boolean SEND_YONA_USAGE =play.Configuration.root().getBoolean("application.send.yona.usage", true);
+    public static String GUEST_USER_LOGIN_ID_PREFIX  = play.Configuration.root().getString("application.guest.user.login.id.prefix ", "");
 
     @AnonymousCheck
     public static Result index() {

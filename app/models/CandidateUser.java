@@ -16,17 +16,19 @@ public class CandidateUser {
     private String email;
     private String loginId;
     private String password;
+    private boolean isGuest;
 
     public CandidateUser(String name, String email) {
         this.name = name;
         this.email = email;
     }
 
-    public CandidateUser(String name, String email, String loginId, String password) {
+    public CandidateUser(String name, String email, String loginId, String password, boolean isGuest) {
         this.name = name;
         this.email = email;
         this.loginId = loginId;
         this.password = password;
+        this.isGuest = isGuest;
     }
 
     public String getName() {
@@ -62,6 +64,10 @@ public class CandidateUser {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public boolean isGuest() {
+        return isGuest;
     }
 
     @Override
