@@ -61,6 +61,11 @@
                         <i class="yobicon-lock"></i>
                     </span>
                     }
+                    @if(project.isProtected){
+                        <span class="project-protected" title="Group Project">
+                            G
+                        </span>
+                    }
                 </div>
                 @if(project.isForkedFromOrigin){
                 <div class="project-origin">
