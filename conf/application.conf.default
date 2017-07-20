@@ -300,7 +300,7 @@ application.noreferrer = true
 application.displayPrivateRepositories = false
 
 # Hide project listing for security
-application.hide.project.listing
+application.hide.project.listing = false
 
 # choice: "public" or "private"
 # default: "public"
