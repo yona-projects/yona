@@ -11,7 +11,12 @@
 @import com.feth.play.module.pa.views.html._
 @import play.mvc.Http._;
 @orderString = @{"createdDate DESC"}
-@if(UserApp.currentUser().isAnonymous){
+
+@currentUser = @{
+    UserApp.currentUser()
+}
+
+@if(currentUser.isAnonymous){
     @currentAuth() { auth => @{
             if(auth == null) {
                 val redirect = Context.current().request().getQueryString("redirectUrl")
@@ -26,7 +31,7 @@
 }
 
 @myOpenIssueCount = @{
-    val count = Issue.countOpenIssuesByUser(UserApp.currentUser())
+    val count = Issue.countOpenIssuesByUser(currentUser)
     if(count > 0) {
         Html("<span class=\"counter-badge\">" + count + "</span>")
     }
@@ -35,7 +40,7 @@
 <div id="mySidenav" class="sidenav">
     <div class="span5 right-menu span-hard-wrap">
         <div class="row-fluid user-menu-wrap">
-            <span class="user-menu"><a href="@routes.UserApp.userInfo(UserApp.currentUser().loginId)">@Messages("userinfo.profile")</a></span>
+            <span class="user-menu"><a href="@routes.UserApp.userInfo(currentUser.loginId)">@Messages("userinfo.profile")</a></span>
             <span class="user-menu"><a href="@routes.UserApp.editUserInfoForm()">@Messages("userinfo.accountSetting")</a></span>
             @currentAuth() { auth =>
                 @if(auth != null) {
@@ -65,7 +70,7 @@
     </div>
 </div>
 <ul class="gnb-usermenu">
-    @if( !UserApp.currentUser().isAnonymous()) {
+    @if( !currentUser.isAnonymous()) {
        <li class="gnb-usermenu-item hide-in-mobile">
           <a href="@routes.Application.notifications()" class="user-item-btn loggged-in">@Messages("notification")</a>
        </li>
@@ -74,7 +79,7 @@
            <a href="@routes.IssueApp.userIssues()" class="user-item-btn loggged-in">@Messages("issue.myIssue")@myOpenIssueCount</a>
         </li>
         <li class="divider"></li>
-        @if(UserApp.currentUser.isSiteManager) {
+        @if(currentUser.isSiteManager) {
         <li class="gnb-usermenu-item">
             <a href="@routes.SiteApp.userList()" data-toggle="tooltip" title="@Messages("menu.siteAdmin")" data-placement="bottom" class="usermenu-icon-button show-progress-bar">
                 <i class="yobicon-wrench"></i>
@@ -85,9 +90,9 @@
         <li class="gnb-usermenu-dropdown" id="sidebar-open-btn">
             <a href="javascript:void(0);" class="gnb-dropdown-toggle">
                 <span class="avatar-wrap smaller">
-                    <img src="@UserApp.currentUser().avatarUrl(32)" />
+                    <img src="@currentUser.avatarUrl(32)" />
                 </span>
-                <span class="caret-text">@UserApp.currentUser().name</span>
+                <span class="caret-text">@currentUser.name</span>
                 <span class="caret"></span>
             </a>
         </li>
@@ -102,11 +107,13 @@
                   @Messages("button.newProject")
                   </a>
               </li>
+              @if(!currentUser.isGuest){
               <li>
                   <a href="@routes.OrganizationApp.newForm()">
                   @Messages("title.newOrganization")
                   </a>
               </li>
+              }
           </ul>
       </li>
       } else {

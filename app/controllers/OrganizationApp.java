@@ -8,6 +8,7 @@ package controllers;
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
 import controllers.annotation.AnonymousCheck;
+import controllers.annotation.GuestProhibit;
 import models.*;
 import models.enumeration.Operation;
 import models.enumeration.RequestState;
@@ -59,6 +60,7 @@ public class OrganizationApp extends Controller {
      * @throws Exception
      */
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
+    @GuestProhibit
     public static Result newOrganization() throws Exception {
         Form<Organization> newOrgForm = form(Organization.class).bindFromRequest();
         if (newOrgForm.hasErrors()) {
@@ -120,11 +122,11 @@ public class OrganizationApp extends Controller {
             return result;
         }
 
-        User user = User.findByLoginId(addMemberForm.get().loginId);
+        User targetUser = User.findByLoginId(addMemberForm.get().loginId);
         Organization organization = Organization.findByName(organizationName);
-        OrganizationUser.assignRole(user.id, organization.id, RoleType.ORG_MEMBER.roleType());
+        OrganizationUser.assignRole(targetUser.id, organization.id, RoleType.ORG_MEMBER.roleType());
         organization.cleanEnrolledUsers();
-        NotificationEvent.afterOrganizationMemberRequest(organization, user, RequestState.ACCEPT);
+        NotificationEvent.afterOrganizationMemberRequest(organization, targetUser, RequestState.ACCEPT);
 
         return redirect(routes.OrganizationApp.members(organizationName));
     }
@@ -135,6 +137,11 @@ public class OrganizationApp extends Controller {
 
         if (addMemberForm.hasErrors() || userToBeAdded.isAnonymous()) {
             flash(Constants.WARNING, "organization.member.unknownUser");
+            return redirect(routes.OrganizationApp.members(organizationName));
+        }
+
+        if (userToBeAdded.isGuest) {
+            flash(Constants.WARNING, "error.forbidden.to.guest.user");
             return redirect(routes.OrganizationApp.members(organizationName));
         }
 
@@ -447,6 +454,7 @@ public class OrganizationApp extends Controller {
         return new ValidationResult(okWithLocation(routes.OrganizationApp.organization(organization.name).url()), false);
     }
 
+    @GuestProhibit
     public static Result orgList(String query, int pageNum){
         if(Application.HIDE_PROJECT_LISTING){
             return forbidden(ErrorViews.Forbidden.render("error.auth.unauthorized.waringMessage"));

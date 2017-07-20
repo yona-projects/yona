@@ -10,6 +10,7 @@ import actions.DefaultProjectCheckAction;
 import com.avaje.ebean.*;
 
 import controllers.annotation.AnonymousCheck;
+import controllers.annotation.GuestProhibit;
 import controllers.annotation.IsAllowed;
 import info.schleichardt.play2.mailplugin.Mailer;
 import models.*;
@@ -956,6 +957,7 @@ public class ProjectApp extends Controller {
      * @param pageNum the page num
      * @return
      */
+    @GuestProhibit
     public static Result projects(String query, int pageNum) {
         if(Application.HIDE_PROJECT_LISTING){
             return forbidden(ErrorViews.Forbidden.render("error.auth.unauthorized.waringMessage"));
