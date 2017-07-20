@@ -84,19 +84,24 @@
                 </a>
             </div>
             <div class="span3 listitem-col">
-                @user.email
+                <span class="email">@user.email</span>
             </div>
             <div class="span2 listitem-col">
-                @user.getDateString
+                <span>@socialDate(user.createdDate)</span>
             </div>
             @if(userState != UserState.DELETED) {
-            <div class="span4 listitem-col">
+            <div class="span5 listitem-col">
+                    <a class="ybtn @if(user.isGuest){ybtn-success}" data-request-method="post" data-request-uri="@routes.SiteApp.toggleGuestMode(user.loginId, user.state.name(), query)">
+                    @if(user.isGuest){
+                        @Messages("button.user.make.normal.mode")
+                    } else {
+                        @Messages("button.user.make.guest.mode")
+                    }
+                    </a>
                 <a class="ybtn" data-request-method="post" data-request-uri="@routes.SiteApp.toggleAccountLock(user.loginId, user.state.name(), query)">
                     @Messages("button" +".user.makeAccountUnlock."+ (user.state == UserState.LOCKED))
                 </a>
-                <button id="@user.loginId" class="ybtn" data-toggle="reset-password" data-href="@routes.UserApp.userInfo(user.loginId)?action=resetPassword">
-                    @Messages("title.resetPassword")
-                </button>
+                <button id="@user.loginId" class="ybtn" data-toggle="reset-password" data-href="@routes.UserApp.userInfo(user.loginId)?action=resetPassword"> @Messages("title.resetPassword")</button>
                 <button class="ybtn ybtn-danger" data-toggle="account-delete" data-href="@routes.SiteApp.deleteUser(user.id)" data-user-id="@user.loginId" data-user-name="@user.name">
                     @Messages("button.delete")
                 </button>

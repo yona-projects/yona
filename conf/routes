@@ -129,6 +129,7 @@ DELETE         /sites/user/delete:userId                                        
 GET            /sites/projectList                                                     controllers.SiteApp.projectList(filter:String ?= "", pageNum: Int ?=0)
 DELETE         /sites/project/delete/:projectId                                       controllers.SiteApp.deleteProject(projectId:Long)
 POST           /sites/toggleAccountLock                                               controllers.SiteApp.toggleAccountLock(loginId: String, state: String ?= null, query: String ?= null)
+POST           /sites/toggleGuestMode                                               controllers.SiteApp.toggleGuestMode(loginId: String, state: String ?= null, query: String ?= null)
 GET            /sites/update                                                          controllers.SiteApp.update()
 POST           /sites/unwatchUpdate                                                   controllers.SiteApp.unwatchUpdate()
 GET            /sites/diagnostic                                                      controllers.SiteApp.diagnose()

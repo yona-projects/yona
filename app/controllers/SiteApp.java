@@ -201,6 +201,23 @@ public class SiteApp extends Controller {
         return redirect(routes.Application.index());
     }
 
+    public static Result toggleGuestMode(String loginId, String state, String query){
+        String stateParam = StringUtils.defaultIfBlank(state, UserState.ACTIVE.name());
+        UserState userState = UserState.valueOf(stateParam);
+        if(User.findByLoginId(session().get("loginId")).isSiteManager()){
+            User targetUser = User.findByLoginId(loginId);
+            if (targetUser.isAnonymous()){
+                flash(Constants.WARNING, "user.notExists.name");
+                return redirect(routes.SiteApp.userList(0, null));
+            }
+            targetUser.isGuest = !targetUser.isGuest;
+            targetUser.update();
+            return ok(userList.render("title.siteSetting", User.findUsers(0, query, userState), userState, query));
+        }
+        flash(Constants.WARNING, "error.auth.unauthorized.waringMessage");
+        return redirect(routes.Application.index());
+    }
+
     public static Result mailList() {
         Set<String> emails = new HashSet<>();
         Map<String, String[]> projects = request().body().asFormUrlEncoded();
