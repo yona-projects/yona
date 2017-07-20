@@ -279,6 +279,9 @@ application.noreferrer = true
 # Display private repositories in the list
 application.displayPrivateRepositories = false
 
+# Hide project listing for security
+application.hide.project.listing
+
 # choice: "public" or "private"
 # default: "public"
 project.default.scope.when.create = "public"
