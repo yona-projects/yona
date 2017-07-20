@@ -455,7 +455,6 @@ public class UserApp extends Controller {
     }
 
     private static User createUserDelegate(CandidateUser candidateUser) {
-        // . is replaced with - because of BasicAuth parsing case with id
         String loginIdCandidate = candidateUser.getLoginId();
 
         User user = new User();
@@ -475,6 +474,7 @@ public class UserApp extends Controller {
             user.password = candidateUser.getPassword();
         }
 
+        user.isGuest = candidateUser.isGuest();
         return createNewUser(user);
     }
 
@@ -1148,20 +1148,10 @@ public class UserApp extends Controller {
         try {
             LdapUser ldapUser = ldapService.authenticate(loginIdOrEmail, password);
             play.Logger.debug("l: " + ldapUser);
+
             User localUserFoundByLdapLogin = User.findByEmail(ldapUser.getEmail());
             if (localUserFoundByLdapLogin.isAnonymous()) {
-                CandidateUser candidateUser = new CandidateUser(
-                        ldapUser.getDisplayName(),
-                        ldapUser.getEmail(),
-                        ldapUser.getUserLoginId(),
-                        password
-                );
-                User created = createUserDelegate(candidateUser);
-                if (created.state == UserState.LOCKED) {
-                    flash(Constants.INFO, "user.signup.requested");
-                    return User.anonymous;
-                }
-                return created;
+                return createNewUser(password, ldapUser);
             } else {
                 if(!localUserFoundByLdapLogin.isSamePassword(password)) {
                     User.resetPassword(localUserFoundByLdapLogin.loginId, password);
@@ -1169,6 +1159,7 @@ public class UserApp extends Controller {
 
                 localUserFoundByLdapLogin.refresh();
                 localUserFoundByLdapLogin.name = ldapUser.getDisplayName();
+                localUserFoundByLdapLogin.isGuest = ldapUser.isGuestUser();
                 localUserFoundByLdapLogin.update();
                 return localUserFoundByLdapLogin;
             }
@@ -1189,6 +1180,22 @@ public class UserApp extends Controller {
             e.printStackTrace();
             return User.anonymous;
         }
+    }
+
+    private static User createNewUser(String password, LdapUser ldapUser) {
+        CandidateUser candidateUser = new CandidateUser(
+                ldapUser.getDisplayName(),
+                ldapUser.getEmail(),
+                ldapUser.getUserLoginId(),
+                password,
+                ldapUser.isGuestUser()
+        );
+        User created = createUserDelegate(candidateUser);
+        if (created.state == UserState.LOCKED) {
+            flash(Constants.INFO, "user.signup.requested");
+            return User.anonymous;
+        }
+        return created;
     }
 
     public static boolean isUsingSignUpConfirm(){

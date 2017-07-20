@@ -182,6 +182,8 @@ public class User extends Model implements ResourceConvertible {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     public List<OrganizationUser> organizationUsers;
 
+    public boolean isGuest = false;
+
     public User() {
     }
 
