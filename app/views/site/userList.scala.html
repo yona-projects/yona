@@ -48,18 +48,18 @@
         <div class="span3 listhead-title">
             <strong>@Messages("user.name")</strong>
         </div>
-        <div class="span4 listhead-title">
+        <div class="span3 listhead-title">
             <strong>@Messages("user.email")</strong>
         </div>
         <div class="span2 listhead-title">
             <strong>@Messages("userinfo.since")</strong>
         </div>
         @if(userState != UserState.DELETED) {
-        <div class="span3 listhead-title">
+        <div class="span4 listhead-title">
             <strong>&nbsp;</strong>
         </div>
         } else {
-        <div class="span3 listhead-title">
+        <div class="span4 listhead-title">
             <strong>@Messages("userinfo.leave")</strong>
         </div>
         }
@@ -101,7 +101,7 @@
                 </button>
             </div>
             } else {
-            <div class="span3 listitem-col">
+            <div class="span4 listitem-col">
                 @user.lastStateModifiedDate
             </div>
             }
