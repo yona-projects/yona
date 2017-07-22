@@ -205,7 +205,6 @@ Migration
 Google Analytics
 ---
 - Basically, distributed Yona include Google Analytics. 
-- Yona는 설치형으로 제공되는 오픈소스라 지소적으로 개발/유지하기 위해 필수적인 요소인 설치정보가 필요합니다.
 - This data is used to better understand how users use Yona and make constantly improving Yona development.
 - To disable this for any reason, set the following option to false in conf/application.conf file.
 ```
