@@ -10,6 +10,7 @@
 @import utils.JodaDateUtil._
 
 @siteMngLayout(message) {
+    <div class="title_area">
         <h2 class="pull-left">@Messages("site.sidebar.projectList")</h2>
         <form class="form-search pull-right" action="@routes.SiteApp.projectList()">
             <div class="search-bar">
@@ -22,10 +23,13 @@
         <div class="span5 listhead-title">
             <strong>@Messages("project.name")</strong>
         </div>
-        <div class="span5 listhead-title">
+        <div class="span4 listhead-title">
             <strong>@Messages("project.description")</strong>
         </div>
         <div class="span2 listhead-title">
+            <strong>@Messages("project.created")</strong>
+        </div>
+        <div class="span1 listhead-title">
             <strong>&nbsp;</strong>
         </div>
     </div>
