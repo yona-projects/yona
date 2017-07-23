@@ -44,7 +44,13 @@
     <div class="page-wrap">
         <section class="user-box">
             <div class="user-info-box">
-                <div class="whoami-wrap" style="background-image:url('@user.avatarUrl(256)')"></div>
+                <div class="whoami-wrap" style="background-image:url('@user.avatarUrl(256)')">
+                @if(user.isGuest) {
+                    <div class="guest-user">
+                        <span class="left-mark">OUR GUEST</span>
+                    </div>
+                }
+                </div>
                 <div class="whoami usf-group">
                     <span class="name">@user.name</span>
                     <span class="loginid">@{"@"}@user.loginId</span>
@@ -84,7 +90,6 @@
                         }
                     }
                     </div>
-
                 </div>
             </div>
 
