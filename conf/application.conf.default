@@ -57,6 +57,10 @@ application.guest.user.login.id.prefix = ""
 #
 # application.use.email.verification = true
 
+# Login form custom input message
+# application.login.page.loginId.placeholder = "Use Emp. no as login id"
+# application.login.page.password.placeholder = ""
+
 # If you enable to use social login or email verification, set followings
 play-easymail {
   from {

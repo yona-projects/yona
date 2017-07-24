@@ -386,6 +386,7 @@ milestone.state.closed = Closed
 milestone.state.open = Open
 milestone.title.duplicated = Same milestone title already exists. Please enter a different title.
 notification = Notification
+notification.confirm.mail.will.be.sent = If you are trying first login, confirmation mail will be sent.
 notification.help = You will receive notification, when following events occur.
 notification.help.new = when new posts, new issues, new pull-requests or comments on pull-requests are added.
 notification.help.new.comment = when comments are added to post, issue, or code.

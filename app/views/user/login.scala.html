@@ -17,6 +17,22 @@
   allowedProviders.nonEmpty && StringUtils.isNotBlank(allowedProviders(0))
 }
 
+@loginIdPlaceHolder = @{
+  if(StringUtils.isNotBlank(Application.LOGIN_PAGE_LOGINID_PLACEHOLDER)){
+    Application.LOGIN_PAGE_LOGINID_PLACEHOLDER
+  } else {
+    Messages("user.login.key")
+  }
+}
+
+@passwordPlaceHolder = @{
+  if(StringUtils.isNotBlank(Application.LOGIN_PAGE_PASSWORD_PLACEHOLDER)){
+    Application.LOGIN_PAGE_PASSWORD_PLACEHOLDER
+  } else {
+    Messages("user.password")
+  }
+}
+
 @siteLayout(message, utils.MenuType.NONE) {
 <div class="page full">
   <div class="center-wrap tag-line-wrap login">
@@ -26,6 +42,9 @@
     <p class="tag-line">@Messages("app.description")</p>
   </div>
   <div class="login-form-wrap frm-wrap">
+    @if(UserApp.isUsingEmailVerification){
+      <div class="email-verification-help">@Messages("notification.confirm.mail.will.be.sent")</div>
+    }
     <form action="@routes.UserApp.login()" method="POST">
       <input type="hidden" name="redirectUrl" value="@redirectUrl" />
       @if(UserApp.useSocialLoginOnly){
@@ -35,10 +54,10 @@
       } else {
       <dl>
         <dd>
-          <input id="loginIdOrEmailD" name="loginIdOrEmail" type="text" class="text email" autocomplete="off" placeholder="@Messages("user.login.key")">
+          <input id="loginIdOrEmailD" name="loginIdOrEmail" type="text" class="text email" autocomplete="off" placeholder="@loginIdPlaceHolder">
         </dd>
         <dd>
-          <input id="password" name="password" type="password" class="text password" autocomplete="off" placeholder="@Messages("user.password")">
+          <input id="password" name="password" type="password" class="text password" autocomplete="off" placeholder="@passwordPlaceHolder">
         </dd>
       </dl>
 

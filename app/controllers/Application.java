@@ -35,6 +35,8 @@ public class Application extends Controller {
     public static boolean HIDE_PROJECT_LISTING = play.Configuration.root().getBoolean("application.hide.project.listing", false);
     public static boolean SEND_YONA_USAGE =play.Configuration.root().getBoolean("application.send.yona.usage", true);
     public static String GUEST_USER_LOGIN_ID_PREFIX  = play.Configuration.root().getString("application.guest.user.login.id.prefix ", "");
+    public static String LOGIN_PAGE_LOGINID_PLACEHOLDER  = play.Configuration.root().getString("application.login.page.loginId.placeholder", "");
+    public static String LOGIN_PAGE_PASSWORD_PLACEHOLDER  = play.Configuration.root().getString("application.login.page.password.placeholder", "");
 
     @AnonymousCheck
     public static Result index() {
