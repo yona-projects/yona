@@ -2016,6 +2016,13 @@ label.inline-list {
     }
 }
 
+.guest-mixin() {
+    background-color: rgba(255, 165, 0, 0.8);;
+    color: white;
+    padding: 2px;
+    font-size: 10px;
+}
+
 .members.project {
     margin: 0;
     list-style: none;
@@ -2051,6 +2058,9 @@ label.inline-list {
                 padding:5px;
             }
         }
+    }
+    .guest {
+        .guest-mixin
     }
 }
 
