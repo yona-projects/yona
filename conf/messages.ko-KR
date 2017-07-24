@@ -385,6 +385,7 @@ milestone.state.closed = 종료
 milestone.state.open = 진행중
 milestone.title.duplicated = 마일스톤 제목이 다른것과 중복 됩니다. 다른 제목을 사용하세요.
 notification = 알림
+notification.confirm.mail.will.be.sent = 최초 로그인일 경우 확인 메일이 발송됩니다.
 notification.help = 다음 이벤트가 발생할 때 알림 메시지를 받습니다.
 notification.help.new = 새 글, 이슈, 코드 요청, 코드 요청에 댓글이 등록되었을 때
 notification.help.new.comment = 글, 이슈, 코드에 새 댓글이 등록되었을 때
