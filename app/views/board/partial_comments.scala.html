@@ -45,15 +45,13 @@
         </div>
         <div class="media-body">
             <div class="meta-info">
-                <span class="comment_author pull-left">
+                <span class="comment_author">
                     <span class="resp-comment-avatar">
                         <a href="@userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
-                            <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl(64)" width="32" height="32" alt="@comment.authorLoginId">
+                            <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl(64)" width="32" height="32" alt="@comment.authorName">
                         </a>
                     </span>
-                    <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
-                        <strong>@comment.authorLoginId </strong>
-                    </a>
+                    <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorLoginId"><strong>@comment.authorName</strong></a>
                 </span>
                 <span class="ago-date">
                     <a href="#comment-@comment.id" class="ago" title="@JodaDateUtil.getDateString(comment.createdDate)">@utils.TemplateHelper.agoOrDateString(comment.createdDate)</a>
