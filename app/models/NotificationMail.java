@@ -546,7 +546,7 @@ public class NotificationMail extends Model {
                 IssueComment issueComment = IssueComment.find.byId(Long.valueOf(resource.getId()));
                 resource = issueComment.issue.asResource();
             }
-            email.setHtmlMsg(removeHeadAnchor(getHtmlMessage(lang, message, urlToView, resource, acceptsReply)));
+            email.setHtmlMsg(getHtmlMessage(lang, message, urlToView, resource, acceptsReply));
             email.setTextMsg(getPlainMessage(lang, message, Url.create(urlToView), acceptsReply));
 
             email.addReferences();
@@ -563,10 +563,6 @@ public class NotificationMail extends Model {
             Logger.warn("Failed to send a notification: "
                     + email + "\n" + ExceptionUtils.getStackTrace(e));
         }
-    }
-
-    private static String removeHeadAnchor(String htmlText) {
-        return htmlText.replaceAll("head-anchor\">#</a>", "></a>");
     }
 
     @Nullable
