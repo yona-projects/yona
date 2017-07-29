@@ -40,12 +40,11 @@ public class Markdown {
             .and(Sanitizers.BLOCKS)
             .and(new HtmlPolicyBuilder()
                     .allowStandardUrlProtocols().allowElements("a")
-                    .allowAttributes("href").onElements("a")
-                    .allowAttributes("name").onElements("a")
-                    .allowAttributes("target").onElements("a").toFactory())
+                    .allowAttributes("href", "name", "target").onElements("a")
+                    .toFactory())
             .and(new HtmlPolicyBuilder().allowElements("pre").toFactory())
             .and(new HtmlPolicyBuilder()
-                    .allowAttributes("class", "id").globally().toFactory());
+                    .allowAttributes("class", "id", "style", "width", "height").globally().toFactory());
 
     private static ScriptEngine buildEngine() {
         ScriptEngineManager manager = new ScriptEngineManager(null);
