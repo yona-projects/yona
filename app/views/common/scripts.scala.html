@@ -90,6 +90,10 @@
             case None => { }
         }
 
+        yobi.ShortcutKey.setKeymapLink({
+            "A": "@routes.IssueApp.userIssues()"
+        });
+
         // yobi.Files
         yobi.Files.init({
             "sListURL"  : "@routes.AttachmentApp.getFileList()",

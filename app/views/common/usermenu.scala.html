@@ -75,7 +75,7 @@
           <a href="@routes.Application.notifications()" class="user-item-btn loggged-in">@Messages("notification")</a>
        </li>
        <li class="divider hide-in-mobile"></li>
-       <li class="gnb-usermenu-item">
+       <li class="gnb-usermenu-item" data-toggle="tooltip" data-placement="bottom" title="@Messages("title.shortcut") (A)">
            <a href="@routes.IssueApp.userIssues()" class="user-item-btn loggged-in">@Messages("issue.myIssue")@myOpenIssueCount</a>
         </li>
         <li class="divider"></li>
