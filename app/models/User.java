@@ -661,7 +661,7 @@ public class User extends Model implements ResourceConvertible {
             oldPassword = "";
             password = "";
             passwordSalt = "";
-            email = "deleted-" + loginId + "@noreply.yobi.io";
+            email = "deleted-" + loginId + "@noreply.yona.io";
             rememberMe = false;
             projectUser.clear();
             enrolledProjects.clear();
