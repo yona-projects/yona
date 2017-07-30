@@ -104,6 +104,12 @@ public class IssueApp extends AbstractPostingApp {
 
     @Transactional
     @IsAllowed(Operation.READ)
+    public static Result issues(String ownerName, String projectName) throws WriteException, IOException {
+       return issues(ownerName, projectName, State.OPEN.state(), "html", 1);
+    }
+
+    @Transactional
+    @IsAllowed(Operation.READ)
     public static Result issues(String ownerName, String projectName, String state, String format, int pageNum) throws WriteException, IOException {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 

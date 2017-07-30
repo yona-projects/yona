@@ -13,6 +13,7 @@ import controllers.annotation.AnonymousCheck;
 import controllers.annotation.GuestProhibit;
 import controllers.annotation.IsAllowed;
 import info.schleichardt.play2.mailplugin.Mailer;
+import jxl.write.WriteException;
 import models.*;
 import models.enumeration.*;
 import org.apache.commons.collections.CollectionUtils;
@@ -1228,5 +1229,23 @@ public class ProjectApp extends Controller {
             pushedBranch.delete();
         }
         return ok();
+    }
+
+    @IsAllowed(Operation.READ)
+    @Transactional
+    public static Result goConventionMenu(String ownerId, String projectName)
+            throws IOException, ServletException, SVNException, GitAPIException, WriteException {
+        Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
+        List<History> histories = null;
+
+        if( project.menuSetting.issue ) {
+            return IssueApp.issues(project.owner, project.name);
+        }
+
+        if( project.menuSetting.board ) {
+            return redirect(routes.BoardApp.posts(project.owner, project.name, 1));
+        }
+
+        return redirect(routes.ProjectApp.project(project.owner, project.name));
     }
 }
