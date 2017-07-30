@@ -207,7 +207,7 @@ yobi.Pagination = (function(window, document) {
             "sLinkHref": htData.hasPrev ? urlWithPageNum(htData.url, htData.current - 1, htData.paramNameForPage) : "",
             "sLinkHTMLOn"   : sLinkHTMLOn,
             "sLinkHTMLOff"  : sLinkHTMLOff,
-            "sShortcutKey"  : "A",
+            "sShortcutKey"  : "LEFT",
             "nSubmitPageNum": htData.current - 1
         });
 
@@ -233,7 +233,7 @@ yobi.Pagination = (function(window, document) {
             "sLinkHref": htData.hasNext ? urlWithPageNum(htData.url, htData.current + 1, htData.paramNameForPage) : "",
             "sLinkHTMLOn"   : sLinkHTMLOn,
             "sLinkHTMLOff"  : sLinkHTMLOff,
-            "sShortcutKey"  : "S",
+            "sShortcutKey"  : "RIGHT",
             "nSubmitPageNum": htData.current + 1
         });
 

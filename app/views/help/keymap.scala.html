@@ -73,10 +73,10 @@
                         }
 
                         @if(section.indexOf("List") > -1){
-                            <span class="ybtn ybtn-small">A</span>
+                            <span class="ybtn ybtn-small">←</span>
                             <span class="help-inline">@Messages("button.prevPage")</span><br>
 
-                            <span class="ybtn ybtn-small">S</span>
+                            <span class="ybtn ybtn-small">→</span>
                             <span class="help-inline">@Messages("button.nextPage")</span><br>
                         }
 
@@ -88,6 +88,9 @@
 
                     <div class="span7">
                         <h5>@Messages("site")</h5>
+
+                        <span class="ybtn ybtn-small">A</span>
+                        <span class="help-inline">@Messages("issue.myIssue")</span><br>
 
                         <span class="ybtn ybtn-small">U</span>
                         <span class="help-inline">@Messages("userinfo.profile")</span><br>
