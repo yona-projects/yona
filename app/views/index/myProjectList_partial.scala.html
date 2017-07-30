@@ -7,14 +7,14 @@
 @(project:Project, favored:Boolean, isLast:Boolean = false)
 @import utils.TemplateHelper._
 
-<li class="user-li @if(isLast){favored}" onclick="window.location='@routes.ProjectApp.project(project.owner, project.name)';">
+<li class="user-li @if(isLast){favored}" onclick="window.location='@routes.ProjectApp.goConventionMenu(project.owner, project.name)';">
     <div class="project-list project-flex-container">
         <div class="project-item project-item-container">
             <div class="flex-item site-logo">
-                <i class="project-avatar">@if(hasProjectLogo(project)){<a href="@routes.ProjectApp.project(project.owner, project.name)" ><img class="logo" src="@urlToProjectLogo(project)"></a>}else{<span class="dummy-25px"> </span>}</i>
+                <i class="project-avatar">@if(hasProjectLogo(project)){<a href="@routes.ProjectApp.goConventionMenu(project.owner, project.name)" ><img class="logo" src="@urlToProjectLogo(project)"></a>}else{<span class="dummy-25px"> </span>}</i>
             </div>
             <div class="projectName-owner flex-item">
-                <div class="project-name flex-item"><a href="@routes.ProjectApp.project(project.owner, project.name)">@project.name @if(project.isPrivate){<i class="yobicon-lock yobicon-small"></i>}</a></div>
+                <div class="project-name flex-item"><a href="@routes.ProjectApp.goConventionMenu(project.owner, project.name)">@project.name @if(project.isPrivate){<i class="yobicon-lock yobicon-small"></i>}</a></div>
                 <div class="project-owner flex-item"><a href="@routes.UserApp.userInfo(project.owner)" >@project.owner</a></div>
             </div>
         </div>

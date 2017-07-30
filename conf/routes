@@ -204,6 +204,9 @@ GET            /:user/:project/search                                           
 GET            /:user/:project/changeVCS                                              controllers.ProjectApp.changeVCSForm(user, project)
 POST           /:user/:project/changeVCS                                              controllers.ProjectApp.changeVCS(user, project)
 
+# Project menu forwarding
+GET            /:user/:project/go                                                     controllers.ProjectApp.goConventionMenu(user, project)
+
 # Project Review Menu
 GET            /:user/:project/reviews                                                controllers.ReviewThreadApp.reviewThreads(user, project)
 
