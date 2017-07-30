@@ -920,6 +920,7 @@ title.resetPasswordFor = <span class="highlight">{0}</span> 비밀번호 재설�
 title.search = 검색
 title.searchByKeyword = 키워드로 검색
 title.sendMail = 메일 발송
+title.shortcut = 단축키
 title.signup = 멤버 가입
 title.signupFor = <span class="highlight">{0}</span> 멤버 가입
 title.signupConfirmDesc = 가입 후 사용을 위해서는 관리자의 승인이 필요합니다
@@ -968,6 +969,7 @@ user.loginId = 아이디
 user.loginId.duplicate = 이미 존재하는 아이디입니다.
 user.loginWithNewPassword = 새로 설정한 비밀번호로 로그인 하세요
 user.logout.success = 로그아웃했습니다
+user.menu = 사용자 메뉴
 user.name = 이름
 user.newPassword = 신규 비밀번호
 user.notExists.name = 존재하지 않는 사용자입니다.

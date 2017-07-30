@@ -16,6 +16,19 @@ $(function() {
         var PIXEL_CRITERIA_FOR_SMALL_DEVICE = 720;  // Criteria to distinguish small devices
         var SIDE_BAR_DEFAULT_WIDTH = "420px";
 
+      $(document).on("keypress", function openFavoriteMenuWithShortcutKey(event) {
+        if (isShortcutKeyPressed(event)) {
+          event.preventDefault();
+          openSidebar($sidebar);
+          updateStar();
+        }
+      });
+
+      function isShortcutKeyPressed(event) {
+        return (event.which === 102 || event.which === 12601)     // keycode => 102: f, 12623: ㄹ
+            && $(':focus').length === 0;                        // avoid already somewhere focused state
+      }
+
         $("#main").on("click", function(event){
             if( $sidebar.width() !== 0 && $(event.target).parents("#mySidenav").length == 0) {
                 closeSidebar($sidebar);
@@ -86,6 +99,7 @@ $(function() {
         }).on("keydown.moveCursorFromInputform", function(e) {
             switch (e.keyCode) {
                 case 27:   // ESC
+                    $('.project-search').blur();
                     closeSidebar($sidebar);
                     break;
                 default:

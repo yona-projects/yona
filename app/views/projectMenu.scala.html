@@ -143,7 +143,7 @@ $(document).ready(function(){
             ,"M": "@routes.MilestoneApp.milestones(project.owner, project.name)"
         }
         @if(menuSetting.pullRequest && project.vcs.equals("GIT")){
-           ,"F": "@getPullRequestURL(project)"
+           ,"P": "@getPullRequestURL(project)"
         }
         @requestHeader.session.get("loginId") match {
             case Some(role) if role.equals("manager") => { "Q": "@routes.ProjectApp.settingForm(project.owner, project.name)" }
