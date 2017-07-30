@@ -934,6 +934,7 @@ title.resetPasswordFor = Reset password for <span class="highlight">{0}</span>
 title.search = Search
 title.searchByKeyword = Search by keyword
 title.sendMail = Send email
+title.shortcut = Shortcut
 title.signup = Sign up
 title.signupFor = Sign up for <span class="highlight">{0}</span>
 title.signupConfirmDesc = It is required admission of admin for activation.
@@ -982,6 +983,7 @@ user.loginId = Login ID
 user.loginId.duplicate = Same log in ID already exists.
 user.loginWithNewPassword = Please log in with new password!
 user.logout.success = You have logged out successfully
+user.menu = User menu
 user.name = Name
 user.newPassword = New password
 user.notExists.name = User not exists
