@@ -111,41 +111,44 @@ yobi.Mention = function(htOptions) {
      * Find Userlist
      */
     function _findMentionList(){
-        $.ajax({
-            "url"        : htVar.url,
-            "type"       : "get",
-            "contentType": "application/json",
-            "dataType"   : "json",
-            "beforeSend" : function() {
-                NProgress.start();
-            }
-        }).done(function(data){
-            NProgress.done();
-            _onLoadUserList(data);
-        });
+        _onLoadUserList();
     }
 
-    function _onLoadUserList(aData){
+    function _onLoadUserList(){
         htVar.doesNotDataLoaded = false;
 
         htElement.welTarget
             .atwho({
                 at: "@",
                 limit: 10,
-                data: aData.result,
                 displayTpl: "<li data-value='@${loginid}'><img style='width:20px;height:20px;' src='${image}'> ${name} <small>${loginid}</small></li>",
                 suspendOnComposing: false,
                 searchKey: "searchText",
-                insertTpl: "@${loginid}"
+                insertTpl: "@${loginid}",
+                callbacks: {
+                    remoteFilter: function(query, callback) {
+                        NProgress.start();
+                        $.getJSON(htVar.url, {query: query, mentionType: "user"}, function(data) {
+                            NProgress.done();
+                            callback(data.result)
+                        });
+                    }
+                }
             })
             .atwho({
                 at: "#",
                 limit: 10,
                 displayTpl: "<li data-value='#${issueNo}'><small>#${issueNo}</small> ${title}</li>",
-                data: aData.issues,
                 suspendOnComposing: false,
                 insertTpl: "#${issueNo}",
                 callbacks: {
+                    remoteFilter: function(query, callback) {
+                        NProgress.start();
+                        $.getJSON(htVar.url, {query: query, mentionType: "issue"}, function(data) {
+                            NProgress.done();
+                            callback(data.result)
+                        });
+                    },
                     sorter: function(query, items, searchKey) {
                         var item, i, len, results;
                         if (!query) {

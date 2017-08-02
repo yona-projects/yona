@@ -185,7 +185,7 @@ GET            /:user/:project/settingform                                      
 POST           /:user/:project/setting                                                controllers.ProjectApp.settingProject(user, project)
 GET            /:user/:project/deleteform                                             controllers.ProjectApp.deleteForm(user, project)
 DELETE         /:user/:project/delete                                                 controllers.ProjectApp.deleteProject(user, project)
-GET            /:user/:project/mentionList                                            controllers.ProjectApp.mentionList(user, project, number:Long ?= -1, resourceType:String ?= "")
+GET            /:user/:project/mentionList                                            controllers.ProjectApp.mentionList(user, project, number:Long ?= -1, resourceType:String ?= "", query: String ?= "", mentionType: String ?= "")
 GET            /:user/:project/mentionListAtCommitDiff                                controllers.ProjectApp.mentionListAtCommitDiff(user, project, commitId:String ?= "", pullRequestId:Long ?= -1)
 GET            /:user/:project/mentionListAtPullRequest                               controllers.ProjectApp.mentionListAtPullRequest(user, project, commitId:String ?= "", pullRequestId:Long)
 GET            /:user/:project/members                                                controllers.ProjectApp.members(user, project)
