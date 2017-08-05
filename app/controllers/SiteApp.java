@@ -8,6 +8,8 @@ package controllers;
 
 import com.avaje.ebean.Page;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.annotation.AnonymousCheck;
 import data.DataService;
 import info.schleichardt.play2.mailplugin.Mailer;
@@ -22,6 +24,7 @@ import org.springframework.format.datetime.DateFormatter;
 import play.Configuration;
 import play.Logger;
 import play.db.ebean.Transactional;
+import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -325,4 +328,52 @@ public class SiteApp extends Controller {
         }
     }
 
+    public static Result noAvatarUsers() {
+        List<User> users = User.find.where().eq("state", UserState.ACTIVE).findList();
+        List<ObjectNode> usersNode = new ArrayList<>();
+
+        ObjectNode result = Json.newObject();
+
+        for(User user: users){
+            if(user.avatarId() == null) {
+                usersNode.add(composeUserNode(user));
+            }
+        }
+
+        result.put("users", toJson(usersNode));
+        return ok(result);
+    }
+
+    private static ObjectNode composeUserNode(User user) {
+        ObjectNode userNode = Json.newObject();
+        userNode.put("loginId", user.loginId);
+        userNode.put("name", user.name);
+        userNode.put("email", user.email);
+        return userNode;
+    }
+
+    public static Result setAttachmentToUserAvatar() {
+        ObjectNode result = Json.newObject();
+
+        JsonNode json = request().body().asJson();
+        if (json == null) {
+            return badRequest(result.put("message", "Expecting Json data"));
+        }
+
+        long avatarFileId = json.findValue("avatarFileId").asLong();
+        Attachment attachment = Attachment.find.byId(avatarFileId);
+        String primary = attachment.mimeType.split("/")[0].toLowerCase();
+
+        String targetUserEmail = json.findValue("email").asText();
+        User targetUser = User.findByEmail(targetUserEmail);
+
+        if (primary.equals("image") && !targetUser.isAnonymous()) {
+            Attachment.deleteAll(targetUser.avatarAsResource());
+            attachment.moveTo(targetUser.avatarAsResource());
+        }
+
+        result.put("status", 200);
+        result.put("message", "OK");
+        return ok(result);
+    }
 }
