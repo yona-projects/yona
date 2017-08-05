@@ -139,6 +139,8 @@ POST           /resetPassword                                                   
 GET            /verify/:loginId/:verificationCode                                     controllers.UserApp.verifyUser(loginId:String, verificationCode:String)
 GET            /sites/postList                                                        controllers.SiteApp.postList(pageNum: Int ?= 1)
 GET            /sites/issueList                                                       controllers.SiteApp.issueList(pageNum: Int ?= 1)
+GET            /sites/noAvatarUsers                                                   controllers.SiteApp.noAvatarUsers()
+POST           /sites/setAttachmentToUserAvatar                                       controllers.SiteApp.setAttachmentToUserAvatar()
 
 # Attachments
 GET            /files                                                                 controllers.AttachmentApp.getFileList()

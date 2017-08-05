@@ -7,7 +7,11 @@
 package controllers;
 
 import com.avaje.ebean.Page;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.annotation.AnonymousCheck;
+import data.DataService;
 import info.schleichardt.play2.mailplugin.Mailer;
 import models.*;
 import models.enumeration.State;
@@ -16,13 +20,22 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.SimpleEmail;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.springframework.format.datetime.DateFormatter;
 import play.Configuration;
 import play.Logger;
 import play.db.ebean.Transactional;
-import views.html.site.*;
-import play.mvc.*;
+import play.libs.Json;
+import play.mvc.Controller;
+import play.mvc.Http;
+import play.mvc.Result;
+import play.mvc.With;
+import scala.App;
 import utils.*;
+import views.html.site.*;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 import static play.libs.Json.toJson;
@@ -30,7 +43,7 @@ import static play.libs.Json.toJson;
 /**
  * The Class SiteApp.
  */
- @With(SiteManagerAuthAction.class)
+@With(SiteManagerAuthAction.class)
 @AnonymousCheck
 public class SiteApp extends Controller {
 
@@ -281,5 +294,86 @@ public class SiteApp extends Controller {
      */
     public static Result diagnose() {
         return ok(diagnostic.render("title.siteSetting", Diagnostic.checkAll()));
+    }
+
+    public static Result data() {
+        return ok(data.render("title.siteSetting"));
+    }
+
+    public static Result exportData() throws JsonProcessingException {
+        Date date = new Date();
+        DateFormatter formatter = new DateFormatter("yyyyMMddHHmm");
+        String formattedDate = formatter.print(date, Locale.getDefault());
+
+        InputStream in = new DataService().exportData();
+        response().setContentType("application/x-download");
+        response().setHeader("Content-disposition","attachment; filename=yobi-data-" + formattedDate + ".json");
+
+        return ok(in);
+    }
+
+    public static Result importData() throws IOException {
+        Http.MultipartFormData body = request().body().asMultipartFormData();
+        Http.MultipartFormData.FilePart yobiData = body.getFile("data");
+        if (yobiData != null) {
+            File file = yobiData.getFile();
+            try {
+                new DataService().importData(file);
+                return redirect(routes.Application.index());
+            } catch (Exception e) {
+                return badRequest(ErrorViews.BadRequest.render());
+            }
+        } else {
+            return redirect(routes.SiteApp.data());
+        }
+    }
+
+    public static Result noAvatarUsers() {
+        List<User> users = User.find.where().eq("state", UserState.ACTIVE).findList();
+        List<ObjectNode> usersNode = new ArrayList<>();
+
+        ObjectNode result = Json.newObject();
+
+        for(User user: users){
+            if(user.avatarId() == null) {
+                usersNode.add(composeUserNode(user));
+            }
+        }
+
+        result.put("users", toJson(usersNode));
+        return ok(result);
+    }
+
+    private static ObjectNode composeUserNode(User user) {
+        ObjectNode userNode = Json.newObject();
+        userNode.put("loginId", user.loginId);
+        userNode.put("name", user.name);
+        userNode.put("email", user.email);
+        return userNode;
+    }
+
+    public static Result setAttachmentToUserAvatar() {
+        ObjectNode result = Json.newObject();
+
+        JsonNode json = request().body().asJson();
+        if (json == null) {
+            return badRequest(result.put("message", "Expecting Json data"));
+        }
+
+        long avatarFileId = json.findValue("avatarFileId").asLong();
+        Attachment attachment = Attachment.find.byId(avatarFileId);
+        String primary = attachment.mimeType.split("/")[0].toLowerCase();
+
+        String targetUserEmail = json.findValue("email").asText();
+        User targetUser = User.findByEmail(targetUserEmail);
+
+        if (primary.equals("image") && !targetUser.isAnonymous()) {
+            Attachment.deleteAll(targetUser.avatarAsResource());
+            attachment.moveTo(targetUser.avatarAsResource());
+        }
+
+        result.put("status", 200);
+        result.put("message", "OK");
+        return ok(result);
     }
 }
