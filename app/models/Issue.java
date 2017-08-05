@@ -1,8 +1,8 @@
 /**
- * Yona, 21st Century Project Hosting SW
- * <p>
- * Copyright Yona & Yobi Authors & NAVER Corp.
- * https://yona.io
+ *  Yona, 21st Century Project Hosting SW
+ *  <p>
+ *  Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+ *  https://yona.io
  **/
 package models;
 
@@ -130,6 +130,10 @@ public class Issue extends AbstractPosting implements LabelOwner {
 
     public String assigneeName() {
         return ((assignee != null && assignee.user != null) ? assignee.user.name : null);
+    }
+
+    public boolean hasAssignee() {
+        return (assignee != null && assignee.user != null);
     }
 
     /**

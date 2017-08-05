@@ -1,14 +1,15 @@
 /**
- * Yona, 21st Century Project Hosting SW
- * <p>
- * Copyright 2016 the original author or authors.
- */
+ *  Yona, 21st Century Project Hosting SW
+ *  <p>
+ *  Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+ *  https://yona.io
+ **/
 
 package controllers.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import controllers.*;
+import controllers.UserApp;
 import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
 import models.*;
@@ -17,7 +18,6 @@ import models.enumeration.ProjectScope;
 import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
 import org.apache.commons.lang3.StringUtils;
-import play.data.Form;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
 import play.i18n.Messages;
@@ -29,15 +29,11 @@ import utils.AccessControl;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static models.AbstractPosting.findByProject;
-import static models.enumeration.ProjectScope.PRIVATE;
-import static play.data.Form.form;
 import static play.libs.Json.toJson;
 import static utils.CacheStore.getProjectCacheKey;
 import static utils.CacheStore.projectMap;

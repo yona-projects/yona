@@ -1,25 +1,35 @@
 /**
- * Yona, Project Hosting SW
- *
- * Copyright 2016 the original author or authors.
- */
+ *  Yona, 21st Century Project Hosting SW
+ *  <p>
+ *  Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+ *  https://yona.io
+ **/
 
 package controllers.api;
 
+import com.avaje.ebean.ExpressionList;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import controllers.*;
+import controllers.AbstractPostingApp;
+import controllers.UserApp;
 import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
+import controllers.routes;
 import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
-import org.joda.time.DateTime;
+import models.enumeration.UserState;
+import org.apache.commons.lang3.StringUtils;
 import play.db.ebean.Transactional;
+import play.i18n.Messages;
 import play.libs.Json;
+import play.mvc.Http;
 import play.mvc.Result;
-import utils.*;
+import utils.AccessControl;
+import utils.ErrorViews;
+import utils.JodaDateUtil;
+import utils.RouteUtil;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -28,6 +38,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static controllers.UserApp.MAX_FETCH_USERS;
 import static controllers.api.UserApi.createUserNode;
 import static play.libs.Json.toJson;
 
@@ -246,5 +257,182 @@ public class IssueApi extends AbstractPostingApp {
         }
 
         return null;
+    }
+
+    @IsAllowed(Operation.READ)
+    public static Result findAssignableUsers(String ownerName, String projectName, Long number, String query) {
+        if (!request().accepts("application/json")) {
+            return status(Http.Status.NOT_ACCEPTABLE);
+        }
+
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+        Issue issue = Issue.findByNumber(project, number);
+
+        List<ObjectNode> users = new ArrayList<>();
+
+
+        if(StringUtils.isEmpty(query)){
+            User issueAuthor = issue.getAuthor();
+
+            if (issue.hasAssignee()) {
+                addMyself(issue, users);
+                addAuthorIfNotMeAndNotAssginee(issue, users, issueAuthor);
+                addUserToUsersWithCustomName(User.anonymous, users, Messages.get("issue.noAssignee"));
+                addUserToUsers(issue.assignee.user, users);  // To positioned up rank of list
+            } else {
+                addUserToUsersWithCustomName(UserApp.currentUser(), users, Messages.get("issue.assignToMe"));
+                addAuthorIfNotMe(issue, users, issueAuthor);
+            }
+
+            for(User user: project.getAssignableUsersAndAssignee(issue)){
+                addUserToUsers(user, users);
+            }
+
+            return ok(toJson(users));
+        }
+
+        ExpressionList<User> el = getUserExpressionList(query, request().getQueryString("type"));
+
+        int total = el.findRowCount();
+        if (total > MAX_FETCH_USERS) {
+            el.setMaxRows(MAX_FETCH_USERS);
+            response().setHeader("Content-Range", "items " + MAX_FETCH_USERS + "/" + total);
+        }
+
+        for (User user : el.findList()) {
+            if (project.isPublic()) {
+                addUserToUsers(user, users);
+            } else {
+                if (user.isMemberOf(project)
+                        || project.hasGroup() && user.isMemberOf(project.organization)) {
+                    addUserToUsers(user, users);
+                }
+            }
+        }
+
+        return ok(toJson(users));
+    }
+
+    private static ExpressionList<User> getUserExpressionList(String query, String searchType) {
+        ExpressionList<User> el = User.find.select("loginId, name").where()
+                .eq("state", UserState.ACTIVE).disjunction();
+        if( StringUtils.isNotBlank(searchType)){
+            el.eq(searchType, query);
+        } else {
+            el.icontains("loginId", query);
+            el.icontains("name", query);
+            el.endJunction();
+        }
+        return el;
+    }
+
+    private static void addAuthorIfNotMe(Issue issue, List<ObjectNode> users, User issueAuthor) {
+        if (!issue.getAuthor().loginId.equals(UserApp.currentUser().loginId)) {
+            addUserToUsersWithCustomName(issueAuthor, users, Messages.get("issue.assignToAuthor"));
+        }
+    }
+
+    private static void addAuthorIfNotMeAndNotAssginee(Issue issue, List<ObjectNode> users, User issueAuthor) {
+        if (!issue.getAuthor().loginId.equals(UserApp.currentUser().loginId)
+                && !issue.getAuthor().loginId.equals(issue.assignee.user.loginId)) {
+            addUserToUsersWithCustomName(issueAuthor, users, Messages.get("issue.assignToAuthor"));
+        }
+    }
+
+    private static void addMyself(Issue issue, List<ObjectNode> users) {
+        if (!UserApp.currentUser().loginId.equals(issue.assignee.user.loginId)) {
+            addUserToUsersWithCustomName(UserApp.currentUser(), users, Messages.get("issue.assignToMe"));
+        }
+    }
+
+    private static void addUserToUsers(User user, List<ObjectNode> users) {
+        ObjectNode userNode = Json.newObject();
+        userNode.put("loginId", user.loginId);
+        userNode.put("name", user.name);
+        userNode.put("avatarUrl", user.avatarUrl());
+
+        if(!users.contains(userNode)) {
+            users.add(userNode);
+        }
+    }
+
+    private static void addUserToUsersWithCustomName(User user, List<ObjectNode> users, String name) {
+        ObjectNode userNode = Json.newObject();
+        userNode.put("loginId", user.loginId);
+        userNode.put("name", name);
+        userNode.put("avatarUrl", "");
+
+        if(!users.contains(userNode)) {
+            users.add(userNode);
+        }
+    }
+
+    public static Result updateAssginees(String owner, String projectName, Long number){
+        ObjectNode result = Json.newObject();
+        JsonNode json = request().body().asJson();
+        if (json == null) {
+            return badRequest(result.put("message", "Expecting Json data"));
+        }
+
+        Project project = Project.findByOwnerAndProjectName(owner, projectName);
+        Issue issue = Issue.findByNumber(project, number);
+
+        if (AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(),
+                Operation.UPDATE)) {
+
+            JsonNode assignees = json.findValue("assignees");
+            if(assignees == null || assignees.size() == 0){
+                return badRequest(result.put("message", "No assignee"));
+            }
+
+            boolean assigneeChanged = false;
+
+            for(JsonNode assgineeNode: assignees){
+                User assigneeUser = User.findByLoginId(assgineeNode.asText());
+
+                User oldAssignee = null;
+
+                if (issue.hasAssignee()) {
+                    oldAssignee = issue.assignee.user;
+                }
+                Assignee newAssignee = getAssignee(project, assigneeUser);
+                assigneeChanged = !issue.assignedUserEquals(newAssignee);
+
+                issue.assignee = newAssignee;
+                issue.updatedDate = JodaDateUtil.now();
+                issue.update();
+
+                if(assigneeChanged) {
+                    NotificationEvent notiEvent = NotificationEvent.afterAssigneeChanged(oldAssignee, issue);
+                    IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
+                }
+
+                composeResultJson(result, assigneeUser);
+            }
+        }
+
+        result.put("issue", routes.IssueApp.issue(owner, projectName, number).url());
+        return ok(result);
+    }
+
+    private static void composeResultJson(ObjectNode result, User assigneeUser) {
+        ObjectNode node = Json.newObject();
+        node.put("loginId", assigneeUser.loginId);
+        if(assigneeUser.isAnonymous()){
+            node.put("name", Messages.get("common.none"));
+        } else {
+            node.put("name", assigneeUser.name);
+        }
+        result.put("assignee", node);
+    }
+
+    private static Assignee getAssignee(Project project, User assigneeUser) {
+        Assignee newAssignee;
+        if (assigneeUser.isAnonymous()) {
+            newAssignee = null;
+        } else {
+            newAssignee = Assignee.add(assigneeUser.id, project.id);
+        }
+        return newAssignee;
     }
 }

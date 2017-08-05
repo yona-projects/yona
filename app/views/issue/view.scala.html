@@ -1,7 +1,7 @@
 @**
 * Yona, 21st Century Project Hosting SW
 *
-* Copyright Yona & Yobi Authors & NAVER Corp.
+* Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
 * https://yona.io
 **@
 @(title:String, issue:Issue, issueForm: play.data.Form[Issue], commentForm: play.data.Form[Comment],project:Project)
@@ -400,6 +400,7 @@
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.caret.min.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yobi.WatcherList.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/service/yona.issue.Assginee.js")"></script>
 <script type="text/javascript">
     $(function(){
         // yobi.issue.View
@@ -444,5 +445,14 @@
         });
         watcherListApi(watcherApiUrl);
     });
+</script>
+<script>
+        $(function () {
+            yonaAssgineeModule(
+                    "@api.routes.IssueApi.findAssignableUsers(project.owner, project.name, issue.getNumber)",
+                    "@api.routes.IssueApi.updateAssginees(project.owner, project.name, issue.getNumber)",
+                    "@Messages("issue.assignee")"
+            );
+        });
 </script>
 }
