@@ -1,26 +1,11 @@
 @**
-* Yobi, Project Hosting SW
+* Yona, 21st Century Project Hosting SW
 *
-* Copyright 2014 NAVER Corp.
-* http://yobi.io
-*
-* @author Suwon Chae, Keesun Baik
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*   http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
+* Copyright Yona & Yobi Authors & NAVER Corp.
+* https://yona.io
 **@
-@(project:Project, issue:Issue)
 
-@import utils.AccessControl._
+@(project:Project, issue:Issue)
 
 @makeOptionTagWithFlag(user:User, users:List[User], flag:String) = {
     <option value="@user.id"
@@ -32,32 +17,10 @@
     </option>
 }
 
-<select id="assignee" name="assignee.user.id" data-field-name="assignee.id"
-        data-toggle="select2" data-format="user" data-container-css-class="fullsize">
-    <option value="@User.anonymous.id" @if(issue == null || issue.assignee == null){selected}>@Messages("issue.noAssignee")</option>
-    @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.ASSIGN_ISSUE)) {
-    <option value="@UserApp.currentUser().id" data-force-change="true">@Messages("issue.assignToMe")</option>
+@assignee = @{
+    if(issue != null && issue.assignee != null) {
+        issue.assignee.user.loginId
     }
-    @if(issue != null){
-        @defining(issue.getAuthor) { issueAuthor =>
-            @if(!UserApp.currentUser.equals(issueAuthor) &&
-                isAllowed(issueAuthor, project.asResource(), Operation.ASSIGN_ISSUE)) {
-                <option value="@issueAuthor.id" data-force-change="true">@Messages("issue.assignToAuthor")</option>
-            }
-        }
-    }
-    @defining(project.getAssignableUsersAndAssignee(issue)) { users =>
-        @for(user <- users){
-            @if(issue != null && issue.assignee != null && issue.assignee.user.loginId == user.loginId) {
-                @makeOptionTagWithFlag(user, users, "selected")
-            } else {
-                @makeOptionTagWithFlag(user, users, "")
-            }
-        }
+}
 
-        @if(issue != null && issue.assignee != null && issue.assignee.user.isSiteManager() && !UserApp.currentUser().isSiteManager()) {
-            @makeOptionTagWithFlag(issue.assignee.user, users, "selected")
-        }
-    }
-
-</select>
+<input type="hidden" class="bigdrop" id="assignee" placeholder="@Messages("issue.noAssignee")" value="@assignee" style="width: 100%" title="">
