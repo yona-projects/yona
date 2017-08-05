@@ -57,7 +57,11 @@
                 <div class="span9 span-left-pane">
                     <dl>
                         <dd style="position: relative;">
+                        @if(StringUtils.isNotBlank(parentIssueId)) {
+                            @common.editor("body", "", "tabindex=2", "content-body")
+                        } else {
                             @common.editor("body", issueTemplate, "tabindex=2", "content-body")
+                        }
                         </dd>
                     </dl>
 
