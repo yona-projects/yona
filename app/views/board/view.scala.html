@@ -55,7 +55,7 @@
                                 <img src="@User.findByLoginId(post.authorLoginId).avatarUrl(32)" width="20" height="20">
                             </span>
                             @if(post.authorLoginId != null){
-                                <strong class="name">@post.authorName</strong>
+                                <strong class="name">@post.getAuthor.name</strong>
                                 <span class="loginid"> <strong>@{"@"}</strong>@post.authorLoginId</span>
                             } else {
                                 <strong class="name">@Messages("common.noAuthor")</strong>
