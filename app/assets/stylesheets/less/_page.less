@@ -6473,10 +6473,19 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 }
 
 .title-prefix {
-  font-size: 15px;
-  font-weight: bold;
-  border-radius: 2px;
-  color: #3592B5;
+    font-size: 15px;
+    font-weight: bold;
+    border-radius: 2px;
+    color: #3592B5;
+    &:hover {
+        background-color: #3592B5;
+        color: white;
+    }
+}
+
+.title-prefix-hover {
+    background-color: #3592B5;
+    color: white;
 }
 
 .send-notification-check {
