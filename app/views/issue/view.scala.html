@@ -126,7 +126,7 @@
                                 <img src="@User.findByLoginId(issue.authorLoginId).avatarUrl(32)" width="20" height="20">
                             </span>
                             @if(issue.authorLoginId != null){
-                                <strong class="name">@issue.authorName</strong>
+                                <strong class="name">@issue.getAuthor.name</strong>
                                 <span class="loginid"> <strong>@{"@"}</strong>@issue.authorLoginId</span>
                             } else {
                                 <strong class="name">@Messages("issue.noAuthor")</strong>
