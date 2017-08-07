@@ -108,6 +108,15 @@
         $('.board-labels select').on('change', function(e){
             $("#option_form").submit();
         });
+        var $titlePrefix = $(".title-prefix");
+        $titlePrefix
+                .on("mouseover", function (e) {
+                    $(".title-prefix:contains('" + e.target.innerText + "')")
+                            .addClass("title-prefix-hover");
+                })
+                .on("mouseleave", function (e) {
+                    $titlePrefix.removeClass("title-prefix-hover");
+                });
 	});
 </script>
 @common.select2()
