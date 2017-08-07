@@ -110,13 +110,13 @@ $(function() {
         $(".project-list > .star-project").on("click", function toggleProjectFavorite(e) {
             e.stopPropagation();
             var that = $(this);
-            $.post(UsermenuToggleFavoriteProjectUrl + that.data("projectId"))
+          $.post(UsermenuToggleFavoriteProjectUrl + that.data("projectId"))
                 .done(function (data) {
                     if(data.favored){
                         that.find('i').addClass("starred");
                     } else {
                         that.find('i').removeClass("starred");
-                        that.parent(".project-list").remove();
+                        removeIfNotFavoriteProject(that);
                     }
                 })
                 .fail(function (data) {
@@ -124,7 +124,16 @@ $(function() {
                 });
         });
 
-        $(".org-list > .star-org").on("click", function toggleOrgFavorite(e) {
+        function removeIfNotFavoriteProject(that) {
+            var $recentlyVisited = $('.user-li');
+            var lastFavoriteItemIndex = $recentlyVisited.index($(".favored"));
+            var currentItemIndex = $recentlyVisited.index(that.parent(".project-list").parent());
+            if (lastFavoriteItemIndex < currentItemIndex) {
+                that.parent(".project-list").remove();
+            }
+        }
+
+      $(".org-list > .star-org").on("click", function toggleOrgFavorite(e) {
             e.stopPropagation();
             var that = $(this);
             $.post(UsermenuToggleFoveriteOrganizationUrl + that.data("organizationId"))
