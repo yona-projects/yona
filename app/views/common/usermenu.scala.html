@@ -103,6 +103,19 @@
           </a>
           <ul class="dropdown-menu flat right">
               <li>
+                  <a href="@routes.IssueApp.newDirectIssueForm()">
+                  @Messages("issue.menu.new")
+                  </a>
+              </li>
+              <li>
+                  <a href="@routes.IssueApp.newDirectMyIssueForm()">
+                  @Messages("issue.menu.new.mine")
+                  </a>
+              </li>
+              <li>
+                  <hr class="no-margin"/>
+              </li>
+              <li>
                   <a href="@routes.ProjectApp.newProjectForm()">
                   @Messages("button.newProject")
                   </a>

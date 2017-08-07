@@ -50,14 +50,17 @@
                     return !avatarURL || avatarURL.indexOf("project_default_logo.png") !== -1;
                 }
 
+                var owner = itemElement.data("owner") ? itemElement.data("owner") : "";
                 if(_doesntHaveProjectAvatar()){
                     return $.tmpl($("#tplSelect2ProjectsWithoutAvatar").text(), {
-                        "name"     : itemObject.text
+                        "name"     : itemObject.text,
+                        "owner"    : owner
                     });
                 } else {
                     return $.tmpl($("#tplSelect2Projects").text(), {
                         "avatarURL": avatarURL,
-                        "name"     : itemObject.text.trim()
+                        "name"     : itemObject.text.trim(),
+                        "owner"    : owner
                     });
                 }
             },
@@ -176,6 +179,15 @@
                 loginId = (typeof loginId !== "undefined") ? loginId.toLowerCase() : "";
 
                 return (loginId.indexOf(term) > -1) || (formattedResult.indexOf(term) > -1);
+            },
+            "projects": function(term, formattedResult, itemElement){
+              term = term.toLowerCase();
+              formattedResult = formattedResult.toLowerCase();
+
+              var owner = itemElement.data("owner") + "";
+              owner = (typeof owner !== "undefined") ? owner.toLowerCase() : "";
+
+              return (owner.indexOf(term) > -1) || (formattedResult.indexOf(term) > -1);
             }
         };
 

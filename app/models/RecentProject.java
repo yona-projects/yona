@@ -84,7 +84,6 @@ public class RecentProject extends Model {
         if(existed != null){
             existed.delete();
         }
-
     }
 
     private static void deleteOldestIfOverflow(User user) {

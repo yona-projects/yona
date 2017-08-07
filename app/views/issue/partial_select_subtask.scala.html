@@ -16,7 +16,7 @@
             <option value="@project.id" data-avatar-url="@urlToProjectLogo(project)">@project.name</option>
             @for(movableProject <- UserApp.currentUser().getIssueMovableProject) {
                 @if(movableProject.id != project.id) {
-                    <option value="@movableProject.id" data-avatar-url="@urlToProjectLogo(movableProject)">@movableProject.name</option>
+                    <option value="@movableProject.id" data-owner="@movableProject.owner /" data-avatar-url="@urlToProjectLogo(movableProject)">@movableProject.name</option>
                 }
             }
         </select>
