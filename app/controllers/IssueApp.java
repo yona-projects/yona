@@ -17,6 +17,7 @@ import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.Tika;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -162,6 +163,7 @@ public class IssueApp extends AbstractPostingApp {
         if(project == null){
             return ok(my_list.render("title.issueList", issues, searchCondition, project));
         } else {
+            UserApp.currentUser().visits(project);
             return ok(list.render("title.issueList", issues, searchCondition, project));
         }
 
@@ -279,6 +281,54 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         return ok(partial_comments.render(project, issueInfo));
+    }
+
+    public static Result newDirectIssueForm() {
+        User current = UserApp.currentUser();
+
+        Project project = null;
+        // Fallback #1: Favorite projects 1st if exists
+        if(!CollectionUtils.isEmpty(current.favoriteProjects)) {
+            project = current.favoriteProjects.get(current.favoriteProjects.size() - 1).project;
+        }
+
+        // Fallback #2: Last visited project
+        List<Project> visitedProjects = current.getVisitedProjects();
+        if (project == null && !CollectionUtils.isEmpty(visitedProjects)) {
+            project = visitedProjects.get(0);
+        }
+
+        if(project != null){
+            return newIssueForm(project.owner, project.name);
+        } else {
+            flash(Constants.WARNING, Messages.get("project.is.empty"));
+            return Application.index();
+        }
+    }
+
+    public static Result newDirectMyIssueForm() {
+        User current = UserApp.currentUser();
+
+        // Prefixed project. inbox or _private
+        Project project = Project.findByOwnerAndProjectName(current.loginId, "inbox");
+        if( project == null ) {
+            project = Project.findByOwnerAndProjectName(current.loginId, "_private");
+        }
+
+        // Fallback to any other project
+        if( project == null ) {
+            List<Project> projects = Project.findProjectsByMember(current.id);
+            if(!CollectionUtils.isEmpty(projects)) {
+                project = projects.get(0);
+            }
+        }
+
+        if(project != null){
+            return newIssueForm(project.owner, project.name);
+        } else {
+            flash(Constants.WARNING, Messages.get("project.is.empty"));
+            return Application.index();
+        }
     }
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)

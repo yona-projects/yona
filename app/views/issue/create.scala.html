@@ -19,6 +19,11 @@
     play.mvc.Http.Context.current().request().getQueryString("parentIssueId")
 }
 
+@isFromGlobalMenuNew = @{
+    routes.IssueApp.newDirectIssueForm.toString().equals(requestHeader.path) ||
+            routes.IssueApp.newDirectMyIssueForm.toString().equals(requestHeader.path)
+}
+
 @projectLayout(Messages(title), project, utils.MenuType.ISSUE) {
 @projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
 <div class="page-wrap-outer">
@@ -157,6 +162,10 @@
             "target": 'textarea[id^=editor-]',
             "url"   : "@routes.ProjectApp.mentionList(project.owner, project.name)"
         });
+
+        if(@isFromGlobalMenuNew) {
+            $(".subtask-message").trigger("click");
+        }
     });
 </script>
 }

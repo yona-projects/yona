@@ -976,6 +976,15 @@ public class User extends Model implements ResourceConvertible {
         projects.addAll(Project.findProjectsByMember(id));
         List<Project> list = new ArrayList<>();
         list.addAll(projects);
+        Collections.sort(list, new Comparator<Project>() {
+            @Override
+            public int compare(Project lhs, Project rhs) {
+                if(lhs.owner.compareToIgnoreCase(rhs.owner) == 0) {
+                    return lhs.name.compareToIgnoreCase(rhs.name);
+                }
+                return lhs.owner.compareToIgnoreCase(rhs.owner);
+            }
+        });
         return list;
     }
 

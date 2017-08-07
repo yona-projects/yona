@@ -20,10 +20,12 @@ $(function () {
         var targetProjectName = selected.target.selectedOptions[0].innerText;
         if(selected.val === initialProjectId){
             parentId.prop("disabled", false);
+            $('#s2id_parentId').show();
             parentId.trigger('change.select2');
         } else {
             parentId.val(parentId.find("option:first").val());
             parentId.prop("disabled", true);
+            $('#s2id_parentId').hide();
             parentId.trigger('change.select2');
             $yobi.notify("Issue will be move/write to '" + targetProjectName + "'", 3000);
         }
