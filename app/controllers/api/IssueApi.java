@@ -260,6 +260,51 @@ public class IssueApi extends AbstractPostingApp {
     }
 
     @IsAllowed(Operation.READ)
+    public static Result findAssignableUsersOfProject(String ownerName, String projectName, String query) {
+        if (!request().accepts("application/json")) {
+            return status(Http.Status.NOT_ACCEPTABLE);
+        }
+
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+        List<ObjectNode> users = new ArrayList<>();
+
+        if(StringUtils.isEmpty(query)){
+            addUserToUsersWithCustomName(UserApp.currentUser(), users, Messages.get("issue.assignToMe"));
+
+            for(User user: project.getAssignableUsers()){
+                addUserToUsers(user, users);
+            }
+
+            return ok(toJson(users));
+        }
+
+        ExpressionList<User> el = getUserExpressionList(query, request().getQueryString("type"));
+
+        int total = el.findRowCount();
+        if (total > MAX_FETCH_USERS) {
+            el.setMaxRows(MAX_FETCH_USERS);
+            response().setHeader("Content-Range", "items " + MAX_FETCH_USERS + "/" + total);
+        }
+
+        gatheringUsersFromExpressionList(project, users, el);
+
+        return ok(toJson(users));
+    }
+
+    private static void gatheringUsersFromExpressionList(Project project, List<ObjectNode> users, ExpressionList<User> el) {
+        for (User user : el.findList()) {
+            if (project.isPublic()) {
+                addUserToUsers(user, users);
+            } else {
+                if (user.isMemberOf(project)
+                        || project.hasGroup() && user.isMemberOf(project.organization)) {
+                    addUserToUsers(user, users);
+                }
+            }
+        }
+    }
+
+    @IsAllowed(Operation.READ)
     public static Result findAssignableUsers(String ownerName, String projectName, Long number, String query) {
         if (!request().accepts("application/json")) {
             return status(Http.Status.NOT_ACCEPTABLE);
@@ -299,16 +344,7 @@ public class IssueApi extends AbstractPostingApp {
             response().setHeader("Content-Range", "items " + MAX_FETCH_USERS + "/" + total);
         }
 
-        for (User user : el.findList()) {
-            if (project.isPublic()) {
-                addUserToUsers(user, users);
-            } else {
-                if (user.isMemberOf(project)
-                        || project.hasGroup() && user.isMemberOf(project.organization)) {
-                    addUserToUsers(user, users);
-                }
-            }
-        }
+        gatheringUsersFromExpressionList(project, users, el);
 
         return ok(toJson(users));
     }

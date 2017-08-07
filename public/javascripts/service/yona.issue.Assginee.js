@@ -62,7 +62,6 @@ function yonaAssgineeModule(findAssignableUsersApiUrl, updateAssgineesApiUrl, me
       // using its formatResult renderer - that way the repository name is shown preselected
       var id = $(element).val();
 
-      console.log((id !== "") + "id: " + id);
       if (id !== "") {
         $.ajax(findAssignableUsersApiUrl + "?query=" + id + "&type=loginId", {
           dataType: "json"
@@ -82,13 +81,15 @@ function yonaAssgineeModule(findAssignableUsersApiUrl, updateAssgineesApiUrl, me
   $assignee.on("select2-selecting", function(selected) {
     var data = { assignees: [selected.val] };
 
-    $.ajax(updateAssgineesApiUrl, {
-      method: "POST",
-      dataType: "json",
-      contentType: "application/json",
-      data: JSON.stringify(data)
-    }).done(function(response){
-      $yobi.notify(message + ": " + response.assignee.name, 3000);
-    });
+    if(updateAssgineesApiUrl){
+        $.ajax(updateAssgineesApiUrl, {
+            method: "POST",
+            dataType: "json",
+            contentType: "application/json",
+            data: JSON.stringify(data)
+        }).done(function(response){
+            $yobi.notify(message + ": " + response.assignee.name, 3000);
+        });
+    }
   });
-};
+}

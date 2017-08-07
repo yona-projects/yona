@@ -482,7 +482,6 @@ public class IssueApp extends AbstractPostingApp {
                 project = toAnotherProject;
             }
         }
-        removeAnonymousAssignee(newIssue);
 
         if (newIssue.body == null) {
             return status(REQUEST_ENTITY_TOO_LARGE,
@@ -497,6 +496,19 @@ public class IssueApp extends AbstractPostingApp {
         newIssue.setAuthor(UserApp.currentUser());
         newIssue.project = project;
 
+        String assineeLoginId = null;
+        String[] assigneeLoginIds = request().body().asMultipartFormData().asFormUrlEncoded().get("assigneeLoginId");
+        if(assigneeLoginIds != null && assigneeLoginIds.length > 0) {
+            assineeLoginId = assigneeLoginIds[0];
+        }
+
+        User assigneeUser = User.findByLoginId(assineeLoginId);
+
+        if(!assigneeUser.isAnonymous()){
+            newIssue.assignee = new Assignee(assigneeUser.id, project.id);
+        } else {
+            newIssue.assignee = null;
+        }
         newIssue.state = State.OPEN;
 
         if (newIssue.project.id.equals(Project.findByOwnerAndProjectName(ownerName, projectName).id)) {
@@ -605,8 +617,16 @@ public class IssueApp extends AbstractPostingApp {
 
         final Issue issue = issueForm.get();
 
-        setAssignee(issueForm, issue, project);
-        removeAnonymousAssignee(issue);
+        String assineeLoginId = request().body().asMultipartFormData()
+                .asFormUrlEncoded().get("assigneeLoginId")[0];
+
+        User assigneeUser = User.findByLoginId(assineeLoginId);
+        if(!assigneeUser.isAnonymous()){
+            issue.assignee = new Assignee(assigneeUser.id, project.id);
+        } else {
+            issue.assignee = null;
+        }
+
         setMilestone(issueForm, issue);
         issue.dueDate = JodaDateUtil.lastSecondOfDay(issue.dueDate);
 
