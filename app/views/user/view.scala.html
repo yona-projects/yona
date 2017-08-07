@@ -54,6 +54,7 @@
                 <div class="whoami usf-group">
                     <span class="name">@user.name</span>
                     <span class="loginid">@{"@"}@user.loginId</span>
+                    <span class="email">@user.email</span>
                     @if(user != null && requestHeader.session != null && user.loginId == UserApp.currentUser.loginId){
                     <div class="edit">
                         <a href="@routes.UserApp.editUserInfoForm()" class="ybtn ybtn-default ybtn-mini"><i class="yobicon-edit"></i> @Messages("userinfo.editProfile")</a>

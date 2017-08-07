@@ -184,6 +184,7 @@
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.caret.min.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.Subtask.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/service/yona.issue.Assginee.js")"></script>
 <script type="text/javascript">
     $(function(){
         // yobi.issue.Write
@@ -202,6 +203,12 @@
             "target": "textarea[id^=editor-]",
             "url"   : "@routes.ProjectApp.mentionList(project.owner, project.name)"
         });
+
+        yonaAssgineeModule(
+                "@api.routes.IssueApi.findAssignableUsersOfProject(project.owner, project.name)",
+                "",
+                "@Messages("issue.assignee")"
+        );
    });
 </script>
 
