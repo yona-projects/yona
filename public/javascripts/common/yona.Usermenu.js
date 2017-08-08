@@ -133,6 +133,15 @@ $(function() {
             }
         }
 
+        $(".user-ul > .user-li").on("click", function (e) {
+            var location = $(this).data('location');
+            if(e.metaKey) {
+                window.open(location, '_blank');
+            } else {
+                window.location = location;
+            }
+        });
+
       $(".org-list > .star-org").on("click", function toggleOrgFavorite(e) {
             e.stopPropagation();
             var that = $(this);
