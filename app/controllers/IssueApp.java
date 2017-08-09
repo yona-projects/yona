@@ -161,10 +161,10 @@ public class IssueApp extends AbstractPostingApp {
 
     private static Result issuesAsHTML(Project project, Page<Issue> issues, models.support.SearchCondition searchCondition){
         if(project == null){
-            return ok(my_list.render("title.issueList", issues, searchCondition, project));
+            return ok(my_list.render("menu.issue", issues, searchCondition, project));
         } else {
             UserApp.currentUser().visits(project);
-            return ok(list.render("title.issueList", issues, searchCondition, project));
+            return ok(list.render("menu.issue", issues, searchCondition, project));
         }
 
     }

@@ -73,7 +73,7 @@ public class MilestoneApp extends Controller {
                 mCondition.orderBy,
                 Direction.getValue(mCondition.orderDir));
 
-        return ok(list.render("title.milestoneList", milestones, project, mCondition));
+        return ok(list.render("milestone", milestones, project, mCondition));
     }
 
     /**

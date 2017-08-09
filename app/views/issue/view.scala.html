@@ -17,7 +17,7 @@
 @import models.enumeration.State
 @import controllers.api.IssueApi
 
-@getTitle(issue:Issue) = @{ "#" + issue.getNumber + " " + issue.title }
+@getTitle(issue:Issue) = @{ issue.title }
 
 @isFirstState(state:State) = {@if(issue.state.state == Issue.availableStates.get(0).state()){dirty}}
 

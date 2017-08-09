@@ -36,7 +36,7 @@
 
 @import utils.AccessControl._
 
-@projectLayout(Messages("title.commitHistory"), project, utils.MenuType.CODE) {
+@projectLayout(project.name + " - " + Messages("menu.code"), project, utils.MenuType.CODE) {
 @projectMenu(project, utils.MenuType.CODE, "main-menu-only")
 <div class="page-wrap-outer">
     <div class="project-page-wrap">

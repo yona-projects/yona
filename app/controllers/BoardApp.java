@@ -152,7 +152,7 @@ public class BoardApp extends AbstractPostingApp {
         Page<Posting> posts = el.findPagingList(ITEMS_PER_PAGE).getPage(searchCondition.pageNum);
         List<Posting> notices = Posting.findNotices(project);
 
-        return ok(list.render("title.boardList", project, posts, searchCondition, notices));
+        return ok(list.render("menu.board", project, posts, searchCondition, notices));
     }
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
