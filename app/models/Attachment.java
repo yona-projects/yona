@@ -441,7 +441,7 @@ public class Attachment extends Model implements ResourceConvertible {
      */
     private static void cleanupTemporaryUploadFilesWithSchedule() {
         Akka.system().scheduler().schedule(
-                Duration.create(0, TimeUnit.SECONDS),
+                Duration.create(AttachmentApp.TEMPORARYFILES_KEEPUP_TIME_MILLIS, TimeUnit.MILLISECONDS),
                 Duration.create(AttachmentApp.TEMPORARYFILES_KEEPUP_TIME_MILLIS, TimeUnit.MILLISECONDS),
                 new Runnable() {
                     @Override
