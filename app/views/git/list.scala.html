@@ -7,7 +7,7 @@
 @(project: Project, page: com.avaje.ebean.Page[PullRequest],
     condition: controllers.PullRequestApp.SearchCondition, requestType: String)
 
-@projectLayout(Messages("menu.pullRequest"), project, utils.MenuType.PULL_REQUEST) {
+@projectLayout(project.name + " - " + Messages("menu.pullRequest"), project, utils.MenuType.PULL_REQUEST) {
 @projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
 <div class="page-wrap-outer">
     <div class="project-page-wrap">

@@ -22,7 +22,7 @@
 	}
 }
 
-@projectLayout(title, project, utils.MenuType.BOARD) {
+@projectLayout(project.name + " - " + Messages(title), project, utils.MenuType.BOARD) {
 @projectMenu(project, utils.MenuType.BOARD, "main-menu-only")
 <link rel="stylesheet" href="@routes.IssueLabelApp.labelStyles(project.owner, project.name)" type="text/css" />
 <div class="page-wrap-outer">
