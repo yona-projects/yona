@@ -135,7 +135,7 @@ $(function() {
 
         $(".user-ul > .user-li").on("click", function (e) {
             var location = $(this).data('location');
-            if(e.metaKey) {
+            if(e.metaKey || e.ctrlKey) {
                 window.open(location, '_blank');
             } else {
                 window.location = location;
