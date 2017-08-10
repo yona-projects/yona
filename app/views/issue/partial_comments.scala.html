@@ -1,12 +1,12 @@
 @**
 * Yona, 21st Century Project Hosting SW
 *
-* Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+* Copyright Yona & Yobi Authors & NAVER Corp.
 * https://yona.io
 **@
-@import org.apache.commons.lang3.StringUtils
 @(project:Project, issue:Issue)
 
+@import org.apache.commons.lang3.StringUtils
 @import utils.TemplateHelper._
 @import utils.AccessControl._
 @import utils.JodaDateUtil
@@ -106,7 +106,7 @@
                                 @partial_voter_list("voters-" + issueComment.id, issueComment.voters)
                             } else {
                                 @for(voter <- issueComment.voters){
-                                    <a href="@userInfo(voter.loginId)" class="avatar-wrap smaller" data-toggle="tooltip" data-placement="top" title="@voter.name" style="margin-right:3px;">
+                                    <a href="@userInfo(voter.loginId)" class="avatar-wrap smaller" data-toggle="tooltip" data-placement="top" title="@voter.name">
                                         <img src="@User.findByLoginId(voter.loginId).avatarUrl">
                                     </a>
                                 }
@@ -128,16 +128,16 @@
                         }
                     }
 
+                    @if(StringUtils.isNotBlank(IssueApi.TRANSLATION_API)){
+                        <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 comment-translate" data-toggle="tooltip" data-comment-id="@comment.id" title="@Messages("button.translation")"><i class="yobicon-lang"></i></button>
+                    }
+
                     @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.READ)) {
                         <button type="button" class="btn-transparent-with-fontsize-lineheight ml10" data-toggle="comment-edit" data-comment-id="@comment.id" title="@Messages("common.comment.edit")"><i class="yobicon-edit-2"></i></button>
                     }
 
-                    @if(StringUtils.isNotBlank(IssueApi.TRANSLATION_API)){
-                <button type="button" class="btn-transparent-with-fontsize-lineheight ml10 comment-translate" data-toggle="tooltip" data-comment-id="@comment.id" title="@Messages("button.translation")"><i class="yobicon-lang"></i><</button>
-                    }
-
                     @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)) {
-                        <button type="button" class="btn-transparent-with-fontsize-lineheight ml10" data-toggle="comment-delete" data-request-uri="@routes.IssueApp.deleteComment(project.owner, project.name, issue.getNumber, comment.id)" title="@Messages("common.comment.delete")"><i class="yobicon-trash"></i></button>
+                        <button type="button" class="btn-transparent-with-fontsize-lineheight ml6" data-toggle="comment-delete" data-request-uri="@routes.IssueApp.deleteComment(project.owner, project.name, issue.getNumber, comment.id)" title="@Messages("common.comment.delete")"><i class="yobicon-trash"></i></button>
                     }
                 </span>
             </div>

@@ -3228,9 +3228,32 @@ div.markdown-preview {
         }
     }
 }
+
 .board-actrow {
     margin:20px 0;
     overflow:auto;
+    padding-right: 15px;
+    button.icon {
+        line-height: 30px;
+        font-size: 22px;
+        color: lightgray;
+        .yobicon-lang {
+            font-size: 20px;
+        }
+        &.disabled {
+            color: #eee !important;
+        }
+        &:hover {
+            color: #51aacc;
+            opacity: 1;
+        }
+        .yobicon-hearts {
+            font-size: 16px;
+        }
+    }
+    .pt5px {
+        padding-top: 5px;
+    }
 }
 
 .labels-wrap {
@@ -3894,7 +3917,7 @@ label.issue-item-row {
     .heart {
         display:inline-block;
         color:#ddd;
-        font-size:11px;
+        font-size: 17px;
         margin-right:2px;
         vertical-align:middle;
     }
@@ -3961,18 +3984,19 @@ label.issue-item-row {
     li {
         float:left;
         margin-right:3px;
+        line-height:30px;
+        padding-bottom: 5px;
 
         &:last-of-type {
             margin-right:0;
-            line-height:30px;
         }
     }
 
     .usf-group {
         display:inline-block;
-        width:30px; height:30px;
-
-        img { width:30px; height:30px; }
+    }
+    .avatar-wrap {
+        margin-right: 0 !important;
     }
 }
 .voters-dialog {

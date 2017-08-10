@@ -54,6 +54,8 @@
     }
 }
 
+@VOTER_AVATAR_SHOW_LIMIT = @{ 5 }
+
 @showChildIssues(parentIssueId: Long) = {
 @defining(Issue.findByParentIssueIdAndState(parentIssueId, State.OPEN)) { openChildIssues =>
     @defining(Issue.findByParentIssueIdAndState(parentIssueId, State.CLOSED)) { closedChildIssues =>
@@ -170,7 +172,6 @@
                                     <a href="@urlToVote" class="ybtn @if(issue.isVotedBy(UserApp.currentUser)){ybtn-watching}" title="@getVoteButtonTitle"
                                        data-request-method="post" data-toggle="tooltip">
                                         <span class="heart"><i class="yobicon-hearts"></i></span>
-                                        <span class="desc">@Messages("issue.vote")</span>
                                         @if(issue.voters.size > 0) {
                                             <strong class="count">@issue.voters.size</strong>
                                         }
@@ -178,7 +179,6 @@
                                 } else {
                                     <span class="ybtn ybtn-disabled" style="color:#777;" data-toggle="tooltip" title="@Messages("user.login.alert")" data-login="required">
                                         <span class="heart"><i class="yobicon-hearts"></i></span>
-                                        <span class="desc">@Messages("issue.vote")</span>
                                         @if(issue.voters.size > 0) {
                                             <strong class="count">@issue.voters.size</strong>
                                         }
@@ -189,26 +189,25 @@
                                     @partial_voters(issue, 3)
                                 }
                             </div>
-                            @Html(showWatchers(issue))
                         </div>
                     </div>
 
                     @if(StringUtils.isNotBlank(IssueApi.TRANSLATION_API)){
-                        <button class="ybtn" id="translate">@Messages("button.translation")</button>
-                    }
-                    <a href="@urlToIssues" class="ybtn" data-button="historyBack"><i class="yobicon-angle-left"></i> @Messages("button.list")</a>
-                    @if(issue.canBeDeleted) {
-                        @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.DELETE)) {
-                            <a href="#deleteConfirm" data-toggle="modal" class="ybtn ybtn-danger">@Messages("button.delete")</a>
-                        }
-                    } else {
-                        <button class="ybtn ybtn-disabled" data-toggle="tooltip" data-placement="top" title="@Messages("issue.can.not.be.deleted")">@Messages("button.delete")</button>
+                        <button type="button" id="translate" class="icon btn-transparent-with-fontsize-lineheight ml10"  data-toggle="tooltip" title="@Messages("button.translation")"><i class="yobicon-lang"></i></button>
                     }
 
                     @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
-                        <a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)" class="ybtn">@Messages("button.edit")</a>
+                        <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" title="@Messages("button.edit")" onclick="window.location='@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)'"><i class="yobicon-edit-2"></i></button>
                     } else {
-                        <a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)" class="ybtn">@Messages("button.show.original")</a>
+                        <a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" title="@Messages("button.show.original")"><i class="yobicon-edit-2"></i></button></a>
+                    }
+                    @if(issue.canBeDeleted) {
+                        @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.DELETE)) {
+                            <a href="#deleteConfirm" data-toggle="modal">
+                                <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml6" data-toggle='tooltip' title="@Messages("button.delete")"><i class="yobicon-trash"></i></button></a>
+                        }
+                    } else {
+                        <button type="button" class="icon disabled btn-transparent-with-fontsize-lineheight ml6" data-toggle='popover' data-trigger="hover" data-placement="top" data-content="@Messages("issue.can.not.be.deleted")"><i class="yobicon-trash"></i></button>
                     }
                 </div>
                 <div class="watcher-list"></div>
@@ -403,7 +402,6 @@
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.css")">
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.caret.min.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.js")"></script>
-<script type="text/javascript" src="@routes.Assets.at("javascripts/common/yobi.WatcherList.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/service/yona.issue.Assginee.js")"></script>
 <script type="text/javascript">
     $(function(){
@@ -439,15 +437,6 @@
 
         // detect comment which contains mention at me
         $(".comment-body:contains('@UserApp.currentUser().loginId')").closest(".comment").addClass("mentioned");
-
-        // Watcher List
-        var watcherApiUrl = "@api.routes.WatcherApi.getWatchers(project.owner, project.name, issue.getNumber)?type=issues";
-        $("#watch-button").on('click', function () {
-            setTimeout(function () {
-                watcherListApi(watcherApiUrl, "@routes.UserApp.userInfo(UserApp.currentUser().loginId)");
-            }, 1000);
-        });
-        watcherListApi(watcherApiUrl);
     });
 </script>
 <script>
