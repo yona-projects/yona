@@ -1,5 +1,6 @@
 <a name="korean"></a>[[English]](#english)
 [![Build Status](https://travis-ci.org/yona-projects/yona.svg?branch=master)](https://travis-ci.org/yona-projects/yona)
+![Downloads Status](https://img.shields.io/github/downloads/yona-projects/yona/total.svg)
 
 
 <img src='public/images/yona_logo.png' width='300px'>
