@@ -95,22 +95,22 @@
                                 }
                                 </button>
                             }
-                            @Html(showWatchers(post))
                         </div>
                     </div>
 
                     @if(StringUtils.isNotBlank(IssueApi.TRANSLATION_API)){
-                        <button class="ybtn" id="translate">@Messages("button.translation")</button>
-                    }
-                    <a href="@urlToPostings" class="ybtn" data-button="historyBack"><i class="yobicon-angle-left"></i> @Messages("button.list")</a>
-                    @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.DELETE)) {
-                            <a href="#deleteConfirm" data-toggle="modal" class="ybtn ybtn-danger">@Messages("button.delete")</a>
+                        <button type="button" id="translate" class="icon btn-transparent-with-fontsize-lineheight ml10"  data-toggle="tooltip" title="@Messages("button.translation")"><i class="yobicon-lang"></i></button>
                     }
 
                     @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)) {
-                        <a href="@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)" class="ybtn">@Messages("button.edit")</a>
+                        <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" title="@Messages("button.edit")" onclick="window.location='@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)'"><i class="yobicon-edit-2"></i></button>
                     } else {
-                        <a href="@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)" class="ybtn">@Messages("button.show.original")</a>
+                        <a href="@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" title="@Messages("button.show.original")"><i class="yobicon-edit-2"></i></button></a>
+                    }
+
+                    @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.DELETE)) {
+                        <a href="#deleteConfirm" data-toggle="modal">
+                            <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml6" data-toggle='tooltip' title="@Messages("button.delete")"><i class="yobicon-trash"></i></button></a>
                     }
                 </div>
                 <div class="watcher-list"></div>
@@ -182,7 +182,6 @@
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.css")">
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.caret.min.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.js")"></script>
-<script type="text/javascript" src="@routes.Assets.at("javascripts/common/yobi.WatcherList.js")"></script>
 <script type="text/javascript">
         $(document).ready(function(){
             $yobi.loadModule("board.View", {
@@ -221,15 +220,6 @@
 
             // detect comment which contains mention at me
             $(".comment-body:contains('@UserApp.currentUser().loginId')").closest(".comment").addClass("mentioned");
-
-            // Watcher List
-            var watcherApiUrl = "@api.routes.WatcherApi.getWatchers(project.owner, project.name, post.getNumber)?type=posts";
-            $("#watch-button").on('click', function () {
-                setTimeout(function () {
-                    watcherListApi(watcherApiUrl, "@routes.UserApp.userInfo(UserApp.currentUser().loginId)");
-                }, 1000);
-            });
-            watcherListApi(watcherApiUrl);
 
             $('#translate').one('click', function (e) {
                 var data = {

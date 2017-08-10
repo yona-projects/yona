@@ -305,7 +305,7 @@
             $.post(url, function(){
                 button.data("watching", !watching)
                     .toggleClass('ybtn-watching')
-                    .html(Messages(!watching ? "project.unwatch" : "project.watch"))
+                    .html(Messages(!watching ? "issue.unwatch" : "issue.watch"))
                     .blur();
 
                 $yobi.notify(Messages(watching ? "issue.unwatch.start" : "issue.watch.start"), 3000);

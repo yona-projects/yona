@@ -76,7 +76,7 @@
                         welTarget
                             .attr("data-watching", !bWatched)
                             .toggleClass('ybtn-watching')
-                            .html(Messages(!bWatched ? "project.unwatch" : "project.watch")).blur();
+                            .html(Messages(!bWatched ? "post.unwatch" : "post.watch")).blur();
                         
                         $yobi.notify(Messages(bWatched ? "post.unwatch.start" : "post.watch.start"), 3000);
                     }
