@@ -1,9 +1,10 @@
 @**
 * Yona, 21st Century Project Hosting SW
 *
-* Copyright Yona & Yobi Authors & NAVER Corp.
+* Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
 * https://yona.io
 **@
+@import org.apache.commons.lang3.StringUtils
 @(project:Project, issue:Issue)
 
 @import utils.TemplateHelper._
@@ -11,6 +12,7 @@
 @import utils.JodaDateUtil
 @import play.libs.Json.toJson
 @import utils.Markdown
+@import controllers.api.IssueApi
 
 @avatarByLoginId(loginId: String, loginName: String) = {
     <a href="@userInfo(loginId)" class="usf-group" data-toggle="tooltip" data-placement="top" title="@loginName">
@@ -128,6 +130,10 @@
 
                     @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.READ)) {
                         <button type="button" class="btn-transparent-with-fontsize-lineheight ml10" data-toggle="comment-edit" data-comment-id="@comment.id" title="@Messages("common.comment.edit")"><i class="yobicon-edit-2"></i></button>
+                    }
+
+                    @if(StringUtils.isNotBlank(IssueApi.TRANSLATION_API)){
+                <button type="button" class="btn-transparent-with-fontsize-lineheight ml10 comment-translate" data-toggle="tooltip" data-comment-id="@comment.id" title="@Messages("button.translation")"><i class="yobicon-lang"></i><</button>
                     }
 
                     @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)) {

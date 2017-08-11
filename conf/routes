@@ -62,6 +62,7 @@ POST           /-_-api/v1/owners/:owner/projects                                
 POST           /-_-api/v1/owners/:owner/projects/:projectName/labels                   controllers.api.ProjectApi.newLabel(owner:String, projectName:String)
 
 POST           /-_-api/v1/user/defultLoginPage                                         controllers.UserApp.setDefaultLoginPage()
+POST           /-_-api/v1/translation                                                  controllers.api.IssueApi.translate()
 
 
 

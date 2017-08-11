@@ -15,6 +15,7 @@
 @import play.libs.Json.toJson
 @import utils.Markdown
 @import models.enumeration.State
+@import controllers.api.IssueApi
 
 @getTitle(issue:Issue) = @{ "#" + issue.getNumber + " " + issue.title }
 
@@ -192,6 +193,9 @@
                         </div>
                     </div>
 
+                    @if(StringUtils.isNotBlank(IssueApi.TRANSLATION_API)){
+                        <button class="ybtn" id="translate">@Messages("button.translation")</button>
+                    }
                     <a href="@urlToIssues" class="ybtn" data-button="historyBack"><i class="yobicon-angle-left"></i> @Messages("button.list")</a>
                     @if(issue.canBeDeleted) {
                         @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.DELETE)) {
@@ -453,6 +457,44 @@
                     "@api.routes.IssueApi.updateAssginees(project.owner, project.name, issue.getNumber)",
                     "@Messages("issue.assignee")"
             );
+
+            $('#translate').one('click', function (e) {
+                var data = {
+                    owner: "@project.owner",
+                    projectName: "@project.name",
+                    type: "issue",
+                    number: "@issue.getNumber"
+                };
+                $.ajax({
+                    url: "/-_-api/v1/translation",
+                    data: JSON.stringify(data),
+                    type: "POST",
+                    dataType: "json",
+                    contentType: "application/json"
+                }).done(function (data) {
+                    $(".markdown-wrap").first().html(data.translated);
+                    $(this).attr("disabled", true);
+                });
+            });
+
+            $('.comment-translate').one('click', function (e) {
+                var payload = {
+                    owner: "@project.owner",
+                    projectName: "@project.name",
+                    type: "issue-comment",
+                    number: $(this).data("commentId")
+                };
+                $.ajax({
+                    url: "/-_-api/v1/translation",
+                    data: JSON.stringify(payload),
+                    type: "POST",
+                    dataType: "json",
+                    contentType: "application/json"
+                }).done(function (data) {
+                    $("#comment-body-" + payload.number).find(".markdown-wrap").html(data.translated)
+                    $(this).attr("disabled", true);
+                });
+            });
         });
 </script>
 }

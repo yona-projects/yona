@@ -75,6 +75,7 @@ button.setDefaultLoginPage.desc = Make current page to index page when logged in
 button.show.original = See text
 button.signup = Sign up for {0}
 button.submitForm = Submit form
+button.translation = Translation
 button.upload = File upload
 button.user.makeAccountUnlock.false = Lock account
 button.user.makeAccountUnlock.true = Unlock account

@@ -76,6 +76,7 @@ button.setDefaultLoginPage.desc = 현재 페이지를 로그인 후 표시되는
 button.show.original = 원문 보기
 button.signup = {0} 시작 하기
 button.submitForm = 폼 전송
+button.translation = 번역
 button.upload = 파일 올리기
 button.user.makeAccountUnlock.false = 계정잠그기
 button.user.makeAccountUnlock.true = 잠김해제
