@@ -20,7 +20,7 @@
 @isAuthoredMeTab = @{
     UserApp.currentUser().id == searchCondition.authorId
 }
-<ul class="post-list-wrap">
+<ul class="post-list-wrap my-issues">
 @for(issue <- issueList){
     @defining(issue.project){ project =>
     @defining(User.findByLoginId(issue.authorLoginId)){ user =>
