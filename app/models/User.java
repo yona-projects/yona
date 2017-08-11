@@ -991,4 +991,16 @@ public class User extends Model implements ResourceConvertible {
     public boolean isLocked() {
         return this.state == UserState.LOCKED || this.state == UserState.DELETED;
     }
+
+    public String getPureNameOnly(){
+        String pureName = this.name;
+        String [] spliters = { "[", "(" };
+        for(String spliter: spliters) {
+            if(pureName.contains(spliter)){
+                pureName = this.name.substring(0, this.name.indexOf(spliter));
+            }
+        }
+
+        return pureName;
+    }
 }
