@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.AbstractPostingApp;
 import controllers.UserApp;
+import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
 import controllers.routes;
@@ -21,15 +22,15 @@ import models.enumeration.ResourceType;
 import models.enumeration.State;
 import models.enumeration.UserState;
 import org.apache.commons.lang3.StringUtils;
+import play.Configuration;
 import play.db.ebean.Transactional;
 import play.i18n.Messages;
+import play.libs.F;
 import play.libs.Json;
+import play.libs.ws.WS;
 import play.mvc.Http;
 import play.mvc.Result;
-import utils.AccessControl;
-import utils.ErrorViews;
-import utils.JodaDateUtil;
-import utils.RouteUtil;
+import utils.*;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -37,12 +38,19 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import static controllers.UserApp.MAX_FETCH_USERS;
 import static controllers.api.UserApi.createUserNode;
 import static play.libs.Json.toJson;
+import static play.mvc.Http.Context.Implicit.request;
 
 public class IssueApi extends AbstractPostingApp {
+    public static String TRANSLATION_API = play.Configuration.root().getString("application.extras.translation.api", "");
+    public static String TRANSLATION_HEADER = play.Configuration.root().getString("application.extras.translation.header", "");
+    public static String TRANSLATION_SVCID = play.Configuration.root().getString("application.extras.translation.svcid", "");
 
     @Transactional
     public static Result updateIssueLabel(String owner, String projectName, Long number) {
@@ -470,5 +478,65 @@ public class IssueApi extends AbstractPostingApp {
             newAssignee = Assignee.add(assigneeUser.id, project.id);
         }
         return newAssignee;
+    }
+
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
+    public static F.Promise<Result> translate() {
+        ObjectNode result = Json.newObject();
+        if(StringUtils.isBlank(TRANSLATION_API)) {
+            return F.Promise.promise( () -> status(412, "Precondition Failed"));
+        }
+
+        JsonNode json = request().body().asJson();
+
+        String owner = json.findValue("owner").asText();
+        String projectName = json.findValue("projectName").asText();
+        String type = json.findValue("type").asText();
+        long number = json.findValue("number").asLong();
+
+        String text = "";
+
+        Project project = Project.findByOwnerAndProjectName(owner, projectName);
+
+        switch (type) {
+            case "issue":
+                Issue issue = Issue.findByNumber(project, number);
+                text = "Title: " + issue.title + "\n\n" + issue.body;
+                break;
+            case "posting":
+                Posting posting = Posting.findByNumber(project, number);
+                text = "Title: " + posting.title + "\n\n" + posting.body;
+                break;
+            case "issue-comment":
+                text = IssueComment.find.byId(number).contents;
+                break;
+            case "post-comment":
+                text = PostingComment.find.byId(number).contents;
+                break;
+            default:
+                break;
+        }
+
+        return getTranslation(text, project);
+    }
+
+    private static F.Promise<Result> getTranslation(String text, Project project) {
+
+        return WS.url(TRANSLATION_API)
+                .setContentType("application/x-www-form-urlencoded")
+                .setHeader("Accept", "application/json,application/x-www-form-urlencoded,text/html,*/*")
+                .setHeader(TRANSLATION_HEADER, TRANSLATION_SVCID)
+                .post("source=ko&target=en&text=" + text)
+                .map(response -> {
+                    ObjectNode node = Json.newObject();
+
+                    play.Logger.debug(response.getBody());
+                    JsonNode jsonNode = response.asJson();
+                    JsonNode resultNode = jsonNode.findValue("result");
+
+                    String translated = resultNode.findValue("translatedText").asText();
+                    node.put("translated", Markdown.render(translated, project));
+                    return ok(node);
+                });
     }
 }
