@@ -127,6 +127,13 @@ application.send.yona.usage = true
     - Export 파일 포맷만 일치시킨다면 어떤 소스로부터도 마이그레이션이나 이동이 가능합니다
 
 
+Contribution
+---
+- 현재 Yona의 작업 브랜치는 `next`입니다. 
+- 저장소를 fork 한 다음 `next` 브랜치를 기준으로 작업하신다음 `next` 브랜치로 pull request를 보내주세요.
+- 코드리뷰 후 merge 되면 Yona Author로 파일에 기록되며 작은 기념품을 보내드립니다. 
+
+
 <br/>
 
 <a name="english"></a>[[한국어]](#korean)
@@ -214,7 +221,10 @@ application.send.yona.usage = true
 
 Contribution
 ---
-Welcome anytime!
+- Welcome anytime!
+- Currently yona's working branch is `next`. 
+- First, fork yona repository and make topic branch from `next`. 
+- Also, pull request target branch is `next`.
 
 
 License
