@@ -22,7 +22,6 @@ import models.enumeration.ResourceType;
 import models.enumeration.State;
 import models.enumeration.UserState;
 import org.apache.commons.lang3.StringUtils;
-import play.Configuration;
 import play.db.ebean.Transactional;
 import play.i18n.Messages;
 import play.libs.F;
@@ -38,14 +37,10 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 import static controllers.UserApp.MAX_FETCH_USERS;
 import static controllers.api.UserApi.createUserNode;
 import static play.libs.Json.toJson;
-import static play.mvc.Http.Context.Implicit.request;
 
 public class IssueApi extends AbstractPostingApp {
     public static String TRANSLATION_API = play.Configuration.root().getString("application.extras.translation.api", "");
@@ -305,7 +300,7 @@ public class IssueApi extends AbstractPostingApp {
                 addUserToUsers(user, users);
             } else {
                 if (user.isMemberOf(project)
-                        || project.hasGroup() && user.isMemberOf(project.organization)) {
+                        || project.hasGroup() && (user.isMemberOf(project.organization) || user.isAdminOf(project.organization))) {
                     addUserToUsers(user, users);
                 }
             }
