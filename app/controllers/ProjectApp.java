@@ -1254,7 +1254,8 @@ public class ProjectApp extends Controller {
 
         Webhook.create(project.id,
                         addWebhookForm.field("payloadUrl").value(),
-                        addWebhookForm.field("secret").value());
+                        addWebhookForm.field("secret").value(),
+                Boolean.valueOf(addWebhookForm.field("gitPushOnly").value()));
 
         return redirect(routes.ProjectApp.webhooks(project.owner, project.name));
     }

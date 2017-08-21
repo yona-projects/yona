@@ -428,6 +428,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
         notiEvent.oldValue = null;
         notiEvent.newValue = pullRequest.body;
         NotificationEvent.add(notiEvent);
+
         return notiEvent;
     }
 
@@ -484,6 +485,55 @@ public class NotificationEvent extends Model implements INotificationEvent {
         return resourceId;
     }
 
+    private static void webhookRequest(EventType eventTypes, PullRequest pullRequest, Boolean gitPushOnly) {
+        List<Webhook> webhookList = Webhook.findByProject(pullRequest.toProjectId);
+        for (Webhook webhook : webhookList) {
+            if (gitPushOnly == webhook.gitPushOnly) {
+                // Send push event via webhook payload URLs.
+                webhook.sendRequestToPayloadUrl(eventTypes, UserApp.currentUser(), pullRequest);
+            }
+        }
+    }
+
+    private static void webhookRequest(EventType eventTypes, PullRequest pullRequest, PullRequestReviewAction reviewAction, Boolean gitPushOnly) {
+        List<Webhook> webhookList = Webhook.findByProject(pullRequest.toProject.id);
+        for (Webhook webhook : webhookList) {
+            if (gitPushOnly == webhook.gitPushOnly) {
+                // Send push event via webhook payload URLs.
+                webhook.sendRequestToPayloadUrl(eventTypes, UserApp.currentUser(), pullRequest, reviewAction);
+            }
+        }
+    }
+
+    private static void webhookRequest(EventType eventTypes, Issue issue, Boolean gitPushOnly) {
+        List<Webhook> webhookList = Webhook.findByProject(issue.project.id);
+        for (Webhook webhook : webhookList) {
+            if (gitPushOnly == webhook.gitPushOnly) {
+                // Send push event via webhook payload URLs.
+                webhook.sendRequestToPayloadUrl(eventTypes, UserApp.currentUser(), issue);
+            }
+        }
+    }
+
+    private static void webhookRequest(EventType eventTypes, Comment comment, Boolean gitPushOnly) {
+        List<Webhook> webhookList = Webhook.findByProject(comment.projectId);
+        for (Webhook webhook : webhookList) {
+            if (gitPushOnly == webhook.gitPushOnly) {
+                // Send push event via webhook payload URLs.
+                webhook.sendRequestToPayloadUrl(eventTypes, UserApp.currentUser(), comment);
+            }
+        }
+    }
+
+    private static void webhookRequest(Project project, List<RevCommit> commits, List<String> refNames, User sender, String title, Boolean gitPushOnly) {
+        List<Webhook> webhookList = Webhook.findByProject(project.id);
+        for (Webhook webhook : webhookList) {
+            if (gitPushOnly == webhook.gitPushOnly) {
+                // Send push event via webhook payload URLs.
+                webhook.sendRequestToPayloadUrl(commits, refNames, sender, title);
+            }
+        }
+    }
 
     /**
      * @see {@link models.PullRequest#merge(models.PullRequestEventMessage)}
@@ -508,6 +558,9 @@ public class NotificationEvent extends Model implements INotificationEvent {
         notiEvent.oldValue = null;
         notiEvent.newValue = newPullRequestCommitChangedMessage(pullRequest);
         NotificationEvent.add(notiEvent);
+
+        webhookRequest(PULL_REQUEST_COMMIT_CHANGED, pullRequest, false);
+
         return notiEvent;
     }
 
@@ -532,6 +585,8 @@ public class NotificationEvent extends Model implements INotificationEvent {
      * @see {@link actors.PullRequestActor#processPullRequestMerging(models.PullRequestEventMessage, models.PullRequest)}
      */
     public static NotificationEvent afterMerge(User sender, PullRequest pullRequest, State state) {
+        webhookRequest(PULL_REQUEST_MERGED, pullRequest, false);
+
         NotificationEvent notiEvent = createFrom(sender, pullRequest);
         notiEvent.title = formatReplyTitle(pullRequest);
         notiEvent.receivers = state == State.MERGED ? getReceiversWithRelatedAuthors(sender, pullRequest) : getReceivers(sender, pullRequest);
@@ -563,14 +618,17 @@ public class NotificationEvent extends Model implements INotificationEvent {
     }
 
     public static NotificationEvent afterNewPullRequest(PullRequest pullRequest) {
+        webhookRequest(NEW_PULL_REQUEST, pullRequest, false);
         return afterNewPullRequest(UserApp.currentUser(), pullRequest);
     }
 
     public static NotificationEvent afterPullRequestUpdated(PullRequest pullRequest, State oldState, State newState) {
+        webhookRequest(PULL_REQUEST_STATE_CHANGED, pullRequest, false);
         return afterPullRequestUpdated(UserApp.currentUser(), pullRequest, oldState, newState);
     }
 
     public static void afterNewComment(Comment comment) {
+        webhookRequest(NEW_COMMENT, comment, false);
         NotificationEvent.add(forNewComment(comment, UserApp.currentUser()));
     }
 
@@ -618,15 +676,15 @@ public class NotificationEvent extends Model implements INotificationEvent {
     }
 
     public static NotificationEvent afterStateChanged(State oldState, Issue issue) {
+        webhookRequest(ISSUE_STATE_CHANGED, issue, false);
+
         NotificationEvent notiEvent = createFromCurrentUser(issue);
         notiEvent.title = formatReplyTitle(issue);
         notiEvent.receivers = getReceivers(issue);
         notiEvent.eventType = ISSUE_STATE_CHANGED;
         notiEvent.oldValue = oldState != null ? oldState.state() : null;
         notiEvent.newValue = issue.state.state();
-
         NotificationEvent.add(notiEvent);
-
         return notiEvent;
     }
 
@@ -666,6 +724,8 @@ public class NotificationEvent extends Model implements INotificationEvent {
     }
 
     public static NotificationEvent afterAssigneeChanged(User oldAssignee, Issue issue) {
+        webhookRequest(ISSUE_ASSIGNEE_CHANGED, issue, false);
+
         NotificationEvent notiEvent = createFromCurrentUser(issue);
 
         Set<User> receivers = getReceivers(issue);
@@ -690,6 +750,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
 
     public static void afterNewIssue(Issue issue) {
         NotificationEvent.add(forNewIssue(issue, UserApp.currentUser()));
+        webhookRequest(NEW_ISSUE, issue, false);
     }
 
     public static NotificationEvent forNewIssue(Issue issue, User author) {
@@ -703,6 +764,8 @@ public class NotificationEvent extends Model implements INotificationEvent {
     }
 
     public static NotificationEvent afterIssueBodyChanged(String oldBody, Issue issue) {
+        webhookRequest(ISSUE_BODY_CHANGED, issue, false);
+
         NotificationEvent notiEvent = createFromCurrentUser(issue);
         notiEvent.title = formatReplyTitle(issue);
         notiEvent.receivers = getReceiversForIssueBodyChanged(oldBody, issue);
@@ -716,6 +779,8 @@ public class NotificationEvent extends Model implements INotificationEvent {
     }
 
     public static NotificationEvent afterIssueMoved(Project previous, Issue issue) {
+        webhookRequest(ISSUE_MOVED, issue, false);
+
         NotificationEvent notiEvent = createFromCurrentUser(issue);
         notiEvent.title = formatReplyTitle(issue);
         notiEvent.receivers = getReceivers(issue);
@@ -866,15 +931,12 @@ public class NotificationEvent extends Model implements INotificationEvent {
         notiEvent.resourceId = project.asResource().getId();
         NotificationEvent.add(notiEvent);
 
-        List<Webhook> webhookList = Webhook.findByProject(project.id);
-        for (Webhook webhook : webhookList) {
-            // Send push event via webhook payload URLs.
-            String[] eventTypes = {"push"};
-            webhook.sendRequestToPayloadUrl(eventTypes, commits, refNames, sender, title);
-        }
+        webhookRequest(project, commits, refNames, sender, title, true);
     }
 
     public static NotificationEvent afterReviewed(PullRequest pullRequest, PullRequestReviewAction reviewAction) {
+        webhookRequest(EventType.PULL_REQUEST_REVIEW_STATE_CHANGED, pullRequest, reviewAction, false);
+
         String title = formatReplyTitle(pullRequest);
         Resource resource = pullRequest.asResource();
         Set<User> receivers = pullRequest.getWatchers();
@@ -1201,6 +1263,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
     }
 
     public static void afterCommentUpdated(Comment comment) {
+        webhookRequest(COMMENT_UPDATED, comment, false);
         NotificationEvent.add(forUpdatedComment(comment, UserApp.currentUser()));
     }
 }
