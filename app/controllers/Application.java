@@ -37,6 +37,7 @@ public class Application extends Controller {
     public static String GUEST_USER_LOGIN_ID_PREFIX  = play.Configuration.root().getString("application.guest.user.login.id.prefix ", "");
     public static String LOGIN_PAGE_LOGINID_PLACEHOLDER  = play.Configuration.root().getString("application.login.page.loginId.placeholder", "");
     public static String LOGIN_PAGE_PASSWORD_PLACEHOLDER  = play.Configuration.root().getString("application.login.page.password.placeholder", "");
+    public static boolean SHOW_USER_EMAIL = play.Configuration.root().getBoolean("application.show.user.email", true);
 
     @AnonymousCheck
     public static Result index() {
