@@ -310,6 +310,10 @@ application.hide.project.listing = false
 # default: "public"
 project.default.scope.when.create = "public"
 
+# Display user email
+# default: true
+application.show.user.email = true
+
 # Google Analytics
 # ~~~~~~~~~~~~~~~~~
 # This data is used to better understand how users interact with the Web UI which gives us valuable information
