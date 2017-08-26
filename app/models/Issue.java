@@ -593,7 +593,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
     }
 
     public Boolean isOverDueDate(){
-        return (JodaDateUtil.ago(dueDate).getMillis() > 0);
+        return isOpen() && (JodaDateUtil.ago(dueDate).getMillis() > 0);
     }
 
     public String until(){
