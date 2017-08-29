@@ -520,11 +520,14 @@
 
             htElement.welBreadCrumbs.html(breadcrumb);
 
-            var path = window.location.hash.substr(1);
             var $newFileLink = $("#new-file-link");
-            var newPath = updateQueryStringParameter($newFileLink.attr("href"), "path", path + "/");
+            var path = window.location.hash.substr(1);
 
-            $newFileLink.attr("href", newPath);
+            // 'New File' Button supports only git repositories.
+            if ($newFileLink[0]) {
+                var newPath = updateQueryStringParameter($newFileLink.attr("href"), "path", path + "/");
+                $newFileLink.attr("href", newPath);
+            }
         }
 
         function updateQueryStringParameter(uri, key, value) {
