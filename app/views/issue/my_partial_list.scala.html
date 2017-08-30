@@ -92,11 +92,15 @@
             }
             @if(issue.dueDate != null) {
             <div class="mr20 mt10 pull-right @if(issue.isOverDueDate) {overdue}" data-toggle="tooltip" data-placement="top" title="@issue.getDueDateString">
-                <i class="yobicon-clock2"></i> 
-                @if(issue.isOverDueDate) {
-                    @Messages("issue.dueDate.overdue")
+                <i class="yobicon-clock2"></i>
+                @if(issue.isOpen) {
+                    @if(issue.isOverDueDate) {
+                        @Messages("issue.dueDate.overdue")
+                    } else {
+                        @issue.until
+                    }
                 } else {
-                    @issue.until
+                    @issue.getDueDateString
                 }
             </div>
             }

@@ -327,7 +327,7 @@
                             <dt>
                                 @Messages("issue.dueDate")
                                 <span class="duedate-status @if(issue.isOverDueDate) {overdue}">
-                                @if(issue.dueDate != null) {
+                                @if(issue.dueDate != null && issue.isOpen) {
                                     @if(issue.isOverDueDate) {
                                         (@Messages("issue.dueDate.overdue"))
                                     } else {
