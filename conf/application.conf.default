@@ -241,13 +241,13 @@ application.notification.draft-time = 30s
 # Software Update
 # ~~~~~~~~~~~~~~~
 # Check for updates of Yona at this interval if it is grater than 0.
-application.update.notification.interval = 1h
+application.update.notification.interval = 6h
 # A url to the git repository for Yona releases.
 application.update.check.use = true
-application.update.repositoryUrl = "http://repo.yona.io/yona/yona"
+application.update.repositoryUrl = "https://github.com/yona-projects/yona"
 # A format to construct the url to latest Yona release. "%s" is a format
 # specifier for Yona version to download like "0.5.7".
-application.update.releaesUrlFormat = "https://github.com/doortts/yona/releases/tag/v%s"
+application.update.releaesUrlFormat = "https://github.com/yona-projects/yona/releases/tag/v%s"
 
 # customize play default thread pool size
 # see: https://www.playframework.com/documentation/2.3.x/ThreadPools
