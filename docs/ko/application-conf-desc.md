@@ -4,21 +4,29 @@ application.conf 설명
 conf 디렉터리의 application.conf 를 통해 설정 가능한 기능들
 ----
 - 사이트 이름 설정
-    - application.siteName="Yona"
+    - application.siteName = "Yona"
 - 어플리케이션 루트 설정
+    application.context = /myroot
 - 로그인 하지 않은 유저 접근 제한 여부
-    - application.allowsAnonymousAccess=true
+    - application.allowsAnonymousAccess = true
+- 게스트 사용자 접두사 설정
+    - application.guest.user.login.id.prefix = ""
 - 가입 후 관리자가 승인을 해야만 활동 가능하도록 제한하는 기능
     - signup.require.admin.confirm = true
+- 가입 가능한 이메일 도메인 설정
+    - application.allowed.sending.mail.domains = ""
+- 이메일 인증 사용 여부
+    - application.use.email.verification = true
 - 알림메일 발송 여부
     - notification.bymail.enabled = true
 - 서버 고유 보안키 (어드민 계정 리셋시에 필요함)
-- 언어 표시 우선순위 
+- 언어 표시 우선순위
+    application.langs="en-US, ko-KR, ja-JP"
 - DB 접속설정
 - HTTP 헤더에 표시할 서버 이름
 - HTTPS 설정
 - EMAIL 설정
-- 알리메일 발송 지연시간
+- 알림메일 발송 지연시간
 - Yona 페이지에서 링크로 타 사이트로 이동했을때 referer 헤더에서 Yona를 숨기는 기능
     - application.noreferrer = true
 - 프로젝트 목록보기에서 private 프로젝트를 표시해 줄지 여부
