@@ -652,7 +652,7 @@ public class UserApp extends Controller {
         if ((userKey != null && Long.valueOf(userId) != null)){
             user = CacheStore.yonaUsers.getIfPresent(Long.valueOf(userId));
         }
-        if (user == null) {
+        if (user == null || user.isLocked()) {
             return invalidSession();
         }
         return user;
@@ -664,7 +664,14 @@ public class UserApp extends Controller {
             return (User) cached;
         }
         initTokenUser();
-        return (User) Http.Context.current().args.get(TOKEN_USER);
+        User foundUser = (User) Http.Context.current().args.get(TOKEN_USER);
+
+        if(foundUser.isLocked()) {
+            processLogout();
+            return User.anonymous;
+        }
+
+        return foundUser;
     }
 
     public static void initTokenUser() {
@@ -692,7 +699,7 @@ public class UserApp extends Controller {
     }
 
     private static User invalidSession() {
-        session().clear();
+        processLogout();
         return User.anonymous;
     }
 
