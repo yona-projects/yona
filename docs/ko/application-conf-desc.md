@@ -4,44 +4,59 @@ application.conf 설명
 conf 디렉터리의 application.conf 를 통해 설정 가능한 기능들
 ----
 - 사이트 이름 설정
-    - application.siteName="Yona"
+    - application.siteName = "Yona"
 - 어플리케이션 루트 설정
+    - application.context = /myroot
 - 로그인 하지 않은 유저 접근 제한 여부
-    - application.allowsAnonymousAccess=true
+    - application.allowsAnonymousAccess = true
+- 게스트 사용자 접두사 설정
+    - application.guest.user.login.id.prefix = ""
 - 가입 후 관리자가 승인을 해야만 활동 가능하도록 제한하는 기능
-    - notification.bymail.enabled = true
+    - signup.require.admin.confirm = true
+- 외부로 메일 전송을 제한하기 위한 이메일 발송 가능 목록 제한
+    - application.allowed.sending.mail.domains = ""
+- 이메일 인증 사용 여부
+    - application.use.email.verification = true
 - 알림메일 발송 여부
     - notification.bymail.enabled = true
 - 서버 고유 보안키 (어드민 계정 리셋시에 필요함)
-- 언어 표시 우선순위 
+- 언어 표시 우선순위
+    - application.langs="en-US, ko-KR, ja-JP"
 - DB 접속설정
 - HTTP 헤더에 표시할 서버 이름
-- HTTPS 설정
+- URL 구성 요소 설정
+    - application.scheme="http"
+    - application.hostname="www.yourdomain.com"
+    - application.port="9000"
 - EMAIL 설정
-- 알리메일 발송 지연시간
+- 사용자 업로드 임시파일 정리 일정(초)
+    - application.temporaryfiles.keep-up.time = 86400
+- 알림메일 발송 지연시간
 - Yona 페이지에서 링크로 타 사이트로 이동했을때 referer 헤더에서 Yona를 숨기는 기능
     - application.noreferrer = true
 - 프로젝트 목록보기에서 private 프로젝트를 표시해 줄지 여부
     - application.displayPrivateRepositories = false
-- Github 으로 이전(Migration)기능 활성화 여부
-    - github.allow.migration = false
-- 최대 단일 첨부파일 사이즈 조정(기본 2Gb)
-    - application.maxFileSize = 2147483454
-- 오직 소셜로그인(Github/Gmail)을 통한 가입/로그인만으로 제한 (자체 계정 생성 및 로그인 금지)
-    - application.use.social.login.only = true
-- 지원 소셜로그인 제공자 설정 가능
-    - application.social.login.support = "github, google"
-- 프로젝트 생성 시 기본 선택되는 있는 공개 범위 지정
+- 프로젝트 생성 시 기본 선택되는 공개 범위 지정
     - project.default.scope.when.create = "public"
 - 공개 프로젝트 목록을 숨기는 기능    
     - application.hide.project.listing = false
+- Github 으로 이전(Migration)기능 활성화 여부
+    - github.allow.migration = false
+    - github.client.id = "TYPE YOUR GITHUB CILENT ID"
+    - github.client.secret = "TYPE YOUR GITHUB CILENT SECRET"
+- 최대 단일 첨부파일 사이즈 조정(기본 2Gb)
+    - application.maxFileSize = 2147483454
+- 프로젝트 생성 메뉴 설정
+    - project.creation.default.menus = "code, issue, pullRequest, review, milestone, board"
+- 오직 소셜 로그인(Github/Gmail)을 통한 가입/로그인만으로 제한 (자체 계정 생성 및 로그인 금지)
+    - application.use.social.login.only = false
+- 소셜 로그인 사용 시 사용자 이름 동기화 여부
+    - application.use.social.login.name.sync = false
+- 지원 소셜 로그인 제공자 설정 가능
+    - application.social.login.support = "github, google"
 - Github Enterprise 연동시 추가 옵션
     - 로그인 버튼 이름 변경
-       - application.social.login.github.name = "Github Enterprise"
-- 소셜 로그인시 사용자 이름 동기화 
-   - application.use.social.login.name.sync = false
-- 외부로 메일 전송을 제한하기 위한 이메일 발송 가능 목록 제한
-    - application.allowed.sending.mail.domains = "your-company.com, inner-email.com"
+      - application.social.login.github.name = "Github Enterprise"
 - LDAP 로그인 지원
     - application.use.ldap.login.supoort = false
 
@@ -72,9 +87,55 @@ application.siteName="Yona"
 # want to allow that, set signup.require.confirm to true.
 application.allowsAnonymousAccess=true
 
+# Guest User Id Rule
+# ~~~~~~~~~~~~~
+# If login id is created with following prefixes,
+# Yona treat that user is Guest User.
+# Guest user is extremely restricted in use of Yona.
+# They can not see any project listing of instance and
+# only create own account's projects.
+# In other words, they cannot create organization.
+# If multiple prefixes are needed, user , (comma)
+#
+# eg.
+# "PT_, GUEST_"
+
+application.guest.user.login.id.prefix = ""
+
+#
+# Signup options
+# ~~~~~~~~~~~~~~
+
 # If you wants to make the user available to use yona
 # after the server administrator approved,uncomment below
+#
 # signup.require.admin.confirm = true
+
+# If you only want to allow for signing up in specific email domains,
+# use the following option.
+# application.allowed.sending.mail.domains = "gmail.com, your-company.com"
+# And "" is option for no restriction.
+#
+# application.allowed.sending.mail.domains = ""
+
+# If following email verification option is true, all user will be locked when it sign-up,
+# until user click the verification link of verification confirm mail
+#
+# application.use.email.verification = true
+
+# If you enable to use social login or email verification, set followings
+play-easymail {
+  from {
+    # Mailing from address
+    email="projects.yona@gmail.com"
+
+    # Mailing name
+    name="yona-no-reply"
+
+    # Seconds between sending mail through Akka (defaults to 1)
+    # delay=1
+  }
+}
 
 # Notification
 # ~~~~~
@@ -177,7 +238,7 @@ application.feedback.url="https://github.com/yona-projects/yona/issues"
 # Mailer
 # ~~~~~~
 # You have to configure SMTP to send mails.
-# Example settings, it assume that you use gamil smtp
+# Example settings, it assume that you use gmail smtp
 smtp.host = smtp.gmail.com
 smtp.port = 465
 smtp.ssl = true
@@ -304,9 +365,18 @@ application.noreferrer = true
 # Display private repositories in the list
 application.displayPrivateRepositories = false
 
+# Hide project listing for security
+application.hide.project.listing = false
+
 # choice: "public" or "private"
 # default: "public"
 project.default.scope.when.create = "public"
+
+# Google Analytics
+# ~~~~~~~~~~~~~~~~~
+# This data is used to better understand how users interact with the Web UI which gives us valuable information
+# in improving Yona user experience. To disable this for any reason, set the following option to false.
+application.send.yona.usage = true
 
 # Github Migration
 # ~~~~~~~~~~~~~~~~~
@@ -320,6 +390,11 @@ github.client.secret = "TYPE YOUR GITHUB CILENT SECRET"
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # 2,147,483,454 bytes = 2Gb
 application.maxFileSize = 2147483454
+
+# Project Creation Menu Settings
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Default: "code, issue, pullRequest, review, milestone, board"
+project.creation.default.menus = "issue, milestone, board"
 
 # Social Login Support
 # ~~~~~~~~~~~~~~~~~~~~
@@ -336,11 +411,6 @@ application.use.social.login.name.sync = false
 # choice: github, google
 application.social.login.support = "github, google"
 
-```
-# ALLOWED_SENDING_MAIL_DOMAINS
-# Default: "" <= Allow all
-application.allowed.sending.mail.domains = ""
-
 # LDAP Login Support
 # ~~~~~~~~~~~~~~~~~
 #
@@ -354,20 +424,16 @@ ldap {
     baseDN = "ou=scientists,dc=example,dc=com"
     # If your ldap service's distinguishedName is 'CN=username,OU=user,DC=abc,DC=com', postfix is 'OU=xxx,DC=abc,DC=com'
     distinguishedNamePostfix = "OU=user,DC=abc,DC=com"
+    loginProperty = "sAMAccountName"
+    displayNameProperty = "displayName"
+    userNameProperty = "CN"
+    emailProperty = "mail"
+    options {
+      # If your LDAP configuration support email login
+      useEmailBaseLogin = false
+      fallbackToLocalLogin = false
+    }
 }
 
-# If you enable to use social login, set followings
-play-easymail {
-  from {
-    # Mailing from address
-    email="your@mail-adress.com"
-
-    # Mailing name
-    name="Yona Admin"
-
-    # Seconds between sending mail through Akka (defaults to 1)
-    # delay=1
-  }
-}
-```
 include "social-login.conf"
+```
