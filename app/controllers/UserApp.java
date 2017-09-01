@@ -251,7 +251,7 @@ public class UserApp extends Controller {
         }
 
         flash(Constants.WARNING, "user.login.invalid");
-        return redirect(routes.UserApp.loginForm());
+        return redirect(getLoginFormURLWithRedirectURL());
     }
 
     private static String encodedPath(String path){
