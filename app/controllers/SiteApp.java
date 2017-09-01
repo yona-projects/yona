@@ -215,6 +215,7 @@ public class SiteApp extends Controller {
             }
             targetUser.isGuest = !targetUser.isGuest;
             targetUser.update();
+            CacheStore.yonaUsers.put(targetUser.id, targetUser);
             return ok(userList.render("title.siteSetting", User.findUsers(0, query, userState), userState, query));
         }
         flash(Constants.WARNING, "error.auth.unauthorized.waringMessage");
