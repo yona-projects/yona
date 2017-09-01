@@ -11,7 +11,7 @@ Mail sending function
 # Mailer
 # ~~~~~~
 # You have to configure SMTP to send mails.
-# Example settings, it assume that you use gamil smtp
+# Example settings, it assume that you use gmail smtp
 smtp.host = smtp.gmail.com
 smtp.port = 465
 smtp.ssl = true
