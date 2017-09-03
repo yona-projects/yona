@@ -1,66 +1,66 @@
-application.conf 설명
+application.conf detail descriptions
 ===
 
-conf 디렉터리의 application.conf 를 통해 설정 가능한 기능들
+Features configurable via application.conf in the conf directory
 ----
-- 사이트 이름 설정
+- Site name
     - application.siteName = "Yona"
-- 어플리케이션 루트 설정
+- Appplication root context
     - application.context = /myroot
-- 로그인 하지 않은 유저 접근 제한 여부
+- Restrict user who is not logged in
     - application.allowsAnonymousAccess = true
-- 게스트 사용자 접두사 설정
+- Setting guest user prefixes
     - application.guest.user.login.id.prefix = ""
-- 가입 후 관리자가 승인을 해야만 활동 가능하도록 제한하는 기능
+- Restrict activation after an enrollment before administrator confirmed
     - signup.require.admin.confirm = true
-- 외부로 메일 전송을 제한하기 위한 이메일 발송 가능 목록 제한
+- Allowed mail sending domains
     - application.allowed.sending.mail.domains = ""
-- 이메일 인증 사용 여부
+- Use email verification
     - application.use.email.verification = true
-- 알림메일 발송 여부
+- Notification bymail
     - notification.bymail.enabled = true
-- 서버 고유 보안키 (어드민 계정 리셋시에 필요함)
-- 언어 표시 우선순위
+- Server-specific security key (required when resetting the admin account)
+- Language priority
     - application.langs="en-US, ko-KR, ja-JP"
-- DB 접속설정
-- HTTP 헤더에 표시할 서버 이름
-- URL 구성 요소 설정
+- DB connection settings
+- The server name to display in the HTTP header
+- URL settings
     - application.scheme="http"
     - application.hostname="www.yourdomain.com"
     - application.port="9000"
-- EMAIL 설정
-- 사용자 업로드 임시파일 정리 일정(초)
+- EMAIL settings
+- User upload temporary file cleaning schedule (seconds)
     - application.temporaryfiles.keep-up.time = 86400
-- 알림메일 발송 지연시간
-- Yona 페이지에서 링크로 타 사이트로 이동했을때 referer 헤더에서 Yona를 숨기는 기능
+- Notification delay time
+- Hide Yona in the referer header when moving to outer page
     - application.noreferrer = true
-- 프로젝트 목록보기에서 private 프로젝트를 표시해 줄지 여부
+- Whether to display the private project in the project list view
     - application.displayPrivateRepositories = false
-- 프로젝트 생성 시 기본 선택되는 공개 범위 지정
+- Project default scope when create
     - project.default.scope.when.create = "public"
-- 공개 프로젝트 목록을 숨기는 기능    
+- Hide public project list
     - application.hide.project.listing = false
-- Github 으로 이전(Migration)기능 활성화 여부
+- Enable migration to Github feature  
     - github.allow.migration = false
     - github.client.id = "TYPE YOUR GITHUB CILENT ID"
     - github.client.secret = "TYPE YOUR GITHUB CILENT SECRET"
-- 최대 단일 첨부파일 사이즈 조정(기본 2Gb)
+- Maximum single attachment size adjustment (default 2Gb)
     - application.maxFileSize = 2147483454
-- 프로젝트 생성 메뉴 설정
+- Project Creation Menu Settings
     - project.creation.default.menus = "code, issue, pullRequest, review, milestone, board"
-- 오직 소셜 로그인(Github/Gmail)을 통한 가입/로그인만으로 제한 (자체 계정 생성 및 로그인 금지)
+- Only sign up / login via social login (Github / Gmail)
     - application.use.social.login.only = false
-- 소셜 로그인 사용 시 사용자 이름 동기화 여부
+- Username sync when using social sign-in
     - application.use.social.login.name.sync = false
-- 지원 소셜 로그인 제공자 설정 가능
+- Social sign-in list to support
     - application.social.login.support = "github, google"
-- Github Enterprise 연동시 추가 옵션
-    - 로그인 버튼 이름 변경
+- Options when working with Github Enterprise
+    - Change sign-in button name
       - application.social.login.github.name = "Github Enterprise"
-- LDAP 로그인 지원
+- LDAP login support
     - application.use.ldap.login.supoort = false
 
-application.conf 기본 설정
+application.conf default settings
 -----
 
 ```

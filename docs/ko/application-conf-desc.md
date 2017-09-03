@@ -3,21 +3,21 @@ application.conf 설명
 
 conf 디렉터리의 application.conf 를 통해 설정 가능한 기능들
 ----
-- 사이트 이름 설정
+- 사이트 이름
     - application.siteName = "Yona"
-- 어플리케이션 루트 설정
+- 어플리케이션 루트 지정
     - application.context = /myroot
-- 로그인 하지 않은 유저 접근 제한 여부
+- 로그인 하지 않은 유저 접근 제한
     - application.allowsAnonymousAccess = true
-- 게스트 사용자 접두사 설정
+- 게스트 사용자 접두사 설정. 해당 접두사의 아이디는 가입시 자동으로 Guest 계정이 됩니다.
     - application.guest.user.login.id.prefix = ""
-- 가입 후 관리자가 승인을 해야만 활동 가능하도록 제한하는 기능
+- 가입 후 관리자가 승인을 해야만 활동 가능하도록 제한
     - signup.require.admin.confirm = true
-- 외부로 메일 전송을 제한하기 위한 이메일 발송 가능 목록 제한
+- 메일 발송을 허용할 메일 도메인. 실수로 외부로 메일 발송이 되지 않도록 제한할 때 사용.
     - application.allowed.sending.mail.domains = ""
-- 이메일 인증 사용 여부
+- 가입시 유효한 이메일인지 확인하는 기능 사용여부
     - application.use.email.verification = true
-- 알림메일 발송 여부
+- 알림메일 발송 사용 여부
     - notification.bymail.enabled = true
 - 서버 고유 보안키 (어드민 계정 리셋시에 필요함)
 - 언어 표시 우선순위
@@ -28,8 +28,8 @@ conf 디렉터리의 application.conf 를 통해 설정 가능한 기능들
     - application.scheme="http"
     - application.hostname="www.yourdomain.com"
     - application.port="9000"
-- EMAIL 설정
-- 사용자 업로드 임시파일 정리 일정(초)
+- Yona 시스템이 사용할 EMAIL 설정
+- 사용자 업로드 임시파일의 정리 일정(초)
     - application.temporaryfiles.keep-up.time = 86400
 - 알림메일 발송 지연시간
 - Yona 페이지에서 링크로 타 사이트로 이동했을때 referer 헤더에서 Yona를 숨기는 기능
@@ -38,21 +38,21 @@ conf 디렉터리의 application.conf 를 통해 설정 가능한 기능들
     - application.displayPrivateRepositories = false
 - 프로젝트 생성 시 기본 선택되는 공개 범위 지정
     - project.default.scope.when.create = "public"
-- 공개 프로젝트 목록을 숨기는 기능    
+- 공개 프로젝트 전체 목록을 볼 수 없도록 숨기는 기능    
     - application.hide.project.listing = false
 - Github 으로 이전(Migration)기능 활성화 여부
     - github.allow.migration = false
     - github.client.id = "TYPE YOUR GITHUB CILENT ID"
     - github.client.secret = "TYPE YOUR GITHUB CILENT SECRET"
-- 최대 단일 첨부파일 사이즈 조정(기본 2Gb)
+- 파일 업로드시에 단일 파일 최대 업로드 크기 제한(기본 2Gb)
     - application.maxFileSize = 2147483454
-- 프로젝트 생성 메뉴 설정
+- 프로젝트 생성시 기본으로 선택되어서 표시할 메뉴
     - project.creation.default.menus = "code, issue, pullRequest, review, milestone, board"
 - 오직 소셜 로그인(Github/Gmail)을 통한 가입/로그인만으로 제한 (자체 계정 생성 및 로그인 금지)
     - application.use.social.login.only = false
 - 소셜 로그인 사용 시 사용자 이름 동기화 여부
     - application.use.social.login.name.sync = false
-- 지원 소셜 로그인 제공자 설정 가능
+- 지원 소셜 로그인 제공자 설정
     - application.social.login.support = "github, google"
 - Github Enterprise 연동시 추가 옵션
     - 로그인 버튼 이름 변경
