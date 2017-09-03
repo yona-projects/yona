@@ -64,11 +64,11 @@ Yona 배포판
 
 - MariaDB 버전
   - 기본 권장 버전
-  - yona-v1.6.0-bin.zip 같은 형식으로 파일로 배포
+  - yona-v1.7.0-bin.zip 같은 형식으로 파일로 배포
   - DB 설치에 약간의 시간이 필요하지만 안정적으로 운영이 가능
 - H2 DB 내장형
   - DB 설정없이 내려받아서 바로 실행해서 쓸 수 있는 버전
-  - yona-h2-v1.6.0-bin.zip 같은 형식으로 파일로 배포
+  - yona-h2-v1.7.0-bin.zip 같은 형식으로 파일로 배포
   - USB 등에 담아서 이동해가면서 사용하거나 작업후 통째로 zip으로 묶어서 들고 다니는 것이 가능함
   - 대규모 사이트에서 사용하기에는 적합하지 않음. 참고: [Yona가 MariaDB를 기본 DB로 사용하게 된 이유](https://repo.yona.io/yona-projects/yona/post/4)
 
@@ -129,8 +129,9 @@ application.send.yona.usage = true
 
 Contribution
 ---
-- 현재 Yona의 작업 브랜치는 `next`입니다. 
-- 저장소를 fork 한 다음 `next` 브랜치를 기준으로 작업하신다음 `next` 브랜치로 pull request를 보내주세요.
+- 코드 기여의 기준이 되는 브랜치는 `master`입니다.
+- 저장소를 fork 한 다음 `master` 브랜치를 기준으로 작업하신다음 `master` 브랜치로 pull request를 보내주세요.
+  - `next`브랜치는 내부 개발용입니다. 어떠한 기능들이 추가되고 있는지 현장을 보고 싶으시면 `next`브랜치를 참고해주세요.
 - 코드리뷰 후 merge 되면 Yona Author로 파일에 기록되며 작은 기념품을 보내드립니다. 
 
 
@@ -221,10 +222,9 @@ application.send.yona.usage = true
 
 Contribution
 ---
-- Welcome anytime!
-- Currently yona's working branch is `next`. 
-- First, fork yona repository and make topic branch from `next`. 
-- Also, pull request target branch is `next`.
+- The branch for contributions is `master`.
+- Fork the repository, then work on the `master` branch and send a pull request to the` master` branch.
+   - The `next` branch is for internal development. If you want to see what features are being added, please refer to the `next` branch.
 
 
 License
