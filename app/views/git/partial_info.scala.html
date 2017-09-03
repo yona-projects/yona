@@ -65,10 +65,10 @@
     @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT)) {
         @if(pull.isAcceptable){
             <a id="btnAccept" href="@routes.PullRequestApp.accept(project.owner, project.name, pull.number)" data-request-method="post"
-               class="ybtn ybtn-success">@Messages("pullRequest.accept")</a>
+               class="ybtn ybtn-success">@Messages("pullRequest.merge")</a>
         } else {
             <button class="ybtn ybtn-disabled" data-toggle="tooltip" data-placement="top"
-               title="@pull.getMessageForDisabledAcceptButton">@Messages("pullRequest.accept")</button>
+               title="@pull.getMessageForDisabledAcceptButton">@Messages("pullRequest.merge")</button>
         }
     }
 </div>
