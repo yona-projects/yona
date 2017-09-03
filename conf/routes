@@ -123,6 +123,9 @@ POST           /user/email/sendValidationEmail/:emailId                         
 GET            /user/email/confirm/:emailId/:token                                    controllers.UserApp.confirmEmail(emailId: Long, token: String)
 
 # Site
+GET            /sites/data                                                            controllers.SiteApp.data()
+GET            /sites/export                                                          controllers.SiteApp.exportData()
+POST           /sites/import                                                          controllers.SiteApp.importData()
 GET            /sites/mail                                                            controllers.SiteApp.writeMail(errorMessage:String ?= "", sended:Boolean ?= false)
 POST           /sites/mail                                                            controllers.SiteApp.sendMail()
 GET            /sites/massmail                                                        controllers.SiteApp.massMail()
