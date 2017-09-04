@@ -62,18 +62,26 @@
     <script src="@routes.Assets.at("javascripts/lib/magnific-popup/jquery.magnific-popup.js")"></script>
 
     <script>
-            $(".markdown-wrap").find("img").on("click", function () {
-                var img = $(this);
-                $.magnificPopup.open({
-                    items: {
-                        src: img.attr("src")
-                    },
-                    type: 'image'
+        $(function () {
+            $(".markdown-wrap").each(function () { // the containers for all your galleries
+                var that = $(this);
+                that.find("img").on("mouseover", function(){
+                    $(this).css("cursor", "pointer");
                 });
-            }).on("mouseover", function () {
-                var img = $(this);
-                img.css("cursor", "pointer");
+                that.magnificPopup({
+                    delegate: 'img',
+                    type: 'image',
+                    gallery: {
+                        enabled: true
+                    },
+                    callbacks: {
+                        elementParse: function (item) {
+                            item.src = item.el.attr('src');
+                        }
+                    }
+                });
             });
+        })
     </script>
 
     @if(Application.SEND_YONA_USAGE){
