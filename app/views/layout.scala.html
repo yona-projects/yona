@@ -31,6 +31,7 @@
 <link rel="stylesheet" type="text/css" media="all" href="@routes.Assets.at("stylesheets/usermenu.css")">
 <link rel="stylesheet" type="text/css" media="all" href="@routes.Assets.at("stylesheets/yobi.css")">
 <link rel='stylesheet' href="@routes.Assets.at("javascripts/lib/nprogress/nprogress.css")"/>
+<link rel="stylesheet" href="@routes.Assets.at("javascripts/lib/magnific-popup/magnific-popup.css")" />
 <script type="text/javascript" src="@routes.Assets.at("javascripts/yona-layout.js")"></script>
 
 </head>
@@ -58,6 +59,22 @@
         var UsermenuUrl = "@routes.UserApp.usermenuTabContentList()";
     </script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.Usermenu.js")"></script>
+    <script src="@routes.Assets.at("javascripts/lib/magnific-popup/jquery.magnific-popup.js")"></script>
+
+    <script>
+            $(".markdown-wrap").find("img").on("click", function () {
+                var img = $(this);
+                $.magnificPopup.open({
+                    items: {
+                        src: img.attr("src")
+                    },
+                    type: 'image'
+                });
+            }).on("mouseover", function () {
+                var img = $(this);
+                img.css("cursor", "pointer");
+            });
+    </script>
 
     @if(Application.SEND_YONA_USAGE){
     <script>
