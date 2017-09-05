@@ -699,7 +699,7 @@ public class UserApp extends Controller {
     }
 
     private static User invalidSession() {
-        processLogout();
+        session().clear();
         return User.anonymous;
     }
 
