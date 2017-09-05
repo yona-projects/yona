@@ -78,6 +78,11 @@
                         elementParse: function (item) {
                             item.src = item.el.attr('src');
                         }
+                    },
+                    image: {
+                        titleSrc: function (item) {
+                            return item.el.attr('alt');
+                        }
                     }
                 });
             });
