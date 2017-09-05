@@ -3161,21 +3161,17 @@ div.markdown-loader {
 }
 
 div.markdown-preview {
-    font-size: 1.1em;
-    &.update-comment-body, &.comment-body {
-        font-size: 1.05em;
-    }
-    overflow-x:auto;
-    margin: 0;
-    vertical-align : middle;
-    border:2px solid #ccc;
+    border:1px solid #ccc;
     .border-radius(0 0 3px 3px);
     background: #FAFAFA;
-    padding: 10px 20px;
+    padding: 15px 20px;
+    :first-child {
+        margin-top: 0;
+    }
 }
 
 .write-comment-box {
-    padding: 0px 0 15px 50px;
+    padding: 0 0 15px 54px;
     font-family:@base-font-family;
 
     .write-comment-wrap {
