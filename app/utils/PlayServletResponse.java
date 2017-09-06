@@ -313,13 +313,14 @@ public class PlayServletResponse implements HttpServletResponse {
     public void sendError(int statusCode, String msg) throws IOException {
         // FIXME response should be returned at this time.
         setStatus(statusCode);
-        resetBuffer();
         if (msg != null) {
-            play.Logger.error(msg);
+            setContentType("text/plain");
+            resetBuffer();
             getWriter().write(msg);
-            response.setHeader(Http.HeaderNames.CONTENT_TYPE, "text/plain");
+            play.Logger.error(msg);
         } else {
             response.getHeaders().remove(Http.HeaderNames.CONTENT_TYPE);
+            resetBuffer();
         }
     }
 
