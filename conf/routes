@@ -213,7 +213,7 @@ GET            /:user/:project/changeVCS                                        
 POST           /:user/:project/changeVCS                                              controllers.ProjectApp.changeVCS(user, project)
 
 # Project menu forwarding
-GET            /:user/:project/go                                                     controllers.ProjectApp.goConventionMenu(user, project)
+GET            /:user/:project/go                                                     controllers.ProjectApp.goConventionMenu(user, project, state:String ?= "", format:String ?= "html", pageNum: Int ?= 1)
 
 # Project Review Menu
 GET            /:user/:project/reviews                                                controllers.ReviewThreadApp.reviewThreads(user, project)
