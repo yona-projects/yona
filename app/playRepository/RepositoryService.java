@@ -36,6 +36,7 @@ import play.mvc.Http.RawBuffer;
 import play.mvc.Http.Request;
 import play.mvc.Http.Response;
 import playRepository.hooks.*;
+import utils.PlayServletContext;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -144,6 +145,7 @@ public class RepositoryService {
     public static DAVServlet createDavServlet(final String userName) throws ServletException {
         DAVServlet servlet = new DAVServlet();
         servlet.init(new ServletConfig() {
+            private ServletContext servletContext = new PlayServletContext();
 
             @Override
             public String getInitParameter(String name) {
@@ -161,7 +163,7 @@ public class RepositoryService {
 
             @Override
             public ServletContext getServletContext() {
-                throw new UnsupportedOperationException();
+                return servletContext;
             }
 
             @Override
