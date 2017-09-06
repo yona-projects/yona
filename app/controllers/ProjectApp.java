@@ -1285,17 +1285,17 @@ public class ProjectApp extends Controller {
 
     @IsAllowed(Operation.READ)
     @Transactional
-    public static Result goConventionMenu(String ownerId, String projectName)
+    public static Result goConventionMenu(String ownerId, String projectName, String state, String format, int pageNum)
             throws IOException, ServletException, SVNException, GitAPIException, WriteException {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
         List<History> histories = null;
 
         if( project.menuSetting.issue ) {
-            return IssueApp.issues(project.owner, project.name);
+            return IssueApp.issues(project.owner, project.name, state, format, pageNum);
         }
 
         if( project.menuSetting.board ) {
-            return redirect(routes.BoardApp.posts(project.owner, project.name, 1));
+            return redirect(routes.BoardApp.posts(project.owner, project.name, pageNum));
         }
 
         return redirect(routes.ProjectApp.project(project.owner, project.name));
