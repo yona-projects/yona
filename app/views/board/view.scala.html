@@ -232,7 +232,7 @@
             });
 
             // detect comment which contains mention at me
-            $(".comment-body:contains('@UserApp.currentUser().loginId')").closest(".comment").addClass("mentioned");
+            $(".comment-body:contains('@UserApp.currentUser().getPureNameOnly')").closest(".comment").addClass("mentioned");
 
             $('#translate').one('click', function (e) {
                 var data = {
