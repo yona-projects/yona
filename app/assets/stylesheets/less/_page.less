@@ -2884,6 +2884,11 @@ label.inline-list {
                     .rotate(45deg);
                 }
 
+                &:hover {
+                    .meta-info .act-row {
+                        opacity: 1;
+                    }
+                }
                 .meta-info {
                     height:22px;
                     padding:5px 15px;
@@ -2894,6 +2899,9 @@ label.inline-list {
                     .yobicon-comment {vertical-align: middle;}
 
                     .act-row {
+                        transition: opacity fadeIn 1s;
+                        opacity: .3;
+                        overflow: hidden;
                         i {
                             font-size: 20px;
                             line-height: 20px;
@@ -2901,6 +2909,11 @@ label.inline-list {
                             .opacity(20);
 
                             &.yobicon-edit-2 { margin-top:2px; }
+                            &.yobicon-hearts {
+                                &:hover {
+                                    color: #f68c52
+                                }
+                            }
                             &:hover {
                                 color:@yobi-link;
                                 .opacity(100);
@@ -3254,6 +3267,13 @@ div.markdown-preview {
     margin:20px 0;
     overflow:auto;
     padding-right: 15px;
+    button {
+        i.yobicon-hearts {
+            &:hover {
+                color: #f68c52;
+            }
+        }
+    }
     button.icon {
         line-height: 30px;
         font-size: 22px;
