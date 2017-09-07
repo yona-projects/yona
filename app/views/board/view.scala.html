@@ -63,19 +63,19 @@
                                 <strong class="name">@Messages("common.noAuthor")</strong>
                             }
                         </a>
-                </div>
-                @if(StringUtils.isNotEmpty(post.history)){
-                    @if(UserApp.currentUser().isAnonymous){
-                        <div class="posting-history">
-                            <a href="@routes.UserApp.loginForm()?redirectUrl=@routes.BoardApp.post(project.owner, project.name, post.getNumber)" data-toggle="modal">@Messages("change.history")</a>
-                        </div>
-                    } else {
-                        <div class="posting-history">
-                            <a href="#-yona-posting-history" data-toggle="modal">@Messages("change.history")</a>
-                            @common.partial_history(post)
-                        </div>
+                    @if(StringUtils.isNotEmpty(post.history)){
+                        @if(UserApp.currentUser().isAnonymous){
+                            <div class="posting-history">
+                                <a href="@routes.UserApp.loginForm()?redirectUrl=@routes.BoardApp.post(project.owner, project.name, post.getNumber)" data-toggle="modal">@Messages("change.history")</a>
+                            </div>
+                        } else {
+                            <div class="posting-history">
+                                <a href="#-yona-posting-history" data-toggle="modal">@Messages("change.history")</a>
+                                @common.partial_history(post)
+                            </div>
+                        }
                     }
-                }
+                </div>
                 @if(StringUtils.isEmpty(post.body)){
                     <div class="content empty-content"></div>
                 } else {
@@ -98,20 +98,21 @@
                         </div>
                     </div>
 
-                    @if(StringUtils.isNotBlank(IssueApi.TRANSLATION_API)){
-                        <button type="button" id="translate" class="icon btn-transparent-with-fontsize-lineheight ml10"  data-toggle="tooltip" title="@Messages("button.translation")"><i class="yobicon-lang"></i></button>
+                    @if(StringUtils.isNotBlank(IssueApi.TRANSLATION_API)) {
+                        <button type="button" id="translate" class="icon btn-transparent-with-fontsize-lineheight ml10" data-toggle="tooltip" title="@Messages("button.translation")"><i class="yobicon-lang"></i></button>
                     }
+                    <span class="hide show-in-mobile-inline">
+                        @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)) {
+                            <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" title="@Messages("button.edit")" onclick="window.location = '@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)'"><i class="yobicon-edit-2"></i></button>
+                        } else {
+                            <a href="@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" title="@Messages("button.show.original")"><i class="yobicon-edit-2"></i></button></a>
+                        }
 
-                    @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)) {
-                        <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" title="@Messages("button.edit")" onclick="window.location='@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)'"><i class="yobicon-edit-2"></i></button>
-                    } else {
-                        <a href="@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" title="@Messages("button.show.original")"><i class="yobicon-edit-2"></i></button></a>
-                    }
-
-                    @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.DELETE)) {
-                        <a href="#deleteConfirm" data-toggle="modal">
-                            <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml6" data-toggle='tooltip' title="@Messages("button.delete")"><i class="yobicon-trash"></i></button></a>
-                    }
+                        @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.DELETE)) {
+                            <a href="#deleteConfirm" data-toggle="modal">
+                                <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml6" data-toggle='tooltip' title="@Messages("button.delete")"><i class="yobicon-trash"></i></button></a>
+                        }
+                    </span>
                 </div>
                 <div class="watcher-list"></div>
                 @** Comment **@
@@ -144,6 +145,18 @@
                             }
                         }
                         @**<!-- // -->**@
+                    <div class="right-menu-icons">
+                        @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)) {
+                            <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" title="@Messages("button.edit")" onclick="window.location='@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)'"><i class="yobicon-edit-2"></i></button>
+                        } else {
+                            <a href="@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" title="@Messages("button.show.original")"><i class="yobicon-edit-2"></i></button></a>
+                        }
+
+                        @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.DELETE)) {
+                            <a href="#deleteConfirm" data-toggle="modal">
+                                <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml6" data-toggle='tooltip' title="@Messages("button.delete")"><i class="yobicon-trash"></i></button></a>
+                        }
+                    </div>
                 </div>
             </div>
         </div>

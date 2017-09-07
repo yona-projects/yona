@@ -2747,6 +2747,7 @@ label.inline-list {
 
     .posting-history {
         display: inline-block;
+        margin-left: 10px;
     }
 
     .content {
@@ -2763,6 +2764,30 @@ label.inline-list {
     }
     textarea.content {
         padding:6px;
+    }
+    .right-menu-icons {
+        button.icon {
+            line-height: 30px;
+            font-size: 22px;
+            color: lightgray;
+            .yobicon-lang {
+                font-size: 20px;
+            }
+            &.disabled {
+                color: #eee !important;
+            }
+            &:hover {
+                color: #51aacc;
+                opacity: 1;
+            }
+        }
+        .pt5px {
+            padding-top: 5px;
+        }
+    }
+
+    .count {
+        margin-left: -3px;
     }
 }
 
@@ -3905,6 +3930,9 @@ label.issue-item-row {
     margin-left:3px;
     font-size:@base-font-size;
     vertical-align:middle;
+    a:hover {
+        text-decoration: none;
+    }
 
     .ybtn  {
         padding:3px 12px !important;

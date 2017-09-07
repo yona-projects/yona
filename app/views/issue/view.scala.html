@@ -28,8 +28,12 @@
   }
 }
 
+@isVotedByCurrentUser = @{
+    issue.isVotedBy(UserApp.currentUser)
+}
+
 @urlToVote = @{
-    if(issue.isVotedBy(UserApp.currentUser)){
+    if(isVotedByCurrentUser){
         routes.VoteApp.unvote(project.owner, project.name, issue.getNumber).toString
     } else {
         routes.VoteApp.vote(project.owner, project.name, issue.getNumber).toString
@@ -37,7 +41,7 @@
 }
 
 @getVoteButtonTitle = {
-    @if(issue.isVotedBy(UserApp.currentUser)){
+    @if(isVotedByCurrentUser){
         @Messages("issue.unvote.description")
     } else {
         @Messages("issue.vote.description")
@@ -135,19 +139,20 @@
                                 <strong class="name">@Messages("issue.noAuthor")</strong>
                             }
                         </a>
-                </div>
-                @if(StringUtils.isNotEmpty(issue.history)){
-                    @if(UserApp.currentUser().isAnonymous){
-                        <div class="posting-history">
-                            <a href="@routes.UserApp.loginForm()?redirectUrl=@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)" data-toggle="modal">@Messages("change.history")</a>
-                        </div>
-                    } else {
-                        <div class="posting-history">
-                            <a href="#-yona-posting-history" data-toggle="modal">@Messages("change.history")</a>
-                            @common.partial_history(issue)
-                        </div>
+                    @if(StringUtils.isNotEmpty(issue.history)){
+                        @if(UserApp.currentUser().isAnonymous){
+                            <div class="posting-history">
+                                <a href="@routes.UserApp.loginForm()?redirectUrl=@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)" data-toggle="modal">@Messages("change.history")</a>
+                            </div>
+                        } else {
+                            <div class="posting-history">
+                                <a href="#-yona-posting-history" data-toggle="modal">@Messages("change.history")</a>
+                                @common.partial_history(issue)
+                            </div>
+                        }
                     }
-                }
+                </div>
+
                 @if(StringUtils.isEmpty(issue.body)){
                     <div class="content empty-content"></div>
                 } else {
@@ -167,35 +172,37 @@
                                 }
                                 </button>
                             }
-                            <div id="vote" class="vote-wrap">
-                                @if(isResourceCreatable(UserApp.currentUser, issue.asResource(), ResourceType.ISSUE_COMMENT)) {
-                                    <a href="@urlToVote" class="ybtn @if(issue.isVotedBy(UserApp.currentUser)){ybtn-watching}" title="@getVoteButtonTitle"
-                                       data-request-method="post" data-toggle="tooltip">
-                                        <span class="heart"><i class="yobicon-hearts"></i></span>
-                                        @if(issue.voters.size > 0) {
-                                            <strong class="count">@issue.voters.size</strong>
-                                        }
-                                    </a>
-                                } else {
-                                    <span class="ybtn ybtn-disabled" style="color:#777;" data-toggle="tooltip" title="@Messages("user.login.alert")" data-login="required">
-                                        <span class="heart"><i class="yobicon-hearts"></i></span>
-                                        @if(issue.voters.size > 0) {
-                                            <strong class="count">@issue.voters.size</strong>
-                                        }
-                                    </span>
-                                }
 
-                                @if(issue.voters.size > 0){
-                                    @partial_voters(issue, 3)
-                                }
-                            </div>
                         </div>
                     </div>
 
+                    <div id="vote" class="vote-wrap">
+                        @if(issue.voters.size > 0) {
+                            @partial_voters(issue, 3)
+                        }
+                        @if(isResourceCreatable(UserApp.currentUser, issue.asResource(), ResourceType.ISSUE_COMMENT)) {
+                            <a href="@urlToVote" class="@if(issue.isVotedBy(UserApp.currentUser)) {ybtn-watching}" title="@getVoteButtonTitle"
+                            data-request-method="post" data-toggle="tooltip">
+                                <span class="heart"><i class="yobicon-hearts"></i></span>
+                                @if(issue.voters.size > 0) {
+                                    <strong class="count">@issue.voters.size</strong>
+                                }
+                            </a>
+                        } else {
+                            <span class="ybtn-disabled" style="color: #777;" data-toggle="tooltip" title="@Messages("user.login.alert")" data-login="required">
+                                <span class="heart"><i class="yobicon-hearts"></i></span>
+                                @if(issue.voters.size > 0) {
+                                    <strong class="count">@issue.voters.size</strong>
+                                }
+                            </span>
+                        }
+
+                    </div>
                     @if(StringUtils.isNotBlank(IssueApi.TRANSLATION_API)){
                         <button type="button" id="translate" class="icon btn-transparent-with-fontsize-lineheight ml10"  data-toggle="tooltip" title="@Messages("button.translation")"><i class="yobicon-lang"></i></button>
                     }
 
+                    <span class="act-row hide show-in-mobile-inline">
                     @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
                         <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" title="@Messages("button.edit")" onclick="window.location='@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)'"><i class="yobicon-edit-2"></i></button>
                     } else {
@@ -209,6 +216,7 @@
                     } else {
                         <button type="button" class="icon disabled btn-transparent-with-fontsize-lineheight ml6" data-toggle='popover' data-trigger="hover" data-placement="top" data-content="@Messages("issue.can.not.be.deleted")"><i class="yobicon-trash"></i></button>
                     }
+                    </span>
                 </div>
                 <div class="watcher-list"></div>
                 <div class="subtasks">
@@ -360,6 +368,21 @@
                                 @partial_show_selected_label(issue.labels.toList, routes.IssueApp.issues(project.owner, project.name, issue.state.state(), "html", 1).toString)
                             }
                         }
+                        <div class="act-row right-menu-icons">
+                            @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+                                <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" title="@Messages("button.edit")" onclick="window.location='@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)'"><i class="yobicon-edit-2"></i></button>
+                            } else {
+                                <a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" title="@Messages("button.show.original")"><i class="yobicon-edit-2"></i></button></a>
+                            }
+                            @if(issue.canBeDeleted) {
+                                @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.DELETE)) {
+                                    <a href="#deleteConfirm" data-toggle="modal">
+                                        <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml6" data-toggle='tooltip' title="@Messages("button.delete")"><i class="yobicon-trash"></i></button></a>
+                                }
+                            } else {
+                                <button type="button" class="icon disabled btn-transparent-with-fontsize-lineheight ml6" data-toggle='popover' data-trigger="hover" data-placement="top" data-content="@Messages("issue.can.not.be.deleted")"><i class="yobicon-trash"></i></button>
+                            }
+                        </div>
                         @**<!-- // -->**@
                     </form>
                 </div>
