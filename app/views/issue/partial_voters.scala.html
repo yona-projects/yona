@@ -14,24 +14,24 @@
             <li>@Html(getUserAvatar(UserApp.currentUser, "smaller"))</li>
         }
 
-        @for(voter <- VoteApp.getVotersForAvatar(issue.voters, numOfAvatars)) {
-            @if(voter != UserApp.currentUser) {
-            <li>@Html(getUserAvatar(voter, "smaller"))</li>
+        @defining(VoteApp.getVotersExceptCurrentUser(issue.voters)) { issueVoters =>
+            @for(voter <- VoteApp.getVotersForAvatar(issueVoters, numOfAvatars)) {
+                <li>@Html(getUserAvatar(voter, "smaller"))</li>
             }
-        }
-        @if(issue.voters.size > numOfAvatars) {
-            <li data-toggle="tooltip" data-html="true"
-                title="
-                @for(voter <- VoteApp.getVotersForName(issue.voters, numOfAvatars, numOfNames)) {
-                    @voter.name <br>
-                }
-                @if(issue.voters.size > numOfAvatars + numOfNames) {
-                        &hellip;
-                }">
-                <a href="#voters" data-toggle="modal">
-                    @Messages("issue.voters.more", issue.voters.size - numOfAvatars)
-                </a>
-            </li>
+            @if(issueVoters.size > numOfAvatars) {
+                <li data-toggle="tooltip" data-html="true"
+                    title="
+                    @for(voter <- VoteApp.getVotersForName(issueVoters, numOfAvatars, numOfNames)) {
+                        @voter.name <br>
+                    }
+                    @if(issueVoters.size > numOfAvatars + numOfNames) {
+                            &hellip;
+                    }">
+                    <a href="#voters" data-toggle="modal">
+                        @Messages("issue.voters.more", issueVoters.size - numOfAvatars)
+                    </a>
+                </li>
+            }
         }
     </ul>
 </div>

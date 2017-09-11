@@ -173,36 +173,35 @@
                                 </button>
                             }
 
+                            <div id="vote" class="vote-wrap">
+                                @if(isResourceCreatable(UserApp.currentUser, issue.asResource(), ResourceType.ISSUE_COMMENT)) {
+                                    <a href="@urlToVote" class="@if(issue.isVotedBy(UserApp.currentUser)) {ybtn-watching}" title="@getVoteButtonTitle"
+                                    data-request-method="post" data-toggle="tooltip">
+                                        <span class="heart"><i class="yobicon-hearts"></i></span>
+                                        @if(issue.voters.size > 0) {
+                                            <strong class="count">@issue.voters.size</strong>
+                                        }
+                                    </a>
+                                } else {
+                                    <span class="ybtn-disabled" style="color: #777;" data-toggle="tooltip" title="@Messages("user.login.alert")" data-login="required">
+                                        <span class="heart"><i class="yobicon-hearts"></i></span>
+                                        @if(issue.voters.size > 0) {
+                                            <strong class="count">@issue.voters.size</strong>
+                                        }
+                                    </span>
+                                }
+                                @if(issue.voters.size > 0) {
+                                    @partial_voters(issue, 3)
+                                }
+                            </div>
                         </div>
                     </div>
 
-                    <div id="vote" class="vote-wrap">
-                        @if(issue.voters.size > 0) {
-                            @partial_voters(issue, 3)
-                        }
-                        @if(isResourceCreatable(UserApp.currentUser, issue.asResource(), ResourceType.ISSUE_COMMENT)) {
-                            <a href="@urlToVote" class="@if(issue.isVotedBy(UserApp.currentUser)) {ybtn-watching}" title="@getVoteButtonTitle"
-                            data-request-method="post" data-toggle="tooltip">
-                                <span class="heart"><i class="yobicon-hearts"></i></span>
-                                @if(issue.voters.size > 0) {
-                                    <strong class="count">@issue.voters.size</strong>
-                                }
-                            </a>
-                        } else {
-                            <span class="ybtn-disabled" style="color: #777;" data-toggle="tooltip" title="@Messages("user.login.alert")" data-login="required">
-                                <span class="heart"><i class="yobicon-hearts"></i></span>
-                                @if(issue.voters.size > 0) {
-                                    <strong class="count">@issue.voters.size</strong>
-                                }
-                            </span>
-                        }
-
-                    </div>
                     @if(StringUtils.isNotBlank(IssueApi.TRANSLATION_API)){
                         <button type="button" id="translate" class="icon btn-transparent-with-fontsize-lineheight ml10"  data-toggle="tooltip" title="@Messages("button.translation")"><i class="yobicon-lang"></i></button>
                     }
 
-                    <span class="act-row hide show-in-mobile-inline">
+                    <span class="act-row">
                     @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
                         <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" title="@Messages("button.edit")" onclick="window.location='@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)'"><i class="yobicon-edit-2"></i></button>
                     } else {
