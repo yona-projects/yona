@@ -581,13 +581,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
      * @return True if the user has voted, if not False
      */
     public boolean isVotedBy(User user) {
-        for(User voter: this.voters) {
-            play.Logger.debug(user + " : " + voter);
-            if(voter != null && user != null && voter.loginId.equals(user.loginId)) {
-                return true;
-            }
-        }
-        return false;
+        return this.voters.contains(user);
     }
 
     public String getDueDateString() {
