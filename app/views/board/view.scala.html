@@ -101,7 +101,7 @@
                     @if(StringUtils.isNotBlank(IssueApi.TRANSLATION_API)) {
                         <button type="button" id="translate" class="icon btn-transparent-with-fontsize-lineheight ml10" data-toggle="tooltip" title="@Messages("button.translation")"><i class="yobicon-lang"></i></button>
                     }
-                    <span class="hide show-in-mobile-inline">
+                    <span class="">
                         @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)) {
                             <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" title="@Messages("button.edit")" onclick="window.location = '@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)'"><i class="yobicon-edit-2"></i></button>
                         } else {
