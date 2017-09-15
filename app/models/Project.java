@@ -288,6 +288,12 @@ public class Project extends Model implements LabelOwner {
 
     }
 
+    public static List<Project> findProjectsCreatedByUserAndScope(String loginId, ProjectScope projectScope, String orderString) {
+        return find.where().eq("owner", loginId)
+                .eq("projectScope", projectScope)
+                .orderBy(orderString).findList();
+    }
+
     public Date lastUpdateDate() {
         try {
             PlayRepository repository = RepositoryService.getRepository(this);
