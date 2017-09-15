@@ -146,6 +146,8 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
             super.update();
         } catch (PersistenceException ole) {
             play.Logger.warn("PersistenceException: " + ole.getMessage());
+        } catch (Exception e) {
+            play.Logger.warn(e.getMessage());
         }
         updateMention();
     }

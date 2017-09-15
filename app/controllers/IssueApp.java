@@ -76,6 +76,12 @@ public class IssueApp extends AbstractPostingApp {
         }
         searchCondition.pageNum = pageNum - 1;
 
+        // default for my issues
+        String orderBy = request().getQueryString("orderBy");
+        if (StringUtils.isBlank(orderBy)) {
+            searchCondition.orderBy = "updatedDate";
+        }
+
         // determine pjax or json when requested with XHR
         if (HttpUtil.isRequestedWithXHR(request())) {
             format = HttpUtil.isPJAXRequest(request()) ? "pjax" : "json";
@@ -819,6 +825,9 @@ public class IssueApp extends AbstractPostingApp {
             IssueEvent.addFromNotificationEvent(
                     NotificationEvent.afterStateChanged(issue.previousState(), issue),
                     issue, UserApp.currentUser().loginId);
+        } else {
+            issue.updatedDate = JodaDateUtil.now();
+            issue.update();
         }
 
         return redirect(RouteUtil.getUrl(savedComment));
