@@ -110,6 +110,12 @@ input[type=number]::-webkit-outer-spin-button {
     background:#f0f0f0;
     filter:none;
 
+    &.done-outline {
+        border: 1px solid @light-green;
+    }
+    &.red-outline {
+        border: 1px solid @yona-red;
+    }
     .box-shadow(inset 0px 1px 1px rgba(0,0,0,0.25));
     .bar {
         height:100%;
@@ -117,6 +123,7 @@ input[type=number]::-webkit-outer-spin-button {
         &.orange { background:@orange; .box-shadow(none); } // #f28149
         &.blue   { background:@blue;   .box-shadow(none); }
         &.grey   { background:@gray-9e;   .box-shadow(none); }
+        &.red    { background:@yona-red;   .box-shadow(none); }
         &.done   { background:@light-green;   .box-shadow(none); }
         &.open   { background:@state-open; .box-shadow(none); }
         &.closed { background:@state-closed; .box-shadow(none); }

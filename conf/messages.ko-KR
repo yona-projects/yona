@@ -61,6 +61,7 @@ button.login = 로그인
 button.new.enrollment = 멤버 등록 요청하기
 button.newIssue = 새 이슈 등록
 button.newProject = 새 프로젝트 만들기
+button.newSubtask = 새 서브 태스크
 button.nextPage = 다음 페이지
 button.nextState.closed = 이슈 닫기
 button.nextState.open = 이슈 다시 열기

@@ -14,8 +14,8 @@
     @defining(Issue.countByParentIssueIdAndState(issue.id, State.OPEN)) { openIssueCount =>
         @defining(Issue.countByParentIssueIdAndState(issue.id, State.CLOSED)) { closedIssueCount =>
             @defining(getPercent(closedIssueCount.toDouble, openIssueCount + closedIssueCount)) { percentage =>
-                <div class="upload-progress">
-                    <div class="bar @if(percentage == 100) {done} else {grey}" style="width: @percentage%;" title="Subtask"></div>
+                <div class="upload-progress @if(percentage == 100){done-outline} else {red-outline}">
+                    <div class="bar @if(percentage == 100) {done} else {red}" style="width: @percentage%;" title="Subtask"></div>
                 </div>
                 <span class="completion-ratio @if(percentage == 100){txt-green}">@if(percentage != 100){@closedIssueCount/}@(closedIssueCount + openIssueCount)</span>
             }

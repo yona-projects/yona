@@ -6,7 +6,7 @@
 **@
 @(project:Project, parentIssueId:Long, currentIssueId:Long)
 
-@showOption = @{Option(parentIssueId).isDefined && Option(currentIssueId).isDefined}
+@showOption = @{Option(parentIssueId).isDefined || Option(currentIssueId).isDefined}
 @hasChildIssue = @{Option(currentIssueId).isDefined && Issue.finder.byId(currentIssueId).hasChildIssue}
 @import utils.TemplateHelper._
 

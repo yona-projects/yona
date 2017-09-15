@@ -61,6 +61,7 @@ button.login = Log in
 button.new.enrollment = Send sign-up request
 button.newIssue = New issue
 button.newProject = Create new project
+button.newSubtask = New subtask
 button.nextPage = Next page
 button.nextState.closed = Close issue
 button.nextState.open = Reopen issue
