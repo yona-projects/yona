@@ -3947,15 +3947,24 @@ label.issue-item-row {
 
 .vote-wrap {
     display:inline-block;
-    margin-left:3px;
+    direction: rtl;
+    margin-right: -3px;
     font-size:@base-font-size;
     vertical-align:middle;
+
     a:hover {
         text-decoration: none;
     }
 
+    .yobicon-hearts:hover {
+        color: #f68c52;
+    }
+
     .ybtn  {
         padding:3px 12px !important;
+    }
+
+    &.voter-exists {
     }
 
     .heart {
@@ -3964,6 +3973,7 @@ label.issue-item-row {
         font-size: 17px;
         margin-right:2px;
         vertical-align:middle;
+        margin-top: 3px;
     }
 
     .desc {
@@ -3986,6 +3996,7 @@ label.issue-item-row {
 .voter-list-wrap {
     display:inline-block;
     margin-left:.3em;
+    margin-right: 5px;
     vertical-align:middle;
     overflow: hidden;
 }
@@ -4022,15 +4033,14 @@ label.issue-item-row {
 
 .voter-list {
     display:block;
-    height:30px;
     list-style:none;
 
     li {
         float:left;
         margin-right:3px;
-        line-height:30px;
-        padding-bottom: 5px;
+        line-height: 25px;
 
+        margin-top: -4px;
         &:last-of-type {
             margin-right:0;
         }
