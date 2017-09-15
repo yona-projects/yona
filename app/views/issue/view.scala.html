@@ -66,10 +66,10 @@
         @if(!openChildIssues.isEmpty || !closedChildIssues.isEmpty) {
             <div class="child-issues">
                 @defining(Issue.finder.byId(parentIssueId)) { parentIssue =>
-                    <div class="issue-item parent-issue"><a href="@routes.IssueApp.issue(parentIssue.project.owner, parentIssue.project.name, parentIssue.getNumber)" class="@if(parentIssue.id == issue.id){bold}">#@parentIssue.getNumber @parentIssue.title @if(parentIssue.assignee != null) {- @parentIssue.assignee.user.name}</a>
+                    <div class="issue-item parent-issue"><a href="@routes.IssueApp.issue(parentIssue.project.owner, parentIssue.project.name, parentIssue.getNumber)" class="@if(parentIssue.id == issue.id){bold}">#@parentIssue.getNumber @parentIssue.title @if(parentIssue.assignee != null) {- @parentIssue.assignee.user.getPureNameOnly}</a>
                         @defining(getPercent(closedChildIssues.size.toDouble, (openChildIssues.size + closedChildIssues.size).toDouble)) { percentage =>
-                        <div class="upload-progress">
-                            <div class="bar @if(percentage == 100){done} else {grey}" style="width: @percentage%;" title="Subtask"></div>
+                        <div class="upload-progress @if(percentage == 100){done-outline} else {red-outline}">
+                            <div class="bar @if(percentage == 100){done} else {red}" style="width: @percentage%;" title="Subtask"></div>
                         </div>
                         <span class="@if(percentage == 100){txt-green}">@if(percentage != 100){@closedChildIssues.size/}@(openChildIssues.size + closedChildIssues.size)</span>
                         <span class="parent-issue-state @parentIssue.state.state">@Messages("issue.state." + parentIssue.state.state)</span>
@@ -81,7 +81,7 @@
                     <div class="issue-item @if(childIssue.id == issue.id){bold}">
                         <span class="state-label open"></span>
                         <a href="@routes.IssueApp.issue(childIssue.project.owner, childIssue.project.name, childIssue.getNumber)">
-                            <span class="item-name">@childIssue.title @if(childIssue.assignee != null) {- @childIssue.assignee.user.name}</span>
+                            <span class="item-name"><span class="subtask-number">#@childIssue.getNumber</span> @childIssue.title @if(childIssue.assignee != null) {- @childIssue.assignee.user.getPureNameOnly}</span>
                         </a>
                     </div>
                 }
@@ -89,7 +89,7 @@
                     <div class="issue-item @if(childIssue.id == issue.id){bold}">
                         <span class="state-label closed"><i class=" yobicon-checkmark"></i></span>
                         <a href="@routes.IssueApp.issue(childIssue.project.owner, childIssue.project.name, childIssue.getNumber)">
-                            <span class="item-name">@childIssue.title @if(childIssue.assignee != null) {- @childIssue.assignee.user.name}</span>
+                            <span class="item-name"><span class="subtask-number">#@childIssue.getNumber</span> @childIssue.title @if(childIssue.assignee != null) {- @childIssue.assignee.user.getPureNameOnly}</span>
                         </a>
                     </div>
                 }
@@ -114,6 +114,9 @@
                 <span class="badge badge-issue-@issue.state.state.toLowerCase">@Messages("issue.state." + issue.state.state)</span>
             </div>
             <div class="title">
+                @if(issue.parent != null) {
+                    <span class="subtask-mark">subtask</span>
+                }
                 <strong class="board-id">#@issue.getNumber</strong> @issue.title
                 <div class="pull-right hide show-in-mobile" style="font-size: 0.7em">
                     <span class="date" title="@JodaDateUtil.getDateString(issue.createdDate)">
@@ -246,7 +249,7 @@
                         <dl>
                             @if(project.menuSetting.issue) {
                                 <dd class="project-btn-item">
-                                    <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)?parentIssueId=@parentIssueId" class="ybtn ybtn-success">@Messages("button.newIssue")</a>
+                                    <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)?parentIssueId=@parentIssueId" class="ybtn ybtn-success">@Messages("button.newSubtask")</a>
                                 </dd>
                             }
                             <dt>@Messages("issue.assignee")</dt>
