@@ -18,6 +18,7 @@ import views.html.git.partial_pull_request_event
 import models._
 import java.net.URLEncoder
 import java.util
+import java.util.Date
 
 import scala.annotation.tailrec
 import playRepository.FileDiff
@@ -95,11 +96,15 @@ object TemplateHelper {
   }
 
   def agoOrDateString(date: java.util.Date) = {
+    var year = JodaDateUtil.getDateString(date, "yyyy")
+    var thisYear = JodaDateUtil.getDateString(new Date(), "yyyy")
     val ago = JodaDateUtil.ago(date)
     if (ago.getStandardDays < 8) {
-        agoString(ago)
+      agoString(ago)
+    } else if (thisYear.equals(year)) {
+      JodaDateUtil.getDateString(date, "MM-dd")
     } else {
-        JodaDateUtil.getDateString(date, "yyyy-MM-dd")
+      JodaDateUtil.getDateString(date, "yyyy-MM-dd")
     }
   }
 

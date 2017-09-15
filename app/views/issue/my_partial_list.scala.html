@@ -51,6 +51,11 @@
                 <span class="infos-item" data-toggle="tooltip" data-placement="bottom" title="@JodaDateUtil.getDateString(issue.createdDate)">
                     @agoOrDateString(issue.createdDate)
                 </span>
+                @if(!issue.createdDate.equals(issue.updatedDate)) {
+                    <span class="infos-item" data-toggle="tooltip" data-placement="bottom" title="@JodaDateUtil.getDateString(issue.updatedDate)">
+                    update: @agoOrDateString(issue.updatedDate)
+                    </span>
+                }
 
                 @partial_list_subtask(project, issue)
 
