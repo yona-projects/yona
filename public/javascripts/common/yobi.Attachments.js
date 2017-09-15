@@ -446,7 +446,7 @@ yobi.Attachments = function(htOptions) {
         var sFileName = welItem.attr("data-name");
         var sFilePath = welItem.attr("data-href");
 
-        var sLinkText = '[' + sFileName + '](' + sFilePath + ')\n';
+        var sLinkText = '[' + sFileName + '](' + sFilePath + ') ';
 
         if (sMimeType.substr(0,5) === "image") {
             return '!' + sLinkText;
