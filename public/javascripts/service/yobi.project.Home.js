@@ -68,13 +68,26 @@
         function _attachEvent(){
             htElement.welRepoURL.click(_onClickRepoURL);
 
-            htElement.welBtnCopy.zclip({
-                "path": htVar.sURLZeroClipboard,
-                "copy": htElement.welInputCloneURL.val(),
-                "afterCopy": function(){
+            if (Clipboard && Clipboard.isSupported()) {
+                // Using clipboard.min.js if supports clipboard api.
+                new Clipboard(htElement.welBtnCopy[0], {
+                    target: function() {
+                        return document.getElementById('cloneURL');
+                    }
+                }).on('success', function(e) {
                     yobi.Common.notify(Messages("code.copyUrl.copied"), 1000);
-                }
-            });
+                    e.clearSelection();
+                });
+            } else {
+                // Use zclipboard(Flash based) if not support clipboard api.
+                htElement.welBtnCopy.zclip({
+                    "path": htVar.sURLZeroClipboard,
+                    "copy": htElement.welInputCloneURL.val(),
+                    "afterCopy": function () {
+                        yobi.Common.notify(Messages("code.copyUrl.copied"), 1000);
+                    }
+                });
+            }
 
             htElement.welInputCloneURL.on('click',function(){
                 $(this).select();
