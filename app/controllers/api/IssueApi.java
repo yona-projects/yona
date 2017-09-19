@@ -387,7 +387,7 @@ public class IssueApi extends AbstractPostingApp {
     private static void addUserToUsers(User user, List<ObjectNode> users) {
         ObjectNode userNode = Json.newObject();
         userNode.put("loginId", user.loginId);
-        userNode.put("name", user.name);
+        userNode.put("name", user.getDisplayName());
         userNode.put("avatarUrl", user.avatarUrl());
 
         if(!users.contains(userNode)) {
@@ -460,7 +460,7 @@ public class IssueApi extends AbstractPostingApp {
         if(assigneeUser.isAnonymous()){
             node.put("name", Messages.get("common.none"));
         } else {
-            node.put("name", assigneeUser.name);
+            node.put("name", assigneeUser.getDisplayName());
         }
         result.put("assignee", node);
     }

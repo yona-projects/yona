@@ -24,8 +24,10 @@ public class LdapUser {
     private Attribute email;
     private Attribute userLoginId;
     private Attribute department;
+    private Attribute englishName;
 
-    public LdapUser(Attribute displayName, Attribute email, Attribute userLoginId, Attribute department) {
+    public LdapUser(Attribute displayName, Attribute email, Attribute userLoginId,
+                    Attribute department) {
         this.displayName = displayName;
         this.email = email;
         this.userLoginId = userLoginId;
@@ -88,14 +90,22 @@ public class LdapUser {
         return getString(department);
     }
 
+    public void setEnglishName(Attribute englishName) {
+        this.englishName = englishName;
+    }
+
+    public String getEnglishName() {
+        return getString(englishName);
+    }
+
     @Override
     public String toString() {
         return "LdapUser{" +
-                "displayName='" + getDisplayName() + '\'' +
-                ", email='" + getEmail() + '\'' +
-                ", userId='" + getUserLoginId() + '\'' +
-                ", department='" + getDepartment() + '\'' +
-                ", isGuest='" + isGuestUser() + '\'' +
+                "displayName=" + displayName +
+                ", email=" + email +
+                ", userLoginId=" + userLoginId +
+                ", department=" + department +
+                ", englishName=" + englishName +
                 '}';
     }
 }

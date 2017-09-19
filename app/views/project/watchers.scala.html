@@ -19,7 +19,7 @@
                     <a href="@routes.UserApp.userInfo(member.loginId)" class="avatar-wrap mlarge pull-left mr10">
                         <img src="@User.findByLoginId(member.loginId).avatarUrl" width="64" height="64">
                     </a>
-                    <div class="member-name">@member.name</div>
+                    <div class="member-name">@member.getDisplayName</div>
                     <div class="member-id">@{"@"}@member.loginId</div>
                 </li>
                     }

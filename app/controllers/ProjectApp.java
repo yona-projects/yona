@@ -176,7 +176,7 @@ public class ProjectApp extends Controller {
 
         if ((!AccessControl.isGlobalResourceCreatable(user))
                 || (Organization.isNameExist(owner) && !OrganizationUser.isAdmin(organization.id, user.id))) {
-            return forbidden(ErrorViews.Forbidden.render("'" + user.name + "' has no permission"));
+            return forbidden(ErrorViews.Forbidden.render("'" + user.getDisplayName() + "' has no permission"));
         }
 
         if (validateWhenNew(filledNewProjectForm)) {
@@ -841,8 +841,8 @@ public class ProjectApp extends Controller {
             Map<String, String> projectUserMap = new HashMap<>();
             if (user != null && StringUtils.isNotEmpty(user.loginId) && !user.loginId.equals(Constants.ADMIN_LOGIN_ID)) {
                 projectUserMap.put("loginid", user.loginId);
-                projectUserMap.put("searchText", user.name + user.loginId);
-                projectUserMap.put("name", user.name);
+                projectUserMap.put("searchText", user.getDisplayName() + user.loginId);
+                projectUserMap.put("name", user.getDisplayName());
                 projectUserMap.put("image", user.avatarUrl());
                 users.add(projectUserMap);
             }

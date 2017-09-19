@@ -132,7 +132,7 @@
                                         <img src="@member.avatarUrl" alt="@member.loginId" width="24" height="24">
                                     </a>
                                     <a href="@routes.UserApp.userInfo(member.loginId)" class="name">
-                                        <strong>@member.name (@member.loginId)</strong>
+                                        <strong>@member.getDisplayName (@member.loginId)</strong>
                                     </a>
                                 </li>
                                 }
