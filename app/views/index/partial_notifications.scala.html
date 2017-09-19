@@ -80,7 +80,7 @@
                         </div>
                     }
                     @if(user != null) {
-                        <a href="@routes.UserApp.userInfo(user.loginId)" class="author">@user.name</a>@@@user.loginId
+                        <a href="@routes.UserApp.userInfo(user.loginId)" class="author">@user.getDisplayName</a>@@@user.loginId
                     }
                     <span class="ago pull-right" title="@JodaDateUtil.getDateString(noti.created)">
                         @agoOrDateString(noti.created)

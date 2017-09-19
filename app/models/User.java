@@ -74,6 +74,7 @@ public class User extends Model implements ResourceConvertible {
      * name to show at web pages
      */
     public String name;
+    public String englishName;
 
     @Pattern(value = "^" + LOGIN_ID_PATTERN + "$", message = "user.wrongloginId.alert")
     @Required
@@ -993,6 +994,9 @@ public class User extends Model implements ResourceConvertible {
     }
 
     public String getPureNameOnly(){
+        if (StringUtils.isNotBlank(englishName) && lang != null && UserApp.currentUser().lang.startsWith("en")) {
+            return englishName;
+        }
         String pureName = this.name;
         String [] spliters = { "[", "(" };
         for(String spliter: spliters) {
@@ -1002,5 +1006,26 @@ public class User extends Model implements ResourceConvertible {
         }
 
         return pureName;
+    }
+
+    public String extractDepartmentPart(){
+        String departmentName = this.name;
+        String [] spliters = { "[", "(" };
+        for(String spliter: spliters) {
+            if(departmentName.contains(spliter)){
+                departmentName = this.name.substring(this.name.indexOf(spliter));
+            }
+        }
+
+        return departmentName;
+
+    }
+
+    public String getDisplayName(){
+        if (StringUtils.isNotBlank(englishName) && lang != null && UserApp.currentUser().lang.startsWith("en")) {
+            return englishName + " " + extractDepartmentPart();
+        } else {
+            return name;
+        }
     }
 }

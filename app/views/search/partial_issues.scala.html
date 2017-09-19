@@ -55,7 +55,7 @@
                     }
                     @if(user.name){
                         <a href="@routes.UserApp.userInfo(user.loginId)" class="meta-item" data-toggle="tooltip" data-placement="top" title="@user.loginId">
-                            @user.name
+                            @user.getDisplayName
                         </a>
                     } else {
                         <span class="meta-item">@Messages("issue.noAuthor")</span>

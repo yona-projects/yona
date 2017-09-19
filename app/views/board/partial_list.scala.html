@@ -30,7 +30,7 @@
     <div class="infos">
         @if(user.name){
             <a href="@routes.UserApp.userInfo(user.loginId)" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="bottom" title="@user.loginId">
-                @user.name
+                @user.getDisplayName
             </a>
         } else {
             <span class="infos-item">@Messages("issue.noAuthor")</span>

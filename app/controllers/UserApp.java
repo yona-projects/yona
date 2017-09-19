@@ -1166,6 +1166,9 @@ public class UserApp extends Controller {
 
                 localUserFoundByLdapLogin.refresh();
                 localUserFoundByLdapLogin.name = ldapUser.getDisplayName();
+                if(StringUtils.isNotBlank(ldapUser.getEnglishName())){
+                    localUserFoundByLdapLogin.englishName = ldapUser.getEnglishName();
+                }
                 localUserFoundByLdapLogin.isGuest = ldapUser.isGuestUser();
                 localUserFoundByLdapLogin.update();
                 return localUserFoundByLdapLogin;

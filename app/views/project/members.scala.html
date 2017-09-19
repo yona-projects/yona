@@ -51,7 +51,7 @@
                 <a href="@routes.UserApp.userInfo(member.user.loginId)" class="avatar-wrap mlarge pull-left mr10">
                     <img src="@User.findByLoginId(member.user.loginId).avatarUrl" width="64" height="64">
                 </a>
-                <div class="member-name">@member.user.name</div>
+                <div class="member-name">@member.user.getDisplayName</div>
                 <div class="member-id">@{"@"}@member.user.loginId @if(member.user.isGuest){<span class="guest">GUEST</span>}</div>
                 <div class="member-setting">
                 @if(!project.isOwner(member.user)) {
@@ -88,7 +88,7 @@
                     </a>
                 </div>
                 <div class="pull-left" style="width: 60px;">
-                    <span><a href="@routes.UserApp.userInfo(user.loginId)"><strong>@user.name</strong></a></span>
+                    <span><a href="@routes.UserApp.userInfo(user.loginId)"><strong>@user.getDisplayName</strong></a></span>
                     <span>(@user.loginId)</span>
                     <button type="button" class="ybtn ybtn-info ybtn-mini blue enrollAcceptBtn" data-loginId="@user.loginId"><i class="yobicon-addfriend"></i> @Messages("button.add")</button>
                 </div>

@@ -136,7 +136,7 @@
                                 <img src="@User.findByLoginId(issue.authorLoginId).avatarUrl(32)" width="20" height="20">
                             </span>
                             @if(issue.authorLoginId != null){
-                                <strong class="name">@issue.getAuthor.name</strong>
+                                <strong class="name">@issue.getAuthor.getDisplayName</strong>
                                 <span class="loginid"> <strong>@{"@"}</strong>@issue.authorLoginId</span>
                             } else {
                                 <strong class="name">@Messages("issue.noAuthor")</strong>
@@ -257,7 +257,7 @@
                                         <span class="avatar-wrap smaller">
                                             <img src="@User.findByLoginId(issue.assignee.user.loginId).avatarUrl" width="20" height="20">
                                         </span>
-                                        <strong class="name">@issue.assigneeName</strong>
+                                        <strong class="name">@issue.assignee.user.getDisplayName</strong>
                                         <span class="loginid"> <strong>@{"@"}</strong>@issue.assignee.user.loginId</span>
                                     </a>
                                     } else {

@@ -13,7 +13,7 @@
             data-login-id="@user.loginId"
             @if(!users.contains(user)) { data-non-member="true" }
             @flag>
-        @user.name
+        @user.getDisplayName
     </option>
 }
 

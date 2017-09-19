@@ -80,7 +80,7 @@
                             <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl(64)" width="32" height="32" alt="@comment.authorLoginId">
                         </a>
                     </span>
-                    <a href="@userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorLoginId"><strong>@comment.authorName</strong></a>
+                    <a href="@userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorLoginId"><strong>@User.findByLoginId(comment.authorLoginId).getDisplayName</strong></a>
                 </span>
                 <span class="ago-date">
                     <a href="#comment-@comment.id" class="ago" title="@JodaDateUtil.getDateString(comment.createdDate)">@utils.TemplateHelper.agoOrDateString(comment.createdDate)</a>
@@ -158,28 +158,28 @@
                 @defining(User.findByLoginId(event.senderLoginId)) { user =>
                     @event.eventType match {
                         case EventType.ISSUE_STATE_CHANGED => {
-                            <span class="state @event.newValue">@Messages("issue.state." + event.newValue)</span> @Html(Messages("issue.event." + event.newValue, linkToUser(user.loginId, user.name)))
+                            <span class="state @event.newValue">@Messages("issue.state." + event.newValue)</span> @Html(Messages("issue.event." + event.newValue, linkToUser(user.loginId, user.getDisplayName)))
                         }
                         case EventType.ISSUE_ASSIGNEE_CHANGED => {
                             <span class="state changed">@Messages("issue.state.assigned")</span>
-                            @Html(Messages(assginedMesssage(event.newValue, user), linkToUser(user.loginId, user.name), linkToUser(event.newValue,User.findByLoginId(event.newValue).name, true)))
+                            @Html(Messages(assginedMesssage(event.newValue, user), linkToUser(user.loginId, user.getDisplayName), linkToUser(event.newValue,User.findByLoginId(event.newValue).getDisplayName, true)))
                         }
                         case EventType.ISSUE_REFERRED_FROM_COMMIT => {
                             <span class="state changed">@Messages("issue.event.referred.title")</span>
-                            @Html(Messages("issue.event.referred",linkToUser(user.loginId, user.name),linkToCommit(event.newValue)))
+                            @Html(Messages("issue.event.referred",linkToUser(user.loginId, user.getDisplayName),linkToCommit(event.newValue)))
                         }
                         case EventType.ISSUE_MOVED => {
                             <span class="state changed">@Messages("issue.event.moved.title")</span>
-                            @Html(Messages("issue.event.moved", linkToUser(user.loginId, user.name), linkToProject(event.oldValue.split("/")(0), event.oldValue.split("/")(1))))
+                            @Html(Messages("issue.event.moved", linkToUser(user.loginId, user.getDisplayName), linkToProject(event.oldValue.split("/")(0), event.oldValue.split("/")(1))))
                         }
                         case EventType.ISSUE_REFERRED_FROM_PULL_REQUEST => {
                             <span class="state changed">@Messages("issue.event.referred.title")</span>
                             @defining(PullRequest.findById(Long.valueOf(event.newValue))) { pull =>
-                                @Html(Messages("issue.event.referred",linkToUser(user.loginId, user.name),linkToPullRequest(pull)))
+                                @Html(Messages("issue.event.referred",linkToUser(user.loginId, user.getDisplayName),linkToPullRequest(pull)))
                             }
                         }
                         case _ => {
-                            @event.newValue by @linkToUser(user.loginId, user.name)
+                            @event.newValue by @linkToUser(user.loginId, user.getDisplayName)
                         }
                     }
                 }

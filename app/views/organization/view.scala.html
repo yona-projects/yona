@@ -38,7 +38,7 @@
         <img src="@organizationUser.user.avatarUrl" height="45" width="45" />
     </a>
     <a href="@routes.UserApp.userInfo(organizationUser.user.loginId)" data-toggle="tooltip" data-placement="top" title="@organizationUser.user.loginId">
-        @organizationUser.user.name
+        @organizationUser.user.getDisplayName
     </a>
 </li>
 }

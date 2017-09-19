@@ -60,7 +60,7 @@
                     }
                 </a>
                 <a href="@routes.UserApp.userInfo(user.loginId)" class="post-meta-item">
-                    @user.name
+                    @user.getDisplayName
                 </a>
                 <span class="post-meta-item" title="@JodaDateUtil.getDateString(issue.createdDate)">
                     @agoOrDateString(issue.createdDate)

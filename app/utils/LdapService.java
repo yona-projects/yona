@@ -8,6 +8,7 @@ package utils;
 
 import models.User;
 import models.support.LdapUser;
+import org.apache.commons.lang3.StringUtils;
 import play.Play;
 
 import javax.annotation.Nonnull;
@@ -33,6 +34,8 @@ public class LdapService {
             ".options.fallbackToLocalLogin", false);
     private static final String EMAIL_PROPERTY = Play.application().configuration().getString("ldap" +
             ".emailProperty", "mail");
+    private static final String ENGLISH_NAME_PROPERTY = Play.application().configuration()
+            .getString("ldap.options.englishNameAttributeName", "");
     private static final int TIMEOUT = 5000; //ms
 
     public LdapUser authenticate(String username, String password) throws NamingException {
@@ -74,10 +77,16 @@ public class LdapService {
 
     private LdapUser getLdapUser(SearchResult searchResult) throws NamingException {
         Attributes attr = searchResult.getAttributes();
-        return new LdapUser(attr.get(DISPLAY_NAME_PROPERTY),
+        LdapUser ldapUser = new LdapUser(attr.get(DISPLAY_NAME_PROPERTY),
                 attr.get(EMAIL_PROPERTY),
                 attr.get(LOGIN_PROPERTY),
                 attr.get("department"));
+
+        if(StringUtils.isNotBlank(ENGLISH_NAME_PROPERTY)){
+            ldapUser.setEnglishName(attr.get(ENGLISH_NAME_PROPERTY));
+        }
+
+        return ldapUser;
     }
 
     private String searchFilter(@Nonnull String username) {
