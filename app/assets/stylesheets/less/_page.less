@@ -2019,8 +2019,7 @@ label.inline-list {
 .guest-mixin() {
     background-color: rgba(255, 165, 0, 0.8);;
     color: white;
-    padding: 2px;
-    font-size: 10px;
+    padding: 0 4px;
 }
 
 .members.project {
@@ -2032,6 +2031,7 @@ label.inline-list {
         padding: 10px 5px;
         display:block;
         position: relative;
+        margin-left: 5px;
 
         .member-name {
             margin-top:2px;
@@ -2042,10 +2042,6 @@ label.inline-list {
         .member-id {
             line-height: 20px;
             color:#ccc;
-        }
-
-        &:nth-child(odd) {
-            margin-left: 0;
         }
 
         .member-setting {
