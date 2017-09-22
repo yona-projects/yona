@@ -81,16 +81,16 @@
                     <div class="issue-item @if(childIssue.id == issue.id){bold}">
                         <span class="state-label open"></span>
                         <a href="@routes.IssueApp.issue(childIssue.project.owner, childIssue.project.name, childIssue.getNumber)">
-                            <span class="item-name"><span class="subtask-number">#@childIssue.getNumber</span> @childIssue.title @if(childIssue.assignee != null) {- @childIssue.assignee.user.getPureNameOnly}</span>
-                        </a>
+                            <span class="item-name"><span class="subtask-number">#@childIssue.getNumber</span> @childIssue.title@if(childIssue.assignee != null) { - @childIssue.assignee.user.getPureNameOnly}</span></a>
+                        <span class="font12">@common.commentAndVoterPairDisplay(childIssue, project)</span>
                     </div>
                 }
                 @for(childIssue <- closedChildIssues) {
                     <div class="issue-item @if(childIssue.id == issue.id){bold}">
                         <span class="state-label closed"><i class=" yobicon-checkmark"></i></span>
                         <a href="@routes.IssueApp.issue(childIssue.project.owner, childIssue.project.name, childIssue.getNumber)">
-                            <span class="item-name"><span class="subtask-number">#@childIssue.getNumber</span> @childIssue.title @if(childIssue.assignee != null) {- @childIssue.assignee.user.getPureNameOnly}</span>
-                        </a>
+                            <span class="item-name"><span class="subtask-number">#@childIssue.getNumber</span> @childIssue.title@if(childIssue.assignee != null){ - @childIssue.assignee.user.getPureNameOnly}</span></a>
+                        <span class="font12">@common.commentAndVoterPairDisplay(childIssue, project)</span>
                     </div>
                 }
             </div>
