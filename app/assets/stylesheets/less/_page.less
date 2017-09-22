@@ -3668,48 +3668,6 @@ label.issue-item-row {
                 }
             }
 
-            &.item-count-groups {
-                border:1px solid #EEE;
-                .border-radius(3px);
-                line-height: 14px;
-                margin-top:2px;
-                .comments-count:hover {
-                    color: lighten(@darkmagenta, 10%);
-                }
-                .vote-count:hover {
-                    color: lighten(@primary, 10%);
-                }
-                .vote-color {
-                    color: @primary;
-                }
-                .comments-count-color {
-                    color: @darkmagenta;
-                }
-
-                .count-groups {
-                    margin:0 auto;
-                    display:inline-block;
-                    text-align: center;
-                    padding:0 5px;
-                    float: left;
-
-                    &.item-icon {
-                        font-size: 9px;
-                        padding-top:2px;
-                        line-height: 12px;
-                        border-left:1px solid #EEE;
-
-                        &:first-child {
-                            border-left:none;
-                        }
-                    }
-
-                    &.item-count {
-                        padding:0 7px 0 0;
-                    }
-                }
-            }
-
             &.infos-icon-link {
                 color:#3592b5;
 
@@ -3753,6 +3711,51 @@ label.issue-item-row {
                 color:@yobi-primary !important;
                 .infos-icon { color:@yobi-primary; }
             }
+        }
+    }
+}
+
+.item-count-groups {
+    border:1px solid #EEE;
+    .border-radius(3px);
+    line-height: 14px;
+    margin-top:2px;
+    .comments-count:hover {
+        color: lighten(@darkmagenta, 10%);
+    }
+    .vote-count:hover {
+        color: lighten(@primary, 10%);
+    }
+    .vote-color {
+        color: @primary;
+    }
+    .comments-count-color {
+        color: @darkmagenta;
+    }
+
+    a:nth-child(2) {
+        margin-left: -5px;
+    }
+
+    .count-groups {
+        margin:0 auto;
+        display:inline-block;
+        text-align: center;
+        padding:0 5px;
+
+        &.item-icon {
+            font-size: 9px;
+            padding-top:2px;
+            line-height: 12px;
+            border-left:1px solid #EEE;
+
+            &:first-child {
+                border-left:none;
+            }
+        }
+
+        &.item-count {
+            padding:0 5px 0 0;
         }
     }
 }
