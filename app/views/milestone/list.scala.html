@@ -11,6 +11,8 @@
 @import models.enumeration.Operation
 @import utils.AccessControl._
 
+<link rel="stylesheet" href="@routes.IssueLabelApp.labelStyles(project.owner, project.name)" type="text/css" />
+
 @urlToList = {@routes.MilestoneApp.milestones(project.owner, project.name)}
 
 @makeFilterLink(fieldName:String, orderBy:String, orderDir:String, fieldText:String) = {
@@ -127,9 +129,20 @@
                             <div></div>
                             <div>
                             @for(issue <- Issue.findOpenIssuesByMilestone(milestone)){
-
-                                <a class="issue-link" href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)" target="_blank"><div class="issue-item">
-                                        <span class="state-label open"></span><span class="item-name"><span class="number">#@issue.getNumber</span>@issue.title @if(issue.assignee != null){- @issue.assignee.user.name}</span>
+                                <a class="issue-link" href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)" target="_blank">
+                                    <div class="issue-item">
+                                        <span class="state-label open">
+                                        </span>
+                                        <span class="item-name">
+                                            <span class="number">#@issue.getNumber</span>
+                                            @issue.title
+                                            @if(issue.assignee != null){
+                                                - @issue.assignee.user.name
+                                            }
+                                            @for(label <- issue.labels.toList.sortBy(r => (r.category.name, r.name))) {
+                                                <a href="#" class="label issue-label list-label active" data-category-id="@label.category.id" data-label-id="@label.id">@label.name</a>
+                                            }
+                                        </span>
                                     </div>
                                 </a>
                             }
@@ -139,7 +152,19 @@
                             @for(issue <- Issue.findClosedIssuesByMilestone(milestone)){
                                 <a class="issue-link" href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)" target="_blank">
                                     <div class="issue-item">
-                                        <span class="state-label closed"><i class=" yobicon-checkmark"></i></span><span class="item-name"><span class="number">#@issue.getNumber</span>@issue.title @if(issue.assignee != null){- @issue.assignee.user.name}</span>
+                                        <span class="state-label closed">
+                                            <i class=" yobicon-checkmark"></i>
+                                        </span>
+                                        <span class="item-name">
+                                            <span class="number">#@issue.getNumber</span>
+                                            @issue.title
+                                            @if(issue.assignee != null){
+                                                - @issue.assignee.user.name
+                                            }
+                                            @for(label <- issue.labels.toList.sortBy(r => (r.category.name, r.name))) {
+                                                <a href="#" class="label issue-label list-label active" data-category-id="@label.category.id" data-label-id="@label.id">@label.name</a>
+                                            }
+                                        </span>
                                     </div>
                                 </a>
                             }
