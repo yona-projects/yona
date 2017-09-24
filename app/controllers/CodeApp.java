@@ -220,7 +220,7 @@ public class CodeApp extends Controller {
         if (project == null) {
             return null;
         } else if (RepositoryService.VCS_GIT.equals(project.vcs)) {
-            return utils.Url.createWithContext(Arrays.asList(project.owner, encodeUrlString(project.name)));
+            return utils.Url.createWithContext(Arrays.asList(encodeUrlString(project.owner), encodeUrlString(project.name)));
         } else if (RepositoryService.VCS_SUBVERSION.equals(project.vcs)) {
             return utils.Url.createWithContext(Arrays.asList("svn", project.owner, project.name));
         } else {
