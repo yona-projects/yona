@@ -600,7 +600,7 @@ public class NotificationMail extends Model {
         if (detail != null) {
             EmailAddressWithDetail addr =
                     new EmailAddressWithDetail(Config.getEmailFromImap());
-            addr.setDetail(HttpUtil.encodeUrlString(detail));
+            addr.setDetail(HttpUtil.getEncodeEachPathName(detail));
             return addr.toString();
         } else {
             return null;
