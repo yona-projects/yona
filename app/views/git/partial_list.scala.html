@@ -44,7 +44,7 @@
                     @if(!req.commentThreads.isEmpty){
                         @defining(req.countCommentThreadsByState(CommentThread.ThreadState.CLOSED)){ countClosed =>
 
-                        <div class="infos-item" style="margin-right:20px;">
+                        <div class="infos-item" style="margin-right:10px;">
                             <i class="infos-icon yobicon-post2 vmiddle"></i>
                             <div class="upload-progress">
                                 <div class="bar orange" style="width: @getPercent(countClosed.toDouble, req.commentThreads.size.toDouble)%;"></div>
@@ -66,6 +66,11 @@
                                 <span class="vmiddle">@req.reviewers.size</span>
                             </a>
                         </div>
+                    }
+                    @if(branchItemName(project.defaultBranch()) == branchItemName(req.toBranch)) {
+                        <span class="to-default-branch">@branchItemName(req.toBranch)</span>
+                    } else {
+                        <span class="to-branch">@branchItemName(req.toBranch)</span>
                     }
                 </div>
             </div>
