@@ -220,7 +220,13 @@ public class HttpUtil {
     }
 
     // It is made for path which contains UTF8 chars
-    public static String getEncodeEachPathName(String path){
+    public static String getEncodeEachPathName(String path) {
+        if (StringUtils.isBlank(path)) {
+            return path;
+        }
+        if (!path.contains("/")) {
+            return HttpUtil.encodeUrlString(path);
+        }
         String[] paths = path.split("/");
         String[] encodedPaths = new String[paths.length];
         for ( int i = 0; i < paths.length; i++ ) {
