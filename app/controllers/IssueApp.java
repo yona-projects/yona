@@ -577,7 +577,11 @@ public class IssueApp extends AbstractPostingApp {
         final Issue issue = Issue.findByNumber(project, number);
 
         Call redirectTo = routes.IssueApp.issue(project.owner, project.name, number);
-        issue.toNextState();
+        State state = issue.toNextState();
+
+        if(state == State.OPEN && issue.hasParentIssue() && issue.parent.state == State.CLOSED) {
+            issue.parent.toNextState();
+        }
         NotificationEvent notiEvent = NotificationEvent.afterStateChanged(issue.previousState(), issue);
         IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
         return redirect(redirectTo);
