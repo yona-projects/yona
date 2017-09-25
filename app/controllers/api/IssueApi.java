@@ -360,6 +360,7 @@ public class IssueApi extends AbstractPostingApp {
         } else {
             el.icontains("loginId", query);
             el.icontains("name", query);
+            el.icontains("englishName", query);
             el.endJunction();
         }
         return el;
