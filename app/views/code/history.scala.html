@@ -18,7 +18,7 @@
 
 @autoLinkedMsg(msg:String) = @{
     val autoLinkRenderer = new AutoLinkRenderer(msg, project)
-    autoLinkRenderer.render()
+    autoLinkRenderer.render(null)
 }
 
 @getFilesURL = @{

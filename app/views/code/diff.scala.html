@@ -19,7 +19,7 @@ List[playRepository.FileDiff],path:String)
 
 @autoLinkedMsg(msg:String) = @{
     val autoLinkRenderer = new AutoLinkRenderer(msg, project)
-    autoLinkRenderer.render()
+    autoLinkRenderer.render(null)
 }
 
 @projectLayout(Messages("code.commits") + " @" + commit.getId, project, utils.MenuType.CODE) {

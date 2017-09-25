@@ -612,7 +612,7 @@ public class NotificationMail extends Model {
         String renderred = null;
 
         if( resource != null) {
-            renderred = Markdown.render(message, resource.getProject());
+            renderred = Markdown.render(message, resource.getProject(), lang.code());
         } else {
             renderred = Markdown.render(message);
         }
