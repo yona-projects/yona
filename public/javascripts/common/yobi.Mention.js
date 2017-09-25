@@ -117,6 +117,8 @@ yobi.Mention = function(htOptions) {
     function _onLoadUserList(){
         htVar.doesNotDataLoaded = false;
 
+        var searchPending;
+
         htElement.welTarget
             .atwho({
                 at: "@",
@@ -128,10 +130,13 @@ yobi.Mention = function(htOptions) {
                 callbacks: {
                     remoteFilter: function(query, callback) {
                         NProgress.start();
-                        $.getJSON(htVar.url, {query: query, mentionType: "user"}, function(data) {
-                            NProgress.done();
-                            callback(data.result)
-                        });
+                        clearTimeout(searchPending);
+                        searchPending = setTimeout(function () {
+                            $.getJSON(htVar.url, { query: query, mentionType: "user" }, function (data) {
+                                NProgress.done();
+                                callback(data.result)
+                            });
+                        }, 300);
                     }
                 }
             })
