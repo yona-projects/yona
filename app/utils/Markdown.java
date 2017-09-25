@@ -207,23 +207,32 @@ public class Markdown {
 
     public static String render(@Nonnull String source, Project project, boolean breaks) {
         AutoLinkRenderer autoLinkRenderer = new AutoLinkRenderer(renderWithHighlight(source, breaks), project);
-        return autoLinkRenderer.render();
+        return autoLinkRenderer.render(null);
+    }
+
+    public static String render(@Nonnull String source, Project project, boolean breaks, String lang) {
+        AutoLinkRenderer autoLinkRenderer = new AutoLinkRenderer(renderWithHighlight(source, breaks), project);
+        return autoLinkRenderer.render(lang);
     }
 
     public static String render(@Nonnull String source, Project project) {
         return render(source, project, true);
     }
 
+    public static String render(@Nonnull String source, Project project, String lang) {
+        return render(source, project, true, lang);
+    }
+
     public static String renderFileInCodeBrowser(@Nonnull String source, Project project) {
         String imageLinkFilter = replaceImageLinkPath(project, source);
         AutoLinkRenderer autoLinkRenderer = new AutoLinkRenderer(renderWithHighlight(imageLinkFilter, true), project);
-        return autoLinkRenderer.render();
+        return autoLinkRenderer.render(null);
     }
 
     public static String renderFileInReadme(@Nonnull String source, Project project) {
         String relativeLinksToCodeBrowserPath = replaceContentsLinkToCodeBrowerPath(project, source);
         AutoLinkRenderer autoLinkRenderer = new AutoLinkRenderer(renderWithHighlight(relativeLinksToCodeBrowserPath, true), project);
-        return autoLinkRenderer.render();
+        return autoLinkRenderer.render(null);
     }
 
     private static String replaceImageLinkPath(Project project, String text){

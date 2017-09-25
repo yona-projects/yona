@@ -124,7 +124,7 @@ public class AutoLinkRenderer {
         this.project = project;
     }
 
-    public String render() {
+    public String render(String lang) {
         this.parse(PATH_WITH_ISSUE_PATTERN, new ToLink() {
             @Override
             public Link toLink(Matcher matcher) {
@@ -171,7 +171,7 @@ public class AutoLinkRenderer {
                 if (slashIndex > -1) {
                     return toValidProjectLink(path.substring(0, slashIndex), path.substring(slashIndex + 1));
                 } else {
-                    return toValidUserLink(path);
+                    return toValidUserLink(path, lang);
                 }
             }
         });
@@ -313,7 +313,7 @@ public class AutoLinkRenderer {
         return Link.EMPTY_LINK;
     }
 
-    private static Link toValidUserLink(String userId) {
+    private static Link toValidUserLink(String userId, String lang) {
         User user = User.findByLoginId(userId);
         Organization org = Organization.findByName(userId);
 
@@ -330,7 +330,15 @@ public class AutoLinkRenderer {
             } else {
                 avatarImage = "<img src='" + user.avatarUrl() + "' class='avatar-wrap smaller no-margin-no-padding vertical-top' alt='@" + user.name + " " + user.loginId + "'> ";
             }
-            return new Link(RouteUtil.getUrl(user), "no-text-decoration", "<span data-toggle='popover' data-placement='top' data-trigger='hover' data-html='true' data-content=\"" + StringEscapeUtils.escapeHtml4(avatarImage + user.name + " " + user.loginId) + "\">@" + user.getPureNameOnly() + "</span>");
+
+            String userName = null;
+            if( StringUtils.isBlank(lang)) {
+                userName = user.getPureNameOnly();
+            } else {
+                userName = user.getPureNameOnly(lang);
+            }
+
+            return new Link(RouteUtil.getUrl(user), "no-text-decoration", "<span data-toggle='popover' data-placement='top' data-trigger='hover' data-html='true' data-content=\"" + StringEscapeUtils.escapeHtml4(avatarImage + user.name + " " + user.loginId) + "\">@" + userName + "</span>");
         }
     }
 
