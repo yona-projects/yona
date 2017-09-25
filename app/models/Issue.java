@@ -649,6 +649,12 @@ public class Issue extends AbstractPosting implements LabelOwner {
                 .findRowCount() > 0;
     }
 
+    public boolean hasParentIssue(){
+        return finder.where()
+                .isNotNull("parent.id")
+                .findRowCount() > 0;
+    }
+
     public static List<Issue> findByParentIssueIdAndState(Long parentIssueId, State state){
         return finder.where()
                 .eq("parent.id", parentIssueId)
