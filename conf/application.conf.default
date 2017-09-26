@@ -256,7 +256,7 @@ application.update.check.use = true
 application.update.repositoryUrl = "https://github.com/yona-projects/yona"
 # A format to construct the url to latest Yona release. "%s" is a format
 # specifier for Yona version to download like "0.5.7".
-application.update.releaesUrlFormat = "https://github.com/yona-projects/yona/releases/tag/v%s"
+application.update.releaseUrlFormat = "https://github.com/yona-projects/yona/releases/tag/v%s"
 
 # customize play default thread pool size
 # see: https://www.playframework.com/documentation/2.3.x/ThreadPools
@@ -374,6 +374,8 @@ ldap {
       # If your LDAP configuration support email login
       useEmailBaseLogin = false
       fallbackToLocalLogin = false
+      # If your LDAP configuration support English Name attribute
+      englishNameAttributeName = "givenName"
     }
 }
 
