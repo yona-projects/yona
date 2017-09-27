@@ -650,7 +650,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
     }
 
     public boolean hasParentIssue(){
-        return finder.where()
+        return parent != null && finder.where()
                 .isNotNull("parent.id")
                 .findRowCount() > 0;
     }
