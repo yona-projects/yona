@@ -43,7 +43,7 @@ public class YobiUpdate {
             .getString("application.update.repositoryUrl", "http://repo.yona.io/yona/yona");
     private static final String RELEASE_URL_FORMAT = Configuration.root()
             .getString("application.update.releaseUrlFormat",
-                    "https://github.com/doortts/yona/releases/tag/v%s");
+                    "https://github.com/yona-projects/yona/releases/tag/v%s");
 
     public static String versionToUpdate = null;
 
