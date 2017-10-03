@@ -18,6 +18,7 @@ import models.*;
 import models.enumeration.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.HtmlEmail;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -1252,10 +1253,10 @@ public class ProjectApp extends Controller {
             return badRequest(ErrorViews.BadRequest.render());
         }
 
-        Webhook.create(project.id,
-                        addWebhookForm.field("payloadUrl").value(),
-                        addWebhookForm.field("secret").value(),
-                Boolean.valueOf(addWebhookForm.field("gitPushOnly").value()));
+        Webhook webhook = addWebhookForm.get();
+
+        Webhook.create(project.id, webhook.payloadUrl, webhook.secret,
+                BooleanUtils.toBooleanDefaultIfNull(webhook.gitPushOnly, false));
 
         return redirect(routes.ProjectApp.webhooks(project.owner, project.name));
     }
