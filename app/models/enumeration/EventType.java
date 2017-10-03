@@ -80,4 +80,13 @@ public enum EventType {
                 return false;
         }
     }
+
+    @Override
+    public String toString() {
+        return "EventType{" +
+                "descr='" + descr + '\'' +
+                ", order=" + order +
+                ", messageKey='" + messageKey + '\'' +
+                '}';
+    }
 }

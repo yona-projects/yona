@@ -440,4 +440,16 @@ public class Webhook extends Model implements ResourceConvertible {
         targetProject.update();
         super.delete();
     }
+
+    @Override
+    public String toString() {
+        return "Webhook{" +
+                "id=" + id +
+                ", project=" + project +
+                ", payloadUrl='" + payloadUrl + '\'' +
+                ", secret='" + secret + '\'' +
+                ", gitPushOnly=" + gitPushOnly +
+                ", createdAt=" + createdAt +
+                '}';
+    }
 }

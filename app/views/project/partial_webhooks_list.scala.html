@@ -33,8 +33,8 @@
     <div class="span8 payload-url">
       <strong>@Messages("project.webhook.payloadUrl")</strong>
     </div>
-      <div class="span4 secret">
-      <strong>@Messages("project.webhook.secret")</strong>
+    <div class="span4 secret">
+      <strong>@Messages("project.webhook.secret") / Working only when Git push</strong>
     </div>
   </div>
 
@@ -51,6 +51,11 @@
             <td>
               <span class="webhook-secret truncate">
                   @webhook.secret
+              </span>
+            </td>
+            <td>
+              <span class="webhook-secret truncate">
+              <input type="checkbox" @if(webhook.gitPushOnly){checked} onclick="return false;" />
               </span>
             </td>
             <td class="actions">
