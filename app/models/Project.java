@@ -504,6 +504,11 @@ public class Project extends Model implements LabelOwner {
                 return ResourceType.PROJECT;
             }
 
+            @Override
+            public Project getProject() {
+                return Project.this;
+            }
+
         };
     }
 
