@@ -144,7 +144,7 @@ public class PlayServletRequest implements HttpServletRequest {
                 // BodyParser.of annotation at SvnApp.service() method.
                 throw new IOException("Request entity is too large.");
             }
-            in = new FileInputStream(file);
+            in = new BufferedInputStream(new FileInputStream(file));
         }
 
         return new ServletInputStream() {
