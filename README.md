@@ -1,4 +1,5 @@
 <a name="korean"></a>[[English]](#english)
+
 [![Build Status](https://travis-ci.org/yona-projects/yona.svg?branch=master)](https://travis-ci.org/yona-projects/yona)
 ![Downloads Status](https://img.shields.io/github/downloads/yona-projects/yona/total.svg)
 
@@ -64,17 +65,17 @@ Yona 배포판
 
 - MariaDB 버전
   - 기본 권장 버전
-  - yona-v1.7.0-bin.zip 같은 형식으로 파일로 배포
+  - `yona-v1.8.0-bin.zip` 같은 형식으로 파일로 배포
   - DB 설치에 약간의 시간이 필요하지만 안정적으로 운영이 가능
 - H2 DB 내장형
   - DB 설정없이 내려받아서 바로 실행해서 쓸 수 있는 버전
-  - yona-h2-v1.7.0-bin.zip 같은 형식으로 파일로 배포
+  - `yona-h2-v1.8.0-bin.zip` 같은 형식으로 파일로 배포
   - USB 등에 담아서 이동해가면서 사용하거나 작업후 통째로 zip으로 묶어서 들고 다니는 것이 가능함
   - 대규모 사이트에서 사용하기에는 적합하지 않음. 참고: [Yona가 MariaDB를 기본 DB로 사용하게 된 이유](https://repo.yona.io/yona-projects/yona/post/4)
 
 Yona 설치
 ---
-Yona는 기본적으로 다음 2단계로 설치됩니다.
+Yona는 크게 다음과 같은 2단계로 설치합니다.
 
 - [MariaDB 설치](docs/ko/install-mariadb.md)
 - [Yona 설치](docs/ko/install-yona-server.md)
@@ -83,7 +84,7 @@ Yona는 기본적으로 다음 2단계로 설치됩니다.
 [Docker](https://www.docker.com/)를 이용해 설치하실분은 [pokev25](https://github.com/pokev25) 님의 https://github.com/pokev25/docker-yona 를 이용해주세요. 
 
 #### Amazon AWS 에 설치 
-https://okdevtv.com/mib/yona by [Kenu](https://www.facebook.com/kenu.heo)님
+https://okdevtv.com/mib/yona 에서 가이드를 볼 수 있습니다. by [Kenu](https://www.facebook.com/kenu.heo)님
 
 Yona 실행 및 업그레이드/백업 및 복구/문제 해결
 ---
@@ -108,8 +109,8 @@ Yona 실행 및 업그레이드/백업 및 복구/문제 해결
 Google Analytics
 ---
 - 기본적으로는 Google Analytics 가 활성화 되어 함께 배포됩니다. 
-- Yona는 설치형으로 제공되는 오픈소스라 지소적으로 개발/유지하기 위해 필수적인 요소인 설치정보가 필요합니다.
-- 만약 이부분에 대해 도움을 주기 곤란한 경우 application.conf 에서 아래 항목으로 false로 수정합니다.
+- 설치형으로 제공되는 Yona의 특성상 제품이 지속적으로 개발/유지되기 위해서는 사용자들이 현재 어느정도 내려받아서 사용하고 있는지에 대한 정보가 필요합니다.
+- 만약 이부분에 대해 도움을 주기 곤란한 경우 application.conf 에서 아래 항목을 false로 수정합니다.
 ```
 application.send.yona.usage = true
 ```
