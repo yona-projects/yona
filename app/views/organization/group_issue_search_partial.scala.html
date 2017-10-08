@@ -64,7 +64,6 @@
         </div>
     </div>
     <div class="span10 span-hard-wrap" id="span10">
-        @common.twoColumnModeCheckboxArea()
         <ul class="nav nav-tabs nm">
         @for(state <- Array(State.OPEN, State.CLOSED)) {
             <li @if(param.state == state.state) { class="active" }>
@@ -74,6 +73,7 @@
                 </a>
             </li>
         }
+            <li>@common.twoColumnModeCheckboxArea()</li>
         </ul>
         @if(!currentPage.getList.isEmpty){
             <div class="filter-wrap small-heights">

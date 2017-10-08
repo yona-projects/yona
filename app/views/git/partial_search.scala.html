@@ -88,7 +88,6 @@
           @partial_recently_pushed_branches(PushedBranch.findByOwnerAndOriginalProject(UserApp.currentUser, project))
         }
       }
-      @common.twoColumnModeCheckboxArea()
       <div class="pull-right">
         <a href="@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)" class="ybtn ybtn-success">
             @Messages("pullRequest.new")
@@ -115,6 +114,7 @@
           </a>
         </li>
         }
+          <li>@common.twoColumnModeCheckboxArea()</li>
     </ul>
     <div class="tab-content" style="clear:both;padding-top:15px;">
       <div id="list" class="row-fluid tab-pane active">

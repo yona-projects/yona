@@ -45,7 +45,6 @@
         <div class="pull-right">
             <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="ybtn ybtn-success">@Messages("issue.menu.new")</a>
         </div>
-        @common.twoColumnModeCheckboxArea()
         <ul class="nav nav-tabs nm">
         @for(state <- Array(State.OPEN, State.CLOSED)) {
             <li @if(param.state == state.state) { class="active" } data-pjax>
@@ -55,6 +54,7 @@
                 </a>
             </li>
         }
+            <li>@common.twoColumnModeCheckboxArea()</li>
         </ul>
 
         @if(currentPage.getList.isEmpty){
