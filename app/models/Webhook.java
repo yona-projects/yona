@@ -167,6 +167,7 @@ public class Webhook extends Model implements ResourceConvertible {
             requestHolder
                     .setHeader("Content-Type", "application/json")
                     .setHeader("User-Agent", "Yobi-Hookshot")
+                    .setHeader("Authorization", "token " + this.secret)
                     .post(payload)
                     .map(
                             new Function<WSResponse, Integer>() {
