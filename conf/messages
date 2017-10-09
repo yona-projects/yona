@@ -676,14 +676,15 @@ project.watcher.title = This project's watcher list.
 project.watching = Watching
 project.webhook = Webhooks
 project.webhook.add = Add webhook
+project.webhook.help = * Every webhook is sent in POST and with Content-Type: application/json header. <br/>* If you need to include additional fields and values, please use query string. e.g. http://abc.com?customKey=value <br />* If you put a value in the Token field, ''Authorization: token input-value'' header is added to HTTP header. <br/>
 project.webhook.list.empty = No webhook exists.
 project.webhook.new = Create new webhook
 project.webhook.payloadUrl = Payload URL
 project.webhook.payloadUrl.empty = Paylaod URL is required field.
 project.webhook.payloadUrl.tooLong = Given payload URL is too long. (Maximum 2000 Characters)
-project.webhook.secret = Secret token
+project.webhook.secret = Authorization Token
 project.webhook.secret.tooLong = Given secret token is too long. (Maximum 250 Characters)
-project.webhook.gitPushOnly = Git push only
+project.webhook.gitPushOnly = Git push hook
 project.you.are.not.watching = You are not watching {0} project.
 project.you.are.watching = You are watching {0} project.
 project.you.may.want.to.be.a.member = You can send a sign-up request for {0} project.

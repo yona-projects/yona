@@ -676,12 +676,14 @@ project.watcher.title = 이 프로젝트를 지켜보는 사람
 project.watching = 지켜보기 중
 project.webhook = 웹후크
 project.webhook.add = 웹후크 추가
+project.webhook.help = * 모든 웹훅은 POST 방식, Content-Type 은 application/json 으로 전송됩니다 <br/>* 추가 필드값과 정보를 포함해야 할 경우 query 스트링을 이용해요 주세요. 예) http://abc.com?customKey=value <br/>* Token 필드에 값을 넣을 경우 HTTP 헤더에 ''Authorizatoin: token 입력한 값''이 추가됩니다. <br/>
 project.webhook.list.empty = 등록된 웹후크가 없습니다.
 project.webhook.new = 새 웹후크 생성
 project.webhook.payloadUrl = 전송할 주소
 project.webhook.payloadUrl.empty = Paylaod URL 은 필수 필드입니다.
-project.webhook.payloadUrl.tooLong = Payload URL 이 너무 깁니다 (최대 2000글자)
-project.webhook.secret = 보안 토큰
+project.webhook.payloadUrl.tooLong = Payload URL 이 너무 깁니다 (최대 2000글자)웹후크 추가
+project.webhook.gitPushOnly = Git push hook
+project.webhook.secret = Authorization Token
 project.webhook.secret.tooLong = 보안 토큰이 너무 깁니다. (최대 250 글자)
 project.you.are.not.watching = {0} 프로젝트를 지켜보고 있지 않습니다.
 project.you.are.watching = {0} 프로젝트를 지켜보는 중입니다.
