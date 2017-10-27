@@ -343,7 +343,7 @@ public class PullRequestApp extends Controller {
 
         // Only members can access code?
         if(project.isCodeAccessibleMemberOnly && !project.hasMember(UserApp.currentUser())) {
-                return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         SearchCondition condition = Form.form(SearchCondition.class).bindFromRequest().get();
@@ -697,6 +697,12 @@ public class PullRequestApp extends Controller {
         public Long contributorId;
         public int pageNum = Constants.DEFAULT_PAGE;
         public Category category;
+        public Organization organization;
+
+        public SearchCondition setOrganization(Organization organization) {
+            this.organization = organization;
+            return this;
+        }
 
         public SearchCondition setProject(Project project) {
             this.project = project;
@@ -731,6 +737,7 @@ public class PullRequestApp extends Controller {
             clone.contributorId = this.contributorId;
             clone.pageNum = this.pageNum;
             clone.category = this.category;
+            clone.organization = this.organization;
             return clone;
         }
 

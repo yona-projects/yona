@@ -38,6 +38,11 @@
                 @Messages("menu.board")
                 </a>
             </li>
+            <li class="@if(request.path.contains(org.name + "/pullrequests")){active}">
+                <a href="@routes.OrganizationApp.organizationPullRequests(org.name)">
+                @Messages("menu.pullRequest")
+                </a>
+            </li>
         </ul>
         <div class="project-setting">
             <ul class="project-menu-nav">

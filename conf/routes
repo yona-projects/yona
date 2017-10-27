@@ -76,6 +76,7 @@ POST           /organizations/new                                               
 GET            /organizations/:organizationName                                       controllers.OrganizationApp.organization(organizationName: String)
 GET            /organizations/:organizationName/issues                                controllers.IssueApp.organizationIssues(organizationName: String, state:String ?= "", format:String ?= "html", pageNum: Int ?= 1)
 GET            /organizations/:organizationName/boards                                controllers.BoardApp.organizationBoards(organizationName: String, pageNum: Int ?= 1)
+GET            /organizations/:organizationName/pullrequests                          controllers.OrganizationApp.organizationPullRequests(organizationName: String, category: String ?= "open")
 GET            /organizations/:organizationName/settingform                           controllers.OrganizationApp.settingForm(organizationName: String)
 GET            /organizations/:organizationName/deleteForm                            controllers.OrganizationApp.deleteForm(organizationName: String)
 DELETE         /organizations/:organizationName                                       controllers.OrganizationApp.deleteOrganization(organizationName: String)
