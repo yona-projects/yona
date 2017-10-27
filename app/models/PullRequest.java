@@ -779,6 +779,15 @@ public class PullRequest extends Model implements ResourceConvertible {
         if (condition.project != null) {
             el.eq(condition.category.project(), condition.project);
         }
+        if (condition.organization != null) {
+            List<Project> projects = condition.organization.getVisibleProjects(UserApp.currentUser());
+            List<String> projectsIds = new ArrayList<>();
+            for (Project project : projects) {
+                projectsIds.add(project.id.toString());
+            }
+            el.in("to_project_id", projectsIds);
+            el.in("from_project_id", projectsIds);
+        }
         Expression state = createStateSearchExpression(condition.category.states());
         if (state != null) {
             el.add(state);

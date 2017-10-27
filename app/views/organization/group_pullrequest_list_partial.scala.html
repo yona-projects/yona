@@ -1,0 +1,101 @@
+@**
+* Yona, 21st Century Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp.
+* https://yona.io
+**@
+@(organization:Organization, page: com.avaje.ebean.Page[PullRequest])
+
+@import utils.JodaDateUtil
+@import utils.TemplateHelper._
+@import org.apache.commons.lang3.StringUtils
+
+<ul class="post-list-wrap">
+@if(page.getList.size> 0){
+  @for(req <- page.getList.iterator) {
+    @defining(User.findByLoginId(req.contributor.loginId)){ user =>
+      <li class="post-item title" href="@routes.PullRequestApp.pullRequest(req.toProject.owner, req.toProject.name, req.number)">
+        <div class="span10 span-hard-wrap">
+          <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap mlarge" data-toggle="tooltip" data-placement="top" title="@user.loginId">
+            @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL) {
+              <img src="@urlToPicture(user.email, 32)">
+            } else {
+              <img src="@user.avatarUrl" alt="@user.name" width="32" height="32"/>
+            }
+          </a>
+          <div class="title-wrap">
+            <span class="post-id">@req.number</span>
+            @showHeaderWordsInBracketsIfExist(req.title)
+            <a href="@routes.PullRequestApp.pullRequest(req.toProject.owner, req.toProject.name, req.number)" class="title @if(req.isConflict == true) {conflict}">
+              @removeHeaderWords(req.title)
+            </a>
+          </div>
+          <div class="infos">
+            @if(user.name){
+              <a href="@routes.UserApp.userInfo(user.loginId)" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="top" title="@user.loginId">
+                @user.name
+              </a>
+            } else {
+              <span class="infos-item">@Messages("issue.noAuthor")</span>
+            }
+            <span class="infos-item" title="@JodaDateUtil.getDateString(req.created)">
+              @agoOrDateString(req.created)
+            </span>
+            <a href="@routes.ProjectApp.project(req.toProject.owner,req.toProject.name)" class="infos-link-item group-project-name">
+              @req.toProject.name
+            </a>
+
+            @if(!req.commentThreads.isEmpty){
+              @defining(req.countCommentThreadsByState(CommentThread.ThreadState.CLOSED)){ countClosed =>
+                <div class="infos-item" style="margin-right:20px;">
+                  <i class="infos-icon yobicon-post2 vmiddle"></i>
+                  <div class="upload-progress">
+                    <div class="bar orange" style="width: @getPercent(countClosed.toDouble, req.commentThreads.size.toDouble)%;"></div>
+                  </div>
+                  <a href="@routes.PullRequestApp.pullRequestChanges(req.toProject.owner, req.toProject.name, req.number)"
+                  data-toggle="tooltip" title="@Messages("pullRequest.review.closed") / @Messages("pullRequest.review.total")">
+                    <span>@countClosed</span>
+                    <span class="gray-txt">/</span>
+                    <span class="size total">@req.commentThreads.size</span>
+                  </a>
+                </div>
+              }
+            }
+          </div>
+        </div>
+        <div class="span2 hide-in-mobile">
+          <div class="mt5 pull-right hide-in-mobile">
+          @if(req.receiver != null) {
+            <a href="@routes.UserApp.userInfo(req.receiver.loginId)" class="avatar-wrap assinee" data-toggle="tooltip" data-placement="top" title="" data-original-title="@req.receiver.name">
+              <img src="@req.receiver.avatarUrl" width="32" height="32" alt="@req.receiver.name">
+            </a>
+          } else {
+            <div class="empty-avatar-wrap">&nbsp;</div>
+          }
+          </div>
+          <div class="state @if(req.isConflict == true) {conflict} else { @req.state.toString.toLowerCase} pull-right">@if(req.isConflict == true) {@Messages("pullRequest.state.conflict")} else {@Messages("pullRequest.state." + req.state.toString.toLowerCase)}</div>
+        </div>
+      </li>
+    }
+  }
+  <div id="pagination"></div>
+} else {
+  <div class="error-wrap">
+    <i class="ico ico-err1"></i>
+    <p>@Messages("pullRequest.is.empty")</p>
+  </div>
+}
+</ul>
+
+<script type="text/javascript">
+  $(function() {
+    yobi.Pagination.update($("#pagination"), @page.getTotalPageCount);
+    (function _initImplicitTitlePrefix() {
+      $(".title-prefix").on("click", function() {
+        var filterInput = $("input[name*='filter']");
+        filterInput.val($(this).text());
+        filterInput.closest("form").submit();
+      });
+    })();
+} );
+</script>
