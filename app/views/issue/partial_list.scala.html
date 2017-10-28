@@ -14,7 +14,7 @@
 @import models.enumeration.State
 
 
-@issueLabels(issue:Issue) = {@for(label <- issue.labels.toList.sortBy(r => (r.category.name, r.name))) {@label.category.name,@label.id,@label.name|}}
+@issueLabels(issue:Issue) = {@for(label <- issue.labels.toList.sortBy(r => (r.category.name, r.name))) {@label.category.name,@label.id,@label.name,@label.category.id,@label.category.isExclusive|}}
 
 <ul class="post-list-wrap row-fluid">
 @for(issue <- issueList){
