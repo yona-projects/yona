@@ -562,7 +562,8 @@ public class UserApp extends Controller {
         } else {
             url.append("http://");
         }
-        url.append(request().host());
+        url.append(utils.Config.getHostport("localhost:9000"));
+
         return url.toString();
     }
 
