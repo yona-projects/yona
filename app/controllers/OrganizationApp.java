@@ -58,10 +58,11 @@ public class OrganizationApp extends Controller {
         }
 
         SearchCondition condition = Form.form(SearchCondition.class).bindFromRequest().get();
-        if (category == "open")
+        if (category.equals("open")) {
             condition.setOrganization(organization).setCategory(Category.OPEN);
-        else
+        } else {
             condition.setOrganization(organization).setCategory(Category.CLOSED);
+        }
         Page<PullRequest> page = PullRequest.findPagingList(condition);
 
         return ok(group_pullrequest_list.render("title.pullrequest",  organization, page, condition, category));
