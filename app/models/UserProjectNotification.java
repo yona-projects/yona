@@ -100,7 +100,7 @@ public class UserProjectNotification extends Model {
         return find.where()
                 .eq("user", user)
                 .eq("project", project)
-                .eq("notificationType", notificationType)
+                .eq("notificationType", notificationType.name())
                 .findUnique();
     }
 
