@@ -84,7 +84,13 @@ innodb_large_prefix=on
 
 꼭 /etc 아래가 아니더라도 [my.cnf 위치 탐색순서](https://mariadb.com/kb/en/mariadb/configuring-mariadb-with-mycnf/) 를 보고 적당한 곳에 my.cnf 파일을 만들어서 넣어도 무방하다고 알려져 있습니다. (Mac OS 유저는 우선은 위 설명대로 해주세요. 추가 확인이 필요합니다)
 
-이제 Yona 를 설치합니다. 
+이어서 설정을 적용하기 위해 MariaDB 를 재시작해주세요.
+
+```
+service mysql restart
+```
+
+이제 Yona 를 설치합니다.
 
 [Install Yona Server](install-yona-server.md)
 

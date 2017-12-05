@@ -80,6 +80,12 @@ innodb_large_prefix=on
 
 Also, see [configuring-mariadb-with-mycnf](https://mariadb.com/kb/en/mariadb/configuring-mariadb-with-mycnf/) 
 
+Then restart MariaDB to apply the settings.
+
+```
+service mysql restart
+```
+
 Now, let's start to install Yona!
 
 
