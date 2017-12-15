@@ -379,4 +379,12 @@ ldap {
     }
 }
 
+# Cloud Environment Configuration
+
+db.default.url=${?MARIA_JDBC_URL}
+db.default.user=${?MARIA_USER}
+db.default.password=${?MARIA_PASSWORD}
+
+application.secret=${?APPLICATION_SECRET}
+
 include "social-login.conf"
