@@ -44,6 +44,7 @@ public class IssueApp extends AbstractPostingApp {
 
     @AnonymousCheck(requiresLogin = false, displaysFlashMessage = true)
     public static Result organizationIssues(@Nonnull String organizationName, @Nonnull String state, @Nonnull String format, int pageNum) throws WriteException, IOException {
+
         // SearchCondition from param
         Form<models.support.SearchCondition> issueParamForm = new Form<>(models.support.SearchCondition.class);
         models.support.SearchCondition searchCondition = issueParamForm.bindFromRequest().get();

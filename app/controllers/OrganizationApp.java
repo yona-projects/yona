@@ -9,6 +9,8 @@ import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
 import controllers.annotation.AnonymousCheck;
 import controllers.annotation.GuestProhibit;
+import controllers.PullRequestApp.SearchCondition;
+import controllers.PullRequestApp.Category;
 import models.*;
 import models.enumeration.Operation;
 import models.enumeration.RequestState;
@@ -30,6 +32,7 @@ import views.html.organization.deleteForm;
 import views.html.organization.members;
 import views.html.organization.setting;
 import views.html.organization.view;
+import views.html.organization.group_pullrequest_list;
 
 import javax.servlet.ServletException;
 import javax.validation.ConstraintViolation;
@@ -45,6 +48,27 @@ import static utils.LogoUtil.*;
  */
 @AnonymousCheck
 public class OrganizationApp extends Controller {
+
+    @AnonymousCheck(requiresLogin = false, displaysFlashMessage = true)
+    public static Result organizationPullRequests(String organizationName, String category) {
+
+        Organization organization = Organization.findByName(organizationName);
+        if (organization == null) {
+            return notFound(ErrorViews.NotFound.render("error.notfound.organization"));
+        }
+
+        SearchCondition condition = Form.form(SearchCondition.class).bindFromRequest().get();
+        if (category.equals("open")) {
+            condition.setOrganization(organization).setCategory(Category.OPEN);
+        } else {
+            condition.setOrganization(organization).setCategory(Category.CLOSED);
+        }
+        Page<PullRequest> page = PullRequest.findPagingList(condition);
+
+        return ok(group_pullrequest_list.render("title.pullrequest",  organization, page, condition, category));
+    }
+
+
     /**
      * show New Group page
      * @return {@link Result}
