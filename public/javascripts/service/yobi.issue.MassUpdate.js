@@ -44,6 +44,8 @@
             htVar.sIssueCheckBoxesSelector = htOptions.sIssueCheckBoxesSelector;
             htVar.sIssueCheckedBoxesSelector = htVar.sIssueCheckBoxesSelector + ':checked';
             htVar.sActionURL = htOptions.sURL;
+            htVar.htExclusiveLabels = {};
+            htVar.detachingLabelName = htOptions.welDetachingLabel.data('name') + '[]';
 
             htVar.oState     = new yobi.ui.Dropdown({"elContainer": htOptions.welState});
             htVar.oAssignee  = new yobi.ui.Dropdown({"elContainer": htOptions.welAssignee});
@@ -64,7 +66,7 @@
 
             htElement.welMassUpdateForm = htOptions.welMassUpdateForm;
             htElement.welMassUpdateButtons = htOptions.welMassUpdateButtons;
-            htElement.waCheckboxes  = $(htVar.sIssueCheckBoxesSelector);
+            htElement.waCheckboxes  = $(htOptions.sIssueCheckBoxesSelector);
             htElement.weAllCheckbox = $('#check-all');
 
             htElement.welBtnAttachingLabel = $(htOptions.welAttachingLabel).find("button");
@@ -81,7 +83,7 @@
             htVar.oState.onChange(_onChangeUpdateField);
             htVar.oMilestone.onChange(_onChangeUpdateField);
             htVar.oAssignee.onChange(_onChangeUpdateField);
-            htVar.oAttachingLabel.onChange(_onChangeUpdateField);
+            htVar.oAttachingLabel.onChange(_onChangeAttachingLabelField);
             htVar.oDetachingLabel.onChange(_onChangeUpdateField);
 
             // massUpdate checkboxes
@@ -161,8 +163,11 @@
          * @param {Number} nLength Numbers of checked issues
          */
         function _setAttachLabelList(htLabels, nLength){
-            var sCategory, sLabelId;
+            var sCategory, sLabelId, aCategoryIds;
             var bVisible = false;
+
+            // Reset
+            htVar.htExclusiveLabels = {};
 
             for(sCategory in htLabels){
                 for(sLabelId in htLabels[sCategory]){
@@ -170,6 +175,12 @@
 
                     if(htLabel.issues.length === nLength){
                         htElement.welAttachLabels.find('[data-value="' + sLabelId + '"]').hide();
+                    }
+
+                    if(htLabels[sCategory][sLabelId].exclusive){
+                        aCategoryIds = htVar.htExclusiveLabels[htLabels[sCategory][sLabelId].categoryId] || [];
+                        aCategoryIds.push(sLabelId);
+                        htVar.htExclusiveLabels[htLabels[sCategory][sLabelId].categoryId] = aCategoryIds;
                     }
                 } // end-for-label
 
@@ -226,7 +237,7 @@
                 // Label
                 for(sLabelId in htLabels[sCategory]){
                     htLabel = htLabels[sCategory][sLabelId];
-                    aHTML.push($.tmpl(sTpl, htLabel));
+                    aHTML.push($yobi.tmpl(sTpl, htLabel));
                 }
 
                 aHTML.push('<li class="divider"></li>');
@@ -248,7 +259,7 @@
         function _getLabelsByChecked(waChecked){
             var htLabels = {};
             var welCheck, sIssueLabels, aIssueLabels, aLabel;
-            var sCategory, sLabelId, sLabelName;
+            var sCategory, sLabelId, sLabelName, sCategoryId, bExclusiveCategory;
 
             waChecked.each(function(i, el){
                 welCheck = $(el);
@@ -267,9 +278,11 @@
                     sCategory  = aLabel[0];
                     sLabelId   = aLabel[1];
                     sLabelName = aLabel[2];
+                    sCategoryId = aLabel[3];
+                    bExclusiveCategory = (aLabel[4] === 'true');
 
                     htLabels[sCategory] = htLabels[sCategory] || {}; // category
-                    htLabels[sCategory][sLabelId] = htLabels[sCategory][sLabelId] || {"id":sLabelId, "name":sLabelName, "category":sCategory}; // label
+                    htLabels[sCategory][sLabelId] = htLabels[sCategory][sLabelId] || {"id":sLabelId, "name":sLabelName, "category":sCategory, "categoryId":sCategoryId, "exclusive":bExclusiveCategory}; // label
                     htLabels[sCategory][sLabelId].issues = htLabels[sCategory][sLabelId].issues || []; // issues to count
                     htLabels[sCategory][sLabelId].issues.push(welCheck.data("issue-id"));
                 });
@@ -316,6 +329,21 @@
                 offset: {top:$('.mass-update-wrap').offset().top - 15}
             });
          }
+
+        function _onChangeAttachingLabelField(sLabelId){
+            var aDetachLabels = htVar.htExclusiveLabels[htElement.welAttachLabels.find('[data-value="' + sLabelId + '"]').data('category')] || [];
+            for(var i = 0; i < aDetachLabels.length; i++) {
+                if(sLabelId !== aDetachLabels[i]){
+                    _addFormField(
+                        htElement.welMassUpdateForm,
+                        htVar.detachingLabelName,
+                        aDetachLabels[i]
+                    );
+                }
+            }
+
+            _onChangeUpdateField.apply(this, arguments);
+        }
 
         _init(htOptions);
     };
