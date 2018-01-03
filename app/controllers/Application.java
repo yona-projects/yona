@@ -38,6 +38,8 @@ public class Application extends Controller {
     public static String LOGIN_PAGE_LOGINID_PLACEHOLDER  = play.Configuration.root().getString("application.login.page.loginId.placeholder", "");
     public static String LOGIN_PAGE_PASSWORD_PLACEHOLDER  = play.Configuration.root().getString("application.login.page.password.placeholder", "");
     public static boolean SHOW_USER_EMAIL = play.Configuration.root().getBoolean("application.show.user.email", true);
+    public static String NAVBAR_CUSTOM_LINK_NAME  = play.Configuration.root().getString("application.navbar.custom.link.name", "");
+    public static String NAVBAR_CUSTOM_LINK_URL  = play.Configuration.root().getString("application.navbar.custom.link.url", "");
 
     @AnonymousCheck
     public static Result index() {

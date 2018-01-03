@@ -348,6 +348,17 @@ application.use.social.login.name.sync = false
 # choice: github, google
 application.social.login.support = "github, google"
 
+# Custom link to navigation bar
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# If you fill the name of link and url,
+# custom menu will be appeared at right upper side navbar
+application.navbar.custom {
+    link {
+        name=""
+        url=""
+    }
+}
+
 # LDAP Login Support
 # ~~~~~~~~~~~~~~~~~
 #
