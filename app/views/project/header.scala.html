@@ -45,6 +45,10 @@
     }
 }
 
+@isFavoriteProject = @{
+    FavoriteProject.findByProjectId(UserApp.currentUser().id, project.id) != null
+}
+
 <div class="project-header-outer" style="background-image:url(@urlToProjectBG(project))">
     <div class="project-header-inner">
         <div class="project-header-wrap">
@@ -56,6 +60,9 @@
                     <span class="project-author hide-in-mobile"><a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a></span>
                     <span class="project-separator hide-in-mobile">/</span>
                     <span class="project-name"><a href="@routes.ProjectApp.project(project.owner, project.name)">@project.name</a></span>
+                    <span class="user-project-list" data-project-id="@project.id">
+                        <i class="@if(isFavoriteProject){starred} star material-icons va-text-top">star</i>
+                    </span>
                     @if(project.isPrivate){
                     <span class="project-private">
                         <i class="yobicon-lock"></i>

@@ -107,7 +107,7 @@ $(function() {
             }
         });
 
-        $(".project-list > .star-project").on("click", function toggleProjectFavorite(e) {
+        $(".project-list > .star-project, .project-breadcrumb > .user-project-list").on("click", function toggleProjectFavorite(e) {
             e.stopPropagation();
             var that = $(this);
           $.post(UsermenuToggleFavoriteProjectUrl + that.data("projectId"))
