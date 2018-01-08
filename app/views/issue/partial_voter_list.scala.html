@@ -43,6 +43,7 @@
         </ul>
     </div>
     <div class="modal-footer">
+        <button id="copyEmailBtn" class="ybtn ybtn-info ybtn-small" data-clipboard-text="@for(voter <- voters){ @voter.email;}" >@Messages("button.copy.email")</button>
         <button class="ybtn ybtn-info ybtn-small" data-dismiss="modal" aria-hidden="true">@Messages("button.close")</button>
     </div>
 </div>

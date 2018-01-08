@@ -180,7 +180,9 @@
                     </div>
                     <div id="vote" class="vote-wrap @if(issue.voters.size > 0){voter-exists}">
                         @if(isResourceCreatable(UserApp.currentUser, issue.asResource(), ResourceType.ISSUE_COMMENT)) {
-                            <a href="#voters" data-toggle="modal">@issue.voters.size</a>
+                            @if(issue.voters.size > 0) {
+                                <a href="#voters" data-toggle="modal">@issue.voters.size</a>
+                            }
                             <a href="@urlToVote" class="@if(issue.isVotedBy(UserApp.currentUser)) {ybtn-watching}" title="@getVoteButtonTitle"
                             data-request-method="post" data-toggle="tooltip">
                                 <span class="heart"><i class="yobicon-hearts"></i></span>
@@ -190,10 +192,16 @@
                                 <span class="heart"><i class="yobicon-hearts"></i></span>
                             </span>
                         }
+
                         @if(issue.voters.size > 0) {
-                            @partial_voters(issue, 3)
+                            @partial_voters(issue, 1)
                         }
                     </div>
+
+                    @if(issue.voters.size > 0) {
+                        @partial_voter_list("voters", issue.voters)
+                    }
+
                     @if(StringUtils.isNotBlank(IssueApi.TRANSLATION_API)){
                         <button type="button" id="translate" class="icon btn-transparent-with-fontsize-lineheight ml10"  data-toggle="tooltip" title="@Messages("button.translation")"><i class="yobicon-lang"></i></button>
                     }
