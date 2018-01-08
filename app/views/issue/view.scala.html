@@ -430,7 +430,6 @@
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.caret.min.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/service/yona.issue.Assginee.js")"></script>
-<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/clipboard.min.js")"></script>
 <script type="text/javascript">
     $(function(){
         // yobi.issue.View
@@ -512,9 +511,8 @@
                     $(this).attr("disabled", true);
                 });
             });
+
+            var clipboard = new Clipboard('#copyEmailBtn');
         });
-</script>
-<script type="text/javascript">
-        var clipboard = new Clipboard('#copyEmailBtn');
 </script>
 }
