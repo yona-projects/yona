@@ -180,6 +180,7 @@
                     </div>
                     <div id="vote" class="vote-wrap @if(issue.voters.size > 0){voter-exists}">
                         @if(isResourceCreatable(UserApp.currentUser, issue.asResource(), ResourceType.ISSUE_COMMENT)) {
+                            <a href="#voters" data-toggle="modal">@issue.voters.size</a>
                             <a href="@urlToVote" class="@if(issue.isVotedBy(UserApp.currentUser)) {ybtn-watching}" title="@getVoteButtonTitle"
                             data-request-method="post" data-toggle="tooltip">
                                 <span class="heart"><i class="yobicon-hearts"></i></span>
@@ -421,6 +422,7 @@
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.caret.min.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/service/yona.issue.Assginee.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/clipboard.min.js")"></script>
 <script type="text/javascript">
     $(function(){
         // yobi.issue.View
@@ -503,5 +505,8 @@
                 });
             });
         });
+</script>
+<script type="text/javascript">
+        var clipboard = new Clipboard('#copyEmailBtn');
 </script>
 }
