@@ -27,9 +27,7 @@
                     @if(issueVoters.size > numOfAvatars + numOfNames) {
                             &hellip;
                     }">
-                    <a href="#voters" data-toggle="modal">
-                        @Messages("issue.voters.more", issueVoters.size - numOfAvatars)
-                    </a>
+                    <span>...</span>
                 </li>
             }
         }
@@ -57,6 +55,7 @@
         </ul>
     </div>
     <div class="modal-footer">
+        <button id="copyEmailBtn" class="ybtn ybtn-info ybtn-small" data-clipboard-text="@for(voter <- issue.voters){ @voter.email;}" >@Messages("button.copy.email")</button>
         <button class="ybtn ybtn-info ybtn-small" data-dismiss="modal" aria-hidden="true">@Messages("button.confirm")</button>
     </div>
 </div>
