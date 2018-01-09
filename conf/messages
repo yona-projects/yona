@@ -52,6 +52,7 @@ button.commentAndNextState.closed = Comment & Close issue
 button.commentAndNextState.open = Comment & Reopen issue
 button.confirm = Confirm
 button.copy.email = Copy email list
+button.copy.email.success.message = Copying email was successful.
 button.delete = Delete
 button.detail = Details
 button.done = Done

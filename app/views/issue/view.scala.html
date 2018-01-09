@@ -512,7 +512,13 @@
                 });
             });
 
-            var clipboard = new Clipboard('#copyEmailBtn');
+            if (Clipboard.isSupported()) {
+                var clipboard = new Clipboard('#copyEmailBtn');
+
+                clipboard.on('success', function(e) {
+                    $yobi.alert('@Messages("button.copy.email.success.message")');
+                });
+            }
         });
 </script>
 }
