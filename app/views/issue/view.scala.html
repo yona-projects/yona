@@ -518,6 +518,8 @@
                 clipboard.on('success', function(e) {
                     $yobi.alert('@Messages("button.copy.email.success.message")');
                 });
+            } else {
+                $yobi.notify('@Messages("site.features.error.clipboard")', 1500);
             }
         });
 </script>

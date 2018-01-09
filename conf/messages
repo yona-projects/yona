@@ -834,6 +834,7 @@ site.features.issueTracker = Yona provides an issue tracker to help you deal wit
 site.features.privateRepositories = Keep your code private at your private repositories.
 site.features.unlimitedProjects = Work based on project/organization which supported by proper roles
 site.features.workTeam = Yona provides simple and easy team management tool to help you build teams for each project.
+site.features.error.clipboard = Browser doesn't support clipboard feature.
 site.mail.body = Body
 site.mail.fail = Failed to send a mail.
 site.mail.from = From
