@@ -25,7 +25,7 @@ $(function() {
       });
 
       function isShortcutKeyPressed(event) {
-        return (event.which === 102 || event.which === 12601)     // keycode => 102: f, 12623: ㄹ
+        return (!event.metaKey && (event.which === 102 || event.which === 12601))     // keycode => 102: f, 12623: ㄹ
             && $(':focus').length === 0;                        // avoid already somewhere focused state
       }
 
