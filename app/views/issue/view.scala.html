@@ -189,10 +189,16 @@
                                 <span class="heart"><i class="yobicon-hearts"></i></span>
                             </span>
                         }
+
                         @if(issue.voters.size > 0) {
                             @partial_voters(issue, 3)
                         }
                     </div>
+
+                    @if(issue.voters.size > 0) {
+                        @partial_voter_list("voters", issue.voters)
+                    }
+
                     @if(StringUtils.isNotBlank(IssueApi.TRANSLATION_API)){
                         <button type="button" id="translate" class="icon btn-transparent-with-fontsize-lineheight ml10"  data-toggle="tooltip" title="@Messages("button.translation")"><i class="yobicon-lang"></i></button>
                     }
@@ -502,6 +508,16 @@
                     $(this).attr("disabled", true);
                 });
             });
+
+            if (Clipboard.isSupported()) {
+                var clipboard = new Clipboard('#copyEmailBtn');
+
+                clipboard.on('success', function(e) {
+                    $yobi.alert('@Messages("button.copy.email.success.message")');
+                });
+            } else {
+                $yobi.notify('@Messages("site.features.error.clipboard")', 1500);
+            }
         });
 </script>
 }

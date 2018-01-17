@@ -28,35 +28,10 @@
                             &hellip;
                     }">
                     <a href="#voters" data-toggle="modal">
-                        @Messages("issue.voters.more", issueVoters.size - numOfAvatars)
+                    @Messages("issue.voters.more", issueVoters.size - numOfAvatars)
                     </a>
                 </li>
             }
         }
     </ul>
-</div>
-
-<div id="voters" class="modal hide voters-dialog">
-    <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h5 class="nm">@Messages("issue.voters")</h5>
-    </div>
-    <div class="modal-body">
-        <ul class="unstyled">
-        @for(voter <- issue.voters){
-            <li>
-                <span>
-                    <span class="avatar-wrap mlarge">
-                        <img src="@voter.avatarUrl" width="40" height="40">
-                    </span>
-                    <strong class="name">@voter.name</strong>
-                    <span class="loginid"> <strong>@{"@"}</strong>@voter.loginId</span>
-                </span>
-            </li>
-        }
-        </ul>
-    </div>
-    <div class="modal-footer">
-        <button class="ybtn ybtn-info ybtn-small" data-dismiss="modal" aria-hidden="true">@Messages("button.confirm")</button>
-    </div>
 </div>
