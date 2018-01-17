@@ -27,7 +27,9 @@
                     @if(issueVoters.size > numOfAvatars + numOfNames) {
                             &hellip;
                     }">
-                    <span>...</span>
+                    <a href="#voters" data-toggle="modal">
+                    @Messages("issue.voters.more", issueVoters.size - numOfAvatars)
+                    </a>
                 </li>
             }
         }
