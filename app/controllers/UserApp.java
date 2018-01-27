@@ -1176,6 +1176,10 @@ public class UserApp extends Controller {
         } catch (CommunicationException e) {
             play.Logger.error("Cannot connect to ldap server \n" + e.getMessage());
             e.printStackTrace();
+            if(FALLBACK_TO_LOCAL_LOGIN){
+                play.Logger.warn("fallback to local login: " + loginIdOrEmail);
+                return authenticateWithPlainPassword(loginIdOrEmail, password);
+            }
             return User.anonymous;
         } catch (AuthenticationException e) {
             flash(Constants.WARNING, Messages.get("user.login.invalid"));
