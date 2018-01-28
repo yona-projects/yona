@@ -3745,8 +3745,15 @@ label.issue-item-row {
     .comments-count-color {
         color: @darkmagenta;
     }
+    .sharer-color {
+        color: @green;
+    }
 
     a:nth-child(2) {
+        margin-left: -5px;
+    }
+
+    a:nth-child(3) {
         margin-left: -5px;
     }
 
@@ -7068,5 +7075,21 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         border: 1px solid #ddd;
         background-color: #F5F5F5;
         border-radius: 4px;
+    }
+}
+
+.sharer-list {
+    margin-top: 40px;
+    padding: 10px;
+
+    .issue-share-title {
+        font-size: 16px;
+    }
+    .sharer-item{
+        display: inline-block;
+        background-color: #ececec;
+        border: 1px solid #dfdfdf;
+        border-radius: 3px;
+        padding: 1px 8px;
     }
 }
