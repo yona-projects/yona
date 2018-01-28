@@ -64,4 +64,52 @@ public class DiffUtil {
 
         return diffString.replaceAll("\n", "&nbsp<br/>\n");
     }
+
+    public static String getDiffPlainText(String oldValue, String newValue) {
+
+        oldValue = Optional.ofNullable(oldValue).orElse("");
+        newValue = Optional.ofNullable(newValue).orElse("");
+
+        diff_match_patch dmp = new diff_match_patch();
+        dmp.Diff_EditCost = DIFF_EDITCOST;
+        String diffString = "";
+
+        LinkedList<diff_match_patch.Diff> diffs = dmp.diff_main(oldValue, newValue);
+        dmp.diff_cleanupEfficiency(diffs);
+
+        for (Diff diff: diffs) {
+            switch (diff.operation) {
+                case DELETE:
+                    diffString += "--- ";
+                    diffString += StringEscapeUtils.escapeHtml4(diff.text);
+                    diffString += "\n";
+                    break;
+                case EQUAL:
+                    int textLength = diff.text.length();
+                    if (textLength > EQUAL_TEXT_ELLIPSIS_SIZE) {
+                        diffString += StringEscapeUtils.escapeHtml4(diff.text.substring(0, EQUAL_TEXT_BASE_SIZE));
+
+                        diffString += "......\n";
+                        diffString += "......\n";
+                        diffString += "...\n";
+
+                        diffString += StringEscapeUtils.escapeHtml4(diff.text.substring(textLength - EQUAL_TEXT_BASE_SIZE));
+                        diffString += "\n";
+                    } else {
+                        diffString += StringEscapeUtils.escapeHtml4(diff.text);
+                        diffString += "\n";
+                    }
+                    break;
+                case INSERT:
+                    diffString += "+++ ";
+                    diffString += StringEscapeUtils.escapeHtml4(diff.text);
+                    diffString += "\n";
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        return diffString;
+    }
 }
