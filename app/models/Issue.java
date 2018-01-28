@@ -75,6 +75,9 @@ public class Issue extends AbstractPosting implements LabelOwner {
     @OneToMany(cascade = CascadeType.ALL, mappedBy="issue")
     public List<IssueEvent> events;
 
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "issue")
+    public Set<IssueSharer> sharers = new LinkedHashSet<>();
+
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
             name = "issue_voter",
@@ -674,5 +677,18 @@ public class Issue extends AbstractPosting implements LabelOwner {
                 .eq("assignee.user.id", user.id)
                 .eq("state", State.OPEN)
                 .findRowCount();
+    }
+
+    public IssueSharer findSharerByUserId(Long id){
+        for (IssueSharer sharer : sharers) {
+            if (sharer.user.id.equals(id)) {
+                return sharer;
+            }
+        }
+        return null;
+    }
+
+    public List<IssueSharer> getSortedSharer() {
+        return new ArrayList<>(sharers);
     }
 }
