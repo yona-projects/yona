@@ -385,7 +385,7 @@ public class IssueApi extends AbstractPostingApp {
         }
     }
 
-    private static void addUserToUsers(User user, List<ObjectNode> users) {
+    static void addUserToUsers(User user, List<ObjectNode> users) {
         ObjectNode userNode = Json.newObject();
         userNode.put("loginId", user.loginId);
         userNode.put("name", user.getDisplayName());
@@ -534,5 +534,129 @@ public class IssueApi extends AbstractPostingApp {
                     node.put("translated", Markdown.render(translated, project));
                     return ok(node);
                 });
+    }
+
+    @AnonymousCheck
+    public static Result findSharerByloginIds(String ownerName, String projectName, Long number,
+                                              String commaSeperatedIds) {
+        if (!request().accepts("application/json")) {
+            return status(Http.Status.NOT_ACCEPTABLE);
+        }
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+        Issue issue = Issue.findByNumber(project, number);
+
+        List<IssueSharer> list = getExpressionListByExtractingLoginIds(issue, commaSeperatedIds).findList();
+        sortListByAddedDate(list);
+
+        List<ObjectNode> users = new ArrayList<>();
+        for (IssueSharer sharer :list) {
+            addUserToUsers(sharer.user, users);
+        }
+        return ok(toJson(users));
+    }
+
+    private static void sortListByAddedDate(List<IssueSharer> list) {
+        list.sort(new Comparator<IssueSharer>() {
+            @Override
+            public int compare(IssueSharer o1, IssueSharer o2) {
+                return o1.created.compareTo(o2.created);
+            }
+        });
+    }
+
+    private static ExpressionList<IssueSharer> getExpressionListByExtractingLoginIds(Issue issue, String query) {
+        String[] queryItems = query.split(",");
+        ExpressionList<IssueSharer> el = IssueSharer.find
+                .where()
+                .in("loginId", Arrays.asList(queryItems))
+                .eq("issue.id", issue.id);
+        return el;
+    }
+
+    @IsAllowed(Operation.READ)
+    public static Result findSharableUsers(String ownerName, String projectName, Long number, String query) {
+        if (!request().accepts("application/json")) {
+            return status(Http.Status.NOT_ACCEPTABLE);
+        }
+
+        List<ObjectNode> users = new ArrayList<>();
+
+        ExpressionList<User> el = getUserExpressionList(query, request().getQueryString("type"));
+
+        int total = el.findRowCount();
+        if (total > MAX_FETCH_USERS) {
+            el.setMaxRows(MAX_FETCH_USERS);
+            response().setHeader("Content-Range", "items " + MAX_FETCH_USERS + "/" + total);
+        }
+
+        for (User user :el.findList()) {
+            addUserToUsers(user, users);
+        }
+
+        return ok(toJson(users));
+    }
+
+    public static Result updateSharer(String owner, String projectName, Long number){
+        JsonNode json = request().body().asJson();
+        if (json == null) {
+            return badRequest(Json.newObject().put("message", "Expecting Json data"));
+        }
+
+        if(noSharer(json.findValue("sharer"))){
+            return badRequest(Json.newObject().put("message", "No sharer"));
+        }
+
+        Project project = Project.findByOwnerAndProjectName(owner, projectName);
+        Issue issue = Issue.findByNumber(project, number);
+        if (!AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(),
+                Operation.UPDATE)) {
+            return forbidden(Json.newObject().put("message", "Permission denied"));
+        }
+
+        ObjectNode result = Json.newObject();
+        String action = json.findValue("action").asText();
+
+        for(JsonNode sharerLoginId: json.findValue("sharer")){
+            switch (action) {
+                case "delete":
+                    removeSharer(issue, sharerLoginId.asText());
+                    result.put("action", "deleted");
+                    break;
+                case "add":
+                    addSharer(issue, sharerLoginId.asText());
+                    result.put("action", "added");
+                    break;
+                default:
+                    result.put("action", "Do nothing");
+            }
+            result.put("sharer", User.findByLoginId(sharerLoginId.asText()).getDisplayName());
+        }
+
+        return ok(result);
+    }
+
+    private static boolean noSharer(JsonNode sharers) {
+        return sharers == null || sharers.size() == 0;
+    }
+
+    private static void addSharer(Issue issue, String loginId) {
+        IssueSharer issueSharer = IssueSharer.find.where()
+                .eq("loginId", loginId)
+                .eq("issue.id", issue.id).findUnique();
+        if(issueSharer == null) {
+            issueSharer = IssueSharer.createSharer(loginId, issue);
+            issueSharer.save();
+        }
+        issue.sharers.add(issueSharer);
+    }
+
+    private static void removeSharer(Issue issue, String loginId) {
+        IssueSharer issueSharer =
+                IssueSharer.find.where()
+                        .eq("loginId", loginId)
+                        .eq("issue.id", issue.id)
+                        .findUnique();
+        issueSharer.delete();
+        issue.sharers.remove(issueSharer);
     }
 }
