@@ -130,7 +130,7 @@ public class NotificationEventTest extends ModelTest<NotificationEvent> {
     }
 
     @Test
-    public void getMessage_eventTypeIsIssueBodyChangedWithParameter_returnString() {
+    public void getMessage_eventTypeIsIssueBodyChangedWithNoParameter_returnString() {
 
         // Given
         NotificationEvent notificationEvent = getNotificationEvent(ResourceType.ISSUE_POST);
@@ -146,7 +146,7 @@ public class NotificationEventTest extends ModelTest<NotificationEvent> {
     }
 
     @Test
-    public void getMessage_eventTypeIsIssueBodyChangedWithNoParameter_returnString() {
+    public void getMessage_eventTypeIsIssueBodyChangedWithParameter_returnString() {
 
         // Given
         NotificationEvent notificationEvent = getNotificationEvent(ResourceType.ISSUE_POST);
