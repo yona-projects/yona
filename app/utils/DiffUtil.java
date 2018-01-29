@@ -25,7 +25,7 @@ public class DiffUtil {
 
         diff_match_patch dmp = new diff_match_patch();
         dmp.Diff_EditCost = DIFF_EDITCOST;
-        String diffString = "";
+        StringBuilder sb = new StringBuilder();
 
         LinkedList<diff_match_patch.Diff> diffs = dmp.diff_main(oldValue, newValue);
         dmp.diff_cleanupEfficiency(diffs);
@@ -33,36 +33,34 @@ public class DiffUtil {
         for (Diff diff: diffs) {
             switch (diff.operation) {
                 case DELETE:
-                    diffString += "<span style='background-color: #fda9a6;padding: 2px 0;'>";
-                    diffString += StringEscapeUtils.escapeHtml4(diff.text);
-                    diffString += "</span>";
+                    sb.append("<span style='background-color: #fda9a6;padding: 2px 0;'>")
+                        .append(StringEscapeUtils.escapeHtml4(diff.text))
+                        .append("</span>");
                     break;
                 case EQUAL:
                     int textLength = diff.text.length();
                     if (textLength > EQUAL_TEXT_ELLIPSIS_SIZE) {
-                        diffString += StringEscapeUtils.escapeHtml4(diff.text.substring(0, EQUAL_TEXT_BASE_SIZE));
-
-                        diffString += "<span style='color: #bdbdbd;font-size: 16px;font-family: serif;'>...\n";
-                        diffString += "......\n";
-                        diffString += "......\n";
-                        diffString += "...</span>";
-
-                        diffString += StringEscapeUtils.escapeHtml4(diff.text.substring(textLength - EQUAL_TEXT_BASE_SIZE));
+                        sb.append(StringEscapeUtils.escapeHtml4(diff.text.substring(0, EQUAL_TEXT_BASE_SIZE)))
+                            .append("<span style='color: #bdbdbd;font-size: 16px;font-family: serif;'>...\n")
+                            .append("......\n")
+                            .append("......\n")
+                            .append("...</span>")
+                            .append(StringEscapeUtils.escapeHtml4(diff.text.substring(textLength - EQUAL_TEXT_BASE_SIZE)));
                     } else {
-                        diffString += StringEscapeUtils.escapeHtml4(diff.text);
+                        sb.append(StringEscapeUtils.escapeHtml4(diff.text));
                     }
                     break;
                 case INSERT:
-                    diffString += "<span style='background-color: #abdd52;padding: 2px 0;'>";
-                    diffString += StringEscapeUtils.escapeHtml4(diff.text);
-                    diffString += "</span>";
+                    sb.append("<span style='background-color: #abdd52;padding: 2px 0;'>")
+                        .append(StringEscapeUtils.escapeHtml4(diff.text))
+                        .append("</span>");
                     break;
                 default:
                         break;
             }
         }
 
-        return diffString.replaceAll("\n", "&nbsp<br/>\n");
+        return sb.toString().replaceAll("\n", "&nbsp<br/>\n");
     }
 
     public static String getDiffPlainText(String oldValue, String newValue) {
@@ -72,7 +70,7 @@ public class DiffUtil {
 
         diff_match_patch dmp = new diff_match_patch();
         dmp.Diff_EditCost = DIFF_EDITCOST;
-        String diffString = "";
+        StringBuilder sb = new StringBuilder();
 
         LinkedList<diff_match_patch.Diff> diffs = dmp.diff_main(oldValue, newValue);
         dmp.diff_cleanupEfficiency(diffs);
@@ -80,36 +78,34 @@ public class DiffUtil {
         for (Diff diff: diffs) {
             switch (diff.operation) {
                 case DELETE:
-                    diffString += "--- ";
-                    diffString += StringEscapeUtils.escapeHtml4(diff.text);
-                    diffString += "\n";
+                    sb.append("--- ")
+                        .append(StringEscapeUtils.escapeHtml4(diff.text))
+                        .append("\n");
                     break;
                 case EQUAL:
                     int textLength = diff.text.length();
                     if (textLength > EQUAL_TEXT_ELLIPSIS_SIZE) {
-                        diffString += StringEscapeUtils.escapeHtml4(diff.text.substring(0, EQUAL_TEXT_BASE_SIZE));
-
-                        diffString += "......\n";
-                        diffString += "......\n";
-                        diffString += "...\n";
-
-                        diffString += StringEscapeUtils.escapeHtml4(diff.text.substring(textLength - EQUAL_TEXT_BASE_SIZE));
-                        diffString += "\n";
+                        sb.append(StringEscapeUtils.escapeHtml4(diff.text.substring(0, EQUAL_TEXT_BASE_SIZE)))
+                            .append("......\n")
+                            .append("......\n")
+                            .append("...\n")
+                            .append(StringEscapeUtils.escapeHtml4(diff.text.substring(textLength - EQUAL_TEXT_BASE_SIZE)))
+                            .append("\n");
                     } else {
-                        diffString += StringEscapeUtils.escapeHtml4(diff.text);
-                        diffString += "\n";
+                        sb.append(StringEscapeUtils.escapeHtml4(diff.text))
+                            .append("\n");
                     }
                     break;
                 case INSERT:
-                    diffString += "+++ ";
-                    diffString += StringEscapeUtils.escapeHtml4(diff.text);
-                    diffString += "\n";
+                    sb.append("+++ ")
+                        .append(StringEscapeUtils.escapeHtml4(diff.text))
+                        .append("\n");
                     break;
                 default:
                     break;
             }
         }
 
-        return diffString;
+        return sb.toString();
     }
 }
