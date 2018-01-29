@@ -36,6 +36,7 @@ import utils.RouteUtil;
 import javax.naming.LimitExceededException;
 import javax.persistence.*;
 import javax.servlet.ServletException;
+import java.beans.Transient;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -191,6 +192,21 @@ public class NotificationEvent extends Model implements INotificationEvent {
                 }
             case ISSUE_MOVED:
                     return Messages.get(lang, "notification.type.issue.moved", oldValue, newValue);
+            default:
+                return null;
+        }
+    }
+
+    @Transient
+    public String getPlainMessage() {
+        return getPlainMessage(Lang.defaultLang());
+    }
+
+    @Transient
+    public String getPlainMessage(Lang lang) {
+        switch(eventType) {
+            case ISSUE_BODY_CHANGED:
+                return DiffUtil.getDiffPlainText(oldValue, newValue);
             default:
                 return null;
         }
