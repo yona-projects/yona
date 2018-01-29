@@ -161,4 +161,36 @@ public class NotificationEventTest extends ModelTest<NotificationEvent> {
         assertThat(result.length() > 0).isTrue();
     }
 
+  @Test
+  public void getPlainMessage_eventTypeIsIssueBodyChangedWithNoParameter_returnString() {
+
+    // Given
+    NotificationEvent notificationEvent = getNotificationEvent(ResourceType.ISSUE_POST);
+    notificationEvent.eventType = EventType.ISSUE_BODY_CHANGED;
+    notificationEvent.oldValue = "old value";
+    notificationEvent.newValue = "new value";
+
+    // When
+    String result = notificationEvent.getPlainMessage();
+
+    // Then
+    assertThat(result.length() > 0).isTrue();
+  }
+
+  @Test
+  public void getPlainMessage_eventTypeIsIssueBodyChangedWithParameter_returnString() {
+
+    // Given
+    NotificationEvent notificationEvent = getNotificationEvent(ResourceType.ISSUE_POST);
+    notificationEvent.eventType = EventType.ISSUE_BODY_CHANGED;
+    notificationEvent.oldValue = "old value";
+    notificationEvent.newValue = "new value";
+
+    // When
+    String result = notificationEvent.getPlainMessage(Lang.defaultLang());
+
+    // Then
+    assertThat(result.length() > 0).isTrue();
+  }
+
 }
