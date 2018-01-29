@@ -1,7 +1,7 @@
 /**
  * Yona, 21st Century Project Hosting SW
  * <p>
- * Copyright Yona & Yobi Authors & NAVER Corp.
+ * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
  * https://yona.io
  **/
 package models;
@@ -29,6 +29,7 @@ import play.libs.Akka;
 import playRepository.*;
 import scala.concurrent.duration.Duration;
 import utils.AccessControl;
+import utils.DiffUtil;
 import utils.EventConstants;
 import utils.RouteUtil;
 
@@ -133,9 +134,10 @@ public class NotificationEvent extends Model implements INotificationEvent {
             case NEW_COMMENT:
             case NEW_PULL_REQUEST:
             case NEW_COMMIT:
-            case ISSUE_BODY_CHANGED:
             case COMMENT_UPDATED:
                 return newValue;
+            case ISSUE_BODY_CHANGED:
+                return DiffUtil.getDiffText(oldValue, newValue);
             case NEW_REVIEW_COMMENT:
                 try {
                     ReviewComment reviewComment = ReviewComment.find.byId(Long.valueOf(this.resourceId));
