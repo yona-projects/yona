@@ -60,7 +60,7 @@ public class DiffUtil {
             }
         }
 
-        return sb.toString().replaceAll("\n", "&nbsp<br/>\n");
+        return sb.toString().replaceAll("\n", "<br/>\n");
     }
 
     public static String getDiffPlainText(String oldValue, String newValue) {

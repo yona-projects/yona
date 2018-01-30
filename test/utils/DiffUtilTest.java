@@ -17,9 +17,9 @@ public class DiffUtilTest {
     String DIFF_INSERT_PREFIX = "<span style='background-color: #abdd52;padding: 2px 0;'>";
     String DIFF_INSERT_POSTFIX = "</span>";
 
-    String DIFF_EQUAL_PREFIX = "<span style='color: #bdbdbd;font-size: 16px;font-family: serif;'>...&nbsp<br/>\n"
-            + "......&nbsp<br/>\n"
-            + "......&nbsp<br/>\n"
+    String DIFF_EQUAL_PREFIX = "<span style='color: #bdbdbd;font-size: 16px;font-family: serif;'>...<br/>\n"
+            + "......<br/>\n"
+            + "......<br/>\n"
             + "...</span>";
 
     String DIFF_NEW_LINE = "\n";
