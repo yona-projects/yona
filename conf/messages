@@ -298,6 +298,7 @@ issue.list.assignedToMe = Assigned
 issue.list.authoredByMe = Created
 issue.list.commentedByMe = Commented
 issue.list.mentionedOfMe = Mentioned
+issue.list.sharedWithMe = Shared
 issue.menu.new = New issue
 issue.menu.new.mine = New issue - personal inbox
 issue.myIssue = My issues

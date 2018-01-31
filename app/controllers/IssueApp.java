@@ -108,7 +108,7 @@ public class IssueApp extends AbstractPostingApp {
 
     private static boolean hasNotConditions(models.support.SearchCondition searchCondition) {
         return searchCondition.assigneeId == null && searchCondition.authorId == null && searchCondition.mentionId == null
-                && searchCondition.commenterId == null;
+                && searchCondition.commenterId == null && searchCondition.sharerId == null;
     }
 
     @Transactional

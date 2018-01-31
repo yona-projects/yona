@@ -1,23 +1,9 @@
 /**
- * Yobi, Project Hosting SW
- *
- * Copyright 2012 NAVER Corp.
- * http://yobi.io
- *
- * @author Tae
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+ * Yona, 21st Century Project Hosting SW
+ * <p>
+ * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+ * https://yona.io
+ **/
 package models.support;
 
 import com.avaje.ebean.ExpressionList;
@@ -50,6 +36,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
     public Project project;
 
     public Long mentionId;
+    public Long sharerId;
     public Organization organization;
     public List<String> projectNames;
 
@@ -76,6 +63,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         one.assigneeId = this.assigneeId;
         one.commenterId = this.commenterId;
         one.mentionId = this.mentionId;
+        one.sharerId = this.sharerId;
         one.dueDate = this.dueDate;
         one.projectNames = this.projectNames;
         return one;
@@ -151,6 +139,11 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         return this;
     }
 
+    public SearchCondition setSharerId(Long sharerId) {
+        this.sharerId = sharerId;
+        return this;
+    }
+
     public ExpressionList<Issue> asExpressionList(@Nonnull Organization organization) {
         ExpressionList<Issue> el = Issue.finder.where();
 
@@ -163,6 +156,8 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         setAssigneeIfExists(el);
         setAuthorIfExist(el);
         setMentionedIssuesIfExist(el);
+        setSharedIssuesIfExist(el);
+
         setFilteredStringIfExist(el);
 
         if (commentedCheck) {
@@ -279,6 +274,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         setAuthorIfExist(el);
         setCommenterIfExist(el, null);
         setMentionedIssuesIfExist(el);
+        setSharedIssuesIfExist(el);
         setFilteredStringIfExist(el);
 
         if (commentedCheck) {
@@ -309,6 +305,23 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
             User mentionUser = User.find.byId(mentionId);
             if(!mentionUser.isAnonymous()) {
                 List<Long> ids = getMentioningIssueIds(mentionUser);
+
+                if (ids.isEmpty()) {
+                    // No need to progress because the query matches nothing.
+                    el.idEq(-1);
+                } else {
+                    el.idIn(ids);
+                }
+            }
+        }
+    }
+
+    private void setSharedIssuesIfExist(ExpressionList<Issue> el) {
+
+        if (sharerId != null) {
+            User user = User.find.byId(sharerId);
+            if(!user.isAnonymous()) {
+                List<Long> ids = getSharedIssueIds(user);
 
                 if (ids.isEmpty()) {
                     // No need to progress because the query matches nothing.
@@ -373,6 +386,18 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         return new ArrayList<>(ids);
     }
 
+    private List<Long> getSharedIssueIds(User user) {
+        Set<Long> ids = new HashSet<>();
+        List<IssueSharer> issueSharers = IssueSharer.find.where()
+                .eq("user.id", user.id)
+                .findList();
+        for (IssueSharer issueSharer : issueSharers) {
+            ids.add(issueSharer.issue.id);
+        }
+
+        return new ArrayList<>(ids);
+    }
+
     public ExpressionList<Issue> asExpressionList(Project project) {
         ExpressionList<Issue> el = Issue.finder.where();
         if( project != null ){
@@ -417,6 +442,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         }
 
         setCommenterIfExist(el, project);
+        setSharedIssuesIfExist(el);
 
         if (milestoneId != null) {
             if (milestoneId.equals(Milestone.NULL_MILESTONE_ID)) {
@@ -456,5 +482,24 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         }
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         return sdf.format(this.dueDate);
+    }
+
+    @Override
+    public String toString() {
+        return "SearchCondition{" +
+                "state='" + state + '\'' +
+                ", commentedCheck=" + commentedCheck +
+                ", milestoneId=" + milestoneId +
+                ", labelIds=" + labelIds +
+                ", authorId=" + authorId +
+                ", assigneeId=" + assigneeId +
+                ", project=" + project +
+                ", mentionId=" + mentionId +
+                ", sharerId=" + sharerId +
+                ", organization=" + organization +
+                ", projectNames=" + projectNames +
+                ", commenterId=" + commenterId +
+                ", dueDate=" + dueDate +
+                '}';
     }
 }

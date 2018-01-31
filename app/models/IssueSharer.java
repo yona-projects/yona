@@ -7,6 +7,7 @@
 
 package models;
 
+import models.enumeration.State;
 import play.db.ebean.Model;
 
 import javax.persistence.*;
@@ -48,5 +49,12 @@ public class IssueSharer extends Model {
             throw new IllegalArgumentException(errorMsg);
         }
         return issueSharer;
+    }
+
+    public static int getNumberOfIssuesSharedWithUser(Long userId){
+        return find.where()
+                .eq("user.id", userId)
+                .eq("issue.state", State.OPEN)
+                .findRowCount();
     }
 }
