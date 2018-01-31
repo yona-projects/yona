@@ -1,11 +1,13 @@
 @**
 * Yona, 21st Century Project Hosting SW
 *
-* Copyright Yona & Yobi Authors & NAVER Corp.
+* Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
 * https://yona.io
 **@
 @import java.util
-@(title: String, currentPage: com.avaje.ebean.Page[Issue], param:models.support.SearchCondition, project:Project)
+@import com.avaje.ebean.Page
+@import models.support.SearchCondition
+@(title: String, currentPage: Page[Issue], param:SearchCondition, project:Project)
 
 @import helper._
 @import models.enumeration._
@@ -33,6 +35,7 @@
                 <input type="hidden" name="commenterId" value="@param.commenterId" data-search="commenterId">
                 <input type="hidden" name="assigneeId" value="@param.assigneeId" data-search="assigneeId">
                 <input type="hidden" name="mentionId" value="@param.mentionId" data-search="mentionId">
+                <input type="hidden" name="sharerId" value="@param.sharerId" data-search="sharerId">
                 <div class="search myissues-search-input">
                     <div class="search-bar">
                         <input name="filter" class="textbox full" type="text" value="@param.filter" placeholder="@Messages("issue.search")">
