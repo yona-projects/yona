@@ -29,6 +29,9 @@ public class IssueSharer extends Model {
     @OneToOne
     public Issue issue;
 
+    public static final String ADD = "add";
+    public static final String DELETE = "delete";
+
     public static final Finder<Long, IssueSharer> find = new Finder<>(Long.class,
             IssueSharer.class);
 
@@ -40,7 +43,7 @@ public class IssueSharer extends Model {
         issueSharer.user = User.findByLoginId(loginId);
 
         if (issueSharer.user == null) {
-            String errorMsg  = "Wrong loginId for issue sharing: " + loginId;
+            String errorMsg = "Wrong loginId for issue sharing: " + loginId;
             play.Logger.error(errorMsg);
             throw new IllegalArgumentException(errorMsg);
         }

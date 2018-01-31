@@ -39,6 +39,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static controllers.UserApp.MAX_FETCH_USERS;
+import static controllers.UserApp.currentUser;
 import static controllers.api.UserApi.createUserNode;
 import static play.libs.Json.toJson;
 
@@ -602,10 +603,6 @@ public class IssueApi extends AbstractPostingApp {
             return badRequest(Json.newObject().put("message", "Expecting Json data"));
         }
 
-        if(noSharer(json.findValue("sharer"))){
-            return badRequest(Json.newObject().put("message", "No sharer"));
-        }
-
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
         Issue issue = Issue.findByNumber(project, number);
         if (!AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(),
@@ -613,26 +610,53 @@ public class IssueApi extends AbstractPostingApp {
             return forbidden(Json.newObject().put("message", "Permission denied"));
         }
 
-        ObjectNode result = Json.newObject();
-        String action = json.findValue("action").asText();
+        JsonNode sharer = json.findValue("sharer");
+        if(noSharer(sharer)){
+            return badRequest(Json.newObject().put("message", "No sharer"));
+        }
 
-        for(JsonNode sharerLoginId: json.findValue("sharer")){
-            switch (action) {
-                case "delete":
-                    removeSharer(issue, sharerLoginId.asText());
-                    result.put("action", "deleted");
-                    break;
-                case "add":
-                    addSharer(issue, sharerLoginId.asText());
-                    result.put("action", "added");
-                    break;
-                default:
-                    result.put("action", "Do nothing");
+        final String action = json.findValue("action").asText();
+
+        ObjectNode result = changeSharer(sharer, issue, action);
+        sendNotification(sharer, issue, action);
+
+        return ok(result);
+    }
+
+    private static ObjectNode changeSharer(JsonNode sharer, Issue issue, String action) {
+        ObjectNode result = Json.newObject();
+        for (JsonNode sharerLoginId : sharer) {
+            if ("add".equalsIgnoreCase(action)) {
+                addSharer(issue, sharerLoginId.asText());
+                result.put("action", "added");
+            } else if ("delete".equalsIgnoreCase(action)) {
+                result.put("action", "deleted");
+                removeSharer(issue, sharerLoginId.asText());
+            } else {
+                play.Logger.error("Unknown issue sharing action: " + issue + ":" + action + " by " + currentUser());
+                result.put("action", "Do nothing. Unsupported action: " + action);
             }
             result.put("sharer", User.findByLoginId(sharerLoginId.asText()).getDisplayName());
         }
+        return result;
+    }
 
-        return ok(result);
+    private static void sendNotification(JsonNode sharer, Issue issue, String action) {
+        Runnable preUpdateHook = new Runnable() {
+            @Override
+            public void run() {
+                for(JsonNode sharerLoginId: sharer){
+                    addSharerChangedNotification(issue, sharerLoginId.asText(), action);
+                }
+            }
+        };
+        preUpdateHook.run();
+    }
+
+
+    private static void addSharerChangedNotification(Issue issue, String sharerLoginId, String action) {
+        NotificationEvent notiEvent = NotificationEvent.afterIssueSharerChanged(issue, sharerLoginId, action);
+        IssueEvent.addFromNotificationEventWithoutSkipEvent(notiEvent, issue, UserApp.currentUser().loginId);
     }
 
     private static boolean noSharer(JsonNode sharers) {
