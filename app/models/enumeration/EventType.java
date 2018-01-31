@@ -1,7 +1,7 @@
 /**
  * Yona, 21st Century Project Hosting SW
  * <p>
- * Copyright Yona & Yobi Authors & NAVER Corp.
+ * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
  * https://yona.io
  **/
 package models.enumeration;
@@ -34,7 +34,8 @@ public enum EventType {
     REVIEW_THREAD_STATE_CHANGED("notification.type.review.state.changed", 18),
     ORGANIZATION_MEMBER_ENROLL_REQUEST("notification.organization.type.member.enroll",19),
     COMMENT_UPDATED("notification.type.comment.updated", 20),
-    ISSUE_MOVED("notification.type.issue.is.moved", 21);
+    ISSUE_MOVED("notification.type.issue.is.moved", 21),
+    ISSUE_SHARER_CHANGED("notification.type.issue.sharer.changed", 22);
 
     private String descr;
 

@@ -1,7 +1,7 @@
 @**
 * Yona, 21st Century Project Hosting SW
 *
-* Copyright Yona & Yobi Authors & NAVER Corp.
+* Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
 * https://yona.io
 **@
 @(project:Project, issue:Issue)
@@ -176,6 +176,15 @@
                             <span class="state changed">@Messages("issue.event.referred.title")</span>
                             @defining(PullRequest.findById(Long.valueOf(event.newValue))) { pull =>
                                 @Html(Messages("issue.event.referred",linkToUser(user.loginId, user.getDisplayName),linkToPullRequest(pull)))
+                            }
+                        }
+                        case EventType.ISSUE_SHARER_CHANGED => {
+                            @if(StringUtils.isBlank(event.oldValue) && StringUtils.isNotBlank(event.newValue)){
+                                <span class="state sharer-added">@Messages("issue.sharer")</span>
+                                @Html(Messages("issue.event.sharer.added", linkToUser(user.loginId, user.getPureNameOnly), linkToUser(event.newValue, User.findByLoginId(event.newValue).getPureNameOnly)))
+                            } else {
+                                <span class="state sharer-deleted">@Messages("issue.event.sharer.deleted.title")</span>
+                                @Html(Messages("issue.event.sharer.deleted", linkToUser(user.loginId, user.getPureNameOnly), linkToUser(event.oldValue, User.findByLoginId(event.oldValue).getPureNameOnly)))
                             }
                         }
                         case _ => {

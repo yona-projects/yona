@@ -1,7 +1,7 @@
 /**
  * Yona, 21st Century Project Hosting SW
  * <p>
- * Copyright Yona & Yobi Authors & NAVER Corp.
+ * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
  * https://yona.io
  **/
 package models;
@@ -14,7 +14,6 @@ import models.enumeration.*;
 import models.resource.GlobalResource;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
-import models.Webhook;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang3.StringUtils;
@@ -108,6 +107,10 @@ public class NotificationEvent extends Model implements INotificationEvent {
         return oldValue;
     }
 
+    public String getNewValue() {
+        return newValue;
+    }
+
     @Transient
     public String getMessage() {
         return getMessage(Lang.defaultLang());
@@ -189,7 +192,14 @@ public class NotificationEvent extends Model implements INotificationEvent {
                 }
             case ISSUE_MOVED:
                     return Messages.get(lang, "notification.type.issue.moved", oldValue, newValue);
+            case ISSUE_SHARER_CHANGED:
+                if (StringUtils.isNotBlank(newValue)) {
+                    return Messages.get(lang, "notification.issue.sharer.added", User.findByLoginId(newValue).getDisplayName());
+                } else if (StringUtils.isNotBlank(oldValue)) {
+                    return Messages.get(lang, "notification.issue.sharer.deleted");
+                }
             default:
+                play.Logger.error("Unknown event message: " + this);
                 return null;
         }
     }
@@ -360,8 +370,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
                 .orderBy("id desc").setMaxRows(1).findUnique();
 
         if (lastEvent != null) {
-            if (lastEvent.eventType == event.eventType &&
-                    event.senderId.equals(lastEvent.senderId)) {
+            if (isSameUserEventAsPrevious(event, lastEvent)) {
                 // If the last event is A -> B and the current event is B -> C,
                 // they are merged into the new event A -> C.
                 event.oldValue = lastEvent.getOldValue();
@@ -381,6 +390,55 @@ public class NotificationEvent extends Model implements INotificationEvent {
         }
         event.save();
         event.saveManyToManyAssociations("receivers");
+    }
+
+    public static void addWithoutSkipEvent(NotificationEvent event) {
+        if (event.notificationMail == null) {
+            event.notificationMail = new NotificationMail();
+            event.notificationMail.notificationEvent = event;
+        }
+
+        Date draftDate = DateTime.now().minusMillis(EventConstants.DRAFT_TIME_IN_MILLIS).toDate();
+
+        NotificationEvent lastEvent = NotificationEvent.find.where()
+                .eq("resourceId", event.resourceId)
+                .eq("resourceType", event.resourceType)
+                .gt("created", draftDate)
+                .orderBy("id desc").setMaxRows(1).findUnique();
+
+        if (lastEvent != null) {
+            if (isSameUserEventAsPrevious(event, lastEvent) &&
+                    isRevertingTheValue(event, lastEvent)) {
+                lastEvent.delete();
+                return;
+            }
+        }
+
+        if(isAddingSharerEvent(event)){
+            filterReceivers(event);
+        }
+
+        if (event.receivers.isEmpty()) {
+            return;
+        }
+        event.save();
+        event.saveManyToManyAssociations("receivers");
+    }
+
+    private static boolean isSameUserEventAsPrevious(NotificationEvent event, NotificationEvent lastEvent) {
+        return lastEvent.eventType == event.eventType &&
+                event.senderId.equals(lastEvent.senderId);
+    }
+
+    private static boolean isRevertingTheValue(NotificationEvent event, NotificationEvent lastEvent) {
+        return StringUtils.equals(event.oldValue, lastEvent.newValue) &&
+                StringUtils.equals(event.newValue, lastEvent.oldValue);
+    }
+
+    private static boolean isAddingSharerEvent(NotificationEvent event) {
+        return event.eventType.equals(EventType.ISSUE_SHARER_CHANGED)
+            && StringUtils.isBlank(event.oldValue)
+            && StringUtils.isNotBlank(event.newValue);
     }
 
     private static void filterReceivers(final NotificationEvent event) {
@@ -791,6 +849,30 @@ public class NotificationEvent extends Model implements INotificationEvent {
         NotificationEvent.add(notiEvent);
 
         return notiEvent;
+    }
+
+    public static NotificationEvent afterIssueSharerChanged(Issue issue, String sharerLoginId, String action) {
+        NotificationEvent notiEvent = createFromCurrentUser(issue);
+        notiEvent.title = formatReplyTitle(issue);
+        notiEvent.receivers = findSharer(sharerLoginId);
+        notiEvent.eventType = ISSUE_SHARER_CHANGED;
+        if (IssueSharer.ADD.equalsIgnoreCase(action)) {
+            notiEvent.oldValue = "";
+            notiEvent.newValue = sharerLoginId;
+        } else if (IssueSharer.DELETE.equalsIgnoreCase(action)) {
+            notiEvent.oldValue = sharerLoginId;
+            notiEvent.newValue = "";
+        }
+
+        NotificationEvent.addWithoutSkipEvent(notiEvent);
+
+        return notiEvent;
+    }
+
+    private static Set<User> findSharer(String sharerLoginId) {
+        Set<User> receivers = new HashSet<>();
+        receivers.add(User.findByLoginId(sharerLoginId));
+        return receivers;
     }
 
     private static Set<User> getReceiversForIssueBodyChanged(String oldBody, Issue issue) {
@@ -1265,5 +1347,22 @@ public class NotificationEvent extends Model implements INotificationEvent {
     public static void afterCommentUpdated(Comment comment) {
         webhookRequest(COMMENT_UPDATED, comment, false);
         NotificationEvent.add(forUpdatedComment(comment, UserApp.currentUser()));
+    }
+
+    @Override
+    public String toString() {
+        return "NotificationEvent{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", senderId=" + senderId +
+                ", receivers=" + receivers +
+                ", created=" + created +
+                ", resourceType=" + resourceType +
+                ", resourceId='" + resourceId + '\'' +
+                ", eventType=" + eventType +
+                ", oldValue='" + oldValue + '\'' +
+                ", newValue='" + newValue + '\'' +
+                ", notificationMail=" + notificationMail +
+                '}';
     }
 }
