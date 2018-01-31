@@ -691,4 +691,11 @@ public class Issue extends AbstractPosting implements LabelOwner {
     public List<IssueSharer> getSortedSharer() {
         return new ArrayList<>(sharers);
     }
+
+    public static int getCountOfMentionedOpenIssues(Long userId) {
+        return finder.where()
+                .in("id", Mention.getMentioningIssueIds(userId))
+                .eq("state", State.OPEN)
+                .findRowCount();
+    }
 }
