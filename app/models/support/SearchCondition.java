@@ -21,9 +21,6 @@ import javax.annotation.Nonnull;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static models.enumeration.ResourceType.ISSUE_COMMENT;
-import static models.enumeration.ResourceType.ISSUE_POST;
-
 public class SearchCondition extends AbstractPostingApp.SearchCondition implements Cloneable {
     public String state;
     public Boolean commentedCheck;
@@ -304,7 +301,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         if (mentionId != null) {
             User mentionUser = User.find.byId(mentionId);
             if(!mentionUser.isAnonymous()) {
-                List<Long> ids = getMentioningIssueIds(mentionUser);
+                List<Long> ids = Mention.getMentioningIssueIds(mentionId);
 
                 if (ids.isEmpty()) {
                     // No need to progress because the query matches nothing.
@@ -351,39 +348,6 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
             }
         }
         return new ArrayList<>(issueIds);
-    }
-
-    private List<Long> getMentioningIssueIds(User mentionUser) {
-        Set<Long> ids = new HashSet<>();
-        Set<Long> commentIds = new HashSet<>();
-
-        for (Mention mention : Mention.find.where()
-                .eq("user", mentionUser)
-                .in("resourceType", ISSUE_POST, ISSUE_COMMENT)
-                .findList()) {
-
-            switch (mention.resourceType) {
-                case ISSUE_POST:
-                    ids.add(Long.valueOf(mention.resourceId));
-                    break;
-                case ISSUE_COMMENT:
-                    commentIds.add(Long.valueOf(mention.resourceId));
-                    break;
-                default:
-                    play.Logger.warn("'" + mention.resourceType + "' is not supported.");
-                    break;
-            }
-        }
-
-        if (!commentIds.isEmpty()) {
-            for (IssueComment comment : IssueComment.find.where()
-                    .idIn(new ArrayList<>(commentIds))
-                    .findList()) {
-                ids.add(comment.issue.id);
-            }
-        }
-
-        return new ArrayList<>(ids);
     }
 
     private List<Long> getSharedIssueIds(User user) {

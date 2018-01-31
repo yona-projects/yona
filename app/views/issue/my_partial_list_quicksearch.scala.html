@@ -5,6 +5,7 @@
 * https://yona.io
 **@
 @import models.support.SearchCondition
+@import org.apache.commons.lang3.StringUtils
 @(param:SearchCondition)
 
 @currentUserId = @{
@@ -54,7 +55,9 @@
             data-milestone-id="@param.milestoneId"
             data-mention-id="@currentUserId"
             data-sharer-id="">
-            @Messages("issue.list.mentionedOfMe")
+            @Messages("issue.list.mentionedOfMe") @if(StringUtils.isBlank(param.filter)) {
+                (@Issue.getCountOfMentionedOpenIssues(currentUserId))
+            }
         </a>
     </li>
     <li @if(param.sharerId == currentUserId){ class="active"}>
@@ -65,7 +68,9 @@
         data-milestone-id="@param.milestoneId"
         data-mention-id=""
         data-sharer-id="@currentUserId">
-        @Messages("issue.list.sharedWithMe") (@IssueSharer.getNumberOfIssuesSharedWithUser(currentUserId))
+        @Messages("issue.list.sharedWithMe") @if(StringUtils.isBlank(param.filter)) {
+            (@IssueSharer.getNumberOfIssuesSharedWithUser(currentUserId))
+        }
         </a>
     </li>
     }
