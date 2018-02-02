@@ -611,9 +611,16 @@ public class NotificationMail extends Model {
 
     private static String getHtmlMessage(Lang lang, String message, String urlToView,
                                          Resource resource, boolean acceptsReply) {
+        String renderred = null;
+
+        if(resource != null) {
+            renderred = Markdown.render(message, resource.getProject(), lang.code());
+        } else {
+            renderred = Markdown.render(message);
+        }
 
         String content = views.html.common.notificationMail.render(
-                lang, message, urlToView, resource, acceptsReply).toString();
+                lang, renderred, urlToView, resource, acceptsReply).toString();
 
         Document doc = Jsoup.parse(content);
 
