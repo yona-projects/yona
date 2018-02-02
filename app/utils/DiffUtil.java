@@ -20,14 +20,14 @@ public class DiffUtil {
 
     public static String getDiffText(String oldValue, String newValue) {
 
-        oldValue = Optional.ofNullable(oldValue).orElse("");
-        newValue = Optional.ofNullable(newValue).orElse("");
+        String oldVal = Optional.ofNullable(oldValue).orElse("");
+        String newVal = Optional.ofNullable(newValue).orElse("");
 
         diff_match_patch dmp = new diff_match_patch();
         dmp.Diff_EditCost = DIFF_EDITCOST;
         StringBuilder sb = new StringBuilder();
 
-        LinkedList<diff_match_patch.Diff> diffs = dmp.diff_main(oldValue, newValue);
+        LinkedList<diff_match_patch.Diff> diffs = dmp.diff_main(oldVal, newVal);
         dmp.diff_cleanupEfficiency(diffs);
 
         for (Diff diff: diffs) {
@@ -62,14 +62,14 @@ public class DiffUtil {
 
     public static String getDiffPlainText(String oldValue, String newValue) {
 
-        oldValue = Optional.ofNullable(oldValue).orElse("");
-        newValue = Optional.ofNullable(newValue).orElse("");
+        String oldVal = Optional.ofNullable(oldValue).orElse("");
+        String newVal = Optional.ofNullable(newValue).orElse("");
 
         diff_match_patch dmp = new diff_match_patch();
         dmp.Diff_EditCost = DIFF_EDITCOST;
         StringBuilder sb = new StringBuilder();
 
-        LinkedList<diff_match_patch.Diff> diffs = dmp.diff_main(oldValue, newValue);
+        LinkedList<diff_match_patch.Diff> diffs = dmp.diff_main(oldVal, newVal);
         dmp.diff_cleanupEfficiency(diffs);
 
         for (Diff diff: diffs) {
