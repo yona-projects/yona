@@ -33,27 +33,24 @@ public class DiffUtil {
         for (Diff diff: diffs) {
             switch (diff.operation) {
                 case DELETE:
-                    sb.append("<span style='background-color: #fda9a6;padding: 2px 0;'>")
-                        .append(StringEscapeUtils.escapeHtml4(diff.text))
-                        .append("</span>");
+                    String deleteStyle = "<span style='background-color: #fda9a6;padding: 2px 0;'>";
+                    sb.append(addDiffStyle(diff, deleteStyle));
                     break;
                 case EQUAL:
                     int textLength = diff.text.length();
+
                     if (textLength > EQUAL_TEXT_ELLIPSIS_SIZE) {
-                        sb.append(StringEscapeUtils.escapeHtml4(diff.text.substring(0, EQUAL_TEXT_BASE_SIZE)))
-                            .append("<span style='color: #bdbdbd;font-size: 16px;font-family: serif;'>...\n")
-                            .append("......\n")
-                            .append("......\n")
-                            .append("...</span>")
-                            .append(StringEscapeUtils.escapeHtml4(diff.text.substring(textLength - EQUAL_TEXT_BASE_SIZE)));
+                        sb.append(addHeadOfDiff(diff));
+                        sb.append(addEllipsis());
+                        sb.append(addTailOfDiff(diff));
                     } else {
-                        sb.append(StringEscapeUtils.escapeHtml4(diff.text));
+                        sb.append(addAllDiff(diff));
                     }
+
                     break;
                 case INSERT:
-                    sb.append("<span style='background-color: #abdd52;padding: 2px 0;'>")
-                        .append(StringEscapeUtils.escapeHtml4(diff.text))
-                        .append("</span>");
+                    String insertStyle = "<span style='background-color: #abdd52;padding: 2px 0;'>";
+                    sb.append(addDiffStyle(diff, insertStyle));
                     break;
                 default:
                         break;
@@ -78,28 +75,25 @@ public class DiffUtil {
         for (Diff diff: diffs) {
             switch (diff.operation) {
                 case DELETE:
-                    sb.append("--- ")
-                        .append(StringEscapeUtils.escapeHtml4(diff.text))
-                        .append("\n");
+                    String deleteText = "--- ";
+                    sb.append(addDiffText(diff, deleteText));
                     break;
                 case EQUAL:
                     int textLength = diff.text.length();
+
                     if (textLength > EQUAL_TEXT_ELLIPSIS_SIZE) {
-                        sb.append(StringEscapeUtils.escapeHtml4(diff.text.substring(0, EQUAL_TEXT_BASE_SIZE)))
-                            .append("......\n")
-                            .append("......\n")
-                            .append("...\n")
-                            .append(StringEscapeUtils.escapeHtml4(diff.text.substring(textLength - EQUAL_TEXT_BASE_SIZE)))
-                            .append("\n");
+                        sb.append(addHeadOfDiff(diff))
+                                .append(addEllipsisText())
+                                .append(addTailOfDiff(diff));
                     } else {
-                        sb.append(StringEscapeUtils.escapeHtml4(diff.text))
-                            .append("\n");
+                        sb.append(addAllDiff(diff));
                     }
+
+                    sb.append("\n");
                     break;
                 case INSERT:
-                    sb.append("+++ ")
-                        .append(StringEscapeUtils.escapeHtml4(diff.text))
-                        .append("\n");
+                    String insertText = "+++ ";
+                    sb.append(addDiffText(diff, insertText));
                     break;
                 default:
                     break;
@@ -107,5 +101,42 @@ public class DiffUtil {
         }
 
         return sb.toString();
+    }
+
+    private static String addHeadOfDiff(Diff diff) {
+        return StringEscapeUtils.escapeHtml4(diff.text.substring(0, EQUAL_TEXT_BASE_SIZE));
+    }
+
+    private static String addTailOfDiff(Diff diff) {
+        return StringEscapeUtils.escapeHtml4(diff.text.substring(diff.text.length() - EQUAL_TEXT_BASE_SIZE));
+    }
+
+    private static String addAllDiff(Diff diff) {
+        return StringEscapeUtils.escapeHtml4(diff.text);
+    }
+
+    private static String addEllipsis() {
+        return "<span style='color: #bdbdbd;font-size: 16px;font-family: serif;'>...\n"
+                + "......\n"
+                + "......\n"
+                + "...</span>";
+    }
+
+    private static String addDiffStyle(Diff diff, String style) {
+        return style
+                + StringEscapeUtils.escapeHtml4(diff.text)
+                + "</span>";
+    }
+
+    private static String addDiffText(Diff diff, String text) {
+        return text
+                + StringEscapeUtils.escapeHtml4(diff.text)
+                + "\n";
+    }
+
+    private static String addEllipsisText() {
+        return "......\n"
+                + "......\n"
+                + "...\n";
     }
 }
