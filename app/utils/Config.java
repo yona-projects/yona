@@ -1,44 +1,26 @@
 /**
- * Yobi, Project Hosting SW
- *
- * Copyright 2012 NAVER Corp.
- * http://yobi.io
- *
- * @author Yi EungJun
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+ * Yona, 21st Century Project Hosting SW
+ * <p>
+ * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+ * https://yona.io
+ **/
+
 package utils;
 
-import com.typesafe.config.ConfigFactory;
 import models.SiteAdmin;
 import org.apache.commons.lang3.ObjectUtils;
 import play.Configuration;
 import play.mvc.Http;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.*;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Enumeration;
 
 public class Config {
     public static final String DEFAULT_SCHEME = "http";
     private static final String YONA_DATA = "yona.data"; //property from java -Dyona.data option string
+    public static boolean isConnectableToGravatarServer = true;
 
     public static void onStart() {
         Diagnostic.register(new SimpleDiagnostic() {
@@ -55,6 +37,8 @@ public class Config {
                 }
             }
         });
+
+        isConnectableToGravatarServer = isConnectableToGravatar();
     }
 
     public static String getSiteName() {
@@ -297,5 +281,15 @@ public class Config {
 
     public static boolean displayPrivateRepositories() {
         return Configuration.root().getBoolean("application.displayPrivateRepositories", Boolean.FALSE);
+    }
+
+    private static boolean isConnectableToGravatar() {
+        try {
+            return InetAddress.getByName("ko.gravatar.com").isReachable(100)
+                    && InetAddress.getByName("www.gravatar.com").isReachable(100);
+        } catch (IOException e) {
+            play.Logger.warn("Gravatar server is unreachable. Gravatar service will not work.");
+            return false;
+        }
     }
 }
