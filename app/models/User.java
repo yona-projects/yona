@@ -1,7 +1,7 @@
 /**
  * Yona, 21st Century Project Hosting SW
  * <p>
- * Copyright Yona & Yobi Authors & NAVER Corp.
+ * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
  * https://yona.io
  **/
 package models;
@@ -29,6 +29,7 @@ import play.data.validation.Constraints.ValidateWith;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
 import play.i18n.Messages;
+import play.mvc.Http;
 import utils.CacheStore;
 import utils.GravatarUtil;
 import utils.JodaDateUtil;
@@ -295,11 +296,21 @@ public class User extends Model implements ResourceConvertible {
         if(!user.isAnonymous()){
             return user;
         }
-        String userToken = play.mvc.Http.Context.current().request().getHeader(UserApp.USER_TOKEN_HEADER);
+
+        String userToken = extractUserTokenFromRequestHeader(Http.Context.current().request());
         if( userToken != null) {
             return User.findByUserToken(userToken);
         }
         return User.anonymous;
+    }
+
+    public static String extractUserTokenFromRequestHeader(Http.Request request) {
+        String authHeader = request.getHeader("Authorization");
+        if(authHeader != null &&
+                authHeader.contains("token ")) {
+            return authHeader.split("token ")[1];
+        }
+        return request.getHeader(UserApp.USER_TOKEN_HEADER);
     }
 
     /**
