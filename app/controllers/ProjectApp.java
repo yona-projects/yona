@@ -1,7 +1,7 @@
 /**
  * Yona, 21st Century Project Hosting SW
  * <p>
- * Copyright Yona & Yobi Authors & NAVER Corp.
+ * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
  * https://yona.io
  **/
 package controllers;
@@ -634,7 +634,6 @@ public class ProjectApp extends Controller {
         return redirect(url);
     }
 
-    @Transactional
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     public static synchronized Result acceptTransfer(Long id, String confirmKey) throws IOException, ServletException {
         ProjectTransfer pt = ProjectTransfer.findValidOne(id);
@@ -653,15 +652,25 @@ public class ProjectApp extends Controller {
 
         // Change the project's name and move the repository.
         String newProjectName = Project.newProjectName(pt.destination, project.name);
-        PlayRepository repository = RepositoryService.getRepository(project);
-        repository.move(project.owner, project.name, pt.destination, newProjectName);
 
-        User newOwnerUser = User.findByLoginId(pt.destination);
-        Organization newOwnerOrg = Organization.findByName(pt.destination);
+        // Following three local variables are used for bottom of this method
+        String originalProjectOwner = project.owner;
+        String originalProjectName = project.name;
+        String destinationOwner = pt.destination;
+        Long senderId = pt.sender.id;
+
+        disableProjectTransferLink(pt, project, newProjectName);
+        PlayRepository repository = RepositoryService.getRepository(project);
+
+        // intentionally placed to the last of method
+        repository.move(originalProjectOwner, originalProjectName, destinationOwner, newProjectName);
+
+        User newOwnerUser = User.findByLoginId(destinationOwner);
+        Organization newOwnerOrg = Organization.findByName(destinationOwner);
 
         // Change the project's information.
         project.recordRenameOrTransferHistoryIfLastChangePassed24HoursFrom(project);
-        project.owner = pt.destination;
+        project.owner = destinationOwner;
         project.name = newProjectName;
         if (newOwnerOrg != null) {
             project.organization = newOwnerOrg;
@@ -671,23 +680,25 @@ public class ProjectApp extends Controller {
         project.update();
 
         // Change roles.
-        if (ProjectUser.isManager(pt.sender.id, project.id)) {
-            ProjectUser.assignRole(pt.sender.id, project.id, RoleType.MEMBER);
+        if (ProjectUser.isManager(senderId, project.id)) {
+            ProjectUser.assignRole(senderId, project.id, RoleType.MEMBER);
         }
         if (!newOwnerUser.isAnonymous()) {
             ProjectUser.assignRole(newOwnerUser.id, project.id, RoleType.MANAGER);
         }
 
-        // Change the tranfer's status to be accepted.
-        pt.newProjectName = newProjectName;
-        pt.accepted = true;
-        pt.update();
-
-        // If the opposite request is exists, delete it.
-        ProjectTransfer.deleteExisting(project, pt.sender, pt.destination);
         CacheStore.refreshProjectMap();
 
         return redirect(routes.ProjectApp.project(project.owner, project.name));
+    }
+
+    private static void disableProjectTransferLink(ProjectTransfer pt, Project project, String newProjectName) {
+        // Change the tranfer's status to be accepted.
+        pt.newProjectName = newProjectName;
+        pt.accepted = true;
+
+        // If the opposite request is exists, delete it.
+        ProjectTransfer.deleteExisting(project, pt.sender, pt.destination);
     }
 
     @IsAllowed(Operation.UPDATE)
