@@ -1,0 +1,11 @@
+@**
+* Yona, 21st Century Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+* https://yona.io
+**@
+@(countNumber:Int, showColorAlways:Boolean = false)
+<a class="@if(showColorAlways){sharer-color}" data-toggle="tooltip" data-placement="bottom" title="@Messages("issue.sharer")">
+    <span class="count-groups item-icon">
+        <i class="yobicon-friends"></i>
+    </span><span class="count-groups item-count strong">@countNumber</span></a>

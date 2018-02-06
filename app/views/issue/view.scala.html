@@ -5,6 +5,7 @@
 * https://yona.io
 **@
 @(title:String, issue:Issue, issueForm: play.data.Form[Issue], commentForm: play.data.Form[Comment],project:Project)
+@import scala.collection.mutable.ArrayBuffer
 @import org.apache.commons.lang.StringUtils
 @import models.enumeration.ResourceType
 @import models.enumeration.Operation
@@ -56,6 +57,22 @@
     } else {
         issue.id
     }
+}
+
+@hasAssignee = @{
+    issue.assigneeName != null
+}
+
+@hasSharer = @{
+    issue.sharers.size > 0
+}
+
+@sharers = @{
+    var sharerIds = ArrayBuffer[String]()
+    for( sharedUser <- issue.sharers ) {
+        sharerIds += sharedUser.loginId
+    }
+    sharerIds.mkString(",")
 }
 
 @VOTER_AVATAR_SHOW_LIMIT = @{ 5 }
@@ -175,6 +192,9 @@
                                 }
                                 </button>
                             }
+                            @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE) && !hasSharer) {
+                                <button id="issue-share-button" type="button" class="ybtn">@Messages("button.share.issue")</button>
+                            }
 
                         </div>
                     </div>
@@ -219,6 +239,24 @@
                     }
                     </span>
                 </div>
+                <dl class="sharer-list @if(!hasSharer){hideFromDisplayOnly}">
+                    <dt class="issue-share-title mb10">
+                        @Messages("issue.sharer") <span class="num issue-sharer-count">@if(issue.sharers.size > 0) { @issue.sharers.size }</span>
+                    </dt>
+                    <dd id="sharer-list" class="@if(!hasSharer){hideFromDisplayOnly}">
+                    @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+                        <input type="hidden" class="bigdrop width100p" id="issueSharer" name="issueSharer" placeholder="@Messages("issue.sharer.select")" value="@sharers" title="">
+                    } else {
+                        @for(sharer <- issue.getSortedSharer){
+                            <div class="text-ellipsis sharer-item">
+                                <a href="@userInfo(sharer.loginId)" class="usf-group">
+                                    <strong class="name">@sharer.user.getDisplayName</strong>
+                                </a>
+                            </div>
+                        }
+                    }
+                    </dd>
+                </dl>
                 <div class="watcher-list"></div>
                 <div class="subtasks">
                 @if(issue.parent == null) {
@@ -254,23 +292,21 @@
                             <dt>@Messages("issue.assignee")</dt>
 
                             <dd>
-                            @defining(issue.assigneeName != null) { isAssigned =>
-                                @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
-                                    @partial_assignee(project, issue)
+                            @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+                                @partial_assignee(project, issue)
+                            } else {
+                                @if(hasAssignee){
+                                <a href="@userInfo(issue.assignee.user.loginId)" class="usf-group">
+                                    <span class="avatar-wrap smaller">
+                                        <img src="@User.findByLoginId(issue.assignee.user.loginId).avatarUrl" width="20" height="20">
+                                    </span>
+                                    <strong class="name">@issue.assignee.user.getDisplayName</strong>
+                                    <span class="loginid"> <strong>@{"@"}</strong>@issue.assignee.user.loginId</span>
+                                </a>
                                 } else {
-                                    @if(isAssigned){
-                                    <a href="@userInfo(issue.assignee.user.loginId)" class="usf-group">
-                                        <span class="avatar-wrap smaller">
-                                            <img src="@User.findByLoginId(issue.assignee.user.loginId).avatarUrl" width="20" height="20">
-                                        </span>
-                                        <strong class="name">@issue.assignee.user.getDisplayName</strong>
-                                        <span class="loginid"> <strong>@{"@"}</strong>@issue.assignee.user.loginId</span>
-                                    </a>
-                                    } else {
-                                    <div>
-                                       @Messages("issue.noAssignee")
-                                    </div>
-                                    }
+                                <div>
+                                   @Messages("issue.noAssignee")
+                                </div>
                                 }
                             }
                             </dd>
@@ -427,6 +463,7 @@
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.caret.min.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/service/yona.issue.Assginee.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/service/yona.issue.Sharer.js")"></script>
 <script type="text/javascript">
     $(function(){
         // yobi.issue.View
@@ -470,6 +507,18 @@
                     "@api.routes.IssueApi.updateAssginees(project.owner, project.name, issue.getNumber)",
                     "@Messages("issue.assignee")"
             );
+
+            yonaIssueSharerModule(
+                    "@api.routes.IssueApi.findSharerByloginIds(project.owner, project.name, issue.getNumber)",
+                    "@api.routes.IssueApi.findSharableUsers(project.owner, project.name, issue.getNumber)",
+                    "@api.routes.IssueApi.updateSharer(project.owner, project.name, issue.getNumber)",
+                    "@Messages("issue.sharer")"
+            );
+
+            $('#issue-share-button').on('click', function () {
+                $('#sharer-list').show();
+                $('.sharer-list').show();
+            });
 
             $('#translate').one('click', function (e) {
                 var data = {
