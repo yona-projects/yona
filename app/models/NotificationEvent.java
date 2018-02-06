@@ -1,7 +1,7 @@
 /**
  * Yona, 21st Century Project Hosting SW
  * <p>
- * Copyright Yona & Yobi Authors & NAVER Corp.
+ * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
  * https://yona.io
  **/
 package models;
@@ -29,12 +29,14 @@ import play.libs.Akka;
 import playRepository.*;
 import scala.concurrent.duration.Duration;
 import utils.AccessControl;
+import utils.DiffUtil;
 import utils.EventConstants;
 import utils.RouteUtil;
 
 import javax.naming.LimitExceededException;
 import javax.persistence.*;
 import javax.servlet.ServletException;
+import java.beans.Transient;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -133,9 +135,10 @@ public class NotificationEvent extends Model implements INotificationEvent {
             case NEW_COMMENT:
             case NEW_PULL_REQUEST:
             case NEW_COMMIT:
-            case ISSUE_BODY_CHANGED:
             case COMMENT_UPDATED:
                 return newValue;
+            case ISSUE_BODY_CHANGED:
+                return DiffUtil.getDiffText(oldValue, newValue);
             case NEW_REVIEW_COMMENT:
                 try {
                     ReviewComment reviewComment = ReviewComment.find.byId(Long.valueOf(this.resourceId));
@@ -189,6 +192,21 @@ public class NotificationEvent extends Model implements INotificationEvent {
                 }
             case ISSUE_MOVED:
                     return Messages.get(lang, "notification.type.issue.moved", oldValue, newValue);
+            default:
+                return null;
+        }
+    }
+
+    @Transient
+    public String getPlainMessage() {
+        return getPlainMessage(Lang.defaultLang());
+    }
+
+    @Transient
+    public String getPlainMessage(Lang lang) {
+        switch(eventType) {
+            case ISSUE_BODY_CHANGED:
+                return DiffUtil.getDiffPlainText(oldValue, newValue);
             default:
                 return null;
         }
