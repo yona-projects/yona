@@ -385,49 +385,11 @@ public class IssueApp extends AbstractPostingApp {
                 continue;
             }
 
-            boolean assigneeChanged = false;
-            User oldAssignee = null;
-            if (issueMassUpdate.assignee != null) {
-                if(hasAssignee(issue)) {
-                    oldAssignee = issue.assignee.user;
-                }
-                Assignee newAssignee;
-                if (issueMassUpdate.assignee.isAnonymous()) {
-                    newAssignee = null;
-                } else {
-                    newAssignee = Assignee.add(issueMassUpdate.assignee.id, project.id);
-                }
-                assigneeChanged = !issue.assignedUserEquals(newAssignee);
-                issue.assignee = newAssignee;
-            }
-
-            boolean stateChanged = false;
-            State oldState = null;
-            if ((issueMassUpdate.state != null) && (issue.state != issueMassUpdate.state)) {
-                stateChanged = true;
-                oldState = issue.state;
-                issue.state = issueMassUpdate.state;
-            }
-
-            if (issueMassUpdate.milestone != null) {
-                if(issueMassUpdate.milestone.isNullMilestone()) {
-                    issue.milestone = null;
-                } else {
-                    issue.milestone = issueMassUpdate.milestone;
-                }
-            }
-
-            if (issueMassUpdate.attachingLabelIds != null) {
-                for (Long labelId : issueMassUpdate.attachingLabelIds) {
-                    issue.labels.add(IssueLabel.finder.byId(labelId));
-                }
-            }
-
-            if (issueMassUpdate.detachingLabelIds != null) {
-                for (Long labelId : issueMassUpdate.detachingLabelIds) {
-                    issue.labels.remove(IssueLabel.finder.byId(labelId));
-                }
-            }
+            updateAssigneeIfChanged(issueMassUpdate.assignee, project, issue);
+            updateStateIfChanged(issueMassUpdate.state, issue);
+            updateMilestoneIfChanged(issueMassUpdate.milestone, issue);
+            updateLabelIfChanged(issueMassUpdate.attachingLabelIds,
+                    issueMassUpdate.detachingLabelIds, issue);
 
             if (issueMassUpdate.isDueDateChanged) {
                 issue.dueDate = JodaDateUtil.lastSecondOfDay(issueMassUpdate.dueDate);
@@ -436,15 +398,6 @@ public class IssueApp extends AbstractPostingApp {
             issue.updatedDate = JodaDateUtil.now();
             issue.update();
             updatedItems++;
-
-            if(assigneeChanged) {
-                NotificationEvent notiEvent = NotificationEvent.afterAssigneeChanged(oldAssignee, issue);
-                IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
-            }
-            if(stateChanged) {
-                NotificationEvent notiEvent = NotificationEvent.afterStateChanged(oldState, issue);
-                IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
-            }
         }
 
         if (updatedItems == 0 && rejectedByPermission > 0) {
@@ -466,6 +419,69 @@ public class IssueApp extends AbstractPostingApp {
             }
         } else {
             return redirect(request().getHeader("Referer"));
+        }
+    }
+
+    private static void updateLabelIfChanged(List<Long> attachingLabelIds, List<Long> detachingLabelIds,
+                                             Issue issue) {
+        if (attachingLabelIds != null) {
+            for (Long labelId : attachingLabelIds) {
+                issue.labels.add(IssueLabel.finder.byId(labelId));
+            }
+        }
+
+        if (detachingLabelIds != null) {
+            for (Long labelId : detachingLabelIds) {
+                issue.labels.remove(IssueLabel.finder.byId(labelId));
+            }
+        }
+    }
+
+    private static void updateMilestoneIfChanged(Milestone milestone, Issue issue) {
+        if (milestone != null) {
+            if(milestone.isNullMilestone()) {
+                issue.milestone = null;
+            } else {
+                issue.milestone = milestone;
+            }
+        }
+    }
+
+    private static void updateStateIfChanged(State newState, Issue issue) {
+        boolean stateChanged = false;
+        State oldState = null;
+        if ((newState != null) && (issue.state != newState)) {
+            stateChanged = true;
+            oldState = issue.state;
+            issue.state = newState;
+        }
+        if(stateChanged) {
+            NotificationEvent notiEvent = NotificationEvent.afterStateChanged(oldState, issue);
+            IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
+        }
+    }
+
+    private static void updateAssigneeIfChanged(User assignee, Project project, Issue issue) {
+        boolean assigneeChanged = false;
+        User oldAssignee = null;
+
+        if (assignee != null) {
+            if(hasAssignee(issue)) {
+                oldAssignee = issue.assignee.user;
+            }
+            Assignee newAssignee;
+            if (assignee.isAnonymous()) {
+                newAssignee = null;
+            } else {
+                newAssignee = Assignee.add(assignee.id, project.id);
+            }
+            assigneeChanged = !issue.assignedUserEquals(newAssignee);
+            issue.assignee = newAssignee;
+        }
+
+        if(assigneeChanged) {
+            NotificationEvent notiEvent = NotificationEvent.afterAssigneeChanged(oldAssignee, issue);
+            IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
         }
     }
 
