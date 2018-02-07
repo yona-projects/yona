@@ -201,6 +201,12 @@ public class NotificationEvent extends Model implements INotificationEvent {
                 } else if (StringUtils.isNotBlank(oldValue)) {
                     return Messages.get(lang, "notification.issue.sharer.deleted");
                 }
+            case ISSUE_LABEL_CHANGED:
+                if (StringUtils.isNotBlank(newValue)) {
+                    return Messages.get(lang, "notification.issue.label.added", User.findByLoginId(newValue).getDisplayName());
+                } else if (StringUtils.isNotBlank(oldValue)) {
+                    return Messages.get(lang, "notification.issue.label.deleted");
+                }
             default:
                 play.Logger.error("Unknown event message: " + this);
                 return null;
@@ -891,6 +897,18 @@ public class NotificationEvent extends Model implements INotificationEvent {
         Set<User> receivers = new HashSet<>();
         receivers.add(User.findByLoginId(sharerLoginId));
         return receivers;
+    }
+
+    public static NotificationEvent afterIssueLabelChanged(String addedLabels, String deletedLabels, Issue issue) {
+        NotificationEvent notiEvent = createFromCurrentUser(issue);
+        notiEvent.title = formatReplyTitle(issue);
+        notiEvent.receivers = null; // no receivers
+        notiEvent.eventType = ISSUE_LABEL_CHANGED;
+        notiEvent.oldValue = deletedLabels;
+        notiEvent.newValue = addedLabels;
+
+        NotificationEvent.addWithoutSkipEvent(notiEvent);
+        return notiEvent;
     }
 
     private static Set<User> getReceiversForIssueBodyChanged(String oldBody, Issue issue) {

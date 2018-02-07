@@ -567,6 +567,13 @@
             } else {
                 $yobi.notify('@Messages("site.features.error.clipboard")', 1500);
             }
+
+            // timeline label text color adjusting
+            $(".event > .label").each(function() {
+                var $this = $(this);
+                $this.removeClass("dimgray white")
+                        .addClass($yobi.getContrastColor($this.css('background-color')))
+            });
         });
 </script>
 }

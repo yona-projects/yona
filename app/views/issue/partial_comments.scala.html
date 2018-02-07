@@ -32,6 +32,23 @@
     }
 }
 
+@issueLabelBox(categoryAndName: String, project:Project ) = @{
+    val splitedCategoryAndName = categoryAndName.split(" - ")
+    if(splitedCategoryAndName.length != 2) {
+        categoryAndName
+    } else {
+        var categoryName = splitedCategoryAndName(0).trim
+        var labelName = splitedCategoryAndName(1).trim
+        val issueLabel = IssueLabel.findByName(labelName, categoryName, project)
+        if( issueLabel != null) {
+            val labelColor = issueLabel.color
+            s"<div class='label issue-label' style='background-color: $labelColor'>$labelName</div>"
+        } else {
+            labelName
+        }
+    }
+}
+
 @assginedMesssage(newValue: String, user:User) = @{
     val LoginId = user.loginId
     newValue match {
@@ -185,6 +202,15 @@
                             } else {
                                 <span class="state sharer-deleted">@Messages("issue.event.sharer.deleted.title")</span>
                                 @Html(Messages("issue.event.sharer.deleted", linkToUser(user.loginId, user.getPureNameOnly), linkToUser(event.oldValue, User.findByLoginId(event.oldValue).getPureNameOnly)))
+                            }
+                        }
+                        case EventType.ISSUE_LABEL_CHANGED => {
+                            @if(StringUtils.isBlank(event.oldValue) && StringUtils.isNotBlank(event.newValue)){
+                                <span class="state label-added">@Messages("issue.event.label.added.title")</span>
+                                @Html(Messages("issue.event.label.added", linkToUser(user.loginId, user.getPureNameOnly), issueLabelBox(event.newValue, project)))
+                            } else {
+                                <span class="state label-deleted">@Messages("issue.event.label.deleted.title")</span>
+                                @Html(Messages("issue.event.label.deleted", linkToUser(user.loginId, user.getPureNameOnly), issueLabelBox(event.oldValue, project)))
                             }
                         }
                         case _ => {
