@@ -1,5 +1,10 @@
 Yona 설치
 ===
+```
+사전조건
+---
+Java 8 에서 동작합니다. Java 9는 아직 미지원
+```
 
 Yona 최신 버전을 https://github.com/yona-projects/yona/releases 에서 다운받아 압축을 풉니다. 
 wget으로 받아서 unzip으로 압축을 푼다면 미리 다운로드 링크 주소를 확인한 다음 내려받습니다.
@@ -11,7 +16,8 @@ wget으로 받아서 unzip으로 압축을 푼다면 미리 다운로드 링크 
 
 ### application.conf 파일 등 설정파일 생성하기
 
-압축이 풀린 곳으로 이동해서 bin/yona 을 실행합니다. (Java 8 이상이 필요합니다)
+압축이 풀린 곳으로 이동해서 bin/yona 을 실행합니다.
+
 **주의**: 아래와 같이 yona 설치 폴더에서 실행하여야 합니다. 또한 윈도우 사용자는 bin/yona 대신 bin/yona.bat을 실행해야 합니다.
 
 ```
