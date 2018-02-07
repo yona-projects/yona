@@ -218,7 +218,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
             case ISSUE_BODY_CHANGED:
                 return DiffUtil.getDiffPlainText(oldValue, newValue);
             default:
-                return null;
+                return getMessage(lang);
         }
     }
 
