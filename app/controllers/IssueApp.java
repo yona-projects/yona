@@ -1,7 +1,7 @@
 /**
  * Yona, 21st Century Project Hosting SW
  * <p>
- * Copyright Yona & Yobi Authors & NAVER Corp.
+ * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
  * https://yona.io
  **/
 package controllers;
@@ -424,16 +424,34 @@ public class IssueApp extends AbstractPostingApp {
 
     private static void updateLabelIfChanged(List<Long> attachingLabelIds, List<Long> detachingLabelIds,
                                              Issue issue) {
+        boolean isLabelChanged = false;
+        StringBuilder addedLabels = new StringBuilder();
+        StringBuilder deletedLabels = new StringBuilder();
+
         if (attachingLabelIds != null) {
             for (Long labelId : attachingLabelIds) {
-                issue.labels.add(IssueLabel.finder.byId(labelId));
+                IssueLabel label = IssueLabel.finder.byId(labelId);
+                issue.labels.add(label);
+                isLabelChanged = true;
+                addedLabels.append(label.category.name).append(" - ").append(label.name);
             }
         }
 
         if (detachingLabelIds != null) {
             for (Long labelId : detachingLabelIds) {
-                issue.labels.remove(IssueLabel.finder.byId(labelId));
+                IssueLabel label = IssueLabel.finder.byId(labelId);
+                issue.labels.remove(label);
+                isLabelChanged = true;
+                deletedLabels.append(label.category.name).append(" - ").append(label.name);
             }
+        }
+
+        if(isLabelChanged) {
+            NotificationEvent notiEvent = NotificationEvent.afterIssueLabelChanged(
+                    addedLabels.toString(),
+                    deletedLabels.toString(),
+                    issue);
+            IssueEvent.addFromNotificationEventWithoutSkipEvent(notiEvent, issue, UserApp.currentUser().loginId);
         }
     }
 
