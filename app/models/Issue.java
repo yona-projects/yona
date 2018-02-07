@@ -248,6 +248,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
                 Messages.get("issue.label"),
                 Messages.get("issue.createdDate"),
                 Messages.get("issue.dueDate"),
+                Messages.get("milestone"),
                 "URL",
                 Messages.get("common.comment"),
                 Messages.get("common.comment.author"),
@@ -264,6 +265,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
 
             lineNumber++;
             int columnPos = 0;
+            String milestoneName = issue.milestone != null ? issue.milestone.title : "";
             sheet.addCell(new jxl.write.Label(columnPos++, lineNumber, issue.getNumber().toString(), bodyCellFormat));
             sheet.addCell(new jxl.write.Label(columnPos++, lineNumber, issue.state.toString(), bodyCellFormat));
             sheet.addCell(new jxl.write.Label(columnPos++, lineNumber, issue.title, bodyCellFormat));
@@ -272,6 +274,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
             sheet.addCell(new jxl.write.Label(columnPos++, lineNumber, getIssueLabels(issue), bodyCellFormat));
             sheet.addCell(new jxl.write.DateTime(columnPos++, lineNumber, issue.createdDate, dateCellFormat));
             sheet.addCell(new jxl.write.Label(columnPos++, lineNumber, JodaDateUtil.geYMDDate(issue.dueDate), bodyCellFormat));
+            sheet.addCell(new jxl.write.Label(columnPos++, lineNumber, milestoneName, bodyCellFormat));
             sheet.addCell(new jxl.write.Label(columnPos++, lineNumber, controllers.routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.number).toString(), bodyCellFormat));
             if (comments.size() > 0) {
                 for (int j = 0; j < comments.size(); j++) {
