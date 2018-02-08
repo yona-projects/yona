@@ -1,8 +1,9 @@
 /**
- * Yona, Project Hosting SW
- *
- * Copyright 2017 the original author or authors.
- */
+ * Yona, 21st Century Project Hosting SW
+ * <p>
+ * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+ * https://yona.io
+ **/
 package controllers;
 
 import com.avaje.ebean.ExpressionList;
@@ -68,6 +69,10 @@ public class OrganizationApp extends Controller {
         return ok(group_pullrequest_list.render("title.pullrequest",  organization, page, condition, category));
     }
 
+    @AnonymousCheck(requiresLogin = false, displaysFlashMessage = true)
+    public static Result organizationClosedPullRequests(String organizationName) {
+        return organizationPullRequests(organizationName, "closed");
+    }
 
     /**
      * show New Group page
