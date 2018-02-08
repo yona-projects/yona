@@ -422,10 +422,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
 
         setIssueState(el);
 
-        if (CollectionUtils.isNotEmpty(labelIds)) {
-            Set<IssueLabel> labels = IssueLabel.finder.where().idIn(new ArrayList<>(labelIds)).findSet();
-            el.in("id", Issue.finder.where().in("labels", labels).findIds());
-        }
+        setLabelsIfExist(project, el);
 
         setOrderByIfExist(el);
 
@@ -438,6 +435,40 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         }
 
         return el;
+    }
+
+    private void setLabelsIfExist(Project project, ExpressionList<Issue> el) {
+        if (CollectionUtils.isNotEmpty(labelIds)) {
+            Set<IssueLabel> labels = IssueLabel.finder.where().idIn(new ArrayList<>(labelIds)).findSet();
+
+            List<Issue> issues = Issue.finder.where()
+                    .eq("project", project)
+                    .in("labels", labels).findList();
+
+            for (IssueLabel issueLabel : labels) {
+                issues = findIssueByLabel(issues, issueLabel);
+            }
+
+            el.in("id", extractIssueIds(issues));
+        }
+    }
+
+    private Set<Long> extractIssueIds(List<Issue> issues) {
+        Set<Long> ids = new HashSet<>();
+        for (Issue issue : issues) {
+            ids.add(issue.id);
+        }
+        return ids;
+    }
+
+    private List<Issue> findIssueByLabel(List<Issue> issues, IssueLabel label) {
+        List<Issue> result = new ArrayList<>();
+        for (Issue issue : issues) {
+            if(issue.labels.contains(label)){
+                result.add(issue);
+            }
+        }
+        return result;
     }
 
     public String getDueDateString() {
