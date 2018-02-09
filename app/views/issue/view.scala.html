@@ -116,7 +116,7 @@
 }
 }
 
-@conatinsCurrentUserInWatchers = @{issue.getWatchers(false).contains(UserApp.currentUser())}
+@conatinsCurrentUserInWatchers = @{Watch.isWatching(UserApp.currentUser(), issue.asResource())}
 
 @projectLayout(titleForOGTag, project, utils.MenuType.ISSUE){
 @projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
@@ -184,7 +184,7 @@
                         <div>
                             @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.WATCH)) {
                                 <button id="watch-button" type="button" class="ybtn @if(conatinsCurrentUserInWatchers) {ybtn-watching}"
-                                        data-toggle="button" data-watching="@conatinsCurrentUserInWatchers">
+                                        data-toggle="tooltip" data-placement="top" title="@Messages("issue.watch.description")" data-watching="@conatinsCurrentUserInWatchers">
                                 @if(conatinsCurrentUserInWatchers) {
                                     @Messages("issue.unwatch")
                                 } else {

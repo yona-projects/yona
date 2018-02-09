@@ -25,7 +25,7 @@
 }
 @titleForOGTag = @{post.title + " |:| " + post.body.substring(0, Math.min(post.body.length, 200))}
 
-@conatinsCurrentUserInWatchers = @{post.getWatchers(false).contains(UserApp.currentUser())}
+@conatinsCurrentUserInWatchers = @{Watch.isWatching(UserApp.currentUser(), post.asResource())}
 
 @projectLayout(titleForOGTag, project, utils.MenuType.BOARD){
 @projectMenu(project, utils.MenuType.BOARD, "main-menu-only")
@@ -87,7 +87,7 @@
                         <div>
                             @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.WATCH)) {
                                 <button id="watch-button" type="button" class="ybtn @if(conatinsCurrentUserInWatchers) {ybtn-watching}"
-                                        data-toggle="button" data-watching="@conatinsCurrentUserInWatchers">
+                                        data-toggle="tooltip" data-placement="top" title="@Messages("issue.watch.description")" data-watching="@conatinsCurrentUserInWatchers">
                                 @if(conatinsCurrentUserInWatchers) {
                                     @Messages("post.unwatch")
                                 } else {
