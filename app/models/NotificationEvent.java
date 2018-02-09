@@ -198,13 +198,15 @@ public class NotificationEvent extends Model implements INotificationEvent {
                     return Messages.get(lang, "notification.type.issue.moved", oldValue, newValue);
             case ISSUE_SHARER_CHANGED:
                 if (StringUtils.isNotBlank(newValue)) {
-                    return Messages.get(lang, "notification.issue.sharer.added", User.findByLoginId(newValue).getDisplayName());
+                    User user = User.findByLoginId(newValue);
+                    return Messages.get(lang, "notification.issue.sharer.added", user.getDisplayName(user));
                 } else if (StringUtils.isNotBlank(oldValue)) {
                     return Messages.get(lang, "notification.issue.sharer.deleted");
                 }
             case ISSUE_LABEL_CHANGED:
                 if (StringUtils.isNotBlank(newValue)) {
-                    return Messages.get(lang, "notification.issue.label.added", User.findByLoginId(newValue).getDisplayName());
+                    User user = User.findByLoginId(newValue);
+                    return Messages.get(lang, "notification.issue.label.added", user.getDisplayName(user));
                 } else if (StringUtils.isNotBlank(oldValue)) {
                     return Messages.get(lang, "notification.issue.label.deleted");
                 }

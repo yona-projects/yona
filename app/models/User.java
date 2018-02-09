@@ -1058,4 +1058,12 @@ public class User extends Model implements ResourceConvertible {
             return name;
         }
     }
+
+    public String getDisplayName(User forCurrentUser){
+        if (StringUtils.isNotBlank(englishName) && lang != null && forCurrentUser.lang.startsWith("en")) {
+            return englishName + " " + extractDepartmentPart();
+        } else {
+            return name;
+        }
+    }
 }
