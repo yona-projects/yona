@@ -47,6 +47,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static models.Watch.findWatchers;
 import static models.enumeration.EventType.*;
 
 @Entity
@@ -720,7 +721,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
         NotificationEvent notiEvent = createFrom(author, comment);
         notiEvent.title = formatReplyTitle(post);
         notiEvent.eventType = eventType;
-        Set<User> receivers = getReceivers(post, author);
+        Set<User> receivers = getCommentReceivers(comment, author);
         receivers.addAll(getMentionedUsers(comment.contents));
         receivers.remove(author);
         notiEvent.receivers = receivers;
@@ -1136,6 +1137,33 @@ public class NotificationEvent extends Model implements INotificationEvent {
         receivers.addAll(getMentionedUsers(abstractPosting.body));
         receivers.remove(except);
         return receivers;
+    }
+
+    private static Set<User> getCommentReceivers(Comment comment, User except) {
+        AbstractPosting parent = comment.getParent();
+
+        Set<User> receivers = new HashSet<>(findWatchers(parent.asResource()));
+        receivers.add(comment.getParent().getAuthor());
+        includeAssigneeIfExist(comment, receivers);
+        receivers.remove(except);
+
+        // Filter the watchers who has no permission to read this resource.
+        CollectionUtils.filter(receivers, new Predicate() {
+            @Override
+            public boolean evaluate(Object watcher) {
+                return AccessControl.isAllowed((User) watcher, parent.asResource(), Operation.READ);
+            }
+        });
+        return receivers;
+    }
+
+    private static void includeAssigneeIfExist(Comment comment, Set<User> receivers) {
+        if (comment instanceof IssueComment) {
+            Assignee assignee = ((Issue) comment.getParent()).assignee;
+            if (assignee != null) {
+                receivers.add(assignee.user);
+            }
+        }
     }
 
     private static String getPrefixedNumber(AbstractPosting posting) {
