@@ -7034,11 +7034,56 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 
 .my-issues {
     .post-item {
-        padding: 6px 10px;
+        padding: 2px 10px;
+        color: #999999;
       
         .title-wrap {
             margin-top: 2px;
+            white-space: normal;
+            overflow: auto;
+            display:table;
+
+            .title-cell {
+                display:table-cell;
+                vertical-align:middle;
+            }
+
+            .item-count-groups {
+                font-size: 10px;
+            }
+            .title {
+                font-size: 14px;
+                font-weight: 400;
+            }
         }
+
+        .author {
+            display:table;
+
+            .author-cell {
+                display:table-cell;
+                vertical-align:middle;
+                text-overflow: ellipsis;
+                overflow: hidden;
+                white-space: nowrap;
+            }
+        }
+        .meta {
+            display:table;
+
+            .meta-cell {
+                display:table-cell;
+                vertical-align:middle;
+            }
+        }
+
+        .post-id {
+            color:#999;
+            margin-right:5px;
+            font-size: 12px;
+            font-weight: normal;
+        }
+
         .infos {
             margin-top: 4px;
         }
@@ -7099,5 +7144,20 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         border: 1px solid #dfdfdf;
         border-radius: 3px;
         padding: 1px 8px;
+    }
+}
+
+.project-name-in-my-issues {
+    display: flex !important;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    flex-grow: 1;
+    justify-content: space-between;
+    align-items: center;
+
+    .project-name {
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
     }
 }

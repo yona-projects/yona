@@ -36,6 +36,20 @@ models.support.SearchCondition, project:Project)
                           $yobi.alert("set Default page failed: " + data);
                       });
           });
+
+          /// label text color adjustment
+          $(document).on({
+              "pjax:complete": labelTextColorAdjust
+          });
+          function labelTextColorAdjust() {
+              $(".title-cell > .label").each(function () {
+                  var $this = $(this);
+                  $this.removeClass("dimgray white")
+                          .addClass($yobi.getContrastColor($this.css('background-color')))
+              });
+          }
+
+          labelTextColorAdjust();
       });
     </script>
 }
