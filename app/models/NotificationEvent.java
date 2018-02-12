@@ -813,12 +813,9 @@ public class NotificationEvent extends Model implements INotificationEvent {
 
         NotificationEvent notiEvent = createFromCurrentUser(issue);
 
-        Set<User> receivers = getReceivers(issue);
+        Set<User> receivers = getReceiversWhenAssigneeChanged(oldAssignee, issue);
         if(oldAssignee != null) {
             notiEvent.oldValue = oldAssignee.loginId;
-            if(!oldAssignee.loginId.equals(UserApp.currentUser().loginId)) {
-                receivers.add(oldAssignee);
-            }
         }
 
         if (issue.assignee != null) {
@@ -831,6 +828,27 @@ public class NotificationEvent extends Model implements INotificationEvent {
         NotificationEvent.add(notiEvent);
 
         return notiEvent;
+    }
+
+    private static Set<User> getReceiversWhenAssigneeChanged(User oldAssignee, Issue issue) {
+        Set<User> receivers = findWatchers(issue.asResource());
+        receivers.add(issue.getAuthor());
+
+        if (issue.assignee != null) {
+            receivers.add(issue.assignee.user);
+        }
+
+        if (oldAssignee != null && !oldAssignee.isAnonymous()) {
+            receivers.add(oldAssignee);
+        }
+
+        for (IssueSharer issueSharer : issue.sharers) {
+            receivers.add(User.findByLoginId(issueSharer.loginId));
+        }
+
+        receivers.remove(UserApp.currentUser());
+
+        return receivers;
     }
 
     public static void afterNewIssue(Issue issue) {
