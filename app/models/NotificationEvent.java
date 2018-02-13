@@ -47,6 +47,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static models.Watch.findWatchers;
 import static models.enumeration.EventType.*;
 
 @Entity
@@ -133,6 +134,8 @@ public class NotificationEvent extends Model implements INotificationEvent {
                 } else {
                     return Messages.get(lang, "notification.issue.assigned", newValue);
                 }
+            case ISSUE_MILESTONE_CHANGED:
+                return Messages.get(lang, "notification.milestone.changed", newValue);
             case NEW_ISSUE:
             case NEW_POSTING:
             case NEW_COMMENT:
@@ -197,9 +200,17 @@ public class NotificationEvent extends Model implements INotificationEvent {
                     return Messages.get(lang, "notification.type.issue.moved", oldValue, newValue);
             case ISSUE_SHARER_CHANGED:
                 if (StringUtils.isNotBlank(newValue)) {
-                    return Messages.get(lang, "notification.issue.sharer.added", User.findByLoginId(newValue).getDisplayName());
+                    User user = User.findByLoginId(newValue);
+                    return Messages.get(lang, "notification.issue.sharer.added", user.getDisplayName(user));
                 } else if (StringUtils.isNotBlank(oldValue)) {
                     return Messages.get(lang, "notification.issue.sharer.deleted");
+                }
+            case ISSUE_LABEL_CHANGED:
+                if (StringUtils.isNotBlank(newValue)) {
+                    User user = User.findByLoginId(newValue);
+                    return Messages.get(lang, "notification.issue.label.added", user.getDisplayName(user));
+                } else if (StringUtils.isNotBlank(oldValue)) {
+                    return Messages.get(lang, "notification.issue.label.deleted");
                 }
             default:
                 play.Logger.error("Unknown event message: " + this);
@@ -714,7 +725,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
         NotificationEvent notiEvent = createFrom(author, comment);
         notiEvent.title = formatReplyTitle(post);
         notiEvent.eventType = eventType;
-        Set<User> receivers = getReceivers(post, author);
+        Set<User> receivers = getCommentReceivers(comment, author);
         receivers.addAll(getMentionedUsers(comment.contents));
         receivers.remove(author);
         notiEvent.receivers = receivers;
@@ -804,12 +815,9 @@ public class NotificationEvent extends Model implements INotificationEvent {
 
         NotificationEvent notiEvent = createFromCurrentUser(issue);
 
-        Set<User> receivers = getReceivers(issue);
+        Set<User> receivers = getReceiversWhenAssigneeChanged(oldAssignee, issue);
         if(oldAssignee != null) {
             notiEvent.oldValue = oldAssignee.loginId;
-            if(!oldAssignee.loginId.equals(UserApp.currentUser().loginId)) {
-                receivers.add(oldAssignee);
-            }
         }
 
         if (issue.assignee != null) {
@@ -822,6 +830,27 @@ public class NotificationEvent extends Model implements INotificationEvent {
         NotificationEvent.add(notiEvent);
 
         return notiEvent;
+    }
+
+    private static Set<User> getReceiversWhenAssigneeChanged(User oldAssignee, Issue issue) {
+        Set<User> receivers = findWatchers(issue.asResource());
+        receivers.add(issue.getAuthor());
+
+        if (issue.assignee != null) {
+            receivers.add(issue.assignee.user);
+        }
+
+        if (oldAssignee != null && !oldAssignee.isAnonymous()) {
+            receivers.add(oldAssignee);
+        }
+
+        for (IssueSharer issueSharer : issue.sharers) {
+            receivers.add(User.findByLoginId(issueSharer.loginId));
+        }
+
+        receivers.remove(UserApp.currentUser());
+
+        return receivers;
     }
 
     public static void afterNewIssue(Issue issue) {
@@ -890,6 +919,49 @@ public class NotificationEvent extends Model implements INotificationEvent {
     private static Set<User> findSharer(String sharerLoginId) {
         Set<User> receivers = new HashSet<>();
         receivers.add(User.findByLoginId(sharerLoginId));
+        return receivers;
+    }
+
+    public static NotificationEvent afterIssueLabelChanged(String addedLabels, String deletedLabels, Issue issue) {
+        NotificationEvent notiEvent = createFromCurrentUser(issue);
+        notiEvent.title = formatReplyTitle(issue);
+        notiEvent.receivers = null; // no receivers
+        notiEvent.eventType = ISSUE_LABEL_CHANGED;
+        notiEvent.oldValue = deletedLabels;
+        notiEvent.newValue = addedLabels;
+
+        NotificationEvent.addWithoutSkipEvent(notiEvent);
+        return notiEvent;
+    }
+
+    public static NotificationEvent afterMilestoneChanged(Long oldMilestoneId, Issue issue) {
+        webhookRequest(ISSUE_MILESTONE_CHANGED, issue, false);
+
+        NotificationEvent notiEvent = createFromCurrentUser(issue);
+
+        Set<User> receivers = getMandatoryReceivers(issue);
+
+        notiEvent.title = formatReplyTitle(issue);
+        notiEvent.receivers = receivers;
+        notiEvent.eventType = ISSUE_MILESTONE_CHANGED;
+        notiEvent.oldValue = oldMilestoneId.toString();
+        notiEvent.newValue = issue.milestoneId().toString();
+
+        NotificationEvent.add(notiEvent);
+
+        return notiEvent;
+    }
+
+    private static Set<User> getMandatoryReceivers(Issue issue) {
+        Set<User> receivers = findWatchers(issue.asResource());
+        receivers.add(issue.getAuthor());
+
+        for (IssueSharer issueSharer : issue.sharers) {
+            receivers.add(User.findByLoginId(issueSharer.loginId));
+        }
+
+        receivers.remove(UserApp.currentUser());
+
         return receivers;
     }
 
@@ -1118,6 +1190,33 @@ public class NotificationEvent extends Model implements INotificationEvent {
         receivers.addAll(getMentionedUsers(abstractPosting.body));
         receivers.remove(except);
         return receivers;
+    }
+
+    private static Set<User> getCommentReceivers(Comment comment, User except) {
+        AbstractPosting parent = comment.getParent();
+
+        Set<User> receivers = new HashSet<>(findWatchers(parent.asResource()));
+        receivers.add(comment.getParent().getAuthor());
+        includeAssigneeIfExist(comment, receivers);
+        receivers.remove(except);
+
+        // Filter the watchers who has no permission to read this resource.
+        CollectionUtils.filter(receivers, new Predicate() {
+            @Override
+            public boolean evaluate(Object watcher) {
+                return AccessControl.isAllowed((User) watcher, parent.asResource(), Operation.READ);
+            }
+        });
+        return receivers;
+    }
+
+    private static void includeAssigneeIfExist(Comment comment, Set<User> receivers) {
+        if (comment instanceof IssueComment) {
+            Assignee assignee = ((Issue) comment.getParent()).assignee;
+            if (assignee != null) {
+                receivers.add(assignee.user);
+            }
+        }
     }
 
     private static String getPrefixedNumber(AbstractPosting posting) {

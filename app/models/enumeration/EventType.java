@@ -35,7 +35,9 @@ public enum EventType {
     ORGANIZATION_MEMBER_ENROLL_REQUEST("notification.organization.type.member.enroll",19),
     COMMENT_UPDATED("notification.type.comment.updated", 20),
     ISSUE_MOVED("notification.type.issue.is.moved", 21),
-    ISSUE_SHARER_CHANGED("notification.type.issue.sharer.changed", 22);
+    ISSUE_SHARER_CHANGED("notification.type.issue.sharer.changed", 22),
+    ISSUE_LABEL_CHANGED("notification.type.issue.label.changed", 23),
+    ISSUE_MILESTONE_CHANGED("notification.type.milestone.changed", 24);
 
     private String descr;
 

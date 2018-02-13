@@ -21,9 +21,6 @@ import javax.annotation.Nonnull;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static models.enumeration.ResourceType.ISSUE_COMMENT;
-import static models.enumeration.ResourceType.ISSUE_POST;
-
 public class SearchCondition extends AbstractPostingApp.SearchCondition implements Cloneable {
     public String state;
     public Boolean commentedCheck;
@@ -304,7 +301,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         if (mentionId != null) {
             User mentionUser = User.find.byId(mentionId);
             if(!mentionUser.isAnonymous()) {
-                List<Long> ids = getMentioningIssueIds(mentionUser);
+                List<Long> ids = Mention.getMentioningIssueIds(mentionId);
 
                 if (ids.isEmpty()) {
                     // No need to progress because the query matches nothing.
@@ -351,39 +348,6 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
             }
         }
         return new ArrayList<>(issueIds);
-    }
-
-    private List<Long> getMentioningIssueIds(User mentionUser) {
-        Set<Long> ids = new HashSet<>();
-        Set<Long> commentIds = new HashSet<>();
-
-        for (Mention mention : Mention.find.where()
-                .eq("user", mentionUser)
-                .in("resourceType", ISSUE_POST, ISSUE_COMMENT)
-                .findList()) {
-
-            switch (mention.resourceType) {
-                case ISSUE_POST:
-                    ids.add(Long.valueOf(mention.resourceId));
-                    break;
-                case ISSUE_COMMENT:
-                    commentIds.add(Long.valueOf(mention.resourceId));
-                    break;
-                default:
-                    play.Logger.warn("'" + mention.resourceType + "' is not supported.");
-                    break;
-            }
-        }
-
-        if (!commentIds.isEmpty()) {
-            for (IssueComment comment : IssueComment.find.where()
-                    .idIn(new ArrayList<>(commentIds))
-                    .findList()) {
-                ids.add(comment.issue.id);
-            }
-        }
-
-        return new ArrayList<>(ids);
     }
 
     private List<Long> getSharedIssueIds(User user) {
@@ -458,10 +422,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
 
         setIssueState(el);
 
-        if (CollectionUtils.isNotEmpty(labelIds)) {
-            Set<IssueLabel> labels = IssueLabel.finder.where().idIn(new ArrayList<>(labelIds)).findSet();
-            el.in("id", Issue.finder.where().in("labels", labels).findIds());
-        }
+        setLabelsIfExist(project, el);
 
         setOrderByIfExist(el);
 
@@ -474,6 +435,40 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         }
 
         return el;
+    }
+
+    private void setLabelsIfExist(Project project, ExpressionList<Issue> el) {
+        if (CollectionUtils.isNotEmpty(labelIds)) {
+            Set<IssueLabel> labels = IssueLabel.finder.where().idIn(new ArrayList<>(labelIds)).findSet();
+
+            List<Issue> issues = Issue.finder.where()
+                    .eq("project", project)
+                    .in("labels", labels).findList();
+
+            for (IssueLabel issueLabel : labels) {
+                issues = findIssueByLabel(issues, issueLabel);
+            }
+
+            el.in("id", extractIssueIds(issues));
+        }
+    }
+
+    private Set<Long> extractIssueIds(List<Issue> issues) {
+        Set<Long> ids = new HashSet<>();
+        for (Issue issue : issues) {
+            ids.add(issue.id);
+        }
+        return ids;
+    }
+
+    private List<Issue> findIssueByLabel(List<Issue> issues, IssueLabel label) {
+        List<Issue> result = new ArrayList<>();
+        for (Issue issue : issues) {
+            if(issue.labels.contains(label)){
+                result.add(issue);
+            }
+        }
+        return result;
     }
 
     public String getDueDateString() {

@@ -11,7 +11,7 @@ function _initTwoColumnMode(){
     var useTwoColumnMode = localStorage.getItem('useTwoColumnMode');
     var $title = $('.title');
 
-    $('#two-column-mode-checkbox').popover({trigger: "hover", placement: "top", delay: { show: 1000, hide: 100 }});
+    $('#two-column-mode-checkbox').popover({trigger: "hover", placement: "top", delay: { show: 100, hide: 100 }});
 
     // when to check box click
     $('.mass-update-check').on('click', function (e) {

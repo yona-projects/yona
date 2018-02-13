@@ -1,5 +1,10 @@
 Yona Install
 ===
+```
+Prerequisite
+---
+Java 8 (Java 9 isn't supported yet)
+```
 
 Download the latest version of Yona from https://github.com/yona-projects/yona/releases and unzip it.
 Also, consider to use wget like followings.
@@ -11,7 +16,8 @@ ex)
 
 ### application.conf generating and setting
 
-Go to the unpacked location and run `bin/yona`. (Requires Java 8 or later)
+Go to the unpacked location and run `bin/yona`. 
+
 **Note**: You should run it from yona installation folder as below. Windows users should also run `bin/yona.bat` instead of `bin/yona`.
 
 ```

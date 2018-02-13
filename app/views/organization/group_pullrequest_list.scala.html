@@ -17,7 +17,7 @@
 @searchFormAction(category: Category) = @{
     category match {
         case Category.CLOSED => {
-            routes.OrganizationApp.organizationPullRequests(organization.name, "closed")
+            routes.OrganizationApp.organizationClosedPullRequests(organization.name)
         }
         case Category.OPEN => {
             routes.OrganizationApp.organizationPullRequests(organization.name, "open")
