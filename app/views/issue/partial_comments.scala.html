@@ -32,6 +32,31 @@
     }
 }
 
+@milestoneSpan(project:Project, milestone:Milestone) = {
+    <span class="bold font-blue">
+        <a href="@routes.MilestoneApp.milestone(project.owner, project.name, milestone.id)" data-toggle="tooltip" data-placement="bottom" title="@Messages("milestone")">
+        @milestone.title
+        </a>
+    </span>
+}
+
+@noMilestoneSpan() = {
+    <span class="bold">
+        @Messages("common.none")
+    </span>
+}
+
+
+@linkOfMilestone(milestoneId: String, project:Project) = @{
+    val milestone = Milestone.findById(Long.valueOf(milestoneId))
+
+    if(milestone == null || milestone.isNullMilestone){
+        noMilestoneSpan
+    } else {
+        milestoneSpan(project, milestone)
+    }
+}
+
 @issueLabelBox(categoryAndName: String, project:Project ) = @{
     val splitedCategoryAndName = categoryAndName.split(" - ")
     if(splitedCategoryAndName.length != 2) {
@@ -180,6 +205,10 @@
                         case EventType.ISSUE_ASSIGNEE_CHANGED => {
                             <span class="state changed">@Messages("issue.state.assigned")</span>
                             @Html(Messages(assginedMesssage(event.newValue, user), linkToUser(user.loginId, user.getDisplayName), linkToUser(event.newValue,User.findByLoginId(event.newValue).getDisplayName, true)))
+                        }
+                        case EventType.ISSUE_MILESTONE_CHANGED => {
+                            <span class="state milestone-changed">@Messages("issue.update.milestone.id")</span>
+                            @Html(Messages("issue.event.milestone.changed", linkToUser(user.loginId, user.getDisplayName), linkOfMilestone(event.newValue, project)))
                         }
                         case EventType.ISSUE_REFERRED_FROM_COMMIT => {
                             <span class="state changed">@Messages("issue.event.referred.title")</span>
