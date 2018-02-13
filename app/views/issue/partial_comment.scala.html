@@ -1,0 +1,106 @@
+@**
+* Yona, 21st Century Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+* https://yona.io
+**@
+@(comment:Comment, project:Project, issue:Issue)
+
+@import org.apache.commons.lang3.StringUtils
+@import utils.TemplateHelper._
+@import utils.AccessControl._
+@import utils.JodaDateUtil
+@import play.libs.Json.toJson
+@import utils.Markdown
+@import controllers.api.IssueApi
+
+@isAuthorComment(commentId: String) = @{
+    if(commentId == UserApp.currentUser().loginId) {"author"}
+}
+
+@VOTER_AVATAR_SHOW_LIMIT = @{ 5 }
+
+<li class="comment @isAuthorComment(comment.authorLoginId)" id="comment-@comment.id">
+    <div class="comment-avatar">
+        <a href="@userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorLoginId">
+            <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl(64)" width="32" height="32" alt="@comment.authorName">
+        </a>
+    </div>
+    <div class="media-body">
+        <div class="meta-info">
+            <span class="comment_author">
+                <span class="resp-comment-avatar">
+                    <a href="@userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+                        <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl(64)" width="32" height="32" alt="@comment.authorLoginId">
+                    </a>
+                </span>
+                <a href="@userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorLoginId"><strong>@User.findByLoginId(comment.authorLoginId).getDisplayName</strong></a>
+            </span>
+            <span class="ago-date">
+                <a href="#comment-@comment.id" class="ago" title="@JodaDateUtil.getDateString(comment.createdDate)">@utils.TemplateHelper.agoOrDateString(comment.createdDate)</a>
+            </span>
+            <span class="act-row pull-right">
+                @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.READ) && comment.isInstanceOf[IssueComment]) {
+                    @defining(comment.asInstanceOf[IssueComment]) { issueComment =>
+                        @if(issueComment.voters.size > VOTER_AVATAR_SHOW_LIMIT) {
+                            <span style="margin-right: 2px;" data-toggle="tooltip" data-html="true" title="
+                                @for(voter <- VoteApp.getVotersForName(issueComment.voters, 0, 5)) {
+                                    @voter.name<br>
+                                    }
+                                &hellip;">
+                                <a class="vote-description-people" href="#voters-@issueComment.id" data-toggle="modal">
+                                @if(issueComment.voters.size == 1) {
+                                    @Messages("common.comment.vote.agreement", issueComment.voters.size)
+                                } else {
+                                    @Messages("common.comment.vote.agreements", issueComment.voters.size)
+                                }
+                                </a>
+                            </span>
+
+                            @partial_voter_list("voters-" + issueComment.id, issueComment.voters)
+                        } else {
+                            @for(voter <- issueComment.voters) {
+                                <a href="@userInfo(voter.loginId)" class="avatar-wrap smaller" data-toggle="tooltip" data-placement="top" title="@voter.name">
+                                    <img src="@User.findByLoginId(voter.loginId).avatarUrl">
+                                </a>
+                            }
+                        }
+
+                        @if(issueComment.voters.contains(UserApp.currentUser())) {
+                            <button type="button" class="btn-transparent-with-fontsize-lineheight" title="@Messages("common.comment.unvote")" data-request-type="comment-vote" data-request-uri="@routes.VoteApp.unvoteComment(project.owner, project.name, issue.getNumber, comment.id)">
+                                <i class="yobicon-hearts vote-heart-on"></i>
+                            </button>
+                        } else {
+                            @if(UserApp.currentUser().isAnonymous()) {
+                                <i class="yobicon-hearts vote-heart-off vote-heart-disable-hover"></i>
+                            } else {
+                                <button type="button" class="btn-transparent-with-fontsize-lineheight" title="@Messages("common.comment.vote")" data-request-type="comment-vote" data-request-uri="@routes.VoteApp.voteComment(project.owner, project.name, issue.getNumber, comment.id)">
+                                    <i class="yobicon-hearts vote-heart-off"></i>
+                                </button>
+                            }
+                        }
+                    }
+                }
+
+                @if(StringUtils.isNotBlank(IssueApi.TRANSLATION_API)) {
+                    <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 comment-translate" data-toggle="tooltip" data-comment-id="@comment.id" title="@Messages("button.translation")"><i class="yobicon-lang"></i></button>
+                }
+
+                @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.READ)) {
+                    <button type="button" class="btn-transparent-with-fontsize-lineheight ml10" data-toggle="comment-edit" data-comment-id="@comment.id" title="@Messages("common.comment.edit")"><i class="yobicon-edit-2"></i></button>
+                }
+
+                @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)) {
+                    <button type="button" class="btn-transparent-with-fontsize-lineheight ml6" data-toggle="comment-delete" data-request-uri="@routes.IssueApp.deleteComment(project.owner, project.name, issue.getNumber, comment.id)" title="@Messages("common.comment.delete")"><i class="yobicon-trash"></i></button>
+                }
+            </span>
+        </div>
+
+        @common.commentUpdateForm(comment, routes.IssueApp.newComment(project.owner, project.name, issue.getNumber).toString(), comment.contents)
+
+        <div id="comment-body-@comment.id">
+            <div class="comment-body markdown-wrap" data-via-email="@OriginalEmail.exists(comment.asResource)">@Html(Markdown.render(comment.contents, project))</div>
+            <div class="attachments pull-right" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.ISSUE_COMMENT.toString(), comment.id.toString()))"></div>
+        </div>
+    </div>
+</li>
