@@ -135,6 +135,13 @@ public class Issue extends AbstractPosting implements LabelOwner {
         return ((assignee != null && assignee.user != null) ? assignee.user.name : null);
     }
 
+    public Long milestoneId() {
+        if (milestone == null) {
+            return Milestone.NULL_MILESTONE_ID;
+        }
+        return milestone.id;
+    }
+
     public boolean hasAssignee() {
         return (assignee != null && assignee.user != null);
     }

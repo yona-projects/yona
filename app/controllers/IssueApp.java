@@ -455,14 +455,33 @@ public class IssueApp extends AbstractPostingApp {
         }
     }
 
-    private static void updateMilestoneIfChanged(Milestone milestone, Issue issue) {
-        if (milestone != null) {
-            if(milestone.isNullMilestone()) {
-                issue.milestone = null;
-            } else {
-                issue.milestone = milestone;
-            }
+    private static void updateMilestoneIfChanged(Milestone newMilestone, Issue issue) {
+
+        Long oldMilestoneId = issue.milestoneId();
+
+        if (!isMilestoneChanged(newMilestone, issue.milestone)) {
+            return;
         }
+
+        if(newMilestone.isNullMilestone()) {
+            issue.milestone = null;
+        } else {
+            issue.milestone = newMilestone;
+        }
+        NotificationEvent notiEvent = NotificationEvent.afterMilestoneChanged(oldMilestoneId, issue);
+        IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
+    }
+
+    private static boolean isMilestoneChanged(Milestone newMilestone, Milestone oldMilestone) {
+        if (newMilestone == null) {
+            return false;
+        }
+
+        if (oldMilestone != null && oldMilestone.id.equals(newMilestone.id)) {
+            return false;
+        }
+
+        return true;
     }
 
     private static void updateStateIfChanged(State newState, Issue issue) {

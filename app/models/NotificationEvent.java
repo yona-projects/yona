@@ -134,6 +134,8 @@ public class NotificationEvent extends Model implements INotificationEvent {
                 } else {
                     return Messages.get(lang, "notification.issue.assigned", newValue);
                 }
+            case ISSUE_MILESTONE_CHANGED:
+                return Messages.get(lang, "notification.milestone.changed", newValue);
             case NEW_ISSUE:
             case NEW_POSTING:
             case NEW_COMMENT:
@@ -930,6 +932,37 @@ public class NotificationEvent extends Model implements INotificationEvent {
 
         NotificationEvent.addWithoutSkipEvent(notiEvent);
         return notiEvent;
+    }
+
+    public static NotificationEvent afterMilestoneChanged(Long oldMilestoneId, Issue issue) {
+        webhookRequest(ISSUE_MILESTONE_CHANGED, issue, false);
+
+        NotificationEvent notiEvent = createFromCurrentUser(issue);
+
+        Set<User> receivers = getMandatoryReceivers(issue);
+
+        notiEvent.title = formatReplyTitle(issue);
+        notiEvent.receivers = receivers;
+        notiEvent.eventType = ISSUE_MILESTONE_CHANGED;
+        notiEvent.oldValue = oldMilestoneId.toString();
+        notiEvent.newValue = issue.milestoneId().toString();
+
+        NotificationEvent.add(notiEvent);
+
+        return notiEvent;
+    }
+
+    private static Set<User> getMandatoryReceivers(Issue issue) {
+        Set<User> receivers = findWatchers(issue.asResource());
+        receivers.add(issue.getAuthor());
+
+        for (IssueSharer issueSharer : issue.sharers) {
+            receivers.add(User.findByLoginId(issueSharer.loginId));
+        }
+
+        receivers.remove(UserApp.currentUser());
+
+        return receivers;
     }
 
     private static Set<User> getReceiversForIssueBodyChanged(String oldBody, Issue issue) {
