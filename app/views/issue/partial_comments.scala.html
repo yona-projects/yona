@@ -6,252 +6,26 @@
 **@
 @(project:Project, issue:Issue)
 
-@import org.apache.commons.lang3.StringUtils
-@import utils.TemplateHelper._
-@import utils.AccessControl._
-@import utils.JodaDateUtil
-@import play.libs.Json.toJson
-@import utils.Markdown
-@import controllers.api.IssueApi
-
-@avatarByLoginId(loginId: String, loginName: String) = {
-    <a href="@userInfo(loginId)" class="usf-group" data-toggle="tooltip" data-placement="top" title="@loginName">
-        <img src="@getUserAvatarUrl(User.findByLoginId(loginId), 32)" class="avatar-wrap small">
-    </a>
-}
-
-@linkToUser(loginId: String, loginName: String, showAvatar: Boolean = true) = {
-    @loginId match {
-    case (loginId: String) => {
-        @if(showAvatar){ @avatarByLoginId(loginId, loginName) }
-        <a href="@userInfo(loginId)" class="usf-group" data-toggle="tooltip" data-placement="top" title="@loginId">
-            <strong>@loginName</strong>
-        </a>
-    }
-    case _ => { Anonymous }
-    }
-}
-
-@milestoneSpan(project:Project, milestone:Milestone) = {
-    <span class="bold font-blue">
-        <a href="@routes.MilestoneApp.milestone(project.owner, project.name, milestone.id)" data-toggle="tooltip" data-placement="bottom" title="@Messages("milestone")">
-        @milestone.title
-        </a>
-    </span>
-}
-
-@noMilestoneSpan() = {
-    <span class="bold">
-        @Messages("common.none")
-    </span>
-}
-
-
-@linkOfMilestone(milestoneId: String, project:Project) = @{
-    val milestone = Milestone.findById(Long.valueOf(milestoneId))
-
-    if(milestone == null || milestone.isNullMilestone){
-        noMilestoneSpan
-    } else {
-        milestoneSpan(project, milestone)
-    }
-}
-
-@issueLabelBox(categoryAndName: String, project:Project ) = @{
-    val splitedCategoryAndName = categoryAndName.split(" - ")
-    if(splitedCategoryAndName.length != 2) {
-        categoryAndName
-    } else {
-        var categoryName = splitedCategoryAndName(0).trim
-        var labelName = splitedCategoryAndName(1).trim
-        val issueLabel = IssueLabel.findByName(labelName, categoryName, project)
-        if( issueLabel != null) {
-            val labelColor = issueLabel.color
-            s"<div class='label issue-label' style='background-color: $labelColor'>$labelName</div>"
-        } else {
-            labelName
-        }
-    }
-}
-
-@assginedMesssage(newValue: String, user:User) = @{
-    val LoginId = user.loginId
-    newValue match {
-        case LoginId => "issue.event.assignedToMe"
-        case _: String => "issue.event.assigned"
-        case _ => "issue.event.unassigned"
-    }
-}
-@isAuthorComment(commentId: String) = @{
-    if(commentId == UserApp.currentUser().loginId) {"author"}
-}
-
-@linkToPullRequest(pull: PullRequest) ={
-    <strong>@Messages("pullRequest")-@pull.number <a href="@routes.PullRequestApp.pullRequest(pull.toProject.owner, pull.toProject.name, pull.number)" class="link">@pull.title</a></strong>
-}
-
-@linkToProject(owner: String, name: String) ={
-    <strong><a href="@routes.ProjectApp.project(owner, name)" class="link">@owner/@name</a></strong>
-}
-
-@linkToCommit(commitId: String) ={
-    <strong>@Messages("code.commits") <a href="@routes.CodeHistoryApp.show(project.owner, project.name, commitId)" class="link">@{"@"}@commitId</a></strong>
-}
-
-@VOTER_AVATAR_SHOW_LIMIT = @{ 5 }
-
 <div class="comment-header"><i class="yobicon-comments"></i> <strong>@Messages("common.comment")</strong> <strong class="num">@issue.comments.size</strong></div>
 <hr class="nm">
 
 @if(issue.comments.size + issue.events.size > 0) {
-<ul class="comments">
-@for(item <- issue.getTimeline){
-    @item match {
-    case (comment: Comment) => {
-    <li class="comment @isAuthorComment(comment.authorLoginId)" id="comment-@comment.id">
-        <div class="comment-avatar">
-            <a href="@userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorLoginId">
-                <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl(64)" width="32" height="32" alt="@comment.authorName">
-            </a>
-        </div>
-        <div class="media-body">
-            <div class="meta-info">
-                <span class="comment_author">
-                    <span class="resp-comment-avatar">
-                        <a href="@userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
-                            <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl(64)" width="32" height="32" alt="@comment.authorLoginId">
-                        </a>
-                    </span>
-                    <a href="@userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorLoginId"><strong>@User.findByLoginId(comment.authorLoginId).getDisplayName</strong></a>
-                </span>
-                <span class="ago-date">
-                    <a href="#comment-@comment.id" class="ago" title="@JodaDateUtil.getDateString(comment.createdDate)">@utils.TemplateHelper.agoOrDateString(comment.createdDate)</a>
-                </span>
-                <span class="act-row pull-right">
-                    @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.READ) && comment.isInstanceOf[IssueComment]) {
-                        @defining(comment.asInstanceOf[IssueComment]) { issueComment =>
-                            @if(issueComment.voters.size > VOTER_AVATAR_SHOW_LIMIT) {
-                                <span style="margin-right:2px;" data-toggle="tooltip" data-html="true" title="
-                                    @for(voter <- VoteApp.getVotersForName(issueComment.voters, 0, 5)) {
-                                        @voter.name<br>
-                                    }
-                                    &hellip;">
-                                    <a class="vote-description-people" href="#voters-@issueComment.id" data-toggle="modal">
-                                        @if(issueComment.voters.size == 1) {
-                                            @Messages("common.comment.vote.agreement", issueComment.voters.size)
-                                        } else {
-                                            @Messages("common.comment.vote.agreements", issueComment.voters.size)
-                                        }
-                                    </a>
-                                </span>
-
-                                @partial_voter_list("voters-" + issueComment.id, issueComment.voters)
-                            } else {
-                                @for(voter <- issueComment.voters){
-                                    <a href="@userInfo(voter.loginId)" class="avatar-wrap smaller" data-toggle="tooltip" data-placement="top" title="@voter.name">
-                                        <img src="@User.findByLoginId(voter.loginId).avatarUrl">
-                                    </a>
-                                }
-                            }
-
-                            @if(issueComment.voters.contains(UserApp.currentUser())) {
-                                <button type="button" class="btn-transparent-with-fontsize-lineheight" title="@Messages("common.comment.unvote")" data-request-type="comment-vote" data-request-uri="@routes.VoteApp.unvoteComment(project.owner, project.name, issue.getNumber, comment.id)">
-                                <i class="yobicon-hearts vote-heart-on"></i>
-                                </button>
-                            } else {
-                                @if(UserApp.currentUser().isAnonymous()) {
-                                    <i class="yobicon-hearts vote-heart-off vote-heart-disable-hover"></i>
-                                } else {
-                                    <button type="button" class="btn-transparent-with-fontsize-lineheight" title="@Messages("common.comment.vote")" data-request-type="comment-vote" data-request-uri="@routes.VoteApp.voteComment(project.owner, project.name, issue.getNumber, comment.id)">
-                                    <i class="yobicon-hearts vote-heart-off"></i>
-                                    </button>
-                                }
-                            }
-                        }
-                    }
-
-                    @if(StringUtils.isNotBlank(IssueApi.TRANSLATION_API)){
-                        <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 comment-translate" data-toggle="tooltip" data-comment-id="@comment.id" title="@Messages("button.translation")"><i class="yobicon-lang"></i></button>
-                    }
-
-                    @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.READ)) {
-                        <button type="button" class="btn-transparent-with-fontsize-lineheight ml10" data-toggle="comment-edit" data-comment-id="@comment.id" title="@Messages("common.comment.edit")"><i class="yobicon-edit-2"></i></button>
-                    }
-
-                    @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)) {
-                        <button type="button" class="btn-transparent-with-fontsize-lineheight ml6" data-toggle="comment-delete" data-request-uri="@routes.IssueApp.deleteComment(project.owner, project.name, issue.getNumber, comment.id)" title="@Messages("common.comment.delete")"><i class="yobicon-trash"></i></button>
-                    }
-                </span>
-            </div>
-
-            @common.commentUpdateForm(comment, routes.IssueApp.newComment(project.owner, project.name, issue.getNumber).toString(), comment.contents)
-
-            <div id="comment-body-@comment.id">
-                <div class="comment-body markdown-wrap" data-via-email="@OriginalEmail.exists(comment.asResource)">@Html(Markdown.render(comment.contents, project))</div>
-                <div class="attachments pull-right" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.ISSUE_COMMENT.toString(), comment.id.toString()))"></div>
-            </div>
-        </div>
-    </li>
-
-    }
-    case (event: IssueEvent) => {
-        @if(event.eventType != EventType.ISSUE_BODY_CHANGED) {
-            <li class="event" id="event-@event.id">
-                @defining(User.findByLoginId(event.senderLoginId)) { user =>
-                    @event.eventType match {
-                        case EventType.ISSUE_STATE_CHANGED => {
-                            <span class="state @event.newValue">@Messages("issue.state." + event.newValue)</span> @Html(Messages("issue.event." + event.newValue, linkToUser(user.loginId, user.getDisplayName)))
-                        }
-                        case EventType.ISSUE_ASSIGNEE_CHANGED => {
-                            <span class="state changed">@Messages("issue.state.assigned")</span>
-                            @Html(Messages(assginedMesssage(event.newValue, user), linkToUser(user.loginId, user.getDisplayName), linkToUser(event.newValue,User.findByLoginId(event.newValue).getDisplayName, true)))
-                        }
-                        case EventType.ISSUE_MILESTONE_CHANGED => {
-                            <span class="state milestone-changed">@Messages("issue.update.milestone.id")</span>
-                            @Html(Messages("issue.event.milestone.changed", linkToUser(user.loginId, user.getDisplayName), linkOfMilestone(event.newValue, project)))
-                        }
-                        case EventType.ISSUE_REFERRED_FROM_COMMIT => {
-                            <span class="state changed">@Messages("issue.event.referred.title")</span>
-                            @Html(Messages("issue.event.referred",linkToUser(user.loginId, user.getDisplayName),linkToCommit(event.newValue)))
-                        }
-                        case EventType.ISSUE_MOVED => {
-                            <span class="state changed">@Messages("issue.event.moved.title")</span>
-                            @Html(Messages("issue.event.moved", linkToUser(user.loginId, user.getDisplayName), linkToProject(event.oldValue.split("/")(0), event.oldValue.split("/")(1))))
-                        }
-                        case EventType.ISSUE_REFERRED_FROM_PULL_REQUEST => {
-                            <span class="state changed">@Messages("issue.event.referred.title")</span>
-                            @defining(PullRequest.findById(Long.valueOf(event.newValue))) { pull =>
-                                @Html(Messages("issue.event.referred",linkToUser(user.loginId, user.getDisplayName),linkToPullRequest(pull)))
-                            }
-                        }
-                        case EventType.ISSUE_SHARER_CHANGED => {
-                            @if(StringUtils.isBlank(event.oldValue) && StringUtils.isNotBlank(event.newValue)){
-                                <span class="state sharer-added">@Messages("issue.sharer")</span>
-                                @Html(Messages("issue.event.sharer.added", linkToUser(user.loginId, user.getPureNameOnly), linkToUser(event.newValue, User.findByLoginId(event.newValue).getPureNameOnly)))
-                            } else {
-                                <span class="state sharer-deleted">@Messages("issue.event.sharer.deleted.title")</span>
-                                @Html(Messages("issue.event.sharer.deleted", linkToUser(user.loginId, user.getPureNameOnly), linkToUser(event.oldValue, User.findByLoginId(event.oldValue).getPureNameOnly)))
-                            }
-                        }
-                        case EventType.ISSUE_LABEL_CHANGED => {
-                            @if(StringUtils.isBlank(event.oldValue) && StringUtils.isNotBlank(event.newValue)){
-                                <span class="state label-added">@Messages("issue.event.label.added.title")</span>
-                                @Html(Messages("issue.event.label.added", linkToUser(user.loginId, user.getPureNameOnly), issueLabelBox(event.newValue, project)))
-                            } else {
-                                <span class="state label-deleted">@Messages("issue.event.label.deleted.title")</span>
-                                @Html(Messages("issue.event.label.deleted", linkToUser(user.loginId, user.getPureNameOnly), issueLabelBox(event.oldValue, project)))
-                            }
-                        }
-                        case _ => {
-                            @event.newValue by @linkToUser(user.loginId, user.getDisplayName)
-                        }
+    <ul class="comments">
+    @defining(issue.getTimeline) { timeline =>
+        @for((item, index) <- timeline.view.zipWithIndex) {
+            @item match {
+                case (comment: Comment) => {
+                    @partial_comment(comment, project, issue)
+                }
+                case (event: IssueEvent) => {
+                    @if(index > 0 && timeline(index-1).isInstanceOf[IssueEvent]) {
+                        @partial_event_timeline(event, project, issue, timeline(index-1).asInstanceOf[IssueEvent])
+                    } else {
+                        @partial_event_timeline(event, project, issue)
                     }
                 }
-                <span class="date"><a href="#event-@event.id">@utils.TemplateHelper.agoOrDateString(event.getDate())</a></span>
-            </li>
+            }
         }
     }
-    }
-}
-</ul>
+    </ul>
 }
