@@ -767,7 +767,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
 
         NotificationEvent notiEvent = createFromCurrentUser(issue);
         notiEvent.title = formatReplyTitle(issue);
-        notiEvent.receivers = getReceivers(issue);
+        notiEvent.receivers = getMandatoryReceivers(issue);
         notiEvent.eventType = ISSUE_STATE_CHANGED;
         notiEvent.oldValue = oldState != null ? oldState.state() : null;
         notiEvent.newValue = issue.state.state();
@@ -833,22 +833,12 @@ public class NotificationEvent extends Model implements INotificationEvent {
     }
 
     private static Set<User> getReceiversWhenAssigneeChanged(User oldAssignee, Issue issue) {
-        Set<User> receivers = findWatchers(issue.asResource());
-        receivers.add(issue.getAuthor());
+        Set<User> receivers = getMandatoryReceivers(issue);
 
-        if (issue.assignee != null) {
-            receivers.add(issue.assignee.user);
-        }
-
-        if (oldAssignee != null && !oldAssignee.isAnonymous()) {
+        if (oldAssignee != null && !oldAssignee.isAnonymous()
+                && !oldAssignee.loginId.equals(UserApp.currentUser().loginId)) {
             receivers.add(oldAssignee);
         }
-
-        for (IssueSharer issueSharer : issue.sharers) {
-            receivers.add(User.findByLoginId(issueSharer.loginId));
-        }
-
-        receivers.remove(UserApp.currentUser());
 
         return receivers;
     }
@@ -960,13 +950,17 @@ public class NotificationEvent extends Model implements INotificationEvent {
             receivers.add(User.findByLoginId(issueSharer.loginId));
         }
 
+        if (issue.assignee != null) {
+            receivers.add(issue.assignee.user);
+        }
+
         receivers.remove(UserApp.currentUser());
 
         return receivers;
     }
 
     private static Set<User> getReceiversForIssueBodyChanged(String oldBody, Issue issue) {
-        Set<User> receivers = issue.getWatchers();
+        Set<User> receivers = getMandatoryReceivers(issue);
         receivers.addAll(getNewMentionedUsers(oldBody, issue.body));
         receivers.remove(UserApp.currentUser());
         return receivers;
@@ -1200,13 +1194,6 @@ public class NotificationEvent extends Model implements INotificationEvent {
         includeAssigneeIfExist(comment, receivers);
         receivers.remove(except);
 
-        // Filter the watchers who has no permission to read this resource.
-        CollectionUtils.filter(receivers, new Predicate() {
-            @Override
-            public boolean evaluate(Object watcher) {
-                return AccessControl.isAllowed((User) watcher, parent.asResource(), Operation.READ);
-            }
-        });
         return receivers;
     }
 
