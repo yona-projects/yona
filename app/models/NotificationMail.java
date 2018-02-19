@@ -532,10 +532,10 @@ public class NotificationMail extends Model {
 
             Lang lang = Lang.apply(langCode);
 
-            String htmlMessage = event.getMessage(lang);
+            String message = event.getMessage(lang);
             String plainMessage = event.getPlainMessage(lang);
 
-            if (htmlMessage == null || plainMessage == null) {
+            if (message == null || plainMessage == null) {
                 return;
             }
 
@@ -548,7 +548,11 @@ public class NotificationMail extends Model {
                 resource = issueComment.issue.asResource();
             }
 
-            email.setHtmlMsg(removeHeadAnchor(getHtmlMessage(lang, htmlMessage, urlToView, resource, acceptsReply)));
+            if (event.getType() == EventType.ISSUE_BODY_CHANGED) {
+                email.setHtmlMsg(removeHeadAnchor(getRenderedMail(lang, message, urlToView, resource, acceptsReply)));
+            } else {
+                email.setHtmlMsg(removeHeadAnchor(getHtmlMessage(lang, message, urlToView, resource, acceptsReply)));
+            }
             email.setTextMsg(getPlainMessage(lang, plainMessage, Url.create(urlToView), acceptsReply));
 
             email.addReferences();
@@ -611,6 +615,20 @@ public class NotificationMail extends Model {
 
     private static String getHtmlMessage(Lang lang, String message, String urlToView,
                                          Resource resource, boolean acceptsReply) {
+
+        String renderred = null;
+
+        if(resource != null) {
+            renderred = Markdown.render(message, resource.getProject(), lang.code());
+        } else {
+            renderred = Markdown.render(message);
+        }
+
+        return getRenderedMail(lang, renderred, urlToView, resource, acceptsReply);
+    }
+
+    private static String getRenderedMail(Lang lang, String message, String urlToView,
+                                          Resource resource, boolean acceptsReply) {
 
         String content = views.html.common.notificationMail.render(
                 lang, message, urlToView, resource, acceptsReply).toString();
