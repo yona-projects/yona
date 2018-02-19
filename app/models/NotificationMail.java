@@ -548,13 +548,11 @@ public class NotificationMail extends Model {
                 resource = issueComment.issue.asResource();
             }
 
-            String renderedHtmlMessage = null;
             if (event.getType() == EventType.ISSUE_BODY_CHANGED) {
-                renderedHtmlMessage = getRenderedMail(lang, message, urlToView, resource, acceptsReply);
+                email.setHtmlMsg(removeHeadAnchor(getRenderedMail(lang, message, urlToView, resource, acceptsReply)));
             } else {
-                renderedHtmlMessage = getHtmlMessage(lang, message, urlToView, resource, acceptsReply);
+                email.setHtmlMsg(removeHeadAnchor(getHtmlMessage(lang, message, urlToView, resource, acceptsReply)));
             }
-            email.setHtmlMsg(removeHeadAnchor(renderedHtmlMessage));
             email.setTextMsg(getPlainMessage(lang, plainMessage, Url.create(urlToView), acceptsReply));
 
             email.addReferences();
