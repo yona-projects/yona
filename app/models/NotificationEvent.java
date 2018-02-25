@@ -47,6 +47,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static models.UserProjectNotification.findEventWatchersByEventType;
 import static models.Watch.findWatchers;
 import static models.enumeration.EventType.*;
 
@@ -730,6 +731,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
         notiEvent.title = formatReplyTitle(post);
         notiEvent.eventType = eventType;
         Set<User> receivers = getCommentReceivers(comment, author);
+        receivers.addAll(findEventWatchersByEventType(comment.projectId, eventType));
         receivers.addAll(getMentionedUsers(comment.contents));
         receivers.remove(author);
         notiEvent.receivers = receivers;
