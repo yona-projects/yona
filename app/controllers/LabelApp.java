@@ -53,6 +53,10 @@ public class LabelApp extends Controller {
             return status(Http.Status.NOT_ACCEPTABLE);
         }
 
+        if (limit == null) {
+            return badRequest("No limit");
+        }
+
         ExpressionList<Label> el =
                 Label.find.where().and(icontains("category", category), icontains("name", query));
 
@@ -75,6 +79,10 @@ public class LabelApp extends Controller {
     public static Result categories(String query, Integer limit) {
         if (!request().accepts("application/json")) {
             return status(Http.Status.NOT_ACCEPTABLE);
+        }
+
+        if (limit == null) {
+            return badRequest("No limit");
         }
 
         SqlQuery sqlQuery;
