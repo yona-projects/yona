@@ -473,6 +473,7 @@ notification.type.new.issue = 새 이슈 등록
 notification.type.new.posting = 새 게시물 등록
 notification.type.new.pullrequest = 새 코드보내기 등록
 notification.type.new.simple.comment = 코드보내기에 새 댓글 등록
+notification.type.posting.body.changed = 게시글 본문 변경
 notification.type.pullrequest.commit.changed = 코드보내기 커밋 변경
 notification.type.pullrequest.conflicts = 코드보내기 충돌
 notification.type.pullrequest.merged = 코드보내기 반영됨(merged)
