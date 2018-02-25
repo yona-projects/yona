@@ -67,7 +67,7 @@
                     }
                 </div>
                 <div class="message-wrap nowrap" id="message-@noti.id">
-                    <div class="message">@Html(HtmlUtil.defaultSanitize(noti.getMessage.replaceAll("\n", "<br/>\n")))</div>
+                    <div class="message">@Html(HtmlUtil.defaultSanitize(noti.getMessage.replaceAll("[^>]\n", "<br/>\n")))</div>
                 </div>
                 <div class="meta">
                     @if(user != null){
