@@ -144,6 +144,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
             case COMMENT_UPDATED:
                 return newValue;
             case ISSUE_BODY_CHANGED:
+            case POSTING_BODY_CHANGED:
                 return DiffUtil.getDiffText(oldValue, newValue);
             case NEW_REVIEW_COMMENT:
                 try {
@@ -213,8 +214,10 @@ public class NotificationEvent extends Model implements INotificationEvent {
                     return Messages.get(lang, "notification.issue.label.deleted");
                 }
             default:
-                play.Logger.error("Unknown event message: " + this);
-                return null;
+                play.Logger.warn("Unknown event message: " + this);
+                play.Logger.warn("Event Type: " + eventType);
+                play.Logger.warn("See: NotificationEvent.getMessage");
+                return eventType.getDescr();
         }
     }
 
@@ -227,6 +230,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
     public String getPlainMessage(Lang lang) {
         switch(eventType) {
             case ISSUE_BODY_CHANGED:
+            case POSTING_BODY_CHANGED:
                 return DiffUtil.getDiffPlainText(oldValue, newValue);
             default:
                 return getMessage(lang);
@@ -959,6 +963,15 @@ public class NotificationEvent extends Model implements INotificationEvent {
         return receivers;
     }
 
+    private static Set<User> getMandatoryReceivers(Posting posting) {
+        Set<User> receivers = findWatchers(posting.asResource());
+        receivers.add(posting.getAuthor());
+
+        receivers.remove(UserApp.currentUser());
+
+        return receivers;
+    }
+
     private static Set<User> getReceiversForIssueBodyChanged(String oldBody, Issue issue) {
         Set<User> receivers = getMandatoryReceivers(issue);
         receivers.addAll(getNewMentionedUsers(oldBody, issue.body));
@@ -970,12 +983,26 @@ public class NotificationEvent extends Model implements INotificationEvent {
         NotificationEvent.add(forNewPosting(post, UserApp.currentUser()));
     }
 
+    public static void afterUpdatePosting(String oldValue, Posting post) {
+        NotificationEvent.add(forUpdatePosting(oldValue, post, UserApp.currentUser()));
+    }
+
     public static NotificationEvent forNewPosting(Posting post, User author) {
         NotificationEvent notiEvent = createFrom(author, post);
         notiEvent.title = formatNewTitle(post);
         notiEvent.receivers = getReceivers(post);
         notiEvent.eventType = NEW_POSTING;
         notiEvent.oldValue = null;
+        notiEvent.newValue = post.body;
+        return notiEvent;
+    }
+
+    public static NotificationEvent forUpdatePosting(String oldValue, Posting post, User author) {
+        NotificationEvent notiEvent = createFrom(author, post);
+        notiEvent.title = formatNewTitle(post);
+        notiEvent.receivers = getMandatoryReceivers(post);
+        notiEvent.eventType = POSTING_BODY_CHANGED;
+        notiEvent.oldValue = oldValue;
         notiEvent.newValue = post.body;
         return notiEvent;
     }

@@ -354,7 +354,7 @@ public class BoardApp extends AbstractPostingApp {
             public void run() {
                 post.comments = original.comments;
                 if(isSelectedToSendNotificationMail() || !original.isAuthoredBy(UserApp.currentUser())){
-                    NotificationEvent.afterNewPost(post);
+                    NotificationEvent.afterUpdatePosting(original.body, post);
                 }
             }
         };
