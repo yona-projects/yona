@@ -1,32 +1,16 @@
 /**
- * Yobi, Project Hosting SW
- *
- * Copyright 2013 NAVER Corp.
- * http://yobi.io
- *
- * @author Keesun Baik
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+ * Yona, 21st Century Project Hosting SW
+ * <p>
+ * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+ * https://yona.io
+ **/
 package models;
 
 import models.enumeration.EventType;
 import play.db.ebean.Model;
 
 import javax.persistence.*;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * User this class when someone want to know whether a user is receiving notification alarm from the project or not
@@ -84,16 +68,24 @@ public class UserProjectNotification extends Model {
      * @return
      */
     public static boolean isEnabledNotiType(Map<Project, Map<EventType, Boolean>> notiMap, Project project, EventType notiType) {
-        if(!notiMap.containsKey(project)) {
-            return true;
+        if(isJustDefaultWatching(notiMap, project)) {
+            return isNotifiedByDefault(notiType);
         }
 
         Map<EventType, Boolean> projectNoti = notiMap.get(project);
-        if(!projectNoti.containsKey(notiType)) {
-            return true;
-        } else {
+        if(isCustomizedByUser(notiType, projectNoti)) {
             return projectNoti.get(notiType);
+        } else {
+            return isNotifiedByDefault(notiType);
         }
+    }
+
+    private static boolean isCustomizedByUser(EventType notiType, Map<EventType, Boolean> projectNoti) {
+        return projectNoti.containsKey(notiType);
+    }
+
+    private static boolean isJustDefaultWatching(Map<Project, Map<EventType, Boolean>> notiMap, Project project) {
+        return !notiMap.containsKey(project);
     }
 
     public static UserProjectNotification findOne(User user, Project project, EventType notificationType) {
@@ -118,6 +110,15 @@ public class UserProjectNotification extends Model {
         newOne.save();
     }
 
+    public static void watchExplictly(User user, Project project, EventType notiType) {
+        UserProjectNotification newOne = new UserProjectNotification();
+        newOne.user = user;
+        newOne.project = project;
+        newOne.notificationType = notiType;
+        newOne.allowed = true;
+        newOne.save();
+    }
+
     /**
      *
      * Basically, if there is no information about {@code project}' {@code notiType}
@@ -131,5 +132,26 @@ public class UserProjectNotification extends Model {
     public static boolean isEnabledNotiType(User user, Project project, EventType eventType) {
         UserProjectNotification notification = findOne(user, project, eventType);
         return notification == null || notification.allowed;
+    }
+
+    public static boolean isNotifiedByDefault(EventType eventType) {
+        switch (eventType) {
+            case NEW_COMMENT:  // events not notified by project watch default
+                return false;
+            default:
+                return true;
+        }
+    }
+
+    public static Set<User> findEventWatchersByEventType(Long projectId, EventType eventType) {
+        List<UserProjectNotification> userProjectNotifications = find.where()
+                .eq("project.id", projectId)
+                .eq("notificationType", eventType)
+                .findList();
+        Set<User> users = new LinkedHashSet<>();
+        for (UserProjectNotification notification : userProjectNotifications) {
+            users.add(notification.user);
+        }
+        return users;
     }
 }
