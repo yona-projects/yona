@@ -548,7 +548,9 @@ public class NotificationMail extends Model {
                 resource = issueComment.issue.asResource();
             }
 
-            if (event.getType() == EventType.ISSUE_BODY_CHANGED) {
+            // ToDo: needed to refactor
+            if (event.getType() == EventType.ISSUE_BODY_CHANGED ||
+                    event.getType() == EventType.POSTING_BODY_CHANGED) {
                 email.setHtmlMsg(removeHeadAnchor(getRenderedMail(lang, message, urlToView, resource, acceptsReply)));
             } else {
                 email.setHtmlMsg(removeHeadAnchor(getHtmlMessage(lang, message, urlToView, resource, acceptsReply)));

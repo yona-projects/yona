@@ -472,6 +472,7 @@ notification.type.new.issue = New issue added
 notification.type.new.posting = New post added
 notification.type.new.pullrequest = New pull request added
 notification.type.new.simple.comment = New comment on pull request added
+notification.type.posting.body.changed = Posting changed
 notification.type.pullrequest.commit.changed = PullRequest Commit Change
 notification.type.pullrequest.conflicts = Pull request conflicts
 notification.type.pullrequest.merged = Pull request merged

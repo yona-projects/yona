@@ -37,7 +37,8 @@ public enum EventType {
     ISSUE_MOVED("notification.type.issue.is.moved", 21),
     ISSUE_SHARER_CHANGED("notification.type.issue.sharer.changed", 22),
     ISSUE_LABEL_CHANGED("notification.type.issue.label.changed", 23),
-    ISSUE_MILESTONE_CHANGED("notification.type.milestone.changed", 24);
+    ISSUE_MILESTONE_CHANGED("notification.type.milestone.changed", 24),
+    POSTING_BODY_CHANGED("notification.type.posting.body.changed", 25);
 
     private String descr;
 
@@ -86,10 +87,6 @@ public enum EventType {
 
     @Override
     public String toString() {
-        return "EventType{" +
-                "descr='" + descr + '\'' +
-                ", order=" + order +
-                ", messageKey='" + messageKey + '\'' +
-                '}';
+        return name();
     }
 }

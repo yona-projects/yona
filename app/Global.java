@@ -158,17 +158,27 @@ public class Global extends GlobalSettings {
         isSecretInvalid = equalsDefaultSecret();
         insertInitialData();
 
+        Timestamp timestamp = new Timestamp("=== Yona server starting initialization ===");
         Config.onStart();
+        timestamp.logElapsedTime("--- Config reading: ok!");
         Property.onStart();
+        timestamp.logElapsedTime("--- Property reading: ok!");
         PullRequest.onStart();
+        timestamp.logElapsedTime("--- Pull request checking: ok!");
         NotificationMail.onStart();
+        timestamp.logElapsedTime("--- Notification mail scheduler: ok!");
         NotificationEvent.onStart();
+        timestamp.logElapsedTime("--- Notification event cleanup scheduler: ok!");
         Attachment.onStart();
+        timestamp.logElapsedTime("--- Temporary files cleanup scheduler: ok!");
         AccessControl.onStart();
+        timestamp.logElapsedTime("--- Basic access controller config reading: ok!");
 
         if (!isSecretInvalid) {
             YobiUpdate.onStart();
+            timestamp.logElapsedTime("--- Update checker run: ok! ");
             mailboxService.start();
+            timestamp.logElapsedTime("--- MailboxService checker run: ok!");
         }
 
         PlayAuthenticate.setResolver(new PlayAuthenticate.Resolver() {
