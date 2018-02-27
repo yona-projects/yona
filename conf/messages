@@ -453,6 +453,7 @@ notification.replyOrLinkToViewHtml = Reply to this email directly or <a href="{1
 notification.reviewthread.closed = Review thread closed.
 notification.reviewthread.inTheFile = In {0}:
 notification.reviewthread.reopened = Review thread reopened
+notification.resource.deleted = Deleted by {0}
 notification.send.mail = Send notification mail
 notification.send.mail.warning = If you are not original author, this option will be ignored. Noti mail will be sent.
 notification.type.comment.updated = Comment updated
@@ -482,6 +483,7 @@ notification.type.pullrequest.review.action.changed = PullRequest Review Action 
 notification.type.pullrequest.reviewed = Pull request review completed.
 notification.type.pullrequest.state.changed = Pull request Status changed.
 notification.type.pullrequest.unreviewed = Pull request review is canceled.
+notification.type.resource.deleted = Deleted
 notification.type.review.state.changed = Review Thread State Change
 notification.unwatch = Unwatch
 notification.watch = Watch

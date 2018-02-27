@@ -453,6 +453,7 @@ notification.replyOrLinkToViewHtml = <a href="{1}" target="{2}">{0}</a>에서 �
 notification.reviewthread.closed = 리뷰 스레드 닫힘
 notification.reviewthread.inTheFile = {0} 에서:
 notification.reviewthread.reopened = 리뷰 스레드 다시 열림
+notification.resource.deleted = {0} 님에 의해 삭제되었습니다
 notification.send.mail = 수정에 대한 알림 메일 발송
 notification.send.mail.warning = 만약 해당글의 원 작성자가 아니라면 이 옵션은 무시되고 알림 메일이 발송됩니다.
 notification.type.comment.updated = 댓글 수정
@@ -483,6 +484,7 @@ notification.type.pullrequest.review.action.changed = 코드보내기 리뷰 액
 notification.type.pullrequest.reviewed = 코드보내기 리뷰가 완료되었습니다.
 notification.type.pullrequest.state.changed = 코드보내기 상태 변경
 notification.type.pullrequest.unreviewed = 코드보내기 리뷰가 취소되었습니다.
+notification.type.resource.deleted = 삭제되었습니다
 notification.type.review.state.changed = 리뷰 스레드 상태 변경
 notification.unwatch = 그만 지켜보기
 notification.watch = 지켜보기
