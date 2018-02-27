@@ -850,6 +850,7 @@ public class IssueApp extends AbstractPostingApp {
         Call redirectTo =
             routes.IssueApp.issues(project.owner, project.name, State.OPEN.state(), "html", 1);
 
+        NotificationEvent.afterResourceDeleted(issue, UserApp.currentUser());
         return delete(issue, issue.asResource(), redirectTo);
     }
 

@@ -38,7 +38,8 @@ public enum EventType {
     ISSUE_SHARER_CHANGED("notification.type.issue.sharer.changed", 22),
     ISSUE_LABEL_CHANGED("notification.type.issue.label.changed", 23),
     ISSUE_MILESTONE_CHANGED("notification.type.milestone.changed", 24),
-    POSTING_BODY_CHANGED("notification.type.posting.body.changed", 25);
+    POSTING_BODY_CHANGED("notification.type.posting.body.changed", 25),
+    RESOURCE_DELETED("notification.type.resource.deleted", 26);
 
     private String descr;
 

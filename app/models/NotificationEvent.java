@@ -214,6 +214,9 @@ public class NotificationEvent extends Model implements INotificationEvent {
                 } else if (StringUtils.isNotBlank(oldValue)) {
                     return Messages.get(lang, "notification.issue.label.deleted");
                 }
+            case RESOURCE_DELETED:
+                User user = User.findByLoginId(newValue);
+                return Messages.get(lang, "notification.resource.deleted", user.getDisplayName(user));
             default:
                 play.Logger.warn("Unknown event message: " + this);
                 play.Logger.warn("Event Type: " + eventType);
@@ -861,6 +864,21 @@ public class NotificationEvent extends Model implements INotificationEvent {
         notiEvent.eventType = NEW_ISSUE;
         notiEvent.oldValue = null;
         notiEvent.newValue = issue.body;
+        return notiEvent;
+    }
+
+    public static NotificationEvent afterResourceDeleted(AbstractPosting item, User reuqestedUser) {
+        NotificationEvent notiEvent = createFrom(reuqestedUser, item.project);
+        notiEvent.title = formatNewTitle(item);
+        notiEvent.receivers = getReceivers(item, reuqestedUser);
+        notiEvent.eventType = RESOURCE_DELETED;
+        notiEvent.oldValue = item.body;
+        notiEvent.newValue = reuqestedUser.loginId;
+
+        NotificationEvent.add(notiEvent);
+        if (item instanceof Issue) {
+            webhookRequest(RESOURCE_DELETED, (Issue)item, false);
+        }
         return notiEvent;
     }
 

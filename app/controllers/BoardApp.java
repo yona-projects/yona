@@ -380,6 +380,7 @@ public class BoardApp extends AbstractPostingApp {
         Posting posting = Posting.findByNumber(project, number);
         Call redirectTo = routes.BoardApp.posts(project.owner, project.name, 1);
 
+        NotificationEvent.afterResourceDeleted(posting, UserApp.currentUser());
         return delete(posting, posting.asResource(), redirectTo);
     }
 
