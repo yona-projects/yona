@@ -147,6 +147,7 @@ public class UserProjectNotification extends Model {
         List<UserProjectNotification> userProjectNotifications = find.where()
                 .eq("project.id", projectId)
                 .eq("notificationType", eventType)
+                .eq("allowed", true)
                 .findList();
         Set<User> users = new LinkedHashSet<>();
         for (UserProjectNotification notification : userProjectNotifications) {
