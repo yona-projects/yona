@@ -900,16 +900,16 @@ public class IssueApp extends AbstractPostingApp {
     private static Comment saveComment(Project project, Issue issue, IssueComment comment) {
         Comment savedComment;
         IssueComment existingComment = IssueComment.find.where().eq("id", comment.id).findUnique();
-        if (existingComment != null) {
+        if (existingComment == null) {
+            comment.projectId = project.id;
+            savedComment = saveComment(comment, getContainerUpdater(issue, comment));
+            NotificationEvent.afterNewComment(savedComment);
+        } else {
             existingComment.contents = comment.contents;
             savedComment = saveComment(existingComment, getContainerUpdater(issue, comment));
             if(isSelectedToSendNotificationMail() || !existingComment.isAuthoredBy(UserApp.currentUser())){
                 NotificationEvent.afterCommentUpdated(savedComment);
             }
-        } else {
-            comment.projectId = project.id;
-            savedComment = saveComment(comment, getContainerUpdater(issue, comment));
-            NotificationEvent.afterNewComment(savedComment);
         }
         return savedComment;
     }
