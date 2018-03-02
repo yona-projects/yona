@@ -60,12 +60,12 @@ public class WatchProjectApp extends Controller {
         UserProjectNotification userProjectNotification = findOne(user, project, notiType);
         if(userProjectNotification == null) { // not specified yet
             if (isNotifiedByDefault(notiType)) {
-                watchExplictly(user, project, notiType);
-            } else {
                 unwatchExplictly(user, project, notiType);
+            } else {
+                watchExplictly(user, project, notiType);
             }
         } else {
-            userProjectNotification.toggle();
+            userProjectNotification.toggle(notiType);
         }
 
         return ok();

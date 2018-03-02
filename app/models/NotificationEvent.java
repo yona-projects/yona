@@ -39,15 +39,14 @@ import java.beans.Transient;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static models.UserProjectNotification.findEventUnwatchersByEventType;
 import static models.UserProjectNotification.findEventWatchersByEventType;
+import static models.Watch.findUnwatchers;
 import static models.Watch.findWatchers;
 import static models.enumeration.EventType.*;
 
@@ -733,11 +732,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
         NotificationEvent notiEvent = createFrom(author, comment);
         notiEvent.title = formatReplyTitle(post);
         notiEvent.eventType = eventType;
-        Set<User> receivers = getCommentReceivers(comment, author);
-        receivers.addAll(findEventWatchersByEventType(comment.projectId, eventType));
-        receivers.addAll(getMentionedUsers(comment.contents));
-        receivers.remove(author);
-        notiEvent.receivers = receivers;
+        notiEvent.receivers = getMandatoryReceivers(comment, eventType);
         notiEvent.oldValue = null;
         notiEvent.newValue = comment.contents;
         notiEvent.resourceType = comment.asResource().getType();
@@ -776,7 +771,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
 
         NotificationEvent notiEvent = createFromCurrentUser(issue);
         notiEvent.title = formatReplyTitle(issue);
-        notiEvent.receivers = getMandatoryReceivers(issue);
+        notiEvent.receivers = getMandatoryReceivers(issue, EventType.ISSUE_STATE_CHANGED);
         notiEvent.eventType = ISSUE_STATE_CHANGED;
         notiEvent.oldValue = oldState != null ? oldState.state() : null;
         notiEvent.newValue = issue.state.state();
@@ -842,7 +837,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
     }
 
     private static Set<User> getReceiversWhenAssigneeChanged(User oldAssignee, Issue issue) {
-        Set<User> receivers = getMandatoryReceivers(issue);
+        Set<User> receivers = getMandatoryReceivers(issue, ISSUE_ASSIGNEE_CHANGED);
 
         if (oldAssignee != null && !oldAssignee.isAnonymous()
                 && !oldAssignee.loginId.equals(UserApp.currentUser().loginId)) {
@@ -953,7 +948,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
 
         NotificationEvent notiEvent = createFromCurrentUser(issue);
 
-        Set<User> receivers = getMandatoryReceivers(issue);
+        Set<User> receivers = getMandatoryReceivers(issue, ISSUE_MILESTONE_CHANGED);
 
         notiEvent.title = formatReplyTitle(issue);
         notiEvent.receivers = receivers;
@@ -966,7 +961,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
         return notiEvent;
     }
 
-    private static Set<User> getMandatoryReceivers(Issue issue) {
+    private static Set<User> getMandatoryReceivers(Issue issue, EventType eventType) {
         Set<User> receivers = findWatchers(issue.asResource());
         receivers.add(issue.getAuthor());
 
@@ -978,22 +973,74 @@ public class NotificationEvent extends Model implements INotificationEvent {
             receivers.add(issue.assignee.user);
         }
 
+        receivers.addAll(findWatchers(issue.asResource()));
+        receivers.addAll(findEventWatchersByEventType(issue.project.id, eventType));
+
+        receivers.removeAll(findUnwatchers(issue.asResource()));
+        receivers.removeAll(findEventUnwatchersByEventType(issue.project.id, eventType));
         receivers.remove(UserApp.currentUser());
 
         return receivers;
     }
 
-    private static Set<User> getMandatoryReceivers(Posting posting) {
+    private static Set<User> getMandatoryReceivers(Posting posting, EventType eventType) {
         Set<User> receivers = findWatchers(posting.asResource());
         receivers.add(posting.getAuthor());
+        receivers.addAll(findWatchers(posting.asResource()));
+        receivers.addAll(findEventWatchersByEventType(posting.project.id, eventType));
 
+        receivers.removeAll(findUnwatchers(posting.asResource()));
+        receivers.removeAll(findEventUnwatchersByEventType(posting.project.id, eventType));
         receivers.remove(UserApp.currentUser());
 
         return receivers;
+    }
+
+    private static Set<User> getMandatoryReceivers(Comment comment, EventType eventType) {
+        AbstractPosting parent = comment.getParent();
+        Set<User> receivers = findWatchers(parent.asResource());
+        receivers.add(parent.getAuthor());
+        receivers.addAll(findEventWatchersByEventType(comment.projectId, eventType));
+        receivers.addAll(getMentionedUsers(comment.contents));
+        includeAssigneeIfExist(comment, receivers);
+
+        receivers.removeAll(findUnwatchers(parent.asResource()));
+        receivers.removeAll(findEventUnwatchersByEventType(comment.projectId, eventType));
+        receivers.remove(UserApp.currentUser());
+
+        return receivers;
+    }
+
+    private static Set<User> getProjectCommitReceivers(Project project, EventType eventType) {
+        Set<User> receivers = findMembersOnlyFromWatchers(project);
+        receivers.removeAll(findUnwatchers(project.asResource()));
+        receivers.removeAll(findEventUnwatchersByEventType(project.id, eventType));
+        receivers.remove(UserApp.currentUser());
+
+        return receivers;
+    }
+
+    private static Set<User> findMembersOnlyFromWatchers(Project project) {
+        Set<User> receivers = new HashSet<>();
+        Set<User> projectMembers = extractMembers(project);
+        for (User watcher : findWatchers(project.asResource())) {
+            if (projectMembers.contains(watcher)) {
+                receivers.add(watcher);
+            }
+        }
+        return receivers;
+    }
+
+    private static Set<User> extractMembers(Project project) {
+        Set<User> projectMembers = new HashSet<>();
+        for (ProjectUser projectUser : project.members()) {
+            projectMembers.add(projectUser.user);
+        }
+        return projectMembers;
     }
 
     private static Set<User> getReceiversForIssueBodyChanged(String oldBody, Issue issue) {
-        Set<User> receivers = getMandatoryReceivers(issue);
+        Set<User> receivers = getMandatoryReceivers(issue, ISSUE_BODY_CHANGED);
         receivers.addAll(getNewMentionedUsers(oldBody, issue.body));
         receivers.remove(UserApp.currentUser());
         return receivers;
@@ -1020,7 +1067,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
     public static NotificationEvent forUpdatePosting(String oldValue, Posting post, User author) {
         NotificationEvent notiEvent = createFrom(author, post);
         notiEvent.title = formatNewTitle(post);
-        notiEvent.receivers = getMandatoryReceivers(post);
+        notiEvent.receivers = getMandatoryReceivers(post, EventType.POSTING_BODY_CHANGED);
         notiEvent.eventType = POSTING_BODY_CHANGED;
         notiEvent.oldValue = oldValue;
         notiEvent.newValue = post.body;
@@ -1133,10 +1180,10 @@ public class NotificationEvent extends Model implements INotificationEvent {
         NotificationEvent.add(notiEvent);
     }
 
-    public static void afterNewCommits(List<RevCommit> commits, List<String> refNames, Project project, User sender, String title, Set<User> watchers) {
+    public static void afterNewCommits(List<RevCommit> commits, List<String> refNames, Project project, User sender, String title) {
         NotificationEvent notiEvent = createFrom(sender, project);
         notiEvent.title = title;
-        notiEvent.receivers = watchers;
+        notiEvent.receivers = getProjectCommitReceivers(project, NEW_COMMIT);
         notiEvent.eventType = NEW_COMMIT;
         notiEvent.oldValue = null;
         notiEvent.newValue = newCommitsMessage(commits, refNames, project);
@@ -1230,17 +1277,6 @@ public class NotificationEvent extends Model implements INotificationEvent {
         Set<User> receivers = abstractPosting.getWatchers();
         receivers.addAll(getMentionedUsers(abstractPosting.body));
         receivers.remove(except);
-        return receivers;
-    }
-
-    private static Set<User> getCommentReceivers(Comment comment, User except) {
-        AbstractPosting parent = comment.getParent();
-
-        Set<User> receivers = new HashSet<>(findWatchers(parent.asResource()));
-        receivers.add(comment.getParent().getAuthor());
-        includeAssigneeIfExist(comment, receivers);
-        receivers.remove(except);
-
         return receivers;
     }
 

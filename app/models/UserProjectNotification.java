@@ -13,9 +13,7 @@ import javax.persistence.*;
 import java.util.*;
 
 /**
- * User this class when someone want to know whether a user is receiving notification alarm from the project or not
- *
- * @author Keesun Baik
+ * Project notification subscribing settings with events which are customized by user
  */
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"project_id", "user_id", "notification_type"}))
@@ -96,9 +94,13 @@ public class UserProjectNotification extends Model {
                 .findUnique();
     }
 
-    public void toggle() {
+    public void toggle(EventType notificationType) {
         this.allowed = !this.allowed;
-        update();
+        if (allowed == isNotifiedByDefault(notificationType)) {
+            delete();
+        } else {
+            update();
+        }
     }
 
     public static void unwatchExplictly(User user, Project project, EventType notiType) {
@@ -144,10 +146,18 @@ public class UserProjectNotification extends Model {
     }
 
     public static Set<User> findEventWatchersByEventType(Long projectId, EventType eventType) {
+        return findByEventTypeAndOption(projectId, eventType, true);
+    }
+
+    public static Set<User> findEventUnwatchersByEventType(Long projectId, EventType eventType) {
+        return findByEventTypeAndOption(projectId, eventType, false);
+    }
+
+    private static Set<User> findByEventTypeAndOption(Long projectId, EventType eventType, boolean isAllowd) {
         List<UserProjectNotification> userProjectNotifications = find.where()
                 .eq("project.id", projectId)
                 .eq("notificationType", eventType)
-                .eq("allowed", true)
+                .eq("allowed", isAllowd)
                 .findList();
         Set<User> users = new LinkedHashSet<>();
         for (UserProjectNotification notification : userProjectNotifications) {
