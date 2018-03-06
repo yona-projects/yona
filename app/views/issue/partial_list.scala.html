@@ -62,13 +62,16 @@
                     </span>
                     }
 
-                    @if(issue.comments.size>0 || issue.voters.size>0) {
+                    @if(issue.comments.size > 0 || issue.voters.size > 0 || issue.sharers.size > 0) {
                     <span class="infos-item item-count-groups">
                     @if(issue.comments.size>0){
                         @views.html.common.commentCount(routes.IssueApp.issue(project.owner, project.name, issue.getNumber).toString + "#comments", issue.comments.size, true)
                     }
                     @if(issue.voters.size>0){
                         @views.html.common.voteCount(routes.IssueApp.issue(project.owner, project.name, issue.getNumber).toString + "#vote", issue.voters.size, true)
+                    }
+                    @if(issue.sharers.size > 0){
+                        @views.html.common.sharerCount(issue.sharers.size, true)
                     }
                     </span>
                     }

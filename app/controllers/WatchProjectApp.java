@@ -1,7 +1,7 @@
 /**
  * Yona, 21st Century Project Hosting SW
  * <p>
- * Copyright Yona & Yobi Authors & NAVER Corp.
+ * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
  * https://yona.io
  **/
 package controllers;
@@ -20,6 +20,8 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import utils.AccessControl;
 import utils.ErrorViews;
+
+import static models.UserProjectNotification.*;
 
 @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
 public class WatchProjectApp extends Controller {
@@ -55,11 +57,15 @@ public class WatchProjectApp extends Controller {
             return badRequest(Messages.get("error.notfound.watch"));
         }
 
-        UserProjectNotification upn = UserProjectNotification.findOne(user, project, notiType);
-        if(upn == null) { // make the EventType OFF, because default is ON.
-            UserProjectNotification.unwatchExplictly(user, project, notiType);
+        UserProjectNotification userProjectNotification = findOne(user, project, notiType);
+        if(userProjectNotification == null) { // not specified yet
+            if (isNotifiedByDefault(notiType)) {
+                unwatchExplictly(user, project, notiType);
+            } else {
+                watchExplictly(user, project, notiType);
+            }
         } else {
-            upn.toggle();
+            userProjectNotification.toggle(notiType);
         }
 
         return ok();

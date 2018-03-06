@@ -1,7 +1,7 @@
 /**
  * Yona, 21st Century Project Hosting SW
  * <p>
- * Copyright Yona & Yobi Authors & NAVER Corp.
+ * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
  * https://yona.io
  **/
 package models.enumeration;
@@ -34,7 +34,12 @@ public enum EventType {
     REVIEW_THREAD_STATE_CHANGED("notification.type.review.state.changed", 18),
     ORGANIZATION_MEMBER_ENROLL_REQUEST("notification.organization.type.member.enroll",19),
     COMMENT_UPDATED("notification.type.comment.updated", 20),
-    ISSUE_MOVED("notification.type.issue.is.moved", 21);
+    ISSUE_MOVED("notification.type.issue.is.moved", 21),
+    ISSUE_SHARER_CHANGED("notification.type.issue.sharer.changed", 22),
+    ISSUE_LABEL_CHANGED("notification.type.issue.label.changed", 23),
+    ISSUE_MILESTONE_CHANGED("notification.type.milestone.changed", 24),
+    POSTING_BODY_CHANGED("notification.type.posting.body.changed", 25),
+    RESOURCE_DELETED("notification.type.resource.deleted", 26);
 
     private String descr;
 
@@ -83,10 +88,6 @@ public enum EventType {
 
     @Override
     public String toString() {
-        return "EventType{" +
-                "descr='" + descr + '\'' +
-                ", order=" + order +
-                ", messageKey='" + messageKey + '\'' +
-                '}';
+        return name();
     }
 }

@@ -71,10 +71,14 @@
 </div>
 <ul class="gnb-usermenu">
     @if( !currentUser.isAnonymous()) {
+        @if(!StringUtils.isBlank(Application.NAVBAR_CUSTOM_LINK_NAME)) {
+        <li class="gnb-usermenu-item">
+            <a href="@Application.NAVBAR_CUSTOM_LINK_URL" class="user-item-btn loggged-in">@Application.NAVBAR_CUSTOM_LINK_NAME</a>
+        </li>
+        }
        <li class="gnb-usermenu-item hide-in-mobile">
           <a href="@routes.Application.notifications()" class="user-item-btn loggged-in">@Messages("notification")</a>
        </li>
-       <li class="divider hide-in-mobile"></li>
        <li class="gnb-usermenu-item" data-toggle="tooltip" data-placement="bottom" title="@Messages("title.shortcut") (A)">
            <a href="@routes.IssueApp.userIssues()" class="user-item-btn loggged-in">@Messages("issue.myIssue")@myOpenIssueCount</a>
         </li>
@@ -92,7 +96,7 @@
                 <span class="avatar-wrap smaller">
                     <img src="@currentUser.avatarUrl(32)" />
                 </span>
-                <span class="caret-text">@currentUser.name</span>
+                <span class="caret-text hide-in-mobile">@currentUser.getPureNameOnly</span>
                 <span class="caret"></span>
             </a>
         </li>

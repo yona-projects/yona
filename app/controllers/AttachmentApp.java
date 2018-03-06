@@ -1,8 +1,9 @@
 /**
- * Yona, Project Hosting SW
- *
- * Copyright 2016 the original author or authors.
- */
+ * Yona, 21st Century Project Hosting SW
+ * <p>
+ * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+ * https://yona.io
+ **/
 package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -67,7 +68,7 @@ public class AttachmentApp extends Controller {
 
         User uploader = findUploader(request().body().asMultipartFormData().asFormUrlEncoded());
         if (uploader.isAnonymous()) {
-            uploader = User.findByUserToken(request().getHeader("Yona-Token"));
+            uploader = User.findByUserToken(User.extractUserTokenFromRequestHeader(request()));
         }
 
         // Anonymous cannot upload a file.

@@ -1,7 +1,7 @@
 /**
  * Yona, 21st Century Project Hosting SW
  * <p>
- * Copyright Yona & Yobi Authors & NAVER Corp.
+ * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
  * https://yona.io
  **/
 package controllers;
@@ -44,6 +44,7 @@ public class IssueApp extends AbstractPostingApp {
 
     @AnonymousCheck(requiresLogin = false, displaysFlashMessage = true)
     public static Result organizationIssues(@Nonnull String organizationName, @Nonnull String state, @Nonnull String format, int pageNum) throws WriteException, IOException {
+
         // SearchCondition from param
         Form<models.support.SearchCondition> issueParamForm = new Form<>(models.support.SearchCondition.class);
         models.support.SearchCondition searchCondition = issueParamForm.bindFromRequest().get();
@@ -107,7 +108,7 @@ public class IssueApp extends AbstractPostingApp {
 
     private static boolean hasNotConditions(models.support.SearchCondition searchCondition) {
         return searchCondition.assigneeId == null && searchCondition.authorId == null && searchCondition.mentionId == null
-                && searchCondition.commenterId == null;
+                && searchCondition.commenterId == null && searchCondition.sharerId == null;
     }
 
     @Transactional
@@ -384,49 +385,11 @@ public class IssueApp extends AbstractPostingApp {
                 continue;
             }
 
-            boolean assigneeChanged = false;
-            User oldAssignee = null;
-            if (issueMassUpdate.assignee != null) {
-                if(hasAssignee(issue)) {
-                    oldAssignee = issue.assignee.user;
-                }
-                Assignee newAssignee;
-                if (issueMassUpdate.assignee.isAnonymous()) {
-                    newAssignee = null;
-                } else {
-                    newAssignee = Assignee.add(issueMassUpdate.assignee.id, project.id);
-                }
-                assigneeChanged = !issue.assignedUserEquals(newAssignee);
-                issue.assignee = newAssignee;
-            }
-
-            boolean stateChanged = false;
-            State oldState = null;
-            if ((issueMassUpdate.state != null) && (issue.state != issueMassUpdate.state)) {
-                stateChanged = true;
-                oldState = issue.state;
-                issue.state = issueMassUpdate.state;
-            }
-
-            if (issueMassUpdate.milestone != null) {
-                if(issueMassUpdate.milestone.isNullMilestone()) {
-                    issue.milestone = null;
-                } else {
-                    issue.milestone = issueMassUpdate.milestone;
-                }
-            }
-
-            if (issueMassUpdate.attachingLabelIds != null) {
-                for (Long labelId : issueMassUpdate.attachingLabelIds) {
-                    issue.labels.add(IssueLabel.finder.byId(labelId));
-                }
-            }
-
-            if (issueMassUpdate.detachingLabelIds != null) {
-                for (Long labelId : issueMassUpdate.detachingLabelIds) {
-                    issue.labels.remove(IssueLabel.finder.byId(labelId));
-                }
-            }
+            updateAssigneeIfChanged(issueMassUpdate.assignee, project, issue);
+            updateStateIfChanged(issueMassUpdate.state, issue);
+            updateMilestoneIfChanged(issueMassUpdate.milestone, issue);
+            updateLabelIfChanged(issueMassUpdate.attachingLabelIds,
+                    issueMassUpdate.detachingLabelIds, issue);
 
             if (issueMassUpdate.isDueDateChanged) {
                 issue.dueDate = JodaDateUtil.lastSecondOfDay(issueMassUpdate.dueDate);
@@ -435,15 +398,6 @@ public class IssueApp extends AbstractPostingApp {
             issue.updatedDate = JodaDateUtil.now();
             issue.update();
             updatedItems++;
-
-            if(assigneeChanged) {
-                NotificationEvent notiEvent = NotificationEvent.afterAssigneeChanged(oldAssignee, issue);
-                IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
-            }
-            if(stateChanged) {
-                NotificationEvent notiEvent = NotificationEvent.afterStateChanged(oldState, issue);
-                IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
-            }
         }
 
         if (updatedItems == 0 && rejectedByPermission > 0) {
@@ -465,6 +419,106 @@ public class IssueApp extends AbstractPostingApp {
             }
         } else {
             return redirect(request().getHeader("Referer"));
+        }
+    }
+
+    private static void updateLabelIfChanged(List<Long> attachingLabelIds, List<Long> detachingLabelIds,
+                                             Issue issue) {
+        boolean isLabelChanged = false;
+        StringBuilder addedLabels = new StringBuilder();
+        StringBuilder deletedLabels = new StringBuilder();
+
+        if (attachingLabelIds != null) {
+            for (Long labelId : attachingLabelIds) {
+                IssueLabel label = IssueLabel.finder.byId(labelId);
+                issue.labels.add(label);
+                isLabelChanged = true;
+                addedLabels.append(label.category.name).append(" - ").append(label.name);
+            }
+        }
+
+        if (detachingLabelIds != null) {
+            for (Long labelId : detachingLabelIds) {
+                IssueLabel label = IssueLabel.finder.byId(labelId);
+                issue.labels.remove(label);
+                isLabelChanged = true;
+                deletedLabels.append(label.category.name).append(" - ").append(label.name);
+            }
+        }
+
+        if(isLabelChanged) {
+            NotificationEvent notiEvent = NotificationEvent.afterIssueLabelChanged(
+                    addedLabels.toString(),
+                    deletedLabels.toString(),
+                    issue);
+            IssueEvent.addFromNotificationEventWithoutSkipEvent(notiEvent, issue, UserApp.currentUser().loginId);
+        }
+    }
+
+    private static void updateMilestoneIfChanged(Milestone newMilestone, Issue issue) {
+
+        Long oldMilestoneId = issue.milestoneId();
+
+        if (!isMilestoneChanged(newMilestone, issue.milestone)) {
+            return;
+        }
+
+        if(newMilestone.isNullMilestone()) {
+            issue.milestone = null;
+        } else {
+            issue.milestone = newMilestone;
+        }
+        NotificationEvent notiEvent = NotificationEvent.afterMilestoneChanged(oldMilestoneId, issue);
+        IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
+    }
+
+    private static boolean isMilestoneChanged(Milestone newMilestone, Milestone oldMilestone) {
+        if (newMilestone == null) {
+            return false;
+        }
+
+        if (oldMilestone != null && oldMilestone.id.equals(newMilestone.id)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static void updateStateIfChanged(State newState, Issue issue) {
+        boolean stateChanged = false;
+        State oldState = null;
+        if ((newState != null) && (issue.state != newState)) {
+            stateChanged = true;
+            oldState = issue.state;
+            issue.state = newState;
+        }
+        if(stateChanged) {
+            NotificationEvent notiEvent = NotificationEvent.afterStateChanged(oldState, issue);
+            IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
+        }
+    }
+
+    private static void updateAssigneeIfChanged(User assignee, Project project, Issue issue) {
+        boolean assigneeChanged = false;
+        User oldAssignee = null;
+
+        if (assignee != null) {
+            if(hasAssignee(issue)) {
+                oldAssignee = issue.assignee.user;
+            }
+            Assignee newAssignee;
+            if (assignee.isAnonymous()) {
+                newAssignee = null;
+            } else {
+                newAssignee = Assignee.add(assignee.id, project.id);
+            }
+            assigneeChanged = !issue.assignedUserEquals(newAssignee);
+            issue.assignee = newAssignee;
+        }
+
+        if(assigneeChanged) {
+            NotificationEvent notiEvent = NotificationEvent.afterAssigneeChanged(oldAssignee, issue);
+            IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
         }
     }
 
@@ -796,6 +850,7 @@ public class IssueApp extends AbstractPostingApp {
         Call redirectTo =
             routes.IssueApp.issues(project.owner, project.name, State.OPEN.state(), "html", 1);
 
+        NotificationEvent.afterResourceDeleted(issue, UserApp.currentUser());
         return delete(issue, issue.asResource(), redirectTo);
     }
 
@@ -845,16 +900,16 @@ public class IssueApp extends AbstractPostingApp {
     private static Comment saveComment(Project project, Issue issue, IssueComment comment) {
         Comment savedComment;
         IssueComment existingComment = IssueComment.find.where().eq("id", comment.id).findUnique();
-        if (existingComment != null) {
+        if (existingComment == null) {
+            comment.projectId = project.id;
+            savedComment = saveComment(comment, getContainerUpdater(issue, comment));
+            NotificationEvent.afterNewComment(savedComment);
+        } else {
             existingComment.contents = comment.contents;
             savedComment = saveComment(existingComment, getContainerUpdater(issue, comment));
             if(isSelectedToSendNotificationMail() || !existingComment.isAuthoredBy(UserApp.currentUser())){
                 NotificationEvent.afterCommentUpdated(savedComment);
             }
-        } else {
-            comment.projectId = project.id;
-            savedComment = saveComment(comment, getContainerUpdater(issue, comment));
-            NotificationEvent.afterNewComment(savedComment);
         }
         return savedComment;
     }

@@ -27,6 +27,8 @@ import models.resource.GlobalResource;
 import models.resource.Resource;
 import org.apache.commons.lang.BooleanUtils;
 
+import java.util.Optional;
+
 import static models.OrganizationUser.isAdmin;
 import static models.OrganizationUser.isMember;
 
@@ -114,7 +116,8 @@ public class AccessControl {
             return false;
         }
 
-        if (isAllowedIfAuthor(user, container) || isAllowedIfAssignee(user, container)) {
+        if (isAllowedIfAuthor(user, container) || isAllowedIfAssignee(user, container)
+                || isAllowedIfSharer(user, container)) {
             return true;
         }
 
@@ -285,6 +288,7 @@ public class AccessControl {
         case READ:
             return project.isPublic() && !user.isGuest
                     || user.isMemberOf(project)
+                    || isAllowedIfSharer(user, resource)
                     || isAllowedIfGroupMember(project, user);
         case UPDATE:
             return user.isMemberOf(project)
@@ -371,6 +375,17 @@ public class AccessControl {
             return resource.isAuthoredBy(user);
         default:
             return false;
+        }
+    }
+
+    private static boolean isAllowedIfSharer(User user, Resource resource) {
+        switch (resource.getType()) {
+            case ISSUE_POST:
+            case ISSUE_COMMENT:
+                Issue issue = Issue.finder.byId(Long.valueOf(resource.getId()));
+                return issue != null && Optional.ofNullable(issue.findSharerByUserId(user.id)).isPresent();
+            default:
+                return false;
         }
     }
 

@@ -1,0 +1,76 @@
+@**
+* Yona, 21st Century Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp.
+* https://yona.io
+**@
+@(title: String, organization: Organization, currentPage: com.avaje.ebean.Page[PullRequest],
+        condition: controllers.PullRequestApp.SearchCondition, requestType: String)
+
+@import utils.AccessControl
+@import controllers.PullRequestApp.Category
+@import models.PushedBranch
+
+@conditionForOpen = @{condition.clone.setCategory(Category.OPEN)}
+@conditionForClosed = @{condition.clone.setCategory(Category.CLOSED)}
+
+@searchFormAction(category: Category) = @{
+    category match {
+        case Category.CLOSED => {
+            routes.OrganizationApp.organizationClosedPullRequests(organization.name)
+        }
+        case Category.OPEN => {
+            routes.OrganizationApp.organizationPullRequests(organization.name, "open")
+        }
+    }
+}
+
+@organizationLayout(organization.name, utils.MenuType.NONE, organization) {
+    @header(organization)
+    @menu(organization)
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
+            <div pjax-container class="row-fluid cb">
+                <div class="left-menu span2 search-wrap hide-in-mobile" style="padding-top:0;">
+                    <form id="search" name="search" action="@searchFormAction(condition.category)" method="get">
+                        <div class="search">
+                            <div class="search-bar">
+                                <input name="filter" class="textbox full" type="text" value="@condition.filter">
+                                <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="span10 span-hard-wrap" id="span10">
+                    <ul class="nav nav-tabs nm pullrequeset-tab-menu">
+                        <li @if(requestType.equals("open")){class="active"}>
+                            <a href="#" data-url="@searchFormAction(Category.OPEN)" data-type="state">
+                                @Messages("pullRequest.state.open")
+                                <span class="num-badge">@PullRequest.count(conditionForOpen)</span>
+                            </a>
+                        </li>
+                        <li @if(requestType.equals("closed")){class="active"}>
+                            <a href="#" data-url="@searchFormAction(Category.CLOSED)" data-type="state">
+                                @Messages("pullRequest.state.closed")
+                                <span class="num-badge">@PullRequest.count(conditionForClosed)</span>
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="tab-content" style="clear:both;padding-top:15px;">
+                        <div id="list" class="row-fluid tab-pane active">
+                        @views.html.organization.group_pullrequest_list_partial(organization, currentPage)
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <script type="text/javascript">
+                $(function(){
+                    $('.pullrequeset-tab-menu').on('click','[data-type="state"]',function() {
+                        $('#search').attr('action', $(this).data('url'));
+                        $('#search').submit();
+                    });
+                });
+            </script>
+        </div>
+    </div>
+}

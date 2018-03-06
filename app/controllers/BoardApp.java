@@ -1,8 +1,9 @@
 /**
- * Yona, Project Hosting SW
- *
- * Copyright 2016 the original author or authors.
- */
+ * Yona, 21st Century Project Hosting SW
+ * <p>
+ * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+ * https://yona.io
+ **/
 package controllers;
 
 import actions.NullProjectCheckAction;
@@ -353,7 +354,7 @@ public class BoardApp extends AbstractPostingApp {
             public void run() {
                 post.comments = original.comments;
                 if(isSelectedToSendNotificationMail() || !original.isAuthoredBy(UserApp.currentUser())){
-                    NotificationEvent.afterNewPost(post);
+                    NotificationEvent.afterUpdatePosting(original.body, post);
                 }
             }
         };
@@ -379,6 +380,7 @@ public class BoardApp extends AbstractPostingApp {
         Posting posting = Posting.findByNumber(project, number);
         Call redirectTo = routes.BoardApp.posts(project.owner, project.name, 1);
 
+        NotificationEvent.afterResourceDeleted(posting, UserApp.currentUser());
         return delete(posting, posting.asResource(), redirectTo);
     }
 
@@ -436,6 +438,7 @@ public class BoardApp extends AbstractPostingApp {
         return new Runnable() {
             @Override
             public void run() {
+                posting.updatedDate = JodaDateUtil.now();
                 comment.posting = posting;
             }
         };

@@ -75,6 +75,9 @@ public class Issue extends AbstractPosting implements LabelOwner {
     @OneToMany(cascade = CascadeType.ALL, mappedBy="issue")
     public List<IssueEvent> events;
 
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "issue")
+    public Set<IssueSharer> sharers = new LinkedHashSet<>();
+
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
             name = "issue_voter",
@@ -130,6 +133,13 @@ public class Issue extends AbstractPosting implements LabelOwner {
 
     public String assigneeName() {
         return ((assignee != null && assignee.user != null) ? assignee.user.name : null);
+    }
+
+    public Long milestoneId() {
+        if (milestone == null) {
+            return Milestone.NULL_MILESTONE_ID;
+        }
+        return milestone.id;
     }
 
     public boolean hasAssignee() {
@@ -245,6 +255,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
                 Messages.get("issue.label"),
                 Messages.get("issue.createdDate"),
                 Messages.get("issue.dueDate"),
+                Messages.get("milestone"),
                 "URL",
                 Messages.get("common.comment"),
                 Messages.get("common.comment.author"),
@@ -261,6 +272,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
 
             lineNumber++;
             int columnPos = 0;
+            String milestoneName = issue.milestone != null ? issue.milestone.title : "";
             sheet.addCell(new jxl.write.Label(columnPos++, lineNumber, issue.getNumber().toString(), bodyCellFormat));
             sheet.addCell(new jxl.write.Label(columnPos++, lineNumber, issue.state.toString(), bodyCellFormat));
             sheet.addCell(new jxl.write.Label(columnPos++, lineNumber, issue.title, bodyCellFormat));
@@ -269,6 +281,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
             sheet.addCell(new jxl.write.Label(columnPos++, lineNumber, getIssueLabels(issue), bodyCellFormat));
             sheet.addCell(new jxl.write.DateTime(columnPos++, lineNumber, issue.createdDate, dateCellFormat));
             sheet.addCell(new jxl.write.Label(columnPos++, lineNumber, JodaDateUtil.geYMDDate(issue.dueDate), bodyCellFormat));
+            sheet.addCell(new jxl.write.Label(columnPos++, lineNumber, milestoneName, bodyCellFormat));
             sheet.addCell(new jxl.write.Label(columnPos++, lineNumber, controllers.routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.number).toString(), bodyCellFormat));
             if (comments.size() > 0) {
                 for (int j = 0; j < comments.size(); j++) {
@@ -672,6 +685,26 @@ public class Issue extends AbstractPosting implements LabelOwner {
     public static int countOpenIssuesByUser(User user) {
         return finder.where()
                 .eq("assignee.user.id", user.id)
+                .eq("state", State.OPEN)
+                .findRowCount();
+    }
+
+    public IssueSharer findSharerByUserId(Long id){
+        for (IssueSharer sharer : sharers) {
+            if (sharer.user.id.equals(id)) {
+                return sharer;
+            }
+        }
+        return null;
+    }
+
+    public List<IssueSharer> getSortedSharer() {
+        return new ArrayList<>(sharers);
+    }
+
+    public static int getCountOfMentionedOpenIssues(Long userId) {
+        return finder.where()
+                .in("id", Mention.getMentioningIssueIds(userId))
                 .eq("state", State.OPEN)
                 .findRowCount();
     }

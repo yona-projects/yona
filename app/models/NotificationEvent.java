@@ -1,7 +1,7 @@
 /**
  * Yona, 21st Century Project Hosting SW
  * <p>
- * Copyright Yona & Yobi Authors & NAVER Corp.
+ * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
  * https://yona.io
  **/
 package models;
@@ -14,7 +14,6 @@ import models.enumeration.*;
 import models.resource.GlobalResource;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
-import models.Webhook;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang3.StringUtils;
@@ -29,23 +28,26 @@ import play.libs.Akka;
 import playRepository.*;
 import scala.concurrent.duration.Duration;
 import utils.AccessControl;
+import utils.DiffUtil;
 import utils.EventConstants;
 import utils.RouteUtil;
 
 import javax.naming.LimitExceededException;
 import javax.persistence.*;
 import javax.servlet.ServletException;
+import java.beans.Transient;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static models.UserProjectNotification.findEventUnwatchersByEventType;
+import static models.UserProjectNotification.findEventWatchersByEventType;
+import static models.Watch.findUnwatchers;
+import static models.Watch.findWatchers;
 import static models.enumeration.EventType.*;
 
 @Entity
@@ -108,6 +110,10 @@ public class NotificationEvent extends Model implements INotificationEvent {
         return oldValue;
     }
 
+    public String getNewValue() {
+        return newValue;
+    }
+
     @Transient
     public String getMessage() {
         return getMessage(Lang.defaultLang());
@@ -128,14 +134,18 @@ public class NotificationEvent extends Model implements INotificationEvent {
                 } else {
                     return Messages.get(lang, "notification.issue.assigned", newValue);
                 }
+            case ISSUE_MILESTONE_CHANGED:
+                return Messages.get(lang, "notification.milestone.changed", newValue);
             case NEW_ISSUE:
             case NEW_POSTING:
             case NEW_COMMENT:
             case NEW_PULL_REQUEST:
             case NEW_COMMIT:
-            case ISSUE_BODY_CHANGED:
             case COMMENT_UPDATED:
                 return newValue;
+            case ISSUE_BODY_CHANGED:
+            case POSTING_BODY_CHANGED:
+                return DiffUtil.getDiffText(oldValue, newValue);
             case NEW_REVIEW_COMMENT:
                 try {
                     ReviewComment reviewComment = ReviewComment.find.byId(Long.valueOf(this.resourceId));
@@ -189,8 +199,44 @@ public class NotificationEvent extends Model implements INotificationEvent {
                 }
             case ISSUE_MOVED:
                     return Messages.get(lang, "notification.type.issue.moved", oldValue, newValue);
+            case ISSUE_SHARER_CHANGED:
+                if (StringUtils.isNotBlank(newValue)) {
+                    User user = User.findByLoginId(newValue);
+                    return Messages.get(lang, "notification.issue.sharer.added", user.getDisplayName(user));
+                } else if (StringUtils.isNotBlank(oldValue)) {
+                    return Messages.get(lang, "notification.issue.sharer.deleted");
+                }
+            case ISSUE_LABEL_CHANGED:
+                if (StringUtils.isNotBlank(newValue)) {
+                    User user = User.findByLoginId(newValue);
+                    return Messages.get(lang, "notification.issue.label.added", user.getDisplayName(user));
+                } else if (StringUtils.isNotBlank(oldValue)) {
+                    return Messages.get(lang, "notification.issue.label.deleted");
+                }
+            case RESOURCE_DELETED:
+                User user = User.findByLoginId(newValue);
+                return Messages.get(lang, "notification.resource.deleted", user.getDisplayName(user));
             default:
-                return null;
+                play.Logger.warn("Unknown event message: " + this);
+                play.Logger.warn("Event Type: " + eventType);
+                play.Logger.warn("See: NotificationEvent.getMessage");
+                return eventType.getDescr();
+        }
+    }
+
+    @Transient
+    public String getPlainMessage() {
+        return getPlainMessage(Lang.defaultLang());
+    }
+
+    @Transient
+    public String getPlainMessage(Lang lang) {
+        switch(eventType) {
+            case ISSUE_BODY_CHANGED:
+            case POSTING_BODY_CHANGED:
+                return DiffUtil.getDiffPlainText(oldValue, newValue);
+            default:
+                return getMessage(lang);
         }
     }
 
@@ -360,8 +406,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
                 .orderBy("id desc").setMaxRows(1).findUnique();
 
         if (lastEvent != null) {
-            if (lastEvent.eventType == event.eventType &&
-                    event.senderId.equals(lastEvent.senderId)) {
+            if (isSameUserEventAsPrevious(event, lastEvent)) {
                 // If the last event is A -> B and the current event is B -> C,
                 // they are merged into the new event A -> C.
                 event.oldValue = lastEvent.getOldValue();
@@ -381,6 +426,55 @@ public class NotificationEvent extends Model implements INotificationEvent {
         }
         event.save();
         event.saveManyToManyAssociations("receivers");
+    }
+
+    public static void addWithoutSkipEvent(NotificationEvent event) {
+        if (event.notificationMail == null) {
+            event.notificationMail = new NotificationMail();
+            event.notificationMail.notificationEvent = event;
+        }
+
+        Date draftDate = DateTime.now().minusMillis(EventConstants.DRAFT_TIME_IN_MILLIS).toDate();
+
+        NotificationEvent lastEvent = NotificationEvent.find.where()
+                .eq("resourceId", event.resourceId)
+                .eq("resourceType", event.resourceType)
+                .gt("created", draftDate)
+                .orderBy("id desc").setMaxRows(1).findUnique();
+
+        if (lastEvent != null) {
+            if (isSameUserEventAsPrevious(event, lastEvent) &&
+                    isRevertingTheValue(event, lastEvent)) {
+                lastEvent.delete();
+                return;
+            }
+        }
+
+        if(isAddingSharerEvent(event)){
+            filterReceivers(event);
+        }
+
+        if (event.receivers.isEmpty()) {
+            return;
+        }
+        event.save();
+        event.saveManyToManyAssociations("receivers");
+    }
+
+    private static boolean isSameUserEventAsPrevious(NotificationEvent event, NotificationEvent lastEvent) {
+        return lastEvent.eventType == event.eventType &&
+                event.senderId.equals(lastEvent.senderId);
+    }
+
+    private static boolean isRevertingTheValue(NotificationEvent event, NotificationEvent lastEvent) {
+        return StringUtils.equals(event.oldValue, lastEvent.newValue) &&
+                StringUtils.equals(event.newValue, lastEvent.oldValue);
+    }
+
+    private static boolean isAddingSharerEvent(NotificationEvent event) {
+        return event.eventType.equals(EventType.ISSUE_SHARER_CHANGED)
+            && StringUtils.isBlank(event.oldValue)
+            && StringUtils.isNotBlank(event.newValue);
     }
 
     private static void filterReceivers(final NotificationEvent event) {
@@ -638,10 +732,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
         NotificationEvent notiEvent = createFrom(author, comment);
         notiEvent.title = formatReplyTitle(post);
         notiEvent.eventType = eventType;
-        Set<User> receivers = getReceivers(post, author);
-        receivers.addAll(getMentionedUsers(comment.contents));
-        receivers.remove(author);
-        notiEvent.receivers = receivers;
+        notiEvent.receivers = getMandatoryReceivers(comment, eventType);
         notiEvent.oldValue = null;
         notiEvent.newValue = comment.contents;
         notiEvent.resourceType = comment.asResource().getType();
@@ -680,7 +771,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
 
         NotificationEvent notiEvent = createFromCurrentUser(issue);
         notiEvent.title = formatReplyTitle(issue);
-        notiEvent.receivers = getReceivers(issue);
+        notiEvent.receivers = getMandatoryReceivers(issue, EventType.ISSUE_STATE_CHANGED);
         notiEvent.eventType = ISSUE_STATE_CHANGED;
         notiEvent.oldValue = oldState != null ? oldState.state() : null;
         notiEvent.newValue = issue.state.state();
@@ -728,12 +819,9 @@ public class NotificationEvent extends Model implements INotificationEvent {
 
         NotificationEvent notiEvent = createFromCurrentUser(issue);
 
-        Set<User> receivers = getReceivers(issue);
+        Set<User> receivers = getReceiversWhenAssigneeChanged(oldAssignee, issue);
         if(oldAssignee != null) {
             notiEvent.oldValue = oldAssignee.loginId;
-            if(!oldAssignee.loginId.equals(UserApp.currentUser().loginId)) {
-                receivers.add(oldAssignee);
-            }
         }
 
         if (issue.assignee != null) {
@@ -748,6 +836,17 @@ public class NotificationEvent extends Model implements INotificationEvent {
         return notiEvent;
     }
 
+    private static Set<User> getReceiversWhenAssigneeChanged(User oldAssignee, Issue issue) {
+        Set<User> receivers = getMandatoryReceivers(issue, ISSUE_ASSIGNEE_CHANGED);
+
+        if (oldAssignee != null && !oldAssignee.isAnonymous()
+                && !oldAssignee.loginId.equals(UserApp.currentUser().loginId)) {
+            receivers.add(oldAssignee);
+        }
+
+        return receivers;
+    }
+
     public static void afterNewIssue(Issue issue) {
         NotificationEvent.add(forNewIssue(issue, UserApp.currentUser()));
         webhookRequest(NEW_ISSUE, issue, false);
@@ -760,6 +859,21 @@ public class NotificationEvent extends Model implements INotificationEvent {
         notiEvent.eventType = NEW_ISSUE;
         notiEvent.oldValue = null;
         notiEvent.newValue = issue.body;
+        return notiEvent;
+    }
+
+    public static NotificationEvent afterResourceDeleted(AbstractPosting item, User reuqestedUser) {
+        NotificationEvent notiEvent = createFrom(reuqestedUser, item.project);
+        notiEvent.title = formatNewTitle(item);
+        notiEvent.receivers = getReceivers(item, reuqestedUser);
+        notiEvent.eventType = RESOURCE_DELETED;
+        notiEvent.oldValue = item.body;
+        notiEvent.newValue = reuqestedUser.loginId;
+
+        NotificationEvent.add(notiEvent);
+        if (item instanceof Issue) {
+            webhookRequest(RESOURCE_DELETED, (Issue)item, false);
+        }
         return notiEvent;
     }
 
@@ -793,8 +907,140 @@ public class NotificationEvent extends Model implements INotificationEvent {
         return notiEvent;
     }
 
+    public static NotificationEvent afterIssueSharerChanged(Issue issue, String sharerLoginId, String action) {
+        NotificationEvent notiEvent = createFromCurrentUser(issue);
+        notiEvent.title = formatReplyTitle(issue);
+        notiEvent.receivers = findSharer(sharerLoginId);
+        notiEvent.eventType = ISSUE_SHARER_CHANGED;
+        if (IssueSharer.ADD.equalsIgnoreCase(action)) {
+            notiEvent.oldValue = "";
+            notiEvent.newValue = sharerLoginId;
+        } else if (IssueSharer.DELETE.equalsIgnoreCase(action)) {
+            notiEvent.oldValue = sharerLoginId;
+            notiEvent.newValue = "";
+        }
+
+        NotificationEvent.addWithoutSkipEvent(notiEvent);
+
+        return notiEvent;
+    }
+
+    private static Set<User> findSharer(String sharerLoginId) {
+        Set<User> receivers = new HashSet<>();
+        receivers.add(User.findByLoginId(sharerLoginId));
+        return receivers;
+    }
+
+    public static NotificationEvent afterIssueLabelChanged(String addedLabels, String deletedLabels, Issue issue) {
+        NotificationEvent notiEvent = createFromCurrentUser(issue);
+        notiEvent.title = formatReplyTitle(issue);
+        notiEvent.receivers = null; // no receivers
+        notiEvent.eventType = ISSUE_LABEL_CHANGED;
+        notiEvent.oldValue = deletedLabels;
+        notiEvent.newValue = addedLabels;
+
+        NotificationEvent.addWithoutSkipEvent(notiEvent);
+        return notiEvent;
+    }
+
+    public static NotificationEvent afterMilestoneChanged(Long oldMilestoneId, Issue issue) {
+        webhookRequest(ISSUE_MILESTONE_CHANGED, issue, false);
+
+        NotificationEvent notiEvent = createFromCurrentUser(issue);
+
+        Set<User> receivers = getMandatoryReceivers(issue, ISSUE_MILESTONE_CHANGED);
+
+        notiEvent.title = formatReplyTitle(issue);
+        notiEvent.receivers = receivers;
+        notiEvent.eventType = ISSUE_MILESTONE_CHANGED;
+        notiEvent.oldValue = oldMilestoneId.toString();
+        notiEvent.newValue = issue.milestoneId().toString();
+
+        NotificationEvent.add(notiEvent);
+
+        return notiEvent;
+    }
+
+    private static Set<User> getMandatoryReceivers(Issue issue, EventType eventType) {
+        Set<User> receivers = findWatchers(issue.asResource());
+        receivers.add(issue.getAuthor());
+
+        for (IssueSharer issueSharer : issue.sharers) {
+            receivers.add(User.findByLoginId(issueSharer.loginId));
+        }
+
+        if (issue.assignee != null) {
+            receivers.add(issue.assignee.user);
+        }
+
+        receivers.addAll(findWatchers(issue.asResource()));
+        receivers.addAll(findEventWatchersByEventType(issue.project.id, eventType));
+
+        receivers.removeAll(findUnwatchers(issue.asResource()));
+        receivers.removeAll(findEventUnwatchersByEventType(issue.project.id, eventType));
+        receivers.remove(UserApp.currentUser());
+
+        return receivers;
+    }
+
+    private static Set<User> getMandatoryReceivers(Posting posting, EventType eventType) {
+        Set<User> receivers = findWatchers(posting.asResource());
+        receivers.add(posting.getAuthor());
+        receivers.addAll(findWatchers(posting.asResource()));
+        receivers.addAll(findEventWatchersByEventType(posting.project.id, eventType));
+
+        receivers.removeAll(findUnwatchers(posting.asResource()));
+        receivers.removeAll(findEventUnwatchersByEventType(posting.project.id, eventType));
+        receivers.remove(UserApp.currentUser());
+
+        return receivers;
+    }
+
+    private static Set<User> getMandatoryReceivers(Comment comment, EventType eventType) {
+        AbstractPosting parent = comment.getParent();
+        Set<User> receivers = findWatchers(parent.asResource());
+        receivers.add(parent.getAuthor());
+        receivers.addAll(findEventWatchersByEventType(comment.projectId, eventType));
+        receivers.addAll(getMentionedUsers(comment.contents));
+        includeAssigneeIfExist(comment, receivers);
+
+        receivers.removeAll(findUnwatchers(parent.asResource()));
+        receivers.removeAll(findEventUnwatchersByEventType(comment.projectId, eventType));
+        receivers.remove(UserApp.currentUser());
+
+        return receivers;
+    }
+
+    private static Set<User> getProjectCommitReceivers(Project project, EventType eventType) {
+        Set<User> receivers = findMembersOnlyFromWatchers(project);
+        receivers.removeAll(findUnwatchers(project.asResource()));
+        receivers.removeAll(findEventUnwatchersByEventType(project.id, eventType));
+        receivers.remove(UserApp.currentUser());
+
+        return receivers;
+    }
+
+    private static Set<User> findMembersOnlyFromWatchers(Project project) {
+        Set<User> receivers = new HashSet<>();
+        Set<User> projectMembers = extractMembers(project);
+        for (User watcher : findWatchers(project.asResource())) {
+            if (projectMembers.contains(watcher)) {
+                receivers.add(watcher);
+            }
+        }
+        return receivers;
+    }
+
+    private static Set<User> extractMembers(Project project) {
+        Set<User> projectMembers = new HashSet<>();
+        for (ProjectUser projectUser : project.members()) {
+            projectMembers.add(projectUser.user);
+        }
+        return projectMembers;
+    }
+
     private static Set<User> getReceiversForIssueBodyChanged(String oldBody, Issue issue) {
-        Set<User> receivers = issue.getWatchers();
+        Set<User> receivers = getMandatoryReceivers(issue, ISSUE_BODY_CHANGED);
         receivers.addAll(getNewMentionedUsers(oldBody, issue.body));
         receivers.remove(UserApp.currentUser());
         return receivers;
@@ -804,12 +1050,26 @@ public class NotificationEvent extends Model implements INotificationEvent {
         NotificationEvent.add(forNewPosting(post, UserApp.currentUser()));
     }
 
+    public static void afterUpdatePosting(String oldValue, Posting post) {
+        NotificationEvent.add(forUpdatePosting(oldValue, post, UserApp.currentUser()));
+    }
+
     public static NotificationEvent forNewPosting(Posting post, User author) {
         NotificationEvent notiEvent = createFrom(author, post);
         notiEvent.title = formatNewTitle(post);
         notiEvent.receivers = getReceivers(post);
         notiEvent.eventType = NEW_POSTING;
         notiEvent.oldValue = null;
+        notiEvent.newValue = post.body;
+        return notiEvent;
+    }
+
+    public static NotificationEvent forUpdatePosting(String oldValue, Posting post, User author) {
+        NotificationEvent notiEvent = createFrom(author, post);
+        notiEvent.title = formatNewTitle(post);
+        notiEvent.receivers = getMandatoryReceivers(post, EventType.POSTING_BODY_CHANGED);
+        notiEvent.eventType = POSTING_BODY_CHANGED;
+        notiEvent.oldValue = oldValue;
         notiEvent.newValue = post.body;
         return notiEvent;
     }
@@ -920,10 +1180,10 @@ public class NotificationEvent extends Model implements INotificationEvent {
         NotificationEvent.add(notiEvent);
     }
 
-    public static void afterNewCommits(List<RevCommit> commits, List<String> refNames, Project project, User sender, String title, Set<User> watchers) {
+    public static void afterNewCommits(List<RevCommit> commits, List<String> refNames, Project project, User sender, String title) {
         NotificationEvent notiEvent = createFrom(sender, project);
         notiEvent.title = title;
-        notiEvent.receivers = watchers;
+        notiEvent.receivers = getProjectCommitReceivers(project, NEW_COMMIT);
         notiEvent.eventType = NEW_COMMIT;
         notiEvent.oldValue = null;
         notiEvent.newValue = newCommitsMessage(commits, refNames, project);
@@ -1018,6 +1278,15 @@ public class NotificationEvent extends Model implements INotificationEvent {
         receivers.addAll(getMentionedUsers(abstractPosting.body));
         receivers.remove(except);
         return receivers;
+    }
+
+    private static void includeAssigneeIfExist(Comment comment, Set<User> receivers) {
+        if (comment instanceof IssueComment) {
+            Assignee assignee = ((Issue) comment.getParent()).assignee;
+            if (assignee != null) {
+                receivers.add(assignee.user);
+            }
+        }
     }
 
     private static String getPrefixedNumber(AbstractPosting posting) {
@@ -1265,5 +1534,22 @@ public class NotificationEvent extends Model implements INotificationEvent {
     public static void afterCommentUpdated(Comment comment) {
         webhookRequest(COMMENT_UPDATED, comment, false);
         NotificationEvent.add(forUpdatedComment(comment, UserApp.currentUser()));
+    }
+
+    @Override
+    public String toString() {
+        return "NotificationEvent{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", senderId=" + senderId +
+                ", receivers=" + receivers +
+                ", created=" + created +
+                ", resourceType=" + resourceType +
+                ", resourceId='" + resourceId + '\'' +
+                ", eventType=" + eventType +
+                ", oldValue='" + oldValue + '\'' +
+                ", newValue='" + newValue + '\'' +
+                ", notificationMail=" + notificationMail +
+                '}';
     }
 }

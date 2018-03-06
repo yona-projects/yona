@@ -315,10 +315,17 @@ public class Webhook extends Model implements ResourceConvertible {
             case ISSUE_MOVED:
                 requestMessage += Messages.get(Lang.defaultLang(), "notification.type.issue.moved");
                 break;
+            case ISSUE_MILESTONE_CHANGED:
+                requestMessage += Messages.get(Lang.defaultLang(), "notification.type.milestone.changed");
+                break;
+            default:
+                play.Logger.warn("Unknown webhook event: " + eventType);
         }
+
         requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(eventIssue) + "|#" + eventIssue.number + ": " + eventIssue.title + ">";
 
-        detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "issue.assignee"), eventIssue.assigneeName(), true));
+        detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "notification.type.milestone.changed"), eventIssue.milestoneId().toString(), true));
+        detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), ""), eventIssue.assigneeName(), true));
         detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "issue.state"), eventIssue.state.toString(), true));
         attachments.add(buildAttachmentJSON(eventIssue.body, detailFields));
 

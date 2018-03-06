@@ -49,4 +49,11 @@ public class FavoriteProject extends Model {
             favoriteProject.update();
         }
     }
+
+    public static FavoriteProject findByProjectId(Long userId, Long projectId){
+        return finder.where()
+                .eq("user.id", userId)
+                .eq("project.id", projectId)
+                .findUnique();
+    }
 }

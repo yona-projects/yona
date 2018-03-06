@@ -1,23 +1,10 @@
 /**
- * Yobi, Project Hosting SW
- *
- * Copyright 2013 NAVER Corp.
- * http://yobi.io
- *
- * @author Yi EungJun
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+ * Yona, 21st Century Project Hosting SW
+ * <p>
+ * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+ * https://yona.io
+ **/
+
 package models;
 
 import models.enumeration.EventType;
@@ -91,8 +78,7 @@ public class IssueEvent extends Model implements TimelineItem {
                 .orderBy("id desc").setMaxRows(1).findUnique();
 
         if (lastEvent != null) {
-            if (lastEvent.eventType == event.eventType &&
-                    StringUtils.equals(event.senderLoginId, lastEvent.senderLoginId)) {
+            if (isSameUserEventAsPrevious(event, lastEvent)) {
                 // A -> B, B -> C ==> A -> C
                 event.oldValue = lastEvent.oldValue;
                 lastEvent.delete();
@@ -107,6 +93,45 @@ public class IssueEvent extends Model implements TimelineItem {
         }
 
         event.save();
+    }
+
+
+    /**
+     * It is nearly same as {@link #add(IssueEvent)} except that it doesn't skip waypoint events.
+     *
+     * For example, if events of an issue are occurred continuously
+     * A -> B -> C, then {@link #add(IssueEvent)} method skip B.
+     *
+     * This method doesn't skip B and leave it.
+     *
+     * @param event
+     */
+    public static void addWithoutSkipEvent(IssueEvent event) {
+        Date draftDate = DateTime.now().minusMillis(DRAFT_TIME_IN_MILLIS).toDate();
+
+        IssueEvent lastEvent = IssueEvent.find.where()
+                .eq("issue.id", event.issue.id)
+                .gt("created", draftDate)
+                .orderBy("id desc").setMaxRows(1).findUnique();
+
+        if (lastEvent != null) {
+            if (isSameUserEventAsPrevious(event, lastEvent) &&
+                    isRevertingTheValue(event, lastEvent)) {
+                lastEvent.delete();
+                return;
+            }
+        }
+        event.save();
+    }
+
+    private static boolean isRevertingTheValue(IssueEvent event, IssueEvent lastEvent) {
+        return StringUtils.equals(event.oldValue, lastEvent.newValue) &&
+                StringUtils.equals(event.newValue, lastEvent.oldValue);
+    }
+
+    private static boolean isSameUserEventAsPrevious(IssueEvent event, IssueEvent lastEvent) {
+        return lastEvent.eventType == event.eventType &&
+                StringUtils.equals(event.senderLoginId, lastEvent.senderLoginId);
     }
 
     /**
@@ -128,6 +153,18 @@ public class IssueEvent extends Model implements TimelineItem {
         event.oldValue = notiEvent.oldValue;
         event.newValue = notiEvent.newValue;
         add(event);
+    }
+
+    public static void addFromNotificationEventWithoutSkipEvent(NotificationEvent notiEvent, Issue updatedIssue,
+                                                String senderLoginId) {
+        IssueEvent event = new IssueEvent();
+        event.created = notiEvent.created;
+        event.senderLoginId = senderLoginId;
+        event.issue = updatedIssue;
+        event.eventType = notiEvent.eventType;
+        event.oldValue = notiEvent.oldValue;
+        event.newValue = notiEvent.newValue;
+        addWithoutSkipEvent(event);
     }
 
     @Override

@@ -59,9 +59,6 @@
                     <li class="@isActiveMenu(routes.SiteApp.massMail())">
                         <a href="@routes.SiteApp.massMail()">@Messages("site.sidebar.massMail")</a>
                     </li>
-                    <li class="@isActiveMenu(routes.SiteApp.data())">
-                        <a href="@routes.SiteApp.data()">@Messages("site.sidebar.data")</a>
-                    </li>
                     <li class="@isActiveMenu(routes.SiteApp.update())">
                         <a href="@routes.SiteApp.update()">@Messages("site.sidebar.update")
                         @if(YobiUpdate.versionToUpdate != null) { <span class="notification-badge">1</span> }

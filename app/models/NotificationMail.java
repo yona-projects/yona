@@ -1,7 +1,7 @@
 /**
  * Yona, 21st Century Project Hosting SW
  * <p>
- * Copyright Yona & Yobi Authors & NAVER Corp.
+ * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
  * https://yona.io
  **/
 package models;
@@ -533,8 +533,9 @@ public class NotificationMail extends Model {
             Lang lang = Lang.apply(langCode);
 
             String message = event.getMessage(lang);
+            String plainMessage = event.getPlainMessage(lang);
 
-            if (message == null) {
+            if (message == null || plainMessage == null) {
                 return;
             }
 
@@ -546,8 +547,15 @@ public class NotificationMail extends Model {
                 IssueComment issueComment = IssueComment.find.byId(Long.valueOf(resource.getId()));
                 resource = issueComment.issue.asResource();
             }
-            email.setHtmlMsg(removeHeadAnchor(getHtmlMessage(lang, message, urlToView, resource, acceptsReply)));
-            email.setTextMsg(getPlainMessage(lang, message, Url.create(urlToView), acceptsReply));
+
+            // ToDo: needed to refactor
+            if (event.getType() == EventType.ISSUE_BODY_CHANGED ||
+                    event.getType() == EventType.POSTING_BODY_CHANGED) {
+                email.setHtmlMsg(removeHeadAnchor(getRenderedMail(lang, message, urlToView, resource, acceptsReply)));
+            } else {
+                email.setHtmlMsg(removeHeadAnchor(getHtmlMessage(lang, message, urlToView, resource, acceptsReply)));
+            }
+            email.setTextMsg(getPlainMessage(lang, plainMessage, Url.create(urlToView), acceptsReply));
 
             email.addReferences();
             email.setSentDate(event.getCreatedDate());
@@ -609,15 +617,23 @@ public class NotificationMail extends Model {
 
     private static String getHtmlMessage(Lang lang, String message, String urlToView,
                                          Resource resource, boolean acceptsReply) {
+
         String renderred = null;
 
-        if( resource != null) {
+        if(resource != null) {
             renderred = Markdown.render(message, resource.getProject(), lang.code());
         } else {
             renderred = Markdown.render(message);
         }
+
+        return getRenderedMail(lang, renderred, urlToView, resource, acceptsReply);
+    }
+
+    private static String getRenderedMail(Lang lang, String message, String urlToView,
+                                          Resource resource, boolean acceptsReply) {
+
         String content = views.html.common.notificationMail.render(
-                lang, renderred, urlToView, resource, acceptsReply).toString();
+                lang, message, urlToView, resource, acceptsReply).toString();
 
         Document doc = Jsoup.parse(content);
 
@@ -687,13 +703,7 @@ public class NotificationMail extends Model {
 
     private static String getPlainMessage(Lang lang, String message, String urlToView, boolean acceptsReply) {
         String msg = message;
-        String url = urlToView;
-        String messageKey = acceptsReply ?
-                "notification.replyOrLinkToView" : "notification.linkToView";
-
-        if (url != null) {
-            msg += String.format("\n\n--\n" + HttpUtil.decodeUrlString(Messages.get(lang, messageKey, url)));
-        }
+        msg += "\n\n Yona 에서 자세히 보거나 혹은 이 메일에 직접 회신하실 수도 있습니다.";
 
         return msg;
     }
