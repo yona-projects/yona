@@ -77,45 +77,6 @@
 
 @VOTER_AVATAR_SHOW_LIMIT = @{ 5 }
 
-@showChildIssues(parentIssueId: Long) = {
-@defining(Issue.findByParentIssueIdAndState(parentIssueId, State.OPEN)) { openChildIssues =>
-    @defining(Issue.findByParentIssueIdAndState(parentIssueId, State.CLOSED)) { closedChildIssues =>
-        @if(!openChildIssues.isEmpty || !closedChildIssues.isEmpty) {
-            <div class="child-issues">
-                @defining(Issue.finder.byId(parentIssueId)) { parentIssue =>
-                    <div class="issue-item parent-issue"><a href="@routes.IssueApp.issue(parentIssue.project.owner, parentIssue.project.name, parentIssue.getNumber)" class="@if(parentIssue.id == issue.id){bold}">#@parentIssue.getNumber @parentIssue.title @if(parentIssue.assignee != null) {- @parentIssue.assignee.user.getPureNameOnly}</a>
-                        @defining(getPercent(closedChildIssues.size.toDouble, (openChildIssues.size + closedChildIssues.size).toDouble)) { percentage =>
-                        <div class="upload-progress @if(percentage == 100){done-outline} else {red-outline}">
-                            <div class="bar @if(percentage == 100){done} else {red}" style="width: @percentage%;" title="Subtask"></div>
-                        </div>
-                        <span class="@if(percentage == 100){txt-green}">@if(percentage != 100){@closedChildIssues.size/}@(openChildIssues.size + closedChildIssues.size)</span>
-                        <span class="parent-issue-state @parentIssue.state.state">@Messages("issue.state." + parentIssue.state.state)</span>
-                    </div>
-                }
-                }
-                <hr class="parent-issue-delimeter"/>
-                @for(childIssue <- openChildIssues) {
-                    <div class="issue-item @if(childIssue.id == issue.id){selected-child}">
-                        <span class="state-label open"></span>
-                        <a href="@routes.IssueApp.issue(childIssue.project.owner, childIssue.project.name, childIssue.getNumber)">
-                            <span class="item-name"><span class="subtask-number">#@childIssue.getNumber</span> @childIssue.title@if(childIssue.assignee != null) { - @childIssue.assignee.user.getPureNameOnly}</span></a>
-                        <span class="font12 no-border-at-child">@common.commentAndVoterPairDisplay(childIssue, project)</span>
-                    </div>
-                }
-                @for(childIssue <- closedChildIssues) {
-                    <div class="issue-item @if(childIssue.id == issue.id){selected-child}">
-                        <span class="state-label closed"><i class=" yobicon-checkmark"></i></span>
-                        <a href="@routes.IssueApp.issue(childIssue.project.owner, childIssue.project.name, childIssue.getNumber)">
-                            <span class="item-name"><span class="subtask-number">#@childIssue.getNumber</span> @childIssue.title@if(childIssue.assignee != null){ - @childIssue.assignee.user.getPureNameOnly}</span></a>
-                        <span class="font12 no-border-at-child">@common.commentAndVoterPairDisplay(childIssue, project)</span>
-                    </div>
-                }
-            </div>
-        }
-    }
-}
-}
-
 @conatinsCurrentUserInWatchers = @{Watch.isWatching(UserApp.currentUser(), issue.asResource())}
 
 @projectLayout(titleForOGTag, project, utils.MenuType.ISSUE){
@@ -259,11 +220,7 @@
                 </dl>
                 <div class="watcher-list"></div>
                 <div class="subtasks">
-                @if(issue.parent == null) {
-                    @showChildIssues(issue.id)
-                } else {
-                    @showChildIssues(issue.parent.id)
-                }
+                    @partial_view_childIssueList(issue, project)
                 </div>
                 @** Comment **@
                 <div id="comments" class="board-comment-wrap">
