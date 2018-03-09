@@ -79,6 +79,20 @@
 
 @conatinsCurrentUserInWatchers = @{Watch.isWatching(UserApp.currentUser(), issue.asResource())}
 
+@isThisParentIssue() = @{
+    issue.parent == null
+}
+
+@amIShared() = @{
+    var found = false
+    for(sharer <- issue.sharers) {
+        if(sharer.user.id.equals(UserApp.currentUser().id)) {
+            found = true
+        }
+    }
+    found
+}
+
 @projectLayout(titleForOGTag, project, utils.MenuType.ISSUE){
 @projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
 <div class="page-wrap-outer">
@@ -220,7 +234,13 @@
                 </dl>
                 <div class="watcher-list"></div>
                 <div class="subtasks">
+                @if(amIShared) {
+                    @if(isThisParentIssue) {
+                        @partial_view_childIssueList(issue, project)
+                    }
+                } else {
                     @partial_view_childIssueList(issue, project)
+                }
                 </div>
                 @** Comment **@
                 <div id="comments" class="board-comment-wrap">
