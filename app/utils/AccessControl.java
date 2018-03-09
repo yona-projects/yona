@@ -1,23 +1,9 @@
 /**
- * Yobi, Project Hosting SW
- *
- * Copyright 2012 NAVER Corp.
- * http://yobi.io
- *
- * @author Yi EungJun
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+ * Yona, 21st Century Project Hosting SW
+ * <p>
+ * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+ * https://yona.io
+ **/
 package utils;
 
 import models.*;
@@ -269,7 +255,8 @@ public class AccessControl {
             case ATTACHMENT:
                 switch (operation) {
                     case READ:
-                        return isAllowed(user, resource.getContainer(), Operation.READ);
+                        return isAllowed(user, resource.getContainer(), Operation.READ)
+                                || isAllowedIfSharer(user, resource.getContainer());
                     case UPDATE:
                     case DELETE:
                         return isAllowed(user, resource.getContainer(), Operation.UPDATE);
@@ -381,9 +368,16 @@ public class AccessControl {
     private static boolean isAllowedIfSharer(User user, Resource resource) {
         switch (resource.getType()) {
             case ISSUE_POST:
-            case ISSUE_COMMENT:
                 Issue issue = Issue.finder.byId(Long.valueOf(resource.getId()));
+                if (issue != null && issue.parent != null) {
+                    if (Optional.ofNullable(issue.parent.findSharerByUserId(user.id)).isPresent()) {
+                        return true;
+                    }
+                }
                 return issue != null && Optional.ofNullable(issue.findSharerByUserId(user.id)).isPresent();
+            case ISSUE_COMMENT:
+                IssueComment issueComment = IssueComment.find.byId(Long.valueOf(resource.getId()));
+                return issueComment != null && isAllowedIfSharer(user, issueComment.issue.asResource());
             default:
                 return false;
         }
