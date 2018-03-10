@@ -17,10 +17,7 @@ import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
 import controllers.routes;
 import models.*;
-import models.enumeration.Operation;
-import models.enumeration.ResourceType;
-import models.enumeration.State;
-import models.enumeration.UserState;
+import models.enumeration.*;
 import org.apache.commons.lang3.StringUtils;
 import play.db.ebean.Transactional;
 import play.i18n.Messages;
@@ -367,6 +364,17 @@ public class IssueApi extends AbstractPostingApp {
         return el;
     }
 
+    private static ExpressionList<Project> getProjectExpressionList(String query, String searchType) {
+
+        ExpressionList<Project> el = Project.find.select("id, name").where()
+                .eq("projectScope", ProjectScope.PUBLIC).disjunction();
+
+        el.icontains("name", query);
+        el.endJunction();
+
+        return el;
+    }
+
     private static void addAuthorIfNotMe(Issue issue, List<ObjectNode> users, User issueAuthor) {
         if (!issue.getAuthor().loginId.equals(UserApp.currentUser().loginId)) {
             addUserToUsersWithCustomName(issueAuthor, users, Messages.get("issue.assignToAuthor"));
@@ -391,9 +399,22 @@ public class IssueApi extends AbstractPostingApp {
         userNode.put("loginId", user.loginId);
         userNode.put("name", user.getDisplayName());
         userNode.put("avatarUrl", user.avatarUrl());
+        userNode.put("type", "user");
 
         if(!users.contains(userNode)) {
             users.add(userNode);
+        }
+    }
+
+    static void addProjectToProjects(Project project, List<ObjectNode> projects) {
+        ObjectNode projectNode = Json.newObject();
+        projectNode.put("loginId", project.id);
+        projectNode.put("name", project.name);
+        projectNode.put("avatarUrl", "");
+        projectNode.put("type", "project");
+
+        if(!projects.contains(projectNode)) {
+            projects.add(projectNode);
         }
     }
 
@@ -580,21 +601,27 @@ public class IssueApi extends AbstractPostingApp {
             return status(Http.Status.NOT_ACCEPTABLE);
         }
 
-        List<ObjectNode> users = new ArrayList<>();
+        List<ObjectNode> results = new ArrayList<>();
 
-        ExpressionList<User> el = getUserExpressionList(query, request().getQueryString("type"));
+        ExpressionList<User> userExpressionList = getUserExpressionList(query, request().getQueryString("type"));
+        ExpressionList<Project> projectExpressionList = getProjectExpressionList(query, request().getQueryString("type"));
 
-        int total = el.findRowCount();
+        int total = userExpressionList.findRowCount() + projectExpressionList.findRowCount();
         if (total > MAX_FETCH_USERS) {
-            el.setMaxRows(MAX_FETCH_USERS);
+            userExpressionList.setMaxRows(MAX_FETCH_USERS / 2);
+            projectExpressionList.setMaxRows(MAX_FETCH_USERS / 2);
             response().setHeader("Content-Range", "items " + MAX_FETCH_USERS + "/" + total);
         }
 
-        for (User user :el.findList()) {
-            addUserToUsers(user, users);
+        for (User user :userExpressionList.findList()) {
+            addUserToUsers(user, results);
         }
 
-        return ok(toJson(users));
+        for (Project project: projectExpressionList.findList()) {
+            addProjectToProjects(project, results);
+        }
+
+        return ok(toJson(results));
     }
 
     public static Result updateSharer(String owner, String projectName, Long number){
@@ -618,35 +645,74 @@ public class IssueApi extends AbstractPostingApp {
         final String action = json.findValue("action").asText();
 
         ObjectNode result = changeSharer(sharer, issue, action);
-        sendNotification(sharer, issue, action);
 
         return ok(result);
     }
 
     private static ObjectNode changeSharer(JsonNode sharer, Issue issue, String action) {
         ObjectNode result = Json.newObject();
-        for (JsonNode sharerLoginId : sharer) {
-            if ("add".equalsIgnoreCase(action)) {
-                addSharer(issue, sharerLoginId.asText());
-                result.put("action", "added");
-            } else if ("delete".equalsIgnoreCase(action)) {
-                result.put("action", "deleted");
-                removeSharer(issue, sharerLoginId.asText());
-            } else {
-                play.Logger.error("Unknown issue sharing action: " + issue + ":" + action + " by " + currentUser());
-                result.put("action", "Do nothing. Unsupported action: " + action);
-            }
-            result.put("sharer", User.findByLoginId(sharerLoginId.asText()).getDisplayName());
+        List<String> users = new ArrayList<>();
+
+        if(sharer.findValue("type").asText().equals("project")) {
+            changeSharerByProject(sharer.findValue("loginId").asLong(), issue, action, result, users);
+        } else {
+            changeSharerByUser(sharer.findValue("loginId").asText(), issue, action, result, users);
         }
+
+        sendNotification(users, issue, action);
         return result;
     }
 
-    private static void sendNotification(JsonNode sharer, Issue issue, String action) {
+    private static void changeSharerByUser(String loginId, Issue issue, String action, ObjectNode result, List<String> users) {
+        if ("add".equalsIgnoreCase(action)) {
+            addSharer(issue, loginId);
+        } else if ("delete".equalsIgnoreCase(action)) {
+            removeSharer(issue, loginId);
+        } else {
+            play.Logger.error("Unknown issue sharing action: " + issue + ":" + action + " by " + currentUser());
+        }
+
+        users.add(loginId);
+        setShareActionToResponse(action, result);
+        result.put("sharer", User.findByLoginId(loginId).getDisplayName());
+    }
+
+    private static void changeSharerByProject(Long projectId, Issue issue, String action, ObjectNode result, List<String> users) {
+        List<ProjectUser> projectUsers = ProjectUser.findMemberListByProject(projectId);
+
+        for (ProjectUser projectUser: projectUsers) {
+            if ("add".equalsIgnoreCase(action)) {
+                addSharer(issue, projectUser.user.loginId);
+            } else if ("delete".equalsIgnoreCase(action)) {
+                removeSharer(issue, projectUser.user.loginId);
+            } else {
+                play.Logger.error("Unknown issue sharing action: " + issue + ":" + action + " by " + currentUser());
+            }
+            users.add(projectUser.user.loginId);
+        }
+
+        setShareActionToResponse(action, result);
+
+        result.put("sharer", Project.find.byId(projectId).name);
+    }
+
+    private static void setShareActionToResponse(String action, ObjectNode result) {
+        if ("add".equalsIgnoreCase(action)) {
+            result.put("action", "added");
+        } else if ("delete".equalsIgnoreCase(action)) {
+            result.put("action", "deleted");
+        } else {
+            result.put("action", "Do nothing. Unsupported action: " + action);
+        }
+    }
+
+    private static void sendNotification(List<String> users, Issue issue, String action) {
+        System.out.println("[action] " + action);
         Runnable preUpdateHook = new Runnable() {
             @Override
             public void run() {
-                for(JsonNode sharerLoginId: sharer){
-                    addSharerChangedNotification(issue, sharerLoginId.asText(), action);
+                for(String sharerLoginId: users){
+                    addSharerChangedNotification(issue, sharerLoginId, action);
                 }
             }
         };
