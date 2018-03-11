@@ -30,7 +30,7 @@
 
     <div class="search-result">
         <div class="group">
-            <input class="search-input org-search" type="text" id="query" autocomplete="off" placeholder="@Messages("title.type.name")">
+            <input class="search-input org-search" type="text" autocomplete="off" placeholder="@Messages("title.type.name")">
             <span class="bar"></span>
         </div>
         @displayOrganizations("organizations", Organization.findOrganizationsByUserLoginId(UserApp.currentUser.loginId), currentUser.getFavoriteOrganizations)
