@@ -409,7 +409,7 @@ public class IssueApi extends AbstractPostingApp {
     static void addProjectToProjects(Project project, List<ObjectNode> projects) {
         ObjectNode projectNode = Json.newObject();
         projectNode.put("loginId", project.id);
-        projectNode.put("name", project.name);
+        projectNode.put("name", project.owner + "/" + project.name);
         projectNode.put("avatarUrl", "");
         projectNode.put("type", "project");
 
@@ -707,7 +707,6 @@ public class IssueApi extends AbstractPostingApp {
     }
 
     private static void sendNotification(List<String> users, Issue issue, String action) {
-        System.out.println("[action] " + action);
         Runnable preUpdateHook = new Runnable() {
             @Override
             public void run() {
