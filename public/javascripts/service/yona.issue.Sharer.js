@@ -78,7 +78,7 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
   });
 
   $issueSharer.on("select2-selecting", function(selected) {
-    var data = { sharer: [selected.val], action: 'add' };
+    var data = { sharer: {loginId: selected.object.loginId, type: selected.object.type}, action: 'add'};
 
     if(updateSharingApiUrl){
         $.ajax(updateSharingApiUrl, {
@@ -93,7 +93,7 @@ function yonaIssueSharerModule(findUsersByloginIdsApiUrl, findSharableUsersApiUr
   });
 
   $issueSharer.on("select2-removing", function(selected) {
-    var data = { sharer: [selected.val], action: 'delete' };
+    var data = { sharer: {loginId: selected.choice.loginId, type: selected.choice.type}, action: 'delete'};
 
     if(updateSharingApiUrl){
       $.ajax(updateSharingApiUrl, {
