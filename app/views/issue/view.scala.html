@@ -168,7 +168,7 @@
                                 </button>
                             }
                             @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE) && !hasSharer) {
-                                <button id="issue-share-button" type="button" class="ybtn">@Messages("button.share.issue")</button>
+                                <button id="issue-share-button" type="button" class="ybtn" data-toggle="popover" data-trigger="hover" data-placement="top" data-content="@Messages("issue.sharer.description")">@Messages("button.share.issue")</button>
                             }
 
                         </div>
@@ -494,7 +494,7 @@
 
             $('#issue-share-button').on('click', function () {
                 $('#sharer-list').show();
-                $('.sharer-list').show();
+                $('.sharer-list').show().addClass("sharer-list-border");
             });
 
             $('#translate').one('click', function (e) {

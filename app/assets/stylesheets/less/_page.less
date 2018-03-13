@@ -7143,8 +7143,28 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 }
 
 .sharer-list {
-    margin-top: 40px;
-    padding: 10px;
+    margin-top: -5px;
+    padding: 15px;
+
+    &.sharer-list-border {
+        border: 1px solid #ddd;
+        border-radius: 3px;
+        position: relative;
+
+        &:before {
+            position:absolute;
+            top: -9px;
+            left: 133px;
+            content: ' ';
+            width: 16px;
+            height: 16px;
+            border-width: 0 0 1px 1px;
+            border-style: solid;
+            border-color: #BDC3C7;
+            background-color: #fff;
+            .rotate(135deg);
+        }
+    }
 
     .issue-share-title {
         font-size: 16px;
