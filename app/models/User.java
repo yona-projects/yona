@@ -1052,6 +1052,10 @@ public class User extends Model implements ResourceConvertible {
     }
 
     public String getDisplayName(){
+        if (UserApp.currentUser().isAnonymous()) {
+            return name;
+        }
+
         if (StringUtils.isNotBlank(englishName) && lang != null && UserApp.currentUser().lang.startsWith("en")) {
             return englishName + " " + extractDepartmentPart();
         } else {
