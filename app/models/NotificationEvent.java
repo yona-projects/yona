@@ -1011,11 +1011,11 @@ public class NotificationEvent extends Model implements INotificationEvent {
         return receivers;
     }
 
-    private static Set<User> getProjectCommitReceivers(Project project, EventType eventType) {
+    private static Set<User> getProjectCommitReceivers(Project project, EventType eventType, User sender) {
         Set<User> receivers = findMembersOnlyFromWatchers(project);
         receivers.removeAll(findUnwatchers(project.asResource()));
         receivers.removeAll(findEventUnwatchersByEventType(project.id, eventType));
-        receivers.remove(UserApp.currentUser());
+        receivers.remove(sender);
 
         return receivers;
     }
@@ -1183,7 +1183,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
     public static void afterNewCommits(List<RevCommit> commits, List<String> refNames, Project project, User sender, String title) {
         NotificationEvent notiEvent = createFrom(sender, project);
         notiEvent.title = title;
-        notiEvent.receivers = getProjectCommitReceivers(project, NEW_COMMIT);
+        notiEvent.receivers = getProjectCommitReceivers(project, NEW_COMMIT, sender);
         notiEvent.eventType = NEW_COMMIT;
         notiEvent.oldValue = null;
         notiEvent.newValue = newCommitsMessage(commits, refNames, project);
