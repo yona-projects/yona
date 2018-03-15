@@ -315,6 +315,7 @@ issue.noMilestone = No milestone
 issue.option = Option
 issue.search = Search Issues
 issue.sharer = Issue Sharer
+issue.sharer.description = You can share this issue with a user or whole members of a project. If this project is private, then being shared user can only access this issue and its subtasks.
 issue.sharer.select = Select Issue Sharer
 issue.state = Status
 issue.state.all = All

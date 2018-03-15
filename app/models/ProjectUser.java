@@ -61,7 +61,10 @@ public class ProjectUser extends Model {
     }
 
     public static void delete(Long userId, Long projectId) {
-        ProjectUser.findByIds(userId, projectId).delete();
+        ProjectUser projectUser = ProjectUser.findByIds(userId, projectId);
+        if (projectUser != null) {
+            projectUser.delete();
+        }
     }
 
     public static void assignRole(Long userId, Long projectId, Long roleId) {
@@ -87,8 +90,12 @@ public class ProjectUser extends Model {
     }
 
     public static ProjectUser findByIds(Long userId, Long projectId) {
-        return find.where().eq("user.id", userId).eq("project.id", projectId)
-                .ne("role.id", RoleType.SITEMANAGER.roleType()).findUnique();
+        List<ProjectUser> projectUsers = find.where().eq("user.id", userId).eq("project.id", projectId)
+                .ne("role.id", RoleType.SITEMANAGER.roleType()).findList();
+        if(projectUsers.size() > 0) {
+            return projectUsers.get(0);
+        }
+        return null;
     }
 
     public static List<ProjectUser> findMemberListByProject(Long projectId) {
