@@ -978,9 +978,26 @@ public class NotificationEvent extends Model implements INotificationEvent {
 
         receivers.removeAll(findUnwatchers(issue.asResource()));
         receivers.removeAll(findEventUnwatchersByEventType(issue.project.id, eventType));
-        receivers.remove(UserApp.currentUser());
+        receivers.remove(findCurrentUserToBeExcluded(issue.authorId));
 
         return receivers;
+    }
+
+    private static User findCurrentUserToBeExcluded(Long authorId) {
+        User currentUser;
+        try {
+            currentUser = UserApp.currentUser();
+        } catch (RuntimeException re) {
+            // expectation: "There is no HTTP Context available from here" runtime exception
+            currentUser = User.anonymous;
+        }
+
+        if (currentUser.isAnonymous()) {
+            // It is assumed that it is called by author and processed by system.
+            return User.find.byId(authorId);
+        } else {
+            return currentUser;
+        }
     }
 
     private static Set<User> getMandatoryReceivers(Posting posting, EventType eventType) {
@@ -991,7 +1008,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
 
         receivers.removeAll(findUnwatchers(posting.asResource()));
         receivers.removeAll(findEventUnwatchersByEventType(posting.project.id, eventType));
-        receivers.remove(UserApp.currentUser());
+        receivers.remove(findCurrentUserToBeExcluded(posting.authorId));
 
         return receivers;
     }
@@ -1006,7 +1023,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
 
         receivers.removeAll(findUnwatchers(parent.asResource()));
         receivers.removeAll(findEventUnwatchersByEventType(comment.projectId, eventType));
-        receivers.remove(UserApp.currentUser());
+        receivers.remove(findCurrentUserToBeExcluded(comment.authorId));
 
         return receivers;
     }
@@ -1042,7 +1059,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
     private static Set<User> getReceiversForIssueBodyChanged(String oldBody, Issue issue) {
         Set<User> receivers = getMandatoryReceivers(issue, ISSUE_BODY_CHANGED);
         receivers.addAll(getNewMentionedUsers(oldBody, issue.body));
-        receivers.remove(UserApp.currentUser());
+        receivers.remove(findCurrentUserToBeExcluded(issue.authorId));
         return receivers;
     }
 
