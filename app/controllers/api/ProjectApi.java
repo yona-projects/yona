@@ -23,6 +23,7 @@ import play.db.ebean.Transactional;
 import play.i18n.Messages;
 import play.libs.Json;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
 import playRepository.RepositoryService;
 import utils.AccessControl;
@@ -484,5 +485,62 @@ public class ProjectApi extends Controller {
         createdUserNode.put("user", labelNode);
 
         return createdUserNode;
+    }
+
+    @Transactional
+    @IsAllowed(Operation.READ)
+    public static Result titleHeads(String owner, String projectName, String query) {
+        if (!request().accepts("application/json")) {
+            return status(Http.Status.NOT_ACCEPTABLE);
+        }
+
+        Project project = Project.findByOwnerAndProjectName(owner, projectName);
+
+        List<ObjectNode> searched = new ArrayList<>();
+        searched.addAll(getherTitleHeads(project, query));
+        searched.addAll(getherProjectLabels(project));
+
+        ObjectNode result = Json.newObject();
+        result.put("result", toJson(searched));
+        return ok(result);
+    }
+
+    private static List<ObjectNode> getherProjectLabels(Project project) {
+        List<ObjectNode> searched = new ArrayList<>();
+        for (IssueLabel label : project.issueLabels) {
+            searched.add(getIssueLabelNode(label));
+        }
+        return searched;
+    }
+
+    private static List<ObjectNode> getherTitleHeads(Project project, String query) {
+        List<ObjectNode> searched = new ArrayList<>();
+        List<TitleHead> titleHeads = TitleHead.findByProject(project, query);
+        for (TitleHead titleHead : titleHeads) {
+            searched.add(getTitleHeadNode(titleHead));
+        }
+        return searched;
+    }
+
+    private static ObjectNode getTitleHeadNode(TitleHead titleHead) {
+        ObjectNode titleHeadNode = Json.newObject();
+        titleHeadNode.put("name", titleHead.headKeyword);
+        titleHeadNode.put("frequency", titleHead.frequency);
+        titleHeadNode.put("category", "");
+        titleHeadNode.put("searchText", titleHead.headKeyword);
+        return titleHeadNode;
+    }
+
+    private static ObjectNode getIssueLabelNode(IssueLabel label) {
+        ObjectNode labelNode = Json.newObject();
+        labelNode.put("name", label.name);
+        labelNode.put("frequency", 0);
+        labelNode.put("category", label.category.name);
+        labelNode.put("categoryId", label.category.id);
+        labelNode.put("id", label.id);
+        labelNode.put("labelColor", label.color);
+        labelNode.put("isExclusive", label.category.isExclusive);
+        labelNode.put("searchText", label.name + "/" + label.category.name);
+        return labelNode;
     }
 }
