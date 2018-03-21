@@ -636,7 +636,7 @@ object TemplateHelper {
       StringUtils.isEmpty(title.replace(findHeaderWords(title),"").trim)
   }
 
-  private def extractHeaderWordsInBrackets(title: String): Array[String] = {
+  def extractHeaderWordsInBrackets(title: String): Array[String] = {
     return title.split("(=\\[)|(?<=\\])")
   }
 

@@ -1,8 +1,9 @@
 /**
- * Yona, Project Hosting SW
- *
- * Copyright 2016 the original author or authors.
- */
+ * Yona, 21st Century Project Hosting SW
+ * <p>
+ * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+ * https://yona.io
+ **/
 package models;
 
 import models.enumeration.ResourceType;
@@ -113,6 +114,7 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
 
         try {
             super.save();
+            TitleHead.saveTitleHeadKeyword(project, title);
             updateMention();
         } catch (PersistenceException e) {
             Long oldNumber = number;
@@ -220,6 +222,7 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
         for (Comment comment: getComments()) {
             comment.delete();
         }
+        TitleHead.deleteTitleHeadKeyword(project, title);
         Attachment.deleteAll(asResource());
         NotificationEvent.deleteBy(this.asResource());
         super.delete();
