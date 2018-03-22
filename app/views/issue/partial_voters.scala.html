@@ -14,14 +14,14 @@
             <li>@Html(getUserAvatar(UserApp.currentUser, "smaller"))</li>
         }
 
-        @defining(VoteApp.getVotersExceptCurrentUser(issue.voters)) { issueVoters =>
+        @defining(issue.voters) { issueVoters =>
             @for(voter <- VoteApp.getVotersForAvatar(issueVoters, numOfAvatars)) {
                 <li>@Html(getUserAvatar(voter, "smaller"))</li>
             }
             @if(issueVoters.size > numOfAvatars) {
                 <li data-toggle="tooltip" data-html="true"
                     title="
-                    @for(voter <- VoteApp.getVotersForName(issueVoters, numOfAvatars, numOfNames)) {
+                    @for(voter <- issueVoters) {
                         @voter.name <br>
                     }
                     @if(issueVoters.size > numOfAvatars + numOfNames) {

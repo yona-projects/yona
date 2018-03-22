@@ -272,6 +272,9 @@
         };
 
         App.prototype.dispatch = function(e) {
+            if (e === undefined) {
+                return;
+            }
             var _, c, ref, results;
             ref = this.controllers;
             results = [];

@@ -978,9 +978,26 @@ public class NotificationEvent extends Model implements INotificationEvent {
 
         receivers.removeAll(findUnwatchers(issue.asResource()));
         receivers.removeAll(findEventUnwatchersByEventType(issue.project.id, eventType));
-        receivers.remove(UserApp.currentUser());
+        receivers.remove(findCurrentUserToBeExcluded(issue.authorId));
 
         return receivers;
+    }
+
+    private static User findCurrentUserToBeExcluded(Long authorId) {
+        User currentUser;
+        try {
+            currentUser = UserApp.currentUser();
+        } catch (RuntimeException re) {
+            // expectation: "There is no HTTP Context available from here" runtime exception
+            currentUser = User.anonymous;
+        }
+
+        if (currentUser.isAnonymous()) {
+            // It is assumed that it is called by author and processed by system.
+            return User.find.byId(authorId);
+        } else {
+            return currentUser;
+        }
     }
 
     private static Set<User> getMandatoryReceivers(Posting posting, EventType eventType) {
@@ -991,7 +1008,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
 
         receivers.removeAll(findUnwatchers(posting.asResource()));
         receivers.removeAll(findEventUnwatchersByEventType(posting.project.id, eventType));
-        receivers.remove(UserApp.currentUser());
+        receivers.remove(findCurrentUserToBeExcluded(posting.authorId));
 
         return receivers;
     }
@@ -1006,16 +1023,16 @@ public class NotificationEvent extends Model implements INotificationEvent {
 
         receivers.removeAll(findUnwatchers(parent.asResource()));
         receivers.removeAll(findEventUnwatchersByEventType(comment.projectId, eventType));
-        receivers.remove(UserApp.currentUser());
+        receivers.remove(findCurrentUserToBeExcluded(comment.authorId));
 
         return receivers;
     }
 
-    private static Set<User> getProjectCommitReceivers(Project project, EventType eventType) {
+    private static Set<User> getProjectCommitReceivers(Project project, EventType eventType, User sender) {
         Set<User> receivers = findMembersOnlyFromWatchers(project);
         receivers.removeAll(findUnwatchers(project.asResource()));
         receivers.removeAll(findEventUnwatchersByEventType(project.id, eventType));
-        receivers.remove(UserApp.currentUser());
+        receivers.remove(sender);
 
         return receivers;
     }
@@ -1042,7 +1059,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
     private static Set<User> getReceiversForIssueBodyChanged(String oldBody, Issue issue) {
         Set<User> receivers = getMandatoryReceivers(issue, ISSUE_BODY_CHANGED);
         receivers.addAll(getNewMentionedUsers(oldBody, issue.body));
-        receivers.remove(UserApp.currentUser());
+        receivers.remove(findCurrentUserToBeExcluded(issue.authorId));
         return receivers;
     }
 
@@ -1183,7 +1200,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
     public static void afterNewCommits(List<RevCommit> commits, List<String> refNames, Project project, User sender, String title) {
         NotificationEvent notiEvent = createFrom(sender, project);
         notiEvent.title = title;
-        notiEvent.receivers = getProjectCommitReceivers(project, NEW_COMMIT);
+        notiEvent.receivers = getProjectCommitReceivers(project, NEW_COMMIT, sender);
         notiEvent.eventType = NEW_COMMIT;
         notiEvent.oldValue = null;
         notiEvent.newValue = newCommitsMessage(commits, refNames, project);

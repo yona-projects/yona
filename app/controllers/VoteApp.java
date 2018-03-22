@@ -32,6 +32,7 @@ import play.mvc.*;
 import utils.RouteUtil;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -119,16 +120,15 @@ public class VoteApp extends Controller {
     }
 
     public static List<User> getVotersForAvatar(Set<User> voters, int size){
-        return getSubList(voters, 0, size);
-    }
+        List<User> userList = new ArrayList<>();
+        Iterator<User> iterator = voters.iterator();
+        int index = 0;
 
-    public static List<User> getVotersForName(Set<User> voters, int fromIndex, int size){
-        return getSubList(voters, fromIndex, fromIndex + size);
-    }
+        while( index++ < size && iterator.hasNext() ) {
+            userList.add(iterator.next());
+        }
 
-    public static Set<User> getVotersExceptCurrentUser(Set<User> voters){
-        voters.remove(UserApp.currentUser());
-        return voters;
+        return userList;
     }
 
     /**

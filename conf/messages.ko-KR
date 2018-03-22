@@ -315,6 +315,7 @@ issue.noMilestone = 마일스톤 없음
 issue.option = 이슈 옵션
 issue.search = 이슈 검색
 issue.sharer = 이슈 공유
+issue.sharer.description = 이 이슈를 다른 사용자와 공유합니다. 만약 공유대상을 프로젝트로 지정할 경우 해당 프로젝트 멤버 전체에게 현재 이슈를 공유합니다 . 비공개 프로젝트의 이슈일 경우, 공유된 사용자는 오직 현재 이슈와 현재 이슈의 서브태스크에만 접근 가능합니다.
 issue.sharer.select = 이슈 공유 대상 선택
 issue.state = 상태
 issue.state.all = 전체

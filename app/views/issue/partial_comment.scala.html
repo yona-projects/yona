@@ -44,7 +44,7 @@
                     @defining(comment.asInstanceOf[IssueComment]) { issueComment =>
                         @if(issueComment.voters.size > VOTER_AVATAR_SHOW_LIMIT) {
                             <span style="margin-right: 2px;" data-toggle="tooltip" data-html="true" title="
-                                @for(voter <- VoteApp.getVotersForName(issueComment.voters, 0, 5)) {
+                                @for(voter <- issueComment.voters) {
                                     @voter.name<br>
                                     }
                                 &hellip;">
