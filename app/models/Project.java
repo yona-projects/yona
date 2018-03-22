@@ -191,7 +191,7 @@ public class Project extends Model implements LabelOwner {
     }
 
     private Set<User> getIssueUsers() {
-        String issueSql = "SELECT distinct author_id id FROM ISSUE where project_id=" + this.id;
+        String issueSql = "select distinct author_id id from issue where project_id=" + this.id;
         return User.find.setRawSql(RawSqlBuilder.parse(issueSql).create()).findSet();
     }
 
