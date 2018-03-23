@@ -1,7 +1,7 @@
 @**
 * Yona, 21st Century Project Hosting SW
 *
-* Copyright Yona & Yobi Authors & NAVER Corp.
+* Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
 * https://yona.io
 **@
 @import play.data.Form
@@ -51,7 +51,7 @@
         <dl>
           <dd>
             @defining(form.errors().get("title")) { errors =>
-              <input type="text" id="title" name="title" class="zen-mode text title @if(errors != null) {error}" maxlength="250" tabindex="1" value="@titleMessage" placeholder="@if(path.equals(None)){@Messages("title")}else{@Messages("code.commitMsg")}"/>
+              <input type="text" id="title" autocomplete="off" name="title" class="zen-mode text title @if(errors != null) {error}" maxlength="250" tabindex="1" value="@titleMessage" placeholder="@if(path.equals(None)){@Messages("title")}else{@Messages("code.commitMsg")}"/>
               @if(errors != null) {
                 <div class="message">
                 @for(error <- errors) {
