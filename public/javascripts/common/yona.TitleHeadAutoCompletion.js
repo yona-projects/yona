@@ -115,7 +115,7 @@ function yonaTitleHeadModule(htOptions){
                 callbacks: {
                     remoteFilter: function(query, callback) {
                         NProgress.start();
-                        issueLabels = $("#labelIds").select2("val");
+                        issueLabels = $("#labelIds").length > 0 && $("#labelIds").select2("val") || [];
                         clearTimeout(searchPending);
 
                         searchPending = setTimeout(function () {
