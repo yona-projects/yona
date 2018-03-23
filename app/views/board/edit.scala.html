@@ -1,24 +1,11 @@
 @**
-* Yobi, Project Hosting SW
+* Yona, 21st Century Project Hosting SW
 *
-* Copyright 2012 NAVER Corp.
-* http://yobi.io
-*
-* @author Ahn Hyeok Jun
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*   http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
+* Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+* https://yona.io
 **@
-@(title:String, form: play.data.Form[Posting], posting:Posting, number:Long,  project:Project, isAllowedToNotice:Boolean)
+@import play.data
+@(title:String, form: data.Form[Posting], posting:Posting, number:Long,  project:Project, isAllowedToNotice:Boolean)
 
 @import utils.AccessControl._
 @import utils.TemplateHelper._
@@ -38,7 +25,7 @@
           </dt>
           <dd>
             @defining(form.errors().get("title")) { errors =>
-            <input type="text" id="title" name="title" value="@posting.title" class="zen-mode text title @if(errors != null) {error}" maxlength="250" tabindex="1" />
+            <input type="text" id="title" name="title" value="@posting.title" class="zen-mode text title @if(errors != null) {error}" maxlength="250" tabindex="1" autocomplete="off"/>
               @if(errors != null) {
                 <div class="message">
                 @for(error <- errors) {
