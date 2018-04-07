@@ -535,8 +535,8 @@
                 });
             });
 
-            if (Clipboard.isSupported()) {
-                var clipboard = new Clipboard('#copyEmailBtn');
+            if (ClipboardJS.isSupported()) {
+                var clipboard = new ClipboardJS('#copyEmailBtn');
 
                 clipboard.on('success', function(e) {
                     $yobi.alert('@Messages("button.copy.email.success.message")');
