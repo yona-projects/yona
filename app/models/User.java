@@ -1008,13 +1008,18 @@ public class User extends Model implements ResourceConvertible {
     }
 
     public String getPureNameOnly(){
-        if (StringUtils.isNotBlank(englishName) && lang != null && UserApp.currentUser().lang.startsWith("en")) {
+        String currentUserLanguage = StringUtils.defaultString(UserApp.currentUser().lang,
+                "ko-KR");
+
+        if (StringUtils.isNotBlank(englishName)
+                && lang != null && currentUserLanguage.startsWith("en")) {
             return englishName;
         }
+
         String pureName = this.name;
-        String [] spliters = { "[", "(" };
-        for(String spliter: spliters) {
-            if(pureName.contains(spliter)){
+        String[] spliters = {"[", "("};
+        for (String spliter : spliters) {
+            if (pureName.contains(spliter)) {
                 pureName = this.name.substring(0, this.name.indexOf(spliter));
             }
         }
