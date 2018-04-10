@@ -165,4 +165,14 @@ public class UserProjectNotification extends Model {
         }
         return users;
     }
+
+    public static void deleteUnwatchedProjectNotifications(User user, Project project){
+        List<UserProjectNotification> userProjectNotifications = find.where()
+                .eq("user.id", user.id)
+                .eq("project.id", project.id)
+                .findList();
+        for (UserProjectNotification notification : userProjectNotifications) {
+            notification.delete();
+        }
+    }
 }
