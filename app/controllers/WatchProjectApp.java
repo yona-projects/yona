@@ -22,6 +22,7 @@ import utils.AccessControl;
 import utils.ErrorViews;
 
 import static models.UserProjectNotification.*;
+import static models.enumeration.ResourceType.PROJECT;
 
 @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
 public class WatchProjectApp extends Controller {
@@ -36,9 +37,12 @@ public class WatchProjectApp extends Controller {
 
     @IsAllowed(Operation.READ)
     @Transactional
-    public static Result unwatch(String userName, String projectName) {
-        Project project = Project.findByOwnerAndProjectName(userName, projectName);
+    public static Result unwatch(String loginId, String projectName) {
+        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+
         Watch.unwatch(project.asResource());
+
+        UserProjectNotification.deleteUnwatchedProjectNotifications(UserApp.currentUser(), project);
         return ok();
     }
 
