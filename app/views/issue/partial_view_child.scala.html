@@ -1,0 +1,15 @@
+@**
+* Yona, 21st Century Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+* https://yona.io
+**@
+@(state: String, childIssue: Issue, parentIssue: Issue)
+
+<div class="issue-item @if(childIssue.id == parentIssue.id){selected-child}">
+    <span class="state-label @state">@if(state == "closed"){<i class=" yobicon-checkmark">}</i></span>
+    <a href="@routes.IssueApp.issue(childIssue.project.owner, childIssue.project.name, childIssue.getNumber)">
+        <span class="item-name"><span class="subtask-number">#@childIssue.getNumber</span> @childIssue.title@if(childIssue.assignee != null) { - @childIssue.assignee.user.getPureNameOnly}</span></a>
+    <span class="font12 no-border-at-child">@common.commentAndVoterPairDisplay(childIssue, parentIssue.project)</span>
+</div>
+
