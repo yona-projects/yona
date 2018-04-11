@@ -1,7 +1,7 @@
 @**
 * Yona, 21st Century Project Hosting SW
 *
-* Copyright Yona & Yobi Authors & NAVER Corp.
+* Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
 * https://yona.io
 **@
 @(project:Project, issue:Issue)
@@ -14,10 +14,10 @@
     @defining(Issue.countByParentIssueIdAndState(issue.id, State.OPEN)) { openIssueCount =>
         @defining(Issue.countByParentIssueIdAndState(issue.id, State.CLOSED)) { closedIssueCount =>
             @defining(getPercent(closedIssueCount.toDouble, openIssueCount + closedIssueCount)) { percentage =>
-                <div class="upload-progress @if(percentage == 100){done-outline} else {red-outline}">
+                <div class="subtask-progress upload-progress @if(percentage == 100){done-outline} else {red-outline}">
                     <div class="bar @if(percentage == 100) {done} else {red}" style="width: @percentage%;" title="Subtask"></div>
                 </div>
-                <span class="completion-ratio @if(percentage == 100){txt-green}">@if(percentage != 100){@closedIssueCount/}@(closedIssueCount + openIssueCount)</span>
+                <span class="subtask-progress completion-ratio @if(percentage == 100){txt-green}">@if(percentage != 100){@closedIssueCount/}@(closedIssueCount + openIssueCount)</span>
             }
         }
     }
