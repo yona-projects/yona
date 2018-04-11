@@ -70,6 +70,11 @@
                     @for(label <- issue.labels.toList.sortBy(r => (r.category.name, r.name))) {
                         <a href="@urlToList(project, searchCondition.state)&labelIds=@label.id" class="label issue-label list-label" data-label-id="@label.id" style="background:@label.color">@label.name</a>
                     }
+                    <div class="child-issue-list hide">
+                    @if(issue.hasChildIssue){
+                        @partial_view_childIssueListOnly(issue, project)
+                    }
+                    </div>
                 </span>
             </div>
             <div class="span1 hide-in-mobile author project-name-in-my-issues fixed-height-my-issues-list">

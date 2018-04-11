@@ -47,6 +47,7 @@
             _initImplicitTitlePrefix();
             _listHoverEffect();
             _initTwoColumnMode();
+            _initShowChildList();
 
             htInitialOptions = htOptions || {};
         }
@@ -241,6 +242,12 @@
             NProgress.start();
         }
 
+        function _initShowChildList() {
+            $(".post-item").on("click", function(){
+                $(this).find(".child-issue-list").toggle();
+            });
+        }
+
         function _onLoadIssueList(){
             NProgress.done();
 
@@ -252,6 +259,7 @@
             _addEventAtOrganizationIssueSearchPage();
             _listHoverEffect();
             _initTwoColumnMode();  // yona.twoColumnMode.js
+            _initShowChildList();
         }
 
         function _listHoverEffect(){

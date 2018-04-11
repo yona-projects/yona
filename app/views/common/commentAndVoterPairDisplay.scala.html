@@ -6,7 +6,7 @@
 **@
 @(issue: Issue, project: Project)
 @if(issue.comments.size > 0 || issue.voters.size > 0) {
-    <span class="infos-item item-count-groups">
+    <span class="item-count-groups">
         @if(issue.comments.size > 0) {
             @commentCount(routes.IssueApp.issue(project.owner, project.name, issue.getNumber).toString + "#comments", issue.comments.size, true)
         }
