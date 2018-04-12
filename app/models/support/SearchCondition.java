@@ -41,6 +41,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
 
     @Formats.DateTime(pattern = "yyyy-MM-dd")
     public Date dueDate;
+    private User byUser = UserApp.currentUser();
 
     /**
      * This doesn't copy {@code pageNum}, because it is safe when changing tabs with page parameter.
@@ -66,26 +67,6 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         return one;
     }
 
-    public SearchCondition updateOrderBy(String orderBy) {
-        this.orderBy = orderBy;
-        return this;
-    }
-
-    public SearchCondition updateOrderDir(String orderDir) {
-        this.orderDir = orderDir;
-        return this;
-    }
-
-    public SearchCondition updateFilter(String filter) {
-        this.filter = filter;
-        return this;
-    }
-
-    public SearchCondition updatePageNum(int pageNum) {
-        this.pageNum = pageNum;
-        return this;
-    }
-
     public SearchCondition setState(String state) {
         this.state = state;
         return this;
@@ -96,11 +77,6 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         return this;
     }
 
-    public SearchCondition setCommentedCheck(Boolean commentedCheck) {
-        this.commentedCheck = commentedCheck;
-        return this;
-    }
-
     public SearchCondition setMilestoneId(Long milestoneId) {
         this.milestoneId = milestoneId;
         return this;
@@ -108,11 +84,6 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
 
     public SearchCondition setLabelIds(Set<Long> labelIds) {
         this.labelIds = labelIds;
-        return this;
-    }
-
-    public SearchCondition addLabelId(Long labelId) {
-        labelIds.add(labelId);
         return this;
     }
 
@@ -131,16 +102,6 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         return this;
     }
 
-    public SearchCondition setMentionId(Long mentionId) {
-        this.mentionId = mentionId;
-        return this;
-    }
-
-    public SearchCondition setSharerId(Long sharerId) {
-        this.sharerId = sharerId;
-        return this;
-    }
-
     public ExpressionList<Issue> asExpressionList(@Nonnull Organization organization) {
         ExpressionList<Issue> el = Issue.finder.where();
 
@@ -154,7 +115,6 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         setAuthorIfExist(el);
         setMentionedIssuesIfExist(el);
         setSharedIssuesIfExist(el);
-
         setFilteredStringIfExist(el);
 
         if (commentedCheck) {
@@ -216,7 +176,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
 
     private void setAuthorIfExist(ExpressionList<Issue> el) {
         if (authorId != null) {
-            el.eq("authorId", authorId);
+            el.eq("authorId", byUser);
         }
     }
 
@@ -225,7 +185,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         if (commenterId != null) {
             User commenter = User.find.byId(commenterId);
             if(!commenter.isAnonymous()) {
-                List<Long> ids = getCommentedIssueIds(commenter, project);
+                List<Long> ids = getCommentedIssueIds(byUser, project);
 
                 if (ids.isEmpty()) {
                     // No need to progress because the query matches nothing.
@@ -242,13 +202,13 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
             if (assigneeId.equals(User.anonymous.id)) {
                 el.isNull("assignee");
             } else {
-                el.eq("assignee.user.id", assigneeId);
+                el.eq("assignee.user.id", byUser.id);
             }
         }
     }
 
     private List<String> getVisibleProjectIds(Organization organization) {
-        List<Project> projects = organization.getVisibleProjects(UserApp.currentUser());
+        List<Project> projects = organization.getVisibleProjects(byUser);
         List<String> projectsIds = new ArrayList<>();
         for (Project project : projects) {
             projectsIds.add(project.id.toString());
@@ -273,14 +233,12 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         setMentionedIssuesIfExist(el);
         setSharedIssuesIfExist(el);
         setFilteredStringIfExist(el);
+        setIssueState(el);
+        setOrderByIfExist(el);
 
         if (commentedCheck) {
             el.ge("numOfComments", AbstractPosting.NUMBER_OF_ONE_MORE_COMMENTS);
         }
-
-        setIssueState(el);
-
-        setOrderByIfExist(el);
 
         if (dueDate != null) {
             el.lt("dueDate", DateUtils.addDays(dueDate, 1));
@@ -299,9 +257,8 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
     private void setMentionedIssuesIfExist(ExpressionList<Issue> el) {
         // TODO: access control
         if (mentionId != null) {
-            User mentionUser = User.find.byId(mentionId);
-            if(!mentionUser.isAnonymous()) {
-                List<Long> ids = Mention.getMentioningIssueIds(mentionId);
+            if(!byUser.isAnonymous()) {
+                List<Long> ids = Mention.getMentioningIssueIds(byUser.id);
 
                 if (ids.isEmpty()) {
                     // No need to progress because the query matches nothing.
@@ -316,9 +273,8 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
     private void setSharedIssuesIfExist(ExpressionList<Issue> el) {
 
         if (sharerId != null) {
-            User user = User.find.byId(sharerId);
-            if(!user.isAnonymous()) {
-                List<Long> ids = getSharedIssueIds(user);
+            if(!byUser.isAnonymous()) {
+                List<Long> ids = getSharedIssueIds(byUser);
 
                 if (ids.isEmpty()) {
                     // No need to progress because the query matches nothing.
@@ -407,6 +363,9 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
 
         setCommenterIfExist(el, project);
         setSharedIssuesIfExist(el);
+        setIssueState(el);
+        setLabelsIfExist(project, el);
+        setOrderByIfExist(el);
 
         if (milestoneId != null) {
             if (milestoneId.equals(Milestone.NULL_MILESTONE_ID)) {
@@ -419,12 +378,6 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         if (commentedCheck) {
             el.ge("numOfComments", AbstractPosting.NUMBER_OF_ONE_MORE_COMMENTS);
         }
-
-        setIssueState(el);
-
-        setLabelsIfExist(project, el);
-
-        setOrderByIfExist(el);
 
         if (dueDate != null) {
             el.lt("dueDate", DateUtils.addDays(dueDate, 1));
