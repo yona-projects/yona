@@ -383,7 +383,7 @@ public class ProjectApp extends Controller {
         ));
     }
 
-    @IsAllowed(Operation.READ)
+    @AnonymousCheck
     public static Result mentionList(String loginId, String projectName, Long number,
                                      String resourceType, String query, String mentionType) {
         String prefer = HttpUtil.getPreferType(request(), HTML, JSON);
