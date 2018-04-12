@@ -243,8 +243,9 @@
         }
 
         function _initShowChildList() {
-            $(".post-item").on("click", function(){
-                $(this).find(".child-issue-list").toggle();
+            $(".post-item").on("click", function(e){
+                $(this).find(".child-issue-list").show();
+                e.stopPropagation();
             });
         }
 
