@@ -41,6 +41,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
 
     @Formats.DateTime(pattern = "yyyy-MM-dd")
     public Date dueDate;
+
     private User byUser = UserApp.currentUser();
 
     /**
@@ -176,7 +177,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
 
     private void setAuthorIfExist(ExpressionList<Issue> el) {
         if (authorId != null) {
-            el.eq("authorId", byUser);
+            el.eq("authorId", byUser.id);
         }
     }
 
