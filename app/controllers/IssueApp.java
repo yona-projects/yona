@@ -732,6 +732,8 @@ public class IssueApp extends AbstractPostingApp {
                 // Do not replace it to 'issue.comments = originalIssue.comments;'
                 issue.voters.addAll(originalIssue.voters);
                 issue.comments = originalIssue.comments;
+                issue.sharers.addAll(originalIssue.sharers);
+
                 final Project previous = Project.findByOwnerAndProjectName(ownerName, projectName);
                 if(isRequestedToOtherProject(originalIssue.project, previous)){
                     issue.labels = originalIssue.labels;
