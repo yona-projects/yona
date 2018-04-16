@@ -46,11 +46,21 @@ function _initTwoColumnMode(){
 
         title.pageslide({direction: "left", speed: 0});
         $('.post-item').css("cursor", "pointer");
+
+        title.on('click.changeUrlWhenClick', function(e){
+            var $this = $(this);
+            if (!history.state) {
+                window.history.pushState({ startPath: location.pathname }, $this.text(), $this.attr("href"));
+            } else {
+                window.history.replaceState(history.state, $this.text(), $this.attr("href"));
+            }
+        })
     }
 
     function unbindEvents() {
         $title.unbind('click.pageslide');
         $title.unbind('click.iframeLoading');
+        $title.unbind('click.changeUrlWhenClick');
     }
 
     function bindFrameLoading() {
