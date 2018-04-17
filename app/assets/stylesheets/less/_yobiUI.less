@@ -483,6 +483,24 @@ span.issue-label {
     &.small {
         height:29px;
         li a { padding:4px 15px; }
+
+        .editor-notice-label {
+            padding:4px 15px;
+
+            .unsaved {
+                border: 1px solid @state-rejected;
+                border-radius: 3px;
+                color: @state-rejected;
+                padding: 2px 4px;
+            }
+
+            .saved {
+                border: 1px solid #8bc34a;
+                border-radius: 3px;
+                color: #8bc34a;
+                padding: 2px 4px;
+            }
+        }
     }
 }
 
