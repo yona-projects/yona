@@ -67,7 +67,7 @@
             }
             @if(menuSetting.issue) {
                 <li class="@isActiveMenu(MenuType.ISSUE)">
-                    <a href="@routes.IssueApp.issues(project.owner, project.name, "open")">
+                    <a href="@routes.IssueApp.issues(project.owner, project.name, "")">
                         <span class="menu-name">@Messages("menu.issue")</span><span class="short-menu">I</span> @countingBadge(Issue.countIssues(project.id, State.OPEN))
                     </a>
                 </li>
