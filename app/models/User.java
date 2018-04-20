@@ -1019,6 +1019,15 @@ public class User extends Model implements ResourceConvertible {
         String pureName = this.name;
         String[] spliters = {"[", "("};
         for (String spliter : spliters) {
+            if (pureName == null) {
+//              There exists fairly deep object refer in
+//              partial_view_child.scala.html,
+//              like a 'childIssue.assignee.user.getPureNameOnly'
+//              It seems that it makes bug
+//              Manually refreshing ORM object can be a workaround
+                this.refresh(); // Fallback, because of Ebean bug
+                pureName = this.name;
+            }
             if (pureName.contains(spliter)) {
                 pureName = this.name.substring(0, this.name.indexOf(spliter));
             }
