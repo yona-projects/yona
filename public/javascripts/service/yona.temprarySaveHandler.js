@@ -14,13 +14,18 @@ function temprarySaveHandler($textarea) {
         if ($textarea.val() !== localStorage.getItem(location.pathname)) {
             clearTimeout(keydownTimer);
 
-            noticePanel.html("<span class=\"unsaved\">Draft unsaved</span>");
+            if ($textarea.val() === "") {
+                localStorage.removeItem(location.pathname);
+                return;
+            }
+
+            noticePanel.children().fadeOut();
 
             keydownTimer = setTimeout(function () {
                 localStorage.setItem(location.pathname, $textarea.val());
 
                 noticePanel.html("<span class=\"saved\">Draft saved</span>");
-            }, 1000);
+            }, 5000);
         }
     });
 
