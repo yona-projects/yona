@@ -714,6 +714,7 @@ public class IssueApp extends AbstractPostingApp {
 
             if (isRequestedToOtherProject(project, toOtherProject)) {
                 moveIssueToOtherProject(originalIssue, toOtherProject);
+                moveSubtaskToOtherProject(originalIssue, toOtherProject);
                 issue.milestone = null;
             } else {
                 updateSubtaskRelation(issue, originalIssue);
@@ -781,6 +782,13 @@ public class IssueApp extends AbstractPostingApp {
             originalIssue.labels = new HashSet<>();
         }
         originalIssue.update();
+    }
+
+    private static void moveSubtaskToOtherProject(Issue originalIssue, Project toOtherProject) {
+        List<Issue> subtasks = Issue.findByParentIssueId(originalIssue.id);
+        for(Issue issue: subtasks) {
+            moveIssueToOtherProject(issue, toOtherProject);
+        }
     }
 
     private static void transferLabels(Issue originalIssue, Project toProject) {
