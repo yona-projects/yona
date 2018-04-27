@@ -714,7 +714,6 @@ public class IssueApp extends AbstractPostingApp {
 
             if (isRequestedToOtherProject(project, toOtherProject)) {
                 moveIssueToOtherProject(originalIssue, toOtherProject);
-                moveSubtaskToOtherProject(originalIssue, toOtherProject);
                 issue.milestone = null;
             } else {
                 updateSubtaskRelation(issue, originalIssue);
@@ -767,28 +766,34 @@ public class IssueApp extends AbstractPostingApp {
     }
 
     private static void moveIssueToOtherProject(Issue originalIssue, Project toOtherProject) {
-        originalIssue.project = toOtherProject;
-        originalIssue.setNumber(Project.increaseLastIssueNumber(toOtherProject.id));
-        originalIssue.createdDate = JodaDateUtil.now();
-        originalIssue.updatedDate = JodaDateUtil.now();
-        originalIssue.milestone = null;
-        for(IssueComment comment: originalIssue.comments){
-            comment.projectId = originalIssue.project.id;
-            comment.update();
-        }
-        if (UserApp.currentUser().isMemberOf(toOtherProject) && originalIssue.labels.size() > 0) {
-            transferLabels(originalIssue, toOtherProject);
-        } else {
-            originalIssue.labels = new HashSet<>();
-        }
-        originalIssue.update();
+        updateIssueToOtherProject(originalIssue, toOtherProject);
+        moveSubtaskToOtherProject(originalIssue, toOtherProject);
+
     }
 
     private static void moveSubtaskToOtherProject(Issue originalIssue, Project toOtherProject) {
         List<Issue> subtasks = Issue.findByParentIssueId(originalIssue.id);
         for(Issue issue: subtasks) {
-            moveIssueToOtherProject(issue, toOtherProject);
+            updateIssueToOtherProject(issue, toOtherProject);
         }
+    }
+
+    private static void updateIssueToOtherProject(Issue issue, Project toOtherProject) {
+        issue.project = toOtherProject;
+        issue.setNumber(Project.increaseLastIssueNumber(toOtherProject.id));
+        issue.createdDate = JodaDateUtil.now();
+        issue.updatedDate = JodaDateUtil.now();
+        issue.milestone = null;
+        for(IssueComment comment: issue.comments){
+            comment.projectId = issue.project.id;
+            comment.update();
+        }
+        if (UserApp.currentUser().isMemberOf(toOtherProject) && issue.labels.size() > 0) {
+            transferLabels(issue, toOtherProject);
+        } else {
+            issue.labels = new HashSet<>();
+        }
+        issue.update();
     }
 
     private static void transferLabels(Issue originalIssue, Project toProject) {
