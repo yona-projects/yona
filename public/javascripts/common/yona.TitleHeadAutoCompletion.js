@@ -112,6 +112,7 @@ function yonaTitleHeadModule(htOptions){
                 searchKey: "searchText",
                 suffix: "",
                 insertTpl: "[${name}]",
+                startWithSpace: false,
                 callbacks: {
                     remoteFilter: function(query, callback) {
                         NProgress.start();
@@ -166,7 +167,7 @@ function yonaTitleHeadModule(htOptions){
                             $yobi.notify('Label: ' + selectedValueOnly, 3000);
                             return "";
                         } else {
-                            return value + " "; // intended white space
+                            return value;
                         }
                     }
                 }
