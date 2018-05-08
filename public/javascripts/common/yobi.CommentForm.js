@@ -32,7 +32,7 @@ $(function(){
      * Attach event handlers
      */
     function _attachEvent(){
-        elements.commentForm.on("submit", onSubmitCommentForm);
+        elements.commentForm.submit(onSubmitCommentForm);
         $(window).on("keydown",  onKeydownWindow);
         $(window).on("beforeunload", onBeforeUnloadWindow);
         temprarySaveHandler(elements.textarea);
@@ -43,7 +43,10 @@ $(function(){
      *
      * @returns {boolean}
      */
-    function onSubmitCommentForm(){
+    function onSubmitCommentForm(event){
+        event.preventDefault();
+        var that = this;
+
         if(isCommentBodyEmpty()){
             $yobi.notify(Messages("post.comment.empty"), 3000);
             elements.textarea.focus();
@@ -55,10 +58,14 @@ $(function(){
         }
 
         elements.commentForm.data("onsubmit", true);
-        NProgress.start();
 
         removeCurrentPageTemprarySavedContent();
-        return true;
+
+        NProgress.start();
+
+        setTimeout(function () {
+            that.submit();
+        }, 100);
     }
 
     /**
