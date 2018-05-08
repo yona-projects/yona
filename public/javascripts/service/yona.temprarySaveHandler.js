@@ -20,12 +20,11 @@ function temprarySaveHandler($textarea, contentInitialized) {
                 return;
             }
 
-            noticePanel.children().fadeOut();
-
             keydownTimer = setTimeout(function () {
                 localStorage.setItem(location.pathname, $textarea.val());
 
                 noticePanel.html("<span class=\"saved\">Draft saved</span>");
+                noticePanel.children().fadeOut(1000);
             }, 5000);
         }
     });
