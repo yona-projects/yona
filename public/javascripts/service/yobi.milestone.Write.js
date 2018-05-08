@@ -37,7 +37,7 @@
          * initialize element variables
          */
         function _initElement(htOptions){
-            htElement.welForm = $("form.nm");
+            htElement.welForm = $("#milestone-form");
             htElement.welDatePicker   = $(htOptions.elDatePicker);
             htElement.welInputDueDate = $(htOptions.elDueDate);
             htElement.welInputTitle   = $('#title');
