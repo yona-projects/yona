@@ -37,6 +37,7 @@ yobi.Comment = (function(){
         htElement.welContainer = $(htOptions.sContainer || '#comments');
         htElement.welDeleteModal = $(htOptions.sDeleteModal || '#comment-delete-modal');
         htElement.welDeleteConfirmBtn = $(htOptions.sDeleteConfirm || '#comment-delete-confirm');
+        htElement.commentEditforms = $('[id^=comment-editform-]');
     }
 
     /**
@@ -46,6 +47,12 @@ yobi.Comment = (function(){
         htElement.welContainer.on('click', '[data-toggle="comment-delete"]', _openDeleteModal);
         htElement.welContainer.on('click', '[data-toggle="comment-edit"]', _toggleEditForm);
         htElement.welContainer.on('click', '.ybtn-cancel', _toggleEditForm);
+
+        setTimeout(function () {
+            htElement.commentEditforms.each(function (i, item) {
+                temprarySaveHandler($(item).find('textarea'), false);
+            }.bind(this));
+        }, 0);
     }
 
     function _toggleEditForm(){
