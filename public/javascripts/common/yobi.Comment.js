@@ -50,7 +50,7 @@ yobi.Comment = (function(){
 
         setTimeout(function () {
             htElement.commentEditforms.each(function (i, item) {
-                temprarySaveHandler($(item).find('textarea'), false);
+                temporarySaveHandler($(item).find('textarea'), false);
             }.bind(this));
         }, 0);
     }

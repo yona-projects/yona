@@ -49,7 +49,7 @@
          * attach event handlers
          */
         function _attachEvent(){
-            temprarySaveHandler(htElement.welInputContent);
+            temporarySaveHandler(htElement.welInputContent);
             htElement.welForm.submit(_onSubmitForm);
         }
 

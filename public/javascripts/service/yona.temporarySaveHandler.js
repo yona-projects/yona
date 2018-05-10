@@ -5,8 +5,8 @@
  * https://yona.io
  **/
 
-function temprarySaveHandler($textarea, contentInitialized) {
-    contentInitialized = contentInitialized !== false;      // default : false
+function temporarySaveHandler($textarea, contentInitialized) {
+    contentInitialized = contentInitialized !== false;      // default : true
     var noticePanel = $textarea.closest('div.write-comment-box').find(".editor-notice-label");   // 화면 어딘가 임시저장 상태 표시할 곳
     var keydownTimer;
 
