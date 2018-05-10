@@ -68,7 +68,7 @@
                 }
             });
 
-            temprarySaveHandler(htElement.welTextarea);
+            temporarySaveHandler(htElement.welTextarea);
 
             htElement.welAssignee.on("change", function(weEvt){
                 htElement.welAssignee.select2("val", weEvt.val);

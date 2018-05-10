@@ -35,7 +35,7 @@ $(function(){
         elements.commentForm.submit(onSubmitCommentForm);
         $(window).on("keydown",  onKeydownWindow);
         $(window).on("beforeunload", onBeforeUnloadWindow);
-        temprarySaveHandler(elements.textarea);
+        temporarySaveHandler(elements.textarea);
     }
 
     /**

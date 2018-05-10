@@ -52,7 +52,7 @@
         function _attachEvent(){
             htElement.welForm.submit(_onSubmitForm);
 
-            temprarySaveHandler(htElement.welTextarea);
+            temporarySaveHandler(htElement.welTextarea);
 
             htElement.welTextarea.on("focus", function(){
                 $(window).on("beforeunload", _onBeforeUnload);

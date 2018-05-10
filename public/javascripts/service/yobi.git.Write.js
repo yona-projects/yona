@@ -72,7 +72,7 @@
                 $(this).next("pre.commitMsg.desc").toggleClass("hidden");
             });
 
-            temprarySaveHandler(elements.body);
+            temporarySaveHandler(elements.body);
 
             if(elements.state === "OPEN") {
                 _checkMergeResult();
