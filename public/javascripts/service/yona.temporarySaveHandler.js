@@ -6,7 +6,6 @@
  **/
 
 function temporarySaveHandler($textarea, contentInitialized) {
-    contentInitialized = contentInitialized !== false;      // default : true
     var noticePanel = $textarea.closest('div.write-comment-box').find(".editor-notice-label");   // 화면 어딘가 임시저장 상태 표시할 곳
     var keydownTimer;
 
@@ -29,8 +28,10 @@ function temporarySaveHandler($textarea, contentInitialized) {
         }
     });
 
-    if (contentInitialized && localStorage.getItem(location.pathname)) {
-        $textarea.val(localStorage.getItem(location.pathname));
+    if (contentInitialized === undefined || contentInitialized === true) {     // default: true
+        if (localStorage.getItem(location.pathname)) {
+            $textarea.val(localStorage.getItem(location.pathname));
+        }
     }
 }
 
