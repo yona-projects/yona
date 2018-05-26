@@ -499,7 +499,7 @@
 
   inline.gfm = merge({}, inline.normal, {
     escape: replace(inline.escape)('])', '~|])')(),
-    url: /^(https?:\/\/[^\s<]+[^<.,:;"')\]\s])/,
+    url: /^((https?|file):\/\/[^\s<]+[^<.,:;"')\]\s])/,
     del: /^~~(?=\S)([\s\S]*?\S)~~/,
     text: replace(inline.text)
     (']|', '~]|')
