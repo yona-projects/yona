@@ -39,7 +39,7 @@ public class Markdown {
             .and(Sanitizers.TABLES)
             .and(Sanitizers.BLOCKS)
             .and(new HtmlPolicyBuilder()
-                    .allowStandardUrlProtocols().allowElements("a")
+                    .allowUrlProtocols("http", "https", "mailto", "file").allowElements("a")
                     .allowAttributes("href", "name", "target").onElements("a")
                     .toFactory())
             .and(new HtmlPolicyBuilder().allowElements("pre").toFactory())
