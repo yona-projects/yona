@@ -65,7 +65,7 @@ $(function(){
 
         setTimeout(function () {
             that.submit();
-        }, 100);
+        }, 200);
     }
 
     /**

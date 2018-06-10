@@ -6,7 +6,7 @@
  **/
 
 function temporarySaveHandler($textarea, contentInitialized) {
-    var noticePanel = $textarea.closest('div.write-comment-box').find(".editor-notice-label");   // 화면 어딘가 임시저장 상태 표시할 곳
+    var noticePanel = $(".editor-notice-label");   // 화면 어딘가 임시저장 상태 표시할 곳
     var keydownTimer;
 
     // this 대신 editor 컨테이너. this 에 붙여두면 화면 전환 시 handler가 메모리에 중첩됨
@@ -19,11 +19,18 @@ function temporarySaveHandler($textarea, contentInitialized) {
                 return;
             }
 
+            noticePanel.children().fadeOut();
+
             keydownTimer = setTimeout(function () {
+                if($textarea.data("editorMode") === "update-comment-body") {
+                    // FIXME: There are bug when editing comment.
+                    // NOW, just make it skipping to store at local storage
+                    localStorage.setItem(location.pathname + '-last-comment-update-draft', $textarea.val());
+                    return;
+                }
                 localStorage.setItem(location.pathname, $textarea.val());
 
                 noticePanel.html("<span class=\"saved\">Draft saved</span>");
-                noticePanel.children().fadeOut(1000);
             }, 5000);
         }
     });
@@ -37,4 +44,5 @@ function temporarySaveHandler($textarea, contentInitialized) {
 
 function removeCurrentPageTemprarySavedContent() {
     localStorage.removeItem(location.pathname);
+    localStorage.removeItem(location.pathname + '-last-comment-update-draft');
 }
