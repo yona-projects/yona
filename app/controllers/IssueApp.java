@@ -897,6 +897,9 @@ public class IssueApp extends AbstractPostingApp {
             return redirect(routes.IssueApp.issue(project.owner, project.name, number));
         }
 
+        if(StringUtils.isNotEmpty(comment.parentCommentId)){
+            comment.setParentComment(IssueComment.find.byId(Long.valueOf(comment.parentCommentId)));
+        }
         Comment savedComment = saveComment(project, issue, comment);
 
         if( containsStateTransitionRequest() ){

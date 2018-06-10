@@ -1,0 +1,15 @@
+@**
+* Yona, 21st Century Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+* https://yona.io
+**@
+
+@(posting:AbstractPosting, currentComment: Comment)
+
+@for(comment <- posting.getComments) {
+    @if(comment.getParentComment != null
+            && comment.getParentComment.id == currentComment.id) {
+        <div id="comment-@comment.id"></div>
+    }
+}

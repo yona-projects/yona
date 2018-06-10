@@ -1017,9 +1017,13 @@ public class NotificationEvent extends Model implements INotificationEvent {
         AbstractPosting parent = comment.getParent();
         Set<User> receivers = findWatchers(parent.asResource());
         receivers.add(parent.getAuthor());
-        receivers.addAll(findEventWatchersByEventType(comment.projectId, eventType));
         receivers.addAll(getMentionedUsers(comment.contents));
         includeAssigneeIfExist(comment, receivers);
+        if (comment.getParentComment() != null) {
+            receivers.remove(User.find.byId(comment.getParent().authorId));
+            receivers.add(User.find.byId(comment.getParentComment().authorId));
+        }
+        receivers.addAll(findEventWatchersByEventType(comment.projectId, eventType));
 
         receivers.removeAll(findUnwatchers(parent.asResource()));
         receivers.removeAll(findEventUnwatchersByEventType(comment.projectId, eventType));
