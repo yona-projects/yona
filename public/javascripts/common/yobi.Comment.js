@@ -48,11 +48,9 @@ yobi.Comment = (function(){
         htElement.welContainer.on('click', '[data-toggle="comment-edit"]', _toggleEditForm);
         htElement.welContainer.on('click', '.ybtn-cancel', _toggleEditForm);
 
-        setTimeout(function () {
-            htElement.commentEditforms.each(function (i, item) {
-                temporarySaveHandler($(item).find('textarea'), false);
-            }.bind(this));
-        }, 0);
+        htElement.commentEditforms.each(function (i, item) {
+            temporarySaveHandler($(item).find('textarea'), false);
+        });
     }
 
     function _toggleEditForm(){
