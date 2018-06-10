@@ -35,6 +35,9 @@ public class IssueComment extends Comment {
     @ManyToOne
     public Issue issue;
 
+    @OneToOne
+    private IssueComment parentComment;
+
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
             name = "issue_comment_voter",
@@ -54,6 +57,16 @@ public class IssueComment extends Comment {
      */
     public AbstractPosting getParent() {
         return issue;
+    }
+
+    @Override
+    public IssueComment getParentComment() {
+        return this.parentComment;
+    }
+
+    @Override
+    public void setParentComment(Comment comment) {
+        this.parentComment = (IssueComment)comment;
     }
 
     /**

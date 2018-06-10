@@ -1,23 +1,10 @@
 /**
- * Yobi, Project Hosting SW
- *
- * Copyright 2012 NAVER Corp.
- * http://yobi.io
- *
- * @author Ahn Hyeok Jun
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+ * Yona, 21st Century Project Hosting SW
+ * <p>
+ * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+ * https://yona.io
+ **/
+
 package models;
 
 import com.avaje.ebean.annotation.Transactional;
@@ -32,10 +19,7 @@ import play.db.ebean.Model;
 import utils.JodaDateUtil;
 
 import javax.annotation.Nonnull;
-import javax.persistence.Id;
-import javax.persistence.Lob;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.Transient;
+import javax.persistence.*;
 import java.util.Comparator;
 import java.util.Date;
 
@@ -56,6 +40,9 @@ abstract public class Comment extends Model implements TimelineItem, ResourceCon
     public String authorLoginId;
     public String authorName;
     public Long projectId;
+
+    @Transient
+    public String parentCommentId;
 
     public Comment() {
         createdDate = new Date();
@@ -120,6 +107,8 @@ abstract public class Comment extends Model implements TimelineItem, ResourceCon
         return createdDate;
     }
 
+    abstract public Comment getParentComment();
+    abstract public void setParentComment(Comment comment);
 
     @Override
     public boolean equals(Object obj) {
@@ -159,5 +148,19 @@ abstract public class Comment extends Model implements TimelineItem, ResourceCon
 
     public boolean isAuthoredBy(@Nonnull User user){
         return StringUtils.equalsIgnoreCase(this.authorLoginId, user.loginId);
+    }
+
+    @Override
+    public String toString() {
+        return "Comment{" +
+                "id=" + id +
+                ", contents='" + contents + '\'' +
+                ", createdDate=" + createdDate +
+                ", authorId=" + authorId +
+                ", authorLoginId='" + authorLoginId + '\'' +
+                ", authorName='" + authorName + '\'' +
+                ", projectId=" + projectId +
+                ", getParentComment=" + getParentComment() +
+                '}';
     }
 }

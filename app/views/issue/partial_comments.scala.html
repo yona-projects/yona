@@ -15,7 +15,9 @@
         @for((item, index) <- timeline.view.zipWithIndex) {
             @item match {
                 case (comment: Comment) => {
-                    @partial_comment(comment, project, issue)
+                    @if(comment.getParentComment == null){
+                        @partial_comment(comment, project, issue)
+                    }
                 }
                 case (event: IssueEvent) => {
                     @if(index > 0 && timeline(index-1).isInstanceOf[IssueEvent]) {

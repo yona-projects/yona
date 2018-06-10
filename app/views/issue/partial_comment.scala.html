@@ -13,6 +13,7 @@
 @import play.libs.Json.toJson
 @import utils.Markdown
 @import controllers.api.IssueApi
+@import models.enumeration.ResourceType
 
 @isAuthorComment(commentId: String) = @{
     if(commentId == UserApp.currentUser().loginId) {"author"}
@@ -21,6 +22,7 @@
 @VOTER_AVATAR_SHOW_LIMIT = @{ 5 }
 
 <li class="comment @isAuthorComment(comment.authorLoginId)" id="comment-@comment.id">
+    @common.childCommentsAnchorDiv(issue, comment)
     <div class="comment-avatar">
         <a href="@userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorLoginId">
             <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl(64)" width="32" height="32" alt="@comment.authorName">
@@ -103,4 +105,5 @@
             <div class="attachments pull-right" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.ISSUE_COMMENT.toString(), comment.id.toString()))"></div>
         </div>
     </div>
+    @common.childComments(issue, comment, ResourceType.ISSUE_COMMENT)
 </li>
