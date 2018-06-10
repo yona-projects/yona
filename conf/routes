@@ -53,6 +53,8 @@ GET            /-_-api/v1/favoriteProjects                                      
 POST           /-_-api/v1/favoriteProjects/:projectId                                  controllers.api.UserApi.toggleFoveriteProject(projectId:String)
 GET            /-_-api/v1/favoriteOrganizations                                        controllers.api.UserApi.getFoveriteOrganizations
 POST           /-_-api/v1/favoriteOrganizations/:organizationId                        controllers.api.UserApi.toggleFoveriteOrganization(organizationId:String)
+GET            /-_-api/v1/favoriteIssues                                               controllers.api.UserApi.getFoveriteIssues
+POST           /-_-api/v1/favoriteIssues/:issueId                                      controllers.api.UserApi.toggleFoveriteIssue(issueId:String)
 GET            /-_-api/v1/owners/:owner/projects/:projectName/issues/:number/assignableUsers                                                   controllers.api.IssueApi.findAssignableUsers(owner:String, projectName:String, number:Long, query: String ?= "")
 GET            /-_-api/v1/owners/:owner/projects/:projectName/assignableUsers                                                   controllers.api.IssueApi.findAssignableUsersOfProject(owner:String, projectName:String, query: String ?= "")
 POST           /-_-api/v1/owners/:owner/projects/:projectName/issues/:number/assignees                                                   controllers.api.IssueApi.updateAssginees(owner:String, projectName:String, number:Long)

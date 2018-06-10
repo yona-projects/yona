@@ -135,6 +135,9 @@ public class User extends Model implements ResourceConvertible {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     public List<OrganizationUser> groupUser;
 
+    @OneToMany(mappedBy = "user")
+    public List<FavoriteIssue> favoriteIssues;
+
     /**
      * project which is requested member join
      */
@@ -980,6 +983,50 @@ public class User extends Model implements ResourceConvertible {
 
         if(list != null && list.size() > 0){
             favoriteOrganizations.remove(list.get(0));
+            list.get(0).delete();
+        }
+    }
+
+    public List<Issue> getFavoriteIssues() {
+        List<Issue> issues = new ArrayList<>();
+        for (FavoriteIssue favoriteIssue : this.favoriteIssues) {
+            favoriteIssue.issue.refresh();
+            issues.add(0, favoriteIssue.issue);
+        }
+
+        return issues;
+    }
+
+    public void updateFavoriteIssue(@Nonnull Issue issue){
+        for (FavoriteIssue favoriteIssue : this.favoriteIssues) {
+            if (favoriteIssue.issue.id.equals(issue.id)) {
+                favoriteIssue.issue.refresh();
+            }
+        }
+    }
+
+    public boolean toggleFavoriteIssue(Long issueId) {
+        for (FavoriteIssue favoriteIssue : this.favoriteIssues) {
+            if( favoriteIssue.issue.id.equals(issueId) ){
+                removeFavoriteIssue(issueId);
+                this.favoriteIssues.remove(favoriteIssue);
+                return false;
+            }
+        }
+
+        FavoriteIssue favoriteIssue = new FavoriteIssue(this, Issue.finder.byId(issueId));
+        this.favoriteIssues.add(favoriteIssue);
+        favoriteIssue.save();
+        return true;
+    }
+
+    public void removeFavoriteIssue(Long issueId) {
+        List<FavoriteIssue> list = FavoriteIssue.find.where()
+                .eq("user.id", this.id)
+                .eq("issue.id", issueId).findList();
+
+        if(list != null && list.size() > 0){
+            favoriteIssues.remove(list.get(0));
             list.get(0).delete();
         }
     }

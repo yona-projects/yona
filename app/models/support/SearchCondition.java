@@ -34,6 +34,8 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
 
     public Long mentionId;
     public Long sharerId;
+    public Long favoriteId;
+
     public Organization organization;
     public List<String> projectNames;
 
@@ -63,6 +65,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         one.commenterId = this.commenterId;
         one.mentionId = this.mentionId;
         one.sharerId = this.sharerId;
+        one.favoriteId = this.favoriteId;
         one.dueDate = this.dueDate;
         one.projectNames = this.projectNames;
         return one;
@@ -116,6 +119,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         setAuthorIfExist(el);
         setMentionedIssuesIfExist(el);
         setSharedIssuesIfExist(el);
+        setFavoriteIssuesIfExist(el);
         setFilteredStringIfExist(el);
 
         if (commentedCheck) {
@@ -188,12 +192,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
             if(!commenter.isAnonymous()) {
                 List<Long> ids = getCommentedIssueIds(byUser, project);
 
-                if (ids.isEmpty()) {
-                    // No need to progress because the query matches nothing.
-                    el.idEq(-1);
-                } else {
-                    el.idIn(ids);
-                }
+                updateElWhenIdsEmpty(el, ids);
             }
         }
     }
@@ -233,6 +232,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         setCommenterIfExist(el, null);
         setMentionedIssuesIfExist(el);
         setSharedIssuesIfExist(el);
+        setFavoriteIssuesIfExist(el);
         setFilteredStringIfExist(el);
         setIssueState(el);
         setOrderByIfExist(el);
@@ -261,12 +261,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
             if(!byUser.isAnonymous()) {
                 List<Long> ids = Mention.getMentioningIssueIds(byUser.id);
 
-                if (ids.isEmpty()) {
-                    // No need to progress because the query matches nothing.
-                    el.idEq(-1);
-                } else {
-                    el.idIn(ids);
-                }
+                updateElWhenIdsEmpty(el, ids);
             }
         }
     }
@@ -277,12 +272,26 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
             if(!byUser.isAnonymous()) {
                 List<Long> ids = getSharedIssueIds(byUser);
 
-                if (ids.isEmpty()) {
-                    // No need to progress because the query matches nothing.
-                    el.idEq(-1);
-                } else {
-                    el.idIn(ids);
-                }
+                updateElWhenIdsEmpty(el, ids);
+            }
+        }
+    }
+
+    private void updateElWhenIdsEmpty(ExpressionList<Issue> el, List<Long> ids) {
+        if (ids.isEmpty()) {
+            // No need to progress because the query matches nothing.
+            el.idEq(-1);
+        } else {
+            el.idIn(ids);
+        }
+    }
+
+    private void setFavoriteIssuesIfExist(ExpressionList<Issue> el) {
+        if (favoriteId != null) {
+            if(!byUser.isAnonymous()) {
+                List<Long> ids = getFavoriteIssueIds(byUser);
+
+                updateElWhenIdsEmpty(el, ids);
             }
         }
     }
@@ -314,6 +323,18 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
                 .findList();
         for (IssueSharer issueSharer : issueSharers) {
             ids.add(issueSharer.issue.id);
+        }
+
+        return new ArrayList<>(ids);
+    }
+
+    private List<Long> getFavoriteIssueIds(User user) {
+        Set<Long> ids = new HashSet<>();
+        List<FavoriteIssue> favoriteIssues = FavoriteIssue.find.where()
+                .eq("user.id", user.id)
+                .findList();
+        for (FavoriteIssue favoriteIssue : favoriteIssues) {
+            ids.add(favoriteIssue.issue.id);
         }
 
         return new ArrayList<>(ids);
@@ -364,6 +385,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
 
         setCommenterIfExist(el, project);
         setSharedIssuesIfExist(el);
+        setFavoriteIssuesIfExist(el);
         setIssueState(el);
         setLabelsIfExist(project, el);
         setOrderByIfExist(el);
@@ -433,6 +455,15 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         return sdf.format(this.dueDate);
     }
 
+    public boolean hasCondition(){
+        return !(assigneeId == null
+                && authorId == null
+                && mentionId == null
+                && commenterId == null
+                && sharerId == null
+                && favoriteId == null);
+    }
+
     @Override
     public String toString() {
         return "SearchCondition{" +
@@ -445,6 +476,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
                 ", project=" + project +
                 ", mentionId=" + mentionId +
                 ", sharerId=" + sharerId +
+                ", favoriteId=" + favoriteId +
                 ", organization=" + organization +
                 ", projectNames=" + projectNames +
                 ", commenterId=" + commenterId +
