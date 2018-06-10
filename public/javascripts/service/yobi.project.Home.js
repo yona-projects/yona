@@ -68,7 +68,7 @@
         function _attachEvent(){
             htElement.welRepoURL.click(_onClickRepoURL);
 
-            if (ClipboardJS && ClipboardJS.isSupported()) {
+            if (ClipboardJS && ClipboardJS.isSupported() && htElement.welBtnCopy.length > 0) {
                 // Using clipboard.min.js if supports clipboard api.
                 new ClipboardJS(htElement.welBtnCopy[0], {
                     target: function() {
