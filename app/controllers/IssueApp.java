@@ -73,7 +73,7 @@ public class IssueApp extends AbstractPostingApp {
         // SearchCondition from param
         Form<models.support.SearchCondition> issueParamForm = new Form<>(models.support.SearchCondition.class);
         models.support.SearchCondition searchCondition = issueParamForm.bindFromRequest().get();
-        if (hasNotConditions(searchCondition)) {
+        if (!searchCondition.hasCondition()) {
             searchCondition.assigneeId = UserApp.currentUser().id;
         }
         searchCondition.pageNum = pageNum - 1;
@@ -104,11 +104,6 @@ public class IssueApp extends AbstractPostingApp {
             default:
                 return issuesAsHTML(project, issues, searchCondition);
         }
-    }
-
-    private static boolean hasNotConditions(models.support.SearchCondition searchCondition) {
-        return searchCondition.assigneeId == null && searchCondition.authorId == null && searchCondition.mentionId == null
-                && searchCondition.commenterId == null && searchCondition.sharerId == null;
     }
 
     @Transactional

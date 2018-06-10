@@ -93,6 +93,10 @@
     found
 }
 
+@isFavoriteIssue = @{
+    FavoriteIssue.findByIssueId(UserApp.currentUser().id, issue.id) != null
+}
+
 @projectLayout(titleForOGTag, project, utils.MenuType.ISSUE){
 @projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
 <div class="page-wrap-outer">
@@ -110,6 +114,9 @@
                     <span class="subtask-mark">subtask</span>
                 }
                 <strong class="board-id">#@issue.getNumber</strong> @issue.title
+                <span class="favorite-issue" data-issue-id="@issue.id">
+                    <i class="@if(isFavoriteIssue){starred} star material-icons va-text-top">star</i>
+                </span>
                 <div class="pull-right hide show-in-mobile" style="font-size: 0.7em">
                     <span class="date" title="@JodaDateUtil.getDateString(issue.createdDate)">
                     @agoOrDateString(issue.createdDate)

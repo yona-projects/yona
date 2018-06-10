@@ -124,12 +124,41 @@ $(function() {
                 });
         });
 
+        $(".board-header > .title > .favorite-issue").on("click", function toggleProjectFavorite(e) {
+            e.stopPropagation();
+            var that = $(this);
+            $.post(UsermenuToggleFavoriteIssueUrl + that.data("issueId"))
+                .done(function (data) {
+                    if(data.favored){
+                        that.find('i').addClass("starred");
+                    } else {
+                        that.find('i').removeClass("starred");
+                        removeIfNotFavoriteProject(that);
+                    }
+                    $yobi.notify(Messages(data.message), 3000);
+                })
+                .fail(function (data) {
+                    $yobi.alert("Update failed: " + JSON.parse(data.responseText).reason);
+                });
+
+        });
+
+
         function removeIfNotFavoriteProject(that) {
             var $recentlyVisited = $('.user-li');
             var lastFavoriteItemIndex = $recentlyVisited.index($(".favored"));
             var currentItemIndex = $recentlyVisited.index(that.parent(".project-list").parent());
             if (lastFavoriteItemIndex < currentItemIndex) {
                 that.parent(".project-list").remove();
+            }
+        }
+
+        function removeIfNotFavoriteIssue(that) {
+            var $recentlyVisited = $('.user-li');
+            var lastFavoriteItemIndex = $recentlyVisited.index($(".favored"));
+            var currentItemIndex = $recentlyVisited.index(that.parent(".issue-list").parent());
+            if (lastFavoriteItemIndex < currentItemIndex) {
+                that.parent(".issue-list").remove();
             }
         }
 

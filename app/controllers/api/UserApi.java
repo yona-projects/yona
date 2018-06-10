@@ -9,6 +9,7 @@ package controllers.api;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.UserApp;
+import models.FavoriteIssue;
 import models.FavoriteOrganization;
 import models.FavoriteProject;
 import models.User;
@@ -58,6 +59,42 @@ public class UserApi extends Controller {
         return ok(json);
     }
 
+    @Transactional
+    public static Result toggleFoveriteIssue(String issueId) {
+        if (issueId == null) {
+            return badRequest("Wrong issue id");
+        }
+        boolean isFavored = UserApp.currentUser().toggleFavoriteIssue(Long.valueOf(issueId));
+        ObjectNode json = Json.newObject();
+        json.put("issueId", issueId);
+        json.put("favored", isFavored);
+
+        if(isFavored) {
+            json.put("message", Messages.get("issue.favorite.added"));
+        } else {
+            json.put("message", Messages.get("issue.favorite.deleted"));
+        }
+
+        return ok(json);
+    }
+
+    @Transactional
+    public static Result getFoveriteIssues() {
+        ObjectNode json = Json.newObject();
+        List<ObjectNode> issues = new ArrayList<>();
+        List<Long> issueIds = new ArrayList<>();
+        for (FavoriteIssue favoriteIssue : UserApp.currentUser().favoriteIssues) {
+            ObjectNode project = Json.newObject();
+            project.put("issueId", favoriteIssue.issue.id);
+            project.put("issueTitle", favoriteIssue.issue.title);
+            project.put("issueAuthorName", favoriteIssue.issue.author.getPureNameOnly());
+            issues.add(project);
+            issueIds.add(favoriteIssue.issue.id);
+        }
+        json.put("projectIds", toJson(issueIds));
+        json.put("projects", toJson(issues));
+        return ok(json);
+    }
 
     @Transactional
     public static Result toggleFoveriteOrganization(String organizationId) {
