@@ -2873,12 +2873,19 @@ label.inline-list {
                 padding-left: 5px;
             }
 
+            &:hover {
+                .add-a-comment {
+                    display: block;
+                }
+            }
+
             .add-a-comment {
-                font-size: 10px;
+                font-size: 12px;
                 color: #BDC3C7;
                 position: relative;
                 right: 10px;
-                margin-top: -5px;
+                margin-top: -1px;
+                display: none;
 
                 &:hover {
                     color: #00b0e8;
@@ -2917,7 +2924,6 @@ label.inline-list {
                 }
                 .child-comment-input-form {
                     display: none;
-                    visibility: hidden;
 
                     textarea {
                         margin-top: 5px;
