@@ -193,8 +193,10 @@
 
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.IssueLabelApp.labelStyles(project.owner, project.name)">
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.css")">
+<link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/elevator/jquery.elevator.css")">
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.caret.min.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/elevator/jquery.elevator.js")"></script>
 <script type="text/javascript">
         $(document).ready(function(){
             $yobi.loadModule("board.View", {
@@ -270,6 +272,11 @@
                     $("#comment-body-" + payload.number).find(".markdown-wrap").html(data.translated)
                     $(this).attr("disabled", true);
                 });
+            });
+
+            $.elevator({
+                shape: 'rounded',
+                glass: true
             });
         });
 </script>
