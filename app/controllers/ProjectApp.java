@@ -404,6 +404,7 @@ public class ProjectApp extends Controller {
                 addProjectMemberList(project, userList);
                 addGroupMemberList(project, userList);
                 addProjectAuthorsAndWatchersList(project, userList);
+                addSharers(project, number, userList, resourceType);
             } else {
                 addSearchedUsers(query, userList);
             }
@@ -897,6 +898,29 @@ public class ProjectApp extends Controller {
         for (User user : project.findAuthorsAndWatchers()) {
             if (!userList.contains(user)) {
                 userList.add(user);
+            }
+        }
+    }
+
+    private static void addSharers(Project project, Long number, List<User> userList, String resourceType) {
+        if(project == null){
+            return;
+        }
+
+        Issue issue;
+        switch (ResourceType.getValue(resourceType)) {
+            case ISSUE_POST:
+                issue = Issue.findByNumber(Issue.finder, project, number);
+                break;
+            default:
+                return;
+        }
+
+        if (issue != null) {
+            for(IssueSharer issueSharer: issue.sharers) {
+                if (!userList.contains(issueSharer.user)) {
+                    userList.add(issueSharer.user);
+                }
             }
         }
     }
