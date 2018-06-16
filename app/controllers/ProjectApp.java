@@ -430,39 +430,43 @@ public class ProjectApp extends Controller {
     private static List<Map<String, String>> getUserList(Project project, List<User> userList) {
         List<Map<String, String>> mentionListOfUser = new ArrayList<>();
         collectedUsersToMentionList(mentionListOfUser, userList);
-        addOrganizationNameToMentionList(mentionListOfUser, project);
         addProjectNameToMentionList(mentionListOfUser, project);
+        addOrganizationNameToMentionList(mentionListOfUser, project);
         return mentionListOfUser;
     }
 
     private static void addProjectNameToMentionList(List<Map<String, String>> users, Project project) {
-        Map<String, String> projectUserMap = new HashMap<>();
+        Map<String, String> additionalUser = new HashMap<>();
         if(project != null){
-            projectUserMap.put("loginid", project.owner + "/" + project.name);
-            projectUserMap.put("username", project.name );
-            projectUserMap.put("name", "@project members:");
-            projectUserMap.put("searchText", project.owner + "/" + project.name + "/project/member");
-            projectUserMap.put("image", urlToProjectLogo(project).toString());
+            additionalUser.put("loginid", project.owner + "/" + project.name);
+            additionalUser.put("username", project.name );
+            additionalUser.put("name", "@project all:");
+            additionalUser.put("searchText", project.owner + "/" + project.name + "/project/member/all");
+            additionalUser.put("image", urlToProjectLogo(project).toString());
             if(users.size() > 9) {
-                users.add(9, projectUserMap);
+                if(project.organization != null) {
+                    users.add(8, additionalUser);
+                } else {
+                    users.add(9, additionalUser);
+                }
             } else {
-                users.add(projectUserMap);
+                users.add(additionalUser);
             }
         }
     }
 
     private static void addOrganizationNameToMentionList(List<Map<String, String>> users, Project project) {
-        Map<String, String> projectUserMap = new HashMap<>();
+        Map<String, String> additionalUser = new HashMap<>();
         if(project != null && project.organization != null){
-            projectUserMap.put("loginid", project.organization.name);
-            projectUserMap.put("username", project.organization.name);
-            projectUserMap.put("name", "@group members: ");
-            projectUserMap.put("searchText", project.organization.name + "/group/org/member" );
-            projectUserMap.put("image", urlToOrganizationLogo(project.organization).toString());
+            additionalUser.put("loginid", project.organization.name);
+            additionalUser.put("username", project.organization.name);
+            additionalUser.put("name", "@group all: ");
+            additionalUser.put("searchText", project.organization.name + "/group/org/member/all" );
+            additionalUser.put("image", urlToOrganizationLogo(project.organization).toString());
             if(users.size() > 9) {
-                users.add(9, projectUserMap);
+                users.add(9, additionalUser);
             }
-            users.add(projectUserMap);
+            users.add(additionalUser);
         }
     }
 
