@@ -430,8 +430,8 @@ public class ProjectApp extends Controller {
     private static List<Map<String, String>> getUserList(Project project, List<User> userList) {
         List<Map<String, String>> mentionListOfUser = new ArrayList<>();
         collectedUsersToMentionList(mentionListOfUser, userList);
-        addProjectNameToMentionList(mentionListOfUser, project);
         addOrganizationNameToMentionList(mentionListOfUser, project);
+        addProjectNameToMentionList(mentionListOfUser, project);
         return mentionListOfUser;
     }
 
@@ -440,10 +440,14 @@ public class ProjectApp extends Controller {
         if(project != null){
             projectUserMap.put("loginid", project.owner + "/" + project.name);
             projectUserMap.put("username", project.name );
-            projectUserMap.put("name", project.name);
-            projectUserMap.put("searchText", project.owner + "/" + project.name);
+            projectUserMap.put("name", "@project members:");
+            projectUserMap.put("searchText", project.owner + "/" + project.name + "/project/member");
             projectUserMap.put("image", urlToProjectLogo(project).toString());
-            users.add(projectUserMap);
+            if(users.size() > 9) {
+                users.add(9, projectUserMap);
+            } else {
+                users.add(projectUserMap);
+            }
         }
     }
 
@@ -452,9 +456,12 @@ public class ProjectApp extends Controller {
         if(project != null && project.organization != null){
             projectUserMap.put("loginid", project.organization.name);
             projectUserMap.put("username", project.organization.name);
-            projectUserMap.put("name", project.organization.name);
-            projectUserMap.put("searchText", project.organization.name);
+            projectUserMap.put("name", "@group members: ");
+            projectUserMap.put("searchText", project.organization.name + "/group/org/member" );
             projectUserMap.put("image", urlToOrganizationLogo(project.organization).toString());
+            if(users.size() > 9) {
+                users.add(9, projectUserMap);
+            }
             users.add(projectUserMap);
         }
     }
