@@ -44,6 +44,8 @@ $(function(){
      * @returns {boolean}
      */
     function onSubmitCommentForm(event){
+        removeCurrentPageTemprarySavedContent();
+
         event.preventDefault();
         var that = this;
 
@@ -58,8 +60,6 @@ $(function(){
         }
 
         elements.commentForm.data("onsubmit", true);
-
-        removeCurrentPageTemprarySavedContent();
 
         NProgress.start();
 
