@@ -36,8 +36,13 @@ function temporarySaveHandler($textarea, contentInitialized) {
     });
 
     if (contentInitialized === undefined || contentInitialized === true) {     // default: true
-        if (localStorage.getItem(location.pathname)) {
-            $textarea.val(localStorage.getItem(location.pathname));
+        var lastTextAreaText = $("textarea.content[data-editor-mode='update-comment-body']").last().val();
+        var storedDraftText = localStorage.getItem(location.pathname);
+        if (storedDraftText && lastTextAreaText
+            && storedDraftText.trim() === lastTextAreaText.trim()) {
+            removeCurrentPageTemprarySavedContent();
+        } else if (storedDraftText) {
+            $textarea.val(storedDraftText);
         }
     }
 }
