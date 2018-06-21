@@ -230,4 +230,4 @@ Contribution
 
 License
 --
-Copyright Yona Authors and NAVER Corp. under the Apache License, Version 2.0
+Copyright Yona Authors, NAVER Corp. and NAVER LABS under the Apache License, Version 2.0
