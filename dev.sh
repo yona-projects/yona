@@ -7,4 +7,4 @@ act=../activator
 
 pid=`ps -ef | grep java | grep activator-launch | awk '{print $2}'`
 kill $pid
-_JAVA_OPTIONS="-Xmx2048m -Xms1024m -Dyona.data=$YONA_DATA -DapplyEvolutions.default=true -Dhttp.port=$PORT" $act run
+JAVA_OPTS="-Xmx2048m -Xms1024m -Dyona.data=$YONA_DATA -DapplyEvolutions.default=true -Dhttp.port=$PORT" $act run
