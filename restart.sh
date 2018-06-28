@@ -7,4 +7,4 @@ YONA_DATA=/yona-data;export YONA_DATA
 
 pid=`ps -ef | grep java | grep com.typesafe.play | awk '{print $2}'`
 kill $pid
-_JAVA_OPTIONS="-Xmx2048m -Xms1024m -Dyona.data=$YONA_DATA -DapplyEvolutions.default=true -Dhttp.port=$PORT" nohup bin/yona </dev/null >/dev/null 2>&1 &
+JAVA_OPTS="-Xmx2048m -Xms1024m -Dyona.data=$YONA_DATA -DapplyEvolutions.default=true -Dhttp.port=$PORT" nohup bin/yona </dev/null >/dev/null 2>&1 &

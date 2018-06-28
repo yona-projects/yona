@@ -6,10 +6,10 @@ Linux, OSX
 
 ### Memory allocation
 
-You can also use the `_JAVA_OPTIONS` environment variable to specify Java environment variables.
+You can also use the `JAVA_OPTS` environment variable to specify Java environment variables.
 If the memory is more than 4GB, it is recommended to increase the available memory with the following options.
 
-    _JAVA_OPTIONS="-Xmx2048m -Xms2048m" bin/yona
+    JAVA_OPTS="-Xmx2048m -Xms2048m" bin/yona
 
 This is useful when an error related to memory shortage occurs.
 
@@ -18,7 +18,7 @@ Ex) Example of writing an execution script created with yona-run.sh
 
 
 YONA_DATA=/yona-data;export YONA_DATA
-_JAVA_OPTIONS="-Xmx4096m -Xms4096m" bin/yona
+JAVA_OPTS="-Xmx4096m -Xms4096m" bin/yona
 
 ```
 
@@ -32,7 +32,7 @@ modify the environment variables.
 Ex) Example of writing an execution script created with `yona-run.sh` It use 80 port and 2G memory.
 
 YONA_DATA=/yona-data;export YONA_DATA
-_JAVA_OPTIONS="-Dhttp.port=80 -Xmx2048m -Xms2048m" bin/yona
+JAVA_OPTS="-Dhttp.port=80 -Xmx2048m -Xms2048m" bin/yona
 
 ```
 

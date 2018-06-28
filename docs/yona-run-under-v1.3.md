@@ -9,15 +9,15 @@
 
     YONA_HOME=/home/user/.yona bin/yona
 
-`_JAVA_OPTIONS` 환경변수를 이용해 자바 환경 변수를 지정할 수도 있습니다. 시스템
+`JAVA_OPTS` 환경변수를 이용해 자바 환경 변수를 지정할 수도 있습니다. 시스템
 메모리가 4기가 이상이라면, 다음과 같은 옵션으로 실행하는걸 권장합니다.
 
-    _JAVA_OPTIONS="-Xmx2048m -Xms2048m" bin/yona
+    JAVA_OPTS="-Xmx2048m -Xms2048m" bin/yona
 
 기본적으로 9000번 포트를 사용하지만, 다른 포트를 사용하고 싶다면 http.port 자바
 환경변수를 수정합니다.
 
-    _JAVA_OPTIONS="-Dhttp.port=80" bin/yona
+    JAVA_OPTS="-Dhttp.port=80" bin/yona
 
 #### Windows의 경우
 
@@ -30,7 +30,7 @@ SET JAVA_OPTS=-Dyona.home=%YONA_HOME% -Dconfig.file=%YONA_HOME%\conf\application
 bin\yona.bat
 ```
 
-`_JAVA_OPTIONS` 환경변수를 이용해 자바 환경 변수를 지정할 수도 있습니다. 시스템
+`JAVA_OPTS` 환경변수를 이용해 자바 환경 변수를 지정할 수도 있습니다. 시스템
 메모리가 4기가 이상이라면, 다음과 같은 옵션으로 실행하는 걸 권장합니다.
 
     SET JAVA_OPTS=-Xmx2048m -Xms2048m
@@ -39,7 +39,7 @@ bin\yona.bat
 기본적으로 9000번 포트를 사용하지만, 다른 포트를 사용하고 싶다면 http.port 자바
 환경변수를 수정합니다.
 
-    _JAVA_OPTIONS=-Dhttp.port=80
+    JAVA_OPTS=-Dhttp.port=80
     bin\yona.bat
 
 업그레이드를 하는 경우 다음과 같이 데이터베이스 스키마 마이그레이션이

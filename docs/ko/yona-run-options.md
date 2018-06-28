@@ -6,10 +6,10 @@ Linux, OSX의 경우
 
 ### 메모리 할당 증가
 
-`_JAVA_OPTIONS` 환경변수를 이용해 자바 환경 변수를 지정할 수도 있습니다. 시스템
+`JAVA_OPTS` 환경변수를 이용해 자바 환경 변수를 지정할 수도 있습니다. 시스템
 메모리가 4기가 이상이라면, 다음과 같은 옵션으로 사용가능한 메모리를 증가시켜서 실행하는걸 권장합니다.
 
-    _JAVA_OPTIONS="-Xmx2048m -Xms2048m" bin/yona
+    JAVA_OPTS="-Xmx2048m -Xms2048m" bin/yona
 
 메모리 부족관련 에러가 발생할 경우 유용합니다.
 
@@ -18,7 +18,7 @@ Linux, OSX의 경우
 
 
 YONA_DATA=/yona-data;export YONA_DATA
-_JAVA_OPTIONS="-Xmx4096m -Xms4096m" bin/yona
+JAVA_OPTS="-Xmx4096m -Xms4096m" bin/yona
 
 ```
 
@@ -32,7 +32,7 @@ _JAVA_OPTIONS="-Xmx4096m -Xms4096m" bin/yona
 예) yona-run.sh 로 만들어 본 실행 스크립트 작성 예. 80포트를 사용하고 메모리 2G로 동작
 
 YONA_DATA=/yona-data;export YONA_DATA
-_JAVA_OPTIONS="-Dhttp.port=80 -Xmx2048m -Xms2048m" bin/yona
+JAVA_OPTS="-Dhttp.port=80 -Xmx2048m -Xms2048m" bin/yona
 
 ```
 
