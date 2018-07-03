@@ -63,6 +63,7 @@ GET            /-_-api/v1/owners/:owner/projects/:projectName/issues/:number/sha
 POST           /-_-api/v1/owners/:owner/projects/:projectName/issues/:number/share                                                   controllers.api.IssueApi.updateSharer(owner:String, projectName:String, number:Long)
 GET            /-_-api/v1/users                                                        controllers.UserApp.users(query: String ?= "")
 POST           /-_-api/v1/users                                                        controllers.api.UserApi.newUser()
+POST           /-_-api/v1/users/token                                                  controllers.api.UserApi.newToken()
 POST           /-_-api/v1/owners/:owner/projects                                       controllers.api.ProjectApi.newProject(owner:String)
 POST           /-_-api/v1/owners/:owner/projects/:projectName/labels                   controllers.api.ProjectApi.newLabel(owner:String, projectName:String)
 GET            /-_-api/v1/owners/:owner/projects/:projectName/titleHeads               controllers.api.ProjectApi.titleHeads(owner:String, projectName:String, query: String ?= "")
