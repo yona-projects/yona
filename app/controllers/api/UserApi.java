@@ -109,7 +109,7 @@ public class UserApi extends Controller {
 
     @Transactional
     public static Result getIssuesByUser(String filter, int page, int pageNum) {
-        ObjectNode result = Json. newObject();
+        ObjectNode result = Json.newObject();
 
         if (!isAuthored(request())) {
             return unauthorized(result.put("message", "unauthorized request"));
