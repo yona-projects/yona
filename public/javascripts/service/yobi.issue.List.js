@@ -245,8 +245,11 @@
         function _initShowChildList() {
             $(".post-item").on("click", function(e){
                 $(this).find(".child-issue-list").show();
-                e.stopPropagation();
             });
+            
+            $(".title-wrap > .title").on("click", function(e){
+                e.stopPropagation();
+            })
         }
 
         function _onLoadIssueList(){
