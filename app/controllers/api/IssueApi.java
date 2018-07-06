@@ -9,6 +9,7 @@ package controllers.api;
 
 import com.avaje.ebean.ExpressionList;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.AbstractPostingApp;
 import controllers.UserApp;
@@ -69,12 +70,46 @@ public class IssueApi extends AbstractPostingApp {
         return ok(result);
     }
 
-    @IsAllowed(value = Operation.READ, resourceType = ResourceType.BOARD_POST)
+    @Transactional
     public static Result getIssue(String owner, String projectName, Long number) {
+        ObjectNode result = Json.newObject();
+        if (!UserApi.isAuthored(request())) {
+            return unauthorized(result.put("message", "unauthorized request"));
+        }
+
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
+        if (project == null) {
+            return badRequest(result.put("message", "no project by request"));
+        }
+
         Issue issue = Issue.findByNumber(project, number);
-        JsonNode json = ProjectApi.getResult(issue);
-        return ok(json);
+        if (issue == null) {
+            return badRequest(result.put("message", "no issue by request"));
+        }
+        ObjectNode json = ProjectApi.getResult(issue);
+
+        return addIssueEvents(issue, json);
+    }
+
+    private static Result addIssueEvents(Issue issue, ObjectNode json) {
+        ArrayNode array = Json.newObject().arrayNode();
+
+        if (issue.events.size() > 0) {
+            for (IssueEvent event: issue.events) {
+                ObjectNode result = Json.newObject();
+                result.put("id", event.id);
+                result.put("createdDate", JodaDateUtil.getDateString(event.created, "yyyy-MM-dd a hh:mm:ss Z"));
+                result.put("eventType", event.eventType.toString());
+                result.put("eventDescription", event.eventType.getDescr());
+                result.put("oldValue", event.oldValue);
+                result.put("newValue", event.newValue);
+                array.add(result);
+            }
+
+            json.put("events", array);
+        }
+
+        return ok(Json.newObject().set("result", toJson(json)));
     }
 
     @Transactional
