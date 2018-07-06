@@ -104,7 +104,6 @@ public class AbstractPostingApp extends Controller {
         if (!StringUtils.defaultString(original.body, "").equals(StringUtils.defaultString(posting.body, ""))) {
             posting.history = addToHistory(original, posting) + StringUtils.defaultString(original.history, "");
         }
-        preUpdateHook.run();
 
         try {
             posting.checkLabels();
@@ -121,6 +120,7 @@ public class AbstractPostingApp extends Controller {
         // Attach the files in the current user's temporary storage.
         attachUploadFilesToPost(original.asResource());
 
+        preUpdateHook.run();
         return redirect(redirectTo);
     }
 
