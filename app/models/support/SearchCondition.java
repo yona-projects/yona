@@ -34,6 +34,8 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
 
     public Long mentionId;
     public Long sharerId;
+    public Long favoriteId;
+
     public Organization organization;
     public List<String> projectNames;
 
@@ -41,6 +43,8 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
 
     @Formats.DateTime(pattern = "yyyy-MM-dd")
     public Date dueDate;
+
+    private User byUser = UserApp.currentUser();
 
     /**
      * This doesn't copy {@code pageNum}, because it is safe when changing tabs with page parameter.
@@ -61,29 +65,10 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         one.commenterId = this.commenterId;
         one.mentionId = this.mentionId;
         one.sharerId = this.sharerId;
+        one.favoriteId = this.favoriteId;
         one.dueDate = this.dueDate;
         one.projectNames = this.projectNames;
         return one;
-    }
-
-    public SearchCondition updateOrderBy(String orderBy) {
-        this.orderBy = orderBy;
-        return this;
-    }
-
-    public SearchCondition updateOrderDir(String orderDir) {
-        this.orderDir = orderDir;
-        return this;
-    }
-
-    public SearchCondition updateFilter(String filter) {
-        this.filter = filter;
-        return this;
-    }
-
-    public SearchCondition updatePageNum(int pageNum) {
-        this.pageNum = pageNum;
-        return this;
     }
 
     public SearchCondition setState(String state) {
@@ -96,11 +81,6 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         return this;
     }
 
-    public SearchCondition setCommentedCheck(Boolean commentedCheck) {
-        this.commentedCheck = commentedCheck;
-        return this;
-    }
-
     public SearchCondition setMilestoneId(Long milestoneId) {
         this.milestoneId = milestoneId;
         return this;
@@ -108,11 +88,6 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
 
     public SearchCondition setLabelIds(Set<Long> labelIds) {
         this.labelIds = labelIds;
-        return this;
-    }
-
-    public SearchCondition addLabelId(Long labelId) {
-        labelIds.add(labelId);
         return this;
     }
 
@@ -131,16 +106,6 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         return this;
     }
 
-    public SearchCondition setMentionId(Long mentionId) {
-        this.mentionId = mentionId;
-        return this;
-    }
-
-    public SearchCondition setSharerId(Long sharerId) {
-        this.sharerId = sharerId;
-        return this;
-    }
-
     public ExpressionList<Issue> asExpressionList(@Nonnull Organization organization) {
         ExpressionList<Issue> el = Issue.finder.where();
 
@@ -154,7 +119,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         setAuthorIfExist(el);
         setMentionedIssuesIfExist(el);
         setSharedIssuesIfExist(el);
-
+        setFavoriteIssuesIfExist(el);
         setFilteredStringIfExist(el);
 
         if (commentedCheck) {
@@ -216,7 +181,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
 
     private void setAuthorIfExist(ExpressionList<Issue> el) {
         if (authorId != null) {
-            el.eq("authorId", authorId);
+            el.eq("authorId", byUser.id);
         }
     }
 
@@ -225,14 +190,9 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         if (commenterId != null) {
             User commenter = User.find.byId(commenterId);
             if(!commenter.isAnonymous()) {
-                List<Long> ids = getCommentedIssueIds(commenter, project);
+                List<Long> ids = getCommentedIssueIds(byUser, project);
 
-                if (ids.isEmpty()) {
-                    // No need to progress because the query matches nothing.
-                    el.idEq(-1);
-                } else {
-                    el.idIn(ids);
-                }
+                updateElWhenIdsEmpty(el, ids);
             }
         }
     }
@@ -242,13 +202,13 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
             if (assigneeId.equals(User.anonymous.id)) {
                 el.isNull("assignee");
             } else {
-                el.eq("assignee.user.id", assigneeId);
+                el.eq("assignee.user.id", byUser.id);
             }
         }
     }
 
     private List<String> getVisibleProjectIds(Organization organization) {
-        List<Project> projects = organization.getVisibleProjects(UserApp.currentUser());
+        List<Project> projects = organization.getVisibleProjects(byUser);
         List<String> projectsIds = new ArrayList<>();
         for (Project project : projects) {
             projectsIds.add(project.id.toString());
@@ -272,15 +232,14 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         setCommenterIfExist(el, null);
         setMentionedIssuesIfExist(el);
         setSharedIssuesIfExist(el);
+        setFavoriteIssuesIfExist(el);
         setFilteredStringIfExist(el);
+        setIssueState(el);
+        setOrderByIfExist(el);
 
         if (commentedCheck) {
             el.ge("numOfComments", AbstractPosting.NUMBER_OF_ONE_MORE_COMMENTS);
         }
-
-        setIssueState(el);
-
-        setOrderByIfExist(el);
 
         if (dueDate != null) {
             el.lt("dueDate", DateUtils.addDays(dueDate, 1));
@@ -299,16 +258,10 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
     private void setMentionedIssuesIfExist(ExpressionList<Issue> el) {
         // TODO: access control
         if (mentionId != null) {
-            User mentionUser = User.find.byId(mentionId);
-            if(!mentionUser.isAnonymous()) {
-                List<Long> ids = Mention.getMentioningIssueIds(mentionId);
+            if(!byUser.isAnonymous()) {
+                List<Long> ids = Mention.getMentioningIssueIds(byUser.id);
 
-                if (ids.isEmpty()) {
-                    // No need to progress because the query matches nothing.
-                    el.idEq(-1);
-                } else {
-                    el.idIn(ids);
-                }
+                updateElWhenIdsEmpty(el, ids);
             }
         }
     }
@@ -316,16 +269,29 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
     private void setSharedIssuesIfExist(ExpressionList<Issue> el) {
 
         if (sharerId != null) {
-            User user = User.find.byId(sharerId);
-            if(!user.isAnonymous()) {
-                List<Long> ids = getSharedIssueIds(user);
+            if(!byUser.isAnonymous()) {
+                List<Long> ids = getSharedIssueIds(byUser);
 
-                if (ids.isEmpty()) {
-                    // No need to progress because the query matches nothing.
-                    el.idEq(-1);
-                } else {
-                    el.idIn(ids);
-                }
+                updateElWhenIdsEmpty(el, ids);
+            }
+        }
+    }
+
+    private void updateElWhenIdsEmpty(ExpressionList<Issue> el, List<Long> ids) {
+        if (ids.isEmpty()) {
+            // No need to progress because the query matches nothing.
+            el.idEq(-1);
+        } else {
+            el.idIn(ids);
+        }
+    }
+
+    private void setFavoriteIssuesIfExist(ExpressionList<Issue> el) {
+        if (favoriteId != null) {
+            if(!byUser.isAnonymous()) {
+                List<Long> ids = getFavoriteIssueIds(byUser);
+
+                updateElWhenIdsEmpty(el, ids);
             }
         }
     }
@@ -357,6 +323,18 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
                 .findList();
         for (IssueSharer issueSharer : issueSharers) {
             ids.add(issueSharer.issue.id);
+        }
+
+        return new ArrayList<>(ids);
+    }
+
+    private List<Long> getFavoriteIssueIds(User user) {
+        Set<Long> ids = new HashSet<>();
+        List<FavoriteIssue> favoriteIssues = FavoriteIssue.find.where()
+                .eq("user.id", user.id)
+                .findList();
+        for (FavoriteIssue favoriteIssue : favoriteIssues) {
+            ids.add(favoriteIssue.issue.id);
         }
 
         return new ArrayList<>(ids);
@@ -407,6 +385,10 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
 
         setCommenterIfExist(el, project);
         setSharedIssuesIfExist(el);
+        setFavoriteIssuesIfExist(el);
+        setIssueState(el);
+        setLabelsIfExist(project, el);
+        setOrderByIfExist(el);
 
         if (milestoneId != null) {
             if (milestoneId.equals(Milestone.NULL_MILESTONE_ID)) {
@@ -419,12 +401,6 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         if (commentedCheck) {
             el.ge("numOfComments", AbstractPosting.NUMBER_OF_ONE_MORE_COMMENTS);
         }
-
-        setIssueState(el);
-
-        setLabelsIfExist(project, el);
-
-        setOrderByIfExist(el);
 
         if (dueDate != null) {
             el.lt("dueDate", DateUtils.addDays(dueDate, 1));
@@ -479,6 +455,15 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         return sdf.format(this.dueDate);
     }
 
+    public boolean hasCondition(){
+        return !(assigneeId == null
+                && authorId == null
+                && mentionId == null
+                && commenterId == null
+                && sharerId == null
+                && favoriteId == null);
+    }
+
     @Override
     public String toString() {
         return "SearchCondition{" +
@@ -491,6 +476,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
                 ", project=" + project +
                 ", mentionId=" + mentionId +
                 ", sharerId=" + sharerId +
+                ", favoriteId=" + favoriteId +
                 ", organization=" + organization +
                 ", projectNames=" + projectNames +
                 ", commenterId=" + commenterId +

@@ -37,6 +37,7 @@ yobi.Comment = (function(){
         htElement.welContainer = $(htOptions.sContainer || '#comments');
         htElement.welDeleteModal = $(htOptions.sDeleteModal || '#comment-delete-modal');
         htElement.welDeleteConfirmBtn = $(htOptions.sDeleteConfirm || '#comment-delete-confirm');
+        htElement.commentEditforms = $('[id^=comment-editform-]');
     }
 
     /**
@@ -46,6 +47,10 @@ yobi.Comment = (function(){
         htElement.welContainer.on('click', '[data-toggle="comment-delete"]', _openDeleteModal);
         htElement.welContainer.on('click', '[data-toggle="comment-edit"]', _toggleEditForm);
         htElement.welContainer.on('click', '.ybtn-cancel', _toggleEditForm);
+
+        htElement.commentEditforms.each(function (i, item) {
+            temporarySaveHandler($(item).find('textarea'), false);
+        });
     }
 
     function _toggleEditForm(){
@@ -54,6 +59,7 @@ yobi.Comment = (function(){
         $('#comment-editform-' + commentId).toggle();
         $('#comment-body-' + commentId).toggle();
         $("[data-toggle='popover']").popover();
+        autosize.update($('textarea'));
     }
 
     /**

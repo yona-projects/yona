@@ -191,7 +191,10 @@ public class HttpUtil {
      */
     public static String decodePathSegment(String pathSegment) throws UnsupportedEncodingException {
         if (pathSegment != null) {
-            return URLDecoder.decode(pathSegment, "UTF-8");
+            // + char in filename is treated specially
+            String preTransformed = pathSegment.replaceAll("\\+", "*");
+            String encoded = URLDecoder.decode(preTransformed, "UTF-8");
+            return encoded.replaceAll("\\*", "+");
         } else {
             return null;
         }

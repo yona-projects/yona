@@ -135,6 +135,9 @@ public class User extends Model implements ResourceConvertible {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     public List<OrganizationUser> groupUser;
 
+    @OneToMany(mappedBy = "user")
+    public List<FavoriteIssue> favoriteIssues;
+
     /**
      * project which is requested member join
      */
@@ -984,6 +987,50 @@ public class User extends Model implements ResourceConvertible {
         }
     }
 
+    public List<Issue> getFavoriteIssues() {
+        List<Issue> issues = new ArrayList<>();
+        for (FavoriteIssue favoriteIssue : this.favoriteIssues) {
+            favoriteIssue.issue.refresh();
+            issues.add(0, favoriteIssue.issue);
+        }
+
+        return issues;
+    }
+
+    public void updateFavoriteIssue(@Nonnull Issue issue){
+        for (FavoriteIssue favoriteIssue : this.favoriteIssues) {
+            if (favoriteIssue.issue.id.equals(issue.id)) {
+                favoriteIssue.issue.refresh();
+            }
+        }
+    }
+
+    public boolean toggleFavoriteIssue(Long issueId) {
+        for (FavoriteIssue favoriteIssue : this.favoriteIssues) {
+            if( favoriteIssue.issue.id.equals(issueId) ){
+                removeFavoriteIssue(issueId);
+                this.favoriteIssues.remove(favoriteIssue);
+                return false;
+            }
+        }
+
+        FavoriteIssue favoriteIssue = new FavoriteIssue(this, Issue.finder.byId(issueId));
+        this.favoriteIssues.add(favoriteIssue);
+        favoriteIssue.save();
+        return true;
+    }
+
+    public void removeFavoriteIssue(Long issueId) {
+        List<FavoriteIssue> list = FavoriteIssue.find.where()
+                .eq("user.id", this.id)
+                .eq("issue.id", issueId).findList();
+
+        if(list != null && list.size() > 0){
+            favoriteIssues.remove(list.get(0));
+            list.get(0).delete();
+        }
+    }
+
     public List<Project> getIssueMovableProject(){
         Set<Project> projects = new LinkedHashSet<>();
         projects.addAll(getFavoriteProjects());
@@ -1008,13 +1055,27 @@ public class User extends Model implements ResourceConvertible {
     }
 
     public String getPureNameOnly(){
-        if (StringUtils.isNotBlank(englishName) && lang != null && UserApp.currentUser().lang.startsWith("en")) {
+        String currentUserLanguage = StringUtils.defaultString(UserApp.currentUser().lang,
+                "ko-KR");
+
+        if (StringUtils.isNotBlank(englishName)
+                && lang != null && currentUserLanguage.startsWith("en")) {
             return englishName;
         }
+
         String pureName = this.name;
-        String [] spliters = { "[", "(" };
-        for(String spliter: spliters) {
-            if(pureName.contains(spliter)){
+        String[] spliters = {"[", "("};
+        for (String spliter : spliters) {
+            if (pureName == null) {
+//              There exists fairly deep object refer in
+//              partial_view_child.scala.html,
+//              like a 'childIssue.assignee.user.getPureNameOnly'
+//              It seems that it makes bug
+//              Manually refreshing ORM object can be a workaround
+                this.refresh(); // Fallback, because of Ebean bug
+                pureName = this.name;
+            }
+            if (pureName.contains(spliter)) {
                 pureName = this.name.substring(0, this.name.indexOf(spliter));
             }
         }

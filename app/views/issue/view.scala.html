@@ -93,6 +93,10 @@
     found
 }
 
+@isFavoriteIssue = @{
+    FavoriteIssue.findByIssueId(UserApp.currentUser().id, issue.id) != null
+}
+
 @projectLayout(titleForOGTag, project, utils.MenuType.ISSUE){
 @projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
 <div class="page-wrap-outer">
@@ -110,6 +114,9 @@
                     <span class="subtask-mark">subtask</span>
                 }
                 <strong class="board-id">#@issue.getNumber</strong> @issue.title
+                <span class="favorite-issue" data-issue-id="@issue.id">
+                    <i class="@if(isFavoriteIssue){starred} star material-icons va-text-top">star</i>
+                </span>
                 <div class="pull-right hide show-in-mobile" style="font-size: 0.7em">
                     <span class="date" title="@JodaDateUtil.getDateString(issue.createdDate)">
                     @agoOrDateString(issue.createdDate)
@@ -437,8 +444,10 @@
 
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.IssueLabelApp.labelStyles(project.owner, project.name)">
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.css")">
+<link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/elevator/jquery.elevator.css")">
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.caret.min.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/elevator/jquery.elevator.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/service/yona.issue.Assginee.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/service/yona.issue.Sharer.js")"></script>
 <script type="text/javascript">
@@ -535,8 +544,8 @@
                 });
             });
 
-            if (Clipboard.isSupported()) {
-                var clipboard = new Clipboard('#copyEmailBtn');
+            if (ClipboardJS.isSupported()) {
+                var clipboard = new ClipboardJS('#copyEmailBtn');
 
                 clipboard.on('success', function(e) {
                     $yobi.alert('@Messages("button.copy.email.success.message")');
@@ -550,6 +559,52 @@
                 var $this = $(this);
                 $this.removeClass("dimgray white")
                         .addClass($yobi.getContrastColor($this.css('background-color')))
+            });
+
+            // Releated with one line sub-comment feature
+            $(".add-a-comment").on("click", function(e){
+                var parent = $(this).parent(".subcomment-media-body");
+
+                // Reset & Ready
+                $(".child-comment-input-form").css("display", "none").css("visibility", "hidden");
+                $(".add-a-comment").show();
+                $(this).hide();
+
+                // Show input form
+                parent.find(".child-comment-input-form").css("display", "block").css("visibility", "visible");
+
+                parent.find("textarea").on('keypress', function(e) {
+                    // Enter to submit
+                    if ((e.keyCode || e.which) === 13) {
+                        $(this).parents('form').submit();
+                        return false;
+                    }
+                }).on('keyup', function(e) {
+                    // Cancel input
+                    if ((e.keyCode || e.which) === 27) {
+                        $(".child-comment-input-form").css("display", "none").css("visibility", "hidden");
+                        $(".add-a-comment").show();
+                    }
+                }).focus();
+            });
+
+            // Releated with one line sub-comment feature
+            $(".subcomment-author").each(function addAuthorToLastParagraphOfOnelineComment(index, el){
+                // append Author and addtionals to mardkown rendered contents
+                var $el = $(el);
+                // Remove spaces
+                var trimmed = $el.html().replace(/\s\s+/g, ' ');
+                // Find parent element
+                var $closest = $el.closest('.contents');
+                var normalTextRenderedParagraph = $closest.find('p').last();
+
+                // Remove unused author and addtional text
+                $el.remove();
+                if(normalTextRenderedParagraph.length === 0){
+                    $closest.append(trimmed);
+                } else {
+                    normalTextRenderedParagraph.append(trimmed);
+                }
             });
         });
 </script>

@@ -21,7 +21,8 @@
             data-commenter-id=""
             data-milestone-id="@param.milestoneId"
             data-mention-id=""
-            data-sharer-id="">
+            data-sharer-id=""
+            data-favorite-id="">
             @Messages("issue.list.assignedToMe")
         </a>
     </li>
@@ -32,7 +33,8 @@
             data-commenter-id=""
             data-milestone-id="@param.milestoneId"
             data-mention-id=""
-            data-sharer-id="">
+            data-sharer-id=""
+            data-favorite-id="">
             @Messages("issue.list.authoredByMe")
         </a>
     </li>
@@ -43,7 +45,8 @@
         data-commenter-id="@currentUserId"
         data-milestone-id="@param.milestoneId"
         data-mention-id=""
-        data-sharer-id="">
+        data-sharer-id=""
+        data-favorite-id="">
         @Messages("issue.list.commentedByMe")
         </a>
     </li>
@@ -54,7 +57,8 @@
             data-commenter-id=""
             data-milestone-id="@param.milestoneId"
             data-mention-id="@currentUserId"
-            data-sharer-id="">
+            data-sharer-id=""
+            data-favorite-id="">
             @Messages("issue.list.mentionedOfMe") @if(StringUtils.isBlank(param.filter)) {
                 (@Issue.getCountOfMentionedOpenIssues(currentUserId))
             }
@@ -67,11 +71,30 @@
         data-commenter-id=""
         data-milestone-id="@param.milestoneId"
         data-mention-id=""
-        data-sharer-id="@currentUserId">
+        data-sharer-id="@currentUserId"
+        data-favorite-id="">
         @Messages("issue.list.sharedWithMe") @if(StringUtils.isBlank(param.filter)) {
             (@IssueSharer.getNumberOfIssuesSharedWithUser(currentUserId))
         }
         </a>
     </li>
+        <li @if(param.favoriteId == currentUserId) {
+            class="active"}>
+            <a pjax-filter href="#"
+            data-author-id=""
+            data-assignee-id=""
+            data-commenter-id=""
+            data-milestone-id="@param.milestoneId"
+            data-mention-id=""
+            data-sharer-id=""
+            data-favorite-id="@currentUserId">
+                <span class="favorite-issue">
+                <i class="starred star material-icons va-text-top my-issue">star</i>@Messages("issue.list.favorite")
+                </span>
+                @if(StringUtils.isBlank(param.filter)) {
+                (@FavoriteIssue.getNumberOpenFavoriteIssues(currentUserId))
+            }
+            </a>
+        </li>
     }
 </ul>

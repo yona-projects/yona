@@ -1,0 +1,31 @@
+@**
+* Yona, 21st Century Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+* https://yona.io
+**@
+@import models.resource.Resource
+@(container: Resource, resourceType:ResourceType, action:String, parentCommentId:Long)
+
+@import models.enumeration.ResourceType
+@import utils.AccessControl._
+
+@if(isResourceCreatable(UserApp.currentUser, container, resourceType)){
+    <form id="child-comment-form" action="@action" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="parentCommentId" value="@parentCommentId"/>
+        <textarea name="contents" markdown="true" id="editor-one-line-comment" rows="1" class="span10" placeholder="@Messages("comment.oneline.comment.placeholder") (ENTER)"></textarea>
+        <button type="submit" class="ybtn ybtn-success">OK</button>
+    </form>
+} else {
+    <div class="write-comment-box mt20" title="@Messages("error.auth.unauthorized.comment")" data-login="required">
+        <div class="write-comment-wrap">
+            <div class="textarea-box">
+                <textarea class="comment disabled" disabled="disabled" style="cursor:text;"></textarea>
+            </div>
+            <div class="right-txt mt10">
+                <span class="ybtn ybtn-disabled">@Messages("button.comment.new")</span>
+            </div>
+        </div>
+    </div>
+
+}

@@ -231,7 +231,7 @@ $(document).ready(function(){
 
         // zclip() works only in visible element
         welBtnCopy.on("mouseenter", function(){
-            if (Clipboard && Clipboard.isSupported()) {
+            if (ClipboardJS && ClipboardJS.isSupported()) {
                 // Using clipboard.min.js if supports clipboard api.
                 if (clipboard) {
                     clipboard.destroy(); // Destroy previous instance before locate new instance.

@@ -73,7 +73,7 @@ public class IssueApp extends AbstractPostingApp {
         // SearchCondition from param
         Form<models.support.SearchCondition> issueParamForm = new Form<>(models.support.SearchCondition.class);
         models.support.SearchCondition searchCondition = issueParamForm.bindFromRequest().get();
-        if (hasNotConditions(searchCondition)) {
+        if (!searchCondition.hasCondition()) {
             searchCondition.assigneeId = UserApp.currentUser().id;
         }
         searchCondition.pageNum = pageNum - 1;
@@ -104,11 +104,6 @@ public class IssueApp extends AbstractPostingApp {
             default:
                 return issuesAsHTML(project, issues, searchCondition);
         }
-    }
-
-    private static boolean hasNotConditions(models.support.SearchCondition searchCondition) {
-        return searchCondition.assigneeId == null && searchCondition.authorId == null && searchCondition.mentionId == null
-                && searchCondition.commenterId == null && searchCondition.sharerId == null;
     }
 
     @Transactional
@@ -732,6 +727,8 @@ public class IssueApp extends AbstractPostingApp {
                 // Do not replace it to 'issue.comments = originalIssue.comments;'
                 issue.voters.addAll(originalIssue.voters);
                 issue.comments = originalIssue.comments;
+                issue.sharers.addAll(originalIssue.sharers);
+
                 final Project previous = Project.findByOwnerAndProjectName(ownerName, projectName);
                 if(isRequestedToOtherProject(originalIssue.project, previous)){
                     issue.labels = originalIssue.labels;
@@ -764,21 +761,34 @@ public class IssueApp extends AbstractPostingApp {
     }
 
     private static void moveIssueToOtherProject(Issue originalIssue, Project toOtherProject) {
-        originalIssue.project = toOtherProject;
-        originalIssue.setNumber(Project.increaseLastIssueNumber(toOtherProject.id));
-        originalIssue.createdDate = JodaDateUtil.now();
-        originalIssue.updatedDate = JodaDateUtil.now();
-        originalIssue.milestone = null;
-        for(IssueComment comment: originalIssue.comments){
-            comment.projectId = originalIssue.project.id;
+        updateIssueToOtherProject(originalIssue, toOtherProject);
+        moveSubtaskToOtherProject(originalIssue, toOtherProject);
+
+    }
+
+    private static void moveSubtaskToOtherProject(Issue originalIssue, Project toOtherProject) {
+        List<Issue> subtasks = Issue.findByParentIssueId(originalIssue.id);
+        for(Issue issue: subtasks) {
+            updateIssueToOtherProject(issue, toOtherProject);
+        }
+    }
+
+    private static void updateIssueToOtherProject(Issue issue, Project toOtherProject) {
+        issue.project = toOtherProject;
+        issue.setNumber(Project.increaseLastIssueNumber(toOtherProject.id));
+        issue.createdDate = JodaDateUtil.now();
+        issue.updatedDate = JodaDateUtil.now();
+        issue.milestone = null;
+        for(IssueComment comment: issue.comments){
+            comment.projectId = issue.project.id;
             comment.update();
         }
-        if (UserApp.currentUser().isMemberOf(toOtherProject) && originalIssue.labels.size() > 0) {
-            transferLabels(originalIssue, toOtherProject);
+        if (UserApp.currentUser().isMemberOf(toOtherProject) && issue.labels.size() > 0) {
+            transferLabels(issue, toOtherProject);
         } else {
-            originalIssue.labels = new HashSet<>();
+            issue.labels = new HashSet<>();
         }
-        originalIssue.update();
+        issue.update();
     }
 
     private static void transferLabels(Issue originalIssue, Project toProject) {
@@ -882,6 +892,9 @@ public class IssueApp extends AbstractPostingApp {
             return redirect(routes.IssueApp.issue(project.owner, project.name, number));
         }
 
+        if(StringUtils.isNotEmpty(comment.parentCommentId)){
+            comment.setParentComment(IssueComment.find.byId(Long.valueOf(comment.parentCommentId)));
+        }
         Comment savedComment = saveComment(project, issue, comment);
 
         if( containsStateTransitionRequest() ){

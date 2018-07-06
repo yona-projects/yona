@@ -91,17 +91,19 @@ public class IssueApi extends AbstractPostingApp {
             return badRequest(result.put("message", "No issues key exists or value wasn't array!"));
         }
 
+        boolean sendNotification = json.findValue("sendNotification") != null;
+
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
 
         List<JsonNode> createdIssues = new ArrayList<>();
         for (JsonNode issueNode : issuesNode) {
-            createdIssues.add(createIssuesNode(issueNode, project));
+            createdIssues.add(createIssuesNode(issueNode, project, sendNotification));
         }
 
         return created(toJson(createdIssues));
     }
 
-    private static JsonNode createIssuesNode(JsonNode json, Project project) {
+    private static JsonNode createIssuesNode(JsonNode json, Project project, boolean sendNotification) {
         JsonNode files = json.findValue("temporaryUploadFiles");
 
         final Issue issue = new Issue();
@@ -129,6 +131,10 @@ public class IssueApi extends AbstractPostingApp {
         ObjectNode result = Json.newObject();
         result.put("status", 201);
         result.put("location", controllers.routes.IssueApp.issue(project.owner, project.name, issue.getNumber()).toString());
+
+        if (sendNotification) {
+            NotificationEvent.afterNewIssue(issue);
+        }
         return result;
     }
 

@@ -1,7 +1,7 @@
 @**
 * Yona, 21st Century Project Hosting SW
 *
-* Copyright Yona & Yobi Authors & NAVER Corp.
+* Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
 * https://yona.io
 **@
 @import play.data.Form
@@ -37,7 +37,7 @@
                     	@defining(issueForm.errors().get("title")) { errors =>
                             <div class="span12">
                                 <div class="span11">
-                                    <input type="text" id="title" name="title" value="" class="text title @if(errors != null) {error}" maxlength="250" tabindex="1" placeholder="@Messages("title")">
+                                    <input type="text" id="title" name="title" value="" class="text title @if(errors != null) {error}" maxlength="250" tabindex="1" placeholder="@Messages("title")" autocomplete="off">
                                 </div>
                                 <div class="span1 subtask-message">@Messages("issue.option")</div>
                             </div>
@@ -146,6 +146,7 @@
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.Subtask.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/service/yona.issue.Assginee.js")"></script>
+<script type="text/jAvascript" src="@routes.Assets.at("javascripts/common/yona.TitleHeadAutoCompletion.js")"></script>
 <script type="text/javascript">
     $(function(){
         // yobi.issue.Write
@@ -173,6 +174,11 @@
                 "",
                 "@Messages("issue.assignee")"
         );
+
+        yonaTitleHeadModule({
+            "target": 'input[id=title]',
+            "url"   : "@api.routes.ProjectApi.titleHeads(project.owner, project.name)"
+        });
     });
 </script>
 }

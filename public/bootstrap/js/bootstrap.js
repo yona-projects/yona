@@ -1,9 +1,11 @@
+/**
+ * Yona, 21st Century Project Hosting SW
+ * <p>
+ * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+ * https://yona.io
+ **/
+
 /*
- *  Yona, 21st Century Project Hosting SW
- *  <p>
- *  Copyright Yona & Yobi Authors & NAVER Corp.
- *  https://yona.io
- */rap/javascript.html#transitions
  * ===================================================
  * Copyright 2012 Twitter, Inc.
  *

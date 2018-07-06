@@ -635,6 +635,7 @@
             font-family: Tahoma;
             color:#444;
             font-weight:bold;
+            padding: 0 2px;
 
             &:hover {
                 color: #2cb400;
@@ -646,6 +647,14 @@
             &:hover {
                 color: white;
                 background-color: orangered;
+                text-decoration: none;
+            }
+        }
+
+        .naver-labs {
+            &:hover {
+                color: white;
+                background-color: black;
                 text-decoration: none;
             }
         }
@@ -2623,6 +2632,17 @@ label.inline-list {
             font-size: 1.2em;
         }
     }
+
+    .markdown-wrap {
+        img {
+            box-sizing: content-box;
+            background-color: #fff;
+            border-style: none;
+            box-shadow: none;
+            margin: 5px 0;
+            padding: 0;
+        }
+    }
 }
 
 .project-overview-home {
@@ -2871,6 +2891,67 @@ label.inline-list {
             .comment-avatar {
                 float: left;
                 padding-left: 5px;
+            }
+
+            .add-a-comment {
+                font-size: 12px;
+                color: #BDC3C7;
+                position: relative;
+                right: 10px;
+                margin-top: -1px;
+
+                &:hover {
+                    color: #00b0e8;
+                    cursor: pointer;
+                    display: block;
+                }
+            }
+
+            .subcomment-media-body {
+                margin-left: 60px;
+                text-align: right;
+
+                .deleteButtonX {
+                    display: inline-flex;
+                    align-items: center;
+                    color: red;
+                }
+                .child-comments {
+                }
+                .one-line-comment {
+                    font-size: 12px;
+
+                    :hover {
+                       background-color: #f1f1f1;
+                    }
+
+                    .contents {
+                        text-align: left;
+                        margin-left: 12px;
+                        padding: 3px 0 2px 10px;
+                        border-bottom: 1px dashed #ccc;
+                    }
+                    .author {
+                        text-align: right;
+                    }
+                }
+                .child-comment-input-form {
+                    display: none;
+
+                    textarea {
+                        margin-top: 5px;
+                        border: none;
+                        border-bottom: 1px solid #ccc;
+                        border-radius: 0 !important;
+                        margin-bottom: 0;
+                        resize: none;
+                        overflow: hidden;
+                    }
+
+                    button {
+                        display: inline-block;
+                    }
+                }
             }
 
             .media-body {
@@ -6864,6 +6945,24 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     }
 }
 
+.subtask-progress {
+    &:hover {
+        cursor:pointer;
+    }
+}
+
+.child-issue-list {
+    color: #333;
+
+    .closed {
+        background-color: transparent !important;
+    }
+
+    .yobicon-checkmark {
+        color: #fd6956;
+    }
+}
+
 .subtasks {
     #simple-issue-list;
     margin-bottom: 15px;
@@ -7064,7 +7163,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
             }
             .title {
                 font-size: 14px;
-                font-weight: 400;
+                font-weight: 500;
             }
         }
 
@@ -7114,6 +7213,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     color: darkgrey;
     font-size: 12px;
     margin-right: 5px;
+    font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
 }
 
 .to-branch {
@@ -7190,5 +7290,24 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         text-overflow: ellipsis;
         overflow: hidden;
         white-space: nowrap;
+    }
+}
+
+.favorite-issue {
+    .my-issue {
+        font-size: 16px !important;
+    }
+
+    .star {
+        color: rgba(0, 0, 0, 0.2);
+        font-size: 22px;
+
+        &:hover {
+            color: #e91e63;
+            cursor: pointer;
+        }
+    }
+    .starred {
+        color: #e91e63 !important;
     }
 }

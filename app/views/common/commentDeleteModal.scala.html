@@ -34,5 +34,7 @@
 </div>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yobi.Comment.js")"></script>
 <script type="text/javascript">
-    yobi.Comment.init({'sContainer' : '@commentsContainer'});
+    $(function () {
+        yobi.Comment.init({'sContainer' : '@commentsContainer'});
+    });
 </script>

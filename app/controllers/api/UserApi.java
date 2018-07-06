@@ -9,15 +9,22 @@ package controllers.api;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.UserApp;
+import models.FavoriteIssue;
 import models.FavoriteOrganization;
 import models.FavoriteProject;
 import models.User;
+import models.enumeration.UserState;
 import org.apache.shiro.crypto.SecureRandomNumberGenerator;
+import org.apache.shiro.crypto.hash.Sha256Hash;
+import org.apache.shiro.util.ByteSource;
 import play.db.ebean.Transactional;
 import play.i18n.Messages;
+import play.libs.F;
 import play.libs.Json;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
+import utils.SHA256Util;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +34,10 @@ import static models.NotificationMail.isAllowedEmailDomains;
 import static play.libs.Json.toJson;
 
 public class UserApi extends Controller {
+
+    private static final int HASH_ITERATIONS = 1024;
+    private static final String AUTHORIZATION_HEADER_PREFIX = "token";
+    private static final int AUTHORIZATION_HEADER_MIN_LENGTH = 2;
 
     @Transactional
     public static Result toggleFoveriteProject(String projectId) {
@@ -58,6 +69,42 @@ public class UserApi extends Controller {
         return ok(json);
     }
 
+    @Transactional
+    public static Result toggleFoveriteIssue(String issueId) {
+        if (issueId == null) {
+            return badRequest("Wrong issue id");
+        }
+        boolean isFavored = UserApp.currentUser().toggleFavoriteIssue(Long.valueOf(issueId));
+        ObjectNode json = Json.newObject();
+        json.put("issueId", issueId);
+        json.put("favored", isFavored);
+
+        if(isFavored) {
+            json.put("message", Messages.get("issue.favorite.added"));
+        } else {
+            json.put("message", Messages.get("issue.favorite.deleted"));
+        }
+
+        return ok(json);
+    }
+
+    @Transactional
+    public static Result getFoveriteIssues() {
+        ObjectNode json = Json.newObject();
+        List<ObjectNode> issues = new ArrayList<>();
+        List<Long> issueIds = new ArrayList<>();
+        for (FavoriteIssue favoriteIssue : UserApp.currentUser().favoriteIssues) {
+            ObjectNode project = Json.newObject();
+            project.put("issueId", favoriteIssue.issue.id);
+            project.put("issueTitle", favoriteIssue.issue.title);
+            project.put("issueAuthorName", favoriteIssue.issue.author.getPureNameOnly());
+            issues.add(project);
+            issueIds.add(favoriteIssue.issue.id);
+        }
+        json.put("projectIds", toJson(issueIds));
+        json.put("projects", toJson(issues));
+        return ok(json);
+    }
 
     @Transactional
     public static Result toggleFoveriteOrganization(String organizationId) {
@@ -111,6 +158,75 @@ public class UserApi extends Controller {
         }
 
         return created(toJson(createdUsers));
+    }
+
+    @Transactional
+    public static Result newToken() {
+        ObjectNode result = Json. newObject();
+        JsonNode json = request().body().asJson();
+        if (json == null) {
+            return badRequest(result.put("message", "Empty request data"));
+        }
+
+        String loginIdOrEmail = json.findValue("id").asText();
+        String password = json.findValue("password").asText();
+
+        if (!isValidUser(loginIdOrEmail)) {
+            return unauthorized(result.put("message", "No valid user by id"));
+        }
+
+        User user = User.findByLoginKey(loginIdOrEmail);
+        if (!checkUserPassword(user, password))
+            return unauthorized(result.put("message", "No user by id and password"));
+
+        result.put("access_token", getNewUserToken(user));
+        return ok(toJson(result));
+    }
+
+    public static boolean isAuthored(Http.Request request) {
+        String header = request.getHeader("Authorization");
+        if (header == null)
+            return false;
+
+        String[] tokenValues = header.split(AUTHORIZATION_HEADER_PREFIX);
+        if (tokenValues.length < AUTHORIZATION_HEADER_MIN_LENGTH)
+            return false;
+
+        String token = tokenValues[1].replaceAll("\\s", "");
+        if (User.findByUserToken(token).isAnonymous())
+            return false;
+
+        return true;
+    }
+
+    public static User getAuthorizedUser(String token) {
+        return User.findByUserToken(token);
+    }
+
+    private static boolean isValidUser(String loginIdOrEmail) {
+        User user = User.findByLoginKey(loginIdOrEmail);
+        if (user == null || user == User.anonymous) {
+            return false;
+        }
+
+        if (user.state == UserState.LOCKED || user.state == UserState.DELETED) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static boolean checkUserPassword(User user, String password) {
+        String hashedPassword = new Sha256Hash(password, ByteSource.Util.bytes(user.passwordSalt), HASH_ITERATIONS).toBase64();
+        return org.apache.commons.lang3.StringUtils.equals(user.password, hashedPassword);
+    }
+
+    private static String getNewUserToken(User user) {
+        String token = SHA256Util.hashBasedNow();
+        user.token = token;
+        user.save();
+
+        return token;
     }
 
     public static JsonNode createUserNode(JsonNode userNode) {

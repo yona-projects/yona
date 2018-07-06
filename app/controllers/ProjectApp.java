@@ -383,7 +383,7 @@ public class ProjectApp extends Controller {
         ));
     }
 
-    @IsAllowed(Operation.READ)
+    @AnonymousCheck
     public static Result mentionList(String loginId, String projectName, Long number,
                                      String resourceType, String query, String mentionType) {
         String prefer = HttpUtil.getPreferType(request(), HTML, JSON);
@@ -404,6 +404,7 @@ public class ProjectApp extends Controller {
                 addProjectMemberList(project, userList);
                 addGroupMemberList(project, userList);
                 addProjectAuthorsAndWatchersList(project, userList);
+                addSharers(project, number, userList, resourceType);
             } else {
                 addSearchedUsers(query, userList);
             }
@@ -435,26 +436,37 @@ public class ProjectApp extends Controller {
     }
 
     private static void addProjectNameToMentionList(List<Map<String, String>> users, Project project) {
-        Map<String, String> projectUserMap = new HashMap<>();
+        Map<String, String> additionalUser = new HashMap<>();
         if(project != null){
-            projectUserMap.put("loginid", project.owner + "/" + project.name);
-            projectUserMap.put("username", project.name );
-            projectUserMap.put("name", project.name);
-            projectUserMap.put("searchText", project.owner + "/" + project.name);
-            projectUserMap.put("image", urlToProjectLogo(project).toString());
-            users.add(projectUserMap);
+            additionalUser.put("loginid", project.owner + "/" + project.name);
+            additionalUser.put("username", project.name );
+            additionalUser.put("name", "@project all:");
+            additionalUser.put("searchText", project.owner + "/" + project.name + "/project/member/all");
+            additionalUser.put("image", urlToProjectLogo(project).toString());
+            if(users.size() > 9) {
+                if(project.organization != null) {
+                    users.add(8, additionalUser);
+                } else {
+                    users.add(9, additionalUser);
+                }
+            } else {
+                users.add(additionalUser);
+            }
         }
     }
 
     private static void addOrganizationNameToMentionList(List<Map<String, String>> users, Project project) {
-        Map<String, String> projectUserMap = new HashMap<>();
+        Map<String, String> additionalUser = new HashMap<>();
         if(project != null && project.organization != null){
-            projectUserMap.put("loginid", project.organization.name);
-            projectUserMap.put("username", project.organization.name);
-            projectUserMap.put("name", project.organization.name);
-            projectUserMap.put("searchText", project.organization.name);
-            projectUserMap.put("image", urlToOrganizationLogo(project.organization).toString());
-            users.add(projectUserMap);
+            additionalUser.put("loginid", project.organization.name);
+            additionalUser.put("username", project.organization.name);
+            additionalUser.put("name", "@group all: ");
+            additionalUser.put("searchText", project.organization.name + "/group/org/member/all" );
+            additionalUser.put("image", urlToOrganizationLogo(project.organization).toString());
+            if(users.size() > 9) {
+                users.add(9, additionalUser);
+            }
+            users.add(additionalUser);
         }
     }
 
@@ -897,6 +909,29 @@ public class ProjectApp extends Controller {
         for (User user : project.findAuthorsAndWatchers()) {
             if (!userList.contains(user)) {
                 userList.add(user);
+            }
+        }
+    }
+
+    private static void addSharers(Project project, Long number, List<User> userList, String resourceType) {
+        if(project == null){
+            return;
+        }
+
+        Issue issue;
+        switch (ResourceType.getValue(resourceType)) {
+            case ISSUE_POST:
+                issue = Issue.findByNumber(Issue.finder, project, number);
+                break;
+            default:
+                return;
+        }
+
+        if (issue != null) {
+            for(IssueSharer issueSharer: issue.sharers) {
+                if (!userList.contains(issueSharer.user)) {
+                    userList.add(issueSharer.user);
+                }
             }
         }
     }

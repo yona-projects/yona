@@ -30,23 +30,17 @@
                             <span class="@if(percentage == 100){txt-green}">@if(percentage != 100){@closedChildIssues.size/}@(openChildIssues.size + closedChildIssues.size)</span>
                             <span class="parent-issue-state @parentIssue.state.state">@Messages("issue.state." + parentIssue.state.state)</span>
                         </div>
-                }
+                    }
                 }
                 <hr class="parent-issue-delimeter"/>
-                @for(childIssue <- openChildIssues) {
-                    <div class="issue-item @if(childIssue.id == issue.id){selected-child}">
-                        <span class="state-label open"></span>
-                        <a href="@routes.IssueApp.issue(childIssue.project.owner, childIssue.project.name, childIssue.getNumber)">
-                            <span class="item-name"><span class="subtask-number">#@childIssue.getNumber</span> @childIssue.title@if(childIssue.assignee != null) { - @childIssue.assignee.user.getPureNameOnly}</span></a>
-                        <span class="font12 no-border-at-child">@common.commentAndVoterPairDisplay(childIssue, project)</span>
-                    </div>
-                }
-                @for(childIssue <- closedChildIssues) {
-                    <div class="issue-item @if(childIssue.id == issue.id){selected-child}">
-                        <span class="state-label closed"><i class=" yobicon-checkmark"></i></span>
-                        <a href="@routes.IssueApp.issue(childIssue.project.owner, childIssue.project.name, childIssue.getNumber)">
-                            <span class="item-name"><span class="subtask-number">#@childIssue.getNumber</span> @childIssue.title@if(childIssue.assignee != null){ - @childIssue.assignee.user.getPureNameOnly}</span></a>
-                        <span class="font12 no-border-at-child">@common.commentAndVoterPairDisplay(childIssue, project)</span>
+                @if(!openChildIssues.isEmpty || !closedChildIssues.isEmpty) {
+                    <div class="child-issues">
+                        @for(childIssue <- openChildIssues) {
+                            @partial_view_child("open", childIssue, issue)
+                        }
+                        @for(childIssue <- closedChildIssues) {
+                            @partial_view_child("closed", childIssue, issue)
+                        }
                     </div>
                 }
             </div>

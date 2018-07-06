@@ -529,6 +529,15 @@ yobi.Files = (function(){
 
         var oItem, nSubmitId, oFile;
 
+
+        if( hasBothTextAndImage(oClipboardData.items)){
+            _fireEvent("pasteMarkdownTable", {
+                "nSubmitId": _getSubmitId(),
+                "markdownTableText": getPlainText(oClipboardData.items)
+            }, sNamespace);
+            return weEvt.preventDefault();
+        }
+
         for(var i = 0, nLength = oClipboardData.items.length; i < nLength; i++){
             oItem = oClipboardData.items[i];
             oFile = oItem.getAsFile();
@@ -546,6 +555,73 @@ yobi.Files = (function(){
 
                 weEvt.preventDefault();
             }
+        }
+
+        function hasBothTextAndImage(data) {
+            var hasStringData = false;
+            var hasImageData = false;
+
+            if (data && data.length > 1) {
+                for (var i = 0, nLength = data.length; i < nLength; i++) {
+                    if ((data[i].kind === 'string') &&
+                        (data[i].type.match('^text/plain'))) {
+                        hasStringData = true;
+                    } else if ((data[i].kind === 'file') &&
+                        (data[i].type.match('^image/'))) {
+                        hasImageData = true;
+                    }
+                }
+            }
+            return hasStringData && hasImageData;
+        }
+
+        function getPlainText(data) {
+            var text;
+
+            if (data && data.length > 1) {
+                for (var i = 0, nLength = data.length; i < nLength; i++) {
+                    if ((data[i].kind === 'string') &&
+                        (data[i].type.match('^text/plain'))) {
+
+                        // The rest of this block codes are derived from
+                        // https://github.com/jonmagic/copy-excel-paste-markdown/blob/master/script.js
+                        var clipboard = weEvt.originalEvent.clipboardData;
+                        var thisData = clipboard.getData('text/plain').trim();
+
+                        var rows = thisData.split((/[\n\u0085\u2028\u2029]|\r\n?/g)).map(function (row) {
+                            return row.split("\t")
+                        });
+
+                        var columnWidths = rows[0].map(function (column, columnIndex) {
+                            return columnWidth(rows, columnIndex)
+                        });
+
+                        var markdownRows = rows.map(function (row, rowIndex) {
+                            // | Name         | Title | Email Address  |
+                            // |--------------|-------|----------------|
+                            // | Jane Atler   | CEO   | jane@acme.com  |
+                            // | John Doherty | CTO   | john@acme.com  |
+                            // | Sally Smith  | CFO   | sally@acme.com |
+                            return "| " + row.map(function (column, index) {
+                                return column + Array(columnWidths[index] - column.length + 1).join(" ")
+                            }).join(" | ") + " |";
+                        });
+
+                        markdownRows.splice(1, 0, "|" + columnWidths.map(function (width, index) {
+                            return Array(columnWidths[index] + 3).join("-")
+                        }).join("|") + "|");
+
+                        text = markdownRows.join("\n");
+                    }
+                }
+            }
+            return text;
+        }
+
+        function columnWidth(rows, columnIndex) {
+            return Math.max.apply(null, rows.map(function (row) {
+                return row[columnIndex].length
+            }));
         }
     }
 

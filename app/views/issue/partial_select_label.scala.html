@@ -27,7 +27,7 @@
       @Messages("label") @if(UserApp.currentUser().isManagerOf(project)){<a href="@routes.IssueLabelApp.labelsForm(project.owner, project.name)" target="_blank" class="label-edit">[@Messages("button.edit")]</a>}
   </dt>
   <dd>
-    <select name="labelIds" multiple="multiple" data-search="labelIds"
+    <select id="labelIds" name="labelIds" multiple="multiple" data-search="labelIds"
             data-toggle="select2" data-format="issuelabel" data-allow-clear="true"
             data-dropdown-css-class="issue-labels" data-container-css-class="issue-labels bordered fullsize"
             data-placeholder="@Messages("label.select")" @additionalAttr class="hide">

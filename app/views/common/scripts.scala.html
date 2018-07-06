@@ -45,6 +45,7 @@
 <script type="text/javascript" src="@routes.Assets.at("bootstrap/js/bootstrap-better-typeahead.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("bootstrap/js/bootstrap-switch.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/yona-lib.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/autosize/autosize.min.js")"></script>
 
 <script type="text/javascript">
     $yobi.setScriptPath("@getJSPath");
@@ -171,5 +172,7 @@
                 }
             }
         });
+
+        autosize($('textarea'));
     });
 </script>

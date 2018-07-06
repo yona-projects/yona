@@ -1,0 +1,34 @@
+@**
+* Yona, 21st Century Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+* https://yona.io
+**@
+
+@(issue:Issue, project:Project)
+
+@import utils.TemplateHelper._
+
+@parentIssueId = @{
+    if(issue.parent == null) {
+        issue.id
+    } else {
+        issue.parent.id
+    }
+}
+
+@defining(Issue.findByParentIssueIdAndState(parentIssueId, State.OPEN)) { openChildIssues =>
+    @defining(Issue.findByParentIssueIdAndState(parentIssueId, State.CLOSED)) { closedChildIssues =>
+        @if(!openChildIssues.isEmpty || !closedChildIssues.isEmpty) {
+            <div class="child-issues">
+                @for(childIssue <- openChildIssues) {
+                    @partial_view_child("open", childIssue, issue)
+                }
+                @for(childIssue <- closedChildIssues) {
+                    @partial_view_child("closed", childIssue, issue)
+                }
+            </div>
+        }
+    }
+}
+

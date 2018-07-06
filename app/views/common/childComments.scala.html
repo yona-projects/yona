@@ -1,0 +1,85 @@
+@**
+* Yona, 21st Century Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+* https://yona.io
+**@
+
+@import models.enumeration.ResourceType
+@(posting:AbstractPosting, currentComment: Comment, resourceType:ResourceType)
+
+@import utils.Markdown
+@import utils.AccessControl._
+@import utils.TemplateHelper._
+@import utils.JodaDateUtil
+
+
+@avatarByLoginId(loginId: String, loginName: String, sameTypeAsPrevious: Boolean = false) = {
+    <a href="@userInfo(loginId)" class="usf-group" data-toggle="tooltip" data-placement="top" title="@loginName">
+        <img src="@getUserAvatarUrl(User.findByLoginId(loginId), 32)" class="avatar-wrap small"></a>
+}
+
+@linkToUser(loginId: String, loginName: String, showAvatar: Boolean = true) = {
+    @loginId match {
+        case (loginId: String) => {
+            @if(showAvatar) {
+                @avatarByLoginId(loginId, loginName)
+            }
+            <a href="@userInfo(loginId)" class="usf-group" data-toggle="tooltip" data-placement="top" title="@loginId">
+                <strong>@loginName</strong></a>
+        }
+        case _ => { Anonymous }
+    }
+}
+
+@getDeleteUrl(comment:Comment) = @{
+    if(currentComment.getParent.isInstanceOf[Issue]) {
+        routes.IssueApp.deleteComment(posting.project.owner, posting.project.name, posting.getNumber, comment.id)
+    } else {
+        routes.BoardApp.deleteComment(posting.project.owner, posting.project.name, posting.getNumber, comment.id)
+    }
+}
+
+@getNewCommentUrl() = @{
+    if(currentComment.getParent.isInstanceOf[Issue]) {
+        routes.IssueApp.newComment(posting.project.owner, posting.project.name, posting.getNumber).toString()
+    } else {
+        routes.BoardApp.newComment(posting.project.owner, posting.project.name, posting.getNumber).toString()
+    }
+}
+
+@additionalConetents(comment:Comment) = {
+    <a href="#comment-@comment.id" class="ago" title="@JodaDateUtil.getDateString(comment.createdDate)">@utils.TemplateHelper.agoOrDateString(comment.createdDate)</a>
+    @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)) {
+        <a href="javascript:void(0)" type="button" class="btn-transparent deleteButtonX" data-toggle="comment-delete" data-request-uri="@getDeleteUrl(comment)" title="@Messages("common.comment.delete")">x</a>
+    }
+}
+
+@getAuthor(authorId:Long) = @{
+    User.find.byId(authorId)
+}
+
+<div class="subcomment-media-body">
+    <div class="child-comments">
+    @for(comment <- posting.getComments) {
+        @if(comment.getParentComment != null
+                && comment.getParentComment.id == currentComment.id) {
+            <div class="one-line-comment">
+                <div class="contents">
+                    @Html(Markdown.render(comment.contents, posting.project))
+                    <span class="subcomment-author hide">
+                        - @linkToUser(getAuthor(comment.authorId).loginId, getAuthor(comment.authorId).getPureNameOnly, false) @additionalConetents(comment)</span>
+                </div>
+            </div>
+        }
+    }
+    </div>
+    @if(isResourceCreatable(UserApp.currentUser, posting.asResource(), resourceType)) {
+        <div class="add-a-comment pull-right">@Messages("comment.oneline.comment.placeholder")</div>
+        <div class="child-comment-input-form">
+        @common.child_commentForm(posting.asResource(), resourceType, getNewCommentUrl, currentComment.id)
+            <div class="one-line-comment-help">@Messages("comment.oneline.comment.help")</div>
+        </div>
+    }
+</div>
+
