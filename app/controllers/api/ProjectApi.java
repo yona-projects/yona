@@ -27,6 +27,7 @@ import play.mvc.Http;
 import play.mvc.Result;
 import playRepository.RepositoryService;
 import utils.AccessControl;
+import utils.JodaDateUtil;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -279,8 +280,8 @@ public class ProjectApi extends Controller {
         json.put("title", posting.title);
         json.put("type", posting.asResource().getType().toString());
         json.put("author", composeAuthorJson(posting.getAuthor()));
-        json.put("createdAt", getDateString(posting.createdDate));
-        json.put("updatedAt", getDateString(posting.updatedDate));
+        json.put("createdAt", JodaDateUtil.getDateString(posting.createdDate, JodaDateUtil.ISO_FORMAT));
+        json.put("updatedAt", JodaDateUtil.getDateString(posting.updatedDate, JodaDateUtil.ISO_FORMAT));
         json.put("body", posting.body);
 
         if (posting.asResource().getType() == ResourceType.ISSUE_POST) {
@@ -390,7 +391,7 @@ public class ProjectApi extends Controller {
             commentNode.put("type", comment.asResource().getType().toString());
             User commentAuthor = User.find.byId(comment.authorId);
             commentNode.put("author", composeAuthorJson(commentAuthor));
-            commentNode.put("createdAt", getDateString(comment.createdDate));
+            commentNode.put("createdAt", JodaDateUtil.getDateString(comment.createdDate, JodaDateUtil.ISO_FORMAT));
             commentNode.put("body", comment.contents);
 
             List<Attachment> attachments = Attachment.findByContainer(comment.asResource());

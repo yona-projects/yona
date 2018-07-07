@@ -98,7 +98,7 @@ public class IssueApi extends AbstractPostingApp {
             for (IssueEvent event: issue.events) {
                 ObjectNode result = Json.newObject();
                 result.put("id", event.id);
-                result.put("createdDate", JodaDateUtil.getDateString(event.created, "yyyy-MM-dd a hh:mm:ss Z"));
+                result.put("createdDate", JodaDateUtil.getDateString(event.created, JodaDateUtil.ISO_FORMAT));
                 result.put("eventType", event.eventType.toString());
                 result.put("eventDescription", event.eventType.getDescr());
                 result.put("oldValue", event.oldValue);
@@ -274,7 +274,7 @@ public class IssueApi extends AbstractPostingApp {
         ObjectNode commentNode = Json.newObject();
         commentNode.put("id", issueComment.id);
         commentNode.put("contents", issueComment.contents);
-        commentNode.put("createdDate", JodaDateUtil.getDateString(issueComment.createdDate, "yyyy-MM-dd a hh:mm:ss Z"));
+        commentNode.put("createdDate", JodaDateUtil.getDateString(issueComment.createdDate, JodaDateUtil.ISO_FORMAT));
 
         ObjectNode authorNode = Json.newObject();
         authorNode.put("id", user.id);

@@ -14,6 +14,8 @@ import java.util.Date;
 import java.util.Locale;
 
 public class JodaDateUtil {
+    public static final String ISO_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
+
     public static String getDateString(Date date) {
         return getDateString(date, null);
     }
