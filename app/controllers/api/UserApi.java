@@ -25,6 +25,7 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
+import utils.JodaDateUtil;
 import utils.SHA256Util;
 
 import java.util.ArrayList;
@@ -137,8 +138,8 @@ public class UserApi extends Controller {
             result.put("number", issue.getNumber());
             result.put("state", issue.state.toString());
             result.put("title", issue.title);
-            result.put("createdDate", issue.createdDate.toString());
-            result.put("updatedDate", issue.updatedDate.toString());
+            result.put("createdDate", JodaDateUtil.getDateString(issue.createdDate, JodaDateUtil.ISO_FORMAT));
+            result.put("updatedDate", JodaDateUtil.getDateString(issue.updatedDate, JodaDateUtil.ISO_FORMAT));
 
             ObjectNode authorNode = Json.newObject();
             authorNode.put("id", issue.authorId);
