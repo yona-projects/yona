@@ -38,7 +38,7 @@ import java.util.*;
 
 import static controllers.UserApp.MAX_FETCH_USERS;
 import static controllers.UserApp.currentUser;
-import static controllers.api.UserApi.createUserNode;
+import static controllers.api.UserApi.*;
 import static play.libs.Json.toJson;
 
 public class IssueApi extends AbstractPostingApp {
@@ -73,7 +73,7 @@ public class IssueApi extends AbstractPostingApp {
     @Transactional
     public static Result getIssue(String owner, String projectName, Long number) {
         ObjectNode result = Json.newObject();
-        if (!UserApi.isAuthored(request())) {
+        if (!isAuthored(request())) {
             return unauthorized(result.put("message", "unauthorized request"));
         }
 
@@ -222,7 +222,6 @@ public class IssueApi extends AbstractPostingApp {
     }
 
     @Transactional
-    @IsCreatable(ResourceType.ISSUE_COMMENT)
     public static Result newIssueComment(String ownerName, String projectName, Long number)
             throws IOException {
         JsonNode json = request().body().asJson();
@@ -233,6 +232,14 @@ public class IssueApi extends AbstractPostingApp {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         final Issue issue = Issue.findByNumber(project, number);
 
+        if (request().getHeader("Authorization") != null) {
+            return createCommentByToken(request(), json, project, issue);
+        } else {
+            return createCommentByUser(json, project, issue);
+        }
+    }
+
+    private static Result createCommentByUser(JsonNode json, Project project, Issue issue) {
         if (!AccessControl.isResourceCreatable(
                 UserApp.currentUser(), issue.asResource(), ResourceType.ISSUE_COMMENT)) {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
@@ -241,20 +248,54 @@ public class IssueApi extends AbstractPostingApp {
         User user = findAuthor(json.findValue("author"));
         String body = json.findValue("body").asText();
 
-        final IssueComment comment = new IssueComment(issue, user, body);
+        IssueComment issueComment = createComment(issue, user, body, json.findValue("createdAt"));
 
-        comment.createdDate = parseDateString(json.findValue("createdAt"));
-        comment.setAuthor(user);
-        comment.issue = issue;
-        comment.save();
-
-        attachUploadFilesToPost(json.findValue("temporaryUploadFiles"), comment.asResource());
+        attachUploadFilesToPost(json.findValue("temporaryUploadFiles"), issueComment.asResource());
 
         ObjectNode result = Json.newObject();
         result.put("status", 201);
-        result.put("location", RouteUtil.getUrl(comment));
+        result.put("location", RouteUtil.getUrl(issueComment));
 
         return created(result);
+    }
+
+    private static Result createCommentByToken(Http.Request request, JsonNode json, Project project, Issue issue) {
+        ObjectNode result = Json.newObject();
+
+        if (!isAuthored(request)) {
+            return unauthorized(result.put("message", "unauthorized request"));
+        }
+
+        User user = getAuthorizedUser(getAuthorizationToken(request));
+        String comment = request.body().asJson().findValue("comment").asText();
+
+        IssueComment issueComment = createComment(issue, user, comment, null);
+
+        ObjectNode commentNode = Json.newObject();
+        commentNode.put("id", issueComment.id);
+        commentNode.put("contents", issueComment.contents);
+        commentNode.put("createdDate", JodaDateUtil.getDateString(issueComment.createdDate, "yyyy-MM-dd a hh:mm:ss Z"));
+
+        ObjectNode authorNode = Json.newObject();
+        authorNode.put("id", user.id);
+        authorNode.put("loginId", user.loginId);
+        authorNode.put("name", user.name);
+
+        commentNode.set("author", toJson(authorNode));
+        result.set("result", commentNode);
+
+        return created(result);
+    }
+
+    private static IssueComment createComment(Issue issue, User user, String comment, JsonNode dateNode) {
+        final IssueComment issueComment = new IssueComment(issue, user, comment);
+
+        issueComment.createdDate = dateNode == null ? JodaDateUtil.now() : parseDateString(dateNode);
+        issueComment.setAuthor(user);
+        issueComment.issue = issue;
+        issueComment.save();
+
+        return issueComment;
     }
 
     public static User findAuthor(JsonNode authorNode){

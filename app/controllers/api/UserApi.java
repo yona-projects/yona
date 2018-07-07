@@ -261,6 +261,12 @@ public class UserApi extends Controller {
         return true;
     }
 
+    public static String getAuthorizationToken(Http.Request request) {
+        String header = request.getHeader("Authorization");
+        String[] tokenValues = header.split(AUTHORIZATION_HEADER_PREFIX);
+        return tokenValues[1].replaceAll("\\s", "");
+    }
+
     public static User getAuthorizedUser(String token) {
         return User.findByUserToken(token);
     }
