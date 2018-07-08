@@ -698,6 +698,15 @@ public class Issue extends AbstractPosting implements LabelOwner {
         return null;
     }
 
+    public IssueComment findCommentByCommentId(Long id) {
+        for (IssueComment comment: comments) {
+            if (comment.id.equals(id)) {
+                return comment;
+            }
+        }
+        return null;
+    }
+
     public List<IssueSharer> getSortedSharer() {
         return new ArrayList<>(sharers);
     }
