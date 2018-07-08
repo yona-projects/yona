@@ -239,6 +239,38 @@ public class IssueApi extends AbstractPostingApp {
         }
     }
 
+    @Transactional
+    public static Result updateIssueComment(String ownerName, String projectName, Long number, Long commentId) {
+        ObjectNode result = Json.newObject();
+
+        if (!isAuthored(request())) {
+            return unauthorized(result.put("message", "unauthorized request"));
+        }
+
+        JsonNode json = request().body().asJson();
+        if(json == null) {
+            return badRequest(result.put("message", "Expecting Json data"));
+        }
+
+        User user = getAuthorizedUser(getAuthorizationToken(request()));
+        String comment = json.findValue("comment").asText();
+
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+        final Issue issue = Issue.findByNumber(project, number);
+        IssueComment issueComment = issue.findCommentByCommentId(commentId);
+
+        issueComment.contents = comment;
+        issueComment.save();
+
+        ObjectNode commentNode = getCommentJsonNode(issueComment);
+        ObjectNode authorNode = getAuthorJsonNode(user);
+
+        commentNode.set("author", toJson(authorNode));
+        result.set("result", commentNode);
+
+        return created(result);
+    }
+
     private static Result createCommentByUser(JsonNode json, Project project, Issue issue) {
         if (!AccessControl.isResourceCreatable(
                 UserApp.currentUser(), issue.asResource(), ResourceType.ISSUE_COMMENT)) {
@@ -271,15 +303,8 @@ public class IssueApi extends AbstractPostingApp {
 
         IssueComment issueComment = createComment(issue, user, comment, null);
 
-        ObjectNode commentNode = Json.newObject();
-        commentNode.put("id", issueComment.id);
-        commentNode.put("contents", issueComment.contents);
-        commentNode.put("createdDate", JodaDateUtil.getDateString(issueComment.createdDate, JodaDateUtil.ISO_FORMAT));
-
-        ObjectNode authorNode = Json.newObject();
-        authorNode.put("id", user.id);
-        authorNode.put("loginId", user.loginId);
-        authorNode.put("name", user.name);
+        ObjectNode commentNode = getCommentJsonNode(issueComment);
+        ObjectNode authorNode = getAuthorJsonNode(user);
 
         commentNode.set("author", toJson(authorNode));
         result.set("result", commentNode);
@@ -296,6 +321,26 @@ public class IssueApi extends AbstractPostingApp {
         issueComment.save();
 
         return issueComment;
+    }
+
+    private static ObjectNode getCommentJsonNode(Comment comment) {
+        ObjectNode commentNode = Json.newObject();
+
+        commentNode.put("id", comment.id);
+        commentNode.put("contents", comment.contents);
+        commentNode.put("createdDate", JodaDateUtil.getDateString(comment.createdDate, JodaDateUtil.ISO_FORMAT));
+
+        return commentNode;
+    }
+
+    private static ObjectNode getAuthorJsonNode(User user) {
+        ObjectNode authorNode = Json.newObject();
+
+        authorNode.put("id", user.id);
+        authorNode.put("loginId", user.loginId);
+        authorNode.put("name", user.name);
+
+        return authorNode;
     }
 
     public static User findAuthor(JsonNode authorNode){
