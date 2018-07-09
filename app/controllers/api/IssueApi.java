@@ -233,9 +233,16 @@ public class IssueApi extends AbstractPostingApp {
         final Issue issue = Issue.findByNumber(project, number);
 
         if (request().getHeader("Authorization") != null) {
-            return createCommentByToken(request(), json, project, issue);
+            ObjectNode result = Json.newObject();
+            if (!isAuthored(request())) {
+                return unauthorized(result.put("message", "unauthorized request"));
+            }
+
+            User user = getAuthorizedUser(getAuthorizationToken(request()));
+            String comment = json.findValue("comment").asText();
+            return createCommentUsingToken(issue, user, comment);
         } else {
-            return createCommentByUser(json, project, issue);
+            return createCommentByUser(project, issue, json);
         }
     }
 
@@ -271,7 +278,7 @@ public class IssueApi extends AbstractPostingApp {
         return created(result);
     }
 
-    private static Result createCommentByUser(JsonNode json, Project project, Issue issue) {
+    private static Result createCommentByUser(Project project, Issue issue, JsonNode json) {
         if (!AccessControl.isResourceCreatable(
                 UserApp.currentUser(), issue.asResource(), ResourceType.ISSUE_COMMENT)) {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
@@ -291,15 +298,8 @@ public class IssueApi extends AbstractPostingApp {
         return created(result);
     }
 
-    private static Result createCommentByToken(Http.Request request, JsonNode json, Project project, Issue issue) {
+    private static Result createCommentUsingToken(Issue issue, User user, String comment) {
         ObjectNode result = Json.newObject();
-
-        if (!isAuthored(request)) {
-            return unauthorized(result.put("message", "unauthorized request"));
-        }
-
-        User user = getAuthorizedUser(getAuthorizationToken(request));
-        String comment = request.body().asJson().findValue("comment").asText();
 
         IssueComment issueComment = createComment(issue, user, comment, null);
 
