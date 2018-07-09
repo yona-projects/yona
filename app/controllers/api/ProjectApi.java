@@ -388,6 +388,9 @@ public class ProjectApi extends Controller {
         for (Comment comment : posting.getComments()) {
             ObjectNode commentNode = Json.newObject();
             commentNode.put("id", comment.id);
+            Comment parentComment = comment.getParentComment();
+            Long parentCommentId = parentComment != null ? parentComment.id : null;
+            commentNode.put("parentCommentId", parentCommentId);
             commentNode.put("type", comment.asResource().getType().toString());
             User commentAuthor = User.find.byId(comment.authorId);
             commentNode.put("author", composeAuthorJson(commentAuthor));
