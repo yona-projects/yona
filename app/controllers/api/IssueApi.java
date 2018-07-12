@@ -91,7 +91,7 @@ public class IssueApi extends AbstractPostingApp {
             return badRequest(result.put("message", "No issues key exists or value wasn't array!"));
         }
 
-        boolean sendNotification = json.findValue("sendNotification") != null;
+        boolean sendNotification = json.findValue("sendNotification") != null && json.findValue("sendNotification").asBoolean();
 
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
 
