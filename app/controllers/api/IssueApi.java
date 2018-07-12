@@ -138,6 +138,67 @@ public class IssueApi extends AbstractPostingApp {
         return created(toJson(createdIssues));
     }
 
+    @Transactional
+    public static Result updateIssue(String owner, String projectName, Long number) {
+        ObjectNode result = Json.newObject();
+
+        if (!isAuthored(request())) {
+            return unauthorized(result.put("message", "unauthorized request"));
+        }
+
+        JsonNode json = request().body().asJson();
+        if(json == null) {
+            return badRequest(result.put("message", "Expecting Json data"));
+        }
+
+        User user = getAuthorizedUser(getAuthorizationToken(request()));
+
+        Project project = Project.findByOwnerAndProjectName(owner, projectName);
+        final Issue issue = Issue.findByNumber(project, number);
+
+        return updateIssueNode(json, project, issue, user);
+    }
+
+    private static Result updateIssueNode(JsonNode json, Project project, Issue issue, User user) {
+
+        issue.title = json.findValue("title").asText();
+        issue.body = json.findValue("body").asText();
+        issue.milestone = findMilestone(json.findValue("milestoneTitle"), project);
+        issue.updatedDate = JodaDateUtil.now();
+
+        // TODO: Separate function for adding possible events
+        String state = json.findValue("state").asText();
+        if (!state.equals(issue.state.toString())) {
+            addNewIssueEvent(issue, user, EventType.ISSUE_STATE_CHANGED, issue.state.state(), State.valueOf(state).state());
+        }
+        issue.state = findIssueState(json);
+
+        JsonNode assigneeNode = json.findValue("assignees").get(0);
+        String oldAssignee = issue.assignee != null ? issue.assignee.user.loginId : "";
+        String newAssignee = assigneeNode != null ? assigneeNode.findValue("loginId").asText() : "";
+        if (!oldAssignee.equals(newAssignee)) {
+            oldAssignee = oldAssignee.length() == 0 ? null : oldAssignee;
+            newAssignee = newAssignee.length() == 0 ? null : newAssignee;
+            addNewIssueEvent(issue, user, EventType.ISSUE_ASSIGNEE_CHANGED, oldAssignee, newAssignee);
+        }
+        issue.assignee = findAssginee(json.findValue("assignees"), project);
+        issue.save();
+
+        ObjectNode issueNode = ProjectApi.getResult(issue);
+        return addIssueEvents(issue, issueNode);
+    }
+
+    private static void addNewIssueEvent(Issue issue, User user, EventType eventType, String oldValue, String newValue) {
+        IssueEvent issueEvent = new IssueEvent();
+        issueEvent.issue = issue;
+        issueEvent.senderLoginId = user.loginId;
+        issueEvent.oldValue = oldValue;
+        issueEvent.newValue = newValue;
+        issueEvent.created = new Date();
+        issueEvent.eventType = eventType;
+        issueEvent.save();
+    }
+
     private static JsonNode createIssuesNode(JsonNode json, Project project, boolean sendNotification) {
         JsonNode files = json.findValue("temporaryUploadFiles");
 
