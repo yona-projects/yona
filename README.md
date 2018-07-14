@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/yona-projects/yona.svg?branch=master)](https://travis-ci.org/yona-projects/yona)
 ![Downloads Status](https://img.shields.io/github/downloads/yona-projects/yona/total.svg)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fyona-projects%2Fyona.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fyona-projects%2Fyona?ref=badge_shield)
 
 
 <img src='public/images/yona_logo.png' width='300px'>
@@ -231,3 +232,7 @@ Contribution
 License
 --
 Copyright Yona Authors, NAVER Corp. and NAVER LABS under the Apache License, Version 2.0
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fyona-projects%2Fyona.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fyona-projects%2Fyona?ref=badge_large)
