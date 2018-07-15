@@ -218,7 +218,7 @@ imap.user = "your-yona-email-address@gmail.com"
 imap.address = "your-yona-email-address@gmail.com"
 # Be careful!!!
 imap.password = yourGmailPassword
-imap.folder = inbox
+imap.folder = Inbox
 
 # Production configuration
 %prod.http.port=80
