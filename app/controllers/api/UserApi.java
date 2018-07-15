@@ -40,6 +40,7 @@ public class UserApi extends Controller {
     private static final int HASH_ITERATIONS = 1024;
     private static final String AUTHORIZATION_HEADER_PREFIX = "token";
     private static final int AUTHORIZATION_HEADER_MIN_LENGTH = 2;
+    private static final String HOSTNAME = play.Configuration.root().getString("application.hostname", "http://localhost");
 
     @Transactional
     public static Result toggleFoveriteProject(String projectId) {
@@ -161,6 +162,7 @@ public class UserApi extends Controller {
             result.put("project", projectNode);
 
             result.put("owner", issue.project.owner);
+            result.put("refUrl", HOSTNAME + "/" + issue.project.owner + "/" + issue.project.name + "/issue/" + issue.getNumber());
 
             array.add(result);
         }
