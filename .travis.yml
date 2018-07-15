@@ -7,6 +7,6 @@ env:
 before_script:
   - wget http://downloads.typesafe.com/typesafe-activator/${ACTIVATOR_VERSION}/${ACTIVATOR_ZIP_FILE}
   - unzip -q ${ACTIVATOR_ZIP_FILE}
-  - set SBT_OPTS= -Xms256m Xmx52m -XX:MaxPermSize=512m
+  - set SBT_OPTS= -Xms256m -Xmx512m
 script:
   - activator-${ACTIVATOR_VERSION}-minimal/activator compile
