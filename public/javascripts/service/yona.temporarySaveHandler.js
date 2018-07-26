@@ -7,12 +7,12 @@
 
 function temporarySaveHandler($textarea, contentInitialized) {
     var noticePanel = $(".editor-notice-label");   // 화면 어딘가 임시저장 상태 표시할 곳
-    var keydownTimer;
+    if (!window.draftSavingTimeout) window.draftSavingTimeout = 0;
 
     // this 대신 editor 컨테이너. this 에 붙여두면 화면 전환 시 handler가 메모리에 중첩됨
     $textarea.on('keyup', function () {
         if ($textarea.val() !== localStorage.getItem(location.pathname)) {
-            clearTimeout(keydownTimer);
+            clearTimeout(window.draftSavingTimeout);
 
             if ($textarea.val() === "") {
                 localStorage.removeItem(location.pathname);
@@ -21,7 +21,7 @@ function temporarySaveHandler($textarea, contentInitialized) {
 
             noticePanel.children().fadeOut();
 
-            keydownTimer = setTimeout(function () {
+            window.draftSavingTimeout = setTimeout(function () {
                 if($textarea.data("editorMode") === "update-comment-body") {
                     // FIXME: There are bug when editing comment.
                     // NOW, just make it skipping to store at local storage
