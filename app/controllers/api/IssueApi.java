@@ -9,6 +9,7 @@ package controllers.api;
 
 import com.avaje.ebean.ExpressionList;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.AbstractPostingApp;
 import controllers.UserApp;
@@ -37,7 +38,7 @@ import java.util.*;
 
 import static controllers.UserApp.MAX_FETCH_USERS;
 import static controllers.UserApp.currentUser;
-import static controllers.api.UserApi.createUserNode;
+import static controllers.api.UserApi.*;
 import static play.libs.Json.toJson;
 
 public class IssueApi extends AbstractPostingApp {
@@ -69,12 +70,46 @@ public class IssueApi extends AbstractPostingApp {
         return ok(result);
     }
 
-    @IsAllowed(value = Operation.READ, resourceType = ResourceType.BOARD_POST)
+    @Transactional
     public static Result getIssue(String owner, String projectName, Long number) {
+        ObjectNode result = Json.newObject();
+        if (!isAuthored(request())) {
+            return unauthorized(result.put("message", "unauthorized request"));
+        }
+
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
+        if (project == null) {
+            return badRequest(result.put("message", "no project by request"));
+        }
+
         Issue issue = Issue.findByNumber(project, number);
-        JsonNode json = ProjectApi.getResult(issue);
-        return ok(json);
+        if (issue == null) {
+            return badRequest(result.put("message", "no issue by request"));
+        }
+        ObjectNode json = ProjectApi.getResult(issue);
+
+        return addIssueEvents(issue, json);
+    }
+
+    private static Result addIssueEvents(Issue issue, ObjectNode json) {
+        ArrayNode array = Json.newObject().arrayNode();
+
+        if (issue.events.size() > 0) {
+            for (IssueEvent event: issue.events) {
+                ObjectNode result = Json.newObject();
+                result.put("id", event.id);
+                result.put("createdDate", JodaDateUtil.getDateString(event.created, JodaDateUtil.ISO_FORMAT));
+                result.put("eventType", event.eventType.toString());
+                result.put("eventDescription", event.eventType.getDescr());
+                result.put("oldValue", event.oldValue);
+                result.put("newValue", event.newValue);
+                array.add(result);
+            }
+
+            json.put("events", array);
+        }
+
+        return ok(Json.newObject().set("result", toJson(json)));
     }
 
     @Transactional
@@ -101,6 +136,67 @@ public class IssueApi extends AbstractPostingApp {
         }
 
         return created(toJson(createdIssues));
+    }
+
+    @Transactional
+    public static Result updateIssue(String owner, String projectName, Long number) {
+        ObjectNode result = Json.newObject();
+
+        if (!isAuthored(request())) {
+            return unauthorized(result.put("message", "unauthorized request"));
+        }
+
+        JsonNode json = request().body().asJson();
+        if(json == null) {
+            return badRequest(result.put("message", "Expecting Json data"));
+        }
+
+        User user = getAuthorizedUser(getAuthorizationToken(request()));
+
+        Project project = Project.findByOwnerAndProjectName(owner, projectName);
+        final Issue issue = Issue.findByNumber(project, number);
+
+        return updateIssueNode(json, project, issue, user);
+    }
+
+    private static Result updateIssueNode(JsonNode json, Project project, Issue issue, User user) {
+
+        issue.title = json.findValue("title").asText();
+        issue.body = json.findValue("body").asText();
+        issue.milestone = findMilestone(json.findValue("milestoneTitle"), project);
+        issue.updatedDate = JodaDateUtil.now();
+
+        // TODO: Separate function for adding possible events
+        String state = json.findValue("state").asText();
+        if (!state.equals(issue.state.toString())) {
+            addNewIssueEvent(issue, user, EventType.ISSUE_STATE_CHANGED, issue.state.state(), State.valueOf(state).state());
+        }
+        issue.state = findIssueState(json);
+
+        JsonNode assigneeNode = json.findValue("assignees").get(0);
+        String oldAssignee = issue.assignee != null ? issue.assignee.user.loginId : "";
+        String newAssignee = assigneeNode != null ? assigneeNode.findValue("loginId").asText() : "";
+        if (!oldAssignee.equals(newAssignee)) {
+            oldAssignee = oldAssignee.length() == 0 ? null : oldAssignee;
+            newAssignee = newAssignee.length() == 0 ? null : newAssignee;
+            addNewIssueEvent(issue, user, EventType.ISSUE_ASSIGNEE_CHANGED, oldAssignee, newAssignee);
+        }
+        issue.assignee = findAssginee(json.findValue("assignees"), project);
+        issue.save();
+
+        ObjectNode issueNode = ProjectApi.getResult(issue);
+        return addIssueEvents(issue, issueNode);
+    }
+
+    private static void addNewIssueEvent(Issue issue, User user, EventType eventType, String oldValue, String newValue) {
+        IssueEvent issueEvent = new IssueEvent();
+        issueEvent.issue = issue;
+        issueEvent.senderLoginId = user.loginId;
+        issueEvent.oldValue = oldValue;
+        issueEvent.newValue = newValue;
+        issueEvent.created = new Date();
+        issueEvent.eventType = eventType;
+        issueEvent.save();
     }
 
     private static JsonNode createIssuesNode(JsonNode json, Project project, boolean sendNotification) {
@@ -187,7 +283,6 @@ public class IssueApi extends AbstractPostingApp {
     }
 
     @Transactional
-    @IsCreatable(ResourceType.ISSUE_COMMENT)
     public static Result newIssueComment(String ownerName, String projectName, Long number)
             throws IOException {
         JsonNode json = request().body().asJson();
@@ -198,6 +293,53 @@ public class IssueApi extends AbstractPostingApp {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         final Issue issue = Issue.findByNumber(project, number);
 
+        if (request().getHeader("Authorization") != null) {
+            ObjectNode result = Json.newObject();
+            if (!isAuthored(request())) {
+                return unauthorized(result.put("message", "unauthorized request"));
+            }
+
+            User user = getAuthorizedUser(getAuthorizationToken(request()));
+            String comment = json.findValue("comment").asText();
+            return createCommentUsingToken(issue, user, comment);
+        } else {
+            return createCommentByUser(project, issue, json);
+        }
+    }
+
+    @Transactional
+    public static Result updateIssueComment(String ownerName, String projectName, Long number, Long commentId) {
+        ObjectNode result = Json.newObject();
+
+        if (!isAuthored(request())) {
+            return unauthorized(result.put("message", "unauthorized request"));
+        }
+
+        JsonNode json = request().body().asJson();
+        if(json == null) {
+            return badRequest(result.put("message", "Expecting Json data"));
+        }
+
+        User user = getAuthorizedUser(getAuthorizationToken(request()));
+        String comment = json.findValue("comment").asText();
+
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+        final Issue issue = Issue.findByNumber(project, number);
+        IssueComment issueComment = issue.findCommentByCommentId(commentId);
+
+        issueComment.contents = comment;
+        issueComment.save();
+
+        ObjectNode commentNode = getCommentJsonNode(issueComment);
+        ObjectNode authorNode = getAuthorJsonNode(user);
+
+        commentNode.set("author", toJson(authorNode));
+        result.set("result", commentNode);
+
+        return created(result);
+    }
+
+    private static Result createCommentByUser(Project project, Issue issue, JsonNode json) {
         if (!AccessControl.isResourceCreatable(
                 UserApp.currentUser(), issue.asResource(), ResourceType.ISSUE_COMMENT)) {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
@@ -206,20 +348,60 @@ public class IssueApi extends AbstractPostingApp {
         User user = findAuthor(json.findValue("author"));
         String body = json.findValue("body").asText();
 
-        final IssueComment comment = new IssueComment(issue, user, body);
+        IssueComment issueComment = createComment(issue, user, body, json.findValue("createdAt"));
 
-        comment.createdDate = parseDateString(json.findValue("createdAt"));
-        comment.setAuthor(user);
-        comment.issue = issue;
-        comment.save();
-
-        attachUploadFilesToPost(json.findValue("temporaryUploadFiles"), comment.asResource());
+        attachUploadFilesToPost(json.findValue("temporaryUploadFiles"), issueComment.asResource());
 
         ObjectNode result = Json.newObject();
         result.put("status", 201);
-        result.put("location", RouteUtil.getUrl(comment));
+        result.put("location", RouteUtil.getUrl(issueComment));
 
         return created(result);
+    }
+
+    private static Result createCommentUsingToken(Issue issue, User user, String comment) {
+        ObjectNode result = Json.newObject();
+
+        IssueComment issueComment = createComment(issue, user, comment, null);
+
+        ObjectNode commentNode = getCommentJsonNode(issueComment);
+        ObjectNode authorNode = getAuthorJsonNode(user);
+
+        commentNode.set("author", toJson(authorNode));
+        result.set("result", commentNode);
+
+        return created(result);
+    }
+
+    private static IssueComment createComment(Issue issue, User user, String comment, JsonNode dateNode) {
+        final IssueComment issueComment = new IssueComment(issue, user, comment);
+
+        issueComment.createdDate = dateNode == null ? JodaDateUtil.now() : parseDateString(dateNode);
+        issueComment.setAuthor(user);
+        issueComment.issue = issue;
+        issueComment.save();
+
+        return issueComment;
+    }
+
+    private static ObjectNode getCommentJsonNode(Comment comment) {
+        ObjectNode commentNode = Json.newObject();
+
+        commentNode.put("id", comment.id);
+        commentNode.put("contents", comment.contents);
+        commentNode.put("createdDate", JodaDateUtil.getDateString(comment.createdDate, JodaDateUtil.ISO_FORMAT));
+
+        return commentNode;
+    }
+
+    private static ObjectNode getAuthorJsonNode(User user) {
+        ObjectNode authorNode = Json.newObject();
+
+        authorNode.put("id", user.id);
+        authorNode.put("loginId", user.loginId);
+        authorNode.put("name", user.name);
+
+        return authorNode;
     }
 
     public static User findAuthor(JsonNode authorNode){
