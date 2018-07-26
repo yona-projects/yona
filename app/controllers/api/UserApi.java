@@ -118,9 +118,9 @@ public class UserApi extends Controller {
         }
 
         String token = request().getHeader("Authorization").split(AUTHORIZATION_HEADER_PREFIX)[1].replaceAll("\\s", "");
-        User user = getAuthorizedUser(token);
+        User user = User.findByUserToken(token);
 
-        models.support.IssueSearchCondition issueSearchCondition = new IssueSearchCondition();
+        IssueSearchCondition issueSearchCondition = new IssueSearchCondition();
         issueSearchCondition.pageNum = page - 1;
         ExpressionList<Issue> el = issueSearchCondition.getExpressionListByFilter(IssueFilterType.getValue(filter), user);
         Page<Issue> issues = el.findPagingList(pageNum).getPage(issueSearchCondition.pageNum);
