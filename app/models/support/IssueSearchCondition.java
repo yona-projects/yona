@@ -51,7 +51,7 @@ public class IssueSearchCondition  extends AbstractPostingApp.SearchCondition {
         setMentionedIssuesIfExist(el);
         setFavoriteIssuesIfExist(el);
 
-        el.orderBy("id");
+        el.orderBy("updatedDate desc");
         return el;
     }
 
@@ -67,7 +67,7 @@ public class IssueSearchCondition  extends AbstractPostingApp.SearchCondition {
         junction.add(Expr.in("id", favoriteIssueIdsids));
         junction.endJunction();
 
-        el.orderBy("id");
+        el.orderBy("updatedDate desc");
         return el;
     }
 
