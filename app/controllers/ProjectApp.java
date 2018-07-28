@@ -18,7 +18,6 @@ import models.*;
 import models.enumeration.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.HtmlEmail;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -49,7 +48,6 @@ import views.html.project.setting;
 import views.html.project.transfer;
 import views.html.project.change_vcs;
 
-import javax.annotation.Nonnull;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -1291,20 +1289,25 @@ public class ProjectApp extends Controller {
             return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
-        Form<Webhook> addWebhookForm = form(Webhook.class).bindFromRequest();
-        if (addWebhookForm == null) {
+        Form<Webhook> addNewWebhookForm = form(Webhook.class).bindFromRequest();
+        if (addNewWebhookForm == null) {
             Logger.warn("Failed creating webhook: got null form from newWebhook request");
-            return badRequest();
-        } else if (addWebhookForm.hasErrors()) {
-            return badRequest(ErrorViews.BadRequest.render());
+            return badRequest("Failed creating webhook: got null form from newWebhook request");
+        } else if (addNewWebhookForm.hasErrors()) {
+            return badRequest(ErrorViews.BadRequest.render(addNewWebhookForm.errorsAsJson().toString()));
         }
 
-        Webhook webhook = addWebhookForm.get();
-
-        Webhook.create(project.id, webhook.payloadUrl.trim(), webhook.secret,
-                BooleanUtils.toBooleanDefaultIfNull(webhook.gitPushOnly, false), webhook.webhookType);
+        createWebhook(project, addNewWebhookForm);
 
         return redirect(routes.ProjectApp.webhooks(project.owner, project.name));
+    }
+
+    private static void createWebhook(Project project, Form<Webhook> forms) {
+        Webhook webhook = forms.get();
+        webhook.project = project;
+        if(webhook.gitPushOnly == null) webhook.gitPushOnly = false;
+        webhook.createdAt = new Date();
+        webhook.save();
     }
 
     @Transactional
