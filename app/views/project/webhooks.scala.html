@@ -22,12 +22,12 @@
           <div>
             <input type="text" name="payloadUrl" class="input-webhook-payload" maxlength="2000" autocomplete="off" placeholder="@Messages("project.webhook.payloadUrl")">
             <input type="text" name="secret" class="input-webhook-secret" maxlength="250" autocomplete="off" placeholder="@Messages("project.webhook.secret")">
+            <select class="form-control" title="add details or not" name="webhookType">
+              <option value="SIMPLE">SIMPLE Version (no details)</option>
+              <option value="WITH_DETAILS">Normal (Slack/with details)</option>
+            </select>
             <label for="gitPushOnly">@Messages("project.webhook.gitPushOnly")</label>
             <input type="checkbox" id="gitPushOnly" name="gitPushOnly" class="form-check-input">
-            <select class="form-control" name="WebhookType">
-              <option value="0">SIMPLE Version</option>
-              <option value="1">Detail (Slack)</option>
-            </select>
           </div>
         </div>
         <button type="submit" class="ybtn ybtn-primary btn-submit">@Messages("project.webhook.add")</button>

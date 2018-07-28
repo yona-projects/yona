@@ -30,27 +30,36 @@
   </div>
 } else {
   <div class="row-fluid list-head">
-    <div class="span8 payload-url">
+    <div class="span6 payload-url">
       <strong>@Messages("project.webhook.payloadUrl")</strong>
     </div>
-    <div class="span4 secret">
-      <strong>@Messages("project.webhook.secret") / Working only when Git push</strong>
+    <div class="span6 secret">
+      <strong>@Messages("project.webhook.secret") | Include details or not | Working only when to push commit</strong>
     </div>
   </div>
 
   @webhooks.map { webhook =>
     <div class="row-fluid list-item" data-webhook-id="@webhook.id">
-      <div class="span8">
+      <div class="span6">
         <h6 class="mr20 truncate">
           @webhook.payloadUrl
         </h6>
       </div>
-      <div class="span4">
+      <div class="span6">
         <table class="table nm">
           <tr>
             <td>
               <span class="webhook-secret truncate">
-                  @webhook.secret
+              @if(webhook.secret.isEmpty) {
+                  NONE
+              } else {
+                @webhook.secret
+              }
+              </span>
+            </td>
+            <td>
+              <span class="webhook-secret truncate">
+              @webhook.webhookType
               </span>
             </td>
             <td>
