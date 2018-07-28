@@ -24,6 +24,10 @@
             <input type="text" name="secret" class="input-webhook-secret" maxlength="250" autocomplete="off" placeholder="@Messages("project.webhook.secret")">
             <label for="gitPushOnly">@Messages("project.webhook.gitPushOnly")</label>
             <input type="checkbox" id="gitPushOnly" name="gitPushOnly" class="form-check-input">
+            <select class="form-control" name="WebhookType">
+              <option value="0">SIMPLE Version</option>
+              <option value="1">Detail (Slack)</option>
+            </select>
           </div>
         </div>
         <button type="submit" class="ybtn ybtn-primary btn-submit">@Messages("project.webhook.add")</button>

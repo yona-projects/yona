@@ -86,9 +86,14 @@ public class Webhook extends Model implements ResourceConvertible {
     public String secret;
 
     /**
-     * Type of webhook (true = git only push, false = all cases)
+     * Condition of sending webhook (true: git only push, false: all cases)
      */
     public Boolean gitPushOnly;
+
+    /**
+     * Type of sending webhook (0: Simple Ver., 1: Slack Detail)
+     */
+    public Long webhookType;
 
     /**
      * Payload URL of webhook.
@@ -104,7 +109,7 @@ public class Webhook extends Model implements ResourceConvertible {
      * @param gitPushOnly type of webhook (true = git only push, false = all cases)
      * @param secret the secret token for server identity
      */
-    public Webhook(Long projectId, String payloadUrl, String secret, Boolean gitPushOnly) {
+    public Webhook(Long projectId, String payloadUrl, String secret, Boolean gitPushOnly, Long webhookType) {
         if (secret == null) {
             secret = "";
         }
@@ -112,6 +117,7 @@ public class Webhook extends Model implements ResourceConvertible {
         this.payloadUrl = payloadUrl;
         this.secret = secret;
         this.gitPushOnly = gitPushOnly;
+        this.webhookType = webhookType;
         this.createdAt = new Date();
     }
 
@@ -142,9 +148,9 @@ public class Webhook extends Model implements ResourceConvertible {
         return find.where().eq("project.id", projectId).findList();
     }
 
-    public static void create(Long projectId, String payloadUrl, String secret, Boolean gitPushOnly) {
+    public static void create(Long projectId, String payloadUrl, String secret, Boolean gitPushOnly, Long webhookType) {
         if (!payloadUrl.isEmpty()) {
-            Webhook webhook = new Webhook(projectId, payloadUrl, secret, gitPushOnly);
+            Webhook webhook = new Webhook(projectId, payloadUrl, secret, gitPushOnly, webhookType);
             webhook.save();
         }
         // TODO : Raise appropriate error when required field is empty
@@ -260,12 +266,16 @@ public class Webhook extends Model implements ResourceConvertible {
         }
         requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(eventPullRequest) + "|#" + eventPullRequest.number + ": " + eventPullRequest.title + ">";
 
-        detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "pullRequest.sender"), eventPullRequest.contributor.name, false));
-        detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "pullRequest.from"), eventPullRequest.fromBranch, true));
-        detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "pullRequest.to"), eventPullRequest.toBranch,true));
-        attachments.add(buildAttachmentJSON(eventPullRequest.body, detailFields));
+        if (this.webhookType == 1) {
+            detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "pullRequest.sender"), eventPullRequest.contributor.name, false));
+            detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "pullRequest.from"), eventPullRequest.fromBranch, true));
+            detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "pullRequest.to"), eventPullRequest.toBranch, true));
+            attachments.add(buildAttachmentJSON(eventPullRequest.body, detailFields));
+            return Json.stringify(buildRequestJSON(requestMessage, attachments));
+        } else {
+            return Json.stringify(buildRequestJSON(requestMessage));
+        }
 
-        return Json.stringify(buildRequestJSON(requestMessage, attachments));
     }
 
     private String buildRequestBody(EventType eventType, User sender, PullRequest eventPullRequest, PullRequestReviewAction reviewAction) {
@@ -285,12 +295,15 @@ public class Webhook extends Model implements ResourceConvertible {
         }
         requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(eventPullRequest) + "|#" + eventPullRequest.number + ": " + eventPullRequest.title + ">";
 
-        detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "pullRequest.sender"), eventPullRequest.contributor.name, false));
-        detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "pullRequest.from"), eventPullRequest.fromBranch, true));
-        detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "pullRequest.to"), eventPullRequest.toBranch, true));
-        attachments.add(buildAttachmentJSON(eventPullRequest.body, detailFields));
-
-        return Json.stringify(buildRequestJSON(requestMessage, attachments));
+        if (this.webhookType == 1) {
+            detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "pullRequest.sender"), eventPullRequest.contributor.name, false));
+            detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "pullRequest.from"), eventPullRequest.fromBranch, true));
+            detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "pullRequest.to"), eventPullRequest.toBranch, true));
+            attachments.add(buildAttachmentJSON(eventPullRequest.body, detailFields));
+            return Json.stringify(buildRequestJSON(requestMessage, attachments));
+        } else {
+            return Json.stringify(buildRequestJSON(requestMessage));
+        }
     }
 
     private String buildRequestBody(EventType eventType, User sender, Issue eventIssue) {
@@ -324,12 +337,15 @@ public class Webhook extends Model implements ResourceConvertible {
 
         requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(eventIssue) + "|#" + eventIssue.number + ": " + eventIssue.title + ">";
 
-        detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "notification.type.milestone.changed"), eventIssue.milestoneId().toString(), true));
-        detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), ""), eventIssue.assigneeName(), true));
-        detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "issue.state"), eventIssue.state.toString(), true));
-        attachments.add(buildAttachmentJSON(eventIssue.body, detailFields));
-
-        return Json.stringify(buildRequestJSON(requestMessage, attachments));
+        if (this.webhookType == 1) {
+            detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "notification.type.milestone.changed"), eventIssue.milestoneId().toString(), true));
+            detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), ""), eventIssue.assigneeName(), true));
+            detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "issue.state"), eventIssue.state.toString(), true));
+            attachments.add(buildAttachmentJSON(eventIssue.body, detailFields));
+            return Json.stringify(buildRequestJSON(requestMessage, attachments));
+        } else {
+            return Json.stringify(buildRequestJSON(requestMessage));
+        }
     }
 
     private String buildRequestBody(EventType eventType, User sender, Comment eventComment) {
@@ -354,9 +370,12 @@ public class Webhook extends Model implements ResourceConvertible {
                 break;
         }
 
-        attachments.add(buildAttachmentJSON(eventComment.contents, null));
-
-        return Json.stringify(buildRequestJSON(requestMessage, attachments));
+        if (this.webhookType == 1) {
+            attachments.add(buildAttachmentJSON(eventComment.contents, null));
+            return Json.stringify(buildRequestJSON(requestMessage, attachments));
+        } else {
+            return Json.stringify(buildRequestJSON(requestMessage));
+        }
     }
 
     private ObjectNode buildJSONFromCommit(Project project, RevCommit commit) {
@@ -409,6 +428,12 @@ public class Webhook extends Model implements ResourceConvertible {
         return requestBody;
     }
 
+    private ObjectNode buildRequestJSON(String requestMessage) {
+        ObjectNode requestBody = Json.newObject();
+        requestBody.put("text", requestMessage);
+        return requestBody;
+    }
+
     private ObjectNode buildSenderJSON(User sender) {
         ObjectNode senderJSON = Json.newObject();
         senderJSON.put("login", sender.loginId);
@@ -457,6 +482,7 @@ public class Webhook extends Model implements ResourceConvertible {
                 ", payloadUrl='" + payloadUrl + '\'' +
                 ", secret='" + secret + '\'' +
                 ", gitPushOnly=" + gitPushOnly +
+                ", webhookType=" + webhookType +
                 ", createdAt=" + createdAt +
                 '}';
     }
