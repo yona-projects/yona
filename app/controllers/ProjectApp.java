@@ -1302,7 +1302,7 @@ public class ProjectApp extends Controller {
         Webhook webhook = addWebhookForm.get();
 
         Webhook.create(project.id, webhook.payloadUrl.trim(), webhook.secret,
-                BooleanUtils.toBooleanDefaultIfNull(webhook.gitPushOnly, false));
+                BooleanUtils.toBooleanDefaultIfNull(webhook.gitPushOnly, false), webhook.webhookType);
 
         return redirect(routes.ProjectApp.webhooks(project.owner, project.name));
     }
