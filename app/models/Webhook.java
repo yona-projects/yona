@@ -78,7 +78,7 @@ public class Webhook extends Model implements ResourceConvertible {
      */
     public Boolean gitPushOnly;
 
-    public WebhookType webhookType = WebhookType.WITH_DETAILS;
+    public WebhookType webhookType = WebhookType.SIMPLE;
 
     /**
      * Payload URL of webhook.
@@ -250,7 +250,7 @@ public class Webhook extends Model implements ResourceConvertible {
         }
         requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(eventPullRequest) + "|#" + eventPullRequest.number + ": " + eventPullRequest.title + ">";
 
-        if (this.webhookType == WebhookType.WITH_DETAILS) {
+        if (this.webhookType == WebhookType.DETAIL_SLACK) {
             return buildJsonWithPullReqtuestDetails(eventPullRequest, detailFields, attachments, requestMessage);
         } else {
             return buildTextPropertyOnlyJSON(requestMessage);

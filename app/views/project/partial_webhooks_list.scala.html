@@ -30,50 +30,51 @@
   </div>
 } else {
   <div class="row-fluid list-head">
-    <div class="span6 payload-url">
+    <div class="span5 payload-url">
       <strong>@Messages("project.webhook.payloadUrl")</strong>
     </div>
-    <div class="span6 secret">
-      <strong>@Messages("project.webhook.secret") | Include details or not | Working only when to push commit</strong>
+    <div class="span2 secret text-center">
+      <strong>@Messages("project.webhook.secret")</strong>
     </div>
+    <div class="span2 secret text-center">
+      <strong>Type of message</strong>
+    </div>
+    <div class="span2 secret text-center">
+      <strong>Just the push event</strong>
+    </div>
+    <div class="span1 secret text-center"></div>
+
   </div>
 
   @webhooks.map { webhook =>
-    <div class="row-fluid list-item" data-webhook-id="@webhook.id">
-      <div class="span6">
+    <div class="row-fluid list-item vertical-align" data-webhook-id="@webhook.id">
+      <div class="span5">
         <h6 class="mr20 truncate">
           @webhook.payloadUrl
         </h6>
       </div>
-      <div class="span6">
-        <table class="table nm">
-          <tr>
-            <td>
-              <span class="webhook-secret truncate">
-              @if(webhook.secret.isEmpty) {
-                  NONE
-              } else {
-                @webhook.secret
-              }
-              </span>
-            </td>
-            <td>
-              <span class="webhook-secret truncate">
-              @webhook.webhookType
-              </span>
-            </td>
-            <td>
-              <span class="webhook-secret truncate">
-              <input type="checkbox" @if(webhook.gitPushOnly){checked} onclick="return false;" />
-              </span>
-            </td>
-            <td class="actions">
-              <button type="button" class="ybtn ybtn-danger ybtn-small" data-request-method="delete" data-request-uri="@routes.ProjectApp.deleteWebhook(project.owner, project.name, webhook.id)">
-                @Messages("button.delete")
-              </button>
-            </td>
-          </tr>
-        </table>
+      <div class="span2 text-center">
+        <h6>
+          @if(webhook.secret.isEmpty) {
+              NONE
+          } else {
+            @webhook.secret
+          }
+        </h6>
+      </div>
+      <div class="span2 text-center">
+        <h6>
+          @webhook.webhookType
+        </h6>
+      </div>
+      <div class="span2 text-center">
+          <input type="checkbox" @if(webhook.gitPushOnly){checked} onclick="return false;" />
+
+      </div>
+      <div class="span1 text-center">
+        <button type="button" class="ybtn ybtn-danger ybtn-small" data-request-method="delete" data-request-uri="@routes.ProjectApp.deleteWebhook(project.owner, project.name, webhook.id)">
+          @Messages("button.delete")
+        </button>
       </div>
     </div>
   }
