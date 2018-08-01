@@ -527,6 +527,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
     }
 
     public String getUrlToView() {
+        Organization organization;
         switch(eventType) {
             case MEMBER_ENROLL_REQUEST:
                 if (getProject() == null) {
@@ -535,13 +536,25 @@ public class NotificationEvent extends Model implements INotificationEvent {
                     return routes.ProjectApp.members(
                             getProject().owner, getProject().name).url();
                 }
+            case MEMBER_ENROLL_ACCEPT:
+                if (getProject() == null) {
+                    return null;
+                } else {
+                    return routes.ProjectApp.project(
+                            getProject().owner, getProject().name).url();
+                }
             case ORGANIZATION_MEMBER_ENROLL_REQUEST:
-                Organization organization = getOrganization();
+                organization = getOrganization();
                 if (organization == null) {
                     return null;
                 }
                 return routes.OrganizationApp.members(organization.name).url();
-
+            case ORGANIZATION_MEMBER_ENROLL_ACCEPT:
+                organization = getOrganization();
+                if (organization == null) {
+                    return null;
+                }
+                return routes.OrganizationApp.organization(organization.name).url();
             case NEW_COMMIT:
                 if (getProject() == null) {
                     return null;
@@ -1162,6 +1175,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
                 break;
             case ACCEPT:
                 notiEvent.title = formatMemberAcceptTitle(project, user);
+                notiEvent.eventType = MEMBER_ENROLL_ACCEPT;
                 notiEvent.oldValue = RequestState.REQUEST.name();
                 break;
         }
@@ -1192,6 +1206,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
                 break;
             case ACCEPT:
                 notiEvent.title = formatMemberAcceptTitle(organization, user);
+                notiEvent.eventType = ORGANIZATION_MEMBER_ENROLL_ACCEPT;
                 notiEvent.oldValue = RequestState.REQUEST.name();
                 break;
         }
