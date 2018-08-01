@@ -39,7 +39,9 @@ public enum EventType {
     ISSUE_LABEL_CHANGED("notification.type.issue.label.changed", 23),
     ISSUE_MILESTONE_CHANGED("notification.type.milestone.changed", 24),
     POSTING_BODY_CHANGED("notification.type.posting.body.changed", 25),
-    RESOURCE_DELETED("notification.type.resource.deleted", 26);
+    RESOURCE_DELETED("notification.type.resource.deleted", 26),
+    MEMBER_ENROLL_ACCEPT("notification.member.enroll.accept", 27),
+    ORGANIZATION_MEMBER_ENROLL_ACCEPT("notification.member.enroll.accept", 28);
 
     private String descr;
 

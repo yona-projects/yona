@@ -52,6 +52,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static models.enumeration.EventType.*;
+import static models.enumeration.ResourceType.ORGANIZATION;
 
 @Entity
 public class NotificationMail extends Model {
@@ -620,10 +621,10 @@ public class NotificationMail extends Model {
 
         String renderred = null;
 
-        if(resource != null) {
-            renderred = Markdown.render(message, resource.getProject(), lang.code());
-        } else {
+        if (resource == null || resource.getType() == ORGANIZATION) {
             renderred = Markdown.render(message);
+        } else {
+            renderred = Markdown.render(message, resource.getProject(), lang.code());
         }
 
         return getRenderedMail(lang, renderred, urlToView, resource, acceptsReply);
