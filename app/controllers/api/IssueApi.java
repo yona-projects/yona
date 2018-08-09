@@ -159,6 +159,35 @@ public class IssueApi extends AbstractPostingApp {
         return updateIssueNode(json, project, issue, user);
     }
 
+    @Transactional
+    public static Result updateIssueState(String owner, String projectName, Long number) {
+        ObjectNode result = Json.newObject();
+
+        if (!isAuthored(request())) {
+            return unauthorized(result.put("message", "unauthorized request"));
+        }
+
+        JsonNode json = request().body().asJson();
+        if(json == null) {
+            return badRequest(result.put("message", "Expecting Json data"));
+        }
+
+        User user = getAuthorizedUser(getAuthorizationToken(request()));
+
+        Project project = Project.findByOwnerAndProjectName(owner, projectName);
+        final Issue issue = Issue.findByNumber(project, number);
+        State newIssueState = findIssueState(json);
+        if (!newIssueState.equals(issue.state)) {
+            addNewIssueEvent(issue, user, EventType.ISSUE_STATE_CHANGED, issue.state.state(), newIssueState.state());
+        }
+        play.Logger.debug("newIssueState: " + newIssueState);
+        issue.state = newIssueState;
+        issue.save();
+
+        result = ProjectApi.getResult(issue);
+        return addIssueEvents(issue, result);
+    }
+
     private static Result updateIssueNode(JsonNode json, Project project, Issue issue, User user) {
 
         issue.title = json.findValue("title").asText();
@@ -273,13 +302,14 @@ public class IssueApi extends AbstractPostingApp {
 
     private static State findIssueState(JsonNode json){
         JsonNode issueNode = json.findValue("state");
-        State state = State.OPEN;
-        if(issueNode != null) {
-            if ("CLOSED".equalsIgnoreCase(issueNode.asText())) {
-                state = State.CLOSED;
-            }
+        if( issueNode == null) {
+            return State.OPEN;
         }
-        return state;
+        if ("OPEN".equalsIgnoreCase(issueNode.asText())) {
+            return State.OPEN;
+        } else {
+            return State.CLOSED;
+        }
     }
 
     @Transactional
