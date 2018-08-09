@@ -283,6 +283,8 @@ public class ProjectApi extends Controller {
         json.put("createdAt", JodaDateUtil.getDateString(posting.createdDate, JodaDateUtil.ISO_FORMAT));
         json.put("updatedAt", JodaDateUtil.getDateString(posting.updatedDate, JodaDateUtil.ISO_FORMAT));
         json.put("body", posting.body);
+        json.put("owner", posting.project.owner);
+        json.put("projectName", posting.project.name);
 
         if (posting.asResource().getType() == ResourceType.ISSUE_POST) {
             Issue issue = ((Issue) posting);
