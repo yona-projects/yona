@@ -318,7 +318,8 @@ public class Webhook extends Model implements ResourceConvertible {
                 play.Logger.warn("Unknown webhook event: " + eventType);
         }
 
-        requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(eventIssue) + "|#" + eventIssue.number + ": " + eventIssue.title + ">";
+        String eventIssueUrl = controllers.routes.IssueApp.issue(eventIssue.project.owner, eventIssue.project.name, eventIssue.getNumber()).url();
+        requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + eventIssueUrl + "|#" + eventIssue.number + ": " + eventIssue.title + ">";
 
         if (this.webhookType == WebhookType.SIMPLE) {
             return buildTextPropertyOnlyJSON(requestMessage);
