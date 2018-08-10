@@ -328,7 +328,7 @@ public class Webhook extends Model implements ResourceConvertible {
     }
 
     private String buildJsonWithIssueEventDetails(Issue eventIssue, ArrayNode detailFields, ArrayNode attachments, String requestMessage) {
-        detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "notification.type.milestone.changed"), eventIssue.milestoneId().toString(), true));
+        detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "notification.type.milestone.changed"), eventIssue.milestone.title, true));
         detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), ""), eventIssue.assigneeName(), true));
         detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "issue.state"), eventIssue.state.toString(), true));
         attachments.add(buildAttachmentJSON(eventIssue.body, detailFields));
