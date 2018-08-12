@@ -88,10 +88,18 @@ public class IssueApi extends AbstractPostingApp {
         }
         ObjectNode json = ProjectApi.getResult(issue);
 
-        return addIssueEvents(issue, json);
+        return ok(Json.newObject().set("result", toJson(addIssueEvents(issue, json))));
     }
 
-    private static Result addIssueEvents(Issue issue, ObjectNode json) {
+    private static ObjectNode addIssueEvents(Issue issue, ObjectNode json) {
+        if (issue.events.size() > 0) {
+            json.put("events", getIssueEvents(issue));
+        }
+
+        return json;
+    }
+
+    private static ArrayNode getIssueEvents(Issue issue) {
         ArrayNode array = Json.newObject().arrayNode();
 
         if (issue.events.size() > 0) {
@@ -105,11 +113,9 @@ public class IssueApi extends AbstractPostingApp {
                 result.put("newValue", event.newValue);
                 array.add(result);
             }
-
-            json.put("events", array);
         }
 
-        return ok(Json.newObject().set("result", toJson(json)));
+        return array;
     }
 
     @Transactional
@@ -185,7 +191,7 @@ public class IssueApi extends AbstractPostingApp {
         issue.save();
 
         result = ProjectApi.getResult(issue);
-        return addIssueEvents(issue, result);
+        return ok(Json.newObject().set("result", toJson(addIssueEvents(issue, result))));
     }
 
     private static Result updateIssueNode(JsonNode json, Project project, Issue issue, User user) {
@@ -214,7 +220,7 @@ public class IssueApi extends AbstractPostingApp {
         issue.save();
 
         ObjectNode issueNode = ProjectApi.getResult(issue);
-        return addIssueEvents(issue, issueNode);
+        return ok(Json.newObject().set("result", toJson(addIssueEvents(issue, issueNode))));
     }
 
     private static void addNewIssueEvent(Issue issue, User user, EventType eventType, String oldValue, String newValue) {
@@ -390,17 +396,9 @@ public class IssueApi extends AbstractPostingApp {
     }
 
     private static Result createCommentUsingToken(Issue issue, User user, String comment) {
-        ObjectNode result = Json.newObject();
-
-        IssueComment issueComment = createComment(issue, user, comment, null);
-
-        ObjectNode commentNode = getCommentJsonNode(issueComment);
-        ObjectNode authorNode = getAuthorJsonNode(user);
-
-        commentNode.set("author", toJson(authorNode));
-        result.set("result", commentNode);
-
-        return created(result);
+        createComment(issue, user, comment, null);
+        ObjectNode result = ProjectApi.getResult(issue);
+        return created(Json.newObject().set("result", toJson(addIssueEvents(issue, result))));
     }
 
     private static IssueComment createComment(Issue issue, User user, String comment, JsonNode dateNode) {
