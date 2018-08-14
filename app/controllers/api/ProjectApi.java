@@ -27,6 +27,7 @@ import play.mvc.Http;
 import play.mvc.Result;
 import playRepository.RepositoryService;
 import utils.AccessControl;
+import utils.Config;
 import utils.JodaDateUtil;
 
 import java.text.DateFormat;
@@ -303,6 +304,9 @@ public class ProjectApi extends Controller {
             Optional.ofNullable(issue.dueDate).ifPresent(dueDate ->
                     json.put("dueDate", getDateString(dueDate)));
 
+            String refUrl = Config.getScheme() + "://" + Config.getHostport()
+                    + controllers.routes.IssueApp.issue(posting.project.owner, posting.project.name, posting.getNumber()).url();
+            json.put("refUrl", refUrl);
         }
         List<Attachment> attachments = Attachment.findByContainer(posting.asResource());
         if (attachments.size() > 0) {
