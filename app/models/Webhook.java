@@ -189,6 +189,11 @@ public class Webhook extends Model implements ResourceConvertible {
         sendRequest(requestBodyString);
     }
 
+    public void sendRequestToPayloadUrl(EventType eventType, User sender, Issue eventIssue, Project previous) {
+        String requestBodyString = buildRequestBody(eventType, sender, eventIssue, previous);
+        sendRequest(requestBodyString);
+    }
+
     public void sendRequestToPayloadUrl(EventType eventType, User sender, PullRequest eventPullRequest) {
         String requestBodyString = buildRequestBody(eventType, sender, eventPullRequest);
         sendRequest(requestBodyString);
@@ -328,8 +333,29 @@ public class Webhook extends Model implements ResourceConvertible {
         }
     }
 
+    private String buildRequestBody(EventType eventType, User sender, Issue eventIssue, Project previous) {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode detailFields = mapper.createArrayNode();
+        ArrayNode attachments = mapper.createArrayNode();
+
+        String requestMessage = "[" + project.name + "] "+ sender.name + " ";
+        requestMessage += Messages.get(Lang.defaultLang(), "notification.type.issue.moved", previous.name, project.name);
+
+        String eventIssueUrl = controllers.routes.IssueApp.issue(eventIssue.project.owner, eventIssue.project.name, eventIssue.getNumber()).url();
+        requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + eventIssueUrl + "|#" + eventIssue.number + ": " + eventIssue.title + ">";
+
+        if (this.webhookType == WebhookType.SIMPLE) {
+            return buildTextPropertyOnlyJSON(requestMessage);
+        } else {
+            return buildJsonWithIssueEventDetails(eventIssue, detailFields, attachments, requestMessage);
+        }
+    }
+
     private String buildJsonWithIssueEventDetails(Issue eventIssue, ArrayNode detailFields, ArrayNode attachments, String requestMessage) {
-        detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "notification.type.milestone.changed"), eventIssue.milestone.title, true));
+        String title = Messages.get(Lang.defaultLang(), "issue.noMilestone");
+        if (eventIssue.milestone != null)
+            title = eventIssue.milestone.title;
+        detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "notification.type.milestone.changed"), title, true));
         detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), ""), eventIssue.assigneeName(), true));
         detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "issue.state"), eventIssue.state.toString(), true));
         attachments.add(buildAttachmentJSON(eventIssue.body, detailFields));

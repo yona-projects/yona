@@ -622,6 +622,16 @@ public class NotificationEvent extends Model implements INotificationEvent {
         }
     }
 
+    private static void webhookRequest(EventType eventTypes, Issue issue, Project previous, Boolean gitPushOnly) {
+        List<Webhook> webhookList = Webhook.findByProject(issue.project.id);
+        for (Webhook webhook : webhookList) {
+            if (gitPushOnly == webhook.gitPushOnly) {
+                // Send push event via webhook payload URLs.
+                webhook.sendRequestToPayloadUrl(eventTypes, UserApp.currentUser(), issue, previous);
+            }
+        }
+    }
+
     private static void webhookRequest(EventType eventTypes, Comment comment, Boolean gitPushOnly) {
         List<Webhook> webhookList = Webhook.findByProject(comment.projectId);
         for (Webhook webhook : webhookList) {
@@ -906,7 +916,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
     }
 
     public static NotificationEvent afterIssueMoved(Project previous, Issue issue) {
-        webhookRequest(ISSUE_MOVED, issue, false);
+        webhookRequest(ISSUE_MOVED, issue, previous, false);
 
         NotificationEvent notiEvent = createFromCurrentUser(issue);
         notiEvent.title = formatReplyTitle(issue);
