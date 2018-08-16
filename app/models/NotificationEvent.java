@@ -135,7 +135,11 @@ public class NotificationEvent extends Model implements INotificationEvent {
                     return Messages.get(lang, "notification.issue.assigned", newValue);
                 }
             case ISSUE_MILESTONE_CHANGED:
-                return Messages.get(lang, "notification.milestone.changed", newValue);
+                if (Milestone.findById(Long.parseLong(newValue)) == null) {
+                    return Messages.get(lang, "notification.milestone.changed", Messages.get(Lang.defaultLang(), "issue.noMilestone"));
+                } else {
+                    return Messages.get(lang, "notification.milestone.changed", Milestone.findById(Long.parseLong(newValue)).title);
+                }
             case NEW_ISSUE:
             case NEW_POSTING:
             case NEW_COMMENT:
