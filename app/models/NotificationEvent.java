@@ -967,7 +967,9 @@ public class NotificationEvent extends Model implements INotificationEvent {
     }
 
     public static NotificationEvent afterMilestoneChanged(Long oldMilestoneId, Issue issue) {
-        issue.milestone.refresh();
+        if (issue.milestone != null) {
+            issue.milestone.refresh();
+        }
         webhookRequest(ISSUE_MILESTONE_CHANGED, issue, false);
 
         NotificationEvent notiEvent = createFromCurrentUser(issue);
