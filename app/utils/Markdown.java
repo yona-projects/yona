@@ -135,6 +135,7 @@ public class Markdown {
                     + "    gfm: true, "
                     + "    tables: true, "
                     + "    breaks: true, "
+                    + "    headerIds: true, "
                     + "    pedantic: false, "
                     + "    sanitize: false, "
                     + "    smartLists: true "
