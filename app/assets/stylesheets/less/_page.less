@@ -2888,6 +2888,16 @@ label.inline-list {
             padding: 10px 0px;
             position: relative;
 
+            &:target {
+                .media-body {
+                  border: 2px solid #2196f3;
+                    &::before {
+                        border-color: #2196f3;
+                        border-width: 0 0 2px 2px;
+                    }
+                }
+            }
+
             .comment-avatar {
                 float: left;
                 padding-left: 5px;
