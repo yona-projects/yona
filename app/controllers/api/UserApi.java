@@ -31,6 +31,7 @@ import utils.SHA256Util;
 import java.util.ArrayList;
 import java.util.List;
 
+import static controllers.UserApp.addUserInfoToSession;
 import static controllers.UserApp.createNewUser;
 import static models.NotificationMail.isAllowedEmailDomains;
 import static play.libs.Json.toJson;
@@ -244,6 +245,7 @@ public class UserApi extends Controller {
         if (!checkUserPassword(user, password))
             return unauthorized(result.put("message", "No user by id and password"));
 
+        addUserInfoToSession(user);
         result.put("access_token", getNewUserToken(user));
         return ok(toJson(result));
     }
