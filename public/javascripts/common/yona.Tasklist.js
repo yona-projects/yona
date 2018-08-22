@@ -42,8 +42,6 @@ $(function () {
 
         var text = $form.find("textarea").val();
 
-        console.log(sha1(originalText), originalText.length);
-
         $.ajax({
             method: "PATCH",
             url: url,

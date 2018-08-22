@@ -457,7 +457,7 @@ public class IssueApi extends AbstractPostingApp {
         return issueComment;
     }
 
-    private static ObjectNode getCommentJsonNode(Comment comment) {
+    public static ObjectNode getCommentJsonNode(Comment comment) {
         ObjectNode commentNode = Json.newObject();
 
         commentNode.put("id", comment.id);
@@ -467,7 +467,7 @@ public class IssueApi extends AbstractPostingApp {
         return commentNode;
     }
 
-    private static ObjectNode getAuthorJsonNode(User user) {
+    public static ObjectNode getAuthorJsonNode(User user) {
         ObjectNode authorNode = Json.newObject();
 
         authorNode.put("id", user.id);

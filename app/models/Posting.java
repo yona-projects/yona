@@ -150,4 +150,13 @@ public class Posting extends AbstractPosting {
                 .add(eq("readme", true))
                 .findUnique();
     }
+
+    public PostingComment findCommentByCommentId(Long id) {
+        for (PostingComment comment: comments) {
+            if (comment.id.equals(id)) {
+                return comment;
+            }
+        }
+        return null;
+    }
 }
