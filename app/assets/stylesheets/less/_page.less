@@ -7321,3 +7321,49 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         color: #e91e63 !important;
     }
 }
+
+@keyframes showNav {
+    from {opacity: 0;}
+    to {opacity: 1;}
+}
+
+.task-list-button {
+    margin-left: 20px;
+    margin-top: 2px;
+}
+
+.tasklist {
+    padding: 10px 20px 0 20px;
+    box-shadow: none;
+    filter: none;
+    display: none;
+
+    &.task-show {
+        display: block;
+        animation: showNav 250ms ease-in-out both;
+    }
+
+    .task-title {
+        font-weight: 500;
+
+        .done-counter {
+            margin-left: 5px;
+        }
+    }
+
+    .task-progress{
+        background-color: #D4D4D4;
+
+        .bar {
+            transition: .2s;
+            height: 2px;
+            width: 100%;
+        }
+        .red {
+            background-color: red;
+        }
+        .green {
+            background-color: #8bc34a;
+        }
+    }
+}

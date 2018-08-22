@@ -42,6 +42,10 @@ public class Markdown {
                     .allowUrlProtocols("http", "https", "mailto", "file").allowElements("a")
                     .allowAttributes("href", "name", "target").onElements("a")
                     .toFactory())
+            .and(new HtmlPolicyBuilder()
+                    .allowElements("input")
+                    .allowAttributes("type", "disabled", "checked").onElements("input")
+                    .toFactory())
             .and(new HtmlPolicyBuilder().allowElements("pre").toFactory())
             .and(new HtmlPolicyBuilder()
                     .allowAttributes("class", "id", "style", "width", "height").globally().toFactory());

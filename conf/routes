@@ -65,6 +65,7 @@ POST           /-_-api/v1/owners/:owner/projects/:projectName/issues/:number/sha
 GET            /-_-api/v1/owners/:owner/projects/:projectName/issues/:number                    controllers.api.IssueApi.getIssue(owner: String, projectName: String, number: Long)
 PUT            /-_-api/v1/owners/:owner/projects/:projectName/issues/:number                    controllers.api.IssueApi.updateIssue(owner: String, projectName: String, number: Long)
 PATCH          /-_-api/v1/owners/:owner/projects/:projectName/issues/:number                    controllers.api.IssueApi.updateIssueState(owner: String, projectName: String, number: Long)
+PATCH          /-_-api/v1/owners/:owner/projects/:projectName/issues/:number/content            controllers.api.IssueApi.updateIssueContent(owner: String, projectName: String, number: Long)
 GET            /-_-api/v1/users                                                        controllers.UserApp.users(query: String ?= "")
 POST           /-_-api/v1/users                                                        controllers.api.UserApi.newUser()
 POST           /-_-api/v1/users/token                                                  controllers.api.UserApi.newToken()
@@ -255,6 +256,8 @@ POST           /:user/:project/issue/$number<[0-9]+>/edit                       
 GET            /:user/:project/issue/$number<[0-9]+>/nextstate                        controllers.IssueApp.nextState(user, project, number:Long)
 DELETE         /:user/:project/issue/$number<[0-9]+>/delete                           controllers.IssueApp.deleteIssue(user, project, number:Long)
 POST           /:user/:project/issue/$number<[0-9]+>/comments                         controllers.IssueApp.newComment(user, project, number:Long)
+POST           /:user/:project/issue/$number<[0-9]+>/comments/:commentId              controllers.IssueApp.updateComment(user, project, number:Long, commentId:Long)
+PATCH          /:user/:project/issue/$number<[0-9]+>/comments/:commentId              controllers.api.IssueApi.updateIssueComment(user, project, number:Long, commentId:Long)
 DELETE         /:user/:project/issue/$number<[0-9]+>/comment/:commentId/delete        controllers.IssueApp.deleteComment(user, project, number:Long, commentId:Long)
 GET            /:user/:project/issue/$number<[0-9]+>/timeline                         controllers.IssueApp.timeline(user, project, number:Long)
 

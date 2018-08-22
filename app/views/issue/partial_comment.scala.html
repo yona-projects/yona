@@ -22,6 +22,7 @@
 @VOTER_AVATAR_SHOW_LIMIT = @{ 5 }
 
 <li class="comment @isAuthorComment(comment.authorLoginId)" id="comment-@comment.id">
+@defining(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.UPDATE)) { isAllowedUpdate =>
     @common.childCommentsAnchorDiv(issue, comment)
     <div class="comment-avatar">
         <a href="@userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorLoginId">
@@ -98,12 +99,14 @@
             </span>
         </div>
 
-        @common.commentUpdateForm(comment, routes.IssueApp.newComment(project.owner, project.name, issue.getNumber).toString(), comment.contents)
+        @common.commentUpdateForm(comment, routes.IssueApp.newComment(project.owner, project.name, issue.getNumber).toString(), comment.contents, isAllowedUpdate)
 
         <div id="comment-body-@comment.id">
-            <div class="comment-body markdown-wrap" data-via-email="@OriginalEmail.exists(comment.asResource)">@Html(Markdown.render(comment.contents, project))</div>
+            @common.tasklistBar()
+            <div class="comment-body markdown-wrap" data-allowed-update="@isAllowedUpdate" data-via-email="@OriginalEmail.exists(comment.asResource)">@Html(Markdown.render(comment.contents, project))</div>
             <div class="attachments pull-right" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.ISSUE_COMMENT.toString(), comment.id.toString()))"></div>
         </div>
     </div>
     @common.childComments(issue, comment, ResourceType.ISSUE_COMMENT)
+}
 </li>
