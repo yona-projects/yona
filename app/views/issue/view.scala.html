@@ -97,6 +97,10 @@
     FavoriteIssue.findByIssueId(UserApp.currentUser().id, issue.id) != null
 }
 
+@isAllowedUpdate = @{
+    isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)
+}
+
 @projectLayout(titleForOGTag, project, utils.MenuType.ISSUE){
 @projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
 <div class="page-wrap-outer">
@@ -158,7 +162,15 @@
                 @if(StringUtils.isEmpty(issue.body)){
                     <div class="content empty-content"></div>
                 } else {
-                    <div class="content markdown-wrap">@Html(Markdown.render(issue.body, issue.project))</div>
+                    <div id="issue-@issue.getNumber" class="hide">
+                        <form action="@api.routes.IssueApi.updateIssueContent(project.owner, project.name, issue.getNumber)">
+                            <textarea>@issue.body</textarea>
+                        </form>
+                    </div>
+                    <div id="issue-body-@issue.getNumber">
+                        @common.tasklistBar()
+                        <div class="content markdown-wrap" data-allowed-update="@isAllowedUpdate">@Html(Markdown.render(issue.body, issue.project))</div>
+                    </div>
                 }
                 <div class="attachments" id="attachments" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.ISSUE_POST.toString(), issue.id.toString()))"></div>
                 <div class="board-actrow right-txt">
@@ -174,7 +186,7 @@
                                 }
                                 </button>
                             }
-                            @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE) && !hasSharer) {
+                            @if(isAllowedUpdate && !hasSharer) {
                                 <button id="issue-share-button" type="button" class="ybtn" data-toggle="popover" data-trigger="hover" data-placement="top" data-content="@Messages("issue.sharer.description")">@Messages("button.share.issue")</button>
                             }
 
@@ -206,7 +218,7 @@
                     }
 
                     <span class="act-row">
-                    @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+                    @if(isAllowedUpdate) {
                         <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" title="@Messages("button.edit")" onclick="window.location='@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)'"><i class="yobicon-edit-2"></i></button>
                     } else {
                         <a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" title="@Messages("button.show.original")"><i class="yobicon-edit-2"></i></button></a>
@@ -226,7 +238,7 @@
                         @Messages("issue.sharer") <span class="num issue-sharer-count">@if(issue.sharers.size > 0) { @issue.sharers.size }</span>
                     </dt>
                     <dd id="sharer-list" class="@if(!hasSharer){hideFromDisplayOnly}">
-                    @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+                    @if(isAllowedUpdate) {
                         <input type="hidden" class="bigdrop width100p" id="issueSharer" name="issueSharer" placeholder="@Messages("issue.sharer.select")" value="@sharers" title="">
                     } else {
                         @for(sharer <- issue.getSortedSharer){
@@ -276,7 +288,7 @@
                             <dt>@Messages("issue.assignee")</dt>
 
                             <dd>
-                            @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+                            @if(isAllowedUpdate) {
                                 @partial_assignee(project, issue)
                             } else {
                                 @if(hasAssignee){
@@ -309,7 +321,7 @@
                                 </a>
                             } else {
                                 @defining(issue.milestone != null) { hasMilestone =>
-                                    @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+                                    @if(isAllowedUpdate) {
                                     <select id="milestone" name="milestone.id"
                                             data-toggle="select2" data-format="milestone" data-container-css-class="fullsize">
                                         <option value="@Milestone.NULL_MILESTONE_ID" @if(!hasMilestone){ selected }>
@@ -366,7 +378,7 @@
                                 </span>
                             </dt>
                             <dd>
-                                @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+                                @if(isAllowedUpdate) {
                                 <div class="search search-bar">
                                     <input type="text" name="dueDate" value="@issue.getDueDateString" class="textbox full" autocomplete="off" data-toggle="calendar">
                                     <button type="button" class="search-btn btn-calendar"><i class="yobicon-calendar2"></i></button>
@@ -383,14 +395,14 @@
 
                         @**<!-- labels -->**@
                         @if(!IssueLabel.findByProject(project).isEmpty){
-                            @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)){
+                            @if(isAllowedUpdate){
                                 @partial_select_label(IssueLabel.findByProject(project), issue.getLabelIds, "", "", project)
                             } else {
                                 @partial_show_selected_label(issue.labels.toList, routes.IssueApp.issues(project.owner, project.name, issue.state.state(), "html", 1).toString)
                             }
                         }
                         <div class="act-row right-menu-icons">
-                            @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+                            @if(isAllowedUpdate) {
                                 <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" title="@Messages("button.edit")" onclick="window.location='@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)'"><i class="yobicon-edit-2"></i></button>
                             } else {
                                 <a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)"><button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" title="@Messages("button.show.original")"><i class="yobicon-edit-2"></i></button></a>
@@ -450,6 +462,8 @@
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/elevator/jquery.elevator.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/service/yona.issue.Assginee.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/service/yona.issue.Sharer.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.Sha1.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.Tasklist.js")"></script>
 <script type="text/javascript">
     $(function(){
         // yobi.issue.View
@@ -471,7 +485,7 @@
             @if(project.menuSetting.issue) {
             ,"N": "@routes.IssueApp.newIssueForm(project.owner, project.name)"
             }
-            @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+            @if(isAllowedUpdate) {
            ,"E": "@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)"
             }
         });

@@ -19,7 +19,9 @@ import controllers.annotation.IsCreatable;
 import controllers.routes;
 import models.*;
 import models.enumeration.*;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
+import play.api.mvc.Codec;
 import play.db.ebean.Transactional;
 import play.i18n.Messages;
 import play.libs.F;
@@ -186,12 +188,46 @@ public class IssueApi extends AbstractPostingApp {
         if (!newIssueState.equals(issue.state)) {
             addNewIssueEvent(issue, user, EventType.ISSUE_STATE_CHANGED, issue.state.state(), newIssueState.state());
         }
-        play.Logger.debug("newIssueState: " + newIssueState);
         issue.state = newIssueState;
         issue.save();
 
         result = ProjectApi.getResult(issue);
         return ok(Json.newObject().set("result", toJson(addIssueEvents(issue, result))));
+    }
+
+    @Transactional
+    @IsAllowed(Operation.UPDATE)
+    public static Result updateIssueContent(String owner, String projectName, Long number) {
+        ObjectNode result = Json.newObject();
+
+        User user = UserApp.currentUser();
+        if (user.isAnonymous()) {
+            return unauthorized(result.put("message", "unauthorized request"));
+        }
+
+        JsonNode json = request().body().asJson();
+        if(json == null) {
+            return badRequest(result.put("message", "Expecting Json data"));
+        }
+
+        Project project = Project.findByOwnerAndProjectName(owner, projectName);
+        final Issue issue = Issue.findByNumber(project, number);
+
+        String content = json.findValue("content").asText();
+        String sha1checksum = json.findValue("sha1").asText();
+
+        String originalSha1 = DigestUtils.sha1Hex(issue.body.trim());
+
+        if (!originalSha1.equals(sha1checksum)) {
+            result.put("message", "Already modified by someone.");
+            return new Status(play.core.j.JavaResults.Conflict(), result, Codec.javaSupported("utf-8"));
+        }
+
+        issue.body = content;
+        issue.update();
+
+        result = ProjectApi.getResult(issue);
+        return ok(result);
     }
 
     private static Result updateIssueNode(JsonNode json, Project project, Issue issue, User user) {
@@ -347,7 +383,8 @@ public class IssueApi extends AbstractPostingApp {
     public static Result updateIssueComment(String ownerName, String projectName, Long number, Long commentId) {
         ObjectNode result = Json.newObject();
 
-        if (!isAuthored(request())) {
+        User user = UserApp.currentUser();
+        if (user.isAnonymous()) {
             return unauthorized(result.put("message", "unauthorized request"));
         }
 
@@ -356,12 +393,20 @@ public class IssueApi extends AbstractPostingApp {
             return badRequest(result.put("message", "Expecting Json data"));
         }
 
-        User user = getAuthorizedUser(getAuthorizationToken(request()));
-        String comment = json.findValue("comment").asText();
+        String comment = json.findValue("content").asText();
+        String sha1checksum = json.findValue("sha1").asText();
 
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         final Issue issue = Issue.findByNumber(project, number);
         IssueComment issueComment = issue.findCommentByCommentId(commentId);
+
+        String originalSha1 = DigestUtils.sha1Hex(issueComment.contents.trim());
+
+        if (!originalSha1.equals(sha1checksum)) {
+            result.put("message", "Already modified by someone.");
+            result.put("text", issueComment.contents);
+            return new Status(play.core.j.JavaResults.Conflict(), result, Codec.javaSupported("utf-8"));
+        }
 
         issueComment.contents = comment;
         issueComment.save();
@@ -372,7 +417,7 @@ public class IssueApi extends AbstractPostingApp {
         commentNode.set("author", toJson(authorNode));
         result.set("result", commentNode);
 
-        return created(result);
+        return ok(result);
     }
 
     private static Result createCommentByUser(Project project, Issue issue, JsonNode json) {

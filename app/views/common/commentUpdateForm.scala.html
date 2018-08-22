@@ -4,11 +4,11 @@
 * Copyright Yona & Yobi Authors & NAVER Corp.
 * https://yona.io
 **@
-@(comment:Comment, action:String, contents:String)
+@(comment:Comment, action:String, contents:String, isAllowedUpdate:Boolean)
 @import utils.AccessControl._
 
 <div id="comment-editform-@comment.id" class="comment-update-form">
-    <form action="@action" method="post">
+    <form action="@action/@comment.id" method="post">
         <input type="hidden" name="id" value="@comment.id">
 
         <div class="write-comment-box">
@@ -25,7 +25,7 @@
                     </span>
                     }
                     <button type="button" class="ybtn ybtn-cancel" data-comment-id="@comment.id">@Messages("button.cancel")</button>
-                    @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.UPDATE)) {
+                    @if(isAllowedUpdate) {
                         <button type="submit" class="ybtn ybtn-info">@Messages("button.save")</button>
                     }
                 </div>

@@ -910,6 +910,11 @@ public class IssueApp extends AbstractPostingApp {
         return redirect(RouteUtil.getUrl(savedComment));
     }
 
+    // Just made for compatibility. No meanings.
+    public static Result updateComment(String ownerName, String projectName, Long number, Long commentId) throws IOException {
+        return newComment(ownerName, projectName, number);
+    }
+
     private static Comment saveComment(Project project, Issue issue, IssueComment comment) {
         Comment savedComment;
         IssueComment existingComment = IssueComment.find.where().eq("id", comment.id).findUnique();

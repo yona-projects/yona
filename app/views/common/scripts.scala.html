@@ -174,5 +174,26 @@
         });
 
         autosize($('textarea'));
+
+        addTaskListButtonListener();
+        function addTaskListButtonListener() {
+            $(".add-task-list-button").on('click', function () {
+                var tasklistTemplate = "\n- [ ] Todo A\r\n- [ ] Todo B\r\n- [ ] Todo C";
+                var $textarea = $(this).closest("form").find("textarea");
+                var cursorPos = $textarea.prop('selectionStart');
+                var text = $textarea.val();
+
+                if(cursorPos === 0 && text && text.length > 0){
+                    cursorPos = text.length;
+                }
+
+                var textBefore = text.substring(0, cursorPos);
+                var textAfter  = text.substring(cursorPos, text.length);
+
+                $textarea.val(textBefore + tasklistTemplate + textAfter);
+                $textarea.focus();
+            });
+        }
+
     });
 </script>
