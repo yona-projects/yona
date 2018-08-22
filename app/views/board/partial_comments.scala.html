@@ -62,7 +62,8 @@
             @common.commentUpdateForm(comment, routes.BoardApp.newComment(project.owner, project.name, post.getNumber).toString(), comment.contents, isAllowedUpdate)
 
             <div id="comment-body-@comment.id">
-                <div class="comment-body markdown-wrap" data-via-email="@OriginalEmail.exists(comment.asResource)">@Html(Markdown.render(comment.contents, project))</div>
+                @common.tasklistBar()
+                <div class="comment-body markdown-wrap" data-via-email="@OriginalEmail.exists(comment.asResource)" data-allowed-update="@isAllowedUpdate" >@Html(Markdown.render(comment.contents, project))</div>
                 <div class="attachments pull-right" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.NONISSUE_COMMENT.toString(), comment.id.toString()))"></div>
             </div>
         </div>

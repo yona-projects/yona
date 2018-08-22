@@ -14,7 +14,9 @@ import controllers.annotation.IsCreatable;
 import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.joda.time.DateTime;
+import play.api.mvc.Codec;
 import play.db.ebean.Transactional;
 import play.libs.Json;
 import play.mvc.Result;
@@ -26,8 +28,7 @@ import utils.RouteUtil;
 import java.io.IOException;
 import java.util.*;
 
-import static controllers.api.IssueApi.findAuthor;
-import static controllers.api.IssueApi.parseDateString;
+import static controllers.api.IssueApi.*;
 import static play.libs.Json.toJson;
 
 public class BoardApi extends AbstractPostingApp {
@@ -121,6 +122,41 @@ public class BoardApi extends AbstractPostingApp {
     }
 
     @Transactional
+    @IsAllowed(Operation.UPDATE)
+    public static Result updatePostingContent(String owner, String projectName, Long number) {
+        ObjectNode result = Json.newObject();
+
+        User user = UserApp.currentUser();
+        if (user.isAnonymous()) {
+            return unauthorized(result.put("message", "unauthorized request"));
+        }
+
+        JsonNode json = request().body().asJson();
+        if(json == null) {
+            return badRequest(result.put("message", "Expecting Json data"));
+        }
+
+        Project project = Project.findByOwnerAndProjectName(owner, projectName);
+        final Posting posting = Posting.findByNumber(project, number);
+
+        String content = json.findValue("content").asText();
+        String sha1checksum = json.findValue("sha1").asText();
+
+        String originalSha1 = DigestUtils.sha1Hex(posting.body.trim());
+
+        if (!originalSha1.equals(sha1checksum)) {
+            result.put("message", "Already modified by someone.");
+            return new Status(play.core.j.JavaResults.Conflict(), result, Codec.javaSupported("utf-8"));
+        }
+
+        posting.body = content;
+        posting.update();
+
+        result = ProjectApi.getResult(posting);
+        return ok(result);
+    }
+
+    @Transactional
     @IsCreatable(ResourceType.NONISSUE_COMMENT)
     public static Result newPostingComment(String ownerName, String projectName, Long number)
             throws IOException {
@@ -155,5 +191,46 @@ public class BoardApi extends AbstractPostingApp {
         result.put("location", RouteUtil.getUrl(comment));
 
         return created(result);
+    }
+
+    @Transactional
+    public static Result updatePostingComment(String ownerName, String projectName, Long number, Long commentId) {
+        ObjectNode result = Json.newObject();
+
+        User user = UserApp.currentUser();
+        if (user.isAnonymous()) {
+            return unauthorized(result.put("message", "unauthorized request"));
+        }
+
+        JsonNode json = request().body().asJson();
+        if(json == null) {
+            return badRequest(result.put("message", "Expecting Json data"));
+        }
+
+        String comment = json.findValue("content").asText();
+        String sha1checksum = json.findValue("sha1").asText();
+
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+        final Posting posting = Posting.findByNumber(project, number);
+        PostingComment postingComment = posting.findCommentByCommentId(commentId);
+
+        String originalSha1 = DigestUtils.sha1Hex(postingComment.contents.trim());
+
+        if (!originalSha1.equals(sha1checksum)) {
+            result.put("message", "Already modified by someone.");
+            result.put("text", postingComment.contents);
+            return new Status(play.core.j.JavaResults.Conflict(), result, Codec.javaSupported("utf-8"));
+        }
+
+        postingComment.contents = comment;
+        postingComment.save();
+
+        ObjectNode commentNode = getCommentJsonNode(postingComment);
+        ObjectNode authorNode = getAuthorJsonNode(user);
+
+        commentNode.set("author", toJson(authorNode));
+        result.set("result", commentNode);
+
+        return ok(result);
     }
 }
