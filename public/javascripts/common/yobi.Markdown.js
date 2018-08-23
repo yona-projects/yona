@@ -1,23 +1,10 @@
 /**
- * Yobi, Project Hosting SW
- *
- * Copyright 2012 NAVER Corp.
- * http://yobi.io
- *
- * @author Yi EungJun
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+ * Yona, 21st Century Project Hosting SW
+ * <p>
+ * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+ * https://yona.io
+ **/
+
 yobi.Markdown = (function(htOptions){
 
     var htVar = {};
@@ -152,12 +139,13 @@ yobi.Markdown = (function(htOptions){
         });
 
         welTextarea.on("keydown.tabkey-event-handler", function(e) {
-            if(e.keyCode === 9){ //tab
+            var $this = $(this);
+            if (e.shiftKey && e.key === 'Tab') {
                 e.preventDefault();
-                var start = this.selectionStart;
-                var end = this.selectionEnd;
-                this.value = this.value.substring(0, start) + "\t" + this.value.substring(end);
-                this.selectionEnd = start + 1;
+                _untab($this.get(0));
+            } else if ( e.key === 'Tab' ) {
+                e.preventDefault();
+                _tab($this.get(0));
             }
         });
     }
