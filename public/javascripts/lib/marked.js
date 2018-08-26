@@ -1528,7 +1528,7 @@ marked.setOptions = function(opt) {
 marked.getDefaults = function () {
   return {
     baseUrl: null,
-    breaks: false,
+    breaks: true,
     gfm: true,
     headerIds: true,
     headerPrefix: 'yb-header-',
