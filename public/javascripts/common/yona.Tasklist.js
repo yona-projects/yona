@@ -5,14 +5,6 @@
  * https://yona.io
  **/
 
-// At present, using .val() on textarea elements strips carriage return characters
-// https://stackoverflow.com/a/8601601/1450196
-$.valHooks.textarea = {
-    get: function( elem ) {
-        return elem.value.replace( /\r?\n/g, "\r\n" );
-    }
-};
-
 $(function () {
     var $markdownWrap = $(".markdown-wrap");
     var inputCheckBox = "input[type='checkbox']";
@@ -140,4 +132,5 @@ $(function () {
         });
     }
 
+    // See: addTaskListButtonListener() at views/common/scripts.scala.html
 });

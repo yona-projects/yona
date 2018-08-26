@@ -124,36 +124,30 @@ public class BoardApi extends AbstractPostingApp {
     @Transactional
     @IsAllowed(Operation.UPDATE)
     public static Result updatePostingContent(String owner, String projectName, Long number) {
-        ObjectNode result = Json.newObject();
-
         User user = UserApp.currentUser();
         if (user.isAnonymous()) {
-            return unauthorized(result.put("message", "unauthorized request"));
+            return unauthorized(Json.newObject().put("message", "unauthorized request"));
         }
 
         JsonNode json = request().body().asJson();
         if(json == null) {
-            return badRequest(result.put("message", "Expecting Json data"));
+            return badRequest(Json.newObject().put("message", "Expecting Json data"));
         }
 
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
         final Posting posting = Posting.findByNumber(project, number);
 
         String content = json.findValue("content").asText();
-        String sha1checksum = json.findValue("sha1").asText();
+        String rememberedChecksum = json.findValue("sha1").asText();
 
-        String originalSha1 = DigestUtils.sha1Hex(posting.body.trim());
-
-        if (!originalSha1.equals(sha1checksum)) {
-            result.put("message", "Already modified by someone.");
-            return new Status(play.core.j.JavaResults.Conflict(), result, Codec.javaSupported("utf-8"));
+        if (isModifiedByOthers(posting.body, rememberedChecksum)) {
+            return conflicted(posting.body);
         }
 
         posting.body = content;
         posting.update();
 
-        result = ProjectApi.getResult(posting);
-        return ok(result);
+        return ok(ProjectApi.getResult(posting));
     }
 
     @Transactional
@@ -208,18 +202,14 @@ public class BoardApi extends AbstractPostingApp {
         }
 
         String comment = json.findValue("content").asText();
-        String sha1checksum = json.findValue("sha1").asText();
+        String rememberedChecksum = json.findValue("sha1").asText();
 
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         final Posting posting = Posting.findByNumber(project, number);
         PostingComment postingComment = posting.findCommentByCommentId(commentId);
 
-        String originalSha1 = DigestUtils.sha1Hex(postingComment.contents.trim());
-
-        if (!originalSha1.equals(sha1checksum)) {
-            result.put("message", "Already modified by someone.");
-            result.put("text", postingComment.contents);
-            return new Status(play.core.j.JavaResults.Conflict(), result, Codec.javaSupported("utf-8"));
+        if (isModifiedByOthers(postingComment.contents, rememberedChecksum)) {
+            return conflicted(postingComment.contents);
         }
 
         postingComment.contents = comment;

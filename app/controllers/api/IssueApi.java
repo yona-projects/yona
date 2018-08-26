@@ -198,36 +198,31 @@ public class IssueApi extends AbstractPostingApp {
     @Transactional
     @IsAllowed(Operation.UPDATE)
     public static Result updateIssueContent(String owner, String projectName, Long number) {
-        ObjectNode result = Json.newObject();
 
         User user = UserApp.currentUser();
         if (user.isAnonymous()) {
-            return unauthorized(result.put("message", "unauthorized request"));
+            return unauthorized(Json.newObject().put("message", "unauthorized request"));
         }
 
         JsonNode json = request().body().asJson();
         if(json == null) {
-            return badRequest(result.put("message", "Expecting Json data"));
+            return badRequest(Json.newObject().put("message", "Expecting Json data"));
         }
 
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
         final Issue issue = Issue.findByNumber(project, number);
 
         String content = json.findValue("content").asText();
-        String sha1checksum = json.findValue("sha1").asText();
+        String rememberedChecksum = json.findValue("sha1").asText();
 
-        String originalSha1 = DigestUtils.sha1Hex(issue.body.trim());
-
-        if (!originalSha1.equals(sha1checksum)) {
-            result.put("message", "Already modified by someone.");
-            return new Status(play.core.j.JavaResults.Conflict(), result, Codec.javaSupported("utf-8"));
+        if (isModifiedByOthers(issue.body, rememberedChecksum)) {
+            return conflicted(issue.body);
         }
 
         issue.body = content;
         issue.update();
 
-        result = ProjectApi.getResult(issue);
-        return ok(result);
+        return ok(ProjectApi.getResult(issue));
     }
 
     private static Result updateIssueNode(JsonNode json, Project project, Issue issue, User user) {
@@ -379,33 +374,45 @@ public class IssueApi extends AbstractPostingApp {
         }
     }
 
+    public static boolean isModifiedByOthers(String current, String rememberedChecksum){
+        // At present, using .val() on textarea elements strips carriage return characters
+        // https://stackoverflow.com/a/8601601/1450196
+        // At first, I added hook of above link at the front page.
+        // But I found that it introduce another problem, cursor location detection error.
+        // So, decided to calculate sha1 without \r char.
+        String currentChecksum = DigestUtils.sha1Hex(current.replaceAll("\r","").trim());
+
+        return !currentChecksum.equals(rememberedChecksum);
+    }
+
+    public static Status conflicted(String content) {
+        ObjectNode result = Json.newObject();
+        result.put("message", "Already modified by someone.");
+        result.put("storedContent", content);
+        return new Status(play.core.j.JavaResults.Conflict(), result, Codec.javaSupported("utf-8"));
+    }
+
     @Transactional
     public static Result updateIssueComment(String ownerName, String projectName, Long number, Long commentId) {
-        ObjectNode result = Json.newObject();
-
         User user = UserApp.currentUser();
         if (user.isAnonymous()) {
-            return unauthorized(result.put("message", "unauthorized request"));
+            return unauthorized(Json.newObject().put("message", "unauthorized request"));
         }
 
         JsonNode json = request().body().asJson();
         if(json == null) {
-            return badRequest(result.put("message", "Expecting Json data"));
+            return badRequest(Json.newObject().put("message", "Expecting Json data"));
         }
 
         String comment = json.findValue("content").asText();
-        String sha1checksum = json.findValue("sha1").asText();
+        String rememberedChecksum = json.findValue("sha1").asText();
 
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         final Issue issue = Issue.findByNumber(project, number);
         IssueComment issueComment = issue.findCommentByCommentId(commentId);
 
-        String originalSha1 = DigestUtils.sha1Hex(issueComment.contents.trim());
-
-        if (!originalSha1.equals(sha1checksum)) {
-            result.put("message", "Already modified by someone.");
-            result.put("text", issueComment.contents);
-            return new Status(play.core.j.JavaResults.Conflict(), result, Codec.javaSupported("utf-8"));
+        if (isModifiedByOthers(issueComment.contents, rememberedChecksum)) {
+            return conflicted(issueComment.contents);
         }
 
         issueComment.contents = comment;
@@ -415,6 +422,8 @@ public class IssueApi extends AbstractPostingApp {
         ObjectNode authorNode = getAuthorJsonNode(user);
 
         commentNode.set("author", toJson(authorNode));
+
+        ObjectNode result = Json.newObject();
         result.set("result", commentNode);
 
         return ok(result);
