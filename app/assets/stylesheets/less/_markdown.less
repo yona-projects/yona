@@ -15,8 +15,17 @@ code {
   -o-font-feature-settings: "kern" 1;
   font-feature-settings: "kern" 1;
   font-kerning: normal;
+  padding: 15px 20px !important;
 
   word-wrap: break-word;
+
+  > *:first-child {
+    margin-top: 0 !important;
+  }
+
+  > *:last-child {
+    margin-bottom: 0 !important;
+  }
 
   ul, ol {
     padding: 5px 0 5px 2.5em;
@@ -43,32 +52,22 @@ code {
     margin-bottom: 12px;
   }
 
-  > ul {
-    margin-top: 14px;
-    margin-bottom: 7px;
-  }
-
-  ul > li > p {
-    margin-top: 16px;
-    margin-bottom: 16px;
-  }
-
   a {
-      color:#4183c4;
-      text-decoration:none;
+    color: #4183c4;
+    text-decoration: none;
   }
 
   a:hover {
-      color:#4183c4;
-      text-decoration:underline;
+    color: #4183c4;
+    text-decoration: underline;
   }
 
   a:active {
-      color:#4183c4;
-      text-decoration:none;
+    color: #4183c4;
+    text-decoration: none;
   }
 
-  .anchor(){
+  .anchor() {
     .head-anchor {
       margin-left: 3px;
       opacity: 0;
@@ -80,8 +79,14 @@ code {
     }
   }
 
+  h1,
+  h2,
+  h3 {
+    line-height: 40px;
+  }
+
   h1 {
-    font-size:2.0em;
+    font-size: 2.0em;
     margin-bottom: 15px;
     padding-bottom: 0.3em;
     border-bottom: 1px solid #eee;
@@ -92,15 +97,16 @@ code {
 
   h2 {
     margin: 1em 0 5px;
-    font-size:1.5em;
+    font-size: 1.5em;
     width: 95%;
+    padding: 0;
     border-bottom: 1px solid #eaecef;
     .anchor();
   }
 
   h3 {
-    margin:1em 0 5px;
-    font-size:1.4em;
+    margin: 1em 0 5px;
+    font-size: 1.4em;
     padding: 0;
     .anchor();
   }
@@ -119,119 +125,118 @@ code {
   }
 
   hr {
-    height:1px;
-    margin:10px 0;
-    border:0;color:#ccc;
-    background-color:#ccc;
+    height: 1px;
+    margin: 10px 0;
+    border: 0;
+    color: #ccc;
+    background-color: #ccc;
   }
 
   p {
-    margin : 10px 0;
+    margin: 10px 0;
     line-height: 1.6em;
   }
 
   blockquote {
-      p {
-        font-size: 0.9em;
-        font-weight: normal;
-      }
+    p {
+      font-size: 0.9em;
+      font-weight: normal;
+    }
   }
 
   code {
     padding: 5px 5px 2px 5px;
     border: 1px solid #ddd;
     border-radius: 3px;
-    font-family:@fixed-font-family;
+    font-family: @fixed-font-family;
     font-size: 13px;
 
     .title {
-      font-size:inherit;
+      font-size: inherit;
     }
   }
 
-  blockquote{
+  blockquote {
     border-left: 4px solid #DDD;
     padding: 0 15px;
     color: #777;
   }
 
   li > img {
-    max-width:80%;
+    max-width: 80%;
   }
 
   li > input[type='checkbox'] {
     vertical-align: text-top;
   }
 
-  img{
-    max-width:100%;
-    margin:10px 0;
+  img {
+    max-width: 100%;
+    margin: 10px 0;
     padding: 5px;
-    border:1px solid rgba(0,0,0,0.1);
+    border: 1px solid rgba(0, 0, 0, 0.1);
     .box-sizing(border-box);
     max-height: 300px;
   }
 
-  ul {
-     line-height:20px;
-     list-style:disc;
+  > ul {
+    line-height: 20px;
+    list-style: disc;
   }
 
   li {
-     line-height: 1.6em;
+    line-height: 1.6em;
   }
 
   ul ul, ol ul {
-    list-style:circle;
+    list-style: circle;
   }
 
   ul ul ul, ol ul ul, ol ol ul, ul ol ul {
-    list-style:square;
+    list-style: square;
   }
 
-  
-
-  ol{
-     line-height: 1.6em;
-     list-style:decimal;
+  ol {
+    line-height: 1.6em;
+    list-style: decimal;
   }
 
   pre {
     font-size: 1em;
-    background-color:#EFEFEF;
+    background-color: #EFEFEF;
     padding: 10px;
-    margin:10px 0;
-    word-break : normal;
+    margin: 10px 0;
+    word-break: normal;
     border: none;
 
     code {
-      margin : 0;
+      margin: 0;
       padding: 0;
-      border : none;
+      border: none;
     }
   }
 
   table {
-    border-collapse:collapse;
-        margin: 15px 15px;
+    border-collapse: collapse;
+    margin: 15px 15px;
 
     th {
-      padding:5px;
-      border:1px solid #dcddde;
-      background-color:#f7f7f7;
+      padding: 5px;
+      border: 1px solid #dcddde;
+      background-color: #f7f7f7;
       min-width: 45px;
     }
 
     td {
-      padding:5px;
-      border:1px solid #dcddde;
+      padding: 5px;
+      border: 1px solid #dcddde;
       word-break: break-all;
     }
 
   }
-     &.markdown-before {
-       visibility : hidden;
-   }
+  &.markdown-before {
+    visibility: hidden;
+  }
 
   .popover {
     max-width: 400px;
