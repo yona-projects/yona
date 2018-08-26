@@ -843,6 +843,19 @@ span.issue-label {
         }
     }
 
+    &.ybtn-danger-no-outline {
+        border: none;
+        font-weight: 600;
+        box-shadow: none;
+        color: #ef5350;
+        background-color: transparent;
+
+        &:hover, &:focus {
+            color: @yobi-btn-danger;
+            background-color: #fbe9e7 !important;
+        }
+    }
+
     &.ybtn-inverse {
         background-color : @yobi-btn-inverse !important;
         border:1px solid @yobi-btn-inverse-hover;
