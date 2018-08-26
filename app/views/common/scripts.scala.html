@@ -179,7 +179,7 @@
         addTaskListButtonListener();
         function addTaskListButtonListener() {
             $(".add-task-list-button").on('click', function () {
-                var tasklistTemplate = "\n- [ ] Todo A\r\n- [ ] Todo B\r\n- [ ] Todo C";
+                var tasklistTemplate = "\n- [ ] Todo A\n- [ ] Todo B\n- [ ] Todo C";
                 var $textarea = $(this).closest("form").find("textarea");
                 var cursorPos = $textarea.prop('selectionStart');
                 var text = $textarea.val();
@@ -193,6 +193,7 @@
 
                 $textarea.val(textBefore + tasklistTemplate + textAfter);
                 $textarea.focus();
+                $textarea.get(0).setSelectionRange(cursorPos + tasklistTemplate.length, cursorPos + tasklistTemplate.length);
             });
         }
 
