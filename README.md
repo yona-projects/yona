@@ -14,7 +14,7 @@ Official Site: [http://yona.io](http://yona.io)
 Yona?
 --
 - Git 저장소 기능이 내장된 설치형 이슈트래커
-- Naver를 비롯하여 게임회사, 통신회사 고객센터, 투자사, 학교, 기업등에서 수년 간 실제로 사용되어 왔고 개선되어 온(Real world battled) 애플리케이션입니다
+- Naver, Naver Labs 를 비롯하여 게임회사, 통신회사 고객센터, 공공기관, 투자사, 학교, 기업등에서 수년 간 실제로 사용되어 왔고 개선되어 온(Real world battled) 애플리케이션입니다
 
 주요기능
 ---
@@ -65,11 +65,11 @@ Yona 배포판
 
 - MariaDB 버전
   - 기본 권장 버전
-  - `yona-v1.8.0-bin.zip` 같은 형식으로 파일로 배포
+  - `yona-v1.10.0-bin.zip` 같은 형식으로 파일로 배포
   - DB 설치에 약간의 시간이 필요하지만 안정적으로 운영이 가능
 - H2 DB 내장형
   - DB 설정없이 내려받아서 바로 실행해서 쓸 수 있는 버전
-  - `yona-h2-v1.8.0-bin.zip` 같은 형식으로 파일로 배포
+  - `yona-h2-v1.10.0-bin.zip` 같은 형식으로 파일로 배포
   - USB 등에 담아서 이동해가면서 사용하거나 작업후 통째로 zip으로 묶어서 들고 다니는 것이 가능함
   - 대규모 사이트에서 사용하기에는 적합하지 않음. 참고: [Yona가 MariaDB를 기본 DB로 사용하게 된 이유](https://repo.yona.io/yona-projects/yona/post/4)
 
@@ -96,7 +96,7 @@ Yona 실행 및 업그레이드/백업 및 복구/문제 해결
 - [발생 가능한 문제상황들과 해결방법](docs/ko/trouble-shootings.md)
 
 
-소스코드를 직접 내려 받아서 빌드 실행하기
+소스코드를 직접 내려 받아서 빌드하거나 자신만의 배포판을 만들기
 ---
 자신의 입맛에 맛게 코드를 직접 수정해서 작업하거나 코드를 기여하고 싶을 경우에는 코드 저장소로부터 코드를 직접 내려받아서 빌드/실행하는 것도 가능합니다.
 [소스코드를 직접 내려 받아서 실행하기](https://repo.yona.io/yona-projects/yona/post/5)를 참고해 주세요
@@ -135,7 +135,6 @@ Contribution
   - `next`브랜치는 내부 개발용입니다. 어떠한 기능들이 추가되고 있는지 현장을 보고 싶으시면 `next`브랜치를 참고해주세요.
 - 코드리뷰 후 merge 되면 Yona Author로 파일에 기록되며 작은 기념품을 보내드립니다. 
 
-
 <br/>
 
 <a name="english"></a>[[한국어]](#korean)
@@ -145,38 +144,36 @@ Yona
 =======
 Yona is a web-based project hosting software.
 
-What is Yona?
+What you can do with Yona:
 --
-Yona is designed to increase the speed and efficiency of your team's work and development.
+Yona is designed to increase the speed and efficiency of team work and team development.
 
 - Issue tracker
-   - Transferable Issue
-   - Issue change history
+   - Issues can be transferred to other projects
+   - Issues' change histories can be viewed
 - Bulletin board
 - Embedded Git/SVN respository features 
-- Pull-request & Block based code review
-- Online Commit
+- Pull requests & Block-based code review
+- Online Commits
 - LDAP support
-- Social Login
-- Migration from/to another service/instance
-   - Github/Github Enterprise, Redmine, Yona
+- Social login
+- Migration to/from other services or Yona instances
+     - Github/Github Enterprise, Redmine, Yona
 
 
-Yona Distribution
+Distribution
 ---
-Currently, Yona offers two distributions per version.
+Currently, There are two distribution types.
 
-#### MariaDB Version
-- Recommended version.
-- Distributed as a file in the similar format as yona-v1.3.0-bin.zip
-- It takes a little effort to install DB, but it can be operated stably.
+#### MariaDB version
+- Recommended version
+- It takes a little effort to install DB, but it guarantees stable operation
 
-#### Embedded H2 DB Version
-- Portable version that can be downloaded and run immediately. No need to setting a DB.
-- Distributed as a file in the similar format as yona-h2-v1.3.0-bin.zip
-- It can be used portable. For example, along with USB etc. And it can be carried around with zip as a whole of work.
- - Not suitable for large-scale team. (over 500 people)
-
+#### Embedded H2 DB version
+- Portable version that can be downloaded and run immediately. 
+  - Setting a DB is not required.
+  - Also, can run the software directly from a USB device
+- Suitable for small teams (under 500 users).
 
 How to install
 ---
@@ -189,7 +186,7 @@ Basically, Yona installation is in two steps:
 If you want to use [Docker](https://www.docker.com/), See https://github.com/pokev25/docker-yona by [pokev25](https://github.com/pokev25)
 
 
-Yona Start/Upgrade/Backup/Trouble Shootings
+Start/Upgrade/Backup/Trouble Shootings
 ---
 - [Start and Restart](docs/yona-run-and-restart.md)
 - [Start Options](docs/yona-run-options.md) for stable operation
@@ -206,17 +203,17 @@ Server Settings
 Migration
 ---
 - [Yona Export](https://github.com/yona-projects/yona-export)
-    - Support repository local backup
-    - Yona to another Yoan instance
-    - Any source corresponding to export format, can be imported into Yona
-- Support Yona to Github/Github Enterprise migration
+    - Local backup
+    - Move projects to another Yona instance
+    - If you can match the format, anything can be imported into Yona
+- Github/Github Enterprise migration
     - [See here](https://github.com/yona-projects/yona/blob/master/conf/application.conf.default#L297)
     
 Google Analytics
 ---
-- Basically, distributed Yona include Google Analytics. 
-- This data is used to better understand how users use Yona and make constantly improving Yona development.
-- To disable this for any reason, set the following option to false in conf/application.conf file.
+- Distributed Yona includes Google Analytics
+- This data is used for making us to improve Yona
+- If you want to disable this for any reason, set the following option to false in conf/application.conf file.
 ```
 application.send.yona.usage = true
 ```
@@ -224,8 +221,8 @@ application.send.yona.usage = true
 Contribution
 ---
 - The branch for contributions is `master`.
-- Fork the repository, then work on the `master` branch and send a pull request to the` master` branch.
-   - The `next` branch is for internal development. If you want to see what features are being added, please refer to the `next` branch.
+- At first, fork the repository, then work on the `master` branch. And send a pull request to the`master` branch.
+   - The `next` branch is for internal development. If you want to see what features are being added, please refer to the `next` branch.
 
 
 License
