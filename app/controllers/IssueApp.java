@@ -221,7 +221,9 @@ public class IssueApp extends AbstractPostingApp {
             result.put("title", issue.title);
             result.put("state", issue.state.toString());
             result.put("createdDate", issue.createdDate.toString());
-            result.put("link", routes.IssueApp.issue(project.owner, project.name, issueId).toString());
+            if (project != null) {
+                result.put("link", routes.IssueApp.issue(project.owner, project.name, issueId).toString());
+            }
             listData.put(issue.id.toString(), result);
         }
 
