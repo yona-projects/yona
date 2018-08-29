@@ -39,7 +39,7 @@ create database yona
 ;
 ```
 
-Grant priviledges
+Grant privileges
 
 ```
 GRANT ALL ON yona.* to 'yona'@'localhost';
