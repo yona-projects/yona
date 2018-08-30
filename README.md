@@ -160,6 +160,10 @@ Yona is designed to increase the speed and efficiency of team work and team deve
 - Migration to/from other services or Yona instances
      - Github/Github Enterprise, Redmine, Yona
 
+Requirements
+---
+- Java 8+
+- System Memory 2Gb+ (Recommendation: 4Gb+)
 
 Distribution
 ---
