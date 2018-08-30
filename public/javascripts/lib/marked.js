@@ -941,7 +941,6 @@ Renderer.prototype.heading = function(text, level, raw) {
     return '<h'
       + level
       + ' id="'
-      + this.options.headerPrefix
       + idText
       + '">'
       + text
