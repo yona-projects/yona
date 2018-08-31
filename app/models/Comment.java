@@ -44,6 +44,9 @@ abstract public class Comment extends Model implements TimelineItem, ResourceCon
     @Transient
     public String parentCommentId;
 
+    @Transient
+    public String previousContents;
+
     public Comment() {
         createdDate = new Date();
     }

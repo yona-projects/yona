@@ -46,7 +46,7 @@ public class Markdown {
                     .allowElements("input")
                     .allowAttributes("type", "disabled", "checked").onElements("input")
                     .toFactory())
-            .and(new HtmlPolicyBuilder().allowElements("pre").toFactory())
+            .and(new HtmlPolicyBuilder().allowElements("pre", "br", "hr").toFactory())
             .and(new HtmlPolicyBuilder()
                     .allowAttributes("class", "id", "style", "width", "height").globally().toFactory());
 
