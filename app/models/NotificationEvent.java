@@ -142,11 +142,12 @@ public class NotificationEvent extends Model implements INotificationEvent {
                 }
             case NEW_ISSUE:
             case NEW_POSTING:
-            case NEW_COMMENT:
             case NEW_PULL_REQUEST:
             case NEW_COMMIT:
             case COMMENT_UPDATED:
                 return newValue;
+            case NEW_COMMENT:
+                return newValue + oldValue;
             case ISSUE_BODY_CHANGED:
             case POSTING_BODY_CHANGED:
                 return DiffUtil.getDiffText(oldValue, newValue);
@@ -240,7 +241,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
             case POSTING_BODY_CHANGED:
                 return DiffUtil.getDiffPlainText(oldValue, newValue);
             default:
-                return getMessage(lang);
+                return getMessage(lang).replaceAll("\n\n<br />\n", "\n\n");
         }
     }
 
@@ -760,7 +761,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
         notiEvent.title = formatReplyTitle(post);
         notiEvent.eventType = eventType;
         notiEvent.receivers = getMandatoryReceivers(comment, eventType);
-        notiEvent.oldValue = null;
+        notiEvent.oldValue = comment.previousContents;
         notiEvent.newValue = comment.contents;
         notiEvent.resourceType = comment.asResource().getType();
         notiEvent.resourceId = comment.asResource().getId();
