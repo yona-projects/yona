@@ -3,7 +3,7 @@ import java.nio.file.Paths
 
 name := """yona"""
 
-version := "1.10.0"
+version := "1.11.0"
 
 libraryDependencies ++= Seq(
   // Add your project dependencies here,
@@ -80,9 +80,13 @@ val projectSettings = Seq(
   TwirlKeys.templateImports in Compile += "java.util._",
   includeFilter in (Assets, LessKeys.less) := "*.less",
   excludeFilter in (Assets, LessKeys.less) := "_*.less",
-  javaOptions in test ++= Seq("-Xmx2g", "-Xms1g", "-XX:MaxPermSize=1g", "-Dfile.encoding=UTF-8"),
+  javaOptions in test ++= Seq("-Xmx2g", "-Xms1g", "-Dfile.encoding=UTF-8"),
   scalacOptions ++= Seq("-feature")
 )
+
+publishArtifact in packageDoc := false
+
+publishArtifact in packageSrc := false
 
 buildInfoSettings
 
