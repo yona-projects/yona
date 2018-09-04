@@ -196,7 +196,6 @@ public class IssueApi extends AbstractPostingApp {
     }
 
     @Transactional
-    @IsAllowed(Operation.UPDATE)
     public static Result updateIssueContent(String owner, String projectName, Long number) {
 
         User user = UserApp.currentUser();
@@ -211,6 +210,10 @@ public class IssueApi extends AbstractPostingApp {
 
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
         final Issue issue = Issue.findByNumber(project, number);
+
+        if (!AccessControl.isAllowed(user, issue.asResource(), Operation.UPDATE)) {
+            return forbidden(Json.newObject().put("message", "Forbidden request"));
+        }
 
         String content = json.findValue("content").asText();
         String rememberedChecksum = json.findValue("sha1").asText();
@@ -413,6 +416,10 @@ public class IssueApi extends AbstractPostingApp {
 
         if (isModifiedByOthers(issueComment.contents, rememberedChecksum)) {
             return conflicted(issueComment.contents);
+        }
+
+        if (!AccessControl.isAllowed(user, issueComment.asResource(), Operation.UPDATE)) {
+            return forbidden(Json.newObject().put("message", "Forbidden request"));
         }
 
         issueComment.contents = comment;

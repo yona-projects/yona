@@ -122,7 +122,6 @@ public class BoardApi extends AbstractPostingApp {
     }
 
     @Transactional
-    @IsAllowed(Operation.UPDATE)
     public static Result updatePostingContent(String owner, String projectName, Long number) {
         User user = UserApp.currentUser();
         if (user.isAnonymous()) {
@@ -136,6 +135,10 @@ public class BoardApi extends AbstractPostingApp {
 
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
         final Posting posting = Posting.findByNumber(project, number);
+
+        if (!AccessControl.isAllowed(user, posting.asResource(), Operation.UPDATE)) {
+            return forbidden(Json.newObject().put("message", "Forbidden request"));
+        }
 
         String content = json.findValue("content").asText();
         String rememberedChecksum = json.findValue("sha1").asText();
@@ -207,6 +210,10 @@ public class BoardApi extends AbstractPostingApp {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         final Posting posting = Posting.findByNumber(project, number);
         PostingComment postingComment = posting.findCommentByCommentId(commentId);
+
+        if (!AccessControl.isAllowed(user, postingComment.asResource(), Operation.UPDATE)) {
+            return forbidden(Json.newObject().put("message", "Forbidden request"));
+        }
 
         if (isModifiedByOthers(postingComment.contents, rememberedChecksum)) {
             return conflicted(postingComment.contents);
