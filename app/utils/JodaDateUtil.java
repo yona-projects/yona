@@ -138,7 +138,7 @@ public class JodaDateUtil {
             }
             return targetTime.toString("MMM d 'at' h:mm a", Locale.getDefault());
         } else {
-            return targetTime.toString("YY.MM.dd at h:mm a", Locale.getDefault());
+            return targetTime.toString("YY.MM.dd 'at' h:mm a", Locale.getDefault());
         }
     }
 
