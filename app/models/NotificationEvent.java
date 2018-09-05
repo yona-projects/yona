@@ -135,14 +135,19 @@ public class NotificationEvent extends Model implements INotificationEvent {
                     return Messages.get(lang, "notification.issue.assigned", newValue);
                 }
             case ISSUE_MILESTONE_CHANGED:
-                return Messages.get(lang, "notification.milestone.changed", newValue);
+                if (Milestone.findById(Long.parseLong(newValue)) == null) {
+                    return Messages.get(lang, "notification.milestone.changed", Messages.get(Lang.defaultLang(), "issue.noMilestone"));
+                } else {
+                    return Messages.get(lang, "notification.milestone.changed", Milestone.findById(Long.parseLong(newValue)).title);
+                }
             case NEW_ISSUE:
             case NEW_POSTING:
-            case NEW_COMMENT:
             case NEW_PULL_REQUEST:
             case NEW_COMMIT:
             case COMMENT_UPDATED:
                 return newValue;
+            case NEW_COMMENT:
+                return newValue + oldValue;
             case ISSUE_BODY_CHANGED:
             case POSTING_BODY_CHANGED:
                 return DiffUtil.getDiffText(oldValue, newValue);
@@ -236,7 +241,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
             case POSTING_BODY_CHANGED:
                 return DiffUtil.getDiffPlainText(oldValue, newValue);
             default:
-                return getMessage(lang);
+                return getMessage(lang).replaceAll("\n\n<br />\n", "\n\n");
         }
     }
 
@@ -527,6 +532,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
     }
 
     public String getUrlToView() {
+        Organization organization;
         switch(eventType) {
             case MEMBER_ENROLL_REQUEST:
                 if (getProject() == null) {
@@ -535,13 +541,25 @@ public class NotificationEvent extends Model implements INotificationEvent {
                     return routes.ProjectApp.members(
                             getProject().owner, getProject().name).url();
                 }
+            case MEMBER_ENROLL_ACCEPT:
+                if (getProject() == null) {
+                    return null;
+                } else {
+                    return routes.ProjectApp.project(
+                            getProject().owner, getProject().name).url();
+                }
             case ORGANIZATION_MEMBER_ENROLL_REQUEST:
-                Organization organization = getOrganization();
+                organization = getOrganization();
                 if (organization == null) {
                     return null;
                 }
                 return routes.OrganizationApp.members(organization.name).url();
-
+            case ORGANIZATION_MEMBER_ENROLL_ACCEPT:
+                organization = getOrganization();
+                if (organization == null) {
+                    return null;
+                }
+                return routes.OrganizationApp.organization(organization.name).url();
             case NEW_COMMIT:
                 if (getProject() == null) {
                     return null;
@@ -605,6 +623,16 @@ public class NotificationEvent extends Model implements INotificationEvent {
             if (gitPushOnly == webhook.gitPushOnly) {
                 // Send push event via webhook payload URLs.
                 webhook.sendRequestToPayloadUrl(eventTypes, UserApp.currentUser(), issue);
+            }
+        }
+    }
+
+    private static void webhookRequest(EventType eventTypes, Issue issue, Project previous, Boolean gitPushOnly) {
+        List<Webhook> webhookList = Webhook.findByProject(issue.project.id);
+        for (Webhook webhook : webhookList) {
+            if (gitPushOnly == webhook.gitPushOnly) {
+                // Send push event via webhook payload URLs.
+                webhook.sendRequestToPayloadUrl(eventTypes, UserApp.currentUser(), issue, previous);
             }
         }
     }
@@ -733,7 +761,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
         notiEvent.title = formatReplyTitle(post);
         notiEvent.eventType = eventType;
         notiEvent.receivers = getMandatoryReceivers(comment, eventType);
-        notiEvent.oldValue = null;
+        notiEvent.oldValue = comment.previousContents;
         notiEvent.newValue = comment.contents;
         notiEvent.resourceType = comment.asResource().getType();
         notiEvent.resourceId = comment.asResource().getId();
@@ -893,7 +921,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
     }
 
     public static NotificationEvent afterIssueMoved(Project previous, Issue issue) {
-        webhookRequest(ISSUE_MOVED, issue, false);
+        webhookRequest(ISSUE_MOVED, issue, previous, false);
 
         NotificationEvent notiEvent = createFromCurrentUser(issue);
         notiEvent.title = formatReplyTitle(issue);
@@ -944,6 +972,9 @@ public class NotificationEvent extends Model implements INotificationEvent {
     }
 
     public static NotificationEvent afterMilestoneChanged(Long oldMilestoneId, Issue issue) {
+        if (issue.milestone != null) {
+            issue.milestone.refresh();
+        }
         webhookRequest(ISSUE_MILESTONE_CHANGED, issue, false);
 
         NotificationEvent notiEvent = createFromCurrentUser(issue);
@@ -1162,6 +1193,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
                 break;
             case ACCEPT:
                 notiEvent.title = formatMemberAcceptTitle(project, user);
+                notiEvent.eventType = MEMBER_ENROLL_ACCEPT;
                 notiEvent.oldValue = RequestState.REQUEST.name();
                 break;
         }
@@ -1192,6 +1224,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
                 break;
             case ACCEPT:
                 notiEvent.title = formatMemberAcceptTitle(organization, user);
+                notiEvent.eventType = ORGANIZATION_MEMBER_ENROLL_ACCEPT;
                 notiEvent.oldValue = RequestState.REQUEST.name();
                 break;
         }

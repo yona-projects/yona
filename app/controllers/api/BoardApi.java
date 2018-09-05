@@ -14,7 +14,9 @@ import controllers.annotation.IsCreatable;
 import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.joda.time.DateTime;
+import play.api.mvc.Codec;
 import play.db.ebean.Transactional;
 import play.libs.Json;
 import play.mvc.Result;
@@ -26,8 +28,7 @@ import utils.RouteUtil;
 import java.io.IOException;
 import java.util.*;
 
-import static controllers.api.IssueApi.findAuthor;
-import static controllers.api.IssueApi.parseDateString;
+import static controllers.api.IssueApi.*;
 import static play.libs.Json.toJson;
 
 public class BoardApi extends AbstractPostingApp {
@@ -121,6 +122,38 @@ public class BoardApi extends AbstractPostingApp {
     }
 
     @Transactional
+    public static Result updatePostingContent(String owner, String projectName, Long number) {
+        User user = UserApp.currentUser();
+        if (user.isAnonymous()) {
+            return unauthorized(Json.newObject().put("message", "unauthorized request"));
+        }
+
+        JsonNode json = request().body().asJson();
+        if(json == null) {
+            return badRequest(Json.newObject().put("message", "Expecting Json data"));
+        }
+
+        Project project = Project.findByOwnerAndProjectName(owner, projectName);
+        final Posting posting = Posting.findByNumber(project, number);
+
+        if (!AccessControl.isAllowed(user, posting.asResource(), Operation.UPDATE)) {
+            return forbidden(Json.newObject().put("message", "Forbidden request"));
+        }
+
+        String content = json.findValue("content").asText();
+        String rememberedChecksum = json.findValue("sha1").asText();
+
+        if (isModifiedByOthers(posting.body, rememberedChecksum)) {
+            return conflicted(posting.body);
+        }
+
+        posting.body = content;
+        posting.update();
+
+        return ok(ProjectApi.getResult(posting));
+    }
+
+    @Transactional
     @IsCreatable(ResourceType.NONISSUE_COMMENT)
     public static Result newPostingComment(String ownerName, String projectName, Long number)
             throws IOException {
@@ -155,5 +188,46 @@ public class BoardApi extends AbstractPostingApp {
         result.put("location", RouteUtil.getUrl(comment));
 
         return created(result);
+    }
+
+    @Transactional
+    public static Result updatePostingComment(String ownerName, String projectName, Long number, Long commentId) {
+        ObjectNode result = Json.newObject();
+
+        User user = UserApp.currentUser();
+        if (user.isAnonymous()) {
+            return unauthorized(result.put("message", "unauthorized request"));
+        }
+
+        JsonNode json = request().body().asJson();
+        if(json == null) {
+            return badRequest(result.put("message", "Expecting Json data"));
+        }
+
+        String comment = json.findValue("content").asText();
+        String rememberedChecksum = json.findValue("sha1").asText();
+
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+        final Posting posting = Posting.findByNumber(project, number);
+        PostingComment postingComment = posting.findCommentByCommentId(commentId);
+
+        if (!AccessControl.isAllowed(user, postingComment.asResource(), Operation.UPDATE)) {
+            return forbidden(Json.newObject().put("message", "Forbidden request"));
+        }
+
+        if (isModifiedByOthers(postingComment.contents, rememberedChecksum)) {
+            return conflicted(postingComment.contents);
+        }
+
+        postingComment.contents = comment;
+        postingComment.save();
+
+        ObjectNode commentNode = getCommentJsonNode(postingComment);
+        ObjectNode authorNode = getAuthorJsonNode(user);
+
+        commentNode.set("author", toJson(authorNode));
+        result.set("result", commentNode);
+
+        return ok(result);
     }
 }

@@ -3,7 +3,7 @@ import java.nio.file.Paths
 
 name := """yona"""
 
-version := "1.10.0"
+version := "1.11.0"
 
 libraryDependencies ++= Seq(
   // Add your project dependencies here,
@@ -51,12 +51,14 @@ libraryDependencies ++= Seq(
   "commons-collections" % "commons-collections" % "3.2.1",
   "org.jsoup" % "jsoup" % "1.8.3",
   "com.googlecode.juniversalchardet" % "juniversalchardet" % "1.0.3",
-  "org.mockito" % "mockito-all" % "1.9.0" % "test",
+  "org.mockito" % "mockito-all" % "1.10.19" % "test",
+  "org.powermock" % "powermock-module-junit4" % "1.6.4" % "test",
+  "org.powermock" % "powermock-api-mockito" % "1.6.4" % "test",
   "com.github.zafarkhaja" % "java-semver" % "0.7.2",
   "com.google.guava" % "guava" % "19.0",
   "com.googlecode.htmlcompressor" % "htmlcompressor" % "1.4",
   "org.springframework" % "spring-jdbc" % "4.1.5.RELEASE",
-  "org.mozilla" % "rhino" % "1.7.7.1"
+  "javax.xml.bind" % "jaxb-api" % "2.3.0"
 )
 
 libraryDependencies += "org.apache.subversion" % "svn-javahl-api" % "1.9.0"
@@ -78,9 +80,13 @@ val projectSettings = Seq(
   TwirlKeys.templateImports in Compile += "java.util._",
   includeFilter in (Assets, LessKeys.less) := "*.less",
   excludeFilter in (Assets, LessKeys.less) := "_*.less",
-  javaOptions in test ++= Seq("-Xmx2g", "-Xms1g", "-XX:MaxPermSize=1g", "-Dfile.encoding=UTF-8"),
+  javaOptions in test ++= Seq("-Xmx2g", "-Xms1g", "-Dfile.encoding=UTF-8"),
   scalacOptions ++= Seq("-feature")
 )
+
+publishArtifact in packageDoc := false
+
+publishArtifact in packageSrc := false
 
 buildInfoSettings
 

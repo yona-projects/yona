@@ -27,6 +27,10 @@
 
 @conatinsCurrentUserInWatchers = @{Watch.isWatching(UserApp.currentUser(), post.asResource())}
 
+@isAllowedUpdate = @{
+    isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)
+}
+
 @projectLayout(titleForOGTag, project, utils.MenuType.BOARD){
 @projectMenu(project, utils.MenuType.BOARD, "main-menu-only")
 <div class="page-wrap-outer">
@@ -79,7 +83,15 @@
                 @if(StringUtils.isEmpty(post.body)){
                     <div class="content empty-content"></div>
                 } else {
-                    <div class="content markdown-wrap">@Html(Markdown.render(post.body, post.project))</div>
+                    <div id="post-@post.getNumber" class="hide">
+                        <form action="@api.routes.BoardApi.updatePostingContent(project.owner, project.name, post.getNumber)">
+                            <textarea>@post.body</textarea>
+                        </form>
+                    </div>
+                    <div id="post-body-@post.getNumber">
+                        @common.tasklistBar()
+                        <div class="content markdown-wrap" data-allowed-update="@isAllowedUpdate">@Html(Markdown.render(post.body, post.project))</div>
+                    </div>
                 }
                 <div class="attachments" id="attachments" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.BOARD_POST.toString(), post.id.toString()))"></div>
                 <div class="board-actrow right-txt">
@@ -138,7 +150,7 @@
                         </dl>
                         @**<!-- labels -->**@
                         @if(!IssueLabel.findByProject(project).isEmpty){
-                            @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){
+                            @if(isAllowedUpdate){
                                 @issue.partial_select_label(IssueLabel.findByProject(project), post.getLabelIds, "", "", project)
                             } else {
                                 @issue.partial_show_selected_label(post.labels.toList, "")
@@ -197,6 +209,8 @@
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.caret.min.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/elevator/jquery.elevator.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.Sha1.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.Tasklist.js")"></script>
 <script type="text/javascript">
         $(document).ready(function(){
             $yobi.loadModule("board.View", {
@@ -210,7 +224,7 @@
                 @if(project.menuSetting.board) {
                 ,"N": "@routes.BoardApp.newPostForm(project.owner, project.name)"
                 }
-                @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){
+                @if(isAllowedUpdate){
                 ,"E": "@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)"
                 }
             });

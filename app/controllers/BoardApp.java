@@ -417,6 +417,11 @@ public class BoardApp extends AbstractPostingApp {
         return redirect(RouteUtil.getUrl(savedComment));
     }
 
+    // Just made for compatibility. No meanings.
+    public static Result updateComment(String ownerName, String projectName, Long number, Long commentId) throws IOException {
+        return newComment(ownerName, projectName, number);
+    }
+
     private static Comment saveComment(Project project, Posting posting, PostingComment comment) {
         Comment savedComment;
         PostingComment existingComment = PostingComment.find.where().eq("id", comment.id).findUnique();

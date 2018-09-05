@@ -45,6 +45,8 @@ $(function(){
      */
     function onSubmitCommentForm(event){
         removeCurrentPageTemprarySavedContent();
+        elements.textarea.off();
+        clearTimeout(window.draftSavingTimeout);
 
         event.preventDefault();
         var that = this;
@@ -65,7 +67,7 @@ $(function(){
 
         setTimeout(function () {
             that.submit();
-        }, 200);
+        }, 300);
     }
 
     /**

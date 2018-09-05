@@ -1,23 +1,10 @@
 /**
- * Yobi, Project Hosting SW
- *
- * Copyright 2015 NAVER Corp.
- * http://yobi.io
- *
- * @author Jihwan Chun
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+ * Yona, 21st Century Project Hosting SW
+ * <p>
+ * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+ * https://yona.io
+ **/
+
 package models;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,6 +13,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import models.enumeration.EventType;
 import models.enumeration.PullRequestReviewAction;
 import models.enumeration.ResourceType;
+import models.enumeration.WebhookType;
 import models.resource.GlobalResource;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
@@ -86,9 +74,11 @@ public class Webhook extends Model implements ResourceConvertible {
     public String secret;
 
     /**
-     * Type of webhook (true = git only push, false = all cases)
+     * Condition of sending webhook (true: git only push, false: all cases)
      */
     public Boolean gitPushOnly;
+
+    public WebhookType webhookType = WebhookType.SIMPLE;
 
     /**
      * Payload URL of webhook.
@@ -199,6 +189,11 @@ public class Webhook extends Model implements ResourceConvertible {
         sendRequest(requestBodyString);
     }
 
+    public void sendRequestToPayloadUrl(EventType eventType, User sender, Issue eventIssue, Project previous) {
+        String requestBodyString = buildRequestBody(eventType, sender, eventIssue, previous);
+        sendRequest(requestBodyString);
+    }
+
     public void sendRequestToPayloadUrl(EventType eventType, User sender, PullRequest eventPullRequest) {
         String requestBodyString = buildRequestBody(eventType, sender, eventPullRequest);
         sendRequest(requestBodyString);
@@ -260,11 +255,18 @@ public class Webhook extends Model implements ResourceConvertible {
         }
         requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(eventPullRequest) + "|#" + eventPullRequest.number + ": " + eventPullRequest.title + ">";
 
+        if (this.webhookType == WebhookType.DETAIL_SLACK) {
+            return buildJsonWithPullReqtuestDetails(eventPullRequest, detailFields, attachments, requestMessage);
+        } else {
+            return buildTextPropertyOnlyJSON(requestMessage);
+        }
+    }
+
+    private String buildJsonWithPullReqtuestDetails(PullRequest eventPullRequest, ArrayNode detailFields, ArrayNode attachments, String requestMessage) {
         detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "pullRequest.sender"), eventPullRequest.contributor.name, false));
         detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "pullRequest.from"), eventPullRequest.fromBranch, true));
-        detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "pullRequest.to"), eventPullRequest.toBranch,true));
+        detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "pullRequest.to"), eventPullRequest.toBranch, true));
         attachments.add(buildAttachmentJSON(eventPullRequest.body, detailFields));
-
         return Json.stringify(buildRequestJSON(requestMessage, attachments));
     }
 
@@ -285,12 +287,11 @@ public class Webhook extends Model implements ResourceConvertible {
         }
         requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(eventPullRequest) + "|#" + eventPullRequest.number + ": " + eventPullRequest.title + ">";
 
-        detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "pullRequest.sender"), eventPullRequest.contributor.name, false));
-        detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "pullRequest.from"), eventPullRequest.fromBranch, true));
-        detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "pullRequest.to"), eventPullRequest.toBranch, true));
-        attachments.add(buildAttachmentJSON(eventPullRequest.body, detailFields));
-
-        return Json.stringify(buildRequestJSON(requestMessage, attachments));
+        if (this.webhookType == WebhookType.SIMPLE) {
+            return buildTextPropertyOnlyJSON(requestMessage);
+        } else {
+            return buildJsonWithPullReqtuestDetails(eventPullRequest, detailFields, attachments, requestMessage);
+        }
     }
 
     private String buildRequestBody(EventType eventType, User sender, Issue eventIssue) {
@@ -322,13 +323,41 @@ public class Webhook extends Model implements ResourceConvertible {
                 play.Logger.warn("Unknown webhook event: " + eventType);
         }
 
-        requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(eventIssue) + "|#" + eventIssue.number + ": " + eventIssue.title + ">";
+        String eventIssueUrl = controllers.routes.IssueApp.issue(eventIssue.project.owner, eventIssue.project.name, eventIssue.getNumber()).url();
+        requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + eventIssueUrl + "|#" + eventIssue.number + ": " + eventIssue.title + ">";
 
-        detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "notification.type.milestone.changed"), eventIssue.milestoneId().toString(), true));
+        if (this.webhookType == WebhookType.SIMPLE) {
+            return buildTextPropertyOnlyJSON(requestMessage);
+        } else {
+            return buildJsonWithIssueEventDetails(eventIssue, detailFields, attachments, requestMessage);
+        }
+    }
+
+    private String buildRequestBody(EventType eventType, User sender, Issue eventIssue, Project previous) {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode detailFields = mapper.createArrayNode();
+        ArrayNode attachments = mapper.createArrayNode();
+
+        String requestMessage = "[" + project.name + "] "+ sender.name + " ";
+        requestMessage += Messages.get(Lang.defaultLang(), "notification.type.issue.moved", previous.name, project.name);
+
+        String eventIssueUrl = controllers.routes.IssueApp.issue(eventIssue.project.owner, eventIssue.project.name, eventIssue.getNumber()).url();
+        requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + eventIssueUrl + "|#" + eventIssue.number + ": " + eventIssue.title + ">";
+
+        if (this.webhookType == WebhookType.SIMPLE) {
+            return buildTextPropertyOnlyJSON(requestMessage);
+        } else {
+            return buildJsonWithIssueEventDetails(eventIssue, detailFields, attachments, requestMessage);
+        }
+    }
+
+    private String buildJsonWithIssueEventDetails(Issue eventIssue, ArrayNode detailFields, ArrayNode attachments, String requestMessage) {
+        if (eventIssue.milestone != null ) {
+            detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "notification.type.milestone.changed"), eventIssue.milestone.title, true));
+        }
         detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), ""), eventIssue.assigneeName(), true));
         detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "issue.state"), eventIssue.state.toString(), true));
         attachments.add(buildAttachmentJSON(eventIssue.body, detailFields));
-
         return Json.stringify(buildRequestJSON(requestMessage, attachments));
     }
 
@@ -354,9 +383,12 @@ public class Webhook extends Model implements ResourceConvertible {
                 break;
         }
 
-        attachments.add(buildAttachmentJSON(eventComment.contents, null));
-
-        return Json.stringify(buildRequestJSON(requestMessage, attachments));
+        if (this.webhookType == WebhookType.SIMPLE) {
+            return buildTextPropertyOnlyJSON(requestMessage);
+        } else {
+            attachments.add(buildAttachmentJSON(eventComment.contents, null));
+            return Json.stringify(buildRequestJSON(requestMessage, attachments));
+        }
     }
 
     private ObjectNode buildJSONFromCommit(Project project, RevCommit commit) {
@@ -409,6 +441,12 @@ public class Webhook extends Model implements ResourceConvertible {
         return requestBody;
     }
 
+    private String buildTextPropertyOnlyJSON(String requestMessage) {
+        ObjectNode requestBody = Json.newObject();
+        requestBody.put("text", requestMessage);
+        return Json.stringify(requestBody);
+    }
+
     private ObjectNode buildSenderJSON(User sender) {
         ObjectNode senderJSON = Json.newObject();
         senderJSON.put("login", sender.loginId);
@@ -457,6 +495,7 @@ public class Webhook extends Model implements ResourceConvertible {
                 ", payloadUrl='" + payloadUrl + '\'' +
                 ", secret='" + secret + '\'' +
                 ", gitPushOnly=" + gitPushOnly +
+                ", webhookType=" + webhookType +
                 ", createdAt=" + createdAt +
                 '}';
     }

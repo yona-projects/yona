@@ -164,6 +164,9 @@ public class Project extends Model implements LabelOwner {
         if(projectId == null || projectId == 0){
             Project project= find.where().ieq("owner", decodeUrlString(loginId)).ieq("name", decodeUrlString(projectName))
                     .findUnique();
+            if( project == null) {
+                project = findByPreviousPlaceOf(decodeUrlString(loginId), decodeUrlString(projectName));
+            }
             if(project != null){
                 CacheStore.projectMap.put(key, project.id);
             }

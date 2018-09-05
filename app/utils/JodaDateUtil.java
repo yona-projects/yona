@@ -14,6 +14,8 @@ import java.util.Date;
 import java.util.Locale;
 
 public class JodaDateUtil {
+    public static final String ISO_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
+
     public static String getDateString(Date date) {
         return getDateString(date, null);
     }
@@ -115,12 +117,36 @@ public class JodaDateUtil {
         return dateTime.toString("yyyyMMddHHmm", Locale.getDefault());
     }
 
-
     public static String geYMDDate(Date date){
         if (date == null) {
             return "";
         }
         DateTime dateTime = new DateTime(date);
         return dateTime.toString("yyyy-MM-dd", Locale.getDefault());
+    }
+
+    public static String getOptionalShortDate(Date date){
+        if (date == null) {
+            return "";
+        }
+        DateTime targetTime = new DateTime(date);
+        DateTime currentTime = new DateTime(new Date());
+
+        if(isSameYear(targetTime, currentTime)) {
+            if(isSameDay(targetTime, currentTime)) {
+                return targetTime.toString("'at' h:mm a", Locale.getDefault());
+            }
+            return targetTime.toString("MMM d 'at' h:mm a", Locale.getDefault());
+        } else {
+            return targetTime.toString("YY.MM.dd 'at' h:mm a", Locale.getDefault());
+        }
+    }
+
+    private static boolean isSameYear(DateTime targetTime, DateTime currentTime) {
+        return currentTime.toString("YYYY").equals(targetTime.toString("YYYY"));
+    }
+
+    private static boolean isSameDay(DateTime targetTime, DateTime currentTime) {
+        return currentTime.toString("YYYYMMdd").equals(targetTime.toString("YYYYMMdd"));
     }
 }

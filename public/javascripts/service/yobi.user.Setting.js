@@ -257,7 +257,7 @@
                 // canvas-to-blob.js
                 htElement.elAvatarCropCanvas.toBlob(function(oFile){
                     yobi.Files.uploadFile(oFile, "jCropUpload");
-                }, "image/jpeg", 100);
+                }, elImage.mimeType, 100);
             };
 
             elImage.src = htElement.welAvatarCropImg.attr("src");

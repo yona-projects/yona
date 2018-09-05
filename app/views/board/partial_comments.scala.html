@@ -25,6 +25,7 @@
 
 <ul class="comments">
 @for(comment <-post.comments){
+    @defining(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.UPDATE)) { isAllowedUpdate =>
     <li class="comment @isAuthorComment(comment.authorLoginId)" id="comment-@comment.id">
         <div class="comment-avatar">
             <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
@@ -58,13 +59,15 @@
                 </span>
             </div>
 
-            @common.commentUpdateForm(comment, routes.BoardApp.newComment(project.owner, project.name, post.getNumber).toString(), comment.contents)
+            @common.commentUpdateForm(comment, routes.BoardApp.newComment(project.owner, project.name, post.getNumber).toString(), comment.contents, isAllowedUpdate)
 
             <div id="comment-body-@comment.id">
-                <div class="comment-body markdown-wrap" data-via-email="@OriginalEmail.exists(comment.asResource)">@Html(Markdown.render(comment.contents, project))</div>
+                @common.tasklistBar()
+                <div class="comment-body markdown-wrap" data-via-email="@OriginalEmail.exists(comment.asResource)" data-allowed-update="@isAllowedUpdate" >@Html(Markdown.render(comment.contents, project))</div>
                 <div class="attachments pull-right" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.NONISSUE_COMMENT.toString(), comment.id.toString()))"></div>
             </div>
         </div>
     </li>
+    }
 }
 </ul>

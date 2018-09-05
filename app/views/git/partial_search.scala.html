@@ -127,6 +127,7 @@
             $('.pullrequeset-tab-menu').on('click','[data-type="state"]',function() {
               $('#search').attr('action', $(this).data('url'));
               $('#search').submit();
+              return false;
             });
 
             yobi.ui.Select2("#contributors").on("change", function(){
