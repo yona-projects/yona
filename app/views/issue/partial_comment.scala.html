@@ -104,7 +104,7 @@
         <div id="comment-body-@comment.id">
             @common.tasklistBar()
             <div class="comment-body markdown-wrap" data-allowed-update="@isAllowedUpdate" data-via-email="@OriginalEmail.exists(comment.asResource)">@Html(Markdown.render(comment.contents, project))</div>
-            <div class="attachments pull-right" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.ISSUE_COMMENT.toString(), comment.id.toString()))"></div>
+            <div class="attachments pull-left" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.ISSUE_COMMENT.toString(), comment.id.toString()))"></div>
         </div>
     </div>
     @common.childComments(issue, comment, ResourceType.ISSUE_COMMENT)
