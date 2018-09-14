@@ -577,15 +577,10 @@
 
             // Releated with one line sub-comment feature
             $(".add-a-comment").on("click", function(e){
-                var parent = $(this).parent(".subcomment-media-body");
-
-                // Reset & Ready
-                $(".child-comment-input-form").css("display", "none").css("visibility", "hidden");
-                $(".add-a-comment").show();
-                $(this).hide();
+                var parent = $(this).parents(".comment");
 
                 // Show input form
-                parent.find(".child-comment-input-form").css("display", "block").css("visibility", "visible");
+                parent.find(".child-comment-input-form").toggle();
 
                 parent.find("textarea").on('keypress', function(e) {
                     // Enter to submit
@@ -600,6 +595,12 @@
                         $(".add-a-comment").show();
                     }
                 }).focus();
+            });
+
+            $(".comment").on("mouseenter tab", function () {
+                $(this).find(".add-a-comment").fadeIn(300);
+            }).on("mouseleave", function () {
+                $(this).find(".add-a-comment").fadeOut(300);
             });
 
             // Releated with one line sub-comment feature

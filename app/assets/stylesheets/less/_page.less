@@ -2905,13 +2905,19 @@ label.inline-list {
 
             .add-a-comment {
                 font-size: 12px;
-                color: #BDC3C7;
+                background-color: #fff;
                 position: relative;
                 right: 10px;
-                margin-top: -1px;
+                color: #00b0e8;
+                border: 1px solid #00b0e8;
+                margin-top: -32px;
+                padding: 0 5px;
+                border-radius: 3px;
+                display: none;
+                z-index: 2;
 
                 &:hover {
-                    color: #00b0e8;
+                    box-shadow: 1px 1px 2px #e0e0e0;
                     cursor: pointer;
                     display: block;
                 }
@@ -2927,10 +2933,10 @@ label.inline-list {
                     color: red;
                 }
                 .child-comments {
+                    .one-line-comment:last-child {
+                    }
                 }
                 .one-line-comment {
-                    font-size: 12px;
-
                     :hover {
                        background-color: #f1f1f1;
                     }
@@ -2938,8 +2944,12 @@ label.inline-list {
                     .contents {
                         text-align: left;
                         margin-left: 12px;
-                        padding: 3px 0 2px 10px;
+                        padding: 5px 0 4px 10px;
                         border-bottom: 1px dashed #ccc;
+
+                        .no-text-decoration {
+                            color: #0e90d2;
+                        }
                     }
                     .author {
                         text-align: right;
