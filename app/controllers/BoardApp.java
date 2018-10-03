@@ -42,6 +42,7 @@ import java.util.*;
 import static com.avaje.ebean.Expr.icontains;
 import static controllers.MigrationApp.composePlainCommentsJson;
 import static play.libs.Json.toJson;
+import static utils.JodaDateUtil.getOptionalShortDate;
 
 public class BoardApp extends AbstractPostingApp {
     public static class SearchCondition extends AbstractPostingApp.SearchCondition {
@@ -412,9 +413,26 @@ public class BoardApp extends AbstractPostingApp {
             return redirect(routes.BoardApp.post(project.owner, project.name, number));
         }
 
+        if(StringUtils.isNotEmpty(comment.parentCommentId)){
+            comment.setParentComment(PostingComment.find.byId(Long.valueOf(comment.parentCommentId)));
+        }
+
+        if(posting.comments.size() == 0) {
+            User user = User.find.byId(posting.authorId);
+            comment.previousContents = getPrevious("Original issue", posting.body, posting.updatedDate, user.loginId);
+        } else {
+            Comment previousComment = posting.comments.get(posting.comments.size() - 1);
+            User user = User.find.byId(previousComment.authorId);
+            comment.previousContents = getPrevious("Previous comment", previousComment.contents, previousComment.createdDate, user.loginId);
+        }
+
         Comment savedComment = saveComment(project, posting, comment);
 
         return redirect(RouteUtil.getUrl(savedComment));
+    }
+
+    private static String getPrevious(String templateTitle, String contents, Date updatedDate, String authorLoginId) {
+        return "\n\n<br />\n\n--- " + templateTitle + " from @" + authorLoginId + "  " + getOptionalShortDate(updatedDate) + " ---\n\n<br />\n\n" + contents;
     }
 
     // Just made for compatibility. No meanings.
