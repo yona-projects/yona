@@ -14,6 +14,7 @@
 @import play.libs.Json.toJson
 @import utils.Markdown
 @import controllers.api.IssueApi
+@import models.enumeration.ResourceType
 
 @isAuthorComment(commentId: String) = @{
     if(commentId == UserApp.currentUser().loginId) {"author"}
@@ -26,48 +27,52 @@
 <ul class="comments">
 @for(comment <-post.comments){
     @defining(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.UPDATE)) { isAllowedUpdate =>
-    <li class="comment @isAuthorComment(comment.authorLoginId)" id="comment-@comment.id">
-        <div class="comment-avatar">
-            <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
-                <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl(64)" width="32" height="32" alt="@comment.authorLoginId">
-            </a>
-        </div>
-        <div class="media-body">
-            <div class="meta-info">
-                <span class="comment_author">
-                    <span class="resp-comment-avatar">
-                        <a href="@userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
-                            <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl(64)" width="32" height="32" alt="@comment.authorName">
-                        </a>
-                    </span>
-                    <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorLoginId"><strong>@comment.authorName</strong></a>
-                </span>
-                <span class="ago-date">
-                    <a href="#comment-@comment.id" class="ago" title="@JodaDateUtil.getDateString(comment.createdDate)">@utils.TemplateHelper.agoOrDateString(comment.createdDate)</a>
-                </span>
-                <span class="act-row pull-right">
-                @if(StringUtils.isNotBlank(IssueApi.TRANSLATION_API)){
-                    <button type="button" class="icon btn-transparent ml10 comment-translate" data-toggle="tooltip" data-comment-id="@comment.id" title="@Messages("button.translation")"><i class="yobicon-lang"></i></button>
-                }
+        @if(comment.getParentComment == null){
+            <li class="comment @isAuthorComment(comment.authorLoginId)" id="comment-@comment.id">
+                @common.childCommentsAnchorDiv(post, comment)
+                <div class="comment-avatar">
+                    <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+                        <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl(64)" width="32" height="32" alt="@comment.authorLoginId">
+                    </a>
+                </div>
+                <div class="media-body">
+                    <div class="meta-info">
+                        <span class="comment_author">
+                            <span class="resp-comment-avatar">
+                                <a href="@userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+                                    <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl(64)" width="32" height="32" alt="@comment.authorName">
+                                </a>
+                            </span>
+                            <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorLoginId"><strong>@comment.authorName</strong></a>
+                        </span>
+                        <span class="ago-date">
+                            <a href="#comment-@comment.id" class="ago" title="@JodaDateUtil.getDateString(comment.createdDate)">@utils.TemplateHelper.agoOrDateString(comment.createdDate)</a>
+                        </span>
+                        <span class="act-row pull-right">
+                        @if(StringUtils.isNotBlank(IssueApi.TRANSLATION_API)){
+                            <button type="button" class="icon btn-transparent ml10 comment-translate" data-toggle="tooltip" data-comment-id="@comment.id" title="@Messages("button.translation")"><i class="yobicon-lang"></i></button>
+                        }
 
-                    @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.READ)) {
-                        <button type="button" class="btn-transparent ml10" data-toggle="comment-edit" data-comment-id="@comment.id" title="@Messages("common.comment.edit")"><i class="yobicon-edit-2"></i></button>
-                    }
-                    @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)) {
-                        <button type="button" class="btn-transparent ml6" data-toggle="comment-delete" data-request-uri="@routes.BoardApp.deleteComment(project.owner, project.name, post.getNumber, comment.id)" title="@Messages("common.comment.delete")"><i class="yobicon-trash"></i></button>
-                    }
-                </span>
-            </div>
+                            @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.READ)) {
+                                <button type="button" class="btn-transparent ml10" data-toggle="comment-edit" data-comment-id="@comment.id" title="@Messages("common.comment.edit")"><i class="yobicon-edit-2"></i></button>
+                            }
+                            @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)) {
+                                <button type="button" class="btn-transparent ml6" data-toggle="comment-delete" data-request-uri="@routes.BoardApp.deleteComment(project.owner, project.name, post.getNumber, comment.id)" title="@Messages("common.comment.delete")"><i class="yobicon-trash"></i></button>
+                            }
+                        </span>
+                    </div>
 
-            @common.commentUpdateForm(comment, routes.BoardApp.newComment(project.owner, project.name, post.getNumber).toString(), comment.contents, isAllowedUpdate)
+                    @common.commentUpdateForm(comment, routes.BoardApp.newComment(project.owner, project.name, post.getNumber).toString(), comment.contents, isAllowedUpdate)
 
-            <div id="comment-body-@comment.id">
-                @common.tasklistBar()
-                <div class="comment-body markdown-wrap" data-via-email="@OriginalEmail.exists(comment.asResource)" data-allowed-update="@isAllowedUpdate" >@Html(Markdown.render(comment.contents, project))</div>
-                <div class="attachments pull-right" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.NONISSUE_COMMENT.toString(), comment.id.toString()))"></div>
-            </div>
-        </div>
-    </li>
+                    <div id="comment-body-@comment.id">
+                        @common.tasklistBar()
+                        <div class="comment-body markdown-wrap" data-via-email="@OriginalEmail.exists(comment.asResource)" data-allowed-update="@isAllowedUpdate" >@Html(Markdown.render(comment.contents, project))</div>
+                        <div class="attachments pull-right" data-attachments="@toJson(AttachmentApp.getFileList(ResourceType.NONISSUE_COMMENT.toString(), comment.id.toString()))"></div>
+                    </div>
+                </div>
+                @common.childComments(post, comment, ResourceType.NONISSUE_COMMENT)
+            </li>
+        }
     }
 }
 </ul>
