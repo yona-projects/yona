@@ -876,7 +876,6 @@ public class IssueApp extends AbstractPostingApp {
     public static Result newComment(String ownerName, String projectName, Long number) throws IOException {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         final Issue issue = Issue.findByNumber(project, number);
-        Call redirectTo = routes.IssueApp.issue(project.owner, project.name, number);
         Form<IssueComment> commentForm = new Form<>(IssueComment.class).bindFromRequest();
 
         if (!AccessControl.isResourceCreatable(
@@ -900,14 +899,7 @@ public class IssueApp extends AbstractPostingApp {
             comment.setParentComment(IssueComment.find.byId(Long.valueOf(comment.parentCommentId)));
         }
 
-        if(issue.comments.size() == 0) {
-            User user = User.find.byId(issue.authorId);
-            comment.previousContents = getPrevious("Original issue", issue.body, issue.updatedDate, user.loginId);
-        } else {
-            Comment previousComment = issue.comments.get(issue.comments.size() - 1);
-            User user = User.find.byId(previousComment.authorId);
-            comment.previousContents = getPrevious("Previous comment", previousComment.contents, previousComment.createdDate, user.loginId);
-        }
+        AddPreviousContent(issue, comment);
 
         Comment savedComment = saveComment(project, issue, comment);
 
@@ -922,6 +914,25 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         return redirect(RouteUtil.getUrl(savedComment));
+    }
+
+    private static void AddPreviousContent(Issue issue, IssueComment comment) {
+        if(issue.numOfComments == 0) {
+            comment.previousContents = getPrevious("Original issue", issue.body, issue.updatedDate, issue.authorLoginId);
+        } else {
+            Comment previousComment;
+            if (comment.parentCommentId != null) {
+                List<IssueComment> siblingComments = comment.getSiblingComments();
+                if (siblingComments.size() > 0) {
+                    previousComment = siblingComments.get(siblingComments.size() - 1);
+                } else {
+                    previousComment = comment.getParentComment();
+                }
+            } else {
+                previousComment = issue.comments.get(issue.comments.size() - 1);
+            }
+            comment.previousContents = getPrevious("Previous comment", previousComment.contents, previousComment.createdDate, previousComment.authorLoginId);
+        }
     }
 
     private static String getPrevious(String templateTitle, String contents, Date updatedDate, String authorLoginId) {

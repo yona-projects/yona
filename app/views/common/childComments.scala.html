@@ -62,17 +62,14 @@
 <div class="add-a-comment pull-right">@Messages("comment.oneline.comment.placeholder")</div>
 <div class="subcomment-media-body">
     <div class="child-comments">
-    @for(comment <- posting.getComments) {
-        @if(comment.getParentComment != null
-                && comment.getParentComment.id == currentComment.id) {
-            <div class="one-line-comment">
-                <div class="contents">
-                    @Html(Markdown.render(comment.contents, posting.project))
-                    <span class="subcomment-author hide">
-                        - @linkToUser(getAuthor(comment.authorId).loginId, getAuthor(comment.authorId).getPureNameOnly, false) @additionalConetents(comment)</span>
-                </div>
+    @for(comment <- currentComment.getChildComments) {
+        <div class="one-line-comment">
+            <div class="contents">
+                @Html(Markdown.render(comment.contents, posting.project))
+                <span class="subcomment-author hide">
+                    - @linkToUser(getAuthor(comment.authorId).loginId, getAuthor(comment.authorId).getPureNameOnly, false) @additionalConetents(comment)</span>
             </div>
-        }
+        </div>
     }
     </div>
     @if(isResourceCreatable(UserApp.currentUser, posting.asResource(), resourceType)) {

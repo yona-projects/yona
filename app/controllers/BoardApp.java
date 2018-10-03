@@ -417,18 +417,30 @@ public class BoardApp extends AbstractPostingApp {
             comment.setParentComment(PostingComment.find.byId(Long.valueOf(comment.parentCommentId)));
         }
 
-        if(posting.comments.size() == 0) {
-            User user = User.find.byId(posting.authorId);
-            comment.previousContents = getPrevious("Original issue", posting.body, posting.updatedDate, user.loginId);
-        } else {
-            Comment previousComment = posting.comments.get(posting.comments.size() - 1);
-            User user = User.find.byId(previousComment.authorId);
-            comment.previousContents = getPrevious("Previous comment", previousComment.contents, previousComment.createdDate, user.loginId);
-        }
+        AddPreviousContent(posting, comment);
 
         Comment savedComment = saveComment(project, posting, comment);
 
         return redirect(RouteUtil.getUrl(savedComment));
+    }
+
+    private static void AddPreviousContent(Posting posting, PostingComment comment) {
+        if(posting.numOfComments == 0) {
+            comment.previousContents = getPrevious("Original posting", posting.body, posting.updatedDate, posting.authorLoginId);
+        } else {
+            Comment previousComment;
+            if (comment.parentCommentId != null) {
+                List<PostingComment> siblingComments = comment.getSiblingComments();
+                if (siblingComments.size() > 0) {
+                    previousComment = siblingComments.get(siblingComments.size() - 1);
+                } else {
+                    previousComment = comment.getParentComment();
+                }
+            } else {
+                previousComment = posting.comments.get(posting.comments.size() - 1);
+            }
+            comment.previousContents = getPrevious("Previous comment", previousComment.contents, previousComment.createdDate, previousComment.authorLoginId);
+        }
     }
 
     private static String getPrevious(String templateTitle, String contents, Date updatedDate, String authorLoginId) {
@@ -442,7 +454,7 @@ public class BoardApp extends AbstractPostingApp {
 
     private static Comment saveComment(Project project, Posting posting, PostingComment comment) {
         Comment savedComment;
-        PostingComment existingComment = PostingComment.find.where().eq("id", comment.id).findUnique();
+        PostingComment existingComment = (PostingComment)PostingComment.find.where().eq("id", comment.id).findUnique();
         if (existingComment != null) {
             existingComment.contents = comment.contents;
             savedComment = saveComment(existingComment, getContainerUpdater(posting, comment));
