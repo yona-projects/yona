@@ -65,6 +65,7 @@ libraryDependencies += "org.apache.subversion" % "svn-javahl-api" % "1.9.0"
 
 val projectSettings = Seq(
   // Add your own project settings here
+  resolvers += "maven central" at "https://repo.maven.apache.org/maven2",
   resolvers += "jgit-repository" at "https://repo.eclipse.org/content/groups/releases/",
   resolvers += "java-semVer" at "https://oss.sonatype.org/content/repositories/snapshots/",
   resolvers += "scm-manager release repository" at "https://maven.scm-manager.org/nexus/content/groups/public",
@@ -72,7 +73,7 @@ val projectSettings = Seq(
   resolvers += "tmatesoft snapshot repository" at "https://maven.tmatesoft.com/content/repositories/snapshots",
   resolvers += "julienrf.github.com" at "http://julienrf.github.com/repo/",
   resolvers += "opencast-public" at "http://nexus.opencast.org/nexus/content/repositories/public",
-  resolvers += "jfrog" at "http://repo.jfrog.org/artifactory/libs-releases/", 
+  resolvers += "jfrog" at "http://repo.jfrog.org/artifactory/libs-releases/",
   TwirlKeys.templateImports in Compile += "models.enumeration._",
   TwirlKeys.templateImports in Compile += "scala.collection.JavaConversions._",
   TwirlKeys.templateImports in Compile += "play.core.j.PlayMagicForJava._",
