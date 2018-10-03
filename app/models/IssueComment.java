@@ -24,7 +24,9 @@ import models.enumeration.ResourceType;
 import models.resource.Resource;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -67,6 +69,26 @@ public class IssueComment extends Comment {
     @Override
     public void setParentComment(Comment comment) {
         this.parentComment = (IssueComment)comment;
+    }
+
+    @Override
+    public List<IssueComment> getSiblingComments() {
+        if (parentComment == null) {
+            return null;
+        }
+
+        List<IssueComment> comments = find.where()
+                .eq("parentComment.id", parentComment.id)
+                .findList();
+        return comments;
+    }
+
+    @Override
+    public List<IssueComment> getChildComments() {
+        List<IssueComment> comments = find.where()
+                .eq("parentComment.id", id)
+                .findList();
+        return comments;
     }
 
     /**

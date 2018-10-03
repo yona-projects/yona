@@ -22,6 +22,7 @@ import javax.annotation.Nonnull;
 import javax.persistence.*;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 
 @MappedSuperclass
 abstract public class Comment extends Model implements TimelineItem, ResourceConvertible {
@@ -112,6 +113,8 @@ abstract public class Comment extends Model implements TimelineItem, ResourceCon
 
     abstract public Comment getParentComment();
     abstract public void setParentComment(Comment comment);
+    abstract public List<? extends Comment> getSiblingComments();
+    abstract public List<? extends Comment> getChildComments();
 
     @Override
     public boolean equals(Object obj) {
