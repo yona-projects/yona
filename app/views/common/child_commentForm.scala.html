@@ -13,8 +13,10 @@
 @if(isResourceCreatable(UserApp.currentUser, container, resourceType)){
     <form id="child-comment-form" action="@action" method="post" enctype="multipart/form-data">
         <input type="hidden" name="parentCommentId" value="@parentCommentId"/>
-        <textarea name="contents" markdown="true" id="editor-one-line-comment" rows="1" class="span10" placeholder="@Messages("comment.oneline.comment.placeholder") (ENTER)"></textarea>
-        <button type="submit" class="ybtn ybtn-success">OK</button>
+        <div class="oneline-comment-box">
+            <textarea name="contents" markdown="true" id="editor-one-line-comment" rows="1" placeholder="@Messages("comment.oneline.comment.placeholder") (ENTER)"></textarea>
+            <button type="submit" class="ybtn ybtn-success">OK</button>
+        </div>
     </form>
 } else {
     <div class="write-comment-box mt20" title="@Messages("error.auth.unauthorized.comment")" data-login="required">
