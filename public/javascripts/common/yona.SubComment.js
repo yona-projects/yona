@@ -29,7 +29,10 @@ $(function(){
     });
 
     $(".comment").on("mouseenter tab", function () {
-        $(this).find(".add-a-comment").fadeIn(300);
+        var $this = $(this);
+        if(!$this.find(".textarea-box > textarea").is(":visible")) {
+            $this.find(".add-a-comment").fadeIn(300);
+        }
     }).on("mouseleave", function () {
         $(this).find(".add-a-comment").fadeOut(300);
     });
