@@ -1050,10 +1050,18 @@ public class NotificationEvent extends Model implements INotificationEvent {
         receivers.add(parent.getAuthor());
         receivers.addAll(getMentionedUsers(comment.contents));
         includeAssigneeIfExist(comment, receivers);
-        if (comment.getParentComment() != null) {
+        Comment parentComment = comment.getParentComment();
+        if (parentComment != null) {
             receivers.remove(User.find.byId(comment.getParent().authorId));
             receivers.add(User.find.byId(comment.getParentComment().authorId));
+
+            if (parentComment.authorId.equals(comment.authorId)) { // when parent comment author is writing sub-comment
+                for(Comment subComment: comment.getSiblingComments()) {
+                    receivers.add(User.find.byId(subComment.authorId));
+                }
+            }
         }
+
         receivers.addAll(findEventWatchersByEventType(comment.projectId, eventType));
 
         receivers.removeAll(findUnwatchers(parent.asResource()));
