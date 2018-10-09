@@ -6713,9 +6713,9 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 }
 
 #option_form > .board-labels {
-  width: 400px;
   min-width: 120px;
   display: inline-block;
+
   dt {
     display: none;
   }
@@ -6724,12 +6724,14 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 .post-list{
   .search-wrap {
     & form {
-      width: 90%;
       .search-bar {
         height: 22px;
-        width: 400px;
         display: inline-block;
         margin-right: 10px;
+
+        .textbox {
+          width: inherit;
+        }
       }
       .select2-container {
         height: 32px;
@@ -7087,8 +7089,9 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 
 .two-column-icon {
     display: inline-block;
-    line-height: 30px;
+    line-height: 37px;
     margin-left: 10px;
+
     i {
         font-size: 16px;
         margin-right: 5px;
@@ -7096,8 +7099,45 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     }
 
     label {
-        padding-top: 7px;
+        padding-top: 4px;
+        padding-left: 0;
     }
+
+    #two-column-mode {
+        float: none;
+        margin: 4px 4px 0 2px;
+        vertical-align: top;
+    }
+
+    .two-column-icon-border {
+        color: #03a9f4;
+        border: 1px solid #03afff;
+        border-radius: 3px;
+        padding: 3px 3px 0 3px;
+
+        &:hover {
+            background-color: #03afff;
+            color: #fff0ff;
+
+            .two-column-mode-text {
+                color: #fff0ff;
+            }
+        }
+    }
+}
+
+.two-column-icon-selected {
+    background-color: #aee5ff;
+
+    .two-column-mode-text {
+        color: #0293d6;
+    }
+}
+
+.two-column-mode-text {
+    padding: 0 4px 0 0;
+    line-height: 20px;
+    vertical-align: text-bottom;
 }
 
 .absoluteAndLeftMargin {
