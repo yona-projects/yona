@@ -3063,26 +3063,6 @@ label.inline-list {
                      }
                 }
 
-                .attach {
-                    color: #9E9E9E;
-                    padding:7px 15px;
-                    background-color:#f8f8f8;
-
-                    &:first-of-type {
-                        .border-radius(3px 0 0 0);
-                    }
-                    .yobicon-paperclip {vertical-align:middle;}
-                    .ybtn.download {
-                        color: inherit;
-                        float: right;
-                        background-color: rgba(255,255,255,0.5);
-
-                        &:hover, &:focus {
-                            background-color: rgba(255,255,255,0.85);
-                        }
-                    }
-                }
-
                 .comment-body {
                     font-size: 1.1em;
                     padding: 5px 20px;
@@ -7385,6 +7365,26 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         }
         .green {
             background-color: #8bc34a;
+        }
+    }
+}
+
+.attach {
+    color: #9E9E9E;
+    padding:4px 10px 0 10px;
+
+    &:last-child {
+        padding-bottom: 6px;
+    }
+
+    .yobicon-paperclip {vertical-align:middle;}
+    .ybtn.download {
+        color: inherit;
+        margin-right: 10px;
+        background-color: rgba(255,255,255,0.5);
+
+        &:hover, &:focus {
+            background-color: rgba(255,255,255,0.85);
         }
     }
 }

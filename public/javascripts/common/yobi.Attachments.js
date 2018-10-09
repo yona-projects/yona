@@ -47,7 +47,7 @@ yobi.Attachments = function(htOptions) {
         var sFileLink = '<a href="${fileHref}" class="vmiddle" target="_blank"><i class="yobicon-paperclip"></i><span class="filename">${fileName}</span><span class="filesize">(${fileSizeReadable})</span></a>';
         var sFileDownloadLink = '<a href="${fileHref}?action=download" class="download ybtn ybtn-mini" title="' + Messages("button.download") + ' ${fileName}"><i class="yobicon-download"></i></a>';
         htVar.sTplFileList = htOptions.sTplFileList || '<ul class="attaches wm">';
-        htVar.sTplFileItem = htOptions.sTplFileItem || '<li class="attach">'+ sFileLink + sFileDownloadLink + '</li>';
+        htVar.sTplFileItem = htOptions.sTplFileItem || '<li class="attach">'+ sFileDownloadLink + sFileLink + '</li>';
         htVar.sResourceId = htOptions.sResourceId; // ResId: Optional
         htVar.sResourceType = htOptions.sResourceType; // ResType: Required
     }
