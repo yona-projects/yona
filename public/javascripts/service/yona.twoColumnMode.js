@@ -15,7 +15,7 @@ function _initTwoColumnMode(){
 
     var $projectPageWrap = $('.project-page-wrap');
     if (mainWidth === "") {
-        mainWidth = $projectPageWrap.css("width");
+        mainWidth = $projectPageWrap.css("width") || $(".page-wrap").css("width");
     }
 
     if( isLeftMenuHide ) {
@@ -105,7 +105,11 @@ function _initTwoColumnMode(){
         $projectPageWrap.css("margin", "20px 10px 0").css("width", "55%");
 
         $(".project-header-wrap").css("margin", "0 10px");
-        $(".project-menu-inner").css("margin", "0 10px")
+        $(".project-menu-inner").css("margin", "0 10px");
+        $(".gnb-inner").css("margin", "0 10px");
+        $(".page-wrap").css("margin", "0 10px").css("width", "55%");
+        $(".gnb-usermenu").css("float", "none");
+        $("#mySidenav").css("right", "50%");
     }
 
     function revokeMarginOfMainPage() {
@@ -114,5 +118,10 @@ function _initTwoColumnMode(){
         $projectPageWrap.css("margin", "20px auto 0").css("width", mainWidth);
         $(".project-header-wrap").css("margin", "0 auto");
         $(".project-menu-inner").css("margin", "0 auto");
+        $(".gnb-inner").css("margin", "0 auto");
+        $(".page-wrap").css("margin", "0 auto").css("width", mainWidth);
+        $(".gnb-usermenu").css("float", "right");
+        $("#mySidenav").css("right", "0");
+
     }
 }
