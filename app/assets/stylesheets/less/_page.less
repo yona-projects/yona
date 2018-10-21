@@ -3308,7 +3308,6 @@ div.markdown-preview {
     font-family:@base-font-family;
 
     .write-comment-wrap {
-        margin-bottom: 10px;
         position: relative;
         .nav {
           margin-bottom: 0;
@@ -3461,77 +3460,76 @@ div.markdown-preview {
         margin-top: 15px;
         border-top: 1px solid #e0e0e0;
         padding: 15px 0px;
-
-        .attached-file {
-            display: inline-block;
-            width: 355px;
-            height: 30px;
-            line-height: 30px;
-            border: 1px solid #ccc;
-            background: #fafafa;
-            padding: 0 10px;
-            margin-bottom: 5px;
-            margin-right: 4px;
-            cursor:pointer;
-            overflow: hidden;
-            -webkit-transition-duration: 0.5s;
-            &:hover { border:1px solid @primary; }
-
-            i {
-                display:none;
-                margin-right:3px;
-                vertical-align: middle;
-                color:@yobi-blue;
-            }
-            .name {
-                display: inline-block;
-                max-width: 120px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space:nowrap;
-                vertical-align:middle;
-                -webkit-transition-duration: 0.5s;
-            }
-            .size { font-size:11px; vertical-align:middle; }
-
-            /* 업로드 하는 도중에는 진행 상태 표시 */
-            .progress {
-                display: inline-block;
-                width: 100px;
-                height: 7px;
-                margin: 0;
-                overflow: hidden;
-            }
-            .btn-delete {
-                display:none;
-                width: 30px;
-                height: 30px;
-                font-size: 1.5em;
-                font-weight: bold;
-                &:hover { color:@primary; }
-            }
-            .btn-insert {
-                display:none;
-                line-height: 20px;
-                margin-top: 2px; margin-right: 10px;
-                .box-shadow(none);
-                &:hover { background:#fff; color:@primary; }
-            }
-
-            /* 업로드 완료 후에는 삭제 버튼 표시 */
-            &.complete {
-               .progress    { display:none; }
-               .btn-delete  { display:inline-block; }
-               .btn-insert  { display:block; }
-            }
-
-            /* 임시 파일 표시 */
-            &.temporary {
-               i { display:inline-block; }
-            }
-        }
     }
 }
+
+.attached-file {
+    display: inline-block;
+    max-width: 50%;
+    height: 30px;
+    line-height: 30px;
+    border: 1px solid #ccc;
+    background: #fafafa;
+    padding: 0 10px;
+    margin: 5px 4px;
+    cursor:pointer;
+    overflow: hidden;
+    -webkit-transition-duration: 0.5s;
+    &:hover { border:1px solid @primary; }
+
+    i {
+        display:none;
+        margin-right:3px;
+        vertical-align: middle;
+        color:@yobi-blue;
+    }
+    .name {
+        display: inline-block;
+        max-width: 250px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space:nowrap;
+        vertical-align:middle;
+        -webkit-transition-duration: 0.5s;
+    }
+    .size { font-size:11px; vertical-align:middle; }
+
+    /* 업로드 하는 도중에는 진행 상태 표시 */
+    .progress {
+        display: inline-block;
+        width: 100px;
+        height: 7px;
+        margin: 0;
+        overflow: hidden;
+    }
+    .btn-delete {
+        width: 30px;
+        height: 30px;
+        font-size: 1.5em;
+        font-weight: bold;
+        &:hover { color:@primary; }
+    }
+    .btn-insert {
+        display:none;
+        line-height: 20px;
+        margin-top: 2px; margin-right: 10px;
+        .box-shadow(none);
+        &:hover { background:#fff; color:@primary; }
+    }
+
+    /* 업로드 완료 후에는 삭제 버튼 표시 */
+    &.complete {
+        .progress    { display:none; }
+        .btn-delete  { display:inline-block; }
+        .btn-insert  { display:block; }
+    }
+
+    /* 임시 파일 표시 */
+    &.temporary {
+        i { display:inline-block; }
+    }
+}
+
 .upload-drop-here {
     position: absolute;
     top: 2px;
@@ -7427,4 +7425,29 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
             background-color: rgba(255,255,255,0.85);
         }
     }
+}
+
+.upload-button-line {
+    .file-upload {
+        position: relative;
+        display: inline-block;
+    }
+
+    .file-upload__label {
+        display: block;
+        border-radius: 2px;
+        transition: background .3s;
+    }
+
+    .file-upload__input {
+        position: fixed;
+        left: 0;
+        top: 0;
+        right: 0;
+        height: 0;
+        bottom: 0;
+        width:0;
+        opacity: 0;
+    }
+
 }

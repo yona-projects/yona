@@ -1,21 +1,45 @@
 @**
 * Yona, 21st Century Project Hosting SW
 *
-* Copyright Yona & Yobi Authors & NAVER Corp.
+* Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
 * https://yona.io
 **@
+@import models.enumeration.ResourceType
 @(comment:Comment, action:String, contents:String, isAllowedUpdate:Boolean)
 @import utils.AccessControl._
 
-<div id="comment-editform-@comment.id" class="comment-update-form">
-    <form action="@action/@comment.id" method="post">
-        <input type="hidden" name="id" value="@comment.id">
+@files = @{
+    if(comment.isInstanceOf[IssueComment]) {
+        AttachmentApp.getFileList(ResourceType.ISSUE_COMMENT, comment.id)
+    } else {
+        AttachmentApp.getFileList(ResourceType.NONISSUE_COMMENT, comment.id)
+    }
+}
 
+@resourceType = @{
+    if(comment.isInstanceOf[IssueComment]) {
+        ResourceType.ISSUE_COMMENT
+    } else {
+        ResourceType.NONISSUE_COMMENT
+    }
+}
+
+<div id="comment-editform-@comment.id" class="comment-update-form">
+    <form action="@action/@comment.id" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="id" value="@comment.id">
         <div class="write-comment-box">
             <div class="write-comment-wrap">
-                @common.editor("contents", contents,"", "update-comment-body")
-
-                <div class="right-txt comment-update-button">
+                @common.editor("contents-" + comment.id, contents,"", "update-comment-body")
+                <div class="upload-drop-here">
+                    <div class="msg-wrap">
+                        <div class="msg">@Messages("common.attach.dropFilesHere")</div>
+                    </div>
+                </div>
+                <div class="right-txt comment-update-button upload-button-line">
+                    <span class="file-upload">
+                        <label for="upload-@comment.id" class="file-upload__label ybtn">@Messages("button.upload")</label>
+                        <input id="upload-@comment.id" class="file-upload__input" type="file" name="filePath" multiple>
+                    </span>
                     @if(comment.isAuthoredBy(UserApp.currentUser())){
                     <span class="send-notification-check" data-toggle='popover' data-trigger="hover" data-placement="top" data-content="@Messages("notification.send.mail.warning")">
                         <label class="checkbox inline">
@@ -30,6 +54,14 @@
                     }
                 </div>
             </div>
+            <input type="hidden" name="temporaryUploadFiles" class="temporaryUploadFiles" value="">
+            <div class="preview-@comment.id"></div>
+            <div class="attachment-files">
+            @for(file <- files.get("attachments")) {
+                @attachmentFile(file, resourceType, comment.id)
+            }
+            </div>
+            <div id="upload-@comment.id" data-resourceType="@resourceType" data-resourceId="@comment.id"></div>
         </div>
     </form>
 </div>

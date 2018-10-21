@@ -1,0 +1,18 @@
+@**
+* Yona, 21st Century Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+* https://yona.io
+**@
+@import models.enumeration.ResourceType
+@import utils.AccessControl._
+@import humanize.Humanize._;
+
+@(file:Map[String, String], parentType:ResourceType, parentId:Long)
+
+<div class="attached-file attached-file-marker" data-name="@file.get("name")" data-href="@routes.AttachmentApp.getFile(file.get("id").toLong)" data-mime="@file.get("mimeType")">
+    <i class="mimetype"></i>
+    <strong class="name">@file.get("name")</strong>
+    <span class="size">@binaryPrefix(file.get("size").toDouble)</span>
+    <button type="button" class="btn-transparent btn-delete" data-id="@file.get("id")">&times;</button>
+</div>

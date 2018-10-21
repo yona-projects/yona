@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import play.Configuration;
 import play.Logger;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Result;
 import utils.AccessControl;
@@ -168,11 +169,15 @@ public class AttachmentApp extends Controller {
 
     public static Result deleteFile(Long id) {
         // _method must be 'delete'
-        Map<String, String[]> data =
-                request().body().asMultipartFormData().asFormUrlEncoded();
-        if (!HttpUtil.getFirstValueFromQuery(data, "_method").toLowerCase()
-                .equals("delete")) {
-            return badRequest("_method must be 'delete'.");
+        Http.MultipartFormData formData = request().body().asMultipartFormData();
+
+        if( formData != null ) {
+            Map<String, String[]> data =
+                    formData.asFormUrlEncoded();
+            if (!HttpUtil.getFirstValueFromQuery(data, "_method").toLowerCase()
+                    .equals("delete")) {
+                return badRequest("_method must be 'delete'.");
+            }
         }
 
         // Remove the attachment.
@@ -220,6 +225,11 @@ public class AttachmentApp extends Controller {
         metadata.put("size", attach.size.toString());
 
         return metadata;
+    }
+
+    public static Map<String, List<Map<String, String>>> getFileList(ResourceType resourceType, Long containerId)
+            throws PermissionDeniedException {
+        return getFileList(resourceType.toString(), String.valueOf(containerId));
     }
 
     public static Map<String, List<Map<String, String>>> getFileList(String containerType, String

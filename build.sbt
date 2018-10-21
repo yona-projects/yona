@@ -58,7 +58,8 @@ libraryDependencies ++= Seq(
   "com.google.guava" % "guava" % "19.0",
   "com.googlecode.htmlcompressor" % "htmlcompressor" % "1.4",
   "org.springframework" % "spring-jdbc" % "4.1.5.RELEASE",
-  "javax.xml.bind" % "jaxb-api" % "2.3.0"
+  "javax.xml.bind" % "jaxb-api" % "2.3.0",
+  "com.github.mfornos" % "humanize-slim" % "1.2.2"
 )
 
 libraryDependencies += "org.apache.subversion" % "svn-javahl-api" % "1.9.0"
