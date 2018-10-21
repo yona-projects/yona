@@ -465,6 +465,7 @@
 <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.Sha1.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.Tasklist.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.SubComment.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.CommentAttachmentsUpdate.js")"></script>
 <script type="text/javascript">
     $(function(){
         // yobi.issue.View
@@ -500,8 +501,7 @@
         // detect comment which contains mention at me
         $(".comment-body:contains('@UserApp.currentUser().getPureNameOnly')").closest(".comment").addClass("mentioned");
     });
-</script>
-<script>
+
         $(function () {
             yonaAssgineeModule(
                     "@api.routes.IssueApi.findAssignableUsers(project.owner, project.name, issue.getNumber)",
@@ -580,7 +580,6 @@
                 shape: 'rounded',
                 tooltips: true
             });
-
         });
 </script>
 }

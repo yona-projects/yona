@@ -1,29 +1,29 @@
 @**
-* Yobi, Project Hosting SW
+* Yona, 21st Century Project Hosting SW
 *
-* Copyright 2014 NAVER Corp.
-* http://yobi.io
-*
-* @author JiHan Kim
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*   http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
+* Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+* https://yona.io
 **@
 @(editorName:String, textValue:String="", additionalAttr:String="", editorMode:String="content-body", viaEmail:Boolean=false)
 
 @import org.apache.commons.lang3.RandomStringUtils._
 @import utils.TemplateHelper._
 
-@defining(randomAlphabetic(8)){ wrapId =>
+@wrapIdGen = @{
+    var split = editorName.split("-")
+    if (split.length > 1) {
+        split(1)
+    } else {
+        randomAlphabetic(8)
+    }
+}
+
+@textareaName = @{
+    var split = editorName.split("-")
+    split(0)
+}
+
+@defining(wrapIdGen){ wrapId =>
 <div data-toggle="markdown-editor" class="mt10">
     <ul class="nav nav-tabs nm small">
         <li class="active">
@@ -45,7 +45,7 @@
 
         <div id="edit-@wrapId" class="tab-pane active">
             <div class="textarea-box">
-                <textarea name="@editorName" class="content comment nm" data-editor-mode="@editorMode" markdown="true" id="editor-@editorName-@wrapId"
+                <textarea name="@textareaName" class="content comment nm" data-editor-mode="@editorMode" markdown="true" id="editor-@textareaName-@wrapId"
                     @additionalAttr>@textValue</textarea>
             </div>
         </div>
