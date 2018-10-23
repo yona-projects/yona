@@ -1076,7 +1076,7 @@ public class User extends Model implements ResourceConvertible {
                 pureName = this.name;
             }
             if (pureName.contains(spliter)) {
-                pureName = this.name.substring(0, this.name.indexOf(spliter));
+                pureName = this.name.substring(0, this.name.indexOf(spliter)).trim();
             }
         }
 
