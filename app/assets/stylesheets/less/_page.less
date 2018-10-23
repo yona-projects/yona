@@ -2937,10 +2937,6 @@ label.inline-list {
                     }
                 }
                 .one-line-comment {
-                    :hover {
-                       background-color: #f1f1f1;
-                    }
-
                     .contents {
                         text-align: left;
                         margin-left: 12px;
@@ -6637,6 +6633,37 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 
 .no-text-decoration{
   text-decoration: none !important;
+}
+
+.user-link {
+    -webkit-font-smoothing: antialiased;
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-feature-settings: "kern" 1;
+    -moz-font-feature-settings: "kern" 1;
+    -o-font-feature-settings: "kern" 1;
+    font-feature-settings: "kern" 1;
+    font-kerning: normal;
+    border: 1px solid #4FC3F7;
+    border-radius: 3px;
+    margin-right: 3px;
+    padding-left: 2px;
+    padding-right: 2px;
+    background-color: #4FC3F7;
+    color: white;
+
+    &.me {
+        background-color: #4FC3F7;
+    }
+
+    &:hover {
+        color: black;
+        background-color: #4FC3F7 !important;
+    }
+
+    span {
+        font-weight: 600;
+        color: white;
+    }
 }
 
 .ago-date {
