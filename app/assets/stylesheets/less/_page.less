@@ -3072,14 +3072,14 @@ label.inline-list {
             &.mentioned {
                 .media-body {
                     &:before {
-                        background-color: #C5EBFD;
+                        background-color: #e1f5fe;
                         border-color: #56C5F7;
                     }
                     border: 1px solid #56C5F7;
                 }
 
                 .meta-info {
-                    background-color: #C5EBFD;
+                    background-color: #e1f5fe;
                 }
             }
 
@@ -6652,7 +6652,8 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     color: white;
 
     &.me {
-        background-color: #4FC3F7;
+        background-color: #BA68C8;
+        border: 1px solid #BA68C8;
     }
 
     &:hover {
@@ -6663,6 +6664,29 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     span {
         font-weight: 600;
         color: white;
+    }
+}
+
+.project-link, .org-link {
+    -webkit-font-smoothing: antialiased;
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-feature-settings: "kern" 1;
+    -moz-font-feature-settings: "kern" 1;
+    -o-font-feature-settings: "kern" 1;
+    font-feature-settings: "kern" 1;
+    font-kerning: normal;
+    border: 1px solid #9741ff;
+    border-radius: 3px;
+    margin-right: 3px;
+    padding-left: 2px;
+    padding-right: 2px;
+    background-color: #9741ff;
+    font-weight: 600;
+    color: white;
+
+    &:hover {
+        color: white;
+        background-color: #9741ff !important;
     }
 }
 

@@ -305,7 +305,7 @@ public class AutoLinkRenderer {
         Organization org = Organization.findByName(userId);
 
         if(org != null) {
-            return new Link(RouteUtil.getUrl(org), "@" + org.name);
+            return new Link(RouteUtil.getUrl(org), "<span class='org-link'>@" + org.name + "</span>");
         }
 
         if (user.isAnonymous() ) {
@@ -333,7 +333,7 @@ public class AutoLinkRenderer {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         if (project != null) {
-            return new Link(RouteUtil.getUrl(project), "@" + project.toString());
+            return new Link(RouteUtil.getUrl(project), "<span class='project-link'>@" + project.toString() + "</span>");
         } else {
             return Link.EMPTY_LINK;
         }
