@@ -251,6 +251,7 @@
 
             // detect comment which contains mention at me
             $(".comment-body:contains('@UserApp.currentUser().getPureNameOnly')").closest(".comment").addClass("mentioned");
+            $(".user-link:contains('@UserApp.currentUser().getPureNameOnly')").addClass("me");
 
             $('#translate').one('click', function (e) {
                 var data = {
