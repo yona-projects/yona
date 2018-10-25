@@ -1,0 +1,29 @@
+@**
+* Yona, 21st Century Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp.
+* https://yona.io
+**@
+@import utils.AccessControl
+@import models.enumeration.Operation
+@(project:Project, favored:Boolean, isLast:Boolean = false)
+@import utils.TemplateHelper._
+
+
+@if(AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)){
+<li class="user-li @if(isLast){favored} @if(favored){ show-always } else { hide }" data-location="@routes.ProjectApp.goConventionMenu(project.owner, project.name)">
+    <div class="project-list project-flex-container">
+        <div class="project-item project-item-container">
+            <div class="flex-item site-logo all-project-names">
+                <i class="project-avatar">@if(hasProjectLogo(project)){<img class="logo" src="@urlToProjectLogo(project)">}else{<span class="dummy-25px"> </span>}</i>
+            </div>
+            <div class="projectName-owner flex-item">
+                <div class="project-name flex-item">@project.name @if(project.isPrivate){<i class="yobicon-lock yobicon-small"></i>}</div>
+            </div>
+        </div>
+        <div class="star-project flex-item" data-project-id="@project.id">
+            <i class="star @if(favored){starred} material-icons">star</i>
+        </div>
+    </div>
+</li>
+}

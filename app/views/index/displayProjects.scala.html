@@ -1,0 +1,17 @@
+@**
+* Yona, 21st Century Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp.
+* https://yona.io
+**@
+@(title:String, projects:List[Project], isActive:Boolean = false)
+
+@if(projects.isEmpty) {
+    <div id="@title" class="no-result tab-pane user-ul @if(isActive){active}">@Messages("title.no.results")</div>
+} else {
+    <ul class="tab-pane user-ul @if(isActive){active}" id="@title">
+        @for(project <- projects){
+            @views.html.index.myProjectList_partial(project, false)
+        }
+    </ul>
+}

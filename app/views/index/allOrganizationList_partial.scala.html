@@ -12,7 +12,7 @@
 }
 
 @defining(UserApp.currentUser().getFavoriteProjects){ favoriteProjects =>
-<li class="org-li @if(isLast){favored}">
+<li class="@if(isLast){favored} org-li">
     <div class="org-list project-flex-container all-orgs">
         <div class="project-item project-item-container">
             <div class="flex-item site-logo">
@@ -28,9 +28,9 @@
         </div>
     </div>
     <ul class="project-ul">
-    @for(project <- organization.getSortedByProjectName){
-        @allProjectList_partial(project, favoriteProjects.contains(project))
-    }
+        @for(project <- organization.projects){
+            @allProjectList_partial(project, favoriteProjects.contains(project))
+        }
     </ul>
 </li>
 }

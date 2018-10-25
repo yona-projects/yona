@@ -928,6 +928,7 @@ title.createdByMe = 내가 만든
 title.editIssue = 이슈 수정
 title.editMilestone = 마일스톤 수정
 title.editPullRequest = 코드 보내기 수정
+title.favorite = 즐겨찾기
 title.features = 주요 기능 소개
 title.forgotpassword = 비밀번호를 잊어버리셨나요?
 title.gettingStarted = <strong>{0}</strong> 와 함께 새로운 프로젝트를 시작해 보세요.

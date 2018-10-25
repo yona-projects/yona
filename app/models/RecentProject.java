@@ -15,7 +15,7 @@ import java.util.List;
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "project_id"}))
 public class RecentProject extends Model {
     private static final long serialVersionUID = 7306890271871188281L;
-    public static int MAX_RECENT_LIST_PER_USER = 20;
+    public static int MAX_RECENT_LIST_PER_USER = 30;
 
     public static Finder<Long, RecentProject> find = new Finder<>(Long.class, RecentProject.class);
 

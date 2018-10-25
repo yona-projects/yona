@@ -1,0 +1,28 @@
+@**
+* Yona, 21st Century Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp.
+* https://yona.io
+**@
+@(currentUser:User)
+@import utils.TemplateHelper._
+
+@displayOrganizations(title:String, organizations:List[Organization], isActive:Boolean = false) = {
+@if(organizations.isEmpty) {
+    <div id="@title" class="no-result tab-pane user-ul @if(isActive) {active}">@Messages("title.no.results")</div>
+} else {
+    <ul class="tab-pane user-ul @if(isActive) {active}" id="@title">
+        @for(organization <- organizations) {
+            @allOrganizationList_partial(organization, UserApp.currentUser().getFavoriteOrganizations.contains(organization))
+        }
+    </ul>
+}
+}
+
+<div class="search-result">
+    <div class="group">
+        <input class="search-input org-search" type="text" autocomplete="off" placeholder="@Messages("title.type.name")">
+        <span class="bar"></span>
+    </div>
+    @displayOrganizations("organizations", Organization.findAllOrganizations())
+</div>

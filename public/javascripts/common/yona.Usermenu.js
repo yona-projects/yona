@@ -91,11 +91,17 @@ $(function() {
         });
 
         // search by keyword
-        $(".search-input").on("keyup", function() {
-            var value = $(this).val().toLowerCase().trim();
-            $(".user-li").each(function() {
-                $(this).toggle($(this).text().toLowerCase().indexOf(value) !== -1);
-            });
+            $(".search-input").on("keyup", function(event) {
+                var value = $(this).val().toLowerCase().trim();
+
+                if ( value !== "" || event.which === 8) {  // 8: backspace
+                    $(".user-li").each(function() {
+                        $(this).toggle($(this).text().toLowerCase().indexOf(value) !== -1);
+                    });
+                    $(".org-li").each(function() {
+                        $(this).toggle($(this).text().toLowerCase().indexOf(value) !== -1);
+                    });
+                }
         }).on("keydown.moveCursorFromInputform", function(e) {
             switch (e.keyCode) {
                 case 27:   // ESC
@@ -162,12 +168,14 @@ $(function() {
             }
         }
 
-        $(".user-ul > .user-li").on("click", function (e) {
+        $(".user-ul > .user-li, .project-ul > .user-li").on("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
             var location = $(this).data('location');
-            if(e.metaKey || e.ctrlKey) {
-                window.open(location, '_blank');
-            } else {
+            if(e.metaKey || e.ctrlKey || e.shiftKey) {
                 window.location = location;
+            } else {
+                window.open(location, '_blank');
             }
         });
 
@@ -201,5 +209,9 @@ $(function() {
                     });
                 });
         }
+
+        $(".all-orgs").on("click", function () {
+            var $li = $(this).closest("li").find(".hide").toggle("fast");
+        });
     }
 });

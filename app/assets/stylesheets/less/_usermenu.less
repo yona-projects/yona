@@ -60,7 +60,7 @@
   }
 
   li {
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid transparent;
     margin-left: 0;
   }
 
@@ -450,23 +450,42 @@
   .project-item {
     font-size: 14px;
     overflow: hidden;
+
     .slash {
       padding: 5px;
     }
+
     .project-name{
       min-width: 50px;
       max-width: 220px;
       text-overflow: ellipsis;
       overflow: hidden;
       white-space: nowrap;
+
       &.org-name {
         max-width: 320px;
+        font-size: 1.1em;
       }
+
       a {
         &:hover {
           text-decoration: none;
           color: #3592B5;
         }
+      }
+    }
+
+    .all-project-names {
+      padding-left: 30px;
+    }
+
+    .all-org-names {
+      font-weight: 600;
+      color: black;
+      border-bottom: 1px solid transparent;
+
+      &:hover {
+        border-bottom: 1px solid #3592B5;
       }
     }
 
@@ -564,6 +583,7 @@
 
   .project-list, .org-list {
     &:hover {
+      cursor: pointer;
     }
   }
 

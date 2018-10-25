@@ -51,14 +51,19 @@
             }
         </div>
         <ul class="nav nav-tabs nm">
-            <li class="myProjectList active">
+            <li class="myOrganizationList active">
+                <a href="#myOrganizationList" data-toggle="tab">
+                @Messages("title.favorite")
+                </a>
+            </li>
+            <li class="myProjectList">
                 <a href="#myProjectList" data-toggle="tab">
                 @Messages("title.project")
                 </a>
             </li>
-            <li class="myOrganizationList">
-                <a href="#myOrganizationList" data-toggle="tab">
-                @Messages("title.organization")
+            <li class="allProjectList">
+                <a href="#allProjectList" data-toggle="tab">
+                @Messages("common.order.all")
                 </a>
             </li>
         </ul>

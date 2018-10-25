@@ -176,6 +176,10 @@ public class Project extends Model implements LabelOwner {
         }
     }
 
+    public static List<Project> findByOwner(String loginId) {
+        return find.where().ieq("owner", decodeUrlString(loginId)).orderBy("name asc").findList();
+    }
+
     public Set<User> findAuthors() {
         Set<User> allAuthors = new LinkedHashSet<>();
         allAuthors.addAll(getIssueUsers());
