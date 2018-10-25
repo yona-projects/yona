@@ -249,6 +249,10 @@ public class User extends Model implements ResourceConvertible {
         return Project.findProjectsByMemberWithFilter(id, orderString);
     }
 
+    public List<Project> ownProjects() {
+        return Project.findByOwner(loginId);
+    }
+
     /**
      * Create a user and set creation date
      *
@@ -899,10 +903,24 @@ public class User extends Model implements ResourceConvertible {
     }
 
     public List<Project> getFavoriteProjects() {
+        final User user = this;
+        favoriteProjects.sort(new Comparator<FavoriteProject>() {
+            @Override
+            public int compare(FavoriteProject o1, FavoriteProject o2) {
+                if (o1.owner.equals(user.loginId) || o2.owner.equals(user.loginId)) {
+                    return Integer.MIN_VALUE;
+                }
+                if (o1.owner.equals(o2.owner)) {
+                    return o1.projectName.compareToIgnoreCase(o2.projectName);
+                }
+                return o1.owner.compareToIgnoreCase(o2.owner);
+            }
+        });
+
         List<Project> projects = new ArrayList<>();
         for (FavoriteProject favoriteProject : this.favoriteProjects) {
             favoriteProject.project.refresh();
-            projects.add(0, favoriteProject.project);
+            projects.add(favoriteProject.project);
         }
 
         return projects;

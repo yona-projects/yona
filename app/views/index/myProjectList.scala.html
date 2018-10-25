@@ -20,7 +20,7 @@
 }
         <div>
             <div class="search-result">
-                <div class="tab-pane myproject-list-wrap active" >
+                <div class="tab-pane myproject-list-wrap" >
                     <div class="group">
                         <input class="search-input project-search" type="text" id="query" autocomplete="off" placeholder="@Messages("title.type.name")">
                         <span class="bar"></span>
@@ -50,7 +50,7 @@
                         </ul>
                     </div>
                     <div class="tab-content">
-                        @views.html.index.displayProjectsWithFavored("recentlyVisited", currentUser.getVisitedProjects, currentUser.getFavoriteProjects, true)
+                        @views.html.index.displayProjects("recentlyVisited", currentUser.getVisitedProjects, true)
                         @displayProjects("watching", currentUser.getWatchingProjects("name ASC"))
                         @displayProjects("createdByMe", Project.findProjectsCreatedByUser(currentUser.loginId, "createdDate desc"))
                         @displayProjects("joinmember", Project.findProjectsJustMemberAndNotOwner(currentUser, "name ASC"))

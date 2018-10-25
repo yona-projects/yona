@@ -927,6 +927,7 @@ title.createdByMe = Create
 title.editIssue = Edit issue
 title.editMilestone = Edit milestone
 title.editPullRequest = Edit pull request
+title.favorite = Favorite
 title.features = Key features
 title.forgotpassword = Password forgotten?
 title.gettingStarted = Getting your new project started with <strong>{0}</strong>

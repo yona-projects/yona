@@ -92,6 +92,16 @@ public class Organization extends Model implements ResourceConvertible {
         return (findRowCount != 0);
     }
 
+    public List<Project> getSortedByProjectName() {
+        this.projects.sort(new Comparator<Project>() {
+            @Override
+            public int compare(Project o1, Project o2) {
+                return o1.name.compareToIgnoreCase(o2.name);
+            }
+        });
+        return this.projects;
+    }
+
     public boolean isLastAdmin(User currentUser) {
         return OrganizationUser.isAdmin(this, currentUser) && getAdmins().size() == 1;
     }
@@ -153,6 +163,40 @@ public class Organization extends Model implements ResourceConvertible {
         return find.where().eq("users.user.loginId", userLoginId)
                 .orderBy("created DESC")
                 .findList();
+    }
+
+    public static List<Organization> findAllOrganizations() {
+        List<Organization> projects = Organization.find.fetch("projects").where().orderBy("name asc, projects.name asc").findList();
+        projects.sort(new Comparator<Organization>() {
+            @Override
+            public int compare(Organization o1, Organization o2) {
+                return o1.name.compareToIgnoreCase(o2.name);
+            }
+        });
+        return projects;
+    }
+
+    public static List<Organization> findAllOrganizations(String loginId) {
+        User user = User.findByLoginId(loginId);
+
+        Set<String> owners = new TreeSet<>(new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+                return o1.compareToIgnoreCase(o2);
+            }
+        });
+        for (FavoriteProject fp : user.favoriteProjects) {
+            owners.add(fp.owner);
+        }
+
+        List<Organization> orgs = new ArrayList<>();
+        for (String owner: owners) {
+            Organization org = Organization.findByName(owner);
+            if (org != null) {
+                orgs.add(org);
+            }
+        }
+        return orgs;
     }
 
     /**
