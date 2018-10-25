@@ -58,7 +58,7 @@
         categoryAndName
     } else {
         var categoryName = splitedCategoryAndName(0).trim
-        var labelName = splitedCategoryAndName(1).trim
+        var labelName = splitedCategoryAndName(1).split(" #")(0).trim
         val issueLabel = IssueLabel.findByName(labelName, categoryName, project)
         if(issueLabel != null) {
             val labelColor = issueLabel.color

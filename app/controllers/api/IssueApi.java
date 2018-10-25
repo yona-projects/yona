@@ -107,17 +107,27 @@ public class IssueApi extends AbstractPostingApp {
         if (issue.events.size() > 0) {
             for (IssueEvent event: issue.events) {
                 ObjectNode result = Json.newObject();
+                User sender = User.findByLoginId(event.senderLoginId);
                 result.put("id", event.id);
                 result.put("createdDate", JodaDateUtil.getDateString(event.created, JodaDateUtil.ISO_FORMAT));
                 result.put("eventType", event.eventType.toString());
                 result.put("eventDescription", event.eventType.getDescr());
                 result.put("oldValue", event.oldValue);
                 result.put("newValue", event.newValue);
+                result.put("actor", getActorJson(sender));
                 array.add(result);
             }
         }
 
         return array;
+    }
+
+    private static JsonNode getActorJson(User user) {
+        ObjectNode result = Json.newObject();
+        result.put("name", user.getPureNameOnly());
+        result.put("loginId", user.loginId);
+        result.put("englishName", user.englishName);
+        return result;
     }
 
     @Transactional

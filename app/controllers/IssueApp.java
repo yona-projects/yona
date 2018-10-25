@@ -432,7 +432,7 @@ public class IssueApp extends AbstractPostingApp {
                 IssueLabel label = IssueLabel.finder.byId(labelId);
                 issue.labels.add(label);
                 isLabelChanged = true;
-                addedLabels.append(label.category.name).append(" - ").append(label.name);
+                addedLabels.append(label.category.name).append(" - ").append(label.name).append(" ").append(label.color);
             }
         }
 
@@ -441,7 +441,7 @@ public class IssueApp extends AbstractPostingApp {
                 IssueLabel label = IssueLabel.finder.byId(labelId);
                 issue.labels.remove(label);
                 isLabelChanged = true;
-                deletedLabels.append(label.category.name).append(" - ").append(label.name);
+                deletedLabels.append(label.category.name).append(" - ").append(label.name).append(" ").append(label.color);
             }
         }
 
