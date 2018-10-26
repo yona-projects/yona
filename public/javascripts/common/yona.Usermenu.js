@@ -1,12 +1,14 @@
 $(function() {
-    $.get(UsermenuUrl)
-        .done(function (data) {
-            $("#usermenu-tab-content-list").html(data);
-            afterUsermenuLoaded();
-        })
-        .fail(function (data) {
-            $yobi.alert("Usermenu loading failed: " + data);
-        });;
+    if($(".gnb-usermenu-dropdown").length !== 0) {
+        $.get(UsermenuUrl)
+            .done(function (data) {
+                $("#usermenu-tab-content-list").html(data);
+                afterUsermenuLoaded();
+            })
+            .fail(function (data) {
+                console.log("Usermenu loading failed: " + data);
+            });
+    }
 
     function afterUsermenuLoaded(){
         /* Set side navigation */
