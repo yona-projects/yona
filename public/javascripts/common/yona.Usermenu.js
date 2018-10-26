@@ -213,5 +213,12 @@ $(function() {
         $(".all-orgs").on("click", function () {
             var $li = $(this).closest("li").find(".hide").toggle("fast");
         });
+
+        $(".sub-project-counter").each(function (item) {
+            var $this = $(this);
+            var counter = $this.closest(".org-li").find(".project-ul > .user-li").length || "";
+
+            $this.text(counter);
+        });
     }
 });
