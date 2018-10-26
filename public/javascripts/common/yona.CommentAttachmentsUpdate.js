@@ -75,11 +75,16 @@ $(function(){
                 var $attachfiles = $parentForm.find(".temporaryUploadFiles");
                 var $textarea = $parentForm.find("textarea");
 
-                if (doneCount === 0) {
+
+                if ($attachfiles.val() === "") {
                     $attachfiles.val(data.id);
                 } else {
-                    $attachfiles.val($attachfiles.val() + "," + data.id);
+                    var splitted = $attachfiles.val().split(",");
+                    if(!splitted.includes(data.id)) {
+                        $attachfiles.val(splitted.concat(data.id).join(","));
+                    }
                 }
+
                 var attachment = '<div class="attached-file attached-file-marker" data-mime="' +
                     data.mimeType.trim() + '" data-name="' + data.name + '" data-href="' + data.url + '">\n' +
                     '<strong class="name">' + data.name + '</strong>\n' +
@@ -119,8 +124,6 @@ $(function(){
 
             var dt = e.originalEvent.dataTransfer;
             var files = dt.files;
-
-            console.log(files);
 
             $(this).css("border", rememberBorder);
             $(this).parent().closest("form").find(".file-upload__input")[0].files = files;
