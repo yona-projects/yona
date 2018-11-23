@@ -786,9 +786,7 @@ public class Search {
             pel.endJunction();
 
             List<Project> projects = pel.findList();
-            if(!projects.isEmpty()) {
-                projectAndKeyword.in(pathToProject, projects);
-            }
+            projectAndKeyword.in(pathToProject, projects);
         }
         junctionOperation.withJunction(keyword, projectAndKeyword);
         projectAndKeyword.endJunction();
@@ -815,9 +813,7 @@ public class Search {
             pel.endJunction();
 
             List<Project> projects = pel.findList();
-            if(!projects.isEmpty()) {
-                projectAndKeyword.in(pathToProject, projects);
-            }
+            projectAndKeyword.in(pathToProject, projects);
         }
         junctionOperation.withJunction(keyword, projectAndKeyword);
         projectAndKeyword.endJunction();
