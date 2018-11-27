@@ -386,7 +386,7 @@ public class BoardApp extends AbstractPostingApp {
     }
 
     /**
-     * @see controllers.AbstractPostingApp#saveComment(models.Comment, play.data.Form, play.mvc.Call, Runnable)
+     * @see controllers.AbstractPostingApp#saveComment(Comment comment, Runnable containerUpdater)
      */
     @Transactional
     @IsAllowed(value = Operation.READ, resourceType = ResourceType.BOARD_POST)

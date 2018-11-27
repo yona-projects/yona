@@ -7,20 +7,66 @@
 
 package controllers.api;
 
+import static controllers.UserApp.*;
+import static controllers.api.UserApi.*;
+import static play.libs.Json.*;
+
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.annotation.Nonnull;
+
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import com.avaje.ebean.ExpressionList;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import controllers.AbstractPostingApp;
 import controllers.UserApp;
 import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
 import controllers.routes;
-import models.*;
-import models.enumeration.*;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.StringUtils;
+import models.Assignee;
+import models.Attachment;
+import models.Comment;
+import models.Issue;
+import models.IssueComment;
+import models.IssueEvent;
+import models.IssueLabel;
+import models.IssueSharer;
+import models.Milestone;
+import models.NotificationEvent;
+import models.Posting;
+import models.PostingComment;
+import models.Project;
+import models.ProjectUser;
+import models.User;
+import models.enumeration.EventType;
+import models.enumeration.Operation;
+import models.enumeration.ProjectScope;
+import models.enumeration.ResourceType;
+import models.enumeration.State;
+import models.enumeration.UserState;
 import play.api.mvc.Codec;
 import play.db.ebean.Transactional;
 import play.i18n.Messages;
@@ -29,24 +75,121 @@ import play.libs.Json;
 import play.libs.ws.WS;
 import play.mvc.Http;
 import play.mvc.Result;
-import utils.*;
-
-import javax.annotation.Nonnull;
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
-import static controllers.UserApp.MAX_FETCH_USERS;
-import static controllers.UserApp.currentUser;
-import static controllers.api.UserApi.*;
-import static play.libs.Json.toJson;
+import utils.AccessControl;
+import utils.ErrorViews;
+import utils.JodaDateUtil;
+import utils.Markdown;
+import utils.RouteUtil;
 
 public class IssueApi extends AbstractPostingApp {
     public static String TRANSLATION_API = play.Configuration.root().getString("application.extras.translation.api", "");
     public static String TRANSLATION_HEADER = play.Configuration.root().getString("application.extras.translation.header", "");
     public static String TRANSLATION_SVCID = play.Configuration.root().getString("application.extras.translation.svcid", "");
+
+    @Transactional
+    public static Result imports(String owner, String projectName) {
+        Project project = Project.findByOwnerAndProjectName(owner, projectName);
+
+        try {
+            String postNumber = request().getQueryString("postNumber");
+            Long number = Optional.ofNullable(postNumber)
+                    .map(Long::parseLong)
+                    .orElseThrow(NumberFormatException::new);
+
+            Posting posting = Posting.findByNumber(project, number);
+
+
+            Issue issue = Issue.from(posting);
+            issue.save();
+
+            Map<String, String> postingCommentIdToIssueCommentIdMap = copyCommentsToIssue(posting.comments, issue);
+            copyAttachmentsToIssue(posting, issue);
+            copyAttachmentsToIssueComments(postingCommentIdToIssueCommentIdMap);
+
+            removePosting(posting);
+
+            ObjectNode json = Json.newObject();
+            json.put("number", issue.getNumber());
+
+            return ok(json);
+        } catch (NumberFormatException numberFormatException) {
+            String errorMessage = String.format("IssueApi.imports() error with NumberFormatException. owner: %s, projectName: %s - ", owner, projectName);
+            play.Logger.error(errorMessage, numberFormatException);
+        }
+
+        return badRequest();
+    }
+
+    private static void copyAttachmentsToIssue(Posting from, Issue to) {
+        List<Attachment> attachments = Attachment.findByContainer(ResourceType.BOARD_POST, String.valueOf(from.id));
+        attachments.forEach(attachment -> {
+            Attachment newAttachment = Attachment.copyAs(attachment);
+            newAttachment.containerId = String.valueOf(to.id);
+            newAttachment.containerType = ResourceType.ISSUE_POST;
+            newAttachment.save();
+            attachment.delete();
+        });
+    }
+
+    private static void copyAttachmentsToIssueComments(Map<String, String> postingCommentIdToIssueCommentIdMap) {
+        List<Attachment> attachments = postingCommentIdToIssueCommentIdMap.keySet().stream()
+                .flatMap(postingCommentId -> Attachment.findByContainer(ResourceType.NONISSUE_COMMENT, String.valueOf(postingCommentId)).stream())
+                .collect(Collectors.toList());
+
+        attachments.forEach(attachment -> {
+            String containerId = postingCommentIdToIssueCommentIdMap.get(attachment.containerId);
+
+            Attachment newAttachment = Attachment.copyAs(attachment);
+            newAttachment.containerId = containerId;
+            newAttachment.containerType = ResourceType.ISSUE_COMMENT;
+            newAttachment.save();
+            attachment.delete();
+        });
+    }
+
+    private static void removePosting(Posting posting) {
+        posting.deleteOnly();
+    }
+
+    private static Map<String, String> copyCommentsToIssue(Collection<PostingComment> postingComments, Issue issue) {
+        // 최상위 댓글
+        List<PostingComment> topLevelPostingComments = postingComments.stream()
+                .filter(postingComment -> Objects.isNull(postingComment.getParentComment()))
+                .collect(Collectors.toList());
+
+        // 대댓글
+        List<PostingComment> secondLevelPostingComments = postingComments.stream()
+                .filter(postingComment -> Objects.nonNull(postingComment.getParentComment()))
+                .collect(Collectors.toList());
+
+        // 최상위 댓글의 postingCommentId와 새로 생성될 issueCommentId의 mapping
+        // XXX: id는 Long 타입이지만, parentId는 String 타입이다.
+        Map<String, String> postingCommentIdToIssueCommentIdMap = new HashMap<>();
+
+        // 최상위 댓글을 issueComment에 생성하고, 이때 발급된 issueCommentId를 보관한다.
+        List<IssueComment> issueComments = new ArrayList<>();
+        topLevelPostingComments.forEach(topLevelPostingComment -> {
+            IssueComment issueComment = IssueComment.from(topLevelPostingComment, issue);
+            issueComment.save();
+            postingCommentIdToIssueCommentIdMap.put(String.valueOf(topLevelPostingComment.id), String.valueOf(issueComment.id));
+
+            issueComments.add(issueComment);
+        });
+
+        // 대댓글을 issueComment에 생성하고, 이때 새로 발급된 issueCommentId를 parentCommentId에 넣어준다.
+        secondLevelPostingComments.forEach(secondLevelPostingComment -> {
+            String parentCommentId = postingCommentIdToIssueCommentIdMap.get(String.valueOf(secondLevelPostingComment.getParentComment().id));
+
+            IssueComment issueComment = IssueComment.from(secondLevelPostingComment, issue);
+            issueComment.parentCommentId = parentCommentId;
+            issueComment.setParentComment(IssueComment.find.byId(Long.valueOf(parentCommentId)));
+            issueComment.save();
+
+            issueComments.add(issueComment);
+        });
+
+        return postingCommentIdToIssueCommentIdMap;
+    }
 
     @Transactional
     public static Result updateIssueLabel(String owner, String projectName, Long number) {

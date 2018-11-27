@@ -20,14 +20,21 @@
  */
 package models;
 
-import models.enumeration.ResourceType;
-import models.resource.Resource;
-
-import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+
+import models.enumeration.ResourceType;
+import models.resource.Resource;
 
 @Entity
 public class IssueComment extends Comment {
@@ -134,5 +141,31 @@ public class IssueComment extends Comment {
         if (voters.remove(user)) {
             update();
         }
+    }
+
+    public static IssueComment from(PostingComment postingComment, Issue issue) {
+        User user = new User();
+        user.id = postingComment.authorId;
+        user.loginId = postingComment.authorLoginId;
+        user.name = postingComment.authorName;
+
+        String contents = postingComment.contents;
+
+        IssueComment issueComment = new IssueComment(issue, user, contents);
+        issueComment.createdDate = postingComment.createdDate;
+        issueComment.authorId = postingComment.authorId;
+        issueComment.authorLoginId = postingComment.authorLoginId;
+        issueComment.authorName = postingComment.authorName;
+        issueComment.projectId = postingComment.projectId;
+        return issueComment;
+    }
+
+    public static List<IssueComment> from(Collection<PostingComment> postingComments, Issue issue) {
+        List<IssueComment> issueComments = new ArrayList<>();
+        for (PostingComment postingComment : postingComments) {
+            issueComments.add(IssueComment.from(postingComment, issue));
+        }
+
+        return issueComments;
     }
 }

@@ -6,40 +6,63 @@
  **/
 package models;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+import javax.persistence.UniqueConstraint;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
+import org.apache.shiro.util.CollectionUtils;
+
 import com.avaje.ebean.Ebean;
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
 import com.avaje.ebean.annotation.Formula;
-import controllers.routes;
+
 import jxl.Workbook;
 import jxl.format.Alignment;
 import jxl.format.Border;
 import jxl.format.BorderLineStyle;
 import jxl.format.Colour;
-import jxl.format.*;
+import jxl.format.ScriptStyle;
+import jxl.format.UnderlineStyle;
 import jxl.format.VerticalAlignment;
-import jxl.write.*;
+import jxl.write.DateFormat;
+import jxl.write.WritableCellFormat;
+import jxl.write.WritableFont;
+import jxl.write.WritableSheet;
+import jxl.write.WritableWorkbook;
+import jxl.write.WriteException;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
 import models.resource.Resource;
 import models.support.SearchCondition;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateUtils;
-import org.apache.shiro.util.CollectionUtils;
 import play.data.Form;
 import play.data.format.Formats;
 import play.db.ebean.Model.Finder;
 import play.i18n.Messages;
 import utils.JodaDateUtil;
-
-import javax.persistence.*;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.lang.Boolean;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.regex.Pattern;
-import java.util.regex.Pattern;
 
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"project_id", "number"}))
@@ -716,5 +739,21 @@ public class Issue extends AbstractPosting implements LabelOwner {
                 .in("id", Mention.getMentioningIssueIds(userId))
                 .eq("state", State.OPEN)
                 .findRowCount();
+    }
+
+    public static Issue from(Posting posting) {
+        Issue issue = new Issue();
+
+        issue.title = posting.title;
+        issue.body = posting.body;
+        issue.history = posting.history;
+        issue.createdDate = posting.createdDate;
+        issue.updatedDate = posting.updatedDate;
+        issue.authorId = posting.authorId;
+        issue.authorLoginId = posting.authorLoginId;
+        issue.authorName = posting.authorName;
+        issue.project = posting.project;
+
+        return issue;
     }
 }
