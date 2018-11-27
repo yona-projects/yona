@@ -602,4 +602,17 @@ public class Attachment extends Model implements ResourceConvertible {
         }
         return uploads;
     }
+
+    public static Attachment copyAs(Attachment other) {
+        Attachment attachment = new Attachment();
+        attachment.name = other.name;
+        attachment.hash = other.hash;
+        attachment.containerType = other.containerType;
+        attachment.mimeType = other.mimeType;
+        attachment.size = other.size;
+        attachment.containerId = other.containerId;
+        attachment.createdDate = other.createdDate;
+        attachment.ownerLoginId = other.ownerLoginId;
+        return attachment;
+    }
 }
