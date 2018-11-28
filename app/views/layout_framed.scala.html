@@ -40,21 +40,23 @@
 </head>
 
 <body class="@theme" id="html-body">
-    <div id="main" class="main">
-    @if(UserApp.isSiteAdminLoggedInSession){
-        <div class="admin-logged-in-affix" data-spy="affix" data-offset-top="30">@Messages("user.siteAdminLoggedInAffix") <span class="small-font">@Messages("user.siteAdminLoggedInAffix.maxim")</span></div>
-    }
-@partial_update_notification()
-@content
-@common.scripts()
+    <div id="sidebar" class="sidebar">
+    @sidebar()
+    </div>
+    <div id="mainFrame">
+        <iframe name="mainFrame" frameborder="0" scrolling="no" height="100%" width="100%" src="/user/issues"  scrolling="no" onload="resizeIframe(this)"></iframe>
+        @common.scripts()
     </div>
 
     <script type="text/javascript">
         $(function() {
             NProgress.configure({minimum: 0.7});
         });
-    </script>
-    <script type="text/javascript">
+
+        function resizeIframe(obj) {
+            obj.style.height = obj.contentWindow.document.body.scrollHeight + 'px';
+        }
+
         //Following three values are used for common/yona.Usermenu.js
         var UsermenuToggleFavoriteProjectUrl = "@api.routes.UserApi.toggleFoveriteProject("")";
         var UsermenuToggleFoveriteOrganizationUrl = "@api.routes.UserApi.toggleFoveriteOrganization("")";
@@ -62,37 +64,12 @@
         var UsermenuToggleFavoriteIssueUrl = "@api.routes.UserApi.toggleFoveriteIssue("")";
         var UsermenuGetFoveriteIssuesUrl = "@api.routes.UserApi.getFoveriteIssues()";
         var UsermenuUrl = "@routes.UserApp.usermenuTabContentList()";
-    </script>
-    <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.Usermenu.js")"></script>
-    <script src="@routes.Assets.at("javascripts/lib/magnific-popup/jquery.magnific-popup.js")"></script>
 
-    <script>
         $(function () {
-            $(".markdown-wrap").each(function () { // the containers for all your galleries
-                var that = $(this);
-                that.find("img").on("mouseover", function(){
-                    $(this).css("cursor", "pointer");
-                });
-                that.magnificPopup({
-                    delegate: 'img',
-                    type: 'image',
-                    gallery: {
-                        enabled: true
-                    },
-                    callbacks: {
-                        elementParse: function (item) {
-                            item.src = item.el.attr('src');
-                        }
-                    },
-                    image: {
-                        titleSrc: function (item) {
-                            return item.el.attr('alt');
-                        }
-                    }
-                });
-            });
+            $('[data-toggle="popover"]').popover();
         })
     </script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.Usermenu.js")"></script>
 
     @if(Application.SEND_YONA_USAGE){
     <script>
@@ -105,5 +82,6 @@
         ga('send', 'pageview');
     </script>
     }
+
 </body>
 </html>

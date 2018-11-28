@@ -10,7 +10,7 @@
 @import utils.JodaDateUtil
 @import utils.MenuType._
 
-@siteLayout(utils.Config.getSiteName, utils.MenuType.SITE_HOME) {
+@siteLayout_framed(utils.Config.getSiteName, utils.MenuType.SITE_HOME) {
     @if(currentUser == User.anonymous){
     @partial_intro()
     } else {

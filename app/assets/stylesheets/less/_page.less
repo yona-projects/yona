@@ -1,4 +1,62 @@
 //--- common
+
+.main {
+    width: 100%;
+    background-color: #fff;
+}
+
+.sidebar {
+    background-color: rgb(51, 51, 51);
+    position: sticky;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    height: 100%;
+
+    .nav {
+        width: 270px;
+    }
+
+    .nav-tabs {
+        border-bottom: none;
+
+        li {
+            margin-bottom: -2px;
+
+            a {
+                padding: 5px 10px;
+                border: none;
+                color: lightgray;
+
+                &:hover {
+                    color: #f36c22;
+                    background-color: black;
+                    border: none;
+                }
+            }
+        }
+
+        .active {
+            a {
+                color: white;
+                background-color: black;
+                border: none;
+            }
+        }
+    }
+
+    .user-menu-wrap {
+        padding: 10px;
+    }
+    .user-menu {
+        padding: 5px;
+    }
+}
+
+#mainFrame {
+    width: 100%;
+}
+
 .prj {
     color:#202020;
 }
@@ -19,7 +77,6 @@
     display:none;
 
     .unsupported-inner {
-        width: 1170px;
         margin:0 auto;
 
         p {
@@ -56,7 +113,6 @@
 }
 
 .gnb-inner {
-    width: 1170px;
     margin:0 auto;
     color:#788ba7;
     height:40px;
@@ -350,7 +406,6 @@
 
         .project-header-wrap {
             height:inherit;
-            width:1170px;
             margin:0 auto;
             position: relative;
 
@@ -479,7 +534,6 @@
 
 .page-wrap {
     background-color: @white;
-    width: 1170px;
     margin: 0 auto;
 }
 
@@ -490,7 +544,6 @@
 
     .project-menu-inner {
         height:39px;
-        width: 1170px;
         margin:0 auto;
 
         .project-menu-nav {
@@ -585,7 +638,6 @@
 }
 
 .project-page-wrap {
-    width: 1170px;
     margin:20px auto 0;
 
     label {
@@ -603,7 +655,6 @@
 
 .site-breadcrumb-outer {
     .site-breadcrumb-inner {
-        width: 1170px;
         margin:0 auto;
 
         h3 {
@@ -622,7 +673,6 @@
         margin: 0 auto;
         text-align:center;
         line-height: 34px;
-        width:1170px;
     }
 
     .provider {
@@ -905,7 +955,6 @@
     background-color:#f9f9f9;
     padding:80px 20px;
     .sample-wrap {
-        width:980px;
         margin:0 auto;
         text-align:center;
         overflow:auto;
@@ -5063,7 +5112,6 @@ label.issue-item-row {
 
 // -- site admin
 .site-setting-wrap {
-    width: 1170px;
     margin:20px auto 0;
 
     .site-setting-nav {

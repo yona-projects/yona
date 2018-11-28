@@ -49,6 +49,7 @@
   &:hover {
     background-color: @violet;
   }
+
   a:hover {
     text-decoration: none;
   }
@@ -57,6 +58,7 @@
 .user-project-list {
   ul.nav-subtab > li {
     border: none;
+    margin-left: 0;
   }
 
   li {
@@ -82,26 +84,26 @@
     list-style-type: none;
 
     .favored {
-      border-bottom: 1px dashed #7b1fa2;
+      border-bottom: 1px dashed gray;
     }
   }
 
   .user-li {
-    color: #000;
-    border-left: 1px solid #fff;
-    border-top: 1px solid #fff;
-    border-right: 1px solid #fff;
     cursor: pointer;
 
     &:hover {
-      color: #3592B5;
-      border: 1px solid #3592B5 !important;
+      background-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .popover {
+      word-wrap: break-word;
+      min-width: 200px;
     }
 
   }
 
   .etc-favorites {
-    border-top: 1px dashed #7b1fa2;
+    border-top: 1px dashed gray;
   }
 
   .user-search-form{
@@ -162,16 +164,17 @@
 
   .group {
     position:relative;
-    margin-top: 5px;
   }
 
   .search-input {
-    font-size:14px;
-    padding:10px 10px 10px 20px;
+    font-size:13px;
+    padding: 5px 10px;
     display:block;
     border:none;
-    width: 90%;
+    width: 99%;
     margin-bottom: 0;
+    background-color: black;
+    border-radius: unset;
   }
 
   .search-input:focus {
@@ -309,16 +312,19 @@
   .star {
     vertical-align: bottom;
     height: 15px;
+    font-size: 16px;
   }
+
   .starred {
     color: #e91e63;
   }
 
   .star-project, .star-org {
     width: 29px;
-    min-height: 35px;
+    min-height: 26px;
     flex-shrink: 0;
     color: #eee;
+
     &:hover {
       color: #e91e63;
     }
@@ -455,8 +461,10 @@
   }
 
   .project-item {
-    font-size: 14px;
+    font-size: 12px;
+    font-weight: 400;
     overflow: hidden;
+    color: rgba( 255, 255, 255, 0.85 );
 
     .slash {
       padding: 5px;
@@ -464,20 +472,20 @@
 
     .project-name{
       min-width: 50px;
-      max-width: 220px;
+      max-width: 130px;
       text-overflow: ellipsis;
       overflow: hidden;
       white-space: nowrap;
 
       &.org-name {
-        max-width: 320px;
+        max-width: 140px;
         font-size: 1.1em;
       }
 
       a {
         &:hover {
           text-decoration: none;
-          color: #3592B5;
+          color: white;
         }
       }
     }
@@ -488,12 +496,7 @@
 
     .all-org-names {
       font-weight: 600;
-      color: black;
       border-bottom: 1px solid transparent;
-
-      &:hover {
-        border-bottom: 1px solid #3592B5;
-      }
     }
 
     .project-owner {
@@ -505,7 +508,7 @@
       text-overflow: ellipsis;
       overflow: hidden;
       white-space: nowrap;
-      max-width: 100px;
+      max-width: 50px;
       min-width: 40px;
       a {
         &:hover {
@@ -523,7 +526,7 @@
     align-items: center;
     flex-grow: 1;
     overflow: hidden;
-    padding: 5px 0;
+    padding: 1px 0;
   }
 
   .page-list-item {
@@ -585,12 +588,13 @@
   }
 
   .list-end{
-    border-bottom: 1px dashed #7b1fa2;
+    border-bottom: 1px dashed gray;
   }
 
   .project-list, .org-list {
     &:hover {
       cursor: pointer;
+      background-color: rgba(255, 255, 255, 0.15);
     }
   }
 
@@ -785,13 +789,14 @@
   color: black;
   background-color: #eee;
   display: inline-block;
+
   a:hover {
     color: black;
   }
 }
 
 .nav-subtab li a {
-  padding: 5px 16px;
+  padding: 5px 8px;
 }
 
 /* Position and style the close button (top right corner) */
