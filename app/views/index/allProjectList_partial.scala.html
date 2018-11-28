@@ -12,7 +12,7 @@
 
 @if(AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)){
 <li class="user-li @if(isLast){favored} @if(favored){ show-always } else { hide }" data-location="@routes.ProjectApp.goConventionMenu(project.owner, project.name)">
-    <div class="project-list project-flex-container">
+    <div class="project-list project-flex-container" data-toggle='popover' data-trigger="hover" data-placement="right" data-content="@project.overview">
         <div class="project-item project-item-container">
             <div class="flex-item site-logo all-project-names">
                 <i class="project-avatar">@if(hasProjectLogo(project)){<img class="logo" src="@urlToProjectLogo(project)">}else{<span class="dummy-25px"> </span>}</i>

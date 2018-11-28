@@ -1,14 +1,5 @@
 $(function() {
-    if($(".gnb-usermenu-dropdown").length !== 0) {
-        $.get(UsermenuUrl)
-            .done(function (data) {
-                $("#usermenu-tab-content-list").html(data);
-                afterUsermenuLoaded();
-            })
-            .fail(function (data) {
-                console.log("Usermenu loading failed: " + data);
-            });
-    }
+    afterUsermenuLoaded();
 
     function afterUsermenuLoaded(){
         /* Set side navigation */
@@ -177,7 +168,7 @@ $(function() {
             if(e.metaKey || e.ctrlKey || e.shiftKey) {
                 window.location = location;
             } else {
-                window.open(location, '_blank');
+                window.open(location, 'mainFrame');
             }
         });
 
