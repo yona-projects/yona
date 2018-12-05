@@ -28,8 +28,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -73,6 +73,8 @@ import play.i18n.Messages;
 import play.libs.F;
 import play.libs.Json;
 import play.libs.ws.WS;
+import play.libs.ws.WSRequestHolder;
+import play.libs.ws.WSResponse;
 import play.mvc.Http;
 import play.mvc.Result;
 import utils.AccessControl;
@@ -83,8 +85,10 @@ import utils.RouteUtil;
 
 public class IssueApi extends AbstractPostingApp {
     public static String TRANSLATION_API = play.Configuration.root().getString("application.extras.translation.api", "");
-    public static String TRANSLATION_HEADER = play.Configuration.root().getString("application.extras.translation.header", "");
-    public static String TRANSLATION_SVCID = play.Configuration.root().getString("application.extras.translation.svcid", "");
+    public static String TRANSLATION_HEADER_KEY = play.Configuration.root().getString("application.extras.translation.headerKey", "");
+    public static String TRANSLATION_HEADER_VALUE = play.Configuration.root().getString("application.extras.translation.headerValue", "");
+    public static final int TRANSLATE_TEXT_LENGTH_LIMIT = 4800;
+    public static final String NEWLINE = "\r\n";
 
     @Transactional
     public static Result imports(String owner, String projectName) {
@@ -930,7 +934,6 @@ public class IssueApi extends AbstractPostingApp {
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     public static F.Promise<Result> translate() {
-        ObjectNode result = Json.newObject();
         if(StringUtils.isBlank(TRANSLATION_API)) {
             return F.Promise.promise( () -> status(412, "Precondition Failed"));
         }
@@ -949,11 +952,11 @@ public class IssueApi extends AbstractPostingApp {
         switch (type) {
             case "issue":
                 Issue issue = Issue.findByNumber(project, number);
-                text = "Title: " + issue.title + "\n\n" + issue.body;
+                text = "Title: " + issue.title + NEWLINE + NEWLINE + issue.body;
                 break;
             case "posting":
                 Posting posting = Posting.findByNumber(project, number);
-                text = "Title: " + posting.title + "\n\n" + posting.body;
+                text = "Title: " + posting.title + NEWLINE + NEWLINE + posting.body;
                 break;
             case "issue-comment":
                 text = IssueComment.find.byId(number).contents;
@@ -965,27 +968,76 @@ public class IssueApi extends AbstractPostingApp {
                 break;
         }
 
-        return getTranslation(text, project);
+        return getTranslation(text, project, translatorWsRequestHolderSupplier);
     }
 
-    private static F.Promise<Result> getTranslation(String text, Project project) {
+    private static F.Promise<WSResponse> translate(String text, WSRequestHolder translator) {
+        if (StringUtils.isBlank(text)) {
+            return F.Promise.pure(null);
+        } else {
+            return translator.post("source=ko&target=en&text=" + text);
+        }
+    }
 
-        return WS.url(TRANSLATION_API)
-                .setContentType("application/x-www-form-urlencoded")
-                .setHeader("Accept", "application/json,application/x-www-form-urlencoded,text/html,*/*")
-                .setHeader(TRANSLATION_HEADER, TRANSLATION_SVCID)
-                .post("source=ko&target=en&text=" + text)
-                .map(response -> {
+    private static Supplier<WSRequestHolder> translatorWsRequestHolderSupplier = () -> WS.url(TRANSLATION_API)
+            .setContentType("application/x-www-form-urlencoded; charset=UTF-8")
+            .setHeader("Accept", "application/json,application/x-www-form-urlencoded,text/html,*/*")
+            .setHeader(TRANSLATION_HEADER_KEY, TRANSLATION_HEADER_VALUE);
+
+    private static List<String> merge(List<String> texts) {
+
+
+        List<String> results = new ArrayList<>();
+
+        int chunkLength = 0;
+        String chunk = "";
+        for (int i  = 0 ; i < texts.size(); i += 1) {
+            String text = texts.get(i);
+            if (chunkLength + text.length() < TRANSLATE_TEXT_LENGTH_LIMIT) {
+                chunk += text;
+                chunk += NEWLINE;
+                chunkLength += text.length();
+            } else {
+                results.add(chunk);
+                chunk = "";
+                chunkLength = 0;
+            }
+        }
+        results.add(chunk);
+        return results;
+    }
+
+    private static F.Promise<Result> getTranslations(List<String> texts, Project project, Supplier<WSRequestHolder> translatorSupplier) {
+        WSRequestHolder translator = translatorSupplier.get();
+
+        List<String> mergedTexts = merge(texts);
+
+        List<F.Promise<WSResponse>> promises = mergedTexts.stream()
+                .map(text -> translate(text, translator))
+                .collect(Collectors.toList());
+
+        return F.Promise.sequence(promises)
+                .map(results -> results.stream()
+                        .map(jsonNode -> {
+                            if (jsonNode == null) {
+                                return NEWLINE;
+                            }
+                            JsonNode resultNode = jsonNode.asJson().findPath("result");
+                            JsonNode translatedTextNode = resultNode.findPath("translatedText");
+                            return translatedTextNode.textValue();
+                        })
+                        .collect(Collectors.toList()))
+                .map(translatedList -> {
+                    String translated = String.join(NEWLINE, translatedList);
                     ObjectNode node = Json.newObject();
-
-                    play.Logger.debug(response.getBody());
-                    JsonNode jsonNode = response.asJson();
-                    JsonNode resultNode = jsonNode.findValue("result");
-
-                    String translated = resultNode.findValue("translatedText").asText();
                     node.put("translated", Markdown.render(translated, project));
                     return ok(node);
                 });
+    }
+
+    private static F.Promise<Result> getTranslation(String text, Project project, Supplier<WSRequestHolder> by) {
+        List<String> texts = Arrays.asList(text.replaceAll("&", "%26").split(NEWLINE));
+        return getTranslations(texts, project, by);
     }
 
     @AnonymousCheck
