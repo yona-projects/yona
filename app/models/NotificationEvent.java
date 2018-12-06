@@ -875,9 +875,11 @@ public class NotificationEvent extends Model implements INotificationEvent {
         return receivers;
     }
 
-    public static void afterNewIssue(Issue issue) {
-        NotificationEvent.add(forNewIssue(issue, UserApp.currentUser()));
+    public static NotificationEvent afterNewIssue(Issue issue) {
+        NotificationEvent notiEvent = forNewIssue(issue, UserApp.currentUser());
+        NotificationEvent.add(notiEvent);
         webhookRequest(NEW_ISSUE, issue, false);
+        return notiEvent;
     }
 
     public static NotificationEvent forNewIssue(Issue issue, User author) {
