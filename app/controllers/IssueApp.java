@@ -665,11 +665,16 @@ public class IssueApp extends AbstractPostingApp {
         }
     }
 
-    private static void addIssueMovedNotification(Project previous, Issue issue) {
-        if (isRequestedToOtherProject(previous, issue.project)) {
-            NotificationEvent notiEvent = NotificationEvent.afterIssueMoved(previous, issue);
-            IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
+    private static void addIssueMovedNotification(Project previous, Issue originalIssue, Issue issue) {
+        if (isRequestedToOtherProject(previous, originalIssue.project)) {
+            NotificationEvent notiEvent = NotificationEvent.afterIssueMoved(previous, originalIssue);
+            IssueEvent.addFromNotificationEvent(notiEvent, originalIssue, UserApp.currentUser().loginId);
+
+            play.Logger.debug("addIssueMovedNotification - afterIssueMoved receivers: " + notiEvent.receivers);
         }
+        NotificationEvent notiEvent = NotificationEvent.afterNewIssue(issue);
+
+        play.Logger.debug("addIssueMovedNotification - afterNewIssue receivers: " + notiEvent.receivers);
     }
 
     @With(NullProjectCheckAction.class)
@@ -739,7 +744,7 @@ public class IssueApp extends AbstractPostingApp {
                     if(isFromMyOwnPrivateProject(previous)){
                         issue.history = "";
                     } else {
-                        addIssueMovedNotification(previous, issue);
+                        addIssueMovedNotification(previous, originalIssue, issue);
                     }
                 } else {
                     addLabels(issue, request());
