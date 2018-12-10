@@ -87,7 +87,7 @@ public class IssueApi extends AbstractPostingApp {
     public static String TRANSLATION_API = play.Configuration.root().getString("application.extras.translation.api", "");
     public static String TRANSLATION_HEADER_KEY = play.Configuration.root().getString("application.extras.translation.headerKey", "");
     public static String TRANSLATION_HEADER_VALUE = play.Configuration.root().getString("application.extras.translation.headerValue", "");
-    public static final int TRANSLATE_TEXT_LENGTH_LIMIT = 4800;
+    public static final int TRANSLATE_TEXT_LENGTH_LIMIT = 4500;
     public static final String NEWLINE = "\r\n";
 
     @Transactional
@@ -986,7 +986,6 @@ public class IssueApi extends AbstractPostingApp {
 
     private static List<String> merge(List<String> texts) {
 
-
         List<String> results = new ArrayList<>();
 
         int chunkLength = 0;
@@ -999,8 +998,9 @@ public class IssueApi extends AbstractPostingApp {
                 chunkLength += text.length();
             } else {
                 results.add(chunk);
-                chunk = "";
-                chunkLength = 0;
+                chunk = text;
+                chunk += NEWLINE;
+                chunkLength = text.length();
             }
         }
         results.add(chunk);
