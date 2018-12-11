@@ -100,6 +100,9 @@
                     window.location.href = "@routes.Application.index?path=" + window.location.pathname;
                 } else {
                     window.parent.$(".sidebar").toggle();
+                    if(window.parent.$(".sidebar").text().trim().length < 1) {
+                        window.parent.location.reload();
+                    }
                 }
             });
         })

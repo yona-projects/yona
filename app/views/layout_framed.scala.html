@@ -9,9 +9,18 @@
 @currentUser = @{
     UserApp.currentUser()
 }
-    @iframePath = @{
-        request.getQueryString("path").getOrElse(UserSetting.findByUser(currentUser.id).loginDefaultPage)
+
+@defaultPage = @{
+    if(UserSetting.findByUser(currentUser.id).loginDefaultPage == null) {
+        routes.Application.notifications().toString
+    } else {
+        UserSetting.findByUser(currentUser.id).loginDefaultPage
     }
+}
+
+@iframePath = @{
+    request.getQueryString("path").getOrElse(defaultPage)
+}
 
 <!DOCTYPE html>
 <html lang="@UserApp.currentUser().getPreferredLanguage">
@@ -44,7 +53,9 @@
 
 <body class="@theme" id="html-body">
     <div id="sidebar" class="sidebar">
-    @sidebar()
+        @if(!currentUser.isAnonymous){
+            @sidebar()
+        }
     </div>
     <div id="mainFrame">
         <iframe name="mainFrame" frameborder="0" scrolling="no" height="100%" width="100%" src="@iframePath"  scrolling="no" onload="resizeIframe(this)"></iframe>
