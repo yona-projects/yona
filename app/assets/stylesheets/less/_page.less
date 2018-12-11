@@ -47,7 +47,16 @@
 
     .user-menu-wrap {
         padding: 10px;
+        color: grey;
+        box-sizing: border-box;
+
+        a {
+            &:hover {
+                color: white;
+            }
+        }
     }
+
     .user-menu {
         padding: 5px;
     }
@@ -112,10 +121,19 @@
     }
 }
 
+.pin {
+    position: fixed;
+    display: inline-block;
+    left: -2px;
+    top: 9px;
+    border: 1px solid #666;
+}
+
 .gnb-inner {
     margin:0 auto;
     color:#788ba7;
     height:40px;
+    width: 99%;
 }
 
 .gnb-inner {
@@ -407,6 +425,7 @@
         .project-header-wrap {
             height:inherit;
             margin:0 auto;
+            width: 99%;
             position: relative;
 
             .project-header-avatar {

@@ -4,11 +4,14 @@
 * Copyright Yona & Yobi Authors & NAVER Corp.
 * https://yona.io
 **@
-@(title: String)(theme:String)(content: Html)
+@(title: String)(theme:String)(content: Html)(implicit request: RequestHeader)
 @titleArray = @{title.split(" \\|:\\| ")}
 @currentUser = @{
     UserApp.currentUser()
 }
+    @iframePath = @{
+        request.getQueryString("path").getOrElse(UserSetting.findByUser(currentUser.id).loginDefaultPage)
+    }
 
 <!DOCTYPE html>
 <html lang="@UserApp.currentUser().getPreferredLanguage">
@@ -44,17 +47,20 @@
     @sidebar()
     </div>
     <div id="mainFrame">
-        <iframe name="mainFrame" frameborder="0" scrolling="no" height="100%" width="100%" src="/user/issues"  scrolling="no" onload="resizeIframe(this)"></iframe>
+        <iframe name="mainFrame" frameborder="0" scrolling="no" height="100%" width="100%" src="@iframePath"  scrolling="no" onload="resizeIframe(this)"></iframe>
         @common.scripts()
     </div>
 
     <script type="text/javascript">
         $(function() {
             NProgress.configure({minimum: 0.7});
+
+            $('[data-toggle="popover"]').popover();
         });
 
         function resizeIframe(obj) {
             obj.style.height = obj.contentWindow.document.body.scrollHeight + 'px';
+            window.scrollTo(0, 0);
         }
 
         //Following three values are used for common/yona.Usermenu.js
@@ -65,9 +71,6 @@
         var UsermenuGetFoveriteIssuesUrl = "@api.routes.UserApi.getFoveriteIssues()";
         var UsermenuUrl = "@routes.UserApp.usermenuTabContentList()";
 
-        $(function () {
-            $('[data-toggle="popover"]').popover();
-        })
     </script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.Usermenu.js")"></script>
 
