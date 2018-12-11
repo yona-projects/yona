@@ -62,7 +62,6 @@
   }
 
   li {
-    border-bottom: 1px solid transparent;
     margin-left: 0;
   }
 
@@ -94,12 +93,12 @@
     .popover {
       word-wrap: break-word;
       min-width: 200px;
-      background-color: black;
+      background-color: rgb(3, 169, 244);
       color: white;
 
       .arrow {
         &::after {
-          border-right-color: black;
+          border-right-color: rgb(3, 169, 244);
         }
       }
     }
@@ -172,12 +171,13 @@
 
   .search-input {
     font-size:13px;
-    padding: 5px 10px;
+    padding: 8px 10px;
     display:block;
     border:none;
     width: 99%;
     margin-bottom: 0;
     background-color: black;
+    color: white;
     border-radius: unset;
   }
 
@@ -207,7 +207,7 @@
     width:0;
     bottom:1px;
     position:absolute;
-    background: #1976d2;
+    background: white;
     transition:0.2s ease all;
   }
   .bar:before {
@@ -324,7 +324,7 @@
 
   .star-project, .star-org {
     width: 29px;
-    min-height: 26px;
+    min-height: 24px;
     flex-shrink: 0;
 
     &:hover {
@@ -458,7 +458,7 @@
   }
 
   .project-item {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 400;
     overflow: hidden;
     color: rgba( 255, 255, 255, 0.85 );
@@ -469,14 +469,17 @@
 
     .project-name{
       min-width: 50px;
-      max-width: 130px;
+      max-width: 150px;
       text-overflow: ellipsis;
       overflow: hidden;
       white-space: nowrap;
+      font-family: roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
 
       &.org-name {
         max-width: 140px;
-        font-size: 1.1em;
+        font-size: 13px;
+        color: #00bcd4;
       }
 
       a {
@@ -488,12 +491,14 @@
     }
 
     .all-project-names {
-      padding-left: 30px;
+      padding-left: 22px;
     }
 
     .all-org-names {
-      font-weight: 600;
-      border-bottom: 1px solid transparent;
+      font-weight: 700;
+      color: white;
+      font-family: Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
     }
 
     .project-owner {
@@ -586,6 +591,10 @@
 
   .list-end{
     border-bottom: 1px dashed gray;
+  }
+
+  .org-li {
+    margin-top: 3px;
   }
 
   .project-list, .org-list {
