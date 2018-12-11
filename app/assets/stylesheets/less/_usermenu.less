@@ -91,10 +91,6 @@
   .user-li {
     cursor: pointer;
 
-    &:hover {
-      background-color: rgba(255, 255, 255, 0.15);
-    }
-
     .popover {
       word-wrap: break-word;
       min-width: 200px;
@@ -211,7 +207,7 @@
     width:0;
     bottom:1px;
     position:absolute;
-    background: @orange;
+    background: #1976d2;
     transition:0.2s ease all;
   }
   .bar:before {
@@ -323,14 +319,13 @@
   }
 
   .starred {
-    color: #e91e63;
+    color: rgba(255, 255, 255, 0.85);
   }
 
   .star-project, .star-org {
     width: 29px;
     min-height: 26px;
     flex-shrink: 0;
-    color: #eee;
 
     &:hover {
       color: #e91e63;
@@ -368,13 +363,7 @@
   }
 
   .selected {
-    border-radius: 5px;
-    background-color: #9C27B0;
-    color: #fafafa;
-    padding: 3px 7px;
-    margin-right: 5px;
-    line-height: 25px;
-    z-index: 999;
+    background-color: rgba(255, 255, 255, 0.15);
   }
 
   .additional-help{
@@ -403,18 +392,19 @@
   }
 
   .site-logo {
-    width: 45px;
+    width: 26px;
     text-align: center;
     margin-left: 2px;
-    margin-right: -2px;
     padding-top: 3px;
     overflow: hidden;
     flex-shrink: 0;
+
     img {
-      width: 24px;
+      width: 16px;
       border-radius: 3px;
-      margin-right: 3px;
+      margin-right: 0;
       height: auto;
+      vertical-align: text-top;
     }
   }
 
