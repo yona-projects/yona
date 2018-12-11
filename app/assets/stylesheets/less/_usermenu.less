@@ -98,6 +98,14 @@
     .popover {
       word-wrap: break-word;
       min-width: 200px;
+      background-color: black;
+      color: white;
+
+      .arrow {
+        &::after {
+          border-right-color: black;
+        }
+      }
     }
 
   }
@@ -227,7 +235,6 @@
   ::-webkit-scrollbar-thumb {
     background: #1fb0ff;
   }
-
 
   li:focus {
     outline:solid 0 #DCDCDC;

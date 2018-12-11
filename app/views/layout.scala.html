@@ -91,7 +91,19 @@
                     }
                 });
             });
+
+            window.parent.document.title = window.document.title;
+            window.parent.history.pushState('', window.document.title, window.location.href);
+
+            $(".pin").on("click", function () {
+                if (window.parent === window) {
+                    window.location.href = "@routes.Application.index?path=" + window.location.pathname;
+                } else {
+                    window.parent.$(".sidebar").toggle();
+                }
+            });
         })
+
     </script>
 
     @if(Application.SEND_YONA_USAGE){
