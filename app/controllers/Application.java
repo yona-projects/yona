@@ -43,11 +43,6 @@ public class Application extends Controller {
 
     @AnonymousCheck
     public static Result index() {
-        User user = UserApp.currentUser();
-        UserSetting userSetting = UserSetting.findByUser(user.id);
-        if(!user.isAnonymous() && StringUtils.isNotBlank(userSetting.loginDefaultPage)) {
-            return redirect(userSetting.loginDefaultPage);
-        }
         return ok(index.render(UserApp.currentUser()));
     }
 

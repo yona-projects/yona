@@ -1,13 +1,25 @@
 @**
-* Yona, 21c Project Hosting SW
+* Yona, 21st Century Project Hosting SW
 *
-* Copyright Yona & Yobi Authors & NAVER Corp.
+* Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
 * https://yona.io
 **@
-@(title: String)(theme:String)(content: Html)
+@(title: String)(theme:String)(content: Html)(implicit request: RequestHeader)
 @titleArray = @{title.split(" \\|:\\| ")}
 @currentUser = @{
     UserApp.currentUser()
+}
+
+@defaultPage = @{
+    if(UserSetting.findByUser(currentUser.id).loginDefaultPage == null) {
+        routes.Application.notifications().toString
+    } else {
+        UserSetting.findByUser(currentUser.id).loginDefaultPage
+    }
+}
+
+@iframePath = @{
+    request.getQueryString("path").getOrElse(defaultPage)
 }
 
 <!DOCTYPE html>
@@ -40,21 +52,28 @@
 </head>
 
 <body class="@theme" id="html-body">
-    <div id="main" class="main">
-    @if(UserApp.isSiteAdminLoggedInSession){
-        <div class="admin-logged-in-affix" data-spy="affix" data-offset-top="30">@Messages("user.siteAdminLoggedInAffix") <span class="small-font">@Messages("user.siteAdminLoggedInAffix.maxim")</span></div>
-    }
-@partial_update_notification()
-@content
-@common.scripts()
+    <div id="sidebar" class="sidebar">
+        @if(!currentUser.isAnonymous){
+            @sidebar()
+        }
+    </div>
+    <div id="mainFrame">
+        <iframe name="mainFrame" frameborder="0" scrolling="no" height="100%" width="100%" src="@iframePath"  scrolling="no" onload="resizeIframe(this)"></iframe>
+        @common.scripts()
     </div>
 
     <script type="text/javascript">
         $(function() {
             NProgress.configure({minimum: 0.7});
+
+            $('[data-toggle="popover"]').popover();
         });
-    </script>
-    <script type="text/javascript">
+
+        function resizeIframe(obj) {
+            obj.style.height = obj.contentWindow.document.body.scrollHeight + 'px';
+            window.scrollTo(0, 0);
+        }
+
         //Following three values are used for common/yona.Usermenu.js
         var UsermenuToggleFavoriteProjectUrl = "@api.routes.UserApi.toggleFoveriteProject("")";
         var UsermenuToggleFoveriteOrganizationUrl = "@api.routes.UserApi.toggleFoveriteOrganization("")";
@@ -62,52 +81,9 @@
         var UsermenuToggleFavoriteIssueUrl = "@api.routes.UserApi.toggleFoveriteIssue("")";
         var UsermenuGetFoveriteIssuesUrl = "@api.routes.UserApi.getFoveriteIssues()";
         var UsermenuUrl = "@routes.UserApp.usermenuTabContentList()";
+
     </script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.Usermenu.js")"></script>
-    <script src="@routes.Assets.at("javascripts/lib/magnific-popup/jquery.magnific-popup.js")"></script>
-
-    <script>
-        $(function () {
-            $(".markdown-wrap").each(function () { // the containers for all your galleries
-                var that = $(this);
-                that.find("img").on("mouseover", function(){
-                    $(this).css("cursor", "pointer");
-                });
-                that.magnificPopup({
-                    delegate: 'img',
-                    type: 'image',
-                    gallery: {
-                        enabled: true
-                    },
-                    callbacks: {
-                        elementParse: function (item) {
-                            item.src = item.el.attr('src');
-                        }
-                    },
-                    image: {
-                        titleSrc: function (item) {
-                            return item.el.attr('alt');
-                        }
-                    }
-                });
-            });
-
-            window.parent.document.title = window.document.title;
-            window.parent.history.pushState('', window.document.title, window.location.href);
-
-            $(".pin").on("click", function () {
-                if (window.parent === window) {
-                    window.location.href = "@routes.Application.index?path=" + window.location.pathname;
-                } else {
-                    window.parent.$(".sidebar").toggle();
-                    if(window.parent.$(".sidebar").text().trim().length < 1) {
-                        window.parent.location.reload();
-                    }
-                }
-            });
-        })
-
-    </script>
 
     @if(Application.SEND_YONA_USAGE){
     <script>
@@ -120,5 +96,6 @@
         ga('send', 'pageview');
     </script>
     }
+
 </body>
 </html>

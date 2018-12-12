@@ -16,10 +16,10 @@
     <div class="org-list project-flex-container all-orgs">
         <div class="project-item project-item-container">
             <div class="flex-item site-logo">
-                <i class="project-avatar">@if(hasOrganizationLogo(organization)){<img class="logo" src="@urlToOrganizationLogo(organization)">}else{<span class="dummy-25px"> </span>}</i>
+                <i class="yobicon-angle-right"></i>
             </div>
             <div class="projectName-owner all-org-names flex-item">
-                <div class="project-name org-name flex-item"><a href="@routes.OrganizationApp.organization(organization.name)" target="_blank">@organization.name</a></div>
+                <div class="project-name org-name flex-item">@organization.name</div>
                 <div class="project-owner flex-item">@if(isAllowShowCount){@organization.projects.size()}</div>
             </div>
         </div>

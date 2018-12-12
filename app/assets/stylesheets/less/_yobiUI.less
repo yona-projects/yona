@@ -6,7 +6,11 @@
  * (bootstrap 2.3.1 : 14px,
  *  bootstrap 2.2.1 : 12px)
  */
-body { font-size:13px; }
+body {
+    font-size:13px;
+    display: flex;
+    min-height: 99vh;
+}
 label, input, button, select, textarea { font-size:12px; }
 select, textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"],
 input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"],
@@ -528,7 +532,7 @@ span.issue-label {
 .nav-subtab {
     li {
         display: inline-block;
-        margin-left:10px;
+        margin-left: 5px;
         
         &:first-child {
             margin-left:0;
@@ -536,7 +540,7 @@ span.issue-label {
 
         a {
             display: block;
-            padding: 5px 10px;
+            padding: 5px 8px;
 
             &:hover {
                 text-decoration: none;
