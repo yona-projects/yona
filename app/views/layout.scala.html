@@ -93,7 +93,7 @@
             });
 
             window.parent.document.title = window.document.title;
-            window.parent.history.pushState('', window.document.title, window.location.href);
+            window.parent.history.replaceState('', window.document.title, window.location.href);
 
             $(".pin").on("click", function () {
                 if (window.parent === window) {
