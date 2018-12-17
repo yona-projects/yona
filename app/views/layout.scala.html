@@ -100,13 +100,20 @@
                     window.location.href = "@routes.Application.index?path=" + window.location.pathname;
                 } else {
                     window.parent.$(".sidebar").toggle();
+                    var btn = $("div.pin > i.yobicon-arrow-right").removeClass("yobicon-arrow-right").addClass("yobicon-arrow-left");
+                    if (btn.length < 1) {
+                        $("div.pin > i.yobicon-arrow-left").removeClass("yobicon-arrow-left").addClass("yobicon-arrow-right");
+                    }
                     if(window.parent.$(".sidebar").text().trim().length < 1) {
                         window.parent.location.reload();
                     }
                 }
             });
-        })
 
+            if ($("div#sidebar.sidebar", window.parent.document).css("display") === "block") {
+                $("div.pin > i.yobicon-arrow-right").removeClass("yobicon-arrow-right").addClass("yobicon-arrow-left");
+            }
+        });
     </script>
 
     @if(Application.SEND_YONA_USAGE){
