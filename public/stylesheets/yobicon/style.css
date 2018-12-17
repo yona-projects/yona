@@ -180,10 +180,10 @@
     content: "\e02f";
 }
 .yobicon-arrow-left:before {
-    content: "\e030";
+    content: "\e031";
 }
 .yobicon-arrow-right:before {
-    content: "\e031";
+    content: "\e030";
 }
 .yobicon-arrow-up:before {
     content: "\e032";

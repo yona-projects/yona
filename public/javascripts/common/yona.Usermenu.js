@@ -28,22 +28,12 @@ $(function() {
             }
         });
 
-        $("#sidebar-open-btn").on("click", function (event) {
-            event.stopPropagation();
-            if( $sidebar.width() !== 0){
-                closeSidebar($sidebar);
-            } else {
-                openSidebar($sidebar);
-                updateStar();
-            }
-        });
-
         function closeSidebar($sidebar) {
             $sidebar.width("0").css("border", "none");
             $(".main-stream").removeClass("span8").addClass("span12");
         }
 
-        function openSidebar($sidebar){
+        function openSidebar($sidebar) {
             // 720px is a criteria to distinguish small devices
             if (viewSize > PIXEL_CRITERIA_FOR_SMALL_DEVICE) {
                 $sidebar.width(SIDE_BAR_DEFAULT_WIDTH).css("border", "1px solid #ccc");
