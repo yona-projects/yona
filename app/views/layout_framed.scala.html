@@ -58,7 +58,7 @@
         }
     </div>
     <div id="mainFrame">
-        <iframe name="mainFrame" frameborder="0" scrolling="no" height="100%" width="100%" src="@iframePath"  scrolling="no" onload="resizeIframe(this)"></iframe>
+        <iframe name="mainFrame" frameborder="0" class="mainFrame" scrolling="no" height="100%" width="100%" src="@iframePath"  scrolling="no" onload="resizeIframe(this)"></iframe>
         @common.scripts()
     </div>
 
@@ -70,8 +70,18 @@
         });
 
         function resizeIframe(obj) {
-            obj.style.height = obj.contentWindow.document.body.scrollHeight + 'px';
-            window.scrollTo(0, 0);
+            $('#mainFrame').addClass("loading-gif");
+
+            setTimeout(function () {
+                // for smoothing iframe loading effects
+                $('#mainFrame').removeClass("loading-gif");
+                $('.mainFrame').show();
+
+                obj.style.height = '100vh'; // Before calculate new content height, reduce it to 100vh.
+                                            // It prevents unintended long height
+                obj.style.height = obj.contentWindow.document.body.scrollHeight + 'px';
+                window.scrollTo(0, 0);
+            }, 0);
         }
 
         //Following three values are used for common/yona.Usermenu.js
