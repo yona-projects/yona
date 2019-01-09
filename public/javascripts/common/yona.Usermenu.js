@@ -133,6 +133,11 @@ $(function() {
         $(".user-ul > .user-li, .project-ul > .user-li").on("click", function (e) {
             e.preventDefault();
             e.stopPropagation();
+
+            // for smoothly loading effect
+            $('.mainFrame').hide();
+            $('#mainFrame').addClass("loading-gif");
+
             var location = $(this).data('location');
             if(e.metaKey || e.ctrlKey || e.shiftKey) {
                 window.location = location;
