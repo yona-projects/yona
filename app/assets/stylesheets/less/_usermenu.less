@@ -89,6 +89,8 @@
 
   .user-li {
     cursor: pointer;
+    line-height: normal;
+    font-size: 0;
 
     .popover {
       word-wrap: break-word;
@@ -458,7 +460,7 @@
   }
 
   .project-item {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 400;
     overflow: hidden;
     color: rgba( 255, 255, 255, 0.85 );
@@ -478,7 +480,7 @@
 
       &.org-name {
         max-width: 140px;
-        font-size: 13px;
+        font-size: 14px;
         color: #00bcd4;
       }
 
@@ -595,9 +597,21 @@
 
   .org-li {
     margin-top: 3px;
+    margin-bottom: 8px;
   }
 
-  .project-list, .org-list {
+  .project-list {
+    padding: 1px 0;
+
+    &:hover {
+      cursor: pointer;
+      background-color: rgba(255, 255, 255, 0.15);
+    }
+  }
+
+  .org-list {
+    padding: 1px 0;
+
     &:hover {
       cursor: pointer;
       background-color: rgba(255, 255, 255, 0.15);
