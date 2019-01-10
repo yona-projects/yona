@@ -41,6 +41,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -916,6 +917,21 @@ public class NotificationEvent extends Model implements INotificationEvent {
         notiEvent.eventType = EventType.ISSUE_BODY_CHANGED;
         notiEvent.oldValue = oldBody;
         notiEvent.newValue = issue.body;
+
+        NotificationEvent.add(notiEvent);
+
+        return notiEvent;
+    }
+
+    public static NotificationEvent afterIssueMoved(Project previous, Issue issue, Supplier<Set<User>> getReceivers) {
+        webhookRequest(ISSUE_MOVED, issue, previous, false);
+
+        NotificationEvent notiEvent = createFromCurrentUser(issue);
+        notiEvent.title = formatReplyTitle(issue);
+        notiEvent.receivers = getReceivers.get();
+        notiEvent.eventType = ISSUE_MOVED;
+        notiEvent.oldValue = previous != null ? previous.owner + "/" + previous.name : null;
+        notiEvent.newValue = issue.project.owner + "/" + issue.project.name;
 
         NotificationEvent.add(notiEvent);
 
