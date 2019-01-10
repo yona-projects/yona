@@ -938,21 +938,6 @@ public class NotificationEvent extends Model implements INotificationEvent {
         return notiEvent;
     }
 
-    public static NotificationEvent afterIssueMoved(Project previous, Issue issue) {
-        webhookRequest(ISSUE_MOVED, issue, previous, false);
-
-        NotificationEvent notiEvent = createFromCurrentUser(issue);
-        notiEvent.title = formatReplyTitle(issue);
-        notiEvent.receivers = getReceivers(issue);
-        notiEvent.eventType = ISSUE_MOVED;
-        notiEvent.oldValue = previous != null ? previous.owner + "/" + previous.name : null;
-        notiEvent.newValue = issue.project.owner + "/" + issue.project.name;
-
-        NotificationEvent.add(notiEvent);
-
-        return notiEvent;
-    }
-
     public static NotificationEvent afterIssueSharerChanged(Issue issue, String sharerLoginId, String action) {
         NotificationEvent notiEvent = createFromCurrentUser(issue);
         notiEvent.title = formatReplyTitle(issue);

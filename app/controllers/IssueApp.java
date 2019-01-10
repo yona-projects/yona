@@ -703,8 +703,6 @@ public class IssueApp extends AbstractPostingApp {
         setMilestone(issueForm, issue);
         issue.dueDate = JodaDateUtil.lastSecondOfDay(issue.dueDate);
 
-
-
         Issue originalIssue = Issue.findByNumber(project, number);
         Set<User> fromWatchers = originalIssue.getWatchers();
 
