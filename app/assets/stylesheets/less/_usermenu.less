@@ -81,6 +81,21 @@
     margin: 10px 0;
     padding: 0;
     list-style-type: none;
+    overflow-x: visible;
+    overflow-y: auto;
+    height: 100vh;
+
+    -ms-overflow-style: -ms-autohiding-scrollbar;
+
+    &::-webkit-scrollbar {
+      height: 10px;
+      width: 7px;
+      background: lightgray;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #2788ba;
+    }
 
     .favored {
       border-bottom: 1px dashed gray;
@@ -97,6 +112,7 @@
       min-width: 200px;
       background-color: rgb(3, 169, 244);
       color: white;
+      font-size: 13px;
 
       .arrow {
         &::after {

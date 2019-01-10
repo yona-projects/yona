@@ -45,16 +45,16 @@
                     @myOrganizationList_partial(organization, false)
                 }
             }
-        </ul>
-        @defining(currentUser.favoriteProjects){ favoriteProjects =>
-            <ul class="etc-favorites user-ul">
+            <ul class="etc-favorites">
+            </ul>
+            @defining(currentUser.favoriteProjects){ favoriteProjects =>
                 @for(favoriteProject <- favoriteProjects){
                     @if(!favoriteProject.project.hasGroup && !favoriteProject.owner.equals(currentUser.loginId)) {
                         @myProjectList_partial(favoriteProject.project, true)
                     }
                 }
-            </ul>
-        }
+            }
+        </ul>
     }
 }
 
