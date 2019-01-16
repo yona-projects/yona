@@ -37,6 +37,44 @@
     }
 }
 
+<div id="mySidenav" class="sidenav">
+    <div class="span5 right-menu span-hard-wrap">
+        <div class="row-fluid user-menu-wrap">
+            <span class="user-menu"><a href="@routes.UserApp.userInfo(currentUser.loginId)">@Messages("userinfo.profile")</a></span>
+            <span class="user-menu"><a href="@routes.UserApp.editUserInfoForm()">@Messages("userinfo.accountSetting")</a></span>
+            @currentAuth() { auth =>
+                @if(auth != null) {
+                    <a href="@routes.Application.oAuthLogout"><span class="user-menu logout label">@Messages("title.logout")</span></a>
+                } else {
+                    <a href="@routes.UserApp.logout()"><span class="user-menu logout label">@Messages("title.logout")</span></a>
+                }
+            }
+        </div>
+        <ul class="nav nav-tabs nm">
+            <li class="myOrganizationList active">
+                <a href="#myOrganizationList" data-toggle="tab">
+                @Messages("title.favorite")
+                </a>
+            </li>
+            <li class="myProjectList">
+                <a href="#myProjectList" data-toggle="tab">
+                @Messages("title.project")
+                </a>
+            </li>
+            <li class="allProjectList">
+                <a href="#allProjectList" data-toggle="tab">
+                @Messages("common.order.all")
+                </a>
+            </li>
+        </ul>
+        <div class="tab-content tab-box">
+            <div id="usermenu-tab-content-list" class="tab-content">
+                Loading...
+            </div>
+        </div>
+    </div>
+</div>
+
 <ul class="gnb-usermenu">
     @if( !currentUser.isAnonymous()) {
         @if(!StringUtils.isBlank(Application.NAVBAR_CUSTOM_LINK_NAME)) {
@@ -56,6 +94,14 @@
         </li>
         <li class="divider"></li>
         }
+        <li class="gnb-usermenu-dropdown sidebar-open-btn" id="sidebar-open-btn">
+            <a href="javascript:void(0);" class="gnb-dropdown-toggle" data-toggle="tooltip" data-placement="bottom" title="@Messages("user.menu"), @Messages("title.shortcut") (F)">
+                <span class="avatar-wrap smaller">
+                    <img src="@currentUser.avatarUrl(32)" />
+                </span>
+                <span class="caret"></span>
+            </a>
+        </li>
       <li class="gnb-usermenu-dropdown">
           <a href="javascript:void(0);" class="gnb-dropdown-toggle dropdwon-box-btn" data-toggle="dropdown">
               <i class="yobicon-plus"></i>

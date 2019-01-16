@@ -55,6 +55,49 @@
   }
 }
 
+.sidenav {
+  color: black;
+}
+
+.sidebar {
+  color: white;
+
+  .user-ul {
+    -ms-overflow-style: -ms-autohiding-scrollbar;
+    overflow-y: scroll;
+    height: 100vh;
+
+    &::-webkit-scrollbar {
+      height: 10px;
+      width: 5px;
+      background: lightgray;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #2788ba;
+    }
+  }
+
+  .user-project-list {
+    .project-list {
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.15);
+      }
+    }
+
+    .org-list {
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.15);
+      }
+    }
+  }
+
+  .search-input {
+    background-color: black;
+    color: white;
+  }
+}
+
 .user-project-list {
   ul.nav-subtab > li {
     border: none;
@@ -83,22 +126,16 @@
     list-style-type: none;
     overflow-x: visible;
     overflow-y: auto;
-    height: 100vh;
-
-    -ms-overflow-style: -ms-autohiding-scrollbar;
+    max-height: 80vh;
 
     &::-webkit-scrollbar {
       height: 10px;
-      width: 7px;
+      width: 5px;
       background: lightgray;
     }
 
     &::-webkit-scrollbar-thumb {
       background: #2788ba;
-    }
-
-    .favored {
-      border-bottom: 1px dashed gray;
     }
   }
 
@@ -189,14 +226,12 @@
 
   .search-input {
     font-size:13px;
-    padding: 8px 10px;
     display:block;
     border:none;
     width: 99%;
     margin-bottom: 0;
-    background-color: black;
-    color: white;
     border-radius: unset;
+    height: 30px;
   }
 
   .search-input:focus {
@@ -225,7 +260,7 @@
     width:0;
     bottom:1px;
     position:absolute;
-    background: white;
+    background: #e91e63;
     transition:0.2s ease all;
   }
   .bar:before {
@@ -337,13 +372,17 @@
   }
 
   .starred {
-    color: rgba(255, 255, 255, 0.85);
+    color: #e91e63;
+
+    &:hover {
+      color: #8a123b;
+    }
   }
 
   .star-project, .star-org {
     width: 29px;
-    min-height: 24px;
     flex-shrink: 0;
+    color: #eee;
 
     &:hover {
       color: #e91e63;
@@ -479,7 +518,6 @@
     font-size: 14px;
     font-weight: 400;
     overflow: hidden;
-    color: rgba( 255, 255, 255, 0.85 );
 
     .slash {
       padding: 5px;
@@ -617,11 +655,11 @@
   }
 
   .project-list {
-    padding: 1px 0;
+    padding: 5px 0;
 
     &:hover {
       cursor: pointer;
-      background-color: rgba(255, 255, 255, 0.15);
+      background-color: #f1f1f1;
     }
   }
 
@@ -630,7 +668,7 @@
 
     &:hover {
       cursor: pointer;
-      background-color: rgba(255, 255, 255, 0.15);
+      background-color: #f1f1f1;
     }
   }
 
@@ -791,7 +829,6 @@
   background-color: white;
   overflow-x: hidden; /* Disable horizontal scroll */
   overflow-y: auto;
-  padding-top: 10px;
 
   &::-webkit-scrollbar {
     height: 10px;
