@@ -52,7 +52,7 @@
 </head>
 
 <body class="@theme" id="html-body">
-    <div id="sidebar" class="sidebar">
+    <div id="sidebar" class="sidebar hide-in-mobile">
         @if(!currentUser.isAnonymous){
             @sidebar()
         }
