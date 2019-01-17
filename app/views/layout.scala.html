@@ -104,9 +104,7 @@
                     if (btn.length < 1) {
                         $("div.pin > i.yobicon-arrow-left").removeClass("yobicon-arrow-left").addClass("yobicon-arrow-right");
                     }
-                    if(window.parent.$(".sidebar").text().trim().length < 1) {
-                        window.parent.location.reload();
-                    }
+                    window.parent.location = window.location.href;
                 }
             });
 
