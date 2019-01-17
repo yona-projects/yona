@@ -665,9 +665,9 @@ public class IssueApp extends AbstractPostingApp {
         }
     }
 
-    private static void addIssueMovedNotification(Project previous, Issue originalIssue, Issue issue) {
+    private static void addIssueMovedNotification(Project previous, Issue originalIssue, Issue issue, Set<User> fromWatchers) {
         if (isRequestedToOtherProject(previous, originalIssue.project)) {
-            NotificationEvent notiEvent = NotificationEvent.afterIssueMoved(previous, originalIssue);
+            NotificationEvent notiEvent = NotificationEvent.afterIssueMoved(previous, originalIssue, () -> fromWatchers);
             IssueEvent.addFromNotificationEvent(notiEvent, originalIssue, UserApp.currentUser().loginId);
 
             play.Logger.debug("addIssueMovedNotification - afterIssueMoved receivers: " + notiEvent.receivers);
@@ -704,6 +704,8 @@ public class IssueApp extends AbstractPostingApp {
         issue.dueDate = JodaDateUtil.lastSecondOfDay(issue.dueDate);
 
         Issue originalIssue = Issue.findByNumber(project, number);
+        Set<User> fromWatchers = originalIssue.getWatchers();
+
         if(hasTargetProject(issue)) {
             Project toOtherProject = Project.find.byId(Long.valueOf(issue.targetProjectId));
             if (toOtherProject == null) {
@@ -744,7 +746,7 @@ public class IssueApp extends AbstractPostingApp {
                     if(isFromMyOwnPrivateProject(previous)){
                         issue.history = "";
                     } else {
-                        addIssueMovedNotification(previous, originalIssue, issue);
+                        addIssueMovedNotification(previous, originalIssue, issue, fromWatchers);
                     }
                 } else {
                     addLabels(issue, request());
