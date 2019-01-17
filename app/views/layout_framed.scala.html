@@ -51,14 +51,14 @@
 
 </head>
 
-<body class="@theme" id="html-body">
+<body class="@theme framed-body" id="html-body">
     <div id="sidebar" class="sidebar hide-in-mobile">
         @if(!currentUser.isAnonymous){
             @sidebar()
         }
     </div>
     <div id="mainFrame">
-        <iframe name="mainFrame" frameborder="0" class="mainFrame" scrolling="no" height="100%" width="100%" src="@iframePath"  scrolling="no" onload="resizeIframe(this)"></iframe>
+        <iframe name="mainFrame" frameborder="0" class="mainFrame" height="100%" width="100%" src="@iframePath"  onload="resizeIframe(this)"></iframe>
         @common.scripts()
     </div>
 
@@ -77,9 +77,6 @@
                 $('#mainFrame').removeClass("loading-gif");
                 $('.mainFrame').show();
 
-                obj.style.height = '100vh'; // Before calculate new content height, reduce it to 100vh.
-                                            // It prevents unintended long height
-                obj.style.height = obj.contentWindow.document.body.scrollHeight + 'px';
                 window.scrollTo(0, 0);
             }, 0);
         }
