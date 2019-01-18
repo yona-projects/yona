@@ -36,10 +36,10 @@
 </div>
 <header class="gnb-outer @if(project != null || org != null) {project-header}">
     <div class="gnb-inner">
-        <div class="pin"><i class="yobicon-arrow-right"></i></div>
+        <div class="pin" data-toggle="tooltip" data-placement="bottom" title="Sidebar"><i class="yobicon-arrow-left"></i><i class="yobicon-arrow-right"></i></div>
         <ul class="gnb-nav">
             <li>
-                <a href="@routes.Application.index()" target="_parent" class="logo logo-letter">Y</a>
+                <a href="@routes.Application.index()" class="logo logo-letter">Y</a>
             </li>
             @if(!Application.HIDE_PROJECT_LISTING && !UserApp.currentUser().isGuest){
                 <li class="@isActiveMenu(MenuType.PROJECTS)">
