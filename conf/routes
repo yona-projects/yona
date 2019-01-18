@@ -114,6 +114,7 @@ POST           /organizations/:organizationName/cancel/enroll                   
 POST           /noti/toggle/:projectId/:notiType                                      controllers.WatchProjectApp.toggle(projectId: Long, notiType)
 
 # User
+GET            /user/sidebar                                                          controllers.Application.sidebar()
 GET            /user/issues                                                           controllers.IssueApp.userIssuesPage()
 GET            /user/issues                                                           controllers.IssueApp.userIssues(state:String ?= "", format:String ?= "html", pageNum: Int ?= 1)
 GET            /user/issues/new                                                       controllers.IssueApp.newDirectIssueForm()

@@ -22,6 +22,7 @@ import playRepository.RepositoryService;
 import views.html.error.notfound_default;
 import views.html.index.index;
 import views.html.index.notifications;
+import views.html.index.sidebar;
 
 import static com.feth.play.module.pa.controllers.Authenticate.*;
 
@@ -43,7 +44,17 @@ public class Application extends Controller {
 
     @AnonymousCheck
     public static Result index() {
+        User user = UserApp.currentUser();
+        UserSetting userSetting = UserSetting.findByUser(user.id);
+        if(!user.isAnonymous() && StringUtils.isNotBlank(userSetting.loginDefaultPage)) {
+            return redirect(userSetting.loginDefaultPage);
+        }
         return ok(index.render(UserApp.currentUser()));
+    }
+
+    @AnonymousCheck
+    public static Result sidebar() {
+        return ok(sidebar.render(UserApp.currentUser()));
     }
 
     @AnonymousCheck

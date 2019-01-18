@@ -136,21 +136,29 @@
     position: absolute;
     display: inline-block;
     left: -2px;
-    top: 6px;
-    border: 1px solid #666;
+    top: 5px;
     margin-right: 5px;
+    padding: 0 1px;
+    font-size: 18px;
+    color: white;
 
-    .yobicon-arrow-right {
-        padding: 6px 2px;
-    }
+    i {
+        &.yobicon-arrow-right, &.yobicon-arrow-left {
+            padding: 4px 2px;
+            display: none;
+            border: 1px solid white;
+        }
 
-    .yobicon-arrow-left {
-        padding: 6px 2px;
+        &:hover {
+            cursor: pointer;
+            color: #03a9f4;
+            border: 1px solid #03a9f4;
+        }
     }
 
     &:hover {
         cursor: pointer;
-        color: white;
+        color: #03a9f4;
     }
 }
 
