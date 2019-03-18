@@ -109,28 +109,26 @@
                             @Messages("project.projects") @showBadgeNumberIfExist(projects.size)
                         </a>
                     </li>
-                    @if(user.loginId.equals(UserApp.currentUser().loginId)) {
-                        <li class="@isActiveTab("postings")">
-                            <a href="#postings" data-toggle="tab">
-                                @Messages("menu.board") @showBadgeNumberIfExist(postings.size)
-                            </a>
-                        </li>
-                        <li class="@isActiveTab("pullRequests")">
-                            <a href="#pullRequests" data-toggle="tab">
-                                @Messages("menu.pullRequest") @showBadgeNumberIfExist(pullRequests.size)
-                            </a>
-                        </li>
-                        <li class="@isActiveTab("issues")">
-                            <a href="#issues" data-toggle="tab">
-                                @Messages("menu.issue") @showBadgeNumberIfExist(issues.size)
-                            </a>
-                        </li>
-                        <li class="@isActiveTab("milestones")">
-                            <a href="#milestones" data-toggle="tab">
-                                @Messages("milestone") @showBadgeNumberIfExist(milestones.size)
-                            </a>
-                        </li>
-                    }
+                    <li class="@isActiveTab("postings")">
+                        <a href="#postings" data-toggle="tab">
+                            @Messages("menu.board") @showBadgeNumberIfExist(postings.size)
+                        </a>
+                    </li>
+                    <li class="@isActiveTab("pullRequests")">
+                        <a href="#pullRequests" data-toggle="tab">
+                            @Messages("menu.pullRequest") @showBadgeNumberIfExist(pullRequests.size)
+                        </a>
+                    </li>
+                    <li class="@isActiveTab("issues")">
+                        <a href="#issues" data-toggle="tab">
+                            @Messages("menu.issue") @showBadgeNumberIfExist(issues.size)
+                        </a>
+                    </li>
+                    <li class="@isActiveTab("milestones")">
+                        <a href="#milestones" data-toggle="tab">
+                            @Messages("milestone") @showBadgeNumberIfExist(milestones.size)
+                        </a>
+                    </li>
                 </ul>
 
                 <div class="tab-content">
