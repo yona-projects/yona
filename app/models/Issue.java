@@ -64,6 +64,8 @@ import play.db.ebean.Model.Finder;
 import play.i18n.Messages;
 import utils.JodaDateUtil;
 
+import static com.avaje.ebean.Expr.eq;
+
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"project_id", "number"}))
 public class Issue extends AbstractPosting implements LabelOwner {
@@ -490,7 +492,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
     public static List<Issue> findRecentlyIssuesByDaysAgo(Project project, User user, int days) {
         return finder.where()
                 .eq("project.id", project.id)
-                .eq("assignee.user.id", user.id)
+                .or(eq("assignee.user.id", user.id), eq("authorId", user.id))
                 .ge("updatedDate", JodaDateUtil.before(days))
                 .order("updatedDate desc, state asc").findList();
     }
