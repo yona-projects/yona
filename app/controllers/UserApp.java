@@ -751,20 +751,17 @@ public class UserApp extends Controller {
         List<Issue> issues = new ArrayList<>();
         List<PullRequest> pullRequests = new ArrayList<>();
         List<Project> projects = new ArrayList<>();
+        Map<Long, Boolean> projectAclMap = new HashMap<>();
 
-        if(Application.HIDE_PROJECT_LISTING){
-            if(!UserApp.currentUser().isAnonymous()){
-                projects = collectProjects(user);
-                collectDatum(projects, issues, pullRequests, user, daysAgo);
-                sortIssues(issues);
-                sortPullRequests(pullRequests);
-                sortByLastPushedDateAndName(projects);
-            }
-        } else {
-            projects = collectProjects(user);
-            collectDatum(projects, issues, pullRequests, user, daysAgo);
-            sortIssues(issues);
-            sortPullRequests(pullRequests);
+        if (!Application.HIDE_PROJECT_LISTING || !UserApp.currentUser().isAnonymous()) {
+            projects = collectProjects(user, projectAclMap);
+            issues = getAclValidatedIssues(
+                    Issue.findRecentlyIssuesByDaysAgo(user, daysAgo),
+                    projectAclMap);
+            pullRequests = getAclValidatedPullRequests(
+                    PullRequest.findOpendPullRequestsByDaysAgo(user, daysAgo),
+                    projectAclMap);
+
             sortByLastPushedDateAndName(projects);
         }
 
@@ -798,16 +795,40 @@ public class UserApp extends Controller {
         });
     }
 
-    private static void collectDatum(List<Project> projects, List<Issue> issues,
-                                     List<PullRequest> pullRequests, User user, int daysAgo) {
-        for (Project project : projects) {
-            if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-                issues.addAll(Issue.findRecentlyIssuesByDaysAgo(project, user, daysAgo));
-                pullRequests.addAll(PullRequest.findOpendPullRequestsByDaysAgo(project, user, daysAgo));
+    private static List<PullRequest> getAclValidatedPullRequests(List<PullRequest> pullRequests, Map<Long, Boolean> projectAcl) {
+        List<PullRequest> aclValidatedPullRequests = new ArrayList<>();
+        for (PullRequest pullRequest : pullRequests) {
+            if(projectAcl.getOrDefault(pullRequest.toProject.id, false)) {
+                aclValidatedPullRequests.add(pullRequest);
+            } else {
+                if (AccessControl.isAllowed(UserApp.currentUser(), pullRequest.toProject.asResource(), Operation.READ)) {
+                    aclValidatedPullRequests.add(pullRequest);
+                    projectAcl.putIfAbsent(pullRequest.toProject.id, true);
+                } else {
+                    projectAcl.putIfAbsent(pullRequest.toProject.id, false);
+                }
             }
         }
+        return aclValidatedPullRequests;
     }
 
+    private static List<Issue> getAclValidatedIssues(List<Issue> issues, Map<Long, Boolean> projectAcl) {
+        List<Issue> aclValidatedIssues = new ArrayList<>();
+
+        for (Issue issue : issues) {
+            if(projectAcl.getOrDefault(issue.project.id, false)) {
+                aclValidatedIssues.add(issue);
+            } else {
+                if (AccessControl.isAllowed(UserApp.currentUser(), issue.project.asResource(), Operation.READ)) {
+                    aclValidatedIssues.add(issue);
+                    projectAcl.putIfAbsent(issue.project.id, true);
+                } else {
+                    projectAcl.putIfAbsent(issue.project.id, false);
+                }
+            }
+        }
+        return aclValidatedIssues;
+    }
 
     private static void sortIssues(List<Issue> issues) {
         Collections.sort(issues, new Comparator<Issue>() {
@@ -827,17 +848,30 @@ public class UserApp extends Controller {
         });
     }
 
-    private static List<Project> collectProjects(User user) {
+    private static List<Project> collectProjects(User user, Map<Long, Boolean> projectAcl) {
         List<Project> projectCollection = new ArrayList<>();
-        addProjectNotDupped(projectCollection, Project.findProjectsByMember(user.id));
+        addProjectNotDupped(projectCollection, Project.findProjectsByMember(user.id), projectAcl);
         return projectCollection;
     }
 
-    private static void addProjectNotDupped(List<Project> target, List<Project> foundProjects) {
+    private static void addProjectNotDupped(List<Project> target, List<Project> foundProjects,
+                                            Map<Long, Boolean> projectAcl) {
         for (Project project : foundProjects) {
-            if( !target.contains(project) &&
-                    AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-                target.add(project);
+            if (target.contains(project)) {
+                continue;
+            }
+
+            if (projectAcl.containsKey(project.id)) {
+                if (projectAcl.get(project.id)) {
+                    target.add(project);
+                }
+            } else {
+                if(AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
+                    target.add(project);
+                    projectAcl.putIfAbsent(project.id, true);
+                } else {
+                    projectAcl.putIfAbsent(project.id, false);
+                }
             }
         }
     }
