@@ -148,7 +148,15 @@ $(function () {
 
                 var location = $(this).data('location');
                 if (e.metaKey || e.ctrlKey || e.shiftKey) {
-                    window.location = location;
+                   return window.location = location;
+                }
+
+                if (window.self.name !== 'mainFrame') {
+                    if ($("#mainFrame").length > 0) {
+                        window.open(location, 'mainFrame');
+                    } else {
+                        window.open(location, '_blank');
+                    }
                 } else {
                     window.open(location, 'mainFrame');
                 }
