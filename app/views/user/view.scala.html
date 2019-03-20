@@ -37,7 +37,7 @@
 @siteLayout(user.loginId, utils.MenuType.USER) {
 <div class="site-breadcrumb-outer">
     <div class="site-breadcrumb-inner">
-        <h3>@Messages("userinfo.profile")</h3>
+        <h3>@user.name</h3>
     </div>
 </div>
 <div class="page-wrap-outer">
@@ -52,7 +52,6 @@
                 }
                 </div>
                 <div class="whoami usf-group">
-                    <span class="name">@user.name</span>
                     <span class="name">@user.englishName</span>
                     <span class="loginid">@{"@"}@user.loginId</span>
                     @if(Application.SHOW_USER_EMAIL){
@@ -123,7 +122,6 @@
                                     <span class="num-badge">@issues.count(issue => issue.state == State.CLOSED)</span>
                                 </a>
                             </li>
-                            <li>@common.twoColumnModeCheckboxArea()</li>
                         </ul>
                         <div class="tab-content">
                             <div id="openIssues" class="tab-pane active">

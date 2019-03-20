@@ -20,6 +20,7 @@ function _initTwoColumnMode(){
 
     if( isLeftMenuHide ) {
         $(".left-menu").hide(0);
+        $(".user-info-box").hide(0);
     }
 
     $('#two-column-mode-checkbox').popover({trigger: "hover", placement: "top", delay: { show: 100, hide: 100 }});
@@ -77,6 +78,7 @@ function _initTwoColumnMode(){
         $title.unbind('click.iframeLoading');
         $title.unbind('click.changeUrlWhenClick');
         $.pageslide.close();
+        $(".user-info-box").show(0);
     }
 
     function bindFrameLoading() {
@@ -86,7 +88,10 @@ function _initTwoColumnMode(){
 
             if($('#pageslide').is(":visible")){
                 $(".left-menu").hide(0);
+                $(".user-info-box").hide(0);
                 isLeftMenuHide = true;
+            } else {
+                $(".user-info-box").show(0);
             }
             setTimeout(function () {
                 $('#pageslide > iframe').ready(function () {

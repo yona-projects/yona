@@ -216,9 +216,8 @@ public class PullRequest extends Model implements ResourceConvertible {
                 .findList();
     }
 
-    public static List<PullRequest> findOpendPullRequestsByDaysAgo(Project project, User user, int days) {
+    public static List<PullRequest> findOpendPullRequestsByDaysAgo(User user, int days) {
         return finder.where()
-                .eq("toProject", project)
                 .eq("contributor.id", user.id)
                 .ge("updated", JodaDateUtil.before(days))
                 .order("updated desc, state asc")
