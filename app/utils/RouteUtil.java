@@ -68,8 +68,7 @@ public class RouteUtil {
         return controllers.routes.UserApp.userInfo(
                 user.loginId,
                 controllers.routes.UserApp.userInfo$default$2(),
-                controllers.routes.UserApp.userInfo$default$3(),
-                controllers.routes.UserApp.userInfo$default$4()
+                controllers.routes.UserApp.userInfo$default$3()
         ).url();
     }
 
