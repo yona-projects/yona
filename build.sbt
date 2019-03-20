@@ -3,7 +3,7 @@ import java.nio.file.Paths
 
 name := """yona"""
 
-version := "1.11.0"
+version := "1.11.1"
 
 libraryDependencies ++= Seq(
   // Add your project dependencies here,
@@ -35,6 +35,7 @@ libraryDependencies ++= Seq(
   // svnkit-dav
   "sonia.svnkit" % "svnkit-dav" % "1.8.15-scm1",
   // javahl
+  "org.apache.subversion" % "svn-javahl-api" % "1.8.1",
   "org.tmatesoft.svnkit" % "svnkit-javahl16" % "1.8.15",
   "net.sourceforge.jexcelapi" % "jxl" % "2.6.10",
 // shiro
@@ -62,7 +63,6 @@ libraryDependencies ++= Seq(
   "com.github.mfornos" % "humanize-slim" % "1.2.2"
 )
 
-libraryDependencies += "org.apache.subversion" % "svn-javahl-api" % "1.9.0"
 
 val projectSettings = Seq(
   // Add your own project settings here
