@@ -1,12 +1,12 @@
 @**
 * Yona, 21st Century Project Hosting SW
 *
-* Copyright Yona & Yobi Authors & NAVER Corp.
+* Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
 * https://yona.io
 **@
-@(user:User, groupNames:Array[String], projects:List[Project], postings:List[Posting], issues:List[Issue], pullRequests:List[PullRequest], milestones:List[Milestone], daysAgo:Int, selected:String)
+@(user:User, projects:List[Project], issues:List[Issue], pullRequests:List[PullRequest], daysAgo:Int, selected:String)
 @import utils.MD5Util
-
+@import models.enumeration._
 @import utils.TemplateHelper._
 
 @watching_count(loginId: String) = { @User.findByLoginId(loginId).getWatchingProjects().size }
@@ -65,20 +65,6 @@
                     }
                 </div>
 
-                <ul class="unstyled lst-stacked" style="margin-top:20px;">
-                    <li @if(groupNames.contains("own")){class="active"}>
-                    <a href="@routes.UserApp.userInfo(user.loginId, "own")">@Messages("project.createdByMe")<span class="num-badge pull-right">@if(isCurrentUsersPage){@Project.countProjectsCreatedByUser(user.loginId)}</span></a>
-                    </li>
-                    <li @if(groupNames.contains("member")){class="active"}>
-                    <a href="@routes.UserApp.userInfo(user.loginId, "member")">@Messages("project.default.group.member")<span class="num-badge pull-right">@if(isCurrentUsersPage){@Project.countProjectsJustMemberAndNotOwner(user.loginId)}</span></a>
-                    </li>
-                    @if(isCurrentUsersPage){
-                        <li @if(groupNames.contains("watching")){class="active"}>
-                        <a href="@routes.UserApp.userInfo(user.loginId, "watching")">@Messages("project.default.group.watching")<span class="num-badge pull-right">@user.getWatchingProjects.size</span></a>
-                        </li>
-                    }
-                </ul>
-
                 <div class="user-since">
                     <strong>@Messages("userinfo.since")</strong>
                     <span class="since">@user.getDateString</span>
@@ -104,14 +90,9 @@
                 </div>
 
                 <ul class="nav nav-tabs">
-                    <li class="@isActiveTab("projects")">
-                        <a href="#projects" data-toggle="tab">
-                            @Messages("project.projects") @showBadgeNumberIfExist(projects.size)
-                        </a>
-                    </li>
-                    <li class="@isActiveTab("postings")">
-                        <a href="#postings" data-toggle="tab">
-                            @Messages("menu.board") @showBadgeNumberIfExist(postings.size)
+                    <li class="@isActiveTab("issues")">
+                        <a href="#issues" data-toggle="tab">
+                            @Messages("menu.issue") @showBadgeNumberIfExist(issues.size)
                         </a>
                     </li>
                     <li class="@isActiveTab("pullRequests")">
@@ -119,84 +100,82 @@
                             @Messages("menu.pullRequest") @showBadgeNumberIfExist(pullRequests.size)
                         </a>
                     </li>
-                    <li class="@isActiveTab("issues")">
-                        <a href="#issues" data-toggle="tab">
-                            @Messages("menu.issue") @showBadgeNumberIfExist(issues.size)
+                    <li class="@isActiveTab("projects")">
+                        <a href="#projects" data-toggle="tab">
+                            @Messages("project.projects") @showBadgeNumberIfExist(projects.size)
                         </a>
                     </li>
-                    <li class="@isActiveTab("milestones")">
-                        <a href="#milestones" data-toggle="tab">
-                            @Messages("milestone") @showBadgeNumberIfExist(milestones.size)
-                        </a>
-                    </li>
+                    <li>@common.twoColumnModeCheckboxArea()</li>
                 </ul>
 
                 <div class="tab-content">
+                    <div id="issues" class="tab-pane @isActiveTab("issues")">
+                        <ul class="nav nav-tabs nm">
+                            <li class="active">
+                                <a href="#openIssues" data-toggle="tab">
+                                    @Messages("issue.state.open")
+                                <span class="num-badge">@issues.count(issue => issue.state == State.OPEN)</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#closedIssues" data-toggle="tab">
+                                    @Messages("issue.state.closed")
+                                    <span class="num-badge">@issues.count(issue => issue.state == State.CLOSED)</span>
+                                </a>
+                            </li>
+                            <li>@common.twoColumnModeCheckboxArea()</li>
+                        </ul>
+                        <div class="tab-content">
+                            <div id="openIssues" class="tab-pane active">
+                                @if(issues.isEmpty) {
+                                    <div class="error-wrap">
+                                        <p>@Messages("userinfo.daysAgo.prefix") @Messages("issue.is.empty")</p>
+                                    </div>
+                                }
+                                <ul class="post-list-wrap my-issues row-fluid">
+                                @for(issue <- issues if issue.state == State.OPEN) {
+                                    @partial_issues(issue)
+                                }
+                                </ul>
+                            </div>
+                            <div id="closedIssues" class="tab-pane">
+                                @if(issues.isEmpty) {
+                                    <div class="error-wrap">
+                                        <p>@Messages("userinfo.daysAgo.prefix") @Messages("issue.is.empty")</p>
+                                    </div>
+                                }
+                                <ul class="post-list-wrap my-issues row-fluid">
+                                @for(issue <- issues if issue.state == State.CLOSED) {
+                                    @partial_issues(issue)
+                                }
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="pullRequests" class="tab-pane @isActiveTab("pullRequests")">
+                        @if(pullRequests.isEmpty) {
+                            <div class="error-wrap">
+                                <p>@Messages("userinfo.daysAgo.prefix") @Messages("pullRequest.is.empty")</p>
+                            </div>
+                        }
+                        <ul class="post-list-wrap  row-fluid">
+                        @for(pull <- pullRequests) {
+                            @partial_pullRequests(pull, pull.toProject)
+                        }
+                        </ul>
+                    </div>
                     <div id="projects" class="tab-pane @isActiveTab("projects")">
-                        @if(projects.size==0){
+                        @if(projects.isEmpty){
                             <div class="error-wrap">
                                 <p>@Messages("project.is.empty")</p>
                             </div>
                         }
                         <ul class="user-streams all-projects">
                             @for(project <- projects){
-                                @if(groupNames.contains("watching") && !isCurrentUsersPage){
-                                } else {
-                                    @partial_projectlist(project, user)
-                                }
+                                @partial_projectlist(project, user)
                             }
                         </ul>
                     </div>
-                    @if(user.loginId.equals(UserApp.currentUser().loginId)) {
-                        <div id="postings" class="tab-pane @isActiveTab("postings")">
-                            @if(postings.size == 0) {
-                                <div class="error-wrap">
-                                    <p>@Messages("userinfo.daysAgo.prefix") @Messages("post.is.empty")</p>
-                                </div>
-                            }
-                            <ul class="post-list-wrap">
-                            @for(post <- postings) {
-                                @partial_postings(post, post.project)
-                            }
-                            </ul>
-                        </div>
-                        <div id="issues" class="tab-pane @isActiveTab("issues")">
-                            @if(issues.size == 0) {
-                                <div class="error-wrap">
-                                    <p>@Messages("userinfo.daysAgo.prefix") @Messages("issue.is.empty")</p>
-                                </div>
-                            }
-                            <ul class="post-list-wrap row-fluid">
-                            @for(issue <- issues) {
-                                @partial_issues(issue, issue.project)
-                            }
-                            </ul>
-                        </div>
-                        <div id="pullRequests" class="tab-pane @isActiveTab("pullRequests")">
-                            @if(pullRequests.size == 0) {
-                                <div class="error-wrap">
-                                    <p>@Messages("userinfo.daysAgo.prefix") @Messages("pullRequest.is.empty")</p>
-                                </div>
-                            }
-                            <ul class="post-list-wrap  row-fluid">
-                            @for(pull <- pullRequests) {
-                                @partial_pullRequests(pull, pull.toProject)
-                            }
-                            </ul>
-                        </div>
-                        <div id="milestones" class="tab-pane @isActiveTab("milestones")">
-                            @if(milestones.size == 0) {
-                                <div class="error-wrap">
-                                    <p>@Messages("milestone.is.empty")</p>
-                                </div>
-                            }
-                            <ul class="milestones">
-                            @for(milestone <- milestones) {
-                                @partial_milestones(milestone, milestone.project)
-                            }
-                            </ul>
-                        </div>
-                    }
                 </div>
                 }
             </div>
@@ -204,6 +183,8 @@
     </div>
 </div>
 <script type="text/javascript" src='@routes.Assets.at("javascripts/lib/parseuri.js")'></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery.pageslide.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/service/yona.twoColumnMode.js")"></script>
 <script type="text/javascript">
 $(document).ready(function(){
     $yobi.loadModule("user.View", {

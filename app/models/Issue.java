@@ -487,11 +487,12 @@ public class Issue extends AbstractPosting implements LabelOwner {
      * @param days days ago
      * @return
      */
-    public static List<Issue> findRecentlyOpendIssuesByDaysAgo(Project project, int days) {
+    public static List<Issue> findRecentlyIssuesByDaysAgo(Project project, User user, int days) {
         return finder.where()
                 .eq("project.id", project.id)
-                .eq("state", State.OPEN)
-                .ge("createdDate", JodaDateUtil.before(days)).order().desc("createdDate").findList();
+                .eq("assignee.user.id", user.id)
+                .ge("updatedDate", JodaDateUtil.before(days))
+                .order("updatedDate desc, state asc").findList();
     }
 
     public static List<Issue> findByProject(Project project, String filter) {

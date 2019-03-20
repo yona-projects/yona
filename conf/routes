@@ -358,7 +358,7 @@ GET            /unwatch                                                         
 
 # Statistics
 GET            /:user/:project/statistics                                             controllers.StatisticsApp.statistics(user, project)
-GET            /:user                                                                 controllers.UserApp.userInfo(user, groups:String ?= "own", daysAgo :Int ?= 0, selected: String ?= "projects")
+GET            /:user                                                                 controllers.UserApp.userInfo(user, daysAgo :Int ?= 0, selected: String ?= "issues")
 POST           /:user                                                                 controllers.UserApp.resetUserPasswordBySiteManager(user)
 
 # Watching Projects
