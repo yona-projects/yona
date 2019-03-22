@@ -102,4 +102,10 @@ public class PostingComment extends Comment {
             }
         };
     }
+
+    public static List<PostingComment> findAllBy(Posting posting) {
+        return find.where()
+                .eq("id", posting.id)
+                .findList();
+    }
 }

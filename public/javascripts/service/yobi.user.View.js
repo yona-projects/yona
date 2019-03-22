@@ -35,11 +35,18 @@
             _initVar(htOptions);
             _initElement();
             _attachEvent();
+            _initShowChildList();
+            _initTwoColumnMode();
+        }
 
-            // in loading, click previously selected tab
-            if(htOptions.sTabSelected){
-                $('a[href=#' + htOptions.sTabSelected + '][data-toggle=tab]').trigger('click');
-            }
+        function _initShowChildList() {
+            $(".post-item").on("click", function(e){
+                $(this).find(".child-issue-list").show();
+            });
+
+            $(".title-wrap > .title").on("click", function(e){
+                e.stopPropagation();
+            })
         }
 
         /**
@@ -66,7 +73,6 @@
          */
         function _attachEvent(){
             htElement.welDaysAgo.on("keypress", _onKeypressDaysAgo);
-            htElement.waTabs.on("click", _onClickTabs);
             htElement.waLeaveProject.on("click", _onClickBtnLeaveProject);
             htElement.waBtnWatch.on("click",_onClickBtnWatch);
         }
@@ -117,28 +123,6 @@
                 document.location.href = '?' + _getTabQueryString();
                 return false;
             }
-        }
-
-        /**
-         * @param {Wrapped Event}
-         */
-        function _onClickTabs(weEvt){
-            // get href link and remove '#' from #link from 'href' value
-            var sHref = $(this).attr('href');
-            _rememberCurrentTab(sHref.substr(sHref.indexOf("#") + 1));
-
-            ($.inArray($(this).attr('href'), htVar.aDaysAgoTargets) === -1) ? _disableDaysAgo() : _enableDaysAgo();
-        }
-
-        function _enableDaysAgo(){
-            htElement.welDaysAgo.prop('disabled', false);
-            htElement.welDaysAgo.css('color','');
-            htElement.welDaysAgo.blur();
-        }
-
-        function _disableDaysAgo(){
-            htElement.welDaysAgo.prop('disabled', true);
-            htElement.welDaysAgo.css('color','#eee');
         }
 
         /**

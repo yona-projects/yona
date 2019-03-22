@@ -4,17 +4,25 @@
 
 package models;
 
-import models.enumeration.ResourceType;
-import models.resource.Resource;
-import utils.JodaDateUtil;
+import static com.avaje.ebean.Expr.*;
 
-import javax.persistence.*;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+import javax.persistence.UniqueConstraint;
 
-import static com.avaje.ebean.Expr.eq;
+import models.enumeration.ResourceType;
+import models.resource.Resource;
+import utils.JodaDateUtil;
 
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"project_id", "number"}))
@@ -158,5 +166,21 @@ public class Posting extends AbstractPosting {
             }
         }
         return null;
+    }
+
+    public static Posting from(Issue issue) {
+        Posting posting = new Posting();
+
+        posting.title = issue.title;
+        posting.body = issue.body;
+        posting.history = issue.history;
+        posting.createdDate = issue.createdDate;
+        posting.updatedDate = issue.updatedDate;
+        posting.authorId = issue.authorId;
+        posting.authorLoginId = issue.authorLoginId;
+        posting.authorName = issue.authorName;
+        posting.project = issue.project;
+
+        return posting;
     }
 }

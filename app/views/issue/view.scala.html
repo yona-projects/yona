@@ -186,10 +186,12 @@
                                 }
                                 </button>
                             }
-                            @if(isAllowedUpdate && !hasSharer) {
+                            @if(isAllowedUpdate) {
                                 <button id="issue-share-button" type="button" class="ybtn" data-toggle="popover" data-trigger="hover" data-placement="top" data-content="@Messages("issue.sharer.description")">@Messages("button.share.issue")</button>
                             }
-
+                            <span class="project-btn-item hide show-in-mobile-inline ml4">
+                                <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)?parentIssueId=@parentIssueId" class="ybtn ybtn-success">@Messages("button.newSubtask")</a>
+                            </span>
                         </div>
                     </div>
                     <div id="vote" class="vote-wrap @if(issue.voters.size > 0){voter-exists}">
@@ -520,6 +522,7 @@
             $('#issue-share-button').on('click', function () {
                 $('#sharer-list').show();
                 $('.sharer-list').show().addClass("sharer-list-border");
+                $('#sharer-list .select2-search-field > input').focus();
             });
 
             $('#translate').one('click', function (e) {

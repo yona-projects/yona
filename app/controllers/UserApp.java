@@ -725,7 +725,7 @@ public class UserApp extends Controller {
     }
 
     @AnonymousCheck
-    public static Result userInfo(String loginId, String groups, int daysAgo, String selected) {
+    public static Result userInfo(String loginId, int daysAgo, String selected) {
         Organization org = Organization.findByName(loginId);
         if(org != null) {
             return redirect(routes.OrganizationApp.organization(org.name));
@@ -747,33 +747,28 @@ public class UserApp extends Controller {
         }
 
         User user = User.findByLoginId(loginId);
-        String[] groupNames = groups.trim().split(",");
 
-        List<Posting> postings = new ArrayList<>();
         List<Issue> issues = new ArrayList<>();
         List<PullRequest> pullRequests = new ArrayList<>();
-        List<Milestone> milestones = new ArrayList<>();
         List<Project> projects = new ArrayList<>();
+        Map<Long, Boolean> projectAclMap = new HashMap<>();
 
-        if(Application.HIDE_PROJECT_LISTING){
-            if(!UserApp.currentUser().isAnonymous() && UserApp.currentUser().loginId.equals(loginId)){
-                projects = collectProjects(loginId, user, groupNames);
-                collectDatum(projects, postings, issues, pullRequests, milestones, daysAgo);
-                sortDatum(postings, issues, pullRequests, milestones);
-
-                sortByLastPushedDateAndName(projects);
-            }
-        } else {
-            projects = collectProjects(loginId, user, groupNames);
-            collectDatum(projects, postings, issues, pullRequests, milestones, daysAgo);
-            sortDatum(postings, issues, pullRequests, milestones);
+        if (!Application.HIDE_PROJECT_LISTING || !UserApp.currentUser().isAnonymous()) {
+            projects = collectProjects(user, projectAclMap);
+            issues = getAclValidatedIssues(
+                    Issue.findRecentlyIssuesByDaysAgo(user, daysAgo),
+                    projectAclMap);
+            pullRequests = getAclValidatedPullRequests(
+                    PullRequest.findOpendPullRequestsByDaysAgo(user, daysAgo),
+                    projectAclMap);
 
             sortByLastPushedDateAndName(projects);
         }
+
         if (user.isAnonymous()) {
             return notFound(ErrorViews.NotFound.render("user.notExists.name"));
         }
-        return ok(view.render(user, groupNames, projects, postings, issues, pullRequests, milestones, daysAgo, selected));
+        return ok(view.render(user, projects, issues, pullRequests, daysAgo, selected));
     }
 
     private static void sortByLastPushedDateAndName(List<Project> projects) {
@@ -800,73 +795,83 @@ public class UserApp extends Controller {
         });
     }
 
-    private static void sortDatum(List<Posting> postings, List<Issue> issues, List<PullRequest> pullRequests, List<Milestone> milestones) {
+    private static List<PullRequest> getAclValidatedPullRequests(List<PullRequest> pullRequests, Map<Long, Boolean> projectAcl) {
+        List<PullRequest> aclValidatedPullRequests = new ArrayList<>();
+        for (PullRequest pullRequest : pullRequests) {
+            if(projectAcl.getOrDefault(pullRequest.toProject.id, false)) {
+                aclValidatedPullRequests.add(pullRequest);
+            } else {
+                if (AccessControl.isAllowed(UserApp.currentUser(), pullRequest.toProject.asResource(), Operation.READ)) {
+                    aclValidatedPullRequests.add(pullRequest);
+                    projectAcl.putIfAbsent(pullRequest.toProject.id, true);
+                } else {
+                    projectAcl.putIfAbsent(pullRequest.toProject.id, false);
+                }
+            }
+        }
+        return aclValidatedPullRequests;
+    }
 
+    private static List<Issue> getAclValidatedIssues(List<Issue> issues, Map<Long, Boolean> projectAcl) {
+        List<Issue> aclValidatedIssues = new ArrayList<>();
+
+        for (Issue issue : issues) {
+            if(projectAcl.getOrDefault(issue.project.id, false)) {
+                aclValidatedIssues.add(issue);
+            } else {
+                if (AccessControl.isAllowed(UserApp.currentUser(), issue.project.asResource(), Operation.READ)) {
+                    aclValidatedIssues.add(issue);
+                    projectAcl.putIfAbsent(issue.project.id, true);
+                } else {
+                    projectAcl.putIfAbsent(issue.project.id, false);
+                }
+            }
+        }
+        return aclValidatedIssues;
+    }
+
+    private static void sortIssues(List<Issue> issues) {
         Collections.sort(issues, new Comparator<Issue>() {
             @Override
             public int compare(Issue i1, Issue i2) {
-                return i2.createdDate.compareTo(i1.createdDate);
+                return i2.updatedDate.compareTo(i1.updatedDate);
             }
         });
+    }
 
-        Collections.sort(postings, new Comparator<Posting>() {
-            @Override
-            public int compare(Posting p1, Posting p2) {
-                return p2.createdDate.compareTo(p1.createdDate);
-            }
-        });
-
+    private static void sortPullRequests(List<PullRequest> pullRequests) {
         Collections.sort(pullRequests, new Comparator<PullRequest>() {
             @Override
             public int compare(PullRequest p1, PullRequest p2) {
-                return p2.created.compareTo(p1.created);
-            }
-        });
-
-        Collections.sort(milestones, new Comparator<Milestone>() {
-            @Override
-            public int compare(Milestone m1, Milestone m2) {
-                return m2.title.compareTo(m1.title);
+                return p2.updated.compareTo(p1.updated);
             }
         });
     }
 
-    private static void collectDatum(List<Project> projects, List<Posting> postings, List<Issue> issues, List<PullRequest> pullRequests, List<Milestone> milestones, int daysAgo) {
-        // collect all postings, issues, pullrequests and milesotnes that are contained in the projects.
-        for (Project project : projects) {
-            if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-                postings.addAll(Posting.findRecentlyCreatedByDaysAgo(project, daysAgo));
-                issues.addAll(Issue.findRecentlyOpendIssuesByDaysAgo(project, daysAgo));
-                pullRequests.addAll(PullRequest.findOpendPullRequestsByDaysAgo(project, daysAgo));
-                milestones.addAll(Milestone.findOpenMilestones(project.id));
-            }
-        }
-    }
-
-    private static List<Project> collectProjects(String loginId, User user, String[] groupNames) {
+    private static List<Project> collectProjects(User user, Map<Long, Boolean> projectAcl) {
         List<Project> projectCollection = new ArrayList<>();
-        // collect all projects that are included in the project groups.
-        for (String group : groupNames) {
-            switch (group) {
-                case "own":
-                    addProjectNotDupped(projectCollection, Project.findProjectsCreatedByUser(loginId, null));
-                    break;
-                case "member":
-                    addProjectNotDupped(projectCollection, Project.findProjectsJustMemberAndNotOwner(user));
-                    break;
-                case "watching":
-                    addProjectNotDupped(projectCollection, user.getWatchingProjects());
-                    break;
-            }
-        }
+        addProjectNotDupped(projectCollection, Project.findProjectsByMember(user.id), projectAcl);
         return projectCollection;
     }
 
-    private static void addProjectNotDupped(List<Project> target, List<Project> foundProjects) {
+    private static void addProjectNotDupped(List<Project> target, List<Project> foundProjects,
+                                            Map<Long, Boolean> projectAcl) {
         for (Project project : foundProjects) {
-            if( !target.contains(project) &&
-                    AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-                target.add(project);
+            if (target.contains(project)) {
+                continue;
+            }
+
+            if (projectAcl.containsKey(project.id)) {
+                if (projectAcl.get(project.id)) {
+                    target.add(project);
+                }
+            } else {
+                if(AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
+                    target.add(project);
+                    projectAcl.putIfAbsent(project.id, true);
+                } else {
+                    projectAcl.putIfAbsent(project.id, false);
+                }
             }
         }
     }
@@ -984,13 +989,13 @@ public class UserApp extends Controller {
         Email.deleteOtherInvalidEmails(user.email);
         user.update();
         CacheStore.yonaUsers.put(user.id, user);
-        return redirect(routes.UserApp.userInfo(user.loginId, DEFAULT_GROUP, DAYS_AGO, DEFAULT_SELECTED_TAB));
+        return redirect(routes.UserApp.userInfo(user.loginId, DAYS_AGO, DEFAULT_SELECTED_TAB));
     }
 
     @Transactional
     public static Result leave(String userName, String projectName) {
         ProjectApp.deleteMember(userName, projectName, UserApp.currentUser().id);
-        return redirect(routes.UserApp.userInfo(UserApp.currentUser().loginId, DEFAULT_GROUP, DAYS_AGO, DEFAULT_SELECTED_TAB));
+        return redirect(routes.UserApp.userInfo(UserApp.currentUser().loginId, DAYS_AGO, DEFAULT_SELECTED_TAB));
     }
 
     /**

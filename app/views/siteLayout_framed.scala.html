@@ -1,0 +1,17 @@
+@**
+* Yona, 21st Century Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+* https://yona.io
+**@
+@(title: String, menuType:utils.MenuType)(content: Html)
+
+@import utils._
+
+@layout_framed(Messages(title))(""){
+    @common.navbar(menuType, null, null)
+
+    @content
+
+    @common.footer()
+}

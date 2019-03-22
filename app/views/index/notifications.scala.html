@@ -116,22 +116,6 @@
                 }
             });
 
-            // Show side bar menu default and focus to search box
-            // Also, see layout.scala.html for normal user menu click !!
-            var requiredLoggedIn = $("#required-logged-in").length === 1;
-            if(!requiredLoggedIn){
-                var viewSize = $(window).width();
-                if( viewSize > 720) {
-                    $("#mySidenav").width("420px").css("border", "1px solid #ccc");
-                    setTimeout(function () {
-                        $("#main").off("click");
-                    }, 1000);
-                    $(".search-input").focus();
-                } else {
-                    $("#mySidenav").width("100vw").css("border", "1px solid #ccc");
-                }
-            }
-
             if ($(".admin-logged-in-affix").length === 1) {
                 $(".sidenav").css("top", "84px");
             }

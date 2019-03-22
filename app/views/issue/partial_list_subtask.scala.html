@@ -25,7 +25,7 @@
 @if(issue.parent != null){
     <span class="infos-item subtask">
     @defining(Issue.finder.byId(issue.parent.id)) { parentIssue =>
-        <a href="@routes.IssueApp.issue(parentIssue.project.owner, parentIssue.project.name, parentIssue.getNumber)">#@parentIssue.getNumber @parentIssue.title.take(5).trim()@if(parentIssue.title.size > 5){...}</a>
+        <a href="@routes.IssueApp.issue(parentIssue.project.owner, parentIssue.project.name, parentIssue.getNumber)">#@parentIssue.getNumber @parentIssue.title.take(10).trim()@if(parentIssue.title.size > 10){...}</a>
     }
     </span>
 }

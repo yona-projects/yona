@@ -7,46 +7,193 @@
 
 package controllers.api;
 
+import static controllers.UserApp.*;
+import static controllers.api.UserApi.*;
+import static play.libs.Json.*;
+
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
+
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import com.avaje.ebean.ExpressionList;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import controllers.AbstractPostingApp;
 import controllers.UserApp;
 import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
 import controllers.routes;
-import models.*;
-import models.enumeration.*;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.StringUtils;
+import models.Assignee;
+import models.Attachment;
+import models.Comment;
+import models.Issue;
+import models.IssueComment;
+import models.IssueEvent;
+import models.IssueLabel;
+import models.IssueSharer;
+import models.Milestone;
+import models.NotificationEvent;
+import models.Posting;
+import models.PostingComment;
+import models.Project;
+import models.ProjectUser;
+import models.User;
+import models.enumeration.EventType;
+import models.enumeration.Operation;
+import models.enumeration.ProjectScope;
+import models.enumeration.ResourceType;
+import models.enumeration.State;
+import models.enumeration.UserState;
 import play.api.mvc.Codec;
 import play.db.ebean.Transactional;
 import play.i18n.Messages;
 import play.libs.F;
 import play.libs.Json;
 import play.libs.ws.WS;
+import play.libs.ws.WSRequestHolder;
+import play.libs.ws.WSResponse;
 import play.mvc.Http;
 import play.mvc.Result;
-import utils.*;
-
-import javax.annotation.Nonnull;
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
-import static controllers.UserApp.MAX_FETCH_USERS;
-import static controllers.UserApp.currentUser;
-import static controllers.api.UserApi.*;
-import static play.libs.Json.toJson;
+import utils.AccessControl;
+import utils.ErrorViews;
+import utils.JodaDateUtil;
+import utils.Markdown;
+import utils.RouteUtil;
 
 public class IssueApi extends AbstractPostingApp {
     public static String TRANSLATION_API = play.Configuration.root().getString("application.extras.translation.api", "");
-    public static String TRANSLATION_HEADER = play.Configuration.root().getString("application.extras.translation.header", "");
-    public static String TRANSLATION_SVCID = play.Configuration.root().getString("application.extras.translation.svcid", "");
+    public static String TRANSLATION_HEADER_KEY = play.Configuration.root().getString("application.extras.translation.headerKey", "");
+    public static String TRANSLATION_HEADER_VALUE = play.Configuration.root().getString("application.extras.translation.headerValue", "");
+    public static final int TRANSLATE_TEXT_LENGTH_LIMIT = 4500;
+    public static final String NEWLINE = "\r\n";
+
+    @Transactional
+    public static Result imports(String owner, String projectName) {
+        Project project = Project.findByOwnerAndProjectName(owner, projectName);
+
+        try {
+            String postNumber = request().getQueryString("postNumber");
+            Long number = Optional.ofNullable(postNumber)
+                    .map(Long::parseLong)
+                    .orElseThrow(NumberFormatException::new);
+
+            Posting posting = Posting.findByNumber(project, number);
+
+
+            Issue issue = Issue.from(posting);
+            issue.save();
+
+            Map<String, String> postingCommentIdToIssueCommentIdMap = copyCommentsToIssue(posting.comments, issue);
+            copyAttachmentsToIssue(posting, issue);
+            copyAttachmentsToIssueComments(postingCommentIdToIssueCommentIdMap);
+
+            removePosting(posting);
+
+            ObjectNode json = Json.newObject();
+            json.put("number", issue.getNumber());
+
+            return ok(json);
+        } catch (NumberFormatException numberFormatException) {
+            String errorMessage = String.format("IssueApi.imports() error with NumberFormatException. owner: %s, projectName: %s - ", owner, projectName);
+            play.Logger.error(errorMessage, numberFormatException);
+        }
+
+        return badRequest();
+    }
+
+    private static void copyAttachmentsToIssue(Posting from, Issue to) {
+        List<Attachment> attachments = Attachment.findByContainer(ResourceType.BOARD_POST, String.valueOf(from.id));
+        attachments.forEach(attachment -> {
+            Attachment newAttachment = Attachment.copyAs(attachment);
+            newAttachment.containerId = String.valueOf(to.id);
+            newAttachment.containerType = ResourceType.ISSUE_POST;
+            newAttachment.save();
+            attachment.delete();
+        });
+    }
+
+    private static void copyAttachmentsToIssueComments(Map<String, String> postingCommentIdToIssueCommentIdMap) {
+        List<Attachment> attachments = postingCommentIdToIssueCommentIdMap.keySet().stream()
+                .flatMap(postingCommentId -> Attachment.findByContainer(ResourceType.NONISSUE_COMMENT, String.valueOf(postingCommentId)).stream())
+                .collect(Collectors.toList());
+
+        attachments.forEach(attachment -> {
+            String containerId = postingCommentIdToIssueCommentIdMap.get(attachment.containerId);
+
+            Attachment newAttachment = Attachment.copyAs(attachment);
+            newAttachment.containerId = containerId;
+            newAttachment.containerType = ResourceType.ISSUE_COMMENT;
+            newAttachment.save();
+            attachment.delete();
+        });
+    }
+
+    private static void removePosting(Posting posting) {
+        posting.deleteOnly();
+    }
+
+    private static Map<String, String> copyCommentsToIssue(Collection<PostingComment> postingComments, Issue issue) {
+        // 최상위 댓글
+        List<PostingComment> topLevelPostingComments = postingComments.stream()
+                .filter(postingComment -> Objects.isNull(postingComment.getParentComment()))
+                .collect(Collectors.toList());
+
+        // 대댓글
+        List<PostingComment> secondLevelPostingComments = postingComments.stream()
+                .filter(postingComment -> Objects.nonNull(postingComment.getParentComment()))
+                .collect(Collectors.toList());
+
+        // 최상위 댓글의 postingCommentId와 새로 생성될 issueCommentId의 mapping
+        // XXX: id는 Long 타입이지만, parentId는 String 타입이다.
+        Map<String, String> postingCommentIdToIssueCommentIdMap = new HashMap<>();
+
+        // 최상위 댓글을 issueComment에 생성하고, 이때 발급된 issueCommentId를 보관한다.
+        List<IssueComment> issueComments = new ArrayList<>();
+        topLevelPostingComments.forEach(topLevelPostingComment -> {
+            IssueComment issueComment = IssueComment.from(topLevelPostingComment, issue);
+            issueComment.save();
+            postingCommentIdToIssueCommentIdMap.put(String.valueOf(topLevelPostingComment.id), String.valueOf(issueComment.id));
+
+            issueComments.add(issueComment);
+        });
+
+        // 대댓글을 issueComment에 생성하고, 이때 새로 발급된 issueCommentId를 parentCommentId에 넣어준다.
+        secondLevelPostingComments.forEach(secondLevelPostingComment -> {
+            String parentCommentId = postingCommentIdToIssueCommentIdMap.get(String.valueOf(secondLevelPostingComment.getParentComment().id));
+
+            IssueComment issueComment = IssueComment.from(secondLevelPostingComment, issue);
+            issueComment.parentCommentId = parentCommentId;
+            issueComment.setParentComment(IssueComment.find.byId(Long.valueOf(parentCommentId)));
+            issueComment.save();
+
+            issueComments.add(issueComment);
+        });
+
+        return postingCommentIdToIssueCommentIdMap;
+    }
 
     @Transactional
     public static Result updateIssueLabel(String owner, String projectName, Long number) {
@@ -787,7 +934,6 @@ public class IssueApi extends AbstractPostingApp {
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     public static F.Promise<Result> translate() {
-        ObjectNode result = Json.newObject();
         if(StringUtils.isBlank(TRANSLATION_API)) {
             return F.Promise.promise( () -> status(412, "Precondition Failed"));
         }
@@ -806,11 +952,11 @@ public class IssueApi extends AbstractPostingApp {
         switch (type) {
             case "issue":
                 Issue issue = Issue.findByNumber(project, number);
-                text = "Title: " + issue.title + "\n\n" + issue.body;
+                text = "Title: " + issue.title + NEWLINE + NEWLINE + issue.body;
                 break;
             case "posting":
                 Posting posting = Posting.findByNumber(project, number);
-                text = "Title: " + posting.title + "\n\n" + posting.body;
+                text = "Title: " + posting.title + NEWLINE + NEWLINE + posting.body;
                 break;
             case "issue-comment":
                 text = IssueComment.find.byId(number).contents;
@@ -822,27 +968,76 @@ public class IssueApi extends AbstractPostingApp {
                 break;
         }
 
-        return getTranslation(text, project);
+        return getTranslation(text, project, translatorWsRequestHolderSupplier);
     }
 
-    private static F.Promise<Result> getTranslation(String text, Project project) {
+    private static F.Promise<WSResponse> translate(String text, WSRequestHolder translator) {
+        if (StringUtils.isBlank(text)) {
+            return F.Promise.pure(null);
+        } else {
+            return translator.post("source=ko&target=en&text=" + text);
+        }
+    }
 
-        return WS.url(TRANSLATION_API)
-                .setContentType("application/x-www-form-urlencoded")
-                .setHeader("Accept", "application/json,application/x-www-form-urlencoded,text/html,*/*")
-                .setHeader(TRANSLATION_HEADER, TRANSLATION_SVCID)
-                .post("source=ko&target=en&text=" + text)
-                .map(response -> {
+    private static Supplier<WSRequestHolder> translatorWsRequestHolderSupplier = () -> WS.url(TRANSLATION_API)
+            .setContentType("application/x-www-form-urlencoded; charset=UTF-8")
+            .setHeader("Accept", "application/json,application/x-www-form-urlencoded,text/html,*/*")
+            .setHeader(TRANSLATION_HEADER_KEY, TRANSLATION_HEADER_VALUE);
+
+    private static List<String> merge(List<String> texts) {
+
+        List<String> results = new ArrayList<>();
+
+        int chunkLength = 0;
+        String chunk = "";
+        for (int i  = 0 ; i < texts.size(); i += 1) {
+            String text = texts.get(i);
+            if (chunkLength + text.length() < TRANSLATE_TEXT_LENGTH_LIMIT) {
+                chunk += text;
+                chunk += NEWLINE;
+                chunkLength += text.length();
+            } else {
+                results.add(chunk);
+                chunk = text;
+                chunk += NEWLINE;
+                chunkLength = text.length();
+            }
+        }
+        results.add(chunk);
+        return results;
+    }
+
+    private static F.Promise<Result> getTranslations(List<String> texts, Project project, Supplier<WSRequestHolder> translatorSupplier) {
+        WSRequestHolder translator = translatorSupplier.get();
+
+        List<String> mergedTexts = merge(texts);
+
+        List<F.Promise<WSResponse>> promises = mergedTexts.stream()
+                .map(text -> translate(text, translator))
+                .collect(Collectors.toList());
+
+        return F.Promise.sequence(promises)
+                .map(results -> results.stream()
+                        .map(jsonNode -> {
+                            if (jsonNode == null) {
+                                return NEWLINE;
+                            }
+                            JsonNode resultNode = jsonNode.asJson().findPath("result");
+                            JsonNode translatedTextNode = resultNode.findPath("translatedText");
+                            return translatedTextNode.textValue();
+                        })
+                        .collect(Collectors.toList()))
+                .map(translatedList -> {
+                    String translated = String.join(NEWLINE, translatedList);
                     ObjectNode node = Json.newObject();
-
-                    play.Logger.debug(response.getBody());
-                    JsonNode jsonNode = response.asJson();
-                    JsonNode resultNode = jsonNode.findValue("result");
-
-                    String translated = resultNode.findValue("translatedText").asText();
                     node.put("translated", Markdown.render(translated, project));
                     return ok(node);
                 });
+    }
+
+    private static F.Promise<Result> getTranslation(String text, Project project, Supplier<WSRequestHolder> by) {
+        List<String> texts = Arrays.asList(text.replaceAll("&", "%26").split(NEWLINE));
+        return getTranslations(texts, project, by);
     }
 
     @AnonymousCheck

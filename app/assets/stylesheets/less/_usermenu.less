@@ -49,18 +49,61 @@
   &:hover {
     background-color: @violet;
   }
+
   a:hover {
     text-decoration: none;
+  }
+}
+
+.sidenav {
+  color: black;
+}
+
+.sidebar {
+  color: white;
+
+  .user-ul {
+    -ms-overflow-style: -ms-autohiding-scrollbar;
+    overflow-y: scroll;
+
+    &::-webkit-scrollbar {
+      height: 10px;
+      width: 5px;
+      background: lightgray;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #2788ba;
+    }
+  }
+
+  .user-project-list {
+    .project-list {
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.15);
+      }
+    }
+
+    .org-list {
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.15);
+      }
+    }
+  }
+
+  .search-input {
+    background-color: black;
+    color: white;
   }
 }
 
 .user-project-list {
   ul.nav-subtab > li {
     border: none;
+    margin-left: 0;
   }
 
   li {
-    border-bottom: 1px solid transparent;
     margin-left: 0;
   }
 
@@ -80,28 +123,44 @@
     margin: 10px 0;
     padding: 0;
     list-style-type: none;
+    overflow-x: visible;
+    overflow-y: auto;
+    max-height: 80vh;
 
-    .favored {
-      border-bottom: 1px dashed #7b1fa2;
+    &::-webkit-scrollbar {
+      height: 10px;
+      width: 5px;
+      background: lightgray;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #2788ba;
     }
   }
 
   .user-li {
-    color: #000;
-    border-left: 1px solid #fff;
-    border-top: 1px solid #fff;
-    border-right: 1px solid #fff;
     cursor: pointer;
+    line-height: normal;
+    font-size: 0;
 
-    &:hover {
-      color: #3592B5;
-      border: 1px solid #3592B5 !important;
+    .popover {
+      word-wrap: break-word;
+      min-width: 200px;
+      background-color: rgb(3, 169, 244);
+      color: white;
+      font-size: 13px;
+
+      .arrow {
+        &::after {
+          border-right-color: rgb(3, 169, 244);
+        }
+      }
     }
 
   }
 
   .etc-favorites {
-    border-top: 1px dashed #7b1fa2;
+    border-top: 1px dashed gray;
   }
 
   .user-search-form{
@@ -162,16 +221,16 @@
 
   .group {
     position:relative;
-    margin-top: 5px;
   }
 
   .search-input {
-    font-size:14px;
-    padding:10px 10px 10px 20px;
+    font-size:13px;
     display:block;
     border:none;
-    width: 90%;
+    width: 99%;
     margin-bottom: 0;
+    border-radius: unset;
+    height: 30px;
   }
 
   .search-input:focus {
@@ -200,7 +259,7 @@
     width:0;
     bottom:1px;
     position:absolute;
-    background: @orange;
+    background: #e91e63;
     transition:0.2s ease all;
   }
   .bar:before {
@@ -224,7 +283,6 @@
   ::-webkit-scrollbar-thumb {
     background: #1fb0ff;
   }
-
 
   li:focus {
     outline:solid 0 #DCDCDC;
@@ -309,16 +367,22 @@
   .star {
     vertical-align: bottom;
     height: 15px;
+    font-size: 16px;
   }
+
   .starred {
     color: #e91e63;
+
+    &:hover {
+      color: #8a123b;
+    }
   }
 
   .star-project, .star-org {
     width: 29px;
-    min-height: 35px;
     flex-shrink: 0;
     color: #eee;
+
     &:hover {
       color: #e91e63;
     }
@@ -355,13 +419,7 @@
   }
 
   .selected {
-    border-radius: 5px;
-    background-color: #9C27B0;
-    color: #fafafa;
-    padding: 3px 7px;
-    margin-right: 5px;
-    line-height: 25px;
-    z-index: 999;
+    background-color: rgba(255, 255, 255, 0.15);
   }
 
   .additional-help{
@@ -390,18 +448,19 @@
   }
 
   .site-logo {
-    width: 45px;
+    width: 26px;
     text-align: center;
     margin-left: 2px;
-    margin-right: -2px;
     padding-top: 3px;
     overflow: hidden;
     flex-shrink: 0;
+
     img {
-      width: 24px;
+      width: 16px;
       border-radius: 3px;
-      margin-right: 3px;
+      margin-right: 0;
       height: auto;
+      vertical-align: text-top;
     }
   }
 
@@ -456,6 +515,7 @@
 
   .project-item {
     font-size: 14px;
+    font-weight: 400;
     overflow: hidden;
 
     .slash {
@@ -464,36 +524,36 @@
 
     .project-name{
       min-width: 50px;
-      max-width: 220px;
+      max-width: 150px;
       text-overflow: ellipsis;
       overflow: hidden;
       white-space: nowrap;
+      font-family: roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
 
       &.org-name {
-        max-width: 320px;
-        font-size: 1.1em;
+        max-width: 140px;
+        font-size: 14px;
+        color: #00bcd4;
       }
 
       a {
         &:hover {
           text-decoration: none;
-          color: #3592B5;
+          color: white;
         }
       }
     }
 
     .all-project-names {
-      padding-left: 30px;
+      padding-left: 22px;
     }
 
     .all-org-names {
-      font-weight: 600;
-      color: black;
-      border-bottom: 1px solid transparent;
-
-      &:hover {
-        border-bottom: 1px solid #3592B5;
-      }
+      font-weight: 700;
+      color: white;
+      font-family: Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
     }
 
     .project-owner {
@@ -505,7 +565,7 @@
       text-overflow: ellipsis;
       overflow: hidden;
       white-space: nowrap;
-      max-width: 100px;
+      max-width: 50px;
       min-width: 40px;
       a {
         &:hover {
@@ -523,7 +583,7 @@
     align-items: center;
     flex-grow: 1;
     overflow: hidden;
-    padding: 5px 0;
+    padding: 1px 0;
   }
 
   .page-list-item {
@@ -585,12 +645,29 @@
   }
 
   .list-end{
-    border-bottom: 1px dashed #7b1fa2;
+    border-bottom: 1px dashed gray;
   }
 
-  .project-list, .org-list {
+  .org-li {
+    margin-top: 3px;
+    margin-bottom: 8px;
+  }
+
+  .project-list {
+    padding: 5px 0;
+
     &:hover {
       cursor: pointer;
+      background-color: #f1f1f1;
+    }
+  }
+
+  .org-list {
+    padding: 1px 0;
+
+    &:hover {
+      cursor: pointer;
+      background-color: #f1f1f1;
     }
   }
 
@@ -751,7 +828,6 @@
   background-color: white;
   overflow-x: hidden; /* Disable horizontal scroll */
   overflow-y: auto;
-  padding-top: 10px;
 
   &::-webkit-scrollbar {
     height: 10px;
@@ -785,13 +861,14 @@
   color: black;
   background-color: #eee;
   display: inline-block;
+
   a:hover {
     color: black;
   }
 }
 
 .nav-subtab li a {
-  padding: 5px 16px;
+  padding: 5px 8px;
 }
 
 /* Position and style the close button (top right corner) */

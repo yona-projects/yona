@@ -13,87 +13,105 @@
 }
 
 <ul class="lst-stacked unstyled">
-    @if(!UserApp.currentUser().isAnonymous()){
-    <li @if(param.assigneeId == currentUserId){ class="active"}>
-        <a pjax-filter href="#"
-            data-author-id=""
-            data-assignee-id="@currentUserId"
-            data-commenter-id=""
-            data-milestone-id="@param.milestoneId"
-            data-mention-id=""
-            data-sharer-id=""
-            data-favorite-id="">
-            @Messages("issue.list.assignedToMe")
-        </a>
-    </li>
-    <li @if(param.authorId == currentUserId){ class="active"}>
-        <a pjax-filter href="#"
-            data-author-id="@currentUserId"
-            data-assignee-id=""
-            data-commenter-id=""
-            data-milestone-id="@param.milestoneId"
-            data-mention-id=""
-            data-sharer-id=""
-            data-favorite-id="">
-            @Messages("issue.list.authoredByMe")
-        </a>
-    </li>
-    <li @if(param.commenterId == currentUserId){ class="active"}>
-        <a pjax-filter href="#"
-        data-author-id=""
-        data-assignee-id=""
-        data-commenter-id="@currentUserId"
-        data-milestone-id="@param.milestoneId"
-        data-mention-id=""
-        data-sharer-id=""
-        data-favorite-id="">
-        @Messages("issue.list.commentedByMe")
-        </a>
-    </li>
-    <li @if(param.mentionId == currentUserId){ class="active"}>
-        <a pjax-filter href="#"
-            data-author-id=""
-            data-assignee-id=""
-            data-commenter-id=""
-            data-milestone-id="@param.milestoneId"
-            data-mention-id="@currentUserId"
-            data-sharer-id=""
-            data-favorite-id="">
-            @Messages("issue.list.mentionedOfMe") @if(StringUtils.isBlank(param.filter)) {
-                (@Issue.getCountOfMentionedOpenIssues(currentUserId))
-            }
-        </a>
-    </li>
-    <li @if(param.sharerId == currentUserId){ class="active"}>
-        <a pjax-filter href="#"
-        data-author-id=""
-        data-assignee-id=""
-        data-commenter-id=""
-        data-milestone-id="@param.milestoneId"
-        data-mention-id=""
-        data-sharer-id="@currentUserId"
-        data-favorite-id="">
-        @Messages("issue.list.sharedWithMe") @if(StringUtils.isBlank(param.filter)) {
-            (@IssueSharer.getNumberOfIssuesSharedWithUser(currentUserId))
-        }
-        </a>
-    </li>
+    @if(!UserApp.currentUser().isAnonymous()) {
+        <li @if(param.assigneeId == currentUserId){ class="active"}>
+            <a pjax-filter href="#"
+                data-author-id=""
+                data-assignee-id="@currentUserId"
+                data-commenter-id=""
+                data-milestone-id="@param.milestoneId"
+                data-mention-id=""
+                data-sharer-id=""
+                data-favorite-id="">
+                <span class="assigned-to-me">
+                    <i class="yobicon-user"></i>
+                    @Messages("issue.list.assignedToMe")
+                </span>
+            </a>
+        </li>
+        <li @if(param.authorId == currentUserId){ class="active"}>
+            <a pjax-filter href="#"
+                data-author-id="@currentUserId"
+                data-assignee-id=""
+                data-commenter-id=""
+                data-milestone-id="@param.milestoneId"
+                data-mention-id=""
+                data-sharer-id=""
+                data-favorite-id="">
+                <span class="authored-by-me">
+                    <i class="yobicon-pencil"></i>
+                    @Messages("issue.list.authoredByMe")
+                </span>
+            </a>
+        </li>
+        <li @if(param.commenterId == currentUserId){ class="active"}>
+            <a pjax-filter href="#"
+                data-author-id=""
+                data-assignee-id=""
+                data-commenter-id="@currentUserId"
+                data-milestone-id="@param.milestoneId"
+                data-mention-id=""
+                data-sharer-id=""
+                data-favorite-id="">
+                <span class="commented-by-me">
+                    <i class="yobicon-comments"></i>
+                    @Messages("issue.list.commentedByMe")
+                </span>
+            </a>
+        </li>
+        <li @if(param.mentionId == currentUserId){ class="active"}>
+            <a pjax-filter href="#"
+                data-author-id=""
+                data-assignee-id=""
+                data-commenter-id=""
+                data-milestone-id="@param.milestoneId"
+                data-mention-id="@currentUserId"
+                data-sharer-id=""
+                data-favorite-id="">
+                <span class="mentioned-of-me">
+                    <i class="yobicon-at"></i>
+                    @Messages("issue.list.mentionedOfMe")
+                </span>
+                @if(StringUtils.isBlank(param.filter)) {
+                    (@Issue.getCountOfMentionedOpenIssues(currentUserId))
+                }
+            </a>
+        </li>
+        <li @if(param.sharerId == currentUserId){ class="active"}>
+            <a pjax-filter href="#"
+                data-author-id=""
+                data-assignee-id=""
+                data-commenter-id=""
+                data-milestone-id="@param.milestoneId"
+                data-mention-id=""
+                data-sharer-id="@currentUserId"
+                data-favorite-id="">
+                <span class="shared-with-me">
+                    <i class="yobicon-share"></i>
+                    @Messages("issue.list.sharedWithMe")
+                </span>
+                @if(StringUtils.isBlank(param.filter)) {
+                    (@IssueSharer.getNumberOfIssuesSharedWithUser(currentUserId))
+                }
+            </a>
+        </li>
         <li @if(param.favoriteId == currentUserId) {
             class="active"}>
             <a pjax-filter href="#"
-            data-author-id=""
-            data-assignee-id=""
-            data-commenter-id=""
-            data-milestone-id="@param.milestoneId"
-            data-mention-id=""
-            data-sharer-id=""
-            data-favorite-id="@currentUserId">
+                data-author-id=""
+                data-assignee-id=""
+                data-commenter-id=""
+                data-milestone-id="@param.milestoneId"
+                data-mention-id=""
+                data-sharer-id=""
+                data-favorite-id="@currentUserId">
                 <span class="favorite-issue">
-                <i class="starred star material-icons va-text-top my-issue">star</i>@Messages("issue.list.favorite")
+                    <i class="yobicon-favorite"></i>
+                    @Messages("issue.list.favorite")
                 </span>
                 @if(StringUtils.isBlank(param.filter)) {
-                (@FavoriteIssue.getNumberOpenFavoriteIssues(currentUserId))
-            }
+                    (@FavoriteIssue.getNumberOpenFavoriteIssues(currentUserId))
+                }
             </a>
         </li>
     }

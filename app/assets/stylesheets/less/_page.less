@@ -1,4 +1,82 @@
 //--- common
+
+.framed-body {
+    overflow: hidden;
+}
+
+.main {
+    width: 100%;
+    background-color: #fff;
+}
+
+.sidebar {
+    background-color: rgb(51, 51, 51);
+    position: sticky;
+    top: 0;
+    left: 0;
+    bottom: 0;
+
+    .nav {
+        width: 270px;
+    }
+
+    .nav-tabs {
+        border-bottom: none;
+
+        li {
+            margin-bottom: -2px;
+
+            a {
+                padding: 8px 10px;
+                border: none;
+                color: lightgray;
+
+                &:hover {
+                    color: #f36c22;
+                    background-color: black;
+                    border: none;
+                }
+            }
+        }
+
+        .active {
+            a {
+                color: #f36c22;
+                background-color: black;
+                border: none;
+            }
+        }
+    }
+
+    .user-menu-wrap {
+        padding: 10px;
+        color: grey;
+        box-sizing: border-box;
+
+        a {
+            &:hover {
+                color: white;
+            }
+        }
+    }
+
+    .user-menu {
+        padding: 5px;
+    }
+}
+
+#mainFrame {
+    width: 100%;
+}
+
+.mainFrame {
+    display: none;
+}
+
+.loading-gif {
+    background: #FFF url('@{base-image-path}/loading-gif-2.gif') no-repeat center;
+}
+
 .prj {
     color:#202020;
 }
@@ -19,7 +97,6 @@
     display:none;
 
     .unsupported-inner {
-        width: 1170px;
         margin:0 auto;
 
         p {
@@ -55,11 +132,41 @@
     }
 }
 
+.pin {
+    position: absolute;
+    display: inline-block;
+    left: -2px;
+    top: 5px;
+    margin-right: 5px;
+    padding: 0 1px;
+    font-size: 18px;
+    color: white;
+
+    i {
+        &.yobicon-arrow-right, &.yobicon-arrow-left {
+            padding: 4px 2px;
+            display: none;
+            border: 1px solid white;
+        }
+
+        &:hover {
+            cursor: pointer;
+            color: #03a9f4;
+            border: 1px solid #03a9f4;
+        }
+    }
+
+    &:hover {
+        cursor: pointer;
+        color: #03a9f4;
+    }
+}
+
 .gnb-inner {
-    width: 1170px;
     margin:0 auto;
     color:#788ba7;
     height:40px;
+    width: 98%;
 }
 
 .gnb-inner {
@@ -350,8 +457,8 @@
 
         .project-header-wrap {
             height:inherit;
-            width:1170px;
             margin:0 auto;
+            width: 97%;
             position: relative;
 
             .project-header-avatar {
@@ -422,6 +529,7 @@
 
                     .user-project-list {
                         .star {
+                            font-size: 24px;
                             color: rgba(255, 255, 255, 0.22);
                             &:hover {
                                 color: #e91e63;
@@ -479,7 +587,6 @@
 
 .page-wrap {
     background-color: @white;
-    width: 1170px;
     margin: 0 auto;
 }
 
@@ -490,7 +597,6 @@
 
     .project-menu-inner {
         height:39px;
-        width: 1170px;
         margin:0 auto;
 
         .project-menu-nav {
@@ -585,7 +691,6 @@
 }
 
 .project-page-wrap {
-    width: 1170px;
     margin:20px auto 0;
 
     label {
@@ -603,7 +708,6 @@
 
 .site-breadcrumb-outer {
     .site-breadcrumb-inner {
-        width: 1170px;
         margin:0 auto;
 
         h3 {
@@ -622,7 +726,6 @@
         margin: 0 auto;
         text-align:center;
         line-height: 34px;
-        width:1170px;
     }
 
     .provider {
@@ -905,7 +1008,6 @@
     background-color:#f9f9f9;
     padding:80px 20px;
     .sample-wrap {
-        width:980px;
         margin:0 auto;
         text-align:center;
         overflow:auto;
@@ -2188,7 +2290,7 @@ label.inline-list {
 
     .milestone {
         padding: 15px 0px; /* 15px 30px;*/
-        overflow: hidden;
+      
         &:last-of-type { border-bottom:none; }
 
         .bar{
@@ -3436,6 +3538,10 @@ div.markdown-preview {
 
     .help { display:none; }
 
+    .help-droppable {
+        display: inline;
+    }
+
     .attach-wrap {
         text-align:center;
 
@@ -3603,7 +3709,7 @@ div.markdown-preview {
 }
 .content-wrap {
     .text {
-        width: 99%; /*946px;/*866px;*/
+        width: 97%; /*946px;/*866px;*/
     }
     textarea.content{
       height: 300px;
@@ -4893,7 +4999,7 @@ label.issue-item-row {
 }
 
 .user-stream-box {
-    margin-left: 220px;
+    padding-left: 20px;
     overflow: hidden;
     .h5-title {
       background-color: #615353;
@@ -5063,7 +5169,6 @@ label.issue-item-row {
 
 // -- site admin
 .site-setting-wrap {
-    width: 1170px;
     margin:20px auto 0;
 
     .site-setting-nav {
@@ -5166,6 +5271,10 @@ label.issue-item-row {
             }
             &.action-buttons {
                 padding-top: 0;
+
+                a {
+                    margin: 2px !important;
+                }
             }
         }
 
@@ -6927,7 +7036,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 .right-menu{
     margin-top: 10px;
     margin-left: 10px;
-    width: 400px;
+    width: 350px;
 }
 
 .auth-provider-logo {
@@ -7024,8 +7133,13 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 
 .subtasks {
     #simple-issue-list;
+
     margin-bottom: 15px;
     margin-top: 40px;
+
+    .issue-item {
+        padding: 0 3px;
+    }
     .parent-issue {
         font-size: 16px;
     }
@@ -7237,6 +7351,24 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 
 .no-margin {
     margin: 0;
+}
+
+.for-subtask-progressbar {
+    padding-left: 5px;
+
+    .subtask-progress {
+        display: inline-block;
+        width: 30px;
+        vertical-align: bottom;
+    }
+
+    .completion-ratio {
+        font-size: 0.8em;
+    }
+
+    .subtask {
+        font-size: 0.8em;
+    }
 }
 
 .my-issues {

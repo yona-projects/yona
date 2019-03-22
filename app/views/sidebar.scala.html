@@ -1,0 +1,75 @@
+@import org.apache.commons.lang3.StringUtils
+@import utils.TemplateHelper._
+@import com.feth.play.module.pa.PlayAuthenticate._
+@import com.feth.play.module.pa.views.html._
+@import play.mvc.Http._;
+
+@currentUser = @{
+    UserApp.currentUser()
+}
+
+@if(currentUser.isAnonymous){
+    @currentAuth() { auth => @{
+        if(auth == null) {
+            val redirect = Context.current().request().getQueryString("redirectUrl")
+            if(StringUtils.isNotEmpty(redirect)) {
+                val url = Context.current().session().put("pa.url.orig", redirect)
+            } else {
+                val url = storeOriginalUrl(Context.current())
+            }
+        }
+    }
+    }
+}
+
+
+<div class="row-fluid user-menu-wrap">
+    <span class="user-menu"><a href="@routes.UserApp.userInfo(currentUser.loginId)" target="mainFrame">
+        <span class="avatar-wrap smaller">
+            <img src="@currentUser.avatarUrl(32)" />
+        </span>
+        <span class="caret-text hide-in-mobile">@currentUser.getPureNameOnly</span>
+    </a></span>
+    <span class="user-menu"><a href="@routes.UserApp.editUserInfoForm()" target="mainFrame">@Messages("userinfo.accountSetting")</a></span>
+    @currentAuth() { auth =>
+        @if(auth != null) {
+            <a href="@routes.Application.oAuthLogout"><span class="user-menu logout label">@Messages("title.logout")</span></a>
+        } else {
+            <a href="@routes.UserApp.logout()"><span class="user-menu logout label">@Messages("title.logout")</span></a>
+        }
+    }
+</div>
+<ul class="nav nav-tabs nm">
+    <li class="myOrganizationList active">
+        <a href="#myOrganizationList" data-toggle="tab">
+        @Messages("title.favorite")
+        </a>
+    </li>
+    <li class="myProjectList">
+        <a href="#myProjectList" data-toggle="tab">
+        @Messages("title.project")
+        </a>
+    </li>
+    @if(!Application.HIDE_PROJECT_LISTING && !UserApp.currentUser().isGuest){
+    <li class="allProjectList">
+        <a href="#allProjectList" data-toggle="tab">
+        @Messages("common.order.all")
+        </a>
+    </li>
+    }
+</ul>
+<div class="tab-content tab-box">
+    <div id="usermenu-tab-content-list" class="tab-content">
+        <div class="tab-pane user-project-list active" id="myOrganizationList">
+        @views.html.index.myOrganizationList(UserApp.currentUser())
+        </div>
+        <div class="tab-pane user-project-list" id="myProjectList">
+        @views.html.index.myProjectList(UserApp.currentUser())
+        </div>
+        @if(!Application.HIDE_PROJECT_LISTING && !UserApp.currentUser().isGuest){
+            <div class="tab-pane user-project-list" id="allProjectList">
+            @views.html.index.allProjectList(UserApp.currentUser())
+            </div>
+        }
+    </div>
+</div>

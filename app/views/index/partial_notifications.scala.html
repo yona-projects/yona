@@ -67,7 +67,7 @@
                     }
                 </div>
                 <div class="message-wrap nowrap" id="message-@noti.id">
-                    <div class="message">@Html(HtmlUtil.defaultSanitize(noti.getMessage.replaceAll("[^>]\n", "<br/>\n")))</div>
+                    <div class="message">@Html(HtmlUtil.defaultSanitize(noti.getMessage.replaceAll("(?<!>)\n", "<br/>\n")))</div>
                 </div>
                 <div class="meta">
                     @if(user != null){
@@ -92,8 +92,8 @@
     </li>
     }
 }
-@if( NotificationEvent.findByReceiver(UserApp.currentUser, from, size).size != 0){
-<li><a href="javascript: void(0);" id="notification-more" class="ybtn">More</a></li>
+@if(NotificationEvent.findByReceiver(UserApp.currentUser, from, size).size != 0) {
+<li><a href="javascript:void(0);" id="notification-more" class="ybtn">More</a></li>
 <script type="text/javascript">
     $(document).ready(function(){
         function checkOverflow(el) {

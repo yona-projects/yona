@@ -228,6 +228,10 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
         super.delete();
     }
 
+    public void deleteOnly() {
+        super.delete();
+    }
+
     public void updateProperties() {
         // default implementation for convenience
     }
