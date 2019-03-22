@@ -64,6 +64,7 @@
                     }
                 </div>
 
+                <div class="user-status">@if(user.isSiteManager){<span class="badge label-success">SITE ADMIN</span>}</div>
                 <div class="user-status">@if(user.isLocked){<span class="badge label-important">BLOCKED</span>}</div>
                 <div class="user-since">
                     <strong>@Messages("userinfo.since")</strong>

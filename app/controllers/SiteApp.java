@@ -1,9 +1,10 @@
 /**
  * Yona, 21st Century Project Hosting SW
  * <p>
- * Copyright Yona & Yobi Authors & NAVER Corp.
+ * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
  * https://yona.io
  **/
+
 package controllers;
 
 import com.avaje.ebean.Page;
@@ -152,6 +153,30 @@ public class SiteApp extends Controller {
             return forbidden();
         }
     }
+
+    @Transactional
+    public static Result toggleSiteAdminRole(String loginId) {
+        if (!User.findByLoginId(session().get("loginId")).isSiteManager()){
+            flash(Constants.WARNING, "error.auth.unauthorized.waringMessage");
+            return forbidden();
+        }
+
+        User user = User.findByLoginId(loginId);
+
+        if (SiteAdmin.exists(user)) {
+            SiteAdmin siteAdmin = SiteAdmin.findByUserLoginId(user.loginId);
+            siteAdmin.delete();
+        } else {
+            SiteAdmin siteAdmin = new SiteAdmin();
+            siteAdmin.admin = user;
+            siteAdmin.save();
+        }
+
+        CacheStore.yonaUsers.invalidate(user.id);
+
+        return redirect(routes.SiteApp.userList(1, null));
+    }
+
 
     /**
      * @param projectName the project name
