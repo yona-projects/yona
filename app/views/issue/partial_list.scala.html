@@ -34,6 +34,8 @@
                     <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)" class="title">
                     <span class="post-id">#@issue.getNumber</span>
                     </a>
+                    @if(issue.weight > 0) {<span class="weight-up-arrow" data-toggle="tooltip" data-placement="right" title="@Messages("issue.weight") @issue.weight"><i class="yobicon-angle-circled-up"></i></span>}
+                    @if(issue.weight < 0) {<span class="weight-down-arrow" data-toggle="tooltip" data-placement="right" title="@Messages("issue.weight") @issue.weight"><i class="yobicon-angle-circled-down"></i></span>}
                         @showHeaderWordsInBracketsIfExist(issue.title)
                     <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)" class="title">
                         @removeHeaderWords(issue.title)

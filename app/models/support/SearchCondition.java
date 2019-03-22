@@ -158,9 +158,9 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         if (StringUtils.isNotBlank(orderBy)) {
             if (orderBy.equals("dueDate")) {
                 String formulaName = orderDir.equals("asc") ? "dueDateAsc" : "dueDateDesc";
-                el.orderBy(formulaName + " " + orderDir);
+                el.orderBy("weight desc, " + formulaName + " " + orderDir);
             } else {
-                el.orderBy(orderBy + " " + orderDir);
+                el.orderBy("weight desc, " + orderBy + " " + orderDir);
             }
         }
     }

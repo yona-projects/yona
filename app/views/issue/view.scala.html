@@ -192,6 +192,7 @@
                             <span class="project-btn-item hide show-in-mobile-inline ml4">
                                 <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)?parentIssueId=@parentIssueId" class="ybtn ybtn-success">@Messages("button.newSubtask")</a>
                             </span>
+                            <span class="issue-weight"><span class="divider">|</span><button id="upvote-issue-weight" class="ybtn ybtn-small" data-toggle="tooltip" title="@Messages("issue.weight"): Upvote"><i class="yobicon-arrow-up-alt"></i></button><button class="ybtn ybtn-small" id="down-vote-issue-weight" data-toggle="tooltip" title="@Messages("issue.weight"): Down vote"><i class="yobicon-arrow-down-alt"></i></button><span class="weight-number" data-toggle="popover" data-trigger="hover" data-placement="top" data-content="@Messages("issue.weight.description")">@issue.weight</span></span>
                         </div>
                     </div>
                     <div id="vote" class="vote-wrap @if(issue.voters.size > 0){voter-exists}">
@@ -583,6 +584,24 @@
             $.elevator({
                 shape: 'rounded',
                 tooltips: true
+            });
+
+            $("#upvote-issue-weight").on("click", function () {
+                $.ajax({
+                    url: "@api.routes.IssueApi.upvoteWeight(project.owner, project.name, issue.getNumber)",
+                    type: "POST",
+                }).done(function (data) {
+                    $(".weight-number").html(data.weight);
+                });
+            });
+
+            $("#down-vote-issue-weight").on("click", function () {
+                $.ajax({
+                    url: "@api.routes.IssueApi.downvoteWeight(project.owner, project.name, issue.getNumber)",
+                    type: "POST",
+                }).done(function (data) {
+                    $(".weight-number").html(data.weight);
+                });
             });
         });
 </script>
