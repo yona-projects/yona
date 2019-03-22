@@ -31,12 +31,10 @@ libraryDependencies ++= Seq(
   // JGit Archive Formats
   "org.eclipse.jgit" % "org.eclipse.jgit.archive" % "4.5.0.201609210915-r",
   // svnkit
-  "org.tmatesoft.svnkit" % "svnkit" % "1.8.15",
+  "org.tmatesoft.svnkit" % "svnkit" % "1.9.3",
   // svnkit-dav
   "sonia.svnkit" % "svnkit-dav" % "1.8.15-scm1",
   // javahl
-  "org.apache.subversion" % "svn-javahl-api" % "1.8.1",
-  "org.tmatesoft.svnkit" % "svnkit-javahl16" % "1.8.15",
   "net.sourceforge.jexcelapi" % "jxl" % "2.6.10",
 // shiro
   "org.apache.shiro" % "shiro-core" % "1.2.1",
@@ -63,13 +61,12 @@ libraryDependencies ++= Seq(
   "com.github.mfornos" % "humanize-slim" % "1.2.2"
 )
 
-
 val projectSettings = Seq(
   // Add your own project settings here
   resolvers += "maven central" at "https://repo.maven.apache.org/maven2",
   resolvers += "jgit-repository" at "https://repo.eclipse.org/content/groups/releases/",
   resolvers += "java-semVer" at "https://oss.sonatype.org/content/repositories/snapshots/",
-  resolvers += "scm-manager release repository" at "https://maven.scm-manager.org/nexus/content/groups/public",
+  resolvers += "scm-manager release repository" at "https://maven.scm-manager.org/nexus/content/repositories/releases/",
   resolvers += "tmatesoft release repository" at "https://maven.tmatesoft.com/content/repositories/releases",
   resolvers += "tmatesoft snapshot repository" at "https://maven.tmatesoft.com/content/repositories/snapshots",
   resolvers += "julienrf.github.com" at "http://julienrf.github.com/repo/",

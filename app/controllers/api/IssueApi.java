@@ -7,66 +7,20 @@
 
 package controllers.api;
 
-import static controllers.UserApp.*;
-import static controllers.api.UserApi.*;
-import static play.libs.Json.*;
-
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
-
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import com.avaje.ebean.ExpressionList;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import controllers.AbstractPostingApp;
 import controllers.UserApp;
 import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
 import controllers.routes;
-import models.Assignee;
-import models.Attachment;
-import models.Comment;
-import models.Issue;
-import models.IssueComment;
-import models.IssueEvent;
-import models.IssueLabel;
-import models.IssueSharer;
-import models.Milestone;
-import models.NotificationEvent;
-import models.Posting;
-import models.PostingComment;
-import models.Project;
-import models.ProjectUser;
-import models.User;
-import models.enumeration.EventType;
-import models.enumeration.Operation;
-import models.enumeration.ProjectScope;
-import models.enumeration.ResourceType;
-import models.enumeration.State;
-import models.enumeration.UserState;
+import models.*;
+import models.enumeration.*;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 import play.api.mvc.Codec;
 import play.db.ebean.Transactional;
 import play.i18n.Messages;
@@ -77,11 +31,21 @@ import play.libs.ws.WSRequestHolder;
 import play.libs.ws.WSResponse;
 import play.mvc.Http;
 import play.mvc.Result;
-import utils.AccessControl;
-import utils.ErrorViews;
-import utils.JodaDateUtil;
-import utils.Markdown;
-import utils.RouteUtil;
+import utils.*;
+
+import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+import static controllers.UserApp.MAX_FETCH_USERS;
+import static controllers.UserApp.currentUser;
+import static controllers.api.UserApi.*;
+import static play.libs.Json.toJson;
 
 public class IssueApi extends AbstractPostingApp {
     public static String TRANSLATION_API = play.Configuration.root().getString("application.extras.translation.api", "");
@@ -1130,6 +1094,43 @@ public class IssueApi extends AbstractPostingApp {
 
         return ok(result);
     }
+
+    public static Result upvoteWeight(String owner, String projectName, Long number){
+        Project project = Project.findByOwnerAndProjectName(owner, projectName);
+        Issue issue = Issue.findByNumber(project, number);
+
+        if (!AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(),
+                Operation.UPDATE)) {
+            return forbidden(Json.newObject().put("message", "Permission denied"));
+        }
+
+        issue.weight = issue.weight + 1;
+        issue.update();
+
+        ObjectNode result = Json.newObject();
+        result.put("weight", issue.weight);
+
+        return ok(result);
+    }
+
+    public static Result downvoteWeight(String owner, String projectName, Long number){
+        Project project = Project.findByOwnerAndProjectName(owner, projectName);
+        Issue issue = Issue.findByNumber(project, number);
+
+        if (!AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(),
+                Operation.UPDATE)) {
+            return forbidden(Json.newObject().put("message", "Permission denied"));
+        }
+
+        issue.weight = issue.weight - 1;
+        issue.update();
+
+        ObjectNode result = Json.newObject();
+        result.put("weight", issue.weight);
+
+        return ok(result);
+    }
+
 
     private static ObjectNode changeSharer(JsonNode sharer, Issue issue, String action) {
         ObjectNode result = Json.newObject();

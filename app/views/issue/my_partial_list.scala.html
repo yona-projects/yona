@@ -63,6 +63,8 @@
             </div>
             <div class="title-wrap span6">
                 <span class="title-cell">
+                    @if(issue.weight > 0) {<span class="weight-up-arrow" data-toggle="tooltip" data-placement="right" title="@Messages("issue.weight") @issue.weight"><i class="yobicon-angle-circled-up"></i></span>}
+                    @if(issue.weight < 0) {<span class="weight-down-arrow" data-toggle="tooltip" data-placement="right" title="@Messages("issue.weight") @issue.weight"><i class="yobicon-angle-circled-down"></i></span>}
                     <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)" class="title">
                     @issue.title
                     </a>

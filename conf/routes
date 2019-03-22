@@ -66,6 +66,8 @@ POST           /-_-api/v1/owners/:owner/projects/:projectName/issues/:number/ass
 GET            /-_-api/v1/owners/:owner/projects/:projectName/issues/:number/findSharer         controllers.api.IssueApi.findSharerByloginIds(owner:String, projectName:String, number:Long, query: String ?= "")
 GET            /-_-api/v1/owners/:owner/projects/:projectName/issues/:number/sharableUsers      controllers.api.IssueApi.findSharableUsers(owner:String, projectName:String, number:Long, query: String ?= "")
 POST           /-_-api/v1/owners/:owner/projects/:projectName/issues/:number/share              controllers.api.IssueApi.updateSharer(owner:String, projectName:String, number:Long)
+POST           /-_-api/v1/owners/:owner/projects/:projectName/issues/:number/upvoteWeight       controllers.api.IssueApi.upvoteWeight(owner:String, projectName:String, number:Long)
+POST           /-_-api/v1/owners/:owner/projects/:projectName/issues/:number/downvoteWeight     controllers.api.IssueApi.downvoteWeight(owner:String, projectName:String, number:Long)
 GET            /-_-api/v1/owners/:owner/projects/:projectName/issues/:number                    controllers.api.IssueApi.getIssue(owner: String, projectName: String, number: Long)
 PUT            /-_-api/v1/owners/:owner/projects/:projectName/issues/:number                    controllers.api.IssueApi.updateIssue(owner: String, projectName: String, number: Long)
 PATCH          /-_-api/v1/owners/:owner/projects/:projectName/issues/:number                    controllers.api.IssueApi.updateIssueState(owner: String, projectName: String, number: Long)

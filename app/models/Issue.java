@@ -133,6 +133,8 @@ public class Issue extends AbstractPosting implements LabelOwner {
     @OneToOne
     public Issue parent;
 
+    public Integer weight = 0;
+
     public Issue() {
         super();
     }
