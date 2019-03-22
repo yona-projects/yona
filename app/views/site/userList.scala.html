@@ -27,6 +27,10 @@
     if(state==userState) {"active"}
 }
 
+@numberOfSiteAdmin = {
+    <span class="num-badge">@(SiteAdmin.find.all().size() - 1)</span>
+}
+
 @siteMngLayout(message) {
     <div class="title_area">
 
@@ -43,7 +47,8 @@
       <li class="@isActiveTabMenu(UserState.ACTIVE)"><a href="@routes.SiteApp.userList()?state=@UserState.ACTIVE.name">@Messages("site.userList.unlocked")</a></li>
       <li class="@isActiveTabMenu(UserState.LOCKED)"><a href="@routes.SiteApp.userList()?state=@UserState.LOCKED.name">@Messages("site.userList.locked")</a></li>
       <li class="@isActiveTabMenu(UserState.DELETED)"><a href="@routes.SiteApp.userList()?state=@UserState.DELETED.name">@Messages("site.userList.deleted")</a></li>
-        <li class="@isActiveTabMenu(UserState.GUEST)"><a href="@routes.SiteApp.userList()?state=@UserState.GUEST.name">@Messages("site.userList.guest")</a></li>
+      <li class="@isActiveTabMenu(UserState.GUEST)"><a href="@routes.SiteApp.userList()?state=@UserState.GUEST.name">@Messages("site.userList.guest")</a></li>
+      <li class="@isActiveTabMenu(UserState.SITE_ADMIN)"><a href="@routes.SiteApp.userList()?state=@UserState.SITE_ADMIN.name">@Messages("site.userList.siteAdmin")@numberOfSiteAdmin</a></li>
     </ul>
     <div class="row-fluid listhead">
         <div class="span3 listhead-title">
@@ -91,18 +96,25 @@
             </div>
             @if(userState != UserState.DELETED) {
             <div class="span5 listitem-col action-buttons">
-                    <a class="ybtn @if(user.isGuest){ybtn-success}" data-request-method="post" data-request-uri="@routes.SiteApp.toggleGuestMode(user.loginId, user.state.name(), query)">
+                    <a class="ybtn ybtn-small @if(user.isGuest){ybtn-success}" data-request-method="post" data-request-uri="@routes.SiteApp.toggleGuestMode(user.loginId, user.state.name(), query)">
                     @if(user.isGuest){
                         @Messages("button.user.make.normal.mode")
                     } else {
                         @Messages("button.user.make.guest.mode")
                     }
                     </a>
-                <a class="ybtn" data-request-method="post" data-request-uri="@routes.SiteApp.toggleAccountLock(user.loginId, user.state.name(), query)">
+                <a class="ybtn ybtn-small" data-request-method="post" data-request-uri="@routes.SiteApp.toggleAccountLock(user.loginId, user.state.name(), query)">
                     @Messages("button" +".user.makeAccountUnlock."+ (user.state == UserState.LOCKED))
                 </a>
-                <button id="@user.loginId" class="ybtn" data-toggle="reset-password" data-href="@routes.UserApp.userInfo(user.loginId)?action=resetPassword"> @Messages("title.resetPassword")</button>
-                <button class="ybtn ybtn-danger" data-toggle="account-delete" data-href="@routes.SiteApp.deleteUser(user.id)" data-user-id="@user.loginId" data-user-name="@user.name">
+                <button id="@user.loginId" class="ybtn ybtn-small" data-toggle="reset-password" data-href="@routes.UserApp.userInfo(user.loginId)?action=resetPassword"> @Messages("title.resetPassword")</button>
+                <a class="ybtn ybtn-small @if(user.isSiteManager){ybtn-info}else{label-info}" data-request-method="post" data-request-uri="@routes.SiteApp.toggleSiteAdminRole(user.loginId)">
+                @if(user.isSiteManager){
+                    @Messages("button.user.revoke.site.admin.role")
+                } else {
+                    @Messages("button.user.upgrade.to.site.admin")
+                }
+                </a>
+                <button class="ybtn ybtn-small ybtn-danger" data-toggle="account-delete" data-href="@routes.SiteApp.deleteUser(user.id)" data-user-id="@user.loginId" data-user-name="@user.name">
                     @Messages("button.delete")
                 </button>
             </div>

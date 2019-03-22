@@ -398,6 +398,8 @@ public class User extends Model implements ResourceConvertible {
         el.ne("loginId",anonymous.loginId);
         if( state == UserState.GUEST ) {
             el.eq("isGuest", true);
+        } else if (state == UserState.SITE_ADMIN) {
+            el.in("id", getAdminUserIds());
         } else {
             el.eq("state", state);
         }
@@ -412,6 +414,18 @@ public class User extends Model implements ResourceConvertible {
         }
 
         return el.order().desc("createdDate").findPagingList(USER_COUNT_PER_PAGE).getPage(pageNum);
+    }
+
+    private static Set<Long> getAdminUserIds() {
+        List<SiteAdmin> admins = SiteAdmin.find.all();
+        Set<Long> adminUserIds = new HashSet<>();
+
+        for(SiteAdmin admin: admins){
+            if (admin.id != SITE_MANAGER_ID) {
+                adminUserIds.add(admin.admin.id);
+            }
+        }
+        return adminUserIds;
     }
 
     /**

@@ -5271,6 +5271,10 @@ label.issue-item-row {
             }
             &.action-buttons {
                 padding-top: 0;
+
+                a {
+                    margin: 2px !important;
+                }
             }
         }
 
@@ -7129,8 +7133,13 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 
 .subtasks {
     #simple-issue-list;
+
     margin-bottom: 15px;
     margin-top: 40px;
+
+    .issue-item {
+        padding: 0 3px;
+    }
     .parent-issue {
         font-size: 16px;
     }
