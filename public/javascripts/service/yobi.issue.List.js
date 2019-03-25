@@ -264,6 +264,7 @@
             _listHoverEffect();
             _initTwoColumnMode();  // yona.twoColumnMode.js
             _initShowChildList();
+            _initShowSubtasks(); // yona.showSubtask.js
         }
 
         function _listHoverEffect(){

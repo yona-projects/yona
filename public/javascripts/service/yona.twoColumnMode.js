@@ -33,12 +33,10 @@ function _initTwoColumnMode(){
     if( useTwoColumnMode  === 'true'){
         attachPageSlideEvent($twoColumnMode, $title);
         bindFrameLoading();
-        $(".two-column-icon-border").addClass("two-column-icon-selected");
     } else {
         $twoColumnMode.prop('checked', false);
         $('.post-item').css("cursor", "");
         unbindEvents();
-        $(".two-column-icon-border").removeClass("two-column-icon-selected");
     }
 
     $twoColumnMode.on('click', function () {
@@ -46,11 +44,9 @@ function _initTwoColumnMode(){
             localStorage.setItem('useTwoColumnMode', true);
             attachPageSlideEvent($twoColumnMode, $title);
             bindFrameLoading();
-            $(".two-column-icon-border").addClass("two-column-icon-selected");
         } else {
             localStorage.setItem('useTwoColumnMode', false);
             $('.post-item').removeClass('highlightBg').css("cursor", "");
-            $(".two-column-icon-border").removeClass("two-column-icon-selected");
             unbindEvents();
         }
     });
