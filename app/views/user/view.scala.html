@@ -124,6 +124,7 @@
                                     <span class="num-badge">@issues.count(issue => issue.state == State.CLOSED)</span>
                                 </a>
                             </li>
+                            <li>@common.showSubtasksCheckbox()</li>
                         </ul>
                         <div class="tab-content">
                             <div id="openIssues" class="tab-pane active">
@@ -185,6 +186,7 @@
 <script type="text/javascript" src='@routes.Assets.at("javascripts/lib/parseuri.js")'></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery.pageslide.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/service/yona.twoColumnMode.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/service/yona.showSubtask.js")"></script>
 <script type="text/javascript">
 $(document).ready(function(){
     $yobi.loadModule("user.View", {

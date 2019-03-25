@@ -2202,7 +2202,7 @@ label.inline-list {
         margin-top:5px;
         border: 1px solid #ddd;
         border-radius: 3px;
-        padding: 5px 10px;
+        padding: 2px 10px;
 
         .filter {
             margin-right:10px;
@@ -7258,7 +7258,11 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     margin: 0 5px;
 }
 
-.two-column-icon {
+.show-subtasks-li {
+    margin-left: -18px;
+}
+
+.two-column-icon, .show-subtasks {
     display: inline-block;
     line-height: 37px;
     margin-left: 10px;
@@ -7274,13 +7278,13 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         padding-left: 0;
     }
 
-    #two-column-mode {
+    #two-column-mode, #toggle-show-subtasks {
         float: none;
         margin: 4px 4px 0 2px;
         vertical-align: top;
     }
 
-    .two-column-icon-border {
+    .two-column-icon-border, .show-subtasks-button-border {
         color: #03a9f4;
         border: 1px solid #03afff;
         border-radius: 3px;
@@ -7297,7 +7301,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     }
 }
 
-.two-column-icon-selected {
+.two-column-icon-selected, .show-subtasks-selected {
     background-color: #aee5ff;
 
     .two-column-mode-text {
@@ -7305,7 +7309,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     }
 }
 
-.two-column-mode-text {
+.two-column-mode-text, .show-subtasks-text {
     padding: 0 4px 0 0;
     line-height: 20px;
     vertical-align: text-bottom;
@@ -7391,6 +7395,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
             display:table;
 
             .title-cell {
+                padding: 5px 0;
                 display:table-cell;
                 vertical-align:middle;
             }
