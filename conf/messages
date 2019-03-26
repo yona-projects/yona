@@ -208,6 +208,7 @@ common.time.seconds = {0} seconds ago
 common.time.today = Today
 common.two.column.mode = Two Column Mode
 common.two.column.mode.desc = Splits list and body into columns respectively
+common.two.column.view = Column View
 emails.click.link = To check email, please click this link.
 emails.main.email = Primary email address
 emails.main.email.descr = Your primary email address will be used for sending you notifications or password resets.
