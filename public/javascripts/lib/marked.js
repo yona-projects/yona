@@ -378,11 +378,11 @@ Lexer.prototype.token = function(src, top) {
         }
 
         // Check for task list items
-        istask = /^\[[ xX]\] /.test(item);
+        istask = /^\[[ xX]?\] /.test(item);
         ischecked = undefined;
         if (istask) {
-          ischecked = item[1] !== ' ';
-          item = item.replace(/^\[[ xX]\] +/, '');
+          ischecked = item[1] !== ' ' && item[1] !== ']';
+          item = item.replace(/^\[[ xX]?\] +/, '');
         }
 
         t = {
@@ -988,13 +988,20 @@ Renderer.prototype.list = function(body, ordered, start) {
 };
 
 Renderer.prototype.listitem = function(text) {
-  return '<li>' + text + '</li>\n';
+    var html = '<li>' + text + '</li>\n';
+
+    if (html.indexOf("<input") !== -1) {
+        html = html.replace("<input ", "<input class='task-list-item-checkbox' ");
+        html = html.replace("<li>", "<li class='task-list-item'>");
+    }
+
+    return html;
 };
 
 Renderer.prototype.checkbox = function(checked) {
   return '<input '
     + (checked ? 'checked="" ' : '')
-    + 'disabled="" type="checkbox"'
+    + ' type="checkbox"'
     + (this.options.xhtml ? ' /' : '')
     + '> ';
 };
