@@ -21,6 +21,16 @@
     }
 }
 
+@displayAssigneeName(assignee: Assignee) = {
+    @if(assignee != null) {
+        <a href="@routes.UserApp.userInfo(assignee.user.loginId)" class="infos-item infos-link-item author-cell" data-toggle="tooltip" data-placement="bottom" title="@assignee.user.loginId">
+        @assignee.user.getPureNameOnly
+        </a>
+    } else {
+        <span class="infos-item"></span>
+    }
+}
+
 @displayCommentsAndVoterCount(issue:Issue, project:Project) = {
 @if(issue.comments.size > 0 || issue.voters.size > 0) {
     <span class="item-count-groups">
@@ -39,80 +49,79 @@
 @issueLabels(issue:Issue) = {@for(label <- issue.labels.toList.sortBy(r => (r.category.name, r.name))) {@label.category.name,@label.id,@label.name|}}
 
 
-@defining(User.findByLoginId(issue.authorLoginId)){ user =>
-    @defining(issue.project){ project =>
-        @defining(User.findByLoginId(issue.authorLoginId)){ user =>
-            <li class="post-item title" id="issue-item-@issue.id" href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)">
-                <div class="span12 span-hard-wrap">
-                    <div class="span2 project-name-in-my-issues fixed-height-my-issues-list">
-                        <span class="infos-item project-name">
-                            <a href="@routes.ProjectApp.project(project.owner,project.name)" class="title project" data-toggle="tooltip" data-placement="bottom" title="@Messages("project.name")">
-                            @project.name
+@defining(issue.project){ project =>
+    <li class="post-item title" id="issue-item-@issue.id" href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)">
+        <div class="span12 span-hard-wrap">
+            <div class="span2 project-name-in-my-issues fixed-height-my-issues-list">
+                <span class="infos-item project-name">
+                    <a href="@routes.ProjectApp.project(project.owner,project.name)" class="title project" data-toggle="tooltip" data-placement="bottom" title="@Messages("project.name")">
+                    @project.name
+                    </a>
+                </span>
+                <span class="infos-item post-id">#@issue.getNumber</span>
+            </div>
+            <div class="title-wrap span5">
+                <span class="title-cell">
+                    <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)" class="title">
+                    @issue.title
+                    </a>
+                    @displayCommentsAndVoterCount(issue, project)
+                    <span class="for-subtask-progressbar">@partial_list_subtask(project, issue)</span>
+                    @for(label <- issue.labels.toList.sortBy(r => (r.category.name, r.name))) {
+                        <a href="@urlToList(project, issue.state.state)&labelIds=@label.id" class="label issue-label list-label" data-label-id="@label.id" style="background:@label.color">@label.name</a>
+                    }
+                    <div class="child-issue-list hide">
+                    @if(issue.hasChildIssue){
+                        @partial_view_childIssueListOnly(issue, project)
+                    }
+                    </div>
+                </span>
+            </div>
+            <div class="span1 hide-in-mobile author project-name-in-my-issues fixed-height-my-issues-list">
+            @displayAuthorName(User.findByLoginId(issue.authorLoginId))
+            </div>
+            <div class="span1 hide-in-mobile author project-name-in-my-issues fixed-height-my-issues-list">
+            @displayAssigneeName(issue.assignee)
+            </div>
+            <div class="infos span3 meta">
+                <span class="meta-cell">
+                    <span class="hide show-in-mobile">
+                    @displayAssigneeName(issue.assignee)
+                    </span>
+                    @if(!issue.createdDate.equals(issue.updatedDate)) {
+                        <span class="infos-item" data-toggle="tooltip" data-placement="bottom" title="Last Updated @JodaDateUtil.getDateString(issue.updatedDate)">
+                        @agoOrDateString(issue.updatedDate)
+                        </span>
+                    } else {
+                        <span class="infos-item" data-toggle="tooltip" data-placement="bottom" title="Created at @JodaDateUtil.getDateString(issue.createdDate)">
+                        @agoOrDateString(issue.createdDate)
+                        </span>
+                    }
+
+                    @if(issue.milestone != null && project != null && project.menuSetting != null && project.menuSetting.milestone) {
+                        <span class="mileston-tag">
+                            <a href="@routes.MilestoneApp.milestone(project.owner, project.name, issue.milestone.id)" data-toggle="tooltip" data-placement="bottom" title="@Messages("milestone")">
+                            @issue.milestone.title
                             </a>
                         </span>
-                        <span class="infos-item post-id">#@issue.getNumber</span>
-                    </div>
-                    <div class="title-wrap span6">
-                        <span class="title-cell">
-                            <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)" class="title">
-                            @issue.title
-                            </a>
-                            @displayCommentsAndVoterCount(issue, project)
-                            <span class="for-subtask-progressbar">@partial_list_subtask(project, issue)</span>
-                            @for(label <- issue.labels.toList.sortBy(r => (r.category.name, r.name))) {
-                                <a href="@urlToList(project, issue.state.state)&labelIds=@label.id" class="label issue-label list-label" data-label-id="@label.id" style="background:@label.color">@label.name</a>
-                            }
-                            <div class="child-issue-list hide">
-                            @if(issue.hasChildIssue){
-                                @partial_view_childIssueListOnly(issue, project)
-                            }
-                            </div>
-                        </span>
-                    </div>
-                    <div class="span1 hide-in-mobile author project-name-in-my-issues fixed-height-my-issues-list">
-                    @displayAuthorName(user)
-                    </div>
-                    <div class="infos span3 meta">
-                        <span class="meta-cell">
-                            <span class="hide show-in-mobile">
-                            @displayAuthorName(user)
-                            </span>
-                            @if(!issue.createdDate.equals(issue.updatedDate)) {
-                                <span class="infos-item" data-toggle="tooltip" data-placement="bottom" title="Last Updated @JodaDateUtil.getDateString(issue.updatedDate)">
-                                @agoOrDateString(issue.updatedDate)
-                                </span>
+                    }
+
+                    @if(issue.dueDate != null) {
+                        <span class="pull-right @if(issue.isOverDueDate) {overdue}" data-toggle="tooltip" data-placement="top" title="Due date: @issue.getDueDateString">
+                            <i class="yobicon-clock2"></i>
+                            @if(issue.isOpen) {
+                                @if(issue.isOverDueDate) {
+                                    @Messages("issue.dueDate.overdue")
+                                } else {
+                                    @issue.until
+                                }
                             } else {
-                                <span class="infos-item" data-toggle="tooltip" data-placement="bottom" title="Created at @JodaDateUtil.getDateString(issue.createdDate)">
-                                @agoOrDateString(issue.createdDate)
-                                </span>
-                            }
-
-                            @if(issue.milestone != null && project != null && project.menuSetting != null && project.menuSetting.milestone) {
-                                <span class="mileston-tag">
-                                    <a href="@routes.MilestoneApp.milestone(project.owner, project.name, issue.milestone.id)" data-toggle="tooltip" data-placement="bottom" title="@Messages("milestone")">
-                                    @issue.milestone.title
-                                    </a>
-                                </span>
-                            }
-
-                            @if(issue.dueDate != null) {
-                                <span class="pull-right @if(issue.isOverDueDate) {overdue}" data-toggle="tooltip" data-placement="top" title="Due date: @issue.getDueDateString">
-                                    <i class="yobicon-clock2"></i>
-                                    @if(issue.isOpen) {
-                                        @if(issue.isOverDueDate) {
-                                            @Messages("issue.dueDate.overdue")
-                                        } else {
-                                            @issue.until
-                                        }
-                                    } else {
-                                        @issue.getDueDateString
-                                    }
-                                </span>
+                                @issue.getDueDateString
                             }
                         </span>
-                    </div>
-                </div>
-            </li>
-        }
-    }
+                    }
+                </span>
+            </div>
+        </div>
+    </li>
 }
