@@ -68,7 +68,7 @@ public class UserApp extends Controller {
     private static final int AVATAR_FILE_LIMIT_SIZE = 1024*1000*1; //1M
     public static final int MAX_FETCH_USERS = 10;  //Match value to Typeahead deafult value at yobi.ui.Typeaheds.js
     private static final int HASH_ITERATIONS = 1024;
-    public static final int DAYS_AGO = 7;
+    public static final int DAYS_AGO = 14;
     public static final int UNDEFINED = 0;
     public static final String DAYS_AGO_COOKIE = "daysAgo";
     public static final String DEFAULT_GROUP = "own";
