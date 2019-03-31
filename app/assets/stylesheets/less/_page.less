@@ -113,7 +113,7 @@
 
 .gnb-outer {
     height:40px;
-    background-color: #1b1b1b;
+    background-color: #c2185b;
 
     &.project-header {
         background-color: rgba(0, 0, 0, 0.35);
@@ -445,7 +445,7 @@
 
 .project-header-outer {
     background-color: #565656;
-    height:120px;
+    height:160px;
     background-position: center bottom;
     background-repeat: no-repeat;
     background-size: cover;
@@ -589,10 +589,11 @@
 .page-wrap {
     background-color: @white;
     margin: 0 auto;
+    border-radius: 5px;
 }
 
 .project-menu-outer {
-    background-color:#ececec;
+    background-color: #ffc107;
     height:39px;
     border-bottom: 1px solid #ddd;
 
@@ -624,7 +625,7 @@
                     &:hover {
                         text-decoration: none;
                         color:#fc491e;
-                        background-color: #dadada;
+                        background-color: #ffe082;
                     }
                 }
 
@@ -722,6 +723,7 @@
     margin-top:50px;
     background-color:@yobi-white;
     padding:10px 0;
+    background-image: url(/assets/images/bg-samples/sky.jpg);
 
     .page-footer {
         margin: 0 auto;
@@ -2886,6 +2888,8 @@ label.inline-list {
         padding:0 20px;
         margin-bottom: 20px;
         min-height: 150px;
+        background-color: white;
+        border-radius: 5px;
 
         &.empty-content {
             text-align: center;
@@ -3090,7 +3094,7 @@ label.inline-list {
                     border-width: 0 0 1px 1px;
                     border-style: solid;
                     border-color: #BDC3C7;
-                    background-color: #f8f8f8;
+                    background-color: #F8BBD0;
                     .rotate(45deg);
                 }
 
@@ -3102,7 +3106,7 @@ label.inline-list {
                     padding:5px 15px;
 
                     margin-bottom: 0;
-                    background-color: #F7F7F7;
+                    background-color: #F8BBD0;
 
                     .yobicon-comment {vertical-align: middle;}
 
@@ -3165,6 +3169,7 @@ label.inline-list {
                 .comment-body {
                     font-size: 1.1em;
                     padding: 5px 20px;
+                    background-color: white;
                 }
 
             }
@@ -3845,7 +3850,7 @@ label.issue-item-row {
             }
 
             &:hover {
-                color:#3592b5;
+                color: #E91E63;
                 text-decoration: none;
             }
 
@@ -5691,7 +5696,7 @@ label.issue-item-row {
                         overflow: hidden;
                         border: 7px solid transparent;
                         border-style: outset outset solid outset;
-                        border-bottom-color: #FFF;
+                        border-bottom-color: #bbdefb;
                         margin-left: -7px;
                     }
                 }
@@ -7678,3 +7683,32 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     margin: 0 .2em .25em -1.6em;
     vertical-align: middle;
 }
+
+
+/* sprinf fools 2019 */
+div.clickEffect {
+    position: fixed;
+    box-sizing: border-box;
+    border: solid deeppink;
+    border-radius: 50%;
+    animation: clickEffect 0.3s ease-in;
+    z-index: 99999;
+}
+
+@keyframes clickEffect{
+    0% {
+        opacity: 1;
+        width: 0.5em;
+        height: 0.5em;
+        margin: -0.25em;
+        border-width: 0.5em;
+        }
+    100% {
+        opacity: 0.2;
+        width: 15em;
+        height: 15em;
+        margin: -7.5em;
+        border-width: 0.03em;
+        }
+}
+
