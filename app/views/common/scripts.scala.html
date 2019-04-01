@@ -47,6 +47,8 @@
 <script type="text/javascript" src="@routes.Assets.at("javascripts/yona-lib.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/autosize/autosize.min.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.KeyControl.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/quicklink/intersection-observer.js")"></script>
+<script defer type="text/javascript" src="@routes.Assets.at("javascripts/lib/quicklink/quicklink.js")"></script>
 
 <script type="text/javascript">
     $yobi.setScriptPath("@getJSPath");
@@ -197,5 +199,13 @@
             });
         }
 
+        // google quick link
+        quicklink({
+            ignores: [
+                /login/,
+                /logout/,
+                uri => uri.includes('.zip')
+            ]
+        });
     });
 </script>
