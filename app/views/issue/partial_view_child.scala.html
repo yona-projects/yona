@@ -11,5 +11,8 @@
     <a href="@routes.IssueApp.issue(childIssue.project.owner, childIssue.project.name, childIssue.getNumber)">
         <span class="item-name"><span class="subtask-number">#@childIssue.getNumber</span> @childIssue.title@if(childIssue.assignee != null) { - @childIssue.assignee.user.getPureNameOnly}</span></a>
     <span class="font12 no-border-at-child">@common.commentAndVoterPairDisplay(childIssue, parentIssue.project)</span>
+    @for(label <- childIssue.labels.toList.sortBy(r => (r.category.name, r.name))) {
+        <a class="label issue-label list-label active" data-category-id="@label.category.id" data-label-id="@label.id">@label.name</a>
+    }
 </div>
 

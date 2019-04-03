@@ -406,7 +406,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
             el.lt("dueDate", DateUtils.addDays(dueDate, 1));
         }
 
-        if (authorId == null && StringUtils.isBlank(filter) && assigneeId == null && mentionId == null) {
+        if (authorId == null && StringUtils.isBlank(filter) && labelIds.isEmpty() && assigneeId == null && mentionId == null) {
             el.isNull("parent.id");
         }
 
