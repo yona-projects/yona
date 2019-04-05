@@ -140,6 +140,10 @@ public class Posting extends AbstractPosting {
         return AbstractPosting.findByNumber(finder, project, number);
     }
 
+    public static int countAllCreatedBy(User user) {
+        return finder.where().eq("author_id", user.id).findRowCount();
+    }
+
     public static int countPostings(Project project) {
         return finder.where().eq("project", project).findRowCount();
     }

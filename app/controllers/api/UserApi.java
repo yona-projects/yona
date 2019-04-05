@@ -6,19 +6,35 @@
  **/
 package controllers.api;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.shiro.crypto.SecureRandomNumberGenerator;
+import org.apache.shiro.crypto.hash.Sha256Hash;
+import org.apache.shiro.util.ByteSource;
+
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import controllers.UserApp;
-import models.*;
+import controllers.annotation.AnonymousCheck;
+import models.FavoriteIssue;
+import models.FavoriteOrganization;
+import models.FavoriteProject;
+import models.Issue;
+import models.IssueComment;
+import models.Posting;
+import models.PostingComment;
+import models.Statistics;
+import models.User;
 import models.enumeration.IssueFilterType;
 import models.enumeration.UserState;
 import models.support.IssueSearchCondition;
-import org.apache.shiro.crypto.SecureRandomNumberGenerator;
-import org.apache.shiro.crypto.hash.Sha256Hash;
-import org.apache.shiro.util.ByteSource;
 import play.db.ebean.Transactional;
 import play.i18n.Messages;
 import play.libs.Json;
@@ -29,11 +45,6 @@ import play.mvc.With;
 import utils.JodaDateUtil;
 import utils.SHA256Util;
 import utils.SiteManagerAuthAction;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import static controllers.UserApp.addUserInfoToSession;
 import static controllers.UserApp.createNewUser;
@@ -252,6 +263,33 @@ public class UserApi extends Controller {
         addUserInfoToSession(user);
         result.put("access_token", getNewUserToken(user));
         return ok(toJson(result));
+    }
+
+    @AnonymousCheck(requiresLogin = true)
+    public static Result statistics(String loginId) {
+        User user = User.findByLoginId(loginId);
+        if (user.isAnonymous()) {
+            return ok(toJson(Statistics.empty()));
+        }
+
+        Integer issueCount = Issue.countAllCreatedBy(user);
+        Integer postingCount = Posting.countAllCreatedBy(user);
+        Integer assignedIssueCount = Issue.countAllAssignedBy(user);
+        Integer issueCommentCount = IssueComment.countAllCreatedBy(user);
+        Integer postingCommentCount = PostingComment.countAllCreatedBy(user);
+        Integer issueVoterCount = Issue.countVoterOf(user);
+        Integer issueCommentVoterCount = IssueComment.countVoterOf(user);
+
+        Statistics statistics = new Statistics();
+        statistics.issue = issueCount;
+        statistics.posting = postingCount;
+        statistics.assignedIssue = assignedIssueCount;
+        statistics.issueComment = issueCommentCount;
+        statistics.postingComment = postingCommentCount;
+        statistics.issueVoter = issueVoterCount;
+        statistics.issueCommentVoter = issueCommentVoterCount;
+
+        return ok(toJson(statistics));
     }
 
     public static boolean isAuthored(Http.Request request) {

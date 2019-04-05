@@ -79,12 +79,12 @@ GET            /-_-api/v1/user/issues                                           
 POST           /-_-api/v1/owners/:owner/projects                                       controllers.api.ProjectApi.newProject(owner:String)
 POST           /-_-api/v1/owners/:owner/projects/:projectName/labels                   controllers.api.ProjectApi.newLabel(owner:String, projectName:String)
 GET            /-_-api/v1/owners/:owner/projects/:projectName/titleHeads               controllers.api.ProjectApi.titleHeads(owner:String, projectName:String, query: String ?= "")
+GET            /-_-api/v1/users/:user/statistics                                       controllers.api.UserApi.statistics(user: String)
 
 POST           /-_-api/v1/user/defultLoginPage                                         controllers.UserApp.setDefaultLoginPage()
 POST           /-_-api/v1/translation                                                  controllers.api.IssueApi.translate()
 
 GET            /-_-api/v1/admin/users                                                  controllers.api.UserApi.users()
-
 
 # Import
 GET            /_import                                                                 controllers.ImportApp.importForm()
