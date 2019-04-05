@@ -33,6 +33,9 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
+import com.avaje.ebean.Query;
+import com.avaje.ebean.RawSqlBuilder;
+
 import models.enumeration.ResourceType;
 import models.resource.Resource;
 
@@ -167,5 +170,20 @@ public class IssueComment extends Comment {
         }
 
         return issueComments;
+    }
+
+    public static int countAllCreatedBy(User user) {
+        return find.where().eq("author_id", user.id).findRowCount();
+    }
+
+    public static int countVoterOf(User user) {
+        String template = "SELECT issue_comment.id " +
+                "FROM issue_comment " +
+                "INNER JOIN issue_comment_voter " +
+                "ON issue_comment.id = issue_comment_voter.issue_comment_id " +
+                "WHERE issue_comment_voter.user_id = %d";
+        String sql = String.format(template, user.id);
+        Set<IssueComment> set = find.setRawSql(RawSqlBuilder.parse(sql).create()).findSet();
+        return set.size();
     }
 }

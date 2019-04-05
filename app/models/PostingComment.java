@@ -108,4 +108,8 @@ public class PostingComment extends Comment {
                 .eq("id", posting.id)
                 .findList();
     }
+
+    public static int countAllCreatedBy(User user) {
+        return find.where().eq("author_id", user.id).findRowCount();
+    }
 }
