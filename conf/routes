@@ -83,6 +83,7 @@ GET            /-_-api/v1/owners/:owner/projects/:projectName/titleHeads        
 POST           /-_-api/v1/user/defultLoginPage                                         controllers.UserApp.setDefaultLoginPage()
 POST           /-_-api/v1/translation                                                  controllers.api.IssueApi.translate()
 
+GET            /-_-api/v1/admin/users                                                  controllers.api.UserApi.users()
 
 
 # Import

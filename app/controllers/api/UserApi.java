@@ -25,11 +25,15 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
+import play.mvc.With;
 import utils.JodaDateUtil;
 import utils.SHA256Util;
+import utils.SiteManagerAuthAction;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static controllers.UserApp.addUserInfoToSession;
 import static controllers.UserApp.createNewUser;
@@ -274,6 +278,27 @@ public class UserApi extends Controller {
 
     public static User getAuthorizedUser(String token) {
         return User.findByUserToken(token);
+    }
+
+    @With(SiteManagerAuthAction.class)
+    public static Result users() {
+        List<User> users = User.find.select("id, login_id, name, email, state, is_guest")
+                .where()
+                .eq("state", UserState.ACTIVE)
+                .findList();
+
+        List<Map<String, Object>> res = new ArrayList<>();
+        for (User user : users) {
+            Map<String, Object> m = new HashMap<>();
+            m.put("id", user.id);
+            m.put("login_id", user.loginId);
+            m.put("name", user.name);
+            m.put("email", user.email);
+            m.put("state", user.state);
+            m.put("is_guest", user.isGuest);
+            res.add(m);
+        }
+        return ok(toJson(res));
     }
 
     private static boolean isValidUser(String loginIdOrEmail) {
