@@ -85,6 +85,7 @@ POST           /-_-api/v1/user/defultLoginPage                                  
 POST           /-_-api/v1/translation                                                  controllers.api.IssueApi.translate()
 
 GET            /-_-api/v1/admin/users                                                  controllers.api.UserApi.users()
+PATCH          /-_-api/v1/admin/users/:user                                            controllers.api.UserApi.updateUserState(user: String)
 
 # Import
 GET            /_import                                                                 controllers.ImportApp.importForm()

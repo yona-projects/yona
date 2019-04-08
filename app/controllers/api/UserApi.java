@@ -6,6 +6,10 @@
  **/
 package controllers.api;
 
+import static controllers.UserApp.*;
+import static models.NotificationMail.*;
+import static play.libs.Json.*;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -45,11 +49,6 @@ import play.mvc.With;
 import utils.JodaDateUtil;
 import utils.SHA256Util;
 import utils.SiteManagerAuthAction;
-
-import static controllers.UserApp.addUserInfoToSession;
-import static controllers.UserApp.createNewUser;
-import static models.NotificationMail.isAllowedEmailDomains;
-import static play.libs.Json.toJson;
 
 public class UserApi extends Controller {
 
@@ -337,6 +336,43 @@ public class UserApi extends Controller {
             res.add(m);
         }
         return ok(toJson(res));
+    }
+
+    @With(SiteManagerAuthAction.class)
+    public static Result updateUserState(String loginId) {
+        User user = User.findByLoginId(loginId);
+        if (user.isAnonymous()) {
+            return badRequest();
+        }
+
+        JsonNode body = request().body().asJson();
+        if (body == null) {
+            return badRequest();
+        }
+
+        UserState state = findUserState(body);
+        if (state == null) {
+            return badRequest();
+        }
+        if (state == UserState.SITE_ADMIN) {
+            return unauthorized();
+        }
+
+        user.state = state;
+        user.save();
+
+        Map<String, Object> res = new HashMap<>();
+        res.put("id", user.id);
+        res.put("login_id", user.loginId);
+        res.put("state", user.state);
+
+        return ok(toJson(res));
+    }
+
+    private static UserState findUserState(JsonNode json) {
+        JsonNode state = json.findValue("state");
+        String text = state.asText().toUpperCase();
+        return UserState.getValue(text);
     }
 
     private static boolean isValidUser(String loginIdOrEmail) {
