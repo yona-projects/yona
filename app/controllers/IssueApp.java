@@ -739,6 +739,7 @@ public class IssueApp extends AbstractPostingApp {
                 issue.voters.addAll(originalIssue.voters);
                 issue.comments = originalIssue.comments;
                 issue.sharers.addAll(originalIssue.sharers);
+                issue.weight = originalIssue.weight;
 
                 final Project previous = Project.findByOwnerAndProjectName(ownerName, projectName);
                 if(isRequestedToOtherProject(originalIssue.project, previous)){
