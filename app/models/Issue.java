@@ -541,6 +541,16 @@ public class Issue extends AbstractPosting implements LabelOwner {
         return el.setMaxRows(limit).order().desc("createdDate").findList();
     }
 
+    public static List<Issue> findParentIssueByProject(Project project, String filter, int limit) {
+        ExpressionList<Issue> el = finder.where()
+                .eq("project.id", project.id)
+                .isNull("parent");
+        if(StringUtils.isNotEmpty(filter)){
+            el.icontains("title", filter);
+        }
+        return el.setMaxRows(limit).order().desc("createdDate").findList();
+    }
+
     public static Page<Issue> findIssuesByState(int size, int pageNum, State state) {
         return finder.where().eq("state", state)
                 .order().desc("createdDate")
