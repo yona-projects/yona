@@ -632,8 +632,8 @@ yobi.Files = (function(){
      */
     function _getSubmitId(){
       var now = new Date();
-      return  now.getMilliseconds() + '-' + now.getFullYear() + '' + (now.getMonth() + 1)
-          + '-' + now.getDate() + '-' + now.getHours() + '' + now.getMinutes() + '-' + now.getSeconds();
+      return  now.getSeconds() + "" + now.getMilliseconds() + '-' + now.getFullYear() + '-' + (now.getMonth() + 1)
+          + '-' + now.getDate() + '-' + now.getHours() + '-' + now.getMinutes();
     }
 
     /**
