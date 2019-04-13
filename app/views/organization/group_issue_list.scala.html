@@ -9,9 +9,6 @@ models.support.SearchCondition, organization: Organization)
 @organizationLayout(organization.name, utils.MenuType.NONE, organization) {
     @header(organization)
     @menu(organization)
-    <div>
-        <button class="btn-transparent" id="toggleIntro"></button>
-    </div>
     <div class="page-wrap-outer">
         <div class="page-wrap">
             @views.html.organization.group_issue_search_partial(title, currentPage, param, organization)
