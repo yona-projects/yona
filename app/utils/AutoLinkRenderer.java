@@ -126,7 +126,7 @@ public class AutoLinkRenderer {
         parse(ISSUE_PATTERN, new ToLink() {
             @Override
             public Link toLink(Matcher matcher) {
-                return toValidIssueLink(project, matcher.group(1));
+                return toValidIssueLink(StringUtils.EMPTY, project, matcher.group(1));
             }
         });
 
@@ -238,10 +238,6 @@ public class AutoLinkRenderer {
 
             return Project.findByOwnerAndProjectName(path, project.name);
         }
-    }
-
-    private Link toValidIssueLink(Project project, String issueNumber) {
-        return toValidIssueLink(StringUtils.EMPTY, project, issueNumber);
     }
 
     private Link toValidIssueLink(String prefix, Project project, String issueNumber) {
