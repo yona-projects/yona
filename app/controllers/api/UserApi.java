@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.shiro.crypto.SecureRandomNumberGenerator;
 import org.apache.shiro.crypto.hash.Sha256Hash;
@@ -342,12 +343,12 @@ public class UserApi extends Controller {
     public static Result updateUserState(String loginId) {
         User user = User.findByLoginId(loginId);
         if (user.isAnonymous()) {
-            return badRequest();
+            return unauthorized();
         }
 
         JsonNode body = request().body().asJson();
         if (body == null) {
-            return badRequest();
+            return badRequest("Empty json body");
         }
 
         UserState state = findUserState(body);
@@ -355,7 +356,7 @@ public class UserApi extends Controller {
             return badRequest();
         }
         if (state == UserState.SITE_ADMIN) {
-            return unauthorized();
+            return forbidden();
         }
 
         user.state = state;
@@ -371,8 +372,11 @@ public class UserApi extends Controller {
 
     private static UserState findUserState(JsonNode json) {
         JsonNode state = json.findValue("state");
-        String text = state.asText().toUpperCase();
-        return UserState.getValue(text);
+        String text = Optional.ofNullable(state)
+                .map(JsonNode::asText)
+                .map(String::toUpperCase)
+                .orElse("");
+        return UserState.of(text);
     }
 
     private static boolean isValidUser(String loginIdOrEmail) {

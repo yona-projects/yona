@@ -33,9 +33,9 @@ public enum UserState {
         return this.state;
     }
 
-    public static UserState getValue(String value) {
+    public static UserState of(String value) {
         for (UserState userState : UserState.values()) {
-            if (userState.state().equals(value)) {
+            if (userState.state().equalsIgnoreCase(value)) {
                 return userState;
             }
         }
