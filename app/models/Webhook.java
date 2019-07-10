@@ -253,7 +253,7 @@ public class Webhook extends Model implements ResourceConvertible {
                 requestMessage += Messages.get(Lang.defaultLang(), "notification.type.pullrequest.commit.changed");
                 break;
         }
-        requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(eventPullRequest) + "|#" + eventPullRequest.number + ": " + eventPullRequest.title + ">";
+        requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(eventPullRequest) + "|#" + eventPullRequest.number + ": " + eventPullRequest.title.replace(">", "&gt;") + ">";
 
         if (this.webhookType == WebhookType.DETAIL_SLACK) {
             return buildJsonWithPullReqtuestDetails(eventPullRequest, detailFields, attachments, requestMessage);
@@ -285,7 +285,7 @@ public class Webhook extends Model implements ResourceConvertible {
                 }
                 break;
         }
-        requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(eventPullRequest) + "|#" + eventPullRequest.number + ": " + eventPullRequest.title + ">";
+        requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(eventPullRequest) + "|#" + eventPullRequest.number + ": " + eventPullRequest.title.replace(">", "&gt;") + ">";
 
         if (this.webhookType == WebhookType.SIMPLE) {
             return buildTextPropertyOnlyJSON(requestMessage);
@@ -324,7 +324,7 @@ public class Webhook extends Model implements ResourceConvertible {
         }
 
         String eventIssueUrl = controllers.routes.IssueApp.issue(eventIssue.project.owner, eventIssue.project.name, eventIssue.getNumber()).url();
-        requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + eventIssueUrl + "|#" + eventIssue.number + ": " + eventIssue.title + ">";
+        requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + eventIssueUrl + "|#" + eventIssue.number + ": " + eventIssue.title.replace(">", "&gt;") + ">";
 
         if (this.webhookType == WebhookType.SIMPLE) {
             return buildTextPropertyOnlyJSON(requestMessage);
@@ -342,7 +342,7 @@ public class Webhook extends Model implements ResourceConvertible {
         requestMessage += Messages.get(Lang.defaultLang(), "notification.type.issue.moved", previous.name, project.name);
 
         String eventIssueUrl = controllers.routes.IssueApp.issue(eventIssue.project.owner, eventIssue.project.name, eventIssue.getNumber()).url();
-        requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + eventIssueUrl + "|#" + eventIssue.number + ": " + eventIssue.title + ">";
+        requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + eventIssueUrl + "|#" + eventIssue.number + ": " + eventIssue.title.replace(">", "&gt;") + ">";
 
         if (this.webhookType == WebhookType.SIMPLE) {
             return buildTextPropertyOnlyJSON(requestMessage);
@@ -376,10 +376,10 @@ public class Webhook extends Model implements ResourceConvertible {
         }
         switch (eventComment.asResource().getType()) {
             case ISSUE_COMMENT:
-                requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(eventComment) + "|#" + eventComment.getParent().number + ": " + eventComment.getParent().title + ">";
+                requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(eventComment) + "|#" + eventComment.getParent().number + ": " + eventComment.getParent().title.replace(">", "&gt;") + ">";
                 break;
             case NONISSUE_COMMENT:
-                requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(eventComment) + "|#" + eventComment.getParent().number + ": " + eventComment.getParent().title + ">";
+                requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(eventComment) + "|#" + eventComment.getParent().number + ": " + eventComment.getParent().title.replace(">", "&gt;") + ">";
                 break;
         }
 
