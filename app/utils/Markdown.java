@@ -39,16 +39,13 @@ public class Markdown {
             .and(Sanitizers.TABLES)
             .and(Sanitizers.BLOCKS)
             .and(new HtmlPolicyBuilder()
-                    .allowUrlProtocols("http", "https", "mailto", "file").allowElements("a")
+                    .allowUrlProtocols("http", "https", "mailto", "file")
+                    .allowElements("a", "input", "pre", "br", "hr", "iframe")
                     .allowAttributes("href", "name", "target").onElements("a")
-                    .toFactory())
-            .and(new HtmlPolicyBuilder()
-                    .allowElements("input")
                     .allowAttributes("type", "disabled", "checked").onElements("input")
-                    .toFactory())
-            .and(new HtmlPolicyBuilder().allowElements("pre", "br", "hr").toFactory())
-            .and(new HtmlPolicyBuilder()
-                    .allowAttributes("class", "id", "style", "width", "height").globally().toFactory());
+                    .allowAttributes("width", "height", "src", "frameborder", "allow", "allowfullscreen").onElements("iframe")
+                    .allowAttributes("class", "id", "style", "width", "height").globally()
+                    .toFactory());
 
     private static ScriptEngine buildEngine() {
         ScriptEngineManager manager = new ScriptEngineManager(null);

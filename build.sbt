@@ -17,7 +17,7 @@ libraryDependencies ++= Seq(
   "com.feth" %% "play-authenticate" % "0.6.9",
   // OWASP Java HTML Sanitizer
   // https://www.owasp.org/index.php/OWASP_Java_HTML_Sanitizer_Project
-  "com.googlecode.owasp-java-html-sanitizer" % "owasp-java-html-sanitizer" % "20160628.1",
+  "com.googlecode.owasp-java-html-sanitizer" % "owasp-java-html-sanitizer" % "20190610.1",
   // Add your project dependencies here,
   "com.h2database" % "h2" % "1.3.176",
   // JDBC driver for mariadb
