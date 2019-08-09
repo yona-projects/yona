@@ -28,6 +28,7 @@ import play.libs.Json;
 import play.libs.ws.WS;
 import play.libs.ws.WSRequestHolder;
 import play.libs.ws.WSResponse;
+import play.Play;
 import playRepository.GitCommit;
 import utils.RouteUtil;
 
@@ -256,17 +257,17 @@ public class Webhook extends Model implements ResourceConvertible {
         requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(eventPullRequest) + "|#" + eventPullRequest.number + ": " + eventPullRequest.title + ">";
 
         if (this.webhookType == WebhookType.DETAIL_SLACK) {
-            return buildJsonWithPullReqtuestDetails(eventPullRequest, detailFields, attachments, requestMessage);
+            return buildJsonWithPullReqtuestDetails(eventPullRequest, detailFields, attachments, requestMessage, eventType);
         } else {
             return buildTextPropertyOnlyJSON(requestMessage);
         }
     }
 
-    private String buildJsonWithPullReqtuestDetails(PullRequest eventPullRequest, ArrayNode detailFields, ArrayNode attachments, String requestMessage) {
+    private String buildJsonWithPullReqtuestDetails(PullRequest eventPullRequest, ArrayNode detailFields, ArrayNode attachments, String requestMessage, EventType eventType) {
         detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "pullRequest.sender"), eventPullRequest.contributor.name, false));
         detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "pullRequest.from"), eventPullRequest.fromBranch, true));
         detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "pullRequest.to"), eventPullRequest.toBranch, true));
-        attachments.add(buildAttachmentJSON(eventPullRequest.body, detailFields));
+        attachments.add(buildAttachmentJSON(eventPullRequest.body, detailFields, eventType));
         return Json.stringify(buildRequestJSON(requestMessage, attachments));
     }
 
@@ -290,7 +291,7 @@ public class Webhook extends Model implements ResourceConvertible {
         if (this.webhookType == WebhookType.SIMPLE) {
             return buildTextPropertyOnlyJSON(requestMessage);
         } else {
-            return buildJsonWithPullReqtuestDetails(eventPullRequest, detailFields, attachments, requestMessage);
+            return buildJsonWithPullReqtuestDetails(eventPullRequest, detailFields, attachments, requestMessage, eventType);
         }
     }
 
@@ -329,7 +330,7 @@ public class Webhook extends Model implements ResourceConvertible {
         if (this.webhookType == WebhookType.SIMPLE) {
             return buildTextPropertyOnlyJSON(requestMessage);
         } else {
-            return buildJsonWithIssueEventDetails(eventIssue, detailFields, attachments, requestMessage);
+            return buildJsonWithIssueEventDetails(eventIssue, detailFields, attachments, requestMessage, eventType);
         }
     }
 
@@ -347,17 +348,17 @@ public class Webhook extends Model implements ResourceConvertible {
         if (this.webhookType == WebhookType.SIMPLE) {
             return buildTextPropertyOnlyJSON(requestMessage);
         } else {
-            return buildJsonWithIssueEventDetails(eventIssue, detailFields, attachments, requestMessage);
+            return buildJsonWithIssueEventDetails(eventIssue, detailFields, attachments, requestMessage, eventType);
         }
     }
 
-    private String buildJsonWithIssueEventDetails(Issue eventIssue, ArrayNode detailFields, ArrayNode attachments, String requestMessage) {
+    private String buildJsonWithIssueEventDetails(Issue eventIssue, ArrayNode detailFields, ArrayNode attachments, String requestMessage, EventType eventType) {
         if (eventIssue.milestone != null ) {
             detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "notification.type.milestone.changed"), eventIssue.milestone.title, true));
         }
         detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), ""), eventIssue.assigneeName(), true));
         detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "issue.state"), eventIssue.state.toString(), true));
-        attachments.add(buildAttachmentJSON(eventIssue.body, detailFields));
+        attachments.add(buildAttachmentJSON(eventIssue.body, detailFields, eventType));
         return Json.stringify(buildRequestJSON(requestMessage, attachments));
     }
 
@@ -386,7 +387,7 @@ public class Webhook extends Model implements ResourceConvertible {
         if (this.webhookType == WebhookType.SIMPLE) {
             return buildTextPropertyOnlyJSON(requestMessage);
         } else {
-            attachments.add(buildAttachmentJSON(eventComment.contents, null));
+            attachments.add(buildAttachmentJSON(eventComment.contents, null, eventType));
             return Json.stringify(buildRequestJSON(requestMessage, attachments));
         }
     }
@@ -402,7 +403,7 @@ public class Webhook extends Model implements ResourceConvertible {
         commitJSON.put("timestamp",
                 new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssZ").
                         format(new Date(gitCommit.getCommitTime() * 1000L)));
-        commitJSON.put("url", utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(project) + "/commit/"+gitCommit.getFullId());
+        commitJSON.put("url", utils.Config.getScheme()  + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(project) + "/commit/"+gitCommit.getFullId());
 
         authorJSON.put("name", gitCommit.getAuthorName());
         authorJSON.put("email", gitCommit.getAuthorEmail());
@@ -426,10 +427,14 @@ public class Webhook extends Model implements ResourceConvertible {
         return outputJSON;
     }
 
-    private ObjectNode buildAttachmentJSON(String text, ArrayNode detailFields) {
+    private ObjectNode buildAttachmentJSON(String text, ArrayNode detailFields, EventType eventType) {
         ObjectNode attachmentsJSON = Json.newObject();
         attachmentsJSON.put("text", text);
         attachmentsJSON.put("fields", detailFields);
+
+        String color = Play.application().configuration().getString("slack." + eventType, "");
+        attachmentsJSON.put("color", color);
+
         return attachmentsJSON;
     }
 
