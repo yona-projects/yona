@@ -178,6 +178,22 @@ public class Webhook extends Model implements ResourceConvertible {
             Logger.info("[Webhook] Request failed at given payload URL: " + this.payloadUrl);
         }
     }
+
+    private String getBaseUrl() {
+        return utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000");
+    }
+
+    private String buildRequestMessage(String url, String message) {
+        String requestMessage = " <" + getBaseUrl() + url + "|";
+
+        if (this.webhookType == WebhookType.DETAIL_SLACK) {
+            requestMessage += message.replace(">", "&gt;") + ">";
+        } else {
+            requestMessage += message + ">";
+        }
+
+        return requestMessage;
+    }
     
     public void sendRequestToPayloadUrl(List<RevCommit> commits, List<String> refNames, User sender, String title) {
         String requestBodyString = buildRequestBody(commits, refNames, sender, title);
@@ -253,7 +269,8 @@ public class Webhook extends Model implements ResourceConvertible {
                 requestMessage += Messages.get(Lang.defaultLang(), "notification.type.pullrequest.commit.changed");
                 break;
         }
-        requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(eventPullRequest) + "|#" + eventPullRequest.number + ": " + eventPullRequest.title.replace(">", "&gt;") + ">";
+
+        requestMessage += buildRequestMessage(RouteUtil.getUrl(eventPullRequest), "#" + eventPullRequest.number + ": " + eventPullRequest.title);
 
         if (this.webhookType == WebhookType.DETAIL_SLACK) {
             return buildJsonWithPullReqtuestDetails(eventPullRequest, detailFields, attachments, requestMessage);
@@ -285,12 +302,13 @@ public class Webhook extends Model implements ResourceConvertible {
                 }
                 break;
         }
-        requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(eventPullRequest) + "|#" + eventPullRequest.number + ": " + eventPullRequest.title.replace(">", "&gt;") + ">";
 
-        if (this.webhookType == WebhookType.SIMPLE) {
-            return buildTextPropertyOnlyJSON(requestMessage);
-        } else {
+        requestMessage += buildRequestMessage(RouteUtil.getUrl(eventPullRequest), "#" + eventPullRequest.number + ": " + eventPullRequest.title);
+
+        if (this.webhookType == WebhookType.DETAIL_SLACK) {
             return buildJsonWithPullReqtuestDetails(eventPullRequest, detailFields, attachments, requestMessage);
+        } else {
+            return buildTextPropertyOnlyJSON(requestMessage);
         }
     }
 
@@ -324,12 +342,12 @@ public class Webhook extends Model implements ResourceConvertible {
         }
 
         String eventIssueUrl = controllers.routes.IssueApp.issue(eventIssue.project.owner, eventIssue.project.name, eventIssue.getNumber()).url();
-        requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + eventIssueUrl + "|#" + eventIssue.number + ": " + eventIssue.title.replace(">", "&gt;") + ">";
+        requestMessage += buildRequestMessage(eventIssueUrl, "#" + eventIssue.number + ": " + eventIssue.title);
 
-        if (this.webhookType == WebhookType.SIMPLE) {
-            return buildTextPropertyOnlyJSON(requestMessage);
-        } else {
+        if (this.webhookType == WebhookType.DETAIL_SLACK) {
             return buildJsonWithIssueEventDetails(eventIssue, detailFields, attachments, requestMessage);
+        } else {
+            return buildTextPropertyOnlyJSON(requestMessage);
         }
     }
 
@@ -342,12 +360,12 @@ public class Webhook extends Model implements ResourceConvertible {
         requestMessage += Messages.get(Lang.defaultLang(), "notification.type.issue.moved", previous.name, project.name);
 
         String eventIssueUrl = controllers.routes.IssueApp.issue(eventIssue.project.owner, eventIssue.project.name, eventIssue.getNumber()).url();
-        requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + eventIssueUrl + "|#" + eventIssue.number + ": " + eventIssue.title.replace(">", "&gt;") + ">";
+        requestMessage += buildRequestMessage(eventIssueUrl, "#" + eventIssue.number + ": " + eventIssue.title);
 
-        if (this.webhookType == WebhookType.SIMPLE) {
-            return buildTextPropertyOnlyJSON(requestMessage);
-        } else {
+        if (this.webhookType == WebhookType.DETAIL_SLACK) {
             return buildJsonWithIssueEventDetails(eventIssue, detailFields, attachments, requestMessage);
+        } else {
+            return buildTextPropertyOnlyJSON(requestMessage);
         }
     }
 
@@ -357,6 +375,7 @@ public class Webhook extends Model implements ResourceConvertible {
         }
         detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), ""), eventIssue.assigneeName(), true));
         detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "issue.state"), eventIssue.state.toString(), true));
+
         attachments.add(buildAttachmentJSON(eventIssue.body, detailFields));
         return Json.stringify(buildRequestJSON(requestMessage, attachments));
     }
@@ -376,18 +395,16 @@ public class Webhook extends Model implements ResourceConvertible {
         }
         switch (eventComment.asResource().getType()) {
             case ISSUE_COMMENT:
-                requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(eventComment) + "|#" + eventComment.getParent().number + ": " + eventComment.getParent().title.replace(">", "&gt;") + ">";
-                break;
             case NONISSUE_COMMENT:
-                requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(eventComment) + "|#" + eventComment.getParent().number + ": " + eventComment.getParent().title.replace(">", "&gt;") + ">";
+                requestMessage += buildRequestMessage(RouteUtil.getUrl(eventComment), "#" + eventComment.getParent().number + ": " + eventComment.getParent().title);
                 break;
         }
 
-        if (this.webhookType == WebhookType.SIMPLE) {
-            return buildTextPropertyOnlyJSON(requestMessage);
-        } else {
+        if (this.webhookType == WebhookType.DETAIL_SLACK) {
             attachments.add(buildAttachmentJSON(eventComment.contents, null));
             return Json.stringify(buildRequestJSON(requestMessage, attachments));
+        } else {
+            return buildTextPropertyOnlyJSON(requestMessage);
         }
     }
 
@@ -402,7 +419,7 @@ public class Webhook extends Model implements ResourceConvertible {
         commitJSON.put("timestamp",
                 new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssZ").
                         format(new Date(gitCommit.getCommitTime() * 1000L)));
-        commitJSON.put("url", utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(project) + "/commit/"+gitCommit.getFullId());
+        commitJSON.put("url", getBaseUrl() + RouteUtil.getUrl(project) + "/commit/"+gitCommit.getFullId());
 
         authorJSON.put("name", gitCommit.getAuthorName());
         authorJSON.put("email", gitCommit.getAuthorEmail());
