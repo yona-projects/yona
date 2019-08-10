@@ -648,6 +648,16 @@ public class NotificationEvent extends Model implements INotificationEvent {
         }
     }
 
+    private static void webhookRequest(EventType eventTypes, PullRequest pullRequest, ReviewComment reviewComment, Boolean gitPushOnly) {
+        List<Webhook> webhookList = Webhook.findByProject(pullRequest.toProject.id);
+        for (Webhook webhook : webhookList) {
+            if (gitPushOnly == webhook.gitPushOnly) {
+                // Send push event via webhook payload URLs.
+                webhook.sendRequestToPayloadUrl(eventTypes, UserApp.currentUser(), pullRequest, reviewComment);
+            }
+        }
+    }
+
     private static void webhookRequest(Project project, List<RevCommit> commits, List<String> refNames, User sender, String title, Boolean gitPushOnly) {
         List<Webhook> webhookList = Webhook.findByProject(project.id);
         for (Webhook webhook : webhookList) {
@@ -728,6 +738,8 @@ public class NotificationEvent extends Model implements INotificationEvent {
     }
 
     public static NotificationEvent forNewComment(User sender, PullRequest pullRequest, ReviewComment newComment) {
+        webhookRequest(NEW_REVIEW_COMMENT, pullRequest, newComment, false);
+
         NotificationEvent notiEvent = createFrom(sender, newComment);
         notiEvent.title = formatReplyTitle(pullRequest);
         Set<User> receivers = getMentionedUsers(newComment.getContents());
