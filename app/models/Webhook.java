@@ -204,6 +204,11 @@ public class Webhook extends Model implements ResourceConvertible {
         sendRequest(requestBodyString);
     }
 
+    public void sendRequestToPayloadUrl(EventType eventType, User sender, PullRequest eventPullRequest, ReviewComment reviewComment) {
+        String requestBodyString = buildRequestBody(eventType, sender, eventPullRequest, reviewComment);
+        sendRequest(requestBodyString);
+    }
+
     public void sendRequestToPayloadUrl(EventType eventType, User sender, Comment eventComment) {
         String requestBodyString = buildRequestBody(eventType, sender, eventComment);
         sendRequest(requestBodyString);
@@ -286,6 +291,26 @@ public class Webhook extends Model implements ResourceConvertible {
                 break;
         }
         requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(eventPullRequest) + "|#" + eventPullRequest.number + ": " + eventPullRequest.title + ">";
+
+        if (this.webhookType == WebhookType.SIMPLE) {
+            return buildTextPropertyOnlyJSON(requestMessage);
+        } else {
+            return buildJsonWithPullReqtuestDetails(eventPullRequest, detailFields, attachments, requestMessage);
+        }
+    }
+
+    private String buildRequestBody(EventType eventType, User sender, PullRequest eventPullRequest, ReviewComment reviewComment) {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode detailFields = mapper.createArrayNode();
+        ArrayNode attachments = mapper.createArrayNode();
+
+        String requestMessage = "[" + project.name + "] " + sender.name + " ";
+        switch (eventType) {
+            case NEW_REVIEW_COMMENT:
+                requestMessage += Messages.get(Lang.defaultLang(), "notification.type.new.simple.comment");
+                break;
+        }
+        requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(reviewComment) + "|#" + eventPullRequest.number + ": " + eventPullRequest.title + ">";
 
         if (this.webhookType == WebhookType.SIMPLE) {
             return buildTextPropertyOnlyJSON(requestMessage);
