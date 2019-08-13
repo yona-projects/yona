@@ -40,9 +40,10 @@ public class Markdown {
             .and(Sanitizers.BLOCKS)
             .and(new HtmlPolicyBuilder()
                     .allowUrlProtocols("http", "https", "mailto", "file")
-                    .allowElements("a", "input", "pre", "br", "hr", "iframe")
+                    .allowElements("a", "input", "pre", "br", "hr", "iframe", "ol")
                     .allowAttributes("href", "name", "target").onElements("a")
                     .allowAttributes("type", "disabled", "checked").onElements("input")
+                    .allowAttributes("start").onElements("ol")
                     .allowAttributes("width", "height", "src", "frameborder", "allow", "allowfullscreen").onElements("iframe")
                     .allowAttributes("class", "id", "style", "width", "height").globally()
                     .toFactory());
