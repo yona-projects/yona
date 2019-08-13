@@ -4,7 +4,7 @@
  * https://github.com/markedjs/marked
  */
 
-;(function (root) {
+;(function(root) {
   'use strict';
 
   /**
@@ -14,10 +14,9 @@
   var block = {
     newline: /^\n+/,
     code: /^( {4}[^\n]+\n*)+/,
-    fences: noop,
+    fences: /^ {0,3}(`{3,}|~{3,})([^`~\n]*)\n(?:|([\s\S]*?)\n)(?: {0,3}\1[~`]* *(?:\n+|$)|$)/,
     hr: /^ {0,3}((?:- *){3,}|(?:_ *){3,}|(?:\* *){3,})(?:\n+|$)/,
-    heading: /^ *(#{1,6}) *([^\n]+?) *(?:#+ *)?(?:\n+|$)/,
-    nptable: noop,
+    heading: /^ {0,3}(#{1,6}) +([^\n]*?)(?: +#+)? *(?:\n+|$)/,
     blockquote: /^( {0,3}> ?(paragraph|[^\n]*)(?:\n|$))+/,
     list: /^( {0,3})(bull) [\s\S]+?(?:hr|def|\n{2,}(?! )(?!\1bull )\n*|\s*$)/,
     html: '^ {0,3}(?:' // optional indentation
@@ -27,13 +26,16 @@
         + '|<![A-Z][\\s\\S]*?>\\n*' // (4)
         + '|<!\\[CDATA\\[[\\s\\S]*?\\]\\]>\\n*' // (5)
         + '|</?(tag)(?: +|\\n|/?>)[\\s\\S]*?(?:\\n{2,}|$)' // (6)
-        + '|<(?!script|pre|style)([a-z][\\w-]*)(?:attribute)*? */?>(?=\\h*\\n)[\\s\\S]*?(?:\\n{2,}|$)' // (7) open tag
-        + '|</(?!script|pre|style)[a-z][\\w-]*\\s*>(?=\\h*\\n)[\\s\\S]*?(?:\\n{2,}|$)' // (7) closing tag
+        + '|<(?!script|pre|style)([a-z][\\w-]*)(?:attribute)*? */?>(?=[ \\t]*(?:\\n|$))[\\s\\S]*?(?:\\n{2,}|$)' // (7) open tag
+        + '|</(?!script|pre|style)[a-z][\\w-]*\\s*>(?=[ \\t]*(?:\\n|$))[\\s\\S]*?(?:\\n{2,}|$)' // (7) closing tag
         + ')',
     def: /^ {0,3}\[(label)\]: *\n? *<?([^\s>]+)>?(?:(?: +\n? *| *\n *)(title))? *(?:\n+|$)/,
+    nptable: noop,
     table: noop,
-    lheading: /^([^\n]+)\n *(=|-){2,} *(?:\n+|$)/,
-    paragraph: /^([^\n]+(?:\n(?!hr|heading|lheading| {0,3}>|<\/?(?:tag)(?: +|\n|\/?>)|<(?:script|pre|style|!--))[^\n]+)*)/,
+    lheading: /^([^\n]+)\n {0,3}(=+|-+) *(?:\n+|$)/,
+    // regex template, placeholders will be replaced according to different paragraph
+    // interruption rules of commonmark and the original markdown spec:
+    _paragraph: /^([^\n]+(?:\n(?!hr|heading|lheading|blockquote|fences|list|html)[^\n]+)*)/,
     text: /^[^\n]+/
   };
 
@@ -69,10 +71,14 @@
       .replace('attribute', / +[a-zA-Z:_][\w.:-]*(?: *= *"[^"\n]*"| *= *'[^'\n]*'| *= *[^\s"'=<>`]+)?/)
       .getRegex();
 
-  block.paragraph = edit(block.paragraph)
+  block.paragraph = edit(block._paragraph)
       .replace('hr', block.hr)
-      .replace('heading', block.heading)
-      .replace('lheading', block.lheading)
+      .replace('heading', ' {0,3}#{1,6} +')
+      .replace('|lheading', '') // setex headings don't interrupt commonmark paragraphs
+      .replace('blockquote', ' {0,3}>')
+      .replace('fences', ' {0,3}(?:`{3,}|~{3,})[^`\\n]*\\n')
+      .replace('list', ' {0,3}(?:[*+-]|1[.)]) ') // only lists starting from 1 can interrupt
+      .replace('html', '</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|!--)')
       .replace('tag', block._tag) // pars can be interrupted by type (6) html blocks
       .getRegex();
 
@@ -91,28 +97,12 @@
    */
 
   block.gfm = merge({}, block.normal, {
-    fences: /^ {0,3}(`{3,}|~{3,})([^`\n]*)\n(?:|([\s\S]*?)\n)(?: {0,3}\1[~`]* *(?:\n+|$)|$)/,
-    paragraph: /^/,
-    heading: /^ *(#{1,6}) +([^\n]+?) *#* *(?:\n+|$)/
-  });
-
-  block.gfm.paragraph = edit(block.paragraph)
-      .replace('(?!', '(?!'
-          + block.gfm.fences.source.replace('\\1', '\\2') + '|'
-          + block.list.source.replace('\\1', '\\3') + '|')
-      .getRegex();
-
-  /**
-   * GFM + Tables Block Grammar
-   */
-
-  block.tables = merge({}, block.gfm, {
     nptable: /^ *([^|\n ].*\|.*)\n *([-:]+ *\|[-| :]*)(?:\n((?:.*[^>\n ].*(?:\n|$))*)\n*|$)/,
     table: /^ *\|(.+)\n *\|?( *[-:]+[-| :]*)(?:\n((?: *[^>\n ].*(?:\n|$))*)\n*|$)/
   });
 
   /**
-   * Pedantic grammar
+   * Pedantic grammar (original John Gruber's loose markdown specification)
    */
 
   block.pedantic = merge({}, block.normal, {
@@ -126,7 +116,18 @@
             + '|sup|i|b|u|mark|ruby|rt|rp|bdi|bdo|span|br|wbr|ins|del|img)'
             + '\\b)\\w+(?!:|[^\\w\\s@]*@)\\b')
         .getRegex(),
-    def: /^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +(["(][^\n]+[")]))? *(?:\n+|$)/
+    def: /^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +(["(][^\n]+[")]))? *(?:\n+|$)/,
+    heading: /^ *(#{1,6}) *([^\n]+?) *(?:#+ *)?(?:\n+|$)/,
+    fences: noop, // fences not supported
+    paragraph: edit(block.normal._paragraph)
+        .replace('hr', block.hr)
+        .replace('heading', ' *#{1,6} *[^\n]')
+        .replace('lheading', block.lheading)
+        .replace('blockquote', ' {0,3}>')
+        .replace('|fences', '')
+        .replace('|list', '')
+        .replace('|html', '')
+        .getRegex()
   });
 
   /**
@@ -142,11 +143,7 @@
     if (this.options.pedantic) {
       this.rules = block.pedantic;
     } else if (this.options.gfm) {
-      if (this.options.tables) {
-        this.rules = block.tables;
-      } else {
-        this.rules = block.gfm;
-      }
+      this.rules = block.gfm;
     }
   }
 
@@ -160,7 +157,7 @@
    * Static Lex Method
    */
 
-  Lexer.lex = function (src, options) {
+  Lexer.lex = function(src, options) {
     var lexer = new Lexer(options);
     return lexer.lex(src);
   };
@@ -169,12 +166,10 @@
    * Preprocessing
    */
 
-  Lexer.prototype.lex = function (src) {
+  Lexer.prototype.lex = function(src) {
     src = src
         .replace(/\r\n|\r/g, '\n')
-        .replace(/\t/g, '    ')
-        .replace(/\u00a0/g, ' ')
-        .replace(/\u2424/g, '\n');
+        .replace(/\t/g, '    ');
 
     return this.token(src, true);
   };
@@ -183,7 +178,7 @@
    * Lexing
    */
 
-  Lexer.prototype.token = function (src, top) {
+  Lexer.prototype.token = function(src, top) {
     src = src.replace(/^ +$/gm, '');
     var next,
         loose,
@@ -215,18 +210,25 @@
 
       // code
       if (cap = this.rules.code.exec(src)) {
+        var lastToken = this.tokens[this.tokens.length - 1];
         src = src.substring(cap[0].length);
-        cap = cap[0].replace(/^ {4}/gm, '');
-        this.tokens.push({
-          type: 'code',
-          text: !this.options.pedantic
-              ? rtrim(cap, '\n')
-              : cap
-        });
+        // An indented code block cannot interrupt a paragraph.
+        if (lastToken && lastToken.type === 'paragraph') {
+          lastToken.text += '\n' + cap[0].trimRight();
+        } else {
+          cap = cap[0].replace(/^ {4}/gm, '');
+          this.tokens.push({
+            type: 'code',
+            codeBlockStyle: 'indented',
+            text: !this.options.pedantic
+                ? rtrim(cap, '\n')
+                : cap
+          });
+        }
         continue;
       }
 
-      // fences (gfm)
+      // fences
       if (cap = this.rules.fences.exec(src)) {
         src = src.substring(cap[0].length);
         this.tokens.push({
@@ -249,7 +251,7 @@
       }
 
       // table no leading pipe (gfm)
-      if (top && (cap = this.rules.nptable.exec(src))) {
+      if (cap = this.rules.nptable.exec(src)) {
         item = {
           type: 'table',
           header: splitCells(cap[1].replace(/^ *| *\| *$/g, '')),
@@ -427,7 +429,7 @@
               : 'html',
           pre: !this.options.sanitizer
               && (cap[1] === 'pre' || cap[1] === 'script' || cap[1] === 'style'),
-          text: cap[0]
+          text: this.options.sanitize ? (this.options.sanitizer ? this.options.sanitizer(cap[0]) : escape(cap[0])) : cap[0]
         });
         continue;
       }
@@ -447,12 +449,12 @@
       }
 
       // table (gfm)
-      if (top && (cap = this.rules.table.exec(src))) {
+      if (cap = this.rules.table.exec(src)) {
         item = {
           type: 'table',
           header: splitCells(cap[1].replace(/^ *| *\| *$/g, '')),
           align: cap[2].replace(/^ *|\| *$/g, '').split(/ *\| */),
-          cells: cap[3] ? cap[3].replace(/(?: *\| *)?\n$/, '').split('\n') : []
+          cells: cap[3] ? cap[3].replace(/\n$/, '').split('\n') : []
         };
 
         if (item.header.length === item.align.length) {
@@ -487,7 +489,7 @@
         src = src.substring(cap[0].length);
         this.tokens.push({
           type: 'heading',
-          depth: cap[2] === '=' ? 1 : 2,
+          depth: cap[2].charAt(0) === '=' ? 1 : 2,
           text: cap[1]
         });
         continue;
@@ -538,19 +540,19 @@
         + '|^<\\?[\\s\\S]*?\\?>' // processing instruction, e.g. <?php ?>
         + '|^<![a-zA-Z]+\\s[\\s\\S]*?>' // declaration, e.g. <!DOCTYPE html>
         + '|^<!\\[CDATA\\[[\\s\\S]*?\\]\\]>', // CDATA section
-    link: /^!?\[(label)\]\(href(?:\s+(title))?\s*\)/,
+    link: /^!?\[(label)\]\(\s*(href)(?:\s+(title))?\s*\)/,
     reflink: /^!?\[(label)\]\[(?!\s*\])((?:\\[\[\]]?|[^\[\]\\])+)\]/,
     nolink: /^!?\[(?!\s*\])((?:\[[^\[\]]*\]|\\[\[\]]|[^\[\]])*)\](?:\[\])?/,
     strong: /^__([^\s_])__(?!_)|^\*\*([^\s*])\*\*(?!\*)|^__([^\s][\s\S]*?[^\s])__(?!_)|^\*\*([^\s][\s\S]*?[^\s])\*\*(?!\*)/,
-    em: /^_([^\s_])_(?!_)|^\*([^\s*"<\[])\*(?!\*)|^_([^\s][\s\S]*?[^\s_])_(?!_|[^\spunctuation])|^_([^\s_][\s\S]*?[^\s])_(?!_|[^\spunctuation])|^\*([^\s"<\[][\s\S]*?[^\s*])\*(?!\*)|^\*([^\s*"<\[][\s\S]*?[^\s])\*(?!\*)/,
+    em: /^_([^\s_])_(?!_)|^\*([^\s*<\[])\*(?!\*)|^_([^\s<][\s\S]*?[^\s_])_(?!_|[^\spunctuation])|^_([^\s_<][\s\S]*?[^\s])_(?!_|[^\spunctuation])|^\*([^\s<"][\s\S]*?[^\s\*])\*(?!\*|[^\spunctuation])|^\*([^\s*"<\[][\s\S]*?[^\s])\*(?!\*)/,
     code: /^(`+)([^`]|[^`][\s\S]*?[^`])\1(?!`)/,
     br: /^( {2,}|\\)\n(?!\s*$)/,
     del: noop,
-    text: /^(`+|[^`])[\s\S]*?(?=[\\<!\[`*]|\b_| {2,}\n|$)/
+    text: /^(`+|[^`])(?:[\s\S]*?(?:(?=[\\<!\[`*]|\b_|$)|[^ ](?= {2,}\n))|(?= {2,}\n))/
   };
 
-  // list of punctuation marks from common mark spec
-  // without ` and ] to workaround Rule 17 (inline code blocks/links)
+// list of punctuation marks from common mark spec
+// without ` and ] to workaround Rule 17 (inline code blocks/links)
   inline._punctuation = '!"#$%&\'()*+,\\-./:;<=>?@\\[^_{|}~';
   inline.em = edit(inline.em).replace(/punctuation/g, inline._punctuation).getRegex();
 
@@ -570,8 +572,8 @@
       .replace('attribute', inline._attribute)
       .getRegex();
 
-  inline._label = /(?:\[[^\[\]]*\]|\\[\[\]]?|`[^`]*`|[^\[\]\\])*?/;
-  inline._href = /\s*(<(?:\\[<>]?|[^\s<>\\])*>|[^\s\x00-\x1f]*)/;
+  inline._label = /(?:\[[^\[\]]*\]|\\.|`[^`]*`|[^\[\]\\`])*?/;
+  inline._href = /<(?:\\[<>]?|[^\s<>\\])*>|[^\s\x00-\x1f]*/;
   inline._title = /"(?:\\"?|[^"\\])*"|'(?:\\'?|[^'\\])*'|\((?:\\\)?|[^)\\])*\)/;
 
   inline.link = edit(inline.link)
@@ -615,10 +617,7 @@
     url: /^((?:ftp|https?):\/\/|www\.)(?:[a-zA-Z0-9\-]+\.?)+[^\s<]*|^email/,
     _backpedal: /(?:[^?!.,:;*_~()&]+|\([^)]*\)|&(?![a-zA-Z0-9]+;$)|[?!.,:;*_~)]+(?!$))+/,
     del: /^~+(?=\S)([\s\S]*?\S)~+/,
-    text: edit(inline.text)
-        .replace(']|', '~]|')
-        .replace('|$', '|https?://|ftp://|www\\.|[a-zA-Z0-9.!#$%&\'*+/=?^_`{\\|}~-]+@|$')
-        .getRegex()
+    text: /^(`+|[^`])(?:[\s\S]*?(?:(?=[\\<!\[`*~]|\b_|https?:\/\/|ftp:\/\/|www\.|$)|[^ ](?= {2,}\n)|[^a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-](?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@))|(?= {2,}\n|[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@))/
   });
 
   inline.gfm.url = edit(inline.gfm.url, 'i')
@@ -630,7 +629,10 @@
 
   inline.breaks = merge({}, inline.gfm, {
     br: edit(inline.br).replace('{2,}', '*').getRegex(),
-    text: edit(inline.gfm.text).replace('{2,}', '*').getRegex()
+    text: edit(inline.gfm.text)
+        .replace('\\b_', '\\b_| {2,}\\n')
+        .replace(/\{2,\}/g, '*')
+        .getRegex()
   });
 
   /**
@@ -669,7 +671,7 @@
    * Static Lexing/Compiling Method
    */
 
-  InlineLexer.output = function (src, links, options) {
+  InlineLexer.output = function(src, links, options) {
     var inline = new InlineLexer(links, options);
     return inline.output(src);
   };
@@ -678,7 +680,7 @@
    * Lexing/Compiling
    */
 
-  InlineLexer.prototype.output = function (src) {
+  InlineLexer.prototype.output = function(src) {
     var out = '',
         link,
         text,
@@ -721,9 +723,10 @@
       if (cap = this.rules.link.exec(src)) {
         var lastParenIndex = findClosingBracket(cap[2], '()');
         if (lastParenIndex > -1) {
-          var removeChars = cap[2].length - lastParenIndex;
+          var linkLen = 4 + cap[1].length + lastParenIndex;
           cap[2] = cap[2].substring(0, lastParenIndex);
-          cap[0] = cap[0].substring(0, cap[0].length - removeChars);
+          cap[0] = cap[0].substring(0, linkLen).trim();
+          cap[3] = '';
         }
         src = src.substring(cap[0].length);
         this.inLink = true;
@@ -842,7 +845,7 @@
       if (cap = this.rules.text.exec(src)) {
         src = src.substring(cap[0].length);
         if (this.inRawBlock) {
-          out += this.renderer.text(cap[0]);
+          out += this.renderer.text(this.options.sanitize ? (this.options.sanitizer ? this.options.sanitizer(cap[0]) : escape(cap[0])) : cap[0]);
         } else {
           out += this.renderer.text(escape(this.smartypants(cap[0])));
         }
@@ -857,7 +860,7 @@
     return out;
   };
 
-  InlineLexer.escapes = function (text) {
+  InlineLexer.escapes = function(text) {
     return text ? text.replace(InlineLexer.rules._escapes, '$1') : text;
   };
 
@@ -865,7 +868,7 @@
    * Compile Link
    */
 
-  InlineLexer.prototype.outputLink = function (cap, link) {
+  InlineLexer.prototype.outputLink = function(cap, link) {
     var href = link.href,
         title = link.title ? escape(link.title) : null;
 
@@ -878,7 +881,7 @@
    * Smartypants Transformations
    */
 
-  InlineLexer.prototype.smartypants = function (text) {
+  InlineLexer.prototype.smartypants = function(text) {
     if (!this.options.smartypants) return text;
     return text
     // em-dashes
@@ -901,7 +904,7 @@
    * Mangle Links
    */
 
-  InlineLexer.prototype.mangle = function (text) {
+  InlineLexer.prototype.mangle = function(text) {
     if (!this.options.mangle) return text;
     var out = '',
         l = text.length,
@@ -927,7 +930,7 @@
     this.options = options || marked.defaults;
   }
 
-  Renderer.prototype.code = function (code, infostring, escaped) {
+  Renderer.prototype.code = function(code, infostring, escaped) {
     var lang = (infostring || '').match(/\S*/)[0];
     if (this.options.highlight) {
       var out = this.options.highlight(code, lang);
@@ -951,15 +954,15 @@
         + '</code></pre>\n';
   };
 
-  Renderer.prototype.blockquote = function (quote) {
+  Renderer.prototype.blockquote = function(quote) {
     return '<blockquote>\n' + quote + '</blockquote>\n';
   };
 
-  Renderer.prototype.html = function (html) {
+  Renderer.prototype.html = function(html) {
     return html;
   };
 
-  Renderer.prototype.heading = function (text, level, raw, slugger) {
+  Renderer.prototype.heading = function(text, level, raw, slugger) {
     if (this.options.headerIds) {
       var idText = this.options.headerPrefix + slugger.slug(raw);
       return '<h'
@@ -977,17 +980,17 @@
     return '<h' + level + '>' + text + '</h' + level + '>\n';
   };
 
-  Renderer.prototype.hr = function () {
+  Renderer.prototype.hr = function() {
     return this.options.xhtml ? '<hr/>\n' : '<hr>\n';
   };
 
-  Renderer.prototype.list = function (body, ordered, start) {
+  Renderer.prototype.list = function(body, ordered, start) {
     var type = ordered ? 'ol' : 'ul',
         startatt = (ordered && start !== 1) ? (' start="' + start + '"') : '';
     return '<' + type + startatt + '>\n' + body + '</' + type + '>\n';
   };
 
-  Renderer.prototype.listitem = function (text) {
+  Renderer.prototype.listitem = function(text) {
     var html = '<li>' + text + '</li>\n';
 
     if (html.indexOf("<input") !== -1) {
@@ -998,7 +1001,7 @@
     return html;
   };
 
-  Renderer.prototype.checkbox = function (checked) {
+  Renderer.prototype.checkbox = function(checked) {
     return '<input '
         + (checked ? 'checked="" ' : '')
         + ' type="checkbox"'
@@ -1006,11 +1009,11 @@
         + '> ';
   };
 
-  Renderer.prototype.paragraph = function (text) {
+  Renderer.prototype.paragraph = function(text) {
     return '<p>' + text + '</p>\n';
   };
 
-  Renderer.prototype.table = function (header, body) {
+  Renderer.prototype.table = function(header, body) {
     if (body) body = '<tbody>' + body + '</tbody>';
 
     return '<table>\n'
@@ -1021,11 +1024,11 @@
         + '</table>\n';
   };
 
-  Renderer.prototype.tablerow = function (content) {
+  Renderer.prototype.tablerow = function(content) {
     return '<tr>\n' + content + '</tr>\n';
   };
 
-  Renderer.prototype.tablecell = function (content, flags) {
+  Renderer.prototype.tablecell = function(content, flags) {
     var type = flags.header ? 'th' : 'td';
     var tag = flags.align
         ? '<' + type + ' align="' + flags.align + '">'
@@ -1033,28 +1036,28 @@
     return tag + content + '</' + type + '>\n';
   };
 
-  // span level renderer
-  Renderer.prototype.strong = function (text) {
+// span level renderer
+  Renderer.prototype.strong = function(text) {
     return '<strong>' + text + '</strong>';
   };
 
-  Renderer.prototype.em = function (text) {
+  Renderer.prototype.em = function(text) {
     return '<em>' + text + '</em>';
   };
 
-  Renderer.prototype.codespan = function (text) {
+  Renderer.prototype.codespan = function(text) {
     return '<code>' + text + '</code>';
   };
 
-  Renderer.prototype.br = function () {
+  Renderer.prototype.br = function() {
     return this.options.xhtml ? '<br/>' : '<br>';
   };
 
-  Renderer.prototype.del = function (text) {
+  Renderer.prototype.del = function(text) {
     return '<del>' + text + '</del>';
   };
 
-  Renderer.prototype.link = function (href, title, text) {
+  Renderer.prototype.link = function(href, title, text) {
     href = cleanUrl(this.options.sanitize, this.options.baseUrl, href);
     if (href === null) {
       return text;
@@ -1067,7 +1070,7 @@
     return out;
   };
 
-  Renderer.prototype.image = function (href, title, text) {
+  Renderer.prototype.image = function(href, title, text) {
     href = cleanUrl(this.options.sanitize, this.options.baseUrl, href);
     if (href === null) {
       return text;
@@ -1081,7 +1084,7 @@
     return out;
   };
 
-  Renderer.prototype.text = function (text) {
+  Renderer.prototype.text = function(text) {
     return text;
   };
 
@@ -1090,25 +1093,24 @@
    * returns only the textual part of the token
    */
 
-  function TextRenderer() {
-  }
+  function TextRenderer() {}
 
-  // no need for block level renderers
+// no need for block level renderers
 
   TextRenderer.prototype.strong =
       TextRenderer.prototype.em =
           TextRenderer.prototype.codespan =
               TextRenderer.prototype.del =
-                  TextRenderer.prototype.text = function (text) {
+                  TextRenderer.prototype.text = function(text) {
                     return text;
                   };
 
   TextRenderer.prototype.link =
-      TextRenderer.prototype.image = function (href, title, text) {
+      TextRenderer.prototype.image = function(href, title, text) {
         return '' + text;
       };
 
-  TextRenderer.prototype.br = function () {
+  TextRenderer.prototype.br = function() {
     return '';
   };
 
@@ -1130,7 +1132,7 @@
    * Static Parse Method
    */
 
-  Parser.parse = function (src, options) {
+  Parser.parse = function(src, options) {
     var parser = new Parser(options);
     return parser.parse(src);
   };
@@ -1139,7 +1141,7 @@
    * Parse Loop
    */
 
-  Parser.prototype.parse = function (src) {
+  Parser.prototype.parse = function(src) {
     this.inline = new InlineLexer(src.links, this.options);
     // use an InlineLexer with a TextRenderer to extract pure text
     this.inlineText = new InlineLexer(
@@ -1160,15 +1162,16 @@
    * Next Token
    */
 
-  Parser.prototype.next = function () {
-    return this.token = this.tokens.pop();
+  Parser.prototype.next = function() {
+    this.token = this.tokens.pop();
+    return this.token;
   };
 
   /**
    * Preview Next Token
    */
 
-  Parser.prototype.peek = function () {
+  Parser.prototype.peek = function() {
     return this.tokens[this.tokens.length - 1] || 0;
   };
 
@@ -1176,7 +1179,7 @@
    * Parse Text Tokens
    */
 
-  Parser.prototype.parseText = function () {
+  Parser.prototype.parseText = function() {
     var body = this.token.text;
 
     while (this.peek().type === 'text') {
@@ -1190,7 +1193,7 @@
    * Parse Current Token
    */
 
-  Parser.prototype.tok = function () {
+  Parser.prototype.tok = function() {
     switch (this.token.type) {
       case 'space': {
         return '';
@@ -1266,9 +1269,11 @@
       case 'list_item_start': {
         body = '';
         var loose = this.token.loose;
+        var checked = this.token.checked;
+        var task = this.token.task;
 
         if (this.token.task) {
-          body += this.renderer.checkbox(this.token.checked);
+          body += this.renderer.checkbox(checked);
         }
 
         while (this.next().type !== 'list_item_end') {
@@ -1276,8 +1281,7 @@
               ? this.parseText()
               : this.tok();
         }
-
-        return this.renderer.listitem(body);
+        return this.renderer.listitem(body, task, checked);
       }
       case 'html': {
         // TODO parse inline content if parameter markdown=1
@@ -1312,7 +1316,7 @@
    * Convert string to unique id
    */
 
-  Slugger.prototype.slug = function (value) {
+  Slugger.prototype.slug = function(value) {
     var slug = value
         .toLowerCase()
         .trim()
@@ -1339,15 +1343,11 @@
   function escape(html, encode) {
     if (encode) {
       if (escape.escapeTest.test(html)) {
-        return html.replace(escape.escapeReplace, function (ch) {
-          return escape.replacements[ch];
-        });
+        return html.replace(escape.escapeReplace, function(ch) { return escape.replacements[ch]; });
       }
     } else {
       if (escape.escapeTestNoEncode.test(html)) {
-        return html.replace(escape.escapeReplaceNoEncode, function (ch) {
-          return escape.replacements[ch];
-        });
+        return html.replace(escape.escapeReplaceNoEncode, function(ch) { return escape.replacements[ch]; });
       }
     }
 
@@ -1369,7 +1369,7 @@
 
   function unescape(html) {
     // explicitly match decimal, hex, and named HTML entities
-    return html.replace(/&(#(?:\d+)|(?:#x[0-9A-Fa-f]+)|(?:\w+));?/ig, function (_, n) {
+    return html.replace(/&(#(?:\d+)|(?:#x[0-9A-Fa-f]+)|(?:\w+));?/ig, function(_, n) {
       n = n.toLowerCase();
       if (n === 'colon') return ':';
       if (n.charAt(0) === '#') {
@@ -1385,13 +1385,13 @@
     regex = regex.source || regex;
     opt = opt || '';
     return {
-      replace: function (name, val) {
+      replace: function(name, val) {
         val = val.source || val;
         val = val.replace(/(^|[^\[])\^/g, '$1');
         regex = regex.replace(name, val);
         return this;
       },
-      getRegex: function () {
+      getRegex: function() {
         return new RegExp(regex, opt);
       }
     };
@@ -1433,22 +1433,26 @@
       }
     }
     base = baseUrls[' ' + base];
+    var relativeBase = base.indexOf(':') === -1;
 
     if (href.slice(0, 2) === '//') {
-      return base.replace(/:[\s\S]*/, ':') + href;
+      if (relativeBase) {
+        return href;
+      }
+      return base.replace(/^([^:]+:)[\s\S]*$/, '$1') + href;
     } else if (href.charAt(0) === '/') {
-      return base.replace(/(:\/*[^/]*)[\s\S]*/, '$1') + href;
+      if (relativeBase) {
+        return href;
+      }
+      return base.replace(/^([^:]+:\/*[^/]*)[\s\S]*$/, '$1') + href;
     } else {
       return base + href;
     }
   }
-
   var baseUrls = {};
   var originIndependentUrl = /^$|^[a-z][a-z0-9+.-]*:|^[?#]/i;
 
-  function noop() {
-  }
-
+  function noop() {}
   noop.exec = noop;
 
   function merge(obj) {
@@ -1471,7 +1475,7 @@
   function splitCells(tableRow, count) {
     // ensure that every cell-delimiting pipe has a space
     // before it to distinguish it from an escaped pipe
-    var row = tableRow.replace(/\|/g, function (match, offset, str) {
+    var row = tableRow.replace(/\|/g, function(match, offset, str) {
           var escaped = false,
               curr = offset;
           while (--curr >= 0 && str[curr] === '\\') escaped = !escaped;
@@ -1500,9 +1504,9 @@
     return cells;
   }
 
-  // Remove trailing 'c's. Equivalent to str.replace(/c*$/, '').
-  // /c*$/ is vulnerable to REDOS.
-  // invert: Remove suffix of non-c chars instead. Default falsey.
+// Remove trailing 'c's. Equivalent to str.replace(/c*$/, '').
+// /c*$/ is vulnerable to REDOS.
+// invert: Remove suffix of non-c chars instead. Default falsey.
   function rtrim(str, c, invert) {
     if (str.length === 0) {
       return '';
@@ -1546,6 +1550,12 @@
     return -1;
   }
 
+  function checkSanitizeDeprecation(opt) {
+    if (opt && opt.sanitize && !opt.silent) {
+      console.warn('marked(): sanitize and sanitizer parameters are deprecated since version 0.7.0, should not be used and will be removed in the future. Read more here: https://marked.js.org/#/USING_ADVANCED.md#options');
+    }
+  }
+
   /**
    * Marked
    */
@@ -1567,6 +1577,7 @@
       }
 
       opt = merge({}, marked.defaults, opt || {});
+      checkSanitizeDeprecation(opt);
 
       var highlight = opt.highlight,
           tokens,
@@ -1581,7 +1592,7 @@
 
       pending = tokens.length;
 
-      var done = function (err) {
+      var done = function(err) {
         if (err) {
           opt.highlight = highlight;
           return callback(err);
@@ -1611,11 +1622,11 @@
       if (!pending) return done();
 
       for (; i < tokens.length; i++) {
-        (function (token) {
+        (function(token) {
           if (token.type !== 'code') {
             return --pending || done();
           }
-          return highlight(token.text, token.lang, function (err, code) {
+          return highlight(token.text, token.lang, function(err, code) {
             if (err) return done(err);
             if (code == null || code === token.text) {
               return --pending || done();
@@ -1631,6 +1642,7 @@
     }
     try {
       if (opt) opt = merge({}, marked.defaults, opt);
+      checkSanitizeDeprecation(opt);
       return Parser.parse(Lexer.lex(src, opt), opt);
     } catch (e) {
       e.message += '\nPlease report this to https://github.com/markedjs/marked.';
@@ -1648,12 +1660,12 @@
    */
 
   marked.options =
-      marked.setOptions = function (opt) {
+      marked.setOptions = function(opt) {
         merge(marked.defaults, opt);
         return marked;
       };
 
-  marked.getDefaults = function () {
+  marked.getDefaults = function() {
     return {
       baseUrl: null,
       breaks: true,
@@ -1670,7 +1682,6 @@
       silent: false,
       smartLists: true,
       smartypants: false,
-      tables: true,
       xhtml: false
     };
   };
@@ -1700,9 +1711,7 @@
   if (typeof module !== 'undefined' && typeof exports === 'object') {
     module.exports = marked;
   } else if (typeof define === 'function' && define.amd) {
-    define(function () {
-      return marked;
-    });
+    define(function() { return marked; });
   } else {
     root.marked = marked;
   }
