@@ -390,4 +390,23 @@ ldap {
     }
 }
 
+# Slack Message Color
+# ~~~~~~~~~~~~~~~~~
+# use hex code (ex. #2EB886)
+slack {
+    NEW_ISSUE = ""
+    ISSUE_STATE_CHANGED = ""
+    ISSUE_ASSIGNEE_CHANGED = ""
+    ISSUE_BODY_CHANGED = ""
+    ISSUE_MOVED = ""
+    ISSUE_MILESTONE_CHANGED = ""
+    NEW_COMMENT = ""
+    COMMENT_UPDATED = ""
+    NEW_PULL_REQUEST = ""
+    PULL_REQUEST_STATE_CHANGED = ""
+    PULL_REQUEST_MERGED = ""
+    PULL_REQUEST_COMMIT_CHANGED = ""
+    PULL_REQUEST_REVIEW_STATE_CHANGED = ""
+}
+
 include "social-login.conf"
