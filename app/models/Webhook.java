@@ -179,6 +179,22 @@ public class Webhook extends Model implements ResourceConvertible {
             Logger.info("[Webhook] Request failed at given payload URL: " + this.payloadUrl);
         }
     }
+
+    private String getBaseUrl() {
+        return utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000");
+    }
+
+    private String buildRequestMessage(String url, String message) {
+        String requestMessage = " <" + getBaseUrl() + url + "|";
+
+        if (this.webhookType == WebhookType.DETAIL_SLACK) {
+            requestMessage += message.replace(">", "&gt;") + ">";
+        } else {
+            requestMessage += message + ">";
+        }
+
+        return requestMessage;
+    }
     
     public void sendRequestToPayloadUrl(List<RevCommit> commits, List<String> refNames, User sender, String title) {
         String requestBodyString = buildRequestBody(commits, refNames, sender, title);
@@ -202,6 +218,11 @@ public class Webhook extends Model implements ResourceConvertible {
 
     public void sendRequestToPayloadUrl(EventType eventType, User sender, PullRequest eventPullRequest, PullRequestReviewAction reviewAction) {
         String requestBodyString = buildRequestBody(eventType, sender, eventPullRequest, reviewAction);
+        sendRequest(requestBodyString);
+    }
+
+    public void sendRequestToPayloadUrl(EventType eventType, User sender, PullRequest eventPullRequest, ReviewComment reviewComment) {
+        String requestBodyString = buildRequestBody(eventType, sender, eventPullRequest, reviewComment);
         sendRequest(requestBodyString);
     }
 
@@ -254,7 +275,8 @@ public class Webhook extends Model implements ResourceConvertible {
                 requestMessage += Messages.get(Lang.defaultLang(), "notification.type.pullrequest.commit.changed");
                 break;
         }
-        requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(eventPullRequest) + "|#" + eventPullRequest.number + ": " + eventPullRequest.title + ">";
+
+        requestMessage += buildRequestMessage(RouteUtil.getUrl(eventPullRequest), "#" + eventPullRequest.number + ": " + eventPullRequest.title);
 
         if (this.webhookType == WebhookType.DETAIL_SLACK) {
             return buildJsonWithPullReqtuestDetails(eventPullRequest, detailFields, attachments, requestMessage, eventType);
@@ -286,7 +308,28 @@ public class Webhook extends Model implements ResourceConvertible {
                 }
                 break;
         }
-        requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(eventPullRequest) + "|#" + eventPullRequest.number + ": " + eventPullRequest.title + ">";
+
+        requestMessage += buildRequestMessage(RouteUtil.getUrl(eventPullRequest), "#" + eventPullRequest.number + ": " + eventPullRequest.title);
+
+        if (this.webhookType == WebhookType.DETAIL_SLACK) {
+            return buildJsonWithPullReqtuestDetails(eventPullRequest, detailFields, attachments, requestMessage, eventType);
+        } else {
+            return buildTextPropertyOnlyJSON(requestMessage);
+        }
+    }
+
+    private String buildRequestBody(EventType eventType, User sender, PullRequest eventPullRequest, ReviewComment reviewComment) {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode detailFields = mapper.createArrayNode();
+        ArrayNode attachments = mapper.createArrayNode();
+
+        String requestMessage = "[" + project.name + "] " + sender.name + " ";
+        switch (eventType) {
+            case NEW_REVIEW_COMMENT:
+                requestMessage += Messages.get(Lang.defaultLang(), "notification.type.new.simple.comment");
+                break;
+        }
+        requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(reviewComment) + "|#" + eventPullRequest.number + ": " + eventPullRequest.title + ">";
 
         if (this.webhookType == WebhookType.SIMPLE) {
             return buildTextPropertyOnlyJSON(requestMessage);
@@ -325,12 +368,12 @@ public class Webhook extends Model implements ResourceConvertible {
         }
 
         String eventIssueUrl = controllers.routes.IssueApp.issue(eventIssue.project.owner, eventIssue.project.name, eventIssue.getNumber()).url();
-        requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + eventIssueUrl + "|#" + eventIssue.number + ": " + eventIssue.title + ">";
+        requestMessage += buildRequestMessage(eventIssueUrl, "#" + eventIssue.number + ": " + eventIssue.title);
 
-        if (this.webhookType == WebhookType.SIMPLE) {
-            return buildTextPropertyOnlyJSON(requestMessage);
-        } else {
+        if (this.webhookType == WebhookType.DETAIL_SLACK) {
             return buildJsonWithIssueEventDetails(eventIssue, detailFields, attachments, requestMessage, eventType);
+        } else {
+            return buildTextPropertyOnlyJSON(requestMessage);
         }
     }
 
@@ -343,12 +386,12 @@ public class Webhook extends Model implements ResourceConvertible {
         requestMessage += Messages.get(Lang.defaultLang(), "notification.type.issue.moved", previous.name, project.name);
 
         String eventIssueUrl = controllers.routes.IssueApp.issue(eventIssue.project.owner, eventIssue.project.name, eventIssue.getNumber()).url();
-        requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + eventIssueUrl + "|#" + eventIssue.number + ": " + eventIssue.title + ">";
+        requestMessage += buildRequestMessage(eventIssueUrl, "#" + eventIssue.number + ": " + eventIssue.title);
 
-        if (this.webhookType == WebhookType.SIMPLE) {
-            return buildTextPropertyOnlyJSON(requestMessage);
-        } else {
+        if (this.webhookType == WebhookType.DETAIL_SLACK) {
             return buildJsonWithIssueEventDetails(eventIssue, detailFields, attachments, requestMessage, eventType);
+        } else {
+            return buildTextPropertyOnlyJSON(requestMessage);
         }
     }
 
@@ -377,18 +420,16 @@ public class Webhook extends Model implements ResourceConvertible {
         }
         switch (eventComment.asResource().getType()) {
             case ISSUE_COMMENT:
-                requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(eventComment) + "|#" + eventComment.getParent().number + ": " + eventComment.getParent().title + ">";
-                break;
             case NONISSUE_COMMENT:
-                requestMessage += " <" + utils.Config.getScheme() + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(eventComment) + "|#" + eventComment.getParent().number + ": " + eventComment.getParent().title + ">";
+                requestMessage += buildRequestMessage(RouteUtil.getUrl(eventComment), "#" + eventComment.getParent().number + ": " + eventComment.getParent().title);
                 break;
         }
 
-        if (this.webhookType == WebhookType.SIMPLE) {
-            return buildTextPropertyOnlyJSON(requestMessage);
-        } else {
+        if (this.webhookType == WebhookType.DETAIL_SLACK) {
             attachments.add(buildAttachmentJSON(eventComment.contents, null, eventType));
             return Json.stringify(buildRequestJSON(requestMessage, attachments));
+        } else {
+            return buildTextPropertyOnlyJSON(requestMessage);
         }
     }
 
@@ -403,7 +444,7 @@ public class Webhook extends Model implements ResourceConvertible {
         commitJSON.put("timestamp",
                 new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssZ").
                         format(new Date(gitCommit.getCommitTime() * 1000L)));
-        commitJSON.put("url", utils.Config.getScheme()  + "://" + utils.Config.getHostport("localhost:9000") + RouteUtil.getUrl(project) + "/commit/"+gitCommit.getFullId());
+        commitJSON.put("url", getBaseUrl() + RouteUtil.getUrl(project) + "/commit/"+gitCommit.getFullId());
 
         authorJSON.put("name", gitCommit.getAuthorName());
         authorJSON.put("email", gitCommit.getAuthorEmail());
