@@ -473,6 +473,7 @@ notification.send.mail.warning = If you are not the original author, this option
 notification.type.comment.updated = Comment updated
 notification.type.issue.assignee.changed = Issue assignee changed.
 notification.type.issue.body.changed = Issue body changed
+notification.type.issue.deleted = Issue deleted
 notification.type.issue.is.moved = Issue moved
 notification.type.issue.label.changed = Issue label changed
 notification.type.issue.moved = Issue has been moved. From {0} To {1}
