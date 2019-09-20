@@ -320,6 +320,9 @@ public class Webhook extends Model implements ResourceConvertible {
             case ISSUE_MILESTONE_CHANGED:
                 requestMessage += Messages.get(Lang.defaultLang(), "notification.type.milestone.changed");
                 break;
+            case RESOURCE_DELETED:
+                requestMessage += Messages.get(Lang.defaultLang(), "notification.type.issue.deleted");
+                break;
             default:
                 play.Logger.warn("Unknown webhook event: " + eventType);
         }
