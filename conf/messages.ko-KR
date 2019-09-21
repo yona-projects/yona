@@ -473,6 +473,7 @@ notification.send.mail.warning = 만약 해당글의 원 작성자가 아니라�
 notification.type.comment.updated = 댓글 수정
 notification.type.issue.assignee.changed = 이슈 담당자 변경
 notification.type.issue.body.changed = 이슈 본문 변경
+notification.type.issue.deleted = 이슈 삭제
 notification.type.issue.is.moved = 이슈 이동
 notification.type.issue.label.changed = 이슈 라벨 변경
 notification.type.issue.moved = 이슈가 {0}에서 {1}로 이동되었습니다
