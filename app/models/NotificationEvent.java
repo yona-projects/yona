@@ -599,7 +599,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
     }
 
     private static void webhookRequest(EventType eventTypes, PullRequest pullRequest, Boolean gitPushOnly) {
-        List<Webhook> webhookList = Webhook.findByProject(pullRequest.toProject.id);
+        List<Webhook> webhookList = eventTypes == PULL_REQUEST_MERGED ? Webhook.findByProject(pullRequest.toProject.id) : Webhook.findByProject(pullRequest.toProjectId);
         for (Webhook webhook : webhookList) {
             if (gitPushOnly == webhook.gitPushOnly) {
                 // Send push event via webhook payload URLs.
