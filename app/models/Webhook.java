@@ -249,11 +249,18 @@ public class Webhook extends Model implements ResourceConvertible {
         if (this.webhookType == WebhookType.DETAIL_SLACK) {
             ArrayNode attachments = buildIssueDetails(eventIssue, eventType);
             requestBodyString = buildRequestJsonWithAttachments(requestMessage, attachments);
+        } else if (this.webhookType == WebhookType.DETAIL_HANGOUT_CHAT) {
+            ObjectNode thread = buildThreadJSON(eventIssue.asResource());
+            requestBodyString = buildRequestJsonWithThread(requestMessage, thread);
         } else {
             requestBodyString = buildTextPropertyOnlyJSON(requestMessage);
         }
 
-        sendRequest(requestBodyString);
+        if (this.webhookType == WebhookType.DETAIL_HANGOUT_CHAT) {
+            sendRequest(requestBodyString, this.id, eventIssue.asResource());
+        } else {
+            sendRequest(requestBodyString);
+        }
     }
 
     private String buildRequestBody(EventType eventType, User sender, Issue eventIssue, Project previous) {
@@ -340,11 +347,18 @@ public class Webhook extends Model implements ResourceConvertible {
         if (this.webhookType == WebhookType.DETAIL_SLACK) {
             ArrayNode attachments = buildJsonWithPullReqtuestDetails(eventPullRequest, requestMessage, eventType);
             requestBodyString = buildRequestJsonWithAttachments(requestMessage, attachments);
+        } else if (this.webhookType == WebhookType.DETAIL_HANGOUT_CHAT) {
+            ObjectNode thread = buildThreadJSON(eventPullRequest.asResource());
+            requestBodyString = buildRequestJsonWithThread(requestMessage, thread);
         } else {
             requestBodyString = buildTextPropertyOnlyJSON(requestMessage);
         }
 
-        sendRequest(requestBodyString);
+        if (this.webhookType == WebhookType.DETAIL_HANGOUT_CHAT) {
+            sendRequest(requestBodyString, this.id, eventPullRequest.asResource());
+        } else {
+            sendRequest(requestBodyString);
+        }
     }
 
     private String buildRequestBody(EventType eventType, User sender, PullRequest eventPullRequest) {
@@ -377,11 +391,18 @@ public class Webhook extends Model implements ResourceConvertible {
         if (this.webhookType == WebhookType.DETAIL_SLACK) {
             ArrayNode attachments = buildJsonWithPullReqtuestDetails(eventPullRequest, requestMessage, eventType);
             requestBodyString = buildRequestJsonWithAttachments(requestMessage, attachments);
+        } else if (this.webhookType == WebhookType.DETAIL_HANGOUT_CHAT) {
+            ObjectNode thread = buildThreadJSON(eventPullRequest.asResource());
+            requestBodyString = buildRequestJsonWithThread(requestMessage, thread);
         } else {
             requestBodyString = buildTextPropertyOnlyJSON(requestMessage);
         }
 
-        sendRequest(requestBodyString);
+        if (this.webhookType == WebhookType.DETAIL_HANGOUT_CHAT) {
+            sendRequest(requestBodyString, this.id, eventPullRequest.asResource());
+        } else {
+            sendRequest(requestBodyString);
+        }
     }
 
     private String buildRequestBody(EventType eventType, User sender, PullRequest eventPullRequest, PullRequestReviewAction reviewAction) {
@@ -409,11 +430,18 @@ public class Webhook extends Model implements ResourceConvertible {
         if (this.webhookType == WebhookType.DETAIL_SLACK) {
             ArrayNode attachments = buildJsonWithPullReqtuestDetails(eventPullRequest, requestMessage, eventType);
             requestBodyString = buildRequestJsonWithAttachments(requestMessage, attachments);
+        } else if (this.webhookType == WebhookType.DETAIL_HANGOUT_CHAT) {
+            ObjectNode thread = buildThreadJSON(eventPullRequest.asResource());
+            requestBodyString = buildRequestJsonWithThread(requestMessage, thread);
         } else {
             requestBodyString = buildTextPropertyOnlyJSON(requestMessage);
         }
 
-        sendRequest(requestBodyString);
+        if (this.webhookType == WebhookType.DETAIL_HANGOUT_CHAT) {
+            sendRequest(requestBodyString, this.id, eventPullRequest.asResource());
+        } else {
+            sendRequest(requestBodyString);
+        }
     }
 
     private String buildRequestBody(EventType eventType, User sender, PullRequest eventPullRequest, ReviewComment reviewComment) {
