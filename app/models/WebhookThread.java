@@ -53,17 +53,18 @@ public class WebhookThread extends Model {
         this.createdAt = new Date();
     }
 
-    @Transactional
-    public static void create(Long webhookId, Resource resource, String threadId) {
+    public static WebhookThread create(Long webhookId, Resource resource, String threadId) {
         WebhookThread webhookthread = new WebhookThread(webhookId, resource, threadId);
         webhookthread.save();
         // TODO : Raise appropriate error when required field is empty
+        return webhookthread;
     }
-    public WebhookThread getWebhookThread(Long webhookId, Resource resource) {
+
+    public static WebhookThread getWebhookThread(Long webhookId, Resource resource) {
         return find.where()
                 .eq("webhook.id", webhookId)
                 .eq("resourceType", resource.getType())
-                .eq("resource.id", resource.getId())
+                .eq("resourceId", resource.getId())
                 .findUnique();
     }
 
