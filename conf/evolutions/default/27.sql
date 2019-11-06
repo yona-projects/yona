@@ -6,7 +6,6 @@ CREATE TABLE webhook_thread (
   resource_id               VARCHAR(255),
   thread_id                 VARCHAR(2000),
   created_at                DATETIME,
-  CONSTRAINT ck_webhook_thread_resource_type CHECK (resource_type IN ('ISSUE','BOARD','PULL_REQUEST')),
   CONSTRAINT pk_webhook_thread PRIMARY KEY (id),
   CONSTRAINT fk_webhook_thread_webhook FOREIGN KEY (webhook_id) REFERENCES webhook (id) ON DELETE CASCADE
   )
