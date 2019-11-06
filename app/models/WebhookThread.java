@@ -67,4 +67,15 @@ public class WebhookThread extends Model {
                 .findUnique();
     }
 
+    @Override
+    public String toString() {
+        return "Webhook{" +
+                "id=" + id +
+                ", webhook=" + webhook +
+                ", resourceType=" + resourceType +
+                ", resourceId=" + resourceId +
+                ", threadId=" + threadId +
+                ", createdAt=" + createdAt +
+                '}';
+    }
 }
