@@ -152,6 +152,12 @@ public class Webhook extends Model implements ResourceConvertible {
                 .findUnique();
     }
 
+    public static Webhook findById(Long webhookId) {
+        return find.where()
+                .eq("id", webhookId)
+                .findUnique();
+    }
+
     private void sendRequest(String payload) {
         try {
             WSRequestHolder requestHolder = WS.url(this.payloadUrl);
