@@ -10,6 +10,9 @@ package models;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import org.eclipse.jgit.revwalk.RevCommit;
+
 import models.enumeration.EventType;
 import models.enumeration.PullRequestReviewAction;
 import models.enumeration.ResourceType;
@@ -17,7 +20,9 @@ import models.enumeration.WebhookType;
 import models.resource.GlobalResource;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
-import org.eclipse.jgit.revwalk.RevCommit;
+
+import utils.RouteUtil;
+
 import play.Logger;
 import play.api.i18n.Lang;
 import play.data.validation.Constraints.Required;
@@ -29,13 +34,14 @@ import play.libs.ws.WS;
 import play.libs.ws.WSRequestHolder;
 import play.libs.ws.WSResponse;
 import play.Play;
+
 import playRepository.GitCommit;
-import utils.RouteUtil;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.validation.constraints.Size;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -81,9 +87,6 @@ public class Webhook extends Model implements ResourceConvertible {
 
     public WebhookType webhookType = WebhookType.SIMPLE;
 
-    /**
-     * Payload URL of webhook.
-     */
     public Date createdAt;
 
 
