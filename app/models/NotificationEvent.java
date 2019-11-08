@@ -599,7 +599,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
     }
 
     private static void webhookRequest(EventType eventTypes, PullRequest pullRequest, Boolean gitPushOnly) {
-        List<Webhook> webhookList = Webhook.findByProject(pullRequest.toProjectId);
+        List<Webhook> webhookList = eventTypes == PULL_REQUEST_MERGED ? Webhook.findByProject(pullRequest.toProject.id) : Webhook.findByProject(pullRequest.toProjectId);
         for (Webhook webhook : webhookList) {
             if (gitPushOnly == webhook.gitPushOnly) {
                 // Send push event via webhook payload URLs.
@@ -680,6 +680,11 @@ public class NotificationEvent extends Model implements INotificationEvent {
         notiEvent.oldValue = oldState.state();
         notiEvent.newValue = newState.state();
         NotificationEvent.add(notiEvent);
+
+        if (newState == State.MERGED) {
+            webhookRequest(PULL_REQUEST_MERGED, pullRequest, false);
+        }
+
         return notiEvent;
     }
 
@@ -718,8 +723,6 @@ public class NotificationEvent extends Model implements INotificationEvent {
      * @see {@link actors.PullRequestActor#processPullRequestMerging(models.PullRequestEventMessage, models.PullRequest)}
      */
     public static NotificationEvent afterMerge(User sender, PullRequest pullRequest, State state) {
-        webhookRequest(PULL_REQUEST_MERGED, pullRequest, false);
-
         NotificationEvent notiEvent = createFrom(sender, pullRequest);
         notiEvent.title = formatReplyTitle(pullRequest);
         notiEvent.receivers = state == State.MERGED ? getReceiversWithRelatedAuthors(sender, pullRequest) : getReceivers(sender, pullRequest);
@@ -758,7 +761,6 @@ public class NotificationEvent extends Model implements INotificationEvent {
     }
 
     public static NotificationEvent afterPullRequestUpdated(PullRequest pullRequest, State oldState, State newState) {
-        webhookRequest(PULL_REQUEST_STATE_CHANGED, pullRequest, false);
         return afterPullRequestUpdated(UserApp.currentUser(), pullRequest, oldState, newState);
     }
 
