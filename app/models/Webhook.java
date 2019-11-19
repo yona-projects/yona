@@ -155,10 +155,12 @@ public class Webhook extends Model implements ResourceConvertible {
     private void sendRequest(String payload) {
         try {
             WSRequestHolder requestHolder = WS.url(this.payloadUrl);
+            if (this.secret != null && !this.secret.equals("")) {
+                requestHolder.setHeader("Authorization", "token " + this.secret);
+            }
             requestHolder
                     .setHeader("Content-Type", "application/json")
                     .setHeader("User-Agent", "Yobi-Hookshot")
-                    .setHeader("Authorization", "token " + this.secret)
                     .post(payload)
                     .map(
                             new Function<WSResponse, Integer>() {
