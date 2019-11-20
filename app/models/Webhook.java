@@ -18,6 +18,7 @@ import models.resource.GlobalResource;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.apache.commons.lang3.StringUtils;
 import play.Logger;
 import play.api.i18n.Lang;
 import play.data.validation.Constraints.Required;
@@ -155,7 +156,7 @@ public class Webhook extends Model implements ResourceConvertible {
     private void sendRequest(String payload) {
         try {
             WSRequestHolder requestHolder = WS.url(this.payloadUrl);
-            if (this.secret != null && !this.secret.equals("")) {
+            if (StringUtils.isNotBlank(this.secret)) {
                 requestHolder.setHeader("Authorization", "token " + this.secret);
             }
             requestHolder
