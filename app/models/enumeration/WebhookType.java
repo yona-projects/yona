@@ -7,7 +7,7 @@
 package models.enumeration;
 
 public enum WebhookType {
-    SIMPLE(0), DETAIL_SLACK(1);
+    SIMPLE(0), DETAIL_SLACK(1), DETAIL_HANGOUT_CHAT(2);
 
     private int type;
 

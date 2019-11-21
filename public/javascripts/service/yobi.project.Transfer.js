@@ -48,7 +48,7 @@
         function _attachEvent(htOptions){
             htElement.welBtnTransferPop.click(_onClickBtnTransferPop);
 
-            htElement.welBtnTransferPrj.on("click", function(){
+            htElement.welBtnTransferPrj.one("click", function(){
                 $.ajax(htOptions.sTransferURL + "?owner=" + $("#owner").val(), {
                     "method" : "put",
                     "success": function(oRes, sStatus, oXHR){
