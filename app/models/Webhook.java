@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.apache.commons.lang3.StringUtils;
 
 import models.enumeration.EventType;
 import models.enumeration.PullRequestReviewAction;
@@ -546,10 +547,12 @@ public class Webhook extends Model implements ResourceConvertible {
         play.Logger.info(payload);
         try {
             WSRequestHolder requestHolder = WS.url(this.payloadUrl);
+            if (StringUtils.isNotBlank(this.secret)) {
+                requestHolder.setHeader("Authorization", "token " + this.secret);
+            }
             requestHolder
                     .setHeader("Content-Type", "application/json")
                     .setHeader("User-Agent", "Yobi-Hookshot")
-                    .setHeader("Authorization", "token " + this.secret)
                     .post(payload)
                     .map(
                             new Function<WSResponse, Integer>() {
@@ -575,10 +578,12 @@ public class Webhook extends Model implements ResourceConvertible {
         play.Logger.info(payload);
         try {
             WSRequestHolder requestHolder = WS.url(this.payloadUrl);
+            if (StringUtils.isNotBlank(this.secret)) {
+                requestHolder.setHeader("Authorization", "token " + this.secret);
+            }
             requestHolder
                     .setHeader("Content-Type", "application/json")
                     .setHeader("User-Agent", "Yobi-Hookshot")
-                    .setHeader("Authorization", "token " + this.secret)
                     .post(payload)
                     .map(
                             new Function<WSResponse, Integer>() {
