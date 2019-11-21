@@ -638,6 +638,16 @@ public class NotificationEvent extends Model implements INotificationEvent {
         }
     }
 
+    private static void webhookRequest(EventType eventTypes, Posting post, Boolean gitPushOnly) {
+        List<Webhook> webhookList = Webhook.findByProject(post.project.id);
+        for (Webhook webhook : webhookList) {
+            if (gitPushOnly == webhook.gitPushOnly) {
+                // Send push event via webhook payload URLs.
+                webhook.sendRequestToPayloadUrl(eventTypes, UserApp.currentUser(), post);
+            }
+        }
+    }
+
     private static void webhookRequest(EventType eventTypes, Comment comment, Boolean gitPushOnly) {
         List<Webhook> webhookList = Webhook.findByProject(comment.projectId);
         for (Webhook webhook : webhookList) {
@@ -1125,6 +1135,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
 
     public static void afterNewPost(Posting post) {
         NotificationEvent.add(forNewPosting(post, UserApp.currentUser()));
+        webhookRequest(NEW_POSTING, post, false);
     }
 
     public static void afterUpdatePosting(String oldValue, Posting post) {
