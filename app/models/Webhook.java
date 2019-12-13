@@ -312,20 +312,20 @@ public class Webhook extends Model implements ResourceConvertible {
     }
 
     private String buildRequestBody(EventType eventType, User sender, Posting eventPost) {
-        String requestMessage = "[" + project.name + "] "+ sender.name + " ";
+        StringBuilder requestMessage = new StringBuilder();
+        requestMessage.append(String.format("[%s] %s ", project.name, sender.name));
 
         switch (eventType) {
             case NEW_POSTING:
-                requestMessage += Messages.get(Lang.defaultLang(), "notification.type.new.posting");
+                requestMessage.append(Messages.get(Lang.defaultLang(), "notification.type.new.posting"));
                 break;
             default:
                 play.Logger.warn("Unknown webhook event: " + eventType);
         }
 
         String eventPostUrl = RouteUtil.getUrl(eventPost);
-
-        requestMessage += buildRequestMessage(eventPostUrl, "#" + eventPost.number + ": " + eventPost.title);
-        return requestMessage;
+        requestMessage.append(buildRequestMessage(eventPostUrl, "#" + eventPost.number + ": " + eventPost.title));
+        return requestMessage.toString();
     }
 
 
