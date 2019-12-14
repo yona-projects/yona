@@ -292,6 +292,43 @@ public class Webhook extends Model implements ResourceConvertible {
         return attachments;
     }
 
+    // Posting
+    public void sendRequestToPayloadUrl(EventType eventType, User sender, Posting eventPost) {
+        String requestBodyString = "";
+        String requestMessage = buildRequestBody(eventType, sender, eventPost);
+
+        if (this.webhookType == WebhookType.DETAIL_HANGOUT_CHAT) {
+            ObjectNode thread = buildThreadJSON(eventPost.asResource());
+            requestBodyString = buildRequestJsonWithThread(requestMessage, thread);
+        } else {
+            requestBodyString = buildTextPropertyOnlyJSON(requestMessage);
+        }
+
+        if (this.webhookType == WebhookType.DETAIL_HANGOUT_CHAT) {
+            sendRequest(requestBodyString, this.id, eventPost.asResource());
+        } else {
+            sendRequest(requestBodyString);
+        }
+    }
+
+    private String buildRequestBody(EventType eventType, User sender, Posting eventPost) {
+        StringBuilder requestMessage = new StringBuilder();
+        requestMessage.append(String.format("[%s] %s ", project.name, sender.name));
+
+        switch (eventType) {
+            case NEW_POSTING:
+                requestMessage.append(Messages.get(Lang.defaultLang(), "notification.type.new.posting"));
+                break;
+            default:
+                play.Logger.warn("Unknown webhook event: " + eventType);
+        }
+
+        String eventPostUrl = RouteUtil.getUrl(eventPost);
+        requestMessage.append(buildRequestMessage(eventPostUrl, "#" + eventPost.number + ": " + eventPost.title));
+        return requestMessage.toString();
+    }
+
+
     // Comment
     public void sendRequestToPayloadUrl(EventType eventType, User sender, Comment eventComment) {
         String requestBodyString = "";
