@@ -328,7 +328,7 @@ public class Webhook extends Model implements ResourceConvertible {
         }
 
         String eventPostUrl = RouteUtil.getUrl(eventPost);
-        requestMessage.append(buildRequestMessage(eventPostUrl, "#" + eventPost.number + ": " + eventPost.title));
+        requestMessage.append(buildRequestMessage(eventPostUrl, String.format("#%d: %s", eventPost.number, eventPost.title)));
         return requestMessage.toString();
     }
 
@@ -493,7 +493,8 @@ public class Webhook extends Model implements ResourceConvertible {
         StringBuilder requestMessage = new StringBuilder();
         requestMessage.append(String.format("[%s] %s ", project.name, sender.name));
         requestMessage.append(Messages.get(Lang.defaultLang(), "notification.type.new.simple.comment"));
-        requestMessage.append(String.format(" <%s://%s%s|#%d: %s>", utils.Config.getScheme(), utils.Config.getHostport("localhost:9000"), RouteUtil.getUrl(reviewComment), eventPullRequest.number, eventPullRequest.title));
+        requestMessage.append(String.format(" <%s://%s%s|", utils.Config.getScheme(), utils.Config.getHostport("localhost:9000"), RouteUtil.getUrl(reviewComment)));
+        requestMessage.append(String.format("#%d: %s>", eventPullRequest.number, eventPullRequest.title));
         return requestMessage.toString();
     }
 
