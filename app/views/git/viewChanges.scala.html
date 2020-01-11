@@ -212,6 +212,10 @@
         $("button.moreBtn").on("click", function(){
             $(this).next("pre.commitMsg.desc").toggleClass("hidden");
         });
+
+        $('.diff-partial-meta').click(function() {
+            $(this).parent().find('.diff-partial-code').toggle();
+        }).css({cursor: 'pointer'});
     });
 </script>
 }
