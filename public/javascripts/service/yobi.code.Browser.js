@@ -439,6 +439,7 @@
                 "batchfile": ["bat"],
                 "coffee": ["coffee"],
                 "c_cpp": ["c", "cp", "cpp", "c__", "cxx"],
+                "csharp": ["cs"],
                 "css": ["css"],
                 "d": ["d"],
                 "diff": ["diff"],
