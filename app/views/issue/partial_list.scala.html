@@ -27,9 +27,6 @@
             </label>
             }
             <div for="issue-@issue.id" class="issue-item-row">
-                <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap mlarge hide-in-mobile" data-toggle="tooltip" data-placement="top" title="@user.loginId">
-                        <img src="@User.findByLoginId(issue.authorLoginId).avatarUrl(64)" alt="@user.getDisplayName" width="32" height="32"/>
-                </a>
                 <div class="title-wrap">
                     <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)" class="title">
                     <span class="post-id">#@issue.getNumber</span>
