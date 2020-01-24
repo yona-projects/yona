@@ -458,6 +458,7 @@
                 "markdown": ["md", "readme", "license"],
                 "php": ["php","php3","php4","php5","php6","phps","inc"],
                 "python": ["py"],
+                "r": ["r"],
                 "ruby": ["rb", "ruby"],
                 "sh": ["sh"],
                 "svg": ["svg"],
