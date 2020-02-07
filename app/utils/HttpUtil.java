@@ -214,7 +214,7 @@ public class HttpUtil {
     public static String encodeUrlString(String str) {
         String targetStr = str;
         try {
-            targetStr = URLEncoder.encode(str, "UTF8");
+            targetStr = URLEncoder.encode(str, "UTF8").replaceAll("\\+", "%20");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } finally {
