@@ -434,13 +434,10 @@ public class UserApp extends Controller {
         CandidateUser candidateUser = new CandidateUser(userCredential.name, userCredential.email);
         User created = createUserDelegate(candidateUser);
 
-        if(isUsingEmailVerification() && created.isLocked()){
-            flash(Constants.INFO, "user.verification.mail.sent");
-            forceOAuthLogout();
-        } else if (created.state == UserState.LOCKED) {
-            flash(Constants.INFO, "user.signup.requested");
-            forceOAuthLogout();
-        }
+        // checking is delegated to oAuth
+        created.refresh();
+        created.state = UserState.ACTIVE;
+        created.update();
 
         //Also, update userCredential
         userCredential.loginId = created.loginId;
