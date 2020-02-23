@@ -5,14 +5,15 @@
 * https://yona.io
 **@
 @(state: String, childIssue: Issue, parentIssue: Issue)
+@urlToList(project:Project, state:String) = {@routes.IssueApp.issues(project.owner, project.name, "open", "html", 1)}
 
 <div class="issue-item @if(childIssue.id == parentIssue.id){selected-child}">
     <span class="state-label @state">@if(state == "closed"){<i class=" yobicon-checkmark">}</i></span>
-    <a class="title" href="@routes.IssueApp.issue(childIssue.project.owner, childIssue.project.name, childIssue.getNumber)">
+    <a class="twoColumeModeTarget" href="@routes.IssueApp.issue(childIssue.project.owner, childIssue.project.name, childIssue.getNumber)">
         <span class="item-name"><span class="subtask-number">#@childIssue.getNumber</span> @childIssue.title@if(childIssue.assignee != null) { - @childIssue.assignee.user.getPureNameOnly}</span></a>
     <span class="font12 no-border-at-child">@common.commentAndVoterPairDisplay(childIssue, parentIssue.project)</span>
     @for(label <- childIssue.labels.toList.sortBy(r => (r.category.name, r.name))) {
-        <a class="label issue-label list-label active" data-category-id="@label.category.id" data-label-id="@label.id">@label.name</a>
+        <a href="@urlToList(childIssue.project, childIssue.state.state)&labelIds=@label.id" class="label issue-label list-label active twoColumeModeTarget" data-category-id="@label.category.id" data-label-id="@label.id" style="background:@label.color">@label.name</a>
     }
 </div>
 
