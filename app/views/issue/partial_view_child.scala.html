@@ -4,16 +4,27 @@
 * Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
 * https://yona.io
 **@
+@import utils.TemplateHelper._
+@import utils.JodaDateUtil
+
 @(state: String, childIssue: Issue, parentIssue: Issue)
 @urlToList(project:Project, state:String) = {@routes.IssueApp.issues(project.owner, project.name, "open", "html", 1)}
 
-<div class="issue-item @if(childIssue.id == parentIssue.id){selected-child}">
+<div class="issue-item @if(childIssue.id == parentIssue.id){selected-child} child-issue">
     <span class="state-label @state">@if(state == "closed"){<i class=" yobicon-checkmark">}</i></span>
     <a class="twoColumeModeTarget" href="@routes.IssueApp.issue(childIssue.project.owner, childIssue.project.name, childIssue.getNumber)">
-        <span class="item-name"><span class="subtask-number">#@childIssue.getNumber</span> @childIssue.title@if(childIssue.assignee != null) { - @childIssue.assignee.user.getPureNameOnly}</span></a>
+        <span class="item-name">
+            <span class="subtask-number">#@childIssue.getNumber</span>
+            <span>@childIssue.title</span>
+            <span>@if(childIssue.assignee != null) { - @childIssue.assignee.user.getPureNameOnly}</span>
+        </span>
+    </a>
     <span class="font12 no-border-at-child">@common.commentAndVoterPairDisplay(childIssue, parentIssue.project)</span>
     @for(label <- childIssue.labels.toList.sortBy(r => (r.category.name, r.name))) {
         <a href="@urlToList(childIssue.project, childIssue.state.state)&labelIds=@label.id" class="label issue-label list-label active twoColumeModeTarget" data-category-id="@label.category.id" data-label-id="@label.id" style="background:@label.color">@label.name</a>
     }
+    <span class="child-issue-date" title="@JodaDateUtil.getDateString(childIssue.createdDate)">
+    @agoOrDateString(childIssue.createdDate)
+    </span>
 </div>
 
