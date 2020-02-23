@@ -7147,6 +7147,22 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     }
 }
 
+.child-issue {
+    .child-issue-date {
+        display: none;
+        font-size: 10px;
+        color: lightgrey;
+    }
+}
+
+.issue-item-row {
+    &:hover {
+        .child-issue-date {
+            display: inline-block;
+        }
+    }
+}
+
 .subtasks {
     #simple-issue-list;
 
@@ -7395,7 +7411,7 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     .post-item {
         padding: 0 10px;
         color: #999999;
-      
+
         .title-wrap {
             margin-top: 2px;
             white-space: normal;
