@@ -243,7 +243,7 @@ public class Markdown {
         if (StringUtils.isNotEmpty(root)) {
             root = "/" + root;
         }
-        final String imageLink = "!\\[(?<text>[^\\]]*)\\]\\(\\/?(?!https\\:|http\\:|ftp\\:|file\\:)(?<link>[^\\)]*)\\)";
+        final String imageLink = "!\\[(?<text>[^]]*)]\\(/?(?!https:|http:|ftp:|file:)[.][/](?<link>.*)\\)";
         return text.replaceAll(imageLink, "![$1](/" + root + project.owner + "/" + project.name + "/files/" + project.defaultBranch().replaceAll("refs/heads/", "") + "/$2)");
     }
 
@@ -252,8 +252,8 @@ public class Markdown {
         if (StringUtils.isNotEmpty(root)) {
             root = "/" + root;
         }
-        final String imageLink = "!\\[(?<text>[^\\]]*)\\]\\(\\/?(?!https\\:|http\\:|ftp\\:|file\\:)(?<link>[^\\)]*)\\)";
-        final String normalLocalLink = "(?<space>[^!])\\[(?<text>[^\\]]*)\\]\\(\\/?(?!https\\:|http\\:|ftp\\:|file\\:)(?<link>[^\\)]*)\\)";
+        final String imageLink = "!\\[(?<text>[^]]*)]\\(/?(?!https:|http:|ftp:|file:)[.][/](?<link>.*)\\)";
+        final String normalLocalLink = "(?<space>[^!])\\[(?<text>[^]]*)]\\(/?(?!https:|http:|ftp:|file:)[.][/](?<link>.*)\\)";
         String imageFilteredText = text.replaceAll(imageLink, "![$1](/" + root + project.owner + "/" + project.name + "/files/" + project.defaultBranch().replaceAll("refs/heads/", "") + "/$2)");
         return imageFilteredText.replaceAll(normalLocalLink, "$1[$2](/" + root + project.owner + "/" + project.name + "/code/" + project.defaultBranch().replaceAll("refs/heads/", "") + "/$3)");
 
