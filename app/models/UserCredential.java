@@ -91,7 +91,7 @@ public class UserCredential extends Model {
             // verified within the application as a security breach there might
             // break your security as well!
             userCredential.email = identity.getEmail();
-            userCredential.emailValidated = false;
+            userCredential.emailValidated = true;
         }
 
         if (authUser instanceof NameIdentity) {
