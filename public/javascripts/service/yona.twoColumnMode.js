@@ -11,7 +11,7 @@ var isLeftMenuHide = false;
 function _initTwoColumnMode(){
     var $twoColumnMode = $("#two-column-mode");
     var useTwoColumnMode = localStorage.getItem('useTwoColumnMode');
-    var $title = $('.title');
+    var $title = $('.title, .twoColumeModeTarget');
 
     var $projectPageWrap = $('.project-page-wrap');
     if (mainWidth === "") {

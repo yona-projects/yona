@@ -71,7 +71,7 @@
                     @displayCommentsAndVoterCount(issue, project)
                     <span class="for-subtask-progressbar">@partial_list_subtask(project, issue)</span>
                     @for(label <- issue.labels.toList.sortBy(r => (r.category.name, r.name))) {
-                        <a href="@urlToList(project, searchCondition.state)&labelIds=@label.id" class="label issue-label list-label" data-label-id="@label.id" style="background:@label.color">@label.name</a>
+                        <a href="@urlToList(project, searchCondition.state)&labelIds=@label.id" class="label issue-label list-label twoColumeModeTarget" data-label-id="@label.id" style="background:@label.color">@label.name</a>
                     }
                     <div class="child-issue-list hide">
                     @if(issue.hasChildIssue){
