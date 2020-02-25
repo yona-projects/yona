@@ -1647,7 +1647,13 @@ public class GitRepository implements PlayRepository {
                 try {
                     rawA = repositoryA.open(blobA).getBytes();
                     fileDiff.isBinaryA = RawText.isBinary(rawA);
-                    fileDiff.a = fileDiff.isBinaryA ? null : new RawText(rawA);
+                    
+                    if(fileDiff.isBinaryA) {
+                    	 fileDiff.a = null;
+                    } else {
+                        String str = new String(rawA, FileUtil.detectCharset(rawA));
+                    	fileDiff.a = new RawText(str.getBytes());
+                    }
                 } catch (org.eclipse.jgit.errors.LargeObjectException e) {
                     fileDiff.addError(FileDiff.Error.A_SIZE_EXCEEDED);
                 }
@@ -1663,7 +1669,14 @@ public class GitRepository implements PlayRepository {
                 try {
                     rawB = repositoryB.open(blobB).getBytes();
                     fileDiff.isBinaryB = RawText.isBinary(rawB);
-                    fileDiff.b = fileDiff.isBinaryB ? null : new RawText(rawB);
+
+                    if(fileDiff.isBinaryB) {
+                    	 fileDiff.b = null;
+                    } else {
+                        String str = new String(rawB, FileUtil.detectCharset(rawB));
+                    	fileDiff.b = new RawText(str.getBytes());
+                    }
+                    
                 } catch (org.eclipse.jgit.errors.LargeObjectException e) {
                     fileDiff.addError(FileDiff.Error.B_SIZE_EXCEEDED);
                 }
