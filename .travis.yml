@@ -1,6 +1,6 @@
 language: java # to trigger the build on a 'jvm-otp' travis worker
 jdk:
-  - oraclejdk8
+  - openjdk8
 env:
   - ACTIVATOR_VERSION=1.2.12 \
     ACTIVATOR_ZIP_FILE=typesafe-activator-${ACTIVATOR_VERSION}-minimal.zip
