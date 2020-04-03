@@ -673,6 +673,8 @@ public class NotificationEvent extends Model implements INotificationEvent {
         for (Webhook webhook : webhookList) {
             if (gitPushOnly == webhook.gitPushOnly) {
                 // Send push event via webhook payload URLs.
+                webhook.sendRequestToPayloadUrl(commits, refNames, sender);
+            } else {
                 webhook.sendRequestToPayloadUrl(commits, refNames, sender, title);
             }
         }

@@ -656,13 +656,27 @@ public class Webhook extends Model implements ResourceConvertible {
         }
     }
 
-    // Commit
+    // Commit (message)
     public void sendRequestToPayloadUrl(List<RevCommit> commits, List<String> refNames, User sender, String title) {
-        String requestBodyString = buildRequestBody(commits, refNames, sender, title);
+        String requestBodyString = "";
+        String requestMessage = buildRequestBody(commits, refNames, sender, title);
+        requestBodyString = buildTextPropertyOnlyJSON(requestMessage);
         sendRequest(requestBodyString);
     }
 
     private String buildRequestBody(List<RevCommit> commits, List<String> refNames, User sender, String title) {
+        StringBuilder requestMessage = new StringBuilder();
+        requestMessage.append(Messages.get(Lang.defaultLang(), "notification.pushed.commits.to", project.name, commits.size(), refNames.get(0)));
+        return requestMessage.toString();
+    }
+
+    // Commit (json)
+    public void sendRequestToPayloadUrl(List<RevCommit> commits, List<String> refNames, User sender) {
+        String requestBodyString = buildRequestBody(commits, refNames, sender);
+        sendRequest(requestBodyString);
+    }
+
+    private String buildRequestBody(List<RevCommit> commits, List<String> refNames, User sender) {
         ObjectNode requestBody = Json.newObject();
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode refNamesNodes = mapper.createArrayNode();
