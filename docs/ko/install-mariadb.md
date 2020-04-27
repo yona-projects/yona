@@ -23,6 +23,19 @@ MariaDB root 유저로 접속
 mysql -uroot 
 ```
 
+만약 클라이언트로 접속 시도시에 아래와 같은 에러가 발생했다면
+```
+ERROR 2002 (HY000): Can't connect to local MySQL server through socket '/var/lib/mysql/mysql.sock' (2)
+```
+MariaDB 서버가 실행되지 않았기때문입니다.
+이럴때는 OS에 맞게 systemd 등을 이용해 실행해 주세요
+
+```
+# CentOS 예
+sudo systemctl enable mariadb
+sudo systemctl start mariadb
+```
+
 yona 유저 생성. password는 IDENTIFIED BY 다음에 지정한 문자가 됩니다. 아래 예)에서는 yonadan
 ```
 create user 'yona'@'localhost' IDENTIFIED BY 'yonadan';
