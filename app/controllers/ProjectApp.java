@@ -1305,7 +1305,7 @@ public class ProjectApp extends Controller {
     private static void createWebhook(Project project, Form<Webhook> forms) {
         Webhook webhook = forms.get();
         webhook.project = project;
-        if(webhook.gitPushOnly == null) webhook.gitPushOnly = false;
+        if(webhook.gitPush == null) webhook.gitPush = false;
         webhook.createdAt = new Date();
         webhook.save();
     }
