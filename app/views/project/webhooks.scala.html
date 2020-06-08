@@ -18,26 +18,36 @@
       @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.WEBHOOK)) {
       <form id="formNewWebhook" action="@routes.ProjectApp.newWebhook(project.owner, project.name)" method="post" class="new-webhook-wrap">
         <strong class="form-legend">@Messages("project.webhook.new")</strong>
-        <div class="form-wrap">
+        <div class="form-wrap form-actions">
           <div>
             <input type="text" name="payloadUrl" class="input-webhook-payload" maxlength="2000" autocomplete="off" placeholder="@Messages("project.webhook.payloadUrl")">
             <input type="text" name="secret" class="input-webhook-secret" maxlength="250" autocomplete="off" placeholder="@Messages("project.webhook.secret")">
-            <select class="form-control" title="add details or not" name="webhookType">
-              <option value="SIMPLE">SIMPLE Version (no details)</option>
-              <option value="DETAIL_SLACK">DETAIL Version (for slack) </option>
-              <option value="DETAIL_HANGOUT_CHAT">DETAIL Version (for Hangout Chat) </option>
-            </select>
-            <label for="gitPushOnly">@Messages("project.webhook.gitPushOnly")</label>
-            <input type="checkbox" id="gitPushOnly" name="gitPushOnly" class="form-check-input">
+            <button type="submit" class="ybtn ybtn-primary btn-submit">@Messages("project.webhook.add")</button>
+          </div>
+          <div>
+            <label class="radio inline">
+              <input type="radio" name="webhookType" value="SIMPLE" checked> Messenger (Only text)
+            </label>
+            <label class="radio inline">
+              <input type="radio" name="webhookType" value="DETAIL_SLACK"> Slack (Meta)
+            </label>
+            <label class="radio inline">
+              <input type="radio" name="webhookType" value="DETAIL_HANGOUT_CHAT"> Google Chat (Thread)
+            </label>
+            <label class="radio inline">
+              <input type="radio" name="webhookType" value="JSON"> Continuous Integration tool (Only push event)
+            </label>
+            <label class="radio inline"> | </label><label class="radio inline"></label>
+            <label class="checkbox inline" for="gitPush">
+              <input type="checkbox" id="gitPush" name="gitPush" class="form-check-input"> @Messages("project.webhook.includeGitPush")
+            </label>
           </div>
         </div>
-        <button type="submit" class="ybtn ybtn-primary btn-submit">@Messages("project.webhook.add")</button>
         <div>
-        @Html(Messages("project.webhook.help"))
+          @Html(Messages("project.webhook.help"))
         </div>
       </form>
       }
-
       <div id="webhooksList" class="webhook-list-wrap">
         @partial_webhooks_list(project, webhooks)
       </div>
@@ -50,6 +60,16 @@
         "form": "#formNewWebhook",
         "list": "#webhooksList"
       });
+      $('input[type=radio][name=webhookType]').change(function() {
+        if (this.value == 'JSON') {
+          $("input:checkbox[name=gitPush]").attr('checked', true);
+          $("input:checkbox[name=gitPush]").attr('onclick', 'return false;');
+        } else {
+          $("input:checkbox[name=gitPush]").attr('onclick', '');
+          $("input:checkbox[name=gitPush]").attr('checked', false);
+        }
+      });
     });
   </script>
 }
+

@@ -726,6 +726,7 @@ project.webhook.payloadUrl = 전송할 주소
 project.webhook.payloadUrl.empty = Paylaod URL 은 필수 필드입니다.
 project.webhook.payloadUrl.tooLong = Payload URL 이 너무 깁니다 (최대 2000글자)웹후크 추가
 project.webhook.gitPushOnly = Git push 시에만 동작을 원하면 체크
+project.webhook.IncludeGitPush = Git Push event 를 포함하려면 체크
 project.webhook.secret = Authorization Token
 project.webhook.secret.tooLong = 보안 토큰이 너무 깁니다. (최대 250 글자)
 project.you.are.not.watching = {0} 프로젝트를 지켜보고 있지 않습니다.
