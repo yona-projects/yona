@@ -1077,7 +1077,6 @@ public class NotificationEvent extends Model implements INotificationEvent {
         AbstractPosting parent = comment.getParent();
         Set<User> receivers = findWatchers(parent.asResource());
         receivers.add(parent.getAuthor());
-        receivers.addAll(getMentionedUsers(comment.contents));
         includeAssigneeIfExist(comment, receivers);
         Comment parentComment = comment.getParentComment();
         if (parentComment != null) {
@@ -1096,6 +1095,8 @@ public class NotificationEvent extends Model implements INotificationEvent {
         receivers.removeAll(findUnwatchers(parent.asResource()));
         receivers.removeAll(findEventUnwatchersByEventType(comment.projectId, eventType));
         receivers.remove(findCurrentUserToBeExcluded(comment.authorId));
+
+        receivers.addAll(getMentionedUsers(comment.contents));
 
         return receivers;
     }
