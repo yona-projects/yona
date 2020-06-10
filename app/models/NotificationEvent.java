@@ -1033,7 +1033,6 @@ public class NotificationEvent extends Model implements INotificationEvent {
             receivers.add(issue.assignee.user);
         }
 
-        receivers.addAll(findWatchers(issue.asResource()));
         receivers.addAll(findEventWatchersByEventType(issue.project.id, eventType));
 
         receivers.removeAll(findUnwatchers(issue.asResource()));
