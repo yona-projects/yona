@@ -469,6 +469,7 @@
 <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.Tasklist.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.SubComment.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.CommentAttachmentsUpdate.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.ReceiverList.js")"></script>
 <script type="text/javascript">
     $(function(){
         // yobi.issue.View
@@ -603,6 +604,18 @@
                     $(".weight-number").html(data.weight);
                 });
             });
+
+            $("textarea[id^=editor-]")
+                .on("focus", function () {
+                    $(this).closest("form").find(".notification-receiver").show()
+                    findNotiReceiversHandler(
+                            $(this),
+                            "@api.routes.IssueApi.commentNotiRecivers(project.owner, project.name, issue.getNumber)"
+                    )
+                })
+                .on("focusout", function () {
+                    unbindFindNotiReceiversHandler($(this))
+                });
         });
 </script>
 }

@@ -1072,7 +1072,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
         return receivers;
     }
 
-    private static Set<User> getMandatoryReceivers(Comment comment, EventType eventType) {
+    public static Set<User> getMandatoryReceivers(Comment comment, EventType eventType) {
         AbstractPosting parent = comment.getParent();
         Set<User> receivers = findWatchers(parent.asResource());
         receivers.add(parent.getAuthor());
@@ -1093,11 +1093,23 @@ public class NotificationEvent extends Model implements INotificationEvent {
 
         receivers.removeAll(findUnwatchers(parent.asResource()));
         receivers.removeAll(findEventUnwatchersByEventType(comment.projectId, eventType));
+        receivers.removeAll(filterInactiveUsers(receivers));
         receivers.remove(findCurrentUserToBeExcluded(comment.authorId));
 
         receivers.addAll(getMentionedUsers(comment.contents));
 
         return receivers;
+    }
+
+    private static Set<User> filterInactiveUsers(Set<User> receivers) {
+        Set<User> inactiveUsers = new HashSet<>();
+        for (User user : receivers) {
+            if (user.state != UserState.ACTIVE) {
+                inactiveUsers.add(user);
+            }
+        }
+
+        return inactiveUsers;
     }
 
     private static Set<User> getProjectCommitReceivers(Project project, EventType eventType, User sender) {

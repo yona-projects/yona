@@ -473,6 +473,43 @@ public class IssueApi extends AbstractPostingApp {
         }
     }
 
+    public static Result commentNotiRecivers(String ownerName, String projectName, Long number) {
+        JsonNode json = request().body().asJson();
+        if (json == null) {
+            return badRequest(Json.newObject().put("message", "Expecting Json data"));
+        }
+
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+        final Issue issue = Issue.findByNumber(project, number);
+        User user = UserApp.currentUser();
+
+        String commentText = json.findValue("comment").asText();
+        String parentCommentId = json.findValue("parentCommentId").asText();
+
+        final IssueComment comment = new IssueComment(issue, user, commentText);
+
+        comment.createdDate = JodaDateUtil.now();
+        comment.setAuthor(user);
+        comment.issue = issue;
+
+        if (StringUtils.isNotBlank(parentCommentId)) {
+           comment.parentCommentId = parentCommentId;
+           comment.setParentComment(IssueComment.find.byId(json.findValue("parentCommentId").asLong()));
+        }
+
+        Set<User> receivers = NotificationEvent.getMandatoryReceivers(comment, EventType.NEW_COMMENT);
+
+        List<ObjectNode> users = new ArrayList<>();
+        for(User receiver: receivers) {
+            addUserToUsers(receiver, users);
+        }
+
+        ObjectNode result = Json.newObject();
+        result.put("receivers", toJson(users));
+
+        return ok(result);
+    }
+
     @Transactional
     public static Result newIssueComment(String ownerName, String projectName, Long number)
             throws IOException {
@@ -796,6 +833,7 @@ public class IssueApi extends AbstractPostingApp {
         ObjectNode userNode = Json.newObject();
         userNode.put("loginId", user.loginId);
         userNode.put("name", user.getDisplayName());
+        userNode.put("pureNameOnly", user.getPureNameOnly());
         userNode.put("avatarUrl", user.avatarUrl());
         userNode.put("type", "user");
 
