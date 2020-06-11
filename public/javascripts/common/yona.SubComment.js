@@ -15,7 +15,7 @@ $(function(){
 
         parent.find("textarea").on('keypress', function(e) {
             // Enter to submit
-            if ((e.keyCode || e.which) === 13) {
+            if ((e.metaKey || e.Control) && (e.keyCode || e.which) === 13) {
                 $(this).parents('form').submit();
                 return false;
             }
