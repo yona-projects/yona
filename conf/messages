@@ -467,6 +467,7 @@ notification.replyOrLinkToViewHtml = Reply to this email directly or <a href="{1
 notification.reviewthread.closed = Review thread closed.
 notification.reviewthread.inTheFile = In {0}:
 notification.reviewthread.reopened = Review thread reopened
+notification.receiver.list.title = Notification receivers 
 notification.resource.deleted = Deleted by {0}
 notification.send.mail = Send notification mail
 notification.send.mail.warning = If you are not the original author, this option will be ignored. Notification mail will be sent.

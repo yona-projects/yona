@@ -75,7 +75,6 @@
     @if(isResourceCreatable(UserApp.currentUser, posting.asResource(), resourceType)) {
         <div class="child-comment-input-form">
         @common.child_commentForm(posting.asResource(), resourceType, getNewCommentUrl, currentComment.id)
-            <div class="one-line-comment-help">@Messages("comment.oneline.comment.help")</div>
         </div>
     }
 </div>

@@ -467,6 +467,7 @@ notification.replyOrLinkToViewHtml = <a href="{1}" target="{2}">{0}</a>에서 �
 notification.reviewthread.closed = 리뷰 스레드 닫힘
 notification.reviewthread.inTheFile = {0} 에서:
 notification.reviewthread.reopened = 리뷰 스레드 다시 열림
+notification.receiver.list.title = 알림 받는 사람 
 notification.resource.deleted = {0} 님에 의해 삭제되었습니다
 notification.send.mail = 수정 알림 메일 발송
 notification.send.mail.warning = 만약 해당글의 원 작성자가 아니라면 이 옵션은 무시되고 알림 메일이 발송됩니다.
