@@ -5,16 +5,19 @@
 * https://yona.io
 **@
 @import models.resource.Resource
-@(container: Resource, resourceType:ResourceType, action:String, parentCommentId:Long)
+@(container: Resource, resourceType:ResourceType, action:String, parentCommentId:Long)(implicit request: play.api.mvc.RequestHeader)
 
 @import models.enumeration.ResourceType
 @import utils.AccessControl._
+
+@isMac = @{requestHeader.headers.get("User-Agent").getOrElse("").contains("Macintosh")}
+@ctrlKey = @{if(isMac){"⌘"}else{"CTRL"}}
 
 @if(isResourceCreatable(UserApp.currentUser, container, resourceType)){
     <form id="child-comment-form" action="@action" method="post" enctype="multipart/form-data">
         <input class="parentCommentId" type="hidden" name="parentCommentId" value="@parentCommentId"/>
         <div class="oneline-comment-box">
-            <textarea name="contents" markdown="true" id="editor-one-line-comment" rows="1" placeholder="@Messages("comment.oneline.comment.placeholder") (ENTER)"></textarea>
+            <textarea name="contents" markdown="true" id="editor-one-line-comment" rows="1" placeholder="@Messages("comment.oneline.comment.placeholder") (@ctrlKey + ENTER)"></textarea>
             <button type="submit" class="ybtn ybtn-success">OK</button>
         </div>
         <div class="notification-receiver">
