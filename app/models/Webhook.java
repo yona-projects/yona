@@ -82,9 +82,9 @@ public class Webhook extends Model implements ResourceConvertible {
     public String secret;
 
     /**
-     * Condition of sending webhook (true: git only push, false: all cases)
+     * Condition of sending webhook (true = include git push event, false = exclude git push event)
      */
-    public Boolean gitPushOnly;
+    public Boolean gitPush;
 
     public WebhookType webhookType = WebhookType.SIMPLE;
 
@@ -96,17 +96,18 @@ public class Webhook extends Model implements ResourceConvertible {
      *
      * @param projectId the ID of project which will have this webhook
      * @param payloadUrl the payload URL for this webhook
-     * @param gitPushOnly type of webhook (true = git only push, false = all cases)
+     * @param gitPush type of webhook (true = include git push event, false = exclude git push event)
      * @param secret the secret token for server identity
      */
-    public Webhook(Long projectId, String payloadUrl, String secret, Boolean gitPushOnly) {
+    public Webhook(Long projectId, String payloadUrl, String secret, Boolean gitPush, WebhookType webhookType) {
         if (secret == null) {
             secret = "";
         }
         this.project = Project.find.byId(projectId);
         this.payloadUrl = payloadUrl;
         this.secret = secret;
-        this.gitPushOnly = gitPushOnly;
+        this.gitPush = gitPush;
+        this.webhookType = webhookType;
         this.createdAt = new Date();
     }
 
@@ -137,9 +138,9 @@ public class Webhook extends Model implements ResourceConvertible {
         return find.where().eq("project.id", projectId).findList();
     }
 
-    public static void create(Long projectId, String payloadUrl, String secret, Boolean gitPushOnly) {
+    public static void create(Long projectId, String payloadUrl, String secret, Boolean gitPush, WebhookType webhookType) {
         if (!payloadUrl.isEmpty()) {
-            Webhook webhook = new Webhook(projectId, payloadUrl, secret, gitPushOnly);
+            Webhook webhook = new Webhook(projectId, payloadUrl, secret, gitPush, webhookType);
             webhook.save();
         }
         // TODO : Raise appropriate error when required field is empty
@@ -656,13 +657,27 @@ public class Webhook extends Model implements ResourceConvertible {
         }
     }
 
-    // Commit
+    // Commit (message)
     public void sendRequestToPayloadUrl(List<RevCommit> commits, List<String> refNames, User sender, String title) {
-        String requestBodyString = buildRequestBody(commits, refNames, sender, title);
+        String requestBodyString = "";
+        String requestMessage = buildRequestBody(commits, refNames, sender, title);
+        requestBodyString = buildTextPropertyOnlyJSON(requestMessage);
         sendRequest(requestBodyString);
     }
 
     private String buildRequestBody(List<RevCommit> commits, List<String> refNames, User sender, String title) {
+        StringBuilder requestMessage = new StringBuilder();
+        requestMessage.append(Messages.get(Lang.defaultLang(), "notification.pushed.commits.to", project.name, commits.size(), refNames.get(0)));
+        return requestMessage.toString();
+    }
+
+    // Commit (json)
+    public void sendRequestToPayloadUrl(List<RevCommit> commits, List<String> refNames, User sender) {
+        String requestBodyString = buildRequestBody(commits, refNames, sender);
+        sendRequest(requestBodyString);
+    }
+
+    private String buildRequestBody(List<RevCommit> commits, List<String> refNames, User sender) {
         ObjectNode requestBody = Json.newObject();
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode refNamesNodes = mapper.createArrayNode();
@@ -720,7 +735,7 @@ public class Webhook extends Model implements ResourceConvertible {
                 ", project=" + project +
                 ", payloadUrl='" + payloadUrl + '\'' +
                 ", secret='" + secret + '\'' +
-                ", gitPushOnly=" + gitPushOnly +
+                ", gitPush=" + gitPush +
                 ", webhookType=" + webhookType +
                 ", createdAt=" + createdAt +
                 '}';

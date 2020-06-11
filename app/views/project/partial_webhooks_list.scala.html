@@ -40,7 +40,7 @@
       <strong>Type of message</strong>
     </div>
     <div class="span2 secret text-center">
-      <strong>Just the push event</strong>
+      <strong>Include git push events</strong>
     </div>
     <div class="span1 secret text-center"></div>
 
@@ -68,8 +68,7 @@
         </h6>
       </div>
       <div class="span2 text-center">
-          <input type="checkbox" @if(webhook.gitPushOnly){checked} onclick="return false;" />
-
+          <input type="checkbox" @if(webhook.gitPush){checked} onclick="return false;" />
       </div>
       <div class="span1 text-center">
         <button type="button" class="ybtn ybtn-danger ybtn-small" data-request-method="delete" data-request-uri="@routes.ProjectApp.deleteWebhook(project.owner, project.name, webhook.id)">
