@@ -160,6 +160,10 @@ public class AttachmentApp extends Controller {
 
         String filename = HttpUtil.encodeContentDisposition(attachment.name);
 
+        if (request().hasHeader("RANGE")) {
+            response().setHeader("Accept-Ranges", "bytes");
+        }
+
         response().setHeader("Content-Type", attachment.mimeType);
         response().setHeader("Content-Disposition", dispositionType + "; " + filename);
         response().setHeader("ETag", eTag);
