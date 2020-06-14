@@ -1,0 +1,29 @@
+@**
+* Yona, 21st Century Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+* https://yona.io
+**@
+@import views.html.issue.partial_index_comment
+@import views.html.issue.partial_index_event_timeline
+@(project:Project, issue:Issue)
+
+<div class="comment-header"><strong>@Messages("common.comment")</strong> <strong class="num">@issue.comments.size</strong></div>
+
+@if(issue.comments.size + issue.events.size > 0) {
+    <ul class="comments">
+    @defining(issue.getTimeline) { timeline =>
+        @for((item, index) <- timeline.view.zipWithIndex) {
+            @item match {
+                case (comment: Comment) => {
+                    @if(comment.getParentComment == null){
+                        @partial_index_comment(comment, project, issue)
+                    }
+                }
+                case _ => {
+                }
+            }
+        }
+    }
+    </ul>
+}

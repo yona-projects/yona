@@ -1,0 +1,178 @@
+@**
+* Yona, 21st Century Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+* https://yona.io
+**@
+@(event: IssueEvent, project:Project, issue:Issue, previousEvent: IssueEvent = null)
+
+@import org.apache.commons.lang3.StringUtils
+@import utils.TemplateHelper._
+@import models.enumeration.EventType._
+
+@linkToUser(loginId: String, name: String, showAvatar: Boolean = true) = {
+    @loginId match {
+        case loginId: String => {
+            <a href="@userInfo(loginId)" class="usf-group" data-toggle="tooltip" data-placement="top" title="@loginId">
+                <strong>@name</strong></a>
+        }
+        case _ => { Anonymous }
+    }
+}
+
+@milestoneSpan(project: Project, milestone: Milestone) = {
+    <span class="bold font-blue">
+        <a href="@routes.MilestoneApp.milestone(project.owner, project.name, milestone.id)" data-toggle="tooltip" data-placement="bottom" title="@Messages("milestone")">
+        @milestone.title
+        </a>
+    </span>
+}
+
+@noMilestoneSpan() = {
+    <span class="bold">
+    @Messages("common.none")
+    </span>
+}
+
+@linkOfMilestone(milestoneId: String, project: Project) = @{
+    val milestone = Milestone.findById(Long.valueOf(milestoneId))
+
+    if(milestone == null || milestone.isNullMilestone) {
+        noMilestoneSpan
+    } else {
+        milestoneSpan(project, milestone)
+    }
+}
+
+@issueLabelBox(categoryAndName: String, project: Project) = @{
+    val splitedCategoryAndName = categoryAndName.split(" - ")
+    if(splitedCategoryAndName.length != 2) {
+        categoryAndName
+    } else {
+        var categoryName = splitedCategoryAndName(0).trim
+        var labelName = splitedCategoryAndName(1).split(" #")(0).trim
+        val issueLabel = IssueLabel.findByName(labelName, categoryName, project)
+        if(issueLabel != null) {
+            val labelColor = issueLabel.color
+            s"<div class='label issue-label' style='background-color: $labelColor'>$labelName</div>"
+        } else {
+            labelName
+        }
+    }
+}
+
+@assginedMesssage(newValue: String, user: User) = @{
+    val LoginId = user.loginId
+    newValue match {
+        case LoginId => "issue.event.assignedToMe"
+        case _: String => "issue.event.assigned"
+        case _ => "issue.event.unassigned"
+    }
+}
+
+@linkToPullRequest(pull: PullRequest) = {
+    <strong>@Messages("pullRequest")
+        -@pull.number <a href="@routes.PullRequestApp.pullRequest(pull.toProject.owner, pull.toProject.name, pull.number)" class="link">@pull.title</a></strong>
+}
+
+@linkToProject(owner: String, name: String) = {
+    <strong><a href="@routes.ProjectApp.project(owner, name)" class="link">@owner/@name</a></strong>
+}
+
+@linkToCommit(commitId: String) = {
+    <strong>@Messages("code.commits") <a href="@routes.CodeHistoryApp.show(project.owner, project.name, commitId)" class="link">@{
+        "@"
+    }@commitId</a></strong>
+}
+
+@isAddingEvent(event: IssueEvent) = @{
+    event != null && StringUtils.isBlank(event.oldValue) && StringUtils.isNotBlank(event.newValue)
+}
+
+@isDeletingEvent(event: IssueEvent) = @{
+    event != null && StringUtils.isBlank(event.newValue) && StringUtils.isNotBlank(event.oldValue)
+}
+
+@isSameEventTypeAsPrevious(event: IssueEvent, previousEvent: IssueEvent) = @{
+    previousEvent != null && event.eventType == previousEvent.eventType
+}
+
+@isSameEventTypeAndSameAction(event: IssueEvent, previousEvent: IssueEvent) = @{
+    isSameEventTypeAsPrevious(event, previousEvent) && (
+            isAddingEvent(event) && isAddingEvent(previousEvent)
+                    || isDeletingEvent(event) && isDeletingEvent(previousEvent)
+            )
+}
+
+@if(event.eventType != ISSUE_BODY_CHANGED) {
+    <li class="event event-index" id="event-@event.id">
+        @defining(User.findByLoginId(event.senderLoginId)) { user =>
+            @event.eventType match {
+                case ISSUE_STATE_CHANGED => {
+                    <span class="state @event.newValue">@Messages("issue.state." + event.newValue)</span>
+                    @Html(Messages("issue.event." + event.newValue, linkToUser(user.loginId, user.getPureNameOnly)))
+                }
+                case ISSUE_ASSIGNEE_CHANGED => {
+                    <span class="state changed">@Messages("issue.state.assigned")</span>
+                    @Html(Messages(assginedMesssage(event.newValue, user), linkToUser(user.loginId, user.getPureNameOnly), linkToUser(event.newValue, User.findByLoginId(event.newValue).getPureNameOnly, true)))
+                }
+                case ISSUE_MILESTONE_CHANGED => {
+                    <span class="state milestone-changed">@Messages("issue.update.milestone.id")</span>
+                    @Html(Messages("issue.event.milestone.changed", linkToUser(user.loginId, user.getPureNameOnly), linkOfMilestone(event.newValue, project)))
+                }
+                case ISSUE_REFERRED_FROM_COMMIT => {
+                    <span class="state changed">@Messages("issue.event.referred.title")</span>
+                    @Html(Messages("issue.event.referred", linkToUser(user.loginId, user.getPureNameOnly), linkToCommit(event.newValue)))
+                }
+                case ISSUE_MOVED => {
+                    <span class="state changed">@Messages("issue.event.moved.title")</span>
+                    @Html(Messages("issue.event.moved", linkToUser(user.loginId, user.getPureNameOnly), linkToProject(event.oldValue.split("/")(0), event.oldValue.split("/")(1))))
+                }
+                case ISSUE_REFERRED_FROM_PULL_REQUEST => {
+                    <span class="state changed">@Messages("issue.event.referred.title")</span>
+                    @defining(PullRequest.findById(Long.valueOf(event.newValue))) { pull =>
+                        @Html(Messages("issue.event.referred", linkToUser(user.loginId, user.getPureNameOnly), linkToPullRequest(pull)))
+                    }
+                }
+                case ISSUE_SHARER_CHANGED => {
+                    @if(isAddingEvent(event)) {
+                        @if(isSameEventTypeAndSameAction(event, previousEvent)){
+                            <span class="state"></span>
+                        } else {
+                            <span class="state sharer-added">@Messages("issue.sharer")</span>
+                        }
+                        @Html(Messages("issue.event.sharer.added", linkToUser(user.loginId, user.getPureNameOnly), linkToUser(event.newValue, User.findByLoginId(event.newValue).getPureNameOnly)))
+                    } else {
+                        @if(isSameEventTypeAndSameAction(event, previousEvent)){
+                            <span class="state"></span>
+                        } else {
+                            <span class="state sharer-deleted">@Messages("issue.event.sharer.deleted.title")</span>
+                        }
+                        @Html(Messages("issue.event.sharer.deleted", linkToUser(user.loginId, user.getPureNameOnly), linkToUser(event.oldValue, User.findByLoginId(event.oldValue).getPureNameOnly)))
+                    }
+                }
+                case ISSUE_LABEL_CHANGED => {
+                    @if(isAddingEvent(event)) {
+                        @if(isSameEventTypeAndSameAction(event, previousEvent)) {
+                            <span class="state"></span>
+                        } else {
+                            <span class="state label-added">@Messages("issue.event.label.added.title")</span>
+                        }
+                        @Html(Messages("issue.event.label.added", linkToUser(user.loginId, user.getPureNameOnly), issueLabelBox(event.newValue, project)))
+                    } else {
+                        @if(isSameEventTypeAndSameAction(event, previousEvent)) {
+                            <span class="state"></span>
+                        } else {
+                            <span class="state label-deleted">@Messages("issue.event.label.deleted.title")</span>
+                        }
+                        @Html(Messages("issue.event.label.deleted", linkToUser(user.loginId, user.getPureNameOnly), issueLabelBox(event.oldValue, project)))
+                    }
+                }
+                case _ => {
+                    @event.newValue by @linkToUser(user.loginId, user.getPureNameOnly)
+                }
+            }
+        }
+        <span class="date"><a href="#event-@event.id">@utils.TemplateHelper.agoOrDateString(event.getDate())</a></span>
+    </li>
+}

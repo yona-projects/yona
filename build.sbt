@@ -58,12 +58,13 @@ libraryDependencies ++= Seq(
   "com.googlecode.htmlcompressor" % "htmlcompressor" % "1.4",
   "org.springframework" % "spring-jdbc" % "4.1.5.RELEASE",
   "javax.xml.bind" % "jaxb-api" % "2.3.0",
-  "com.github.mfornos" % "humanize-slim" % "1.2.2"
+  "com.github.mfornos" % "humanize-slim" % "1.2.2",
+  "org.jsoup" % "jsoup" % "1.8.3"
 )
 
 val projectSettings = Seq(
   // Add your own project settings here
-  resolvers += "maven central" at "https://repo.maven.apache.org/maven2",
+  resolvers += "maven central" at "https://mvnrepository.com",
   resolvers += "jgit-repository" at "https://repo.eclipse.org/content/groups/releases/",
   resolvers += "java-semVer" at "https://oss.sonatype.org/content/repositories/snapshots/",
   resolvers += "scm-manager release repository" at "https://maven.scm-manager.org/nexus/content/repositories/releases/",

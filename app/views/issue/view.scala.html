@@ -421,6 +421,13 @@
                         </div>
                         @**<!-- // -->**@
                     </form>
+                    <div id="comments" class="board-comment-wrap">
+                        <div id="timeline">
+                            <div class="timeline-list">
+                            @partial_index_comments(project, issue)
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -618,6 +625,10 @@
                 .on("focusout", function () {
                     unbindFindNotiReceiversHandler($(this))
                 });
+
+            $(".index-comment").on("click", function(){
+                window.location = $(this).data("location");
+            });
         });
 </script>
 }
