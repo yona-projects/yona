@@ -943,6 +943,7 @@ title.features = Key features
 title.forgotpassword = Password forgotten?
 title.gettingStarted = Getting your new project started with <strong>{0}</strong>
 title.help = Help
+title.help.key = press 'Tab' or 'Enter' to move cursor to content area
 title.issueDetail = Issue details
 title.issueList = Issue list
 title.issueTracker = Issue tracker
