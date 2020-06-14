@@ -23,6 +23,12 @@
             _initFileUploader();
 
             htElement.welInputTitle.focus();
+            htElement.welInputTitle.on('keydown', function (e) {
+                if((e.keyCode || e.which) === 13) {
+                    e.preventDefault();
+                    htElement.welTextarea.focus();
+                }
+            });
         }
 
         /**

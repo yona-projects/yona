@@ -944,6 +944,7 @@ title.features = 주요 기능 소개
 title.forgotpassword = 비밀번호를 잊어버리셨나요?
 title.gettingStarted = <strong>{0}</strong> 와 함께 새로운 프로젝트를 시작해 보세요.
 title.help = 도움말
+title.help.key = Tab 이나 Enter 키를 누르면 커서가 본문으로 이동합니다
 title.issueDetail = 이슈 상세보기
 title.issueList = 이슈 목록
 title.issueTracker = 이슈 트래커
