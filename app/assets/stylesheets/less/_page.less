@@ -3232,6 +3232,18 @@ label.inline-list {
             font-size: 1em;
             line-height: 30px;
 
+            &.event-index {
+                padding: 0;
+                line-height: normal;
+                font-size: 12px;
+
+                .state {
+                    padding: 1px 3px;
+                    width: auto;
+                    margin-right: 0;
+                }
+            }
+
             .state {
                 color:#FFF;
                 padding: 6px 0;
@@ -7744,4 +7756,38 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
 
 .video-content {
     max-height: 50vh;
+}
+
+.index-comment {
+    font-size: 12px;
+    padding: 2px 5px !important;
+    border: 1px solid #E0E0E0;
+    border-radius: 5px;
+    margin-top: 5px;
+
+    .attach-exists {
+         color: darkgrey;
+    }
+
+    .comment-exists {
+        color: #8b008b;
+    }
+
+    &:hover {
+        border-color: #03a9f4;
+        cursor: pointer;
+        box-shadow: 2px 2px 1px 0 #dcdcdc;
+    }
+
+    &.author {
+        border: 1px solid #BA68C8;
+    }
+
+    .index-comment-author {
+        text-align: right;
+    }
+
+    a {
+        text-decoration: none;
+    }
 }

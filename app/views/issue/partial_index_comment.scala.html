@@ -1,0 +1,47 @@
+@**
+* Yona, 21st Century Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp. & NAVER LABS Corp.
+* https://yona.io
+**@
+@import org.jsoup.Jsoup
+@(comment:Comment, project:Project, issue:Issue)
+
+@import utils.TemplateHelper._
+@import utils.AccessControl._
+@import utils.JodaDateUtil
+@import utils.Markdown
+@import models.enumeration.ResourceType
+
+@isAuthorComment(commentId: String) = @{
+    if(commentId == UserApp.currentUser().loginId) {"author"}
+}
+
+@getEllipsisText(content: String) = @{
+    val MAX_TEXT_LENGTH = 30
+    val stripedText = Jsoup.parse(content).text().trim
+
+    if(stripedText.length > MAX_TEXT_LENGTH) {
+        stripedText.substring(0, MAX_TEXT_LENGTH) + "..."
+    } else {
+        stripedText
+    }
+}
+@attachmentsSize = @{ Attachment.findByContainer(ResourceType.ISSUE_COMMENT, comment.id.toString).size }
+@commentsSize = @{comment.getChildComments.size()}
+
+<li class="comment index-comment @isAuthorComment(comment.authorLoginId)" id="comment-@comment.id" data-location="#comment-@comment.id">
+    <div>
+        <div id="comment-body-@comment.id">
+            <div class="comment-body"><a href="#comment-@comment.id">@getEllipsisText(Markdown.render(comment.contents, project)) @if(commentsSize > 0) { <span class="comment-exists"><i class="yobicon-comment2"></i>@if(commentsSize> 1){@commentsSize}</span>} @if(attachmentsSize > 0){<span class="attach-exists"><i class="yobicon-paperclip"></i>@if(attachmentsSize > 1){ @attachmentsSize }</span>}</a></div>
+        </div>
+        <div class="index-comment-author">
+            <span class="comment_author">
+                <a href="@userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorLoginId"><strong>@User.findByLoginId(comment.authorLoginId).getPureNameOnly</strong></a>
+            </span>
+            <span class="ago-date">
+                <a href="#comment-@comment.id" class="ago" title="@JodaDateUtil.getDateString(comment.createdDate)">@utils.TemplateHelper.agoOrDateString(comment.createdDate)</a>
+            </span>
+        </div>
+    </div>
+</li>
