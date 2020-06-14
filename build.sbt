@@ -65,6 +65,8 @@ libraryDependencies ++= Seq(
 val projectSettings = Seq(
   // Add your own project settings here
   resolvers += "maven central" at "https://mvnrepository.com",
+  resolvers += "maven central2" at "https://repo1.maven.org/maven2/",
+  resolvers += "maven central3" at "https://repo.maven.apache.org/maven2",
   resolvers += "jgit-repository" at "https://repo.eclipse.org/content/groups/releases/",
   resolvers += "java-semVer" at "https://oss.sonatype.org/content/repositories/snapshots/",
   resolvers += "scm-manager release repository" at "https://maven.scm-manager.org/nexus/content/repositories/releases/",
