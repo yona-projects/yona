@@ -14,10 +14,10 @@
 @ctrlKey = @{if(isMac){"⌘"}else{"CTRL"}}
 
 @if(isResourceCreatable(UserApp.currentUser, container, resourceType)){
-    <form id="child-comment-form" action="@action" method="post" enctype="multipart/form-data">
+    <form action="@action" method="post" enctype="multipart/form-data">
         <input class="parentCommentId" type="hidden" name="parentCommentId" value="@parentCommentId"/>
         <div class="oneline-comment-box">
-            <textarea name="contents" markdown="true" id="editor-one-line-comment" rows="1" placeholder="@Messages("comment.oneline.comment.placeholder") (@ctrlKey + ENTER)"></textarea>
+            <textarea class="editorSeries" name="contents" markdown="true" rows="1" placeholder="@Messages("comment.oneline.comment.placeholder") (@ctrlKey + ENTER)"></textarea>
             <button type="submit" class="ybtn ybtn-success">OK</button>
         </div>
         <div class="notification-receiver">
@@ -29,7 +29,7 @@
     <div class="write-comment-box mt20" title="@Messages("error.auth.unauthorized.comment")" data-login="required">
         <div class="write-comment-wrap">
             <div class="textarea-box">
-                <textarea class="comment disabled" disabled="disabled" style="cursor:text;"></textarea>
+                <textarea class="editorSeries comment disabled" disabled="disabled" style="cursor:text;"></textarea>
             </div>
             <div class="right-txt mt10">
                 <span class="ybtn ybtn-disabled">@Messages("button.comment.new")</span>

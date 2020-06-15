@@ -43,7 +43,7 @@
                     @if(comment.isAuthoredBy(UserApp.currentUser())){
                     <span class="send-notification-check" data-toggle='popover' data-trigger="hover" data-placement="top" data-content="@Messages("notification.send.mail.warning")">
                         <label class="checkbox inline">
-                            <input type="checkbox" name="notificationMail" id="notificationMail" value="yes" checked>
+                            <input type="checkbox" name="notificationMail" value="yes" checked>
                             <strong>@Messages("notification.send.mail")</strong>
                         </label>
                     </span>

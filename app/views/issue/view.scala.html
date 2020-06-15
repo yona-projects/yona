@@ -507,7 +507,7 @@
 
         // yobi.Mention
         yobi.Mention({
-            "target": 'textarea[id^=editor-]',
+            "target": 'textarea[id^=editor-], .editorSeries',
             "url"   : "@Html(routes.ProjectApp.mentionList(project.owner, project.name, issue.getNumber, issue.asResource().getType.resource()).toString())"
         });
 
@@ -614,7 +614,7 @@
                 });
             });
 
-            $("textarea[id^=editor-]")
+            $(".editorSeries")
                 .on("focus", function () {
                     $(this).closest("form").find(".notification-receiver").show()
                     findNotiReceiversHandler(
