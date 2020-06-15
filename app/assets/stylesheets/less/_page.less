@@ -3517,7 +3517,14 @@ div.markdown-preview {
 
 .issue-info {
     padding:15px 0 0 52px;
-    &.affix { top: 0; width:219px; }
+    &.affix {
+        top: 0;
+        max-height: 97vh;
+        overflow-y: scroll;
+        overflow-x: hidden;
+        right: 0;
+        width: 23%;
+    }
 
     .project-btn-item {
         a {
