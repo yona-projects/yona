@@ -70,6 +70,7 @@ POST           /-_-api/v1/owners/:owner/projects/:projectName/issues/:number/sha
 POST           /-_-api/v1/owners/:owner/projects/:projectName/issues/:number/upvoteWeight       controllers.api.IssueApi.upvoteWeight(owner:String, projectName:String, number:Long)
 POST           /-_-api/v1/owners/:owner/projects/:projectName/issues/:number/downvoteWeight     controllers.api.IssueApi.downvoteWeight(owner:String, projectName:String, number:Long)
 GET            /-_-api/v1/owners/:owner/projects/:projectName/issues/:number                    controllers.api.IssueApi.getIssue(owner: String, projectName: String, number: Long)
+POST           /-_-api/v1/owners/:owner/projects/:projectName/issues/:number/detectChange       controllers.api.IssueApi.detectChange(owner: String, projectName: String, number: Long)
 PUT            /-_-api/v1/owners/:owner/projects/:projectName/issues/:number                    controllers.api.IssueApi.updateIssue(owner: String, projectName: String, number: Long)
 PATCH          /-_-api/v1/owners/:owner/projects/:projectName/issues/:number                    controllers.api.IssueApi.updateIssueState(owner: String, projectName: String, number: Long)
 PATCH          /-_-api/v1/owners/:owner/projects/:projectName/issues/:number/content            controllers.api.IssueApi.updateIssueContent(owner: String, projectName: String, number: Long)

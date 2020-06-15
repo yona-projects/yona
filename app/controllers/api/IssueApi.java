@@ -546,6 +546,43 @@ public class IssueApi extends AbstractPostingApp {
         return !currentChecksum.equals(rememberedChecksum);
     }
 
+    public static Result detectChange(String ownerName, String projectName, Long number) {
+        if (UserApp.currentUser().isAnonymous()) {
+            return unauthorized(Json.newObject().put("message", "unauthorized request"));
+        }
+
+        JsonNode json = request().body().asJson();
+        if(json == null) {
+            return badRequest(Json.newObject().put("message", "Expecting Json data"));
+        }
+
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+        final Issue issue = Issue.findByNumber(project, number);
+
+        ObjectNode result = Json.newObject();
+
+        String receivedChecksum = json.findValue("issueBodyChecksum").asText();
+        int receivedNumOfComments = json.findValue("numOfComments").asInt();
+
+        int currentNumOfComments = issue.computeNumOfComments();
+
+        if( receivedNumOfComments <  currentNumOfComments) {
+            IssueComment issueComment = issue.comments.get(issue.comments.size() - 1);
+            result.put("commentAuthorName", User.findByLoginId(issueComment.authorLoginId).getDisplayName());
+        }
+
+        String hex = DigestUtils.sha1Hex(issue.body);
+        result.put("issueBodyChanged", !hex.equals(receivedChecksum));
+        result.put("numOfComments", currentNumOfComments);
+        result.put("issueBodyChecksum", hex);
+        result.put("issueUpdateDate", issue.updatedDate.getTime());
+
+        result.put("result", "ok");
+
+        return ok(result);
+
+    }
+
     public static Status conflicted(String content) {
         ObjectNode result = Json.newObject();
         result.put("message", "Already modified by someone.");

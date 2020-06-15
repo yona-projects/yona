@@ -17,6 +17,7 @@
 @import utils.Markdown
 @import models.enumeration.State
 @import controllers.api.IssueApi
+@import org.apache.commons.codec.digest.DigestUtils
 
 @getTitle(issue:Issue) = @{ issue.title }
 
@@ -432,7 +433,11 @@
             </div>
         </div>
 
-
+        <div>
+            <input type="hidden" id="issueBodyChecksum" value="@DigestUtils.sha1Hex(issue.body)">
+            <input type="hidden" id="numOfComments" value="@issue.computeNumOfComments()">
+            <input type="hidden" id="issueUpdateDate" value="@issue.updatedDate.getTime">
+        </div>
         <div class="board-footer">
             @help.keymap("issueDetail", project)
         </div>
@@ -471,14 +476,15 @@
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.caret.min.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/atjs/jquery.atwho.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/elevator/jquery.elevator.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/videojs/video.min.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/service/yona.issue.Assginee.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/service/yona.issue.Sharer.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/service/yona.detectChange.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.Sha1.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.Tasklist.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.SubComment.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.CommentAttachmentsUpdate.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.ReceiverList.js")"></script>
-<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/videojs/video.min.js")"></script>
 <script type="text/javascript">
     $(function(){
         // yobi.issue.View
@@ -629,6 +635,8 @@
             $(".index-comment").on("click", function(){
                 window.location = $(this).data("location");
             });
-        });
+
+            detectPageChange("@api.routes.IssueApi.detectChange(project.owner, project.name, issue.getNumber)")
+        })
 </script>
 }
