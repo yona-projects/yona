@@ -36,7 +36,19 @@
 <link rel='stylesheet' href="@routes.Assets.at("javascripts/lib/nprogress/nprogress.css")"/>
 <link rel="stylesheet" href="@routes.Assets.at("javascripts/lib/magnific-popup/magnific-popup.css")" />
 <script type="text/javascript" src="@routes.Assets.at("javascripts/yona-layout.js")"></script>
+<script type="text/javascript">
+        window.parent.document.title = window.document.title;
+        window.parent.history.replaceState('', window.document.title, window.location.href);
 
+        var shallWeOpenLeftNavigation = localStorage.getItem('shallWeOpenLeftNavigation');
+
+        if (window.parent === window) {
+            if (shallWeOpenLeftNavigation === "true") {
+                window.location.href = "@routes.Application.sidebar?path=" + window.location.pathname;
+            }
+        }
+
+</script>
 </head>
 
 <body class="@theme" id="html-body">
@@ -92,10 +104,9 @@
                 });
             });
 
-            window.parent.document.title = window.document.title;
-            window.parent.history.replaceState('', window.document.title, window.location.href);
+            var shallWeOpenLeftNavigation = localStorage.getItem('shallWeOpenLeftNavigation');
 
-            if (window.parent === window) {
+            if (window.parent === window && !shallWeOpenLeftNavigation) {
                 $(".pin > .yobicon-arrow-right").show();
             } else {
                 $(".pin > .yobicon-arrow-left").show();
@@ -103,8 +114,10 @@
 
             $(".pin").on("click", function () {
                 if (window.parent === window) {
+                    localStorage.setItem('shallWeOpenLeftNavigation', "true");
                     window.location.href = "@routes.Application.sidebar?path=" + window.location.pathname;
                 } else {
+                    localStorage.setItem('shallWeOpenLeftNavigation', "false");
                     window.parent.location = window.location.href;
                 }
             });
