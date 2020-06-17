@@ -49,9 +49,10 @@
 <li class="comment index-comment @if(hasCurrentUserMention(comment.contents)){mentioned} @if(hasCurrentUserMentionInChildComments(comment)){mentionedInChild}" id="comment-@comment.id" data-location="#comment-@comment.id">
     <div>
         <div id="comment-body-@comment.id">
-            <div class="comment-body"><a href="#comment-@comment.id">@getEllipsisText(Markdown.render(comment.contents, project)) @if(commentsSize > 0) { <span class="comment-exists"><i class="yobicon-comment2"></i>@if(commentsSize> 1){@commentsSize}</span>} @if(attachmentsSize > 0){<span class="attach-exists"><i class="yobicon-paperclip"></i>@if(attachmentsSize > 1){ @attachmentsSize }</span>}</a></div>
+            <div class="comment-body"><a href="#comment-@comment.id">@getEllipsisText(Markdown.render(comment.contents, project))</a></div>
         </div>
         <div class="index-comment-author">
+            @if(commentsSize > 0) { <span class="comment-exists"><i class="yobicon-comment2"></i>@if(commentsSize> 1){@commentsSize}</span>}
             <span class="comment_author">
                 <a href="@userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorLoginId"><strong>@User.findByLoginId(comment.authorLoginId).getPureNameOnly</strong></a>
             </span>
