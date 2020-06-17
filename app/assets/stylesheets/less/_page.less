@@ -7772,6 +7772,19 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     border-radius: 5px;
     margin-top: 5px;
 
+    &.mentioned {
+        background-color: #BA68C8;
+        color: white;
+
+        a:hover {
+            color: #b3e5fc;
+        }
+    }
+
+    &.mentionedInChild {
+        border-color: #BA68C8;
+    }
+
     .attach-exists {
          color: darkgrey;
     }
@@ -7786,8 +7799,14 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         box-shadow: 2px 2px 1px 0 #dcdcdc;
     }
 
-    &.author {
-        border: 1px solid #BA68C8;
+    .author {
+    }
+
+    .comment-body {
+        word-break: break-word;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
     }
 
     .index-comment-author {
