@@ -13,12 +13,8 @@
 @import utils.Markdown
 @import models.enumeration.ResourceType
 
-@isAuthorComment(commentId: String) = @{
-    if(commentId == UserApp.currentUser().loginId) {"author"}
-}
-
 @getEllipsisText(content: String) = @{
-    val MAX_TEXT_LENGTH = 30
+    val MAX_TEXT_LENGTH = 60
     val stripedText = Jsoup.parse(content).text().trim
 
     if(stripedText.length > MAX_TEXT_LENGTH) {
@@ -27,10 +23,30 @@
         stripedText
     }
 }
+
+@currentUserLoginId = @{
+    UserApp.currentUser().loginId
+}
+
+@hasCurrentUserMention(content: String) = @{
+    content.indexOf("@" + currentUserLoginId + " ") != -1
+}
+
+@hasCurrentUserMentionInChildComments(comment: Comment) = @{
+    var has = false
+    for(childComment <- comment.getChildComments) {
+        play.Logger.warn(hasCurrentUserMention(childComment.contents) + "childComment.contents: " + childComment.contents)
+        if(hasCurrentUserMention(childComment.contents)) {
+            has = true
+        }
+    }
+    has
+}
+
 @attachmentsSize = @{ Attachment.findByContainer(ResourceType.ISSUE_COMMENT, comment.id.toString).size }
 @commentsSize = @{comment.getChildComments.size()}
 
-<li class="comment index-comment @isAuthorComment(comment.authorLoginId)" id="comment-@comment.id" data-location="#comment-@comment.id">
+<li class="comment index-comment @if(hasCurrentUserMention(comment.contents)){mentioned} @if(hasCurrentUserMentionInChildComments(comment)){mentionedInChild}" id="comment-@comment.id" data-location="#comment-@comment.id">
     <div>
         <div id="comment-body-@comment.id">
             <div class="comment-body"><a href="#comment-@comment.id">@getEllipsisText(Markdown.render(comment.contents, project)) @if(commentsSize > 0) { <span class="comment-exists"><i class="yobicon-comment2"></i>@if(commentsSize> 1){@commentsSize}</span>} @if(attachmentsSize > 0){<span class="attach-exists"><i class="yobicon-paperclip"></i>@if(attachmentsSize > 1){ @attachmentsSize }</span>}</a></div>
