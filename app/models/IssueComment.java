@@ -186,4 +186,17 @@ public class IssueComment extends Comment {
         Set<IssueComment> set = find.setRawSql(RawSqlBuilder.parse(sql).create()).findSet();
         return set.size();
     }
+
+    @Override
+    public String toString() {
+        return "IssueComment{" +
+                "id=" + id +
+                ", contents='" + contents + '\'' +
+                ", createdDate=" + createdDate +
+                ", authorId=" + authorId +
+                ", authorLoginId='" + authorLoginId + '\'' +
+                ", authorName='" + authorName + '\'' +
+                ", projectId=" + projectId +
+                '}';
+    }
 }
