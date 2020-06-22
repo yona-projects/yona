@@ -35,7 +35,6 @@
 @hasCurrentUserMentionInChildComments(comment: Comment) = @{
     var has = false
     for(childComment <- comment.getChildComments) {
-        play.Logger.warn(hasCurrentUserMention(childComment.contents) + "childComment.contents: " + childComment.contents)
         if(hasCurrentUserMention(childComment.contents)) {
             has = true
         }
