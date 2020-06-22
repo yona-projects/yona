@@ -6,7 +6,10 @@
  **/
 package utils;
 
+import controllers.UserApp;
+import models.Issue;
 import models.Project;
+import models.enumeration.Operation;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
@@ -26,6 +29,8 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Markdown {
 
@@ -124,6 +129,80 @@ public class Markdown {
         return source;
     }
 
+    private static String transformIssueLink(String source) {
+
+        String hostname = Config.getHostname();
+
+        Document doc = Jsoup.parse(source);
+
+        Elements elements = doc.getElementsByAttribute("href");
+
+        for (Element el : elements) {
+            String href = el.attr("href");
+
+            try {
+                URI uri = new URI(href);
+
+                if (uri.getHost() != null && uri.getHost().startsWith(hostname)) {
+                    el.attr("rel", el.attr("rel") + " noreferrer");
+
+
+                    if (extractIssueLink(el, uri)) break;
+                }
+            } catch (URISyntaxException e) {
+                // Just skip the wrong link.
+            }
+        }
+
+        return doc.body().html();
+    }
+
+    private static boolean extractIssueLink(Element el, URI uri) {
+        // issue link 인지 검사
+        // 이미 issue link 로 구분되어 있는지 검사 (class 이름이 issueLink 이면 이미 구분된 상태)
+        // 일반 issue link url 맞으면 Issue 모델을 찾아냄
+        // link text를 이슈 번호와 제목으로 변경
+        // 만약 코멘트까지 지정되어 있다면 이슈번호#코멘트id 로 표시
+
+        Pattern pattern = Pattern.compile("/issue/\\d+");
+        Matcher matcher = pattern.matcher(uri.getPath());
+
+        if (matcher.find()) {
+            String linkText = el.text();
+
+            String[] segments = uri.getPath().split("/issue/");
+
+            try {
+                if ( segments.length > 1) {
+                    String[] s = segments[0].split("/");
+                    String owner = s[s.length - 2];
+                    String projectName = s[s.length - 1];
+                    long number = Long.parseLong(segments[1]);
+
+                    Project project = Project.findByOwnerAndProjectName(owner, projectName);
+                    Issue issue = Issue.findByNumber(project, number);
+
+                    if (!AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(), Operation.READ)){
+                        return true;
+                    }
+
+                    linkText =  "#" + issue.getNumber() + "." + issue.title;
+                    String fragment = uri.getFragment();
+                    if (fragment != null) {
+                        linkText += "#" + fragment;
+                    }
+                }
+            } catch (RuntimeException re) {
+                play.Logger.warn("Issue link extraction fail: " + uri.getPath());
+            }
+
+            el.text(linkText);
+
+        }
+        return false;
+    }
+
+
     public static String sanitize(String source) {
         return  sanitizerPolicy.sanitize(source);
     }
@@ -147,6 +226,7 @@ public class Markdown {
             String rendered = renderByMarked(source, options);
             rendered = removeJavascriptInHref(rendered);
             rendered = checkReferrer(rendered);
+            rendered = transformIssueLink(rendered);
             String sanitized = sanitize(rendered);
             CacheStore.renderedMarkdown.put(sourceHashCode, ZipUtil.compress(sanitized));
             return sanitized;

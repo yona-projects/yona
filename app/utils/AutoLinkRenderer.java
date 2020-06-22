@@ -249,11 +249,12 @@ public class AutoLinkRenderer {
                  * CSS class name of a link to specific issue is 'issueLink'.
                  * CSS class name can enable to show the quick view of issue.
                  */
-                if (StringUtils.isEmpty(prefix)) {
-                    return new Link(RouteUtil.getUrl(issue), "issueLink", "#" + issueNumber);
-                } else {
-                    return new Link(RouteUtil.getUrl(issue), "issueLink", prefix + "#" + issueNumber);
+                String linkText = "#" + issueNumber + "." + issue.title;
+                if (StringUtils.isNotEmpty(prefix)) {
+                    linkText += prefix + linkText;
                 }
+
+                return new Link(RouteUtil.getUrl(issue), "issueLink", prefix + linkText);
             }
         }
 
