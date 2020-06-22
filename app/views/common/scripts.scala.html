@@ -47,6 +47,8 @@
 <script type="text/javascript" src="@routes.Assets.at("javascripts/yona-lib.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/autosize/autosize.min.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.KeyControl.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/tippy/popper.min.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/lib/tippy/tippy-bundle.umd.min.js")"></script>
 
 <script type="text/javascript">
     $yobi.setScriptPath("@getJSPath");
@@ -102,6 +104,21 @@
             "sUploadURL": "@routes.AttachmentApp.uploadFile()",
             "maxFileSize": "@play.Configuration.root().getLong("application.maxFileSize", 2147483454L)"  // 2Gb
         });
+
+        // Inner link URL preview tooltip
+        $(".issueLink").each(function(index) {
+            var $this = $(this);
+            var url = decodeURI($this.attr("href"));
+
+            tippy($this[0], {
+                content: url,
+                delay: [1000, 100],
+                placement: 'top-start',
+                theme: 'light-border',
+                maxWidth: 'none',
+                arrow: false
+            });
+        })
 
         if(navigator.userAgent.match(/MSIE ([0-9])\./)){
            $('.unsupported').show();
