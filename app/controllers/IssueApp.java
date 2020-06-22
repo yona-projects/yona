@@ -936,6 +936,7 @@ public class IssueApp extends AbstractPostingApp {
                 } else {
                     previousComment = comment.getParentComment();
                 }
+                comment.previousContents = getPrevious("Previous comment", previousComment.contents, previousComment.createdDate, previousComment.authorLoginId);
             } else {
                 int commentsSize = issue.comments.size();
 
