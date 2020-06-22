@@ -103,37 +103,6 @@
             "maxFileSize": "@play.Configuration.root().getLong("application.maxFileSize", 2147483454L)"  // 2Gb
         });
 
-        // ajax for issue link detail(ui.IssuePreview)
-        $(document).on("mouseover", ".issueLink", function(){
-            var welTarget = $(this);
-
-            welTarget.tooltip({
-                "title": "@Messages("site.massMail.loading")",
-                "placement": "right"
-            }).tooltip("show");
-
-            $.getJSON(welTarget.attr("href"), function(htData){
-                if(welTarget.tooltip){
-                    welTarget.tooltip("hide");
-                }
-
-                welTarget.popover({
-                    "title"    : htData.title.replace('<', '&lt;'),
-                    "content"  : $yobi.xssClean(htData.body),
-                    "html"     : true,
-                    "placement": "right",
-                    "trigger"  : "hover"
-                }).popover("show");
-            });
-        });
-
-        $(document).on("mouseleave", ".issueLink", function(){
-            var welTarget = $(this);
-            welTarget.tooltip("destroy");
-            welTarget.popover("hide");
-        });
-
-
         if(navigator.userAgent.match(/MSIE ([0-9])\./)){
            $('.unsupported').show();
         }
