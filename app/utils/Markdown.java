@@ -191,6 +191,8 @@ public class Markdown {
                     if (fragment != null) {
                         linkText += "#" + fragment;
                     }
+
+                    el.addClass("issueLink");
                 }
             } catch (RuntimeException re) {
                 play.Logger.warn("Issue link extraction fail: " + uri.getPath());
