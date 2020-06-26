@@ -1,7 +1,7 @@
 MariaDB 설치
 ===
 
-아래 설명은 진행 과정만 참고만 하시고 실제로는 MariaDB 10.1.10 이상을 설치해 주세요
+권장 MariaDB 버전은 10.2 10.3 입니다. (10.4는 현재 오류 확인 중입니다)
 
 1. Linux 
    - 배포본의 저장소 및 설치 스크립트는 다음 선택 페이지의 설명을 참고하여 설치 합니다.
@@ -47,10 +47,6 @@ create user 'yona'@'localhost' IDENTIFIED BY 'yonadan';
 DB 생성 UTF8 확장문자열을 저장할 수 있는 포맷으로 지정해서 생성합니다.
 
 ```
-set global innodb_file_format = BARRACUDA;
-set global innodb_file_format_max = BARRACUDA;
-set global innodb_large_prefix = ON;
-
 create database yona
   DEFAULT CHARACTER SET utf8mb4
   DEFAULT COLLATE utf8mb4_bin
@@ -80,19 +76,20 @@ use yona
 - collation-server 는 정렬시의 기준옵션을 설정하는 부분입니다.
 
 ```
-[client]
-default-character-set=utf8mb4
+# [client]
+# default-character-set=utf8mb4
 
 [mysql]
 default-character-set=utf8mb4
 
 [mysqld]
-collation-server=utf8mb4_unicode_ci
 init-connect='SET NAMES utf8mb4'
-character-set-server=utf8mb4
 lower_case_table_names=1
-innodb_file_format=barracuda
-innodb_large_prefix=on
+character-set-server=utf8mb4
+collation-server=utf8mb4_unicode_ci
+
+# skip client char-set
+skip-character-set-client-handshake
 ```
 
 꼭 /etc 아래가 아니더라도 [my.cnf 위치 탐색순서](https://mariadb.com/kb/en/mariadb/configuring-mariadb-with-mycnf/) 를 보고 적당한 곳에 my.cnf 파일을 만들어서 넣어도 무방하다고 알려져 있습니다. (Mac OS 유저는 우선은 위 설명대로 해주세요. 추가 확인이 필요합니다)
@@ -113,11 +110,10 @@ service mysql restart
 ### 만약 DB관련 작업을 한 후 정상적으로 페이지가 뜨지 않을 경우 아래 항목을 확인해 주세요.
 
 - application.conf 가 제대로 읽히는지
-- application.secret 적용여부
+- application.conf 파일내의 application.secret 항목 적용여부
 - db.default.url 확인 
 
 ### MariaDB 재시작 방법
-자주하진 마세요!
 DB를 설치한 유저로 DB를 재시작합니다. (root나 sudo 설치했을 경우 명령어 앞에 sudo를 붙여주세요)
 ```
 service mysql restart

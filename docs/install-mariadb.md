@@ -1,13 +1,13 @@
-MariaDB 설치
+MariaDB Installation
 ===
 
-Please refer to the procedure below and install MariaDB 10.1.20 or later.
+Recommended MariaDB version is 10.2 or 10.3. (MariaDB 10.4 is under investigation about the error.)
 
 1. Linux 
    - [Setting up MariaDB Repositories](https://downloads.mariadb.org/mariadb/repositories/)
   
 2. Mac
-   - Recommed to use `brew install`
+   - Recommed to use `brew install mariadb@10.3`
    - https://mariadb.com/blog/installing-mariadb-10010-mac-os-x-homebrew
 
 3. Windows
@@ -30,9 +30,6 @@ create user 'yona'@'localhost' IDENTIFIED BY 'yonadan';
 To use UTF8 extended chars, set file format to BARACUDA.
 
 ```
-set global innodb_file_format = BARRACUDA;
-set global innodb_large_prefix = ON;
-
 create database yona
   DEFAULT CHARACTER SET utf8mb4
   DEFAULT COLLATE utf8mb4_bin
@@ -63,19 +60,20 @@ Example: https://github.com/yona-projects/yona/blob/next/support-script/mariadb/
 - collation-server is criteria options when sorting.
 
 ```
-[client]
-default-character-set=utf8mb4
+# [client]
+# default-character-set=utf8mb4
 
 [mysql]
 default-character-set=utf8mb4
 
 [mysqld]
-collation-server=utf8mb4_unicode_ci
 init-connect='SET NAMES utf8mb4'
-character-set-server=utf8mb4
 lower_case_table_names=1
-innodb_file_format=barracuda
-innodb_large_prefix=on
+character-set-server=utf8mb4
+collation-server=utf8mb4_unicode_ci
+
+# skip client char-set
+skip-character-set-client-handshake
 ```
 
 Also, see [configuring-mariadb-with-mycnf](https://mariadb.com/kb/en/mariadb/configuring-mariadb-with-mycnf/) 
@@ -93,7 +91,7 @@ Now, let's start to install Yona!
 
 ### If the page does not open properly after working on the DB, check the items below.
 
-- application.conf 
+application.conf file
 - application.secret 
 - db.default.url  
 
