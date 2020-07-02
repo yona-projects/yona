@@ -44,7 +44,7 @@ public class Markdown {
             .and(Sanitizers.TABLES)
             .and(Sanitizers.BLOCKS)
             .and(new HtmlPolicyBuilder()
-                    .allowUrlProtocols("http", "https", "mailto", "file")
+                    .allowUrlProtocols("http", "https", "mailto", "file", "zpl")
                     .allowElements("video", "source", "a", "input", "pre", "br", "hr", "iframe", "ol")
                     .allowAttributes("href", "name", "target").onElements("a")
                     .allowAttributes("src", "type", "target").onElements("source")

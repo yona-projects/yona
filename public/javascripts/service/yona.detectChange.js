@@ -5,6 +5,12 @@
  * https://yona.io
  **/
 
+var favicon=new Favico({
+    position: 'up',
+    bgColor: '#4183c4',
+    animation:'none'
+});
+
 function detectPageChange(url){
     var issueBodyChecksum = $("#issueBodyChecksum").val();
     var numOfComments = $("#numOfComments").val();
@@ -43,14 +49,17 @@ function detectPageChange(url){
                 if (data.numOfComments - numOfComments === 1) {
                     numOfComments = data.numOfComments;
                     $yobi.notify(`<a href="javascript:location.reload(true)" class="reload-page-link">Reload page</a>`, 0, "New comment by " + data.commentAuthorName);
+                    favicon.badge('N');
                 } else if (data.numOfComments - numOfComments > 1) {
                     numOfComments = data.numOfComments;
                     $yobi.notify(`<a href="javascript:location.reload(true)" class="reload-page-link">Reload page</a>`, 0, "New comments added!");
+                    favicon.badge('N');
                 }
 
                 if (data.issueBodyChanged) {
                     issueBodyChecksum = data.issueBodyChecksum;
                     $yobi.notify(`<a href="javascript:location.reload(true)" class="reload-page-link">Reload page</a>`, 0, "Issue updated!");
+                    favicon.badge('N');
                 }
             })
     }
