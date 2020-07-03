@@ -342,6 +342,7 @@ img.mfp-img {
 
 .mfp-figure figure {
     margin: 0;
+    overflow: scroll;
 }
 
 .mfp-bottom-bar {

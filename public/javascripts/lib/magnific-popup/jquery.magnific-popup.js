@@ -1182,7 +1182,6 @@ $.magnificPopup.registerModule('image', {
 				if(mfp.isLowIE) {
 					decr = parseInt(item.img.css('padding-top'), 10) + parseInt(item.img.css('padding-bottom'),10);
 				}
-				item.img.css('max-height', mfp.wH-decr);
 			}
 		},
 		_onImageHasSize: function(item) {
@@ -1321,7 +1320,8 @@ $.magnificPopup.registerModule('image', {
 			}
 
 			mfp._parseMarkup(template, {
-				title: _getTitle(item),
+				title: '<a href="' + item.src + '" class="gallery-image-link" target="_blank">'
+					+ _getTitle(item) + ' <i class="yobicon-zoomin"></i></a>',
 				img_replaceWith: item.img
 			}, item);
 
@@ -1842,8 +1842,9 @@ $.magnificPopup.registerModule(RETINA_NS, {
 				if(ratio > 1) {
 					_mfpOn('ImageHasSize' + '.' + RETINA_NS, function(e, item) {
 						item.img.css({
-							'max-width': item.img[0].naturalWidth / ratio,
-							'width': '100%'
+							// 'max-width': item.img[0].naturalWidth / ratio,
+							// 'width': '100%'
+                            'overflow': 'scroll'
 						});
 					});
 					_mfpOn('ElementParse' + '.' + RETINA_NS, function(e, item) {
