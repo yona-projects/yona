@@ -153,7 +153,15 @@
                             </div>
                         } else {
                             <div class="posting-history">
-                                <a href="#-yona-posting-history" data-toggle="modal">@Messages("change.history")</a>
+                                <a href="#-yona-posting-history" data-toggle="modal">
+                                    @if(issue.updatedByAuthorId != null) {
+                                        <span class="lastUpdatedBy">
+                                            <span>@User.find.byId(issue.updatedByAuthorId).getPureNameOnly</span>
+                                            <span>@agoOrDateString(issue.updatedDate)</span>
+                                        </span>
+                                    }
+                                    <span>@Messages("change.edited")</span>
+                                </a>
                                 @common.partial_history(issue)
                             </div>
                         }

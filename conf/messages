@@ -92,6 +92,7 @@ button.user.upgrade.to.site.admin = Upgrade to Site admin
 button.yes = Yes
 change.added = Added
 change.deleted = Deleted
+change.edited = edited
 change.history = Change history
 code.addedPath = {0} (added)
 code.author = Author

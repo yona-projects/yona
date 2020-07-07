@@ -92,6 +92,7 @@ button.user.upgrade.to.site.admin = 사이트 어드민으로 지정
 button.yes = 예
 change.added = 추가
 change.deleted = 삭제
+change.edited = 수정됨
 change.history = 변경 이력
 code.addedPath = {0} (추가됨)
 code.author = 작성자

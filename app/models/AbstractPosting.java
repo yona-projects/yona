@@ -58,6 +58,8 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
     public String authorLoginId;
     public String authorName;
 
+    public Long updatedByAuthorId;
+
     @Transient
     public User author;
 
