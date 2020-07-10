@@ -44,7 +44,7 @@
 
         if (window.parent === window) {
             if (shallWeOpenLeftNavigation === "true" && !@UserApp.currentUser().isAnonymous) {
-                window.location.href = "@routes.Application.sidebar?path=" + window.location.pathname;
+                window.location.href = "@routes.Application.sidebar?path=" + window.location.pathname + "&hash=" + window.location.hash.replace('#','');
             }
         }
 
@@ -113,7 +113,7 @@
             $(".pin").on("click", function () {
                 if (window.parent === window) {
                     localStorage.setItem('shallWeOpenLeftNavigation', "true");
-                    window.location.href = "@routes.Application.sidebar?path=" + window.location.pathname;
+                    window.location.href = "@routes.Application.sidebar?path=" + window.location.pathname + "&hash=" + window.location.hash.replace('#','');
                 } else {
                     localStorage.setItem('shallWeOpenLeftNavigation', "false");
                     window.parent.location = window.location.href;

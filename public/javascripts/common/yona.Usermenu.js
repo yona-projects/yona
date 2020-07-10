@@ -142,10 +142,6 @@ $(function () {
                 e.preventDefault();
                 e.stopPropagation();
 
-                // for smoothly loading effect
-                $('.mainFrame').hide();
-                $('#mainFrame').addClass("loading-gif");
-
                 var location = $(this).data('location');
                 if (e.metaKey || e.ctrlKey || e.shiftKey) {
                    return window.location = location;
