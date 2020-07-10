@@ -19,7 +19,13 @@
 }
 
 @iframePath = @{
-    request.getQueryString("path").getOrElse(defaultPage)
+    val hash = request.getQueryString("hash").get
+    val path =  request.getQueryString("path").getOrElse(defaultPage)
+    if(hash.nonEmpty) {
+        path + "#" + hash
+    } else {
+        path
+    }
 }
 
 <!DOCTYPE html>
@@ -58,7 +64,7 @@
         }
     </div>
     <div id="mainFrame">
-        <iframe name="mainFrame" frameborder="0" class="mainFrame" height="100%" width="100%" src="@iframePath"  onload="resizeIframe(this)"></iframe>
+        <iframe name="mainFrame" frameborder="0" class="mainFrame" height="100%" width="100%" src="@iframePath" ></iframe>
         @common.scripts()
     </div>
 
@@ -68,18 +74,6 @@
 
             $('[data-toggle="popover"]').popover();
         });
-
-        function resizeIframe(obj) {
-            $('#mainFrame').addClass("loading-gif");
-
-            setTimeout(function () {
-                // for smoothing iframe loading effects
-                $('#mainFrame').removeClass("loading-gif");
-                $('.mainFrame').show();
-
-                window.scrollTo(0, 0);
-            }, 0);
-        }
 
         //Following three values are used for common/yona.Usermenu.js
         var UsermenuToggleFavoriteProjectUrl = "@api.routes.UserApi.toggleFoveriteProject("")";
