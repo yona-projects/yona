@@ -123,6 +123,7 @@
             -webkit-border-radius: 10px;
             -khtml-border-radius: 10px;
             border-radius: 10px;
+            border: 1px solid;
         }
 
         .jq-elevator.square .jq-big {
@@ -159,6 +160,7 @@
             -webkit-border-radius: 8px;
             -khtml-border-radius: 8px;
             border-radius: 8px;
+            border: 1px solid;
 
         }
 
@@ -196,7 +198,7 @@
             -webkit-border-radius: 4px;
             -khtml-border-radius: 4px;
             border-radius: 4px;
-
+            display: none;
         }
 
         .jq-elevator.square .jq-sml {
