@@ -9,7 +9,7 @@
 @isMac = @{requestHeader.headers.get("User-Agent").getOrElse("").contains("Macintosh")}
 @ctrl = @{if(isMac){"⌘"}else{"CTRL"}}
 
-<div class="pull-right" style="padding:10px 0; margin-right: 80px;">
+<div class="pull-left" style="padding:10px 0; margin-left: 55px;">
     <a href="#helpKeys" data-toggle="modal" class="ybtn ybtn-inverse ybtn-mini">
         @Messages("title.keymap")
     </a>
