@@ -183,5 +183,16 @@
             });
         }
 
+        // when to click a link in the iframe page, match browser URL
+        if (window.parent !== window) {
+            $("a.ago, .head-anchor").on("click", function () {
+                var $this = $(this);
+                if (!history.state) {
+                    window.parent.history.pushState({ startPath: location.pathname }, $this.text(), $this.attr("href"));
+                } else {
+                    window.parent.history.replaceState(history.state, $this.text(), $this.attr("href"));
+                }
+            });
+        }
     });
 </script>
