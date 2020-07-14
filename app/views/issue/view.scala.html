@@ -643,6 +643,11 @@
 
             $(".index-comment").on("click", function(){
                 window.location = $(this).data("location");
+                if (!history.state) {
+                    window.parent.history.pushState({ startPath: location.pathname }, document.title, window.location);
+                } else {
+                    window.parent.history.replaceState(history.state, document.title, window.location);
+                }
             });
 
             detectPageChange("@api.routes.IssueApi.detectChange(project.owner, project.name, issue.getNumber)")
