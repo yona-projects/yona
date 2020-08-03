@@ -38,7 +38,7 @@ $(function () {
             method: "PATCH",
             url: url,
             contentType: "application/json",
-            data: JSON.stringify({ content: text, sha1: sha1(originalText.trim()) }),
+            data: JSON.stringify({ content: text, original: originalText }),
             beforeSend: function() {
                 NProgress.start();
             }

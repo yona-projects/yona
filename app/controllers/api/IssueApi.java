@@ -336,10 +336,11 @@ public class IssueApi extends AbstractPostingApp {
             return forbidden(Json.newObject().put("message", "Forbidden request"));
         }
 
+        // TODO: It is TOO bulky comparing whole text
         String content = json.findValue("content").asText();
-        String rememberedChecksum = json.findValue("sha1").asText();
+        String original = json.findValue("original").asText();
 
-        if (isModifiedByOthers(issue.body, rememberedChecksum)) {
+        if (isModifiedByOthers(issue.body, original)) {
             return conflicted(issue.body);
         }
 
@@ -535,15 +536,16 @@ public class IssueApi extends AbstractPostingApp {
         }
     }
 
-    public static boolean isModifiedByOthers(String current, String rememberedChecksum){
+    public static boolean isModifiedByOthers(String current, String fromView){
         // At present, using .val() on textarea elements strips carriage return characters
         // https://stackoverflow.com/a/8601601/1450196
         // At first, I added hook of above link at the front page.
         // But I found that it introduce another problem, cursor location detection error.
         // So, decided to calculate sha1 without \r char.
         String currentChecksum = DigestUtils.sha1Hex(current.replaceAll("\r","").trim());
+        String fromViewChecksum = DigestUtils.sha1Hex(fromView.replaceAll("\r","").trim());
 
-        return !currentChecksum.equals(rememberedChecksum);
+        return !currentChecksum.equals(fromViewChecksum);
     }
 
     public static Result detectChange(String ownerName, String projectName, Long number) {
@@ -603,13 +605,14 @@ public class IssueApi extends AbstractPostingApp {
         }
 
         String comment = json.findValue("content").asText();
-        String rememberedChecksum = json.findValue("sha1").asText();
+        // TODO: It is TOO bulky comparing whole text
+        String original = json.findValue("original").asText();
 
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         final Issue issue = Issue.findByNumber(project, number);
         IssueComment issueComment = issue.findCommentByCommentId(commentId);
 
-        if (isModifiedByOthers(issueComment.contents, rememberedChecksum)) {
+        if (isModifiedByOthers(issueComment.contents, original)) {
             return conflicted(issueComment.contents);
         }
 
