@@ -139,13 +139,14 @@ public class Markdown {
 
         for (Element el : elements) {
             String href = el.attr("href");
+            String linkText = el.text();
 
             try {
                 URI uri = new URI(href);
 
-                if (uri.getHost() != null && uri.getHost().startsWith(hostname)) {
+                if (uri.getHost() != null && uri.getHost().startsWith(hostname)
+                && StringUtils.equals(linkText, href)) {
                     el.attr("rel", el.attr("rel") + " noreferrer");
-
 
                     if (extractIssueLink(el, uri)) break;
                 }
