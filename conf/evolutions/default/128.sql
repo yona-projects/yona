@@ -9,7 +9,6 @@ CREATE TABLE webhook_thread (
   CONSTRAINT pk_webhook_thread PRIMARY KEY (id),
   CONSTRAINT fk_webhook_thread_webhook FOREIGN KEY (webhook_id) REFERENCES webhook (id) ON DELETE CASCADE
   )
-  row_format=compressed, key_block_size=8
 ;
 
 CREATE index ix_webhook_thread_webhook_1 ON webhook_thread (webhook_id);
