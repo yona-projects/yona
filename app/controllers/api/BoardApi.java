@@ -145,10 +145,11 @@ public class BoardApi extends AbstractPostingApp {
             return forbidden(Json.newObject().put("message", "Forbidden request"));
         }
 
+        // TODO: It is TOO bulky comparing whole text
         String content = json.findValue("content").asText();
-        String rememberedChecksum = json.findValue("sha1").asText();
+        String original = json.findValue("original").asText();
 
-        if (isModifiedByOthers(posting.body, rememberedChecksum)) {
+        if (isModifiedByOthers(posting.body, original)) {
             return conflicted(posting.body);
         }
 
@@ -209,9 +210,6 @@ public class BoardApi extends AbstractPostingApp {
             return badRequest(result.put("message", "Expecting Json data"));
         }
 
-        String comment = json.findValue("content").asText();
-        String rememberedChecksum = json.findValue("sha1").asText();
-
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         final Posting posting = Posting.findByNumber(project, number);
         PostingComment postingComment = posting.findCommentByCommentId(commentId);
@@ -220,7 +218,11 @@ public class BoardApi extends AbstractPostingApp {
             return forbidden(Json.newObject().put("message", "Forbidden request"));
         }
 
-        if (isModifiedByOthers(postingComment.contents, rememberedChecksum)) {
+        String comment = json.findValue("content").asText();
+        // TODO: It is TOO bulky comparing whole text
+        String original = json.findValue("original").asText();
+
+        if (isModifiedByOthers(postingComment.contents, original)) {
             return conflicted(postingComment.contents);
         }
 
