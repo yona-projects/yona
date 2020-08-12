@@ -1126,7 +1126,7 @@
             setStyle(this.list, assign({
                 width: outerWidth * this.length
             }, getTransforms({
-                translateX: (this.viewerData.width - width) / 2 - outerWidth * i
+                translateX: (this.viewerData.width - width) / 2 - outerWidth
             })));
         },
         resetList: function resetList() {
