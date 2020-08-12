@@ -34,7 +34,7 @@
 <link rel="stylesheet" type="text/css" media="all" href="@routes.Assets.at("stylesheets/usermenu.css")">
 <link rel="stylesheet" type="text/css" media="all" href="@routes.Assets.at("stylesheets/yobi.css")">
 <link rel='stylesheet' href="@routes.Assets.at("javascripts/lib/nprogress/nprogress.css")"/>
-<link rel="stylesheet" href="@routes.Assets.at("javascripts/lib/magnific-popup/magnific-popup.css")" />
+<link rel="stylesheet" href="@routes.Assets.at("javascripts/lib/viewerjs/viewer.css")" />
 <script type="text/javascript" src="@routes.Assets.at("javascripts/yona-layout.js")"></script>
 <script type="text/javascript">
         window.parent.document.title = window.document.title;
@@ -76,32 +76,20 @@
         var UsermenuUrl = "@routes.UserApp.usermenuTabContentList()";
     </script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.Usermenu.js")"></script>
-    <script src="@routes.Assets.at("javascripts/lib/magnific-popup/jquery.magnific-popup.js")"></script>
+    <script src="@routes.Assets.at("javascripts/lib/viewerjs/viewer.js")"></script>
+    <script src="@routes.Assets.at("javascripts/lib/viewerjs/jquery-viewer.js")"></script>
 
     <script>
         $(function () {
+            Viewer.setDefaults({
+                transition: false
+            })
             $(".markdown-wrap").each(function () { // the containers for all your galleries
-                var that = $(this);
-                that.find("img").on("mouseover", function(){
+                var $that = $(this);
+                $that.find("img").on("mouseover", function () {
                     $(this).css("cursor", "pointer");
-                });
-                that.magnificPopup({
-                    delegate: 'img',
-                    type: 'image',
-                    gallery: {
-                        enabled: true
-                    },
-                    callbacks: {
-                        elementParse: function (item) {
-                            item.src = item.el.attr('src');
-                        }
-                    },
-                    image: {
-                        titleSrc: function (item) {
-                            return item.el.attr('alt');
-                        }
-                    }
-                });
+                })
+                $that.viewer();
             });
 
             if (window.parent === window) {
