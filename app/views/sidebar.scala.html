@@ -50,13 +50,6 @@
         @Messages("title.project")
         </a>
     </li>
-    @if(!Application.HIDE_PROJECT_LISTING && !UserApp.currentUser().isGuest){
-    <li class="allProjectList">
-        <a href="#allProjectList" data-toggle="tab">
-        @Messages("common.order.all")
-        </a>
-    </li>
-    }
 </ul>
 <div class="tab-content tab-box">
     <div id="usermenu-tab-content-list" class="tab-content">
@@ -66,10 +59,5 @@
         <div class="tab-pane user-project-list" id="myProjectList">
         @views.html.index.myProjectList(UserApp.currentUser())
         </div>
-        @if(!Application.HIDE_PROJECT_LISTING && !UserApp.currentUser().isGuest){
-            <div class="tab-pane user-project-list" id="allProjectList">
-            @views.html.index.allProjectList(UserApp.currentUser())
-            </div>
-        }
     </div>
 </div>
