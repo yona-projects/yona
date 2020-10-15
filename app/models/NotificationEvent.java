@@ -1080,7 +1080,8 @@ public class NotificationEvent extends Model implements INotificationEvent {
         Comment parentComment = comment.getParentComment();
         if (parentComment != null) {
             receivers.remove(User.find.byId(comment.getParent().authorId));
-            receivers.add(User.find.byId(comment.getParentComment().authorId));
+            receivers.add(User.find.byId(parentComment.authorId));
+            receivers.addAll(getMentionedUsers(parentComment.contents));
 
             if (parentComment.authorId.equals(comment.authorId)) { // when parent comment author is writing sub-comment
                 for(Comment subComment: comment.getSiblingComments()) {
