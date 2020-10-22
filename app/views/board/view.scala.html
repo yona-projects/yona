@@ -233,7 +233,7 @@
 
             // yobi.Mention
             yobi.Mention({
-                "target": "textarea[id^=editor-]",
+                "target": 'textarea[id^=editor-], .editorSeries',
                 "url"   : "@Html(routes.ProjectApp.mentionList(project.owner, project.name, post.getNumber, post.asResource().getType.resource()).toString())"
             });
 
