@@ -386,16 +386,22 @@ public class Webhook extends Model implements ResourceConvertible {
     // Pull Request
     public void sendRequestToPayloadUrl(EventType eventType, User sender, PullRequest eventPullRequest) {
         String requestBodyString = "";
-        String requestMessage = buildRequestBody(eventType, sender, eventPullRequest);
+        String requestMessage = "";
 
-        if (this.webhookType == WebhookType.DETAIL_SLACK) {
-            ArrayNode attachments = buildJsonWithPullReqtuestDetails(eventPullRequest, requestMessage, eventType);
-            requestBodyString = buildRequestJsonWithAttachments(requestMessage, attachments);
-        } else if (this.webhookType == WebhookType.DETAIL_HANGOUT_CHAT) {
-            ObjectNode thread = buildThreadJSON(eventPullRequest.asResource());
-            requestBodyString = buildRequestJsonWithThread(requestMessage, thread);
+        if (this.webhookType == WebhookType.JSON) {
+            requestBodyString = buildRequestJson(sender, eventPullRequest);
+            play.Logger.info(requestBodyString);
         } else {
-            requestBodyString = buildTextPropertyOnlyJSON(requestMessage);
+            requestMessage = buildRequestBody(eventType, sender, eventPullRequest);
+            if (this.webhookType == WebhookType.DETAIL_SLACK) {
+                ArrayNode attachments = buildJsonWithPullReqtuestDetails(eventPullRequest, requestMessage, eventType);
+                requestBodyString = buildRequestJsonWithAttachments(requestMessage, attachments);
+            } else if (this.webhookType == WebhookType.DETAIL_HANGOUT_CHAT) {
+                ObjectNode thread = buildThreadJSON(eventPullRequest.asResource());
+                requestBodyString = buildRequestJsonWithThread(requestMessage, thread);
+            } else {
+                requestBodyString = buildTextPropertyOnlyJSON(requestMessage);
+            }
         }
 
         if (this.webhookType == WebhookType.DETAIL_HANGOUT_CHAT) {
@@ -403,6 +409,20 @@ public class Webhook extends Model implements ResourceConvertible {
         } else {
             sendRequest(requestBodyString);
         }
+    }
+
+    private String buildRequestJson(User sender, PullRequest eventPullRequest) {
+        ObjectNode requestBody = Json.newObject();
+        requestBody.put("id", eventPullRequest.id);
+        requestBody.put("title", eventPullRequest.title);
+        requestBody.put("body", eventPullRequest.body);
+        requestBody.put("toProject", eventPullRequest.toProject.name);
+        requestBody.put("fromProject", eventPullRequest.fromProject.name);
+        requestBody.put("toBranch", eventPullRequest.toBranch);
+        requestBody.put("fromBranch", eventPullRequest.fromBranch);
+        requestBody.put("state", eventPullRequest.state.toString());
+
+        return Json.stringify(requestBody);
     }
 
     private String buildRequestBody(EventType eventType, User sender, PullRequest eventPullRequest) {

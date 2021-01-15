@@ -598,15 +598,15 @@ public class NotificationEvent extends Model implements INotificationEvent {
         return resourceId;
     }
 
+
     private static void webhookRequest(EventType eventTypes, PullRequest pullRequest) {
         List<Webhook> webhookList = eventTypes == PULL_REQUEST_MERGED ? Webhook.findByProject(pullRequest.toProject.id) : Webhook.findByProject(pullRequest.toProjectId);
         for (Webhook webhook : webhookList) {
-            if (webhook.webhookType != WebhookType.JSON) {
-                // Send push event via webhook payload URLs.
-                webhook.sendRequestToPayloadUrl(eventTypes, UserApp.currentUser(), pullRequest);
-            }
+            // Send push event via webhook payload URLs.
+            webhook.sendRequestToPayloadUrl(eventTypes, UserApp.currentUser(), pullRequest);
         }
     }
+
 
     private static void webhookRequest(EventType eventTypes, PullRequest pullRequest, PullRequestReviewAction reviewAction) {
         List<Webhook> webhookList = Webhook.findByProject(pullRequest.toProject.id);
