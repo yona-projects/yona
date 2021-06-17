@@ -22,6 +22,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.Tika;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import play.Configuration;
 import play.twirl.api.Html;
 import play.data.Form;
 import play.data.validation.ValidationError;
@@ -290,7 +291,7 @@ public class IssueApp extends AbstractPostingApp {
         return ok(partial_comments.render(project, issueInfo));
     }
 
-    public static Result newDirectIssueForm() {
+    public static Result newDirectIssueForm(Long commentId) {
         User current = UserApp.currentUser();
 
         Project project = null;
@@ -302,6 +303,9 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         if(project != null){
+            if (commentId != -1) {
+                return newIssueFormByComment(project.owner, project.name, commentId);
+            }
             return newIssueForm(project.owner, project.name);
         } else {
             flash(Constants.WARNING, Messages.get("project.is.empty"));
@@ -348,6 +352,21 @@ public class IssueApp extends AbstractPostingApp {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         String issueTemplate = StringUtils.defaultIfBlank(project.getIssueTemplate(), "");
         return ok(create.render("title.newIssue", new Form<>(Issue.class), project, issueTemplate));
+    }
+
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
+    @IsCreatable(ResourceType.ISSUE_POST)
+    public static Result newIssueFormByComment(String ownerName, String projectName, Long commentId) {
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+        Comment comment = IssueComment.find.byId(commentId);
+        String context = Configuration.root().getString("application.context");
+        String contextPath = context == null ? "" : context;
+
+        String reference = comment.contents + "\n\n_Originally posted by @" + comment.authorLoginId + " in "
+                + Config.getScheme() + "://" + request().host() + contextPath + RouteUtil.getUrl(comment);
+
+        String conetent = StringUtils.defaultIfBlank(reference, "");
+        return ok(create.render("title.newIssue", new Form<>(Issue.class), project, conetent));
     }
 
     @Transactional

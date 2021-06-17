@@ -43,6 +43,11 @@
                 <a href="#comment-@comment.id" class="ago" title="@JodaDateUtil.getDateString(comment.createdDate)">@utils.TemplateHelper.agoOrDateString(comment.createdDate)</a>
             </span>
             <span class="act-row pull-right">
+                <span class="new-issue-by">
+                    <a href="@routes.IssueApp.newDirectIssueForm()?commentId=@comment.id">
+                    @Messages("issue.menu.new.by")
+                    </a>
+                </span>
                 @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.READ) && comment.isInstanceOf[IssueComment]) {
                     @defining(comment.asInstanceOf[IssueComment]) { issueComment =>
                         @if(issueComment.voters.size > VOTER_AVATAR_SHOW_LIMIT) {

@@ -19,9 +19,14 @@
     play.mvc.Http.Context.current().request().getQueryString("parentIssueId")
 }
 
-@isFromGlobalMenuNew = @{
-    routes.IssueApp.newDirectIssueForm.toString().equals(requestHeader.path) ||
-            routes.IssueApp.newDirectMyIssueForm.toString().equals(requestHeader.path)
+@commentId = @{
+    play.mvc.Http.Context.current().request().getQueryString("commentId")
+}
+
+
+    @isFromGlobalMenuNew = @{
+    routes.IssueApp.newDirectIssueForm().toString().equals(requestHeader.path) ||
+            routes.IssueApp.newDirectMyIssueForm().toString().equals(requestHeader.path)
 }
 
 @projectLayout(Messages(title), project, utils.MenuType.ISSUE) {
