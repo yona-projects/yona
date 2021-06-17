@@ -276,6 +276,7 @@ issue.comment.error.vote = Failed to agree with the comment because a server err
 issue.content = Issue Content
 issue.createdDate = Created date
 issue.delete = Delete issue
+issue.derived = Derived issue
 issue.downloadAsExcel = Download as Excel file
 issue.dueDate = Due date
 issue.dueDate.overdue = Overdue

@@ -133,6 +133,7 @@
                     </dl>
 
                     @partial_select_label(IssueLabel.findByProject(project), null, "issue-option", "data-close-on-select=false", project)
+                    <input type="hidden" name="referCommentId" value="@commentId">
                 </div>
             </div>
         </div>
