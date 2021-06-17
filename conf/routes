@@ -123,7 +123,7 @@ POST           /noti/toggle/:projectId/:notiType                                
 GET            /user/sidebar                                                          controllers.Application.sidebar()
 GET            /user/issues                                                           controllers.IssueApp.userIssuesPage()
 GET            /user/issues                                                           controllers.IssueApp.userIssues(state:String ?= "", format:String ?= "html", pageNum: Int ?= 1)
-GET            /user/issues/new                                                       controllers.IssueApp.newDirectIssueForm()
+GET            /user/issues/new                                                       controllers.IssueApp.newDirectIssueForm(commentId:Long ?= -1)
 GET            /user/issues/new/mine                                                  controllers.IssueApp.newDirectMyIssueForm()
 GET            /user/files                                                            controllers.UserApp.userFiles()
 GET            /users/loginform                                                       controllers.UserApp.loginForm()
