@@ -131,6 +131,9 @@ public class Issue extends AbstractPosting implements LabelOwner {
     @Transient
     public String parentIssueId;
 
+    @Transient
+    public String referCommentId;
+
     @OneToOne
     public Issue parent;
 

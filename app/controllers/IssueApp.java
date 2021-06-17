@@ -606,6 +606,17 @@ public class IssueApp extends AbstractPostingApp {
 
         NotificationEvent.afterNewIssue(newIssue);
 
+        if (StringUtils.isNotEmpty(newIssue.referCommentId)) {
+            String context = Configuration.root().getString("application.context");
+            String contextPath = context == null ? "" : context;
+            String content = Messages.get("issue.derived") + ": " + Config.getScheme() + "://" + request().host() + contextPath + RouteUtil.getUrl(newIssue);
+
+            IssueComment parent = IssueComment.find.byId(Long.parseLong(newIssue.referCommentId));
+            IssueComment referComment = new IssueComment(parent.issue, UserApp.currentUser(), content);
+            referComment.parentCommentId = newIssue.referCommentId;
+            newReferComment(referComment);
+        }
+
         return redirect(routes.IssueApp.issue(project.owner, project.name, newIssue.getNumber()));
     }
 
@@ -942,6 +953,24 @@ public class IssueApp extends AbstractPostingApp {
 
         return redirect(RouteUtil.getUrl(savedComment));
     }
+
+    @Transactional
+    @With(NullProjectCheckAction.class)
+    public static void newReferComment(IssueComment comment) {
+        if (!AccessControl.isResourceCreatable(
+                UserApp.currentUser(), comment.issue.asResource(), ResourceType.ISSUE_COMMENT)) {
+            play.Logger.warn("Http.Status.FORBIDDEN: cannot add issue comment: " + comment.issue);
+            return;
+        }
+
+        if(StringUtils.isNotEmpty(comment.parentCommentId)){
+            comment.setParentComment(IssueComment.find.byId(Long.valueOf(comment.parentCommentId)));
+        }
+
+        AddPreviousContent(comment.issue, comment);
+        saveComment(comment.issue.project, comment.issue, comment);
+    }
+
 
     private static void AddPreviousContent(Issue issue, IssueComment comment) {
         if(issue.numOfComments == 0) {

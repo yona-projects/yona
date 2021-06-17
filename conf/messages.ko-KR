@@ -276,6 +276,7 @@ issue.comment.error.vote = 서버 오류가 발생하여 댓글에 공감을 할
 issue.content = 이슈 본문
 issue.createdDate = 작성일
 issue.delete = 이슈 삭제
+issue.derived = 파생 이슈
 issue.downloadAsExcel = 엑셀파일로 다운받기
 issue.dueDate.overdue= 기한지남
 issue.dueDate= 목표 완료일
