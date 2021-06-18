@@ -21,6 +21,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 import org.tmatesoft.svn.core.SVNException;
+import play.i18n.Messages;
 import playRepository.Commit;
 import playRepository.PlayRepository;
 import playRepository.RepositoryService;
@@ -253,6 +254,9 @@ public class AutoLinkRenderer {
                 if (StringUtils.isNotEmpty(prefix)) {
                     linkText += prefix + linkText;
                 }
+
+                linkText += "<span class='issue-state " + issue.state.state().toLowerCase() + "'>"
+                        + Messages.get("issue.state." + issue.state.state()) + "</span>";
 
                 return new Link(RouteUtil.getUrl(issue), "issueLink", prefix + linkText);
             }

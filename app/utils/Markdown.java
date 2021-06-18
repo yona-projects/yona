@@ -19,6 +19,7 @@ import org.jsoup.select.Elements;
 import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;
 import org.owasp.html.Sanitizers;
+import play.i18n.Messages;
 
 import javax.annotation.Nonnull;
 import javax.script.Invocable;
@@ -45,7 +46,7 @@ public class Markdown {
             .and(Sanitizers.BLOCKS)
             .and(new HtmlPolicyBuilder()
                     .allowUrlProtocols("http", "https", "mailto", "file", "zpl")
-                    .allowElements("video", "source", "a", "input", "pre", "br", "hr", "iframe", "ol")
+                    .allowElements("video", "source", "a", "input", "pre", "br", "hr", "iframe", "ol", "span")
                     .allowAttributes("href", "name", "target").onElements("a")
                     .allowAttributes("src", "type", "target").onElements("source")
                     .allowAttributes("data-setup", "controls", "preload", "type", "autoplay", "responsive", "height", "width", "fluid", "liveui", "src").onElements("video")
@@ -144,8 +145,8 @@ public class Markdown {
             try {
                 URI uri = new URI(href);
 
-                if (uri.getHost() != null && uri.getHost().startsWith(hostname)
-                && StringUtils.equals(linkText, href)) {
+                if (href.startsWith("/") || uri.getHost() != null && uri.getHost().startsWith(hostname)
+                        && StringUtils.equals(linkText, href)) {
                     el.attr("rel", el.attr("rel") + " noreferrer");
 
                     if (extractIssueLink(el, uri)) break;
@@ -193,13 +194,18 @@ public class Markdown {
                         linkText += "#" + fragment;
                     }
 
+                    el.text("");
+                    el.prependText(linkText);
                     el.addClass("issueLink");
+                    el.appendElement("span")
+                            .addClass("issue-state")
+                            .addClass(issue.state.state().toLowerCase())
+                            .text(Messages.get("issue.state." + issue.state.state()));
                 }
             } catch (RuntimeException re) {
                 play.Logger.warn("Issue link extraction fail: " + uri.getPath());
             }
 
-            el.text(linkText);
 
         }
         return false;
@@ -214,6 +220,32 @@ public class Markdown {
         int sourceHashCode = source.hashCode();
         byte [] cached = CacheStore.renderedMarkdown.getIfPresent(sourceHashCode);
         if(cached != null){
+            Runnable afterTouch = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Object options = engine.eval("new Object({ "
+                                + "    gfm: true, "
+                                + "    tables: true, "
+                                + "    breaks: true, "
+                                + "    headerIds: true, "
+                                + "    pedantic: false, "
+                                + "    sanitize: false, "
+                                + "    smartLists: true "
+                                + "}) ");
+                        String rendered = renderByMarked(source, options);
+                        rendered = removeJavascriptInHref(rendered);
+                        rendered = checkReferrer(rendered);
+                        rendered = transformIssueLink(rendered);
+                        String sanitized = sanitize(rendered);
+                        CacheStore.renderedMarkdown.put(sourceHashCode, ZipUtil.compress(sanitized));
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+            };
+
+            afterTouch.run();
             return ZipUtil.decompress(cached);
         }
         try {
