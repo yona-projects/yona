@@ -264,6 +264,7 @@ public class IssueApp extends AbstractPostingApp {
         Form<Comment> commentForm = new Form<>(Comment.class);
         Form<Issue> editForm = new Form<>(Issue.class).fill(Issue.findByNumber(project, number));
         UserApp.currentUser().visits(project);
+        UserApp.currentUser().visits(issueInfo);
         // Determine response type with Accept header
         if (HttpUtil.isJSONPreferred(request())){
             ObjectNode result = Json.newObject();
