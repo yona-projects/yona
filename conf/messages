@@ -982,6 +982,7 @@ title.projectSetting = Project settings
 title.projectTransfer = Project Transfer
 title.projectWatchers = Watcher list
 title.pullrequest = Pull Request
+title.recently.visited.issue = Recent History
 title.recently.visited =  Recently visited
 title.rememberMe = Stay logged in
 title.resetPassword = Reset password

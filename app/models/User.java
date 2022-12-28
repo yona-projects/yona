@@ -184,6 +184,10 @@ public class User extends Model implements ResourceConvertible {
     @Transient
     public Long lastVisitedProjectId;
 
+    @Transient
+    public Long lastVisitedIssueId;
+
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     public List<OrganizationUser> organizationUsers;
 
@@ -853,6 +857,22 @@ public class User extends Model implements ResourceConvertible {
         if(!Objects.equals(project.id, this.lastVisitedProjectId)){
             this.lastVisitedProjectId = project.id;
             RecentProject.addNew(this, project);
+        }
+    }
+
+    public void visits(Issue issue) {
+        play.Logger.debug("visit issue {}", issue.getNumber());
+
+        if(!Objects.equals(issue.id, this.lastVisitedIssueId)){
+            this.lastVisitedProjectId =issue.id;
+            RecentIssue.addNewIssue(this, issue);
+        }
+    }
+
+    public void visits(Posting posting) {
+        if(!Objects.equals(posting.id, this.lastVisitedIssueId)){
+            this.lastVisitedProjectId =posting.id;
+            RecentIssue.addNewPosting(this, posting);
         }
     }
 
