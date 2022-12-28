@@ -141,7 +141,6 @@
   .user-li {
     cursor: pointer;
     line-height: normal;
-    font-size: 0;
 
     .popover {
       word-wrap: break-word;
@@ -573,6 +572,30 @@
         }
       }
     }
+  }
+
+  .issue-item {
+    display: block !important;
+    padding-left: 10px !important;
+  }
+
+  .issue-title {
+    font-size: 13px;
+    white-space: break-spaces;
+    word-break: break-all;
+    max-width: 240px;
+  }
+
+  .issue-path {
+    color: grey;
+    padding-right: 11px;
+    font-size: 11px;
+    text-align: right;
+    flex-shrink: 3;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 230px;
   }
 
   .projectName-owner {

@@ -1,0 +1,34 @@
+@**
+* Yona, 21st Century Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp.
+* https://yona.io
+**@
+@(currentUser:User)
+@import utils.TemplateHelper._
+
+@displayRecentIssues(title:String, postings:List[RecentIssue], isActive:Boolean = false) = {
+    @if(postings.isEmpty) {
+        <div id="@title" class="no-result tab-pane user-ul @if(isActive){active}">@Messages("title.no.results")</div>
+    } else {
+        <ul class="tab-pane user-ul @if(isActive){active}" id="@title">
+        @for(posting <- postings){
+            @myRecentIssueList_partial(posting, false)
+        }
+        </ul>
+    }
+}
+        <div>
+            <div class="search-result">
+                <div class="tab-pane myproject-list-wrap" >
+                    <div class="group">
+                        <input class="search-input project-search" type="text" id="query" autocomplete="off" placeholder="@Messages("title.type.name")">
+                        <span class="bar"></span>
+                    </div>
+                    <div class="tab-content">
+                        @displayRecentIssues("recentlyVisited", currentUser.getVisitedIssues, true)
+                    </div>
+                </div>
+            </div>
+        </div>
+

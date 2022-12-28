@@ -118,7 +118,7 @@ $(function () {
                     });
             });
 
-        $(".board-header > .title > .favorite-issue")
+        $(".favorite-issue")
             .on("click.toggleProjectFavorite", function toggleProjectFavorite(e) {
                 e.stopPropagation();
                 var that = $(this);

@@ -1,0 +1,21 @@
+@**
+* Yona, 21st Century Project Hosting SW
+*
+* Copyright Yona & Yobi Authors & NAVER Corp.
+* https://yona.io
+**@
+@import java.net.URLEncoder
+@import java.net.URLDecoder
+@(issue:RecentIssue, favored:Boolean, isLast:Boolean = false)
+@import utils.TemplateHelper._
+
+<li class="user-li @if(isLast){favored}" data-location="@issue.url">
+    <div class="project-list project-flex-container" data-toggle='popover' data-trigger="hover" data-placement="right" data-content="@URLDecoder.decode(issue.getNumber, "UTF-8")">
+        <div class="project-item project-item-container">
+            <div class="issue-item projectName-owner flex-item">
+                <div class="issue-title flex-item">@issue.title</div>
+            </div>
+        </div>
+    </div>
+</li>
+

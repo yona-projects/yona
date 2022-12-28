@@ -67,8 +67,10 @@ public class RecentProject extends Model {
         try {
             deletePrevious(user, project);
 
+
             RecentProject recentProject = new RecentProject(user, project);
             recentProject.save();
+            play.Logger.debug("recentProject {}", recentProject);
 
             deleteOldestIfOverflow(user);
         } catch (OptimisticLockException ole){
@@ -108,5 +110,16 @@ public class RecentProject extends Model {
         for (RecentProject rp : recentProjects) {
             rp.delete();
         }
+    }
+
+    @Override
+    public String toString() {
+        return "RecentProject{" +
+                "id=" + id +
+                ", userId=" + userId +
+                ", owner='" + owner + '\'' +
+                ", projectId=" + projectId +
+                ", projectName='" + projectName + '\'' +
+                '}';
     }
 }
