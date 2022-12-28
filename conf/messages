@@ -46,6 +46,7 @@ button.apply = Apply
 button.back = Back
 button.cancel = Cancel
 button.cancel.enrollment = Cancel sign-up request
+button.clear.temporary = Clear Temporary
 button.close = Close
 button.comment.new = Add a comment
 button.comment.open = Open comment window

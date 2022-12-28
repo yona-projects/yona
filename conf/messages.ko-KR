@@ -46,6 +46,7 @@ button.apply = 적용
 button.back = 돌아가기
 button.cancel = 취소
 button.cancel.enrollment = 멤버 등록 요청 취소하기
+button.clear.temporary = 임시저장 삭제
 button.close = 닫기
 button.comment.new = 댓글 입력
 button.comment.open = 댓글 입력 창 열기
