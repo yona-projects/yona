@@ -89,12 +89,15 @@
 
              $('.myOrganizationList').on('click', function(){
                  localStorage.setItem('sidebarActiveMenu', 'myOrganizationList');
+                 $(".sidebar-bottom").hide();
              })
              $('.myProjectList').on('click', function(){
                  localStorage.setItem('sidebarActiveMenu', 'myProjectList');
+                 $(".sidebar-bottom").hide();
              })
              $('.myRecentIssueList').on('click', function(){
                  localStorage.setItem('sidebarActiveMenu', 'myRecentIssueList');
+                 $(".sidebar-bottom").show();
              })
          })
     </script>
