@@ -40,7 +40,7 @@
     }
 </div>
 <ul class="nav nav-tabs nm">
-    <li class="myOrganizationList active">
+    <li class="myOrganizationList">
         <a href="#myOrganizationList" data-toggle="tab">
         @Messages("title.favorite")
         </a>
@@ -50,15 +50,18 @@
         @Messages("title.project")
         </a>
     </li>
-    <li class="myProjectList">
+    <li class="myRecentIssueList">
         <a href="#myRecentIssueList" data-toggle="tab">
             @Messages("title.recently.visited.issue")
         </a>
     </li>
+    <li>
+        <div class=""><i class="yobicon-refresh refresh-button"></i></div>
+    </li>
 </ul>
 <div class="tab-content tab-box">
     <div id="usermenu-tab-content-list" class="tab-content">
-        <div class="tab-pane user-project-list active" id="myOrganizationList">
+        <div class="tab-pane user-project-list" id="myOrganizationList">
         @views.html.index.myOrganizationList(UserApp.currentUser())
         </div>
         <div class="tab-pane user-project-list" id="myProjectList">
@@ -69,3 +72,29 @@
         </div>
     </div>
 </div>
+    <script>
+         $(function(){
+             var activeMenu = localStorage.getItem('sidebarActiveMenu')
+             if (activeMenu == null) {
+                $('.myOrganizationList').addClass('active');
+                 $('#myOrganizationList').addClass('active');
+             } else {
+                 $('.'+activeMenu).addClass('active');
+                 $('#'+activeMenu).addClass('active');
+             }
+
+             $('.refresh-button').on('click', function(){
+                 window.location.reload();
+             });
+
+             $('.myOrganizationList').on('click', function(){
+                 localStorage.setItem('sidebarActiveMenu', 'myOrganizationList');
+             })
+             $('.myProjectList').on('click', function(){
+                 localStorage.setItem('sidebarActiveMenu', 'myProjectList');
+             })
+             $('.myRecentIssueList').on('click', function(){
+                 localStorage.setItem('sidebarActiveMenu', 'myRecentIssueList');
+             })
+         })
+    </script>
