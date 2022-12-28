@@ -215,6 +215,15 @@
             "target": 'input[id=title]',
             "url"   : "@api.routes.ProjectApi.titleHeads(project.owner, project.name)"
         });
+
+        if (localStorage.getItem(location.pathname) != null) {
+            $('.editor-clear-temporary').show();
+        }
+
+        $('.editor-clear-temporary-button').on('click', function(){
+            localStorage.removeItem(location.pathname);
+            window.location.reload();
+        });
    });
 </script>
 
