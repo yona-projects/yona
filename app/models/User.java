@@ -861,7 +861,8 @@ public class User extends Model implements ResourceConvertible {
     }
 
     public void visits(Issue issue) {
-        play.Logger.debug("visit issue {}", issue.getNumber());
+        play.Logger.debug("issue visit {} {}", issue.id, issue.title);
+        play.Logger.debug("lastVisitedIssueId {}", lastVisitedIssueId);
 
         if(!Objects.equals(issue.id, this.lastVisitedIssueId)){
             this.lastVisitedProjectId =issue.id;
@@ -870,6 +871,9 @@ public class User extends Model implements ResourceConvertible {
     }
 
     public void visits(Posting posting) {
+        play.Logger.debug("posting visits {} {}", posting.id, posting.title);
+        play.Logger.debug("lastVisitedIssueId {}", lastVisitedIssueId);
+
         if(!Objects.equals(posting.id, this.lastVisitedIssueId)){
             this.lastVisitedProjectId =posting.id;
             RecentIssue.addNewPosting(this, posting);
@@ -883,6 +887,15 @@ public class User extends Model implements ResourceConvertible {
         }
 
         return projects;
+    }
+
+    public List<RecentIssue> getVisitedIssues() {
+        List<RecentIssue> issues = RecentIssue.getRecentIssues(this);
+        if(issues == null || issues.size() == 0){
+            return new ArrayList<>();
+        }
+
+        return issues;
     }
 
     public List<Organization> getOrganizations(int size) {

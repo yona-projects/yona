@@ -11,7 +11,6 @@ import java.util.*;
 import controllers.routes;
 
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "project_id"}))
 public class RecentIssue extends Model {
     private static final long serialVersionUID = 2888713013271878179L;
     public static int MAX_RECENT_LIST_PER_USER = 50;
@@ -25,14 +24,14 @@ public class RecentIssue extends Model {
     public Long issueId;
     public Long postingId;
     public String title;
-    public String url;
+    public String url = "";
     public Date createdDate;
 
     public RecentIssue(User user, String title, Issue issue, Posting posting) {
         userId = user.id;
         this.title = title;
-        this.issueId = issue.id;
-        this.postingId = posting.id;
+        if (issue != null) this.issueId = issue.id;
+        if (posting != null) this.postingId = posting.id;
         if (issue != null) {
             this.url = controllers.routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.getNumber()).url();
         } else if (posting != null) {
@@ -41,29 +40,15 @@ public class RecentIssue extends Model {
         this.createdDate = new Date();
     }
 
-    public static List<AbstractPosting> getRecentIssues(@Nonnull User user){
-        List<RecentIssue> recentIssues = find.where()
+    public static List<RecentIssue> getRecentIssues(@Nonnull User user){
+        return find.where()
                 .eq("userId", user.id).orderBy("id desc").findList();
-
-        List<AbstractPosting> found = new ArrayList<>();
-
-        // remove deleted projects
-        for(RecentIssue ri: recentIssues){
-            if (ri.postingId != null) {
-                found.add(Posting.finder.byId(ri.id));
-            } else if (ri.issueId != null){
-                found.add(Issue.finder.byId(ri.issueId));
-            }
-        }
-
-        return found;
     }
 
     public static void addNewIssue(final User user, final Issue issue){
         F.Promise<Void> promise = F.Promise.promise(
                 new F.Function0<Void>() {
                     public Void apply() {
-                        play.Logger.debug("apply --> visit issue {}", issue.getNumber());
                         addVisitIssueHistory(user, issue);
                         return null;
                     }
@@ -90,11 +75,10 @@ public class RecentIssue extends Model {
 
             RecentIssue recentIssue = new RecentIssue(user, issue.title, issue, null);
             recentIssue.save();
-            play.Logger.debug("recentIssue {}", recentIssue);
 
             deleteOldestIfOverflow(user);
-        } catch (OptimisticLockException ole){
-            ole.printStackTrace();
+        } catch (Exception e){
+            e.printStackTrace();
         }
     }
 
@@ -103,23 +87,30 @@ public class RecentIssue extends Model {
         try {
             deletePreviousPosting(user, posting.id);
 
-            RecentIssue recentProject = new RecentIssue(user, posting.title, null, posting);
-            recentProject.save();
+            RecentIssue recentIssue = new RecentIssue(user, posting.title, null, posting);
+            recentIssue.save();
 
             deleteOldestIfOverflow(user);
-        } catch (OptimisticLockException ole){
-            ole.printStackTrace();
+        } catch (Exception e){
+            e.printStackTrace();
         }
     }
 
     public static void deletePreviousIssue(User user, Long issueId) {
-        RecentIssue existed = find.where()
-                .eq("userId", user.id)
-                .eq("issueId", issueId).findUnique();
+        try {
+            RecentIssue existed = find.where()
+                    .eq("userId", user.id)
+                    .eq("issueId", issueId).findUnique();
+            play.Logger.debug("deletePreviousIssue {}", existed);
 
-        if(existed != null){
-            existed.delete();
+            if(existed != null){
+                existed.delete();
+            }
+        } catch (Exception e) {
+            play.Logger.debug(e.getMessage());
+            e.printStackTrace();
         }
+
     }
 
     public static void deletePreviousPosting(User user, Long postingId) {
@@ -154,6 +145,12 @@ public class RecentIssue extends Model {
         for (RecentIssue ri : recentIssues) {
             ri.delete();
         }
+    }
+
+    public String getNumber(){
+        String[] paths = this.url.split("/");
+        if (paths.length <5) return url;
+        return paths[2] + " #" + paths[4];
     }
 
     @Override

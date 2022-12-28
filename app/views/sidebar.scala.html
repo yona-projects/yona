@@ -51,7 +51,7 @@
         </a>
     </li>
     <li class="myProjectList">
-        <a href="#myProjectList" data-toggle="tab">
+        <a href="#myRecentIssueList" data-toggle="tab">
             @Messages("title.recently.visited.issue")
         </a>
     </li>
@@ -63,6 +63,9 @@
         </div>
         <div class="tab-pane user-project-list" id="myProjectList">
         @views.html.index.myProjectList(UserApp.currentUser())
+        </div>
+        <div class="tab-pane user-project-list" id="myRecentIssueList">
+            @views.html.index.myRecentIssueList(UserApp.currentUser())
         </div>
     </div>
 </div>
