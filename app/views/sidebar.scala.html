@@ -38,6 +38,7 @@
             <a href="@routes.UserApp.logout()"><span class="user-menu logout label">@Messages("title.logout")</span></a>
         }
     }
+    <div class="pin-in-sidebar" data-toggle="tooltip" data-placement="bottom" title="Sidebar"><i class="yobicon-arrow-left"></i></div>
 </div>
 <ul class="nav nav-tabs nm">
     <li class="myOrganizationList">
@@ -99,5 +100,13 @@
                  localStorage.setItem('sidebarActiveMenu', 'myRecentIssueList');
                  $(".sidebar-bottom").show();
              })
+
+
+             // sidebar pin click
+             $(".pin-in-sidebar").on("click", function () {
+                 localStorage.setItem('shallWeOpenLeftNavigation', "false");
+                 window.location =  document.getElementById("mainFrameId").src;
+             });
+
          })
     </script>

@@ -128,11 +128,47 @@
     }
 }
 
+.pin-move-to-right {
+    left: 270px;
+}
+
+.pin-move-to-default-position {
+    left: -2px;
+}
+
+.pin-in-sidebar {
+    margin-right: 5px;
+    padding: 0 1px;
+    font-size: 18px;
+    background-color: #03a9f4;
+    color: #3E2723;
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px;
+    right: -5px;
+    top: 9px;
+    position: absolute;
+
+    i {
+        &.yobicon-arrow-right, &.yobicon-arrow-left {
+            padding: 4px 2px;
+        }
+
+        &:hover {
+            cursor: pointer;
+            color: white;
+        }
+    }
+
+    &:hover {
+        cursor: pointer;
+    }
+}
+
 .pin {
     position: absolute;
     display: inline-block;
-    left: -2px;
-    top: 5px;
+    left: -6px;
+    top: 6px;
     margin-right: 5px;
     padding: 0 1px;
     font-size: 18px;
@@ -143,7 +179,7 @@
 
     i {
         &.yobicon-arrow-right, &.yobicon-arrow-left {
-            padding: 4px 2px;
+            padding: 4px 0px 4px 5px;
             display: none;
         }
 
@@ -7906,5 +7942,3 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         color: #03a9f4;
     }
 }
-
-.
