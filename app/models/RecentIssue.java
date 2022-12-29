@@ -1,6 +1,5 @@
 package models;
 
-import javafx.geometry.Pos;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
 import play.libs.F;
