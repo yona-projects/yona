@@ -1,4 +1,4 @@
-@media all and (max-width: 720px){
+@media all and (max-width: 720px) {
     body {
         overflow-y: auto;
         flex-direction: column;
@@ -7,13 +7,19 @@
         position: relative;
     }
     .sidemenu-width {
-      width: 100vw !important;
+        width: 100vw !important;
     }
     .sidenav {
         width: 100vw;
     }
     .main-stream {
-       width: 100%;
+        width: 100%;
+    }
+    .content-container .main-stream {
+        width: 100%;
+    }
+    #mainFrame {
+        height: 100vh;
     }
     .board-header .title {
         border-radius: 0 !important;
@@ -29,10 +35,13 @@
         margin-left: 10px;
     }
     .markdown-wrap {
-        ul, ol {
+        ul,
+        ol {
             padding: 0 0 0 1.5em !important;
         }
-        p, ul, ol {
+        p,
+        ul,
+        ol {
             font-size: 16px !important;
         }
         li > img {
@@ -64,7 +73,7 @@
     .site-guide-outer {
         margin: 40px 0 0 !important;
     }
-    .board-comment-wrap .comments .event .commit-list{
+    .board-comment-wrap .comments .event .commit-list {
         margin: 10px 0 !important;
     }
 
@@ -121,16 +130,15 @@
     .codediff-wrap {
         .diffs-wrap {
             margin-right: inherit !important;
-
         }
         .review-wrap {
             position: inherit !important;
         }
     }
     // hack for iphone to prevent zoom?
-    input[type='text'],
-    input[type='number'],
-    input[type='password'],
+    input[type="text"],
+    input[type="number"],
+    input[type="password"],
     textarea {
         font-size: 16px !important;
     }
@@ -157,8 +165,8 @@
         margin-right: 0 !important;
         padding: 5px 5px;
     }
-    .admin-logged-in-affix{
-      width: auto !important;
+    .admin-logged-in-affix {
+        width: auto !important;
     }
     //login modal
     .modal {
@@ -168,7 +176,7 @@
     .loginDialog {
         margin-left: 0 !important;
         width: 100% !important;
-        .login-form-wrap{
+        .login-form-wrap {
             width: inherit;
             .text {
                 width: 95%;
@@ -237,12 +245,17 @@
         display: inline-block !important;
     }
 
+    .show-in-mobile-100vh {
+        height: 100vh;
+    }
+
     .hide-in-mobile {
         display: none !important;
     }
 
-    .show-in-mobile-100vh {
-        height: 100vh;
+    .sidebar.hide-in-mobile {
+        display: block !important;
+        position: absolute;
     }
 
     .watch-btn {
@@ -341,13 +354,14 @@
     .project-breadcrumb-wrap {
         left: 52px !important;
         bottom: 5px !important;
-        .project-name, .project-author {
+        .project-name,
+        .project-author {
             font-size: 0.7em;
         }
     }
 
     .dropdown-menu.flat {
-        .pop-title{
+        .pop-title {
             white-space: normal !important;
         }
         &.right {
@@ -377,7 +391,7 @@
         padding: 0;
     }
 
-    .search-wrap.underline{
+    .search-wrap.underline {
         border-bottom: none !important;
     }
     .search-bar {
@@ -498,23 +512,23 @@
         padding: 0 10px;
 
         .unsupported-inner {
-            width:95%;
+            width: 95%;
         }
     }
 
     .gnb-outer {
-        padding:0 10px;
+        padding: 0 10px;
         box-sizing: border-box;
     }
 
     .search-box {
         input:focus {
-            max-width:250px;
+            max-width: 250px;
         }
     }
 
     .page-wrap-outer {
-        padding:0 10px;
+        padding: 0 10px;
         width: 100%;
         box-sizing: border-box;
     }
@@ -530,7 +544,7 @@
 
     .site-breadcrumb-outer {
         width: 100%;
-        padding:0 10px;
+        padding: 0 10px;
         box-sizing: border-box;
     }
 
@@ -544,7 +558,7 @@
             &:hover {
                 .project-clone-url {
                     width: 100%;
-                    max-width:250px;
+                    max-width: 250px;
                 }
             }
         }
@@ -581,7 +595,7 @@
     }
 
     .page-footer-outer {
-        padding:10px;
+        padding: 10px;
 
         .page-footer {
             width: 100%;
@@ -589,7 +603,7 @@
     }
 
     .issue-info {
-        padding:15px 0 0 10px;
+        padding: 15px 0 0 10px;
     }
 
     .markdown-help .markdown-help-nav li {
