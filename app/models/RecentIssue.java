@@ -12,7 +12,7 @@ import controllers.routes;
 @Entity
 public class RecentIssue extends Model {
     private static final long serialVersionUID = 2888713013271878179L;
-    public static int MAX_RECENT_LIST_PER_USER = 50;
+    public static int MAX_RECENT_LIST_PER_USER = 100;
 
     public static Finder<Long, RecentIssue> find = new Finder<>(Long.class, RecentIssue.class);
 
