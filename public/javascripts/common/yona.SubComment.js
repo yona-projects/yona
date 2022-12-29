@@ -33,10 +33,12 @@ $(function(){
         if(!$this.find(".textarea-box > textarea").is(":visible")) {
             $this.find(".add-a-comment").fadeIn(300);
             $this.find(".new-issue-by").fadeIn(300);
+            $this.find(".share-link").fadeIn(300);
         }
     }).on("mouseleave", function () {
         $(this).find(".add-a-comment").fadeOut(300);
         $(this).find(".new-issue-by").fadeOut(300);
+        $(this).find(".share-link").fadeOut(300);
     });
 
     // Releated with one line sub-comment feature
