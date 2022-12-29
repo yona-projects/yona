@@ -47,6 +47,7 @@
                         </span>
                         <span class="ago-date">
                             <a href="#comment-@comment.id" class="ago" title="@JodaDateUtil.getDateString(comment.createdDate)">@utils.TemplateHelper.agoOrDateString(comment.createdDate)</a>
+                            <a href="#comment-@comment.id" class="share-link" style="display: none">[Link]</a>
                         </span>
                         <span class="act-row pull-right">
                         @if(StringUtils.isNotBlank(IssueApi.TRANSLATION_API)){
