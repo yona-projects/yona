@@ -85,7 +85,7 @@
         breaks: false,
         gfm: true,
         headerIds: true,
-        headerPrefix: '',
+        headerPrefix: 'yb-header-',
         highlight: null,
         langPrefix: 'language-',
         mangle: true,
@@ -1920,12 +1920,13 @@
     };
 
     _proto.heading = function heading(text, level, raw, slugger) {
+      var idText = this.options.headerPrefix + slugger.slug(raw);
       if (this.options.headerIds) {
         return '<h' + level + ' id="' + this.options.headerPrefix + slugger.slug(raw) + '">' + text + '</h' + level + '>\n';
       } // ignore IDs
 
 
-      return '<h' + level + '>' + text + '</h' + level + '>\n';
+      return '<h' + level + ' id="' + idText + '">' + text + '<a href="#' + idText + '" class="head-anchor">#</a>' + '</h' + level + '>\n';
     };
 
     _proto.hr = function hr() {
@@ -1939,11 +1940,18 @@
     };
 
     _proto.listitem = function listitem(text) {
-      return '<li>' + text + '</li>\n';
+      var html = '<li>' + text + '</li>\n';
+
+      if (html.indexOf("<input") !== -1 && html.indexOf("task-list-item") === -1) {
+        html = html.replace("<input ", "<input class='task-list-item-checkbox' ");
+        html = html.replace("<li>", "<li class='task-list-item'>");
+      }
+
+      return html;
     };
 
     _proto.checkbox = function checkbox(checked) {
-      return '<input ' + (checked ? 'checked="" ' : '') + 'disabled="" type="checkbox"' + (this.options.xhtml ? ' /' : '') + '> ';
+      return '<input ' + (checked ? 'checked="" ' : '') + 'type="checkbox"' + (this.options.xhtml ? ' /' : '') + '> ';
     };
 
     _proto.paragraph = function paragraph(text) {
@@ -2089,7 +2097,8 @@
     _proto.serialize = function serialize(value) {
       return value.toLowerCase().trim() // remove html tags
           .replace(/<[!\/a-z].*?>/ig, '') // remove unwanted chars
-          .replace(/[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,./:;<=>?@[\]^`{|}~]/g, '').replace(/\s/g, '-');
+          .replace(/[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,./:;<=>?@[\]^`{|}~]/g, '').replace(/[^\w|ㄱ-ㅎ|ㅏ-ㅣ|가-힣]+/g, '-')
+          .replace(/\s/g, '-');
     }
     /**
      * Finds the next safe (unique) slug to use
