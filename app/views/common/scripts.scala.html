@@ -146,6 +146,10 @@
         $('.logo, .title > a, .project-menu-nav > li > a, .show-progress-bar, .project-breadcrumb > span > a, .project-name > a, a[class="title"]').on('click.progressbar', function(){
             NProgress.set(0.7);
             NProgress.start();
+            // patch for back/forward cache
+            setTimeout(function(){
+                NProgress.done();
+            }, 1000);
         });
 
         // judge whether contents link is internal or external

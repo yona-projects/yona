@@ -240,6 +240,10 @@
 
         function _onBeforeLoadIssueList(){
             NProgress.start();
+            // patch for back/forward cache
+            setTimeout(function(){
+                NProgress.done();
+            }, 1000);
         }
 
         function _initShowChildList() {
