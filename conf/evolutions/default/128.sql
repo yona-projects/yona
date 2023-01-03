@@ -1,6 +1,6 @@
 # --- !Ups
 CREATE TABLE webhook_thread (
-  id                        BIGINT AUTO_INCREMENT NOT NULL,
+  id                        BIGINT,
   webhook_id                BIGINT,
   resource_type             VARCHAR(20),
   resource_id               VARCHAR(255),
@@ -11,8 +11,11 @@ CREATE TABLE webhook_thread (
   )
 ;
 
+create sequence webhook_thread_seq;
+
 CREATE index ix_webhook_thread_webhook_1 ON webhook_thread (webhook_id);
 CREATE index ix_webhook_thread_resource_2 ON webhook_thread (resource_type, resource_id);
 
 # --- !Downs
 DROP TABLE webhook_thread;
+DROP sequence webhook_thread_seq;

@@ -1,6 +1,6 @@
 # --- !Ups
 CREATE TABLE recent_issue (
-    id           BIGINT AUTO_INCREMENT NOT NULL,
+    id           BIGINT,
     user_id      BIGINT,
     issue_id     BIGINT,
     posting_id   BIGINT,
@@ -14,9 +14,12 @@ CREATE TABLE recent_issue (
     CONSTRAINT fk_recent_issue_issue FOREIGN KEY (issue_id) REFERENCES issue (id) on DELETE CASCADE
 );
 
+create sequence recent_issue_seq;
+
 CREATE index ix_recent_issue_user_1 ON recent_issue (user_id);
 CREATE index ix_recent_issue_issue_2 ON recent_issue (user_id, issue_id);
 CREATE index ix_recent_issue_posting_3 ON recent_issue (user_id, posting_id);
 
 # --- !Downs
 DROP TABLE recent_issue;
+sequence recent_issue_seq;
