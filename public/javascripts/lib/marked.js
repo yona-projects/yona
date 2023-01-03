@@ -1,6 +1,6 @@
 /**
  * marked - a markdown parser
- * Copyright (c) 2011-2020, Christopher Jeffrey. (MIT Licensed)
+ * Copyright (c) 2011-2021, Christopher Jeffrey. (MIT Licensed)
  * https://github.com/markedjs/marked
  */
 
@@ -73,8 +73,9 @@
     return it.next.bind(it);
   }
 
-  function createCommonjsModule(fn, module) {
-    return module = { exports: {} }, fn(module, module.exports), module.exports;
+  function createCommonjsModule(fn) {
+    var module = { exports: {} };
+    return fn(module, module.exports), module.exports;
   }
 
   var defaults = createCommonjsModule(function (module) {
@@ -111,9 +112,6 @@
       changeDefaults: changeDefaults
     };
   });
-  var defaults_1 = defaults.defaults;
-  var defaults_2 = defaults.getDefaults;
-  var defaults_3 = defaults.changeDefaults;
 
   /**
    * Helpers
@@ -503,7 +501,7 @@
           };
         }
 
-        var text = cap[0].replace(/^ {4}/gm, '');
+        var text = cap[0].replace(/^ {1,4}/gm, '');
         return {
           type: 'code',
           raw: cap[0],
@@ -532,11 +530,24 @@
       var cap = this.rules.block.heading.exec(src);
 
       if (cap) {
+        var text = cap[2].trim(); // remove trailing #s
+
+        if (/#$/.test(text)) {
+          var trimmed = rtrim$1(text, '#');
+
+          if (this.options.pedantic) {
+            text = trimmed.trim();
+          } else if (!trimmed || / $/.test(trimmed)) {
+            // CommonMark requires space before trailing #s
+            text = trimmed.trim();
+          }
+        }
+
         return {
           type: 'heading',
           raw: cap[0],
           depth: cap[1].length,
-          text: cap[2]
+          text: text
         };
       }
     };
@@ -641,7 +652,7 @@
           if (i !== l - 1) {
             bnext = this.rules.block.listItemStart.exec(itemMatch[i + 1]);
 
-            if (bnext[1].length > bcurr[0].length || bnext[1].length > 3) {
+            if (!this.options.pedantic ? bnext[1].length > bcurr[0].length || bnext[1].length > 3 : bnext[1].length > bcurr[1].length) {
               // nested list
               itemMatch.splice(i, 2, itemMatch[i] + '\n' + itemMatch[i + 1]);
               i--;
@@ -685,12 +696,14 @@
           } // Check for task list items
 
 
-          istask = /^\[[ xX]\] /.test(item);
-          ischecked = undefined;
+          if (this.options.gfm) {
+            istask = /^\[[ xX]\] /.test(item);
+            ischecked = undefined;
 
-          if (istask) {
-            ischecked = item[1] !== ' ';
-            item = item.replace(/^\[[ xX]\] +/, '');
+            if (istask) {
+              ischecked = item[1] !== ' ';
+              item = item.replace(/^\[[ xX]\] +/, '');
+            }
           }
 
           list.items.push({
@@ -862,38 +875,63 @@
       var cap = this.rules.inline.link.exec(src);
 
       if (cap) {
-        var lastParenIndex = findClosingBracket$1(cap[2], '()');
+        var trimmedUrl = cap[2].trim();
 
-        if (lastParenIndex > -1) {
-          var start = cap[0].indexOf('!') === 0 ? 5 : 4;
-          var linkLen = start + cap[1].length + lastParenIndex;
-          cap[2] = cap[2].substring(0, lastParenIndex);
-          cap[0] = cap[0].substring(0, linkLen).trim();
-          cap[3] = '';
+        if (!this.options.pedantic && /^</.test(trimmedUrl)) {
+          // commonmark requires matching angle brackets
+          if (!/>$/.test(trimmedUrl)) {
+            return;
+          } // ending angle bracket cannot be escaped
+
+
+          var rtrimSlash = rtrim$1(trimmedUrl.slice(0, -1), '\\');
+
+          if ((trimmedUrl.length - rtrimSlash.length) % 2 === 0) {
+            return;
+          }
+        } else {
+          // find closing parenthesis
+          var lastParenIndex = findClosingBracket$1(cap[2], '()');
+
+          if (lastParenIndex > -1) {
+            var start = cap[0].indexOf('!') === 0 ? 5 : 4;
+            var linkLen = start + cap[1].length + lastParenIndex;
+            cap[2] = cap[2].substring(0, lastParenIndex);
+            cap[0] = cap[0].substring(0, linkLen).trim();
+            cap[3] = '';
+          }
         }
 
         var href = cap[2];
         var title = '';
 
         if (this.options.pedantic) {
+          // split pedantic href and title
           var link = /^([^'"]*[^\s])\s+(['"])(.*)\2/.exec(href);
 
           if (link) {
             href = link[1];
             title = link[3];
-          } else {
-            title = '';
           }
         } else {
           title = cap[3] ? cap[3].slice(1, -1) : '';
         }
 
-        href = href.trim().replace(/^<([\s\S]*)>$/, '$1');
-        var token = outputLink(cap, {
+        href = href.trim();
+
+        if (/^</.test(href)) {
+          if (this.options.pedantic && !/>$/.test(trimmedUrl)) {
+            // pedantic allows starting angle bracket without ending angle bracket
+            href = href.slice(1);
+          } else {
+            href = href.slice(1, -1);
+          }
+        }
+
+        return outputLink(cap, {
           href: href ? href.replace(this.rules.inline._escapes, '$1') : href,
           title: title ? title.replace(this.rules.inline._escapes, '$1') : title
         }, cap[0]);
-        return token;
       }
     };
 
@@ -913,8 +951,7 @@
           };
         }
 
-        var token = outputLink(cap, link, cap[0]);
-        return token;
+        return outputLink(cap, link, cap[0]);
       }
     };
 
@@ -978,7 +1015,7 @@
       if (cap) {
         var text = cap[2].replace(/\n/g, ' ');
         var hasNonSpaceChars = /[^ ]/.test(text);
-        var hasSpaceCharsOnBothEnds = text.startsWith(' ') && text.endsWith(' ');
+        var hasSpaceCharsOnBothEnds = /^ /.test(text) && / $/.test(text);
 
         if (hasNonSpaceChars && hasSpaceCharsOnBothEnds) {
           text = text.substring(1, text.length - 1);
@@ -1011,7 +1048,7 @@
         return {
           type: 'del',
           raw: cap[0],
-          text: cap[1]
+          text: cap[2]
         };
       }
     };
@@ -1116,11 +1153,11 @@
    */
 
   var block = {
-    newline: /^\n+/,
-    code: /^( {4}[^\n]+\n*)+/,
+    newline: /^(?: *(?:\n|$))+/,
+    code: /^( {4}[^\n]+(?:\n(?: *(?:\n|$))*)?)+/,
     fences: /^ {0,3}(`{3,}(?=[^`\n]*\n)|~{3,})([^\n]*)\n(?:|([\s\S]*?)\n)(?: {0,3}\1[~`]* *(?:\n+|$)|$)/,
     hr: /^ {0,3}((?:- *){3,}|(?:_ *){3,}|(?:\* *){3,})(?:\n+|$)/,
-    heading: /^ {0,3}(#{1,6}) +([^\n]*?)(?: +#+)? *(?:\n+|$)/,
+    heading: /^ {0,3}(#{1,6})(?=\s|$)(.*)(?:\n+|$)/,
     blockquote: /^( {0,3}> ?(paragraph|[^\n]*)(?:\n|$))+/,
     list: /^( {0,3})(bull) [\s\S]+?(?:hr|def|\n{2,}(?! )(?! {0,3}bull )\n*|\s*$)/,
     html: '^ {0,3}(?:' // optional indentation
@@ -1139,7 +1176,7 @@
     lheading: /^([^\n]+)\n {0,3}(=+|-+) *(?:\n+|$)/,
     // regex template, placeholders will be replaced according to different paragraph
     // interruption rules of commonmark and the original markdown spec:
-    _paragraph: /^([^\n]+(?:\n(?!hr|heading|lheading|blockquote|fences|list|html)[^\n]+)*)/,
+    _paragraph: /^([^\n]+(?:\n(?!hr|heading|lheading|blockquote|fences|list|html| +\n)[^\n]+)*)/,
     text: /^[^\n]+/
   };
   block._label = /(?!\s*\])(?:\\[\[\]]|[^\[\]])+/;
@@ -1191,7 +1228,7 @@
     html: edit$1('^ *(?:comment *(?:\\n|\\s*$)' + '|<(tag)[\\s\\S]+?</\\1> *(?:\\n{2,}|\\s*$)' // closed tag
         + '|<tag(?:"[^"]*"|\'[^\']*\'|\\s[^\'"/>\\s]*)*?/?> *(?:\\n{2,}|\\s*$))').replace('comment', block._comment).replace(/tag/g, '(?!(?:' + 'a|em|strong|small|s|cite|q|dfn|abbr|data|time|code|var|samp|kbd|sub' + '|sup|i|b|u|mark|ruby|rt|rp|bdi|bdo|span|br|wbr|ins|del|img)' + '\\b)\\w+(?!:|[^\\w\\s@]*@)\\b').getRegex(),
     def: /^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +(["(][^\n]+[")]))? *(?:\n+|$)/,
-    heading: /^ *(#{1,6}) *([^\n]+?) *(?:#+ *)?(?:\n+|$)/,
+    heading: /^(#{1,6})(.*)(?:\n+|$)/,
     fences: noopTest$1,
     // fences not supported
     paragraph: edit$1(block.normal._paragraph).replace('hr', block.hr).replace('heading', ' *#{1,6} *[^\n]').replace('lheading', block.lheading).replace('blockquote', ' {0,3}>').replace('|fences', '').replace('|list', '').replace('|html', '').getRegex()
@@ -1263,7 +1300,7 @@
   inline._attribute = /\s+[a-zA-Z:_][\w.:-]*(?:\s*=\s*"[^"]*"|\s*=\s*'[^']*'|\s*=\s*[^\s"'=<>`]+)?/;
   inline.tag = edit$1(inline.tag).replace('comment', inline._comment).replace('attribute', inline._attribute).getRegex();
   inline._label = /(?:\[(?:\\.|[^\[\]\\])*\]|\\.|`[^`]*`|[^\[\]\\`])*?/;
-  inline._href = /<(?:\\[<>]?|[^\s<>\\])*>|[^\s\x00-\x1f]*/;
+  inline._href = /<(?:\\.|[^\n<>\\])+>|[^\s\x00-\x1f]*/;
   inline._title = /"(?:\\"?|[^"\\])*"|'(?:\\'?|[^'\\])*'|\((?:\\\)?|[^)\\])*\)/;
   inline.link = edit$1(inline.link).replace('label', inline._label).replace('href', inline._href).replace('title', inline._title).getRegex();
   inline.reflink = edit$1(inline.reflink).replace('label', inline._label).getRegex();
@@ -1302,8 +1339,8 @@
     _extended_email: /[A-Za-z0-9._+-]+(@)[a-zA-Z0-9-_]+(?:\.[a-zA-Z0-9-_]*[a-zA-Z0-9])+(?![-_])/,
     url: /^((?:ftp|https?):\/\/|www\.)(?:[a-zA-Z0-9\-]+\.?)+[^\s<]*|^email/,
     _backpedal: /(?:[^?!.,:;*_~()&]+|\([^)]*\)|&(?![a-zA-Z0-9]+;$)|[?!.,:;*_~)]+(?!$))+/,
-    del: /^~+(?=\S)([\s\S]*?\S)~+/,
-    text: /^(`+|[^`])(?:(?= {2,}\n)|[\s\S]*?(?:(?=[\\<!\[`*~]|\b_|https?:\/\/|ftp:\/\/|www\.|$)|[^ ](?= {2,}\n)|[^a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-](?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@))|(?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@))/
+    del: /^(~~?)(?=[^\s~])([\s\S]*?[^\s~])\1(?=[^~]|$)/,
+    text: /^([`~]+|[^`~])(?:(?= {2,}\n)|[\s\S]*?(?:(?=[\\<!\[`*~]|\b_|https?:\/\/|ftp:\/\/|www\.|$)|[^ ](?= {2,}\n)|[^a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-](?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@))|(?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@))/
   });
   inline.gfm.url = edit$1(inline.gfm.url, 'i').replace('email', inline.gfm._extended_email).getRegex();
   /**
@@ -1441,7 +1478,10 @@
         top = true;
       }
 
-      src = src.replace(/^ +$/gm, '');
+      if (this.options.pedantic) {
+        src = src.replace(/^ +$/gm, '');
+      }
+
       var token, i, l, lastToken;
 
       while (src) {
@@ -1665,7 +1705,7 @@
      */
     ;
 
-    _proto.inlineTokens = function inlineTokens(src, tokens, inLink, inRawBlock, prevChar) {
+    _proto.inlineTokens = function inlineTokens(src, tokens, inLink, inRawBlock) {
       if (tokens === void 0) {
         tokens = [];
       }
@@ -1678,14 +1718,11 @@
         inRawBlock = false;
       }
 
-      if (prevChar === void 0) {
-        prevChar = '';
-      }
-
       var token; // String with links masked to avoid interference with em and strong
 
       var maskedSrc = src;
-      var match; // Mask out reflinks
+      var match;
+      var keepPrevChar, prevChar; // Mask out reflinks
 
       if (this.tokens.links) {
         var links = Object.keys(this.tokens.links);
@@ -1705,7 +1742,12 @@
       }
 
       while (src) {
-        // escape
+        if (!keepPrevChar) {
+          prevChar = '';
+        }
+
+        keepPrevChar = false; // escape
+
         if (token = this.tokenizer.escape(src)) {
           src = src.substring(token.raw.length);
           tokens.push(token);
@@ -1801,6 +1843,7 @@
         if (token = this.tokenizer.inlineText(src, inRawBlock, smartypants)) {
           src = src.substring(token.raw.length);
           prevChar = token.raw.slice(-1);
+          keepPrevChar = true;
           tokens.push(token);
           continue;
         }
@@ -1859,6 +1902,8 @@
         }
       }
 
+      _code = _code.replace(/\n$/, '') + '\n';
+
       if (!lang) {
         return '<pre><code>' + (escaped ? _code : escape$1(_code, true)) + '</code></pre>\n';
       }
@@ -1877,11 +1922,11 @@
     _proto.heading = function heading(text, level, raw, slugger) {
       var idText = this.options.headerPrefix + slugger.slug(raw);
       if (this.options.headerIds) {
-        return '<h' + level + ' id="' + idText + '">' + text + '<a href="#' + idText + '" class="head-anchor">#</a>' + '</h' + level + '>\n';
+        return '<h' + level + ' id="' + this.options.headerPrefix + slugger.slug(raw) + '">' + text + '</h' + level + '>\n';
       } // ignore IDs
 
 
-      return '<h' + level + '>' + text + '</h' + level + '>\n';
+      return '<h' + level + ' id="' + idText + '">' + text + '<a href="#' + idText + '" class="head-anchor">#</a>' + '</h' + level + '>\n';
     };
 
     _proto.hr = function hr() {
@@ -1903,7 +1948,6 @@
       }
 
       return html;
-
     };
 
     _proto.checkbox = function checkbox(checked) {
