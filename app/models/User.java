@@ -854,6 +854,7 @@ public class User extends Model implements ResourceConvertible {
     }
 
     public void visits(Project project) {
+        if (this.isAnonymous()) return;
         if(!Objects.equals(project.id, this.lastVisitedProjectId)){
             this.lastVisitedProjectId = project.id;
             RecentProject.addNew(this, project);
@@ -861,8 +862,7 @@ public class User extends Model implements ResourceConvertible {
     }
 
     public void visits(Issue issue) {
-        play.Logger.debug("issue visit {} {}", issue.id, issue.title);
-        play.Logger.debug("lastVisitedIssueId {}", lastVisitedIssueId);
+        if (this.isAnonymous()) return;
 
         if(!Objects.equals(issue.id, this.lastVisitedIssueId)){
             this.lastVisitedProjectId =issue.id;
@@ -871,8 +871,7 @@ public class User extends Model implements ResourceConvertible {
     }
 
     public void visits(Posting posting) {
-        play.Logger.debug("posting visits {} {}", posting.id, posting.title);
-        play.Logger.debug("lastVisitedIssueId {}", lastVisitedIssueId);
+        if (this.isAnonymous()) return;
 
         if(!Objects.equals(posting.id, this.lastVisitedIssueId)){
             this.lastVisitedProjectId =posting.id;
