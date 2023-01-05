@@ -35,6 +35,7 @@ import views.html.issue.*;
 import views.html.organization.group_issue_list;
 
 import javax.annotation.Nonnull;
+import javax.persistence.PersistenceException;
 import java.io.IOException;
 import java.util.*;
 
@@ -113,6 +114,15 @@ public class IssueApp extends AbstractPostingApp {
     @IsAllowed(Operation.READ)
     public static Result issues(String ownerName, String projectName) throws WriteException, IOException {
        return issues(ownerName, projectName, State.OPEN.state(), "html", 1);
+    }
+
+    @IsAllowed(Operation.READ)
+    public static List<Issue> findDraftIssues(String ownerName, String projectName) {
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+
+        return   Issue.finder.where().eq("isDraft", true)
+                .eq("authorLoginId", UserApp.currentUser().loginId)
+                .eq("project.id", project.id).findList();
     }
 
     @Transactional
@@ -251,6 +261,10 @@ public class IssueApp extends AbstractPostingApp {
             } else {
                 return notFound(ErrorViews.NotFound.render("error.notfound", project, ResourceType.ISSUE_POST.resource()));
             }
+        }
+
+        if (issueInfo.isDraft && !issueInfo.authorLoginId.equals(UserApp.currentUser().loginId)) {
+            return forbidden(ErrorViews.NotFound.render("error.notfound", project));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), issueInfo.asResource(), Operation.READ)) {
@@ -605,9 +619,11 @@ public class IssueApp extends AbstractPostingApp {
 
         attachUploadFilesToPost(newIssue.asResource());
 
-        NotificationEvent.afterNewIssue(newIssue);
+        if (!newIssue.isDraft) {
+            NotificationEvent.afterNewIssue(newIssue);
+        }
 
-        if (StringUtils.isNotEmpty(newIssue.referCommentId)) {
+        if (StringUtils.isNotEmpty(newIssue.referCommentId) && !newIssue.isDraft) {
             String context = Configuration.root().getString("application.context");
             String contextPath = context == null ? "" : context;
             String content = Messages.get("issue.derived") + ": " + Config.getScheme() + "://" + request().host() + contextPath + RouteUtil.getUrl(newIssue);
@@ -683,7 +699,7 @@ public class IssueApp extends AbstractPostingApp {
     }
 
     private static void addStateChangedNotification(Issue modifiedIssue, Issue originalIssue) {
-        if(modifiedIssue.state != originalIssue.state) {
+        if (modifiedIssue.state != originalIssue.state) {
             NotificationEvent notiEvent = NotificationEvent.afterStateChanged(originalIssue.state, modifiedIssue);
             IssueEvent.addFromNotificationEvent(notiEvent, modifiedIssue, UserApp.currentUser().loginId);
         }
@@ -757,6 +773,9 @@ public class IssueApp extends AbstractPostingApp {
             }
         }
 
+        if (issue.isPublish) {
+            originalIssue.setNumber(Project.increaseLastIssueNumber(originalIssue.project.id));
+        }
         Call redirectTo = routes.IssueApp.issue(originalIssue.project.owner, originalIssue.project.name, originalIssue.getNumber());
 
         // preUpdateHook.run would be called just before this issue is updated.
@@ -778,10 +797,22 @@ public class IssueApp extends AbstractPostingApp {
                     if(isFromMyOwnPrivateProject(previous)){
                         issue.history = "";
                     } else {
-                        addIssueMovedNotification(previous, originalIssue, issue, fromWatchers);
+                        if (!issue.isDraft) {
+                            addIssueMovedNotification(previous, originalIssue, issue, fromWatchers);
+                        }
                     }
                 } else {
                     addLabels(issue, request());
+                }
+
+                if (issue.isPublish) {
+                    NotificationEvent.afterNewIssue(issue);
+                    return;
+                }
+
+                if (issue.isDraft) {
+                    // Do not notify
+                    return;
                 }
 
                 if(isSelectedToSendNotificationMail() || !originalIssue.isAuthoredBy(UserApp.currentUser())){

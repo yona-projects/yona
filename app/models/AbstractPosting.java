@@ -72,6 +72,9 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
     // Ebean does NOT sort entities by transient field.
     public int numOfComments;
 
+    @Transient
+    public Boolean isPublish = false;
+
     abstract public int computeNumOfComments();
 
     public AbstractPosting() {
