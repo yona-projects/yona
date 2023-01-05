@@ -28,13 +28,18 @@
     <div class="project-page-wrap">
         <div class="content-wrap frm-wrap">
         @form(action = routes.IssueApp.editIssue(project.owner, project.name, issue.getNumber), 'id -> "issue-form", 'enctype -> "multipart/form-data") {
-        <input type="hidden" name="authorId" value="@issue.authorId">
-
-        <div class="row-fluid">
+            <input type="hidden" name="authorId" value="@issue.authorId">
+            <input type="hidden" id="isDraft" name="isDraft" value="false">
+            <input type="hidden" id="isPublish" name="isPublish" value="false">
+            <div class="row-fluid">
             <div class="span12">
                 <dl>
                     <dt>
-                        <label for="title"><strong class="secondary-txt">#@issue.getNumber</strong></label>
+                        @if(issue.isDraft) {
+                            <span class="draft">Draft</span>
+                        } else {
+                            <label for="title"><strong class="secondary-txt">#@issue.getNumber</strong></label>
+                        }
                     </dt>
                     <dd>
                     	@defining(issueForm.errors().get("title")) { errors =>
@@ -71,7 +76,7 @@
                     @** end of fileUploader **@
 
                     <div class=" actrow right-txt">
-                        @if(issue.isAuthoredBy(UserApp.currentUser())){
+                        @if(!issue.isDraft && issue.isAuthoredBy(UserApp.currentUser())){
                         <span class="send-notification-check">
                             <label class="checkbox inline">
                                 <input type="checkbox" name="notificationMail" id="notificationMail" value="yes" checked>
@@ -79,8 +84,12 @@
                             </label>
                         </span>
                         }
-                        @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
-                        <button type="submit" class="ybtn ybtn-info">@Messages("button.save")</button>}<!--
+                        @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE) && issue.isDraft) {
+                            <button type="button" id="draft-save-btn" class="ybtn ybtn-watching draft-save-btn">@Messages("button.draft.save")</button>
+                            <button type="submit" id="button-draft-publish" class="ybtn ybtn-info">@Messages("button.draft.publish")</button>
+                        }
+                        @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE) && !issue.isDraft) {
+                            <button type="submit" id="button-save" class="ybtn ybtn-info">@Messages("button.save")</button>}<!--
                      --><a href="javascript:history.back();" class="ybtn">@Messages("button.cancel")</a>
                     </div>
                 </div>
@@ -224,7 +233,35 @@
             localStorage.removeItem(location.pathname);
             window.location.reload();
         });
-   });
+
+        tippy('#button-clear-temporary', {
+            content: '@Messages("button.clear.temporary.description")',
+            placement: 'top-start',
+            maxWidth: 'none',
+        });
+
+        tippy('#button-draft-publish', {
+            content: '@Messages("button.draft.publish.description")',
+            placement: 'top-start',
+            maxWidth: 'none',
+        });
+
+        tippy('#draft-save-btn', {
+            content: '@Messages("button.draft.save.description")',
+            placement: 'top',
+            maxWidth: 'none',
+        });
+
+        $('#button-draft-publish').on('click', function(){
+            $('#isPublish').val('true');
+            $('#issue-form').submit();
+        });
+
+        $('#draft-save-btn').on('click', function(){
+            $('#isDraft').val('true');
+            $('#issue-form').submit();
+        });
+    });
 </script>
 
 }

@@ -22,7 +22,7 @@ package models.enumeration;
 
 
 public enum State {
-    ALL("all"), OPEN("open"), CLOSED("closed"), REJECTED("rejected"), CONFLICT("conflict"), RESOLVED("resolved"), MERGED("merged");
+    ALL("all"), OPEN("open"), CLOSED("closed"), REJECTED("rejected"), CONFLICT("conflict"), RESOLVED("resolved"), MERGED("merged"), DRAFT("draft");
     private String state;
 
     State(String state) {

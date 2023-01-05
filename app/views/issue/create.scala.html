@@ -82,6 +82,7 @@
                     @** end of fileUploader **@
 
                     <div class="actrow right-txt">
+                        <button type="button" id="draft-save-btn" class="ybtn ybtn-watching draft-save-btn">@Messages("button.draft.save")</button>
                         <button type="submit" class="ybtn ybtn-success">@Messages("button.save")</button><!--
                      --><a href="javascript:history.back();" class="ybtn">@Messages("button.cancel")</a>
                     </div>
@@ -134,6 +135,7 @@
 
                     @partial_select_label(IssueLabel.findByProject(project), null, "issue-option", "data-close-on-select=false", project)
                     <input type="hidden" name="referCommentId" value="@commentId">
+                    <input type="hidden" id="isDraft" name="isDraft" value="false">
                 </div>
             </div>
         </div>
@@ -184,6 +186,17 @@
         yonaTitleHeadModule({
             "target": 'input[id=title]',
             "url"   : "@api.routes.ProjectApi.titleHeads(project.owner, project.name)"
+        });
+
+        tippy('#draft-save-btn', {
+            content: '@Messages("button.draft.save.description")',
+            placement: 'top',
+            maxWidth: 'none',
+        });
+
+        $('#draft-save-btn').on('click', function(){
+          $('#isDraft').val('true');
+          $('#issue-form').submit();
         });
     });
 </script>

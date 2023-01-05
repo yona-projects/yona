@@ -115,6 +115,8 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
             el.in("project.id", getVisibleProjectIds(organization));
         }
 
+        el.eq("isDraft", false);
+
         setAssigneeIfExists(el);
         setAuthorIfExist(el);
         setMentionedIssuesIfExist(el);
@@ -158,9 +160,9 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         if (StringUtils.isNotBlank(orderBy)) {
             if (orderBy.equals("dueDate")) {
                 String formulaName = orderDir.equals("asc") ? "dueDateAsc" : "dueDateDesc";
-                el.orderBy("weight desc, " + formulaName + " " + orderDir);
+                el.orderBy("weight desc, isDraft desc, number desc, " + formulaName + " " + orderDir);
             } else {
-                el.orderBy("weight desc, " + orderBy + " " + orderDir);
+                el.orderBy("weight desc, isDraft desc, number desc, " + orderBy + " " + orderDir);
             }
         }
     }
@@ -236,6 +238,8 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         setFilteredStringIfExist(el);
         setIssueState(el);
         setOrderByIfExist(el);
+
+        el.eq("isDraft", false);
 
         if (commentedCheck) {
             el.ge("numOfComments", AbstractPosting.NUMBER_OF_ONE_MORE_COMMENTS);
@@ -382,6 +386,8 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
                 }
             }
         }
+
+        el.eq("isDraft", false);
 
         setCommenterIfExist(el, project);
         setSharedIssuesIfExist(el);

@@ -118,7 +118,12 @@
                 @if(issue.parent != null) {
                     <span class="subtask-mark">subtask</span>
                 }
-                <strong class="board-id">#@issue.getNumber</strong> @issue.title
+                @if(issue.isDraft){
+                    <span class="draft">Draft</span>
+                } else {
+                    <strong class="board-id">#@issue.getNumber</strong>
+                }
+                @issue.title
                 <span class="favorite-issue" data-issue-id="@issue.id">
                     <i class="@if(isFavoriteIssue){starred} star material-icons va-text-top">star</i>
                 </span>
@@ -274,15 +279,17 @@
                 }
                 </div>
                 @** Comment **@
-                <div id="comments" class="board-comment-wrap">
-                    <div id="timeline">
-                        <div class="timeline-list">
-                        @partial_comments(project, issue)
+                @if(!issue.isDraft) {
+                    <div id="comments" class="board-comment-wrap">
+                        <div id="timeline">
+                            <div class="timeline-list">
+                            @partial_comments(project, issue)
+                            </div>
                         </div>
+                        @common.commentForm(issue.asResource(), ResourceType.ISSUE_COMMENT, routes.IssueApp.newComment(project.owner, project.name, issue.getNumber).toString())
                     </div>
-                    @common.commentForm(issue.asResource(), ResourceType.ISSUE_COMMENT, routes.IssueApp.newComment(project.owner, project.name, issue.getNumber).toString())
-                </div>
-                @** // Comment **@
+                    @** // Comment **@
+                }
             </div>
 
             <div class="span3 span-right-pane mb20">

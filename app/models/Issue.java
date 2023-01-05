@@ -139,6 +139,8 @@ public class Issue extends AbstractPosting implements LabelOwner {
 
     public Integer weight = 0;
 
+    public Boolean isDraft = false;
+
     public Issue() {
         super();
     }
@@ -261,7 +263,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
 
     public static int countIssues(Long projectId, State state) {
         if (state == State.ALL) {
-            return finder.where().eq("project.id", projectId).isNull("parent.id").findRowCount();
+            return finder.where().eq("project.id", projectId).isNull("parent.id").ne("state", State.DRAFT).findRowCount();
         } else {
             return finder.where().eq("project.id", projectId).isNull("parent.id").eq("state", state).findRowCount();
         }
