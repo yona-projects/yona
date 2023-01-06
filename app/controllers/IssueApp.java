@@ -774,6 +774,7 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         if (issue.isPublish) {
+            originalIssue.createdDate = JodaDateUtil.now();
             originalIssue.setNumber(Project.increaseLastIssueNumber(originalIssue.project.id));
         }
         Call redirectTo = routes.IssueApp.issue(originalIssue.project.owner, originalIssue.project.name, originalIssue.getNumber());
