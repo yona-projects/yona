@@ -10,11 +10,6 @@
 <div class="tab-pane user-project-list" id="myProjectList">
 @views.html.index.myProjectList(UserApp.currentUser())
 </div>
-@if(!Application.HIDE_PROJECT_LISTING && !UserApp.currentUser().isGuest){
-    <div class="tab-pane user-project-list" id="allProjectList">
-@views.html.index.allProjectList(UserApp.currentUser())
-    </div>
-}
 <div class="tab-pane user-project-list" id="myRecentIssueList">
 @views.html.index.myRecentIssueList(UserApp.currentUser())
 </div>
