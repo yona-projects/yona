@@ -10,11 +10,12 @@
 @(state: String, childIssue: Issue, parentIssue: Issue)
 @urlToList(project:Project, state:String) = {@routes.IssueApp.issues(project.owner, project.name, "open", "html", 1)}
 
+    @if(!childIssue.isDraft || (childIssue.isDraft && childIssue.authorLoginId.equals(UserApp.currentUser().loginId))) {
 <div class="issue-item @if(childIssue.id == parentIssue.id){selected-child} child-issue">
     <span class="state-label @state">@if(state == "closed"){<i class=" yobicon-checkmark">}</i></span>
     <a class="twoColumeModeTarget" href="@routes.IssueApp.issue(childIssue.project.owner, childIssue.project.name, childIssue.getNumber)">
         <span class="item-name">
-            <span class="subtask-number">#@childIssue.getNumber</span>
+            <span class="subtask-number">@if(childIssue.isDraft){@Messages("issue.state.draft")} else {#@childIssue.getNumber}</span>
             <span>@childIssue.title</span>
             <span>@if(childIssue.assignee != null) { - @childIssue.assignee.user.getPureNameOnly}</span>
         </span>
@@ -27,4 +28,4 @@
     @agoOrDateString(childIssue.createdDate)
     </span>
 </div>
-
+    }

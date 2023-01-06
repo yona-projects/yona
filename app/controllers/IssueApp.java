@@ -609,7 +609,11 @@ public class IssueApp extends AbstractPostingApp {
         } else {
             newIssue.assignee = null;
         }
-        newIssue.state = State.OPEN;
+        if (newIssue.isDraft) {
+            newIssue.state = State.DRAFT;
+        } else {
+            newIssue.state = State.OPEN;
+        }
 
         if (newIssue.project.id.equals(Project.findByOwnerAndProjectName(ownerName, projectName).id)) {
             addLabels(newIssue, request());
@@ -777,6 +781,9 @@ public class IssueApp extends AbstractPostingApp {
 
         if (issue.isPublish) {
             originalIssue.createdDate = JodaDateUtil.now();
+            if (originalIssue.state == State.DRAFT) {
+                originalIssue.state = State.OPEN;
+            }
             originalIssue.setNumber(Project.increaseLastIssueNumber(originalIssue.project.id));
         }
         Call redirectTo = routes.IssueApp.issue(originalIssue.project.owner, originalIssue.project.name, originalIssue.getNumber());

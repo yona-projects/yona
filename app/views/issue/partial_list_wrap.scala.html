@@ -81,7 +81,7 @@
                 }
             </div>
 
-            @if(currentPage.getPageIndex == 0 && !param.hasCondition && param.state != State.CLOSED) {
+            @if(currentPage.getPageIndex == 0 && !param.hasCondition && !param.state.equals(State.CLOSED.state())) {
                 @partial_list_draft(project, IssueApp.findDraftIssues(project.owner, project.name))
             }
             @partial_list(project, currentPage.getList, param, currentPage.getPageIndex, currentPage.getTotalPageCount)

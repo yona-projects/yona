@@ -341,6 +341,7 @@ issue.state = 상태
 issue.state.all = 전체
 issue.state.assigned = 할당됨
 issue.state.closed = 닫힘
+issue.state.draft = 초안
 issue.state.enrolled = 등록
 issue.state.open = 열림
 issue.subtask.select = — 부모 이슈 선택 —

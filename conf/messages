@@ -341,6 +341,7 @@ issue.state = Status
 issue.state.all = All
 issue.state.assigned = Assigned
 issue.state.closed = Closed
+issue.state.draft = Draft
 issue.state.enrolled = Status entered
 issue.state.open = Open
 issue.subtask.select = ??? Select parent issue ???
