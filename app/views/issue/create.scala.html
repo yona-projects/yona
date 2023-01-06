@@ -83,7 +83,7 @@
 
                     <div class="actrow right-txt">
                         <button type="button" id="draft-save-btn" class="ybtn ybtn-watching draft-save-btn">@Messages("button.draft.save")</button>
-                        <button type="submit" class="ybtn ybtn-success">@Messages("button.save")</button><!--
+                        <button type="submit" id="button-save" class="ybtn ybtn-success">@Messages("button.save")</button><!--
                      --><a href="javascript:history.back();" class="ybtn">@Messages("button.cancel")</a>
                     </div>
                 </div>
@@ -188,6 +188,16 @@
             "url"   : "@api.routes.ProjectApi.titleHeads(project.owner, project.name)"
         });
 
+        $('#button-save').on('click', function(){
+            var $this = $(this);
+            $this.prop('disabled', true);
+            setTimeout(function (){
+                $this.prop('disabled', false);
+            }, 3000);
+
+            $('#issue-form').submit();
+        });
+
         tippy('#draft-save-btn', {
             content: '@Messages("button.draft.save.description")',
             placement: 'top',
@@ -195,8 +205,14 @@
         });
 
         $('#draft-save-btn').on('click', function(){
-          $('#isDraft').val('true');
-          $('#issue-form').submit();
+            var $this = $(this);
+            $this.prop('disabled', true);
+            setTimeout(function (){
+                $this.prop('disabled', false);
+            }, 3000);
+
+            $('#isDraft').val('true');
+            $('#issue-form').submit();
         });
     });
 </script>
