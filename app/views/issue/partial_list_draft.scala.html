@@ -30,7 +30,7 @@
                         <div for="issue-@issue.id" class="issue-item-row">
                             <div class="title-wrap">
                                 <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)" class="title">
-                                @if(issue.isDraft){<span class="draft">Draft</span>} else {<span class="post-id">#@issue.getNumber</span>}
+                                <span class="post-id">@if(issue.isDraft){<span class="draft-number">#@Messages("issue.state.draft")</span>} else {#@issue.getNumber}</span>
                                 </a>
                                 @if(issue.weight > 0) {<span class="weight-up-arrow" data-toggle="tooltip" data-placement="right" title="@Messages("issue.weight") @issue.weight"><i class="yobicon-angle-circled-up"></i></span>}
                                 @if(issue.weight < 0) {<span class="weight-down-arrow" data-toggle="tooltip" data-placement="right" title="@Messages("issue.weight") @issue.weight"><i class="yobicon-angle-circled-down"></i></span>}

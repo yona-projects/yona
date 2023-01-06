@@ -740,6 +740,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
         return finder.where()
                 .eq("parent.id", parentIssueId)
                 .eq("state", state)
+                .orderBy("number")
                 .findList();
     }
 
