@@ -577,7 +577,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
 
     public State nextState() {
         int currentState = Issue.availableStates.indexOf(this.state);
-        if(isFirstState(currentState)) {
+        if(isFirstState(currentState) || this.state == State.DRAFT) {
             return Issue.availableStates.get(Issue.availableStates.size()-1);
         } else {
             return Issue.availableStates.get(currentState - 1);
@@ -725,6 +725,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
     public boolean hasChildIssue(){
         return finder.where()
                 .eq("parent.id", this.id)
+                .eq("isDraft", false)
                 .setMaxRows(1)
                 .findRowCount() > 0;
     }
