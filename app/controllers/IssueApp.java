@@ -401,6 +401,8 @@ public class IssueApp extends AbstractPostingApp {
 
         for (Issue issue : issueMassUpdate.issues) {
             issue.refresh();
+            if (issue.isDraft) continue;
+
             if (issueMassUpdate.delete) {
                 if (AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(),
                         Operation.DELETE)) {
@@ -525,7 +527,7 @@ public class IssueApp extends AbstractPostingApp {
             oldState = issue.state;
             issue.state = newState;
         }
-        if(stateChanged) {
+        if(!issue.isDraft && stateChanged) {
             NotificationEvent notiEvent = NotificationEvent.afterStateChanged(oldState, issue);
             IssueEvent.addFromNotificationEvent(notiEvent, issue, UserApp.currentUser().loginId);
         }
@@ -935,7 +937,9 @@ public class IssueApp extends AbstractPostingApp {
         Call redirectTo =
             routes.IssueApp.issues(project.owner, project.name, State.OPEN.state(), "html", 1);
 
-        NotificationEvent.afterResourceDeleted(issue, UserApp.currentUser());
+        if (!issue.isDraft) {
+            NotificationEvent.afterResourceDeleted(issue, UserApp.currentUser());
+        }
         return delete(issue, issue.asResource(), redirectTo);
     }
 
