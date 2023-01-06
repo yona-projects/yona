@@ -120,9 +120,11 @@ public class IssueApp extends AbstractPostingApp {
     public static List<Issue> findDraftIssues(String ownerName, String projectName) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
-        return   Issue.finder.where().eq("isDraft", true)
+        return   Issue.finder.where()
                 .eq("authorLoginId", UserApp.currentUser().loginId)
-                .eq("project.id", project.id).findList();
+                .eq("project.id", project.id)
+                .eq("isDraft", true)
+                .orderBy("number desc").findList();
     }
 
     @Transactional

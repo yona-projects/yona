@@ -281,6 +281,7 @@ issue.comment.error.unvote = Failed to disagree with the comment because a serve
 issue.comment.error.vote = Failed to agree with the comment because a server error has occurred.
 issue.content = Issue Content
 issue.createdDate = Created date
+issue.draft.description = This is an draft issue. Only you can see it until you publish.
 issue.delete = Delete issue
 issue.derived = Derived issue
 issue.downloadAsExcel = Download as Excel file

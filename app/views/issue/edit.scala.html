@@ -36,7 +36,7 @@
                 <dl>
                     <dt>
                         @if(issue.isDraft) {
-                            <span class="draft">Draft</span>
+                            <span class="draft">@Messages("issue.state.draft")</span>
                         } else {
                             <label for="title"><strong class="secondary-txt">#@issue.getNumber</strong></label>
                         }

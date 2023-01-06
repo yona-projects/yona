@@ -15,7 +15,7 @@
     <span class="state-label @state">@if(state == "closed"){<i class=" yobicon-checkmark">}</i></span>
     <a class="twoColumeModeTarget" href="@routes.IssueApp.issue(childIssue.project.owner, childIssue.project.name, childIssue.getNumber)">
         <span class="item-name">
-            <span class="subtask-number">@if(childIssue.isDraft){@Messages("issue.state.draft")} else {#@childIssue.getNumber}</span>
+            <span class="subtask-number">@if(childIssue.isDraft){<span class="draft-number">#@Messages("issue.state.draft")</span>} else {#@childIssue.getNumber}</span>
             <span>@childIssue.title</span>
             <span>@if(childIssue.assignee != null) { - @childIssue.assignee.user.getPureNameOnly}</span>
         </span>

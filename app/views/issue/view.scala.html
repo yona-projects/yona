@@ -118,11 +118,7 @@
                 @if(issue.parent != null) {
                     <span class="subtask-mark">subtask</span>
                 }
-                @if(issue.isDraft){
-                    <span class="draft">Draft</span>
-                } else {
-                    <strong class="board-id">#@issue.getNumber</strong>
-                }
+                <strong class="board-id">@if(issue.isDraft){<span class="draft-number">#@Messages("issue.state.draft")</span>} else {@issue.getNumber}</strong>
                 @issue.title
                 <span class="favorite-issue" data-issue-id="@issue.id">
                     <i class="@if(isFavoriteIssue){starred} star material-icons va-text-top">star</i>
@@ -134,6 +130,9 @@
                     <span class="badge badge-small badge-issue-@issue.state.state.toLowerCase">@Messages("issue.state." + issue.state.state)</span>
                 </div>
             </div>
+            @if(issue.isDraft){
+                <div class="draft">@Messages("issue.draft.description")</div>
+            }
         </div>
         @** Content body **@
         <!--board-body-->
@@ -172,7 +171,6 @@
                         }
                     }
                 </div>
-
                 @if(StringUtils.isEmpty(issue.body)){
                     <div class="content empty-content"></div>
                 } else {
