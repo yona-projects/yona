@@ -252,12 +252,34 @@
             maxWidth: 'none',
         });
 
+        $('#button-save').on('click', function(){
+            var $this = $(this);
+            $this.prop('disabled', true);
+            setTimeout(function (){
+                $this.prop('disabled', false);
+            }, 3000);
+
+            $('#issue-form').submit();
+        });
+
         $('#button-draft-publish').on('click', function(){
+            var $this = $(this);
+            $this.prop('disabled', true);
+            setTimeout(function (){
+                $this.prop('disabled', false);
+            }, 3000);
+
             $('#isPublish').val('true');
             $('#issue-form').submit();
         });
 
         $('#draft-save-btn').on('click', function(){
+            var $this = $(this);
+            $this.prop('disabled', true);
+            setTimeout(function (){
+                $this.prop('disabled', false);
+            }, 3000);
+
             $('#isDraft').val('true');
             $('#issue-form').submit();
         });
