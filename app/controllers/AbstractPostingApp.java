@@ -103,8 +103,12 @@ public class AbstractPostingApp extends Controller {
         posting.project = original.project;
         posting.setNumber(original.getNumber());
         posting.updatedByAuthorId = UserApp.currentUser().id;
-        if (!StringUtils.defaultString(original.body, "").equals(StringUtils.defaultString(posting.body, ""))) {
-            posting.history = addToHistory(original, posting) + StringUtils.defaultString(original.history, "");
+        if (posting.isPublish) {
+            posting.history = "";
+        } else {
+            if (!StringUtils.defaultString(original.body, "").equals(StringUtils.defaultString(posting.body, ""))) {
+                posting.history = addToHistory(original, posting) + StringUtils.defaultString(original.history, "");
+            }
         }
         preUpdateHook.run();
 
