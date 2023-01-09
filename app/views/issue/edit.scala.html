@@ -86,8 +86,7 @@
                         }
                         @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE) && issue.isDraft) {
                             <button type="submit" id="button-draft-publish" class="ybtn ybtn-info">@Messages("button.draft.publish")</button>
-                            <button type="button" id="draft-save-btn" class="ybtn ybtn-watching draft-save-btn">@Messages("button.draft.save")</button><!--
-                        }
+                            <button type="button" id="draft-save-btn" class="ybtn ybtn-watching draft-save-btn">@Messages("button.draft.save")</button>}<!--
                     -->@if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE) && !issue.isDraft) {
                             <button type="submit" id="button-save" class="ybtn ybtn-info">@Messages("button.save")</button>}<!--
                      --><a href="javascript:history.back();" class="ybtn">@Messages("button.cancel")</a>
