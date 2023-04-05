@@ -1922,7 +1922,7 @@
     _proto.heading = function heading(text, level, raw, slugger) {
       var idText = this.options.headerPrefix + slugger.slug(raw);
       if (this.options.headerIds) {
-        return '<h' + level + ' id="' + this.options.headerPrefix + slugger.slug(raw) + '">' + text + '</h' + level + '>\n';
+        return '<h' + level + ' id="' + idText + '">' + text + '<a href="#' + idText + '" class="head-anchor">#</a>' + '</h' + level + '>\n';
       } // ignore IDs
 
 
