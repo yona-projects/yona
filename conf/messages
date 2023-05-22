@@ -21,6 +21,7 @@
 # - userinfo
 # - validation
 #
+app.notice.shutdown.demo = [Notice] Announcing the End of Demo Server
 app.description = Web-based platform for collaborative software development
 app.name = Yona
 app.restart.notice = Server needs to be restarted.

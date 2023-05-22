@@ -21,6 +21,7 @@
 # - userinfo
 # - validation
 #
+app.notice.shutdown.demo = 데모 서버 종료 안내
 app.description = 21세기 소프트웨어 개발 플랫폼
 app.name = Yona
 app.restart.notice = 서버를 재시작해야합니다.
