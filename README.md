@@ -5,11 +5,12 @@
 
 
 <img src='public/images/yona_logo.png' width='300px'>
-21세기 협업 개발 플랫폼
 
-DEMO: [http://repo.yona.io](http://repo.yona.io)
+##### 21세기 협업 개발 플랫폼
 
-Official Site: [http://yona.io](http://yona.io)
+- DEMO: [http://repo.yona.io](http://repo.yona.io)
+(데모 서버는 2023년 6월 30일 종료합니다. [관련 안내](https://github.com/yona-projects/yona/issues/785))
+- Official Site: [http://yona.io](http://yona.io)
 
 Yona?
 --
