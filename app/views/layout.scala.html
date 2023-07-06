@@ -56,7 +56,7 @@
     @if(UserApp.isSiteAdminLoggedInSession){
         <div class="admin-logged-in-affix" data-spy="affix" data-offset-top="30">@Messages("user.siteAdminLoggedInAffix") <span class="small-font">@Messages("user.siteAdminLoggedInAffix.maxim")</span></div>
     }
-    <div class="admin-logged-in-affix" data-offset-top="30">@Messages("app.notice.shutdown.demo") <span class="font12"><a href="https://github.com/yona-projects/yona/issues/785" target="_blank">[Read me]</a></span></div>
+    <div class="admin-logged-in-affix" data-spy="affix" data-offset-top="30">@Messages("app.notice.shutdown.demo") <span class="font12"><a href="https://github.com/yona-projects/yona/issues/785" target="_blank">[Read me]</a></span></div>
         @partial_update_notification()
 @content
 @common.scripts()
