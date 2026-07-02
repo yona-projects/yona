@@ -35,9 +35,18 @@ function detectPageChange(url){
     }
 
     function detectChange(){
+        var csrfToken = $("meta[name=csrf-token]").attr("content");
+        var headers = {};
+
+        if (csrfToken) {
+            headers["Csrf-Token"] = csrfToken;
+            headers["X-CSRF-Token"] = csrfToken;
+        }
+
         $.ajax({
             method: "POST",
             url: url,
+            headers: headers,
             contentType: "application/json",
             data: JSON.stringify({
                 issueBodyChecksum: issueBodyChecksum,
@@ -64,4 +73,3 @@ function detectPageChange(url){
             })
     }
 }
-

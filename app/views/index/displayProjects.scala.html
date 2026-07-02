@@ -11,7 +11,7 @@
 } else {
     <ul class="tab-pane user-ul @if(isActive){active}" id="@title">
         @for(project <- projects){
-            @views.html.index.myProjectList_partial(project, false)
+            @views.html.index.myProjectList_partial(project, FavoriteProject.findByProjectId(UserApp.currentUser().id, project.id) != null)
         }
     </ul>
 }

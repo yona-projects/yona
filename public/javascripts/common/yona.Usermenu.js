@@ -48,21 +48,24 @@ $(function () {
 
     function afterUsermenuLoaded() {
         // used for new project list ui
-        $(".right-menu").on("click.tab", ".myProjectList, a[href='#recentlyVisited'], a[href='#createdByMe'], a[href='#watching'], a[href='#joinmember']", function () {
-            updateStar();
-            setTimeout(function focusToProjectSearchInput() {
-                var $projectSearch = $('.project-search');
-                var $orgSearch = $('.org-search');
-                if (viewSize > PIXEL_CRITERIA_FOR_SMALL_DEVICE) {
-                    $projectSearch.focus();
-                }
-                if (!$projectSearch.val()) {
-                    $projectSearch.val($orgSearch.val());
-                }
-                $orgSearch.val("");
-            }, 200);
+        updateStar();
 
-        });
+        $(document).off("click.projectListStarSync")
+            .on("click.projectListStarSync", ".myProjectList, a[href='#recentlyVisited'], a[href='#createdByMe'], a[href='#watching'], a[href='#joinmember']", function () {
+                updateStar();
+                setTimeout(function focusToProjectSearchInput() {
+                    var $projectSearch = $('.project-search');
+                    var $orgSearch = $('.org-search');
+                    if (viewSize > PIXEL_CRITERIA_FOR_SMALL_DEVICE) {
+                        $projectSearch.focus();
+                    }
+                    if (!$projectSearch.val()) {
+                        $projectSearch.val($orgSearch.val());
+                    }
+                    $orgSearch.val("");
+                }, 200);
+
+            });
 
         $('.myOrganizationList').on("click.orgList", function focusToOrgSearchInput() {
             setTimeout(function () {

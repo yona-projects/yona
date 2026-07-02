@@ -102,6 +102,7 @@ play.http.actionCreator = "modules.YonaActionCreator"
 play.http.errorHandler = "modules.YonaErrorHandler"
 play.modules.enabled += "modules.YonaModule"
 play.modules.enabled += "com.feth.play.module.mail.MailerModule"
+play.filters.headers.frameOptions = "SAMEORIGIN"
 
 # Database configuration
 # ~~~~~

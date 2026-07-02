@@ -13,7 +13,7 @@
     } else {
         <ul class="tab-pane user-ul @if(isActive){active}" id="@title">
         @for(project <- projects){
-            @myProjectList_partial(project, false)
+            @myProjectList_partial(project, FavoriteProject.findByProjectId(currentUser.id, project.id) != null)
         }
         </ul>
     }
@@ -58,4 +58,3 @@
                 </div>
             </div>
         </div>
-

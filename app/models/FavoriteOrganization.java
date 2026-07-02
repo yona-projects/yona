@@ -45,4 +45,11 @@ public class FavoriteOrganization extends Model {
             favoriteOrganization.update();
         }
     }
+
+    public static FavoriteOrganization findByOrganizationId(Long userId, Long organizationId) {
+        return finder.query().where()
+                .eq("user.id", userId)
+                .eq("organization.id", organizationId)
+                .findOne();
+    }
 }

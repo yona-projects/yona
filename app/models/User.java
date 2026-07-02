@@ -987,29 +987,42 @@ public class User extends Model implements ResourceConvertible {
     }
 
     public boolean toggleFavoriteProject(Long projectId) {
-        for (FavoriteProject favoriteProject : this.favoriteProjects) {
-            if( favoriteProject.project.id.equals(projectId) ){
-                removeFavoriteProject(projectId);
-                this.favoriteProjects.remove(favoriteProject);
-                RecentProject.deletePrevious(this, favoriteProject.project);
-                return false;
-            }
+        FavoriteProject favoriteProject = FavoriteProject.findByProjectId(this.id, projectId);
+        if (favoriteProject != null) {
+            Project project = favoriteProject.project;
+            removeLoadedFavoriteProject(projectId, favoriteProject.id);
+            favoriteProject.delete();
+            RecentProject.deletePrevious(this, project);
+            return false;
         }
 
-        FavoriteProject favoriteProject = new FavoriteProject(this, Project.find.byId(projectId));
-        this.favoriteProjects.add(favoriteProject);
-        favoriteProject.save();
+        FavoriteProject newFavoriteProject = new FavoriteProject(this, Project.find.byId(projectId));
+        this.favoriteProjects.add(newFavoriteProject);
+        newFavoriteProject.save();
         return true;
     }
 
     public void removeFavoriteProject(Long projectId) {
-        List<FavoriteProject> list = FavoriteProject.finder.query().where()
-                .eq("user.id", this.id)
-                .eq("project.id", projectId).findList();
+        FavoriteProject favoriteProject = FavoriteProject.findByProjectId(this.id, projectId);
+        if (favoriteProject != null) {
+            removeLoadedFavoriteProject(projectId, favoriteProject.id);
+            favoriteProject.delete();
+        }
+    }
 
-        if(list != null && list.size() > 0){
-            favoriteProjects.remove(list.get(0));
-            list.get(0).delete();
+    private void removeLoadedFavoriteProject(Long projectId, Long favoriteProjectId) {
+        if (favoriteProjects == null) {
+            return;
+        }
+
+        for (Iterator<FavoriteProject> iterator = favoriteProjects.iterator(); iterator.hasNext();) {
+            FavoriteProject favoriteProject = iterator.next();
+            Long loadedProjectId = favoriteProject.project != null ? favoriteProject.project.id : null;
+            if (Objects.equals(favoriteProject.id, favoriteProjectId)
+                    || Objects.equals(loadedProjectId, projectId)) {
+                iterator.remove();
+                return;
+            }
         }
     }
 
@@ -1024,28 +1037,40 @@ public class User extends Model implements ResourceConvertible {
     }
 
     public boolean toggleFavoriteOrganization(Long organizationId) {
-        for (FavoriteOrganization favoriteOrganization : this.favoriteOrganizations) {
-            if( favoriteOrganization.organization.id.equals(organizationId) ){
-                removeFavoriteOrganization(organizationId);
-                this.favoriteOrganizations.remove(favoriteOrganization);
-                return false;
-            }
+        FavoriteOrganization favoriteOrganization = FavoriteOrganization.findByOrganizationId(this.id, organizationId);
+        if (favoriteOrganization != null) {
+            removeLoadedFavoriteOrganization(organizationId, favoriteOrganization.id);
+            favoriteOrganization.delete();
+            return false;
         }
 
-        FavoriteOrganization favoriteOrganization = new FavoriteOrganization(this, Organization.find.byId(organizationId));
-        this.favoriteOrganizations.add(favoriteOrganization);
-        favoriteOrganization.save();
+        FavoriteOrganization newFavoriteOrganization = new FavoriteOrganization(this, Organization.find.byId(organizationId));
+        this.favoriteOrganizations.add(newFavoriteOrganization);
+        newFavoriteOrganization.save();
         return true;
     }
 
     private void removeFavoriteOrganization(Long organizationId) {
-        List<FavoriteOrganization> list = FavoriteOrganization.finder.query().where()
-                .eq("user.id", this.id)
-                .eq("organization.id", organizationId).findList();
+        FavoriteOrganization favoriteOrganization = FavoriteOrganization.findByOrganizationId(this.id, organizationId);
+        if (favoriteOrganization != null) {
+            removeLoadedFavoriteOrganization(organizationId, favoriteOrganization.id);
+            favoriteOrganization.delete();
+        }
+    }
 
-        if(list != null && list.size() > 0){
-            favoriteOrganizations.remove(list.get(0));
-            list.get(0).delete();
+    private void removeLoadedFavoriteOrganization(Long organizationId, Long favoriteOrganizationId) {
+        if (favoriteOrganizations == null) {
+            return;
+        }
+
+        for (Iterator<FavoriteOrganization> iterator = favoriteOrganizations.iterator(); iterator.hasNext();) {
+            FavoriteOrganization favoriteOrganization = iterator.next();
+            Long loadedOrganizationId = favoriteOrganization.organization != null ? favoriteOrganization.organization.id : null;
+            if (Objects.equals(favoriteOrganization.id, favoriteOrganizationId)
+                    || Objects.equals(loadedOrganizationId, organizationId)) {
+                iterator.remove();
+                return;
+            }
         }
     }
 
@@ -1068,28 +1093,40 @@ public class User extends Model implements ResourceConvertible {
     }
 
     public boolean toggleFavoriteIssue(Long issueId) {
-        for (FavoriteIssue favoriteIssue : this.favoriteIssues) {
-            if( favoriteIssue.issue.id.equals(issueId) ){
-                removeFavoriteIssue(issueId);
-                this.favoriteIssues.remove(favoriteIssue);
-                return false;
-            }
+        FavoriteIssue favoriteIssue = FavoriteIssue.findByIssueId(this.id, issueId);
+        if (favoriteIssue != null) {
+            removeLoadedFavoriteIssue(issueId, favoriteIssue.id);
+            favoriteIssue.delete();
+            return false;
         }
 
-        FavoriteIssue favoriteIssue = new FavoriteIssue(this, Issue.finder.byId(issueId));
-        this.favoriteIssues.add(favoriteIssue);
-        favoriteIssue.save();
+        FavoriteIssue newFavoriteIssue = new FavoriteIssue(this, Issue.finder.byId(issueId));
+        this.favoriteIssues.add(newFavoriteIssue);
+        newFavoriteIssue.save();
         return true;
     }
 
     public void removeFavoriteIssue(Long issueId) {
-        List<FavoriteIssue> list = FavoriteIssue.find.query().where()
-                .eq("user.id", this.id)
-                .eq("issue.id", issueId).findList();
+        FavoriteIssue favoriteIssue = FavoriteIssue.findByIssueId(this.id, issueId);
+        if (favoriteIssue != null) {
+            removeLoadedFavoriteIssue(issueId, favoriteIssue.id);
+            favoriteIssue.delete();
+        }
+    }
 
-        if(list != null && list.size() > 0){
-            favoriteIssues.remove(list.get(0));
-            list.get(0).delete();
+    private void removeLoadedFavoriteIssue(Long issueId, Long favoriteIssueId) {
+        if (favoriteIssues == null) {
+            return;
+        }
+
+        for (Iterator<FavoriteIssue> iterator = favoriteIssues.iterator(); iterator.hasNext();) {
+            FavoriteIssue favoriteIssue = iterator.next();
+            Long loadedIssueId = favoriteIssue.issue != null ? favoriteIssue.issue.id : null;
+            if (Objects.equals(favoriteIssue.id, favoriteIssueId)
+                    || Objects.equals(loadedIssueId, issueId)) {
+                iterator.remove();
+                return;
+            }
         }
     }
 
