@@ -28,6 +28,7 @@ import io.ebean.Finder;
 import io.ebean.Model;
 import utils.EventConstants;
 import utils.JodaDateUtil;
+import utils.LobString;
 
 import jakarta.persistence.*;
 import java.util.ArrayList;
@@ -57,6 +58,14 @@ public class PullRequestEvent extends Model implements TimelineItem {
     public String oldValue;
     @Lob
     public String newValue;
+
+    @PostLoad
+    @PrePersist
+    @PreUpdate
+    public void normalizeLobFields() {
+        oldValue = LobString.unwrap(oldValue);
+        newValue = LobString.unwrap(newValue);
+    }
 
     @Override
     public Date getDate() {

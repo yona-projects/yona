@@ -37,6 +37,7 @@ import io.ebean.Finder;
 import io.ebean.Model;
 import play.i18n.Messages;
 import utils.JodaDateUtil;
+import utils.LobString;
 import utils.MessagesUtil;
 
 import javax.annotation.Nonnull;
@@ -75,6 +76,13 @@ public class Milestone extends Model implements ResourceConvertible {
 
     @OneToMany(mappedBy = "milestone")
     public Set<Issue> issues;
+
+    @PostLoad
+    @PrePersist
+    @PreUpdate
+    public void normalizeLobFields() {
+        contents = LobString.unwrap(contents);
+    }
 
     public boolean delete() {
         // Set all issues' milestone to null.

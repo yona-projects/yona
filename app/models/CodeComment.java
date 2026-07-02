@@ -27,6 +27,7 @@ import play.data.validation.Constraints;
 import io.ebean.Finder;
 import io.ebean.Model;
 import utils.JodaDateUtil;
+import utils.LobString;
 
 import jakarta.persistence.*;
 import java.beans.Transient;
@@ -55,6 +56,13 @@ abstract public class CodeComment extends Model implements ResourceConvertible, 
 
     public CodeComment() {
         createdDate = new Date();
+    }
+
+    @PostLoad
+    @PrePersist
+    @PreUpdate
+    public void normalizeLobFields() {
+        contents = LobString.unwrap(contents);
     }
 
 

@@ -17,6 +17,7 @@ import io.ebean.Finder;
 import io.ebean.Model;
 import io.ebean.annotation.Transactional;
 import utils.JodaDateUtil;
+import utils.LobString;
 
 import javax.annotation.Nonnull;
 import jakarta.persistence.*;
@@ -89,6 +90,14 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
         this.project = project;
         this.title = title;
         this.body = body;
+    }
+
+    @PostLoad
+    @PrePersist
+    @PreUpdate
+    public void normalizeLobFields() {
+        body = LobString.unwrap(body);
+        history = LobString.unwrap(history);
     }
 
     /**

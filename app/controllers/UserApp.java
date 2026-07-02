@@ -799,6 +799,10 @@ public class UserApp extends LegacyController {
     private static List<PullRequest> getAclValidatedPullRequests(List<PullRequest> pullRequests, Map<Long, Boolean> projectAcl) {
         List<PullRequest> aclValidatedPullRequests = new ArrayList<>();
         for (PullRequest pullRequest : pullRequests) {
+            pullRequest.toProject = fullyLoadedProject(pullRequest.toProject);
+            if (pullRequest.toProject == null) {
+                continue;
+            }
             if(projectAcl.getOrDefault(pullRequest.toProject.id, false)) {
                 aclValidatedPullRequests.add(pullRequest);
             } else {
@@ -817,6 +821,10 @@ public class UserApp extends LegacyController {
         List<Issue> aclValidatedIssues = new ArrayList<>();
 
         for (Issue issue : issues) {
+            issue.project = fullyLoadedProject(issue.project);
+            if (issue.project == null) {
+                continue;
+            }
             if(projectAcl.getOrDefault(issue.project.id, false)) {
                 aclValidatedIssues.add(issue);
             } else {
@@ -829,6 +837,16 @@ public class UserApp extends LegacyController {
             }
         }
         return aclValidatedIssues;
+    }
+
+    private static Project fullyLoadedProject(Project project) {
+        if (project == null || project.id == null) {
+            return null;
+        }
+        if (StringUtils.isNotBlank(project.owner) && StringUtils.isNotBlank(project.name)) {
+            return project;
+        }
+        return Project.find.byId(project.id);
     }
 
     private static void sortIssues(List<Issue> issues) {

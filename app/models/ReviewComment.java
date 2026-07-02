@@ -26,6 +26,7 @@ import models.resource.ResourceConvertible;
 import play.data.validation.Constraints;
 import io.ebean.Finder;
 import io.ebean.Model;
+import utils.LobString;
 
 import jakarta.persistence.*;
 import java.util.Date;
@@ -65,11 +66,18 @@ public class ReviewComment extends Model implements ResourceConvertible {
     }
 
     public String getContents() {
-        return contents;
+        return LobString.unwrap(contents);
     }
 
     public ReviewComment() {
         createdDate = new Date();
+    }
+
+    @PostLoad
+    @PrePersist
+    @PreUpdate
+    public void normalizeLobFields() {
+        contents = LobString.unwrap(contents);
     }
 
     public static List<ReviewComment> findByThread(Long threadId) {

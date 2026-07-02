@@ -6,7 +6,9 @@
  **/
 package models;
 
+import io.ebean.Ebean;
 import io.ebean.RawSqlBuilder;
+import io.ebean.SqlRow;
 import controllers.UserApp;
 import controllers.routes;
 import notification.INotificationEvent;
@@ -30,6 +32,7 @@ import scala.concurrent.duration.Duration;
 import utils.AccessControl;
 import utils.DiffUtil;
 import utils.EventConstants;
+import utils.LobString;
 import utils.MessagesUtil;
 import utils.RouteUtil;
 
@@ -88,6 +91,14 @@ public class NotificationEvent extends Model implements INotificationEvent {
     @OneToOne(mappedBy="notificationEvent", cascade = CascadeType.ALL)
     public NotificationMail notificationMail;
 
+    @PostLoad
+    @PrePersist
+    @PreUpdate
+    public void normalizeLobFields() {
+        oldValue = LobString.unwrap(oldValue);
+        newValue = LobString.unwrap(newValue);
+    }
+
     /**
      * Returns receivers.
      *
@@ -96,11 +107,24 @@ public class NotificationEvent extends Model implements INotificationEvent {
      * @return receivers
      */
     public Set<User> findReceivers() {
-        String sql = "select n4user.id from n4user where id in (select n4user_id " +
-                     "from notification_event_n4user where " +
-                     "notification_event_id = '" + id + "')";
+        if (id == null) {
+            return new HashSet<>();
+        }
 
-        return User.find.query().setRawSql(RawSqlBuilder.parse(sql).create()).findSet();
+        List<SqlRow> rows = Ebean.createSqlQuery(
+                        "select n4user_id from notification_event_n4user where notification_event_id = :eventId")
+                .setParameter("eventId", id)
+                .findList();
+        Set<Long> userIds = new HashSet<>();
+        for (SqlRow row : rows) {
+            userIds.add(row.getLong("n4user_id"));
+        }
+
+        if (userIds.isEmpty()) {
+            return new HashSet<>();
+        }
+
+        return User.find.query().where().in("id", userIds).findSet();
     }
 
     @Override
@@ -431,7 +455,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
         if (event.receivers.isEmpty()) {
             return;
         }
-        event.save();
+        saveWithNotificationMail(event);
     }
 
     public static void addWithoutSkipEvent(NotificationEvent event) {
@@ -463,7 +487,18 @@ public class NotificationEvent extends Model implements INotificationEvent {
         if (event.receivers.isEmpty()) {
             return;
         }
+        saveWithNotificationMail(event);
+    }
+
+    private static void saveWithNotificationMail(NotificationEvent event) {
+        NotificationMail mail = event.notificationMail;
+        event.notificationMail = null;
         event.save();
+        if (mail != null) {
+            mail.notificationEvent = event;
+            mail.save();
+            event.notificationMail = mail;
+        }
     }
 
     private static boolean isSameUserEventAsPrevious(NotificationEvent event, NotificationEvent lastEvent) {

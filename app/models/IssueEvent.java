@@ -13,6 +13,7 @@ import org.joda.time.DateTime;
 import play.Configuration;
 import io.ebean.Finder;
 import io.ebean.Model;
+import utils.LobString;
 
 import jakarta.persistence.*;
 import java.util.Date;
@@ -48,6 +49,14 @@ public class IssueEvent extends Model implements TimelineItem {
         .getMilliseconds("application.issue-event.draft-time", 30 * 1000L).intValue();
 
     public static final Finder<Long, IssueEvent> find = new Finder<>(IssueEvent.class);
+
+    @PostLoad
+    @PrePersist
+    @PreUpdate
+    public void normalizeLobFields() {
+        oldValue = LobString.unwrap(oldValue);
+        newValue = LobString.unwrap(newValue);
+    }
 
     /**
      * Adds {@code event}.

@@ -21,7 +21,7 @@
         @defining(Issue.findByParentIssueIdAndState(parentIssueId, State.CLOSED)) { closedChildIssues =>
             @if(!openChildIssues.isEmpty || !closedChildIssues.isEmpty || (!draftChildIssues.isEmpty && issue.isDraft && issue.isAuthoredBy(UserApp.currentUser()))) {
                 <div class="child-issues">
-                    @defining(Issue.finder.byId(parentIssueId)) { parentIssue =>
+                    @defining(Issue.findByIdWithProject(parentIssueId)) { parentIssue =>
                         <div class="issue-item parent-issue"><a href="@routes.IssueApp.issue(parentIssue.project.owner, parentIssue.project.name, parentIssue.getNumber)" class="@if(parentIssue.id == issue.id) {bold}">
                             #@parentIssue.getNumber @parentIssue.title @if(parentIssue.assignee != null) {- @parentIssue.assignee.user.getPureNameOnly}</a>
                             @defining(getPercent(closedChildIssues.size.toDouble, (openChildIssues.size + closedChildIssues.size).toDouble)) { percentage =>
@@ -53,4 +53,3 @@
         }
     }
 }
-

@@ -68,6 +68,7 @@ import play.data.format.Formats;
 import play.i18n.Lang;
 import play.i18n.Messages;
 import play.libs.typedmap.TypedMap;
+import utils.LobString;
 import utils.JodaDateUtil;
 import utils.MessagesUtil;
 
@@ -483,21 +484,28 @@ public class Issue extends AbstractPosting implements LabelOwner {
     public static Issue findByNumber(Project project, Long number) {
         Issue issue = Issue.finder.query()
                 .fetch("project")
+                .fetch("project.menuSetting")
                 .fetch("labels")
                 .fetch("sharers")
                 .fetch("assignee")
+                .fetch("assignee.user")
                 .fetch("milestone")
+                .fetch("parent")
+                .fetch("parent.project")
+                .fetch("parent.project.menuSetting")
+                .fetch("parent.assignee")
+                .fetch("parent.assignee.user")
                 .where()
                 .eq("project.id", project.id)
                 .eq("number", number)
                 .findOne();
         if (issue != null) {
-            if (issue.body == null) {
+            if (issue.body == null || LobString.needsUnwrap(issue.body)) {
                 SqlRow row = Ebean.createSqlQuery("select body from issue where id = :id")
                         .setParameter("id", issue.id)
                         .findOne();
                 if (row != null) {
-                    issue.body = row.getString("body");
+                    issue.body = LobString.unwrap(row.getString("body"));
                 }
             }
             if (issue.voters == null) {
@@ -522,14 +530,25 @@ public class Issue extends AbstractPosting implements LabelOwner {
         return issue;
     }
 
+    public static Issue findByIdWithProject(Long id) {
+        return finder.query()
+                .fetch("project")
+                .fetch("project.menuSetting")
+                .fetch("assignee")
+                .fetch("assignee.user")
+                .where()
+                .idEq(id)
+                .findOne();
+    }
+
     private static void loadCommentContents(List<IssueComment> comments) {
         for (IssueComment comment : comments) {
-            if (comment.contents == null && comment.id != null) {
+            if ((comment.contents == null || LobString.needsUnwrap(comment.contents)) && comment.id != null) {
                 SqlRow row = Ebean.createSqlQuery("select contents from issue_comment where id = :id")
                         .setParameter("id", comment.id)
                         .findOne();
                 if (row != null) {
-                    comment.contents = row.getString("contents");
+                    comment.contents = LobString.unwrap(row.getString("contents"));
                 }
             }
         }
@@ -586,7 +605,12 @@ public class Issue extends AbstractPosting implements LabelOwner {
      * @return
      */
     public static List<Issue> findRecentlyIssuesByDaysAgo(User user, int days) {
-        return finder.query().where()
+        return finder.query()
+                .fetch("project")
+                .fetch("project.menuSetting")
+                .fetch("assignee")
+                .fetch("assignee.user")
+                .where()
                 .or(eq("assignee.user.id", user.id), eq("authorId", user.id))
                 .ge("updatedDate", JodaDateUtil.before(days))
                 .orderBy("updatedDate desc, state asc").findList();
@@ -781,7 +805,12 @@ public class Issue extends AbstractPosting implements LabelOwner {
     }
 
     public static List<Issue> findByParentIssueId(Long parentIssueId){
-        return finder.query().where()
+        return finder.query()
+                .fetch("project")
+                .fetch("project.menuSetting")
+                .fetch("assignee")
+                .fetch("assignee.user")
+                .where()
                 .eq("parent.id", parentIssueId)
                 .findList();
     }
@@ -801,7 +830,12 @@ public class Issue extends AbstractPosting implements LabelOwner {
     }
 
     public static List<Issue> findByParentIssueIdAndState(Long parentIssueId, State state){
-        return finder.query().where()
+        return finder.query()
+                .fetch("project")
+                .fetch("project.menuSetting")
+                .fetch("assignee")
+                .fetch("assignee.user")
+                .where()
                 .eq("parent.id", parentIssueId)
                 .eq("state", state)
                 .orderBy("number")

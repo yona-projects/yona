@@ -106,8 +106,17 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
         return this;
     }
 
+    private ExpressionList<Issue> issueExpressionList() {
+        return Issue.finder.query()
+                .fetch("project")
+                .fetch("project.menuSetting")
+                .fetch("assignee")
+                .fetch("assignee.user")
+                .where();
+    }
+
     public ExpressionList<Issue> asExpressionList(@Nonnull Organization organization) {
-        ExpressionList<Issue> el = Issue.finder.query().where();
+        ExpressionList<Issue> el = issueExpressionList();
 
         if(isFilteredByProject()){
             el.in("project.id", getFilteredProjectIds(organization));
@@ -227,7 +236,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
     }
 
     public ExpressionList<Issue> asExpressionList() {
-        ExpressionList<Issue> el = Issue.finder.query().where();
+        ExpressionList<Issue> el = issueExpressionList();
 
         setAssigneeIfExists(el);
         setAuthorIfExist(el);
@@ -345,7 +354,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
     }
 
     public ExpressionList<Issue> asExpressionList(Project project) {
-        ExpressionList<Issue> el = Issue.finder.query().where();
+        ExpressionList<Issue> el = issueExpressionList();
         if( project != null ){
             el.eq("project.id", project.id);
         }

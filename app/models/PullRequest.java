@@ -45,6 +45,7 @@ import playRepository.GitCommit;
 import playRepository.GitRepository;
 import utils.Constants;
 import utils.JodaDateUtil;
+import utils.LobString;
 import utils.MessagesUtil;
 
 import javax.annotation.Nullable;
@@ -146,6 +147,13 @@ public class PullRequest extends Model implements ResourceConvertible {
     @Transient
     private Repository repository;
 
+    @PostLoad
+    @PrePersist
+    @PreUpdate
+    public void normalizeLobFields() {
+        body = LobString.unwrap(body);
+    }
+
     public static PullRequest createNewPullRequest(Project fromProject, Project toProject, String fromBranch, String toBranch) {
         PullRequest pullRequest = new PullRequest();
         pullRequest.toProject = toProject;
@@ -218,7 +226,11 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     public static List<PullRequest> findOpendPullRequestsByDaysAgo(User user, int days) {
-        return finder.query().where()
+        return finder.query()
+                .fetch("toProject")
+                .fetch("toProject.menuSetting")
+                .fetch("fromProject")
+                .where()
                 .eq("contributor.id", user.id)
                 .ge("updated", JodaDateUtil.before(days))
                 .orderBy("updated desc, state asc")

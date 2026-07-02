@@ -49,6 +49,9 @@ import jakarta.persistence.OneToOne;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import static models.enumeration.EventType.*;
@@ -60,6 +63,8 @@ public class NotificationMail extends Model {
     private static final int RECIPIENT_NO_LIMIT = 0;
     static boolean hideAddress = true;
     private static int recipientLimit = RECIPIENT_NO_LIMIT;
+    private static ScheduledExecutorService notificationExecutor;
+    private static ScheduledFuture<?> notificationSchedule;
 
     @Id
     public Long id;
@@ -103,9 +108,13 @@ public class NotificationMail extends Model {
         final int MAIL_NOTIFICATION_DELAY_IN_MILLIS = Configuration.root()
                 .getMilliseconds("application.notification.bymail.delay", 180 * 1000L).intValue();
 
-        utils.AkkaUtil.system().scheduler().schedule(
-            Duration.create(MAIL_NOTIFICATION_INITDELAY_IN_MILLIS, TimeUnit.MILLISECONDS),
-            Duration.create(MAIL_NOTIFICATION_INTERVAL_IN_MILLIS, TimeUnit.MILLISECONDS),
+        stopSchedule();
+        notificationExecutor = Executors.newSingleThreadScheduledExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "yona-notification-mail");
+            thread.setDaemon(true);
+            return thread;
+        });
+        notificationSchedule = notificationExecutor.scheduleWithFixedDelay(
             new Runnable() {
                 public void run() {
                     try {
@@ -182,8 +191,21 @@ public class NotificationMail extends Model {
                     return events;
                 }
             },
-            utils.AkkaUtil.system().dispatcher()
+            MAIL_NOTIFICATION_INITDELAY_IN_MILLIS,
+            MAIL_NOTIFICATION_INTERVAL_IN_MILLIS,
+            TimeUnit.MILLISECONDS
         );
+    }
+
+    public static void stopSchedule() {
+        if (notificationSchedule != null) {
+            notificationSchedule.cancel(false);
+            notificationSchedule = null;
+        }
+        if (notificationExecutor != null) {
+            notificationExecutor.shutdownNow();
+            notificationExecutor = null;
+        }
     }
 
 

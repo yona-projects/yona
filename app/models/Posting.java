@@ -27,6 +27,7 @@ import jakarta.persistence.UniqueConstraint;
 import models.enumeration.ResourceType;
 import models.resource.Resource;
 import utils.JodaDateUtil;
+import utils.LobString;
 
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"project_id", "number"}))
@@ -147,12 +148,12 @@ public class Posting extends AbstractPosting {
                 .eq("project.id", project.id)
                 .eq("number", number)
                 .findOne();
-        if (posting != null && posting.body == null) {
+        if (posting != null && (posting.body == null || LobString.needsUnwrap(posting.body))) {
             SqlRow row = Ebean.createSqlQuery("select body from posting where id = :id")
                     .setParameter("id", posting.id)
                     .findOne();
             if (row != null) {
-                posting.body = row.getString("body");
+                posting.body = LobString.unwrap(row.getString("body"));
             }
         }
         if (posting != null) {
@@ -168,12 +169,12 @@ public class Posting extends AbstractPosting {
 
     private static void loadCommentContents(List<PostingComment> comments) {
         for (PostingComment comment : comments) {
-            if (comment.contents == null && comment.id != null) {
+            if ((comment.contents == null || LobString.needsUnwrap(comment.contents)) && comment.id != null) {
                 SqlRow row = Ebean.createSqlQuery("select contents from posting_comment where id = :id")
                         .setParameter("id", comment.id)
                         .findOne();
                 if (row != null) {
-                    comment.contents = row.getString("contents");
+                    comment.contents = LobString.unwrap(row.getString("contents"));
                 }
             }
         }

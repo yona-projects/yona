@@ -17,6 +17,7 @@ import org.joda.time.Duration;
 import play.data.validation.Constraints;
 import io.ebean.Model;
 import utils.JodaDateUtil;
+import utils.LobString;
 
 import javax.annotation.Nonnull;
 import jakarta.persistence.*;
@@ -56,6 +57,13 @@ abstract public class Comment extends Model implements TimelineItem, ResourceCon
         this();
         setAuthor(author);
         this.contents = contents;
+    }
+
+    @PostLoad
+    @PrePersist
+    @PreUpdate
+    public void normalizeLobFields() {
+        contents = LobString.unwrap(contents);
     }
 
     public Duration ago() {

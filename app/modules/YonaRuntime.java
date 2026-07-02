@@ -158,6 +158,7 @@ public class YonaRuntime {
     }
 
     private void stop() {
+        NotificationMail.stopSchedule();
         mailboxService.stop();
     }
 

@@ -95,6 +95,7 @@ public class IssueApp extends AbstractPostingApp {
         Integer itemsPerPage = getItemsPerPage();
         ExpressionList<Issue> el = searchCondition.asExpressionList();
         PagedList<Issue> issues = el.setFirstRow((searchCondition.pageNum) * (itemsPerPage)).setMaxRows(itemsPerPage).findPagedList();
+        fullyLoadIssueRelations(issues.getList());
 
         switch(format){
             case "pjax":
@@ -146,6 +147,7 @@ public class IssueApp extends AbstractPostingApp {
         Integer itemsPerPage = getItemsPerPage();
         ExpressionList<Issue> el = searchCondition.asExpressionList(project);
         PagedList<Issue> issues = el.setFirstRow((searchCondition.pageNum) * (itemsPerPage)).setMaxRows(itemsPerPage).findPagedList();
+        fullyLoadIssueRelations(issues.getList());
 
         switch(format){
             case EXCEL_EXT:
@@ -174,6 +176,38 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         return Math.min(itemsPerPage, ITEMS_PER_PAGE_MAX);
+    }
+
+    private static void fullyLoadIssueRelations(List<Issue> issues) {
+        Iterator<Issue> iterator = issues.iterator();
+        while (iterator.hasNext()) {
+            Issue issue = iterator.next();
+            issue.project = fullyLoadedProject(issue.project);
+            if (issue.project == null) {
+                iterator.remove();
+                continue;
+            }
+            if (issue.parent != null && issue.parent.id != null) {
+                Issue parentIssue = Issue.findByIdWithProject(issue.parent.id);
+                if (parentIssue != null) {
+                    issue.parent = parentIssue;
+                }
+            }
+        }
+    }
+
+    private static Project fullyLoadedProject(Project project) {
+        if (project == null || project.id == null) {
+            return null;
+        }
+        if (StringUtils.isNotBlank(project.owner) && StringUtils.isNotBlank(project.name)) {
+            return project;
+        }
+        return Project.find.query()
+                .fetch("menuSetting")
+                .where()
+                .idEq(project.id)
+                .findOne();
     }
 
     private static Result issuesAsHTML(Project project, PagedList<Issue> issues, models.support.SearchCondition searchCondition){

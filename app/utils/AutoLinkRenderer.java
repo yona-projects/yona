@@ -234,10 +234,11 @@ public class AutoLinkRenderer {
          */
         if (slashIndex > -1) {
             return Project.findByOwnerAndProjectName(path.substring(0, slashIndex), path.substring(slashIndex + 1));
-        } else {
-
+        } else if (project != null) {
             return Project.findByOwnerAndProjectName(path, project.name);
         }
+
+        return null;
     }
 
     private Link toValidIssueLink(String prefix, Project project, String issueNumber) {
@@ -333,7 +334,10 @@ public class AutoLinkRenderer {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         if (project != null) {
-            return new Link(RouteUtil.getUrl(project), "<span class='project-link'>@" + project.toString() + "</span>");
+            String title = StringEscapeUtils.escapeHtml4("@" + project.toString());
+            String displayName = StringEscapeUtils.escapeHtml4("@" + project.name);
+            return new Link(RouteUtil.getUrl(project),
+                    "<span class='project-link' title='" + title + "'>" + displayName + "</span>");
         } else {
             return Link.EMPTY_LINK;
         }

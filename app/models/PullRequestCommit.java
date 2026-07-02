@@ -25,6 +25,7 @@ import io.ebean.Finder;
 import io.ebean.Model;
 import playRepository.GitCommit;
 import utils.JodaDateUtil;
+import utils.LobString;
 
 import javax.annotation.Nonnull;
 import jakarta.persistence.*;
@@ -64,7 +65,14 @@ public class PullRequestCommit extends Model implements TimelineItem {
     }
 
     public String getCommitMessage() {
-        return commitMessage;
+        return LobString.unwrap(commitMessage);
+    }
+
+    @PostLoad
+    @PrePersist
+    @PreUpdate
+    public void normalizeLobFields() {
+        commitMessage = LobString.unwrap(commitMessage);
     }
 
     public @Nonnull String getCommitShortMessage() {
