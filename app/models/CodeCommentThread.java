@@ -20,13 +20,15 @@
  */
 package models;
 
+import io.ebean.Finder;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.Repository;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +45,7 @@ import static models.CodeRange.Side.B;
 public class CodeCommentThread extends CommentThread {
     private static final long serialVersionUID = 1L;
 
-    public static final Finder<Long, CodeCommentThread> find = new Finder<>(Long.class, CodeCommentThread.class);
+    public static final Finder<Long, CodeCommentThread> find = new Finder<>(CodeCommentThread.class);
 
     @Embedded
     public CodeRange codeRange = new CodeRange();

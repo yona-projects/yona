@@ -415,7 +415,7 @@ public class SVNRepository implements PlayRepository {
     }
 
     @Override
-    public void getArchive(Results.Chunks.Out<byte[]> out, String branchName) {
+    public void getArchive(OutputStream out, String branchName) {
 
     }
 

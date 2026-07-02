@@ -24,9 +24,10 @@ import models.enumeration.ResourceType;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
 import play.data.validation.Constraints;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Date;
 import java.util.List;
 
@@ -36,7 +37,7 @@ import java.util.List;
 @Entity
 public class ReviewComment extends Model implements ResourceConvertible {
     private static final long serialVersionUID = 1L;
-    public static final Finder<Long, ReviewComment> find = new Finder<>(Long.class, ReviewComment.class);
+    public static final Finder<Long, ReviewComment> find = new Finder<>(ReviewComment.class);
 
     @Id
     public Long id;
@@ -72,9 +73,9 @@ public class ReviewComment extends Model implements ResourceConvertible {
     }
 
     public static List<ReviewComment> findByThread(Long threadId) {
-        return find.where()
+        return find.query().where()
                 .eq("thread.id", threadId)
-                .order().asc("createdDate")
+                .orderBy().asc("createdDate")
                 .findList();
     }
 
@@ -114,11 +115,11 @@ public class ReviewComment extends Model implements ResourceConvertible {
     }
 
     @Override
-    public void delete() {
+    public boolean delete() {
         long threadId = thread.id;
         thread.removeComment(this);
 
-        super.delete();
+        boolean deleted = super.delete();
 
         if (ReviewComment.findByThread(threadId).isEmpty()) {
             CommentThread commentThread = CommentThread.find.byId(threadId);
@@ -131,6 +132,6 @@ public class ReviewComment extends Model implements ResourceConvertible {
             commentThread.delete();
         }
 
-
+        return deleted;
     }
 }

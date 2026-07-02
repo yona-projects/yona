@@ -6,7 +6,7 @@
  **/
 package models;
 
-import com.avaje.ebean.RawSqlBuilder;
+import io.ebean.RawSqlBuilder;
 import controllers.UserApp;
 import controllers.routes;
 import notification.INotificationEvent;
@@ -22,18 +22,19 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.joda.time.DateTime;
 import org.tmatesoft.svn.core.SVNException;
 import play.api.i18n.Lang;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 import play.i18n.Messages;
-import play.libs.Akka;
 import playRepository.*;
 import scala.concurrent.duration.Duration;
 import utils.AccessControl;
 import utils.DiffUtil;
 import utils.EventConstants;
+import utils.MessagesUtil;
 import utils.RouteUtil;
 
 import javax.naming.LimitExceededException;
-import javax.persistence.*;
+import jakarta.persistence.*;
 import javax.servlet.ServletException;
 import java.beans.Transient;
 import java.io.IOException;
@@ -58,7 +59,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
     @Id
     public Long id;
 
-    public static final Finder<Long, NotificationEvent> find = new Finder<>(Long.class, NotificationEvent.class);
+    public static final Finder<Long, NotificationEvent> find = new Finder<>(NotificationEvent.class);
 
     public String title;
 
@@ -99,7 +100,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
                      "from notification_event_n4user where " +
                      "notification_event_id = '" + id + "')";
 
-        return User.find.setRawSql(RawSqlBuilder.parse(sql).create()).findSet();
+        return User.find.query().setRawSql(RawSqlBuilder.parse(sql).create()).findSet();
     }
 
     @Override
@@ -125,21 +126,21 @@ public class NotificationEvent extends Model implements INotificationEvent {
         switch (eventType) {
             case ISSUE_STATE_CHANGED:
                 if (newValue.equals(State.CLOSED.state())) {
-                    return Messages.get(lang, "notification.issue.closed");
+                    return MessagesUtil.get(lang, "notification.issue.closed");
                 } else {
-                    return Messages.get(lang, "notification.issue.reopened");
+                    return MessagesUtil.get(lang, "notification.issue.reopened");
                 }
             case ISSUE_ASSIGNEE_CHANGED:
                 if (newValue == null) {
-                    return Messages.get(lang, "notification.issue.unassigned");
+                    return MessagesUtil.get(lang, "notification.issue.unassigned");
                 } else {
-                    return Messages.get(lang, "notification.issue.assigned", newValue);
+                    return MessagesUtil.get(lang, "notification.issue.assigned", newValue);
                 }
             case ISSUE_MILESTONE_CHANGED:
                 if (Milestone.findById(Long.parseLong(newValue)) == null) {
-                    return Messages.get(lang, "notification.milestone.changed", Messages.get(Lang.defaultLang(), "issue.noMilestone"));
+                    return MessagesUtil.get(lang, "notification.milestone.changed", MessagesUtil.get(Lang.defaultLang(), "issue.noMilestone"));
                 } else {
-                    return Messages.get(lang, "notification.milestone.changed", Milestone.findById(Long.parseLong(newValue)).title);
+                    return MessagesUtil.get(lang, "notification.milestone.changed", Milestone.findById(Long.parseLong(newValue)).title);
                 }
             case NEW_ISSUE:
             case NEW_POSTING:
@@ -167,61 +168,61 @@ public class NotificationEvent extends Model implements INotificationEvent {
                 return newValue;
             case PULL_REQUEST_STATE_CHANGED:
                 if (State.OPEN.state().equals(newValue)) {
-                    return Messages.get(lang, "notification.pullrequest.reopened");
+                    return MessagesUtil.get(lang, "notification.pullrequest.reopened");
                 } else {
-                    return Messages.get(lang, "notification.pullrequest." + newValue);
+                    return MessagesUtil.get(lang, "notification.pullrequest." + newValue);
                 }
             case PULL_REQUEST_COMMIT_CHANGED:
                 return newValue;
             case PULL_REQUEST_MERGED:
-                return Messages.get(lang, "notification.type.pullrequest.merged." + newValue) + "\n" + StringUtils.defaultString(oldValue, StringUtils.EMPTY);
+                return MessagesUtil.get(lang, "notification.type.pullrequest.merged." + newValue) + "\n" + StringUtils.defaultString(oldValue, StringUtils.EMPTY);
             case MEMBER_ENROLL_REQUEST:
                 if (RequestState.REQUEST.name().equals(newValue)) {
-                    return Messages.get(lang, "notification.member.enroll.request");
+                    return MessagesUtil.get(lang, "notification.member.enroll.request");
                 } else  if (RequestState.ACCEPT.name().equals(newValue)) {
-                    return Messages.get(lang, "notification.member.enroll.accept");
+                    return MessagesUtil.get(lang, "notification.member.enroll.accept");
                 } else {
-                    return Messages.get(lang, "notification.member.enroll.cancel");
+                    return MessagesUtil.get(lang, "notification.member.enroll.cancel");
                 }
             case ORGANIZATION_MEMBER_ENROLL_REQUEST:
                 if (RequestState.REQUEST.name().equals(newValue)) {
-                    return Messages.get(lang, "notification.organization.member.enroll.request");
+                    return MessagesUtil.get(lang, "notification.organization.member.enroll.request");
                 } else  if (RequestState.ACCEPT.name().equals(newValue)) {
-                    return Messages.get(lang, "notification.organization.member.enroll.accept");
+                    return MessagesUtil.get(lang, "notification.organization.member.enroll.accept");
                 } else {
-                    return Messages.get(lang, "notification.organization.member.enroll.cancel");
+                    return MessagesUtil.get(lang, "notification.organization.member.enroll.cancel");
                 }
             case PULL_REQUEST_REVIEW_STATE_CHANGED:
                 if (PullRequestReviewAction.DONE.name().equals(newValue)) {
-                    return Messages.get(lang, "notification.pullrequest.reviewed", User.find.byId(senderId).loginId);
+                    return MessagesUtil.get(lang, "notification.pullrequest.reviewed", User.find.byId(senderId).loginId);
                 } else {
-                    return Messages.get(lang, "notification.pullrequest.unreviewed", User.find.byId(senderId).loginId);
+                    return MessagesUtil.get(lang, "notification.pullrequest.unreviewed", User.find.byId(senderId).loginId);
                 }
             case REVIEW_THREAD_STATE_CHANGED:
                 if (newValue.equals(CommentThread.ThreadState.CLOSED.name())) {
-                    return Messages.get(lang, "notification.reviewthread.closed");
+                    return MessagesUtil.get(lang, "notification.reviewthread.closed");
                 } else {
-                    return Messages.get(lang, "notification.reviewthread.reopened");
+                    return MessagesUtil.get(lang, "notification.reviewthread.reopened");
                 }
             case ISSUE_MOVED:
-                    return Messages.get(lang, "notification.type.issue.moved", oldValue, newValue);
+                    return MessagesUtil.get(lang, "notification.type.issue.moved", oldValue, newValue);
             case ISSUE_SHARER_CHANGED:
                 if (StringUtils.isNotBlank(newValue)) {
                     User user = User.findByLoginId(newValue);
-                    return Messages.get(lang, "notification.issue.sharer.added", user.getDisplayName(user));
+                    return MessagesUtil.get(lang, "notification.issue.sharer.added", user.getDisplayName(user));
                 } else if (StringUtils.isNotBlank(oldValue)) {
-                    return Messages.get(lang, "notification.issue.sharer.deleted");
+                    return MessagesUtil.get(lang, "notification.issue.sharer.deleted");
                 }
             case ISSUE_LABEL_CHANGED:
                 if (StringUtils.isNotBlank(newValue)) {
                     User user = User.findByLoginId(newValue);
-                    return Messages.get(lang, "notification.issue.label.added", user.getDisplayName(user));
+                    return MessagesUtil.get(lang, "notification.issue.label.added", user.getDisplayName(user));
                 } else if (StringUtils.isNotBlank(oldValue)) {
-                    return Messages.get(lang, "notification.issue.label.deleted");
+                    return MessagesUtil.get(lang, "notification.issue.label.deleted");
                 }
             case RESOURCE_DELETED:
                 User user = User.findByLoginId(newValue);
-                return Messages.get(lang, "notification.resource.deleted", user.getDisplayName(user));
+                return MessagesUtil.get(lang, "notification.resource.deleted", user.getDisplayName(user));
             default:
                 play.Logger.warn("Unknown event message: " + this);
                 play.Logger.warn("Event Type: " + eventType);
@@ -306,7 +307,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
 
             StringBuilder message = new StringBuilder();
 
-            message.append(Messages.get(lang,
+            message.append(MessagesUtil.get(lang,
                     "notification.reviewthread.inTheFile", codeRange.path));
             message.append("\n");
 
@@ -405,11 +406,11 @@ public class NotificationEvent extends Model implements INotificationEvent {
 
         Date draftDate = DateTime.now().minusMillis(EventConstants.DRAFT_TIME_IN_MILLIS).toDate();
 
-        NotificationEvent lastEvent = NotificationEvent.find.where()
+        NotificationEvent lastEvent = NotificationEvent.find.query().where()
                 .eq("resourceId", event.resourceId)
                 .eq("resourceType", event.resourceType)
                 .gt("created", draftDate)
-                .orderBy("id desc").setMaxRows(1).findUnique();
+                .orderBy("id desc").setMaxRows(1).findOne();
 
         if (lastEvent != null) {
             if (isSameUserEventAsPrevious(event, lastEvent)) {
@@ -431,7 +432,6 @@ public class NotificationEvent extends Model implements INotificationEvent {
             return;
         }
         event.save();
-        event.saveManyToManyAssociations("receivers");
     }
 
     public static void addWithoutSkipEvent(NotificationEvent event) {
@@ -442,11 +442,11 @@ public class NotificationEvent extends Model implements INotificationEvent {
 
         Date draftDate = DateTime.now().minusMillis(EventConstants.DRAFT_TIME_IN_MILLIS).toDate();
 
-        NotificationEvent lastEvent = NotificationEvent.find.where()
+        NotificationEvent lastEvent = NotificationEvent.find.query().where()
                 .eq("resourceId", event.resourceId)
                 .eq("resourceType", event.resourceType)
                 .gt("created", draftDate)
-                .orderBy("id desc").setMaxRows(1).findUnique();
+                .orderBy("id desc").setMaxRows(1).findOne();
 
         if (lastEvent != null) {
             if (isSameUserEventAsPrevious(event, lastEvent) &&
@@ -464,7 +464,6 @@ public class NotificationEvent extends Model implements INotificationEvent {
             return;
         }
         event.save();
-        event.saveManyToManyAssociations("receivers");
     }
 
     private static boolean isSameUserEventAsPrevious(NotificationEvent event, NotificationEvent lastEvent) {
@@ -511,7 +510,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
     }
 
     public static void deleteBy(Resource resource) {
-        for (NotificationEvent event : NotificationEvent.find.where().where().eq("resourceType",
+        for (NotificationEvent event : NotificationEvent.find.query().where().eq("resourceType",
                 resource.getType()).eq("resourceId", resource.getId()).findList()) {
             event.delete();
         }
@@ -715,10 +714,10 @@ public class NotificationEvent extends Model implements INotificationEvent {
     }
 
     private static String newPullRequestCommitChangedMessage(PullRequest pullRequest) {
-        List<PullRequestCommit> commits = PullRequestCommit.find.where().eq("pullRequest", pullRequest).orderBy().desc("authorDate").findList();
+        List<PullRequestCommit> commits = PullRequestCommit.find.query().where().eq("pullRequest", pullRequest).orderBy().desc("authorDate").findList();
         StringBuilder builder = new StringBuilder();
         builder.append("### ");
-        builder.append(Messages.get("notification.pullrequest.current.commits"));
+        builder.append(MessagesUtil.get("notification.pullrequest.current.commits"));
         builder.append("\n");
         for (PullRequestCommit commit : commits) {
             if (commit.state == PullRequestCommit.State.CURRENT) {
@@ -1329,7 +1328,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
         StringBuilder result = new StringBuilder();
 
         if(commits.size() > 0) {
-            result.append("### " + Messages.get("notification.pushed.newcommits") + "\n");
+            result.append("### " + MessagesUtil.get("notification.pushed.newcommits") + "\n");
             result.append("```\n");
             for(RevCommit commit : commits) {
                 GitCommit gitCommit = new GitCommit(commit);
@@ -1342,7 +1341,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
         }
 
         if(refNames.size() > 0) {
-            result.append("### " + Messages.get("notification.pushed.branches") + "\n");
+            result.append("### " + MessagesUtil.get("notification.pushed.branches") + "\n");
 
             for(String refName: refNames) {
                 try {
@@ -1486,27 +1485,27 @@ public class NotificationEvent extends Model implements INotificationEvent {
     }
 
     private static String formatMemberRequestTitle(Project project, User user) {
-        return Messages.get("notification.member.request.title", project.name, user.loginId);
+        return MessagesUtil.get("notification.member.request.title", project.name, user.loginId);
     }
 
     private static String formatMemberRequestCancelTitle(Project project, User user) {
-        return Messages.get("notification.member.request.cancel.title", project.name, user.loginId);
+        return MessagesUtil.get("notification.member.request.cancel.title", project.name, user.loginId);
     }
 
     private static String formatMemberRequestCancelTitle(Organization organization, User user) {
-        return Messages.get("notification.member.request.cancel.title", organization.name, user.loginId);
+        return MessagesUtil.get("notification.member.request.cancel.title", organization.name, user.loginId);
     }
 
     private static String formatMemberRequestTitle(Organization organization, User user) {
-        return Messages.get("notification.organization.member.request.title", organization.name, user.loginId);
+        return MessagesUtil.get("notification.organization.member.request.title", organization.name, user.loginId);
     }
 
     private static String formatMemberAcceptTitle(Project project, User user) {
-        return Messages.get("notification.member.request.accept.title", project.name, user.loginId);
+        return MessagesUtil.get("notification.member.request.accept.title", project.name, user.loginId);
     }
 
     private static String formatMemberAcceptTitle(Organization organization, User user) {
-        return Messages.get("notification.member.request.accept.title", organization.name, user.loginId);
+        return MessagesUtil.get("notification.member.request.accept.title", organization.name, user.loginId);
     }
 
     /**
@@ -1576,7 +1575,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
 
     public static void scheduleDeleteOldNotifications() {
         if (EventConstants.KEEP_TIME_IN_DAYS > 0) {
-            Akka.system().scheduler().schedule(
+            utils.AkkaUtil.system().scheduler().schedule(
                 Duration.create(1, TimeUnit.MINUTES),
                 Duration.create(1, TimeUnit.DAYS),
                 new Runnable() {
@@ -1584,14 +1583,14 @@ public class NotificationEvent extends Model implements INotificationEvent {
                     public void run() {
                         Date threshold = DateTime.now()
                                 .minusDays(EventConstants.KEEP_TIME_IN_DAYS).toDate();
-                        List<NotificationEvent> olds = find.where().lt("created", threshold).findList();
+                        List<NotificationEvent> olds = find.query().where().lt("created", threshold).findList();
 
                         for (NotificationEvent old : olds) {
                             old.delete();
                         }
                     }
                 },
-                Akka.system().dispatcher()
+                utils.AkkaUtil.system().dispatcher()
            );
         }
     }
@@ -1619,7 +1618,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
                 "where t0.id = " + user.id + " and t1.id IS NOT NULL " +
                 "order by t1.created DESC";
 
-        return find.setRawSql(RawSqlBuilder.parse(sql).create())
+        return find.query().setRawSql(RawSqlBuilder.parse(sql).create())
                 .setFirstRow(from)
                 .setMaxRows(size)
                 .findList();
@@ -1633,7 +1632,7 @@ public class NotificationEvent extends Model implements INotificationEvent {
                 "left outer join notification_mail t2 on t2.notification_event_id = t1.id " +
                 "where t0.id = " + user.id + " and t1.id IS NOT NULL ";
 
-        return find.setRawSql(RawSqlBuilder.parse(sql).create()).findList().size();
+        return find.query().setRawSql(RawSqlBuilder.parse(sql).create()).findList().size();
     }
 
     public static void afterCommentUpdated(Comment comment) {

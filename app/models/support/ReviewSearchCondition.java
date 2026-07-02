@@ -20,8 +20,8 @@
  */
 package models.support;
 
-import com.avaje.ebean.ExpressionList;
-import com.avaje.ebean.Junction;
+import io.ebean.ExpressionList;
+import io.ebean.Junction;
 import controllers.AbstractPostingApp;
 import models.CommentThread;
 import models.Project;
@@ -54,14 +54,14 @@ public class ReviewSearchCondition extends AbstractPostingApp.SearchCondition im
      * @return The result of the query.
      */
     public ExpressionList<CommentThread> asExpressionList(Project project) {
-        ExpressionList<CommentThread> el = CommentThread.find.where().eq("project.id", project.id);
+        ExpressionList<CommentThread> el = CommentThread.find.query().where().eq("project.id", project.id);
 
         if (authorId != null) {
             el.eq("author.id", authorId);
         }
 
         if (participantId != null) {
-            List<Object> ids = ReviewComment.find.where().eq("author.id", participantId).findIds();
+            List<Object> ids = ReviewComment.find.query().where().eq("author.id", participantId).findIds();
             el.in("reviewComments.id", ids);
         }
 

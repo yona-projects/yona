@@ -26,10 +26,11 @@ import models.resource.ResourceConvertible;
 import models.support.ReviewSearchCondition;
 import play.data.format.Formats;
 import play.data.validation.Constraints;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 
 import javax.annotation.Nullable;
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -42,7 +43,7 @@ import java.util.List;
 public class CommentThread extends Model implements ResourceConvertible {
 
     private static final long serialVersionUID = 1L;
-    public static final Finder<Long, CommentThread> find = new Finder<>(Long.class, CommentThread.class);
+    public static final Finder<Long, CommentThread> find = new Finder<>(CommentThread.class);
 
     @Id
     public Long id;
@@ -73,27 +74,27 @@ public class CommentThread extends Model implements ResourceConvertible {
     }
 
     public static List<CommentThread> findByCommitId(String commitId) {
-        return find.where()
+        return find.query().where()
                 .eq("commitId", commitId)
-                .order().desc("createdDate")
+                .orderBy().desc("createdDate")
                 .findList();
     }
 
     public static <T extends CommentThread> List<T> findByCommitId(Finder<Long, T> find,
                                                                    Project project,
                                                                    String commitId) {
-        return find.where()
+        return find.query().where()
                 .eq("commitId", commitId)
                 .eq("project.id", project.id)
-                .order().desc("createdDate")
+                .orderBy().desc("createdDate")
                 .findList();
     }
 
     public static List<CommentThread> findByCommitIdAndState(String commitId, ThreadState state) {
-        return find.where()
+        return find.query().where()
                 .eq("commitId", commitId)
                 .eq("state", state)
-                .order().desc("createdDate")
+                .orderBy().desc("createdDate")
                 .findList();
     }
 
@@ -173,7 +174,7 @@ public class CommentThread extends Model implements ResourceConvertible {
         if(cond == null){
             cond = new ReviewSearchCondition();
         }
-        return cond.asExpressionList(Project.find.byId(projectId)).findRowCount();
+        return cond.asExpressionList(Project.find.byId(projectId)).findCount();
     }
 
     public static int count(PullRequest pullRequest, String commitId, String path) {
@@ -198,11 +199,11 @@ public class CommentThread extends Model implements ResourceConvertible {
     public static int countOnCommit(Project project, String commitId, String path) {
         int count = 0;
 
-        List<CommentThread> threads = find.where()
+        List<CommentThread> threads = find.query().where()
                 .eq("commitId", commitId)
                 .eq("project.id", project.id)
-                .eq("pullRequest.id", null)
-                .order().desc("createdDate")
+                .isNull("pullRequest.id")
+                .orderBy().desc("createdDate")
                 .findList();
 
         for (CommentThread thread : threads) {
@@ -234,7 +235,7 @@ public class CommentThread extends Model implements ResourceConvertible {
     }
 
     public static void deleteByPullRequest(PullRequest pullRequest) {
-        for(CommentThread commentThread : find.where().eq("pullRequest", pullRequest).findList()) {
+        for(CommentThread commentThread : find.query().where().eq("pullRequest", pullRequest).findList()) {
             commentThread.delete();
         }
     }

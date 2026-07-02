@@ -33,10 +33,9 @@ import org.eclipse.jgit.transport.PostReceiveHook;
 import org.eclipse.jgit.transport.ReceiveCommand;
 import org.eclipse.jgit.transport.ReceivePack;
 
-import play.libs.Akka;
 import play.mvc.Http.Request;
 import actors.RelatedPullRequestMergingActor;
-import akka.actor.Props;
+import org.apache.pekko.actor.Props;
 
 public class PullRequestCheck implements PostReceiveHook {
     private User user;
@@ -54,7 +53,7 @@ public class PullRequestCheck implements PostReceiveHook {
         Set<String> branches = ReceiveCommandUtil.getUpdatedBranches(commands);
         for (String branch : branches) {
             PullRequestEventMessage message = new PullRequestEventMessage(user, request, project, branch);
-            Akka.system().actorOf(Props.create(RelatedPullRequestMergingActor.class)).tell(message, null);
+            utils.AkkaUtil.system().actorOf(Props.create(RelatedPullRequestMergingActor.class)).tell(message, null);
         }
 
         Set<String> deletedBranches = ReceiveCommandUtil.getDeletedBranches(commands);

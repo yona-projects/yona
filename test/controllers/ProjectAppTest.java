@@ -403,11 +403,11 @@ public class ProjectAppTest {
         assertThat(status(result)).isEqualTo(303); // redirection to project home
         assertThat(redirectLocation(result)).isEqualTo("/yobi/projectYobi");
 
-        ProjectTransfer pt = ProjectTransfer.find.where()
+        ProjectTransfer pt = ProjectTransfer.find.query().where()
                 .eq("project", project)
                 .eq("sender", oldOwner)
                 .eq("destination", newOwner.loginId)
-                .findUnique();
+                .findOne();
 
         assertThat(pt).isNotNull();
         assertThat(pt.confirmKey).isNotNull();

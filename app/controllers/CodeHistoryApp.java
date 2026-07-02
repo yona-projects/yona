@@ -35,7 +35,7 @@ import org.eclipse.jgit.api.errors.NoHeadException;
 import org.tmatesoft.svn.core.SVNException;
 import play.data.Form;
 import play.mvc.Call;
-import play.mvc.Controller;
+import utils.LegacyController;
 import play.mvc.Result;
 import play.mvc.With;
 import playRepository.Commit;
@@ -58,20 +58,20 @@ import java.util.Date;
 import java.util.List;
 
 @AnonymousCheck
-public class CodeHistoryApp extends Controller {
+public class CodeHistoryApp extends LegacyController {
 
     private static final int HISTORY_ITEM_LIMIT = 25;
 
 
     @With(CodeAccessCheckAction.class)
-    public static Result historyUntilHead(String ownerName, String projectName) throws IOException,
+    public Result historyUntilHead(String ownerName, String projectName) throws IOException,
             UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
         return history(ownerName, projectName, null, null);
     }
 
     @With(CodeAccessCheckAction.class)
-    public static Result history(String ownerName, String projectName, String branch, String path) throws IOException,
+    public Result history(String ownerName, String projectName, String branch, String path) throws IOException,
             UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
@@ -99,7 +99,7 @@ public class CodeHistoryApp extends Controller {
     }
 
     @With(CodeAccessCheckAction.class)
-    public static Result show(String ownerName, String projectName, String commitId)
+    public Result show(String ownerName, String projectName, String commitId)
             throws IOException, UnsupportedOperationException, ServletException, GitAPIException,
             SVNException, NoSuchMethodException {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
@@ -131,10 +131,10 @@ public class CodeHistoryApp extends Controller {
                 return notFound(ErrorViews.NotFound.render("error.notfound", project));
             }
 
-            List<CommitComment> comments = CommitComment.find.where()
+            List<CommitComment> comments = CommitComment.find.query().where()
                 .eq("commitId", commitId)
                 .eq("project.id", project.id)
-                .order("createdDate")
+                .orderBy("createdDate")
                 .findList();
 
             return ok(svnDiff.render(project, commit, parentCommit, patch, comments, selectedBranch, path));
@@ -151,10 +151,10 @@ public class CodeHistoryApp extends Controller {
     }
 
     @With(NullProjectCheckAction.class)
-    public static Result newSVNComment(String ownerName, String projectName, String commitId)
+    public Result newSVNComment(String ownerName, String projectName, String commitId)
             throws IOException, ServletException, SVNException {
-        Form<CommitComment> codeCommentForm = new Form<>(CommitComment.class)
-                .bindFromRequest();
+        Form<CommitComment> codeCommentForm = utils.FormUtil.form(CommitComment.class)
+                .bindFromRequest(request());
 
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
@@ -188,12 +188,12 @@ public class CodeHistoryApp extends Controller {
     }
 
     @IsCreatable(ResourceType.COMMIT_COMMENT)
-    public static Result newComment(String ownerName, String projectName, String commitId)
+    public Result newComment(String ownerName, String projectName, String commitId)
             throws IOException, ServletException, SVNException {
-        Form<CodeRange> codeRangeForm = new Form<>(CodeRange.class).bindFromRequest();
+        Form<CodeRange> codeRangeForm = utils.FormUtil.form(CodeRange.class).bindFromRequest(request());
 
-        Form<ReviewComment> reviewCommentForm = new Form<>(ReviewComment.class)
-                .bindFromRequest();
+        Form<ReviewComment> reviewCommentForm = utils.FormUtil.form(ReviewComment.class)
+                .bindFromRequest(request());
 
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
@@ -249,7 +249,7 @@ public class CodeHistoryApp extends Controller {
 
     @With(DefaultProjectCheckAction.class)
     @IsAllowed(value = Operation.DELETE, resourceType = ResourceType.COMMIT_COMMENT)
-    public static Result deleteComment(String ownerName, String projectName, String commitId,
+    public Result deleteComment(String ownerName, String projectName, String commitId,
                                        Long id) {
         CommitComment codeComment = CommitComment.find.byId(id);
         codeComment.delete();

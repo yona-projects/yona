@@ -29,9 +29,9 @@ import org.jsoup.select.Elements;
 import play.Configuration;
 import play.Logger;
 import play.api.i18n.Lang;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 import play.i18n.Messages;
-import play.libs.Akka;
 import scala.concurrent.duration.Duration;
 import utils.Config;
 import utils.HttpUtil;
@@ -43,9 +43,9 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -67,8 +67,7 @@ public class NotificationMail extends Model {
     @OneToOne
     public NotificationEvent notificationEvent;
 
-    public static final Finder<Long, NotificationMail> find = new Finder<>(Long.class,
-            NotificationMail.class);
+    public static final Finder<Long, NotificationMail> find = new Finder<>(NotificationMail.class);
 
     public static void onStart() {
         hideAddress = play.Configuration.root().getBoolean(
@@ -104,7 +103,7 @@ public class NotificationMail extends Model {
         final int MAIL_NOTIFICATION_DELAY_IN_MILLIS = Configuration.root()
                 .getMilliseconds("application.notification.bymail.delay", 180 * 1000L).intValue();
 
-        Akka.system().scheduler().schedule(
+        utils.AkkaUtil.system().scheduler().schedule(
             Duration.create(MAIL_NOTIFICATION_INITDELAY_IN_MILLIS, TimeUnit.MILLISECONDS),
             Duration.create(MAIL_NOTIFICATION_INTERVAL_IN_MILLIS, TimeUnit.MILLISECONDS),
             new Runnable() {
@@ -132,7 +131,7 @@ public class NotificationMail extends Model {
                 private void sendMail() {
                     Date createdUntil = DateTime.now().minusMillis
                             (MAIL_NOTIFICATION_DELAY_IN_MILLIS).toDate();
-                    List<NotificationMail> mails = find.where()
+                    List<NotificationMail> mails = find.query().where()
                                     .lt("notificationEvent.created", createdUntil)
                                     .orderBy("notificationEvent.created ASC").findList();
 
@@ -183,7 +182,7 @@ public class NotificationMail extends Model {
                     return events;
                 }
             },
-            Akka.system().dispatcher()
+            utils.AkkaUtil.system().dispatcher()
         );
     }
 
@@ -567,7 +566,7 @@ public class NotificationMail extends Model {
             recipients.addAll(email.getCcAddresses());
             recipients.addAll(email.getBccAddresses());
             String logEntry = String.format("\"%s\" %s", escapedTitle, recipients);
-            play.Logger.of("mail.out").info(logEntry);
+            org.slf4j.LoggerFactory.getLogger("mail.out").info(logEntry);
         } catch (Exception e) {
             Logger.warn("Failed to send a notification: "
                     + email + "\n" + ExceptionUtils.getStackTrace(e));

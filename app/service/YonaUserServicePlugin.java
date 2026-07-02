@@ -1,6 +1,6 @@
 package service;
 
-import com.feth.play.module.pa.service.UserServicePlugin;
+import com.feth.play.module.pa.service.UserService;
 import com.feth.play.module.pa.user.AuthUser;
 import com.feth.play.module.pa.user.AuthUserIdentity;
 import com.feth.play.module.pa.user.BasicIdentity;
@@ -8,20 +8,15 @@ import controllers.UserApp;
 import models.User;
 import models.UserCredential;
 import models.enumeration.UserState;
-import play.Application;
 import utils.Constants;
 
 import javax.annotation.Nonnull;
 
 import static controllers.Application.useSocialNameSync;
-import static play.mvc.Controller.flash;
-import static play.mvc.Http.Context.Implicit.session;
+import static utils.LegacyController.flash;
+import static utils.LegacyController.session;
 
-public class YonaUserServicePlugin extends UserServicePlugin {
-
-	public YonaUserServicePlugin(final Application app) {
-		super(app);
-	}
+public class YonaUserServicePlugin implements UserService {
 
 	@Override
 	public Object save(final AuthUser authUser) {
@@ -120,6 +115,12 @@ public class YonaUserServicePlugin extends UserServicePlugin {
 	public AuthUser link(final AuthUser oldUser, final AuthUser newUser) {
 		UserCredential.addLinkedAccount(oldUser, newUser);
 		return null;
+	}
+
+	@Override
+	public AuthUser update(final AuthUser knownUser) {
+		getLocalIdentity(knownUser);
+		return knownUser;
 	}
 
 	private static void forceOAuthLogout() {

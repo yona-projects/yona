@@ -20,7 +20,7 @@
 **@
 @(title: String)(content: Html)
 
-@isActiveMenu(calls: Call*) = @{
+@isActiveMenu(calls: play.mvc.Call*) = @{
     var menuState = ""
     for(call <- calls) {
         if(call.toString().equals(requestHeader.path)) {
@@ -41,31 +41,31 @@
         <div class="row-fluid">
             <div class="span2">
                 <ul class="site-setting-nav">
-                    <li class="@isActiveMenu(routes.SiteApp.userList())">
-                        <a href="@routes.SiteApp.userList()">@Messages("site.sidebar.userList")</a>
+                    <li class="@isActiveMenu(routes.SiteApp.userList(1, null))">
+                        <a href="@routes.SiteApp.userList(1, null)">@Messages("site.sidebar.userList")</a>
                     </li>
-                    <li class="@isActiveMenu(routes.SiteApp.postList())">
-                        <a href="@routes.SiteApp.postList()">@Messages("site.sidebar.postList")</a>
+                    <li class="@isActiveMenu(routes.SiteApp.postList(1))">
+                        <a href="@routes.SiteApp.postList(1)">@Messages("site.sidebar.postList")</a>
                     </li>
-                    <li class="@isActiveMenu(routes.SiteApp.issueList())">
-                        <a href="@routes.SiteApp.issueList()">@Messages("site.sidebar.issueList")</a>
+                    <li class="@isActiveMenu(routes.SiteApp.issueList(1))">
+                        <a href="@routes.SiteApp.issueList(1)">@Messages("site.sidebar.issueList")</a>
                     </li>
-                    <li class="@isActiveMenu(routes.SiteApp.projectList())">
-                        <a href="@routes.SiteApp.projectList()">@Messages("site.sidebar.projectList")</a>
+                    <li class="@isActiveMenu(routes.SiteApp.projectList("", 0))">
+                        <a href="@routes.SiteApp.projectList("", 0)">@Messages("site.sidebar.projectList")</a>
                     </li>
-                    <li class="@isActiveMenu(routes.SiteApp.writeMail())">
-                        <a href="@routes.SiteApp.writeMail()">@Messages("site.sidebar.mailSend")</a>
+                    <li class="@isActiveMenu(routes.SiteApp.writeMail("", false))">
+                        <a href="@routes.SiteApp.writeMail("", false)">@Messages("site.sidebar.mailSend")</a>
                     </li>
-                    <li class="@isActiveMenu(routes.SiteApp.massMail())">
-                        <a href="@routes.SiteApp.massMail()">@Messages("site.sidebar.massMail")</a>
+                    <li class="@isActiveMenu(routes.SiteApp.massMail)">
+                        <a href="@routes.SiteApp.massMail">@Messages("site.sidebar.massMail")</a>
                     </li>
-                    <li class="@isActiveMenu(routes.SiteApp.update())">
-                        <a href="@routes.SiteApp.update()">@Messages("site.sidebar.update")
+                    <li class="@isActiveMenu(routes.SiteApp.update)">
+                        <a href="@routes.SiteApp.update">@Messages("site.sidebar.update")
                         @if(YobiUpdate.versionToUpdate != null) { <span class="notification-badge">1</span> }
                         </a>
                     </li>
-                    <li class="@isActiveMenu(routes.SiteApp.diagnose())">
-                        <a href="@routes.SiteApp.diagnose()">@Messages("site.sidebar.diagnostics")</a>
+                    <li class="@isActiveMenu(routes.SiteApp.diagnose)">
+                        <a href="@routes.SiteApp.diagnose">@Messages("site.sidebar.diagnostics")</a>
                     </li>
                 </ul>
             </div>

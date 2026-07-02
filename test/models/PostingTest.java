@@ -33,9 +33,9 @@ import org.junit.*;
 
 import utils.JodaDateUtil;
 
-import com.avaje.ebean.Page;
+import io.ebean.PagedList;
 
-import com.avaje.ebean.Ebean;
+import io.ebean.Ebean;
 
 import java.util.List;
 
@@ -61,7 +61,7 @@ public class PostingTest extends ModelTest<Posting> {
             .add("project.name", "projectYobi", Matching.EQUALS)
             .add("body", "", Matching.CONTAINS);
         OrderParams orderParams = new OrderParams().add("id", Direction.DESC);
-        Page<Posting> page = FinderTemplate.getPage(orderParams, searchParam, Posting.finder, AbstractPostingApp.ITEMS_PER_PAGE, 0);
+        PagedList<Posting> page = FinderTemplate.getPage(orderParams, searchParam, Posting.finder, AbstractPostingApp.ITEMS_PER_PAGE, 0);
         // Then
         assertThat(page.getList()).hasSize(1);
     }

@@ -6,10 +6,10 @@
  **/
 package models;
 
-import com.avaje.ebean.Ebean;
-import com.avaje.ebean.ExpressionList;
-import com.avaje.ebean.Page;
-import com.avaje.ebean.RawSqlBuilder;
+import io.ebean.Ebean;
+import io.ebean.ExpressionList;
+import io.ebean.PagedList;
+import io.ebean.RawSqlBuilder;
 import models.enumeration.ProjectScope;
 import models.enumeration.RequestState;
 import models.enumeration.ResourceType;
@@ -24,8 +24,9 @@ import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.tmatesoft.svn.core.SVNException;
 import play.data.validation.Constraints;
-import play.db.ebean.Model;
-import play.db.ebean.Transactional;
+import io.ebean.Finder;
+import io.ebean.Model;
+import io.ebean.annotation.Transactional;
 import playRepository.*;
 import utils.CacheStore;
 import utils.FileUtil;
@@ -33,7 +34,7 @@ import utils.JodaDateUtil;
 import validation.ExConstraints;
 
 import javax.annotation.Nonnull;
-import javax.persistence.*;
+import jakarta.persistence.*;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.*;
@@ -45,7 +46,7 @@ import static utils.HttpUtil.decodeUrlString;
 @Entity
 public class Project extends Model implements LabelOwner {
     private static final long serialVersionUID = 1L;
-    public static final play.db.ebean.Model.Finder <Long, Project> find = new Finder<>(Long.class, Project.class);
+    public static final io.ebean.Finder <Long, Project> find = new Finder<>(Project.class);
 
     private static final int DRAFT_TIME_IN_MILLIS = 1000 * 60 * 60;
 
@@ -148,22 +149,22 @@ public class Project extends Model implements LabelOwner {
         return newProject.id;
     }
 
-    public static Page<Project> findByName(String name, int pageSize,
+    public static PagedList<Project> findByName(String name, int pageSize,
                                            int pageNum) {
         if(StringUtils.isBlank(name)){
-            return find.where().order().desc("createdDate").findPagingList(pageSize).getPage(pageNum);
+            return find.query().fetch("menuSetting").where().orderBy().desc("createdDate").setFirstRow((pageNum) * (pageSize)).setMaxRows(pageSize).findPagedList();
         }
 
-        return find.where().ilike("name", "%" + decodeUrlString(name) + "%")
-                .findPagingList(pageSize).getPage(pageNum);
+        return find.query().fetch("menuSetting").where().ilike("name", "%" + decodeUrlString(name) + "%")
+                .setFirstRow((pageNum) * (pageSize)).setMaxRows(pageSize).findPagedList();
     }
 
     public static Project findByOwnerAndProjectName(String loginId, String projectName) {
         String key = getProjectCacheKey(loginId, projectName);
         Long projectId = CacheStore.projectMap.get(key);
         if(projectId == null || projectId == 0){
-            Project project= find.where().ieq("owner", decodeUrlString(loginId)).ieq("name", decodeUrlString(projectName))
-                    .findUnique();
+            Project project= find.query().fetch("menuSetting").where().ieq("owner", decodeUrlString(loginId)).ieq("name", decodeUrlString(projectName))
+                    .findOne();
             if( project == null) {
                 project = findByPreviousPlaceOf(decodeUrlString(loginId), decodeUrlString(projectName));
             }
@@ -172,12 +173,12 @@ public class Project extends Model implements LabelOwner {
             }
             return project;
         } else {
-            return find.byId(projectId);
+            return find.query().fetch("menuSetting").where().idEq(projectId).findOne();
         }
     }
 
     public static List<Project> findByOwner(String loginId) {
-        return find.where().ieq("owner", decodeUrlString(loginId)).orderBy("name asc").findList();
+        return find.query().fetch("menuSetting").where().ieq("owner", decodeUrlString(loginId)).orderBy("name asc").findList();
     }
 
     public Set<User> findAuthors() {
@@ -199,22 +200,22 @@ public class Project extends Model implements LabelOwner {
 
     private Set<User> getIssueUsers() {
         String issueSql = "select distinct author_id id from issue where project_id=" + this.id;
-        return User.find.setRawSql(RawSqlBuilder.parse(issueSql).create()).findSet();
+        return User.find.query().setRawSql(RawSqlBuilder.parse(issueSql).create()).findSet();
     }
 
     private Set<User> getPostingUsers() {
         String postSql = "SELECT distinct author_id id FROM posting where project_id=" + this.id;
-        return User.find.setRawSql(RawSqlBuilder.parse(postSql).create()).findSet();
+        return User.find.query().setRawSql(RawSqlBuilder.parse(postSql).create()).findSet();
     }
 
     private Set<User> getPullRequestUsers() {
         String postSql = "SELECT distinct contributor_id id FROM pull_request where to_project_id=" + this.id;
-        return User.find.setRawSql(RawSqlBuilder.parse(postSql).create()).findSet();
+        return User.find.query().setRawSql(RawSqlBuilder.parse(postSql).create()).findSet();
     }
 
     public Set<User> getWatchedUsers() {
         String postSql = "SELECT distinct user_id id FROM watch where resource_type='PROJECT' and resource_id=" + this.id;
-        return User.find.setRawSql(RawSqlBuilder.parse(postSql).create()).findSet();
+        return User.find.query().setRawSql(RawSqlBuilder.parse(postSql).create()).findSet();
     }
 
     public boolean hasMember(User user) {
@@ -228,15 +229,15 @@ public class Project extends Model implements LabelOwner {
     }
 
     public static boolean exists(String loginId, String projectName) {
-        int findRowCount = find.where().ieq("owner", loginId)
-                .ieq("name", projectName).findRowCount();
+        int findRowCount = find.query().where().ieq("owner", loginId)
+                .ieq("name", projectName).findCount();
         return (findRowCount != 0);
     }
 
     public static boolean projectNameChangeable(Long id, String userName,
                                                 String projectName) {
-        int findRowCount = find.where().ieq("name", decodeUrlString(projectName))
-                .ieq("owner", userName).ne("id", id).findRowCount();
+        int findRowCount = find.query().where().ieq("name", decodeUrlString(projectName))
+                .ieq("owner", userName).ne("id", id).findCount();
         return (findRowCount == 0);
     }
 
@@ -244,7 +245,7 @@ public class Project extends Model implements LabelOwner {
      * @see {@link RoleType#MANAGER}
      */
     public static boolean isOnlyManager(Long userId) {
-        List<Project> projects = find.select("id").select("name").where()
+        List<Project> projects = find.query().select("id").select("name").where()
                 .eq("projectUser.user.id", userId)
                 .eq("projectUser.role.id", RoleType.MANAGER.roleType())
                 .findList();
@@ -258,7 +259,7 @@ public class Project extends Model implements LabelOwner {
     }
 
     public static List<Project> findProjectsByMember(Long userId) {
-        return find.where().eq("projectUser.user.id", userId).findList();
+        return find.query().where().eq("projectUser.user.id", userId).findList();
     }
 
     public static List<Project> findProjectsJustMemberAndNotOwner(User user) {
@@ -266,7 +267,7 @@ public class Project extends Model implements LabelOwner {
     }
 
     public static List<Project> findProjectsJustMemberAndNotOwner(User user, String orderString) {
-        ExpressionList<Project> el = find.where()
+        ExpressionList<Project> el = find.query().where()
                 .eq("projectUser.user.id", user.id)
                 .ne("projectUser.role.id", RoleType.SITEMANAGER.roleType())
                 .ne("owner", user.loginId);
@@ -278,7 +279,7 @@ public class Project extends Model implements LabelOwner {
 
 
     public static List<Project> findProjectsByMemberWithFilter(Long userId, String orderString) {
-        List<Project> userProjectList = find.where().eq("projectUser.user.id", userId).findList();
+        List<Project> userProjectList = find.query().where().eq("projectUser.user.id", userId).findList();
         if( orderString == null ){
             return userProjectList;
         }
@@ -288,15 +289,15 @@ public class Project extends Model implements LabelOwner {
 
     public static List<Project> findProjectsCreatedByUser(String loginId, String orderString) {
         if( orderString == null ){
-            return find.where().eq("owner", loginId).orderBy("createdDate desc").findList();
+            return find.query().where().eq("owner", loginId).orderBy("createdDate desc").findList();
         } else {
-            return find.where().eq("owner", loginId).orderBy(orderString).findList();
+            return find.query().where().eq("owner", loginId).orderBy(orderString).findList();
         }
 
     }
 
     public static List<Project> findProjectsCreatedByUserAndScope(String loginId, ProjectScope projectScope, String orderString) {
-        return find.where().eq("owner", loginId)
+        return find.query().where().eq("owner", loginId)
                 .eq("projectScope", projectScope)
                 .orderBy(orderString).findList();
     }
@@ -410,7 +411,7 @@ public class Project extends Model implements LabelOwner {
             return lastIssueNumber;
         }
 
-        Issue issue = Issue.finder.where().eq("project.id", id).order().desc("number").findList().get(0);
+        Issue issue = Issue.finder.query().where().eq("project.id", id).orderBy().desc("number").findList().get(0);
         issue.refresh();
 
         return issue.number == null ? 0L : issue.number;
@@ -429,7 +430,7 @@ public class Project extends Model implements LabelOwner {
             return lastPostingNumber;
         }
 
-        Posting posting = Posting.finder.where().eq("project.id", id).order().desc("number").findList().get(0);
+        Posting posting = Posting.finder.query().where().eq("project.id", id).orderBy().desc("number").findList().get(0);
         posting.refresh();
 
         return posting.number == null ? 0L : posting.number;
@@ -607,7 +608,7 @@ public class Project extends Model implements LabelOwner {
     }
 
     public static List<Project> findByOwnerAndOriginalProject(String loginId, Project originalProject) {
-        return find.where()
+        return find.query().where()
                 .eq("originalProject", originalProject)
                 .eq("owner", loginId)
                 .findList();
@@ -705,7 +706,7 @@ public class Project extends Model implements LabelOwner {
      *     BUG 420 : SQLException with CascadeType.REMOVE</a>
      */
     @Override
-    public void delete() {
+    public boolean delete() {
         CacheStore.refreshProjectMap();
         projectMap.remove(getProjectCacheKey(this.owner, this.name));
         deleteProjectTransfer();
@@ -749,7 +750,7 @@ public class Project extends Model implements LabelOwner {
             label.update();
         }
         
-        super.delete();
+        return super.delete();
     }
 
     private void deleteProjectTransfer() {
@@ -821,23 +822,23 @@ public class Project extends Model implements LabelOwner {
     }
 
     public static int countProjectsJustMemberAndNotOwner(String loginId) {
-        return find.where().eq("projectUser.user.loginId", loginId)
-                .ne("owner", loginId).findRowCount();
+        return find.query().where().eq("projectUser.user.loginId", loginId)
+                .ne("owner", loginId).findCount();
     }
 
     public static int countProjectsCreatedByUser(String loginId) {
-        return find.where().eq("owner", loginId).findRowCount();
+        return find.query().where().eq("owner", loginId).findCount();
     }
 
     public List<PushedBranch> getRecentlyPushedBranches() {
-        return PushedBranch.find.where()
+        return PushedBranch.find.query().where()
                             .eq("project", this)
                             .gt("pushedDate", DateTime.now().minusMillis(DRAFT_TIME_IN_MILLIS).toDate())
                             .findList();
     }
 
     public List<PushedBranch> getOldPushedBranches() {
-        return PushedBranch.find.where()
+        return PushedBranch.find.query().where()
                             .eq("project", this)
                             .lt("pushedDate", DateTime.now().minusMillis(DRAFT_TIME_IN_MILLIS).toDate())
                             .findList();
@@ -913,8 +914,8 @@ public class Project extends Model implements LabelOwner {
      */
 
     public static Project findByPreviousPlaceOf(String previousOwnerLoginid, String previousName) {
-        List<Project> projects = find.where().ieq("previousOwnerLoginId", previousOwnerLoginid).ieq("previousName", previousName)
-            .setOrderBy("previousNameChangedTime desc").findList();
+        List<Project> projects = find.query().fetch("menuSetting").where().ieq("previousOwnerLoginId", previousOwnerLoginid).ieq("previousName", previousName)
+            .orderBy("previousNameChangedTime desc").findList();
         if(CollectionUtils.isEmpty(projects)){
             return null;
         }

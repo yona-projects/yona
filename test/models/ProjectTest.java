@@ -84,7 +84,7 @@ public class ProjectTest extends ModelTest<Project> {
         // Then
         assertThat(Project.find.byId(projectId)).isNull();
         assertThat(ProjectUser.findMemberListByProject(projectId)).isEmpty();
-        assertThat(Issue.finder.where().eq("project.id", projectId).findList()).isEmpty();
+        assertThat(Issue.finder.query().where().eq("project.id", projectId).findList()).isEmpty();
         assertThat(Milestone.findByProjectId(projectId)).isEmpty();
     }
 

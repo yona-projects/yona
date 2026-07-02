@@ -22,7 +22,7 @@ package models;
 
 import org.junit.Before;
 import org.junit.Test;
-import play.data.validation.Validation;
+import utils.ValidationUtil;
 
 import java.io.IOException;
 import java.util.List;
@@ -65,34 +65,34 @@ public class OrganizationTest extends ModelTest<Organization> {
     public void validateName() {
         Organization org = new Organization();
         org.name="foo";
-        assertThat(Validation.getValidator().validate(org).size()).describedAs("'foo' should be accepted.").isEqualTo(0);
+        assertThat(ValidationUtil.getValidator().validate(org).size()).describedAs("'foo' should be accepted.").isEqualTo(0);
 
         org.name=".foo";
-        assertThat(Validation.getValidator().validate(org).size()).describedAs("'.foo' should NOT be accepted.").isGreaterThan(0);
+        assertThat(ValidationUtil.getValidator().validate(org).size()).describedAs("'.foo' should NOT be accepted.").isGreaterThan(0);
 
         org.name="foo.bar";
-        assertThat(Validation.getValidator().validate(org).size()).describedAs("'foo.bar' should be accepted.").isEqualTo(0);
+        assertThat(ValidationUtil.getValidator().validate(org).size()).describedAs("'foo.bar' should be accepted.").isEqualTo(0);
 
         org.name="foo.";
-        assertThat(Validation.getValidator().validate(org).size()).describedAs("'foo.' should NOT be accepted.").isGreaterThan(0);
+        assertThat(ValidationUtil.getValidator().validate(org).size()).describedAs("'foo.' should NOT be accepted.").isGreaterThan(0);
 
         org.name="_foo";
-        assertThat(Validation.getValidator().validate(org).size()).describedAs("'_foo' should NOT be accepted.").isGreaterThan(0);
+        assertThat(ValidationUtil.getValidator().validate(org).size()).describedAs("'_foo' should NOT be accepted.").isGreaterThan(0);
 
         org.name="foo_bar";
-        assertThat(Validation.getValidator().validate(org).size()).describedAs("'foo_bar' should be accepted.").isEqualTo(0);
+        assertThat(ValidationUtil.getValidator().validate(org).size()).describedAs("'foo_bar' should be accepted.").isEqualTo(0);
 
         org.name="foo_";
-        assertThat(Validation.getValidator().validate(org).size()).describedAs("'foo_' should NOT be accepted.").isGreaterThan(0);
+        assertThat(ValidationUtil.getValidator().validate(org).size()).describedAs("'foo_' should NOT be accepted.").isGreaterThan(0);
 
         org.name="-foo";
-        assertThat(Validation.getValidator().validate(org).size()).describedAs("'-foo' should be accepted.").isEqualTo(0);
+        assertThat(ValidationUtil.getValidator().validate(org).size()).describedAs("'-foo' should be accepted.").isEqualTo(0);
 
         org.name="foo-";
-        assertThat(Validation.getValidator().validate(org).size()).describedAs("'foo-' should be accepted.").isEqualTo(0);
+        assertThat(ValidationUtil.getValidator().validate(org).size()).describedAs("'foo-' should be accepted.").isEqualTo(0);
 
         org.name="foo bar";
-        assertThat(Validation.getValidator().validate(org).size()).describedAs("'foo bar' should NOT be accepted.").isGreaterThan(0);
+        assertThat(ValidationUtil.getValidator().validate(org).size()).describedAs("'foo bar' should NOT be accepted.").isGreaterThan(0);
     }
 
 }

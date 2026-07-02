@@ -7,7 +7,7 @@
 @import utils.Config
 @import utils.AccessControl
 @import models.enumeration.Operation;
-@(message: String, currentPage: com.avaje.ebean.Page[Organization], filter:String)
+@(message: String, currentPage: io.ebean.PagedList[Organization], filter:String)
 @import utils.TemplateHelper._
 @import utils.JodaDateUtil
 
@@ -17,11 +17,11 @@
         <div class="title_area">
             <ul class="nav nav-tabs">
                 <li>
-                    <a href="@routes.ProjectApp.projects()">@Messages("project.public") @Messages("title" +
+                    <a href="@routes.ProjectApp.projects("", 1)">@Messages("project.public") @Messages("title" +
                         ".projectList")</a>
                 </li>
                 <li class='active'>
-                    <a href="@routes.OrganizationApp.orgList()">@Messages("title.organization.list")</a>
+                    <a href="@routes.OrganizationApp.orgList("", 1)">@Messages("title.organization.list")</a>
                 </li>
             </ul>
         </div>
@@ -31,7 +31,7 @@
     <div class="project-page-wrap">
     	<div class="search-wrap">
     		<div id="search" class="pull-left">
-    			<form action="@routes.OrganizationApp.orgList()" method="get">
+    			<form action="@routes.OrganizationApp.orgList("", 1)" method="get">
     				<div class="search-bar">
                         <input name="filter" class="textbox" type="text" placeholder="@Messages("site.organization.filter")" value="@filter" autofocus>
                         <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
@@ -39,7 +39,7 @@
     			</form>
              </div>
         </div>
-        @if(currentPage.getTotalRowCount == 0){
+        @if(currentPage.getTotalCount == 0){
             <div class="error-wrap">
                 <i class="ico ico-err1"></i>
                 <p>@Messages("organization.is.empty")</p>

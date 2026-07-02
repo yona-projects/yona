@@ -21,11 +21,12 @@
 package models;
 
 import models.enumeration.RoleType;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +36,7 @@ public class ProjectUser extends Model {
 
     private static final long serialVersionUID = 1L;
 
-    private static Finder<Long, ProjectUser> find = new Finder<>(Long.class, ProjectUser.class);
+    private static Finder<Long, ProjectUser> find = new Finder<>(ProjectUser.class);
 
     @Id
     public Long id;
@@ -73,7 +74,9 @@ public class ProjectUser extends Model {
         if (projectUser == null) {
             ProjectUser.create(userId, projectId, roleId);
         } else {
-            new ProjectUser(userId, projectId, roleId).update(projectUser.id);
+            ProjectUser updatedProjectUser = new ProjectUser(userId, projectId, roleId);
+            updatedProjectUser.id = projectUser.id;
+            updatedProjectUser.update();
         }
     }
 
@@ -90,7 +93,7 @@ public class ProjectUser extends Model {
     }
 
     public static ProjectUser findByIds(Long userId, Long projectId) {
-        List<ProjectUser> projectUsers = find.where().eq("user.id", userId).eq("project.id", projectId)
+        List<ProjectUser> projectUsers = find.query().where().eq("user.id", userId).eq("project.id", projectId)
                 .ne("role.id", RoleType.SITEMANAGER.roleType()).findList();
         if(projectUsers.size() > 0) {
             return projectUsers.get(0);
@@ -99,23 +102,23 @@ public class ProjectUser extends Model {
     }
 
     public static List<ProjectUser> findMemberListByProject(Long projectId) {
-        return find.fetch("user").fetch("role", "name").where()
+        return find.query().fetch("user").fetch("role", "name").where()
                 .eq("project.id", projectId).ne("role.id", RoleType.SITEMANAGER.roleType())
                 .orderBy("user.name ASC")
                 .findList();
     }
 
     public static boolean checkOneMangerPerOneProject(Long userId, Long projectId) {
-        int findRowCount = find.where().eq("role.id", RoleType.MANAGER.roleType())
-                .eq("project.id", projectId).ne("user.id", userId).findRowCount();
+        int findRowCount = find.query().where().eq("role.id", RoleType.MANAGER.roleType())
+                .eq("project.id", projectId).ne("user.id", userId).findCount();
 
         return (findRowCount <= 0);
     }
 
     public static boolean isManager(Long userId, Long projectId) {
-        int findRowCount = find.where().eq("user.id", userId)
+        int findRowCount = find.query().where().eq("user.id", userId)
                 .eq("role.id", RoleType.MANAGER.roleType()).eq("project.id", projectId)
-                .findRowCount();
+                .findCount();
         return (findRowCount != 0);
     }
 
@@ -123,8 +126,8 @@ public class ProjectUser extends Model {
         if (userId == null) {
             return false;
         }
-        int findRowCount = find.where().eq("user.id", userId).eq("project.id", projectId)
-                .findRowCount();
+        int findRowCount = find.query().where().eq("user.id", userId).eq("project.id", projectId)
+                .findCount();
         return (findRowCount != 0);
     }
 

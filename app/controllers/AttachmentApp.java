@@ -15,12 +15,13 @@ import models.enumeration.ResourceType;
 import org.apache.commons.lang3.StringUtils;
 import play.Configuration;
 import play.Logger;
-import play.mvc.Controller;
+import utils.LegacyController;
 import play.mvc.Http;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Result;
 import utils.AccessControl;
 import utils.HttpUtil;
+import utils.RequestUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,7 +35,7 @@ import java.util.Map;
 import static play.libs.Json.toJson;
 
 @AnonymousCheck
-public class AttachmentApp extends Controller {
+public class AttachmentApp extends LegacyController {
 
     public static final String TAG_NAME_FOR_TEMPORARY_UPLOAD_FILES = "temporaryUploadFiles";
     public static final long TEMPORARYFILES_KEEPUP_TIME_MILLIS = Configuration.root()
@@ -58,14 +59,14 @@ public class AttachmentApp extends Controller {
         return found;
     }
 
-    public static Result uploadFile() throws NoSuchAlgorithmException, IOException {
+    public Result uploadFile() throws NoSuchAlgorithmException, IOException {
         // Get the file from request.
-        FilePart filePart =
-                request().body().asMultipartFormData().getFile("filePath");
+        FilePart<File> filePart =
+                request().body().<File>asMultipartFormData().getFile("filePath");
         if (filePart == null) {
             return badRequest();
         }
-        File file = filePart.getFile();
+        File file = filePart.getRef();
 
         User uploader = findUploader(request().body().asMultipartFormData().asFormUrlEncoded());
         if (uploader.isAnonymous()) {
@@ -128,7 +129,7 @@ public class AttachmentApp extends Controller {
         }
     }
 
-    public static Result getFile(Long id) throws IOException {
+    public Result getFile(Long id) throws IOException {
         Attachment attachment = Attachment.find.byId(id);
         String action = HttpUtil.getFirstValueFromQuery(request().queryString(), "action");
         String dispositionType = StringUtils.equals(action, "download") ? "attachment" : "inline";
@@ -145,7 +146,7 @@ public class AttachmentApp extends Controller {
 
         response().setHeader("Cache-Control", "private, max-age=3600");
 
-        String ifNoneMatchValue = request().getHeader("If-None-Match");
+        String ifNoneMatchValue = RequestUtil.getHeader(request(), "If-None-Match");
         if(ifNoneMatchValue != null && ifNoneMatchValue.equals(eTag)) {
             response().setHeader("ETag", eTag);
             return status(NOT_MODIFIED);
@@ -171,7 +172,7 @@ public class AttachmentApp extends Controller {
         return ok(file);
     }
 
-    public static Result deleteFile(Long id) {
+    public Result deleteFile(Long id) {
         // _method must be 'delete'
         Http.MultipartFormData formData = request().body().asMultipartFormData();
 
@@ -258,7 +259,7 @@ public class AttachmentApp extends Controller {
         return files;
     }
 
-    public static Result getFileList() {
+    public Result getFileList() {
         // Get attached files only if the user has permission to read it.
         Map<String, String[]> query = request().queryString();
         String containerType = HttpUtil.getFirstValueFromQuery(query, "containerType");

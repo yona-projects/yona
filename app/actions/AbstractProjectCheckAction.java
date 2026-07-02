@@ -25,74 +25,73 @@ import models.Project;
 import models.User;
 import models.enumeration.Operation;
 import actions.support.PathParser;
-import play.i18n.Messages;
 import play.mvc.Action;
-import play.mvc.Http.Context;
+import play.mvc.Http.Request;
 import play.mvc.Result;
-import play.libs.F.Promise;
+import java.util.concurrent.*;
 import utils.*;
 
-import static play.mvc.Controller.flash;
-import static play.mvc.Http.Context.current;
+import utils.LegacyRequestContext;
 
 /**
  * Checks if the project which meets the request of a pattern,
  * /{user.loginId}/{project.name}/**, exists.
  * - If the project doesn't exist and current user has no permission to read, the response will be with 403 Forbidden.
  * - If the project exists, execute additional validation will be executed
- * by calling {@link AbstractProjectCheckAction#call(models.Project, play.mvc.Http.Context, actions.support.PathParser)}.
+ * by calling {@link AbstractProjectCheckAction#call(models.Project, play.mvc.Http.Request, actions.support.PathParser)}.
  *
  * @author Keesun Baik, kjkmadness
  */
 public abstract class AbstractProjectCheckAction<T> extends Action<T> {
     @Override
-    public final Promise<Result> call(Context context) throws Throwable {
-        String ownerLoginId = null;
-        String projectName = null;
+    public final CompletionStage<Result> call(Request request) {
+        return LegacyRequestContext.withRequest(request, () -> {
+            String ownerLoginId = null;
+            String projectName = null;
 
-        PathParser parser = new PathParser(context);
-        PathVariable pathVariable = new PathVariable(current().request().path());
-        if (pathVariable.isApiCall()) {
-            // eg. context.request().path() : /-_-api/v1/owners/doortts/projects/Test/posts
-            ownerLoginId = pathVariable.getPathVariable("owners");
-            projectName = pathVariable.getPathVariable("projects");
-        } else {
-            ownerLoginId = parser.getOwnerLoginId();
-            projectName = parser.getProjectName();
-        }
-
-        Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
-
-        Promise<Result> promise;
-
-        if (project == null) {
-            Project previousProject = Project.findByPreviousPlaceOf(ownerLoginId, projectName);
-            if (previousProject != null) {
-                return RedirectUtil.redirect(previousProject);
-            }
-
-            if (UserApp.currentUser() == User.anonymous){
-                flash("failed", Messages.get("error.auth.unauthorized.waringMessage"));
-                promise = Promise.pure((Result) forbidden(ErrorViews.Forbidden.render("error.forbidden.or.notfound", context.request().path())));
+            PathParser parser = new PathParser(request);
+            PathVariable pathVariable = new PathVariable(request.path());
+            if (pathVariable.isApiCall()) {
+                // eg. request.path() : /-_-api/v1/owners/doortts/projects/Test/posts
+                ownerLoginId = pathVariable.getPathVariable("owners");
+                projectName = pathVariable.getPathVariable("projects");
             } else {
-                promise = Promise.pure((Result) forbidden(ErrorViews.NotFound.render("error.forbidden.or.notfound")));
+                ownerLoginId = parser.getOwnerLoginId();
+                projectName = parser.getProjectName();
             }
 
-            AccessLogger.log(context.request(), promise, null);
+            Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
 
-            return promise;
-        }
+            CompletionStage<Result> promise;
 
-        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            flash("failed", Messages.get("error.auth.unauthorized.waringMessage"));
-            promise = Promise.pure((Result) forbidden(ErrorViews.Forbidden.render("error.forbidden.or.notfound", context.request().path())));
-            AccessLogger.log(context.request(), promise, null);
-            return promise;
-        }
+            if (project == null) {
+                Project previousProject = Project.findByPreviousPlaceOf(ownerLoginId, projectName);
+                if (previousProject != null) {
+                    return RedirectUtil.redirect(previousProject);
+                }
 
-        return call(project, context, parser);
+                if (UserApp.currentUser() == User.anonymous){
+                    LegacyRequestContext.flash().put("failed", MessagesUtil.get("error.auth.unauthorized.waringMessage"));
+                    promise = CompletableFuture.completedFuture((Result) forbidden(ErrorViews.Forbidden.render("error.forbidden.or.notfound", request.path())));
+                } else {
+                    promise = CompletableFuture.completedFuture((Result) forbidden(ErrorViews.NotFound.render("error.forbidden.or.notfound")));
+                }
+
+                AccessLogger.log(request, promise, null);
+
+                return promise;
+            }
+
+            if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
+                LegacyRequestContext.flash().put("failed", MessagesUtil.get("error.auth.unauthorized.waringMessage"));
+                promise = CompletableFuture.completedFuture((Result) forbidden(ErrorViews.Forbidden.render("error.forbidden.or.notfound", request.path())));
+                AccessLogger.log(request, promise, null);
+                return promise;
+            }
+
+            return call(project, request, parser);
+        });
     }
 
-    protected abstract Promise<Result> call(Project project, Context context, PathParser parser)
-            throws Throwable;
+    protected abstract CompletionStage<Result> call(Project project, Request request, PathParser parser);
 }

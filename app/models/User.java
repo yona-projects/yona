@@ -6,10 +6,10 @@
  **/
 package models;
 
-import com.avaje.ebean.Ebean;
-import com.avaje.ebean.ExpressionList;
-import com.avaje.ebean.Page;
-import com.avaje.ebean.RawSqlBuilder;
+import io.ebean.Ebean;
+import io.ebean.ExpressionList;
+import io.ebean.PagedList;
+import io.ebean.RawSqlBuilder;
 import controllers.UserApp;
 import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
@@ -26,17 +26,15 @@ import play.data.validation.Constraints;
 import play.data.validation.Constraints.Pattern;
 import play.data.validation.Constraints.Required;
 import play.data.validation.Constraints.ValidateWith;
-import play.db.ebean.Model;
-import play.db.ebean.Transactional;
+import io.ebean.Finder;
+import io.ebean.Model;
+import io.ebean.annotation.Transactional;
 import play.i18n.Messages;
 import play.mvc.Http;
-import utils.CacheStore;
-import utils.GravatarUtil;
-import utils.JodaDateUtil;
-import utils.ReservedWordsValidator;
+import utils.*;
 
 import javax.annotation.Nonnull;
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -47,7 +45,7 @@ import static utils.HtmlUtil.defaultSanitize;
 public class User extends Model implements ResourceConvertible {
     private static final long serialVersionUID = 1L;
 
-    public static final Model.Finder<Long, User> find = new Finder<>(Long.class, User.class);
+    public static final Finder<Long, User> find = new Finder<>(User.class);
 
     public static final Comparator<User> USER_NAME_COMPARATOR = new Comparator<User>() {
         @Override
@@ -218,10 +216,10 @@ public class User extends Model implements ResourceConvertible {
         Boolean value = orgMembersMemo.get(key);
 
         if (value == null) {
-            int rowCount = OrganizationUser.find.where().eq("organization.id", org.id)
+            int rowCount = OrganizationUser.find.query().where().eq("organization.id", org.id)
                     .eq("user.id", id)
                     .eq("role.id", Role.findByRoleType(roleType).id)
-                    .findRowCount();
+                    .findCount();
             value = rowCount > 0;
             orgMembersMemo.put(key, value);
         }
@@ -281,7 +279,7 @@ public class User extends Model implements ResourceConvertible {
      * @return User or {@link #anonymous}
      */
     public static User findByLoginId(String loginId) {
-        User user = find.where().eq("loginId", loginId).findUnique();
+        User user = find.query().where().eq("loginId", loginId).findOne();
         if (user == null) {
             return anonymous;
         }
@@ -293,7 +291,7 @@ public class User extends Model implements ResourceConvertible {
     public static User findByUserToken(String token){
         User user = null;
         if(token != null) {
-            user = User.find.where().eq("token", token).findUnique();
+            user = User.find.query().where().eq("token", token).findOne();
         }
 
         if(user != null){
@@ -308,7 +306,7 @@ public class User extends Model implements ResourceConvertible {
             return user;
         }
 
-        String userToken = extractUserTokenFromRequestHeader(Http.Context.current().request());
+        String userToken = extractUserTokenFromRequestHeader(utils.LegacyRequestContext.request());
         if( userToken != null) {
             return User.findByUserToken(userToken);
         }
@@ -316,12 +314,12 @@ public class User extends Model implements ResourceConvertible {
     }
 
     public static String extractUserTokenFromRequestHeader(Http.Request request) {
-        String authHeader = request.getHeader("Authorization");
+        String authHeader = RequestUtil.getHeader(request, "Authorization");
         if(authHeader != null &&
                 authHeader.contains("token ")) {
             return authHeader.split("token ")[1];
         }
-        return request.getHeader(UserApp.USER_TOKEN_HEADER);
+        return RequestUtil.getHeader(request, UserApp.USER_TOKEN_HEADER);
     }
 
     /**
@@ -335,7 +333,7 @@ public class User extends Model implements ResourceConvertible {
      * @return
      */
     public static User findByEmail(String email) {
-        User user = find.where().eq("email", email).findUnique();
+        User user = find.query().where().eq("email", email).findOne();
         if (user != null) {
             return user;
         }
@@ -345,7 +343,7 @@ public class User extends Model implements ResourceConvertible {
             return subEmail.user;
         }
 
-        User fallback = find.where().ieq("email", email).findUnique();
+        User fallback = find.query().where().ieq("email", email).findOne();
         if (fallback != null) {
             return fallback;
         }
@@ -356,10 +354,10 @@ public class User extends Model implements ResourceConvertible {
     }
 
     public static User findByLoginKey(String loginIdOrEmail) {
-        User user = find.where().ieq("loginId", loginIdOrEmail).findUnique();
+        User user = find.query().where().ieq("loginId", loginIdOrEmail).findOne();
 
         if (user == null) {
-            user = find.where().eq("email", loginIdOrEmail).findUnique();
+            user = find.query().where().eq("email", loginIdOrEmail).findOne();
         }
 
         return (user == null) ? anonymous : user;
@@ -372,7 +370,7 @@ public class User extends Model implements ResourceConvertible {
      * @return boolean
      */
     public static boolean isLoginIdExist(String loginId) {
-        int findRowCount = find.where().ieq("loginId", loginId).findRowCount();
+        int findRowCount = find.query().where().ieq("loginId", loginId).findCount();
         return (findRowCount != 0);
     }
 
@@ -382,7 +380,7 @@ public class User extends Model implements ResourceConvertible {
      */
     public static Map<String, String> options() {
         LinkedHashMap<String, String> options = new LinkedHashMap<>();
-        for (User user : User.find.orderBy("name").findList()) {
+        for (User user : User.find.query().orderBy("name").findList()) {
             options.put(user.id.toString(), user.name);
         }
         return options;
@@ -396,8 +394,8 @@ public class User extends Model implements ResourceConvertible {
      * @param query If {@code query}is not null, search list contains {@code query}
      * @return user list forms of Page which is ordered by login id
      */
-    public static Page<User> findUsers(int pageNum, String query, UserState state) {
-        ExpressionList<User> el = User.find.where();
+    public static PagedList<User> findUsers(int pageNum, String query, UserState state) {
+        ExpressionList<User> el = User.find.query().where();
         el.ne("id",SITE_MANAGER_ID);
         el.ne("loginId",anonymous.loginId);
         if( state == UserState.GUEST ) {
@@ -417,7 +415,7 @@ public class User extends Model implements ResourceConvertible {
             el.endJunction();
         }
 
-        return el.order().desc("createdDate").findPagingList(USER_COUNT_PER_PAGE).getPage(pageNum);
+        return el.orderBy().desc("createdDate").setFirstRow((pageNum) * (USER_COUNT_PER_PAGE)).setMaxRows(USER_COUNT_PER_PAGE).findPagedList();
     }
 
     private static Set<Long> getAdminUserIds() {
@@ -439,7 +437,7 @@ public class User extends Model implements ResourceConvertible {
      * @return project admin and member list
      */
     public static List<User> findUsersByProject(Long projectId) {
-        return find.where().eq("projectUser.project.id", projectId)
+        return find.query().where().eq("projectUser.project.id", projectId)
                 .ne("projectUser.role.id", RoleType.SITEMANAGER.roleType()).orderBy().asc("name")
                 .findList();
     }
@@ -459,7 +457,7 @@ public class User extends Model implements ResourceConvertible {
             if(project.isPrivate()) {
                 ous = project.organization.getAdmins();
             } else {
-                ous = OrganizationUser.find.fetch("user")
+                ous = OrganizationUser.find.query().fetch("user")
                         .where().eq("organization", project.organization).findList();
             }
 
@@ -472,7 +470,7 @@ public class User extends Model implements ResourceConvertible {
             userIds.add(UserApp.currentUser().id);
         }
 
-        List<User> users = find.where().in("id", userIds).orderBy().asc("name").findList();
+        List<User> users = find.query().where().in("id", userIds).orderBy().asc("name").findList();
 
         return users;
     }
@@ -497,7 +495,7 @@ public class User extends Model implements ResourceConvertible {
      * @return boolean
      */
     public static boolean isEmailExist(String emailAddress) {
-        User user = find.where().ieq("email", emailAddress).findUnique();
+        User user = find.query().where().ieq("email", emailAddress).findOne();
         return user != null || Email.exists(emailAddress, true);
     }
 
@@ -683,12 +681,12 @@ public class User extends Model implements ResourceConvertible {
     }
 
     @Override
-    public void delete() {
-        for (Assignee assignee : Assignee.finder.where().eq("user.id", id).findList()) {
+    public boolean delete() {
+        for (Assignee assignee : Assignee.finder.query().where().eq("user.id", id).findList()) {
             assignee.delete();
         }
         CacheStore.yonaUsers.invalidate(this.id);
-        super.delete();
+        return super.delete();
     }
 
     public void changeState(UserState state) {
@@ -706,7 +704,7 @@ public class User extends Model implements ResourceConvertible {
             projectUser.clear();
             enrolledProjects.clear();
             notificationEvents.clear();
-            for (Assignee assignee : Assignee.finder.where().eq("user.id", id).findList()) {
+            for (Assignee assignee : Assignee.finder.query().where().eq("user.id", id).findList()) {
                 for (Issue issue : assignee.issues) {
                     issue.assignee = null;
                     issue.update();
@@ -751,7 +749,7 @@ public class User extends Model implements ResourceConvertible {
     public static List<User> findIssueAuthorsByProjectIdAndMe(User currentUser, long projectId) {
         String sql = "SELECT DISTINCT t0.id AS id, t0.name AS name, t0.login_id AS loginId " +
                 "FROM n4user t0 JOIN issue t1 ON t0.id = t1.author_id";
-        List<User> users = find.setRawSql(RawSqlBuilder.parse(sql).create()).where()
+        List<User> users = find.query().setRawSql(RawSqlBuilder.parse(sql).create()).where()
                 .eq("t1.project_id", projectId)
                 .orderBy().asc("t0.name")
                 .findList();
@@ -773,7 +771,7 @@ public class User extends Model implements ResourceConvertible {
     public static List<User> findIssueAssigneeByProjectIdAndMe(User currentUser, long projectId) {
         String sql = "SELECT DISTINCT t0.id AS id, t0.name AS name, t0.login_id AS loginId " +
                 "FROM n4user t0 JOIN assignee t1 ON t0.id = t1.user_id";
-        List<User> users = find.setRawSql(RawSqlBuilder.parse(sql).create()).where()
+        List<User> users = find.query().setRawSql(RawSqlBuilder.parse(sql).create()).where()
                 .eq("t1.project_id", projectId)
                 .orderBy().asc("t0.name")
                 .findList();
@@ -795,7 +793,7 @@ public class User extends Model implements ResourceConvertible {
     public static List<User> findPullRequestContributorsByProjectId(long projectId) {
         String sql = "SELECT DISTINCT t0.id AS id, t0.name AS name, t0.login_id AS loginId " +
                 "FROM n4user t0 JOIN pull_request t1 ON t0.id = t1.contributor_id";
-        return find.setRawSql(RawSqlBuilder.parse(sql).create()).where()
+        return find.query().setRawSql(RawSqlBuilder.parse(sql).create()).where()
                 .eq("t1.to_project_id", projectId)
                 .orderBy().asc("t0.name")
                 .findList();
@@ -809,12 +807,12 @@ public class User extends Model implements ResourceConvertible {
      * @return
      */
     public static List<User> findUsersByProject(Long projectId, RoleType roleType) {
-        return find.where().eq("projectUser.project.id", projectId)
+        return find.query().where().eq("projectUser.project.id", projectId)
                 .eq("projectUser.role.id", roleType.roleType()).orderBy().asc("name").findList();
     }
 
     public static List<User> findUsersByOrganization(Long organizationId, RoleType roleType) {
-        return find.where().eq("organizationUsers.organization.id", organizationId)
+        return find.query().where().eq("organizationUsers.organization.id", organizationId)
                 .eq("organizationUsers.role.id", roleType.roleType()).orderBy().asc("name").findList();
     }
 
@@ -927,7 +925,7 @@ public class User extends Model implements ResourceConvertible {
 
     public String toString() {
         if (isAnonymous()) {
-            return Messages.get("user.role.anonymous");
+            return MessagesUtil.get("user.role.anonymous");
         } else {
             return name + "(" + loginId + ")";
         }
@@ -1005,7 +1003,7 @@ public class User extends Model implements ResourceConvertible {
     }
 
     public void removeFavoriteProject(Long projectId) {
-        List<FavoriteProject> list = FavoriteProject.finder.where()
+        List<FavoriteProject> list = FavoriteProject.finder.query().where()
                 .eq("user.id", this.id)
                 .eq("project.id", projectId).findList();
 
@@ -1041,7 +1039,7 @@ public class User extends Model implements ResourceConvertible {
     }
 
     private void removeFavoriteOrganization(Long organizationId) {
-        List<FavoriteOrganization> list = FavoriteOrganization.finder.where()
+        List<FavoriteOrganization> list = FavoriteOrganization.finder.query().where()
                 .eq("user.id", this.id)
                 .eq("organization.id", organizationId).findList();
 
@@ -1085,7 +1083,7 @@ public class User extends Model implements ResourceConvertible {
     }
 
     public void removeFavoriteIssue(Long issueId) {
-        List<FavoriteIssue> list = FavoriteIssue.find.where()
+        List<FavoriteIssue> list = FavoriteIssue.find.query().where()
                 .eq("user.id", this.id)
                 .eq("issue.id", issueId).findList();
 

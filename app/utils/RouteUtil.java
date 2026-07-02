@@ -17,6 +17,7 @@ import models.SimpleCommentThread;
 import models.NonRangedCodeCommentThread;
 import models.CodeCommentThread;
 
+import org.apache.commons.lang3.StringUtils;
 import playRepository.Commit;
 import utils.TemplateHelper.DiffRenderer$;
 
@@ -90,16 +91,31 @@ public class RouteUtil {
         if (issue == null) return null;
         issue.refresh();
 
+        Project project = ensureLoadedProject(issue.project);
+        if (project == null) return null;
+
         return controllers.routes.IssueApp.issue(
-                issue.project.owner, issue.project.name, issue.getNumber()).url();
+                project.owner, project.name, issue.getNumber()).url();
     }
 
     public static String getUrl(Posting post) {
         if (post == null) return null;
         post.refresh();
 
+        Project project = ensureLoadedProject(post.project);
+        if (project == null) return null;
+
         return controllers.routes.BoardApp.post(
-                post.project.owner, post.project.name, post.getNumber()).url();
+                project.owner, project.name, post.getNumber()).url();
+    }
+
+    private static Project ensureLoadedProject(Project project) {
+        if (project == null) return null;
+        if ((StringUtils.isBlank(project.owner) || StringUtils.isBlank(project.name)) && project.id != null) {
+            Project loaded = Project.find.query().where().idEq(project.id).findOne();
+            return loaded != null ? loaded : project;
+        }
+        return project;
     }
 
     public static String getUrl(IssueComment comment) {

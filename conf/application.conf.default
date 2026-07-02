@@ -94,11 +94,14 @@ application.secret="VA2v:_I=h9>?FYOH:@ZhW]01P<mWZAKlQ>kk>Bo`mdCiA>pDw64FcBuZdDh<
 # ~~~~~
 application.langs="en-US, ko-KR, ja-JP, ru-RU, uz-UZ"
 
-# Global object class
+# Play bootstrap hooks
 # ~~~~~
-# Define the Global object class for this application.
-# Default to Global in the root package.
-application.global=Global
+play.application.loader = "modules.YonaApplicationLoader"
+play.http.requestHandler = "modules.YonaRequestHandler"
+play.http.actionCreator = "modules.YonaActionCreator"
+play.http.errorHandler = "modules.YonaErrorHandler"
+play.modules.enabled += "modules.YonaModule"
+play.modules.enabled += "com.feth.play.module.mail.MailerModule"
 
 # Database configuration
 # ~~~~~
@@ -153,7 +156,7 @@ ebean.default="models.*"
 # ~~~~~
 # You can disable evolutions if needed
 # evolutionplugin=disabled
-applyEvolutions.default=true
+play.evolutions.db.default.autoApply=true
 
 # Logger
 # ~~~~~
@@ -261,8 +264,8 @@ application.update.releaseUrlFormat = "https://github.com/yona-projects/yona/rel
 # customize play default thread pool size
 # see: https://www.playframework.com/documentation/2.3.x/ThreadPools
 play {
-  akka {
-    event-handlers = ["akka.event.Logging$DefaultLogger", "akka.event.slf4j.Slf4jEventHandler"]
+  pekko {
+    event-handlers = ["org.apache.pekko.event.Logging$DefaultLogger", "org.apache.pekko.event.slf4j.Slf4jEventHandler"]
     loglevel = WARNING
     actor {
       default-dispatcher = {
@@ -276,8 +279,8 @@ play {
 }
 
 # customize akka thread pool size
-akka {
-  loggers = ["akka.event.Logging$DefaultLogger", "akka.event.slf4j.Slf4jLogger"]
+pekko {
+  loggers = ["org.apache.pekko.event.Logging$DefaultLogger", "org.apache.pekko.event.slf4j.Slf4jLogger"]
   loglevel = WARNING
   actor {
     default-dispatcher = {

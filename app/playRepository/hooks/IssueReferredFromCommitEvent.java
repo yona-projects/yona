@@ -31,9 +31,8 @@ import org.eclipse.jgit.transport.ReceiveCommand;
 import org.eclipse.jgit.transport.ReceivePack;
 
 import actors.IssueReferredFromCommitEventActor;
-import akka.actor.Props;
+import org.apache.pekko.actor.Props;
 
-import play.libs.Akka;
 
 public class IssueReferredFromCommitEvent implements PostReceiveHook {
     private Project project;
@@ -47,6 +46,6 @@ public class IssueReferredFromCommitEvent implements PostReceiveHook {
     @Override
     public void onPostReceive(ReceivePack receivePack, Collection<ReceiveCommand> commands) {
         PostReceiveMessage message = new PostReceiveMessage(commands, project, user);
-        Akka.system().actorOf(Props.create(IssueReferredFromCommitEventActor.class)).tell(message, null);
+        utils.AkkaUtil.system().actorOf(Props.create(IssueReferredFromCommitEventActor.class)).tell(message, null);
     }
 }

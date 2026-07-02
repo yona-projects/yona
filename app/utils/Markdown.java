@@ -10,8 +10,14 @@ import controllers.UserApp;
 import models.Issue;
 import models.Project;
 import models.enumeration.Operation;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
+import org.commonmark.Extension;
+import org.commonmark.ext.autolink.AutolinkExtension;
+import org.commonmark.ext.gfm.strikethrough.StrikethroughExtension;
+import org.commonmark.ext.gfm.tables.TablesExtension;
+import org.commonmark.node.Node;
+import org.commonmark.parser.Parser;
+import org.commonmark.renderer.html.HtmlRenderer;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -19,26 +25,32 @@ import org.jsoup.select.Elements;
 import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;
 import org.owasp.html.Sanitizers;
-import play.i18n.Messages;
 
 import javax.annotation.Nonnull;
-import javax.script.Invocable;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Markdown {
 
-    private static final String XSS_JS_FILE = "public/javascripts/lib/xss.js";
-    private static final String MARKED_JS_FILE = "public/javascripts/lib/marked.js";
-    private static final String HIGHLIGHT_JS_FILE = "public/javascripts/lib/highlight/highlight.pack.js";
-    private static ScriptEngine engine = buildEngine();
+    private static final List<Extension> MARKDOWN_EXTENSIONS = Arrays.asList(
+            AutolinkExtension.create(),
+            StrikethroughExtension.create(),
+            TablesExtension.create()
+    );
+    private static final Parser markdownParser = Parser.builder()
+            .extensions(MARKDOWN_EXTENSIONS)
+            .build();
+    private static final HtmlRenderer markdownRenderer = HtmlRenderer.builder()
+            .extensions(MARKDOWN_EXTENSIONS)
+            .build();
+    private static final HtmlRenderer markdownRendererWithBreaks = HtmlRenderer.builder()
+            .extensions(MARKDOWN_EXTENSIONS)
+            .softbreak("<br />\n")
+            .build();
     private static PolicyFactory sanitizerPolicy = Sanitizers.FORMATTING
             .and(Sanitizers.IMAGES)
             .and(Sanitizers.STYLES)
@@ -55,35 +67,6 @@ public class Markdown {
                     .allowAttributes("width", "height", "src", "frameborder", "allow", "allowfullscreen").onElements("iframe")
                     .allowAttributes("class", "id", "style", "width", "height").globally()
                     .toFactory());
-
-    private static ScriptEngine buildEngine() {
-        ScriptEngineManager manager = new ScriptEngineManager(null);
-        InputStream is = null;
-        Reader reader = null;
-        ScriptEngine _engine = manager.getEngineByName("JavaScript");
-
-        try {
-            is = Thread.currentThread().getContextClassLoader().getResourceAsStream(XSS_JS_FILE);
-            reader = new InputStreamReader(is, Config.getCharset());
-            _engine.eval(reader);
-
-            is = Thread.currentThread().getContextClassLoader().getResourceAsStream(MARKED_JS_FILE);
-            reader = new InputStreamReader(is, Config.getCharset());
-            _engine.eval(reader);
-
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        } finally {
-            if(reader != null) {
-                try{ reader.close(); } catch (Exception e) { throw new RuntimeException(e); }
-            }
-            if(is != null) {
-                try{ is.close(); } catch (Exception e) { throw new RuntimeException(e); }
-            }
-        }
-
-        return _engine;
-    }
 
     private static String removeJavascriptInHref(String source) {
         Document doc = Jsoup.parse(source);
@@ -200,7 +183,7 @@ public class Markdown {
                     el.appendElement("span")
                             .addClass("issue-state")
                             .addClass(issue.state.state().toLowerCase())
-                            .text(Messages.get("issue.state." + issue.state.state()));
+                            .text(MessagesUtil.get("issue.state." + issue.state.state()));
                 }
             } catch (RuntimeException re) {
                 play.Logger.warn("Issue link extraction fail: " + uri.getPath());
@@ -216,49 +199,22 @@ public class Markdown {
         return  sanitizerPolicy.sanitize(source);
     }
 
+    private static String renderMarkdown(@Nonnull String source, boolean breaks) {
+        source = StringUtils.defaultString(source);
+        Node document = markdownParser.parse(source);
+        HtmlRenderer renderer = breaks ? markdownRendererWithBreaks : markdownRenderer;
+        return renderer.render(document);
+    }
+
     private static String renderWithHighlight(String source, boolean breaks) {
-        int sourceHashCode = source.hashCode();
+        source = StringUtils.defaultString(source);
+        int sourceHashCode = (source + ":" + breaks).hashCode();
         byte [] cached = CacheStore.renderedMarkdown.getIfPresent(sourceHashCode);
         if(cached != null){
-            Runnable afterTouch = new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        Object options = engine.eval("new Object({ "
-                                + "    gfm: true, "
-                                + "    tables: true, "
-                                + "    breaks: true, "
-                                + "    headerIds: true, "
-                                + "    pedantic: false, "
-                                + "    sanitize: false, "
-                                + "    smartLists: true "
-                                + "}) ");
-                        String rendered = renderByMarked(source, options);
-                        rendered = removeJavascriptInHref(rendered);
-                        rendered = checkReferrer(rendered);
-                        rendered = transformIssueLink(rendered);
-                        String sanitized = sanitize(rendered);
-                        CacheStore.renderedMarkdown.put(sourceHashCode, ZipUtil.compress(sanitized));
-                    } catch (Exception ex) {
-                        throw new RuntimeException(ex);
-                    }
-                }
-            };
-
-            afterTouch.run();
             return ZipUtil.decompress(cached);
         }
         try {
-            Object options = engine.eval("new Object({ "
-                    + "    gfm: true, "
-                    + "    tables: true, "
-                    + "    breaks: true, "
-                    + "    headerIds: true, "
-                    + "    pedantic: false, "
-                    + "    sanitize: false, "
-                    + "    smartLists: true "
-                    + "}) ");
-            String rendered = renderByMarked(source, options);
+            String rendered = renderMarkdown(source, breaks);
             rendered = removeJavascriptInHref(rendered);
             rendered = checkReferrer(rendered);
             rendered = transformIssueLink(rendered);
@@ -270,54 +226,15 @@ public class Markdown {
         }
     }
 
-    /**
-     * Renders the source with Marked.
-     *
-     * @param source
-     * @param options
-     * @return the rendered result or the source if timeout occurs
-     */
-    private static String renderByMarked(@Nonnull final String source, final Object options) throws InterruptedException {
-        if (source.isEmpty()) {
-            return source;
-        }
-
-        // Try to render and wait at most 5 seconds.
-        final String[] rendered = new String[1];
-        @SuppressWarnings("deprecation")
-        Thread marked = new Thread() {
-            @Override
-            public void run() {
-                try {
-                    rendered[0] = (String) ((Invocable) engine).invokeFunction(
-                            "marked", source, options);
-                } catch (Exception e) {
-                    play.Logger.error("[Markdown] Failed to render: " + source, e);
-                }
-            }
-        };
-        marked.start();
-        marked.join(5000);
-
-        if (rendered[0] == null) {
-            // This is the only way to stop the script engine. Thread.interrupt does not work.
-            marked.stop();
-            return "<pre>" + StringEscapeUtils.escapeHtml(source) + "</pre>";
-        } else {
-            return rendered[0];
-        }
-    }
-
     public static String render(@Nonnull String source) {
+        source = StringUtils.defaultString(source);
         int sourceHashCode = source.hashCode();
         byte [] cached = CacheStore.renderedMarkdown.getIfPresent(sourceHashCode);
         if(cached != null){
             return ZipUtil.decompress(cached);
         }
         try {
-            Object options = engine.eval("new Object({gfm: true, tables: true, breaks: true, " +
-                    "pedantic: false, sanitize: false, smartLists: true});");
-            String sanitized = sanitize(renderByMarked(source, options));
+            String sanitized = sanitize(renderMarkdown(source, true));
             CacheStore.renderedMarkdown.put(sourceHashCode, ZipUtil.compress(sanitized));
             return sanitized;
         } catch (Exception ex) {

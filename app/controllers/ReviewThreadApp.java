@@ -6,8 +6,8 @@
  **/
 package controllers;
 
-import com.avaje.ebean.ExpressionList;
-import com.avaje.ebean.Page;
+import io.ebean.ExpressionList;
+import io.ebean.PagedList;
 import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import jxl.Workbook;
@@ -20,8 +20,8 @@ import models.support.ReviewSearchCondition;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.Tika;
 import play.data.Form;
-import play.db.ebean.Transactional;
-import play.mvc.Controller;
+import io.ebean.annotation.Transactional;
+import utils.LegacyController;
 import play.mvc.Result;
 import utils.HttpUtil;
 import utils.JodaDateUtil;
@@ -33,21 +33,21 @@ import java.util.Date;
 import java.util.List;
 
 @AnonymousCheck
-public class ReviewThreadApp extends Controller {
+public class ReviewThreadApp extends LegacyController {
 
     public static final int REVIEWS_PER_PAGE = 15;
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(value = Operation.READ)
     @Transactional
-    public static Result reviewThreads(String ownerName, String projectName) {
+    public Result reviewThreads(String ownerName, String projectName) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
-        ReviewSearchCondition searchCondition = Form.form(ReviewSearchCondition.class).bindFromRequest().get();
+        ReviewSearchCondition searchCondition = utils.FormUtil.form(ReviewSearchCondition.class).bindFromRequest(request()).get();
         ExpressionList<CommentThread> el = searchCondition.asExpressionList(project);
         if ("xls".equals(request().getQueryString("format"))) {
             return reviewThreadsDownload(project, el);
         }
-        Page<CommentThread> commentThreads = el.findPagingList(REVIEWS_PER_PAGE).getPage(searchCondition.pageNum - 1);
+        PagedList<CommentThread> commentThreads = el.setFirstRow((searchCondition.pageNum - 1) * (REVIEWS_PER_PAGE)).setMaxRows(REVIEWS_PER_PAGE).findPagedList();
         return ok(list.render(project, commentThreads, searchCondition));
     }
 

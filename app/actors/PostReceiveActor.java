@@ -20,7 +20,7 @@
  */
 package actors;
 
-import akka.actor.UntypedActor;
+import org.apache.pekko.actor.UntypedActor;
 import models.PostReceiveMessage;
 import models.Project;
 import org.eclipse.jgit.lib.ObjectId;

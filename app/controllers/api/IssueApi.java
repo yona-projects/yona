@@ -7,7 +7,7 @@
 
 package controllers.api;
 
-import com.avaje.ebean.ExpressionList;
+import io.ebean.ExpressionList;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -21,13 +21,9 @@ import models.*;
 import models.enumeration.*;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
-import play.api.mvc.Codec;
-import play.db.ebean.Transactional;
-import play.i18n.Messages;
-import play.libs.F;
+import io.ebean.annotation.Transactional;
 import play.libs.Json;
-import play.libs.ws.WS;
-import play.libs.ws.WSRequestHolder;
+import play.libs.ws.WSRequest;
 import play.libs.ws.WSResponse;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -39,6 +35,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -55,7 +52,7 @@ public class IssueApi extends AbstractPostingApp {
     public static final String NEWLINE = "\r\n";
 
     @Transactional
-    public static Result imports(String owner, String projectName) {
+    public Result imports(String owner, String projectName) {
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
 
         try {
@@ -160,7 +157,7 @@ public class IssueApi extends AbstractPostingApp {
     }
 
     @Transactional
-    public static Result updateIssueLabel(String owner, String projectName, Long number) {
+    public Result updateIssueLabel(String owner, String projectName, Long number) {
         JsonNode json = request().body().asJson();
         if(json == null) {
             return badRequest("Expecting Json data");
@@ -184,7 +181,7 @@ public class IssueApi extends AbstractPostingApp {
     }
 
     @Transactional
-    public static Result getIssue(String owner, String projectName, Long number) {
+    public Result getIssue(String owner, String projectName, Long number) {
         ObjectNode result = Json.newObject();
         if (!isAuthored(request())) {
             return unauthorized(result.put("message", "unauthorized request"));
@@ -201,7 +198,7 @@ public class IssueApi extends AbstractPostingApp {
         }
         ObjectNode json = ProjectApi.getResult(issue);
 
-        return ok(Json.newObject().set("result", toJson(addIssueEvents(issue, json))));
+        return ok((JsonNode) Json.newObject().set("result", toJson(addIssueEvents(issue, json))));
     }
 
     private static ObjectNode addIssueEvents(Issue issue, ObjectNode json) {
@@ -243,7 +240,7 @@ public class IssueApi extends AbstractPostingApp {
 
     @Transactional
     @IsCreatable(ResourceType.ISSUE_POST)
-    public static Result newIssues(String owner, String projectName) {
+    public Result newIssues(String owner, String projectName) {
         ObjectNode result = Json.newObject();
         JsonNode json = request().body().asJson();
         if (json == null) {
@@ -268,7 +265,7 @@ public class IssueApi extends AbstractPostingApp {
     }
 
     @Transactional
-    public static Result updateIssue(String owner, String projectName, Long number) {
+    public Result updateIssue(String owner, String projectName, Long number) {
         ObjectNode result = Json.newObject();
 
         if (!isAuthored(request())) {
@@ -289,7 +286,7 @@ public class IssueApi extends AbstractPostingApp {
     }
 
     @Transactional
-    public static Result updateIssueState(String owner, String projectName, Long number) {
+    public Result updateIssueState(String owner, String projectName, Long number) {
         ObjectNode result = Json.newObject();
 
         if (!isAuthored(request())) {
@@ -313,11 +310,11 @@ public class IssueApi extends AbstractPostingApp {
         issue.save();
 
         result = ProjectApi.getResult(issue);
-        return ok(Json.newObject().set("result", toJson(addIssueEvents(issue, result))));
+        return ok((JsonNode) Json.newObject().set("result", toJson(addIssueEvents(issue, result))));
     }
 
     @Transactional
-    public static Result updateIssueContent(String owner, String projectName, Long number) {
+    public Result updateIssueContent(String owner, String projectName, Long number) {
 
         User user = UserApp.currentUser();
         if (user.isAnonymous()) {
@@ -376,7 +373,7 @@ public class IssueApi extends AbstractPostingApp {
         issue.save();
 
         ObjectNode issueNode = ProjectApi.getResult(issue);
-        return ok(Json.newObject().set("result", toJson(addIssueEvents(issue, issueNode))));
+        return ok((JsonNode) Json.newObject().set("result", toJson(addIssueEvents(issue, issueNode))));
     }
 
     private static void addNewIssueEvent(Issue issue, User user, EventType eventType, String oldValue, String newValue) {
@@ -474,7 +471,7 @@ public class IssueApi extends AbstractPostingApp {
         }
     }
 
-    public static Result commentNotiRecivers(String ownerName, String projectName, Long number) {
+    public Result commentNotiRecivers(String ownerName, String projectName, Long number) {
         JsonNode json = request().body().asJson();
         if (json == null) {
             return badRequest(Json.newObject().put("message", "Expecting Json data"));
@@ -512,7 +509,7 @@ public class IssueApi extends AbstractPostingApp {
     }
 
     @Transactional
-    public static Result newIssueComment(String ownerName, String projectName, Long number)
+    public Result newIssueComment(String ownerName, String projectName, Long number)
             throws IOException {
         JsonNode json = request().body().asJson();
         if(json == null) {
@@ -522,7 +519,7 @@ public class IssueApi extends AbstractPostingApp {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         final Issue issue = Issue.findByNumber(project, number);
 
-        if (request().getHeader("Authorization") != null) {
+        if (RequestUtil.getHeader(request(), "Authorization") != null) {
             ObjectNode result = Json.newObject();
             if (!isAuthored(request())) {
                 return unauthorized(result.put("message", "unauthorized request"));
@@ -542,13 +539,13 @@ public class IssueApi extends AbstractPostingApp {
         // At first, I added hook of above link at the front page.
         // But I found that it introduce another problem, cursor location detection error.
         // So, decided to calculate sha1 without \r char.
-        String currentChecksum = DigestUtils.sha1Hex(current.replaceAll("\r","").trim());
-        String fromViewChecksum = DigestUtils.sha1Hex(fromView.replaceAll("\r","").trim());
+        String currentChecksum = DigestUtils.shaHex(current.replaceAll("\r","").trim());
+        String fromViewChecksum = DigestUtils.shaHex(fromView.replaceAll("\r","").trim());
 
         return !currentChecksum.equals(fromViewChecksum);
     }
 
-    public static Result detectChange(String ownerName, String projectName, Long number) {
+    public Result detectChange(String ownerName, String projectName, Long number) {
         if (UserApp.currentUser().isAnonymous()) {
             return unauthorized(Json.newObject().put("message", "unauthorized request"));
         }
@@ -573,7 +570,7 @@ public class IssueApi extends AbstractPostingApp {
             result.put("commentAuthorName", User.findByLoginId(issueComment.authorLoginId).getDisplayName());
         }
 
-        String hex = DigestUtils.sha1Hex(issue.body);
+        String hex = DigestUtils.shaHex(issue.body);
         result.put("issueBodyChanged", !hex.equals(receivedChecksum));
         result.put("numOfComments", currentNumOfComments);
         result.put("issueBodyChecksum", hex);
@@ -585,15 +582,15 @@ public class IssueApi extends AbstractPostingApp {
 
     }
 
-    public static Status conflicted(String content) {
+    public static Result conflicted(String content) {
         ObjectNode result = Json.newObject();
         result.put("message", "Already modified by someone.");
         result.put("storedContent", content);
-        return new Status(play.core.j.JavaResults.Conflict(), result, Codec.javaSupported("utf-8"));
+        return play.mvc.Results.status(Http.Status.CONFLICT, result);
     }
 
     @Transactional
-    public static Result updateIssueComment(String ownerName, String projectName, Long number, Long commentId) {
+    public Result updateIssueComment(String ownerName, String projectName, Long number, Long commentId) {
         User user = UserApp.currentUser();
         if (user.isAnonymous()) {
             return unauthorized(Json.newObject().put("message", "unauthorized request"));
@@ -657,7 +654,7 @@ public class IssueApi extends AbstractPostingApp {
     private static Result createCommentUsingToken(Issue issue, User user, String comment) {
         createComment(issue, user, comment, null);
         ObjectNode result = ProjectApi.getResult(issue);
-        return created(Json.newObject().set("result", toJson(addIssueEvents(issue, result))));
+        return created((JsonNode) Json.newObject().set("result", toJson(addIssueEvents(issue, result))));
     }
 
     private static IssueComment createComment(Issue issue, User user, String comment, JsonNode dateNode) {
@@ -736,7 +733,7 @@ public class IssueApi extends AbstractPostingApp {
     }
 
     @IsAllowed(Operation.READ)
-    public static Result findAssignableUsersOfProject(String ownerName, String projectName, String query) {
+    public Result findAssignableUsersOfProject(String ownerName, String projectName, String query) {
         if (!request().accepts("application/json")) {
             return status(Http.Status.NOT_ACCEPTABLE);
         }
@@ -745,7 +742,7 @@ public class IssueApi extends AbstractPostingApp {
         List<ObjectNode> users = new ArrayList<>();
 
         if(StringUtils.isEmpty(query)){
-            addUserToUsersWithCustomName(UserApp.currentUser(), users, Messages.get("issue.assignToMe"));
+            addUserToUsersWithCustomName(UserApp.currentUser(), users, MessagesUtil.get("issue.assignToMe"));
 
             for(User user: project.getAssignableUsers()){
                 addUserToUsers(user, users);
@@ -756,7 +753,7 @@ public class IssueApi extends AbstractPostingApp {
 
         ExpressionList<User> el = getUserExpressionList(query, request().getQueryString("type"));
 
-        int total = el.findRowCount();
+        int total = el.findCount();
         if (total > MAX_FETCH_USERS) {
             el.setMaxRows(MAX_FETCH_USERS);
             response().setHeader("Content-Range", "items " + MAX_FETCH_USERS + "/" + total);
@@ -781,7 +778,7 @@ public class IssueApi extends AbstractPostingApp {
     }
 
     @IsAllowed(Operation.READ)
-    public static Result findAssignableUsers(String ownerName, String projectName, Long number, String query) {
+    public Result findAssignableUsers(String ownerName, String projectName, Long number, String query) {
         if (!request().accepts("application/json")) {
             return status(Http.Status.NOT_ACCEPTABLE);
         }
@@ -798,10 +795,10 @@ public class IssueApi extends AbstractPostingApp {
             if (issue.hasAssignee()) {
                 addMyself(issue, users);
                 addAuthorIfNotMeAndNotAssginee(issue, users, issueAuthor);
-                addUserToUsersWithCustomName(User.anonymous, users, Messages.get("issue.noAssignee"));
+                addUserToUsersWithCustomName(User.anonymous, users, MessagesUtil.get("issue.noAssignee"));
                 addUserToUsers(issue.assignee.user, users);  // To positioned up rank of list
             } else {
-                addUserToUsersWithCustomName(UserApp.currentUser(), users, Messages.get("issue.assignToMe"));
+                addUserToUsersWithCustomName(UserApp.currentUser(), users, MessagesUtil.get("issue.assignToMe"));
                 addAuthorIfNotMe(issue, users, issueAuthor);
             }
 
@@ -814,7 +811,7 @@ public class IssueApi extends AbstractPostingApp {
 
         ExpressionList<User> el = getUserExpressionList(query, request().getQueryString("type"));
 
-        int total = el.findRowCount();
+        int total = el.findCount();
         if (total > MAX_FETCH_USERS) {
             el.setMaxRows(MAX_FETCH_USERS);
             response().setHeader("Content-Range", "items " + MAX_FETCH_USERS + "/" + total);
@@ -826,7 +823,7 @@ public class IssueApi extends AbstractPostingApp {
     }
 
     private static ExpressionList<User> getUserExpressionList(String query, String searchType) {
-        ExpressionList<User> el = User.find.select("loginId, name").where()
+        ExpressionList<User> el = User.find.query().select("loginId, name").where()
                 .eq("state", UserState.ACTIVE).disjunction();
         if( StringUtils.isNotBlank(searchType)){
             el.eq(searchType, query);
@@ -841,7 +838,7 @@ public class IssueApi extends AbstractPostingApp {
 
     private static ExpressionList<Project> getProjectExpressionList(String query, String searchType) {
 
-        ExpressionList<Project> el = Project.find.select("id, name").where()
+        ExpressionList<Project> el = Project.find.query().select("id, name").where()
                 .eq("projectScope", ProjectScope.PUBLIC).disjunction();
 
         el.icontains("name", query);
@@ -852,20 +849,20 @@ public class IssueApi extends AbstractPostingApp {
 
     private static void addAuthorIfNotMe(Issue issue, List<ObjectNode> users, User issueAuthor) {
         if (!issue.getAuthor().loginId.equals(UserApp.currentUser().loginId)) {
-            addUserToUsersWithCustomName(issueAuthor, users, Messages.get("issue.assignToAuthor"));
+            addUserToUsersWithCustomName(issueAuthor, users, MessagesUtil.get("issue.assignToAuthor"));
         }
     }
 
     private static void addAuthorIfNotMeAndNotAssginee(Issue issue, List<ObjectNode> users, User issueAuthor) {
         if (!issue.getAuthor().loginId.equals(UserApp.currentUser().loginId)
                 && !issue.getAuthor().loginId.equals(issue.assignee.user.loginId)) {
-            addUserToUsersWithCustomName(issueAuthor, users, Messages.get("issue.assignToAuthor"));
+            addUserToUsersWithCustomName(issueAuthor, users, MessagesUtil.get("issue.assignToAuthor"));
         }
     }
 
     private static void addMyself(Issue issue, List<ObjectNode> users) {
         if (!UserApp.currentUser().loginId.equals(issue.assignee.user.loginId)) {
-            addUserToUsersWithCustomName(UserApp.currentUser(), users, Messages.get("issue.assignToMe"));
+            addUserToUsersWithCustomName(UserApp.currentUser(), users, MessagesUtil.get("issue.assignToMe"));
         }
     }
 
@@ -905,7 +902,7 @@ public class IssueApi extends AbstractPostingApp {
         }
     }
 
-    public static Result updateAssginees(String owner, String projectName, Long number){
+    public Result updateAssginees(String owner, String projectName, Long number){
         ObjectNode result = Json.newObject();
         JsonNode json = request().body().asJson();
         if (json == null) {
@@ -957,7 +954,7 @@ public class IssueApi extends AbstractPostingApp {
         ObjectNode node = Json.newObject();
         node.put("loginId", assigneeUser.loginId);
         if(assigneeUser.isAnonymous()){
-            node.put("name", Messages.get("common.none"));
+            node.put("name", MessagesUtil.get("common.none"));
         } else {
             node.put("name", assigneeUser.getDisplayName());
         }
@@ -975,9 +972,9 @@ public class IssueApi extends AbstractPostingApp {
     }
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
-    public static F.Promise<Result> translate() {
+    public CompletionStage<Result> translate() {
         if(StringUtils.isBlank(TRANSLATION_API)) {
-            return F.Promise.promise( () -> status(412, "Precondition Failed"));
+            return CompletableFuture.supplyAsync( () -> status(412, "Precondition Failed"));
         }
 
         JsonNode json = request().body().asJson();
@@ -1013,15 +1010,15 @@ public class IssueApi extends AbstractPostingApp {
         return getTranslation(text, project, translatorWsRequestHolderSupplier);
     }
 
-    private static F.Promise<WSResponse> translate(String text, WSRequestHolder translator) {
+    private static CompletionStage<WSResponse> translate(String text, WSRequest translator) {
         if (StringUtils.isBlank(text)) {
-            return F.Promise.pure(null);
+            return CompletableFuture.completedFuture(null);
         } else {
             return translator.post("source=ko&target=en&text=" + text);
         }
     }
 
-    private static Supplier<WSRequestHolder> translatorWsRequestHolderSupplier = () -> WS.url(TRANSLATION_API)
+    private static Supplier<WSRequest> translatorWsRequestHolderSupplier = () -> WSClientUtil.url(TRANSLATION_API)
             .setContentType("application/x-www-form-urlencoded; charset=UTF-8")
             .setHeader("Accept", "application/json,application/x-www-form-urlencoded,text/html,*/*")
             .setHeader(TRANSLATION_HEADER_KEY, TRANSLATION_HEADER_VALUE);
@@ -1049,17 +1046,22 @@ public class IssueApi extends AbstractPostingApp {
         return results;
     }
 
-    private static F.Promise<Result> getTranslations(List<String> texts, Project project, Supplier<WSRequestHolder> translatorSupplier) {
-        WSRequestHolder translator = translatorSupplier.get();
+    private static CompletionStage<Result> getTranslations(List<String> texts, Project project, Supplier<WSRequest> translatorSupplier) {
+        WSRequest translator = translatorSupplier.get();
 
         List<String> mergedTexts = merge(texts);
 
-        List<F.Promise<WSResponse>> promises = mergedTexts.stream()
+        List<CompletionStage<WSResponse>> promises = mergedTexts.stream()
                 .map(text -> translate(text, translator))
                 .collect(Collectors.toList());
 
-        return F.Promise.sequence(promises)
-                .map(results -> results.stream()
+        CompletableFuture<?>[] futures = promises.stream()
+                .map(CompletionStage::toCompletableFuture)
+                .toArray(CompletableFuture[]::new);
+
+        return CompletableFuture.allOf(futures)
+                .thenApply(ignored -> promises.stream()
+                        .map(promise -> promise.toCompletableFuture().join())
                         .map(jsonNode -> {
                             if (jsonNode == null) {
                                 return NEWLINE;
@@ -1069,7 +1071,7 @@ public class IssueApi extends AbstractPostingApp {
                             return translatedTextNode.textValue();
                         })
                         .collect(Collectors.toList()))
-                .map(translatedList -> {
+                .thenApply(translatedList -> {
                     String translated = String.join(NEWLINE, translatedList);
                     ObjectNode node = Json.newObject();
                     node.put("translated", Markdown.render(translated, project));
@@ -1077,13 +1079,12 @@ public class IssueApi extends AbstractPostingApp {
                 });
     }
 
-    private static F.Promise<Result> getTranslation(String text, Project project, Supplier<WSRequestHolder> by) {
+    private static CompletionStage<Result> getTranslation(String text, Project project, Supplier<WSRequest> by) {
         List<String> texts = Arrays.asList(text.replaceAll("&", "%26").split(NEWLINE));
         return getTranslations(texts, project, by);
     }
-
     @AnonymousCheck
-    public static Result findSharerByloginIds(String ownerName, String projectName, Long number,
+    public Result findSharerByloginIds(String ownerName, String projectName, Long number,
                                               String commaSeperatedIds) {
         if (!request().accepts("application/json")) {
             return status(Http.Status.NOT_ACCEPTABLE);
@@ -1112,7 +1113,7 @@ public class IssueApi extends AbstractPostingApp {
 
     private static ExpressionList<IssueSharer> getExpressionListByExtractingLoginIds(Issue issue, String query) {
         String[] queryItems = query.split(",");
-        ExpressionList<IssueSharer> el = IssueSharer.find
+        ExpressionList<IssueSharer> el = IssueSharer.find.query()
                 .where()
                 .in("loginId", Arrays.asList(queryItems))
                 .eq("issue.id", issue.id);
@@ -1120,7 +1121,7 @@ public class IssueApi extends AbstractPostingApp {
     }
 
     @IsAllowed(Operation.READ)
-    public static Result findSharableUsers(String ownerName, String projectName, Long number, String query) {
+    public Result findSharableUsers(String ownerName, String projectName, Long number, String query) {
         if (!request().accepts("application/json")) {
             return status(Http.Status.NOT_ACCEPTABLE);
         }
@@ -1130,7 +1131,7 @@ public class IssueApi extends AbstractPostingApp {
         ExpressionList<User> userExpressionList = getUserExpressionList(query, request().getQueryString("type"));
         ExpressionList<Project> projectExpressionList = getProjectExpressionList(query, request().getQueryString("type"));
 
-        int total = userExpressionList.findRowCount() + projectExpressionList.findRowCount();
+        int total = userExpressionList.findCount() + projectExpressionList.findCount();
         if (total > MAX_FETCH_USERS) {
             userExpressionList.setMaxRows(MAX_FETCH_USERS / 2);
             projectExpressionList.setMaxRows(MAX_FETCH_USERS / 2);
@@ -1148,7 +1149,7 @@ public class IssueApi extends AbstractPostingApp {
         return ok(toJson(results));
     }
 
-    public static Result updateSharer(String owner, String projectName, Long number){
+    public Result updateSharer(String owner, String projectName, Long number){
         JsonNode json = request().body().asJson();
         if (json == null) {
             return badRequest(Json.newObject().put("message", "Expecting Json data"));
@@ -1173,7 +1174,7 @@ public class IssueApi extends AbstractPostingApp {
         return ok(result);
     }
 
-    public static Result upvoteWeight(String owner, String projectName, Long number){
+    public Result upvoteWeight(String owner, String projectName, Long number){
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
         Issue issue = Issue.findByNumber(project, number);
 
@@ -1191,7 +1192,7 @@ public class IssueApi extends AbstractPostingApp {
         return ok(result);
     }
 
-    public static Result downvoteWeight(String owner, String projectName, Long number){
+    public Result downvoteWeight(String owner, String projectName, Long number){
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
         Issue issue = Issue.findByNumber(project, number);
 
@@ -1290,9 +1291,9 @@ public class IssueApi extends AbstractPostingApp {
     }
 
     private static void addSharer(Issue issue, String loginId) {
-        IssueSharer issueSharer = IssueSharer.find.where()
+        IssueSharer issueSharer = IssueSharer.find.query().where()
                 .eq("loginId", loginId)
-                .eq("issue.id", issue.id).findUnique();
+                .eq("issue.id", issue.id).findOne();
         if(issueSharer == null) {
             issueSharer = IssueSharer.createSharer(loginId, issue);
             issueSharer.save();
@@ -1302,10 +1303,10 @@ public class IssueApi extends AbstractPostingApp {
 
     private static void removeSharer(Issue issue, String loginId) {
         IssueSharer issueSharer =
-                IssueSharer.find.where()
+                IssueSharer.find.query().where()
                         .eq("loginId", loginId)
                         .eq("issue.id", issue.id)
-                        .findUnique();
+                        .findOne();
         issueSharer.delete();
         issue.sharers.remove(issueSharer);
     }

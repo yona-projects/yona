@@ -6,17 +6,18 @@
  **/
 package models;
 
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 
 @Entity
 public class UserSetting extends Model {
     private static final long serialVersionUID = -2377215889638087516L;
 
-    public static final Model.Finder<Long, UserSetting> find = new Finder<>(Long.class, UserSetting.class);
+    public static final Finder<Long, UserSetting> find = new Finder<>(UserSetting.class);
 
     @Id
     public Long id;
@@ -31,7 +32,7 @@ public class UserSetting extends Model {
     }
 
     public static UserSetting findByUser(Long id){
-        UserSetting userSetting = find.where().eq("user.id", id).findUnique();
+        UserSetting userSetting = find.query().where().eq("user.id", id).findOne();
         if (userSetting == null) {
             userSetting = new UserSetting(User.find.byId(id));
         }

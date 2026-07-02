@@ -22,25 +22,25 @@ import models.resource.GlobalResource;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
 
+import utils.MessagesUtil;
 import utils.RouteUtil;
+import utils.WSClientUtil;
 
 import play.Logger;
 import play.api.i18n.Lang;
 import play.data.validation.Constraints.Required;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 import play.i18n.Messages;
-import play.libs.F.Function;
 import play.libs.Json;
-import play.libs.ws.WS;
-import play.libs.ws.WSRequestHolder;
-import play.libs.ws.WSResponse;
+import play.libs.ws.WSRequest;
 import play.Play;
 
 import playRepository.GitCommit;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import javax.validation.constraints.Size;
 
 import java.text.SimpleDateFormat;
@@ -54,7 +54,7 @@ import java.util.List;
 public class Webhook extends Model implements ResourceConvertible {
 
     private static final long serialVersionUID = 1L;
-    public static final Finder<Long, Webhook> find = new Finder<>(Long.class, Webhook.class);
+    public static final Finder<Long, Webhook> find = new Finder<>(Webhook.class);
 
     /**
      * Primary Key.
@@ -135,7 +135,7 @@ public class Webhook extends Model implements ResourceConvertible {
     }
     
     public static List<Webhook> findByProject(Long projectId) {
-        return find.where().eq("project.id", projectId).findList();
+        return find.query().where().eq("project.id", projectId).findList();
     }
 
     public static void create(Long projectId, String payloadUrl, String secret, Boolean gitPush, WebhookType webhookType) {
@@ -163,16 +163,16 @@ public class Webhook extends Model implements ResourceConvertible {
     }
 
     public static Webhook findByIds(Long webhookId, Long projectId) {
-        return find.where()
+        return find.query().where()
                 .eq("webhook.id", webhookId)
                 .eq("project.id", projectId)
-                .findUnique();
+                .findOne();
     }
 
     public static Webhook findById(Long webhookId) {
-        return find.where()
+        return find.query().where()
                 .eq("id", webhookId)
-                .findUnique();
+                .findOne();
     }
 
     private String getBaseUrl() {
@@ -219,22 +219,22 @@ public class Webhook extends Model implements ResourceConvertible {
 
         switch (eventType) {
             case NEW_ISSUE:
-                requestMessage.append(Messages.get(Lang.defaultLang(), "notification.type.new.issue"));
+                requestMessage.append(MessagesUtil.get(Lang.defaultLang(), "notification.type.new.issue"));
                 break;
             case ISSUE_STATE_CHANGED:
-                requestMessage.append(Messages.get(Lang.defaultLang(), "notification.type.issue.state.changed"));
+                requestMessage.append(MessagesUtil.get(Lang.defaultLang(), "notification.type.issue.state.changed"));
                 break;
             case ISSUE_ASSIGNEE_CHANGED:
-                requestMessage.append(Messages.get(Lang.defaultLang(), "notification.type.issue.assignee.changed"));
+                requestMessage.append(MessagesUtil.get(Lang.defaultLang(), "notification.type.issue.assignee.changed"));
                 break;
             case ISSUE_BODY_CHANGED:
-                requestMessage.append(Messages.get(Lang.defaultLang(), "notification.type.issue.body.changed"));
+                requestMessage.append(MessagesUtil.get(Lang.defaultLang(), "notification.type.issue.body.changed"));
                 break;
             case ISSUE_MILESTONE_CHANGED:
-                requestMessage.append(Messages.get(Lang.defaultLang(), "notification.type.milestone.changed"));
+                requestMessage.append(MessagesUtil.get(Lang.defaultLang(), "notification.type.milestone.changed"));
                 break;
             case RESOURCE_DELETED:
-                requestMessage.append(Messages.get(Lang.defaultLang(), "notification.type.issue.deleted"));
+                requestMessage.append(MessagesUtil.get(Lang.defaultLang(), "notification.type.issue.deleted"));
                 break;
             default:
                 play.Logger.warn(String.format("Unknown webhook event: %s", eventType));
@@ -270,7 +270,7 @@ public class Webhook extends Model implements ResourceConvertible {
     private String buildRequestBody(EventType eventType, User sender, Issue eventIssue, Project previous) {
         StringBuilder requestMessage = new StringBuilder();
         requestMessage.append(String.format("[%s] %s ", project.name, sender.name));
-        requestMessage.append(Messages.get(Lang.defaultLang(), "notification.type.issue.moved", previous.name, project.name));
+        requestMessage.append(MessagesUtil.get(Lang.defaultLang(), "notification.type.issue.moved", previous.name, project.name));
         requestMessage.append(
                 buildRequestMessage(
                         controllers.routes.IssueApp.issue(eventIssue.project.owner, eventIssue.project.name, eventIssue.getNumber()).url(),
@@ -287,10 +287,10 @@ public class Webhook extends Model implements ResourceConvertible {
         ArrayNode detailFields = mapper.createArrayNode();
 
         if (eventIssue.milestone != null) {
-            detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "notification.type.milestone.changed"), eventIssue.milestone.title, true));
+            detailFields.add(buildTitleValueJSON(MessagesUtil.get(Lang.defaultLang(), "notification.type.milestone.changed"), eventIssue.milestone.title, true));
         }
-        detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), ""), eventIssue.assigneeName(), true));
-        detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "issue.state"), eventIssue.state.toString(), true));
+        detailFields.add(buildTitleValueJSON(MessagesUtil.get(Lang.defaultLang(), ""), eventIssue.assigneeName(), true));
+        detailFields.add(buildTitleValueJSON(MessagesUtil.get(Lang.defaultLang(), "issue.state"), eventIssue.state.toString(), true));
 
         attachments.add(buildAttachmentJSON(eventIssue.body, detailFields, eventType));
 
@@ -322,7 +322,7 @@ public class Webhook extends Model implements ResourceConvertible {
 
         switch (eventType) {
             case NEW_POSTING:
-                requestMessage.append(Messages.get(Lang.defaultLang(), "notification.type.new.posting"));
+                requestMessage.append(MessagesUtil.get(Lang.defaultLang(), "notification.type.new.posting"));
                 break;
             default:
                 play.Logger.warn("Unknown webhook event: " + eventType);
@@ -362,10 +362,10 @@ public class Webhook extends Model implements ResourceConvertible {
 
         switch (eventType) {
             case NEW_COMMENT:
-                requestMessage.append(Messages.get(Lang.defaultLang(), "notification.type.new.comment"));
+                requestMessage.append(MessagesUtil.get(Lang.defaultLang(), "notification.type.new.comment"));
                 break;
             case COMMENT_UPDATED:
-                requestMessage.append(Messages.get(Lang.defaultLang(), "notification.type.comment.updated"));
+                requestMessage.append(MessagesUtil.get(Lang.defaultLang(), "notification.type.comment.updated"));
                 break;
         }
 
@@ -411,16 +411,16 @@ public class Webhook extends Model implements ResourceConvertible {
 
         switch (eventType) {
             case NEW_PULL_REQUEST:
-                requestMessage.append(Messages.get(Lang.defaultLang(), "notification.type.new.pullrequest"));
+                requestMessage.append(MessagesUtil.get(Lang.defaultLang(), "notification.type.new.pullrequest"));
                 break;
             case PULL_REQUEST_STATE_CHANGED:
-                requestMessage.append(Messages.get(Lang.defaultLang(), "notification.type.pullrequest.state.changed"));
+                requestMessage.append(MessagesUtil.get(Lang.defaultLang(), "notification.type.pullrequest.state.changed"));
                 break;
             case PULL_REQUEST_MERGED:
-                requestMessage.append(Messages.get(Lang.defaultLang(), "notification.type.pullrequest.merged"));
+                requestMessage.append(MessagesUtil.get(Lang.defaultLang(), "notification.type.pullrequest.merged"));
                 break;
             case PULL_REQUEST_COMMIT_CHANGED:
-                requestMessage.append(Messages.get(Lang.defaultLang(), "notification.type.pullrequest.commit.changed"));
+                requestMessage.append(MessagesUtil.get(Lang.defaultLang(), "notification.type.pullrequest.commit.changed"));
                 break;
         }
 
@@ -457,9 +457,9 @@ public class Webhook extends Model implements ResourceConvertible {
         switch (eventType) {
             case PULL_REQUEST_REVIEW_STATE_CHANGED:
                 if (PullRequestReviewAction.DONE.equals(reviewAction)) {
-                    requestMessage.append(Messages.get(Lang.defaultLang(), "notification.pullrequest.reviewed", sender.name));
+                    requestMessage.append(MessagesUtil.get(Lang.defaultLang(), "notification.pullrequest.reviewed", sender.name));
                 } else {
-                    requestMessage.append(Messages.get(Lang.defaultLang(), "notification.pullrequest.unreviewed", sender.name));
+                    requestMessage.append(MessagesUtil.get(Lang.defaultLang(), "notification.pullrequest.unreviewed", sender.name));
                 }
                 break;
         }
@@ -493,7 +493,7 @@ public class Webhook extends Model implements ResourceConvertible {
     private String buildRequestBody(EventType eventType, User sender, PullRequest eventPullRequest, ReviewComment reviewComment) {
         StringBuilder requestMessage = new StringBuilder();
         requestMessage.append(String.format("[%s] %s ", project.name, sender.name));
-        requestMessage.append(Messages.get(Lang.defaultLang(), "notification.type.new.simple.comment"));
+        requestMessage.append(MessagesUtil.get(Lang.defaultLang(), "notification.type.new.simple.comment"));
         requestMessage.append(String.format(" <%s://%s%s|", utils.Config.getScheme(), utils.Config.getHostport("localhost:9000"), RouteUtil.getUrl(reviewComment)));
         requestMessage.append(String.format("#%d: %s>", eventPullRequest.number, eventPullRequest.title));
         return requestMessage.toString();
@@ -504,9 +504,9 @@ public class Webhook extends Model implements ResourceConvertible {
         ObjectMapper mapper = new ObjectMapper();
 
         ArrayNode detailFields = mapper.createArrayNode();
-        detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "pullRequest.sender"), eventPullRequest.contributor.name, false));
-        detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "pullRequest.from"), eventPullRequest.fromBranch, true));
-        detailFields.add(buildTitleValueJSON(Messages.get(Lang.defaultLang(), "pullRequest.to"), eventPullRequest.toBranch, true));
+        detailFields.add(buildTitleValueJSON(MessagesUtil.get(Lang.defaultLang(), "pullRequest.sender"), eventPullRequest.contributor.name, false));
+        detailFields.add(buildTitleValueJSON(MessagesUtil.get(Lang.defaultLang(), "pullRequest.from"), eventPullRequest.fromBranch, true));
+        detailFields.add(buildTitleValueJSON(MessagesUtil.get(Lang.defaultLang(), "pullRequest.to"), eventPullRequest.toBranch, true));
 
         ArrayNode attachments = mapper.createArrayNode();
         attachments.add(buildAttachmentJSON(eventPullRequest.body, detailFields, eventType));
@@ -591,7 +591,7 @@ public class Webhook extends Model implements ResourceConvertible {
     private void sendRequest(String payload) {
         play.Logger.info(payload);
         try {
-            WSRequestHolder requestHolder = WS.url(this.payloadUrl);
+            WSRequest requestHolder = WSClientUtil.url(this.payloadUrl);
             if (StringUtils.isNotBlank(this.secret)) {
                 requestHolder.setHeader("Authorization", String.format("token %s ", this.secret));
             }
@@ -599,20 +599,15 @@ public class Webhook extends Model implements ResourceConvertible {
                     .setHeader("Content-Type", "application/json")
                     .setHeader("User-Agent", "Yobi-Hookshot")
                     .post(payload)
-                    .map(
-                            new Function<WSResponse, Integer>() {
-                                public Integer apply(WSResponse response) {
-                                    int statusCode = response.getStatus();
-                                    String statusText = response.getStatusText();
-                                    if (statusCode < 200 || statusCode >= 300) {
-                                        // Unsuccessful status code - log some information in server.
-                                        Logger.info(String.format("[Webhook] Request responded code  %d: %s", statusCode, statusText));
-                                        Logger.info(String.format("[Webhook] Request payload: %s", payload));
-                                    }
-                                    return 0;
-                                }
-                            }
-                    );
+                    .thenAccept(response -> {
+                        int statusCode = response.getStatus();
+                        String statusText = response.getStatusText();
+                        if (statusCode < 200 || statusCode >= 300) {
+                            // Unsuccessful status code - log some information in server.
+                            Logger.info(String.format("[Webhook] Request responded code  %d: %s", statusCode, statusText));
+                            Logger.info(String.format("[Webhook] Request payload: %s", payload));
+                        }
+                    });
         } catch (Exception e) {
             // Request failed (Dead end point or invalid payload URL) - log some information in server.
             Logger.info("[Webhook] Request failed at given payload URL: " + this.payloadUrl);
@@ -622,7 +617,7 @@ public class Webhook extends Model implements ResourceConvertible {
     private void sendRequest(String payload, Long webhookId, Resource resource) {
         play.Logger.info(payload);
         try {
-            WSRequestHolder requestHolder = WS.url(this.payloadUrl);
+            WSRequest requestHolder = WSClientUtil.url(this.payloadUrl);
             if (StringUtils.isNotBlank(this.secret)) {
                 requestHolder.setHeader("Authorization", String.format("token %s ", this.secret));
             }
@@ -631,26 +626,21 @@ public class Webhook extends Model implements ResourceConvertible {
                     .setHeader("Content-Type", "application/json")
                     .setHeader("User-Agent", "Yobi-Hookshot")
                     .post(payload)
-                    .map(
-                            new Function<WSResponse, Integer>() {
-                                public Integer apply(WSResponse response) {
-                                    int statusCode = response.getStatus();
-                                    String statusText = response.getStatusText();
-                                    if (statusCode < 200 || statusCode >= 300) {
-                                        // Unsuccessful status code - log some information in server.
-                                        Logger.info(String.format("[Webhook] Request responded code  %d: %s", statusCode, statusText));
-                                        Logger.info(String.format("[Webhook] Request payload: %s", payload));
-                                    } else {
-                                        WebhookThread webhookthread = WebhookThread.getWebhookThread(webhookId, resource);
-                                        if (webhookthread == null) {
-                                            String threadId = response.asJson().findPath("thread").findPath("name").asText();
-                                            webhookthread = WebhookThread.create(webhookId, resource, threadId);
-                                        }
-                                    }
-                                    return 0;
-                                }
+                    .thenAccept(response -> {
+                        int statusCode = response.getStatus();
+                        String statusText = response.getStatusText();
+                        if (statusCode < 200 || statusCode >= 300) {
+                            // Unsuccessful status code - log some information in server.
+                            Logger.info(String.format("[Webhook] Request responded code  %d: %s", statusCode, statusText));
+                            Logger.info(String.format("[Webhook] Request payload: %s", payload));
+                        } else {
+                            WebhookThread webhookthread = WebhookThread.getWebhookThread(webhookId, resource);
+                            if (webhookthread == null) {
+                                String threadId = response.asJson().findPath("thread").findPath("name").asText();
+                                WebhookThread.create(webhookId, resource, threadId);
                             }
-                    );
+                        }
+                    });
         } catch (Exception e) {
             // Request failed (Dead end point or invalid payload URL) - log some information in server.
             Logger.info("[Webhook] Request failed at given payload URL: " + this.payloadUrl);
@@ -667,7 +657,7 @@ public class Webhook extends Model implements ResourceConvertible {
 
     private String buildRequestBody(List<RevCommit> commits, List<String> refNames, User sender, String title) {
         StringBuilder requestMessage = new StringBuilder();
-        requestMessage.append(Messages.get(Lang.defaultLang(), "notification.pushed.commits.to", project.name, commits.size(), refNames.get(0)));
+        requestMessage.append(MessagesUtil.get(Lang.defaultLang(), "notification.pushed.commits.to", project.name, commits.size(), refNames.get(0)));
         return requestMessage.toString();
     }
 

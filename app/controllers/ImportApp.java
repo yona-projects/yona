@@ -30,9 +30,9 @@ import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.internal.JGitText;
 import play.data.Form;
-import play.db.ebean.Transactional;
+import io.ebean.annotation.Transactional;
 import play.i18n.Messages;
-import play.mvc.Controller;
+import utils.LegacyController;
 import play.mvc.Result;
 import playRepository.GitRepository;
 import utils.*;
@@ -44,26 +44,26 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
-import static play.data.Form.form;
+import static utils.FormUtil.form;
 
 @AnonymousCheck
-public class ImportApp extends Controller {
+public class ImportApp extends LegacyController {
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
-    public static Result importForm() {
-        Form<Project> projectForm = form(Project.class).bindFromRequest("owner");
-        projectForm.discardErrors();
+    public Result importForm() {
+        Form<Project> projectForm = form(Project.class).bindFromRequest(request(), "owner");
+        projectForm = projectForm.discardingErrors();
         List<OrganizationUser> orgUserList = OrganizationUser.findByAdmin(UserApp.currentUser().id);
         return ok(importing.render("title.newProject", projectForm, orgUserList));
     }
 
     @Transactional
-    public static Result newProject() throws Exception {
+    public Result newProject() throws Exception {
         if( !AccessControl.isGlobalResourceCreatable(UserApp.currentUser()) ){
             return forbidden("'" + UserApp.currentUser().name + "' has no permission");
         }
-        Form<Project> filledNewProjectForm = form(Project.class).bindFromRequest();
-        String owner = filledNewProjectForm.field("owner").value();
+        Form<Project> filledNewProjectForm = form(Project.class).bindFromRequest(request());
+        String owner = filledNewProjectForm.field("owner").value().orElse("");
         Organization organization = Organization.findByName(owner);
         User user = User.findByLoginId(owner);
 
@@ -72,15 +72,15 @@ public class ImportApp extends Controller {
             return result.getResult();
         }
 
-        String gitUrl = filledNewProjectForm.data().get("url");
+        String gitUrl = filledNewProjectForm.rawData().get("url");
         Project project = filledNewProjectForm.get();
 
         if (Organization.isNameExist(owner)) {
             project.organization = organization;
         }
 
-        String authId = filledNewProjectForm.field("authId").value();
-        String authPw = filledNewProjectForm.field("authPw").value();
+        String authId = filledNewProjectForm.field("authId").value().orElse("");
+        String authPw = filledNewProjectForm.field("authPw").value().orElse("");
         boolean hasNoCredentials = StringUtils.isEmpty(authId) && StringUtils.isEmpty(authPw);
 
         try {
@@ -99,10 +99,10 @@ public class ImportApp extends Controller {
             }
         } catch (InvalidRemoteException e) {
             // It is not an url.
-            filledNewProjectForm.reject("url", "project.import.error.wrong.url");
+            utils.FormUtil.reject(filledNewProjectForm, "url", "project.import.error.wrong.url");
         } catch (JGitInternalException e) {
             // The url seems that does not locate a git repository.
-            filledNewProjectForm.reject("url", "project.import.error.wrong.url");
+            utils.FormUtil.reject(filledNewProjectForm, "url", "project.import.error.wrong.url");
         } catch (TransportException e) {
             addDetailedTransportErrorMessage(filledNewProjectForm, e, hasNoCredentials);
         }
@@ -117,7 +117,7 @@ public class ImportApp extends Controller {
     }
 
     private static void saveProjectMenuSetting(Project project) {
-        Form<ProjectMenuSetting> filledUpdatedProjectMenuSettingForm = form(ProjectMenuSetting.class).bindFromRequest();
+        Form<ProjectMenuSetting> filledUpdatedProjectMenuSettingForm = form(ProjectMenuSetting.class).bindFromRequest(request());
         ProjectMenuSetting updatedProjectMenuSetting = filledUpdatedProjectMenuSettingForm.get();
 
         project.refresh();
@@ -149,18 +149,18 @@ public class ImportApp extends Controller {
         // HttpConnection.HTTP_UNAUTHORIZED : 401
         if(errorMessage.contains(JGitText.get().notAuthorized)){
             if(hasNoCredentials){
-                filledNewProjectForm.reject("repoAuth", "required");
-                filledNewProjectForm.reject("url", "project.import.error.transport.unauthorized");
+                utils.FormUtil.reject(filledNewProjectForm, "repoAuth", "required");
+                utils.FormUtil.reject(filledNewProjectForm, "url", "project.import.error.transport.unauthorized");
             } else {
-                filledNewProjectForm.reject("authId", "project.import.error.transport.failedToAuth");
+                utils.FormUtil.reject(filledNewProjectForm, "authId", "project.import.error.transport.failedToAuth");
             }
         } else if(errorMessage.contains(java.text.MessageFormat.format(JGitText.get().serviceNotPermitted, ""))){
             // HttpConnection.HTTP_FORBIDDEN : 403
-            filledNewProjectForm.reject("url", "project.import.error.transport.forbidden");
+            utils.FormUtil.reject(filledNewProjectForm, "url", "project.import.error.transport.forbidden");
         } else {
             // and for other errors
             String statusCode = errorMessage.split(" ")[1]; // 0 = URL, 1 = ResponseCode, 2 = ResponseMessage
-            filledNewProjectForm.reject("url", Messages.get("project.import.error.transport", statusCode));
+            utils.FormUtil.reject(filledNewProjectForm, "url", MessagesUtil.get("project.import.error.transport", statusCode));
         }
     }
 
@@ -170,19 +170,19 @@ public class ImportApp extends Controller {
 
         List<OrganizationUser> orgUserList = OrganizationUser.findByAdmin(UserApp.currentUser().id);
 
-        String owner = newProjectForm.field("owner").value();
-        String name = newProjectForm.field("name").value();
+        String owner = newProjectForm.field("owner").value().orElse("");
+        String name = newProjectForm.field("name").value().orElse("");
         boolean ownerIsUser = User.isLoginIdExist(owner);
         boolean ownerIsOrganization = Organization.isNameExist(owner);
 
         if (!ownerIsUser && !ownerIsOrganization) {
-            newProjectForm.reject("owner", "project.owner.invalidate");
+            utils.FormUtil.reject(newProjectForm, "owner", "project.owner.invalidate");
             hasError = true;
             result = badRequest(create.render("title.newProject", newProjectForm, orgUserList));
         }
 
         if (ownerIsUser && !Objects.equals(UserApp.currentUser().id, user.id)) {
-            newProjectForm.reject("owner", "project.owner.invalidate");
+            utils.FormUtil.reject(newProjectForm, "owner", "project.owner.invalidate");
             hasError = true;
             result = badRequest(create.render("title.newProject", newProjectForm, orgUserList));
         }
@@ -193,20 +193,20 @@ public class ImportApp extends Controller {
         }
 
         if (Project.exists(owner, name)) {
-            newProjectForm.reject("name", "project.name.duplicate");
+            utils.FormUtil.reject(newProjectForm, "name", "project.name.duplicate");
             hasError = true;
             result = badRequest(importing.render("title.newProject", newProjectForm, orgUserList));
         }
 
-        String gitUrl = StringUtils.trim(newProjectForm.data().get("url"));
+        String gitUrl = StringUtils.trim(newProjectForm.rawData().get("url"));
         if (StringUtils.isBlank(gitUrl)) {
-            newProjectForm.reject("url", "project.import.error.empty.url");
+            utils.FormUtil.reject(newProjectForm, "url", "project.import.error.empty.url");
             hasError = true;
             result = badRequest(importing.render("title.newProject", newProjectForm, orgUserList));
         }
 
         if (newProjectForm.hasErrors()) {
-            newProjectForm.reject("name", "project.name.alert");
+            utils.FormUtil.reject(newProjectForm, "name", "project.name.alert");
             hasError = true;
             result = badRequest(importing.render("title.newProject", newProjectForm, orgUserList));
         }

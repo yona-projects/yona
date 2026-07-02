@@ -20,7 +20,8 @@
     <div class="pull-right">
       <button type="button" class="close" data-dismiss="modal" aria-hidden="true" class="mr10">&times;</button>
     </div>
-    <form action="@routes.UserApp.login()" method="post" class="frm-wrap login-form-wrap">
+    <form action="@routes.UserApp.login" method="post" class="frm-wrap login-form-wrap">
+      @csrfFormField
       @if(UserApp.useSocialLoginOnly){
         <div class="btns-row nm">
           @Messages("app.warn.support.social.login.only")
@@ -46,14 +47,14 @@
       }
 
       <div class="btns-row nm">
-        @currentAuth() { auth =>
+        @currentAuth(playAuthenticate) { auth =>
           @if(auth == null) {
             @if(isSocialLoginSupport) {
               @if(!UserApp.useSocialLoginOnly) {
                 <div class="social-login-title-line"> @Messages("title.or") </div>
               }
             }
-            @forProviders() { p =>
+            @forProviders(playAuthenticate, false, true, true) { p =>
               @if(isAllowedOAuthProvider(p.getKey)) {
                 <a href="@p.getUrl" class="ybtn oauth-login-btn">@Html(providerWithLogo(p.getKey))</a>
               }
@@ -62,7 +63,7 @@
             @if(UserApp.currentUser().isAnonymous){
               <div class="cache-warning">@Messages("browser.cache.refresh.message")</div>
             }
-            <a href="@routes.Application.oAuthLogout()" class="ybtn oauth-login-btn">@Messages("title.logout")</a>
+            <a href="@routes.Application.oAuthLogout" class="ybtn oauth-login-btn">@Messages("title.logout")</a>
           }
         }
       </div>
@@ -73,7 +74,7 @@
             <label for="remember-meD" class="bg-checkbox">@Messages("title.rememberMe")</label>
           </div>
 
-          <a href="@routes.PasswordResetApp.lostPassword()">@Messages("title.resetPassword")</a>
+          <a href="@routes.PasswordResetApp.lostPassword">@Messages("title.resetPassword")</a>
           <span class="gray-txt ml10 mr10">|</span>
           <a href="@routes.UserApp.signupForm">@Messages("title.signup")</a>
         </div>

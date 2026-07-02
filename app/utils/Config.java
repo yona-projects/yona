@@ -111,10 +111,10 @@ public class Config {
     }
 
     public static String getHostport() {
-        Http.Context context = Http.Context.current.get();
+        Http.Request request = LegacyRequestContext.currentRequestOrNull();
 
-        if (context != null) {
-            return getHostport(context.request().host());
+        if (request != null) {
+            return getHostport(request.host());
         } else {
             try {
                 return getDefaultAddress().getHostAddress();
@@ -138,11 +138,11 @@ public class Config {
     }
 
     public static String getScheme() {
-        Http.Context context = Http.Context.current.get();
+        Http.Request request = LegacyRequestContext.currentRequestOrNull();
 
-        if (context != null) {
+        if (request != null) {
             try {
-                return getScheme(getSchemeFromRequestURI(context.request()));
+                return getScheme(getSchemeFromRequestURI(request));
             } catch (URISyntaxException e) {
                 play.Logger.warn("Failed to get the scheme part from the request-uri", e);
                 return getScheme(DEFAULT_SCHEME);

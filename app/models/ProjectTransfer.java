@@ -26,10 +26,11 @@ import models.resource.Resource;
 import models.resource.ResourceConvertible;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.joda.time.DateTime;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 import utils.Url;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Date;
 import java.util.List;
 
@@ -38,7 +39,7 @@ public class ProjectTransfer extends Model implements ResourceConvertible {
 
     private static final long serialVersionUID = 1L;
 
-    public static final Finder<Long, ProjectTransfer> find = new Finder<>(Long.class, ProjectTransfer.class);
+    public static final Finder<Long, ProjectTransfer> find = new Finder<>(ProjectTransfer.class);
 
     @Id
     public Long id;
@@ -67,11 +68,11 @@ public class ProjectTransfer extends Model implements ResourceConvertible {
     public String newProjectName;
 
     public static ProjectTransfer requestNewTransfer(Project project, User sender, String destination) {
-        ProjectTransfer pt = find.where()
+        ProjectTransfer pt = find.query().where()
                 .eq("project", project)
                 .eq("sender", sender)
                 .eq("destination", destination)
-                .findUnique();
+                .findOne();
 
         if(pt != null) {
             pt.requested = new Date();
@@ -99,19 +100,19 @@ public class ProjectTransfer extends Model implements ResourceConvertible {
         Date now = new Date();
         DateTime oneDayBefore = new DateTime(now).minusDays(1);
 
-        return find.where()
+        return find.query().where()
                 .eq("id", id)
                 .eq("accepted", false)
                 .between("requested", oneDayBefore, now)
-                .findUnique();
+                .findOne();
     }
 
     public static void deleteExisting(Project project, User sender, String destination) {
-        ProjectTransfer pt = find.where()
+        ProjectTransfer pt = find.query().where()
                 .eq("project", project)
                 .eq("sender", sender)
                 .eq("destination", destination)
-                .findUnique();
+                .findOne();
 
         if(pt != null) {
             pt.delete();
@@ -138,7 +139,7 @@ public class ProjectTransfer extends Model implements ResourceConvertible {
     }
 
     public static List<ProjectTransfer> findByProject(Project project) {
-        return find.where()
+        return find.query().where()
                 .eq("project", project)
                 .findList();
     }

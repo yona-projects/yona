@@ -20,6 +20,7 @@
 **@
 @(message: String, notConfiguredItems: List[String], sender: String, errorMessage: String, sended: Boolean)
 
+
 @siteMngLayout(message) {
 <div class="title_area">
     <h2 class="pull-left">@Messages(message)</h2>
@@ -47,7 +48,7 @@
     </ul>
 </div>
 }
-<form id="mailForm" method="post" action="@routes.SiteApp.sendMail()" class="form-horizontal">
+<form id="mailForm" method="post" action="@routes.SiteApp.sendMail" class="form-horizontal">
     <div class="control-group">
         <label name="from" class="control-label span3">@Messages("site.mail.from")</label>
         <div class="controls">

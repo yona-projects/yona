@@ -20,10 +20,10 @@
  */
 package models;
 
-import com.avaje.ebean.Expr;
-import com.avaje.ebean.ExpressionList;
-import com.avaje.ebean.Junction;
-import com.avaje.ebean.Page;
+import io.ebean.Expr;
+import io.ebean.ExpressionList;
+import io.ebean.Junction;
+import io.ebean.PagedList;
 import controllers.Application;
 import models.enumeration.Operation;
 import models.enumeration.ProjectScope;
@@ -32,6 +32,8 @@ import utils.AccessControl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 public class Search {
 
@@ -95,8 +97,9 @@ public class Search {
      * @param pageParam
      * @return
      */
-    public static Page<Issue> findIssues(String keyword, User user, PageParam pageParam) {
-        return issuesEL(keyword, user).findPagingList(pageParam.getSize()).getPage(pageParam.getPage());
+    public static PagedList<Issue> findIssues(String keyword, User user, PageParam pageParam) {
+        return issuesEL(keyword, user).setFirstRow(pageParam.getPage() * pageParam.getSize())
+                .setMaxRows(pageParam.getSize()).findPagedList();
     }
 
     /**
@@ -107,7 +110,7 @@ public class Search {
      * @return
      */
     public static int countIssues(String keyword, User user) {
-        return issuesEL(keyword, user).findRowCount();
+        return issuesEL(keyword, user).findCount();
     }
 
     /**
@@ -118,7 +121,7 @@ public class Search {
      * @return
      */
     private static ExpressionList<Issue> issuesEL(String keyword, User user) {
-        ExpressionList<Issue> el = Issue.finder.where();
+        ExpressionList<Issue> el = Issue.finder.query().where();
         Junction<Issue> junction = el.disjunction();
         inProjectsTemplate(keyword, user, junction, DEFAULT_PATH_TO_PROJECT, containsKeywordInIssue);
         equalsUserTemplate(keyword, user, junction, DEFAULT_PATH_TO_AUTHOR, containsKeywordInIssue);
@@ -143,8 +146,8 @@ public class Search {
      * @param pageParam
      * @return
      */
-    public static Page<Issue> findIssues(String keyword, User user, Project project, PageParam pageParam) {
-        return issuesEL(keyword, user, project).findPagingList(pageParam.getSize()).getPage(pageParam.getPage());
+    public static PagedList<Issue> findIssues(String keyword, User user, Project project, PageParam pageParam) {
+        return issuesEL(keyword, user, project).setFirstRow((pageParam.getPage()) * (pageParam.getSize())).setMaxRows(pageParam.getSize()).findPagedList();
     }
 
     /**
@@ -157,11 +160,11 @@ public class Search {
      */
     public static int countIssues(String keyword, User user, Project project) {
         ExpressionList<Issue> el = issuesEL(keyword, user, project);
-        return el.findRowCount();
+        return el.findCount();
     }
 
     private static ExpressionList<Issue> issuesEL(String keyword, User user, Project project) {
-        ExpressionList<Issue> el = Issue.finder.where().eq("project", project);
+        ExpressionList<Issue> el = Issue.finder.query().where().eq("project", project);
         if(!AccessControl.isAllowed(user, project.asResource(), Operation.READ)) {
             Junction<Issue> junction = el.disjunction();
             junction.add(Expr.eq("authorId", user.id));
@@ -187,8 +190,8 @@ public class Search {
      * @param pageParam
      * @return
      */
-    public static Page<Issue> findIssues(String keyword, User user, Organization organization, PageParam pageParam) {
-        return issuesEL(keyword, user, organization).findPagingList(pageParam.getSize()).getPage(pageParam.getPage());
+    public static PagedList<Issue> findIssues(String keyword, User user, Organization organization, PageParam pageParam) {
+        return issuesEL(keyword, user, organization).setFirstRow((pageParam.getPage()) * (pageParam.getSize())).setMaxRows(pageParam.getSize()).findPagedList();
     }
 
     /**
@@ -201,11 +204,11 @@ public class Search {
      */
     public static int countIssues(String keyword, User user, Organization organization) {
         ExpressionList<Issue> el = issuesEL(keyword, user, organization);
-        return el.findRowCount();
+        return el.findCount();
     }
 
     private static ExpressionList<Issue> issuesEL(String keyword, User user, Organization organization) {
-        ExpressionList<Issue> el = Issue.finder.where()
+        ExpressionList<Issue> el = Issue.finder.query().where()
                 .eq("project.organization", organization);
         Junction<Issue> junction = el.disjunction();
         inProjectsTemplate(keyword, user, organization, junction, DEFAULT_PATH_TO_PROJECT, containsKeywordInIssue);
@@ -229,8 +232,8 @@ public class Search {
      * @param pageParam
      * @return
      */
-    public static Page<Posting> findPosts(String keyword, User user, PageParam pageParam) {
-        return postsEL(keyword, user).findPagingList(pageParam.getSize()).getPage(pageParam.getPage());
+    public static PagedList<Posting> findPosts(String keyword, User user, PageParam pageParam) {
+        return postsEL(keyword, user).setFirstRow((pageParam.getPage()) * (pageParam.getSize())).setMaxRows(pageParam.getSize()).findPagedList();
     }
 
     /**
@@ -241,11 +244,11 @@ public class Search {
      * @return
      */
     public static int countPosts(String keyword, User user) {
-        return postsEL(keyword, user).findRowCount();
+        return postsEL(keyword, user).findCount();
     }
 
     private static ExpressionList<Posting> postsEL(String keyword, User user) {
-        ExpressionList<Posting> el = Posting.finder.where();
+        ExpressionList<Posting> el = Posting.finder.query().where();
         Junction<Posting> junction = el.disjunction();
         inProjectsTemplate(keyword, user, junction, DEFAULT_PATH_TO_PROJECT, containsKeywordInPosting);
         equalsUserTemplate(keyword, user, junction, DEFAULT_PATH_TO_AUTHOR, containsKeywordInPosting);
@@ -268,8 +271,8 @@ public class Search {
      * @param pageParam
      * @return
      */
-    public static Page<Posting> findPosts(String keyword, User user, Project project, PageParam pageParam) {
-        return postsEL(keyword, user, project).findPagingList(pageParam.getSize()).getPage(pageParam.getPage());
+    public static PagedList<Posting> findPosts(String keyword, User user, Project project, PageParam pageParam) {
+        return postsEL(keyword, user, project).setFirstRow((pageParam.getPage()) * (pageParam.getSize())).setMaxRows(pageParam.getSize()).findPagedList();
     }
 
     /**
@@ -281,11 +284,11 @@ public class Search {
      * @return
      */
     public static int countPosts(String keyword, User user, Project project) {
-        return postsEL(keyword, user, project).findRowCount();
+        return postsEL(keyword, user, project).findCount();
     }
 
     private static ExpressionList<Posting> postsEL(String keyword, User user, Project project) {
-        ExpressionList<Posting> el = Posting.finder.where()
+        ExpressionList<Posting> el = Posting.finder.query().where()
                 .eq("project", project);
         if(!AccessControl.isAllowed(user, project.asResource(), Operation.READ)) {
             el.eq("authorId", user.id);
@@ -309,8 +312,8 @@ public class Search {
      * @param pageParam
      * @return
      */
-    public static Page<Posting> findPosts(String keyword, User user, Organization organization, PageParam pageParam) {
-        return postsEL(keyword, user, organization).findPagingList(pageParam.getSize()).getPage(pageParam.getPage());
+    public static PagedList<Posting> findPosts(String keyword, User user, Organization organization, PageParam pageParam) {
+        return postsEL(keyword, user, organization).setFirstRow((pageParam.getPage()) * (pageParam.getSize())).setMaxRows(pageParam.getSize()).findPagedList();
     }
 
     /**
@@ -323,11 +326,11 @@ public class Search {
      */
     public static int countPosts(String keyword, User user, Organization organization) {
         ExpressionList<Posting> el = postsEL(keyword, user, organization);
-        return el.findRowCount();
+        return el.findCount();
     }
 
     private static ExpressionList<Posting> postsEL(String keyword, User user, Organization organization) {
-        ExpressionList<Posting> el = Posting.finder.where()
+        ExpressionList<Posting> el = Posting.finder.query().where()
                 .eq("project.organization", organization);
         Junction<Posting> junction = el.disjunction();
         inProjectsTemplate(keyword, user, organization, junction, DEFAULT_PATH_TO_PROJECT, containsKeywordInPosting);
@@ -344,8 +347,8 @@ public class Search {
      * @param pageParam
      * @return
      */
-    public static Page<User> findUsers(String keyword, PageParam pageParam) {
-        return usersEL(keyword).findPagingList(pageParam.getSize()).getPage(pageParam.getPage());
+    public static PagedList<User> findUsers(String keyword, PageParam pageParam) {
+        return usersEL(keyword).setFirstRow((pageParam.getPage()) * (pageParam.getSize())).setMaxRows(pageParam.getSize()).findPagedList();
     }
 
     /**
@@ -355,11 +358,11 @@ public class Search {
      * @return
      */
     public static int countUsers(String keyword) {
-        return usersEL(keyword).findRowCount();
+        return usersEL(keyword).findCount();
     }
 
     private static ExpressionList<User> usersEL(String keyword) {
-        ExpressionList<User> el = User.find.where()
+        ExpressionList<User> el = User.find.query().where()
                 .eq("state", UserState.ACTIVE);
         el.disjunction()
             .add(Expr.icontains("name", keyword))
@@ -377,8 +380,8 @@ public class Search {
      * @param pageParam
      * @return
      */
-    public static Page<User> findUsers(String keyword, Project project, PageParam pageParam) {
-        return usersEL(keyword, project).findPagingList(pageParam.getSize()).getPage(pageParam.getPage());
+    public static PagedList<User> findUsers(String keyword, Project project, PageParam pageParam) {
+        return usersEL(keyword, project).setFirstRow((pageParam.getPage()) * (pageParam.getSize())).setMaxRows(pageParam.getSize()).findPagedList();
     }
 
     /**
@@ -390,11 +393,11 @@ public class Search {
      */
     public static int countUsers(String keyword, Project project) {
         ExpressionList<User> el = usersEL(keyword, project);
-        return el.findRowCount();
+        return el.findCount();
     }
 
     private static ExpressionList<User> usersEL(String keyword, Project project) {
-        ExpressionList<User> el = User.find.where()
+        ExpressionList<User> el = User.find.query().where()
                 .eq("state", UserState.ACTIVE)
                 .eq("projectUser.project", project);
         el.disjunction()
@@ -413,8 +416,8 @@ public class Search {
      * @param pageParam
      * @return
      */
-    public static Page<User> findUsers(String keyword, Organization organization, PageParam pageParam) {
-        return usersEL(keyword, organization).findPagingList(pageParam.getSize()).getPage(pageParam.getPage());
+    public static PagedList<User> findUsers(String keyword, Organization organization, PageParam pageParam) {
+        return usersEL(keyword, organization).setFirstRow((pageParam.getPage()) * (pageParam.getSize())).setMaxRows(pageParam.getSize()).findPagedList();
     }
 
     /**
@@ -425,11 +428,11 @@ public class Search {
      * @return
      */
     public static int countUsers(String keyword, Organization organization) {
-        return usersEL(keyword, organization).findRowCount();
+        return usersEL(keyword, organization).findCount();
     }
 
     private static ExpressionList<User> usersEL(String keyword, Organization organization) {
-        ExpressionList<User> el = User.find.where()
+        ExpressionList<User> el = User.find.query().where()
                 .eq("state", UserState.ACTIVE)
                 .eq("groupUser.organization", organization);
         el.disjunction()
@@ -448,8 +451,8 @@ public class Search {
      * @param pageParam
      * @return
      */
-    public static Page<Project> findProjects(String keyword, User user, PageParam pageParam) {
-        return projectsEL(keyword, user).findPagingList(pageParam.getSize()).getPage(pageParam.getPage());
+    public static PagedList<Project> findProjects(String keyword, User user, PageParam pageParam) {
+        return projectsEL(keyword, user).setFirstRow((pageParam.getPage()) * (pageParam.getSize())).setMaxRows(pageParam.getSize()).findPagedList();
     }
 
     /**
@@ -478,9 +481,9 @@ public class Search {
      * @param pageParam
      * @return
      */
-    public static Page<Project> findProjects(String keyword, User user, Organization organization, PageParam pageParam) {
+    public static PagedList<Project> findProjects(String keyword, User user, Organization organization, PageParam pageParam) {
         return projectsEL(keyword, user).eq("organization", organization)
-                .findPagingList(pageParam.getSize()).getPage(pageParam.getPage());
+                .setFirstRow((pageParam.getPage()) * (pageParam.getSize())).setMaxRows(pageParam.getSize()).findPagedList();
     }
 
     /**
@@ -496,7 +499,7 @@ public class Search {
     }
 
     private static ExpressionList<Project> projectsEL(String keyword, User user) {
-        ExpressionList<Project> el = Project.find.where();
+        ExpressionList<Project> el = Project.find.query().where();
         if(user.isAnonymous() && !Application.HIDE_PROJECT_LISTING) {
             el.eq("projectScope", ProjectScope.PUBLIC);
             el.disjunction()
@@ -525,16 +528,16 @@ public class Search {
         return el;
     }
 
-    public static Page<Milestone> findMilestones(String keyword, User user, PageParam pageParam) {
-        return milestonesEL(keyword, user).findPagingList(pageParam.getSize()).getPage(pageParam.getPage());
+    public static PagedList<Milestone> findMilestones(String keyword, User user, PageParam pageParam) {
+        return milestonesEL(keyword, user).setFirstRow((pageParam.getPage()) * (pageParam.getSize())).setMaxRows(pageParam.getSize()).findPagedList();
     }
 
     public static int countMilestones(String keyword, User user) {
-        return milestonesEL(keyword, user).findRowCount();
+        return milestonesEL(keyword, user).findCount();
     }
 
     private static ExpressionList<Milestone> milestonesEL(String keyword, User user) {
-        ExpressionList<Milestone> el = Milestone.find.where();
+        ExpressionList<Milestone> el = Milestone.find.query().where();
         Junction<Milestone> junction = el.disjunction();
         inProjectsTemplate(keyword, user, junction, DEFAULT_PATH_TO_PROJECT, containsKeywordInMilestone);
         junction.endJunction();
@@ -542,22 +545,22 @@ public class Search {
         return el;
     }
 
-    public static Page<Milestone> findMilestones(String keyword, User user, Project project, PageParam pageParam) {
+    public static PagedList<Milestone> findMilestones(String keyword, User user, Project project, PageParam pageParam) {
         if(!AccessControl.isAllowed(user, project.asResource(), Operation.READ)) {
             return emptyPage();
         }
-        return milestonesEL(keyword, project).findPagingList(pageParam.getSize()).getPage(pageParam.getPage());
+        return milestonesEL(keyword, project).setFirstRow((pageParam.getPage()) * (pageParam.getSize())).setMaxRows(pageParam.getSize()).findPagedList();
     }
 
     public static int countMilestones(String keyword, User user, Project project) {
         if(!AccessControl.isAllowed(user, project.asResource(), Operation.READ)) {
             return 0;
         }
-        return milestonesEL(keyword, project).findRowCount();
+        return milestonesEL(keyword, project).findCount();
     }
 
     private static ExpressionList<Milestone> milestonesEL(String keyword, Project project) {
-        ExpressionList<Milestone> el = Milestone.find.where()
+        ExpressionList<Milestone> el = Milestone.find.query().where()
                 .eq("project", project);
         Junction<Milestone> junction = el.disjunction();
         containsKeywordIn(keyword, junction, new String[]{"title", "contents"});
@@ -566,16 +569,16 @@ public class Search {
         return el;
     }
 
-    public static Page<Milestone> findMilestones(String keyword, User user, Organization organization, PageParam pageParam) {
-        return milestonesEL(keyword, user, organization).findPagingList(pageParam.getSize()).getPage(pageParam.getPage());
+    public static PagedList<Milestone> findMilestones(String keyword, User user, Organization organization, PageParam pageParam) {
+        return milestonesEL(keyword, user, organization).setFirstRow((pageParam.getPage()) * (pageParam.getSize())).setMaxRows(pageParam.getSize()).findPagedList();
     }
 
     public static int countMilestones(String keyword, User user, Organization organization) {
-        return milestonesEL(keyword, user, organization).findRowCount();
+        return milestonesEL(keyword, user, organization).findCount();
     }
 
     private static ExpressionList<Milestone> milestonesEL(String keyword, User user, Organization organization) {
-        ExpressionList<Milestone> el = Milestone.find.where()
+        ExpressionList<Milestone> el = Milestone.find.query().where()
                 .eq("project.organization", organization);
         Junction<Milestone> junction = el.disjunction();
         inProjectsTemplate(keyword, user, organization, junction, DEFAULT_PATH_TO_PROJECT, containsKeywordInMilestone);
@@ -584,16 +587,16 @@ public class Search {
         return el;
     }
 
-    public static Page<IssueComment> findIssueComments(String keyword, User user, PageParam pageParam) {
-        return issueCommentsEL(keyword, user).findPagingList(pageParam.getSize()).getPage(pageParam.getPage());
+    public static PagedList<IssueComment> findIssueComments(String keyword, User user, PageParam pageParam) {
+        return issueCommentsEL(keyword, user).setFirstRow((pageParam.getPage()) * (pageParam.getSize())).setMaxRows(pageParam.getSize()).findPagedList();
     }
 
     public static int countIssueComments(String keyword, User user) {
-        return issueCommentsEL(keyword, user).findRowCount();
+        return issueCommentsEL(keyword, user).findCount();
     }
 
     private static ExpressionList<IssueComment> issueCommentsEL(String keyword, User user) {
-        ExpressionList<IssueComment> el = IssueComment.find.where();
+        ExpressionList<IssueComment> el = IssueComment.find.query().where();
         Junction<IssueComment> junction = el.disjunction();
         inProjectsTemplate(keyword, user, junction, "issue.project", containsKeywordInIssueComment);
         equalsUserTemplate(keyword, user, junction, DEFAULT_PATH_TO_AUTHOR, containsKeywordInIssueComment);
@@ -602,16 +605,16 @@ public class Search {
         return el;
     }
 
-    public static Page<IssueComment> findIssueComments(String keyword, User user, Project project, PageParam pageParam) {
-        return issueCommentsEL(keyword, user, project).findPagingList(pageParam.getSize()).getPage(pageParam.getPage());
+    public static PagedList<IssueComment> findIssueComments(String keyword, User user, Project project, PageParam pageParam) {
+        return issueCommentsEL(keyword, user, project).setFirstRow((pageParam.getPage()) * (pageParam.getSize())).setMaxRows(pageParam.getSize()).findPagedList();
     }
 
     public static int countIssueComments(String keyword, User user, Project project) {
-        return issueCommentsEL(keyword, user, project).findRowCount();
+        return issueCommentsEL(keyword, user, project).findCount();
     }
 
     private static ExpressionList<IssueComment> issueCommentsEL(String keyword, User user, Project project) {
-        ExpressionList<IssueComment> el = IssueComment.find.where()
+        ExpressionList<IssueComment> el = IssueComment.find.query().where()
                 .eq("issue.project", project);
         if(!AccessControl.isAllowed(user, project.asResource(), Operation.READ)) {
             el.eq("authorId", user.id);
@@ -621,16 +624,16 @@ public class Search {
         return el;
     }
 
-    public static Page<IssueComment> findIssueComments(String keyword, User user, Organization organization, PageParam pageParam) {
-        return issueCommentsEL(keyword, user, organization).findPagingList(pageParam.getSize()).getPage(pageParam.getPage());
+    public static PagedList<IssueComment> findIssueComments(String keyword, User user, Organization organization, PageParam pageParam) {
+        return issueCommentsEL(keyword, user, organization).setFirstRow((pageParam.getPage()) * (pageParam.getSize())).setMaxRows(pageParam.getSize()).findPagedList();
     }
 
     public static int countIssueComments(String keyword, User user, Organization organization) {
-        return issueCommentsEL(keyword, user, organization).findRowCount();
+        return issueCommentsEL(keyword, user, organization).findCount();
     }
 
     private static ExpressionList<IssueComment> issueCommentsEL(String keyword, User user, Organization organization) {
-        ExpressionList<IssueComment> el = IssueComment.find.where()
+        ExpressionList<IssueComment> el = IssueComment.find.query().where()
                 .eq("issue.project.organization", organization);
         Junction<IssueComment> junction = el.disjunction();
         inProjectsTemplate(keyword, user, organization, junction, "issue.project", containsKeywordInIssueComment);
@@ -640,16 +643,16 @@ public class Search {
         return el;
     }
 
-    public static Page<PostingComment> findPostComments(String keyword, User user, PageParam pageParam) {
-        return postCommentsEL(keyword, user).findPagingList(pageParam.getSize()).getPage(pageParam.getPage());
+    public static PagedList<PostingComment> findPostComments(String keyword, User user, PageParam pageParam) {
+        return postCommentsEL(keyword, user).setFirstRow((pageParam.getPage()) * (pageParam.getSize())).setMaxRows(pageParam.getSize()).findPagedList();
     }
 
     public static int countPostComments(String keyword, User user) {
-        return postCommentsEL(keyword, user).findRowCount();
+        return postCommentsEL(keyword, user).findCount();
     }
 
     private static ExpressionList<PostingComment> postCommentsEL(String keyword, User user) {
-        ExpressionList<PostingComment> el = PostingComment.find.where();
+        ExpressionList<PostingComment> el = PostingComment.find.query().where();
         Junction<PostingComment> junction = el.disjunction();
         inProjectsTemplate(keyword, user, junction, "posting.project", containsKeywordInPostComment);
         equalsUserTemplate(keyword, user, junction, DEFAULT_PATH_TO_AUTHOR, containsKeywordInPostComment);
@@ -658,16 +661,16 @@ public class Search {
         return el;
     }
 
-    public static Page<PostingComment> findPostComments(String keyword, User user, Project project, PageParam pageParam) {
-        return postCommentsEL(keyword, user, project).findPagingList(pageParam.getSize()).getPage(pageParam.getPage());
+    public static PagedList<PostingComment> findPostComments(String keyword, User user, Project project, PageParam pageParam) {
+        return postCommentsEL(keyword, user, project).setFirstRow((pageParam.getPage()) * (pageParam.getSize())).setMaxRows(pageParam.getSize()).findPagedList();
     }
 
     public static int countPostComments(String keyword, User user, Project project) {
-        return postCommentsEL(keyword, user, project).findRowCount();
+        return postCommentsEL(keyword, user, project).findCount();
     }
 
     private static ExpressionList<PostingComment> postCommentsEL(String keyword, User user, Project project) {
-        ExpressionList<PostingComment> el = PostingComment.find.where()
+        ExpressionList<PostingComment> el = PostingComment.find.query().where()
                 .eq("posting.project", project);
 
         if(!AccessControl.isAllowed(user, project.asResource(), Operation.READ)) {
@@ -678,16 +681,16 @@ public class Search {
         return el;
     }
 
-    public static Page<PostingComment> findPostComments(String keyword, User user, Organization organization, PageParam pageParam) {
-        return postCommentsEL(keyword, user, organization).findPagingList(pageParam.getSize()).getPage(pageParam.getPage());
+    public static PagedList<PostingComment> findPostComments(String keyword, User user, Organization organization, PageParam pageParam) {
+        return postCommentsEL(keyword, user, organization).setFirstRow((pageParam.getPage()) * (pageParam.getSize())).setMaxRows(pageParam.getSize()).findPagedList();
     }
 
     public static int countPostComments(String keyword, User user, Organization organization) {
-        return postCommentsEL(keyword, user, organization).findRowCount();
+        return postCommentsEL(keyword, user, organization).findCount();
     }
 
     private static ExpressionList<PostingComment> postCommentsEL(String keyword, User user, Organization organization) {
-        ExpressionList<PostingComment> el = PostingComment.find.where()
+        ExpressionList<PostingComment> el = PostingComment.find.query().where()
                 .eq("posting.project.organization", organization);
         Junction<PostingComment> junction = el.disjunction();
         inProjectsTemplate(keyword, user, organization, junction, "posting.project", containsKeywordInPostComment);
@@ -697,16 +700,16 @@ public class Search {
         return el;
     }
 
-    public static Page<ReviewComment> findReviews(String keyword, User user, PageParam pageParam) {
-        return reviewsEL(keyword, user).findPagingList(pageParam.getSize()).getPage(pageParam.getPage());
+    public static PagedList<ReviewComment> findReviews(String keyword, User user, PageParam pageParam) {
+        return reviewsEL(keyword, user).setFirstRow((pageParam.getPage()) * (pageParam.getSize())).setMaxRows(pageParam.getSize()).findPagedList();
     }
 
     public static int countReviews(String keyword, User user) {
-        return reviewsEL(keyword, user).findRowCount();
+        return reviewsEL(keyword, user).findCount();
     }
 
     private static ExpressionList<ReviewComment> reviewsEL(String keyword, User user) {
-        ExpressionList<ReviewComment> el = ReviewComment.find.where();
+        ExpressionList<ReviewComment> el = ReviewComment.find.query().where();
         Junction<ReviewComment> junction = el.disjunction();
         inProjectsTemplate(keyword, user, junction, "thread.project", containsKeywordInReviewComment);
         equalsUserTemplate(keyword, user, junction, "author.id", containsKeywordInReviewComment);
@@ -715,16 +718,16 @@ public class Search {
         return el;
     }
 
-    public static Page<ReviewComment> findReviews(String keyword, User user, Project project, PageParam pageParam) {
-        return reviewsEL(keyword, user, project).findPagingList(pageParam.getSize()).getPage(pageParam.getPage());
+    public static PagedList<ReviewComment> findReviews(String keyword, User user, Project project, PageParam pageParam) {
+        return reviewsEL(keyword, user, project).setFirstRow((pageParam.getPage()) * (pageParam.getSize())).setMaxRows(pageParam.getSize()).findPagedList();
     }
 
     public static int countReviews(String keyword, User user, Project project) {
-        return reviewsEL(keyword, user, project).findRowCount();
+        return reviewsEL(keyword, user, project).findCount();
     }
 
     private static ExpressionList<ReviewComment> reviewsEL(String keyword, User user, Project project) {
-        ExpressionList<ReviewComment> el = ReviewComment.find.where()
+        ExpressionList<ReviewComment> el = ReviewComment.find.query().where()
                 .eq("thread.project", project);
         if(!AccessControl.isAllowed(user, project.asResource(), Operation.READ)) {
             el.eq("author.id", user.id);
@@ -734,16 +737,16 @@ public class Search {
         return el;
     }
 
-    public static Page<ReviewComment> findReviews(String keyword, User user, Organization organization, PageParam pageParam) {
-        return reviewsEL(keyword, user, organization).findPagingList(pageParam.getSize()).getPage(pageParam.getPage());
+    public static PagedList<ReviewComment> findReviews(String keyword, User user, Organization organization, PageParam pageParam) {
+        return reviewsEL(keyword, user, organization).setFirstRow((pageParam.getPage()) * (pageParam.getSize())).setMaxRows(pageParam.getSize()).findPagedList();
     }
 
     public static int countReviews(String keyword, User user, Organization organization) {
-        return reviewsEL(keyword, user, organization).findRowCount();
+        return reviewsEL(keyword, user, organization).findCount();
     }
 
     private static ExpressionList<ReviewComment> reviewsEL(String keyword, User user, Organization organization) {
-        ExpressionList<ReviewComment> el = ReviewComment.find.where()
+        ExpressionList<ReviewComment> el = ReviewComment.find.query().where()
                 .eq("thread.project.organization", organization);
         Junction<ReviewComment> junction = el.disjunction();
         inProjectsTemplate(keyword, user, organization, junction, "thread.project", containsKeywordInReviewComment);
@@ -774,7 +777,7 @@ public class Search {
         if(user.isAnonymous()) {
             projectAndKeyword.eq(pathToProject + ".projectScope", ProjectScope.PUBLIC);
         } else {
-            ExpressionList<Project> pel = Project.find.where()
+            ExpressionList<Project> pel = Project.find.query().where()
                     .eq("organization", organization)
                     .disjunction()
                     .add(Expr.eq("projectUser.user.id", user.id));
@@ -802,7 +805,7 @@ public class Search {
         if(user.isAnonymous()) {
             projectAndKeyword.eq(pathToProject + ".projectScope", ProjectScope.PUBLIC);
         } else {
-            ExpressionList<Project> pel = Project.find.where().disjunction()
+            ExpressionList<Project> pel = Project.find.query().where().disjunction()
                     .add(Expr.eq("projectScope", ProjectScope.PUBLIC))
                     .add(Expr.eq("projectUser.user.id", user.id));
 
@@ -831,20 +834,34 @@ public class Search {
         }
     }
 
-    private static <T> Page<T> emptyPage() {
-        return new Page<T>() {
+    private static <T> PagedList<T> emptyPage() {
+        return new PagedList<T>() {
+            @Override
+            public void loadCount() {
+            }
+
+            @Override
+            public Future<Integer> getFutureCount() {
+                return CompletableFuture.completedFuture(0);
+            }
+
             @Override
             public List<T> getList() {
                 return new ArrayList<>();
             }
 
             @Override
-            public int getTotalRowCount() {
+            public int getTotalCount() {
                 return 0;
             }
 
             @Override
             public int getTotalPageCount() {
+                return 0;
+            }
+
+            @Override
+            public int getPageSize() {
                 return 0;
             }
 
@@ -861,16 +878,6 @@ public class Search {
             @Override
             public boolean hasPrev() {
                 return false;
-            }
-
-            @Override
-            public Page<T> next() {
-                return null;
-            }
-
-            @Override
-            public Page<T> prev() {
-                return null;
             }
 
             @Override

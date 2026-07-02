@@ -30,28 +30,24 @@ import play.Configuration;
 import play.Logger;
 import play.data.DynamicForm;
 import play.i18n.Messages;
-import play.mvc.Controller;
+import utils.LegacyController;
 import play.mvc.Result;
-import utils.Config;
-import utils.Constants;
-import utils.ErrorViews;
-import utils.PasswordReset;
-import utils.Url;
+import utils.*;
 import views.html.site.lostPassword;
 import views.html.user.login;
 import views.html.user.resetPassword;
 
-import static play.data.Form.form;
+import static utils.FormUtil.form;
 
-public class PasswordResetApp extends Controller {
+public class PasswordResetApp extends LegacyController {
 
-    public static Result lostPassword(){
+    public Result lostPassword(){
         // render(message: String, sender: String, errorMessage: String, isSent: Boolean)
         return ok(lostPassword.render("site.resetPasswordEmail.title", null, null, false));
     }
 
-    public static Result requestResetPasswordEmail(){
-        DynamicForm requestData = form().bindFromRequest();
+    public Result requestResetPasswordEmail(){
+        DynamicForm requestData = form().bindFromRequest(request());
         String loginId = requestData.get("loginId");
         String emailAddress = requestData.get("emailAddress");
 
@@ -67,7 +63,7 @@ public class PasswordResetApp extends Controller {
            isMailSent = sendPasswordResetMail(targetUser, hashString);
         } else {
             Logger.debug("wrong user: " + loginId);
-            errorMessage = Messages.get("site.resetPasswordEmail.invalidRequest");
+            errorMessage = MessagesUtil.get("site.resetPasswordEmail.invalidRequest");
         }
         return ok(lostPassword.render("site.resetPasswordEmail.title", emailAddress, errorMessage, isMailSent));
     }
@@ -79,14 +75,14 @@ public class PasswordResetApp extends Controller {
         try {
             SimpleEmail email = new SimpleEmail();
             email.setFrom(sender)
-                 .setSubject("[" + utils.Config.getSiteName() + "] " + Messages.get("site.resetPasswordEmail.title"))
+                 .setSubject("[" + utils.Config.getSiteName() + "] " + MessagesUtil.get("site.resetPasswordEmail.title"))
                  .addTo(user.email)
-                 .setMsg(Messages.get("site.resetPasswordEmail.mailContents") + "\n\n" + resetPasswordUrl)
+                 .setMsg(MessagesUtil.get("site.resetPasswordEmail.mailContents") + "\n\n" + resetPasswordUrl)
                  .setCharset("utf-8");
 
             Logger.debug("password reset mail send: " +Mailer.send(email));
             return true;
-        } catch (EmailException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
@@ -96,12 +92,12 @@ public class PasswordResetApp extends Controller {
         return Url.create(controllers.routes.PasswordResetApp.resetPasswordForm(hashString).url());
     }
 
-    public static Result resetPasswordForm(String hashString){
+    public Result resetPasswordForm(String hashString){
         return ok(resetPassword.render("title.resetPassword", form(User.class), hashString));
     }
 
-    public static Result resetPassword(){
-        DynamicForm requestData = form().bindFromRequest();
+    public Result resetPassword(){
+        DynamicForm requestData = form().bindFromRequest(request());
         String hashString = requestData.get("hashString");
         String newPassword = requestData.get("password");
 

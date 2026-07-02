@@ -6,10 +6,11 @@
  **/
 package models;
 
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 import utils.TemplateHelper;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
@@ -17,7 +18,7 @@ public class TitleHead extends Model {
 
     private static final long serialVersionUID = 5194690128303455482L;
 
-    public static final Finder<Long, TitleHead> finder = new Finder<>(Long.class, TitleHead.class);
+    public static final Finder<Long, TitleHead> finder = new Finder<>(TitleHead.class);
 
     @Id
     public Long id;
@@ -30,14 +31,14 @@ public class TitleHead extends Model {
     public int frequency;
 
     public static List<TitleHead> findByProject(Project project, String query) {
-        return finder.where()
+        return finder.query().where()
                 .eq("project.id", project.id)
                 .ilike("headKeyword", "%" +query + "%")
                 .findList();
     }
 
     public static TitleHead findByHeadKeyword(Project project, String headKeyword) {
-        List<TitleHead> founds = finder.where()
+        List<TitleHead> founds = finder.query().where()
                 .eq("project.id", project.id)
                 .eq("headKeyword", headKeyword).findList();
         if (founds.size() > 0) {

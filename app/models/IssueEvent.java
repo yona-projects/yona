@@ -11,9 +11,10 @@ import models.enumeration.EventType;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import play.Configuration;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -46,8 +47,7 @@ public class IssueEvent extends Model implements TimelineItem {
     private static final int DRAFT_TIME_IN_MILLIS = Configuration.root()
         .getMilliseconds("application.issue-event.draft-time", 30 * 1000L).intValue();
 
-    public static final Finder<Long, IssueEvent> find = new Finder<>(Long.class,
-            IssueEvent.class);
+    public static final Finder<Long, IssueEvent> find = new Finder<>(IssueEvent.class);
 
     /**
      * Adds {@code event}.
@@ -72,10 +72,10 @@ public class IssueEvent extends Model implements TimelineItem {
     public static void add(IssueEvent event) {
         Date draftDate = DateTime.now().minusMillis(DRAFT_TIME_IN_MILLIS).toDate();
 
-        IssueEvent lastEvent = IssueEvent.find.where()
+        IssueEvent lastEvent = IssueEvent.find.query().where()
                 .eq("issue.id", event.issue.id)
                 .gt("created", draftDate)
-                .orderBy("id desc").setMaxRows(1).findUnique();
+                .orderBy("id desc").setMaxRows(1).findOne();
 
         if (lastEvent != null) {
             if (isSameUserEventAsPrevious(event, lastEvent)) {
@@ -109,10 +109,10 @@ public class IssueEvent extends Model implements TimelineItem {
     public static void addWithoutSkipEvent(IssueEvent event) {
         Date draftDate = DateTime.now().minusMillis(DRAFT_TIME_IN_MILLIS).toDate();
 
-        IssueEvent lastEvent = IssueEvent.find.where()
+        IssueEvent lastEvent = IssueEvent.find.query().where()
                 .eq("issue.id", event.issue.id)
                 .gt("created", draftDate)
-                .orderBy("id desc").setMaxRows(1).findUnique();
+                .orderBy("id desc").setMaxRows(1).findOne();
 
         if (lastEvent != null) {
             if (isSameUserEventAsPrevious(event, lastEvent) &&

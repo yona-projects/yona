@@ -57,7 +57,7 @@
                         <dd>
                             <input id="project-name" type="text" name="name" maxlength="250" value="@organization.name">
                             <div class="orange-txt">
-                            @if(organizationForm.error("name") != null) { <span class="warning">@Messages(organizationForm.error("name").message())</span> }
+                            @if(formError(organizationForm, "name").isDefined) { <span class="warning">@Messages(formError(organizationForm, "name").map(_.message()).getOrElse(""))</span> }
                                 <span class="msg wrongName" style="display: none;"></span>
                             </div>
                         </dd>

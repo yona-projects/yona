@@ -14,7 +14,7 @@ import models.*;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
 import org.joda.time.DateTime;
-import play.db.ebean.Transactional;
+import io.ebean.annotation.Transactional;
 import play.i18n.Messages;
 import play.libs.Json;
 import play.mvc.Result;
@@ -28,7 +28,7 @@ import static play.libs.Json.toJson;
 public class MilestoneApi extends AbstractPostingApp {
     @Transactional
     @IsCreatable(ResourceType.MILESTONE)
-    public static Result newMilestone(String owner, String projectName) {
+    public Result newMilestone(String owner, String projectName) {
         ObjectNode result = Json.newObject();
         JsonNode json = request().body().asJson();
         if (json == null) {
@@ -53,7 +53,7 @@ public class MilestoneApi extends AbstractPostingApp {
         ObjectNode result = Json.newObject();
         if (!Milestone.isUniqueProjectIdAndTitle(project.id, milestoneNode.findValue("title").asText())) {
             result.put("milestone", milestoneNode);
-            return result.put("message", Messages.get("milestone.title.duplicated"));
+            return result.put("message", MessagesUtil.get("milestone.title.duplicated"));
         }
 
         Milestone newMilestone = new Milestone();

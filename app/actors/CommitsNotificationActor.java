@@ -10,6 +10,7 @@ package actors;
 import models.*;
 import org.eclipse.jgit.revwalk.RevCommit;
 import play.i18n.Messages;
+import utils.MessagesUtil;
 
 import java.util.List;
 import java.util.Set;
@@ -30,9 +31,9 @@ public class CommitsNotificationActor extends PostReceiveActor {
 
         String title;
         if(refNames.size() == 1) {
-            title = Messages.get("notification.pushed.commits.to", project.name, commits.size(), refNames.get(0));
+            title = MessagesUtil.get("notification.pushed.commits.to", project.name, commits.size(), refNames.get(0));
         } else {
-            title = Messages.get("notification.pushed.commits", project.name, commits.size());
+            title = MessagesUtil.get("notification.pushed.commits", project.name, commits.size());
         }
 
         NotificationEvent.afterNewCommits(commits, refNames, project, sender, title);

@@ -34,7 +34,7 @@ import static org.fest.assertions.Assertions.assertThat;
 public class ExConstraintsTest {
     @Test
     public void testReservedWords() {
-        Form<Model> form = new Form<>(Model.class);
+        Form<Model> form = utils.FormUtil.form(Model.class);
         Model model = form.bind(newMap("name10")).get();
 
         assertThat(model.name).isEqualTo("name10");
@@ -42,7 +42,7 @@ public class ExConstraintsTest {
 
     @Test(expected = IllegalStateException.class)
     public void testReservedWordsThrowIllegalStateException() {
-        Form<Model> form = new Form<>(Model.class);
+        Form<Model> form = utils.FormUtil.form(Model.class);
         Model model = form.bind(newMap("..")).get(); // one of reserved words
         // throw
     }

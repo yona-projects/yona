@@ -30,7 +30,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
-import play.mvc.Controller;
+import utils.LegacyController;
 import play.mvc.Result;
 import play.mvc.With;
 import playRepository.GitBranch;
@@ -47,10 +47,10 @@ import java.util.List;
  */
 @IsOnlyGitAvailable
 @AnonymousCheck
-public class BranchApp extends Controller {
+public class BranchApp extends LegacyController {
 
     @With(CodeAccessCheckAction.class)
-    public static Result branches(String loginId, String projectName) throws IOException, GitAPIException {
+    public Result branches(String loginId, String projectName) throws IOException, GitAPIException {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
         GitRepository gitRepository = new GitRepository(project);
         List<GitBranch> allBranches = gitRepository.getBranches();
@@ -69,7 +69,7 @@ public class BranchApp extends Controller {
     }
 
     @IsAllowed(Operation.DELETE)
-    public static Result deleteBranch(String loginId, String projectName, String branchName) throws GitAPIException, UnsupportedEncodingException {
+    public Result deleteBranch(String loginId, String projectName, String branchName) throws GitAPIException, UnsupportedEncodingException {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
         Repository repository = GitRepository.buildGitRepository(project);
         branchName = HttpUtil.decodePathSegment(branchName);
@@ -78,7 +78,7 @@ public class BranchApp extends Controller {
     }
 
     @IsAllowed(Operation.UPDATE)
-    public static Result setAsDefault(String loginId, String projectName, String branchName) throws IOException, GitAPIException {
+    public Result setAsDefault(String loginId, String projectName, String branchName) throws IOException, GitAPIException {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
         GitRepository gitRepository = new GitRepository(project);
         branchName = HttpUtil.decodePathSegment(branchName);

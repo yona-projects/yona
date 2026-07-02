@@ -41,6 +41,7 @@ import play.api.i18n.Lang;
 import play.i18n.Messages;
 import utils.AccessControl;
 import utils.Config;
+import utils.MessagesUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -180,7 +181,7 @@ class EmailHandler {
             // email has two addresses differ from each other: e.g.
             // yobi+my/proj@mail.com and yobi+your/proj@mail.com.
             OriginalEmail sameMessage =
-                    OriginalEmail.finder.where().eq("messageId", msg.getMessageID()).findUnique();
+                    OriginalEmail.finder.query().where().eq("messageId", msg.getMessageID()).findOne();
             if (sameMessage != null) {
                 // Warn if the older email was handled one hour or more ago. Because it is
                 // quite long time so that possibly the ignored email is actually
@@ -354,13 +355,13 @@ class EmailHandler {
             try {
                 project = getProjectFromDetail(detail);
             } catch (IllegalDetailException e) {
-                errors.add(Messages.get(lang, "viaEmail.error.email", address.toString()));
+                errors.add(MessagesUtil.get(lang, "viaEmail.error.email", address.toString()));
                 continue;
             }
 
             if (project == null ||
                     !AccessControl.isAllowed(sender, project.asResource(), Operation.READ)) {
-                errors.add(Messages.get(lang, "viaEmail.error.forbidden.or.notfound",
+                errors.add(MessagesUtil.get(lang, "viaEmail.error.forbidden.or.notfound",
                         address.toString()));
                 continue;
             }
@@ -459,7 +460,7 @@ class EmailHandler {
         String sampleProject = "dlab/hive";
         EmailAddressWithDetail address = new EmailAddressWithDetail(Config.getEmailFromImap());
         address.setDetail("dlab/hive/issue");
-        help += Messages.get(lang, "viaEmail.help.hello", username);
+        help += MessagesUtil.get(lang, "viaEmail.help.hello", username);
         if (errors != null && errors.size() > 0) {
             help += paragraphSeparator;
             String error;
@@ -471,14 +472,14 @@ class EmailHandler {
                 error = errors.get(0);
                 messageKey = "viaEmail.help.errorSingleLine";
             }
-            help += Messages.get(lang, messageKey, Config.getSiteName(), error);
+            help += MessagesUtil.get(lang, messageKey, Config.getSiteName(), error);
         }
         help += paragraphSeparator;
-        help += Messages.get(lang, "viaEmail.help.intro", Config.getSiteName());
+        help += MessagesUtil.get(lang, "viaEmail.help.intro", Config.getSiteName());
         help += paragraphSeparator;
-        help += Messages.get(lang, "viaEmail.help.description", sampleProject, address);
+        help += MessagesUtil.get(lang, "viaEmail.help.description", sampleProject, address);
         help += paragraphSeparator;
-        help += Messages.get(lang, "viaEmail.help.bye", Config.getSiteName());
+        help += MessagesUtil.get(lang, "viaEmail.help.bye", Config.getSiteName());
         return help;
     }
 
@@ -512,7 +513,7 @@ class EmailHandler {
             Mailer.send(email);
             String escapedTitle = email.getSubject().replace("\"", "\\\"");
             String logEntry = String.format("\"%s\" %s", escapedTitle, email.getToAddresses());
-            play.Logger.of("mail").info(logEntry);
+            org.slf4j.LoggerFactory.getLogger("mail").info(logEntry);
         } catch (Exception e) {
             Logger.warn("Failed to send an email: "
                     + email + "\n" + ExceptionUtils.getStackTrace(e));
@@ -557,9 +558,9 @@ class EmailHandler {
 
         if (exception != null &&
                 !(exception instanceof MailHandlerException)) {
-            Logger.of("mail.in").error(entry, exception);
+            org.slf4j.LoggerFactory.getLogger("mail.in").error(entry, exception);
         } else {
-            Logger.of("mail.in").info(entry);
+            org.slf4j.LoggerFactory.getLogger("mail.in").info(entry);
         }
     }
 
@@ -580,7 +581,7 @@ class EmailHandler {
     @Nonnull
     public static Set<Resource> findResourcesByMessageId(String messageId) {
         Set<Resource> resources = new HashSet<>();
-        Set<OriginalEmail> originalEmails = OriginalEmail.finder.where().eq
+        Set<OriginalEmail> originalEmails = OriginalEmail.finder.query().where().eq
                 ("messageId", messageId).findSet();
 
         if (originalEmails.size() > 0) {

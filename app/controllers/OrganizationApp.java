@@ -6,8 +6,8 @@
  **/
 package controllers;
 
-import com.avaje.ebean.ExpressionList;
-import com.avaje.ebean.Page;
+import io.ebean.ExpressionList;
+import io.ebean.PagedList;
 import controllers.annotation.AnonymousCheck;
 import controllers.annotation.GuestProhibit;
 import controllers.PullRequestApp.SearchCondition;
@@ -20,11 +20,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.collections.CollectionUtils;
 import play.data.Form;
-import play.data.validation.Validation;
 import play.data.validation.ValidationError;
-import play.db.ebean.Transactional;
+import io.ebean.annotation.Transactional;
 import play.libs.Json;
-import play.mvc.Controller;
+import utils.LegacyController;
 import play.mvc.Http;
 import play.mvc.Result;
 import utils.*;
@@ -37,40 +36,41 @@ import views.html.organization.group_pullrequest_list;
 
 import javax.servlet.ServletException;
 import javax.validation.ConstraintViolation;
+import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-import static play.data.Form.form;
+import static utils.FormUtil.form;
 import static utils.LogoUtil.*;
 
 /**
  * @author Keeun Baik
  */
 @AnonymousCheck
-public class OrganizationApp extends Controller {
+public class OrganizationApp extends LegacyController {
 
     @AnonymousCheck(requiresLogin = false, displaysFlashMessage = true)
-    public static Result organizationPullRequests(String organizationName, String category) {
+    public Result organizationPullRequests(String organizationName, String category) {
 
         Organization organization = Organization.findByName(organizationName);
         if (organization == null) {
             return notFound(ErrorViews.NotFound.render("error.notfound.organization"));
         }
 
-        SearchCondition condition = Form.form(SearchCondition.class).bindFromRequest().get();
+        SearchCondition condition = utils.FormUtil.form(SearchCondition.class).bindFromRequest(request()).get();
         if (category.equals("open")) {
             condition.setOrganization(organization).setCategory(Category.OPEN);
         } else {
             condition.setOrganization(organization).setCategory(Category.CLOSED);
         }
-        Page<PullRequest> page = PullRequest.findPagingList(condition);
+        PagedList<PullRequest> page = PullRequest.findPagedList(condition);
 
         return ok(group_pullrequest_list.render("title.pullrequest",  organization, page, condition, category));
     }
 
     @AnonymousCheck(requiresLogin = false, displaysFlashMessage = true)
-    public static Result organizationClosedPullRequests(String organizationName) {
+    public Result organizationClosedPullRequests(String organizationName) {
         return organizationPullRequests(organizationName, "closed");
     }
 
@@ -79,8 +79,8 @@ public class OrganizationApp extends Controller {
      * @return {@link Result}
      */
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
-    public static Result newForm() {
-        return ok(create.render("title.newOrganization", new Form<>(Organization.class)));
+    public Result newForm() {
+        return ok(create.render("title.newOrganization", utils.FormUtil.form(Organization.class)));
     }
 
     /**
@@ -90,17 +90,17 @@ public class OrganizationApp extends Controller {
      */
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @GuestProhibit
-    public static Result newOrganization() throws Exception {
-        Form<Organization> newOrgForm = form(Organization.class).bindFromRequest();
+    public Result newOrganization() throws Exception {
+        Form<Organization> newOrgForm = form(Organization.class).bindFromRequest(request());
         if (newOrgForm.hasErrors()) {
-            play.Logger.warn("newOrgForm.errors().keySet() " + newOrgForm.error("name").messages());
-            flash(Constants.WARNING, newOrgForm.error("name").message());
+            play.Logger.warn("utils.FormUtil.errorKeys(newOrgForm) " + utils.FormUtil.errorMessages(newOrgForm, "name"));
+            flash(Constants.WARNING, utils.FormUtil.errorMessage(newOrgForm, "name"));
             return badRequest(create.render("title.newOrganization", newOrgForm));
         }
 
         validate(newOrgForm);
         if (newOrgForm.hasErrors()) {
-            flash(Constants.WARNING, newOrgForm.error("name").message());
+            flash(Constants.WARNING, utils.FormUtil.errorMessage(newOrgForm, "name"));
             return badRequest(create.render("title.newOrganization", newOrgForm));
         } else {
             Organization org = newOrgForm.get();
@@ -115,18 +115,18 @@ public class OrganizationApp extends Controller {
     private static void validate(Form<Organization> newOrgForm) {
         Organization organization = newOrgForm.get();
         play.Logger.error("org: " + organization.name);
-        Set<ConstraintViolation<Organization>> results = Validation.getValidator().validate(newOrgForm.get());
+        Set<ConstraintViolation<Organization>> results = ValidationUtil.getValidator().validate(newOrgForm.get());
         if (!results.isEmpty()) {
-            newOrgForm.reject("name", "organization.name.alert");
+            utils.FormUtil.reject(newOrgForm, "name", "organization.name.alert");
         }
 
-        String name = newOrgForm.field("name").value();
+        String name = newOrgForm.field("name").value().orElse("");
         if (User.isLoginIdExist(name)) {
-            newOrgForm.reject("name", "organization.name.duplicate");
+            utils.FormUtil.reject(newOrgForm, "name", "organization.name.duplicate");
         }
 
         if (Organization.isNameExist(name)) {
-            newOrgForm.reject("name", "organization.name.duplicate");
+            utils.FormUtil.reject(newOrgForm, "name", "organization.name.duplicate");
         }
     }
 
@@ -135,7 +135,7 @@ public class OrganizationApp extends Controller {
      * @param organizationName group name
      * @return {@link Result}
      */
-    public static Result organization(String organizationName) {
+    public Result organization(String organizationName) {
         Organization org = Organization.findByName(organizationName);
         if (org == null) {
             return notFound(ErrorViews.NotFound.render("error.notfound.organization"));
@@ -144,8 +144,8 @@ public class OrganizationApp extends Controller {
     }
 
     @Transactional
-    public static Result addMember(String organizationName) {
-        Form<User> addMemberForm = form(User.class).bindFromRequest();
+    public Result addMember(String organizationName) {
+        Form<User> addMemberForm = form(User.class).bindFromRequest(request());
         Result result = validateForAddMember(addMemberForm, organizationName);
         if (result != null) {
             return result;
@@ -195,7 +195,7 @@ public class OrganizationApp extends Controller {
     }
 
     @Transactional
-    public static Result deleteMember(String organizationName, Long userId) {
+    public Result deleteMember(String organizationName, Long userId) {
         Result result = validateForDeleteMember(organizationName, userId);
         if (result != null) {
             return result;
@@ -238,8 +238,8 @@ public class OrganizationApp extends Controller {
     }
 
     @Transactional
-    public static Result editMember(String organizationName, Long userId) {
-        Form<Role> roleForm = form(Role.class).bindFromRequest();
+    public Result editMember(String organizationName, Long userId) {
+        Form<Role> roleForm = form(Role.class).bindFromRequest(request());
         Result result = validateForEditMember(roleForm, organizationName, userId);
         if (result != null) {
             return result;
@@ -284,7 +284,7 @@ public class OrganizationApp extends Controller {
 
     @Transactional
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
-    public static Result leave(String organizationName) {
+    public Result leave(String organizationName) {
         ValidationResult result = validateForLeave(organizationName);
 
         if (!result.hasError()) {
@@ -316,7 +316,7 @@ public class OrganizationApp extends Controller {
         return Json.toJson(response);
     }
 
-    public static Result members(String organizationName) {
+    public Result members(String organizationName) {
         Result result = validateForSetting(organizationName);
         if (result != null) {
             return result;
@@ -341,7 +341,7 @@ public class OrganizationApp extends Controller {
         return null;
     }
 
-    public static Result settingForm(String organizationName) {
+    public Result settingForm(String organizationName) {
         Result result = validateForSetting(organizationName);
         if (result != null) {
             return result;
@@ -366,8 +366,8 @@ public class OrganizationApp extends Controller {
      * @throws IOException
      * @throws NoSuchAlgorithmException
      */
-    public static Result updateOrganizationInfo(String organizationName) throws IOException, NoSuchAlgorithmException, ServletException {
-        Form<Organization> organizationForm = form(Organization.class).bindFromRequest();
+    public Result updateOrganizationInfo(String organizationName) throws IOException, NoSuchAlgorithmException, ServletException {
+        Form<Organization> organizationForm = form(Organization.class).bindFromRequest(request());
         Organization modifiedOrganization = organizationForm.get();
 
         Result result = validateForUpdate(organizationForm, modifiedOrganization);
@@ -375,11 +375,11 @@ public class OrganizationApp extends Controller {
             return result;
         }
 
-        Http.MultipartFormData.FilePart filePart = request().body().asMultipartFormData()
+        Http.MultipartFormData.FilePart<File> filePart = request().body().<File>asMultipartFormData()
                 .getFile("logoPath");
         if (!isEmptyFilePart(filePart)) {
             Attachment.deleteAll(modifiedOrganization.asResource());
-            new Attachment().store(filePart.getFile(), filePart.getFilename(), modifiedOrganization.asResource());
+            new Attachment().store(filePart.getRef(), filePart.getFilename(), modifiedOrganization.asResource());
         }
 
         Organization original = Organization.find.byId(modifiedOrganization.id);
@@ -402,20 +402,20 @@ public class OrganizationApp extends Controller {
         }
 
         if (isDuplicateName(organization, modifiedOrganization)) {
-            organizationForm.reject("name", "organization.name.duplicate");
+            utils.FormUtil.reject(organizationForm, "name", "organization.name.duplicate");
             return badRequest(setting.render(organization, organizationForm));
         }
 
-        Http.MultipartFormData.FilePart filePart = request().body().asMultipartFormData()
+        Http.MultipartFormData.FilePart<File> filePart = request().body().<File>asMultipartFormData()
                 .getFile("logoPath");
         if (!isEmptyFilePart(filePart)) {
             if (!isImageFile(filePart.getFilename())) {
                 flash(Constants.WARNING, "project.logo.alert");
-                organizationForm.reject("logoPath");
+                utils.FormUtil.reject(organizationForm, "logoPath");
             }
-            if (filePart.getFile().length() > LOGO_FILE_LIMIT_SIZE) {
+            if (filePart.getRef().length() > LOGO_FILE_LIMIT_SIZE) {
                 flash(Constants.WARNING, "project.logo.fileSizeAlert");
-                organizationForm.reject("logoPath");
+                utils.FormUtil.reject(organizationForm, "logoPath");
             }
         }
 
@@ -443,7 +443,7 @@ public class OrganizationApp extends Controller {
         return name.equals(modifiedName);
     }
 
-    public static Result deleteForm(String organizationName) {
+    public Result deleteForm(String organizationName) {
         Result result = validateForSetting(organizationName);
         if (result != null) {
             return result;
@@ -455,7 +455,7 @@ public class OrganizationApp extends Controller {
     }
 
     @Transactional
-    public static Result deleteOrganization(String organizationName) {
+    public Result deleteOrganization(String organizationName) {
         Organization organization = Organization.findByName(organizationName);
 
         ValidationResult result = validateForDelete(organization);
@@ -484,7 +484,7 @@ public class OrganizationApp extends Controller {
     }
 
     @GuestProhibit
-    public static Result orgList(String query, int pageNum){
+    public Result orgList(String query, int pageNum){
         if(Application.HIDE_PROJECT_LISTING){
             return forbidden(ErrorViews.Forbidden.render("error.auth.unauthorized.waringMessage"));
         }
@@ -492,7 +492,7 @@ public class OrganizationApp extends Controller {
         if (pageNum < 1) {
             return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
-        Page<Organization> orgs = Organization.findByNameLike(query).getPage(pageNum-1);
+        PagedList<Organization> orgs = Organization.findByNameLike(query, pageNum - 1);
 
         return ok(views.html.organization.list.render("title.projectList", orgs, query));
     }

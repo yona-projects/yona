@@ -26,7 +26,7 @@ import org.apache.commons.mail.SimpleEmail;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.format.datetime.DateFormatter;
 
-import com.avaje.ebean.Page;
+import io.ebean.PagedList;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -46,9 +46,9 @@ import models.enumeration.State;
 import models.enumeration.UserState;
 import play.Configuration;
 import play.Logger;
-import play.db.ebean.Transactional;
+import io.ebean.annotation.Transactional;
 import play.libs.Json;
-import play.mvc.Controller;
+import utils.LegacyController;
 import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.With;
@@ -73,7 +73,7 @@ import views.html.site.userList;
  */
 @With(SiteManagerAuthAction.class)
 @AnonymousCheck
-public class SiteApp extends Controller {
+public class SiteApp extends LegacyController {
 
     private static final int PROJECT_COUNT_PER_PAGE = 25;
     private static final int POSTING_COUNT_PER_PAGE = 30;
@@ -84,7 +84,7 @@ public class SiteApp extends Controller {
      * @throws EmailException the email exception
      * @see {@link SiteApp#writeMail(String, boolean)}
      */
-    public static Result sendMail() throws EmailException{
+    public Result sendMail() throws EmailException{
         SimpleEmail email = new SimpleEmail();
 
         Map<String, String[]> formData = request().body().asFormUrlEncoded();
@@ -96,13 +96,19 @@ public class SiteApp extends Controller {
 
         String errorMessage = null;
         boolean sended;
-        String result = Mailer.send(email);
-        Logger.info(">>>" + result);
-        sended = true;
+        try {
+            String result = Mailer.send(email);
+            Logger.info(">>>" + result);
+            sended = true;
+        } catch (Exception e) {
+            Logger.warn("Failed to send site mail", e);
+            errorMessage = e.getMessage();
+            sended = false;
+        }
         return writeMail(errorMessage, sended);
     }
 
-    public static Result writeMail(String errorMessage, boolean sended) {
+    public Result writeMail(String errorMessage, boolean sended) {
 
         Configuration config = play.Play.application().configuration();
         List<String> notConfiguredItems = new ArrayList<>();
@@ -118,7 +124,7 @@ public class SiteApp extends Controller {
         return ok(mail.render("title.sendMail", notConfiguredItems, sender, errorMessage, sended));
     }
 
-    public static Result massMail() {
+    public Result massMail() {
         return ok(massMail.render("title.massMail"));
     }
 
@@ -128,10 +134,10 @@ public class SiteApp extends Controller {
      * @return the result
      * @see {@link User#findUsers(int, String)}
      */
-    public static Result userList(int pageNum, String query) {
+    public Result userList(int pageNum, String query) {
         String state = StringUtils.defaultIfBlank(request().getQueryString("state"), UserState.ACTIVE.name());
         UserState userState = UserState.valueOf(state);
-        Page<User> users = User.findUsers(pageNum -1, query, userState);
+        PagedList<User> users = User.findUsers(pageNum -1, query, userState);
         return ok(userList.render("title.siteSetting", users, userState, query));
     }
 
@@ -139,8 +145,8 @@ public class SiteApp extends Controller {
      * @param pageNum page number
      * @return the result
      */
-    public static Result postList(int pageNum) {
-        Page<Posting> page = Posting.finder.order("createdDate DESC").findPagingList(POSTING_COUNT_PER_PAGE).getPage(pageNum - 1);
+    public Result postList(int pageNum) {
+        PagedList<Posting> page = Posting.finder.query().orderBy("createdDate DESC").setFirstRow((pageNum - 1) * (POSTING_COUNT_PER_PAGE)).setMaxRows(POSTING_COUNT_PER_PAGE).findPagedList();
         return ok(postList.render("title.siteSetting", page));
     }
 
@@ -148,10 +154,10 @@ public class SiteApp extends Controller {
      * @param pageNum page number
      * @return the result
      */
-    public static Result issueList(int pageNum) {
+    public Result issueList(int pageNum) {
         String state = StringUtils.defaultIfBlank(request().getQueryString("state"), State.OPEN.name());
         State currentState = State.valueOf(state.toUpperCase());
-        Page<Issue> page = Issue.findIssuesByState(ISSUE_COUNT_PER_PAGE, pageNum - 1, currentState);
+        PagedList<Issue> page = Issue.findIssuesByState(ISSUE_COUNT_PER_PAGE, pageNum - 1, currentState);
         return ok(issueList.render("title.siteSetting", page, currentState));
     }
 
@@ -161,7 +167,7 @@ public class SiteApp extends Controller {
      * @see {@link Project#isOnlyManager(Long)}
      */
     @Transactional
-    public static Result deleteUser(Long userId) {
+    public Result deleteUser(Long userId) {
         if (User.findByLoginId(session().get("loginId")).isSiteManager()){
             if (Project.isOnlyManager(userId)) {
                 flash(Constants.WARNING, "site.userList.deleteAlert");
@@ -182,7 +188,7 @@ public class SiteApp extends Controller {
     }
 
     @Transactional
-    public static Result toggleSiteAdminRole(String loginId) {
+    public Result toggleSiteAdminRole(String loginId) {
         if (!User.findByLoginId(session().get("loginId")).isSiteManager()){
             flash(Constants.WARNING, "error.auth.unauthorized.waringMessage");
             return forbidden();
@@ -211,8 +217,8 @@ public class SiteApp extends Controller {
      * @return the result
      * @see {@link Project#findByName(String, int, int)}
      */
-    public static Result projectList(String projectName, int pageNum) {
-        Page<Project> projects = Project.findByName(projectName, PROJECT_COUNT_PER_PAGE, pageNum);
+    public Result projectList(String projectName, int pageNum) {
+        PagedList<Project> projects = Project.findByName(projectName, PROJECT_COUNT_PER_PAGE, pageNum);
         return ok(projectList.render("title.projectList", projects, projectName));
     }
 
@@ -221,7 +227,7 @@ public class SiteApp extends Controller {
      * @return the result
      */
     @Transactional
-    public static Result deleteProject(Long projectId){
+    public Result deleteProject(Long projectId){
         if( User.findByLoginId(session().get("loginId")).isSiteManager() ){
             Project.find.byId(projectId).delete();
         } else {
@@ -235,7 +241,7 @@ public class SiteApp extends Controller {
      * @return the result
      */
 
-    public static Result toggleAccountLock(String loginId, String state, String query){
+    public Result toggleAccountLock(String loginId, String state, String query){
         String stateParam = StringUtils.defaultIfBlank(state, UserState.ACTIVE.name());
         UserState userState = UserState.valueOf(stateParam);
 
@@ -256,7 +262,7 @@ public class SiteApp extends Controller {
         return redirect(routes.Application.index());
     }
 
-    public static Result toggleGuestMode(String loginId, String state, String query){
+    public Result toggleGuestMode(String loginId, String state, String query){
         String stateParam = StringUtils.defaultIfBlank(state, UserState.ACTIVE.name());
         UserState userState = UserState.valueOf(stateParam);
         if(User.findByLoginId(session().get("loginId")).isSiteManager()){
@@ -274,7 +280,7 @@ public class SiteApp extends Controller {
         return redirect(routes.Application.index());
     }
 
-    public static Result mailList() {
+    public Result mailList() {
         Set<String> emails = new HashSet<>();
         Map<String, String[]> projects = request().body().asFormUrlEncoded();
         if(!UserApp.currentUser().isSiteManager()) {
@@ -291,7 +297,7 @@ public class SiteApp extends Controller {
 
         if (projects.containsKey("all")) {
             if (projects.get("all")[0].equals("true")) {
-                for(User user : User.find.findList()) {
+                for(User user : User.find.query().findList()) {
                     emails.add(user.email);
                 }
             }
@@ -315,7 +321,7 @@ public class SiteApp extends Controller {
     /**
      * Hide the notification for Yobi updates.
      */
-    public static Result unwatchUpdate() {
+    public Result unwatchUpdate() {
         YobiUpdate.isWatched = false;
         return ok();
     }
@@ -323,7 +329,7 @@ public class SiteApp extends Controller {
     /**
      * Show the page to update Yobi.
      */
-    public static Result update() throws GitAPIException {
+    public Result update() throws GitAPIException {
         String currentVersion = null;
         Exception exception = null;
 
@@ -345,15 +351,15 @@ public class SiteApp extends Controller {
      * Diagnose Yobi
      * @return
      */
-    public static Result diagnose() {
+    public Result diagnose() {
         return ok(diagnostic.render("title.siteSetting", Diagnostic.checkAll()));
     }
 
-    public static Result data() {
+    public Result data() {
         return ok(data.render("title.siteSetting"));
     }
 
-    public static Result exportData() throws JsonProcessingException {
+    public Result exportData() throws JsonProcessingException {
         Date date = new Date();
         DateFormatter formatter = new DateFormatter("yyyyMMddHHmm");
         String formattedDate = formatter.print(date, Locale.getDefault());
@@ -365,11 +371,11 @@ public class SiteApp extends Controller {
         return ok(in);
     }
 
-    public static Result importData() throws IOException {
-        Http.MultipartFormData body = request().body().asMultipartFormData();
-        Http.MultipartFormData.FilePart yobiData = body.getFile("data");
+    public Result importData() throws IOException {
+        Http.MultipartFormData<File> body = request().body().asMultipartFormData();
+        Http.MultipartFormData.FilePart<File> yobiData = body.getFile("data");
         if (yobiData != null) {
-            File file = yobiData.getFile();
+            File file = yobiData.getRef();
             try {
                 new DataService().importData(file);
                 return redirect(routes.Application.index());
@@ -381,8 +387,8 @@ public class SiteApp extends Controller {
         }
     }
 
-    public static Result noAvatarUsers() {
-        List<User> users = User.find.where().eq("state", UserState.ACTIVE).findList();
+    public Result noAvatarUsers() {
+        List<User> users = User.find.query().where().eq("state", UserState.ACTIVE).findList();
         List<ObjectNode> usersNode = new ArrayList<>();
 
         ObjectNode result = Json.newObject();
@@ -405,7 +411,7 @@ public class SiteApp extends Controller {
         return userNode;
     }
 
-    public static Result setAttachmentToUserAvatar() {
+    public Result setAttachmentToUserAvatar() {
         ObjectNode result = Json.newObject();
 
         JsonNode json = request().body().asJson();

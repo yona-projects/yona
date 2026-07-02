@@ -10,11 +10,12 @@ package models;
 import controllers.UserApp;
 import org.apache.shiro.crypto.RandomNumberGenerator;
 import org.apache.shiro.crypto.SecureRandomNumberGenerator;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 import java.util.Arrays;
 
 @Entity
@@ -28,14 +29,14 @@ public class SiteAdmin extends Model {
     public User admin;
     public static final String SITEADMIN_DEFAULT_LOGINID = "admin";
 
-    public static final Model.Finder<Long, SiteAdmin> find = new Finder<>(Long.class, SiteAdmin.class);
+    public static final Finder<Long, SiteAdmin> find = new Finder<>(SiteAdmin.class);
 
     public static boolean exists(User user) {
-        return user != null && find.where().eq("admin.id", user.id).findRowCount() > 0;
+        return user != null && find.query().where().eq("admin.id", user.id).findCount() > 0;
     }
 
     public static SiteAdmin findByUserLoginId(String userLoginId) {
-        return find.where().eq("admin.loginId", userLoginId).findUnique();
+        return find.query().where().eq("admin.loginId", userLoginId).findOne();
     }
 
     public static User updateDefaultSiteAdmin(User user) {

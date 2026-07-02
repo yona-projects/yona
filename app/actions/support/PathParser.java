@@ -52,8 +52,8 @@ public class PathParser {
         }
     }
 
-    public PathParser(Http.Context context) {
-        this(play.Configuration.root().getString("application.context"), context.request().path());
+    public PathParser(Http.Request request) {
+        this(play.Configuration.root().getString("application.context"), request.path());
     }
 
     public String getOwnerLoginId() {

@@ -20,21 +20,21 @@
  */
 package models.resource;
 
-import com.avaje.ebean.EbeanServer;
-import com.avaje.ebean.Query;
-import com.avaje.ebean.Transaction;
-import com.avaje.ebean.event.BeanPersistAdapter;
-import com.avaje.ebean.event.BeanPersistRequest;
+import io.ebean.Database;
+import io.ebean.Query;
+import io.ebean.Transaction;
+import io.ebean.event.BeanPersistAdapter;
+import io.ebean.event.BeanPersistRequest;
 import models.Unwatch;
 import models.Watch;
 
 /**
- * @see com.avaje.ebean.event.BeanPersistController
- * @see com.avaje.ebean.event.BeanPersistAdapter
+ * @see io.ebean.event.BeanPersistController
+ * @see io.ebean.event.BeanPersistAdapter
  */
 public class ResourcePersistAdapter extends BeanPersistAdapter {
     /**
-     * @see com.avaje.ebean.event.BeanPersistAdapter#isRegisterFor(Class)
+     * @see io.ebean.event.BeanPersistAdapter#isRegisterFor(Class)
      */
     @Override
     public boolean isRegisterFor(Class<?> cls) {
@@ -42,29 +42,29 @@ public class ResourcePersistAdapter extends BeanPersistAdapter {
     }
 
     /**
-     * @see com.avaje.ebean.event.BeanPersistAdapter#postDelete(BeanPersistRequest)
+     * @see io.ebean.event.BeanPersistAdapter#postDelete(BeanPersistRequest)
      */
     @Override
     public void postDelete(BeanPersistRequest<?> request) {
         // deleted resource
-        Resource resource = ((ResourceConvertible) request.getBean()).asResource();
-        Transaction transaction = request.getTransaction();
-        EbeanServer server = request.getEbeanServer();
+        Resource resource = ((ResourceConvertible) request.bean()).asResource();
+        Transaction transaction = request.transaction();
+        Database server = request.database();
 
         // delete related objects
         deleteRelatedWatch(resource, server, transaction);
         deleteRelatedUnwatch(resource, server, transaction);
     }
 
-    private void deleteRelatedWatch(Resource resource, EbeanServer server, Transaction transaction) {
+    private void deleteRelatedWatch(Resource resource, Database server, Transaction transaction) {
         Query<Watch> query = server.createQuery(Watch.class);
         query.where().eq("resourceType", resource.getType()).eq("resourceId", resource.getId());
-        server.delete(Watch.class, query.findIds(), transaction);
+        server.deleteAll(Watch.class, query.findIds(), transaction);
     }
 
-    private void deleteRelatedUnwatch(Resource resource, EbeanServer server, Transaction transaction) {
+    private void deleteRelatedUnwatch(Resource resource, Database server, Transaction transaction) {
         Query<Unwatch> query = server.createQuery(Unwatch.class);
         query.where().eq("resourceType", resource.getType()).eq("resourceId", resource.getId());
-        server.delete(Unwatch.class, query.findIds(), transaction);
+        server.deleteAll(Unwatch.class, query.findIds(), transaction);
     }
 }

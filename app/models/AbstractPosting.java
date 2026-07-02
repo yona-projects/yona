@@ -13,12 +13,13 @@ import org.apache.commons.lang.StringUtils;
 import org.joda.time.Duration;
 import play.data.format.Formats;
 import play.data.validation.Constraints;
-import play.db.ebean.Model;
-import play.db.ebean.Transactional;
+import io.ebean.Finder;
+import io.ebean.Model;
+import io.ebean.annotation.Transactional;
 import utils.JodaDateUtil;
 
 import javax.annotation.Nonnull;
-import javax.persistence.*;
+import jakarta.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.Date;
 import java.util.HashSet;
@@ -27,7 +28,7 @@ import java.util.Set;
 
 @MappedSuperclass
 abstract public class AbstractPosting extends Model implements ResourceConvertible {
-    public static final Finder<Long, AbstractPosting> finder = new Finder<>(Long.class, AbstractPosting.class);
+    public static final Finder<Long, AbstractPosting> finder = new Finder<>(AbstractPosting.class);
     public static final int FIRST_PAGE_NUMBER = 0;
     public static final int NUMBER_OF_ONE_MORE_COMMENTS = 1;
 
@@ -174,11 +175,11 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
     }
 
     public static <T> T findByNumber(Finder<Long, T> finder, Project project, Long number) {
-        return finder.where().eq("project.id", project.id).eq("number", number).findUnique();
+        return finder.query().where().eq("project.id", project.id).eq("number", number).findOne();
     }
 
     public static <T> List<T> findByProject(Finder<Long, T> finder, Project project) {
-        return finder.where().eq("project.id", project.id).findList();
+        return finder.query().where().eq("project.id", project.id).findList();
     }
 
     public Duration ago() {
@@ -223,14 +224,14 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
 
     abstract public List<? extends Comment> getComments();
 
-    public void delete() {
+    public boolean delete() {
         for (Comment comment: getComments()) {
             comment.delete();
         }
         TitleHead.deleteTitleHeadKeyword(project, title);
         Attachment.deleteAll(asResource());
         NotificationEvent.deleteBy(this.asResource());
-        super.delete();
+        return super.delete();
     }
 
     public void deleteOnly() {
@@ -263,9 +264,14 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
     public Set<User> getWatchers(Set<User> baseWatchers, boolean allowedWatchersOnly) {
         Set<User> actualWatchers = new HashSet<>();
 
-        actualWatchers.addAll(baseWatchers);
+        if (baseWatchers != null) {
+            actualWatchers.addAll(baseWatchers);
+        }
 
-        actualWatchers.add(getAuthor());
+        User author = getAuthor();
+        if (author != null) {
+            actualWatchers.add(author);
+        }
 
         return Watch.findActualWatchers(actualWatchers, asResource(), allowedWatchersOnly);
     }

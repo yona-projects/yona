@@ -22,12 +22,12 @@ package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import models.Project;
-import play.mvc.Controller;
+import utils.LegacyController;
 import play.mvc.Result;
 import utils.Markdown;
 
-public class MarkdownApp extends Controller {
-    public static Result render(String ownerName, String projectName) {
+public class MarkdownApp extends LegacyController {
+    public Result render(String ownerName, String projectName) {
         JsonNode requestJson = request().body().asJson();
         String body = requestJson.findPath("body").textValue();
         boolean breaks = requestJson.findPath("breaks").asBoolean();

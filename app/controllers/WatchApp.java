@@ -20,23 +20,24 @@
  */
 package controllers;
 
-import com.avaje.ebean.annotation.Transactional;
+import io.ebean.annotation.Transactional;
 import models.Unwatch;
 import models.User;
 import models.Watch;
 import models.enumeration.Operation;
 import models.resource.Resource;
 import models.resource.ResourceParam;
-import play.mvc.Controller;
+import utils.LegacyController;
 import play.mvc.Result;
 import play.i18n.Messages;
 import utils.AccessControl;
 import utils.HttpUtil;
+import utils.MessagesUtil;
 import utils.RouteUtil;
 import org.apache.commons.lang3.StringUtils;
 
-public class WatchApp extends Controller {
-    public static Result watch(ResourceParam resourceParam) {
+public class WatchApp extends LegacyController {
+    public Result watch(ResourceParam resourceParam) {
         User user = UserApp.currentUser();
         Resource resource = resourceParam.resource;
 
@@ -54,16 +55,16 @@ public class WatchApp extends Controller {
     }
 
     @Transactional
-    public static Result unwatch(ResourceParam resourceParam) {
+    public Result unwatch(ResourceParam resourceParam) {
         User user = UserApp.currentUser();
         Resource resource = resourceParam.resource;
 
         if (user.isAnonymous()) {
-            return forbidden(views.html.error.forbidden.render(Messages.get("issue.error.unwatch.anonymous"), resource.getProject()));
+            return forbidden(views.html.error.forbidden.render(MessagesUtil.get("issue.error.unwatch.anonymous"), resource.getProject()));
         }
 
         if (!AccessControl.isAllowed(user, resource, Operation.READ)) {
-            return forbidden(views.html.error.forbidden.render(Messages.get("issue.error.unwatch.permission"), resource.getProject()));
+            return forbidden(views.html.error.forbidden.render(MessagesUtil.get("issue.error.unwatch.permission"), resource.getProject()));
         }
 
         Unwatch unwatch = Unwatch.findBy(user, resource.getType(), resource.getId());
@@ -88,15 +89,15 @@ public class WatchApp extends Controller {
         switch(resource.getType()) {
             case ISSUE_POST:
             case ISSUE_COMMENT:
-                return Messages.get("issue.unwatch.start");
+                return MessagesUtil.get("issue.unwatch.start");
             case BOARD_POST:
             case NONISSUE_COMMENT:
-                return Messages.get("post.unwatch.start");
+                return MessagesUtil.get("post.unwatch.start");
             case PULL_REQUEST:
             case REVIEW_COMMENT:
-                return Messages.get("pullRequest.unwatch.start");
+                return MessagesUtil.get("pullRequest.unwatch.start");
             case PROJECT:
-                return Messages.get("project.unwatch.start");
+                return MessagesUtil.get("project.unwatch.start");
             default:
                 return "";
         }

@@ -8,9 +8,10 @@
 package models;
 
 import models.enumeration.State;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Date;
 
 @Entity
@@ -33,8 +34,7 @@ public class IssueSharer extends Model {
     public static final String ADD = "add";
     public static final String DELETE = "delete";
 
-    public static final Finder<Long, IssueSharer> find = new Finder<>(Long.class,
-            IssueSharer.class);
+    public static final Finder<Long, IssueSharer> find = new Finder<>(IssueSharer.class);
 
     public static IssueSharer createSharer(String loginId, Issue issue) {
         IssueSharer issueSharer = new IssueSharer();
@@ -52,9 +52,9 @@ public class IssueSharer extends Model {
     }
 
     public static int getNumberOfIssuesSharedWithUser(Long userId){
-        return find.where()
+        return find.query().where()
                 .eq("user.id", userId)
                 .eq("issue.state", State.OPEN)
-                .findRowCount();
+                .findCount();
     }
 }

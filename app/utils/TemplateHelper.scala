@@ -1,6 +1,7 @@
 package utils
 
 import org.apache.commons.lang3.{ArrayUtils, StringUtils}
+import com.feth.play.module.pa.PlayAuthenticate
 import play.mvc.{Call, Http}
 import org.joda.time.DateTimeConstants
 import org.apache.commons.io.FilenameUtils
@@ -25,17 +26,21 @@ import playRepository.FileDiff
 import play.api.i18n.Lang
 import play.twirl.api.Html
 
-import collection.convert.wrapAll._
+import scala.jdk.CollectionConverters._
 import scala.util.control.Breaks._
 
 object TemplateHelper {
+  def playAuthenticate: PlayAuthenticate = {
+    play.Play.application().injector().instanceOf(classOf[PlayAuthenticate])
+  }
+
   def isAllowedOAuthProvider(provider: String): Boolean = {
     val allowedProviders = play.Configuration.root.getString("application.social.login.support", "").replaceAll(" ", "").split(",")
     allowedProviders.toStream.contains(provider)
   }
 
   def showWatchers(posting: AbstractPosting): String = {
-      "<div class='show-watchers' data-toggle='tooltip' data-placement='top' data-trigger='hover' data-html='true' title='" + Messages.get("watchers") + "'>" +
+      "<div class='show-watchers' data-toggle='tooltip' data-placement='top' data-trigger='hover' data-html='true' title='" + MessagesUtil.get("watchers") + "'>" +
       "<button id='watcher-list-button' type='button' class='ybtn'><i class='yobicon-emo-happy'></i><span class='watcherCount'></span></button>" +
       "</div>"
   }
@@ -72,7 +77,7 @@ object TemplateHelper {
 
   def buildAttrString(attrMap: java.util.Map[String, String]): String = {
     var attr = ""
-    attrMap.map {
+    attrMap.asScala.map {
       v => attr += v._1 + "=" + v._2 + " "
     }
     attr.dropRight(1)
@@ -88,7 +93,7 @@ object TemplateHelper {
         case x if x >= 60 => plural("common.time.minute", duration.getStandardMinutes)
         case x if x > 0 => plural("common.time.second", duration.getStandardSeconds)
         case x if x == null => ""
-        case _ => Messages.get("common.time.just")
+        case _ => MessagesUtil.get("common.time.just")
       }
     } else {
       ""
@@ -111,7 +116,7 @@ object TemplateHelper {
   def plural(key: String, count: Number): String = {
     var _key = key
     if (count != 1) _key = key + "s"
-    Messages.get(_key, count.toString)
+    MessagesUtil.get(_key, count.toString)
   }
 
   def urlToPicture(email: String, size: Int = 64) = {
@@ -184,14 +189,14 @@ object TemplateHelper {
 
   def urlToProjectBG(project: Project) = {
     models.Attachment.findByContainer(project.asResource) match {
-      case files if files.size > 0 => routes.AttachmentApp.getFile(files.head.id)
+      case files if files.size > 0 => routes.AttachmentApp.getFile(files.get(0).id)
       case _ => routes.Assets.at("images/project_default.jpg")
     }
   }
 
   def urlToProjectLogo(project: Project) = {
     models.Attachment.findByContainer(project.asResource) match {
-      case files if files.size > 0 => routes.AttachmentApp.getFile(files.head.id)
+      case files if files.size > 0 => routes.AttachmentApp.getFile(files.get(0).id)
       case _ => routes.Assets.at("images/project_default_logo.png")
     }
   }
@@ -281,7 +286,7 @@ object TemplateHelper {
 
   def urlToOrganizationLogo(organization: Organization) = {
     models.Attachment.findByContainer(organization.asResource) match {
-      case files if files.size > 0 => routes.AttachmentApp.getFile(files.head.id)
+      case files if files.size > 0 => routes.AttachmentApp.getFile(files.get(0).id)
       case _ => routes.Assets.at("images/group_default.png")
     }
   }
@@ -359,7 +364,7 @@ object TemplateHelper {
         case _ => " "
       }
 
-    val noNewlineAtEof = "<span style='color: red'>(" + Messages.get("code.eolMissing") + ")</span>"
+    val noNewlineAtEof = "<span style='color: red'>(" + MessagesUtil.get("code.eolMissing") + ")</span>"
 
     def eolMissingChecker(diff: FileDiff)(line: DiffLine) =
       line.kind match {
@@ -423,7 +428,7 @@ object TemplateHelper {
       }
 
     def renderEventsOnPullRequest(pull: PullRequest) =
-      _renderEventsOnPullRequest(pull, pull.pullRequestEvents.toList, play.twirl.api.Html(""))
+      _renderEventsOnPullRequest(pull, pull.pullRequestEvents.asScala.toList, play.twirl.api.Html(""))
 
     def urlToCommentThread(thread: CommentThread) = {
         urlToContainer(thread) + "#thread-" + thread.id

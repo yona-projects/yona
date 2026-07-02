@@ -6,8 +6,6 @@
 **@
 @()
 @import utils.TemplateHelper._
-@import play.mvc.Http.Context
-
 @**<!-- yobi.ui.Dialog -->**@
 <div id="yobiDialog" class="modal hide yobiDialog" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="btn-dismiss"><button type="button" class="btn-transparent" data-dismiss="modal">&times;</button></div>
@@ -40,7 +38,7 @@
 @common.loginDialog()
 }
 
-<script type="text/javascript" src="@routes.Application.jsMessages()"></script>
+<script type="text/javascript" src="@routes.Application.jsMessages"></script>
 <script type="text/javascript" src="@routes.Assets.at("javascripts/yona-common.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("bootstrap/js/bootstrap-better-typeahead.js")"></script>
 <script type="text/javascript" src="@routes.Assets.at("bootstrap/js/bootstrap-switch.js")"></script>
@@ -54,6 +52,52 @@
     $yobi.setScriptPath("@getJSPath");
 
     $(document).ready(function(){
+        var csrfParam = $("meta[name=csrf-param]").attr("content");
+        var csrfToken = $("meta[name=csrf-token]").attr("content");
+
+        function appendCsrfTokenToForm(form) {
+            if (!csrfParam || !csrfToken) {
+                return;
+            }
+
+            var $form = $(form);
+            if (($form.attr("method") || "get").toLowerCase() !== "post") {
+                return;
+            }
+
+            var hasToken = $form.find("input").filter(function() {
+                return this.name === csrfParam;
+            }).length > 0;
+
+            if (!hasToken) {
+                $("<input>", {
+                    type: "hidden",
+                    name: csrfParam,
+                    value: csrfToken
+                }).prependTo($form);
+            }
+        }
+
+        $("form").each(function() {
+            appendCsrfTokenToForm(this);
+        });
+
+        $(document).on("submit", "form", function() {
+            appendCsrfTokenToForm(this);
+        });
+
+        if (csrfToken) {
+            $.ajaxSetup({
+                beforeSend: function(xhr, settings) {
+                    var method = (settings.type || "GET").toUpperCase();
+                    if (!/^(GET|HEAD|OPTIONS|TRACE)$/.test(method)) {
+                        xhr.setRequestHeader("Csrf-Token", csrfToken);
+                        xhr.setRequestHeader("X-CSRF-Token", csrfToken);
+                    }
+                }
+            });
+        }
+
         // tooltip
         $(document.body).on("mouseenter", "[data-toggle=tooltip]", function(){
             $(this).tooltip("show");
@@ -95,13 +139,13 @@
         }
 
         yobi.ShortcutKey.setKeymapLink({
-            "A": "@routes.IssueApp.userIssues()"
+            "A": "@routes.IssueApp.userIssues("", "html", 1)"
         });
 
         // yobi.Files
         yobi.Files.init({
-            "sListURL"  : "@routes.AttachmentApp.getFileList()",
-            "sUploadURL": "@routes.AttachmentApp.uploadFile()",
+            "sListURL"  : "@routes.AttachmentApp.getFileList",
+            "sUploadURL": "@routes.AttachmentApp.uploadFile",
             "maxFileSize": "@play.Configuration.root().getLong("application.maxFileSize", 2147483454L)"  // 2Gb
         });
 
@@ -125,14 +169,14 @@
         }
 
         // notify flash messages
-        @for(key <- Context.current().flash().keySet) {
+        @for(key <- utils.LegacyRequestContext.flash().keySet) {
             @if(key != utils.Constants.TITLE &&
                 key != utils.Constants.DESCRIPTION){
-                $yobi.notify("@Messages(Context.current().flash().get(key))", 5000);
+                $yobi.notify("@Messages(utils.LegacyRequestContext.flash().get(key))", 5000);
             }
             @if(key == utils.Constants.TITLE){
-                $yobi.alert("@Messages(Context.current().flash().get(key))", null,
-                            "@Messages(Context.current().flash().get(utils.Constants.DESCRIPTION))");
+                $yobi.alert("@Messages(utils.LegacyRequestContext.flash().get(key))", null,
+                            "@Messages(utils.LegacyRequestContext.flash().get(utils.Constants.DESCRIPTION))");
             }
         }
 

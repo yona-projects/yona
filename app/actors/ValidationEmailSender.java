@@ -20,7 +20,7 @@
  */
 package actors;
 
-import akka.actor.UntypedActor;
+import org.apache.pekko.actor.UntypedActor;
 import info.schleichardt.play2.mailplugin.Mailer;
 import models.Email;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -28,6 +28,7 @@ import org.apache.commons.mail.HtmlEmail;
 import play.Logger;
 import play.i18n.Messages;
 import utils.Config;
+import utils.MessagesUtil;
 
 /**
  * This actor validates whether the additional emails are valid or not.
@@ -47,13 +48,13 @@ public class ValidationEmailSender extends UntypedActor {
         try {
             htmlEmail.setFrom(Config.getEmailFromSmtp(), utils.Config.getSiteName());
             htmlEmail.addTo(email.email, email.user.name);
-            htmlEmail.setSubject(Messages.get("emails.validation.email.title", utils.Config.getSiteName()));
+            htmlEmail.setSubject(MessagesUtil.get("emails.validation.email.title", utils.Config.getSiteName()));
             htmlEmail.setHtmlMsg(getMessage(email.confirmUrl));
             htmlEmail.setCharset("utf-8");
             Mailer.send(htmlEmail);
             String escapedTitle = htmlEmail.getSubject().replace("\"", "\\\"");
             String logEntry = String.format("\"%s\" %s", escapedTitle, htmlEmail.getToAddresses());
-            play.Logger.of("mail").info(logEntry);
+            org.slf4j.LoggerFactory.getLogger("mail").info(logEntry);
         } catch (Exception e) {
             Logger.warn("Failed to send a notification: "
                     + email + "\n" + ExceptionUtils.getStackTrace(e));
@@ -61,7 +62,7 @@ public class ValidationEmailSender extends UntypedActor {
     }
 
     public String getMessage(String url) {
-        String msg = String.format("<pre>%s</pre>", Messages.get("emails.click.link"));
+        String msg = String.format("<pre>%s</pre>", MessagesUtil.get("emails.click.link"));
         if (url != null) {
             msg += String.format("<hr><a href=\"%s\">%s</a>", url, url);
         }

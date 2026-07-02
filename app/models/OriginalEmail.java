@@ -23,16 +23,16 @@ package models;
 import models.enumeration.ResourceType;
 import models.resource.Resource;
 import play.data.validation.Constraints;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Date;
 
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"resource_type", "resource_id"}))
 public class OriginalEmail extends Model {
-    public static final Finder<Long, OriginalEmail> finder = new Finder<>(Long.class,
-            OriginalEmail.class);
+    public static final Finder<Long, OriginalEmail> finder = new Finder<>(OriginalEmail.class);
 
     private static final long serialVersionUID = 9079975193167733297L;
 
@@ -54,10 +54,10 @@ public class OriginalEmail extends Model {
     private Date handledDate;
 
     public static OriginalEmail findBy(Resource resource) {
-        return finder.where()
+        return finder.query().where()
                 .eq("resourceType", resource.getType())
                 .eq("resourceId", resource.getId())
-                .findUnique();
+                .findOne();
     }
 
     public static boolean exists(Resource resource) {

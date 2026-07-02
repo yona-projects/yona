@@ -24,13 +24,13 @@ import controllers.UserApp;
 import controllers.annotation.AnonymousCheck;
 import controllers.routes;
 import play.mvc.Action;
-import play.mvc.Http.Context;
+import play.mvc.Http.Request;
 import play.mvc.Result;
-import play.mvc.Result;
-import play.libs.F.Promise;
+import java.util.concurrent.*;
 import utils.AccessControl;
 import utils.AccessLogger;
 import utils.Constants;
+import utils.LegacyRequestContext;
 
 /**
  * After execute {@link actions.AbstractProjectCheckAction},
@@ -42,19 +42,21 @@ import utils.Constants;
 public class AnonymousCheckAction extends Action<AnonymousCheck> {
 
     @Override
-    public Promise<Result> call(Context context) throws Throwable {
-        if ((AccessControl.isAnonymousNotAllowed() || configuration.requiresLogin()) &&
-                UserApp.currentUser().isAnonymous()) {
-            if (configuration.displaysFlashMessage()) {
-                play.mvc.Controller.flash(Constants.WARNING, "user.login.alert");
+    public CompletionStage<Result> call(Request request) {
+        return LegacyRequestContext.withRequest(request, () -> {
+            if ((AccessControl.isAnonymousNotAllowed() || configuration.requiresLogin()) &&
+                    UserApp.currentUser().isAnonymous()) {
+                if (configuration.displaysFlashMessage()) {
+                    LegacyRequestContext.flash().put(Constants.WARNING, "user.login.alert");
+                }
+                String loginFormUrl = routes.UserApp.loginForm().url();
+                loginFormUrl += "?redirectUrl=" + request.path();
+                CompletionStage<Result> promise = CompletableFuture.completedFuture(redirect(loginFormUrl));
+                AccessLogger.log(request, promise, null);
+                return promise;
             }
-            String loginFormUrl = routes.UserApp.loginForm().url();
-            loginFormUrl += "?redirectUrl=" + context.request().path();
-            Promise<Result> promise = Promise.pure(redirect(loginFormUrl));
-            AccessLogger.log(context.request(), promise, null);
-            return promise;
-        }
-        return delegate.call(context);
+            return delegate.call(request);
+        });
     }
 
 }

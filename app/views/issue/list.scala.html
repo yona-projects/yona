@@ -4,9 +4,9 @@
 * Copyright Yona & Yobi Authors & NAVER Corp.
 * https://yona.io
 **@
-@import com.avaje.ebean.Page
+@import io.ebean.PagedList
 @import models.support.SearchCondition
-@(title: String, currentPage: Page[Issue], param: SearchCondition, project:Project)
+@(title: String, currentPage: PagedList[Issue], param: SearchCondition, project:Project)
 
 @projectLayout(project.name + " - " + Messages(title), project, utils.MenuType.ISSUE){
 @projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")

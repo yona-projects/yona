@@ -24,7 +24,6 @@
 @import utils.TemplateHelper._
 @import utils.AccessControl._
 @import models.enumeration
-@import scala.collection.JavaConversions._
 
 @getCodeURL(project: Project) = @{
     if(ProjectUser.isMember(project.id, UserApp.currentUser().id)){

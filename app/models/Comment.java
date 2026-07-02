@@ -7,7 +7,7 @@
 
 package models;
 
-import com.avaje.ebean.annotation.Transactional;
+import io.ebean.annotation.Transactional;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
 import org.apache.commons.lang.StringUtils;
@@ -15,11 +15,11 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.Duration;
 import play.data.validation.Constraints;
-import play.db.ebean.Model;
+import io.ebean.Model;
 import utils.JodaDateUtil;
 
 import javax.annotation.Nonnull;
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -91,11 +91,12 @@ abstract public class Comment extends Model implements TimelineItem, ResourceCon
         Mention.update(this.asResource(), NotificationEvent.getMentionedUsers(this.contents));
     }
 
-    public void delete() {
+    public boolean delete() {
         Attachment.deleteAll(asResource());
         NotificationEvent.deleteBy(this.asResource());
-        super.delete();
+        boolean deleted = super.delete();
         getParent().update();
+        return deleted;
     }
 
     public static Comparator<Comment> comparator(){

@@ -6,8 +6,8 @@
  **/
 package models.support;
 
-import com.avaje.ebean.ExpressionList;
-import com.avaje.ebean.Junction;
+import io.ebean.ExpressionList;
+import io.ebean.Junction;
 import controllers.AbstractPostingApp;
 import controllers.UserApp;
 import models.*;
@@ -107,7 +107,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
     }
 
     public ExpressionList<Issue> asExpressionList(@Nonnull Organization organization) {
-        ExpressionList<Issue> el = Issue.finder.where();
+        ExpressionList<Issue> el = Issue.finder.query().where();
 
         if(isFilteredByProject()){
             el.in("project.id", getFilteredProjectIds(organization));
@@ -172,7 +172,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
             Junction<Issue> junction = el.disjunction();
             junction.icontains("title", filter)
                     .icontains("body", filter);
-            List<Object> ids = Issue.finder.where()
+            List<Object> ids = Issue.finder.query().where()
                     .icontains("comments.contents", filter).findIds();
             if (!ids.isEmpty()) {
                 junction.idIn(ids);
@@ -227,7 +227,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
     }
 
     public ExpressionList<Issue> asExpressionList() {
-        ExpressionList<Issue> el = Issue.finder.where();
+        ExpressionList<Issue> el = Issue.finder.query().where();
 
         setAssigneeIfExists(el);
         setAuthorIfExist(el);
@@ -303,7 +303,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
     private List<Long> getCommentedIssueIds(User commenter, Project project) {
         Set<Long> issueIds = new HashSet<>();
 
-        List<IssueComment> comments = IssueComment.find.where()
+        List<IssueComment> comments = IssueComment.find.query().where()
                 .eq("authorId", commenter.id)
                 .findList();
         if (project == null) {
@@ -322,7 +322,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
 
     private List<Long> getSharedIssueIds(User user) {
         Set<Long> ids = new HashSet<>();
-        List<IssueSharer> issueSharers = IssueSharer.find.where()
+        List<IssueSharer> issueSharers = IssueSharer.find.query().where()
                 .eq("user.id", user.id)
                 .findList();
         for (IssueSharer issueSharer : issueSharers) {
@@ -334,7 +334,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
 
     private List<Long> getFavoriteIssueIds(User user) {
         Set<Long> ids = new HashSet<>();
-        List<FavoriteIssue> favoriteIssues = FavoriteIssue.find.where()
+        List<FavoriteIssue> favoriteIssues = FavoriteIssue.find.query().where()
                 .eq("user.id", user.id)
                 .findList();
         for (FavoriteIssue favoriteIssue : favoriteIssues) {
@@ -345,7 +345,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
     }
 
     public ExpressionList<Issue> asExpressionList(Project project) {
-        ExpressionList<Issue> el = Issue.finder.where();
+        ExpressionList<Issue> el = Issue.finder.query().where();
         if( project != null ){
             el.eq("project.id", project.id);
         }
@@ -355,10 +355,10 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
             .icontains("body", filter);
             List<Object> ids;
             if( project == null){
-                ids = Issue.finder.where()
+                ids = Issue.finder.query().where()
                         .icontains("comments.contents", filter).findIds();
             } else {
-                ids = Issue.finder.where()
+                ids = Issue.finder.query().where()
                         .eq("project.id", project.id)
                         .icontains("comments.contents", filter).findIds();
             }
@@ -421,9 +421,9 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition implemen
 
     private void setLabelsIfExist(Project project, ExpressionList<Issue> el) {
         if (CollectionUtils.isNotEmpty(labelIds)) {
-            Set<IssueLabel> labels = IssueLabel.finder.where().idIn(new ArrayList<>(labelIds)).findSet();
+            Set<IssueLabel> labels = IssueLabel.finder.query().where().idIn(new ArrayList<>(labelIds)).findSet();
 
-            List<Issue> issues = Issue.finder.where()
+            List<Issue> issues = Issue.finder.query().where()
                     .eq("project", project)
                     .in("labels", labels).findList();
 

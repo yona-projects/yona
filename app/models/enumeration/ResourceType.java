@@ -22,6 +22,7 @@ package models.enumeration;
 
 import play.api.i18n.Lang;
 import play.i18n.Messages;
+import utils.MessagesUtil;
 
 public enum ResourceType {
     ISSUE_POST("issue_post"),
@@ -94,6 +95,6 @@ public enum ResourceType {
     }
 
     public String getName(Lang lang) {
-        return Messages.get(lang, "resource." + resource);
+        return MessagesUtil.get(lang, "resource." + resource);
     }
 }

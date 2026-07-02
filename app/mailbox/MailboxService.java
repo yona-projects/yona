@@ -7,7 +7,7 @@
 
 package mailbox;
 
-import akka.actor.Cancellable;
+import org.apache.pekko.actor.Cancellable;
 import com.sun.mail.imap.IMAPFolder;
 import com.sun.mail.imap.IMAPMessage;
 import com.sun.mail.imap.IMAPStore;
@@ -15,8 +15,6 @@ import models.Property;
 import models.User;
 import play.Configuration;
 import play.Logger;
-import play.libs.Akka;
-import play.libs.F;
 import scala.concurrent.duration.Duration;
 import utils.Diagnostic;
 import utils.SimpleDiagnostic;
@@ -30,6 +28,7 @@ import javax.mail.Session;
 import javax.mail.event.MessageCountEvent;
 import javax.mail.event.MessageCountListener;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import static javax.mail.Session.getDefaultInstance;
@@ -152,7 +151,7 @@ public class MailboxService {
             return;
         }
 
-        List<User> users = User.find.where()
+        List<User> users = User.find.query().where()
                 .ilike("email", config.getString(IMAP_USER_KEY) + "+%").findList();
 
         if (users.size() == 1) {
@@ -189,24 +188,19 @@ public class MailboxService {
     }
 
     private void handleNewMessagesAndStartListener() {
-        F.Promise<Void> promise = F.Promise.promise(
-                new F.Function0<Void>() {
-                    public Void apply() {
-                        try {
-                            EmailHandler.handleNewMessages(folder);
-                        } catch (MessagingException e) {
-                            Logger.error("Failed to handle new messages");
-                        }
+        CompletableFuture.runAsync(() -> {
+            try {
+                EmailHandler.handleNewMessages(folder);
+            } catch (MessagingException e) {
+                Logger.error("Failed to handle new messages");
+            }
 
-                        try {
-                            startEmailListener();
-                        } catch (Exception e) {
-                            startEmailPolling();
-                        }
-                        return null;
-                    }
-                }
-        );
+            try {
+                startEmailListener();
+            } catch (Exception e) {
+                startEmailPolling();
+            }
+        });
     }
 
     /**
@@ -260,13 +254,13 @@ public class MailboxService {
             }
         };
 
-        pollingSchedule = Akka.system().scheduler().schedule(
+        pollingSchedule = utils.AkkaUtil.system().scheduler().schedule(
                 Duration.create(0, TimeUnit.MINUTES),
                 Duration.create(
                         Configuration.root().getMilliseconds("application.mailbox.polling.interval", 5 * 60 * 1000L),
                         TimeUnit.MILLISECONDS),
                 polling,
-                Akka.system().dispatcher()
+                utils.AkkaUtil.system().dispatcher()
         );
     }
 

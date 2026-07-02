@@ -20,6 +20,7 @@
 **@
 @(labels:List[models.IssueLabel])
 
+
 @getLabelTextColorFromBgColor(bgColor: String) = @{
     def parseFromRGB(bgColor:String):Map[String,Int] = {
         val start = bgColor.indexOf('(') + 1

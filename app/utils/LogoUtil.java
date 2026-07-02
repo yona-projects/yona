@@ -27,7 +27,7 @@ public class LogoUtil {
 
     public static final String[] LOGO_TYPE = {"jpg", "jpeg", "png", "gif", "bmp"};
 
-    public static boolean isEmptyFilePart(Http.MultipartFormData.FilePart filePart) {
+    public static boolean isEmptyFilePart(Http.MultipartFormData.FilePart<?> filePart) {
         return filePart == null || filePart.getFilename() == null || filePart.getFilename().length() <= 0;
     }
 

@@ -7,7 +7,7 @@
 @import utils.Config
 @import utils.AccessControl
 @import models.enumeration.Operation;
-@(message: String, currentPage: com.avaje.ebean.Page[Project], filter:String)
+@(message: String, currentPage: io.ebean.PagedList[Project], filter:String)
 @import utils.TemplateHelper._
 @import utils.JodaDateUtil
 
@@ -16,9 +16,9 @@
     <div class="site-breadcrumb-inner">
         <div class="title_area">
             <ul class="nav nav-tabs">
-                <li class='active'><a href="@routes.ProjectApp.projects()">@Messages("project.public") @Messages("title" +
+                <li class='active'><a href="@routes.ProjectApp.projects("", 1)">@Messages("project.public") @Messages("title" +
                         ".projectList")</a></li>
-                <li><a href="@routes.OrganizationApp.orgList()">@Messages("title.organization.list")</a></li>
+                <li><a href="@routes.OrganizationApp.orgList("", 1)">@Messages("title.organization.list")</a></li>
             </ul>
         </div>
     </div>
@@ -27,7 +27,7 @@
     <div class="project-page-wrap">
     	<div class="search-wrap">
     		<div id="search" class="pull-left">
-    			<form action="@routes.ProjectApp.projects()" method="get">
+    			<form action="@routes.ProjectApp.projects("", 1)" method="get">
     				<div class="search-bar">
                         <input name="filter" class="textbox" type="text" placeholder="@Messages("site.project" +
                                 ".filter")" value="@filter" autofocus>
@@ -36,7 +36,7 @@
     			</form>
              </div>
         </div>
-        @if(currentPage.getTotalRowCount == 0){
+        @if(currentPage.getTotalCount == 0){
             <div class="error-wrap">
                 <i class="ico ico-err1"></i>
                 <p>@Messages("project.is.empty")</p>
@@ -66,7 +66,7 @@
 
                             @if(project.isPrivate){ <i class="yobicon-lock yobicon-small"></i> }
                             @for(label <- project.labels) {
-                                <a class="project-label @label.category.toLowerCase" href="@routes.ProjectApp.projects()?labelIds=@label.id">@label.name</a>
+                                <a class="project-label @label.category.toLowerCase" href="@routes.ProjectApp.projects("", 1)?labelIds=@label.id">@label.name</a>
                             }
                         </div>
                         <div class="desc">

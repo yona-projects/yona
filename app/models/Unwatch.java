@@ -20,16 +20,18 @@
  */
 package models;
 
+import io.ebean.Finder;
+
 import models.enumeration.ResourceType;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 import java.util.List;
 
 @Entity
 public class Unwatch extends UserAction {
     private static final long serialVersionUID = 1L;
 
-    public static final Finder<Long, Unwatch> find = new Finder<>(Long.class, Unwatch.class);
+    public static final Finder<Long, Unwatch> find = new Finder<>(Unwatch.class);
 
     public static List<Unwatch> findBy(ResourceType resourceType, String resourceId) {
         return findBy(find, resourceType, resourceId);

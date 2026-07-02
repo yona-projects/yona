@@ -9,9 +9,9 @@ package controllers.api;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import models.*;
 import org.apache.commons.lang3.StringUtils;
-import play.db.ebean.Transactional;
+import io.ebean.annotation.Transactional;
 import play.libs.Json;
-import play.mvc.Controller;
+import utils.LegacyController;
 import play.mvc.Result;
 import utils.RouteUtil;
 
@@ -21,10 +21,10 @@ import java.util.Set;
 
 import static play.libs.Json.toJson;
 
-public class WatcherApi extends Controller {
+public class WatcherApi extends LegacyController {
 
     @Transactional
-    public static Result getWatchers(String owner, String projectName, Long number) {
+    public Result getWatchers(String owner, String projectName, Long number) {
         final int LIMIT = 100;
         int counter = 0;
 

@@ -42,6 +42,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.channels.OverlappingFileLockException;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.text.MessageFormat;
 
 import static org.eclipse.jgit.lib.Constants.HEAD;
@@ -304,7 +306,7 @@ public class BareCommit {
         final CommitBuilder commit = new CommitBuilder();
         commit.setAuthor(this.getPersonIdent());
         commit.setCommitter(this.getPersonIdent());
-        commit.setEncoding(Constants.CHARACTER_ENCODING);
+        commit.setEncoding(StandardCharsets.UTF_8);
         commit.setMessage(message);
         //headId can be null if the repository has no commit yet
         if (this.headObjectId != null) {
@@ -323,7 +325,7 @@ public class BareCommit {
             if (file != null) {
                 final DirCacheEntry dcEntry = new DirCacheEntry(path);
                 dcEntry.setLength(file.length());
-                dcEntry.setLastModified(file.lastModified());
+                dcEntry.setLastModified(Instant.ofEpochMilli(file.lastModified()));
                 dcEntry.setFileMode(FileMode.REGULAR_FILE);
 
                 final InputStream inputStream = new FileInputStream(file);

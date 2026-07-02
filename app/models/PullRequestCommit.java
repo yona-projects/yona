@@ -21,12 +21,13 @@
 package models;
 
 import org.apache.commons.lang3.StringUtils;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 import playRepository.GitCommit;
 import utils.JodaDateUtil;
 
 import javax.annotation.Nonnull;
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Date;
 import java.util.List;
 
@@ -35,7 +36,7 @@ public class PullRequestCommit extends Model implements TimelineItem {
 
     private static final long serialVersionUID = -4343181252386722689L;
 
-    public static final Finder<Long, PullRequestCommit> find = new Finder<>(Long.class, PullRequestCommit.class);
+    public static final Finder<Long, PullRequestCommit> find = new Finder<>(PullRequestCommit.class);
 
     @Id
     public Long id;
@@ -107,11 +108,11 @@ public class PullRequestCommit extends Model implements TimelineItem {
      * @return
      */
     public static PullRequestCommit getByCommitId(PullRequest pullRequest, String commitId) {
-        return find.select("state").where().eq("pullRequest", pullRequest)
+        return find.query().select("state").where().eq("pullRequest", pullRequest)
                 .eq("commitId",commitId)
                 .orderBy().desc("created")
                 .setMaxRows(1)
-                .findUnique();
+                .findOne();
     }
 
     public static State getStateByCommitId(PullRequest pullRequest, String commitId) {
@@ -123,15 +124,15 @@ public class PullRequestCommit extends Model implements TimelineItem {
     }
 
     public static List<PullRequestCommit> getCurrentCommits(PullRequest pullRequest) {
-        return find.where()
+        return find.query().where()
                 .eq("pullRequest", pullRequest)
                 .eq("state", State.CURRENT)
-                .order().desc("created")
+                .orderBy().desc("created")
                 .findList();
     }
 
     public static List<PullRequestCommit> getPriorCommits(PullRequest pullRequest) {
-        return find.where().eq("pullRequest", pullRequest).eq("state", State.PRIOR).findList();
+        return find.query().where().eq("pullRequest", pullRequest).eq("state", State.PRIOR).findList();
     }
 
     public static PullRequestCommit bindPullRequestCommit(GitCommit commit, PullRequest pullRequest) {

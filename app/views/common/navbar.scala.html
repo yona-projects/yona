@@ -22,7 +22,7 @@
     } else if (org !=null) {
         routes.SearchApp.searchInAGroup(org.name)
     } else {
-        routes.SearchApp.searchInAll()
+        routes.SearchApp.searchInAll
     }
 }
 
@@ -39,11 +39,11 @@
         <div class="pin" data-toggle="tooltip" data-placement="bottom" title="Sidebar"><i class="yobicon-arrow-left"></i><i class="yobicon-arrow-right"></i></div>
         <ul class="gnb-nav">
             <li>
-                <a href="@routes.Application.index()" class="logo logo-letter">Y</a>
+                <a href="@routes.Application.index" class="logo logo-letter">Y</a>
             </li>
             @if(!Application.HIDE_PROJECT_LISTING && !UserApp.currentUser().isGuest){
                 <li class="@isActiveMenu(MenuType.PROJECTS)">
-                    <a href="@routes.ProjectApp.projects()" class="show-progress-bar">@Messages("title.list")</a>
+                    <a href="@routes.ProjectApp.projects("", 1)" class="show-progress-bar">@Messages("title.list")</a>
                 </li>
                 <li class="divider"></li>
             }
@@ -94,7 +94,7 @@
                             }
                             @if(!Application.HIDE_PROJECT_LISTING && !UserApp.currentUser().isGuest || UserApp.currentUser().isSiteManager) {
                             <li>
-                                <a href="#" data-toggle="search-scope" data-action="@routes.SearchApp.searchInAll()">
+                                <a href="#" data-toggle="search-scope" data-action="@routes.SearchApp.searchInAll">
                                     @Messages("search.scope.all")
                                 </a>
                             </li>

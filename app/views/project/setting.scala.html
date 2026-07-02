@@ -25,8 +25,8 @@
 
         <form id="saveSetting" method="post" action="@routes.ProjectApp.settingProject(project.owner, project.name)" enctype="multipart/form-data" class="nm">
             <div class="bubble-wrap gray" style="overflow: visible">
-                <input type="hidden" name="id" value="@projectForm("id").value.toLong">
-                <input type="hidden" name="watchingCount" value="@projectForm("watchingCount").value.toLong">
+                <input type="hidden" name="id" value="@projectForm("id").value.orElse("0").toLong">
+                <input type="hidden" name="watchingCount" value="@projectForm("watchingCount").value.orElse("0").toLong">
                 <div class="box-wrap top clearfix frm-wrap" style="padding-top:20px;">
                     <div class="setting-box left">
                         <div class="logo-wrap" style="background-image:url('@urlToProjectLogo(project)')"></div>

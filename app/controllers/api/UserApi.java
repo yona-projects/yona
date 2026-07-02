@@ -20,8 +20,8 @@ import org.apache.shiro.crypto.SecureRandomNumberGenerator;
 import org.apache.shiro.crypto.hash.Sha256Hash;
 import org.apache.shiro.util.ByteSource;
 
-import com.avaje.ebean.ExpressionList;
-import com.avaje.ebean.Page;
+import io.ebean.ExpressionList;
+import io.ebean.PagedList;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -40,18 +40,20 @@ import models.User;
 import models.enumeration.IssueFilterType;
 import models.enumeration.UserState;
 import models.support.IssueSearchCondition;
-import play.db.ebean.Transactional;
+import io.ebean.annotation.Transactional;
 import play.i18n.Messages;
 import play.libs.Json;
-import play.mvc.Controller;
+import utils.LegacyController;
 import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.With;
 import utils.JodaDateUtil;
+import utils.MessagesUtil;
+import utils.RequestUtil;
 import utils.SHA256Util;
 import utils.SiteManagerAuthAction;
 
-public class UserApi extends Controller {
+public class UserApi extends LegacyController {
 
     private static final int HASH_ITERATIONS = 1024;
     private static final String AUTHORIZATION_HEADER_PREFIX = "token";
@@ -59,7 +61,7 @@ public class UserApi extends Controller {
     private static final String HOSTNAME = play.Configuration.root().getString("application.hostname", "http://localhost");
 
     @Transactional
-    public static Result toggleFoveriteProject(String projectId) {
+    public Result toggleFoveriteProject(String projectId) {
         if (projectId == null) {
             return badRequest("Wrong project id");
         }
@@ -71,7 +73,7 @@ public class UserApi extends Controller {
     }
 
     @Transactional
-    public static Result getFoveriteProjects() {
+    public Result getFoveriteProjects() {
         ObjectNode json = Json.newObject();
         List<ObjectNode> projects = new ArrayList<>();
         List<Long> projectIds = new ArrayList<>();
@@ -89,7 +91,7 @@ public class UserApi extends Controller {
     }
 
     @Transactional
-    public static Result toggleFoveriteIssue(String issueId) {
+    public Result toggleFoveriteIssue(String issueId) {
         if (issueId == null) {
             return badRequest("Wrong issue id");
         }
@@ -99,16 +101,16 @@ public class UserApi extends Controller {
         json.put("favored", isFavored);
 
         if(isFavored) {
-            json.put("message", Messages.get("issue.favorite.added"));
+            json.put("message", MessagesUtil.get("issue.favorite.added"));
         } else {
-            json.put("message", Messages.get("issue.favorite.deleted"));
+            json.put("message", MessagesUtil.get("issue.favorite.deleted"));
         }
 
         return ok(json);
     }
 
     @Transactional
-    public static Result getFoveriteIssues() {
+    public Result getFoveriteIssues() {
         ObjectNode json = Json.newObject();
         List<ObjectNode> issues = new ArrayList<>();
         List<Long> issueIds = new ArrayList<>();
@@ -126,25 +128,25 @@ public class UserApi extends Controller {
     }
 
     @Transactional
-    public static Result getIssuesByUser(String filter, int page, int pageNum) {
+    public Result getIssuesByUser(String filter, int page, int pageNum) {
         ObjectNode result = Json.newObject();
 
         if (!isAuthored(request())) {
             return unauthorized(result.put("message", "unauthorized request"));
         }
 
-        String token = request().getHeader("Authorization").split(AUTHORIZATION_HEADER_PREFIX)[1].replaceAll("\\s", "");
+        String token = RequestUtil.getHeader(request(), "Authorization").split(AUTHORIZATION_HEADER_PREFIX)[1].replaceAll("\\s", "");
         User user = User.findByUserToken(token);
 
         IssueSearchCondition issueSearchCondition = new IssueSearchCondition();
         issueSearchCondition.pageNum = page - 1;
         ExpressionList<Issue> el = issueSearchCondition.getExpressionListByFilter(IssueFilterType.getValue(filter), user);
-        Page<Issue> issues = el.findPagingList(pageNum).getPage(issueSearchCondition.pageNum);
+        PagedList<Issue> issues = el.setFirstRow((issueSearchCondition.pageNum) * (pageNum)).setMaxRows(pageNum).findPagedList();
 
         return issuesAsJson(issues);
     }
 
-    private static Result issuesAsJson(Page<Issue> issues) {
+    private static Result issuesAsJson(PagedList<Issue> issues) {
         ObjectNode listData = Json.newObject();
         ArrayNode array = Json.newObject().arrayNode();
 
@@ -188,7 +190,7 @@ public class UserApi extends Controller {
     }
 
     @Transactional
-    public static Result toggleFoveriteOrganization(String organizationId) {
+    public Result toggleFoveriteOrganization(String organizationId) {
         if (organizationId == null) {
             return badRequest("Wrong organization id");
         }
@@ -200,7 +202,7 @@ public class UserApi extends Controller {
     }
 
     @Transactional
-    public static Result getFoveriteOrganizations() {
+    public Result getFoveriteOrganizations() {
         ObjectNode json = Json.newObject();
         List<ObjectNode> organizations = new ArrayList<>();
         List<Long> organizationIds = new ArrayList<>();
@@ -217,7 +219,7 @@ public class UserApi extends Controller {
     }
 
     @Transactional
-    public static Result newUser() {
+    public Result newUser() {
         ObjectNode result = Json.newObject();
         JsonNode json = request().body().asJson();
         if (json == null) {
@@ -242,7 +244,7 @@ public class UserApi extends Controller {
     }
 
     @Transactional
-    public static Result newToken() {
+    public Result newToken() {
         ObjectNode result = Json. newObject();
         JsonNode json = request().body().asJson();
         if (json == null) {
@@ -266,7 +268,7 @@ public class UserApi extends Controller {
     }
 
     @AnonymousCheck(requiresLogin = true)
-    public static Result statistics(String loginId) {
+    public Result statistics(String loginId) {
         User user = User.findByLoginId(loginId);
         if (user.isAnonymous()) {
             return ok(toJson(Statistics.empty()));
@@ -293,7 +295,7 @@ public class UserApi extends Controller {
     }
 
     public static boolean isAuthored(Http.Request request) {
-        String header = request.getHeader("Authorization");
+        String header = RequestUtil.getHeader(request, "Authorization");
         if (header == null)
             return false;
 
@@ -309,7 +311,7 @@ public class UserApi extends Controller {
     }
 
     public static String getAuthorizationToken(Http.Request request) {
-        String header = request.getHeader("Authorization");
+        String header = RequestUtil.getHeader(request, "Authorization");
         String[] tokenValues = header.split(AUTHORIZATION_HEADER_PREFIX);
         return tokenValues[1].replaceAll("\\s", "");
     }
@@ -319,8 +321,8 @@ public class UserApi extends Controller {
     }
 
     @With(SiteManagerAuthAction.class)
-    public static Result users() {
-        List<User> users = User.find.select("id, login_id, name, email, state, is_guest")
+    public Result users() {
+        List<User> users = User.find.query().select("id, login_id, name, email, state, is_guest")
                 .where()
                 .eq("state", UserState.ACTIVE)
                 .findList();
@@ -340,7 +342,7 @@ public class UserApi extends Controller {
     }
 
     @With(SiteManagerAuthAction.class)
-    public static Result updateUserState(String loginId) {
+    public Result updateUserState(String loginId) {
         User user = User.findByLoginId(loginId);
         if (user.isAnonymous()) {
             return unauthorized();
@@ -445,7 +447,7 @@ public class UserApi extends Controller {
 
     private static JsonNode notAllowedDomainEmailUser(JsonNode userNode) {
         ObjectNode createdUserNode = Json.newObject();
-        String message = Messages.get("user.unacceptable.email.domain");
+        String message = MessagesUtil.get("user.unacceptable.email.domain");
         loggingUser(userNode, message);
 
         createdUserNode.put("status", 403);

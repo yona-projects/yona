@@ -20,20 +20,22 @@
  */
 package models;
 
+import io.ebean.Finder;
+
 import models.enumeration.ResourceType;
 import models.resource.Resource;
 import org.apache.commons.lang3.StringUtils;
 import playRepository.Commit;
 
-import javax.persistence.Entity;
-import javax.persistence.Transient;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Transient;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 public class CommitComment extends CodeComment {
     private static final long serialVersionUID = 1L;
-    public static final Finder<Long, CommitComment> find = new Finder<>(Long.class, CommitComment.class);
+    public static final Finder<Long, CommitComment> find = new Finder<>(CommitComment.class);
 
     @Transient
     public List<CommitComment> replies = new ArrayList<>();
@@ -80,25 +82,25 @@ public class CommitComment extends CodeComment {
 
     public static int count(Project project, String commitId, String path){
         if(path != null){
-            return CommitComment.find.where()
+            return CommitComment.find.query().where()
                     .eq("project.id", project.id)
                     .eq("commitId", commitId)
                     .eq("path", path)
-                    .findRowCount();
+                    .findCount();
         } else {
-            return CommitComment.find.where()
+            return CommitComment.find.query().where()
                     .eq("project.id", project.id)
                     .eq("commitId", commitId)
-                    .findRowCount();
+                    .findCount();
         }
     }
 
     public static int countByCommits(Project project, List<PullRequestCommit> commits) {
         int count = 0;
         for(PullRequestCommit commit: commits) {
-            count += CommitComment.find.where().eq("project.id", project.id)
+            count += CommitComment.find.query().where().eq("project.id", project.id)
                                 .eq("commitId", commit.getCommitId())
-                                .findRowCount();
+                                .findCount();
         }
 
         return count;
@@ -107,7 +109,7 @@ public class CommitComment extends CodeComment {
     public static List<CommitComment> findByCommits(Project project, List<PullRequestCommit> commits) {
         List<CommitComment> list = new ArrayList<>();
         for(PullRequestCommit commit: commits) {
-            list.addAll(CommitComment.find.where().eq("project.id", project.id).eq("commitId", commit.getCommitId()).setOrderBy("createdDate asc").findList());
+            list.addAll(CommitComment.find.query().where().eq("project.id", project.id).eq("commitId", commit.getCommitId()).orderBy("createdDate asc").findList());
         }
         return list;
     }

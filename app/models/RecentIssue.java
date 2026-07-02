@@ -1,12 +1,13 @@
 package models;
 
-import play.db.ebean.Model;
-import play.db.ebean.Transactional;
-import play.libs.F;
+import io.ebean.Finder;
+import io.ebean.Model;
+import io.ebean.annotation.Transactional;
 
 import javax.annotation.Nonnull;
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import controllers.routes;
 
 @Entity
@@ -14,7 +15,7 @@ public class RecentIssue extends Model {
     private static final long serialVersionUID = 2888713013271878179L;
     public static int MAX_RECENT_LIST_PER_USER = 100;
 
-    public static Finder<Long, RecentIssue> find = new Finder<>(Long.class, RecentIssue.class);
+    public static Finder<Long, RecentIssue> find = new Finder<>(RecentIssue.class);
 
     @Id
     public Long id;
@@ -40,30 +41,16 @@ public class RecentIssue extends Model {
     }
 
     public static List<RecentIssue> getRecentIssues(@Nonnull User user){
-        return find.where()
+        return find.query().where()
                 .eq("userId", user.id).orderBy("id desc").findList();
     }
 
     public static void addNewIssue(final User user, final Issue issue){
-        F.Promise<Void> promise = F.Promise.promise(
-                new F.Function0<Void>() {
-                    public Void apply() {
-                        addVisitIssueHistory(user, issue);
-                        return null;
-                    }
-                }
-        );
+        CompletableFuture.runAsync(() -> addVisitIssueHistory(user, issue));
     }
 
     public static void addNewPosting(final User user, final Posting posting){
-        F.Promise<Void> promise = F.Promise.promise(
-                new F.Function0<Void>() {
-                    public Void apply() {
-                        addVisitPostingHistory(user, posting);
-                        return null;
-                    }
-                }
-        );
+        CompletableFuture.runAsync(() -> addVisitPostingHistory(user, posting));
     }
 
 
@@ -97,9 +84,9 @@ public class RecentIssue extends Model {
 
     public static void deletePreviousIssue(User user, Long issueId) {
         try {
-            RecentIssue existed = find.where()
+            RecentIssue existed = find.query().where()
                     .eq("userId", user.id)
-                    .eq("issueId", issueId).findUnique();
+                    .eq("issueId", issueId).findOne();
             play.Logger.debug("deletePreviousIssue {}", existed);
 
             if(existed != null){
@@ -113,9 +100,9 @@ public class RecentIssue extends Model {
     }
 
     public static void deletePreviousPosting(User user, Long postingId) {
-        RecentIssue existed = find.where()
+        RecentIssue existed = find.query().where()
                 .eq("userId", user.id)
-                .eq("postingId", postingId).findUnique();
+                .eq("postingId", postingId).findOne();
 
         if(existed != null){
             existed.delete();
@@ -123,7 +110,7 @@ public class RecentIssue extends Model {
     }
 
     private static void deleteOldestIfOverflow(User user) {
-        List<RecentIssue> recentProjects = find.where()
+        List<RecentIssue> recentProjects = find.query().where()
                 .eq("userId", user.id).findList();
         while(recentProjects.size() > MAX_RECENT_LIST_PER_USER){
             Comparator<RecentIssue> comparator = new Comparator<RecentIssue>() {
@@ -139,7 +126,7 @@ public class RecentIssue extends Model {
     }
 
     public static void deleteAll(User user) {
-        List<RecentIssue> recentIssues = find.where()
+        List<RecentIssue> recentIssues = find.query().where()
                 .eq("userId", user.id).findList();
         for (RecentIssue ri : recentIssues) {
             ri.delete();

@@ -76,6 +76,11 @@ public class PlayServletContext implements ServletContext {
     }
 
     @Override
+    public javax.servlet.ServletRegistration.Dynamic addJspFile(String servletName, String jspFile) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public <T extends Filter> T createFilter(Class<T> arg0) throws ServletException {
         throw new UnsupportedOperationException();
     }
@@ -299,6 +304,36 @@ public class PlayServletContext implements ServletContext {
 
     @Override
     public void setSessionTrackingModes(Set<SessionTrackingMode> arg0) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int getSessionTimeout() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setSessionTimeout(int sessionTimeout) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getRequestCharacterEncoding() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setRequestCharacterEncoding(String encoding) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getResponseCharacterEncoding() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setResponseCharacterEncoding(String encoding) {
         throw new UnsupportedOperationException();
     }
 

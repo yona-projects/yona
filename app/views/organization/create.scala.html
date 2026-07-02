@@ -24,7 +24,7 @@
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
         <div class="form-wrap new-project">
-            <form action="@routes.OrganizationApp.newOrganization()" method="post" name="new-org" class="frm-wrap">
+            <form action="@routes.OrganizationApp.newOrganization" method="post" name="new-org" class="frm-wrap">
                 <legend>
                     @Messages("title.newOrganization")
                 </legend>
@@ -42,14 +42,14 @@
                         <label for="name">@Messages("organization.name.placeholder")</label>
                     </dt>
                     <dd>
-                        <input id="name" type="text" name="name" class="text" placeholder="" maxlength="250" value="@form.field("name").value()" />
+                        <input id="name" type="text" name="name" class="text" placeholder="" maxlength="250" value="@fieldValue(form, "name")" />
                     </dd>
 
                     <dt>
                         <label for="descr">@Messages("organization.description.placeholder")</label>
                     </dt>
                     <dd>
-                        <textarea id="descr" name="descr" class="text textarea.span4" style="resize: vertical;" >@form.field("descr").value()</textarea>
+                        <textarea id="descr" name="descr" class="text textarea.span4" style="resize: vertical;" >@fieldValue(form, "descr")</textarea>
                     </dd>
                 </dl>
                 <div class="actions">

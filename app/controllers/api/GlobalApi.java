@@ -9,11 +9,11 @@ package controllers.api;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import play.libs.Json;
-import play.mvc.Controller;
+import utils.LegacyController;
 import play.mvc.Result;
 
-public class GlobalApi extends Controller {
-    public static Result hello() {
+public class GlobalApi extends LegacyController {
+    public Result hello() {
         ObjectNode json = Json.newObject();
         json.put("message", "I'm alive!");
         json.put("ok", true);

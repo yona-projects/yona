@@ -6,11 +6,12 @@
  **/
 package models;
 
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -19,7 +20,7 @@ import java.util.UUID;
 public class UserVerification extends Model {
     private static final long serialVersionUID = 7819377239127603471L;
 
-    public static final Model.Finder<Long, UserVerification> find = new Finder<>(Long.class, UserVerification.class);
+    public static final Finder<Long, UserVerification> find = new Finder<>(UserVerification.class);
 
     @Id
     public Long id;
@@ -44,7 +45,7 @@ public class UserVerification extends Model {
     }
 
     public static UserVerification findbyUser(User user) {
-        List<UserVerification> list = find.where().eq("user.id", user.id).findList();
+        List<UserVerification> list = find.query().where().eq("user.id", user.id).findList();
         if (list != null && list.size() > 0) {
             return list.get(0);
         } else {
@@ -53,7 +54,7 @@ public class UserVerification extends Model {
     }
 
     public static UserVerification findbyLoginIdAndVerificationCode(String loginId, String verificationCode) {
-        List<UserVerification> list = find.where().eq("login_id", loginId)
+        List<UserVerification> list = find.query().where().eq("login_id", loginId)
                 .eq("verificationCode", verificationCode).findList();
         if (list != null && list.size() > 0) {
             return list.get(0);

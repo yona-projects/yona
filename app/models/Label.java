@@ -25,9 +25,10 @@ import models.resource.GlobalResource;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
 import play.data.validation.Constraints.Required;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Set;
 
 /**
@@ -38,7 +39,7 @@ import java.util.Set;
 public class Label extends Model implements ResourceConvertible {
 
     private static final long serialVersionUID = -35487506476718498L;
-    public static final Finder<Long, Label> find = new Finder<>(Long.class, Label.class);
+    public static final Finder<Long, Label> find = new Finder<>(Label.class);
 
     @Id
     public Long id;
@@ -72,12 +73,12 @@ public class Label extends Model implements ResourceConvertible {
      * Remove this label from every project and delete it.
      */
     @Override
-    public void delete() {
+    public boolean delete() {
         for(Project project: projects) {
             project.labels.remove(this);
             project.update();
         }
-        super.delete();
+        return super.delete();
     }
 
 

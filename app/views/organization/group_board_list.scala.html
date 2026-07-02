@@ -4,7 +4,7 @@
 * Copyright Yona & Yobi Authors & NAVER Corp.
 * https://yona.io
 **@
-@(title:String, organization:Organization, page:com.avaje.ebean.Page[Posting], param:BoardApp.SearchCondition, notices:List[models.Posting])
+@(title:String, organization:Organization, page:io.ebean.PagedList[Posting], param:BoardApp.SearchCondition, notices:List[models.Posting])
 
 @import utils.TemplateHelper._
 @import utils.AccessControl._
@@ -46,13 +46,13 @@
             </form>
         </div>
 
-    	@if(page.getTotalRowCount == 0 && (notices == null || notices.size == 0)){
+    	@if(page.getTotalCount == 0 && (notices == null || notices.size == 0)){
             <div class="error-wrap">
                 <i class="ico ico-err1"></i>
                 <p>@Messages("post.is.empty")</p>
             </div>
     	} else {
-            @if(page.getTotalRowCount > 1){
+            @if(page.getTotalCount > 1){
                 <div class="filter-wrap board">
                     <div class="filters">
                         @makeFilterLink("updatedDate", param.orderBy, param.orderDir, Messages("common.order.updatedDate"))

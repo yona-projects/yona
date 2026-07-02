@@ -1,27 +1,40 @@
 package controllers;
 
-import com.feth.play.module.pa.PlayAuthenticate;
 import com.feth.play.module.pa.user.AuthUser;
-import play.mvc.Http.Context;
+import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.Security;
+import utils.LegacyRequestContext;
+import utils.PlayAuthenticateUtil;
+
+import java.util.Optional;
 
 public class Secured extends Security.Authenticator {
 
 	@Override
-	public String getUsername(final Context ctx) {
-		final AuthUser u = PlayAuthenticate.getUser(ctx.session());
+	public Optional<String> getUsername(final Http.Request req) {
+		final AuthUser u = PlayAuthenticateUtil.get().getUser(req.session().data());
 
 		if (u != null) {
-			return u.getId();
+			return Optional.of(u.getId());
 		} else {
-			return null;
+			return Optional.empty();
 		}
 	}
 
 	@Override
-	public Result onUnauthorized(final Context ctx) {
-		ctx.flash().put(Application.FLASH_MESSAGE_KEY, "Nice try, but you need to log in first!");
-		return redirect(routes.Application.index());
+	public Result onUnauthorized(final Http.Request req) {
+		if (LegacyRequestContext.isBound()) {
+			LegacyRequestContext.flash().put(Application.FLASH_MESSAGE_KEY, "Nice try, but you need to log in first!");
+			return redirect(routes.Application.index());
+		}
+
+		LegacyRequestContext.begin(req);
+		try {
+			LegacyRequestContext.flash().put(Application.FLASH_MESSAGE_KEY, "Nice try, but you need to log in first!");
+			return LegacyRequestContext.apply(redirect(routes.Application.index()));
+		} finally {
+			LegacyRequestContext.end();
+		}
 	}
 }

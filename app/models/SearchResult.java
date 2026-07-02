@@ -20,7 +20,7 @@
  */
 package models;
 
-import com.avaje.ebean.Page;
+import io.ebean.PagedList;
 import models.enumeration.SearchType;
 
 import java.util.ArrayList;
@@ -42,14 +42,14 @@ public class SearchResult {
     private int postCommentsCount;
     private int reviewsCount;
 
-    private Page<User> users;
-    private Page<Project> projects;
-    private Page<Issue> issues;
-    private Page<Posting> posts;
-    private Page<Milestone> milestones;
-    private Page<IssueComment> issueComments;
-    private Page<PostingComment> postComments;
-    private Page<ReviewComment> reviews;
+    private PagedList<User> users;
+    private PagedList<Project> projects;
+    private PagedList<Issue> issues;
+    private PagedList<Posting> posts;
+    private PagedList<Milestone> milestones;
+    private PagedList<IssueComment> issueComments;
+    private PagedList<PostingComment> postComments;
+    private PagedList<ReviewComment> reviews;
 
     public List<String> makeSnippets(String contents, int threshold) {
         String lowerCaseContents = contents.toLowerCase();
@@ -254,67 +254,67 @@ public class SearchResult {
     }
 
 
-    public Page<User> getUsers() {
+    public PagedList<User> getUsers() {
         return users;
     }
 
-    public void setUsers(Page<User> users) {
+    public void setUsers(PagedList<User> users) {
         this.users = users;
     }
 
-    public Page<Project> getProjects() {
+    public PagedList<Project> getProjects() {
         return projects;
     }
 
-    public void setProjects(Page<Project> projects) {
+    public void setProjects(PagedList<Project> projects) {
         this.projects = projects;
     }
 
-    public Page<Issue> getIssues() {
+    public PagedList<Issue> getIssues() {
         return issues;
     }
 
-    public void setIssues(Page<Issue> issues) {
+    public void setIssues(PagedList<Issue> issues) {
         this.issues = issues;
     }
 
-    public Page<Posting> getPosts() {
+    public PagedList<Posting> getPosts() {
         return posts;
     }
 
-    public void setPosts(Page<Posting> posts) {
+    public void setPosts(PagedList<Posting> posts) {
         this.posts = posts;
     }
 
-    public Page<Milestone> getMilestones() {
+    public PagedList<Milestone> getMilestones() {
         return milestones;
     }
 
-    public void setMilestones(Page<Milestone> milestones) {
+    public void setMilestones(PagedList<Milestone> milestones) {
         this.milestones = milestones;
     }
 
-    public Page<IssueComment> getIssueComments() {
+    public PagedList<IssueComment> getIssueComments() {
         return issueComments;
     }
 
-    public void setIssueComments(Page<IssueComment> issueComments) {
+    public void setIssueComments(PagedList<IssueComment> issueComments) {
         this.issueComments = issueComments;
     }
 
-    public Page<PostingComment> getPostComments() {
+    public PagedList<PostingComment> getPostComments() {
         return postComments;
     }
 
-    public void setPostComments(Page<PostingComment> postComments) {
+    public void setPostComments(PagedList<PostingComment> postComments) {
         this.postComments = postComments;
     }
 
-    public Page<ReviewComment> getReviews() {
+    public PagedList<ReviewComment> getReviews() {
         return reviews;
     }
 
-    public void setReviews(Page<ReviewComment> reviews) {
+    public void setReviews(PagedList<ReviewComment> reviews) {
         this.reviews = reviews;
     }
 

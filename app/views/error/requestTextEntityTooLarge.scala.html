@@ -24,7 +24,7 @@
     	<div class="error-wrap">
     		<i class="ico ico-err2"></i>
     		<p>@Messages("error.tooLargeText.title")</p>
-            <p>@Messages("error.tooLargeText.limit", play.api.mvc.BodyParsers.parse.DEFAULT_MAX_TEXT_LENGTH)</p>
+            <p>@Messages("error.tooLargeText.limit", play.Configuration.root().getBytes("parsers.text.maxLength", 102400L))</p>
             @if(UserApp.currentUser.isSiteManager) {
             <p>@Messages("error.tooLargeText.admin")</p>
             }

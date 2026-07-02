@@ -1,8 +1,8 @@
 package models.support;
 
-import com.avaje.ebean.Expr;
-import com.avaje.ebean.ExpressionList;
-import com.avaje.ebean.Junction;
+import io.ebean.Expr;
+import io.ebean.ExpressionList;
+import io.ebean.Junction;
 import controllers.AbstractPostingApp;
 import models.*;
 
@@ -44,7 +44,7 @@ public class IssueSearchCondition  extends AbstractPostingApp.SearchCondition {
     }
 
     private ExpressionList<Issue> asExpressionList() {
-        ExpressionList<Issue> el = Issue.finder.where();
+        ExpressionList<Issue> el = Issue.finder.query().where();
 
         setAssigneeIfExists(el);
         setAuthorIfExist(el);
@@ -56,7 +56,7 @@ public class IssueSearchCondition  extends AbstractPostingApp.SearchCondition {
     }
 
     private ExpressionList<Issue> asExpressionListForAll() {
-        ExpressionList<Issue> el = Issue.finder.where();
+        ExpressionList<Issue> el = Issue.finder.query().where();
         List<Long> mentioningIssueIds = Mention.getMentioningIssueIds(mentionId);
         List<Long> favoriteIssueIdsids = getFavoriteIssueIds(favoriteId);
 
@@ -107,7 +107,7 @@ public class IssueSearchCondition  extends AbstractPostingApp.SearchCondition {
 
     private List<Long> getFavoriteIssueIds(Long userId) {
         Set<Long> ids = new HashSet<>();
-        List<FavoriteIssue> favoriteIssues = FavoriteIssue.find.where()
+        List<FavoriteIssue> favoriteIssues = FavoriteIssue.find.query().where()
                 .eq("user.id", userId)
                 .findList();
         for (FavoriteIssue favoriteIssue : favoriteIssues) {

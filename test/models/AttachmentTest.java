@@ -48,7 +48,7 @@ public class AttachmentTest extends ModelTest<Attachment> {
         Attachment attach = new Attachment();
         attach.store(file, "bar.txt", User.find.byId(userId).asResource());
 
-        FileInputStream is = new FileInputStream(attach.getFile());
+        FileInputStream is = new FileInputStream(attach.getRef());
         byte[] b = new byte[1024];
         int length = is.read(b);
         is.close();

@@ -62,8 +62,10 @@ public class JodaDateUtil {
     }
 
     public static String momentFromNow(Long time, String language) {
-        JSInvocable moment = MomentUtil.newMoment(time, language);
-        return moment.invoke("fromNow");
+        if (time == null) {
+            return "";
+        }
+        return fromNow(new DateTime(time), language);
     }
 
     public static String momentFromNow(Date time) {
@@ -71,8 +73,83 @@ public class JodaDateUtil {
     }
 
     public static String momentFromNow(Date time, String language) {
-        JSInvocable moment = MomentUtil.newMoment(time.getTime(), language);
-        return moment.invoke("fromNow");
+        if (time == null) {
+            return "";
+        }
+        return fromNow(new DateTime(time), language);
+    }
+
+    private static String fromNow(DateTime targetTime, String language) {
+        long diffMillis = targetTime.getMillis() - DateTime.now().getMillis();
+        boolean future = diffMillis > 0;
+        long seconds = Math.abs(diffMillis) / 1000;
+
+        if (seconds < 45) {
+            return isKorean(language) ? "방금 전" : (future ? "in a few seconds" : "a few seconds ago");
+        }
+
+        TimeAmount amount = relativeAmount(seconds);
+        if (isKorean(language)) {
+            return amount.value + amount.koreanUnit + (future ? " 후" : " 전");
+        }
+
+        String unit = amount.englishUnit;
+        if (amount.value != 1) {
+            unit += "s";
+        }
+        return future ? "in " + amount.value + " " + unit : amount.value + " " + unit + " ago";
+    }
+
+    private static TimeAmount relativeAmount(long seconds) {
+        if (seconds < 90) {
+            return new TimeAmount(1, "분", "minute");
+        }
+        long minutes = Math.round(seconds / 60.0);
+        if (minutes < 45) {
+            return new TimeAmount(minutes, "분", "minute");
+        }
+        if (minutes < 90) {
+            return new TimeAmount(1, "시간", "hour");
+        }
+        long hours = Math.round(minutes / 60.0);
+        if (hours < 22) {
+            return new TimeAmount(hours, "시간", "hour");
+        }
+        if (hours < 36) {
+            return new TimeAmount(1, "일", "day");
+        }
+        long days = Math.round(hours / 24.0);
+        if (days < 26) {
+            return new TimeAmount(days, "일", "day");
+        }
+        if (days < 46) {
+            return new TimeAmount(1, "개월", "month");
+        }
+        long months = Math.round(days / 30.0);
+        if (days < 320) {
+            return new TimeAmount(months, "개월", "month");
+        }
+        if (days < 548) {
+            return new TimeAmount(1, "년", "year");
+        }
+        long years = Math.round(days / 365.0);
+        return new TimeAmount(years, "년", "year");
+    }
+
+    private static boolean isKorean(String language) {
+        return language != null && language.toLowerCase(Locale.ROOT).startsWith("ko");
+    }
+
+    private static class TimeAmount {
+        private final long value;
+        private final String koreanUnit;
+        private final String englishUnit;
+
+        private TimeAmount(long value, String koreanUnit, String englishUnit) {
+            this.value = value;
+            this.koreanUnit = koreanUnit;
+            this.englishUnit = englishUnit;
+        }
     }
 
     public static int localDaysBetween(Date from, Date to) {

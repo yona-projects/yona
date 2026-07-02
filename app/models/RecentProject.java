@@ -1,11 +1,12 @@
 package models;
 
-import play.db.ebean.Model;
-import play.db.ebean.Transactional;
-import play.libs.F;
+import io.ebean.Finder;
+import io.ebean.Model;
+import io.ebean.annotation.Transactional;
 
 import javax.annotation.Nonnull;
-import javax.persistence.*;
+import jakarta.persistence.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -17,7 +18,7 @@ public class RecentProject extends Model {
     private static final long serialVersionUID = 7306890271871188281L;
     public static int MAX_RECENT_LIST_PER_USER = 30;
 
-    public static Finder<Long, RecentProject> find = new Finder<>(Long.class, RecentProject.class);
+    public static Finder<Long, RecentProject> find = new Finder<>(RecentProject.class);
 
     @Id
     public Long id;
@@ -35,7 +36,7 @@ public class RecentProject extends Model {
     }
 
     public static List<Project> getRecentProjects(@Nonnull User user){
-        List<RecentProject> recentProjects = find.where()
+        List<RecentProject> recentProjects = find.query().where()
                 .eq("userId", user.id).orderBy("id desc").findList();
 
         List<Project> found = new ArrayList<>();
@@ -52,14 +53,7 @@ public class RecentProject extends Model {
     }
 
     public static void addNew(final User user, final Project project){
-        F.Promise<Void> promise = F.Promise.promise(
-                new F.Function0<Void>() {
-                    public Void apply() {
-                        addVisitHistory(user, project);
-                        return null;
-                    }
-                }
-        );
+        CompletableFuture.runAsync(() -> addVisitHistory(user, project));
     }
 
     @Transactional
@@ -79,9 +73,9 @@ public class RecentProject extends Model {
     }
 
     public static void deletePrevious(User user, Project project) {
-        RecentProject existed = find.where()
+        RecentProject existed = find.query().where()
                 .eq("userId", user.id)
-                .eq("projectId", project.id).findUnique();
+                .eq("projectId", project.id).findOne();
 
         if(existed != null){
             existed.delete();
@@ -89,7 +83,7 @@ public class RecentProject extends Model {
     }
 
     private static void deleteOldestIfOverflow(User user) {
-        List<RecentProject> recentProjects = find.where()
+        List<RecentProject> recentProjects = find.query().where()
                 .eq("userId", user.id).findList();
         while(recentProjects.size() > MAX_RECENT_LIST_PER_USER){
             Comparator<RecentProject> comparator = new Comparator<RecentProject>() {
@@ -105,7 +99,7 @@ public class RecentProject extends Model {
     }
 
     public static void deleteAll(User user) {
-        List<RecentProject> recentProjects = find.where()
+        List<RecentProject> recentProjects = find.query().where()
                 .eq("userId", user.id).findList();
         for (RecentProject rp : recentProjects) {
             rp.delete();

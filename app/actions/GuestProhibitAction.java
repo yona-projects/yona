@@ -9,13 +9,14 @@ package actions;
 import controllers.UserApp;
 import controllers.annotation.GuestProhibit;
 import controllers.routes;
-import play.libs.F.Promise;
+import java.util.concurrent.*;
 import play.mvc.Action;
-import play.mvc.Http.Context;
+import play.mvc.Http.Request;
 import play.mvc.Result;
 import utils.AccessControl;
 import utils.AccessLogger;
 import utils.Constants;
+import utils.LegacyRequestContext;
 
 /**
  * After execute {@link AbstractProjectCheckAction},
@@ -27,15 +28,17 @@ import utils.Constants;
 public class GuestProhibitAction extends Action<GuestProhibit> {
 
     @Override
-    public Promise<Result> call(Context context) throws Throwable {
-        if (UserApp.currentUser().isGuest) {
-            if (configuration.displaysFlashMessage()) {
-                play.mvc.Controller.flash(Constants.WARNING, "error.forbidden.or.not.allowed");
+    public CompletionStage<Result> call(Request request) {
+        return LegacyRequestContext.withRequest(request, () -> {
+            if (UserApp.currentUser().isGuest) {
+                if (configuration.displaysFlashMessage()) {
+                    LegacyRequestContext.flash().put(Constants.WARNING, "error.forbidden.or.not.allowed");
+                }
+                CompletionStage<Result> promise = CompletableFuture.completedFuture(redirect(routes.Application.index()));
+                AccessLogger.log(request, promise, null);
+                return promise;
             }
-            Promise<Result> promise = Promise.pure(redirect(routes.Application.index()));
-            AccessLogger.log(context.request(), promise, null);
-            return promise;
-        }
-        return delegate.call(context);
+            return delegate.call(request);
+        });
     }
 }

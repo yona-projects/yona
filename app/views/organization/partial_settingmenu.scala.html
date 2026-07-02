@@ -20,7 +20,7 @@
 **@
 @(organization:Organization)
 
-@isActiveSubMenu(calls: Call*) = @{
+@isActiveSubMenu(calls: play.mvc.Call*) = @{
     var menuState = ""
     for(call <- calls) {
         if(call.toString().equals(requestHeader.path.toString())) {

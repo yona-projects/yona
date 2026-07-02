@@ -37,7 +37,7 @@
                     <div class="span12">
                         <dl>
                             <dd>
-                            @defining(milestoneForm.errors().get("title")) { errors =>
+                            @defining(formErrors(milestoneForm, "title")) { errors =>
                                 <input type="text" id="title" name="title" value="@milestone.title" class="zen-mode text title @if(errors != null) {error}" maxlength="250" tabindex="1" placeholder="@Messages("title.text")">
                                 @if(errors != null) {
                                     <div class="message">

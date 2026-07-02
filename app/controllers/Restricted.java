@@ -1,15 +1,15 @@
 package controllers;
 
 import models.UserCredential;
-import play.mvc.Controller;
+import utils.LegacyController;
 import play.mvc.Result;
 import play.mvc.Security;
 import views.html.restricted;
 
 @Security.Authenticated(Secured.class)
-public class Restricted extends Controller {
+public class Restricted extends LegacyController {
 
-	public static Result index() {
+	public Result index() {
 		final UserCredential localUser = Application.getLocalUser(session());
 		return ok(restricted.render(localUser));
 	}

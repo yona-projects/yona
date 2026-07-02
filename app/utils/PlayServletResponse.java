@@ -20,7 +20,6 @@
 package utils;
 
 import play.mvc.Http;
-import play.mvc.Http.Response;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
@@ -31,7 +30,7 @@ import java.util.*;
 public class PlayServletResponse implements HttpServletResponse {
 
     private final PipedInputStream inputStream;
-    private Response response;
+    private LegacyResponse response;
     private String characterEncoding;
     private int status = 0;
     private PrintWriter pw;
@@ -112,7 +111,7 @@ public class PlayServletResponse implements HttpServletResponse {
         }
     }
 
-    public PlayServletResponse(Response response) throws IOException {
+    public PlayServletResponse(LegacyResponse response) throws IOException {
         this.response = response;
         this.statusLock = new Object();
         this.inputStream = new PipedInputStream();

@@ -50,7 +50,7 @@
       <div class="content-wrap frm-wrap">
         <dl>
           <dd>
-            @defining(form.errors().get("title")) { errors =>
+            @defining(formErrors(form, "title")) { errors =>
               <input type="text" id="title" autocomplete="off" name="title" class="zen-mode text title @if(errors != null) {error}" maxlength="250" tabindex="1" value="@titleMessage" placeholder="@if(path.equals(None)){@Messages("title")}else{@Messages("code.commitMsg")}"/>
               @if(errors != null) {
                 <div class="message">

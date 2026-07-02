@@ -7,9 +7,8 @@
 
 package models;
 
-import com.avaje.ebean.Expr;
-import com.avaje.ebean.Page;
-import com.avaje.ebean.PagingList;
+import io.ebean.Expr;
+import io.ebean.PagedList;
 import controllers.Application;
 import controllers.UserApp;
 import models.enumeration.RequestState;
@@ -19,13 +18,14 @@ import models.resource.Resource;
 import models.resource.ResourceConvertible;
 import play.data.format.Formats;
 import play.data.validation.Constraints;
-import play.db.ebean.Model;
-import play.db.ebean.Transactional;
+import io.ebean.Finder;
+import io.ebean.Model;
+import io.ebean.annotation.Transactional;
 import playRepository.PlayRepository;
 import playRepository.RepositoryService;
 import utils.ReservedWordsValidator;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.*;
@@ -35,7 +35,7 @@ public class Organization extends Model implements ResourceConvertible {
 
     private static final long serialVersionUID = -1L;
 
-    public static final Finder<Long, Organization> find = new Finder<>(Long.class, Organization.class);
+    public static final Finder<Long, Organization> find = new Finder<>(Organization.class);
 
     @Id
     public Long id;
@@ -64,18 +64,18 @@ public class Organization extends Model implements ResourceConvertible {
     }
 
     public static Organization findByName(String name) {
-        return find.where().ieq("name", name).findUnique();
+        return find.query().where().ieq("name", name).findOne();
     }
 
-    public static PagingList<Organization> findByNameLike(String name) {
-        return find.where().or(
+    public static PagedList<Organization> findByNameLike(String name, int pageNum) {
+        return find.query().where().or(
                 Expr.like("name", "%" + name + "%"),
                 Expr.like("descr", "%" + name + "%")
-        ).orderBy("id desc").findPagingList(30);
+        ).orderBy("id desc").setFirstRow(pageNum * 30).setMaxRows(30).findPagedList();
     }
 
     public static boolean isNameExist(String name) {
-        int findRowCount = find.where().ieq("name", name).findRowCount();
+        int findRowCount = find.query().where().ieq("name", name).findCount();
         return (findRowCount != 0);
     }
 
@@ -147,13 +147,13 @@ public class Organization extends Model implements ResourceConvertible {
      * @return
      */
     public static List<Organization> findOrganizationsByUserLoginId(String userLoginId) {
-        return find.where().eq("users.user.loginId", userLoginId)
+        return find.query().where().eq("users.user.loginId", userLoginId)
                 .orderBy("created DESC")
                 .findList();
     }
 
     public static List<Organization> findAllOrganizations() {
-        List<Organization> projects = Organization.find.fetch("projects").where().orderBy("name asc, projects.name asc").findList();
+        List<Organization> projects = Organization.find.query().fetch("projects").where().orderBy("name asc, projects.name asc").findList();
         projects.sort(new Comparator<Organization>() {
             @Override
             public int compare(Organization o1, Organization o2) {
@@ -234,4 +234,3 @@ public class Organization extends Model implements ResourceConvertible {
     }
 
 }
-

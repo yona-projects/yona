@@ -29,7 +29,7 @@ import models.Project;
 import models.User;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
-import play.db.ebean.Transactional;
+import io.ebean.annotation.Transactional;
 import play.libs.Json;
 import play.mvc.Result;
 import utils.AccessControl;
@@ -39,7 +39,7 @@ import utils.RouteUtil;
 public class BoardApi extends AbstractPostingApp {
 
     @Transactional
-    public static Result updatePostLabel(String owner, String projectName, Long number) {
+    public Result updatePostLabel(String owner, String projectName, Long number) {
         JsonNode json = request().body().asJson();
         if (json == null) {
             return badRequest("Expecting Json data");
@@ -63,7 +63,7 @@ public class BoardApi extends AbstractPostingApp {
     }
 
     @IsAllowed(value = Operation.READ, resourceType = ResourceType.BOARD_POST)
-    public static Result getPosts(String owner, String projectName, Long number) {
+    public Result getPosts(String owner, String projectName, Long number) {
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
         Posting post = Posting.findByNumber(project, number);
 
@@ -76,7 +76,7 @@ public class BoardApi extends AbstractPostingApp {
 
     @Transactional
     @IsCreatable(ResourceType.BOARD_POST)
-    public static Result newPostings(String owner, String projectName) {
+    public Result newPostings(String owner, String projectName) {
         ObjectNode result = Json.newObject();
         JsonNode json = request().body().asJson();
         if (json == null) {
@@ -127,7 +127,7 @@ public class BoardApi extends AbstractPostingApp {
     }
 
     @Transactional
-    public static Result updatePostingContent(String owner, String projectName, Long number) {
+    public Result updatePostingContent(String owner, String projectName, Long number) {
         User user = UserApp.currentUser();
         if (user.isAnonymous()) {
             return unauthorized(Json.newObject().put("message", "unauthorized request"));
@@ -161,7 +161,7 @@ public class BoardApi extends AbstractPostingApp {
 
     @Transactional
     @IsCreatable(ResourceType.NONISSUE_COMMENT)
-    public static Result newPostingComment(String ownerName, String projectName, Long number)
+    public Result newPostingComment(String ownerName, String projectName, Long number)
             throws IOException {
         JsonNode json = request().body().asJson();
         if(json == null) {
@@ -197,7 +197,7 @@ public class BoardApi extends AbstractPostingApp {
     }
 
     @Transactional
-    public static Result updatePostingComment(String ownerName, String projectName, Long number, Long commentId) {
+    public Result updatePostingComment(String ownerName, String projectName, Long number, Long commentId) {
         ObjectNode result = Json.newObject();
 
         User user = UserApp.currentUser();

@@ -24,17 +24,17 @@ import controllers.annotation.AnonymousCheck;
 import models.Comment;
 import models.enumeration.Operation;
 import models.resource.Resource;
-import play.db.ebean.Transactional;
-import play.mvc.Controller;
+import io.ebean.annotation.Transactional;
+import utils.LegacyController;
 import play.mvc.Result;
 import utils.AccessControl;
 
 import static models.enumeration.ResourceType.getValue;
 
 @AnonymousCheck
-public class CommentApp extends Controller {
+public class CommentApp extends LegacyController {
     @Transactional
-    public static Result delete(String type, String id) {
+    public Result delete(String type, String id) {
         Resource comment = Resource.get(getValue(type), id);
 
         if (comment == null) {

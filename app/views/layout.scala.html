@@ -5,7 +5,11 @@
 * https://yona.io
 **@
 @(title: String)(theme:String)(content: Html)
-@titleArray = @{title.split(" \\|:\\| ")}
+@titleText = @{title.split(" \\|:\\| ")(0)}
+@descriptionText = @{
+    val titleParts = title.split(" \\|:\\| ")
+    titleParts(titleParts.length - 1)
+}
 @currentUser = @{
     UserApp.currentUser()
 }
@@ -14,18 +18,19 @@
 <html lang="@UserApp.currentUser().getPreferredLanguage">
 <head>
 <meta charset="utf-8">
-<title>@titleArray(0)</title>
+<title>@titleText</title>
 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<meta property="og:title" content="@titleArray(0)" />
-<meta property="og:url" content="@play.mvc.Http.Context.current().request().path()" />
+@csrfMetaTags
+<meta property="og:title" content="@titleText" />
+<meta property="og:url" content="@utils.LegacyRequestContext.request().path()" />
 <meta property="og:type" content="website" />
-<meta property="og:description" content="@{titleArray(titleArray.length-1)}" />
+<meta property="og:description" content="@descriptionText" />
 <meta name="twitter:card" content="summary" />
-<meta name="twitter:title" content="@titleArray(0)" />
-<meta name="twitter:url" content="@play.mvc.Http.Context.current().request().path()" />
-<meta name="twitter:description" content="@{titleArray(titleArray.length-1)}" />
+<meta name="twitter:title" content="@titleText" />
+<meta name="twitter:url" content="@utils.LegacyRequestContext.request().path()" />
+<meta name="twitter:description" content="@descriptionText" />
 <link rel="shortcut icon" type="image/x-icon" href="@routes.Assets.at("images/favicon.ico")">
 <link rel="stylesheet" type="text/css" media="all" href="@routes.Assets.at("bootstrap/css/bootstrap.css")">
 <link rel="stylesheet" type="text/css" media="all" href="@routes.Assets.at("stylesheets/yobicon/style.css")">
@@ -70,10 +75,10 @@
         //Following three values are used for common/yona.Usermenu.js
         var UsermenuToggleFavoriteProjectUrl = "@api.routes.UserApi.toggleFoveriteProject("")";
         var UsermenuToggleFoveriteOrganizationUrl = "@api.routes.UserApi.toggleFoveriteOrganization("")";
-        var UsermenuGetFoveriteProjectsUrl = "@api.routes.UserApi.getFoveriteProjects()";
+        var UsermenuGetFoveriteProjectsUrl = "@api.routes.UserApi.getFoveriteProjects";
         var UsermenuToggleFavoriteIssueUrl = "@api.routes.UserApi.toggleFoveriteIssue("")";
-        var UsermenuGetFoveriteIssuesUrl = "@api.routes.UserApi.getFoveriteIssues()";
-        var UsermenuUrl = "@routes.UserApp.usermenuTabContentList()";
+        var UsermenuGetFoveriteIssuesUrl = "@api.routes.UserApi.getFoveriteIssues";
+        var UsermenuUrl = "@routes.UserApp.usermenuTabContentList";
     </script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/common/yona.Usermenu.js")"></script>
     <script src="@routes.Assets.at("javascripts/lib/viewerjs/viewer.js")"></script>

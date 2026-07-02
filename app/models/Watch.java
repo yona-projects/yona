@@ -20,7 +20,9 @@
  */
 package models;
 
-import com.avaje.ebean.annotation.Transactional;
+import io.ebean.Finder;
+
+import io.ebean.annotation.Transactional;
 import controllers.UserApp;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
@@ -28,9 +30,10 @@ import models.resource.GlobalResource;
 import models.resource.Resource;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
+import org.apache.commons.lang3.StringUtils;
 import utils.AccessControl;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -40,7 +43,7 @@ import java.util.Set;
 public class Watch extends UserAction {
     private static final long serialVersionUID = 1L;
 
-    public static final Finder<Long, Watch> find = new Finder<>(Long.class, Watch.class);
+    public static final Finder<Long, Watch> find = new Finder<>(Watch.class);
 
     public static List<Watch> findBy(ResourceType resourceType, String resourceId) {
         return findBy(find, resourceType, resourceId);
@@ -114,7 +117,9 @@ public class Watch extends UserAction {
     public static Set<User> findWatchers(ResourceType resourceType, String resourceId) {
         HashSet<User> users = new HashSet<>();
         for (Watch watch: Watch.findBy(resourceType, resourceId)) {
-            users.add(watch.user);
+            if (watch.user != null && StringUtils.isNotBlank(watch.user.loginId)) {
+                users.add(watch.user);
+            }
         }
         return users;
     }
@@ -179,7 +184,9 @@ public class Watch extends UserAction {
             CollectionUtils.filter(actualWatchers, new Predicate() {
                 @Override
                 public boolean evaluate(Object watcher) {
-                    return AccessControl.isAllowed((User) watcher, resource, Operation.READ);
+                    User user = (User) watcher;
+                    return user != null && StringUtils.isNotBlank(user.loginId)
+                            && AccessControl.isAllowed(user, resource, Operation.READ);
                 }
             });
         }

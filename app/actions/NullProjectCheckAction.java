@@ -24,16 +24,16 @@ import actions.support.PathParser;
 import controllers.UserApp;
 import models.Project;
 import models.User;
-import play.i18n.Messages;
 import play.mvc.Action;
 import play.mvc.Http;
 import play.mvc.Result;
-import play.libs.F.Promise;
+import java.util.concurrent.*;
 import utils.AccessLogger;
 import utils.ErrorViews;
+import utils.MessagesUtil;
 import utils.RedirectUtil;
 
-import static play.mvc.Controller.flash;
+import utils.LegacyRequestContext;
 
 /**
  * Checks if the project which meets the request of a pattern,
@@ -45,32 +45,34 @@ import static play.mvc.Controller.flash;
 public class NullProjectCheckAction extends Action<Void> {
 
     @Override
-    public Promise<Result> call(Http.Context context) throws Throwable {
-        PathParser parser = new PathParser(context);
-        String ownerLoginId = parser.getOwnerLoginId();
-        String projectName = parser.getProjectName();
+    public CompletionStage<Result> call(Http.Request request) {
+        return LegacyRequestContext.withRequest(request, () -> {
+            PathParser parser = new PathParser(request);
+            String ownerLoginId = parser.getOwnerLoginId();
+            String projectName = parser.getProjectName();
 
-        Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
+            Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
 
-        if (project == null) {
-            Promise<Result> promise;
-            Project previousProject = Project.findByPreviousPlaceOf(ownerLoginId, projectName);
-            if (previousProject != null) {
-                return RedirectUtil.redirect(previousProject);
+            if (project == null) {
+                CompletionStage<Result> promise;
+                Project previousProject = Project.findByPreviousPlaceOf(ownerLoginId, projectName);
+                if (previousProject != null) {
+                    return RedirectUtil.redirect(previousProject);
+                }
+
+                if (UserApp.currentUser() == User.anonymous){
+                    LegacyRequestContext.flash().put("failed", MessagesUtil.get("error.auth.unauthorized.waringMessage"));
+                    promise = CompletableFuture.completedFuture((Result) forbidden(ErrorViews.Forbidden.render("error.forbidden.or.notfound", request.path())));
+                } else {
+                    promise = CompletableFuture.completedFuture((Result) forbidden(ErrorViews.NotFound.render("error.forbidden.or.notfound")));
+                }
+
+                AccessLogger.log(request, promise, null);
+
+                return promise;
             }
 
-            if (UserApp.currentUser() == User.anonymous){
-                flash("failed", Messages.get("error.auth.unauthorized.waringMessage"));
-                promise = Promise.pure((Result) forbidden(ErrorViews.Forbidden.render("error.forbidden.or.notfound", context.request().path())));
-            } else {
-                promise = Promise.pure((Result) forbidden(ErrorViews.NotFound.render("error.forbidden.or.notfound")));
-            }
-
-            AccessLogger.log(context.request(), promise, null);
-
-            return promise;
-        }
-
-        return this.delegate.call(context);
+            return this.delegate.call(request);
+        });
     }
 }

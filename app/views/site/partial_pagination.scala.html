@@ -18,7 +18,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(page:com.avaje.ebean.Page[_ <: play.db.ebean.Model], pageNum:Int, divId:String, listUrl:String)
+@(page:io.ebean.PagedList[_ <: io.ebean.Model], pageNum:Int, divId:String, listUrl:String)
 
 @{
     var currentPageNum = page.getPageIndex + 1

@@ -7,8 +7,8 @@
 package controllers;
 
 import actions.NullProjectCheckAction;
-import com.avaje.ebean.ExpressionList;
-import com.avaje.ebean.Page;
+import io.ebean.ExpressionList;
+import io.ebean.PagedList;
 import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
@@ -26,8 +26,7 @@ import play.Configuration;
 import play.twirl.api.Html;
 import play.data.Form;
 import play.data.validation.ValidationError;
-import play.db.ebean.Transactional;
-import play.i18n.Messages;
+import io.ebean.annotation.Transactional;
 import play.libs.Json;
 import play.mvc.*;
 import utils.*;
@@ -35,7 +34,7 @@ import views.html.issue.*;
 import views.html.organization.group_issue_list;
 
 import javax.annotation.Nonnull;
-import javax.persistence.PersistenceException;
+import jakarta.persistence.PersistenceException;
 import java.io.IOException;
 import java.util.*;
 
@@ -47,11 +46,11 @@ public class IssueApp extends AbstractPostingApp {
     private static final Integer ITEMS_PER_PAGE_MAX = 45;
 
     @AnonymousCheck(requiresLogin = false, displaysFlashMessage = true)
-    public static Result organizationIssues(@Nonnull String organizationName, @Nonnull String state, @Nonnull String format, int pageNum) throws WriteException, IOException {
+    public Result organizationIssues(@Nonnull String organizationName, @Nonnull String state, @Nonnull String format, int pageNum) throws WriteException, IOException {
 
         // SearchCondition from param
-        Form<models.support.SearchCondition> issueParamForm = new Form<>(models.support.SearchCondition.class);
-        models.support.SearchCondition searchCondition = issueParamForm.bindFromRequest().get();
+        Form<models.support.SearchCondition> issueParamForm = utils.FormUtil.form(models.support.SearchCondition.class);
+        models.support.SearchCondition searchCondition = issueParamForm.bindFromRequest(request()).get();
         searchCondition.pageNum = pageNum - 1;
 
         Integer itemsPerPage = getItemsPerPage();
@@ -60,23 +59,23 @@ public class IssueApp extends AbstractPostingApp {
             return notFound(ErrorViews.NotFound.render("error.notfound.organization"));
         }
         ExpressionList<Issue> el = searchCondition.asExpressionList(organization);
-        Page<Issue> issues = el.findPagingList(itemsPerPage).getPage(searchCondition.pageNum);
+        PagedList<Issue> issues = el.setFirstRow((searchCondition.pageNum) * (itemsPerPage)).setMaxRows(itemsPerPage).findPagedList();
 
         return ok(group_issue_list.render("title.issueList", issues, searchCondition, organization));
     }
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
-    public static Result userIssuesPage() throws WriteException, IOException {
+    public Result userIssuesPage() throws WriteException, IOException {
         String pageNum = StringUtils.defaultIfBlank(request().getQueryString("pageNum"), "1");
-        return controllers.IssueApp.userIssues("", "html", Integer.parseInt(pageNum));
+        return userIssues("", "html", Integer.parseInt(pageNum));
     }
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
-    public static Result userIssues(String state, String format, int pageNum) throws WriteException, IOException {
+    public Result userIssues(String state, String format, int pageNum) throws WriteException, IOException {
         Project project = null;
         // SearchCondition from param
-        Form<models.support.SearchCondition> issueParamForm = new Form<>(models.support.SearchCondition.class);
-        models.support.SearchCondition searchCondition = issueParamForm.bindFromRequest().get();
+        Form<models.support.SearchCondition> issueParamForm = utils.FormUtil.form(models.support.SearchCondition.class);
+        models.support.SearchCondition searchCondition = issueParamForm.bindFromRequest(request()).get();
         if (!searchCondition.hasCondition()) {
             searchCondition.assigneeId = UserApp.currentUser().id;
         }
@@ -95,7 +94,7 @@ public class IssueApp extends AbstractPostingApp {
 
         Integer itemsPerPage = getItemsPerPage();
         ExpressionList<Issue> el = searchCondition.asExpressionList();
-        Page<Issue> issues = el.findPagingList(itemsPerPage).getPage(searchCondition.pageNum);
+        PagedList<Issue> issues = el.setFirstRow((searchCondition.pageNum) * (itemsPerPage)).setMaxRows(itemsPerPage).findPagedList();
 
         switch(format){
             case "pjax":
@@ -112,7 +111,7 @@ public class IssueApp extends AbstractPostingApp {
 
     @Transactional
     @IsAllowed(Operation.READ)
-    public static Result issues(String ownerName, String projectName) throws WriteException, IOException {
+    public Result issues(String ownerName, String projectName) throws WriteException, IOException {
        return issues(ownerName, projectName, State.OPEN.state(), "html", 1);
     }
 
@@ -120,7 +119,7 @@ public class IssueApp extends AbstractPostingApp {
     public static List<Issue> findDraftIssues(String ownerName, String projectName) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
-        return   Issue.finder.where()
+        return   Issue.finder.query().where()
                 .eq("authorLoginId", UserApp.currentUser().loginId)
                 .eq("project.id", project.id)
                 .eq("isDraft", true)
@@ -129,12 +128,12 @@ public class IssueApp extends AbstractPostingApp {
 
     @Transactional
     @IsAllowed(Operation.READ)
-    public static Result issues(String ownerName, String projectName, String state, String format, int pageNum) throws WriteException, IOException {
+    public Result issues(String ownerName, String projectName, String state, String format, int pageNum) throws WriteException, IOException {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         // SearchCondition from param
-        Form<models.support.SearchCondition> issueParamForm = new Form<>(models.support.SearchCondition.class);
-        models.support.SearchCondition searchCondition = issueParamForm.bindFromRequest().get();
+        Form<models.support.SearchCondition> issueParamForm = utils.FormUtil.form(models.support.SearchCondition.class);
+        models.support.SearchCondition searchCondition = issueParamForm.bindFromRequest(request()).get();
         searchCondition.pageNum = pageNum - 1;
         searchCondition.labelIds.addAll(LabelApp.getLabelIds(request()));
         searchCondition.labelIds.remove(null);
@@ -146,7 +145,7 @@ public class IssueApp extends AbstractPostingApp {
 
         Integer itemsPerPage = getItemsPerPage();
         ExpressionList<Issue> el = searchCondition.asExpressionList(project);
-        Page<Issue> issues = el.findPagingList(itemsPerPage).getPage(searchCondition.pageNum);
+        PagedList<Issue> issues = el.setFirstRow((searchCondition.pageNum) * (itemsPerPage)).setMaxRows(itemsPerPage).findPagedList();
 
         switch(format){
             case EXCEL_EXT:
@@ -177,7 +176,7 @@ public class IssueApp extends AbstractPostingApp {
         return Math.min(itemsPerPage, ITEMS_PER_PAGE_MAX);
     }
 
-    private static Result issuesAsHTML(Project project, Page<Issue> issues, models.support.SearchCondition searchCondition){
+    private static Result issuesAsHTML(Project project, PagedList<Issue> issues, models.support.SearchCondition searchCondition){
         if(project == null){
             return ok(my_list.render("menu.issue", issues, searchCondition, project));
         } else {
@@ -198,7 +197,7 @@ public class IssueApp extends AbstractPostingApp {
         return ok(excelData);
     }
 
-    private static Result issuesAsPjax(Project project, Page<Issue> issues, models.support.SearchCondition searchCondition) {
+    private static Result issuesAsPjax(Project project, PagedList<Issue> issues, models.support.SearchCondition searchCondition) {
         response().setHeader("Cache-Control", "no-cache, no-store");
         if (project == null) {
             return ok(my_partial_search.render("title.issueList", issues, searchCondition, project));
@@ -208,7 +207,7 @@ public class IssueApp extends AbstractPostingApp {
 
     }
 
-    private static Result issuesAsJson(Project project, Page<Issue> issues) {
+    private static Result issuesAsJson(Project project, PagedList<Issue> issues) {
         ObjectNode listData = Json.newObject();
 
         String exceptIdStr = request().getQueryString("exceptId");
@@ -247,7 +246,7 @@ public class IssueApp extends AbstractPostingApp {
 
     @Transactional
     @With(NullProjectCheckAction.class)
-    public static Result issue(String ownerName, String projectName, Long number) {
+    public Result issue(String ownerName, String projectName, Long number) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         Issue issueInfo = Issue.findByNumber(project, number);
@@ -258,7 +257,7 @@ public class IssueApp extends AbstractPostingApp {
             if (HttpUtil.isJSONPreferred(request())){
                 ObjectNode result = Json.newObject();
                 result.put("title", number);
-                result.put("body", Messages.get("error.notfound.issue_post"));
+                result.put("body", MessagesUtil.get("error.notfound.issue_post"));
                 return ok(result);
             } else {
                 return notFound(ErrorViews.NotFound.render("error.notfound", project, ResourceType.ISSUE_POST.resource()));
@@ -277,8 +276,8 @@ public class IssueApp extends AbstractPostingApp {
             label.refresh();
         }
 
-        Form<Comment> commentForm = new Form<>(Comment.class);
-        Form<Issue> editForm = new Form<>(Issue.class).fill(Issue.findByNumber(project, number));
+        Form<Comment> commentForm = utils.FormUtil.form(Comment.class);
+        Form<Issue> editForm = utils.FormUtil.form(Issue.class).fill(Issue.findByNumber(project, number));
         UserApp.currentUser().visits(project);
         UserApp.currentUser().visits(issueInfo);
         // Determine response type with Accept header
@@ -297,7 +296,7 @@ public class IssueApp extends AbstractPostingApp {
     }
 
     @IsAllowed(resourceType = ResourceType.ISSUE_POST, value = Operation.READ)
-    public static Result timeline(String ownerName, String projectName, Long number) {
+    public Result timeline(String ownerName, String projectName, Long number) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         Issue issueInfo = Issue.findByNumber(project, number);
 
@@ -308,7 +307,7 @@ public class IssueApp extends AbstractPostingApp {
         return ok(partial_comments.render(project, issueInfo));
     }
 
-    public static Result newDirectIssueForm(Long commentId) {
+    public Result newDirectIssueForm(Long commentId) {
         User current = UserApp.currentUser();
 
         Project project = null;
@@ -325,12 +324,12 @@ public class IssueApp extends AbstractPostingApp {
             }
             return newIssueForm(project.owner, project.name);
         } else {
-            flash(Constants.WARNING, Messages.get("project.is.empty"));
-            return Application.index();
+            flash(Constants.WARNING, MessagesUtil.get("project.is.empty"));
+            return redirect(routes.Application.index());
         }
     }
 
-    public static Result newDirectMyIssueForm() {
+    public Result newDirectMyIssueForm() {
         User current = UserApp.currentUser();
 
         // Prefixed project. inbox or _private
@@ -358,22 +357,22 @@ public class IssueApp extends AbstractPostingApp {
         if(project != null){
             return newIssueForm(project.owner, project.name);
         } else {
-            flash(Constants.WARNING, Messages.get("project.is.empty"));
-            return Application.index();
+            flash(Constants.WARNING, MessagesUtil.get("project.is.empty"));
+            return redirect(routes.Application.index());
         }
     }
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsCreatable(ResourceType.ISSUE_POST)
-    public static Result newIssueForm(String ownerName, String projectName) {
+    public Result newIssueForm(String ownerName, String projectName) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         String issueTemplate = StringUtils.defaultIfBlank(project.getIssueTemplate(), "");
-        return ok(create.render("title.newIssue", new Form<>(Issue.class), project, issueTemplate));
+        return ok(create.render("title.newIssue", utils.FormUtil.form(Issue.class), project, issueTemplate));
     }
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsCreatable(ResourceType.ISSUE_POST)
-    public static Result newIssueFormByComment(String ownerName, String projectName, Long commentId) {
+    public Result newIssueFormByComment(String ownerName, String projectName, Long commentId) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         Comment comment = IssueComment.find.byId(commentId);
         String context = Configuration.root().getString("application.context");
@@ -383,14 +382,14 @@ public class IssueApp extends AbstractPostingApp {
                 + Config.getScheme() + "://" + request().host() + contextPath + RouteUtil.getUrl(comment);
 
         String conetent = StringUtils.defaultIfBlank(reference, "");
-        return ok(create.render("title.newIssue", new Form<>(Issue.class), project, conetent));
+        return ok(create.render("title.newIssue", utils.FormUtil.form(Issue.class), project, conetent));
     }
 
     @Transactional
     @With(NullProjectCheckAction.class)
-    public static Result massUpdate(String ownerName, String projectName) {
+    public Result massUpdate(String ownerName, String projectName) {
         Form<IssueMassUpdate> issueMassUpdateForm
-                = new Form<>(IssueMassUpdate.class).bindFromRequest();
+                = utils.FormUtil.form(IssueMassUpdate.class).bindFromRequest(request());
         if (issueMassUpdateForm.hasErrors()) {
             return badRequest(issueMassUpdateForm.errorsAsJson());
         }
@@ -447,7 +446,7 @@ public class IssueApp extends AbstractPostingApp {
                 Issue issue = issueMassUpdate.issues.get(0);
                 ObjectNode result = Json.newObject();
                 result.put("isOverDue", issue.isOverDueDate());
-                result.put("dueDateMsg", issue.isOverDueDate() ? Messages.get("issue.dueDate.overdue") : issue.until());
+                result.put("dueDateMsg", issue.isOverDueDate() ? MessagesUtil.get("issue.dueDate.overdue") : issue.until());
                 return ok(result);
             } else {
                 // jQuery treats as error if response text empty
@@ -455,7 +454,7 @@ public class IssueApp extends AbstractPostingApp {
                 return ok("{}");
             }
         } else {
-            return redirect(request().getHeader("Referer"));
+            return redirect(RequestUtil.getHeader(request(), "Referer"));
         }
     }
 
@@ -561,8 +560,8 @@ public class IssueApp extends AbstractPostingApp {
 
     @Transactional
     @IsCreatable(ResourceType.ISSUE_POST)
-    public static Result newIssue(String ownerName, String projectName) {
-        Form<Issue> issueForm = new Form<>(Issue.class).bindFromRequest();
+    public Result newIssue(String ownerName, String projectName) {
+        Form<Issue> issueForm = utils.FormUtil.form(Issue.class).bindFromRequest(request());
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         if (issueForm.hasErrors()) {
@@ -571,11 +570,14 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         final Issue newIssue = issueForm.get();
+        if (newIssue.voters == null) {
+            newIssue.voters = new HashSet<>();
+        }
         if(hasTargetProject(newIssue)){
             Project toAnotherProject = Project.find.byId(Long.valueOf(newIssue.targetProjectId));
             if(toAnotherProject == null){
-                flash(Constants.WARNING, Messages.get("error.notfound.project"));
-                return badRequest(create.render("title.newIssue", new Form<>(Issue.class), project, null));
+                flash(Constants.WARNING, MessagesUtil.get("error.notfound.project"));
+                return badRequest(create.render("title.newIssue", utils.FormUtil.form(Issue.class), project, null));
             } else {
                 if (!AccessControl.isProjectResourceCreatable(
                         UserApp.currentUser(), toAnotherProject, ResourceType.ISSUE_POST)) {
@@ -634,7 +636,7 @@ public class IssueApp extends AbstractPostingApp {
         if (StringUtils.isNotEmpty(newIssue.referCommentId) && !newIssue.isDraft) {
             String context = Configuration.root().getString("application.context");
             String contextPath = context == null ? "" : context;
-            String content = Messages.get("issue.derived") + ": " + Config.getScheme() + "://" + request().host() + contextPath + RouteUtil.getUrl(newIssue);
+            String content = MessagesUtil.get("issue.derived") + ": " + Config.getScheme() + "://" + request().host() + contextPath + RouteUtil.getUrl(newIssue);
 
             IssueComment parent = IssueComment.find.byId(Long.parseLong(newIssue.referCommentId));
             IssueComment referComment = new IssueComment(parent.issue, UserApp.currentUser(), content);
@@ -660,7 +662,7 @@ public class IssueApp extends AbstractPostingApp {
     }
 
     @With(NullProjectCheckAction.class)
-    public static Result editIssueForm(String ownerName, String projectName, Long number) {
+    public Result editIssueForm(String ownerName, String projectName, Long number) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         Issue issue = Issue.findByNumber(project, number);
 
@@ -672,14 +674,14 @@ public class IssueApp extends AbstractPostingApp {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
-        Form<Issue> editForm = new Form<>(Issue.class).fill(issue);
+        Form<Issue> editForm = utils.FormUtil.form(Issue.class).fill(issue);
 
         return ok(edit.render("title.editIssue", editForm, issue, project));
     }
 
     @Transactional
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.ISSUE_POST)
-    public static Result nextState(String ownerName, String projectName, Long number) {
+    public Result nextState(String ownerName, String projectName, Long number) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         final Issue issue = Issue.findByNumber(project, number);
@@ -733,13 +735,13 @@ public class IssueApp extends AbstractPostingApp {
     }
 
     @With(NullProjectCheckAction.class)
-    public static Result editIssue(String ownerName, String projectName, Long number) {
-        Form<Issue> issueForm = new Form<>(Issue.class).bindFromRequest();
+    public Result editIssue(String ownerName, String projectName, Long number) {
+        Form<Issue> issueForm = utils.FormUtil.form(Issue.class).bindFromRequest(request());
 
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         if (issueForm.hasErrors()) {
-            flash(Constants.WARNING, issueForm.error("name").message());
+            flash(Constants.WARNING, utils.FormUtil.errorMessage(issueForm, "name"));
             return badRequest(edit.render("error.validation", issueForm, Issue.findByNumber(project, number), project));
         }
 
@@ -764,7 +766,7 @@ public class IssueApp extends AbstractPostingApp {
         if(hasTargetProject(issue)) {
             Project toOtherProject = Project.find.byId(Long.valueOf(issue.targetProjectId));
             if (toOtherProject == null) {
-                flash(Constants.WARNING, Messages.get("error.notfound.project"));
+                flash(Constants.WARNING, MessagesUtil.get("error.notfound.project"));
                 return badRequest(edit.render("error.validation", issueForm, Issue.findByNumber(project, number), project));
             }
 
@@ -914,7 +916,7 @@ public class IssueApp extends AbstractPostingApp {
     }
 
     private static void setAssignee(Form<Issue> issueForm, Issue issue, Project project) {
-        String value = issueForm.field("assignee.user.id").value();
+        String value = issueForm.field("assignee.user.id").value().orElse("");
         if (value != null) {
             long userId = Long.parseLong(value);
             if (userId != User.anonymous.id) {
@@ -924,7 +926,7 @@ public class IssueApp extends AbstractPostingApp {
     }
 
     private static void setMilestone(Form<Issue> issueForm, Issue issue) {
-        String milestoneId = issueForm.data().get("milestoneId");
+        String milestoneId = issueForm.rawData().get("milestoneId");
         if(milestoneId != null && !milestoneId.isEmpty()) {
             issue.milestone = Milestone.findById(Long.parseLong(milestoneId));
         } else {
@@ -933,11 +935,11 @@ public class IssueApp extends AbstractPostingApp {
     }
 
     /**
-     * @ see {@link AbstractPostingApp#delete(play.db.ebean.Model, models.resource.Resource, Call)}
+     * @ see {@link AbstractPostingApp#delete(io.ebean.Model, models.resource.Resource, Call)}
      */
     @Transactional
     @With(NullProjectCheckAction.class)
-    public static Result deleteIssue(String ownerName, String projectName, Long number) {
+    public Result deleteIssue(String ownerName, String projectName, Long number) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         Issue issue = Issue.findByNumber(project, number);
         if(!issue.canBeDeleted()) {
@@ -957,10 +959,10 @@ public class IssueApp extends AbstractPostingApp {
      */
     @Transactional
     @With(NullProjectCheckAction.class)
-    public static Result newComment(String ownerName, String projectName, Long number) throws IOException {
+    public Result newComment(String ownerName, String projectName, Long number) throws IOException {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         final Issue issue = Issue.findByNumber(project, number);
-        Form<IssueComment> commentForm = new Form<>(IssueComment.class).bindFromRequest();
+        Form<IssueComment> commentForm = utils.FormUtil.form(IssueComment.class).bindFromRequest(request());
 
         if (!AccessControl.isResourceCreatable(
                     UserApp.currentUser(), issue.asResource(), ResourceType.ISSUE_COMMENT)) {
@@ -972,9 +974,10 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         final IssueComment comment = commentForm.get();
+        fillCommentContents(comment);
 
 
-        if (commentForm.hasErrors()) {
+        if (commentForm.hasErrors() || StringUtils.isBlank(comment.contents)) {
             flash(Constants.WARNING, "common.comment.empty");
             return redirect(routes.IssueApp.issue(project.owner, project.name, number));
         }
@@ -1047,7 +1050,7 @@ public class IssueApp extends AbstractPostingApp {
                     comment.previousContents = getPrevious("Previous comment", previousComment.contents, previousComment.createdDate, previousComment.authorLoginId);
                 } else {
                     comment.previousContents = getPrevious("Issue", issue.body, issue.updatedDate, issue.authorLoginId);
-                    List<IssueComment> list = IssueComment.find.where().eq("issue.id", issue.id).findList();
+                    List<IssueComment> list = IssueComment.find.query().where().eq("issue.id", issue.id).findList();
                     for (IssueComment garbageComment: list) {
                         play.Logger.warn("Garbage comment deleted: " + garbageComment);
                         garbageComment.delete();
@@ -1062,13 +1065,13 @@ public class IssueApp extends AbstractPostingApp {
     }
 
     // Just made for compatibility. No meanings.
-    public static Result updateComment(String ownerName, String projectName, Long number, Long commentId) throws IOException {
+    public Result updateComment(String ownerName, String projectName, Long number, Long commentId) throws IOException {
         return newComment(ownerName, projectName, number);
     }
 
     private static Comment saveComment(Project project, Issue issue, IssueComment comment) {
         Comment savedComment;
-        IssueComment existingComment = IssueComment.find.where().eq("id", comment.id).findUnique();
+        IssueComment existingComment = IssueComment.find.query().where().eq("id", comment.id).findOne();
         if (existingComment == null) {
             comment.projectId = project.id;
             savedComment = saveComment(comment, getContainerUpdater(issue, comment));
@@ -1081,6 +1084,16 @@ public class IssueApp extends AbstractPostingApp {
             }
         }
         return savedComment;
+    }
+
+    private static void fillCommentContents(IssueComment comment) {
+        if (StringUtils.isNotBlank(comment.contents) || !isMultipartForm()) {
+            return;
+        }
+        String[] contents = request().body().asMultipartFormData().asFormUrlEncoded().get("contents");
+        if (contents != null && contents.length > 0) {
+            comment.contents = contents[0];
+        }
     }
 
     private static Runnable getContainerUpdater(final Issue issue, final IssueComment comment) {
@@ -1115,8 +1128,7 @@ public class IssueApp extends AbstractPostingApp {
     }
 
     private static Html commentFormValidationResult(Project project, Form<IssueComment> commentForm) {
-        Map<String,List<ValidationError>> errors = commentForm.errors();
-        if( errors.get("contents") != null ){
+        if (utils.FormUtil.hasError(commentForm, "contents")) {
             return ErrorViews.BadRequest.render("post.comment.empty", project);
         } else {
             return ErrorViews.BadRequest.render("error.validation", project);
@@ -1125,11 +1137,11 @@ public class IssueApp extends AbstractPostingApp {
 
 
     /**
-     * @see {@link AbstractPostingApp#delete(play.db.ebean.Model, models.resource.Resource, Call)}
+     * @see {@link AbstractPostingApp#delete(io.ebean.Model, models.resource.Resource, Call)}
      */
     @Transactional
     @With(NullProjectCheckAction.class)
-    public static Result deleteComment(String ownerName, String projectName, Long issueNumber,
+    public Result deleteComment(String ownerName, String projectName, Long issueNumber,
             Long commentId) {
         Comment comment = IssueComment.find.byId(commentId);
         Project project = comment.asResource().getProject();

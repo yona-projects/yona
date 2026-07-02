@@ -23,12 +23,10 @@ package utils;
 import controllers.UserApp;
 import models.User;
 import org.apache.commons.codec.binary.Base64;
-import play.libs.F.Promise;
+import java.util.concurrent.*;
 import play.mvc.Action;
 import play.mvc.Http;
-import play.mvc.Http.Context;
 import play.mvc.Http.Request;
-import play.mvc.Http.Response;
 import play.mvc.Result;
 
 import java.io.UnsupportedEncodingException;
@@ -38,7 +36,7 @@ import static utils.LdapService.USE_EMAIL_BASE_LOGIN;
 public class BasicAuthAction extends Action<Object> {
     private static final String REALM = "Yobi";
 
-    public static Result unauthorized(Response response) {
+    public static Result unauthorized(LegacyResponse response) {
         // challenge   = "Basic" realm
         // realm       = "realm" "=" realm-value
         // realm-value = quoted-string
@@ -46,7 +44,8 @@ public class BasicAuthAction extends Action<Object> {
         String challenge = "Basic realm=\"" + REALM + "\"";
 
         response.setHeader(Http.HeaderNames.WWW_AUTHENTICATE, challenge);
-        return unauthorized("Invalid username or password");
+        return unauthorized("Invalid username or password")
+                .withHeader(Http.HeaderNames.WWW_AUTHENTICATE, challenge);
     }
 
     public static User parseCredentials(String credentials) throws MalformedCredentialsException, UnsupportedEncodingException {
@@ -88,7 +87,7 @@ public class BasicAuthAction extends Action<Object> {
     // !! Important !! For ldap, intentionally, user email is used for ldap authentication
     // instead of authUser.loginId.
     public User authenticate(Request request) throws UnsupportedEncodingException, MalformedCredentialsException {
-        String credential = request.getHeader(Http.HeaderNames.AUTHORIZATION);
+        String credential = RequestUtil.getHeader(request, Http.HeaderNames.AUTHORIZATION);
         User authUser = parseCredentials(credential);
 
         if (authUser == null) {
@@ -111,24 +110,26 @@ public class BasicAuthAction extends Action<Object> {
     }
 
     @Override
-    public Promise<Result> call(Context context) throws Throwable {
-        User user;
-        try {
-            user = authenticate(context.request());
-        } catch (MalformedCredentialsException error) {
-            Promise<Result> promise = Promise.pure((Result) badRequest());
-            AccessLogger.log(context.request(), promise, null);
-            return promise;
-        } catch (UnsupportedEncodingException e) {
-            Promise<Result> promise = Promise.pure((Result) internalServerError());
-            AccessLogger.log(context.request(), promise, null);
-            return promise;
-        }
+    public CompletionStage<Result> call(Request request) {
+        return LegacyRequestContext.withRequest(request, () -> {
+            User user;
+            try {
+                user = authenticate(request);
+            } catch (MalformedCredentialsException error) {
+                CompletionStage<Result> promise = CompletableFuture.completedFuture((Result) badRequest());
+                AccessLogger.log(request, promise, null);
+                return promise;
+            } catch (UnsupportedEncodingException e) {
+                CompletionStage<Result> promise = CompletableFuture.completedFuture((Result) internalServerError());
+                AccessLogger.log(request, promise, null);
+                return promise;
+            }
 
-        if (!user.isAnonymous()) {
-            UserApp.addUserInfoToSession(user);
-        }
+            if (!user.isAnonymous()) {
+                UserApp.addUserInfoToSession(user);
+            }
 
-        return delegate.call(context);
+            return delegate.call(request);
+        });
     }
 }

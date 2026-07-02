@@ -67,8 +67,6 @@ import org.eclipse.jgit.util.io.NullOutputStream;
 import org.tmatesoft.svn.core.SVNException;
 import play.Logger;
 import play.libs.Json;
-import play.mvc.Results.Chunks;
-import utils.ChunkedOutputStream;
 import utils.FileUtil;
 import utils.GravatarUtil;
 
@@ -1532,6 +1530,11 @@ public class GitRepository implements PlayRepository {
             }
 
             @Override
+            public String getIdentifier() {
+                return repositoryA.getIdentifier() + "+" + repositoryB.getIdentifier();
+            }
+
+            @Override
             public ObjectDatabase getObjectDatabase() {
                 throw new UnsupportedOperationException();
             }
@@ -1557,7 +1560,7 @@ public class GitRepository implements PlayRepository {
             }
 
             @Override
-            public void notifyIndexChanged() {
+            public void notifyIndexChanged(boolean internal) {
                 throw new UnsupportedOperationException();
             }
 
@@ -1958,15 +1961,14 @@ public class GitRepository implements PlayRepository {
         return repository;
     }
 
-    public void getArchive(Chunks.Out<byte[]> out, String branchName){
+    public void getArchive(OutputStream out, String branchName){
         Git git = new Git(getRepository());
         ArchiveCommand.registerFormat("zip", new ZipFormat());
         try {
-            ChunkedOutputStream cos = new ChunkedOutputStream(out, 16384);
             git.archive()
                     .setTree(getRepository().resolve(branchName))
                     .setFormat("zip")
-                    .setOutputStream(cos)
+                    .setOutputStream(out)
                     .call();
         } catch (IncorrectObjectTypeException | AmbiguousObjectException | GitAPIException e) {
             play.Logger.error(e.getMessage());

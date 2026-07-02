@@ -6,14 +6,13 @@
  **/
 package controllers;
 
-import com.avaje.ebean.ExpressionList;
-import com.avaje.ebean.Page;
-import com.avaje.ebean.annotation.Transactional;
+import io.ebean.ExpressionList;
+import io.ebean.PagedList;
+import io.ebean.annotation.Transactional;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.feth.play.module.mail.Mailer;
 import com.feth.play.module.mail.Mailer.Mail;
 import com.feth.play.module.mail.Mailer.Mail.Body;
-import com.feth.play.module.pa.PlayAuthenticate;
 import controllers.annotation.AnonymousCheck;
 import jxl.write.WriteException;
 import models.*;
@@ -34,7 +33,7 @@ import play.data.Form;
 import play.i18n.Messages;
 import play.libs.Json;
 import play.mvc.BodyParser;
-import play.mvc.Controller;
+import utils.LegacyController;
 import play.mvc.Http;
 import play.mvc.Http.Cookie;
 import play.mvc.Result;
@@ -49,12 +48,12 @@ import java.util.*;
 
 import static com.feth.play.module.mail.Mailer.getEmailName;
 import static models.NotificationMail.isAllowedEmailDomains;
-import static play.data.Form.form;
+import static utils.FormUtil.form;
 import static play.libs.Json.toJson;
 import static utils.HtmlUtil.defaultSanitize;
 import static utils.LdapService.FALLBACK_TO_LOCAL_LOGIN;
 
-public class UserApp extends Controller {
+public class UserApp extends LegacyController {
     public static final String SESSION_USERID = "userId";
     public static final String SESSION_LOGINID = "loginId";
     public static final String SESSION_USERNAME = "userName";
@@ -84,8 +83,8 @@ public class UserApp extends Controller {
             .getBoolean("application.use.email.verification", false);
 
     @AnonymousCheck
-    public static Result users(String query) {
-        String referer = StringUtils.defaultString(request().getHeader("referer"), "");
+    public Result users(String query) {
+        String referer = StringUtils.defaultString(RequestUtil.getHeader(request(), "referer"), "");
         if (!referer.endsWith("members") || !request().accepts("application/json")) {
             return status(Http.Status.NOT_ACCEPTABLE);
         }
@@ -95,13 +94,13 @@ public class UserApp extends Controller {
         }
 
         List<Map<String, String>> users = new ArrayList<>();
-        ExpressionList<User> el = User.find.select("loginId, name").where()
+        ExpressionList<User> el = User.find.query().select("loginId, name").where()
             .ne("state", UserState.DELETED).disjunction();
         el.icontains("loginId", query);
         el.icontains("name", query);
         el.endJunction();
 
-        int total = el.findRowCount();
+        int total = el.findCount();
         if (total > MAX_FETCH_USERS) {
             el.setMaxRows(MAX_FETCH_USERS);
             response().setHeader("Content-Range", "items " + MAX_FETCH_USERS + "/" + total);
@@ -122,14 +121,14 @@ public class UserApp extends Controller {
         return ok(toJson(users));
     }
 
-    public static void noCache(final Http.Response response) {
+    public static void noCache(final LegacyResponse response) {
         // http://stackoverflow.com/questions/49547/making-sure-a-web-page-is-not-cached-across-all-browsers
-        response.setHeader(Http.Response.CACHE_CONTROL, "no-cache, no-store, must-revalidate");  // HTTP 1.1
-        response.setHeader(Http.Response.PRAGMA, "no-cache");  // HTTP 1.0.
-        response.setHeader(Http.Response.EXPIRES, "0");  // Proxies.
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");  // HTTP 1.1
+        response.setHeader("Pragma", "no-cache");  // HTTP 1.0.
+        response.setHeader("Expires", "0");  // Proxies.
     }
 
-    public static Result loginForm() {
+    public Result loginForm() {
         noCache(response());
         if(!UserApp.currentUser().isAnonymous()) {
             return redirect(routes.Application.index());
@@ -137,13 +136,13 @@ public class UserApp extends Controller {
 
         String redirectUrl = request().getQueryString("redirectUrl");
         String loginFormUrl = routes.UserApp.loginForm().url();
-        String referer = request().getHeader("Referer");
+        String referer = RequestUtil.getHeader(request(), "Referer");
         if(StringUtils.isEmpty(redirectUrl) && !StringUtils.equals(loginFormUrl, referer)) {
-            redirectUrl = request().getHeader("Referer");
+            redirectUrl = RequestUtil.getHeader(request(), "Referer");
         }
 
         //Assume oAtuh is passed but not linked with existed account
-        if(PlayAuthenticate.isLoggedIn(session())){
+        if(PlayAuthenticateUtil.get().isLoggedIn(session())){
             UserApp.linkWithExistedOrCreateLocalUser();
             return redirect(redirectUrl);
         } else {
@@ -151,19 +150,22 @@ public class UserApp extends Controller {
         }
     }
 
-    public static Result logout() {
+    public Result logout() {
         processLogout();
         flash(Constants.SUCCESS, "user.logout.success");
-        String redirectUrl = request().getHeader("Referer");
+        String redirectUrl = RequestUtil.getHeader(request(), "Referer");
+        if (StringUtils.isBlank(redirectUrl)) {
+            redirectUrl = routes.Application.index().url();
+        }
         return redirect(redirectUrl);
     }
 
-    public static Result login() {
+    public Result login() {
         noCache(response());
         if(useSocialLoginOnly){
             flash(FLASH_ERROR_KEY,
-                    Messages.get("app.warn.support.social.login.only"));
-            return Application.index();
+                    MessagesUtil.get("app.warn.support.social.login.only"));
+            return redirect(routes.Application.index());
         }
         if (HttpUtil.isJSONPreferred(request())) {
             return loginByAjaxRequest();
@@ -195,7 +197,7 @@ public class UserApp extends Controller {
      * @return
      */
     private static Result loginByFormRequest() {
-        Form<AuthInfo> authInfoForm = form(AuthInfo.class).bindFromRequest();
+        Form<AuthInfo> authInfoForm = form(AuthInfo.class).bindFromRequest(request());
 
         if(authInfoForm.hasErrors()) {
             flash(Constants.WARNING, "user.login.required");
@@ -229,7 +231,9 @@ public class UserApp extends Controller {
 
         if(authenticate.isLocked()){
             flash(Constants.WARNING, "user.locked");
-            return logout();
+            processLogout();
+            flash(Constants.SUCCESS, "user.logout.success");
+            return redirect(RequestUtil.getHeader(request(), "Referer"));
         }
         if (!authenticate.isAnonymous()) {
             addUserInfoToSession(authenticate);
@@ -238,7 +242,7 @@ public class UserApp extends Controller {
                 setupRememberMe(authenticate);
             }
 
-            authenticate.lang = play.mvc.Http.Context.current().lang().code();
+            authenticate.lang = RequestUtil.languageCode(request());
             authenticate.update();
 
             String redirectUrl = getRedirectURLFromParams();
@@ -279,7 +283,7 @@ public class UserApp extends Controller {
      * @return
      */
     private static Result loginByAjaxRequest() {
-        Form<AuthInfo> authInfoForm = form(AuthInfo.class).bindFromRequest();
+        Form<AuthInfo> authInfoForm = form(AuthInfo.class).bindFromRequest(request());
 
         if(authInfoForm.hasErrors()) {
             return badRequest(getObjectNodeWithMessage("user.login.required"));
@@ -314,7 +318,7 @@ public class UserApp extends Controller {
             }
 
             user.refresh();
-            user.lang = play.mvc.Http.Context.current().lang().code();
+            user.lang = RequestUtil.languageCode(request());
             user.update();
             addUserInfoToSession(user);
 
@@ -366,7 +370,7 @@ public class UserApp extends Controller {
         return authenticate(loginId, password, false);
     }
 
-    public static Result signupForm() {
+    public Result signupForm() {
         if(!UserApp.currentUser().isAnonymous()) {
             return redirect(routes.Application.index());
         }
@@ -375,8 +379,8 @@ public class UserApp extends Controller {
     }
 
     @Transactional
-    public static Result newUser() {
-        Form<User> newUserForm = form(User.class).bindFromRequest();
+    public Result newUser() {
+        Form<User> newUserForm = form(User.class).bindFromRequest(request());
         validate(newUserForm);
         if (newUserForm.hasErrors()) {
             return badRequest(signup.render("title.signup", newUserForm));
@@ -417,7 +421,7 @@ public class UserApp extends Controller {
     public static User createLocalUserWithOAuth(UserCredential userCredential){
         if(userCredential.email == null || "null".equalsIgnoreCase(userCredential.email)) {
             flash(FLASH_ERROR_KEY,
-                    Messages.get("app.warn.cannot.access.email.information"));
+                    MessagesUtil.get("app.warn.cannot.access.email.information"));
             play.Logger.error("Cannot confirm email address of " + userCredential.id + ": " + userCredential.name);
             userCredential.delete();
             forceOAuthLogout();
@@ -475,7 +479,7 @@ public class UserApp extends Controller {
         return createNewUser(user);
     }
 
-    public static Result verifyUser(String loginId, String verificationCode){
+    public Result verifyUser(String loginId, String verificationCode){
         if(!UserApp.currentUser().isAnonymous()) {
             return redirect(routes.Application.index());
         }
@@ -498,11 +502,11 @@ public class UserApp extends Controller {
             flash(Constants.INFO, "user.unacceptable.email.domain");
             return;
         }
-        Mail mail = new Mail(Messages.get("user.verification.signup.confirm")
+        Mail mail = new Mail(MessagesUtil.get("user.verification.signup.confirm")
                 + ": " + getServeIndexPageUrl(),
                 getNewAccountMailBody(created),
                 new String[] { getEmailName(created.email, created.name) });
-        Mailer mailer = Mailer.getCustomMailer(Configuration.root().getConfig("play-easymail"));
+        Mailer mailer = Play.application().injector().instanceOf(Mailer.class);
         mailer.sendMail(mail);
     }
 
@@ -538,14 +542,14 @@ public class UserApp extends Controller {
         }
         String verificationUrl = getServeIndexPageUrl()
                 + routes.UserApp.verifyUser(user.loginId, verification.verificationCode).toString();
-        html.append("<h1>").append(Messages.get("user.verification")).append("</h1>\n");
+        html.append("<h1>").append(MessagesUtil.get("user.verification")).append("</h1>\n");
         html.append("<hr />\n");
         html.append("<p><a href='").append(verificationUrl).append("'>")
-                .append(Messages.get("user.verification.link.click")).append("</a></p>\n");
+                .append(MessagesUtil.get("user.verification.link.click")).append("</a></p>\n");
         html.append("<br />\n");
         html.append("<br />\n");
 
-        plainText.append(Messages.get("user.verification")).append("\n");
+        plainText.append(MessagesUtil.get("user.verification")).append("\n");
         plainText.append("--------------------------\n");
         plainText.append(verificationUrl).append("\n");
         plainText.append("\n");
@@ -579,8 +583,8 @@ public class UserApp extends Controller {
     }
 
     @Transactional
-    public static Result resetUserPassword() {
-        Form<User> userForm = form(User.class).bindFromRequest();
+    public Result resetUserPassword() {
+        Form<User> userForm = form(User.class).bindFromRequest(request());
 
         if(userForm.hasErrors()) {
             return badRequest(ErrorViews.BadRequest.render("error.badrequest"));
@@ -590,7 +594,7 @@ public class UserApp extends Controller {
         User user = userForm.get();
 
         if(!isValidPassword(currentUser, user.oldPassword)) {
-            Form<User> currentUserForm = new Form<>(User.class);
+            Form<User> currentUserForm = utils.FormUtil.form(User.class);
             currentUserForm = currentUserForm.fill(currentUser);
 
             flash(Constants.WARNING, "user.wrongPassword.alert");
@@ -606,7 +610,7 @@ public class UserApp extends Controller {
 
     }
 
-    public static Result resetUserVisitedList() {
+    public Result resetUserVisitedList() {
         RecentProject.deleteAll(currentUser());
         flash(Constants.INFO, "userinfo.reset.visited.project.list.done");
         return redirect(routes.UserApp.editUserInfoForm());
@@ -657,12 +661,12 @@ public class UserApp extends Controller {
     }
 
     private static User getUserFromContext() {
-        Object cached = Http.Context.current().args.get(TOKEN_USER);
+        Object cached = LegacyRequestContext.args().get(TOKEN_USER);
         if (cached instanceof User) {
             return (User) cached;
         }
         initTokenUser();
-        User foundUser = (User) Http.Context.current().args.get(TOKEN_USER);
+        User foundUser = (User) LegacyRequestContext.args().get(TOKEN_USER);
 
         if(foundUser.isLocked()) {
             processLogout();
@@ -674,14 +678,14 @@ public class UserApp extends Controller {
 
     public static void initTokenUser() {
         User user = getUserFromToken();
-        Http.Context.current().args.put(TOKEN_USER, user);
+        LegacyRequestContext.args().put(TOKEN_USER, user);
         if (!user.isAnonymous() && getUserFromSession().isAnonymous()) {
             addUserInfoToSession(user);
         }
     }
 
     private static User getUserFromToken() {
-        Cookie cookie = request().cookies().get(TOKEN);
+        Cookie cookie = request().cookies().get(TOKEN).orElse(null);
         if (cookie == null) {
             return User.anonymous;
         }
@@ -707,7 +711,7 @@ public class UserApp extends Controller {
     }
 
     @AnonymousCheck
-    public static Result userFiles(){
+    public Result userFiles(){
         final int USER_FILES_COUNT_PER_PAGE = 50;
         String pageNumString = request().getQueryString("pageNum");
         String filter = request().getQueryString("filter");
@@ -717,30 +721,30 @@ public class UserApp extends Controller {
             pageNum = Integer.parseInt(pageNumString);
         }
 
-        Page<Attachment> page = Attachment.findByUser(currentUser(), USER_FILES_COUNT_PER_PAGE, pageNum, filter);
+        PagedList<Attachment> page = Attachment.findByUser(currentUser(), USER_FILES_COUNT_PER_PAGE, pageNum, filter);
         return ok(userFiles.render("User Files", page));
     }
 
     @AnonymousCheck
-    public static Result userInfo(String loginId, int daysAgo, String selected) {
+    public Result userInfo(String loginId, int daysAgo, String selected) {
         Organization org = Organization.findByName(loginId);
         if(org != null) {
             return redirect(routes.OrganizationApp.organization(org.name));
         }
 
         if (daysAgo == UNDEFINED) {
-            Cookie cookie = request().cookie(DAYS_AGO_COOKIE);
+            Cookie cookie = request().cookie(DAYS_AGO_COOKIE).orElse(null);
             if (cookie != null && StringUtils.isNotEmpty(cookie.value())) {
                 daysAgo = Integer.parseInt(cookie.value());
             } else {
                 daysAgo = DAYS_AGO;
-                response().setCookie(DAYS_AGO_COOKIE, daysAgo + "");
+                response().setCookie(Cookie.builder(DAYS_AGO_COOKIE, String.valueOf(daysAgo)).build());
             }
         } else {
             if (daysAgo < 0) {
                 daysAgo = 1;
             }
-            response().setCookie(DAYS_AGO_COOKIE, daysAgo + "");
+            response().setCookie(Cookie.builder(DAYS_AGO_COOKIE, String.valueOf(daysAgo)).build());
         }
 
         User user = User.findByLoginId(loginId);
@@ -874,17 +878,17 @@ public class UserApp extends Controller {
     }
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
-    public static Result editUserInfoForm() {
+    public Result editUserInfoForm() {
         User user = UserApp.currentUser();
-        Form<User> userForm = new Form<>(User.class);
+        Form<User> userForm = utils.FormUtil.form(User.class);
         userForm = userForm.fill(user);
         return ok(edit.render(userForm, user));
     }
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
-    public static Result editUserInfoByTabForm(String tabId) {
+    public Result editUserInfoByTabForm(String tabId) {
         User user = UserApp.currentUser();
-        Form<User> userForm = new Form<>(User.class);
+        Form<User> userForm = utils.FormUtil.form(User.class);
         userForm = userForm.fill(user);
 
         switch(UserInfoFormTabType.fromString(tabId)){
@@ -944,35 +948,35 @@ public class UserApp extends Controller {
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @Transactional
-    public static Result editUserInfo() {
-        Form<User> userForm = new Form<>(User.class).bindFromRequest("name", "email");
-        String newEmail = userForm.data().get("email");
-        String newName = defaultSanitize(userForm.data().get("name"));
+    public Result editUserInfo() {
+        Form<User> userForm = utils.FormUtil.form(User.class).bindFromRequest(request(), "name", "email");
+        String newEmail = userForm.rawData().get("email");
+        String newName = defaultSanitize(userForm.rawData().get("name"));
         User user = UserApp.currentUser();
 
         if (StringUtils.isEmpty(newEmail)) {
-            userForm.reject("email", "user.wrongEmail.alert");
+            utils.FormUtil.reject(userForm, "email", "user.wrongEmail.alert");
         } else {
             if (!StringUtils.equals(user.email, newEmail) && User.isEmailExist(newEmail)) {
-                userForm.reject("email", "user.email.duplicate");
+                utils.FormUtil.reject(userForm, "email", "user.email.duplicate");
             }
         }
 
-        if (userForm.error("email") != null) {
-            flash(Constants.WARNING, userForm.error("email").message());
+        if (userForm.error("email").isPresent()) {
+            flash(Constants.WARNING, utils.FormUtil.errorMessage(userForm, "email"));
             return badRequest(edit.render(userForm, user));
         }
         user.email = newEmail;
         user.name = HtmlUtil.defaultSanitize(newName);
 
         try {
-            Long avatarId = Long.valueOf(userForm.data().get("avatarId"));
+            Long avatarId = Long.valueOf(userForm.rawData().get("avatarId"));
             if (avatarId != null) {
                 Attachment attachment = Attachment.find.byId(avatarId);
                 String primary = attachment.mimeType.split("/")[0].toLowerCase();
 
                 if (attachment.size > AVATAR_FILE_LIMIT_SIZE){
-                    userForm.reject("avatarId", "user.avatar.fileSizeAlert");
+                    utils.FormUtil.reject(userForm, "avatarId", "user.avatar.fileSizeAlert");
                 }
 
                 if (primary.equals("image")) {
@@ -990,8 +994,16 @@ public class UserApp extends Controller {
     }
 
     @Transactional
-    public static Result leave(String userName, String projectName) {
-        ProjectApp.deleteMember(userName, projectName, UserApp.currentUser().id);
+    public Result leave(String userName, String projectName) {
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
+        User currentUser = UserApp.currentUser();
+        if (project == null) {
+            return notFound(ErrorViews.NotFound.render("error.notfound.project"));
+        }
+        if (project.isOwner(currentUser)) {
+            return forbidden(ErrorViews.Forbidden.render("project.member.ownerCannotLeave", project));
+        }
+        ProjectUser.delete(currentUser.id, project.id);
         return redirect(routes.UserApp.userInfo(UserApp.currentUser().loginId, DAYS_AGO, DEFAULT_SELECTED_TAB));
     }
 
@@ -1005,7 +1017,7 @@ public class UserApp extends Controller {
      * @see Organization#isNameExist(String)
      * @see ReservedWordsValidator#isReserved(String)
      */
-    public static Result isUsed(String name) {
+    public Result isUsed(String name) {
         ObjectNode result = Json.newObject();
         result.put("isExist", User.isLoginIdExist(name) || Organization.isNameExist(name));
         result.put("isReserved", ReservedWordsValidator.isReserved(name));
@@ -1013,7 +1025,7 @@ public class UserApp extends Controller {
     }
 
     @BodyParser.Of(BodyParser.Json.class)
-    public static Result isEmailExist(String email) {
+    public Result isEmailExist(String email) {
         ObjectNode result = Json.newObject();
         result.put("isExist", User.isEmailExist(email));
         return ok(result);
@@ -1032,12 +1044,12 @@ public class UserApp extends Controller {
     }
 
     @Transactional
-    public static Result addEmail() {
-        Form<Email> emailForm = form(Email.class).bindFromRequest();
-        String newEmail = emailForm.data().get("email");
+    public Result addEmail() {
+        Form<Email> emailForm = form(Email.class).bindFromRequest(request());
+        String newEmail = emailForm.rawData().get("email");
 
         if(emailForm.hasErrors()) {
-            flash(Constants.WARNING, emailForm.error("email").message());
+            flash(Constants.WARNING, utils.FormUtil.errorMessage(emailForm, "email"));
             return redirect(routes.UserApp.editUserInfoForm());
         }
 
@@ -1047,7 +1059,7 @@ public class UserApp extends Controller {
         }
 
         if(User.isEmailExist(newEmail) || Email.exists(newEmail, true) || currentUser.has(newEmail)) {
-            flash(Constants.WARNING, Messages.get("user.email.duplicate"));
+            flash(Constants.WARNING, MessagesUtil.get("user.email.duplicate"));
             return redirect(routes.UserApp.editUserInfoForm());
         }
 
@@ -1063,7 +1075,7 @@ public class UserApp extends Controller {
     }
 
     @Transactional
-    public static Result deleteEmail(Long id) {
+    public Result deleteEmail(Long id) {
         User currentUser = currentUser();
         Email email = Email.find.byId(id);
 
@@ -1072,7 +1084,7 @@ public class UserApp extends Controller {
         }
 
         if(!AccessControl.isAllowed(currentUser, email.user.asResource(), Operation.DELETE)) {
-            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden")));
+            return forbidden(ErrorViews.Forbidden.render(MessagesUtil.get("error.forbidden")));
         }
 
         email.delete();
@@ -1080,7 +1092,7 @@ public class UserApp extends Controller {
     }
 
     @Transactional
-    public static Result sendValidationEmail(Long id) {
+    public Result sendValidationEmail(Long id) {
         User currentUser = currentUser();
         Email email = Email.find.byId(id);
 
@@ -1089,7 +1101,7 @@ public class UserApp extends Controller {
         }
 
         if(!AccessControl.isAllowed(currentUser, email.user.asResource(), Operation.UPDATE)) {
-            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden")));
+            return forbidden(ErrorViews.Forbidden.render(MessagesUtil.get("error.forbidden")));
         }
 
         email.sendValidationEmail();
@@ -1099,7 +1111,7 @@ public class UserApp extends Controller {
     }
 
     @Transactional
-    public static Result confirmEmail(Long id, String token) {
+    public Result confirmEmail(Long id, String token) {
         Email email = Email.find.byId(id);
 
         if(email == null) {
@@ -1115,7 +1127,7 @@ public class UserApp extends Controller {
     }
 
     @Transactional
-    public static Result setAsMainEmail(Long id) {
+    public Result setAsMainEmail(Long id) {
         User currentUser = currentUser();
         Email email = Email.find.byId(id);
 
@@ -1124,7 +1136,7 @@ public class UserApp extends Controller {
         }
 
         if(!AccessControl.isAllowed(currentUser, email.user.asResource(), Operation.UPDATE)) {
-            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden")));
+            return forbidden(ErrorViews.Forbidden.render(MessagesUtil.get("error.forbidden")));
         }
 
         String oldMainEmail = currentUser.email;
@@ -1185,7 +1197,7 @@ public class UserApp extends Controller {
             }
             return User.anonymous;
         } catch (AuthenticationException e) {
-            flash(Constants.WARNING, Messages.get("user.login.invalid"));
+            flash(Constants.WARNING, MessagesUtil.get("user.login.invalid"));
             play.Logger.warn("login failed \n" + e.getMessage());
             if(FALLBACK_TO_LOCAL_LOGIN){
                 play.Logger.warn("fallback to local login: " + loginIdOrEmail);
@@ -1225,7 +1237,8 @@ public class UserApp extends Controller {
     }
 
     public static void setupRememberMe(User user) {
-        response().setCookie(TOKEN, user.loginId + ":" + user.password, MAX_AGE);
+        response().setCookie(Cookie.builder(TOKEN, user.loginId + ":" + user.password)
+                .withMaxAge(java.time.Duration.ofSeconds(MAX_AGE)).build());
         Logger.debug("remember me enabled");
     }
 
@@ -1235,25 +1248,25 @@ public class UserApp extends Controller {
     }
 
     private static void validate(Form<User> newUserForm) {
-        if (newUserForm.field("loginId").value().trim().isEmpty()) {
-            newUserForm.reject("loginId", "user.wrongloginId.alert");
+        if (newUserForm.field("loginId").value().orElse("").trim().isEmpty()) {
+            utils.FormUtil.reject(newUserForm, "loginId", "user.wrongloginId.alert");
         }
 
-        if (newUserForm.field("loginId").value().contains(" ")) {
-            newUserForm.reject("loginId", "user.wrongloginId.alert");
+        if (newUserForm.field("loginId").value().orElse("").contains(" ")) {
+            utils.FormUtil.reject(newUserForm, "loginId", "user.wrongloginId.alert");
         }
 
-        if (newUserForm.field("password").value().trim().isEmpty()) {
-            newUserForm.reject("password", "user.wrongPassword.alert");
+        if (newUserForm.field("password").value().orElse("").trim().isEmpty()) {
+            utils.FormUtil.reject(newUserForm, "password", "user.wrongPassword.alert");
         }
 
-        if (User.isLoginIdExist(newUserForm.field("loginId").value())
-            || Organization.isNameExist(newUserForm.field("loginId").value())) {
-            newUserForm.reject("loginId", "user.loginId.duplicate");
+        if (User.isLoginIdExist(newUserForm.field("loginId").value().orElse(""))
+            || Organization.isNameExist(newUserForm.field("loginId").value().orElse(""))) {
+            utils.FormUtil.reject(newUserForm, "loginId", "user.loginId.duplicate");
         }
 
-        if (User.isEmailExist(newUserForm.field("email").value())) {
-            newUserForm.reject("email", "user.email.duplicate");
+        if (User.isEmailExist(newUserForm.field("email").value().orElse(""))) {
+            utils.FormUtil.reject(newUserForm, "email", "user.email.duplicate");
         }
     }
 
@@ -1289,8 +1302,8 @@ public class UserApp extends Controller {
     }
 
     public static boolean linkWithExistedOrCreateLocalUser() {
-        final UserCredential oAuthUser = UserCredential.findByAuthUserIdentity(PlayAuthenticate
-                .getUser(Http.Context.current().session()));
+        final UserCredential oAuthUser = UserCredential.findByAuthUserIdentity(PlayAuthenticateUtil.get()
+                .getUser(session()));
         User user = null;
         if (oAuthUser.loginId == null) {
             user = User.findByEmail(oAuthUser.email);
@@ -1298,7 +1311,7 @@ public class UserApp extends Controller {
             user = User.findByLoginId(oAuthUser.loginId);
         }
 
-        if(PlayAuthenticate.isLoggedIn(session()) && user.isAnonymous()){
+        if(PlayAuthenticateUtil.get().isLoggedIn(session()) && user.isAnonymous()){
             return !createLocalUserWithOAuth(oAuthUser).isAnonymous();
         } else {
             if (oAuthUser.loginId == null) {
@@ -1312,7 +1325,7 @@ public class UserApp extends Controller {
     }
 
     public static void updatePreferredLanguage() {
-        Http.Request request = Http.Context.current().request();
+        Http.Request request = request();
         User user = UserApp.currentUser();
 
         if (user.isAnonymous()) {
@@ -1320,11 +1333,11 @@ public class UserApp extends Controller {
         }
 
         if (request.acceptLanguages().isEmpty() &&
-                request.cookie(Play.langCookieName()) == null) {
+                request.cookie(Configuration.root().getString("play.i18n.langCookieName", "PLAY_LANG")) == null) {
             return;
         }
 
-        String code = StringUtils.left(Http.Context.current().lang().code(), 255);
+        String code = StringUtils.left(RequestUtil.languageCode(request), 255);
 
         if (!code.equals(user.lang)) {
             synchronized (user) {
@@ -1335,7 +1348,7 @@ public class UserApp extends Controller {
         }
     }
 
-    public static Result resetUserPasswordBySiteManager(String loginId){
+    public Result resetUserPasswordBySiteManager(String loginId){
         if (!request().getQueryString("action").equals("resetPassword")) {
             ObjectNode json = Json.newObject();
             json.put("isSuccess", false);
@@ -1370,7 +1383,7 @@ public class UserApp extends Controller {
     }
 
     @AnonymousCheck
-    public static Result setDefaultLoginPage() throws IOException, WriteException {
+    public Result setDefaultLoginPage() throws IOException, WriteException {
         UserSetting userSetting = UserSetting.findByUser(UserApp.currentUser().id);
         userSetting.loginDefaultPage = request().getQueryString("path");
         userSetting.save();
@@ -1380,7 +1393,7 @@ public class UserApp extends Controller {
         return ok(json);
     }
 
-    public static Result usermenuTabContentList(){
+    public Result usermenuTabContentList(){
         return ok(views.html.common.usermenu_tab_content_list.render());
     }
 }

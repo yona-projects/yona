@@ -25,8 +25,8 @@ import static play.libs.Json.toJson;
 import controllers.annotation.AnonymousCheck;
 import models.*;
 import models.enumeration.RequestState;
-import play.db.ebean.Transactional;
-import play.mvc.Controller;
+import io.ebean.annotation.Transactional;
+import utils.LegacyController;
 import play.mvc.Http;
 import play.mvc.Result;
 import utils.ValidationResult;
@@ -35,10 +35,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 @AnonymousCheck
-public class EnrollOrganizationApp extends Controller {
+public class EnrollOrganizationApp extends LegacyController {
 
     @Transactional
-    public static Result enroll(String organizationName) {
+    public Result enroll(String organizationName) {
         ValidationResult result = validateForEnroll(organizationName);
         if (result.hasError()) {
             return result.getResult();
@@ -73,7 +73,7 @@ public class EnrollOrganizationApp extends Controller {
     }
 
     @Transactional
-    public static Result cancelEnroll(String organizationName) {
+    public Result cancelEnroll(String organizationName) {
         ValidationResult result = validateForCancelEnroll(organizationName);
         if (result.hasError()) {
             return result.getResult();

@@ -24,8 +24,8 @@ import controllers.annotation.AnonymousCheck;
 import models.CommentThread;
 import models.NotificationEvent;
 import models.enumeration.Operation;
-import play.db.ebean.Transactional;
-import play.mvc.Controller;
+import io.ebean.annotation.Transactional;
+import utils.LegacyController;
 import play.mvc.Result;
 import utils.AccessControl;
 
@@ -33,10 +33,10 @@ import static models.CommentThread.ThreadState.CLOSED;
 import static models.CommentThread.ThreadState.OPEN;
 
 @AnonymousCheck
-public class CommentThreadApp extends Controller {
+public class CommentThreadApp extends LegacyController {
 
     @Transactional
-    public static Result updateState(Long id, CommentThread.ThreadState state) {
+    public Result updateState(Long id, CommentThread.ThreadState state) {
         CommentThread thread = CommentThread.find.byId(id);
 
         if (thread == null) {
@@ -74,11 +74,11 @@ public class CommentThreadApp extends Controller {
         return ok();
     }
 
-    public static Result open(Long id) {
+    public Result open(Long id) {
         return updateState(id, OPEN);
     }
 
-    public static Result close(Long id) {
+    public Result close(Long id) {
         return updateState(id, CLOSED);
     }
 }

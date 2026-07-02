@@ -36,8 +36,8 @@
                         <div class="span12">
                             <dl>
                                 <dd>
-                                @defining(milestoneForm.errors().get("title")) { errors =>
-                                    <input type="text" id="title" name="title" value="@milestoneForm.data().get("title")" class="zen-mode text title @if(errors != null) {error}" maxlength="250" tabindex="1" placeholder="@Messages("title.text")">
+                                @defining(formErrors(milestoneForm, "title")) { errors =>
+                                    <input type="text" id="title" name="title" value="@fieldValue(milestoneForm, "title")" class="zen-mode text title @if(errors != null) {error}" maxlength="250" tabindex="1" placeholder="@Messages("title.text")">
                                 @if(errors != null) {
                                     <div class="message">
                                     @for(error <- errors) {
@@ -54,7 +54,7 @@
                             <div class="span9 span-left-pane">
                                 <dl>
                                     <dd style="position: relative;">
-                                    @common.editor("contents", milestoneForm.data().get("contents"), "tabindex=2", "content-body")
+                                    @common.editor("contents", fieldValue(milestoneForm, "contents"), "tabindex=2", "content-body")
                                     </dd>
                                 </dl>
 
@@ -84,7 +84,7 @@
                                     <dd>
                                         <div>
                                             <label for="dueDate">
-                                            <input type="text" name="dueDate" id="dueDate" class="validate due-date" autocomplete="off" value="@milestoneForm.data().get("dueDate")">
+                                            <input type="text" name="dueDate" id="dueDate" class="validate due-date" autocomplete="off" value="@fieldValue(milestoneForm, "dueDate")">
                                             </label>
                                             <div id="datepicker" class="date-picker"></div>
                                         </div>

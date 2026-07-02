@@ -25,7 +25,8 @@ import models.Project;
 import models.enumeration.Operation;
 import play.api.i18n.Lang;
 import play.i18n.Messages;
-import play.mvc.Controller;
+import play.mvc.BodyParser;
+import utils.LegacyController;
 import play.mvc.Result;
 import play.mvc.With;
 import playRepository.PlayRepository;
@@ -33,13 +34,15 @@ import playRepository.RepositoryService;
 import utils.AccessControl;
 import utils.BasicAuthAction;
 import utils.Config;
+import utils.MessagesUtil;
+import utils.RequestUtil;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
 
 import static utils.HttpUtil.decodeUrlString;
 
-public class GitApp extends Controller {
+public class GitApp extends LegacyController {
 
     public static boolean isSupportedService(String service) {
         return service != null
@@ -85,7 +88,7 @@ public class GitApp extends Controller {
         return false;
     }
 
-    public static Result service(String ownerName, String projectName, String service,
+    public Result service(String ownerName, String projectName, String service,
             boolean isAdvertise) throws IOException, UnsupportedOperationException,
             ServletException {
         if (!isSupportedService(service)) {
@@ -114,12 +117,12 @@ public class GitApp extends Controller {
                 return BasicAuthAction.unauthorized(response());
             } else {
                 String contentType = "text/plain", message;
-                if (isCharsetAllowed(request().getHeader("User-Agent"))) {
+                if (isCharsetAllowed(RequestUtil.getHeader(request(), "User-Agent"))) {
                     contentType += ";charset=" + Config.getCharset();
-                    message = Messages.get(
+                    message = MessagesUtil.get(
                             "git.error.permission", user.loginId, ownerName, projectName);
                 } else {
-                    message = Messages.get(Lang.defaultLang(),
+                    message = MessagesUtil.get(Lang.defaultLang(),
                             "git.error.notAllowedCharset", user.loginId, ownerName, projectName);
                 }
                 response().setHeader("Content-Type", contentType);
@@ -129,32 +132,39 @@ public class GitApp extends Controller {
 
         if (isAdvertise) {
             return ok(RepositoryService
-                    .gitAdvertise(project, service, response()));
+                    .gitAdvertise(project, service, response()))
+                    .as(gitContentType(service, true));
         } else {
-            if (request().body().isMaxSizeExceeded()) {
+            if (request().body().asRaw() == null) {
                 return status(REQUEST_ENTITY_TOO_LARGE);
             } else {
                 user.visits(project);
                 return ok(RepositoryService
-                        .gitRpc(project, service, request(), response()));
+                        .gitRpc(project, service, request(), response()))
+                        .as(gitContentType(service, false));
             }
         }
     }
 
+    private static String gitContentType(String service, boolean advertise) {
+        return "application/x-" + service + (advertise ? "-advertisement" : "-result");
+    }
+
     @With(BasicAuthAction.class)
-    public static Result advertise(String ownerName, String projectName, String service)
+    public Result advertise(String ownerName, String projectName, String service)
             throws UnsupportedOperationException, IOException, ServletException {
         if (service == null) {
             // If service parameter is not specified then git server should do getanyfile service,
             // but we don't support that.
             return forbidden("Unsupported service: getanyfile");
         }
-        return GitApp.service(ownerName, decodeUrlString(projectName), service, true);
+        return service(ownerName, decodeUrlString(projectName), service, true);
     }
 
     @With(BasicAuthAction.class)
-    public static Result serviceRpc(String ownerName, String projectName, String service)
+    @BodyParser.Of(BodyParser.Raw.class)
+    public Result serviceRpc(String ownerName, String projectName, String service)
             throws UnsupportedOperationException, IOException, ServletException {
-        return GitApp.service(ownerName, projectName, service, false);
+        return service(ownerName, projectName, service, false);
     }
 }

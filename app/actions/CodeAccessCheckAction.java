@@ -9,20 +9,20 @@ package actions;
 import actions.support.PathParser;
 import controllers.UserApp;
 import models.Project;
-import play.libs.F.Promise;
-import play.mvc.Http.Context;
+import java.util.concurrent.*;
+import play.mvc.Http.Request;
 import play.mvc.Result;
 import utils.ErrorViews;
 
 public class CodeAccessCheckAction extends AbstractProjectCheckAction<Void> {
     @Override
-    protected Promise<Result> call(Project project, Context context, PathParser parser) throws Throwable {
+    protected CompletionStage<Result> call(Project project, Request request, PathParser parser) {
         // Only members can access code?
-        Promise<Result> promise;
+        CompletionStage<Result> promise;
         if(project.isCodeAccessibleMemberOnly && !project.hasMember(UserApp.currentUser())) {
-            promise = Promise.pure((Result) forbidden(ErrorViews.Forbidden.render("error.forbidden.or.notfound", context.request().path())));
+            promise = CompletableFuture.completedFuture((Result) forbidden(ErrorViews.Forbidden.render("error.forbidden.or.notfound", request.path())));
             return promise;
         }
-        return this.delegate.call(context);
+        return this.delegate.call(request);
     }
 }

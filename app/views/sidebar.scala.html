@@ -1,6 +1,5 @@
 @import org.apache.commons.lang3.StringUtils
 @import utils.TemplateHelper._
-@import com.feth.play.module.pa.PlayAuthenticate._
 @import com.feth.play.module.pa.views.html._
 @import play.mvc.Http._;
 
@@ -9,13 +8,13 @@
 }
 
 @if(currentUser.isAnonymous){
-    @currentAuth() { auth => @{
+    @currentAuth(playAuthenticate) { auth => @{
         if(auth == null) {
-            val redirect = Context.current().request().getQueryString("redirectUrl")
+            val redirect = utils.LegacyRequestContext.request().getQueryString("redirectUrl")
             if(StringUtils.isNotEmpty(redirect)) {
-                val url = Context.current().session().put("pa.url.orig", redirect)
+                val url = utils.LegacyRequestContext.session().put("pa.url.orig", redirect)
             } else {
-                val url = storeOriginalUrl(Context.current())
+                val url = playAuthenticate.storeOriginalUrl(utils.LegacyRequestContext.request())
             }
         }
     }
@@ -30,12 +29,12 @@
         </span>
         <span class="caret-text hide-in-mobile">@currentUser.getPureNameOnly</span>
     </a></span>
-    <span class="user-menu"><a href="@routes.UserApp.editUserInfoForm()" target="mainFrame">@Messages("userinfo.accountSetting")</a></span>
-    @currentAuth() { auth =>
+    <span class="user-menu"><a href="@routes.UserApp.editUserInfoForm" target="mainFrame">@Messages("userinfo.accountSetting")</a></span>
+    @currentAuth(playAuthenticate) { auth =>
         @if(auth != null) {
             <a href="@routes.Application.oAuthLogout"><span class="user-menu logout label">@Messages("title.logout")</span></a>
         } else {
-            <a href="@routes.UserApp.logout()"><span class="user-menu logout label">@Messages("title.logout")</span></a>
+            <a href="@routes.UserApp.logout"><span class="user-menu logout label">@Messages("title.logout")</span></a>
         }
     }
     <div class="pin-in-sidebar" data-toggle="tooltip" data-placement="bottom" title="Sidebar"><i class="yobicon-arrow-left"></i></div>

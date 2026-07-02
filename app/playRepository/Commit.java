@@ -57,10 +57,10 @@ public abstract class Commit {
 
         // Add every user who comments on this commit
         if (project.vcs.equals(RepositoryService.VCS_GIT)) {
-            List<CommentThread> threads = CommentThread.find.where()
+            List<CommentThread> threads = CommentThread.find.query().where()
                     .eq("project.id", project.id)
                     .eq("commitId", getId())
-                    .eq("pullRequest.id", null).findList();
+                    .isNull("pullRequest.id").findList();
             for (CommentThread thread : threads) {
                 for (ReviewComment comment : thread.reviewComments) {
                     User user = User.find.byId(comment.author.id);
@@ -70,7 +70,7 @@ public abstract class Commit {
                 }
             }
         } else {
-            List<CommitComment> comments = CommitComment.find.where()
+            List<CommitComment> comments = CommitComment.find.query().where()
                     .eq("project.id", project.id).eq("commitId", getId()).findList();
             for (CommitComment c : comments) {
                 User user = User.find.byId(c.authorId);

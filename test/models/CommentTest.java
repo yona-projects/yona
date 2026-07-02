@@ -84,7 +84,7 @@ public class CommentTest extends ModelTest<Issue> {
 
         //Then
         assertThat(issue.comments.size()).isEqualTo(1);
-        assertThat(IssueComment.find.where().eq("issue.id", issue.id).findUnique()).isEqualTo(comment);
+        assertThat(IssueComment.find.query().where().eq("issue.id", issue.id).findOne()).isEqualTo(comment);
     }
 
 }

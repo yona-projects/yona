@@ -20,6 +20,7 @@
  */
 package utils;
 
+import org.apache.pekko.util.ByteString;
 import org.tmatesoft.svn.core.internal.util.SVNEncodingUtil;
 import play.Play;
 import play.i18n.Lang;
@@ -86,7 +87,7 @@ public class PlayServletRequest implements HttpServletRequest {
 
     @Override
     public int getContentLength() {
-        String contentLength = request.getHeader(Http.HeaderNames.CONTENT_LENGTH);
+        String contentLength = RequestUtil.getHeader(request, Http.HeaderNames.CONTENT_LENGTH);
 
         if (contentLength == null) {
             return -1;
@@ -96,7 +97,7 @@ public class PlayServletRequest implements HttpServletRequest {
     }
 
     public long getContentLengthLong() {
-        String contentLength = request.getHeader(Http.HeaderNames.CONTENT_LENGTH);
+        String contentLength = RequestUtil.getHeader(request, Http.HeaderNames.CONTENT_LENGTH);
 
         if (contentLength == null) {
             return -1;
@@ -107,7 +108,7 @@ public class PlayServletRequest implements HttpServletRequest {
 
     @Override
     public String getContentType() {
-        return request.getHeader(Http.HeaderNames.CONTENT_TYPE);
+        return RequestUtil.getHeader(request, Http.HeaderNames.CONTENT_TYPE);
     }
 
     @Override
@@ -122,7 +123,8 @@ public class PlayServletRequest implements HttpServletRequest {
         byte[] buf;
 
         try {
-            buf = raw.asBytes();
+            ByteString bytes = raw.asBytes();
+            buf = bytes == null ? null : bytes.toArray();
         } catch (NullPointerException e) {
             // asBytes() raises NullPointerException if the raw body is larger
             // than the limit defined by BodyParser.of annotation at
@@ -384,34 +386,34 @@ public class PlayServletRequest implements HttpServletRequest {
 
     @Override
     public long getDateHeader(String name) {
-        String date = request.getHeader(name);
+        String date = RequestUtil.getHeader(request, name);
 
         if (date == null) {
             return -1;
         }
 
-        return FastHttpDateFormat.parseDate(request.getHeader(name), formats);
+        return FastHttpDateFormat.parseDate(RequestUtil.getHeader(request, name), formats);
     }
 
     @Override
     public String getHeader(String name) {
-        return request.getHeader(name);
+        return RequestUtil.getHeader(request, name);
     }
 
     @Override
     public Enumeration<String> getHeaderNames() {
-        return Collections.enumeration(request.headers().keySet());
+        return Collections.enumeration(request.headers().asMap().keySet());
     }
 
     @Override
     public Enumeration<String> getHeaders(String name) {
-        String[] values = request.headers().get(name);
+        List<String> values = request.headers().getAll(name);
 
         if (values == null) {
             return Collections.enumeration(Collections.<String> emptyList());
         }
 
-        return Collections.enumeration(Arrays.asList(request.headers().get(name)));
+        return Collections.enumeration(values);
     }
 
     // same as org.apache.catalina.connector.Request.getHeaders

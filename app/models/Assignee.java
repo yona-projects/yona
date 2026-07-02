@@ -22,12 +22,13 @@ package models;
 
 import org.apache.commons.collections.CollectionUtils;
 import play.data.validation.Constraints.Required;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import java.util.Set;
 
 @Entity
@@ -49,7 +50,7 @@ public class Assignee extends Model {
     @OneToMany(mappedBy = "assignee")
     public Set<Issue> issues;
 
-    public static final Model.Finder<Long, Assignee> finder = new Finder<>(Long.class, Assignee.class);
+    public static final Finder<Long, Assignee> finder = new Finder<>(Assignee.class);
 
     public Assignee(Long userId, Long projectId) {
         user = User.find.byId(userId);
@@ -57,8 +58,8 @@ public class Assignee extends Model {
     }
 
     public static Assignee add(Long userId, Long projectId) {
-        Assignee assignee = finder.where()
-                .eq("user.id", userId).eq("project.id", projectId).findUnique();
+        Assignee assignee = finder.query().where()
+                .eq("user.id", userId).eq("project.id", projectId).findOne();
         if (assignee == null) {
             assignee = new Assignee(userId, projectId);
             assignee.save();

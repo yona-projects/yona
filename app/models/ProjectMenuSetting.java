@@ -20,16 +20,17 @@
  */
 package models;
 
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 
 @Entity
 public class ProjectMenuSetting extends Model {
     private static final long serialVersionUID = 1L;
-    public static Finder<Long, ProjectMenuSetting> finder = new Finder<>(Long.class, ProjectMenuSetting.class);
+    public static Finder<Long, ProjectMenuSetting> finder = new Finder<>(ProjectMenuSetting.class);
 
     @Id
     public Long id;

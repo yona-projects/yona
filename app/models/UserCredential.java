@@ -6,16 +6,17 @@
  **/
 package models;
 
-import com.avaje.ebean.Ebean;
-import com.avaje.ebean.ExpressionList;
+import io.ebean.Ebean;
+import io.ebean.ExpressionList;
 import com.feth.play.module.pa.user.AuthUser;
 import com.feth.play.module.pa.user.AuthUserIdentity;
 import com.feth.play.module.pa.user.EmailIdentity;
 import com.feth.play.module.pa.user.NameIdentity;
 import play.data.validation.Constraints;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.*;
 
 @Entity
@@ -45,18 +46,17 @@ public class UserCredential extends Model {
     @OneToMany(cascade = CascadeType.ALL)
     public List<LinkedAccount> linkedAccounts;
 
-    public static final Finder<Long, UserCredential> find = new Finder<Long, UserCredential>(
-            Long.class, UserCredential.class);
+    public static final Finder<Long, UserCredential> find = new Finder<Long, UserCredential>(UserCredential.class);
 
     public static boolean existsByAuthUserIdentity(
             final AuthUserIdentity identity) {
         final ExpressionList<UserCredential> exp = getAuthUserFind(identity);
-        return exp.findRowCount() > 0;
+        return exp.findCount() > 0;
     }
 
     private static ExpressionList<UserCredential> getAuthUserFind(
             final AuthUserIdentity identity) {
-        return find.where().eq("active", true)
+        return find.query().where().eq("active", true)
                 .eq("linkedAccounts.providerUserId", identity.getId())
                 .eq("linkedAccounts.providerKey", identity.getProvider());
     }
@@ -65,7 +65,7 @@ public class UserCredential extends Model {
         if (identity == null) {
             return null;
         }
-        return getAuthUserFind(identity).findUnique();
+        return getAuthUserFind(identity).findOne();
     }
 
     public void merge(final UserCredential otherUser) {
@@ -128,11 +128,11 @@ public class UserCredential extends Model {
     }
 
     public static UserCredential findByEmail(final String email) {
-        return getEmailUserFind(email).findUnique();
+        return getEmailUserFind(email).findOne();
     }
 
     private static ExpressionList<UserCredential> getEmailUserFind(final String email) {
-        return find.where().eq("active", true).eq("email", email);
+        return find.query().where().eq("active", true).eq("email", email);
     }
 
     public LinkedAccount getAccountByProvider(final String providerKey) {
@@ -140,7 +140,7 @@ public class UserCredential extends Model {
     }
 
     public static List<UserCredential> findByUserId(Long id){
-        return find.where().eq("user.id", id).findList();
+        return find.query().where().eq("user.id", id).findList();
     }
 
     @Override

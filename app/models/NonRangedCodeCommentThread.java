@@ -22,8 +22,8 @@ package models;
 
 import org.apache.commons.lang3.StringUtils;
 
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 
 /**
  * @author Keesun Baik

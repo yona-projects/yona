@@ -57,7 +57,7 @@
             type: "delete",
             url: "@routes.OrganizationApp.deleteOrganization(organization.name)",
             success: function() {
-                location.href = "@routes.Application.index()";
+                location.href = "@routes.Application.index";
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 $("#alertDeletion").modal("hide");

@@ -23,7 +23,7 @@
                 <table class="welcome-table table borderless">
                     <tr>
                         <td>
-                            <a href="@routes.ProjectApp.newProjectForm()" class="ybtn ybtn-success">
+                            <a href="@routes.ProjectApp.newProjectForm" class="ybtn ybtn-success">
                             @Messages("button.newProject")
                             </a>
                         </td>
@@ -31,7 +31,7 @@
                     </tr>
                     <tr>
                         <td>
-                            <a href="@routes.OrganizationApp.newForm()" class="ybtn ybtn-success">
+                            <a href="@routes.OrganizationApp.newForm" class="ybtn ybtn-success">
                             @Messages("title.newOrganization")
                             </a>
                         </td>
@@ -39,7 +39,7 @@
                     </tr>
                     <tr>
                         <td>
-                            <a href="@routes.ProjectApp.projects()" class="ybtn ybtn-success">
+                            <a href="@routes.ProjectApp.projects("", 1)" class="ybtn ybtn-success">
                             @Messages("title.projectList")
                             </a>
                         </td>
@@ -123,7 +123,7 @@
             var $setDefaultLoginPage = $("#setDefaultLoginPage");
             $setDefaultLoginPage.popover();
             $setDefaultLoginPage.on('click', function(){
-                $.post("@routes.UserApp.setDefaultLoginPage()?path=" + $setDefaultLoginPage.data("url"))
+                $.post("@routes.UserApp.setDefaultLoginPage?path=" + $setDefaultLoginPage.data("url"))
                         .done(function (data) {
                             $yobi.notify("Set to default: " + data.defaultLoginPage, 3000);
                             $setDefaultLoginPage.hide();

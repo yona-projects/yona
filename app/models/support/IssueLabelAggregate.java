@@ -6,10 +6,10 @@
  **/
 package models.support;
 
-import com.avaje.ebean.annotation.Sql;
-import play.db.ebean.Model;
+import io.ebean.annotation.Sql;
+import io.ebean.Model;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 
 @Entity
 @Sql

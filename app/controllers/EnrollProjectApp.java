@@ -27,17 +27,17 @@ import models.Project;
 import models.ProjectUser;
 import models.User;
 import models.enumeration.RequestState;
-import play.db.ebean.Transactional;
-import play.mvc.Controller;
+import io.ebean.annotation.Transactional;
+import utils.LegacyController;
 import play.mvc.Result;
 import play.mvc.With;
 
 @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
-public class EnrollProjectApp extends Controller {
+public class EnrollProjectApp extends LegacyController {
 
     @Transactional
     @With(DefaultProjectCheckAction.class)
-    public static Result enroll(String loginId, String projectName) {
+    public Result enroll(String loginId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
         User user = UserApp.currentUser();
@@ -55,7 +55,7 @@ public class EnrollProjectApp extends Controller {
 
     @Transactional
     @With(DefaultProjectCheckAction.class)
-    public static Result cancelEnroll(String loginId, String proejctName) {
+    public Result cancelEnroll(String loginId, String proejctName) {
         Project project = Project.findByOwnerAndProjectName(loginId, proejctName);
 
         User user = UserApp.currentUser();

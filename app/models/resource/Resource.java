@@ -23,7 +23,8 @@ package models.resource;
 import actions.support.PathParser;
 import models.*;
 import models.enumeration.ResourceType;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 import playRepository.Commit;
 import playRepository.RepositoryService;
 import utils.Config;
@@ -32,7 +33,7 @@ import java.util.EnumSet;
 
 public abstract class Resource {
     public static boolean exists(ResourceType type, String id) {
-        Model.Finder<Long, ? extends Model> finder;
+        Finder<Long, ? extends Model> finder;
 
         switch(type) {
             case ISSUE_POST:

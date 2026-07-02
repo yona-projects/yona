@@ -21,10 +21,10 @@
 package models.resource;
 
 import models.enumeration.ResourceType;
-import play.libs.F;
 import play.mvc.QueryStringBindable;
 
 import java.util.Map;
+import java.util.Optional;
 
 public class ResourceParam implements QueryStringBindable<ResourceParam> {
 
@@ -37,14 +37,14 @@ public class ResourceParam implements QueryStringBindable<ResourceParam> {
     }
 
     @Override
-    public F.Option<ResourceParam> bind(String key, Map<String, String[]> data) {
+    public Optional<ResourceParam> bind(String key, Map<String, String[]> data) {
         String type = data.get(key + ".type")[0];
         String id = data.get(key + ".id")[0];
         Resource result = Resource.get(ResourceType.getValue(type), id);
         if (result != null) {
-            return F.Some(ResourceParam.get(result));
+            return Optional.of(ResourceParam.get(result));
         } else {
-            return new F.None<>();
+            return Optional.empty();
         }
     }
 

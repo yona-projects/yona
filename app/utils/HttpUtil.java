@@ -168,7 +168,7 @@ public class HttpUtil {
      * @return Boolean
      */
     public static Boolean isRequestedWithXHR(Http.Request request){
-        String requestedWith = request.getHeader("X-Requested-With");
+        String requestedWith = RequestUtil.getHeader(request, "X-Requested-With");
         return (requestedWith != null && requestedWith.toLowerCase().equals("xmlhttprequest"));
     }
 
@@ -179,7 +179,7 @@ public class HttpUtil {
      * @return Boolean
      */
     public static Boolean isPJAXRequest(Http.Request request){
-        return Boolean.parseBoolean(request.getHeader("X-PJAX"));
+        return Boolean.parseBoolean(RequestUtil.getHeader(request, "X-PJAX"));
     }
 
     /**

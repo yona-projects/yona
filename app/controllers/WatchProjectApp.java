@@ -14,22 +14,23 @@ import models.UserProjectNotification;
 import models.Watch;
 import models.enumeration.EventType;
 import models.enumeration.Operation;
-import play.db.ebean.Transactional;
+import io.ebean.annotation.Transactional;
 import play.i18n.Messages;
-import play.mvc.Controller;
+import utils.LegacyController;
 import play.mvc.Result;
 import utils.AccessControl;
 import utils.ErrorViews;
+import utils.MessagesUtil;
 
 import static models.UserProjectNotification.*;
 import static models.enumeration.ResourceType.PROJECT;
 
 @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
-public class WatchProjectApp extends Controller {
+public class WatchProjectApp extends LegacyController {
 
     @IsAllowed(Operation.READ)
     @Transactional
-    public static Result watch(String userName, String projectName) {
+    public Result watch(String userName, String projectName) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         Watch.watch(project.asResource());
         return ok();
@@ -37,7 +38,7 @@ public class WatchProjectApp extends Controller {
 
     @IsAllowed(Operation.READ)
     @Transactional
-    public static Result unwatch(String loginId, String projectName) {
+    public Result unwatch(String loginId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
         Watch.unwatch(project.asResource());
@@ -46,7 +47,7 @@ public class WatchProjectApp extends Controller {
         return ok();
     }
 
-    public static Result toggle(Long projectId, String notificationType) {
+    public Result toggle(Long projectId, String notificationType) {
         EventType notiType = EventType.valueOf(notificationType);
         Project project = Project.find.byId(projectId);
         User user = UserApp.currentUser();
@@ -58,7 +59,7 @@ public class WatchProjectApp extends Controller {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
         if(!Watch.isWatching(user, project.asResource())) {
-            return badRequest(Messages.get("error.notfound.watch"));
+            return badRequest(MessagesUtil.get("error.notfound.watch"));
         }
 
         UserProjectNotification userProjectNotification = findOne(user, project, notiType);

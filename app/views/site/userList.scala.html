@@ -18,7 +18,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(message: String, currentPage: com.avaje.ebean.Page[User], userState: UserState, query: String)
+@(message: String, currentPage: io.ebean.PagedList[User], userState: UserState, query: String)
 
 @import utils.JodaDateUtil._
 @import utils.TemplateHelper._
@@ -35,7 +35,7 @@
     <div class="title_area">
 
         <h2 class="pull-left">@Messages("site.sidebar.userList")</h2>
-        <form class="form-search pull-right" action="@routes.SiteApp.userList()">
+        <form class="form-search pull-right" action="@routes.SiteApp.userList(1, null)">
             <input type="hidden" name="state" value="@userState" />
             <div class="search-bar">
                 <input class="textbox" name="query" type="text" placeholder="@Messages("site.userList.search")" value="@query">
@@ -44,11 +44,11 @@
         </form>
     </div>
     <ul class="nav nav-tabs">
-      <li class="@isActiveTabMenu(UserState.ACTIVE)"><a href="@routes.SiteApp.userList()?state=@UserState.ACTIVE.name">@Messages("site.userList.unlocked")</a></li>
-      <li class="@isActiveTabMenu(UserState.LOCKED)"><a href="@routes.SiteApp.userList()?state=@UserState.LOCKED.name">@Messages("site.userList.locked")</a></li>
-      <li class="@isActiveTabMenu(UserState.DELETED)"><a href="@routes.SiteApp.userList()?state=@UserState.DELETED.name">@Messages("site.userList.deleted")</a></li>
-      <li class="@isActiveTabMenu(UserState.GUEST)"><a href="@routes.SiteApp.userList()?state=@UserState.GUEST.name">@Messages("site.userList.guest")</a></li>
-      <li class="@isActiveTabMenu(UserState.SITE_ADMIN)"><a href="@routes.SiteApp.userList()?state=@UserState.SITE_ADMIN.name">@Messages("site.userList.siteAdmin")@numberOfSiteAdmin</a></li>
+      <li class="@isActiveTabMenu(UserState.ACTIVE)"><a href="@routes.SiteApp.userList(1, null)?state=@UserState.ACTIVE.name">@Messages("site.userList.unlocked")</a></li>
+      <li class="@isActiveTabMenu(UserState.LOCKED)"><a href="@routes.SiteApp.userList(1, null)?state=@UserState.LOCKED.name">@Messages("site.userList.locked")</a></li>
+      <li class="@isActiveTabMenu(UserState.DELETED)"><a href="@routes.SiteApp.userList(1, null)?state=@UserState.DELETED.name">@Messages("site.userList.deleted")</a></li>
+      <li class="@isActiveTabMenu(UserState.GUEST)"><a href="@routes.SiteApp.userList(1, null)?state=@UserState.GUEST.name">@Messages("site.userList.guest")</a></li>
+      <li class="@isActiveTabMenu(UserState.SITE_ADMIN)"><a href="@routes.SiteApp.userList(1, null)?state=@UserState.SITE_ADMIN.name">@Messages("site.userList.siteAdmin")@numberOfSiteAdmin</a></li>
     </ul>
     <div class="row-fluid listhead">
         <div class="span3 listhead-title">

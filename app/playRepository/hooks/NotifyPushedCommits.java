@@ -31,9 +31,8 @@ import org.eclipse.jgit.transport.ReceiveCommand;
 import org.eclipse.jgit.transport.ReceivePack;
 
 import actors.CommitsNotificationActor;
-import akka.actor.Props;
+import org.apache.pekko.actor.Props;
 
-import play.libs.Akka;
 
 public class NotifyPushedCommits implements PostReceiveHook {
     private Project project;
@@ -47,6 +46,6 @@ public class NotifyPushedCommits implements PostReceiveHook {
     @Override
     public void onPostReceive(ReceivePack receivePack, Collection<ReceiveCommand> commands) {
         PostReceiveMessage message = new PostReceiveMessage(commands, project, user);
-        Akka.system().actorOf(Props.create(CommitsNotificationActor.class)).tell(message, null);
+        utils.AkkaUtil.system().actorOf(Props.create(CommitsNotificationActor.class)).tell(message, null);
     }
 }

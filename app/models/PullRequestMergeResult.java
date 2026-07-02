@@ -59,7 +59,7 @@ public class PullRequestMergeResult {
         List<PullRequestCommit> currentCommits = new ArrayList<>();
         for (GitCommit commit: gitCommits) {
             boolean existCommit = false;
-            List<PullRequestCommit> pullRequestCommits = PullRequestCommit.find.where()
+            List<PullRequestCommit> pullRequestCommits = PullRequestCommit.find.query().where()
                                     .eq("pullRequest", pullRequest)
                                     .eq("state", PullRequestCommit.State.CURRENT)
                                     .findList();
@@ -102,7 +102,7 @@ public class PullRequestMergeResult {
     }
 
     public void updatePriorCommits() {
-        for (PullRequestCommit pullRequestCommit: PullRequestCommit.find.where().eq("pullRequest", pullRequest).findList()) {
+        for (PullRequestCommit pullRequestCommit: PullRequestCommit.find.query().where().eq("pullRequest", pullRequest).findList()) {
             boolean existCommit = false;
             for (GitCommit commit: gitCommits) {
                 if(commit.getId().equals(pullRequestCommit.commitId)) {

@@ -7,7 +7,7 @@
 package controllers;
 
 import actions.DefaultProjectCheckAction;
-import com.avaje.ebean.*;
+import io.ebean.*;
 
 import controllers.annotation.AnonymousCheck;
 import controllers.annotation.GuestProhibit;
@@ -23,6 +23,7 @@ import org.apache.commons.mail.HtmlEmail;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
+import org.slf4j.LoggerFactory;
 import org.tmatesoft.svn.core.SVNException;
 
 import models.resource.Resource;
@@ -30,8 +31,7 @@ import play.Logger;
 import play.data.Form;
 import play.data.validation.Constraints.PatternValidator;
 import play.data.validation.ValidationError;
-import play.db.ebean.Transactional;
-import play.i18n.Messages;
+import io.ebean.annotation.Transactional;
 import play.libs.Json;
 import play.mvc.*;
 import play.mvc.Http.MultipartFormData.FilePart;
@@ -49,12 +49,13 @@ import views.html.project.transfer;
 import views.html.project.change_vcs;
 
 import javax.servlet.ServletException;
+import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-import static com.avaje.ebean.Expr.ilike;
-import static play.data.Form.form;
+import static io.ebean.Expr.ilike;
+import static utils.FormUtil.form;
 import static play.libs.Json.toJson;
 import static utils.CacheStore.getProjectCacheKey;
 import static utils.CacheStore.projectMap;
@@ -62,7 +63,7 @@ import static utils.LogoUtil.*;
 import static utils.TemplateHelper.*;
 
 @AnonymousCheck
-public class ProjectApp extends Controller {
+public class ProjectApp extends LegacyController {
 
     private static final int ISSUE_MENTION_SHOW_LIMIT = 20;
 
@@ -86,7 +87,7 @@ public class ProjectApp extends Controller {
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.UPDATE)
-    public static Result projectOverviewUpdate(String ownerId, String projectName){
+    public Result projectOverviewUpdate(String ownerId, String projectName){
         Project targetProject = Project.findByOwnerAndProjectName(ownerId, projectName);
         if (targetProject == null) {
             return notFound(ErrorViews.NotFound.render("error.notfound"));
@@ -102,7 +103,7 @@ public class ProjectApp extends Controller {
 
     @IsAllowed(Operation.READ)
     @Transactional
-    public static Result project(String ownerId, String projectName)
+    public Result project(String ownerId, String projectName)
             throws IOException, ServletException, SVNException, GitAPIException {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
         List<History> histories = null;
@@ -150,15 +151,15 @@ public class ProjectApp extends Controller {
     }
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
-    public static Result newProjectForm() {
-        Form<Project> projectForm = form(Project.class).bindFromRequest("owner");
-        projectForm.discardErrors();
+    public Result newProjectForm() {
+        Form<Project> projectForm = form(Project.class).bindFromRequest(request(), "owner");
+        projectForm = projectForm.discardingErrors();
         List<OrganizationUser> orgUserList = OrganizationUser.findByAdmin(UserApp.currentUser().id);
         return ok(create.render("title.newProject", projectForm, orgUserList));
     }
 
     @IsAllowed(Operation.UPDATE)
-    public static Result settingForm(String ownerId, String projectName) throws Exception {
+    public Result settingForm(String ownerId, String projectName) throws Exception {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
         Form<Project> projectForm = form(Project.class).fill(project);
         PlayRepository repository = RepositoryService.getRepository(project);
@@ -166,9 +167,9 @@ public class ProjectApp extends Controller {
     }
 
     @Transactional
-    public static Result newProject() throws Exception {
-        Form<Project> filledNewProjectForm = form(Project.class).bindFromRequest();
-        String owner = filledNewProjectForm.field("owner").value();
+    public Result newProject() throws Exception {
+        Form<Project> filledNewProjectForm = form(Project.class).bindFromRequest(request());
+        String owner = filledNewProjectForm.field("owner").value().orElse("");
 
         User user = UserApp.currentUser();
         Organization organization = Organization.findByName(owner);
@@ -184,13 +185,14 @@ public class ProjectApp extends Controller {
         }
 
         Project project = filledNewProjectForm.get();
+        project.menuSetting = null;
         if (Organization.isNameExist(owner)) {
             project.organization = organization;
         }
         ProjectUser.assignRole(user.id, Project.create(project), RoleType.MANAGER);
         RepositoryService.createRepository(project);
 
-        saveProjectMenuSetting(project);
+        saveProjectMenuSetting(project, true);
         Watch.watch(project.asResource());
         projectMap.put(getProjectCacheKey(project.owner, project.name), project.id);
         UserApp.currentUser().visits(project);
@@ -199,33 +201,33 @@ public class ProjectApp extends Controller {
     }
 
     private static boolean validateWhenNew(Form<Project> newProjectForm) {
-        String owner = newProjectForm.field("owner").value();
-        String name = newProjectForm.field("name").value();
+        String owner = newProjectForm.field("owner").value().orElse("");
+        String name = newProjectForm.field("name").value().orElse("");
 
         User user = User.findByLoginId(owner);
         boolean ownerIsUser = User.isLoginIdExist(owner);
         boolean ownerIsOrganization = Organization.isNameExist(owner);
 
         if (!ownerIsUser && !ownerIsOrganization) {
-            newProjectForm.reject("owner", "project.owner.invalidate");
+            utils.FormUtil.reject(newProjectForm, "owner", "project.owner.invalidate");
         }
 
         if (ownerIsUser && !UserApp.currentUser().id.equals(user.id)) {
-            newProjectForm.reject("owner", "project.owner.invalidate");
+            utils.FormUtil.reject(newProjectForm, "owner", "project.owner.invalidate");
         }
 
         if (Project.exists(owner, name)) {
-            newProjectForm.reject("name", "project.name.duplicate");
+            utils.FormUtil.reject(newProjectForm, "name", "project.name.duplicate");
         }
 
-        ValidationError error = newProjectForm.error("name");
+        ValidationError error = newProjectForm.error("name").orElse(null);
         if (error != null) {
             if (PatternValidator.message.equals(error.message())) {
-                newProjectForm.errors().remove("name");
-                newProjectForm.reject("name", "project.name.alert");
+                utils.FormUtil.removeErrors(newProjectForm, "name");
+                utils.FormUtil.reject(newProjectForm, "name", "project.name.alert");
             } else if (RestrictedValidator.message.equals(error.message())) {
-                newProjectForm.errors().remove("name");
-                newProjectForm.reject("name", "project.name.reserved.alert");
+                utils.FormUtil.removeErrors(newProjectForm, "name");
+                utils.FormUtil.reject(newProjectForm, "name", "project.name.reserved.alert");
             }
         }
 
@@ -234,9 +236,9 @@ public class ProjectApp extends Controller {
 
     @Transactional
     @IsAllowed(Operation.UPDATE)
-    public static Result settingProject(String ownerId, String projectName)
+    public Result settingProject(String ownerId, String projectName)
             throws IOException, NoSuchAlgorithmException, UnsupportedOperationException, ServletException {
-        Form<Project> filledUpdatedProjectForm = form(Project.class).bindFromRequest();
+        Form<Project> filledUpdatedProjectForm = form(Project.class).bindFromRequest(request());
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
         PlayRepository repository = RepositoryService.getRepository(project);
 
@@ -247,11 +249,11 @@ public class ProjectApp extends Controller {
 
         Project updatedProject = filledUpdatedProjectForm.get();
 
-        FilePart filePart = request().body().asMultipartFormData().getFile("logoPath");
+        FilePart<File> filePart = request().body().<File>asMultipartFormData().getFile("logoPath");
 
         if (!isEmptyFilePart(filePart)) {
             Attachment.deleteAll(updatedProject.asResource());
-            new Attachment().store(filePart.getFile(), filePart.getFilename(), updatedProject.asResource());
+            new Attachment().store(filePart.getRef(), filePart.getFilename(), updatedProject.asResource());
         }
 
         Map<String, String[]> data = request().body().asMultipartFormData().asFormUrlEncoded();
@@ -270,7 +272,7 @@ public class ProjectApp extends Controller {
 
         updatedProject.update();
 
-        saveProjectMenuSetting(updatedProject);
+        saveProjectMenuSetting(updatedProject, false);
         UserApp.currentUser().updateFavoriteProject(updatedProject);
         FavoriteProject.updateFavoriteProject(updatedProject);
 
@@ -278,50 +280,99 @@ public class ProjectApp extends Controller {
     }
 
     public static void saveProjectMenuSetting(Project project) {
-        Form<ProjectMenuSetting> filledUpdatedProjectMenuSettingForm = form(ProjectMenuSetting.class).bindFromRequest();
-        ProjectMenuSetting updatedProjectMenuSetting = filledUpdatedProjectMenuSettingForm.get();
+        saveProjectMenuSetting(project, false);
+    }
+
+    public static void saveProjectMenuSetting(Project project, boolean useDefaultWhenEmpty) {
+        Form<ProjectMenuSetting> filledUpdatedProjectMenuSettingForm = form(ProjectMenuSetting.class).bindFromRequest(request());
+        ProjectMenuSetting updatedProjectMenuSetting = new ProjectMenuSetting();
+        Map<String, String> rawData = filledUpdatedProjectMenuSettingForm.rawData();
+        Map<String, String[]> formData = request().body().asFormUrlEncoded();
+
+        updatedProjectMenuSetting.code = isChecked(formData, rawData, "code");
+        updatedProjectMenuSetting.issue = isChecked(formData, rawData, "issue");
+        updatedProjectMenuSetting.pullRequest = isChecked(formData, rawData, "pullRequest");
+        updatedProjectMenuSetting.review = isChecked(formData, rawData, "review");
+        updatedProjectMenuSetting.milestone = isChecked(formData, rawData, "milestone");
+        updatedProjectMenuSetting.board = isChecked(formData, rawData, "board");
 
         project.refresh();
         updatedProjectMenuSetting.project = project;
 
+        if (useDefaultWhenEmpty && !hasEnabledMenu(updatedProjectMenuSetting)) {
+            applyDefaultMenuSetting(updatedProjectMenuSetting);
+        }
+
         if (project.menuSetting == null) {
             updatedProjectMenuSetting.save();
+            project.menuSetting = updatedProjectMenuSetting;
+            project.update();
         } else {
             project.menuSetting.updateMenuSetting(updatedProjectMenuSetting);
         }
     }
 
+    private static boolean hasEnabledMenu(ProjectMenuSetting menuSetting) {
+        return menuSetting.code || menuSetting.issue || menuSetting.pullRequest ||
+                menuSetting.review || menuSetting.milestone || menuSetting.board;
+    }
+
+    private static void applyDefaultMenuSetting(ProjectMenuSetting menuSetting) {
+        String defaultMenus = play.Configuration.root()
+                .getString("project.default.menus.when.create", "code, issue, pullRequest, review, milestone, board");
+        Set<String> menus = new HashSet<>(Arrays.asList(defaultMenus.replaceAll(" ", "").split(",")));
+
+        menuSetting.code = menus.contains("code");
+        menuSetting.issue = menus.contains("issue");
+        menuSetting.pullRequest = menus.contains("pullRequest");
+        menuSetting.review = menus.contains("review");
+        menuSetting.milestone = menus.contains("milestone");
+        menuSetting.board = menus.contains("board");
+    }
+
+    private static boolean isChecked(Map<String, String[]> formData, Map<String, String> rawData, String key) {
+        if (formData != null && formData.containsKey(key)) {
+            String[] values = formData.get(key);
+            return values != null && values.length > 0 && isTruthy(values[0]);
+        }
+        return isTruthy(rawData.get(key));
+    }
+
+    private static boolean isTruthy(String value) {
+        return value != null && !"false".equalsIgnoreCase(value) && !"off".equalsIgnoreCase(value);
+    }
+
     private static boolean validateWhenUpdate(String loginId, Form<Project> updateProjectForm) {
-        Long id = Long.parseLong(updateProjectForm.field("id").value());
-        String name = updateProjectForm.field("name").value();
+        Long id = Long.parseLong(updateProjectForm.field("id").value().orElse(""));
+        String name = updateProjectForm.field("name").value().orElse("");
 
         if (!Project.projectNameChangeable(id, loginId, name)) {
             flash(Constants.WARNING, "project.name.duplicate");
-            updateProjectForm.reject("name", "project.name.duplicate");
+            utils.FormUtil.reject(updateProjectForm, "name", "project.name.duplicate");
         }
 
-        FilePart filePart = request().body().asMultipartFormData().getFile("logoPath");
+        FilePart<File> filePart = request().body().<File>asMultipartFormData().getFile("logoPath");
 
         if (!isEmptyFilePart(filePart)) {
             if (!isImageFile(filePart.getFilename())) {
                 flash(Constants.WARNING, "project.logo.alert");
-                updateProjectForm.reject("logoPath", "project.logo.alert");
-            } else if (filePart.getFile().length() > LOGO_FILE_LIMIT_SIZE) {
+                utils.FormUtil.reject(updateProjectForm, "logoPath", "project.logo.alert");
+            } else if (filePart.getRef().length() > LOGO_FILE_LIMIT_SIZE) {
                 flash(Constants.WARNING, "project.logo.fileSizeAlert");
-                updateProjectForm.reject("logoPath", "project.logo.fileSizeAlert");
+                utils.FormUtil.reject(updateProjectForm, "logoPath", "project.logo.fileSizeAlert");
             }
         }
 
-        ValidationError error = updateProjectForm.error("name");
+        ValidationError error = updateProjectForm.error("name").orElse(null);
         if (error != null) {
             if (PatternValidator.message.equals(error.message())) {
                 flash(Constants.WARNING, "project.name.alert");
-                updateProjectForm.errors().remove("name");
-                updateProjectForm.reject("name", "project.name.alert");
+                utils.FormUtil.removeErrors(updateProjectForm, "name");
+                utils.FormUtil.reject(updateProjectForm, "name", "project.name.alert");
             } else if (RestrictedValidator.message.equals(error.message())) {
                 flash(Constants.WARNING, "project.name.reserved.alert");
-                updateProjectForm.errors().remove("name");
-                updateProjectForm.reject("name", "project.name.reserved.alert");
+                utils.FormUtil.removeErrors(updateProjectForm, "name");
+                utils.FormUtil.reject(updateProjectForm, "name", "project.name.reserved.alert");
             }
         }
 
@@ -329,7 +380,7 @@ public class ProjectApp extends Controller {
     }
 
     @IsAllowed(Operation.DELETE)
-    public static Result deleteForm(String ownerId, String projectName) {
+    public Result deleteForm(String ownerId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
         Form<Project> projectForm = form(Project.class).fill(project);
         return ok(delete.render("title.projectDelete", projectForm, project));
@@ -337,7 +388,7 @@ public class ProjectApp extends Controller {
 
     @Transactional
     @IsAllowed(Operation.DELETE)
-    public static Result deleteProject(String ownerId, String projectName) throws Exception {
+    public Result deleteProject(String ownerId, String projectName) throws Exception {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
         if (project == null) {
             return redirect(routes.Application.index());
@@ -357,7 +408,7 @@ public class ProjectApp extends Controller {
 
     @Transactional
     @IsAllowed(Operation.UPDATE)
-    public static Result members(String loginId, String projectName) {
+    public Result members(String loginId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
         project.cleanEnrolledUsers();
         return ok(views.html.project.members.render("title.projectMembers",
@@ -367,7 +418,7 @@ public class ProjectApp extends Controller {
 
     @Transactional
     @IsAllowed(Operation.READ)
-    public static Result watchers(String loginId, String projectName) {
+    public Result watchers(String loginId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
         Resource resource = project.asResource();
         return ok(views.html.project.watchers.render(
@@ -382,7 +433,7 @@ public class ProjectApp extends Controller {
     }
 
     @AnonymousCheck
-    public static Result mentionList(String loginId, String projectName, Long number,
+    public Result mentionList(String loginId, String projectName, Long number,
                                      String resourceType, String query, String mentionType) {
         String prefer = HttpUtil.getPreferType(request(), HTML, JSON);
         if (prefer == null) {
@@ -481,13 +532,13 @@ public class ProjectApp extends Controller {
 
     private static List<Issue> getMentionIssueList(Project project, String query) {
         if (StringUtils.isEmpty(query)) {
-            return Issue.finder.where()
+            return Issue.finder.query().where()
                     .eq("project.id", project.isForkedFromOrigin() ? project.originalProject.id : project.id)
                     .orderBy("createdDate desc")
                     .setMaxRows(ISSUE_MENTION_SHOW_LIMIT)
                     .findList();
         }
-        return Issue.finder.where()
+        return Issue.finder.query().where()
                 .eq("project.id", project.isForkedFromOrigin() ? project.originalProject.id : project.id)
                 .or(ilike("title", "%" + query + "%"),
                         ilike("number", query + "%"))
@@ -497,7 +548,7 @@ public class ProjectApp extends Controller {
     }
 
     @IsAllowed(Operation.READ)
-    public static Result mentionListAtCommitDiff(String ownerId, String projectName, String commitId, Long pullRequestId)
+    public Result mentionListAtCommitDiff(String ownerId, String projectName, String commitId, Long pullRequestId)
             throws IOException, UnsupportedOperationException, ServletException, SVNException {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
         String query = request().getQueryString("query");
@@ -539,7 +590,7 @@ public class ProjectApp extends Controller {
     }
 
     @IsAllowed(Operation.READ)
-    public static Result mentionListAtPullRequest(String ownerId, String projectName, String commitId, Long pullRequestId)
+    public Result mentionListAtPullRequest(String ownerId, String projectName, String commitId, Long pullRequestId)
             throws IOException, UnsupportedOperationException, ServletException, SVNException {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
 
@@ -595,7 +646,7 @@ public class ProjectApp extends Controller {
     }
 
     @IsAllowed(Operation.DELETE)
-    public static Result transferForm(String ownerId, String projectName) {
+    public Result transferForm(String ownerId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
         Form<Project> projectForm = form(Project.class).fill(project);
 
@@ -604,7 +655,7 @@ public class ProjectApp extends Controller {
 
     @Transactional
     @IsAllowed(Operation.DELETE)
-    public static Result transferProject(String ownerId, String projectName) {
+    public Result transferProject(String ownerId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
         String destination = request().getQueryString("owner");
 
@@ -645,7 +696,7 @@ public class ProjectApp extends Controller {
     }
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
-    public static synchronized Result acceptTransfer(Long id, String confirmKey) throws IOException, ServletException {
+    public synchronized Result acceptTransfer(Long id, String confirmKey) throws IOException, ServletException {
         ProjectTransfer pt = ProjectTransfer.findValidOne(id);
         if (pt == null) {
             return notFound(ErrorViews.NotFound.render());
@@ -712,14 +763,14 @@ public class ProjectApp extends Controller {
     }
 
     @IsAllowed(Operation.UPDATE)
-    public static Result changeVCSForm(String ownerId, String projectName) {
+    public Result changeVCSForm(String ownerId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
         Form<Project> projectForm = form(Project.class).fill(project);
         return ok(change_vcs.render("title.projectChangeVCS", projectForm, project));
     }
 
     @IsAllowed(Operation.UPDATE)
-    public static Result changeVCS(String ownerId, String projectName) throws Exception {
+    public Result changeVCS(String ownerId, String projectName) throws Exception {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
         try {
             if (project.readme() != null){
@@ -743,12 +794,12 @@ public class ProjectApp extends Controller {
         HtmlEmail email = new HtmlEmail();
         try {
             String acceptUrl = pt.getAcceptUrl();
-            String message = Messages.get("transfer.message.hello", pt.destination) + "\n\n"
-                    + Messages.get("transfer.message.detail", pt.project.name, pt.newProjectName, pt.project.owner, pt.destination) + "\n"
-                    + Messages.get("transfer.message.link") + "\n\n"
+            String message = MessagesUtil.get("transfer.message.hello", pt.destination) + "\n\n"
+                    + MessagesUtil.get("transfer.message.detail", pt.project.name, pt.newProjectName, pt.project.owner, pt.destination) + "\n"
+                    + MessagesUtil.get("transfer.message.link") + "\n\n"
                     + acceptUrl + "\n\n"
-                    + Messages.get("transfer.message.deadline") + "\n\n"
-                    + Messages.get("transfer.message.thank");
+                    + MessagesUtil.get("transfer.message.deadline") + "\n\n"
+                    + MessagesUtil.get("transfer.message.thank");
 
             email.setFrom(Config.getEmailFromSmtp(), pt.sender.name);
             email.addTo(Config.getEmailFromSmtp(), "Yobi");
@@ -775,7 +826,7 @@ public class ProjectApp extends Controller {
             Mailer.send(email);
             String escapedTitle = email.getSubject().replace("\"", "\\\"");
             String logEntry = String.format("\"%s\" %s", escapedTitle, email.getBccAddresses());
-            play.Logger.of("mail").info(logEntry);
+            LoggerFactory.getLogger("mail").info(logEntry);
         } catch (Exception e) {
             Logger.warn("Failed to send a notification: " + email + "\n" + ExceptionUtils.getStackTrace(e));
         }
@@ -785,12 +836,12 @@ public class ProjectApp extends Controller {
         Project project = Project.find.byId(projectId);
 
         if (RepositoryService.VCS_GIT.equals(project.vcs)) {
-            List<ReviewComment> comments = ReviewComment.find
+            List<ReviewComment> comments = ReviewComment.find.query()
                     .fetch("thread")
                     .where()
                     .eq("thread.commitId",commitId)
                     .eq("thread.project", project)
-                    .eq("thread.pullRequest", null).findList();
+                    .isNull("thread.pullRequest").findList();
 
             for (ReviewComment comment : comments) {
                 User commentAuthor = User.findByLoginId(comment.author.loginId);
@@ -800,7 +851,7 @@ public class ProjectApp extends Controller {
                 userList.add(commentAuthor);
             }
         } else {
-            List<CommitComment> comments = CommitComment.find.where().eq("commitId",
+            List<CommitComment> comments = CommitComment.find.query().where().eq("commitId",
                     commitId).eq("project.id", projectId).findList();
 
             for (CommitComment codeComment : comments) {
@@ -937,10 +988,10 @@ public class ProjectApp extends Controller {
     @Transactional
     @With(DefaultProjectCheckAction.class)
     @IsAllowed(Operation.UPDATE)
-    public static Result newMember(String ownerId, String projectName) {
-        Form<User> addMemberForm = form(User.class).bindFromRequest();
+    public Result newMember(String ownerId, String projectName) {
+        Form<User> addMemberForm = form(User.class).bindFromRequest(request());
 
-        User newMember = User.findByLoginId(addMemberForm.field("loginId").value());
+        User newMember = User.findByLoginId(addMemberForm.field("loginId").value().orElse(""));
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
 
         if (isErrorOnAddMemberForm(newMember, project, addMemberForm)) {
@@ -948,7 +999,7 @@ public class ProjectApp extends Controller {
                 return badRequest(addMemberForm.errorsAsJson());
             }
 
-            List<ValidationError> errors = addMemberForm.errors().get("loginId");
+            List<ValidationError> errors = utils.FormUtil.errors(addMemberForm, "loginId");
             flash(Constants.WARNING, errors.get(errors.size() - 1).message());
             return redirect(routes.ProjectApp.members(ownerId, projectName));
         }
@@ -966,13 +1017,13 @@ public class ProjectApp extends Controller {
 
     private static boolean isErrorOnAddMemberForm(User user, Project project, Form<User> addMemberForm) {
         if (addMemberForm.hasErrors()) {
-            addMemberForm.reject("loginId", "project.members.addMember");
+            utils.FormUtil.reject(addMemberForm, "loginId", "project.members.addMember");
         } else if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
-            addMemberForm.reject("loginId", "project.member.isManager");
+            utils.FormUtil.reject(addMemberForm, "loginId", "project.member.isManager");
         } else if (user.isAnonymous()) {
-            addMemberForm.reject("loginId", "project.member.notExist");
+            utils.FormUtil.reject(addMemberForm, "loginId", "project.member.notExist");
         } else if (user.isMemberOf(project)) {
-            addMemberForm.reject("loginId", "project.member.alreadyMember");
+            utils.FormUtil.reject(addMemberForm, "loginId", "project.member.alreadyMember");
         }
 
         return addMemberForm.hasErrors();
@@ -1003,7 +1054,7 @@ public class ProjectApp extends Controller {
      */
     @Transactional
     @With(DefaultProjectCheckAction.class)
-    public static Result deleteMember(String ownerId, String projectName, Long userId) {
+    public Result deleteMember(String ownerId, String projectName, Long userId) {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
         User deleteMember = User.find.byId(userId);
 
@@ -1037,7 +1088,7 @@ public class ProjectApp extends Controller {
      */
     @Transactional
     @IsAllowed(Operation.UPDATE)
-    public static Result editMember(String ownerId, String projectName, Long userId) {
+    public Result editMember(String ownerId, String projectName, Long userId) {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
         User editMember = User.find.byId(userId);
 
@@ -1045,7 +1096,7 @@ public class ProjectApp extends Controller {
             return badRequest(ErrorViews.Forbidden.render("project.member.ownerMustBeAManager", project));
         }
 
-        ProjectUser.assignRole(userId, project.id, form(Role.class).bindFromRequest().get().id);
+        ProjectUser.assignRole(userId, project.id, form(Role.class).bindFromRequest(request()).get().id);
         return status(Http.Status.NO_CONTENT);
     }
 
@@ -1055,7 +1106,7 @@ public class ProjectApp extends Controller {
      * @return
      */
     @GuestProhibit
-    public static Result projects(String query, int pageNum) {
+    public Result projects(String query, int pageNum) {
         if(Application.HIDE_PROJECT_LISTING){
             return forbidden(ErrorViews.Forbidden.render("error.auth.unauthorized.waringMessage"));
         }
@@ -1086,19 +1137,19 @@ public class ProjectApp extends Controller {
         }
 
         el.orderBy("createdDate desc");
-        Page<Project> projects = getProjectPage(pageNum, el);
+        PagedList<Project> projects = getProjectPage(pageNum, el);
 
         return ok(views.html.project.list.render("title.projectList", projects, query));
     }
 
-    private static Page<Project> getProjectPage(int pageNum, ExpressionList<Project> el) {
-        return el.findPagingList(PROJECT_COUNT_PER_PAGE).getPage(pageNum - 1);
+    private static PagedList<Project> getProjectPage(int pageNum, ExpressionList<Project> el) {
+        return el.setFirstRow((pageNum - 1) * (PROJECT_COUNT_PER_PAGE)).setMaxRows(PROJECT_COUNT_PER_PAGE).findPagedList();
     }
 
     private static Result getProjectsToJSON(String query) {
         ExpressionList<Project> el = createProjectSearchExpressionList(query);
 
-        int total = el.findRowCount();
+        int total = el.findCount();
         if (total > MAX_FETCH_PROJECTS) {
             el.setMaxRows(MAX_FETCH_PROJECTS);
             response().setHeader("Content-Range", "items " + MAX_FETCH_PROJECTS + "/" + total);
@@ -1113,14 +1164,14 @@ public class ProjectApp extends Controller {
     }
 
     private static ExpressionList<Project> createProjectSearchExpressionList(String query) {
-        ExpressionList<Project> el = Project.find.where();
+        ExpressionList<Project> el = Project.find.query().where();
 
         if (StringUtils.isNotBlank(query)) {
             Junction<Project> junction = el.disjunction();
             junction.icontains("owner", query)
                     .icontains("name", query)
                     .icontains("overview", query);
-            List<Object> ids = Project.find.where().icontains("labels.name", query).findIds();
+            List<Object> ids = Project.find.query().where().icontains("labels.name", query).findIds();
             if (!ids.isEmpty()) {
                 junction.idIn(ids);
             }
@@ -1141,7 +1192,7 @@ public class ProjectApp extends Controller {
      * @return
      */
     @IsAllowed(Operation.READ)
-    public static Result labels(String ownerId, String projectName) {
+    public Result labels(String ownerId, String projectName) {
         if (!request().accepts("application/json")) {
             return status(Http.Status.NOT_ACCEPTABLE);
         }
@@ -1175,7 +1226,7 @@ public class ProjectApp extends Controller {
      */
     @Transactional
     @With(DefaultProjectCheckAction.class)
-    public static Result attachLabel(String ownerId, String projectName) {
+    public Result attachLabel(String ownerId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)) {
@@ -1191,8 +1242,8 @@ public class ProjectApp extends Controller {
             return badRequest(ErrorViews.BadRequest.render("Label name is missing.", project));
         }
 
-        Label label = Label.find
-            .where().eq("category", category).eq("name", name).findUnique();
+        Label label = Label.find.query()
+            .where().eq("category", category).eq("name", name).findOne();
 
         boolean isCreated = false;
         if (label == null) {
@@ -1236,7 +1287,7 @@ public class ProjectApp extends Controller {
      */
     @Transactional
     @With(DefaultProjectCheckAction.class)
-    public static Result detachLabel(String ownerId, String projectName, Long id) {
+    public Result detachLabel(String ownerId, String projectName, Long id) {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)) {
@@ -1267,7 +1318,7 @@ public class ProjectApp extends Controller {
      * @return
      */
     @IsAllowed(Operation.UPDATE)
-    public static Result webhooks(String ownerId, String projectName) {
+    public Result webhooks(String ownerId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
         if (project == null) {
             // Return 404 Not Found if the project does not exist.
@@ -1282,14 +1333,14 @@ public class ProjectApp extends Controller {
 
     @Transactional
     @IsAllowed(Operation.UPDATE)
-    public static Result newWebhook(String ownerId, String projectName) {
+    public Result newWebhook(String ownerId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
         if (project == null) {
             // Return 404 Not Found if the project does not exist.
             return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
-        Form<Webhook> addNewWebhookForm = form(Webhook.class).bindFromRequest();
+        Form<Webhook> addNewWebhookForm = form(Webhook.class).bindFromRequest(request());
         if (addNewWebhookForm == null) {
             Logger.warn("Failed creating webhook: got null form from newWebhook request");
             return badRequest("Failed creating webhook: got null form from newWebhook request");
@@ -1312,7 +1363,7 @@ public class ProjectApp extends Controller {
 
     @Transactional
     @IsAllowed(Operation.UPDATE)
-    public static Result deleteWebhook(String ownerId, String projectName, Long id) {
+    public Result deleteWebhook(String ownerId, String projectName, Long id) {
         Webhook webhook = Webhook.find.byId(id);
         if (webhook != null) {
             webhook.delete();
@@ -1325,7 +1376,7 @@ public class ProjectApp extends Controller {
     @Transactional
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(Operation.DELETE)
-    public static Result deletePushedBranch(String ownerId, String projectName, Long id) {
+    public Result deletePushedBranch(String ownerId, String projectName, Long id) {
         PushedBranch pushedBranch = PushedBranch.find.byId(id);
         if (pushedBranch != null) {
             pushedBranch.delete();
@@ -1335,13 +1386,13 @@ public class ProjectApp extends Controller {
 
     @IsAllowed(Operation.READ)
     @Transactional
-    public static Result goConventionMenu(String ownerId, String projectName, String state, String format, int pageNum)
+    public Result goConventionMenu(String ownerId, String projectName, String state, String format, int pageNum)
             throws IOException, ServletException, SVNException, GitAPIException, WriteException {
         Project project = Project.findByOwnerAndProjectName(ownerId, projectName);
         List<History> histories = null;
 
         if( project.menuSetting.issue ) {
-            return IssueApp.issues(project.owner, project.name, state, format, pageNum);
+            return redirect(routes.IssueApp.issues(project.owner, project.name, state, format, pageNum));
         }
 
         if( project.menuSetting.board ) {

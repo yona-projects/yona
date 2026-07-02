@@ -166,8 +166,8 @@
 $(document).ready(function(){
     $yobi.loadModule("project.Home", {
         "sURLProjectLabels": "@routes.ProjectApp.labels(project.owner, project.name)",
-        "sURLLabels"       : "@routes.LabelApp.labels()",
-        "sURLLabelCategories": "@routes.LabelApp.categories()",
+        "sURLLabels"       : "@routes.LabelApp.labels("", "", null)",
+        "sURLLabelCategories": "@routes.LabelApp.categories("", null)",
         "welLabelBoard": $('#label-board'),
         "welLabelEditorToggle": $('#label-editor-toggle'),
         "nProjectId"     : "@project.id",

@@ -14,7 +14,7 @@
             <p>@Messages("project.watcher.description")</p>
             <ul class="members project row-fluid">
                 @for(member <- members){
-                    @if(member != null){
+                    @if(member != null && org.apache.commons.lang3.StringUtils.isNotBlank(member.loginId)){
                 <li class="member span6 span-hard-wrap">
                     <a href="@routes.UserApp.userInfo(member.loginId)" class="avatar-wrap mlarge pull-left mr10">
                         <img src="@User.findByLoginId(member.loginId).avatarUrl" width="64" height="64">

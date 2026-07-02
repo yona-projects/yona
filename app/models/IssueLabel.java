@@ -25,10 +25,11 @@ import models.resource.Resource;
 import models.resource.ResourceConvertible;
 import org.apache.commons.collections.CollectionUtils;
 import play.data.validation.Constraints.Required;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 
 import javax.annotation.Nonnull;
-import javax.persistence.*;
+import jakarta.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +46,7 @@ public class IssueLabel extends Model implements ResourceConvertible {
     }
 
     private static final long serialVersionUID = -35487506476718498L;
-    public static final Finder<Long, IssueLabel> finder = new Finder<>(Long.class, IssueLabel.class);
+    public static final Finder<Long, IssueLabel> finder = new Finder<>(IssueLabel.class);
 
     @Id
     public Long id;
@@ -71,7 +72,7 @@ public class IssueLabel extends Model implements ResourceConvertible {
     public Set<Posting> postings;
 
     public static List<IssueLabel> findByProject(Project project) {
-        return finder.where()
+        return finder.query().where()
                 .eq("project.id", project.id)
                 .orderBy().asc("category.name")
                 .orderBy().asc("name")
@@ -138,16 +139,16 @@ public class IssueLabel extends Model implements ResourceConvertible {
 
     @Transient
     public boolean exists() {
-        return finder.where()
+        return finder.query().where()
                 .eq("project.id", project.id)
                 .eq("category", category)
                 .eq("name", name)
-                .findRowCount() > 0;
+                .findCount() > 0;
     }
 
     @Transient
     public IssueLabel findExistLabel() {
-        List<IssueLabel> list = finder.where()
+        List<IssueLabel> list = finder.query().where()
                 .eq("project.id", project.id)
                 .eq("category", category)
                 .eq("name", name)
@@ -161,7 +162,7 @@ public class IssueLabel extends Model implements ResourceConvertible {
 
     @Transient
     public static IssueLabel findByName(String labelName, String categoryName, Project project) {
-        List<IssueLabel> list = finder.where()
+        List<IssueLabel> list = finder.query().where()
                 .eq("project.id", project.id)
                 .eq("category.name", categoryName)
                 .eq("name", labelName)
@@ -174,12 +175,12 @@ public class IssueLabel extends Model implements ResourceConvertible {
     }
 
     @Override
-    public void delete() {
+    public boolean delete() {
         for(Issue issue: issues) {
             issue.labels.remove(this);
             issue.save();
         }
-        super.delete();
+        return super.delete();
     }
 
     @Override

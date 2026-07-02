@@ -8,8 +8,8 @@
 package models;
 
 import actors.RelatedPullRequestMergingActor;
-import akka.actor.Props;
-import com.avaje.ebean.*;
+import org.apache.pekko.actor.Props;
+import io.ebean.*;
 import controllers.PullRequestApp.SearchCondition;
 import controllers.UserApp;
 import errors.PullRequestException;
@@ -36,25 +36,26 @@ import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.joda.time.Duration;
 import play.data.validation.Constraints;
-import play.db.ebean.Model;
-import play.db.ebean.Transactional;
+import io.ebean.Finder;
+import io.ebean.Model;
+import io.ebean.annotation.Transactional;
 import play.i18n.Messages;
-import play.libs.Akka;
 import playRepository.FileDiff;
 import playRepository.GitCommit;
 import playRepository.GitRepository;
 import utils.Constants;
 import utils.JodaDateUtil;
+import utils.MessagesUtil;
 
 import javax.annotation.Nullable;
-import javax.persistence.*;
-import javax.persistence.OrderBy;
+import jakarta.persistence.*;
+import jakarta.persistence.OrderBy;
 import javax.validation.constraints.Size;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.*;
 
-import static com.avaje.ebean.Expr.*;
+import static io.ebean.Expr.*;
 
 @Entity
 public class PullRequest extends Model implements ResourceConvertible {
@@ -62,7 +63,7 @@ public class PullRequest extends Model implements ResourceConvertible {
     private static final long serialVersionUID = 1L;
 
     public static final String DELIMETER = ",";
-    public static final Finder<Long, PullRequest> finder = new Finder<>(Long.class, PullRequest.class);
+    public static final Finder<Long, PullRequest> finder = new Finder<>(PullRequest.class);
 
     public static final int ITEMS_PER_PAGE = 15;
 
@@ -199,87 +200,87 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     public static PullRequest findDuplicatedPullRequest(PullRequest pullRequest) {
-        return finder.where()
+        return finder.query().where()
                 .eq("fromBranch", pullRequest.fromBranch)
                 .eq("toBranch", pullRequest.toBranch)
                 .eq("fromProject", pullRequest.fromProject)
                 .eq("toProject", pullRequest.toProject)
                 .eq("state", State.OPEN)
-                .findUnique();
+                .findOne();
     }
 
     public static List<PullRequest> findOpendPullRequests(Project project) {
-        return finder.where()
+        return finder.query().where()
                 .eq("toProject", project)
                 .eq("state", State.OPEN)
-                .order().desc("created")
+                .orderBy().desc("created")
                 .findList();
     }
 
     public static List<PullRequest> findOpendPullRequestsByDaysAgo(User user, int days) {
-        return finder.where()
+        return finder.query().where()
                 .eq("contributor.id", user.id)
                 .ge("updated", JodaDateUtil.before(days))
-                .order("updated desc, state asc")
+                .orderBy("updated desc, state asc")
                 .findList();
     }
 
     public static List<PullRequest> findClosedPullRequests(Project project) {
-        return finder.where()
+        return finder.query().where()
                 .eq("toProject", project)
                 .or(eq("state", State.CLOSED), eq("state", State.MERGED))
-                .order().desc("created")
+                .orderBy().desc("created")
                 .findList();
     }
 
     public static List<PullRequest> findSentPullRequests(Project project) {
-        return finder.where()
+        return finder.query().where()
                 .eq("fromProject", project)
-                .order().desc("created")
+                .orderBy().desc("created")
                 .findList();
     }
 
     public static List<PullRequest> findAcceptedPullRequests(Project project) {
-        return finder.where()
+        return finder.query().where()
                 .eq("fromProject", project)
                 .or(eq("state", State.CLOSED), eq("state", State.MERGED))
-                .order().desc("created")
+                .orderBy().desc("created")
                 .findList();
     }
 
     public static List<PullRequest> allReceivedRequests(Project project) {
-        return finder.where()
+        return finder.query().where()
                 .eq("toProject", project)
-                .order().desc("created")
+                .orderBy().desc("created")
                 .findList();
     }
 
     public static List<PullRequest> findRecentlyReceived(Project project, int size) {
-        return finder.where()
+        return finder.query().where()
                 .eq("toProject", project)
-                .order().desc("created")
-                .findPagingList(size).getPage(0)
+                .orderBy().desc("created")
+                .setFirstRow((0) * (size)).setMaxRows(size).findPagedList()
                 .getList();
     }
 
     public static List<PullRequest> findRecentlyReceivedOpen(Project project, int size) {
-        return finder.where()
+        return finder.query().where()
                 .eq("toProject", project)
                 .eq("state", State.OPEN)
-                .order().desc("created")
-                .findPagingList(size).getPage(0)
+                .orderBy().desc("created")
+                .setFirstRow((0) * (size)).setMaxRows(size).findPagedList()
                 .getList();
     }
 
     public static int countOpenedPullRequests(Project project) {
-        return finder.where()
+        return finder.query().where()
                 .eq("toProject", project)
                 .eq("state", State.OPEN)
-                .findRowCount();
+                .findCount();
     }
 
     public static List<PullRequest> findRelatedPullRequests(Project project, String branch) {
-        return finder.where()
+        return finder.query().where()
                 .or(
                         Expr.and(
                                 eq("fromProject", project),
@@ -547,7 +548,7 @@ public class PullRequest extends Model implements ResourceConvertible {
             NotificationEvent.afterPullRequestUpdated(sender, this, State.OPEN, State.MERGED);
             PullRequestEvent.addStateEvent(sender, this, State.MERGED);
 
-            Akka.system().actorOf(Props.create(RelatedPullRequestMergingActor.class)).tell(message, null);
+            utils.AkkaUtil.system().actorOf(Props.create(RelatedPullRequestMergingActor.class)).tell(message, null);
         }
     }
 
@@ -674,11 +675,11 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     public static List<PullRequest> findByToProject(Project project) {
-        return finder.where().eq("toProject", project).order().asc("created").findList();
+        return finder.query().where().eq("toProject", project).orderBy().asc("created").findList();
     }
 
     public static List<PullRequest> findByFromProjectAndBranch(Project fromProject, String fromBranch) {
-        return finder.where().eq("fromProject", fromProject).eq("fromBranch", fromBranch)
+        return finder.query().where().eq("fromProject", fromProject).eq("fromBranch", fromBranch)
                 .or(eq("state", State.OPEN), eq("state", State.REJECTED)).findList();
     }
 
@@ -691,10 +692,10 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     public static long nextPullRequestNumber(Project project) {
-        PullRequest maxNumberedPullRequest = PullRequest.finder.where()
+        PullRequest maxNumberedPullRequest = PullRequest.finder.query().where()
                 .eq("toProject", project)
-                .order().desc("number")
-                .setMaxRows(1).findUnique();
+                .orderBy().desc("number")
+                .setMaxRows(1).findOne();
 
         if(maxNumberedPullRequest == null || maxNumberedPullRequest.number == null) {
             return 1;
@@ -707,12 +708,12 @@ public class PullRequest extends Model implements ResourceConvertible {
         if(toProject == null || number <= 0) {
             return null;
         }
-        return finder.where().eq("toProject", toProject).eq("number", number).findUnique();
+        return finder.query().where().eq("toProject", toProject).eq("number", number).findOne();
     }
 
     @Transactional
     public static void regulateNumbers() {
-        int nullNumberPullRequestCount = finder.where().eq("number", null).findRowCount();
+        int nullNumberPullRequestCount = finder.query().where().isNull("number").findCount();
 
         if(nullNumberPullRequestCount > 0) {
             List<Project> projects = Project.find.all();
@@ -749,19 +750,19 @@ public class PullRequest extends Model implements ResourceConvertible {
         return GitRepository.getDiff(repository, revA, repository, revB);
     }
 
-    public static Page<PullRequest> findPagingList(SearchCondition condition) {
+    public static PagedList<PullRequest> findPagedList(SearchCondition condition) {
         return createSearchExpressionList(condition)
-                .order().desc(condition.category.order())
-                .findPagingList(ITEMS_PER_PAGE)
-                .getPage(condition.pageNum - 1);
+                .orderBy().desc(condition.category.order())
+                .setFirstRow((condition.pageNum - 1) * ITEMS_PER_PAGE)
+                .setMaxRows(ITEMS_PER_PAGE).findPagedList();
     }
 
     public static int count(SearchCondition condition) {
-        return createSearchExpressionList(condition).findRowCount();
+        return createSearchExpressionList(condition).findCount();
     }
 
     private static ExpressionList<PullRequest> createSearchExpressionList(SearchCondition condition) {
-        ExpressionList<PullRequest> el = finder.where();
+        ExpressionList<PullRequest> el = finder.query().where();
         if (condition.project != null) {
             el.eq(condition.category.project(), condition.project);
         }
@@ -831,7 +832,7 @@ public class PullRequest extends Model implements ResourceConvertible {
     public void deleteIssueEvents() {
         String newValue = this.id.toString();
 
-        List<IssueEvent> oldEvents = IssueEvent.find.where()
+        List<IssueEvent> oldEvents = IssueEvent.find.query().where()
                 .eq("newValue", newValue)
                 .eq("senderLoginId", this.contributor.loginId)
                 .eq("eventType", EventType.ISSUE_REFERRED_FROM_PULL_REQUEST)
@@ -843,9 +844,9 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     @Override
-    public void delete() {
+    public boolean delete() {
         deleteIssueEvents();
-        super.delete();
+        return super.delete();
     }
 
     @Transient
@@ -1003,7 +1004,7 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     public static PullRequest findTheLatestOneFrom(Project fromProject, String fromBranch) {
-        ExpressionList<PullRequest> el = finder.where()
+        ExpressionList<PullRequest> el = finder.query().where()
                 .eq("fromProject", fromProject)
                 .eq("fromBranch", fromBranch);
 
@@ -1014,13 +1015,13 @@ public class PullRequest extends Model implements ResourceConvertible {
         }
 
         return el
-                .order().desc("number")
+                .orderBy().desc("number")
                 .setMaxRows(1)
-                .findUnique();
+                .findOne();
     }
 
     public static void changeStateToClosed() {
-        List<PullRequest> rejectedPullRequests = PullRequest.finder.where()
+        List<PullRequest> rejectedPullRequests = PullRequest.finder.query().where()
                                     .eq("state", State.REJECTED).findList();
         for (PullRequest rejectedPullRequest : rejectedPullRequests) {
             rejectedPullRequest.state = State.CLOSED;
@@ -1166,13 +1167,13 @@ public class PullRequest extends Model implements ResourceConvertible {
 
     public String getMessageForDisabledAcceptButton() {
         if(this.isMerging) {
-            return Messages.get("pullRequest.not.acceptable.because.is.merging");
+            return MessagesUtil.get("pullRequest.not.acceptable.because.is.merging");
         } else if(this.isConflict) {
-            return Messages.get("pullRequest.not.acceptable.because.is.conflict");
+            return MessagesUtil.get("pullRequest.not.acceptable.because.is.conflict");
         } else if(!this.isOpen()) {
-            return Messages.get("pullRequest.not.acceptable.because.is.not.open");
+            return MessagesUtil.get("pullRequest.not.acceptable.because.is.not.open");
         } else { // isOpen == false
-            return Messages.get("pullRequest.not.acceptable.because.is.not.enough.review.point",
+            return MessagesUtil.get("pullRequest.not.acceptable.because.is.not.enough.review.point",
                     getLackingReviewerCount());
         }
     }

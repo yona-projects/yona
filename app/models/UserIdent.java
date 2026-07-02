@@ -20,7 +20,7 @@
  */
 package models;
 
-import javax.persistence.Embeddable;
+import jakarta.persistence.Embeddable;
 
 /**
  * This class is made for deleted user

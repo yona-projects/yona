@@ -18,7 +18,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(message: String, currentPage: com.avaje.ebean.Page[Issue], currentState: State)
+@(message: String, currentPage: io.ebean.PagedList[Issue], currentState: State)
 
 @import utils.JodaDateUtil
 @import utils.TemplateHelper._
@@ -32,8 +32,8 @@
         <h2 class="pull-left">@Messages("site.sidebar.issueList")</h2>
     </div>
     <ul class="nav nav-tabs">
-        <li class="@isActiveTabMenu(State.OPEN)"><a href="@routes.SiteApp.issueList()?state=@State.OPEN.name.toLowerCase()">@Messages("issue.state." + State.OPEN.name.toLowerCase())</a></li>
-        <li class="@isActiveTabMenu(State.CLOSED)"><a href="@routes.SiteApp.issueList()?state=@State.CLOSED.name.toLowerCase()">@Messages("issue.state." + State.CLOSED.name.toLowerCase())</a></li>
+        <li class="@isActiveTabMenu(State.OPEN)"><a href="@routes.SiteApp.issueList(1)?state=@State.OPEN.name.toLowerCase()">@Messages("issue.state." + State.OPEN.name.toLowerCase())</a></li>
+        <li class="@isActiveTabMenu(State.CLOSED)"><a href="@routes.SiteApp.issueList(1)?state=@State.CLOSED.name.toLowerCase()">@Messages("issue.state." + State.CLOSED.name.toLowerCase())</a></li>
     </ul>
     <ul class="post-list-wrap">
         @for(issue <- currentPage.getList) {

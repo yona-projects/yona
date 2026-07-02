@@ -20,14 +20,14 @@
  */
 package controllers;
 
-import com.avaje.ebean.Ebean;
-import com.avaje.ebean.ExpressionList;
-import com.avaje.ebean.SqlQuery;
-import com.avaje.ebean.SqlRow;
+import io.ebean.Ebean;
+import io.ebean.ExpressionList;
+import io.ebean.SqlQuery;
+import io.ebean.SqlRow;
 import controllers.annotation.AnonymousCheck;
 import models.Label;
 import org.apache.commons.lang3.StringUtils;
-import play.mvc.Controller;
+import utils.LegacyController;
 import play.mvc.Http;
 import play.mvc.Result;
 
@@ -36,11 +36,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.avaje.ebean.Expr.icontains;
+import static io.ebean.Expr.icontains;
 import static play.libs.Json.toJson;
 
 @AnonymousCheck
-public class LabelApp extends Controller {
+public class LabelApp extends LegacyController {
     private static final int MAX_FETCH_LABELS = 1000;
 
     /**
@@ -48,7 +48,7 @@ public class LabelApp extends Controller {
      * @see <a href="https://github.com/nforge/yobi/blob/master/docs/technical/label-typeahead
      * .md>label-typeahead.md</a>
      */
-    public static Result labels(String query, String category, Integer limit) {
+    public Result labels(String query, String category, Integer limit) {
         if (!request().accepts("application/json")) {
             return status(Http.Status.NOT_ACCEPTABLE);
         }
@@ -58,9 +58,9 @@ public class LabelApp extends Controller {
         }
 
         ExpressionList<Label> el =
-                Label.find.where().and(icontains("category", category), icontains("name", query));
+                Label.find.query().where().and(icontains("category", category), icontains("name", query));
 
-        int total = el.findRowCount();
+        int total = el.findCount();
 
         if (total > limit) {
             el.setMaxRows(limit);
@@ -76,7 +76,7 @@ public class LabelApp extends Controller {
         return ok(toJson(labels));
     }
 
-    public static Result categories(String query, Integer limit) {
+    public Result categories(String query, Integer limit) {
         if (!request().accepts("application/json")) {
             return status(Http.Status.NOT_ACCEPTABLE);
         }
@@ -106,7 +106,7 @@ public class LabelApp extends Controller {
                     .createSqlQuery("SELECT COUNT(*) AS cnt FROM (" + sqlString + ") categories");
         }
 
-        int cnt = sqlCountQuery.findUnique().getInteger("cnt");
+        int cnt = sqlCountQuery.findOne().getInteger("cnt");
 
         if (limit > MAX_FETCH_LABELS) {
             limit = MAX_FETCH_LABELS;

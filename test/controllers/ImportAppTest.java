@@ -42,6 +42,7 @@ import play.mvc.Result;
 import play.test.FakeApplication;
 import playRepository.GitRepository;
 import utils.Constants;
+import utils.MessagesUtil;
 
 public class ImportAppTest {
     private static FakeApplication application;
@@ -142,7 +143,7 @@ public class ImportAppTest {
 
         // Then
         assertThat(status(result)).isEqualTo(BAD_REQUEST);
-        assertThat(contentAsString(result)).contains(Messages.get(Lang.defaultLang(), "project.import.error.empty.url"));
+        assertThat(contentAsString(result)).contains(MessagesUtil.get(Lang.defaultLang(), "project.import.error.empty.url"));
     }
 
     @Test
@@ -163,7 +164,7 @@ public class ImportAppTest {
 
         // Then
         assertThat(status(result)).isEqualTo(BAD_REQUEST);
-        assertThat(contentAsString(result)).contains(Messages.get(Lang.defaultLang(), "project.name.duplicate"));
+        assertThat(contentAsString(result)).contains(MessagesUtil.get(Lang.defaultLang(), "project.name.duplicate"));
     }
 
     @Test
@@ -184,7 +185,7 @@ public class ImportAppTest {
 
         // Then
         assertThat(status(result)).isEqualTo(BAD_REQUEST);
-        assertThat(contentAsString(result)).contains(Messages.get(Lang.defaultLang(), "project.name.alert"));
+        assertThat(contentAsString(result)).contains(MessagesUtil.get(Lang.defaultLang(), "project.name.alert"));
     }
 
     private static Project project(String owner, String name) {

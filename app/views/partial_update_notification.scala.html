@@ -24,6 +24,6 @@
 @if(UserApp.currentUser().isSiteManager() && YobiUpdate.isWatched && YobiUpdate.versionToUpdate != null){
 <p class="center-txt">
 <a href="@YobiUpdate.getReleaseUrl()">@Messages("site.update.notification", YobiUpdate.versionToUpdate)</a>
-<button type="button" data-request-method="post" data-request-uri="@routes.SiteApp.unwatchUpdate()" class="ybtn ybtn-small">@Messages("site.update.notification.hide", YobiUpdate.versionToUpdate)</button>
+<button type="button" data-request-method="post" data-request-uri="@routes.SiteApp.unwatchUpdate" class="ybtn ybtn-small">@Messages("site.update.notification.hide", YobiUpdate.versionToUpdate)</button>
 </p>
 }

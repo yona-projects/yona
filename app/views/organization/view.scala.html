@@ -70,7 +70,7 @@
                     </div>
                     @if(OrganizationUser.isAdmin(org, UserApp.currentUser) || UserApp.currentUser().isSiteManager) {
                     <div class="pull-right">
-                        <a href="@routes.ProjectApp.newProjectForm()?owner=@org.name" class="ybtn ybtn-primary">@Messages("button.newProject")</a>
+                        <a href="@routes.ProjectApp.newProjectForm?owner=@org.name" class="ybtn ybtn-primary">@Messages("button.newProject")</a>
                     </div>
                     }
                 </div>
@@ -99,7 +99,7 @@
                                     @if(project.isPrivate){ <i class="yobicon-lock yobicon-small"></i> }
                                     @if(project.isProtected){ <span class="project-protected" title="Group Project">G</span> }
                                     @for(label <- project.labels) {
-                                    <a class="project-label @label.category.toLowerCase()" href="@routes.ProjectApp.projects()?labelIds=@label.id">@label.name</a>
+                                    <a class="project-label @label.category.toLowerCase()" href="@routes.ProjectApp.projects("", 1)?labelIds=@label.id">@label.name</a>
                                     }
                                 </div>
                                 <div class="desc">

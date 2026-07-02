@@ -4,7 +4,7 @@
 * Copyright Yona & Yobi Authors & NAVER Corp.
 * https://yona.io
 **@
-@(message: String, currentPage: com.avaje.ebean.Page[Project], filter:String)
+@(message: String, currentPage: io.ebean.PagedList[Project], filter:String)
 
 @import utils.TemplateHelper._
 @import utils.JodaDateUtil._
@@ -12,7 +12,7 @@
 @siteMngLayout(message) {
     <div class="title_area">
         <h2 class="pull-left">@Messages("site.sidebar.projectList")</h2>
-        <form class="form-search pull-right" action="@routes.SiteApp.projectList()">
+        <form class="form-search pull-right" action="@routes.SiteApp.projectList("", 0)">
             <div class="search-bar">
                 <input type="text" class="textbox" name="filter" placeholder="@Messages("site.project.filter")" value="@filter">
                 <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>

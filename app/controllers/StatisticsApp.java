@@ -23,16 +23,16 @@ package controllers;
 import actions.DefaultProjectCheckAction;
 import controllers.annotation.AnonymousCheck;
 import models.Project;
-import play.mvc.Controller;
+import utils.LegacyController;
 import play.mvc.Result;
 import play.mvc.With;
 import views.html.project.statistics;
 
 @AnonymousCheck
-public class StatisticsApp extends Controller {
+public class StatisticsApp extends LegacyController {
 
     @With(DefaultProjectCheckAction.class)
-    public static Result statistics(String userName, String projectName) {
+    public Result statistics(String userName, String projectName) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         return ok(statistics.render("statistics", project));
     }

@@ -5,7 +5,7 @@
 * https://yona.io
 **@
 @import utils.MenuType._
-@(title: String, currentPage: com.avaje.ebean.Page[Attachment])
+@(title: String, currentPage: io.ebean.PagedList[Attachment])
 
 @import utils.JodaDateUtil._
 @import utils.FileUtil._
@@ -33,7 +33,7 @@
     <div class="page-wrap-outer">
         <div class="page-wrap">
             @views.html.common.mySeriesMenuTab(TAB_MY_FILES)
-            <form action="@routes.UserApp.userFiles()">
+            <form action="@routes.UserApp.userFiles">
             <div class="user-file-search search search-bar">
                 <input name="filter" class="textbox" type="text" placeholder="@Messages("search.title")" value="">
                 <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>

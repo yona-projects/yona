@@ -24,10 +24,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import models.resource.Resource;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.tmatesoft.svn.core.SVNException;
-import play.mvc.Results.Chunks;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 
 public interface PlayRepository {
@@ -81,5 +81,5 @@ public interface PlayRepository {
 
     public File getDirectory();
 
-    public void getArchive(Chunks.Out<byte[]> out, String branchName);
+    public void getArchive(OutputStream out, String branchName);
 }

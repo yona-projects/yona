@@ -21,20 +21,22 @@
 package utils;
 
 import controllers.UserApp;
-import play.libs.F.Promise;
 import play.mvc.Action;
-import play.mvc.Http.Context;
+import play.mvc.Http.Request;
 import play.mvc.Result;
+import java.util.concurrent.*;
 
 /**
  * The Class SiteManagerAuthAction.
  */
 public class SiteManagerAuthAction extends Action.Simple {
     @Override
-    public Promise<Result> call(Context context) throws Throwable {
-        if (!UserApp.currentUser().isSiteManager()) {
-            return Promise.pure(forbidden(ErrorViews.Forbidden.render("error.auth.unauthorized.waringMessage")));
-        }
-        return delegate.call(context);
+    public CompletionStage<Result> call(Request request) {
+        return LegacyRequestContext.withRequest(request, () -> {
+            if (!UserApp.currentUser().isSiteManager()) {
+                return CompletableFuture.completedFuture((Result) forbidden(ErrorViews.Forbidden.render("error.auth.unauthorized.waringMessage")));
+            }
+            return delegate.call(request);
+        });
     }
 }

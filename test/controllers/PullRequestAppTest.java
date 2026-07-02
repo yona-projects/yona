@@ -213,8 +213,8 @@ public class PullRequestAppTest {
         assertThat(status(result)).isEqualTo(SEE_OTHER);
         assertThat(PullRequest.findOne(project, pullRequestNumber).state).isEqualTo(State.OPEN);
         assertThat(
-                PushedBranch.find.where().eq("project", pullRequest.fromProject)
-                        .eq("name", pullRequest.fromBranch).findUnique()).isNull();
+                PushedBranch.find.query().where().eq("project", pullRequest.fromProject)
+                        .eq("name", pullRequest.fromBranch).findOne()).isNull();
     }
 
     @Test

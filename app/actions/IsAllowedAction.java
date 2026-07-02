@@ -28,8 +28,8 @@ import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
-import play.libs.F.Promise;
-import play.mvc.Http.Context;
+import java.util.concurrent.*;
+import play.mvc.Http.Request;
 import play.mvc.Result;
 import utils.AccessControl;
 import utils.AccessLogger;
@@ -48,23 +48,23 @@ import utils.ErrorViews;
  */
 public class IsAllowedAction extends AbstractProjectCheckAction<IsAllowed> {
     @Override
-    protected Promise<Result> call(Project project, Context context, PathParser parser) throws Throwable {
+    protected CompletionStage<Result> call(Project project, Request request, PathParser parser) {
         ResourceType resourceType = this.configuration.resourceType();
         ResourceConvertible resourceObject = Resource.getResourceObject(parser, project, resourceType);
         Operation operation = this.configuration.value();
 
         if(resourceObject == null) {
-            Promise<Result> promise = Promise.pure((Result) notFound(ErrorViews.NotFound.render("error.notfound", project, resourceType.resource())));
-            AccessLogger.log(context.request(), promise, null);
+            CompletionStage<Result> promise = CompletableFuture.completedFuture((Result) notFound(ErrorViews.NotFound.render("error.notfound", project, resourceType.resource())));
+            AccessLogger.log(request, promise, null);
             return promise;
         }
 
         if(!AccessControl.isAllowed(UserApp.currentUser(), resourceObject.asResource(), operation)) {
-            Promise<Result> promise = Promise.pure((Result) forbidden(ErrorViews.Forbidden.render("error.forbidden", project)));
-            AccessLogger.log(context.request(), promise, null);
+            CompletionStage<Result> promise = CompletableFuture.completedFuture((Result) forbidden(ErrorViews.Forbidden.render("error.forbidden", project)));
+            AccessLogger.log(request, promise, null);
             return promise;
         }
 
-        return this.delegate.call(context);
+        return this.delegate.call(request);
     }
 }

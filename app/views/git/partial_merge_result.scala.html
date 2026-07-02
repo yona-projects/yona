@@ -75,7 +75,7 @@
                             @agoOrDateString(commit.getAuthorDate)
                         </td>
                         <td class="author @commit.getAuthorEmail">
-                            @defining(User.find.where.eq("email", commit.getAuthorEmail).findUnique) { user =>
+                            @defining(User.find.query().where().eq("email", commit.getAuthorEmail).findOne()) { user =>
                                 @if(user != null) {
                                     <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap">
                                         <img src="@user.avatarUrl" alt="@user.name" width="32" height="32"/>

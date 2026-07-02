@@ -83,7 +83,7 @@ public class Helpers {
                 "postingComments", "projectUsers", "organization", "organizationUsers", "projectMenuSettings"});
         // Do numbering for issues and postings.
         for (Project project : Project.find.findList()) {
-            List<Issue> issues = Issue.finder.where()
+            List<Issue> issues = Issue.finder.query().where()
                     .eq("project.id", project.id).orderBy("id desc")
                     .findList();
 
@@ -91,7 +91,7 @@ public class Helpers {
                 issue.save();
             }
 
-            List<Posting> postings = Posting.finder.where()
+            List<Posting> postings = Posting.finder.query().where()
                     .eq("project.id", project.id).orderBy("id desc")
                     .findList();
 

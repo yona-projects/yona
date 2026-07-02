@@ -33,12 +33,14 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.apache.shiro.util.CollectionUtils;
 import play.data.format.Formats;
 import play.data.validation.Constraints;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 import play.i18n.Messages;
 import utils.JodaDateUtil;
+import utils.MessagesUtil;
 
 import javax.annotation.Nonnull;
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -47,7 +49,7 @@ import java.util.*;
 public class Milestone extends Model implements ResourceConvertible {
 
     private static final long serialVersionUID = 1L;
-    public static final Finder<Long, Milestone> find = new Finder<>(Long.class, Milestone.class);
+    public static final Finder<Long, Milestone> find = new Finder<>(Milestone.class);
 
     public static final String DEFAULT_SORTER = "dueDate";
 
@@ -74,7 +76,7 @@ public class Milestone extends Model implements ResourceConvertible {
     @OneToMany(mappedBy = "milestone")
     public Set<Issue> issues;
 
-    public void delete() {
+    public boolean delete() {
         // Set all issues' milestone to null.
         // I don't know why Ebean does not do this by itself.
         for(Issue issue : issues) {
@@ -82,7 +84,7 @@ public class Milestone extends Model implements ResourceConvertible {
             issue.update();
         }
 
-        super.delete();
+        return super.delete();
     }
 
     public static void create(Milestone milestone) {
@@ -90,11 +92,11 @@ public class Milestone extends Model implements ResourceConvertible {
     }
 
     public int getNumClosedIssues() {
-        return Issue.finder.where().eq("milestone", this).eq("state", State.CLOSED).findRowCount();
+        return Issue.finder.query().where().eq("milestone", this).eq("state", State.CLOSED).findCount();
     }
 
     public int getNumOpenIssues() {
-        return Issue.finder.where().eq("milestone", this).eq("state", State.OPEN).findRowCount();
+        return Issue.finder.query().where().eq("milestone", this).eq("state", State.OPEN).findCount();
     }
 
     public List<Issue> sortedByNumberOfIssue(){
@@ -153,7 +155,7 @@ public class Milestone extends Model implements ResourceConvertible {
     }
 
     public static Milestone findMilestoneByTitle(@Nonnull Project project, String title) {
-        List<Milestone> milestones = find.where().eq("project.id", project.id).eq("title", title).findList();
+        List<Milestone> milestones = find.query().where().eq("project.id", project.id).eq("title", title).findList();
         if (CollectionUtils.isEmpty(milestones)) {
             return null;
         }
@@ -254,7 +256,7 @@ public class Milestone extends Model implements ResourceConvertible {
     }
 
     public static boolean isUniqueProjectIdAndTitle(Long projectId, String title) {
-        int count = find.where().eq("project.id", projectId).eq("title", title).findRowCount();
+        int count = find.query().where().eq("project.id", projectId).eq("title", title).findCount();
         return (count == 0);
     }
 
@@ -266,11 +268,11 @@ public class Milestone extends Model implements ResourceConvertible {
         Date now = JodaDateUtil.now();
 
         if (DateUtils.isSameDay(now, dueDate)) {
-            return Messages.get("common.time.today");
+            return MessagesUtil.get("common.time.today");
         } else if (isOverDueDate()) {
-            return Messages.get("common.time.overday", JodaDateUtil.localDaysBetween(dueDate, now));
+            return MessagesUtil.get("common.time.overday", JodaDateUtil.localDaysBetween(dueDate, now));
         } else {
-            return Messages.get("common.time.leftday", JodaDateUtil.localDaysBetween(now, dueDate));
+            return MessagesUtil.get("common.time.leftday", JodaDateUtil.localDaysBetween(now, dueDate));
         }
     }
 
@@ -313,9 +315,9 @@ public class Milestone extends Model implements ResourceConvertible {
     }
 
     public static int countOpened(Project project) {
-        return find.where()
+        return find.query().where()
                 .eq("project", project)
                 .eq("state", State.OPEN)
-                .findRowCount();
+                .findCount();
     }
 }

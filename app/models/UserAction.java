@@ -7,9 +7,10 @@
 package models;
 
 import models.enumeration.ResourceType;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.List;
 
 @MappedSuperclass
@@ -28,14 +29,14 @@ abstract public class UserAction extends Model {
 
     public static <T extends UserAction> List<T> findBy(Finder<Long, T> finder,
                                              ResourceType resourceType, String resourceId) {
-        return finder.where()
+        return finder.query().fetch("user").where()
                 .eq("resourceType", resourceType)
                 .eq("resourceId", resourceId).findList();
     }
 
     public static <T extends UserAction> T findBy(Finder<Long, T> finder, User subject,
                                       ResourceType resourceType, String resourceId) {
-        List<T> list = finder.where()
+        List<T> list = finder.query().fetch("user").where()
                 .eq("user.id", subject.id)
                 .eq("resourceType", resourceType)
                 .eq("resourceId", resourceId).findList();
@@ -48,15 +49,15 @@ abstract public class UserAction extends Model {
 
     public static <T extends UserAction> List<T> findBy(Finder<Long, T> finder, User subject,
                                                            ResourceType resourceType) {
-        return finder.where()
+        return finder.query().fetch("user").where()
                 .eq("user.id", subject.id)
                 .eq("resourceType", resourceType).findList();
     }
 
     public static <T extends UserAction> int countBy(Finder<Long, T> finder,
                                                         ResourceType resourceType, String resourceId) {
-        return finder.where()
+        return finder.query().where()
                 .eq("resourceType", resourceType)
-                .eq("resourceId", resourceId).findRowCount();
+                .eq("resourceId", resourceId).findCount();
     }
 }

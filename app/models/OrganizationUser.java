@@ -21,11 +21,12 @@
 package models;
 
 import models.enumeration.RoleType;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import java.util.List;
 
 @Entity
@@ -33,7 +34,7 @@ public class OrganizationUser extends Model {
 
     private static final long serialVersionUID = -1L;
 
-    public static final Finder<Long, OrganizationUser> find = new Finder<>(Long.class, OrganizationUser.class);
+    public static final Finder<Long, OrganizationUser> find = new Finder<>(OrganizationUser.class);
 
     @Id
     public Long id;
@@ -48,13 +49,13 @@ public class OrganizationUser extends Model {
     public Role role;
 
     public static List<OrganizationUser> findAdminsOf(Organization organization) {
-        return find.where()
+        return find.query().where()
                 .eq("organization", organization)
                 .eq("role", Role.findByName("org_admin"))
                 .findList();
     }
     public static List<OrganizationUser> findByAdmin(Long userId) {
-        return find.where().eq("role", Role.findByRoleType(RoleType.ORG_ADMIN))
+        return find.query().where().eq("role", Role.findByRoleType(RoleType.ORG_ADMIN))
                     .eq("user.id", userId)
                     .findList();
     }
@@ -107,10 +108,10 @@ public class OrganizationUser extends Model {
     }
 
     private static boolean contains(Long organizationId, Long userId, RoleType roleType) {
-        int rowCount = find.where().eq("organization.id", organizationId)
+        int rowCount = find.query().where().eq("organization.id", organizationId)
                 .eq("user.id", userId)
                 .eq("role.id", Role.findByRoleType(roleType).id)
-                .findRowCount();
+                .findCount();
         return rowCount > 0;
     }
 
@@ -130,9 +131,9 @@ public class OrganizationUser extends Model {
     }
 
     public static OrganizationUser findByOrganizationIdAndUserId(Long organizationId, Long userId) {
-        return find.where().eq("user.id", userId)
+        return find.query().where().eq("user.id", userId)
                 .eq("organization.id", organizationId)
-                .findUnique();
+                .findOne();
     }
 
     public static void create(Long userId, Long organizationId, Long roleId) {
@@ -156,8 +157,8 @@ public class OrganizationUser extends Model {
     }
 
     public static List<OrganizationUser> findByUser(User user, int size) {
-        return find.where().eq("user", user)
-                .order().asc("organization.name")
+        return find.query().where().eq("user", user)
+                .orderBy().asc("organization.name")
                 .setMaxRows(size)
                 .findList();
     }

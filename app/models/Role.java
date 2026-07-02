@@ -21,20 +21,20 @@
 package models;
 
 import models.enumeration.RoleType;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 public class Role extends Model {
     private static final long serialVersionUID = 1L;
-    public static final Finder<Long, Role> find = new Finder<>(Long.class,
-            Role.class);
+    public static final Finder<Long, Role> find = new Finder<>(Role.class);
 
     @Id
     public Long id;
@@ -57,19 +57,19 @@ public class Role extends Model {
     }
 
     public static Role findByName(String name) {
-        return find.where().eq("name", name).findUnique();
+        return find.query().where().eq("name", name).findOne();
     }
 
     public static Role findOrganizationRoleByIds(Long userId, Long organizationId) {
-        return find.where()
+        return find.query().where()
                 .eq("organizationUsers.user.id", userId)
-                .eq("organizationUsers.organization.id", organizationId).findUnique();
+                .eq("organizationUsers.organization.id", organizationId).findOne();
     }
 
     public static Role findRoleByIds(Long userId, Long projectId) {
-        return find.where()
+        return find.query().where()
                 .eq("projectUsers.user.id", userId)
-                .eq("projectUsers.project.id", projectId).findUnique();
+                .eq("projectUsers.project.id", projectId).findOne();
     }
 
     public static List<Role> findProjectRoles() {
@@ -77,7 +77,7 @@ public class Role extends Model {
         projectRoleIds.add(RoleType.MANAGER.roleType());
         projectRoleIds.add(RoleType.MEMBER.roleType());
 
-        return find.where()
+        return find.query().where()
                 .in("id", projectRoleIds)
                 .findList();
     }
@@ -87,7 +87,7 @@ public class Role extends Model {
         organizationRoleIds.add(RoleType.ORG_ADMIN.roleType());
         organizationRoleIds.add(RoleType.ORG_MEMBER.roleType());
 
-        return find.where()
+        return find.query().where()
                 .in("id", organizationRoleIds)
                 .findList();
     }

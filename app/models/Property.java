@@ -21,21 +21,22 @@
 package models;
 
 import play.data.validation.Constraints;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 import utils.Diagnostic;
 
 import javax.annotation.Nonnull;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Id;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 @Entity
 public class Property extends Model {
-    public static final Finder<Long, Property> find = new Finder<>(Long.class, Property.class);
+    public static final Finder<Long, Property> find = new Finder<>(Property.class);
 
     private static final long serialVersionUID = 8074682539173273921L;
 
@@ -50,7 +51,7 @@ public class Property extends Model {
     public String value;
 
     public static String get(Name name) {
-        List<Property> properties = find.where().eq("name", name).findList();
+        List<Property> properties = find.query().where().eq("name", name).findList();
 
         if (properties.size() > 0) {
             return properties.get(0).value;
@@ -66,7 +67,7 @@ public class Property extends Model {
     }
 
     public static void set(Name name, String value) {
-        Property property = find.where().eq("name", name).findUnique();
+        Property property = find.query().where().eq("name", name).findOne();
 
         if (property == null) {
             property = new Property();
@@ -96,7 +97,7 @@ public class Property extends Model {
                 List<String> errors = new ArrayList<>();
 
                 for (Property.Name name : Property.Name.values()) {
-                    Set<Property> properties = Property.find.where().eq("name", name).findSet();
+                    Set<Property> properties = Property.find.query().where().eq("name", name).findSet();
                     if (properties.size() > 1) {
                         errors.add(String.format("Property '%s' has duplicated values: %s",
                                 name, properties));

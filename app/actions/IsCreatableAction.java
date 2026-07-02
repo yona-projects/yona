@@ -22,10 +22,9 @@ package actions;
 
 import models.Project;
 import models.User;
-import play.mvc.Http.Context;
+import play.mvc.Http.Request;
 import play.mvc.Result;
-import play.mvc.Result;
-import play.libs.F.Promise;
+import java.util.concurrent.*;
 import utils.AccessControl;
 import utils.AccessLogger;
 import utils.ErrorViews;
@@ -43,14 +42,14 @@ import controllers.annotation.IsCreatable;
  */
 public class IsCreatableAction extends AbstractProjectCheckAction<IsCreatable> {
     @Override
-    protected Promise<Result> call(Project project, Context context, PathParser parser) throws Throwable {
+    protected CompletionStage<Result> call(Project project, Request request, PathParser parser) {
         User currentUser = UserApp.currentUser();
         if (!AccessControl.isProjectResourceCreatable(currentUser, project, this.configuration.value())) {
-            Promise<Result> promise = Promise.pure((Result) forbidden(ErrorViews.Forbidden.render("error.forbidden", project)));
-            AccessLogger.log(context.request(), promise, null);
+            CompletionStage<Result> promise = CompletableFuture.completedFuture((Result) forbidden(ErrorViews.Forbidden.render("error.forbidden", project)));
+            AccessLogger.log(request, promise, null);
             return promise;
         }
 
-        return this.delegate.call(context);
+        return this.delegate.call(request);
     }
 }

@@ -20,7 +20,7 @@
  */
 package models;
 
-import com.avaje.ebean.Ebean;
+import io.ebean.Ebean;
 import models.enumeration.State;
 
 import org.apache.commons.lang3.time.DateUtils;
@@ -29,9 +29,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import play.i18n.Messages;
-import play.libs.Yaml;
 import support.Helpers;
 import utils.JodaDateUtil;
+import utils.MessagesUtil;
 import utils.YamlUtil;
 
 import java.io.IOException;
@@ -310,7 +310,7 @@ public class MilestoneTest extends ModelTest<Milestone> {
         String until = milestone.until();
 
         // Then
-        assertThat(until).isEqualTo(Messages.get("common.time.overday", days));
+        assertThat(until).isEqualTo(MessagesUtil.get("common.time.overday", days));
     }
 
     @Test
@@ -323,7 +323,7 @@ public class MilestoneTest extends ModelTest<Milestone> {
         String until = milestone.until();
 
         // Then
-        assertThat(until).isEqualTo(Messages.get("common.time.today"));
+        assertThat(until).isEqualTo(MessagesUtil.get("common.time.today"));
     }
 
     @Test
@@ -337,6 +337,6 @@ public class MilestoneTest extends ModelTest<Milestone> {
         String until = milestone.until();
 
         // Then
-        assertThat(until).isEqualTo(Messages.get("common.time.leftday", days));
+        assertThat(until).isEqualTo(MessagesUtil.get("common.time.leftday", days));
     }
 }

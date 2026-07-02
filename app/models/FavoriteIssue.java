@@ -7,18 +7,19 @@
 package models;
 
 import models.enumeration.State;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 
 import javax.annotation.Nonnull;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import java.util.List;
 
 @Entity
 public class FavoriteIssue extends Model {
-    public static Finder<Long, FavoriteIssue> find = new Finder<>(Long.class, FavoriteIssue.class);
+    public static Finder<Long, FavoriteIssue> find = new Finder<>(FavoriteIssue.class);
 
     @Id
     public Long id;
@@ -35,7 +36,7 @@ public class FavoriteIssue extends Model {
     }
 
     public static void updateFavoriteIssue(@Nonnull Issue issue){
-        List<FavoriteIssue> favoriteIssues = find.where().eq("issue.id", issue.id).findList();
+        List<FavoriteIssue> favoriteIssues = find.query().where().eq("issue.id", issue.id).findList();
 
         for (FavoriteIssue favoriteProject : favoriteIssues) {
             favoriteProject.issue.refresh();
@@ -44,16 +45,16 @@ public class FavoriteIssue extends Model {
     }
 
     public static FavoriteIssue findByIssueId(Long userId, Long issueId){
-        return find.where()
+        return find.query().where()
                 .eq("user.id", userId)
                 .eq("issue.id", issueId)
-                .findUnique();
+                .findOne();
     }
 
     public static int getNumberOpenFavoriteIssues(Long userId){
-        return find.where()
+        return find.query().where()
                 .eq("user.id", userId)
                 .eq("issue.state", State.OPEN)
-                .findRowCount();
+                .findCount();
     }
 }

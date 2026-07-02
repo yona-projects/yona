@@ -9,11 +9,14 @@ package models;
 
 import models.enumeration.ResourceType;
 import models.resource.Resource;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -26,11 +29,12 @@ import static models.enumeration.ResourceType.ISSUE_POST;
 public class Mention extends Model {
     private static final long serialVersionUID = 5803239458057753468L;
 
-    public static final Finder<Long, Mention> find = new Finder<>(Long.class, Mention.class);
+    public static final Finder<Long, Mention> find = new Finder<>(Mention.class);
 
     @Id
     public Long id;
 
+    @Enumerated(EnumType.STRING)
     public ResourceType resourceType;
 
     public String resourceId;
@@ -49,7 +53,7 @@ public class Mention extends Model {
      * @param mentionedUsers the users mentioned by the resource
      */
     public static void update(Resource resource, Set<User> mentionedUsers) {
-        for (Mention mention : find.where().eq("resourceType", resource.getType()).eq("resourceId",
+        for (Mention mention : find.query().where().eq("resourceType", resource.getType()).eq("resourceId",
                 resource.getId()).findList()) {
             if (mentionedUsers.contains(mention.user)) {
                 mentionedUsers.remove(mention.user);
@@ -71,7 +75,7 @@ public class Mention extends Model {
         Set<Long> ids = new HashSet<>();
         Set<Long> commentIds = new HashSet<>();
 
-        for (Mention mention : Mention.find.where()
+        for (Mention mention : Mention.find.query().where()
                 .eq("user.id", mentionUserId)
                 .in("resourceType", ISSUE_POST, ISSUE_COMMENT)
                 .findList()) {
@@ -90,7 +94,7 @@ public class Mention extends Model {
         }
 
         if (!commentIds.isEmpty()) {
-            for (IssueComment comment : IssueComment.find.where()
+            for (IssueComment comment : IssueComment.find.query().where()
                     .idIn(new ArrayList<>(commentIds))
                     .findList()) {
                 ids.add(comment.issue.id);

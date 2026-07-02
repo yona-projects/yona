@@ -22,12 +22,13 @@ package models;
 
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jgit.lib.Constants;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -39,7 +40,7 @@ import java.util.List;
 @Entity
 public class PushedBranch extends Model {
     private static final long serialVersionUID = 1L;
-    public static final Finder<Long, PushedBranch> find = new Finder<>(Long.class, PushedBranch.class);
+    public static final Finder<Long, PushedBranch> find = new Finder<>(PushedBranch.class);
     public PushedBranch() {
     }
 
@@ -62,7 +63,7 @@ public class PushedBranch extends Model {
     }
 
     public static void removeByPullRequestFrom(PullRequest pullRequest) {
-        PushedBranch pushedBranch = find.where().eq("project",  pullRequest.fromProject).eq("name", pullRequest.fromBranch).findUnique();
+        PushedBranch pushedBranch = find.query().where().eq("project",  pullRequest.fromProject).eq("name", pullRequest.fromBranch).findOne();
         if(pushedBranch != null){
             pushedBranch.delete();
         }

@@ -7,7 +7,6 @@
 @import play.data.Form
 @(message:String, authInfoForm: Form[AuthInfo], redirectUrl:String)
 @import com.feth.play.module.pa.views.html._
-@import com.feth.play.module.pa.PlayAuthenticate._;
 @import play.mvc.Http._;
 @import utils.TemplateHelper._
 @import org.apache.commons.lang3.StringUtils
@@ -45,7 +44,8 @@
     @if(UserApp.isUsingEmailVerification){
       <div class="email-verification-help">@Messages("notification.confirm.mail.will.be.sent")</div>
     }
-    <form action="@routes.UserApp.login()" method="POST">
+    <form action="@routes.UserApp.login" method="POST">
+      @csrfFormField
       <input type="hidden" name="redirectUrl" value="@redirectUrl" />
       @if(UserApp.useSocialLoginOnly){
         <div class="btns-row nm">
@@ -67,16 +67,16 @@
       }
 
       <div class="btns-row nm">
-      @currentAuth() { auth =>
+      @currentAuth(playAuthenticate) { auth =>
         @if(auth == null) {
           @if(isSocialLoginSupport) {
             @if(!UserApp.useSocialLoginOnly) {
               <div class="social-login-title-line"> @Messages("title.or") </div>
             }
           }
-          @forProviders() { p =>
+          @forProviders(playAuthenticate, false, true, true) { p =>
             @if(isAllowedOAuthProvider(p.getKey)) {
-              <a href="@p.getUrl()" class="ybtn oauth-login-btn">@Html(providerWithLogo(p.getKey()))</a>
+              <a href="@p.getUrl" class="ybtn oauth-login-btn">@Html(providerWithLogo(p.getKey))</a>
             }
           }
         }

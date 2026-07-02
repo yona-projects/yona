@@ -20,14 +20,12 @@
  */
 package models;
 
-import com.avaje.ebean.annotation.EnumValue;
+import io.ebean.annotation.EnumValue;
 import play.data.validation.Constraints;
 import playRepository.DiffLine;
 import playRepository.FileDiff;
 
-import javax.persistence.Embeddable;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
+import jakarta.persistence.Embeddable;
 
 /**
  * @author Keesun Baik
@@ -60,7 +58,6 @@ public class CodeRange {
 
     public String path;
 
-    @Enumerated(EnumType.STRING)
     public Side startSide;
 
     @Constraints.Required
@@ -69,7 +66,6 @@ public class CodeRange {
     @Constraints.Required
     public Integer startColumn;
 
-    @Enumerated(EnumType.STRING)
     public Side endSide;
 
     @Constraints.Required

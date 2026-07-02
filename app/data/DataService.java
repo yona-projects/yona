@@ -31,7 +31,7 @@ import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import play.Configuration;
-import play.db.DB;
+import utils.DBUtil;
 
 import javax.sql.DataSource;
 import java.io.*;
@@ -115,7 +115,7 @@ public class DataService {
 
     public InputStream exportData() {
         final DateTime start = DateTime.now();
-        DataSource dataSource = DB.getDataSource(dataSourceName);
+        DataSource dataSource = DBUtil.getDataSource(dataSourceName);
         final JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
         final String dbName = getDBName(dataSource);
         final String catalogName = getCatalogName(dataSource);
@@ -186,7 +186,7 @@ public class DataService {
             return;
         }
 
-        DataSource dataSource = DB.getDataSource(dataSourceName);
+        DataSource dataSource = DBUtil.getDataSource(dataSourceName);
         JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
         String dbName = getDBName(dataSource);
         disableReferentialIntegtiry(dbName, jdbcTemplate);

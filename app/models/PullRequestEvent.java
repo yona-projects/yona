@@ -24,11 +24,12 @@ import models.enumeration.EventType;
 import models.enumeration.State;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 import utils.EventConstants;
 import utils.JodaDateUtil;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -38,7 +39,7 @@ import java.util.List;
 public class PullRequestEvent extends Model implements TimelineItem {
 
     private static final long serialVersionUID = 1981361242582594128L;
-    public static final Finder<Long, PullRequestEvent> finder = new Finder<>(Long.class, PullRequestEvent.class);
+    public static final Finder<Long, PullRequestEvent> finder = new Finder<>(PullRequestEvent.class);
 
     @Id
     public Long id;
@@ -86,12 +87,12 @@ public class PullRequestEvent extends Model implements TimelineItem {
     private static PullRequestEvent getLatestEventInDraftTime(PullRequestEvent event) {
         Date draftDate = DateTime.now().minusMillis(EventConstants.DRAFT_TIME_IN_MILLIS).toDate();
 
-        return PullRequestEvent.finder.where()
+        return PullRequestEvent.finder.query().where()
                 .eq("pull_request_id", event.pullRequest.id)
                 .gt("created", draftDate)
                 .orderBy("created desc")
                 .setMaxRows(1)
-                .findUnique();
+                .findOne();
     }
 
     private static boolean needToDeleteEvent(PullRequestEvent lastEvent, PullRequestEvent currentEvent) {
@@ -145,7 +146,7 @@ public class PullRequestEvent extends Model implements TimelineItem {
     }
 
     public static List<PullRequestEvent> findByPullRequest(PullRequest pullRequest) {
-        return finder.where().eq("pullRequest", pullRequest).findList();
+        return finder.query().where().eq("pullRequest", pullRequest).findList();
     }
 
     @Transient

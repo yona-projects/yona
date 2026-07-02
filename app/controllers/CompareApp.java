@@ -25,7 +25,7 @@ import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
 import models.Project;
 import models.enumeration.Operation;
-import play.mvc.Controller;
+import utils.LegacyController;
 import play.mvc.Result;
 import playRepository.Commit;
 import playRepository.FileDiff;
@@ -38,9 +38,9 @@ import views.html.code.compare_svn;
 import java.util.List;
 
 @AnonymousCheck
-public class CompareApp extends Controller {
+public class CompareApp extends LegacyController {
     @IsAllowed(Operation.READ)
-    public static Result compare(String ownerName, String projectName, String revA, String revB)
+    public Result compare(String ownerName, String projectName, String revA, String revB)
             throws Exception {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         PlayRepository repository = RepositoryService.getRepository(project);

@@ -16,10 +16,10 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import play.data.Form;
-import play.db.ebean.Model;
+import io.ebean.Model;
 import play.i18n.Messages;
 import play.mvc.Call;
-import play.mvc.Controller;
+import utils.LegacyController;
 import play.mvc.Http;
 import play.mvc.Result;
 import utils.*;
@@ -31,7 +31,7 @@ import static utils.JodaDateUtil.getDateString;
 import static utils.diff_match_patch.Diff;
 
 @AnonymousCheck
-public class AbstractPostingApp extends Controller {
+public class AbstractPostingApp extends LegacyController {
     public static final int ITEMS_PER_PAGE = 15;
     private static final short Diff_EditCost = 16;
 
@@ -224,8 +224,8 @@ public class AbstractPostingApp extends Controller {
             int attachedFileCount = Attachment.moveOnlySelected(UserApp.currentUser().asResource(), resource,
                     temporaryUploadFiles);
             if( attachedFileCount != temporaryUploadFiles.length){
-                flash(Constants.TITLE, Messages.get("post.popup.fileAttach.hasMissing", temporaryUploadFiles.length - attachedFileCount));
-                flash(Constants.DESCRIPTION, Messages.get("post.popup.fileAttach.hasMissing.description", getTemporaryFilesServerKeepUpTimeOfMinuntes()));
+                flash(Constants.TITLE, MessagesUtil.get("post.popup.fileAttach.hasMissing", temporaryUploadFiles.length - attachedFileCount));
+                flash(Constants.DESCRIPTION, MessagesUtil.get("post.popup.fileAttach.hasMissing.description", getTemporaryFilesServerKeepUpTimeOfMinuntes()));
             }
         }
     }
@@ -241,8 +241,8 @@ public class AbstractPostingApp extends Controller {
             int attachedFileCount = Attachment.moveOnlySelected(UserApp.currentUser().asResource(), resource,
                     fileIds);
             if( attachedFileCount != files.size()){
-                flash(Constants.TITLE, Messages.get("post.popup.fileAttach.hasMissing", files.size() - attachedFileCount));
-                flash(Constants.DESCRIPTION, Messages.get("post.popup.fileAttach.hasMissing.description", getTemporaryFilesServerKeepUpTimeOfMinuntes()));
+                flash(Constants.TITLE, MessagesUtil.get("post.popup.fileAttach.hasMissing", files.size() - attachedFileCount));
+                flash(Constants.DESCRIPTION, MessagesUtil.get("post.popup.fileAttach.hasMissing.description", getTemporaryFilesServerKeepUpTimeOfMinuntes()));
             }
         }
     }
@@ -252,7 +252,7 @@ public class AbstractPostingApp extends Controller {
     }
 
     public static String[] getTemporaryFileListFromHiddenForm() {
-        Http.MultipartFormData body = request().body().asMultipartFormData();
+        Http.MultipartFormData<?> body = request().body().asMultipartFormData();
         if (body == null) {
             return new String[] {};
         }

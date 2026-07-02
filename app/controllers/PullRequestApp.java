@@ -21,8 +21,8 @@
 package controllers;
 
 import actors.PullRequestMergingActor;
-import akka.actor.Props;
-import com.avaje.ebean.Page;
+import org.apache.pekko.actor.Props;
+import io.ebean.PagedList;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
@@ -38,13 +38,11 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.tmatesoft.svn.core.SVNException;
 import play.api.mvc.Call;
 import play.data.Form;
-import play.db.ebean.Transactional;
-import play.libs.Akka;
-import play.libs.F;
-import play.libs.F.Function;
-import play.libs.F.Promise;
+import io.ebean.annotation.Transactional;
+import java.util.concurrent.*;
+import java.util.function.*;
 import play.libs.Json;
-import play.mvc.Controller;
+import utils.LegacyController;
 import play.mvc.Result;
 import playRepository.GitBranch;
 import playRepository.GitRepository;
@@ -67,17 +65,17 @@ import java.util.Objects;
 
 @IsOnlyGitAvailable
 @AnonymousCheck
-public class PullRequestApp extends Controller {
+public class PullRequestApp extends LegacyController {
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsCreatable(ResourceType.FORK)
-    public static Result newFork(String userName, String projectName, String forkOwner) {
+    public Result newFork(String userName, String projectName, String forkOwner) {
         String destination = findDestination(forkOwner);
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         List<OrganizationUser> orgUserList = OrganizationUser.findByAdmin(UserApp.currentUser().id);
         List<Project> forkedProjects = Project.findByOwnerAndOriginalProject(destination, project);
         Project forkProject = Project.copy(project, destination);
-        return ok(fork.render("fork", project, forkProject, forkedProjects, new Form<>(Project.class), orgUserList));
+        return ok(fork.render("fork", project, forkProject, forkedProjects, utils.FormUtil.form(Project.class), orgUserList));
     }
 
     private static String findDestination(String forkOwner) {
@@ -90,15 +88,15 @@ public class PullRequestApp extends Controller {
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsCreatable(ResourceType.FORK)
-    public static Result fork(String userName, String projectName) {
-        Form<Project> forkProjectForm = new Form<>(Project.class).bindFromRequest();
+    public Result fork(String userName, String projectName) {
+        Form<Project> forkProjectForm = utils.FormUtil.form(Project.class).bindFromRequest(request());
         Project projectForm = forkProjectForm.get();
         String destination = findDestination(projectForm.owner);
         Project originalProject = Project.findByOwnerAndProjectName(userName, projectName);
 
         if (Project.exists(destination, projectForm.name)) {
             flash(Constants.WARNING, "project.name.duplicate");
-            forkProjectForm.reject("name");
+            utils.FormUtil.reject(forkProjectForm, "name");
             return redirect(routes.PullRequestApp.newFork(originalProject.owner, originalProject.name, destination));
         }
 
@@ -112,8 +110,8 @@ public class PullRequestApp extends Controller {
 
     @Transactional
     @IsCreatable(ResourceType.FORK)
-    public static Result doClone(String userName, String projectName) {
-        Form<Project> form = new Form<>(Project.class).bindFromRequest();
+    public Result doClone(String userName, String projectName) {
+        Form<Project> form = utils.FormUtil.form(Project.class).bindFromRequest(request());
         Project projectForm = form.get();
         String destination = findDestination(projectForm.owner);
 
@@ -162,7 +160,7 @@ public class PullRequestApp extends Controller {
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsCreatable(ResourceType.FORK)
-    public static Result newPullRequestForm(String userName, String projectName) throws IOException, GitAPIException {
+    public Result newPullRequestForm(String userName, String projectName) throws IOException, GitAPIException {
         final Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
         ValidationResult validation = validateBeforePullRequest(project);
@@ -189,7 +187,7 @@ public class PullRequestApp extends Controller {
                 , StringUtils.defaultIfBlank(request().getQueryString("fromBranch"), fromBranches.get(0).getName())
                 , StringUtils.defaultIfBlank(request().getQueryString("toBranch"), project.defaultBranch()));
 
-        return ok(create.render("title.newPullRequest", new Form<>(PullRequest.class).fill(pullRequest), project, projects, fromProject, toProject, fromBranches, toBranches, pullRequest));
+        return ok(create.render("title.newPullRequest", utils.FormUtil.form(PullRequest.class).fill(pullRequest), project, projects, fromProject, toProject, fromBranches, toBranches, pullRequest));
     }
 
     private static Project getSelectedProject(Project project, String projectId, boolean isToProject) {
@@ -208,7 +206,7 @@ public class PullRequestApp extends Controller {
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsCreatable(ResourceType.FORK)
-    public static Result mergeResult(String userName, String projectName) throws IOException, GitAPIException {
+    public Result mergeResult(String userName, String projectName) throws IOException, GitAPIException {
         final Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
         ValidationResult validation = validateBeforePullRequest(project);
@@ -242,7 +240,7 @@ public class PullRequestApp extends Controller {
         // This should be called after creation of a pull request
         void runMergingActor() {
             if (message != null) {
-                Akka.system().actorOf(Props.create(PullRequestMergingActor.class)).tell(message, null);
+                utils.AkkaUtil.system().actorOf(Props.create(PullRequestMergingActor.class)).tell(message, null);
             }
         }
 
@@ -252,7 +250,7 @@ public class PullRequestApp extends Controller {
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsCreatable(ResourceType.FORK)
-    public static Result newPullRequest(String userName, String projectName) throws IOException, GitAPIException {
+    public Result newPullRequest(String userName, String projectName) throws IOException, GitAPIException {
         PullRequestCreationResult result = createPullRequest(userName, projectName);
         result.runMergingActor();
         return result.result;
@@ -267,13 +265,13 @@ public class PullRequestApp extends Controller {
             return new PullRequestCreationResult(validation.getResult(), null);
         }
 
-        Form<PullRequest> form = new Form<>(PullRequest.class).bindFromRequest();
+        Form<PullRequest> form = utils.FormUtil.form(PullRequest.class).bindFromRequest(request());
         validateForm(form);
         if(form.hasErrors()) {
             List<GitBranch> fromBranches = new GitRepository(project).getBranches();
             List<GitBranch> toBranches = new GitRepository(project.originalProject).getBranches();
             return new PullRequestCreationResult(
-                    ok(create.render("title.newPullRequest", new Form<>(PullRequest.class), project, null, null, null, fromBranches, toBranches, null)),
+                    ok(create.render("title.newPullRequest", utils.FormUtil.form(PullRequest.class), project, null, null, null, fromBranches, toBranches, null)),
                     null);
         }
 
@@ -316,24 +314,24 @@ public class PullRequestApp extends Controller {
     }
 
     private static void validateForm(Form<PullRequest> form) {
-        Map<String, String> data = form.data();
+        Map<String, String> data = form.rawData();
         ValidationUtils.rejectIfEmpty(flash(), data.get("fromBranch"), "pullRequest.fromBranch.required");
         ValidationUtils.rejectIfEmpty(flash(), data.get("toBranch"), "pullRequest.toBranch.required");
         ValidationUtils.rejectIfEmpty(flash(), data.get("title"), "pullRequest.title.required");
     }
 
     @IsAllowed(Operation.READ)
-    public static Result pullRequests(String userName, String projectName) {
+    public Result pullRequests(String userName, String projectName) {
         return pullRequests(userName, projectName, Category.OPEN);
     }
 
     @IsAllowed(Operation.READ)
-    public static Result closedPullRequests(String userName, String projectName) {
+    public Result closedPullRequests(String userName, String projectName) {
         return pullRequests(userName, projectName, Category.CLOSED);
     }
 
     @IsAllowed(Operation.READ)
-    public static Result sentPullRequests(String userName, String projectName) {
+    public Result sentPullRequests(String userName, String projectName) {
         return pullRequests(userName, projectName, Category.SENT);
     }
 
@@ -346,9 +344,9 @@ public class PullRequestApp extends Controller {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
-        SearchCondition condition = Form.form(SearchCondition.class).bindFromRequest().get();
+        SearchCondition condition = utils.FormUtil.form(SearchCondition.class).bindFromRequest(request()).get();
         condition.setProject(project).setCategory(category);
-        Page<PullRequest> page = PullRequest.findPagingList(condition);
+        PagedList<PullRequest> page = PullRequest.findPagedList(condition);
         if (HttpUtil.isPJAXRequest(request())) {
             response().setHeader("Cache-Control", "no-cache, no-store");
             return ok(partial_search.render(project, page, condition, category.code));
@@ -358,7 +356,7 @@ public class PullRequestApp extends Controller {
     }
 
     @IsAllowed(value = Operation.READ, resourceType = ResourceType.PULL_REQUEST)
-    public static Result pullRequest(String userName, String projectName, long pullRequestNumber) {
+    public Result pullRequest(String userName, String projectName, long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
 
@@ -375,7 +373,7 @@ public class PullRequestApp extends Controller {
     }
 
     @IsAllowed(value = Operation.READ, resourceType = ResourceType.PULL_REQUEST)
-    public static Result pullRequestState(String userName, String projectName, long pullRequestNumber) {
+    public Result pullRequestState(String userName, String projectName, long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
 
@@ -404,13 +402,13 @@ public class PullRequestApp extends Controller {
     }
 
     @IsAllowed(value = Operation.READ, resourceType = ResourceType.PULL_REQUEST)
-    public static Result pullRequestChanges(String userName, String projectName,
+    public Result pullRequestChanges(String userName, String projectName,
                                             long pullRequestNumber) {
         return specificChange(userName, projectName, pullRequestNumber, null);
     }
 
     @IsAllowed(value = Operation.READ, resourceType = ResourceType.PULL_REQUEST)
-    public static Result specificChange(String userName, String projectName,
+    public Result specificChange(String userName, String projectName,
                                         long pullRequestNumber, String commitId) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
@@ -420,7 +418,7 @@ public class PullRequestApp extends Controller {
     @Transactional
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(value = Operation.ACCEPT, resourceType = ResourceType.PULL_REQUEST)
-    public static Promise<Result> accept(final String userName, final String projectName,
+    public CompletionStage<Result> accept(final String userName, final String projectName,
                                          final long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         final PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
@@ -433,29 +431,23 @@ public class PullRequestApp extends Controller {
                 UserApp.currentUser(), request(), project, pullRequest.toBranch);
 
         if(project.isUsingReviewerCount && !pullRequest.isReviewed()) {
-            return Promise.pure((Result) badRequest(
+            return CompletableFuture.completedFuture((Result) badRequest(
                     ErrorViews.BadRequest.render("pullRequest.not.enough.review.point")));
         }
 
-        Promise<Void> promise = Promise.promise(
-                new F.Function0<Void>() {
-                    public Void apply() throws Exception {
-                        pullRequest.merge(message);
-                        // mark the end of the merge
-                        pullRequest.endMerge();
-                        pullRequest.update();
-                        return null;
-                    }
-                }
-        );
-
-        return promise.map(new Function<Void, Result>() {
-            @Override
-            public Result apply(Void v) throws Throwable {
-                return redirect(routes.PullRequestApp.pullRequest(userName, projectName,
-                        pullRequestNumber));
+        CompletionStage<Void> promise = CompletableFuture.runAsync(() -> {
+            try {
+                pullRequest.merge(message);
+                // mark the end of the merge
+                pullRequest.endMerge();
+                pullRequest.update();
+            } catch (Exception e) {
+                throw new CompletionException(e);
             }
         });
+
+        return promise.thenApply(v -> redirect(routes.PullRequestApp.pullRequest(userName, projectName,
+                pullRequestNumber)));
     }
 
     private static void addNotification(PullRequest pullRequest, State from, State to) {
@@ -466,7 +458,7 @@ public class PullRequestApp extends Controller {
     @Transactional
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(value = Operation.CLOSE, resourceType = ResourceType.PULL_REQUEST)
-    public static Result close(String userName, String projectName, Long pullRequestNumber) {
+    public Result close(String userName, String projectName, Long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
 
@@ -483,7 +475,7 @@ public class PullRequestApp extends Controller {
     @Transactional
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(value = Operation.REOPEN, resourceType = ResourceType.PULL_REQUEST)
-    public static Result open(String userName, String projectName, Long pullRequestNumber) {
+    public Result open(String userName, String projectName, Long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
 
@@ -500,19 +492,19 @@ public class PullRequestApp extends Controller {
 
         PullRequestEventMessage message = new PullRequestEventMessage(
                 UserApp.currentUser(), request(), pullRequest);
-        Akka.system().actorOf(Props.create(PullRequestMergingActor.class)).tell(message, null);
+        utils.AkkaUtil.system().actorOf(Props.create(PullRequestMergingActor.class)).tell(message, null);
 
         return redirect(call);
     }
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
-    public static Result editPullRequestForm(String userName, String projectName, Long pullRequestNumber) throws IOException, GitAPIException {
+    public Result editPullRequestForm(String userName, String projectName, Long pullRequestNumber) throws IOException, GitAPIException {
         Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(toProject, pullRequestNumber);
         Project fromProject = pullRequest.fromProject;
 
-        Form<PullRequest> editForm = new Form<>(PullRequest.class).fill(pullRequest);
+        Form<PullRequest> editForm = utils.FormUtil.form(PullRequest.class).fill(pullRequest);
         List<GitBranch> fromBranches = new GitRepository(pullRequest.fromProject).getBranches();
         List<GitBranch> toBranches = new GitRepository(pullRequest.toProject).getBranches();
 
@@ -522,12 +514,12 @@ public class PullRequestApp extends Controller {
     @Transactional
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
-    public static Result editPullRequest(String userName, String projectName, Long pullRequestNumber) {
+    public Result editPullRequest(String userName, String projectName, Long pullRequestNumber) {
         Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(toProject, pullRequestNumber);
         Project fromProject = pullRequest.fromProject;
 
-        Form<PullRequest> pullRequestForm = new Form<>(PullRequest.class).bindFromRequest();
+        Form<PullRequest> pullRequestForm = utils.FormUtil.form(PullRequest.class).bindFromRequest(request());
         PullRequest updatedPullRequest = pullRequestForm.get();
 
         if (pullRequest.body == null) {
@@ -556,7 +548,7 @@ public class PullRequestApp extends Controller {
     @Transactional
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
-    public static Result deleteFromBranch(String userName, String projectName, Long pullRequestNumber) {
+    public Result deleteFromBranch(String userName, String projectName, Long pullRequestNumber) {
         Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(toProject, pullRequestNumber);
 
@@ -568,7 +560,7 @@ public class PullRequestApp extends Controller {
     @Transactional
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.PULL_REQUEST)
-    public static Result restoreFromBranch(String userName, String projectName, Long pullRequestNumber) {
+    public Result restoreFromBranch(String userName, String projectName, Long pullRequestNumber) {
         Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(toProject, pullRequestNumber);
 
@@ -590,13 +582,13 @@ public class PullRequestApp extends Controller {
     }
 
     @IsCreatable(ResourceType.REVIEW_COMMENT)
-    public static Result newComment(String ownerName, String projectName, Long pullRequestId,
+    public Result newComment(String ownerName, String projectName, Long pullRequestId,
                                     String commitId) throws IOException, ServletException,
             SVNException {
-        Form<CodeRange> codeRangeForm = new Form<>(CodeRange.class).bindFromRequest();
+        Form<CodeRange> codeRangeForm = utils.FormUtil.form(CodeRange.class).bindFromRequest(request());
 
-        Form<ReviewComment> reviewCommentForm = new Form<>(ReviewComment.class)
-                .bindFromRequest();
+        Form<ReviewComment> reviewCommentForm = utils.FormUtil.form(ReviewComment.class)
+                .bindFromRequest(request());
 
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 

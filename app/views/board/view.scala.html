@@ -23,7 +23,8 @@
         case _ => routes.BoardApp.posts(project.owner, project.name).toString
     }
 }
-@titleForOGTag = @{post.title + " |:| " + post.body.substring(0, Math.min(post.body.length, 200))}
+@safeBodyForOGTag = @{StringUtils.defaultString(post.body)}
+@titleForOGTag = @{post.title + " |:| " + safeBodyForOGTag.substring(0, Math.min(safeBodyForOGTag.length, 200))}
 
 @conatinsCurrentUserInWatchers = @{Watch.isWatching(UserApp.currentUser(), post.asResource())}
 
@@ -70,7 +71,7 @@
                     @if(StringUtils.isNotEmpty(post.history)){
                         @if(UserApp.currentUser().isAnonymous){
                             <div class="posting-history">
-                                <a href="@routes.UserApp.loginForm()?redirectUrl=@routes.BoardApp.post(project.owner, project.name, post.getNumber)" data-toggle="modal">@Messages("change.history")</a>
+                                <a href="@routes.UserApp.loginForm?redirectUrl=@routes.BoardApp.post(project.owner, project.name, post.getNumber)" data-toggle="modal">@Messages("change.history")</a>
                             </div>
                         } else {
                             <div class="posting-history">

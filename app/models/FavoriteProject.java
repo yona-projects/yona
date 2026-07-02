@@ -6,18 +6,19 @@
  **/
 package models;
 
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 
 import javax.annotation.Nonnull;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import java.util.List;
 
 @Entity
 public class FavoriteProject extends Model {
-    public static Finder<Long, FavoriteProject> finder = new Finder<>(Long.class, FavoriteProject.class);
+    public static Finder<Long, FavoriteProject> finder = new Finder<>(FavoriteProject.class);
 
     @Id
     public Long id;
@@ -40,7 +41,7 @@ public class FavoriteProject extends Model {
     }
 
     public static void updateFavoriteProject(@Nonnull Project project){
-        List<FavoriteProject> favoriteProjects = finder.where().eq("project.id", project.id).findList();
+        List<FavoriteProject> favoriteProjects = finder.query().where().eq("project.id", project.id).findList();
 
         for (FavoriteProject favoriteProject : favoriteProjects) {
             favoriteProject.project.refresh();
@@ -51,9 +52,9 @@ public class FavoriteProject extends Model {
     }
 
     public static FavoriteProject findByProjectId(Long userId, Long projectId){
-        return finder.where()
+        return finder.query().where()
                 .eq("user.id", userId)
                 .eq("project.id", projectId)
-                .findUnique();
+                .findOne();
     }
 }

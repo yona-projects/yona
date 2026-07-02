@@ -7,19 +7,21 @@
 
 package models;
 
+import io.ebean.Finder;
+
 import models.enumeration.ResourceType;
 import models.resource.Resource;
 
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
+import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 public class PostingComment extends Comment {
     private static final long serialVersionUID = 1L;
-    public static final Finder<Long, PostingComment> find = new Finder<>(Long.class, PostingComment.class);
+    public static final Finder<Long, PostingComment> find = new Finder<>(PostingComment.class);
 
     @ManyToOne
     public Posting posting;
@@ -56,7 +58,7 @@ public class PostingComment extends Comment {
             return null;
         }
 
-        List<PostingComment> comments = find.where()
+        List<PostingComment> comments = find.query().where()
                 .eq("parentComment.id", parentComment.id)
                 .findList();
         return comments;
@@ -64,7 +66,7 @@ public class PostingComment extends Comment {
 
     @Override
     public List<PostingComment> getChildComments() {
-        List<PostingComment> comments = find.where()
+        List<PostingComment> comments = find.query().where()
                 .eq("parentComment.id", id)
                 .findList();
         return comments;
@@ -104,12 +106,12 @@ public class PostingComment extends Comment {
     }
 
     public static List<PostingComment> findAllBy(Posting posting) {
-        return find.where()
+        return find.query().where()
                 .eq("id", posting.id)
                 .findList();
     }
 
     public static int countAllCreatedBy(User user) {
-        return find.where().eq("author_id", user.id).findRowCount();
+        return find.query().where().eq("author_id", user.id).findCount();
     }
 }

@@ -23,10 +23,9 @@ package actions;
 import actions.support.PathParser;
 import controllers.annotation.IsOnlyGitAvailable;
 import models.Project;
-import play.mvc.Http.Context;
+import play.mvc.Http.Request;
 import play.mvc.Result;
-import play.mvc.Result;
-import play.libs.F.Promise;
+import java.util.concurrent.*;
 import utils.AccessLogger;
 import utils.ErrorViews;
 
@@ -40,13 +39,13 @@ import utils.ErrorViews;
  */
 public class IsOnlyGitAvailableAction extends AbstractProjectCheckAction<IsOnlyGitAvailable> {
     @Override
-    protected Promise<Result> call(Project project, Context context, PathParser parser) throws Throwable {
+    protected CompletionStage<Result> call(Project project, Request request, PathParser parser) {
         if(!project.isGit()) {
-            Promise<Result> promise = Promise.pure((Result) badRequest(ErrorViews.BadRequest.render("error.badrequest.only.available.for.git")));
-            AccessLogger.log(context.request(), promise, null);
+            CompletionStage<Result> promise = CompletableFuture.completedFuture((Result) badRequest(ErrorViews.BadRequest.render("error.badrequest.only.available.for.git")));
+            AccessLogger.log(request, promise, null);
             return promise;
         }
 
-        return this.delegate.call(context);
+        return this.delegate.call(request);
     }
 }

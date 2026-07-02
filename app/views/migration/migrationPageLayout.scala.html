@@ -166,7 +166,7 @@
 
                     // This method intended to sync sub tab list of projects
                     function updateStar(){
-                        $.get("@api.routes.UserApi.getFoveriteProjects()")
+                        $.get("@api.routes.UserApi.getFoveriteProjects")
                                 .done(function(data){
                                     $(".star-project").each(function () {
                                         var $this = $(this);

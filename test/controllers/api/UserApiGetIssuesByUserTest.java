@@ -1,7 +1,7 @@
 package controllers.api;
 
-import com.avaje.ebean.ExpressionList;
-import com.avaje.ebean.PagingList;
+import io.ebean.ExpressionList;
+import io.ebean.PagedList;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import models.Issue;
@@ -56,15 +56,15 @@ public class UserApiGetIssuesByUserTest {
         PowerMockito.doReturn(true).when(UserApi.class, "isAuthored", Mockito.any());
         PowerMockito.doReturn(USER).when(UserApi.class, "getAuthorizedUser", Mockito.anyString());
 
-        ExpressionList<Issue> el = Issue.finder.where();
+        ExpressionList<Issue> el = Issue.finder.query().where();
         IssueSearchCondition mockIssueSearchCondition = Mockito.mock(IssueSearchCondition.class);
         Mockito.when(mockIssueSearchCondition.getExpressionListByFilter(Mockito.any(), Mockito.any())).thenReturn(el);
 
         ExpressionList<Issue> mockExpressionList = PowerMockito.mock(ExpressionList.class);
-        PowerMockito.doReturn(null).when(mockExpressionList, "findPagingList", Mockito.anyInt());
+        PowerMockito.doReturn(null).when(mockExpressionList, "findPagedList", Mockito.anyInt());
 
-        PagingList<Issue> mockPagingList = PowerMockito.mock(PagingList.class);
-        PowerMockito.doReturn(null).when(mockPagingList, "getPage", Mockito.anyInt());
+        PagedList<Issue> mockPagedList = PowerMockito.mock(PagedList.class);
+        PowerMockito.doReturn(null).when(mockPagedList, "getPage", Mockito.anyInt());
     }
 
     @Test

@@ -31,13 +31,14 @@ import models.enumeration.ResourceType;
 import play.data.DynamicForm;
 import play.data.Form;
 import play.data.validation.Constraints;
-import play.db.ebean.Transactional;
-import play.mvc.Controller;
+import io.ebean.annotation.Transactional;
+import utils.LegacyController;
 import play.mvc.Http;
 import play.mvc.Result;
 import utils.AccessControl;
 import utils.ErrorViews;
 import utils.HttpUtil;
+import utils.RequestUtil;
 
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
@@ -45,11 +46,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static play.data.Form.form;
+import static utils.FormUtil.form;
 import static play.libs.Json.toJson;
 
 @AnonymousCheck
-public class IssueLabelApp extends Controller {
+public class IssueLabelApp extends LegacyController {
     /**
      * Responds to a request for issue labels of the specified project.
      *
@@ -64,7 +65,7 @@ public class IssueLabelApp extends Controller {
      * @return the response to the request for issue labels
      */
     @IsAllowed(Operation.READ)
-    public static Result labels(String ownerName, String projectName) {
+    public Result labels(String ownerName, String projectName) {
         if (HttpUtil.isPJAXRequest(request())){
             return labelsAsPjax(ownerName, projectName);
         }
@@ -119,7 +120,7 @@ public class IssueLabelApp extends Controller {
     }
 
     @IsAllowed(Operation.UPDATE)
-    public static Result labelsForm(String ownerName, String projectName){
+    public Result labelsForm(String ownerName, String projectName){
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         List<IssueLabel> labels = IssueLabel.findByProject(project);
 
@@ -186,10 +187,10 @@ public class IssueLabelApp extends Controller {
      */
     @Transactional
     @IsCreatable(ResourceType.ISSUE_LABEL)
-    public static Result newLabel(String ownerName, String projectName) {
+    public Result newLabel(String ownerName, String projectName) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
-        Form<NewLabel> newLabelForm = form(NewLabel.class).bindFromRequest();
+        Form<NewLabel> newLabelForm = form(NewLabel.class).bindFromRequest(request());
 
         if (newLabelForm.hasErrors()) {
             return badRequest(newLabelForm.errorsAsJson());
@@ -252,9 +253,9 @@ public class IssueLabelApp extends Controller {
      */
     @Transactional
     @IsAllowed(value = Operation.DELETE, resourceType = ResourceType.ISSUE_LABEL)
-    public static Result delete(String ownerName, String projectName, Long id) {
+    public Result delete(String ownerName, String projectName, Long id) {
         // _method must be 'delete'
-        DynamicForm bindedForm = form().bindFromRequest();
+        DynamicForm bindedForm = form().bindFromRequest(request());
         if (!bindedForm.get("_method").toLowerCase()
                 .equals("delete")) {
             return badRequest(ErrorViews.BadRequest.render("_method must be 'delete'."));
@@ -273,8 +274,8 @@ public class IssueLabelApp extends Controller {
     }
 
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.ISSUE_LABEL)
-    public static Result update(String ownerName, String projectName, Long id) {
-        Form<IssueLabel> form = new Form<>(IssueLabel.class).bindFromRequest();
+    public Result update(String ownerName, String projectName, Long id) {
+        Form<IssueLabel> form = utils.FormUtil.form(IssueLabel.class).bindFromRequest(request());
 
         if (form.hasErrors()) {
             return badRequest(form.errorsAsJson());
@@ -301,12 +302,12 @@ public class IssueLabelApp extends Controller {
      * @return the response to the request for the css styles in text/css.
      */
     @IsAllowed(Operation.READ)
-    public static Result labelStyles(String ownerName, String projectName) {
+    public Result labelStyles(String ownerName, String projectName) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         List<IssueLabel> labels = IssueLabel.findByProject(project);
 
         String eTag = "\"" + labels.hashCode() + "\"";
-        String ifNoneMatchValue = request().getHeader("If-None-Match");
+        String ifNoneMatchValue = RequestUtil.getHeader(request(), "If-None-Match");
 
         if(ifNoneMatchValue != null && ifNoneMatchValue.equals(eTag)) {
             response().setHeader("ETag", eTag);
@@ -340,7 +341,7 @@ public class IssueLabelApp extends Controller {
      * @return the response to the request for issue label categories
      */
     @IsAllowed(Operation.READ)
-    public static Result categories(String ownerName, String projectName) {
+    public Result categories(String ownerName, String projectName) {
         if (!request().accepts("application/json")) {
             return status(Http.Status.NOT_ACCEPTABLE);
         }
@@ -371,7 +372,7 @@ public class IssueLabelApp extends Controller {
      */
     @IsAllowed(value = Operation.READ,
             resourceType = ResourceType.ISSUE_LABEL_CATEGORY)
-    public static Result category(String ownerName, String projectName,
+    public Result category(String ownerName, String projectName,
             Long id) {
         if (!request().accepts("application/json")) {
             return status(Http.Status.NOT_ACCEPTABLE);
@@ -387,10 +388,10 @@ public class IssueLabelApp extends Controller {
 
     @IsAllowed(value = Operation.UPDATE,
             resourceType = ResourceType.ISSUE_LABEL_CATEGORY)
-    public static Result updateCategory(String ownerName, String projectName,
+    public Result updateCategory(String ownerName, String projectName,
             Long id) {
         Form<IssueLabelCategory> form =
-            new Form<>(IssueLabelCategory.class).bindFromRequest();
+            utils.FormUtil.form(IssueLabelCategory.class).bindFromRequest(request());
 
         if (form.hasErrors()) {
             return badRequest(form.errorsAsJson());
@@ -435,9 +436,9 @@ public class IssueLabelApp extends Controller {
      *                     category
      */
     @IsCreatable(ResourceType.ISSUE_LABEL_CATEGORY)
-    public static Result newCategory(String ownerName, String projectName) {
+    public Result newCategory(String ownerName, String projectName) {
         Form<IssueLabelCategory> form =
-            new Form<>(IssueLabelCategory.class).bindFromRequest();
+            utils.FormUtil.form(IssueLabelCategory.class).bindFromRequest(request());
 
         if (form.hasErrors()) {
             return badRequest();
@@ -468,7 +469,7 @@ public class IssueLabelApp extends Controller {
 
     @Transactional
     @IsAllowed(value = Operation.DELETE, resourceType = ResourceType.ISSUE_LABEL_CATEGORY)
-    public static Result deleteCategory(String ownerName, String projectName, Long id) {
+    public Result deleteCategory(String ownerName, String projectName, Long id) {
         IssueLabelCategory.find.byId(id).delete();
         return ok();
     }
@@ -482,7 +483,7 @@ public class IssueLabelApp extends Controller {
     }
 
     @IsCreatable(ResourceType.ISSUE_LABEL)
-    public static Result copyLabels(String ownerName, String projectName) {
+    public Result copyLabels(String ownerName, String projectName) {
         Map<String, String[]> form = request().body().asFormUrlEncoded();
         String fromOwner = HttpUtil.getFirstValueFromQuery(form, "owner");
         String fromProjectName = HttpUtil.getFirstValueFromQuery(form, "projectName");

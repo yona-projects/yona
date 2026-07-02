@@ -18,17 +18,19 @@ import models.enumeration.ProjectScope;
 import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
 import org.apache.commons.lang3.StringUtils;
-import play.db.ebean.Model;
-import play.db.ebean.Transactional;
+import io.ebean.Finder;
+import io.ebean.Model;
+import io.ebean.annotation.Transactional;
 import play.i18n.Messages;
 import play.libs.Json;
-import play.mvc.Controller;
+import utils.LegacyController;
 import play.mvc.Http;
 import play.mvc.Result;
 import playRepository.RepositoryService;
 import utils.AccessControl;
 import utils.Config;
 import utils.JodaDateUtil;
+import utils.MessagesUtil;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -41,11 +43,11 @@ import static play.libs.Json.toJson;
 import static utils.CacheStore.getProjectCacheKey;
 import static utils.CacheStore.projectMap;
 
-public class ProjectApi extends Controller {
+public class ProjectApi extends LegacyController {
     private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
     @IsAllowed(Operation.DELETE)
-    public static Result exports(String owner, String projectName) {
+    public Result exports(String owner, String projectName) {
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
 
         ObjectNode json = Json.newObject();
@@ -110,7 +112,7 @@ public class ProjectApi extends Controller {
     }
 
     @Transactional
-    public static Result newProject(String owner) throws Exception {
+    public Result newProject(String owner) throws Exception {
         ObjectNode result = Json.newObject();
         JsonNode json = request().body().asJson();
         if (json == null) {
@@ -134,7 +136,7 @@ public class ProjectApi extends Controller {
 
         if ((!AccessControl.isGlobalResourceCreatable(currentUser))
                 || (Organization.isNameExist(owner) && !OrganizationUser.isAdmin(organization.id, currentUser.id))) {
-            return forbidden(result.put("message", Messages.get("'" + currentUser.name + "' has no permission")));
+            return forbidden(result.put("message", MessagesUtil.get("'" + currentUser.name + "' has no permission")));
         }
 
         Project project = new Project();
@@ -266,7 +268,7 @@ public class ProjectApi extends Controller {
         return tagMap;
     }
 
-    private static <T> JsonNode composePosts(Project project, Model.Finder<Long, T> finder) {
+    private static <T> JsonNode composePosts(Project project, Finder<Long, T> finder) {
         List<ObjectNode> result = findByProject(finder, project).stream()
                 .map(posting -> getResult((AbstractPosting) posting))
                 .collect(Collectors.toList());
@@ -452,7 +454,7 @@ public class ProjectApi extends Controller {
 
     @Transactional
     @IsCreatable(ResourceType.ISSUE_LABEL)
-    public static Result newLabel(String owner, String projectName) {
+    public Result newLabel(String owner, String projectName) {
         ObjectNode result = Json.newObject();
         JsonNode json = request().body().asJson();
         if (json == null) {
@@ -514,7 +516,7 @@ public class ProjectApi extends Controller {
 
     private static JsonNode existedLabel(JsonNode labelNode) {
         ObjectNode createdUserNode = Json.newObject();
-        String message = Messages.get("label.error.duplicated");
+        String message = MessagesUtil.get("label.error.duplicated");
 
         createdUserNode.put("status", 409);
         createdUserNode.put("reason", "Conflict");
@@ -526,7 +528,7 @@ public class ProjectApi extends Controller {
 
     @Transactional
     @IsAllowed(Operation.READ)
-    public static Result titleHeads(String owner, String projectName, String query) {
+    public Result titleHeads(String owner, String projectName, String query) {
         if (!request().accepts("application/json")) {
             return status(Http.Status.NOT_ACCEPTABLE);
         }

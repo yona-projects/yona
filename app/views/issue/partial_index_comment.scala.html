@@ -29,7 +29,7 @@
 }
 
 @hasCurrentUserMention(content: String) = @{
-    content.indexOf("@" + currentUserLoginId + " ") != -1
+    Option(content).getOrElse("").indexOf("@" + currentUserLoginId + " ") != -1
 }
 
 @hasCurrentUserMentionInChildComments(comment: Comment) = @{
@@ -48,7 +48,7 @@
 <li class="comment index-comment @if(hasCurrentUserMention(comment.contents)){mentioned} @if(hasCurrentUserMentionInChildComments(comment)){mentionedInChild}" id="comment-@comment.id" data-location="#comment-@comment.id">
     <div>
         <div id="comment-body-@comment.id">
-            <div class="comment-body"><a href="#comment-@comment.id">@getEllipsisText(Markdown.render(comment.contents, project))</a></div>
+            <div class="comment-body"><a href="#comment-@comment.id">@getEllipsisText(Markdown.render(Option(comment.contents).getOrElse(""), project))</a></div>
         </div>
         <div class="index-comment-author">
             @if(commentsSize > 0) { <span class="comment-exists"><i class="yobicon-comment2"></i>@if(commentsSize> 1){@commentsSize}</span>}

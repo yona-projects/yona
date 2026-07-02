@@ -25,7 +25,8 @@ import models.ModelTest;
 import models.enumeration.Direction;
 import models.enumeration.Matching;
 import org.junit.Test;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 
 import java.util.List;
 
@@ -34,8 +35,7 @@ import static org.fest.assertions.Assertions.assertThat;
 
 public class FinderTemplateTest extends ModelTest<Milestone> {
 
-    private static Model.Finder<Long, Milestone> find = new Model.Finder<>(
-            Long.class, Milestone.class);
+    private static Finder<Long, Milestone> find = new Finder<>(Milestone.class);
 
     @Test
     public void findBy() throws Exception {

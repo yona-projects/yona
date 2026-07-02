@@ -22,8 +22,8 @@ package utils;
 
 import controllers.UserApp;
 import org.apache.commons.lang3.StringEscapeUtils;
-import play.libs.F.Callback;
-import play.libs.F.Promise;
+import java.util.concurrent.*;
+import java.util.function.*;
 import play.mvc.Http;
 import play.mvc.Result;
 
@@ -86,13 +86,13 @@ public class AccessLogger {
      * @see <a href="http://httpd.apache.org/docs/2.2/en/logs.html#combined">Combined Log Format - Apache HTTP Server</a>
      * @see <a href="http://httpd.apache.org/docs/2.2/mod/mod_log_config.html#formats">Custom Log Formats - Apache HTTP Server</a>
      */
-    public static void log(final Http.Request request, final Promise<Result> promise,
+    public static void log(final Http.Request request, final CompletionStage<Result> promise,
             final Long startTimeMillis) {
         final String username = UserApp.currentUser().loginId;
-        promise.onRedeem(new Callback<Result>() {
+        promise.thenAcceptAsync(new Consumer<Result>() {
             @Override
-            public void invoke(final Result result) throws Throwable {
-                log(request, username, result.toScala().header().status(),
+            public void accept(final Result result) {
+                log(request, username, result.status(),
                         startTimeMillis);
             }
         });
@@ -150,10 +150,10 @@ public class AccessLogger {
                 request.remoteAddress(), orHyphen(username),
                 format.format(new Date()), request.method(), request.uri(),
                 request.version(), status,
-                quotedOrHyphen(request.getHeader("Referer")),
-                quotedOrHyphen(request.getHeader("User-Agent")),
+                quotedOrHyphen(RequestUtil.getHeader(request, "Referer")),
+                quotedOrHyphen(RequestUtil.getHeader(request, "User-Agent")),
                 time);
 
-        play.Logger.of("access." + uri).info(entry);
+        org.slf4j.LoggerFactory.getLogger("access." + uri).info(entry);
     }
 }

@@ -4,21 +4,25 @@
 
 package models;
 
-import static com.avaje.ebean.Expr.*;
+import io.ebean.Finder;
+import io.ebean.Ebean;
+import io.ebean.SqlRow;
+
+import static io.ebean.Expr.*;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-import javax.persistence.UniqueConstraint;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import jakarta.persistence.UniqueConstraint;
 
 import models.enumeration.ResourceType;
 import models.resource.Resource;
@@ -29,7 +33,7 @@ import utils.JodaDateUtil;
 public class Posting extends AbstractPosting {
     private static final long serialVersionUID = 5287703642071155249L;
 
-    public static final Finder<Long, Posting> finder = new Finder<>(Long.class, Posting.class);
+    public static final Finder<Long, Posting> finder = new Finder<>(Posting.class);
 
     public boolean notice;
     public boolean readme;
@@ -101,25 +105,25 @@ public class Posting extends AbstractPosting {
     }
 
     public static List<Posting> findNotices(Project project) {
-        return Posting.finder.where()
+        return Posting.finder.query().where()
                 .eq("project.id", project.id)
                 .add(eq("notice", true))
-                .order().desc("createdDate")
+                .orderBy().desc("createdDate")
                 .findList();
     }
 
     public static List<Posting> findRecentlyCreated(Project project, int size) {
-        return Posting.finder.where()
+        return Posting.finder.query().where()
                 .eq("project.id", project.id)
-                .order().desc("createdDate")
-                .findPagingList(size).getPage(0)
+                .orderBy().desc("createdDate")
+                .setFirstRow((0) * (size)).setMaxRows(size).findPagedList()
                 .getList();
     }
 
     public static List<Posting> findRecentlyCreatedByDaysAgo(Project project, int days) {
-        return Posting.finder.where()
+        return Posting.finder.query().where()
                 .eq("project.id", project.id)
-                .ge("createdDate", JodaDateUtil.before(days)).order().desc("createdDate").findList();
+                .ge("createdDate", JodaDateUtil.before(days)).orderBy().desc("createdDate").findList();
     }
 
     /**
@@ -137,15 +141,50 @@ public class Posting extends AbstractPosting {
     }
 
     public static Posting findByNumber(Project project, long number) {
-        return AbstractPosting.findByNumber(finder, project, number);
+        Posting posting = Posting.finder.query()
+                .fetch("project")
+                .where()
+                .eq("project.id", project.id)
+                .eq("number", number)
+                .findOne();
+        if (posting != null && posting.body == null) {
+            SqlRow row = Ebean.createSqlQuery("select body from posting where id = :id")
+                    .setParameter("id", posting.id)
+                    .findOne();
+            if (row != null) {
+                posting.body = row.getString("body");
+            }
+        }
+        if (posting != null) {
+            if (posting.comments == null) {
+                posting.comments = PostingComment.find.query().where()
+                        .eq("posting.id", posting.id)
+                        .findList();
+            }
+            loadCommentContents(posting.comments);
+        }
+        return posting;
+    }
+
+    private static void loadCommentContents(List<PostingComment> comments) {
+        for (PostingComment comment : comments) {
+            if (comment.contents == null && comment.id != null) {
+                SqlRow row = Ebean.createSqlQuery("select contents from posting_comment where id = :id")
+                        .setParameter("id", comment.id)
+                        .findOne();
+                if (row != null) {
+                    comment.contents = row.getString("contents");
+                }
+            }
+        }
     }
 
     public static int countAllCreatedBy(User user) {
-        return finder.where().eq("author_id", user.id).findRowCount();
+        return finder.query().where().eq("author_id", user.id).findCount();
     }
 
     public static int countPostings(Project project) {
-        return finder.where().eq("project", project).findRowCount();
+        return finder.query().where().eq("project", project).findCount();
     }
 
     /**
@@ -157,10 +196,10 @@ public class Posting extends AbstractPosting {
     }
 
     public static Posting findREADMEPosting(Project project) {
-        return Posting.finder.where()
+        return Posting.finder.query().where()
                 .eq("project.id", project.id)
                 .add(eq("readme", true))
-                .findUnique();
+                .findOne();
     }
 
     public PostingComment findCommentByCommentId(Long id) {

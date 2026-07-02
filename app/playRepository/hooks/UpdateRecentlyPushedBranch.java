@@ -57,8 +57,8 @@ public class UpdateRecentlyPushedBranch implements PostReceiveHook {
 
     private void saveRecentlyPushedBranch(Set<String> pushedBranches) {
         for (String branch : pushedBranches) {
-            PushedBranch pushedBranch = PushedBranch.find.where()
-                            .eq("project", project).eq("name", branch).findUnique();
+            PushedBranch pushedBranch = PushedBranch.find.query().where()
+                            .eq("project", project).eq("name", branch).findOne();
 
             if (pushedBranch != null) {
                 pushedBranch.pushedDate = JodaDateUtil.now();
@@ -82,8 +82,8 @@ public class UpdateRecentlyPushedBranch implements PostReceiveHook {
 
     private void deletePushedBranch(Set<String> deletedBranches) {
         for (String branch : deletedBranches) {
-            PushedBranch pushedBranch = PushedBranch.find.where().eq("project", project)
-                    .eq("name", branch).findUnique();
+            PushedBranch pushedBranch = PushedBranch.find.query().where().eq("project", project)
+                    .eq("name", branch).findOne();
             if (pushedBranch != null) {
                 pushedBranch.delete();
             }

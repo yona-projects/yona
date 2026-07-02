@@ -26,13 +26,13 @@ import models.*;
 import models.enumeration.Operation;
 import models.enumeration.SearchType;
 import org.apache.commons.lang3.StringUtils;
-import play.mvc.Controller;
+import utils.LegacyController;
 import play.mvc.Result;
 import utils.ErrorViews;
 import views.html.search.*;
 
 @AnonymousCheck
-public class SearchApp extends Controller {
+public class SearchApp extends LegacyController {
 
     private static final PageParam DEFAULT_PAGE = new PageParam(0, 20);
 
@@ -41,7 +41,7 @@ public class SearchApp extends Controller {
      *
      * @return
      */
-    public static Result searchInAll() {
+    public Result searchInAll() {
         // SearchCondition from param
         String searchTypeValue = request().getQueryString("searchType");
         String keyword = request().getQueryString("keyword");
@@ -110,7 +110,7 @@ public class SearchApp extends Controller {
      * @param organizationName
      * @return
      */
-    public static Result searchInAGroup(String organizationName) {
+    public Result searchInAGroup(String organizationName) {
         String searchTypeValue = request().getQueryString("searchType");
         String keyword = request().getQueryString("keyword");
         PageParam pageParam = getPage();
@@ -192,7 +192,7 @@ public class SearchApp extends Controller {
      * @return
      */
     @IsAllowed(Operation.READ)
-    public static Result searchInAProject(String loginId, String projectName) {
+    public Result searchInAProject(String loginId, String projectName) {
         String searchTypeValue = request().getQueryString("searchType");
         String keyword = request().getQueryString("keyword");
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);

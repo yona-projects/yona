@@ -76,11 +76,7 @@ $(function(){
         $.ajax(htElement.welForm.attr("action"), {
             "type": "post",
             "dataType": "json",
-            "data": {
-                "loginIdOrEmail" : htElement.welInputId.val(),
-                "password": htElement.welInputPw.val(),
-                "rememberMe": htElement.welInputRememberMe.is(":checked")
-            }
+            "data": htElement.welForm.serialize()
         }).done(function(){
             document.location.reload();
         }).fail(function(htResult){

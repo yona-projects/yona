@@ -22,10 +22,8 @@ package utils;
 
 import models.User;
 import org.apache.commons.lang.StringUtils;
-import play.api.Play;
 import play.data.validation.Constraints.Validator;
-import play.libs.Scala;
-import scala.Tuple3;
+import play.routing.Router;
 
 import java.util.HashSet;
 import java.util.List;
@@ -45,7 +43,7 @@ public class ReservedWordsValidator extends Validator<String> {
 
     static {
         RESERVED_WORDS = new HashSet<>();
-        List<Tuple3<String, String, String>> list = Scala.asJava(Play.current().routes().get().documentation());
+        List<Router.RouteDocumentation> list = play.Play.application().injector().instanceOf(Router.class).documentation();
         play.Configuration config = play.Configuration.root();
         String context = config.getString("application.context", "/");
         String regex = String.format("^%s%s(%s)/?",
@@ -53,8 +51,8 @@ public class ReservedWordsValidator extends Validator<String> {
                 (context.endsWith("/") ? "" : "/"),
                 User.LOGIN_ID_PATTERN);
         Pattern pattern = Pattern.compile(regex);
-        for (Tuple3<String, String, String> tuple : list) {
-            Matcher matcher = pattern.matcher(tuple._2());
+        for (Router.RouteDocumentation route : list) {
+            Matcher matcher = pattern.matcher(route.getPathPattern());
             if (matcher.find()) {
                 RESERVED_WORDS.add(matcher.group(1));
             }

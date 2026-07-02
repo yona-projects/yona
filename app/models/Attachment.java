@@ -5,7 +5,7 @@
  */
 package models;
 
-import com.avaje.ebean.Page;
+import io.ebean.PagedList;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import controllers.AttachmentApp;
 import controllers.UserApp;
@@ -18,15 +18,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.config.TikaConfig;
 import org.apache.tika.mime.MimeTypeException;
 import play.data.validation.Constraints;
-import play.db.ebean.Model;
-import play.libs.Akka;
+import io.ebean.Finder;
+import io.ebean.Model;
 import scala.concurrent.duration.Duration;
 import utils.AttachmentCache;
 import utils.FileUtil;
 import utils.JodaDateUtil;
 
 import javax.annotation.Nullable;
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.NotDirectoryException;
@@ -41,7 +41,7 @@ import java.util.concurrent.TimeUnit;
 @Entity
 public class Attachment extends Model implements ResourceConvertible {
     private static final long serialVersionUID = 7856282252495067924L;
-    public static final Finder<Long, Attachment> find = new Finder<>(Long.class, Attachment.class);
+    public static final Finder<Long, Attachment> find = new Finder<>(Attachment.class);
     public static final int NOTHING_TO_ATTACH = 0;
     private static String uploadDirectory = "uploads";
     @Id
@@ -74,7 +74,7 @@ public class Attachment extends Model implements ResourceConvertible {
      * @return an attachment which matches up with the given one.
      */
     private static Attachment findBy(Attachment attach) {
-         List<Attachment> list = find.where()
+         List<Attachment> list = find.query().where()
                 .eq("name", attach.name)
                 .eq("hash", attach.hash)
                 .eq("containerType", attach.containerType)
@@ -90,7 +90,7 @@ public class Attachment extends Model implements ResourceConvertible {
      * @return true if an attachment which has the given hash exists
      */
     public static boolean exists(String hash) {
-        return find.where().eq("hash", hash).findRowCount() > 0;
+        return find.query().where().eq("hash", hash).findCount() > 0;
     }
 
     /**
@@ -107,7 +107,7 @@ public class Attachment extends Model implements ResourceConvertible {
             return cachedData;
         }
 
-        List<Attachment> list = find.where()
+        List<Attachment> list = find.query().where()
                 .eq("containerType", containerType)
                 .eq("containerId", containerId).findList();
         AttachmentCache.set(containerType.name() + containerId, list);
@@ -136,9 +136,9 @@ public class Attachment extends Model implements ResourceConvertible {
      * @return the number of attachments in the container
      */
     public static int countByContainer(Resource container) {
-        return find.where()
+        return find.query().where()
                 .eq("containerType", container.getType())
-                .eq("containerId", container.getId()).findRowCount();
+                .eq("containerId", container.getId()).findCount();
     }
 
     /**
@@ -175,7 +175,7 @@ public class Attachment extends Model implements ResourceConvertible {
         if(selectedFileIds.length == 0){
             return NOTHING_TO_ATTACH;
         }
-        List<Attachment> attachments = Attachment.find.where().idIn(Arrays.asList(selectedFileIds)).findList();
+        List<Attachment> attachments = Attachment.find.query().where().idIn(Arrays.asList(selectedFileIds)).findList();
         for (Attachment attachment : attachments) {
             if(attachment.containerId.equals(from.getId())
                     && attachment.containerType == from.getType() || UserApp.currentUser().isSiteManager()){
@@ -308,8 +308,8 @@ public class Attachment extends Model implements ResourceConvertible {
      * This method is used when an user delete an attachment or its container.
      */
     @Override
-    public void delete() {
-        super.delete();
+    public boolean delete() {
+        boolean deleted = super.delete();
         // FIXME: Rarely this may delete a file which is still referred by
         // attachment, if new attachment is added after checking nonexistence
         // of an attachment refers the file and before deleting the file.
@@ -331,6 +331,7 @@ public class Attachment extends Model implements ResourceConvertible {
         }
 
         AttachmentCache.remove(this);
+        return deleted;
     }
 
     /**
@@ -440,7 +441,7 @@ public class Attachment extends Model implements ResourceConvertible {
      * Remove all of temporary files uploaded by users
      */
     private static void cleanupTemporaryUploadFilesWithSchedule() {
-        Akka.system().scheduler().schedule(
+        utils.AkkaUtil.system().scheduler().schedule(
                 Duration.create(AttachmentApp.TEMPORARYFILES_KEEPUP_TIME_MILLIS, TimeUnit.MILLISECONDS),
                 Duration.create(AttachmentApp.TEMPORARYFILES_KEEPUP_TIME_MILLIS, TimeUnit.MILLISECONDS),
                 new Runnable() {
@@ -455,7 +456,7 @@ public class Attachment extends Model implements ResourceConvertible {
                     }
 
                     private String removeUserTemporaryFiles() {
-                        List<Attachment> attachmentList = Attachment.find.where()
+                        List<Attachment> attachmentList = Attachment.find.query().where()
                                 .eq("containerType", ResourceType.USER)
                                 .ge("createdDate", JodaDateUtil.beforeByMillis(AttachmentApp.TEMPORARYFILES_KEEPUP_TIME_MILLIS))
                                 .findList();
@@ -473,7 +474,7 @@ public class Attachment extends Model implements ResourceConvertible {
                         return String.format("(%d of %d)", attachmentList.size(), deletedFileCount);
                     }
                 },
-                Akka.system().dispatcher()
+                utils.AkkaUtil.system().dispatcher()
         );
     }
 
@@ -521,18 +522,18 @@ public class Attachment extends Model implements ResourceConvertible {
         return save(moveFileIntoUploadDirectory(tmpFile, tempFileHash), fileName, container);
     }
 
-    public static Page<Attachment> findByUser(User user, int pageSize, int pageNo, String filter){
+    public static PagedList<Attachment> findByUser(User user, int pageSize, int pageNo, String filter){
         if (StringUtils.isEmpty(filter)) {
-            return Attachment.find.where()
+            return Attachment.find.query().where()
                     .eq("owner_login_id", user.loginId)
-                    .order("created_date desc")
-                    .findPagingList(pageSize).getPage(pageNo - 1);
+                    .orderBy("created_date desc")
+                    .setFirstRow((pageNo - 1) * (pageSize)).setMaxRows(pageSize).findPagedList();
         } else {
-            return Attachment.find.where()
+            return Attachment.find.query().where()
                     .eq("owner_login_id", user.loginId)
                     .ilike("name", "%" + filter + "%")
-                    .order("created_date desc")
-                    .findPagingList(pageSize).getPage(pageNo - 1);
+                    .orderBy("created_date desc")
+                    .setFirstRow((pageNo - 1) * (pageSize)).setMaxRows(pageSize).findPagedList();
         }
     }
     /**

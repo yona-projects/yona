@@ -28,9 +28,9 @@ import java.util.Map;
 import models.enumeration.UserState;
 import org.junit.Test;
 
-import com.avaje.ebean.Page;
+import io.ebean.PagedList;
 import org.omg.PortableInterceptor.ACTIVE;
-import play.data.validation.Validation;
+import utils.ValidationUtil;
 
 public class UserTest extends ModelTest<User> {
 
@@ -39,31 +39,31 @@ public class UserTest extends ModelTest<User> {
         User user = new User();
 
         user.loginId="foo";
-        assertThat(Validation.getValidator().validate(user).size()).describedAs("'foo' should be accepted.").isEqualTo(0);
+        assertThat(ValidationUtil.getValidator().validate(user).size()).describedAs("'foo' should be accepted.").isEqualTo(0);
 
         user.loginId=".foo";
-        assertThat(Validation.getValidator().validate(user).size()).describedAs("'.foo' should NOT be accepted.").isGreaterThan(0);
+        assertThat(ValidationUtil.getValidator().validate(user).size()).describedAs("'.foo' should NOT be accepted.").isGreaterThan(0);
 
         user.loginId="foo.bar";
-        assertThat(Validation.getValidator().validate(user).size()).describedAs("'foo.bar' should be accepted.").isEqualTo(0);
+        assertThat(ValidationUtil.getValidator().validate(user).size()).describedAs("'foo.bar' should be accepted.").isEqualTo(0);
 
         user.loginId="foo.";
-        assertThat(Validation.getValidator().validate(user).size()).describedAs("'foo.' should NOT be accepted.").isGreaterThan(0);
+        assertThat(ValidationUtil.getValidator().validate(user).size()).describedAs("'foo.' should NOT be accepted.").isGreaterThan(0);
 
         user.loginId="_foo";
-        assertThat(Validation.getValidator().validate(user).size()).describedAs("'_foo' should NOT be accepted.").isGreaterThan(0);
+        assertThat(ValidationUtil.getValidator().validate(user).size()).describedAs("'_foo' should NOT be accepted.").isGreaterThan(0);
 
         user.loginId="foo_bar";
-        assertThat(Validation.getValidator().validate(user).size()).describedAs("'foo_bar' should be accepted.").isEqualTo(0);
+        assertThat(ValidationUtil.getValidator().validate(user).size()).describedAs("'foo_bar' should be accepted.").isEqualTo(0);
 
         user.loginId="foo_";
-        assertThat(Validation.getValidator().validate(user).size()).describedAs("'foo_' should NOT be accepted.").isGreaterThan(0);
+        assertThat(ValidationUtil.getValidator().validate(user).size()).describedAs("'foo_' should NOT be accepted.").isGreaterThan(0);
 
         user.loginId="-foo";
-        assertThat(Validation.getValidator().validate(user).size()).describedAs("'-foo' should be accepted.").isEqualTo(0);
+        assertThat(ValidationUtil.getValidator().validate(user).size()).describedAs("'-foo' should be accepted.").isEqualTo(0);
 
         user.loginId="foo-";
-        assertThat(Validation.getValidator().validate(user).size()).describedAs("'foo-' should be accepted.").isEqualTo(0);
+        assertThat(ValidationUtil.getValidator().validate(user).size()).describedAs("'foo-' should be accepted.").isEqualTo(0);
     }
 
 	@Test
@@ -106,9 +106,9 @@ public class UserTest extends ModelTest<User> {
 	public void findUsers() throws Exception {
 	    // Given
 	    // When
-	    Page<User> searchUsers = User.findUsers(0, "yobi", UserState.ACTIVE);
+        PagedList<User> searchUsers = User.findUsers(0, "yobi", UserState.ACTIVE);
 	    // Then
-	    assertThat(searchUsers.getTotalRowCount()).isEqualTo(1);
+	    assertThat(searchUsers.getTotalCount()).isEqualTo(1);
 	}
 
 	@Test

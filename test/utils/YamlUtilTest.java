@@ -30,7 +30,7 @@ import models.User;
 
 import org.junit.*;
 
-import com.avaje.ebean.Ebean;
+import io.ebean.Ebean;
 
 import play.test.FakeApplication;
 import support.Helpers;

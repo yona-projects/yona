@@ -3,7 +3,6 @@ package utils;
 import models.Attachment;
 import models.enumeration.ResourceType;
 import models.resource.Resource;
-import play.cache.Cache;
 
 import java.util.List;
 
@@ -22,7 +21,7 @@ public class AttachmentCache {
     /**
      * Play's Cache API allows expiration time in seconds.
      *
-     * @see {@link play.cache.Cache#set(String, Object, int)}
+     * @see CacheUtil#set(String, Object, int)
      */
     private static final int ONE_DAY = 60 * 60 * 24;
 
@@ -37,7 +36,7 @@ public class AttachmentCache {
     public static List<Attachment> get(ResourceType containerType, String containerId) {
         String cacheKey = containerType.name() + containerId;
         @SuppressWarnings("unchecked")
-        List<Attachment> cachedData = (List<Attachment>)Cache.get(cacheKey);
+        List<Attachment> cachedData = CacheUtil.get(cacheKey);
         if (cachedData != null) {
             return cachedData;
         } else {
@@ -52,7 +51,7 @@ public class AttachmentCache {
      * @param list
      */
     public static void set(String key, List<Attachment> list) {
-        Cache.set(key, list, ONE_DAY);
+        CacheUtil.set(key, list, ONE_DAY);
     }
 
     /**
@@ -62,7 +61,7 @@ public class AttachmentCache {
      * @param list
      */
     public static void set(Resource container, List<Attachment> list) {
-        Cache.set(cacheKey(container), list, ONE_DAY);
+        CacheUtil.set(cacheKey(container), list, ONE_DAY);
     }
 
     /**
@@ -74,7 +73,7 @@ public class AttachmentCache {
     public static List<Attachment> get(Resource container) {
         String cacheKey = cacheKey(container);
         @SuppressWarnings("unchecked")
-        List<Attachment> cachedData = (List<Attachment>)Cache.get(cacheKey);
+        List<Attachment> cachedData = CacheUtil.get(cacheKey);
         if (cachedData != null) {
             return cachedData;
         } else {
@@ -92,7 +91,7 @@ public class AttachmentCache {
      * @param container
      */
     public static void remove(Resource container) {
-        Cache.remove(cacheKey(container));
+        CacheUtil.remove(cacheKey(container));
     }
 
     /**
@@ -101,6 +100,6 @@ public class AttachmentCache {
      * @param attachment
      */
     public static void remove(Attachment attachment) {
-        Cache.remove(attachment.containerType.name() + attachment.containerId);
+        CacheUtil.remove(attachment.containerType.name() + attachment.containerId);
     }
 }

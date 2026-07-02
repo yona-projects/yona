@@ -24,6 +24,7 @@ import models.enumeration.ResourceType;
 import models.resource.GlobalResource;
 import models.resource.Resource;
 import play.i18n.Messages;
+import utils.MessagesUtil;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -34,7 +35,7 @@ public class NullUser extends User {
 
     public NullUser(){
         this.id = -1l;
-        this.name = Messages.get("user.notExists.name");
+        this.name = MessagesUtil.get("user.notExists.name");
         this.loginId = "";
         this.email = "";
         this.createdDate = new Date();

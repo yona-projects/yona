@@ -24,10 +24,11 @@ import models.resource.Resource;
 import models.resource.ResourceConvertible;
 import org.joda.time.Duration;
 import play.data.validation.Constraints;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 import utils.JodaDateUtil;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.beans.Transient;
 import java.util.Date;
 
@@ -35,7 +36,7 @@ import java.util.Date;
 @MappedSuperclass
 abstract public class CodeComment extends Model implements ResourceConvertible, TimelineItem {
     private static final long serialVersionUID = 1L;
-    public static final Finder<Long, CodeComment> find = new Finder<>(Long.class, CodeComment.class);
+    public static final Finder<Long, CodeComment> find = new Finder<>(CodeComment.class);
 
     @Id
     public Long id;
@@ -43,7 +44,6 @@ abstract public class CodeComment extends Model implements ResourceConvertible, 
     public Project project;
     public String path;
     public Integer line;
-    @Enumerated(EnumType.STRING)
     public CodeRange.Side side;
     @Lob @Constraints.Required
     public String contents;

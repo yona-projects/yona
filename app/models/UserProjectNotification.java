@@ -7,9 +7,10 @@
 package models;
 
 import models.enumeration.EventType;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.*;
 
 /**
@@ -21,7 +22,7 @@ public class UserProjectNotification extends Model {
 
     private static final long serialVersionUID = 1L;
 
-    public static final Finder<Long, UserProjectNotification> find = new Finder<>(Long.class, UserProjectNotification.class);
+    public static final Finder<Long, UserProjectNotification> find = new Finder<>(UserProjectNotification.class);
 
     @Id
     public Long id;
@@ -39,7 +40,7 @@ public class UserProjectNotification extends Model {
 
     public static Map<Project, Map<EventType, Boolean>> getProjectNotifications(User user) {
         Map<Project, Map<EventType, Boolean>> result = new HashMap<>();
-        List<UserProjectNotification> list = find.where().eq("user", user).findList();
+        List<UserProjectNotification> list = find.query().where().eq("user", user).findList();
         for(UserProjectNotification noti : list) {
             Project notiProject = noti.project;
             Map<EventType, Boolean> pn = result.get(notiProject);
@@ -87,11 +88,11 @@ public class UserProjectNotification extends Model {
     }
 
     public static UserProjectNotification findOne(User user, Project project, EventType notificationType) {
-        return find.where()
+        return find.query().where()
                 .eq("user", user)
                 .eq("project", project)
                 .eq("notificationType", notificationType.name())
-                .findUnique();
+                .findOne();
     }
 
     public void toggle(EventType notificationType) {
@@ -154,7 +155,7 @@ public class UserProjectNotification extends Model {
     }
 
     private static Set<User> findByEventTypeAndOption(Long projectId, EventType eventType, boolean isAllowd) {
-        List<UserProjectNotification> userProjectNotifications = find.where()
+        List<UserProjectNotification> userProjectNotifications = find.query().where()
                 .eq("project.id", projectId)
                 .eq("notificationType", eventType)
                 .eq("allowed", isAllowd)
@@ -167,7 +168,7 @@ public class UserProjectNotification extends Model {
     }
 
     public static void deleteUnwatchedProjectNotifications(User user, Project project){
-        List<UserProjectNotification> userProjectNotifications = find.where()
+        List<UserProjectNotification> userProjectNotifications = find.query().where()
                 .eq("user.id", user.id)
                 .eq("project.id", project.id)
                 .findList();

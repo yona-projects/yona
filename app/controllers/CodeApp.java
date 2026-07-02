@@ -17,15 +17,15 @@ import org.apache.tika.Tika;
 import org.apache.tika.mime.MediaType;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.tmatesoft.svn.core.SVNException;
-import play.cache.Cache;
-import play.db.ebean.Transactional;
-import play.mvc.Controller;
+import io.ebean.annotation.Transactional;
+import utils.LegacyController;
 import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.With;
 import playRepository.PlayRepository;
 import playRepository.RepositoryService;
 import utils.ErrorViews;
+import utils.CacheUtil;
 import utils.FileUtil;
 import utils.HttpUtil;
 import utils.MenuType;
@@ -35,6 +35,8 @@ import views.html.code.view;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Date;
@@ -43,12 +45,12 @@ import java.util.List;
 import static utils.HttpUtil.encodeUrlString;
 
 @AnonymousCheck
-public class CodeApp extends Controller {
+public class CodeApp extends LegacyController {
     public static String hostName;
 
     @IsAllowed(Operation.READ)
     @Transactional
-    public static Result codeBrowser(String userName, String projectName)
+    public Result codeBrowser(String userName, String projectName)
             throws IOException, UnsupportedOperationException, ServletException {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
@@ -83,7 +85,7 @@ public class CodeApp extends Controller {
     }
 
     @With(CodeAccessCheckAction.class)
-    public static Result codeBrowserWithBranch(String owner, String projectName, String branch, String path)
+    public Result codeBrowserWithBranch(String owner, String projectName, String branch, String path)
         throws UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException {
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
 
@@ -101,11 +103,11 @@ public class CodeApp extends Controller {
         if(RepositoryService.VCS_GIT.equals(project.vcs)){
             String cacheKey = owner + ":" + projectName + ":" + branch + ":" + path + ":" + project.lastUpdateDate().getTime();
 
-            recursiveData = (List<ObjectNode>) Cache.get(cacheKey);
+            recursiveData = CacheUtil.get(cacheKey);
             if( recursiveData == null){
                 recursiveData = RepositoryService.getMetaDataFromAncestorDirectories(
                         repository, branch, path);
-                Cache.set(cacheKey, recursiveData);
+                CacheUtil.set(cacheKey, recursiveData);
             }
         } else if (RepositoryService.VCS_SUBVERSION.equals(project.vcs)){  // svn doesn't use cache
             recursiveData = RepositoryService.getMetaDataFromAncestorDirectories(
@@ -120,7 +122,7 @@ public class CodeApp extends Controller {
     }
 
     @With(CodeAccessCheckAction.class)
-    public static Result ajaxRequest(String userName, String projectName, String path) throws Exception{
+    public Result ajaxRequest(String userName, String projectName, String path) throws Exception{
         PlayRepository repository = RepositoryService.getRepository(userName, projectName);
         path = HttpUtil.decodePathSegment(path);
         ObjectNode fileInfo = repository.getMetaDataFromPath(path);
@@ -133,7 +135,7 @@ public class CodeApp extends Controller {
     }
 
     @With(CodeAccessCheckAction.class)
-    public static Result download(String userName, String projectName, String branch, String path)
+    public Result download(String userName, String projectName, String branch, String path)
             throws UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
@@ -152,20 +154,29 @@ public class CodeApp extends Controller {
             return notFound(ErrorViews.NotFound.render());
         }
 
-        // Prepare a chunked text stream
-        Chunks<byte[]> chunks = new ByteChunks() {
-            // Called when the stream is ready
-            public void onReady(Chunks.Out<byte[]> out) {
-                repository.getArchive(out, targetBranch);
+        final PipedInputStream in = new PipedInputStream();
+        final PipedOutputStream out = new PipedOutputStream(in);
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    repository.getArchive(out, targetBranch);
+                } finally {
+                    try {
+                        out.close();
+                    } catch (IOException e) {
+                        play.Logger.warn("Failed to close archive stream", e);
+                    }
+                }
             }
-        };
+        }.start();
 
         response().setHeader("Content-Disposition", "attachment; filename=" + projectName + "-" + branch + ".zip");
-        return ok(chunks);
+        return ok(in).as("application/zip");
     }
 
     @With(CodeAccessCheckAction.class)
-    public static Result ajaxRequestWithBranch(String userName, String projectName, String branch, String path)
+    public Result ajaxRequestWithBranch(String userName, String projectName, String branch, String path)
             throws UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException{
         CodeApp.hostName = request().host();
         PlayRepository repository = RepositoryService.getRepository(userName, projectName);
@@ -181,7 +192,7 @@ public class CodeApp extends Controller {
     }
 
     @With(CodeAccessCheckAction.class)
-    public static Result showRawFile(String userName, String projectName, String revision, String path) throws Exception{
+    public Result showRawFile(String userName, String projectName, String revision, String path) throws Exception{
         path = HttpUtil.decodePathSegment(path);
         revision = HttpUtil.decodePathSegment(revision);
         byte[] fileAsRaw = RepositoryService.getFileAsRaw(userName, projectName, revision, path);
@@ -201,7 +212,7 @@ public class CodeApp extends Controller {
     }
 
     @With(CodeAccessCheckAction.class)
-    public static Result showImageFile(String userName, String projectName, String revision, String path) throws Exception{
+    public Result showImageFile(String userName, String projectName, String revision, String path) throws Exception{
         revision = HttpUtil.decodePathSegment(revision);
         path = HttpUtil.decodePathSegment(path);
         final byte[] fileAsRaw = RepositoryService.getFileAsRaw(userName, projectName, revision, path);
@@ -240,7 +251,7 @@ public class CodeApp extends Controller {
     }
 
     @IsAllowed(Operation.READ)
-    public static Result openFile(String userName, String projectName, String revision,
+    public Result openFile(String userName, String projectName, String revision,
                            String path) throws Exception{
         revision = HttpUtil.decodePathSegment(revision);
         path = HttpUtil.decodePathSegment(path);

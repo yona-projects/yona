@@ -24,9 +24,10 @@ import models.enumeration.ResourceType;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
 import play.data.validation.Constraints.Required;
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.List;
 import java.util.Set;
@@ -36,7 +37,7 @@ public class IssueLabelCategory extends Model implements ResourceConvertible {
 
     private static final long serialVersionUID = 1L;
 
-    public static final Finder<Long, IssueLabelCategory> find = new Finder<>(Long.class, IssueLabelCategory.class);
+    public static final Finder<Long, IssueLabelCategory> find = new Finder<>(IssueLabelCategory.class);
 
     @Id
     public Long id;
@@ -60,28 +61,28 @@ public class IssueLabelCategory extends Model implements ResourceConvertible {
 
     @Transient
     public boolean exists() {
-        return find.where()
+        return find.query().where()
                 .eq("project.id", project.id)
                 .eq("name", name)
-                .findRowCount() > 0;
+                .findCount() > 0;
     }
 
     public static IssueLabelCategory findByName(String name, Project project) {
-        return find.where()
+        return find.query().where()
                 .eq("project.id", project.id)
                 .eq("name", name)
-                .findUnique();
+                .findOne();
     }
 
     public static IssueLabelCategory findBy(IssueLabelCategory instance) {
-        return find.where()
+        return find.query().where()
                 .eq("project.id", instance.project.id)
                 .eq("name", instance.name)
-                .findUnique();
+                .findOne();
     }
 
     public static List<IssueLabelCategory> findByProject(Project project) {
-        return find.where()
+        return find.query().where()
                 .eq("project.id", project.id)
                 .orderBy().asc("name")
                 .findList();

@@ -20,7 +20,7 @@
  */
 package actors;
 
-import akka.actor.UntypedActor;
+import org.apache.pekko.actor.UntypedActor;
 import models.*;
 import models.enumeration.EventType;
 import models.enumeration.State;

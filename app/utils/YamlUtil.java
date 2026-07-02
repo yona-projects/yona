@@ -22,16 +22,15 @@ package utils;
 
 import java.util.List;
 import java.util.Map;
+import java.io.InputStream;
 
-import play.libs.Yaml;
-
-import com.avaje.ebean.Ebean;
+import io.ebean.Ebean;
+import org.yaml.snakeyaml.Yaml;
 
 public class YamlUtil {
     public static void insertDataFromYaml(String yamlFileName, String[] entityNames) {
         @SuppressWarnings("unchecked")
-        Map<String, List<Object>> all = (Map<String, List<Object>>) Yaml
-                .load(yamlFileName);
+        Map<String, List<Object>> all = (Map<String, List<Object>>) load(yamlFileName);
 
         // Check whether every entities exist.
         for (String entityName : entityNames) {
@@ -44,5 +43,18 @@ public class YamlUtil {
         for (String entityName : entityNames) {
             Ebean.save(all.get(entityName));
         }
+    }
+
+    private static Object load(String yamlFileName) {
+        InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(yamlFileName);
+        if (inputStream == null) {
+            inputStream = YamlUtil.class.getClassLoader().getResourceAsStream(yamlFileName);
+        }
+
+        if (inputStream == null) {
+            throw new RuntimeException("Failed to find the '" + yamlFileName + "' resource");
+        }
+
+        return new Yaml().load(inputStream);
     }
 }

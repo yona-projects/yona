@@ -21,7 +21,7 @@
 package models.support;
 
 import com.google.common.collect.MapMaker;
-import play.db.ebean.Model;
+import io.ebean.Model;
 
 import java.util.Map;
 

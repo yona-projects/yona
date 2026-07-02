@@ -5,10 +5,10 @@
  */
 package controllers;
 
-import com.avaje.ebean.Ebean;
-import com.avaje.ebean.Query;
-import com.avaje.ebean.RawSql;
-import com.avaje.ebean.RawSqlBuilder;
+import io.ebean.Ebean;
+import io.ebean.Query;
+import io.ebean.RawSql;
+import io.ebean.RawSqlBuilder;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.annotation.AnonymousCheck;
 import models.*;
@@ -16,12 +16,10 @@ import models.enumeration.ResourceType;
 import models.support.IssueLabelAggregate;
 import org.apache.commons.lang.StringUtils;
 import play.Configuration;
-import play.libs.F;
-import play.libs.F.Promise;
 import play.libs.Json;
-import play.libs.ws.WS;
 import play.mvc.Result;
 import utils.ErrorViews;
+import utils.WSClientUtil;
 import views.html.migration.home;
 
 import javax.validation.constraints.NotNull;
@@ -29,13 +27,15 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.*;
+import java.util.function.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
 import static play.libs.Json.toJson;
-import static play.mvc.Http.Context.Implicit.request;
+import static utils.LegacyController.request;
 import static play.mvc.Results.forbidden;
 import static play.mvc.Results.ok;
 
@@ -47,33 +47,16 @@ public class MigrationApp {
 
 
 
-    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
-    public static Promise<Result> migration() {
-        final boolean isAllowed = Configuration.root().getBoolean("github.allow.migration", false);
-        if(!isAllowed){
-            return Promise.pure(forbidden(ErrorViews.Forbidden.render("error.forbidden.or.not.allowed")));
-        }
-        String authProcessingCode = request().getQueryString("code");
-
-        if(StringUtils.isNotBlank(authProcessingCode)){
-            return getOAuthToken(authProcessingCode).map((F.Function<String, Result>) token
-                    -> ok(home.render("Migration", authProcessingCode, token)));
-        } else {
-            return Promise.promise((F.Function0<Result>) ()
-                    -> ok(home.render("Migration", null, null)));
-        }
-    }
-
-    private static Promise<String> getOAuthToken(String code) {
+    private static CompletionStage<String> getOAuthToken(String code) {
         final String ACCESS_TOKEN_URL = "https://github.com/login/oauth/access_token";
         final String CLIENT_ID = Configuration.root().getString("github.client.id");
         final String CLIENT_SECRET = Configuration.root().getString("github.client.secret");
 
-        return WS.url(ACCESS_TOKEN_URL)
+        return WSClientUtil.url(ACCESS_TOKEN_URL)
                 .setContentType("application/x-www-form-urlencoded")
                 .setHeader("Accept", "application/json,application/x-www-form-urlencoded,text/html,*/*")
                 .post("client_id=" + CLIENT_ID + "&client_secret=" + CLIENT_SECRET + "&code=" + code)
-                .map(response -> {
+                .thenApply(response -> {
                     play.Logger.debug(response.getBody());
                     String accessToken = "";
                     try {
@@ -91,7 +74,24 @@ public class MigrationApp {
     }
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
-    public static Result projects(){
+    public CompletionStage<Result> migration() {
+        final boolean isAllowed = Configuration.root().getBoolean("github.allow.migration", false);
+        if(!isAllowed){
+            return CompletableFuture.completedFuture(forbidden(ErrorViews.Forbidden.render("error.forbidden.or.not.allowed")));
+        }
+        String authProcessingCode = request().getQueryString("code");
+
+        if(StringUtils.isNotBlank(authProcessingCode)){
+            return getOAuthToken(authProcessingCode).thenApply(token
+                    -> ok(home.render("Migration", authProcessingCode, token)));
+        } else {
+            return CompletableFuture.supplyAsync((Supplier<Result>) ()
+                    -> ok(home.render("Migration", null, null)));
+        }
+    }
+
+    @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
+    public Result projects(){
         Set<Project> sourceProjects = new HashSet<>();
 
         getheringOrgProjects(sourceProjects);
@@ -119,7 +119,7 @@ public class MigrationApp {
     }
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
-    public static Result project(String owner, String projectName){
+    public Result project(String owner, String projectName){
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
 
         ObjectNode result = Json.newObject();
@@ -159,7 +159,7 @@ public class MigrationApp {
     }
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
-    public static Result exportIssueLabelPairs(String owner, String projectName){
+    public Result exportIssueLabelPairs(String owner, String projectName){
         ObjectNode issueLabelPairs = composeIssueLabelPairJson(owner, projectName);
         return ok(issueLabelPairs);
     }
@@ -183,7 +183,7 @@ public class MigrationApp {
 
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
-    public static Result exportLabels(String owner, String projectName){
+    public Result exportLabels(String owner, String projectName){
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
 
         ObjectNode labels = Json.newObject();
@@ -202,7 +202,7 @@ public class MigrationApp {
     }
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
-    public static Result exportMilestones(String owner, String projectName){
+    public Result exportMilestones(String owner, String projectName){
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
 
         List<ObjectNode> milestones = project.milestones.stream()
@@ -214,7 +214,7 @@ public class MigrationApp {
     }
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
-    public static Result exportPosts(String owner, String projectName){
+    public Result exportPosts(String owner, String projectName){
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
 
         List<ObjectNode> issues = project.posts.stream()
@@ -226,7 +226,7 @@ public class MigrationApp {
     }
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
-    public static Result exportIssues(String owner, String projectName){
+    public Result exportIssues(String owner, String projectName){
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
 
         List<ObjectNode> issues = project.issues.stream()

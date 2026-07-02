@@ -32,8 +32,8 @@ import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
 import play.data.Form;
-import play.db.ebean.Transactional;
-import play.mvc.Controller;
+import io.ebean.annotation.Transactional;
+import utils.LegacyController;
 import play.mvc.Result;
 import utils.*;
 import views.html.milestone.create;
@@ -43,10 +43,10 @@ import views.html.milestone.view;
 
 import java.util.List;
 
-import static play.data.Form.form;
+import static utils.FormUtil.form;
 
 @AnonymousCheck
-public class MilestoneApp extends Controller {
+public class MilestoneApp extends LegacyController {
 
     public static class MilestoneCondition {
         public String state    = "open";
@@ -64,9 +64,9 @@ public class MilestoneApp extends Controller {
      * when: GET /:user/:project/milestones
      */
     @IsAllowed(Operation.READ)
-    public static Result milestones(String userName, String projectName) {
+    public Result milestones(String userName, String projectName) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
-        MilestoneCondition mCondition = form(MilestoneCondition.class).bindFromRequest().get();
+        MilestoneCondition mCondition = form(MilestoneCondition.class).bindFromRequest(request()).get();
 
         List<Milestone> milestones = Milestone.findMilestones(project.id,
                 State.getValue(mCondition.state),
@@ -81,9 +81,9 @@ public class MilestoneApp extends Controller {
      */
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsCreatable(ResourceType.MILESTONE)
-    public static Result newMilestoneForm(String userName, String projectName) {
+    public Result newMilestoneForm(String userName, String projectName) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
-        return ok(create.render("title.newMilestone", new Form<>(Milestone.class), project));
+        return ok(create.render("title.newMilestone", utils.FormUtil.form(Milestone.class), project));
     }
 
     /**
@@ -93,8 +93,8 @@ public class MilestoneApp extends Controller {
      */
     @Transactional
     @IsCreatable(ResourceType.MILESTONE)
-    public static Result newMilestone(String userName, String projectName) {
-        Form<Milestone> milestoneForm = new Form<>(Milestone.class).bindFromRequest();
+    public Result newMilestone(String userName, String projectName) {
+        Form<Milestone> milestoneForm = utils.FormUtil.form(Milestone.class).bindFromRequest(request());
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
         validateTitle(project, milestoneForm);
@@ -113,14 +113,14 @@ public class MilestoneApp extends Controller {
     }
 
     private static void validateTitle(Project project, Form<Milestone> milestoneForm) {
-        if (!Milestone.isUniqueProjectIdAndTitle(project.id, milestoneForm.field("title").value())) {
-            milestoneForm.reject("title", "milestone.title.duplicated");
+        if (!Milestone.isUniqueProjectIdAndTitle(project.id, milestoneForm.field("title").value().orElse(""))) {
+            utils.FormUtil.reject(milestoneForm, "title", "milestone.title.duplicated");
             flash(Constants.WARNING, "milestone.title.duplicated");
         }
     }
 
     private static void validateDueDate(Form<Milestone> milestoneForm) {
-        if (milestoneForm.hasErrors() && milestoneForm.errors().containsKey("dueDate")) {
+        if (milestoneForm.hasErrors() && utils.FormUtil.hasError(milestoneForm, "dueDate")) {
             flash(Constants.WARNING, "milestone.error.duedateFormat");
         }
     }
@@ -130,11 +130,11 @@ public class MilestoneApp extends Controller {
      */
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.MILESTONE)
-    public static Result editMilestoneForm(String userName, String projectName, Long milestoneId) {
+    public Result editMilestoneForm(String userName, String projectName, Long milestoneId) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         Milestone milestone = Milestone.findById(milestoneId);
 
-        Form<Milestone> editForm = new Form<>(Milestone.class).fill(milestone);
+        Form<Milestone> editForm = utils.FormUtil.form(Milestone.class).fill(milestone);
         return ok(edit.render("title.editMilestone", editForm, milestone, project));
     }
 
@@ -143,12 +143,12 @@ public class MilestoneApp extends Controller {
      */
     @Transactional
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.MILESTONE)
-    public static Result editMilestone(String userName, String projectName, Long milestoneId) {
+    public Result editMilestone(String userName, String projectName, Long milestoneId) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
-        Form<Milestone> milestoneForm = new Form<>(Milestone.class).bindFromRequest();
+        Form<Milestone> milestoneForm = utils.FormUtil.form(Milestone.class).bindFromRequest(request());
         Milestone original = Milestone.findById(milestoneId);
 
-        if(!original.title.equals(milestoneForm.field("title").value())) {
+        if(!original.title.equals(milestoneForm.field("title").value().orElse(""))) {
             validateTitle(project, milestoneForm);
         }
         validateDueDate(milestoneForm);
@@ -175,7 +175,7 @@ public class MilestoneApp extends Controller {
      */
     @Transactional
     @IsAllowed(value = Operation.DELETE, resourceType = ResourceType.MILESTONE)
-    public static Result deleteMilestone(String userName, String projectName, Long id) {
+    public Result deleteMilestone(String userName, String projectName, Long id) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         Milestone milestone = Milestone.findById(id);
 
@@ -194,7 +194,7 @@ public class MilestoneApp extends Controller {
 
     @Transactional
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.MILESTONE)
-    public static Result open(String userName, String projectName, Long id) {
+    public Result open(String userName, String projectName, Long id) {
         Milestone milestone = Milestone.findById(id);
         milestone.open();
         return redirect(routes.MilestoneApp.milestone(userName, projectName, id));
@@ -202,7 +202,7 @@ public class MilestoneApp extends Controller {
 
     @Transactional
     @IsAllowed(value = Operation.UPDATE, resourceType = ResourceType.MILESTONE)
-    public static Result close(String userName, String projectName, Long id) {
+    public Result close(String userName, String projectName, Long id) {
         Milestone milestone = Milestone.findById(id);
         milestone.close();
         return redirect(routes.MilestoneApp.milestone(userName, projectName, id));
@@ -212,7 +212,7 @@ public class MilestoneApp extends Controller {
      * when: GET /:user/:project/milestone/:id
      */
     @IsAllowed(value = Operation.READ, resourceType = ResourceType.MILESTONE)
-    public static Result milestone(String userName, String projectName, Long id) {
+    public Result milestone(String userName, String projectName, Long id) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         Milestone milestone = Milestone.findById(id);
 

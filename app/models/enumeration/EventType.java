@@ -7,6 +7,7 @@
 package models.enumeration;
 
 import play.i18n.Messages;
+import utils.MessagesUtil;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -55,7 +56,7 @@ public enum EventType {
     }
 
     public String getDescr() {
-        return Messages.get(messageKey);
+        return MessagesUtil.get(messageKey);
     }
 
     public int getOrder() {

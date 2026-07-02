@@ -36,7 +36,7 @@ import java.io.IOException;
 import java.io.PipedInputStream;
 import java.net.URISyntaxException;
 
-public class SvnApp extends Controller {
+public class SvnApp extends LegacyController {
     private static final String[] WEBDAV_METHODS = {
         DAVHandlerFactory.METHOD_PROPFIND,
         DAVHandlerFactory.METHOD_REPORT,
@@ -65,14 +65,14 @@ public class SvnApp extends Controller {
     }
 
     @With(BasicAuthAction.class)
-    @BodyParser.Of(value = BodyParser.Raw.class, maxLength = Integer.MAX_VALUE)
-    public static Result serviceWithPath(String path) throws ServletException, IOException, InterruptedException {
+    @BodyParser.Of(BodyParser.Raw.class)
+    public Result serviceWithPath(String path) throws ServletException, IOException, InterruptedException {
         return service();
     }
 
     @With(BasicAuthAction.class)
-    @BodyParser.Of(value = BodyParser.Raw.class, maxLength = Integer.MAX_VALUE)
-    public static Result service() throws ServletException, IOException, InterruptedException {
+    @BodyParser.Of(BodyParser.Raw.class)
+    public Result service() throws ServletException, IOException, InterruptedException {
         String path;
         try {
             path = new java.net.URI(request().uri()).getPath();

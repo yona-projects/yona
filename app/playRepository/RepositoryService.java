@@ -31,11 +31,12 @@ import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.transport.RefAdvertiser.PacketLineOutRefAdvertiser;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.internal.server.dav.DAVServlet;
+import org.apache.pekko.util.ByteString;
 import play.Logger;
 import play.mvc.Http.RawBuffer;
 import play.mvc.Http.Request;
-import play.mvc.Http.Response;
 import playRepository.hooks.*;
+import utils.LegacyResponse;
 import utils.PlayServletContext;
 
 import javax.servlet.ServletConfig;
@@ -180,9 +181,7 @@ public class RepositoryService {
      * @see <a href="https://www.kernel.org/pub/software/scm/git/docs/git-upload-pack.html">git-upload-pack</a>
      * @see <a href="https://www.kernel.org/pub/software/scm/git/docs/git-receive-pack.html">git-receive-pack</a>
      */
-    public static byte[] gitAdvertise(Project project, String service, Response response) throws IOException {
-        response.setContentType("application/x-" + service + "-advertisement");
-
+    public static byte[] gitAdvertise(Project project, String service, LegacyResponse response) throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         PacketLineOut packetLineOut = new PacketLineOut(byteArrayOutputStream);
         packetLineOut.writeString("# service=" + service + "\n");
@@ -209,11 +208,10 @@ public class RepositoryService {
      * @see <a href="https://www.kernel.org/pub/software/scm/git/docs/git-upload-pack.html">git-upload-pack</a>
      * @see <a href="https://www.kernel.org/pub/software/scm/git/docs/git-receive-pack.html">git-receive-pack</a>
      */
-    public static PipedInputStream gitRpc(final Project project, String service, Request request, Response response) {
-        response.setContentType("application/x-" + service + "-result");
-
+    public static PipedInputStream gitRpc(final Project project, String service, Request request, LegacyResponse response) {
         RawBuffer raw = request.body().asRaw();
-        byte[] buf = raw.asBytes();
+        ByteString bytes = raw.asBytes();
+        byte[] buf = bytes == null ? null : bytes.toArray();
         InputStream requestStream = null;
 
         try {

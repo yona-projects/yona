@@ -36,9 +36,10 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import play.Logger;
 import play.api.i18n.Lang;
-import play.db.ebean.Transactional;
+import io.ebean.annotation.Transactional;
 import play.i18n.Messages;
 import utils.AccessControl;
+import utils.MessagesUtil;
 import utils.MimeType;
 
 import javax.annotation.Nonnull;
@@ -428,7 +429,7 @@ public class CreationViaEmail {
                                              ResourceType resourceType) {
         Lang lang = Lang.apply(user.getPreferredLanguage());
         String resourceTypeName = resourceType.getName(lang);
-        return Messages.get(lang, "viaEmail.error.cannotCreate", user, resourceTypeName, project);
+        return MessagesUtil.get(lang, "viaEmail.error.cannotCreate", user, resourceTypeName, project);
     }
 
 

@@ -30,16 +30,16 @@ import models.enumeration.Operation;
 import models.enumeration.PullRequestReviewAction;
 import models.enumeration.ResourceType;
 import play.api.mvc.Call;
-import play.db.ebean.Transactional;
-import play.mvc.Controller;
+import io.ebean.annotation.Transactional;
+import utils.LegacyController;
 import play.mvc.Result;
 
 @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
-public class ReviewApp extends Controller {
+public class ReviewApp extends LegacyController {
 
     @Transactional
     @IsAllowed(value = Operation.ACCEPT, resourceType = ResourceType.PULL_REQUEST)
-    public static Result review(String userName, String projectName, Long pullRequestNumber) {
+    public Result review(String userName, String projectName, Long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
 
@@ -53,7 +53,7 @@ public class ReviewApp extends Controller {
 
     @Transactional
     @IsAllowed(value = Operation.ACCEPT, resourceType = ResourceType.PULL_REQUEST)
-    public static Result unreview(String userName, String projectName, Long pullRequestNumber) {
+    public Result unreview(String userName, String projectName, Long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
 

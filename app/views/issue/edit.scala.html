@@ -42,7 +42,7 @@
                         }
                     </dt>
                     <dd>
-                    	@defining(issueForm.errors().get("title")) { errors =>
+                    	@defining(formErrors(issueForm, "title")) { errors =>
                             <div class="span12">
                                 <div class="span11">
                                     <input type="text" id="title" name="title" value="@issue.title" class="text title @if(errors != null) {error}" maxlength="250" tabindex="1" placeholder="@Messages("title")" autocomplete="off">

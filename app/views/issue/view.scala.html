@@ -5,6 +5,7 @@
 * https://yona.io
 **@
 @(title:String, issue:Issue, issueForm: play.data.Form[Issue], commentForm: play.data.Form[Comment],project:Project)
+
 @import scala.collection.mutable.ArrayBuffer
 @import org.apache.commons.lang.StringUtils
 @import models.enumeration.ResourceType
@@ -50,7 +51,8 @@
     }
 }
 
-@titleForOGTag = @{getTitle(issue) + " |:| " + issue.body.substring(0, Math.min(issue.body.length, 200))}
+@safeBodyForOGTag = @{StringUtils.defaultString(issue.body)}
+@titleForOGTag = @{getTitle(issue) + " |:| " + safeBodyForOGTag.substring(0, Math.min(safeBodyForOGTag.length, 200))}
 
 @parentIssueId = @{
     if(issue.parent != null){
@@ -153,7 +155,7 @@
                     @if(StringUtils.isNotEmpty(issue.history)){
                         @if(UserApp.currentUser().isAnonymous){
                             <div class="posting-history">
-                                <a href="@routes.UserApp.loginForm()?redirectUrl=@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)" data-toggle="modal">@Messages("change.history")</a>
+                                <a href="@routes.UserApp.loginForm?redirectUrl=@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)" data-toggle="modal">@Messages("change.history")</a>
                             </div>
                         } else {
                             <div class="posting-history">
@@ -447,7 +449,7 @@
         </div>
 
         <div>
-            <input type="hidden" id="issueBodyChecksum" value="@DigestUtils.sha1Hex(issue.body)">
+            <input type="hidden" id="issueBodyChecksum" value="@DigestUtils.shaHex(issue.body)">
             <input type="hidden" id="numOfComments" value="@issue.computeNumOfComments()">
             <input type="hidden" id="issueUpdateDate" value="@issue.updatedDate.getTime">
         </div>

@@ -27,7 +27,6 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 import play.Configuration;
-import play.libs.Akka;
 import scala.concurrent.duration.Duration;
 import utils.Config;
 
@@ -54,7 +53,7 @@ public class YobiUpdate {
             return;
         }
 
-        Akka.system().scheduler().schedule(
+        utils.AkkaUtil.system().scheduler().schedule(
             Duration.create(UPDATE_NOTIFICATION_INITDELAY_IN_MILLIS, TimeUnit.MILLISECONDS),
             Duration.create(UPDATE_NOTIFICATION_INTERVAL_IN_MILLIS, TimeUnit.MILLISECONDS),
             new Runnable() {
@@ -66,7 +65,7 @@ public class YobiUpdate {
                     }
                 }
             },
-            Akka.system().dispatcher()
+            utils.AkkaUtil.system().dispatcher()
         );
     }
 

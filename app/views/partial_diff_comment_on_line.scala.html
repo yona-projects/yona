@@ -18,7 +18,8 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **@
-@(threads: List[CodeCommentThread])
+@(threads: scala.collection.immutable.List[CodeCommentThread])
+
 
 @if(!threads.isEmpty){
 <tr class="comments board-comment-wrap" data-commit-id="@threads(0).commitId">

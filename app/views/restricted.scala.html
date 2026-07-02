@@ -1,6 +1,7 @@
 @(localUser: models.UserCredential = null)
 
 @import com.feth.play.module.pa.views.html._
+@import utils.TemplateHelper._
 
 @siteLayout(utils.Config.getSiteName, utils.MenuType.SITE_HOME) {
     
@@ -18,7 +19,7 @@
     }</i>!
     
     <br/>
-    @currentAuth() { auth =>
+    @currentAuth(playAuthenticate) { auth =>
         Logged in with provider '@auth.getProvider()' and the user ID '@auth.getId()'<br/>
         Your session expires
         @if(auth.expires() == -1){

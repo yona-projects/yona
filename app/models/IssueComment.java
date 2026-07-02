@@ -20,21 +20,23 @@
  */
 package models;
 
+import io.ebean.Finder;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 
-import com.avaje.ebean.Query;
-import com.avaje.ebean.RawSqlBuilder;
+import io.ebean.Query;
+import io.ebean.RawSqlBuilder;
 
 import models.enumeration.ResourceType;
 import models.resource.Resource;
@@ -42,7 +44,7 @@ import models.resource.Resource;
 @Entity
 public class IssueComment extends Comment {
     private static final long serialVersionUID = 1L;
-    public static final Finder<Long, IssueComment> find = new Finder<>(Long.class, IssueComment.class);
+    public static final Finder<Long, IssueComment> find = new Finder<>(IssueComment.class);
 
     @ManyToOne
     public Issue issue;
@@ -87,7 +89,7 @@ public class IssueComment extends Comment {
             return null;
         }
 
-        List<IssueComment> comments = find.where()
+        List<IssueComment> comments = find.query().where()
                 .eq("parentComment.id", parentComment.id)
                 .findList();
         return comments;
@@ -95,7 +97,7 @@ public class IssueComment extends Comment {
 
     @Override
     public List<IssueComment> getChildComments() {
-        List<IssueComment> comments = find.where()
+        List<IssueComment> comments = find.query().where()
                 .eq("parentComment.id", id)
                 .findList();
         return comments;
@@ -173,7 +175,7 @@ public class IssueComment extends Comment {
     }
 
     public static int countAllCreatedBy(User user) {
-        return find.where().eq("author_id", user.id).findRowCount();
+        return find.query().where().eq("author_id", user.id).findCount();
     }
 
     public static int countVoterOf(User user) {
@@ -183,7 +185,7 @@ public class IssueComment extends Comment {
                 "ON issue_comment.id = issue_comment_voter.issue_comment_id " +
                 "WHERE issue_comment_voter.user_id = %d";
         String sql = String.format(template, user.id);
-        Set<IssueComment> set = find.setRawSql(RawSqlBuilder.parse(sql).create()).findSet();
+        Set<IssueComment> set = find.query().setRawSql(RawSqlBuilder.parse(sql).create()).findSet();
         return set.size();
     }
 

@@ -39,8 +39,8 @@ public class CacheStore {
     public static void refreshProjectMap(){
         for (Map.Entry<String, Long> entry: projectMap.entrySet()) {
             String[] keys = entry.getKey().split(":");
-            Project project= Project.find.where().ieq("owner", keys[0]).ieq("name", keys[1])
-                    .findUnique();
+            Project project= Project.find.query().where().ieq("owner", keys[0]).ieq("name", keys[1])
+                    .findOne();
             if(project == null){
                 projectMap.remove(entry.getKey());
             }

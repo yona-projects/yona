@@ -21,13 +21,13 @@
 package controllers;
 
 import controllers.annotation.AnonymousCheck;
-import play.mvc.Controller;
+import utils.LegacyController;
 import play.mvc.Result;
 import views.html.help.*;
 
 @AnonymousCheck
-public class HelpApp extends Controller {
-    public static Result help() {
+public class HelpApp extends LegacyController {
+    public Result help() {
         return ok(toc.render("title.help"));
     }
 }

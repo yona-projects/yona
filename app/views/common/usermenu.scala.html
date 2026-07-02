@@ -7,7 +7,6 @@
 @import org.apache.commons.lang3.StringUtils
 @()
 @import utils.TemplateHelper._
-@import com.feth.play.module.pa.PlayAuthenticate._
 @import com.feth.play.module.pa.views.html._
 @import play.mvc.Http._;
 @orderString = @{"createdDate DESC"}
@@ -17,13 +16,13 @@
 }
 
 @if(currentUser.isAnonymous){
-    @currentAuth() { auth => @{
+    @currentAuth(playAuthenticate) { auth => @{
             if(auth == null) {
-                val redirect = Context.current().request().getQueryString("redirectUrl")
+                val redirect = utils.LegacyRequestContext.request().getQueryString("redirectUrl")
                 if(StringUtils.isNotEmpty(redirect)) {
-                    val url = Context.current().session().put("pa.url.orig", redirect)
+                    val url = utils.LegacyRequestContext.session().put("pa.url.orig", redirect)
                 } else {
-                    val url = storeOriginalUrl(Context.current())
+                    val url = playAuthenticate.storeOriginalUrl(utils.LegacyRequestContext.request())
                 }
             }
         }
@@ -41,12 +40,12 @@
     <div class="span5 right-menu span-hard-wrap">
         <div class="row-fluid user-menu-wrap">
             <span class="user-menu"><a href="@routes.UserApp.userInfo(currentUser.loginId)">@Messages("userinfo.profile")</a></span>
-            <span class="user-menu"><a href="@routes.UserApp.editUserInfoForm()">@Messages("userinfo.accountSetting")</a></span>
-            @currentAuth() { auth =>
+            <span class="user-menu"><a href="@routes.UserApp.editUserInfoForm">@Messages("userinfo.accountSetting")</a></span>
+            @currentAuth(playAuthenticate) { auth =>
                 @if(auth != null) {
                     <a href="@routes.Application.oAuthLogout"><span class="user-menu logout label">@Messages("title.logout")</span></a>
                 } else {
-                    <a href="@routes.UserApp.logout()"><span class="user-menu logout label">@Messages("title.logout")</span></a>
+                    <a href="@routes.UserApp.logout"><span class="user-menu logout label">@Messages("title.logout")</span></a>
                 }
             }
         </div>
@@ -83,12 +82,12 @@
         </li>
         }
        <li class="gnb-usermenu-item" data-toggle="tooltip" data-placement="bottom" title="@Messages("title.shortcut") (A)">
-           <a href="@routes.IssueApp.userIssues()" class="user-item-btn loggged-in">@Messages("issue.myIssue")@myOpenIssueCount</a>
+           <a href="@routes.IssueApp.userIssues("", "html", 1)" class="user-item-btn loggged-in">@Messages("issue.myIssue")@myOpenIssueCount</a>
         </li>
         <li class="divider"></li>
         @if(currentUser.isSiteManager) {
         <li class="gnb-usermenu-item">
-            <a href="@routes.SiteApp.userList()" data-toggle="tooltip" title="@Messages("menu.siteAdmin")" data-placement="bottom" class="usermenu-icon-button show-progress-bar">
+            <a href="@routes.SiteApp.userList(1, null)" data-toggle="tooltip" title="@Messages("menu.siteAdmin")" data-placement="bottom" class="usermenu-icon-button show-progress-bar">
                 <i class="yobicon-wrench"></i>
             </a>
         </li>
@@ -109,12 +108,12 @@
           </a>
           <ul class="dropdown-menu flat right">
               <li>
-                  <a href="@routes.IssueApp.newDirectIssueForm()">
+                  <a href="@routes.IssueApp.newDirectIssueForm(-1)">
                   @Messages("issue.menu.new")
                   </a>
               </li>
               <li>
-                  <a href="@routes.IssueApp.newDirectMyIssueForm()">
+                  <a href="@routes.IssueApp.newDirectMyIssueForm">
                   @Messages("issue.menu.new.mine")
                   </a>
               </li>
@@ -122,13 +121,13 @@
                   <hr class="no-margin"/>
               </li>
               <li>
-                  <a href="@routes.ProjectApp.newProjectForm()">
+                  <a href="@routes.ProjectApp.newProjectForm">
                   @Messages("button.newProject")
                   </a>
               </li>
               @if(!currentUser.isGuest){
               <li>
-                  <a href="@routes.OrganizationApp.newForm()">
+                  <a href="@routes.OrganizationApp.newForm">
                   @Messages("title.newOrganization")
                   </a>
               </li>
@@ -137,13 +136,13 @@
       </li>
       } else {
         <li class="gnb-usermenu-item" id="required-logged-in">
-          <a href="@routes.UserApp.loginForm()" class="user-item-btn" data-login="required">
+          <a href="@routes.UserApp.loginForm" class="user-item-btn" data-login="required">
           @Messages("title.login")
           </a>
         </li>
         <li class="divider"></li>
         <li>
-            <a href="@routes.UserApp.signupForm()" class="ybtn ybtn-success">
+            <a href="@routes.UserApp.signupForm" class="ybtn ybtn-success">
                 @Messages("title.signup")
             </a>
         </li>

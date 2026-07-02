@@ -51,8 +51,8 @@
 <script type="text/javascript">
   $(document).ready(function(){
     $yobi.loadModule("site.MassMail", {
-        "sURLMailList": "@routes.SiteApp.mailList()",
-        "sURLProjects": "@routes.ProjectApp.projects()"
+        "sURLMailList": "@routes.SiteApp.mailList",
+        "sURLProjects": "@routes.ProjectApp.projects("", 1)"
     });
   });
 </script>

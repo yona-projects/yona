@@ -24,7 +24,7 @@
             <label for="title">@Messages("title")</label>
           </dt>
           <dd>
-            @defining(form.errors().get("title")) { errors =>
+            @defining(formErrors(form, "title")) { errors =>
             <input type="text" id="title" name="title" value="@posting.title" class="zen-mode text title @if(errors != null) {error}" maxlength="250" tabindex="1" autocomplete="off"/>
               @if(errors != null) {
                 <div class="message">

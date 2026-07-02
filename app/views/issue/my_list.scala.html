@@ -4,7 +4,7 @@
 * Copyright Yona & Yobi Authors & NAVER Corp.
 * https://yona.io
 **@
-@(title: String, currentPage: com.avaje.ebean.Page[Issue], param:
+@(title: String, currentPage: io.ebean.PagedList[Issue], param:
 models.support.SearchCondition, project:Project)
 
 @import utils.MenuType._
@@ -25,7 +25,7 @@ models.support.SearchCondition, project:Project)
 
           var $setDefaultLoginPage = $("#setDefaultLoginPage");
           $setDefaultLoginPage.on('click', function(){
-              $.post("@routes.UserApp.setDefaultLoginPage()?path=" + $setDefaultLoginPage.data("url"))
+              $.post("@routes.UserApp.setDefaultLoginPage?path=" + $setDefaultLoginPage.data("url"))
                       .done(function (data) {
                           $yobi.notify("Set to default: " + data.defaultLoginPage, 3000);
                           $setDefaultLoginPage.hide();

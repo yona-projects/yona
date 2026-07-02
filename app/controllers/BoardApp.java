@@ -7,8 +7,8 @@
 package controllers;
 
 import actions.NullProjectCheckAction;
-import com.avaje.ebean.ExpressionList;
-import com.avaje.ebean.Page;
+import io.ebean.ExpressionList;
+import io.ebean.PagedList;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.annotation.AnonymousCheck;
 import controllers.annotation.IsAllowed;
@@ -20,7 +20,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.lib.ObjectId;
 import play.data.Form;
-import play.db.ebean.Transactional;
+import io.ebean.annotation.Transactional;
 import play.libs.Json;
 import play.mvc.Call;
 import play.mvc.Result;
@@ -39,7 +39,7 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.*;
 
-import static com.avaje.ebean.Expr.icontains;
+import static io.ebean.Expr.icontains;
 import static controllers.MigrationApp.composePlainCommentsJson;
 import static play.libs.Json.toJson;
 import static utils.JodaDateUtil.getOptionalShortDate;
@@ -50,15 +50,15 @@ public class BoardApp extends AbstractPostingApp {
         public String [] labelIds;
         public Set<Long> labelIdSet = new HashSet<>();
         private ExpressionList<Posting> asExpressionList(Project project) {
-            ExpressionList<Posting> el = Posting.finder.where().eq("project.id", project.id);
+            ExpressionList<Posting> el = Posting.finder.query().where().eq("project.id", project.id);
 
             if (filter != null) {
                 el.or(icontains("title", filter), icontains("body", filter));
             }
 
             if (CollectionUtils.isNotEmpty(labelIdSet)) {
-                Set<IssueLabel> labels = IssueLabel.finder.where().idIn(new ArrayList<>(labelIdSet)).findSet();
-                el.in("id", Posting.finder.where().in("labels", labels).findIds());
+                Set<IssueLabel> labels = IssueLabel.finder.query().where().idIn(new ArrayList<>(labelIdSet)).findSet();
+                el.in("id", Posting.finder.query().where().in("labels", labels).findIds());
             }
 
             if (StringUtils.isNotBlank(orderBy)) {
@@ -69,7 +69,7 @@ public class BoardApp extends AbstractPostingApp {
         }
 
         private ExpressionList<Posting> asExpressionList(@Nonnull Organization organization) {
-            ExpressionList<Posting> el = Posting.finder.where();
+            ExpressionList<Posting> el = Posting.finder.query().where();
 
             if(isFilteredByProject()){
                 el.in("project.id", getFilteredProjectIds(organization));
@@ -117,10 +117,10 @@ public class BoardApp extends AbstractPostingApp {
     }
 
     @AnonymousCheck(requiresLogin = false, displaysFlashMessage = true)
-    public static Result organizationBoards(@Nonnull String organizationName, int pageNum) {
+    public Result organizationBoards(@Nonnull String organizationName, int pageNum) {
 
-        Form<SearchCondition> postParamForm = new Form<>(SearchCondition.class);
-        SearchCondition searchCondition = postParamForm.bindFromRequest().get();
+        Form<SearchCondition> postParamForm = utils.FormUtil.form(SearchCondition.class);
+        SearchCondition searchCondition = postParamForm.bindFromRequest(request()).get();
         searchCondition.pageNum = pageNum - 1;
         if (searchCondition.orderBy.equals("id")) {
             searchCondition.orderBy = "createdDate";
@@ -131,17 +131,17 @@ public class BoardApp extends AbstractPostingApp {
             return notFound(ErrorViews.NotFound.render("error.notfound.organization"));
         }
         ExpressionList<Posting> el = searchCondition.asExpressionList(organization);
-        Page<Posting> posts = el.findPagingList(ITEMS_PER_PAGE).getPage(searchCondition.pageNum);
+        PagedList<Posting> posts = el.setFirstRow((searchCondition.pageNum) * (ITEMS_PER_PAGE)).setMaxRows(ITEMS_PER_PAGE).findPagedList();
 
         return ok(group_board_list.render("menu.board", organization, posts, searchCondition, null));
     }
 
     @IsAllowed(value = Operation.READ, resourceType = ResourceType.PROJECT)
-    public static Result posts(String userName, String projectName, int pageNum) {
+    public Result posts(String userName, String projectName, int pageNum) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
-        Form<SearchCondition> postParamForm = new Form<>(SearchCondition.class);
-        SearchCondition searchCondition = postParamForm.bindFromRequest().get();
+        Form<SearchCondition> postParamForm = utils.FormUtil.form(SearchCondition.class);
+        SearchCondition searchCondition = postParamForm.bindFromRequest(request()).get();
         searchCondition.pageNum = pageNum - 1;
         if (searchCondition.orderBy.equals("id")) {
             searchCondition.orderBy = "createdDate";
@@ -151,7 +151,7 @@ public class BoardApp extends AbstractPostingApp {
 
         ExpressionList<Posting> el = searchCondition.asExpressionList(project);
         el.eq("notice", false);
-        Page<Posting> posts = el.findPagingList(ITEMS_PER_PAGE).getPage(searchCondition.pageNum);
+        PagedList<Posting> posts = el.setFirstRow((searchCondition.pageNum) * (ITEMS_PER_PAGE)).setMaxRows(ITEMS_PER_PAGE).findPagedList();
         List<Posting> notices = Posting.findNotices(project);
 
         return ok(list.render("menu.board", project, posts, searchCondition, notices));
@@ -159,7 +159,7 @@ public class BoardApp extends AbstractPostingApp {
 
     @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
     @IsCreatable(ResourceType.BOARD_POST)
-    public static Result newPostForm(String userName, String projectName) {
+    public Result newPostForm(String userName, String projectName) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
         boolean isAllowedToNotice =
@@ -184,7 +184,7 @@ public class BoardApp extends AbstractPostingApp {
                     getBranchNameFromQueryString(), request().getQueryString("path"));
         }
 
-        return ok(create.render("post.new", new Form<>(Posting.class), project, isAllowedToNotice, preparedBodyText));
+        return ok(create.render("post.new", utils.FormUtil.form(Posting.class), project, isAllowedToNotice, preparedBodyText));
     }
 
     private static boolean projectHasReadme(Project project) {
@@ -209,8 +209,8 @@ public class BoardApp extends AbstractPostingApp {
 
     @Transactional
     @IsCreatable(ResourceType.BOARD_POST)
-    public static Result newPost(String userName, String projectName) {
-        Form<Posting> postForm = new Form<>(Posting.class).bindFromRequest();
+    public Result newPost(String userName, String projectName) {
+        Form<Posting> postForm = utils.FormUtil.form(Posting.class).bindFromRequest(request());
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
         if (postForm.hasErrors()) {
@@ -283,7 +283,7 @@ public class BoardApp extends AbstractPostingApp {
     }
 
     @IsAllowed(value = Operation.READ, resourceType = ResourceType.BOARD_POST)
-    public static Result post(String userName, String projectName, Long number) {
+    public Result post(String userName, String projectName, Long number) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         Posting post = Posting.findByNumber(project, number);
 
@@ -291,7 +291,7 @@ public class BoardApp extends AbstractPostingApp {
             post.body = StringUtils.defaultString(BareRepository.readREADME(project));
         }
 
-        if (request().getHeader("Accept").contains("application/json")) {
+        if (RequestUtil.getHeader(request(), "Accept").contains("application/json")) {
             ObjectNode json = Json.newObject();
             json.put("title", post.title);
             json.put("type", post.asResource().getType().toString());
@@ -307,12 +307,12 @@ public class BoardApp extends AbstractPostingApp {
         UserApp.currentUser().visits(project);
         UserApp.currentUser().visits(post);
 
-        Form<PostingComment> commentForm = new Form<>(PostingComment.class);
+        Form<PostingComment> commentForm = utils.FormUtil.form(PostingComment.class);
         return ok(view.render(post, commentForm, project));
     }
 
     @With(NullProjectCheckAction.class)
-    public static Result editPostForm(String owner, String projectName, Long number) {
+    public Result editPostForm(String owner, String projectName, Long number) {
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
         Posting posting = Posting.findByNumber(project, number);
 
@@ -320,7 +320,7 @@ public class BoardApp extends AbstractPostingApp {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
-        Form<Posting> editForm = new Form<>(Posting.class).fill(posting);
+        Form<Posting> editForm = utils.FormUtil.form(Posting.class).fill(posting);
         boolean isAllowedToNotice = ProjectUser.isAllowedToNotice(UserApp.currentUser(), project);
 
         if(posting.readme && RepositoryService.VCS_GIT.equals(project.vcs)){
@@ -334,8 +334,8 @@ public class BoardApp extends AbstractPostingApp {
      */
     @Transactional
     @With(NullProjectCheckAction.class)
-    public static Result editPost(String userName, String projectName, Long number) {
-        Form<Posting> postForm = new Form<>(Posting.class).bindFromRequest();
+    public Result editPost(String userName, String projectName, Long number) {
+        Form<Posting> postForm = utils.FormUtil.form(Posting.class).bindFromRequest(request());
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
         if (postForm.hasErrors()) {
@@ -374,11 +374,11 @@ public class BoardApp extends AbstractPostingApp {
     }
 
     /**
-     * @see controllers.AbstractPostingApp#delete(play.db.ebean.Model, models.resource.Resource, play.mvc.Call)
+     * @see controllers.AbstractPostingApp#delete(io.ebean.Model, models.resource.Resource, play.mvc.Call)
      */
     @Transactional
     @IsAllowed(value = Operation.DELETE, resourceType = ResourceType.BOARD_POST)
-    public static Result deletePost(String owner, String projectName, Long number) {
+    public Result deletePost(String owner, String projectName, Long number) {
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
         Posting posting = Posting.findByNumber(project, number);
         Call redirectTo = routes.BoardApp.posts(project.owner, project.name, 1);
@@ -393,11 +393,11 @@ public class BoardApp extends AbstractPostingApp {
     @Transactional
     @IsAllowed(value = Operation.READ, resourceType = ResourceType.BOARD_POST)
     @With(NullProjectCheckAction.class)
-    public static Result newComment(String owner, String projectName, Long number) throws IOException {
+    public Result newComment(String owner, String projectName, Long number) throws IOException {
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
         final Posting posting = Posting.findByNumber(project, number);
-        Form<PostingComment> commentForm = new Form<>(PostingComment.class)
-                .bindFromRequest();
+        Form<PostingComment> commentForm = utils.FormUtil.form(PostingComment.class)
+                .bindFromRequest(request());
 
         if (commentForm.hasErrors()) {
             return badRequest(ErrorViews.BadRequest.render("error.validation", project, MenuType.BOARD));
@@ -409,8 +409,9 @@ public class BoardApp extends AbstractPostingApp {
         }
 
         final PostingComment comment = commentForm.get();
+        fillCommentContents(comment);
 
-        if (commentForm.hasErrors()) {
+        if (commentForm.hasErrors() || StringUtils.isBlank(comment.contents)) {
             flash(Constants.WARNING, "common.comment.empty");
             return redirect(routes.BoardApp.post(project.owner, project.name, number));
         }
@@ -450,13 +451,13 @@ public class BoardApp extends AbstractPostingApp {
     }
 
     // Just made for compatibility. No meanings.
-    public static Result updateComment(String ownerName, String projectName, Long number, Long commentId) throws IOException {
+    public Result updateComment(String ownerName, String projectName, Long number, Long commentId) throws IOException {
         return newComment(ownerName, projectName, number);
     }
 
     private static Comment saveComment(Project project, Posting posting, PostingComment comment) {
         Comment savedComment;
-        PostingComment existingComment = (PostingComment)PostingComment.find.where().eq("id", comment.id).findUnique();
+        PostingComment existingComment = (PostingComment)PostingComment.find.query().where().eq("id", comment.id).findOne();
         if (existingComment != null) {
             existingComment.contents = comment.contents;
             savedComment = saveComment(existingComment, getContainerUpdater(posting, comment));
@@ -471,6 +472,16 @@ public class BoardApp extends AbstractPostingApp {
         return savedComment;
     }
 
+    private static void fillCommentContents(PostingComment comment) {
+        if (StringUtils.isNotBlank(comment.contents) || request().body().asMultipartFormData() == null) {
+            return;
+        }
+        String[] contents = request().body().asMultipartFormData().asFormUrlEncoded().get("contents");
+        if (contents != null && contents.length > 0) {
+            comment.contents = contents[0];
+        }
+    }
+
     private static Runnable getContainerUpdater(final Posting posting, final PostingComment comment) {
         return new Runnable() {
             @Override
@@ -481,11 +492,11 @@ public class BoardApp extends AbstractPostingApp {
         };
     }
     /**
-     * @see controllers.AbstractPostingApp#delete(play.db.ebean.Model, models.resource.Resource, play.mvc.Call)
+     * @see controllers.AbstractPostingApp#delete(io.ebean.Model, models.resource.Resource, play.mvc.Call)
      */
     @Transactional
     @With(NullProjectCheckAction.class)
-    public static Result deleteComment(String userName, String projectName, Long number, Long commentId) {
+    public Result deleteComment(String userName, String projectName, Long number, Long commentId) {
         Comment comment = PostingComment.find.byId(commentId);
         Project project = comment.asResource().getProject();
         Call redirectTo = routes.BoardApp.post(project.owner, project.name, number);

@@ -5,9 +5,9 @@
 * https://yona.io
 **@
 @import java.util
-@import com.avaje.ebean.Page
+@import io.ebean.PagedList
 @import models.support.SearchCondition
-@(title: String, currentPage: Page[Issue], param:SearchCondition, project:Project)
+@(title: String, currentPage: PagedList[Issue], param:SearchCondition, project:Project)
 
 @import helper._
 @import models.enumeration._
@@ -27,7 +27,7 @@
         <div class="inner advanced">
             @my_partial_list_quicksearch(param)
 
-            <form id="search" name="search" action="@routes.IssueApp.userIssues()" method="get">
+            <form id="search" name="search" action="@routes.IssueApp.userIssues("", "html", 1)" method="get">
                 <input type="hidden" name="orderBy" value="@param.orderBy">
                 <input type="hidden" name="orderDir" value="@param.orderDir">
                 <input type="hidden" name="state" value="@param.state">

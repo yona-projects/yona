@@ -6,25 +6,26 @@
  **/
 package models;
 
-import com.avaje.ebean.annotation.Transactional;
+import io.ebean.annotation.Transactional;
 
 import models.enumeration.EventType;
 import models.enumeration.State;
 import models.enumeration.ResourceType;
 import models.resource.Resource;
 
-import play.db.ebean.Model;
+import io.ebean.Finder;
+import io.ebean.Model;
 import play.data.validation.Constraints.Required;
 
 import javax.annotation.Nonnull;
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.List;
 import java.util.Date;
 
 @Entity
 public class WebhookThread extends Model {
     private static final long serialVersionUID = 1L;
-    public static Finder<Long, WebhookThread> find = new Finder<>(Long.class, WebhookThread.class);
+    public static Finder<Long, WebhookThread> find = new Finder<>(WebhookThread.class);
 
     @Id
     public Long id;
@@ -61,11 +62,11 @@ public class WebhookThread extends Model {
     }
 
     public static WebhookThread getWebhookThread(Long webhookId, Resource resource) {
-        return find.where()
+        return find.query().where()
                 .eq("webhook.id", webhookId)
                 .eq("resourceType", resource.getType())
                 .eq("resourceId", resource.getId())
-                .findUnique();
+                .findOne();
     }
 
     @Override

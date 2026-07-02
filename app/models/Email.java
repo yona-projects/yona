@@ -21,19 +21,19 @@
 package models;
 
 import actors.ValidationEmailSender;
-import akka.actor.Props;
-import com.avaje.ebean.ExpressionList;
+import org.apache.pekko.actor.Props;
+import io.ebean.ExpressionList;
 import controllers.routes;
 import org.apache.commons.lang3.RandomStringUtils;
 import play.data.validation.Constraints;
-import play.db.ebean.Model;
-import play.libs.Akka;
+import io.ebean.Finder;
+import io.ebean.Model;
 import utils.Url;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.Transient;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Transient;
 import java.util.List;
 
 @Entity
@@ -41,7 +41,7 @@ public class Email extends Model {
 
     private static final long serialVersionUID = 1L;
 
-    public static final Finder<Long, Email> find = new Finder<>(Long.class, Email.class);
+    public static final Finder<Long, Email> find = new Finder<>(Email.class);
 
     /**
      * pk
@@ -76,7 +76,7 @@ public class Email extends Model {
         ExpressionList<Email> el = findByEmailAndIsValid(newEmail, valid);
 
         if(valid) {
-            Email uniqueValidatedEmail = el.findUnique();
+            Email uniqueValidatedEmail = el.findOne();
             return uniqueValidatedEmail != null;
         } else {
             List<Email> list = el.findList();
@@ -96,7 +96,7 @@ public class Email extends Model {
     }
 
     public static void deleteOtherInvalidEmails(String emailAddress) {
-        List<Email> invalidEmails = find.where().eq("email", emailAddress).eq("valid", false).findList();
+        List<Email> invalidEmails = find.query().where().eq("email", emailAddress).eq("valid", false).findList();
         for(Email email : invalidEmails) {
             email.delete();
         }
@@ -106,15 +106,15 @@ public class Email extends Model {
         this.token = RandomStringUtils.randomNumeric(50);
         this.confirmUrl = Url.create(routes.UserApp.confirmEmail(this.id, this.token).url());
         update();
-        Akka.system().actorOf(Props.create(ValidationEmailSender.class)).tell(this, null);
+        utils.AkkaUtil.system().actorOf(Props.create(ValidationEmailSender.class)).tell(this, null);
     }
 
     public static Email findByEmail(String email, boolean isValid) {
-        return findByEmailAndIsValid(email, isValid).findUnique();
+        return findByEmailAndIsValid(email, isValid).findOne();
     }
 
     private static ExpressionList<Email> findByEmailAndIsValid(String email, boolean isValid) {
-        return find.where()
+        return find.query().where()
                     .eq("email", email)
                     .eq("valid", isValid);
     }

@@ -1,21 +1,15 @@
 // Comment to get more information during initialization
 logLevel := Level.Warn
 
-// The Typesafe repository
-resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
-
 // Use the Play sbt plugin for Play projects
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.3.10")
+addSbtPlugin("org.playframework" % "sbt-plugin" % "3.0.11")
 
-// Dependency graph plugin
-addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.7.4")
+addSbtPlugin("org.playframework" % "sbt-play-ebean" % "8.5.0")
 
-addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.0.4")
+addSbtPlugin("com.github.sbt" % "sbt-less" % "2.0.1")
 
-addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.0.3")
+addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.13.1")
 
-addSbtPlugin("de.johoop" % "findbugs4sbt" % "1.4.0")
+dependencyOverrides += "org.webjars.npm" % "less" % "4.2.0"
 
-addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.3.2")
-
-libraryDependencies += "org.javassist" % "javassist" % "3.18.2-GA"
+excludeDependencies += ExclusionRule(organization = "org.webjars", name = "less-node")

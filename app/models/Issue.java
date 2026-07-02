@@ -6,7 +6,7 @@
  **/
 package models;
 
-import static com.avaje.ebean.Expr.eq;
+import static io.ebean.Expr.eq;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -20,29 +20,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-import javax.persistence.UniqueConstraint;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import jakarta.persistence.UniqueConstraint;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.shiro.util.CollectionUtils;
 
-import com.avaje.ebean.Ebean;
-import com.avaje.ebean.ExpressionList;
-import com.avaje.ebean.Page;
-import com.avaje.ebean.RawSqlBuilder;
-import com.avaje.ebean.annotation.Formula;
-import play.db.ebean.Model.Finder;
+import io.ebean.Ebean;
+import io.ebean.ExpressionList;
+import io.ebean.PagedList;
+import io.ebean.RawSqlBuilder;
+import io.ebean.SqlRow;
+import io.ebean.annotation.Formula;
+import io.ebean.Finder;
 
 import jxl.Workbook;
 import jxl.format.Alignment;
@@ -64,15 +65,18 @@ import models.resource.Resource;
 import models.support.SearchCondition;
 import play.data.Form;
 import play.data.format.Formats;
+import play.i18n.Lang;
 import play.i18n.Messages;
+import play.libs.typedmap.TypedMap;
 import utils.JodaDateUtil;
+import utils.MessagesUtil;
 
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"project_id", "number"}))
 public class Issue extends AbstractPosting implements LabelOwner {
     private static final long serialVersionUID = -2409072006294045262L;
 
-    public static final Finder<Long, Issue> finder = new Finder<>(Long.class, Issue.class);
+    public static final Finder<Long, Issue> finder = new Finder<>(Issue.class);
 
     public static final String DEFAULT_SORTER = "createdDate";
     public static final String TO_BE_ASSIGNED = "";
@@ -224,7 +228,11 @@ public class Issue extends AbstractPosting implements LabelOwner {
             updateProps.add("assignee");
         }
         if(!updateProps.isEmpty()) {
-            Ebean.update(this, updateProps);
+            io.ebean.UpdateQuery<Issue> update = Ebean.update(Issue.class);
+            for (String updateProp : updateProps) {
+                update.setNull(updateProp);
+            }
+            update.where().idEq(id).update();
         }
     }
 
@@ -242,7 +250,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
                 "INNER JOIN assignee ON issue.assignee_id = assignee.id \n" +
                 "WHERE assignee.user_id = %d";
         String sql = String.format(template, user.id);
-        Set<Issue> set = finder.setRawSql(RawSqlBuilder.parse(sql).create()).findSet();
+        Set<Issue> set = finder.query().setRawSql(RawSqlBuilder.parse(sql).create()).findSet();
         return set.size();
     }
 
@@ -253,39 +261,42 @@ public class Issue extends AbstractPosting implements LabelOwner {
                 "ON issue.id = issue_voter.issue_id " +
                 "WHERE issue_voter.user_id = %d";
         String sql = String.format(template, user.id);
-        Set<Issue> set = finder.setRawSql(RawSqlBuilder.parse(sql).create()).findSet();
+        Set<Issue> set = finder.query().setRawSql(RawSqlBuilder.parse(sql).create()).findSet();
         return set.size();
     }
 
     public static int countAllCreatedBy(User user) {
-        return finder.where().eq("author_id", user.id).findRowCount();
+        return finder.query().where().eq("author_id", user.id).findCount();
     }
 
     public static int countIssues(Long projectId, State state) {
         if (state == State.ALL) {
-            return finder.where().eq("project.id", projectId).isNull("parent.id").ne("state", State.DRAFT).findRowCount();
+            return finder.query().where().eq("project.id", projectId).isNull("parent.id").ne("state", State.DRAFT).findCount();
         } else {
-            return finder.where().eq("project.id", projectId).isNull("parent.id").eq("state", state).findRowCount();
+            return finder.query().where().eq("project.id", projectId).isNull("parent.id").eq("state", state).findCount();
         }
     }
 
     public static int countIssuesBy(Long projectId, SearchCondition cond) {
-        return cond.asExpressionList(Project.find.byId(projectId)).findRowCount();
+        return cond.asExpressionList(Project.find.byId(projectId)).findCount();
     }
 
     public static int countIssuesBy(SearchCondition cond) {
-        return cond.asExpressionList().findRowCount();
+        return cond.asExpressionList().findCount();
     }
 
     public static int countIssuesBy(Long projectId, Map<String, String> paramMap) {
-        Form<SearchCondition> paramForm = new Form<>(SearchCondition.class);
-        SearchCondition cond = paramForm.bind(paramMap).get();
+        Form<SearchCondition> paramForm = utils.FormUtil.form(SearchCondition.class);
+        SearchCondition cond = paramForm.bind(
+                Lang.forCode(utils.RequestUtil.languageCode(utils.LegacyRequestContext.currentRequestOrNull())),
+                TypedMap.empty(),
+                paramMap).get();
 
         return Issue.countIssuesBy(projectId, cond);
     }
 
     public static int countIssuesBy(Organization organization, SearchCondition cond) {
-        return cond.asExpressionList(organization).findRowCount();
+        return cond.asExpressionList(organization).findCount();
     }
 
     /**
@@ -305,18 +316,18 @@ public class Issue extends AbstractPosting implements LabelOwner {
         sheet = workbook.createSheet(String.valueOf(JodaDateUtil.today().getTime()), 0);
 
         String[] titles = {"No",
-                Messages.get("issue.state"),
-                Messages.get("title"),
-                Messages.get("issue.assignee"),
-                Messages.get("issue.content"),
-                Messages.get("issue.label"),
-                Messages.get("issue.createdDate"),
-                Messages.get("issue.dueDate"),
-                Messages.get("milestone"),
+                MessagesUtil.get("issue.state"),
+                MessagesUtil.get("title"),
+                MessagesUtil.get("issue.assignee"),
+                MessagesUtil.get("issue.content"),
+                MessagesUtil.get("issue.label"),
+                MessagesUtil.get("issue.createdDate"),
+                MessagesUtil.get("issue.dueDate"),
+                MessagesUtil.get("milestone"),
                 "URL",
-                Messages.get("common.comment"),
-                Messages.get("common.comment.author"),
-                Messages.get("common.comment.created")};
+                MessagesUtil.get("common.comment"),
+                MessagesUtil.get("common.comment.author"),
+                MessagesUtil.get("common.comment.created")};
 
         for (int i = 0; i < titles.length; i++) {
             sheet.addCell(new jxl.write.Label(i, 0, titles[i], headerCellFormat));
@@ -454,9 +465,9 @@ public class Issue extends AbstractPosting implements LabelOwner {
     }
 
     public static List<Issue> findRecentlyCreated(Project project, int size) {
-        return finder.where().eq("project.id", project.id)
-                .order().desc("createdDate")
-                .findPagingList(size).getPage(0)
+        return finder.query().where().eq("project.id", project.id)
+                .orderBy().desc("createdDate")
+                .setFirstRow((0) * (size)).setMaxRows(size).findPagedList()
                 .getList();
     }
 
@@ -470,19 +481,70 @@ public class Issue extends AbstractPosting implements LabelOwner {
     }
 
     public static Issue findByNumber(Project project, Long number) {
-        return AbstractPosting.findByNumber(finder, project, number);
+        Issue issue = Issue.finder.query()
+                .fetch("project")
+                .fetch("labels")
+                .fetch("sharers")
+                .fetch("assignee")
+                .fetch("milestone")
+                .where()
+                .eq("project.id", project.id)
+                .eq("number", number)
+                .findOne();
+        if (issue != null) {
+            if (issue.body == null) {
+                SqlRow row = Ebean.createSqlQuery("select body from issue where id = :id")
+                        .setParameter("id", issue.id)
+                        .findOne();
+                if (row != null) {
+                    issue.body = row.getString("body");
+                }
+            }
+            if (issue.voters == null) {
+                issue.voters = new HashSet<>();
+            }
+            if (issue.labels == null) {
+                issue.labels = new HashSet<>();
+            }
+            if (issue.sharers == null) {
+                issue.sharers = new LinkedHashSet<>();
+            }
+            if (issue.comments == null) {
+                issue.comments = IssueComment.find.query().where()
+                        .eq("issue.id", issue.id)
+                        .findList();
+            }
+            loadCommentContents(issue.comments);
+            if (issue.events == null) {
+                issue.events = new ArrayList<>();
+            }
+        }
+        return issue;
+    }
+
+    private static void loadCommentContents(List<IssueComment> comments) {
+        for (IssueComment comment : comments) {
+            if (comment.contents == null && comment.id != null) {
+                SqlRow row = Ebean.createSqlQuery("select contents from issue_comment where id = :id")
+                        .setParameter("id", comment.id)
+                        .findOne();
+                if (row != null) {
+                    comment.contents = row.getString("contents");
+                }
+            }
+        }
     }
 
     public static List<Issue> findByMilestone(Milestone milestone) {
-        return finder.where().eq("milestone.id", milestone.id).findList();
+        return finder.query().where().eq("milestone.id", milestone.id).findList();
     }
 
     public static List<Issue> findClosedIssuesByMilestone(Milestone milestone) {
-        return finder.where().eq("milestone.id", milestone.id).eq("state", State.CLOSED).findList();
+        return finder.query().where().eq("milestone.id", milestone.id).eq("state", State.CLOSED).findList();
     }
 
     public static List<Issue> findOpenIssuesByMilestone(Milestone milestone) {
-        return finder.where().eq("milestone.id", milestone.id).eq("state", State.OPEN).findList();
+        return finder.query().where().eq("milestone.id", milestone.id).eq("state", State.OPEN).findList();
     }
 
     @Transient
@@ -501,7 +563,9 @@ public class Issue extends AbstractPosting implements LabelOwner {
         if (assignee != null) {
             baseWatchers.add(assignee.user);
         }
-        baseWatchers.addAll(this.voters);
+        if (this.voters != null) {
+            baseWatchers.addAll(this.voters);
+        }
 
         return super.getWatchers(baseWatchers, allowedWatchersOnly);
     }
@@ -522,44 +586,44 @@ public class Issue extends AbstractPosting implements LabelOwner {
      * @return
      */
     public static List<Issue> findRecentlyIssuesByDaysAgo(User user, int days) {
-        return finder.where()
+        return finder.query().where()
                 .or(eq("assignee.user.id", user.id), eq("authorId", user.id))
                 .ge("updatedDate", JodaDateUtil.before(days))
-                .order("updatedDate desc, state asc").findList();
+                .orderBy("updatedDate desc, state asc").findList();
     }
 
     public static List<Issue> findByProject(Project project, String filter) {
-        ExpressionList<Issue> el = finder.where()
+        ExpressionList<Issue> el = finder.query().where()
                 .eq("project.id", project.id);
         if(StringUtils.isNotEmpty(filter)){
             el.icontains("title", filter);
         }
-        return el.order().desc("createdDate").findList();
+        return el.orderBy().desc("createdDate").findList();
     }
 
     public static List<Issue> findByProject(Project project, String filter, int limit) {
-        ExpressionList<Issue> el = finder.where()
+        ExpressionList<Issue> el = finder.query().where()
                 .eq("project.id", project.id);
         if(StringUtils.isNotEmpty(filter)){
             el.icontains("title", filter);
         }
-        return el.setMaxRows(limit).order().desc("createdDate").findList();
+        return el.setMaxRows(limit).orderBy().desc("createdDate").findList();
     }
 
     public static List<Issue> findParentIssueByProject(Project project, String filter, int limit) {
-        ExpressionList<Issue> el = finder.where()
+        ExpressionList<Issue> el = finder.query().where()
                 .eq("project.id", project.id)
                 .isNull("parent");
         if(StringUtils.isNotEmpty(filter)){
             el.icontains("title", filter);
         }
-        return el.setMaxRows(limit).order().desc("createdDate").findList();
+        return el.setMaxRows(limit).orderBy().desc("createdDate").findList();
     }
 
-    public static Page<Issue> findIssuesByState(int size, int pageNum, State state) {
-        return finder.where().eq("state", state)
-                .order().desc("createdDate")
-                .findPagingList(size).getPage(pageNum);
+    public static PagedList<Issue> findIssuesByState(int size, int pageNum, State state) {
+        return finder.query().where().eq("state", state)
+                .orderBy().desc("createdDate")
+                .setFirstRow((pageNum) * (size)).setMaxRows(size).findPagedList();
     }
 
     public State previousState() {
@@ -684,60 +748,60 @@ public class Issue extends AbstractPosting implements LabelOwner {
         Date now = JodaDateUtil.now();
 
         if (DateUtils.isSameDay(now, dueDate)) {
-            return Messages.get("common.time.today");
+            return MessagesUtil.get("common.time.today");
         } else if (isOverDueDate()) {
-            return Messages.get("common.time.default.day", JodaDateUtil.localDaysBetween(dueDate, now));
+            return MessagesUtil.get("common.time.default.day", JodaDateUtil.localDaysBetween(dueDate, now));
         } else {
-            return Messages.get("common.time.default.day", JodaDateUtil.localDaysBetween(now, dueDate));
+            return MessagesUtil.get("common.time.default.day", JodaDateUtil.localDaysBetween(now, dueDate));
         }
     }
 
     public static int countOpenIssuesByLabel(Project project, IssueLabel label) {
-        return finder.where()
+        return finder.query().where()
                 .eq("project", project)
                 .eq("labels", label)
                 .eq("state", State.OPEN)
-                .findRowCount();
+                .findCount();
     }
 
     public static int countOpenIssuesByAssignee(Project project, Assignee assignee) {
-        return finder.where()
+        return finder.query().where()
                 .eq("project", project)
                 .eq("assignee", assignee)
                 .eq("state", State.OPEN)
-                .findRowCount();
+                .findCount();
     }
 
     public static int countOpenIssuesByMilestone(Project project, Milestone milestone) {
-        return finder.where()
+        return finder.query().where()
                 .eq("project", project)
                 .eq("milestone", milestone)
                 .eq("state", State.OPEN)
-                .findRowCount();
+                .findCount();
     }
 
     public static List<Issue> findByParentIssueId(Long parentIssueId){
-        return finder.where()
+        return finder.query().where()
                 .eq("parent.id", parentIssueId)
                 .findList();
     }
 
     public boolean hasChildIssue(){
-        return finder.where()
+        return finder.query().where()
                 .eq("parent.id", this.id)
                 .eq("isDraft", false)
                 .setMaxRows(1)
-                .findRowCount() > 0;
+                .findCount() > 0;
     }
 
     public boolean hasParentIssue(){
-        return parent != null && finder.where()
+        return parent != null && finder.query().where()
                 .isNotNull("parent.id")
-                .findRowCount() > 0;
+                .findCount() > 0;
     }
 
     public static List<Issue> findByParentIssueIdAndState(Long parentIssueId, State state){
-        return finder.where()
+        return finder.query().where()
                 .eq("parent.id", parentIssueId)
                 .eq("state", state)
                 .orderBy("number")
@@ -745,17 +809,17 @@ public class Issue extends AbstractPosting implements LabelOwner {
     }
 
     public static int countByParentIssueIdAndState(Long parentIssueId, State state){
-        return finder.where()
+        return finder.query().where()
                 .eq("parent.id", parentIssueId)
                 .eq("state", state)
-                .findRowCount();
+                .findCount();
     }
 
     public static int countOpenIssuesByUser(User user) {
-        return finder.where()
+        return finder.query().where()
                 .eq("assignee.user.id", user.id)
                 .eq("state", State.OPEN)
-                .findRowCount();
+                .findCount();
     }
 
     public IssueSharer findSharerByUserId(Long id){
@@ -781,10 +845,10 @@ public class Issue extends AbstractPosting implements LabelOwner {
     }
 
     public static int getCountOfMentionedOpenIssues(Long userId) {
-        return finder.where()
+        return finder.query().where()
                 .in("id", Mention.getMentioningIssueIds(userId))
                 .eq("state", State.OPEN)
-                .findRowCount();
+                .findCount();
     }
 
     public static Issue from(Posting posting) {

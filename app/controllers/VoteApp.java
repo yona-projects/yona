@@ -27,8 +27,9 @@ import models.IssueComment;
 import models.Project;
 import models.User;
 import models.enumeration.Operation;
-import play.db.ebean.Transactional;
+import io.ebean.annotation.Transactional;
 import play.mvc.*;
+import utils.LegacyController;
 import utils.RouteUtil;
 
 import java.util.ArrayList;
@@ -39,7 +40,7 @@ import java.util.Set;
  * The Controller which plays a role in voting in the issue.
  */
 @AnonymousCheck(requiresLogin = true, displaysFlashMessage = true)
-public class VoteApp extends Controller {
+public class VoteApp extends LegacyController {
 
     /**
      * Votes the issue.
@@ -53,7 +54,7 @@ public class VoteApp extends Controller {
      */
     @Transactional
     @IsAllowed(Operation.READ)
-    public static Result vote(String ownerName, String projectName, Long issueNumber) {
+    public Result vote(String ownerName, String projectName, Long issueNumber) {
 
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         Issue issue = Issue.findByNumber(project, issueNumber);
@@ -77,7 +78,7 @@ public class VoteApp extends Controller {
      */
     @Transactional
     @IsAllowed(Operation.READ)
-    public static Result unvote(String ownerName, String projectName, Long issueNumber) {
+    public Result unvote(String ownerName, String projectName, Long issueNumber) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         Issue issue = Issue.findByNumber(project, issueNumber);
 
@@ -90,7 +91,7 @@ public class VoteApp extends Controller {
 
     @Transactional
     @IsAllowed(Operation.READ)
-    public static Result voteComment(String user, String project, Long number, Long commentId) {
+    public Result voteComment(String user, String project, Long number, Long commentId) {
         IssueComment issueComment = IssueComment.find.byId(commentId);
         if (issueComment == null) {
             return notFound("issue.comment.error.vote");
@@ -103,7 +104,7 @@ public class VoteApp extends Controller {
 
     @Transactional
     @IsAllowed(Operation.READ)
-    public static Result unvoteComment(String user, String project, Long number, Long commentId) {
+    public Result unvoteComment(String user, String project, Long number, Long commentId) {
         IssueComment issueComment = IssueComment.find.byId(commentId);
         if (issueComment == null) {
             return notFound("issue.comment.error.unvote");

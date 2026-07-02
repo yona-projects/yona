@@ -20,9 +20,10 @@
  */
 package models.support;
 
-import com.avaje.ebean.ExpressionList;
-import com.avaje.ebean.Page;
-import play.db.ebean.Model;
+import io.ebean.ExpressionList;
+import io.ebean.PagedList;
+import io.ebean.Finder;
+import io.ebean.Model;
 
 import java.util.Collection;
 import java.util.List;
@@ -31,8 +32,8 @@ public class FinderTemplate {
 
     private static <K, T> ExpressionList<T> makeExpressionList(OrderParams mop,
                                                                SearchParams msp,
-                                                               Model.Finder<K, T> finder) {
-        ExpressionList<T> el = finder.where();
+                                                               Finder<K, T> finder) {
+        ExpressionList<T> el = finder.query().where();
 
         if (msp != null && !msp.getSearchParams().isEmpty()) {
             for (SearchParam sp : msp.getSearchParams()) {
@@ -93,13 +94,13 @@ public class FinderTemplate {
 
     public static <K, T> List<T> findBy(OrderParams mop,
                                         SearchParams msp,
-                                        Model.Finder<K, T> finder) {
+                                        Finder<K, T> finder) {
         return makeExpressionList(mop, msp, finder).findList();
     }
 
-    public static <K, T> Page<T> getPage(OrderParams mop,
+    public static <K, T> PagedList<T> getPage(OrderParams mop,
                                          SearchParams msp,
-                                         Model.Finder<K, T> finder, int pageSize, int page) {
-        return makeExpressionList(mop, msp, finder).findPagingList(pageSize).getPage(page);
+                                         Finder<K, T> finder, int pageSize, int page) {
+        return makeExpressionList(mop, msp, finder).setFirstRow((page) * (pageSize)).setMaxRows(pageSize).findPagedList();
     }
 }
