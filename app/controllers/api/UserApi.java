@@ -115,12 +115,21 @@ public class UserApi extends LegacyController {
         List<ObjectNode> issues = new ArrayList<>();
         List<Long> issueIds = new ArrayList<>();
         for (FavoriteIssue favoriteIssue : UserApp.currentUser().favoriteIssues) {
+            Issue issue = Issue.finder.byId(favoriteIssue.issue.id);
+            if (issue == null) {
+                continue;
+            }
             ObjectNode project = Json.newObject();
-            project.put("issueId", favoriteIssue.issue.id);
-            project.put("issueTitle", favoriteIssue.issue.title);
-            project.put("issueAuthorName", favoriteIssue.issue.author.getPureNameOnly());
+            project.put("issueId", issue.id);
+            project.put("issueTitle", issue.title);
+            String authorName = issue.authorName;
+            if (authorName == null || authorName.isBlank()) {
+                User author = User.findByLoginId(issue.authorLoginId);
+                authorName = author.isAnonymous() ? issue.authorLoginId : author.getPureNameOnly();
+            }
+            project.put("issueAuthorName", authorName);
             issues.add(project);
-            issueIds.add(favoriteIssue.issue.id);
+            issueIds.add(issue.id);
         }
         json.put("projectIds", toJson(issueIds));
         json.put("projects", toJson(issues));

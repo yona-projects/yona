@@ -398,8 +398,13 @@ public class AccessControl {
     private static boolean isAllowedIfAssignee(User user, Resource resource) {
         switch (resource.getType()) {
         case ISSUE_POST:
-            Assignee assignee = Issue.finder.byId(Long.valueOf(resource.getId())).assignee;
-            return assignee != null && assignee.user.id.equals(user.id);
+            Issue issue = Issue.finder.query()
+                    .fetch("assignee.user")
+                    .where()
+                    .idEq(Long.valueOf(resource.getId()))
+                    .findOne();
+            Assignee assignee = issue == null ? null : issue.assignee;
+            return assignee != null && assignee.user != null && assignee.user.id.equals(user.id);
         default:
             return false;
         }
