@@ -368,6 +368,14 @@ application.navbar.custom {
     }
 }
 
+# MCP Server
+# ~~~~~~~~~~
+# Disabled by default. When enabled, POST /mcp accepts Streamable HTTP
+# JSON-RPC requests authenticated with Authorization: Bearer <user-token>,
+# Authorization: token <user-token>, or Yona-Token.
+mcp.enabled = false
+mcp.allowedOrigins = ""
+
 # LDAP Login Support
 # ~~~~~~~~~~~~~~~~~
 #

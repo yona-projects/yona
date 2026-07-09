@@ -37,6 +37,11 @@ GET            /_UIKit                                                          
 # Search
 GET            /search                                                                 controllers.SearchApp.searchInAll()
 
+# MCP server
++ nocsrf
+POST           /mcp                                                                    controllers.mcp.McpController.endpoint()
+GET            /mcp                                                                    controllers.mcp.McpController.stream()
+
 GET            /-_-api                                                                 controllers.Application.index()
 GET            /-_-api/v1/                                                             controllers.Application.index()
 GET            /-_-api/v1/owners/:owner/projects/:projectName/exports                  controllers.api.ProjectApi.exports(owner:String, projectName:String)
