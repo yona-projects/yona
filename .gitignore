@@ -8,6 +8,7 @@ tmp
 .project
 .settings
 .target
+.worktrees/
 .idea*
 *.iml
 dist
