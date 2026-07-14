@@ -16,9 +16,11 @@ mcp.enabled = true
 mcp.allowedOrigins = ""
 ```
 
-`mcp.allowedOrigins`가 비어 있으면 Origin 헤더가 없는 요청, 동일 호스트 요청,
-`localhost` 요청을 허용합니다. 외부 웹 클라이언트를 허용하려면 정확한 Origin을
-쉼표로 구분해 설정합니다.
+`mcp.allowedOrigins`가 비어 있으면 동일 호스트와 `localhost` Origin 요청을
+허용합니다. Origin 헤더가 없는 요청은 설정값과 관계없이 항상 허용됩니다. 따라서
+이 설정은 Origin 헤더가 있는 요청만 필터링하며, 일반 클라이언트나 네트워크
+allowlist가 아닙니다. 외부 웹 클라이언트를 허용하려면 정확한 Origin을 쉼표로
+구분해 설정합니다.
 
 ```hocon
 mcp.allowedOrigins = "https://ai.example.com,https://assistant.example.com"
@@ -97,16 +99,25 @@ curl -sS -X POST "$YONA_MCP_URL" \
 
 ## 4. MCP 클라이언트 연결
 
-### Codex
+### Codex CLI
 
-Codex CLI와 IDE 확장에서는 MCP 서버 추가 화면에서 Streamable HTTP를 선택하거나,
-`~/.codex/config.toml`에 다음을 추가한 뒤 클라이언트를 재시작합니다.
+Codex CLI에서는 다음 명령을 실행하거나 `~/.codex/config.toml`에 설정을 추가한 뒤
+클라이언트를 재시작합니다.
+
+```bash
+codex mcp add yona --url https://yona.example.com/mcp \
+  --bearer-token-env-var YONA_MCP_TOKEN
+```
 
 ```toml
 [mcp_servers.yona]
 url = "https://yona.example.com/mcp"
 bearer_token_env_var = "YONA_MCP_TOKEN"
 ```
+
+### Codex IDE 확장
+
+Codex IDE 확장에서는 MCP 서버 추가 화면에서 Streamable HTTP를 선택합니다.
 
 Codex의 공식 문서는 `bearer_token_env_var`를 지원합니다. `YONA_MCP_URL`의
 TOML 변수 확장은 문서화되어 있지 않으므로 URL은 실제 엔드포인트로 입력합니다.
@@ -185,6 +196,9 @@ yona://users/me/issues
 - 각 사용자는 자신이 읽을 수 있는 프로젝트와 데이터만 MCP로 읽을 수 있습니다.
 - 토큰은 개인 자격 증명입니다. 환경변수로만 주입하고 공유하거나 저장소에 커밋하지 마십시오.
 - `mcp.allowedOrigins`를 설정한 경우 허용할 정확한 Origin만 추가하십시오.
+- 운영 환경에서는 HTTPS/TLS로만 `/mcp`를 제공하십시오. 요청에는 사용자 토큰이
+  포함되고 비공개 데이터를 반환할 수 있습니다. 평문 HTTP는 통제된 loopback 개발
+  환경에서만 사용하십시오.
 
 ## 7. 문제 해결
 
