@@ -1,6 +1,10 @@
 # Yona MCP Server
 
 Yona exposes a read-only Model Context Protocol (MCP) endpoint at `POST /mcp`.
+
+For installation, client setup, usage examples, and troubleshooting, see the
+[Korean Yona MCP usage guide](../ko/yona-mcp-guide.md).
+
 The endpoint is disabled by default and must be enabled explicitly.
 
 ## Configuration
