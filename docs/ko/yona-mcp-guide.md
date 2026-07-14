@@ -99,8 +99,7 @@ curl -sS -X POST "$YONA_MCP_URL" \
 
 ### Codex
 
-Codex CLI, IDE 확장, ChatGPT desktop app은 같은 MCP 설정을 사용합니다. 각
-클라이언트의 MCP 서버 추가 화면에서 Streamable HTTP를 선택하거나,
+Codex CLI와 IDE 확장에서는 MCP 서버 추가 화면에서 Streamable HTTP를 선택하거나,
 `~/.codex/config.toml`에 다음을 추가한 뒤 클라이언트를 재시작합니다.
 
 ```toml
