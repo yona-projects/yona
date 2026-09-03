@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(${org.name})}">
+</head>
+<body class="prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div th:replace="~{organization/header :: header(${org})}"></div>
+    <div th:replace="~{organization/menu :: menu(${org}, 'home')}"></div>
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
+            <div class="project-home-header row-fluid">
+                <div class="span9 span-hard-wrap">
+                    <div class="project-overview">
+                        <h3><span id="project-description" th:text="${org.descr}">description</span></h3>
+                    </div>
+                    <div class="project-search-wrap row-fluid mt10">
+                        <div class="span7">
+                            <div class="search-bar">
+                                <input name="mylist-filter" id="mylist-filter" class="textbox full" type="text" value="" data-toggle="item-search" data-items="project-item" th:placeholder="#{title.type.name}">
+                                <button type="button" class="search-btn"><i class="yobicon-search"></i></button>
+                            </div>
+                        </div>
+                        <div class="pull-right" th:if="${@templateHelper.isOrganizationAdmin(org, currentUser) or (currentUser != null and currentUser.isSiteManager)}">
+                            <a th:href="@{/projectform(owner=${org.name})}" class="ybtn ybtn-primary" th:text="#{button.newProject}">New project</a>
+                        </div>
+                    </div>
+                    <ul class="all-projects">
+                        <li class="project" th:each="project : ${projects}" data-item="project-item" th:data-value="${project.name} + ' ' + ${project.overview}"
+                            th:with="assignableUsers=${@templateHelper.getAssignableUsers(project)}, watchingCount=${@templateHelper.getWatchingCount(project.id)}, isWatchingThisProject=${@templateHelper.isWatchingProject(project, currentUser)}">
+                            <div class="info-wrap">
+                                <div class="owner-avatar-wrap hide-in-mobile">
+                                    <a th:href="@{/{owner}/{name}(owner=${project.owner}, name=${project.name})}">
+                                        <img th:if="${@templateHelper.hasProjectLogo(project.id)}" th:src="@{/projects/{id}/logo(id=${project.id})}" th:alt="${project.name}"/>
+                                    </a>
+                                </div>
+                                <div style="float:left">
+                                    <div class="header">
+                                        <a th:href="@{/{owner}/{name}(owner=${project.owner}, name=${project.name})}" class="black" th:text="${project.name}">name</a>
+                                        <span th:if="${project.originalProject != null}" class="small-font blue-txt">
+                                            <a class="origin-title" th:href="@{/{owner}/{name}(owner=${project.originalProject.owner}, name=${project.originalProject.name})}">
+                                                <i class="yobicon-split"></i>
+                                                <span th:text="${project.originalProject.owner} + ' / ' + ${project.originalProject.name}">origin</span>
+                                            </a>
+                                        </span>
+                                        <i th:if="${project.isPrivate}" class="yobicon-lock yobicon-small"></i>
+                                        <span th:if="${project.isProtected}" class="project-protected" title="Group Project">G</span>
+                                        <a th:each="label : ${project.labels}" th:class="'project-label ' + ${#strings.toLowerCase(label.category)}" th:href="@{/projects(labelIds=${label.id})}" th:text="${label.name}">label</a>
+                                    </div>
+                                    <div class="desc" th:text="${project.overview}">overview</div>
+                                    <p class="name-tag">by
+                                        <a th:href="@{/user/{owner}(owner=${project.owner})}" class="owner-name-small" th:text="${project.owner}">owner</a>
+                                        at <strong th:title="${@templateHelper.getDateString(project.createdDate)}" th:text="${@templateHelper.agoOrDateString(project.createdDate)}">ago</strong>
+                                        <span class="small-font" th:if="${project.lastPushedDate != null}">
+                                            , <span th:text="#{project.codeUpdate}">code updated</span>
+                                            <strong th:title="${@templateHelper.getDateString(project.lastPushedDate)}" th:text="${@templateHelper.agoOrDateString(project.lastPushedDate)}">ago</strong>
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="stats-wrap pull-right">
+                                <div class="members">
+                                    <ul class="unstyled">
+                                        <li th:each="member : ${assignableUsers}" th:if="${member.loginId != project.owner}">
+                                            <a th:href="@{/user/{loginId}(loginId=${member.loginId})}" class="avatar-wrap">
+                                                <img th:src="${member.avatarUrl}" th:alt="${member.name}">
+                                            </a>
+                                        </li>
+                                    </ul>
+                                    <p>
+                                        <span th:utext="${#messages.msg('project.onmember', #lists.size(assignableUsers))}">members</span>
+                                        <i class="yobicon-eye"></i>
+                                        <span th:utext="${#messages.msg('project.onwatching', watchingCount)}">watching</span>
+                                        <i th:if="${isWatchingThisProject}" class="yobicon-lightbulb ramp-on" data-toggle="tooltip" th:title="#{project.default.group.watching}"></i>
+                                        <i th:unless="${isWatchingThisProject}" class="yobicon-lightbulb ramp-off" data-toggle="tooltip" th:title="${#messages.msg('project.you.are.not.watching', '')}"></i>
+                                    </p>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="span3 span-hard-wrap">
+                    <th:block th:if="${(currentUser != null and currentUser.isSiteManager) or @templateHelper.isOrganizationMember(org, currentUser) or @templateHelper.isOrganizationAdmin(org, currentUser)}">
+                        <div class="bubble-wrap gray project-home">
+                            <div class="inner member-info">
+                                <header>
+                                    <h3 th:text="#{user.role.org_admin}">Organization admin</h3>
+                                    <button type="button" class="ybtn ybtn-minimum ybtn-danger pull-right" id="groupLeaveBtn"
+                                            th:if="${@templateHelper.isOrganizationAdmin(org, currentUser)}"
+                                            th:data-href="@{/organizations/{orgName}/leave(orgName=${org.name})}"
+                                            th:text="#{organization.member.leave}">Leave organization</button>
+                                </header>
+                                <div class="member-wrap">
+                                    <ul class="project-members">
+                                        <li class="member" th:each="ou : ${org.organizationUsers}" th:if="${ou.role.id == 6}">
+                                            <a th:href="@{/user/{loginId}(loginId=${ou.user.loginId})}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${ou.user.loginId}">
+                                                <img th:src="${ou.user.avatarUrl}" height="45" width="45" />
+                                            </a>
+                                            <a th:href="@{/user/{loginId}(loginId=${ou.user.loginId})}" data-toggle="tooltip" data-placement="top" th:title="${ou.user.loginId}" th:text="${ou.user.name}">name</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bubble-wrap gray project-home mt10">
+                            <div class="inner member-info">
+                                <header>
+                                    <h3 th:text="#{user.role.org_member}">Organization member</h3>
+                                    <button type="button" class="ybtn ybtn-minimum ybtn-danger pull-right" id="groupLeaveBtn"
+                                            th:if="${@templateHelper.isOrganizationMember(org, currentUser)}"
+                                            th:data-href="@{/organizations/{orgName}/leave(orgName=${org.name})}"
+                                            th:text="#{organization.member.leave}">Leave organization</button>
+                                </header>
+                                <div class="member-wrap">
+                                    <ul class="unstyled project-members">
+                                        <li class="member" th:each="ou : ${org.organizationUsers}" th:if="${ou.role.id == 7}">
+                                            <a th:href="@{/user/{loginId}(loginId=${ou.user.loginId})}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${ou.user.loginId}">
+                                                <img th:src="${ou.user.avatarUrl}" height="45" width="45" />
+                                            </a>
+                                            <a th:href="@{/user/{loginId}(loginId=${ou.user.loginId})}" data-toggle="tooltip" data-placement="top" th:title="${ou.user.loginId}" th:text="${ou.user.name}">name</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </th:block>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm to leave the project -->
+    <div id="alertLeave" class="modal hide">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h3 th:text="#{organization.member.leave}">Leave organization</h3>
+        </div>
+        <div class="modal-body">
+            <p th:text="#{organization.member.leaveConfirm}">Do you want to leave this organization?</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="ybtn ybtn-info ybtn-mini" id="leaveBtn" th:text="#{button.yes}">Yes</button>
+            <button type="button" class="ybtn ybtn-mini" data-dismiss="modal" th:text="#{button.no}">No</button>
+        </div>
+    </div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+    <div th:replace="~{site/layout :: scripts}"></div>
+</div>
+<script type="text/javascript" th:inline="javascript">
+    $(document).ready(function() {
+        $yobi.loadModule("organization.View");
+    });
+</script>
+</body>
+</html>

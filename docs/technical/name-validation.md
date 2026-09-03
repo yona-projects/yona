@@ -1,123 +1,100 @@
 What you should consider when validating names
 ==============================================
 
-This is an informational document for people who want to make a rule for name
-validation.
+Ported from legacy Yona's `docs/technical/name-validation.md`. This is design guidance for
+anyone writing or changing name-validation rules — framework-agnostic, so it's still relevant to
+yona. (Whether the actual regexes/constraints in code match this document exactly wasn't
+re-verified — check the relevant validator classes, e.g. `domain/*/EmailDomainValidator.kt`.)
 
 Considerations for names to be used as a path segment in URL
 -----------------------------------------------------------
 
-We recommend some names that can be used as path segments (e.g. project name or
-user name) consist of alphanumeric, -, ., _ and ~, as follows:
+We recommend names used as path segments (e.g. project name or user name) consist of
+alphanumeric, `- . _ ~`, as follows, to avoid percent-encoding:
 
     name  = ALPHA / DIGIT / "-" / "." / "_" / "~"
 
-to avoid them being percent encoded [1].
-
-Any name contains some reserved characters like `/` or `?` are always percent
-encoded if it used in URL. For example, a url to a project whose name is "요비"
-is encoded as follows:
+Any name containing reserved characters like `/` or `?` is always percent-encoded when used in a
+URL. For example, a URL to a project named "요비" is encoded as:
 
     http://www.foo.com/bar/%EC%9A%94%EB%B9%84
 
-Percent encoded URL not only looks ugly, but also causes a bug easily.
+Percent-encoded URLs not only look ugly, they also make bugs easier to introduce.
 
 ### An exception
 
-Any characters are allowed for attached files because it is difficult for them
-to be under the control.
+Any characters are allowed in attachment file names, since they're difficult to control.
 
-Considerations in names that can be used as file or directory name
+Considerations for names used as file or directory names
 ------------------------------------------------------------------
 
-Some names can be used as file or directory names as follows:
+The following are also used as file or directory names:
 
-* a name of a project
-* a name of a user
+* a project name
+* a user name
 
-### Limitation of length
+### Length limitation
 
-Length of filename is limited to 255 bytes in ext file systems and 255 UTF-16
-characters in NTFS.
+Filename length is limited to 255 bytes on ext filesystems and 255 UTF-16 characters on NTFS.
 
 ### Characters not allowed
 
-Filenames must not include `\0 /` in ext file systems and `\ / : * ? " < > |`
-in Microsoft Windows.
+Filenames must not include `\0 /` on ext filesystems, or `\ / : * ? " < > |` on Windows.
 
 ### Case sensitivity
 
-When displaying names, do it case-sensitively; however, when comparing names,
-do it case-insensitively.
+Display names case-sensitively; compare them case-insensitively.
 
-When Yobi compares names to prevent duplication, comparison should be case
-insensitive to make it work correctly in some file systems (e.g. HFS+). But Yobi
-should show names case-insensitively to meet users' needs. It also means that
-Yobi should store names case-insensitively.
+To prevent duplicate names, comparisons should be case-insensitive so things work correctly on
+filesystems like HFS+. But names should be shown to users case-sensitively to meet user
+expectations — meaning names should be *stored* case-preservingly too.
 
 ### An exception
 
-Yobi does not support 8.3 filenames (short filenames), like "FILENAME.TXT",
-which is used in MS-DOS, Windows 3.1 and Windows 95. Yobi does not guarantee to
-work correctly in any system except the Certified System Configurations of
-Oracle JRE [2].
+yona doesn't support 8.3 (short) filenames like "FILENAME.TXT" from MS-DOS/Windows 3.1/Windows
+95. Correct behavior isn't guaranteed outside the
+[Certified System Configurations](http://www.oracle.com/technetwork/java/javase/config-417990.html)
+of the Oracle JRE.
 
 ### Notes
 
 Any file whose name:
 
 * starts with `.` may be recognized as a hidden file.
-* starts with `-` may be misunderstood as a shell command option.
-* is `.` may be misunderstood as a symbol to indicate the current directory.
-* is `..` may be misunderstood as a symbol to indicate the parent directory.
+* starts with `-` may be misread as a shell command option.
+* is `.` may be misread as the current-directory symbol.
+* is `..` may be misread as the parent-directory symbol.
 
-Considerations for names to be used in the local part of email address
+Considerations for names used in the local part of an email address
 ----------------------------------------------------------------------
 
-According to RFC 5322 [3], a mail address consists of local-part and domain as
-follows:
+Per RFC 5322, an email address consists of local-part and domain:
 
     addr-spec       =   local-part "@" domain
 
-According to the rule of `dot-atom-text`[4], local-part cannot start or end with
-`.`. It means that `foo.bar@mail.com` is allowed, but `.foo@mail.com` and
-`foo.@mail.com` are not allowed.
+Per the `dot-atom-text` rule, the local-part cannot start or end with `.`. So
+`foo.bar@mail.com` is allowed, but `.foo@mail.com` and `foo.@mail.com` are not.
 
 Considerations for compatibility with other services
 ---------------------------------------------------
 
-To make it easy to import or export things from or to Yobi, Yobi's naming
-convention should be as compatible as possible with the other services like
-Github.
+To make importing/exporting to and from yona easy, yona's naming convention should be as
+compatible as possible with other services like Github.
 
 ### Github
 
-Github has a very simple validation rule for usernames. Its usernames can
-contain both dash and alphanumeric, but usernames starting with a dash is not
-allowed.
+Github's username validation is simple — usernames can contain dashes and alphanumerics, but
+can't start with a dash.
 
-However, for repository names, Github does not provide any description on its
-validation rules. After many times of trying, these are what we found:
-
-Github allows alphanumeric characters such as `-`, `_` and `.`; otherwise, it
-automatically changes into `-`. Strings like `.`, `...` and `.git` can't be used
-as repository names because they are reserved.
+Github doesn't document its repository-name validation rules, but through trial and error, we
+found: alphanumeric plus `- _ .` are allowed; anything else is automatically converted to `-`.
+Strings like `.`, `...`, and `.git` can't be used as repository names because they're reserved.
 
 Considerations for Basic Authentication
 ---------------------------------------
 
-Any name which can be used as a userid of Basic Authentication scheme [5], like
-users' login id, MUST NOT contain a `:` character. If the userid contains it,
-the authentication does not work at all because the scheme uses a `:` character
-as a separator to split credential from a client into userid and password.
+Any name used as a userid for Basic Authentication (e.g. a user's login id) **must not** contain
+a `:` character. If it does, authentication won't work at all, since the scheme uses `:` as the
+separator between userid and password in credentials.
 
-It is okay that password contains `:` characters.
-
-References
-----------
-
-[1]: http://tools.ietf.org/html/rfc3986#section-2.1
-[2]: http://www.oracle.com/technetwork/java/javase/config-417990.html
-[3]: http://tools.ietf.org/html/rfc5322
-[4]: http://tools.ietf.org/html/rfc5322#section-3.2.3
-[5]: http://tools.ietf.org/html/rfc2617#section-2
+It's fine for a password to contain `:`.

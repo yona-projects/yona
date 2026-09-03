@@ -1,22 +1,43 @@
 Set up social sign-in
 ----
-- These settings are set in the social-login.conf file in the conf directory.
-- If you want to remove or limit your social login settings, edit the application.social.login.support entry in the conf folder
-- If you are running Yona server on public IP network, it is recommended to limit your own subscription and login.
-- If you are not an e-mail user of an existing subscription account at the time of first sign-in for social login, you will receive an e-mail if automatic subscription occurs.
-- At the end of application.conf If you set up mail play-easymail, you will receive a notification mail to newly registered users.
 
+Ported from legacy Yona's `docs/yona-social-login-settings.md`, adapted for yona.
+
+Legacy configured Github/Google OAuth in `conf/social-login.conf` (plus
+`include "social-login.conf"` at the bottom of `application.conf`). yona uses Spring Security
+OAuth2's standard client registration instead — `application.yml`'s
+`spring.security.oauth2.client.registration.*`.
+
+```yaml
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: your_real_github_client_id
+            client-secret: your_real_github_client_secret
+            scope: user:email,read:user
+          google:
+            client-id: your_real_google_client_id
+            client-secret: your_real_google_client_secret
+            scope: profile,email
 ```
-play-easymail {
-  from {
-    # Mailing from address
-    email="you@gmail.com"
 
-    # Mailing name
-    name="Your Name"
+The shipped defaults (`dummy-client-id`/`dummy-client-secret`) are development placeholders —
+replace them with real values issued by each provider (a Github OAuth App, a Google Cloud OAuth
+client) to actually use social login.
 
-    # Seconds between sending mail through Akka (defaults to 1)
-    # delay=1
-  }
-}
-```
+**Unlike legacy, there's no allowlist setting yet** (`application.social.login.support`) to turn
+individual providers on/off — if a provider's client-id/secret is registered, it's always shown
+as a login option. To disable one, remove its registration block entirely for now.
+
+If you're on a public IP, restricting self-signup/login is recommended.
+
+To send a welcome mail to newly registered social-login users, configure
+[`yona-mail-settings.md`](yona-mail-settings.md)'s `spring.mail.*` first (this replaces legacy's
+`play-easymail` block).
+
+GitHub project migration (Import) uses a separate `github.client.id`/`github.client.secret`/
+`github.allow.migration` — **not** the OAuth2 login registration above. See
+[README's "Migration"](../README.md#migration).

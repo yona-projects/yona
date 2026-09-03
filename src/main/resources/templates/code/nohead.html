@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(${project.name} + ' - ' + #{menu.code})}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+  <div th:replace="~{site/layout :: gnb}"></div>
+  <div th:replace="~{project/header :: header(${project})}"></div>
+  <div th:replace="~{project/menu :: menu(${project}, 'code')}"></div>
+
+  <div class="page-wrap-outer">
+    <div class="project-page-wrap">
+      <div class="row-fluid">
+        <div class="span12">
+          <div th:utext="#{code.nohead}">저장소가 비어 있습니다.</div>
+
+          <!-- yona code/nohead.scala.html:46 isAllowed(currentUser, project.asResource, UPDATE) 대응 -->
+          <th:block th:if="${canManage}">
+            <h5 th:text="#{code.nohead.clone(${siteName})}">클론 가이드</h5>
+            <pre><code id="clone-guide"></code></pre>
+
+            <h5 th:text="#{code.nohead.init(${siteName})}">초기화 가이드</h5>
+            <pre><code id="init-guide"></code></pre>
+
+            <h5 th:text="#{code.nohead.remote(${siteName})}">리모트 가이드</h5>
+            <pre><code id="remote-guide"></code></pre>
+
+            <h5 th:text="#{code.nohead.pull.push}">Pull/Push 가이드</h5>
+            <pre><code>git pull origin master
+git push origin master</code></pre>
+          </th:block>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+
+<div th:replace="~{site/layout :: scripts}"></div>
+<script th:inline="javascript">
+    $(document).ready(function(){
+        var currentUser = /*[[${currentUser != null ? currentUser.loginId : null}]]*/ null;
+        var owner = /*[[${project.owner}]]*/ '';
+        var name = /*[[${project.name}]]*/ '';
+
+        var protocol = window.location.protocol;
+        var host = window.location.host;
+
+        // clone URL 조립
+        var cloneUrl = protocol + "//" + (currentUser ? currentUser + "@" : "") + host + "/" + owner + "/" + name;
+
+        var cloneGuide = "git clone " + cloneUrl + " " + name + "\n" +
+                         "cd " + name + "/\n" +
+                         "echo \"# " + name + "\" > README.md\n" +
+                         "git add README.md\n" +
+                         "git commit -m \"Hello Yona\"\n" +
+                         "git push origin master";
+
+        var initGuide = "mkdir " + name + "\n" +
+                        "cd " + name + "/\n" +
+                        "echo \"# " + name + "\" > README.md\n" +
+                        "git init\n" +
+                        "git add README.md\n" +
+                        "git commit -m \"Hello Yona\"\n" +
+                        "git remote add origin " + cloneUrl + "\n" +
+                        "git push origin master";
+
+        var remoteGuide = "git remote add origin " + cloneUrl + "\n" +
+                          "git push origin master";
+
+        $("#clone-guide").text(cloneGuide);
+        $("#init-guide").text(initGuide);
+        $("#remote-guide").text(remoteGuide);
+
+        if (window.$yobi && $yobi.loadModule) {
+            $yobi.loadModule("code.Nohead", {
+                "sProjectName": name
+            });
+        }
+    });
+</script>
+</body>
+</html>

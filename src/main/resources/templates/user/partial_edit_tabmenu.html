@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<ul th:fragment="tabmenu(tabId)" class="nav nav-tabs mt20">
+  <li th:class="${tabId == 'profile'} ? 'active' : ''">
+    <a th:href="@{/user/editform}" th:text="#{userinfo.editProfile}">
+      프로필 수정
+    </a>
+  </li>
+  <li th:class="${tabId == 'password'} ? 'active' : ''">
+    <a th:href="@{/user/editform/password}" th:text="#{userinfo.changePassword}">
+      비밀번호 변경
+    </a>
+  </li>
+  <li th:class="${tabId == 'notifications'} ? 'active' : ''">
+    <a th:href="@{/user/editform/notifications}" th:text="#{userinfo.changeNotifications}">
+      알림 설정
+    </a>
+  </li>
+  <li th:class="${tabId == 'emails'} ? 'active' : ''">
+    <a th:href="@{/user/editform/emails}" th:text="#{userinfo.changeEmails}">
+      이메일 설정
+    </a>
+  </li>
+  <li th:class="${tabId == 'token'} ? 'active' : ''">
+    <a th:href="@{/user/editform/token}" th:text="#{userinfo.token}">
+      사용자토큰
+    </a>
+  </li>
+  <li th:class="${tabId == 'tokens'} ? 'active' : ''">
+    <a th:href="@{/user/editform/tokens}" th:text="#{userinfo.tokens}">
+      API 토큰(세분화)
+    </a>
+  </li>
+</ul>
+</body>
+</html>

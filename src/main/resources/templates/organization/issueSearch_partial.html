@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="issueSearch" pjax-container class="row-fluid issue-list-wrap">
+    <div class="left-menu span2 span-hard-wrap">
+        <div class="inner advanced">
+            <div th:replace="~{organization/issueList_quicksearch :: quicksearch(${org}, ${state}, ${authorId}, ${assigneeId}, ${mentionId}, ${selectedProjectNames})}"></div>
+
+            <form id="search" name="search" th:action="@{/org/{orgName}/issues(orgName=${org.name})}" method="get">
+                <select id="projects" name="projectNames[]" multiple th:data-placeholder="#{organization.choose.projects}" data-toggle="select2" data-container-css-class="fullsize">
+                    <option th:each="project : ${visibleProjects}" th:with="isSelected=${selectedProjectNames.contains(project.name)}" th:value="${project.name}" th:selected="${isSelected}" th:data-avatar-url="@{/projects/{id}/logo(id=${project.id})}" th:text="${project.name}">project</option>
+                </select>
+                <hr>
+
+                <input type="hidden" name="orderBy" th:value="${orderBy}">
+                <input type="hidden" name="orderDir" th:value="${orderDir}">
+                <input type="hidden" name="state" th:value="${currentState}">
+                <input type="hidden" name="authorId" th:value="${authorId}" data-search="authorId">
+                <input type="hidden" name="assigneeId" th:value="${assigneeId}" data-search="assigneeId">
+                <input type="hidden" name="mentionId" th:value="${mentionId}" data-search="mentionId">
+
+                <div class="search">
+                    <div class="search-bar">
+                        <input name="filter" class="textbox full" type="text" th:value="${filter}">
+                        <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="span10 span-hard-wrap" id="span10">
+        <ul class="nav nav-tabs nm">
+            <li th:class="${currentState == 'open'} ? 'active' : ''">
+                <a href="#" state="open">
+                    <span th:text="#{issue.state.open}">Open</span>
+                    <span class="num-badge" th:text="${openCount}">0</span>
+                </a>
+            </li>
+            <li th:class="${currentState == 'closed'} ? 'active' : ''">
+                <a href="#" state="closed">
+                    <span th:text="#{issue.state.closed}">Closed</span>
+                    <span class="num-badge" th:text="${closedCount}">0</span>
+                </a>
+            </li>
+            <li>
+                <div class="two-column-icon mr10 hide-in-mobile" id="two-column-mode-checkbox" th:title="#{common.two.column.mode}" th:data-content="#{common.two.column.mode.desc}">
+                    <label class="checkbox">
+                        <div class="two-column-icon-border">
+                            <input id="two-column-mode" type="checkbox"><span class="two-column-mode-text" th:text="#{common.two.column.view}">2단 보기</span>
+                        </div>
+                    </label>
+                </div>
+            </li>
+        </ul>
+        <th:block th:if="${!currentPage.content.isEmpty()}">
+            <div class="filter-wrap small-heights">
+                <div class="filters pull-right" th:if="${currentPage.content.size() > 1}">
+                    <a th:href="@{/org/{orgName}/issues(orgName=${org.name}, orderBy='dueDate', orderDir=${orderBy == 'dueDate' && orderDir == 'desc' ? 'asc' : 'desc'})}" th:class="${orderBy == 'dueDate'} ? 'filter active' : 'filter'">
+                        <i class="ico btn-gray-arrow" th:classappend="${orderBy == 'dueDate' && orderDir == 'desc'} ? 'down'"></i><span th:text="#{common.order.dueDate}">마감일순</span>
+                    </a>
+                    <a th:href="@{/org/{orgName}/issues(orgName=${org.name}, orderBy='updatedDate', orderDir=${orderBy == 'updatedDate' && orderDir == 'desc' ? 'asc' : 'desc'})}" th:class="${orderBy == 'updatedDate'} ? 'filter active' : 'filter'">
+                        <i class="ico btn-gray-arrow" th:classappend="${orderBy == 'updatedDate' && orderDir == 'desc'} ? 'down'"></i><span th:text="#{common.order.updatedDate}">최근 업데이트순</span>
+                    </a>
+                    <a th:href="@{/org/{orgName}/issues(orgName=${org.name}, orderBy='createdDate', orderDir=${orderBy == 'createdDate' && orderDir == 'desc' ? 'asc' : 'desc'})}" th:class="${orderBy == 'createdDate'} ? 'filter active' : 'filter'">
+                        <i class="ico btn-gray-arrow" th:classappend="${orderBy == 'createdDate' && orderDir == 'desc'} ? 'down'"></i><span th:text="#{common.order.date}">등록일순</span>
+                    </a>
+                    <a th:href="@{/org/{orgName}/issues(orgName=${org.name}, orderBy='numOfComments', orderDir=${orderBy == 'numOfComments' && orderDir == 'desc' ? 'asc' : 'desc'})}" th:class="${orderBy == 'numOfComments'} ? 'filter active' : 'filter'">
+                        <i class="ico btn-gray-arrow" th:classappend="${orderBy == 'numOfComments' && orderDir == 'desc'} ? 'down'"></i><span th:text="#{common.order.comments}">댓글순</span>
+                    </a>
+                </div>
+            </div>
+
+            <div th:replace="~{organization/issueList_partial :: issueList(${currentPage.content})}"></div>
+
+            <div id="pagination" th:data-total="${currentPage.totalPages}"><!-- pagination.js가 채움 --></div>
+        </th:block>
+        <div class="error-wrap" th:if="${currentPage.content.isEmpty()}">
+            <i class="ico ico-err1"></i>
+            <p th:text="#{issue.is.empty}">이슈가 없습니다.</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

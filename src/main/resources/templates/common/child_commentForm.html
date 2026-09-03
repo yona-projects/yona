@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<!--
+ legacy common/child_commentForm.scala.html 대응 (#29, 이번 그룹11 세션에서 실제 착수). 대댓글
+ 한 줄 작성 폼. 백엔드 CommentController가 이미 parentCommentId를 받으므로(P1-112) REST POST로
+ 그대로 연결한다.
+-->
+<th:block th:fragment="childCommentForm(parentCommentId, apiBase, currentUser)">
+    <form th:if="${currentUser != null}" th:data-api-base="${apiBase}" th:data-parent-comment-id="${parentCommentId}" class="child-comment-form">
+        <input class="parentCommentId" type="hidden" th:value="${parentCommentId}"/>
+        <div class="oneline-comment-box">
+            <textarea class="editorSeries" name="contents" rows="1" th:placeholder="#{comment.oneline.comment.placeholder} + ' (' + ${@templateHelper.isMac() ? '⌘' : 'CTRL'} + ' + ENTER)'"></textarea>
+            <button type="submit" class="ybtn ybtn-success">OK</button>
+        </div>
+    </form>
+    <div th:unless="${currentUser != null}" class="write-comment-box mt20" th:title="#{error.auth.unauthorized.comment}" data-login="required">
+        <div class="write-comment-wrap">
+            <div class="textarea-box">
+                <textarea class="editorSeries comment disabled" disabled="disabled" style="cursor:text;"></textarea>
+            </div>
+            <div class="right-txt mt10">
+                <span class="ybtn ybtn-disabled" th:text="#{button.comment.new}">댓글 등록</span>
+            </div>
+        </div>
+    </div>
+</th:block>
+</body>
+</html>

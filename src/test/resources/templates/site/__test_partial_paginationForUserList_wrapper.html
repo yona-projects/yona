@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--
+  SiteAdminTemplateEquivalenceSpec 전용 테스트 픽스처. __test_partial_pagination_wrapper.html과 동일한 이유로
+  site/partial_paginationForUserList.html의 파라미터화된 프래그먼트를 th:replace ~{...}로 감싸 테스트한다.
+  프로덕션 코드에서는 사용하지 않는다.
+-->
+<body>
+<div th:replace="~{site/partial_paginationForUserList :: pagination(${p}, ${window}, ${divId})}"></div>
+</body>
+</html>

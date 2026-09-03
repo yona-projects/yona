@@ -1,0 +1,388 @@
+package com.github.yonaprojects.yona.web
+
+import com.github.yonaprojects.yona.config.security.AccessControl
+import com.github.yonaprojects.yona.domain.enumeration.Operation
+import com.github.yonaprojects.yona.domain.issue.IssueLabelRepository
+import com.github.yonaprojects.yona.domain.project.Project
+import com.github.yonaprojects.yona.domain.project.ProjectRepository
+import com.github.yonaprojects.yona.domain.project.ProjectScope
+import com.github.yonaprojects.yona.domain.project.ProjectService
+import com.github.yonaprojects.yona.domain.project.ProjectUserRepository
+import com.github.yonaprojects.yona.domain.project.TitleHeadService
+import com.github.yonaprojects.yona.domain.project.UpdateProjectParam
+import com.github.yonaprojects.yona.domain.role.RoleType
+import com.github.yonaprojects.yona.domain.user.User
+import com.github.yonaprojects.yona.domain.user.UserRepository
+import com.github.yonaprojects.yona.domain.vcs.PushedBranchRepository
+import java.time.Duration
+import java.time.Instant
+import org.springframework.data.domain.PageRequest
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.security.core.Authentication
+import org.springframework.web.bind.annotation.*
+
+@RestController
+class ProjectController(
+    private val projectService: ProjectService,
+    private val projectRepository: ProjectRepository,
+    private val projectUserRepository: ProjectUserRepository,
+    private val userRepository: UserRepository,
+    private val pushedBranchRepository: PushedBranchRepository,
+    private val accessControl: AccessControl,
+    private val titleHeadService: TitleHeadService,
+    private val issueLabelRepository: IssueLabelRepository
+) {
+
+    private fun getLoginUser(authentication: Authentication?): User? {
+        if (authentication == null) return null
+        return userRepository.findByLoginId(authentication.name).orElse(null)
+    }
+
+    private fun isProjectManager(projectId: Long, userId: Long): Boolean {
+        return projectUserRepository.findByProjectIdAndUserId(projectId, userId)
+            .map { it.role.id == RoleType.MANAGER.roleType }
+            .orElse(false)
+    }
+
+    private fun isProjectMember(projectId: Long, userId: Long): Boolean {
+        return projectUserRepository.existsByProjectIdAndUserId(projectId, userId)
+    }
+
+    private fun checkReadPermission(project: Project, user: User?): Boolean {
+        return accessControl.isAllowed(user, project, Operation.READ)
+    }
+
+    @GetMapping("/api/projects/search")
+    fun searchProjects(
+        @RequestParam(value = "query", defaultValue = "") query: String,
+        authentication: Authentication?
+    ): ResponseEntity<List<String>> {
+        val user = getLoginUser(authentication) ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        val pageable = PageRequest.of(0, 100)
+        val projectNames = if (user.isSiteManager) {
+            projectRepository.findProjectsForAdmin(query, pageable).content.map { "${it.owner}/${it.name}" }
+        } else {
+            val allowedIds = projectRepository.findAllowedProjectIdsForUser(user.id!!)
+            if (allowedIds.isEmpty()) {
+                val publicIds = projectRepository.findPublicProjectIds()
+                if (publicIds.isEmpty()) {
+                    emptyList()
+                } else {
+                    projectRepository.searchProjects(publicIds, query, pageable).content.map { "${it.owner}/${it.name}" }
+                }
+            } else {
+                projectRepository.searchProjects(allowedIds, query, pageable).content.map { "${it.owner}/${it.name}" }
+            }
+        }
+        return ResponseEntity.ok(projectNames)
+    }
+
+    @PutMapping("/api/projects/{projectId}")
+    fun updateProject(
+        @PathVariable projectId: Long,
+        @RequestBody request: UpdateProjectRequest,
+        authentication: Authentication?
+    ): ResponseEntity<*> {
+        val user = getLoginUser(authentication) ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build<Project>()
+        if (!isProjectManager(projectId, user.id!!)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build<Project>()
+        }
+
+        val updated = try {
+            projectService.updateProject(
+                projectId = projectId,
+                param = UpdateProjectParam(
+                    name = request.name,
+                    overview = request.overview,
+                    projectScope = request.projectScope,
+                    isCodeAccessibleMemberOnly = request.isCodeAccessibleMemberOnly,
+                    isUsingReviewerCount = request.isUsingReviewerCount,
+                    defaultReviewerCount = request.defaultReviewerCount,
+                    defaultBranch = request.defaultBranch,
+                    isCodeEnabled = request.isCodeEnabled,
+                    isIssueEnabled = request.isIssueEnabled,
+                    isPullRequestEnabled = request.isPullRequestEnabled,
+                    isReviewEnabled = request.isReviewEnabled,
+                    isMilestoneEnabled = request.isMilestoneEnabled,
+                    isBoardEnabled = request.isBoardEnabled
+                )
+            )
+        } catch (e: IllegalArgumentException) {
+            return ResponseEntity.badRequest().body(mapOf("error" to e.message))
+        } catch (e: IllegalStateException) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(mapOf("error" to e.message))
+        }
+        // TASK-0424(P3-02 11라운드, 버그8과 동일 근본원인의 별도 발생 지점) — 실서버+실 yona-cli로
+        // `project edit`(PATCH .../settings, ProjectRestApiController.updateSettings()가 이 메서드에
+        // 그대로 위임)을 실측하다가 발견: 여기서도 raw Project 엔티티를 그대로 반환해 fork와 동일한
+        // 순환 직렬화 경로로 User.password/passwordSalt가 응답에 수백 번 반복 노출됐다(실측: curl로
+        // 60KB 응답에서 "password" 값 확인). fork와 동일하게 toRefResponse()로 감싼다.
+        return ResponseEntity.ok(updated.toRefResponse())
+    }
+
+    @DeleteMapping("/api/projects/{projectId}")
+    fun deleteProject(
+        @PathVariable projectId: Long,
+        authentication: Authentication?
+    ): ResponseEntity<Map<String, String>> {
+        val project = projectRepository.findById(projectId).orElse(null)
+            ?: return ResponseEntity.notFound().build()
+
+        val user = getLoginUser(authentication) ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        
+        // 소유자(owner) 본인이거나 MANAGER여야 삭제 가능
+        val isOwner = project.owner == user.loginId
+        if (!isOwner && !isProjectManager(projectId, user.id!!)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
+
+        projectService.deleteProject(projectId)
+        return ResponseEntity.ok(mapOf("status" to "success"))
+    }
+
+    @PostMapping("/api/{owner}/{projectName}/transfer")
+    fun requestTransfer(
+        @PathVariable owner: String,
+        @PathVariable projectName: String,
+        @RequestParam destination: String,
+        authentication: Authentication?
+    ): ResponseEntity<Any> {
+        val user = getLoginUser(authentication) ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
+            ?: return ResponseEntity.notFound().build()
+
+        if (!isProjectManager(project.id!!, user.id!!)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
+
+        return try {
+            val transfer = projectService.requestNewTransfer(project.id!!, user.id!!, destination)
+            ResponseEntity.ok(transfer)
+        } catch (e: IllegalArgumentException) {
+            ResponseEntity.badRequest().body(mapOf("error" to e.message))
+        }
+    }
+
+    @PostMapping("/api/projects/transfer/{transferId}/accept")
+    fun acceptTransfer(
+        @PathVariable transferId: Long,
+        @RequestParam confirmKey: String,
+        authentication: Authentication?
+    ): ResponseEntity<Any> {
+        val user = getLoginUser(authentication) ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+
+        return try {
+            projectService.acceptTransfer(transferId, confirmKey, user.id!!)
+            ResponseEntity.ok(mapOf("status" to "success"))
+        } catch (e: IllegalArgumentException) {
+            ResponseEntity.badRequest().body(mapOf("error" to e.message))
+        }
+    }
+
+    // TASK-0421(P3-02 11라운드, 버그8) — 이 엔드포인트가 forkedProject(JPA Project 엔티티)를
+    // 가공 없이 그대로 반환하면 Project.projectUsers[].user(User.projectUsers와의 양방향 연관)를
+    // 따라가며 Jackson이 순환 직렬화를 시도하다 User.password/passwordSalt 해시값까지 응답
+    // 바이트에 그대로 노출한다(실측: curl로 90KB 응답에서 "password" 키 확인, RestApiResponseDto.kt
+    // 상단 주석에 적힌 이슈/PR 순환직렬화 버그와 동일한 근본원인의 별개 발생 지점).
+    // ProjectRestApiController.fork()가 이 메서드를 그대로 위임 호출하므로, RestApiResponseDto.kt의
+    // Project.toRefResponse()(id/owner/name/overview/vcs/scope만 노출)로 감싸 두 경로 모두 함께
+    // 고친다.
+    @PostMapping("/api/{owner}/{projectName}/fork")
+    fun forkProject(
+        @PathVariable owner: String,
+        @PathVariable projectName: String,
+        authentication: Authentication?
+    ): ResponseEntity<Any> {
+        val user = getLoginUser(authentication) ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
+            ?: return ResponseEntity.notFound().build()
+
+        return try {
+            val forkedProject = projectService.forkProject(project.id!!, user.id!!)
+            ResponseEntity.ok(forkedProject.toRefResponse())
+        } catch (e: IllegalArgumentException) {
+            ResponseEntity.badRequest().body(mapOf("error" to e.message))
+        }
+    }
+
+    // yona ProjectApp.labels() 대응 (P1-13)
+    @GetMapping("/api/{owner}/{projectName}/labels")
+    fun getProjectLabels(
+        @PathVariable owner: String,
+        @PathVariable projectName: String,
+        authentication: Authentication?
+    ): ResponseEntity<Any> {
+        val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
+            ?: return ResponseEntity.notFound().build()
+
+        val user = getLoginUser(authentication)
+        if (!checkReadPermission(project, user)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
+
+        return ResponseEntity.ok(projectService.getProjectLabels(project.id!!))
+    }
+
+    // yona ProjectApp.attachLabel() 대응 (P1-13). yona AccessControl은 PROJECT_LABELS를
+    // 별도 케이스로 다루지 않아 일반 프로젝트 리소스 UPDATE 규칙(user.isMemberOf(project))을 그대로
+    // 따른다 - MANAGER가 아니어도 프로젝트 멤버라면 라벨을 붙이고 뗄 수 있다.
+    // legacy controllers/api/ProjectApi.java newLabel() 경로 별칭은 P2-59 — owner/projectName
+    // 경로변수 구조가 동일해 매핑만 추가한다.
+    @PostMapping(value = ["/api/{owner}/{projectName}/labels", "/-_-api/v1/owners/{owner}/projects/{projectName}/labels"])
+    fun attachLabel(
+        @PathVariable owner: String,
+        @PathVariable projectName: String,
+        @RequestParam(required = false) category: String?,
+        @RequestParam name: String,
+        authentication: Authentication?
+    ): ResponseEntity<Any> {
+        val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
+            ?: return ResponseEntity.notFound().build()
+
+        val user = getLoginUser(authentication) ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        if (!isProjectMember(project.id!!, user.id!!)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
+
+        val result = projectService.attachLabel(project.id!!, category, name)
+        if (!result.isAttached) {
+            // 이미 붙어있던 라벨: yona는 204 No Content를 반환한다.
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build()
+        }
+
+        return if (result.isCreated) {
+            ResponseEntity.status(HttpStatus.CREATED).body(result.label)
+        } else {
+            ResponseEntity.ok(result.label)
+        }
+    }
+
+    // yona ProjectApp.detachLabel() 대응 (P1-13)
+    @DeleteMapping("/api/{owner}/{projectName}/labels/{labelId}")
+    fun detachLabel(
+        @PathVariable owner: String,
+        @PathVariable projectName: String,
+        @PathVariable labelId: Long,
+        authentication: Authentication?
+    ): ResponseEntity<Any> {
+        val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
+            ?: return ResponseEntity.notFound().build()
+
+        val user = getLoginUser(authentication) ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        if (!isProjectMember(project.id!!, user.id!!)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
+
+        val detached = projectService.detachLabel(project.id!!, labelId)
+        if (!detached) {
+            return ResponseEntity.notFound().build()
+        }
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build()
+    }
+
+    // yona ProjectApi.titleHeads()/getherTitleHeads()/getherProjectLabels()/getTitleHeadNode()/
+    // getIssueLabelNode() 대응 (P1-103). 이슈/게시글 제목 자동완성에 쓰는 "이전에 쓰인 대괄호 머리말
+    // 사용 빈도"와 "프로젝트 이슈 라벨 목록"을 하나의 배열로 합쳐 반환한다(머리말 먼저, 라벨 나중 —
+    // legacy와 동일한 순서).
+    @GetMapping("/api/{owner}/{projectName}/titleHeads")
+    fun titleHeads(
+        @PathVariable owner: String,
+        @PathVariable projectName: String,
+        @RequestParam(required = false, defaultValue = "") query: String,
+        authentication: Authentication?
+    ): ResponseEntity<Any> {
+        val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
+            ?: return ResponseEntity.notFound().build()
+
+        val user = getLoginUser(authentication)
+        if (!checkReadPermission(project, user)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
+
+        val titleHeadNodes = titleHeadService.search(project, query).map {
+            mapOf(
+                "name" to it.headKeyword,
+                "frequency" to it.frequency,
+                "category" to "",
+                "searchText" to it.headKeyword
+            )
+        }
+        val labelNodes = issueLabelRepository.findByProject(project).map { label ->
+            mapOf(
+                "name" to label.name,
+                "frequency" to 0,
+                "category" to label.category.name,
+                "categoryId" to label.category.id,
+                "id" to label.id,
+                "labelColor" to label.color,
+                "isExclusive" to label.category.isExclusive,
+                "searchText" to "${label.name}/${label.category.name}"
+            )
+        }
+
+        return ResponseEntity.ok(mapOf("result" to (titleHeadNodes + labelNodes)))
+    }
+
+    // yona ProjectApp.getRecentlyPushedBranches()/partial_recently_pushed_branches.scala.html 대응 (P1-15/24).
+    // yona 라우트 표에는 없지만(뷰에 임베드된 데이터), 삭제 API(P1-15) 단독으로는 사용할 방법이 없어
+    // 같은 데이터를 노출하는 조회용 엔드포인트를 함께 추가했다.
+    @GetMapping("/api/{owner}/{projectName}/pushedBranches")
+    fun getPushedBranches(
+        @PathVariable owner: String,
+        @PathVariable projectName: String,
+        authentication: Authentication?
+    ): ResponseEntity<Any> {
+        val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
+            ?: return ResponseEntity.notFound().build()
+
+        val user = getLoginUser(authentication)
+        if (!checkReadPermission(project, user)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
+
+        // yona Project.getRecentlyPushedBranches(): 최근 1시간 이내에 push된 것만 노출한다.
+        val cutoff = Instant.now().minus(Duration.ofHours(1))
+        val branches = pushedBranchRepository.findByProjectAndPushedDateAfter(project, cutoff)
+        return ResponseEntity.ok(branches)
+    }
+
+    // yona ProjectApp.deletePushedBranch() 대응 (P1-15). yona처럼 id가 이 프로젝트 소속인지는
+    // 별도로 검증하지 않고(원본 그대로), 존재하면 삭제·존재하지 않아도 200 OK를 반환한다.
+    @DeleteMapping("/api/{owner}/{projectName}/pushedBranches/{id}")
+    fun deletePushedBranch(
+        @PathVariable owner: String,
+        @PathVariable projectName: String,
+        @PathVariable id: Long,
+        authentication: Authentication?
+    ): ResponseEntity<Any> {
+        val project = projectRepository.findByOwnerAndNameOrPreviousPlace(owner, projectName).orElse(null)
+            ?: return ResponseEntity.notFound().build()
+
+        val user = getLoginUser(authentication) ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        if (!isProjectMember(project.id!!, user.id!!)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
+
+        pushedBranchRepository.findById(id).ifPresent { pushedBranchRepository.delete(it) }
+        return ResponseEntity.ok().build()
+    }
+
+    data class UpdateProjectRequest(
+        // yona ProjectApp.settingProject()의 개명(rename) 필드 대응 (P1-144). UI는 나중에 붙일
+        // 예정이라 API 필드만 우선 이식 — 값이 없거나 현재 이름과 같으면 서비스 계층에서 무시된다.
+        val name: String? = null,
+        val overview: String,
+        val projectScope: ProjectScope,
+        val isCodeAccessibleMemberOnly: Boolean = false,
+        val isUsingReviewerCount: Boolean = false,
+        val defaultReviewerCount: Int = 1,
+        val defaultBranch: String? = null,
+        val isCodeEnabled: Boolean = true,
+        val isIssueEnabled: Boolean = true,
+        val isPullRequestEnabled: Boolean = true,
+        val isReviewEnabled: Boolean = true,
+        val isMilestoneEnabled: Boolean = true,
+        val isBoardEnabled: Boolean = true
+    )
+}

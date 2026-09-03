@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(#{title.organization.list})}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+  <div th:replace="~{site/layout :: gnb}"></div>
+
+  <div class="site-breadcrumb-outer">
+    <div class="site-breadcrumb-inner">
+      <div class="title_area">
+        <ul class="nav nav-tabs">
+          <li>
+            <a th:href="@{/projects}">
+              <span th:text="#{project.public}">공개</span>
+              <span th:text="#{title.projectList}">프로젝트 목록</span>
+            </a>
+          </li>
+          <li class="active">
+            <a th:href="@{/orgs}">
+              <span th:text="#{title.organization.list}">그룹 목록</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-wrap-outer">
+    <div class="project-page-wrap">
+      <div class="search-wrap">
+        <div id="search" class="pull-left">
+          <form th:action="@{/orgs}" method="GET">
+            <div class="search-bar">
+              <input name="filter" class="textbox" type="text" th:placeholder="#{site.organization.filter}" th:value="${filter}" autofocus>
+              <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- 그룹(조직)이 없는 경우 -->
+      <div class="error-wrap" th:if="${orgs.totalElements == 0}">
+        <i class="ico ico-err1"></i>
+        <p th:text="#{organization.is.empty}">생성된 그룹이 없습니다.</p>
+      </div>
+
+      <!-- 그룹 목록 출력 -->
+      <ul class="all-projects" th:if="${orgs.totalElements > 0}">
+        <li class="project" th:each="org : ${orgs.content}">
+          <div class="info-wrap">
+            <div class="owner-avatar-wrap">
+              <a th:href="@{/organizations/{orgName}(orgName=${org.name})}">
+                <img th:src="@{/organizations/{orgId}/logo(orgId=${org.id})}" th:alt="${org.name}" />
+              </a>
+            </div>
+            <div style="float:left">
+              <div class="header">
+                <a th:href="@{/organizations/{orgName}(orgName=${org.name})}" class="black" th:text="${org.name}">그룹 이름</a>
+              </div>
+              <div class="desc" th:text="${org.descr}">
+                그룹 설명
+              </div>
+              <p class="name-tag">
+                created <strong th:text="${org.created != null ? #temporals.format(org.created, 'yyyy-MM-dd HH:mm', 'Asia/Seoul') : ''}">생성 시각</strong>
+              </p>
+            </div>
+          </div>
+        </li>
+      </ul>
+
+      <!-- 페이지네이션 영역 -->
+      <div id="pagination" th:if="${orgs.totalPages > 1}"></div>
+    </div>
+  </div>
+
+  <footer th:replace="~{site/layout :: footer}"></footer>
+  <div th:replace="~{site/layout :: scripts}"></div>
+</div>
+
+<script type="text/javascript" th:inline="javascript">
+$(document).ready(function(){
+    /*[<![CDATA[*/
+    var totalPages = /*[[${orgs.totalPages}]]*/ 1;
+    /*]]>*/
+    if (typeof yobi !== 'undefined' && yobi.Pagination) {
+        yobi.Pagination.update($("#pagination"), totalPages);
+    }
+});
+</script>
+</body>
+</html>

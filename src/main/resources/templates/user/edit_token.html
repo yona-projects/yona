@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head th:replace="~{site/layout :: head(#{userinfo.accountSetting})}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div class="site-breadcrumb-outer">
+        <div class="site-breadcrumb-inner">
+            <h3 th:text="#{userinfo.token}">사용자 토큰</h3>
+        </div>
+    </div>
+    <div class="page-wrap-outer">
+        <div class="page-wrap">
+            <div th:replace="~{user/partial_edit_tabmenu :: tabmenu('token')}"></div>
+            <div class="token-generate">
+                <form id="frmBasic" method="post" th:action="@{/user/editform/token_reset}" class="pull-left" style="width:100%">
+                    <div th:text="#{userinfo.token}">사용자 토큰</div>
+                    <div class="mt10">
+                        <input onClick="this.setSelectionRange(0, this.value.length)" size="45" style="width: 90%" type="text" name="name" class="text" th:value="${user.token}" readonly>
+                    </div>
+                    <div class="mt10">
+                        <button type="submit" class="ybtn ybtn-success" th:text="#{userinfo.recreateToken}">토큰 재생성</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <footer th:replace="~{site/layout :: footer}"></footer>
+    <div th:replace="~{site/layout :: scripts}"></div>
+</div>
+<script type="text/javascript">
+    $(function(){
+        $yobi.loadModule("user.Setting");
+    });
+</script>
+</body>
+</html>

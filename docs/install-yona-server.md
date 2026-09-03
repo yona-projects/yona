@@ -1,73 +1,62 @@
-Yona Install
+yona Install
 ===
+
+Ported from legacy Yona's `docs/install-yona-server.md`, adapted for yona. Legacy shipped
+pre-built zip distributions you unpacked and ran; yona is built from source with Gradle instead.
+
 ```
 Prerequisite
 ---
-Java 8 (Java 9 isn't supported yet)
+JDK 21 (not Java 8 — legacy required Java 8, yona targets Java 21)
 ```
 
-Download the latest version of Yona from https://github.com/yona-projects/yona/releases and unzip it.
-Also, consider to use wget like followings.
+Clone or download this repository, then build and run it:
 
-ex)
-
-    wget https://github.com/yona-projects/yona/releases/download/v1.3.0/yona-v1.3.0-bin.zip
-    unzip yona.zip
-
-### application.conf generating and setting
-
-Go to the unpacked location and run `bin/yona`. 
-
-**Note**: You should run it from yona installation folder as below. Windows users should also run `bin/yona.bat` instead of `bin/yona`.
-
-```
-cd yona
-bin/yona
+```bash
+./gradlew bootJar
+java -jar build/libs/yona-0.0.1-SNAPSHOT.jar --spring.profiles.active=mariadb
 ```
 
-Execution will terminate with an error that the password is wrong. It's noraml. Don't worry. :)
-You should now see the conf directory that you were not able to see when you extracted it.
+### DB configuration
 
-#### DB configuration
+You need to point yona at the MariaDB you installed earlier (or another supported DB — see
+[README](../README.md#choosing-a-database)).
 
-You need to modify the DB connection settings to connect the MariaDB you installed earlier.
+The default connection settings live in `src/main/resources/application.yml`, under the
+`mariadb` profile block:
 
-In the application.conf file under the conf folder, change the password in the following section to the db password set above
+```yaml
+spring:
+  datasource:
+    url: jdbc:mariadb://localhost:23306/yona?...
+    username: yona
+    password: yona_password
 ```
-...
-db.default.driver=org.mariadb.jdbc.Driver
-db.default.url="jdbc:mariadb://127.0.0.1:3306/yona?useServerPrepStmts=true"
-db.default.user=yona
-db.default.password="yonadan"
-...
+
+Either edit that file directly, or override on the command line without touching it:
+
+```bash
+java -jar build/libs/yona-0.0.1-SNAPSHOT.jar \
+  --spring.profiles.active=mariadb \
+  --spring.datasource.url=jdbc:mariadb://127.0.0.1:3306/yona \
+  --spring.datasource.username=yona \
+  --spring.datasource.password=your_real_password
 ```
 
-`yonadan` is just example, recommed change it to your own password.
-
-
-Run for first page
+Run for the first page
 ----
 
-- Create a folder to hold various data including conf folder.
-```
-ex)
+Unlike legacy (which needed a separate `YONA_DATA` directory holding `conf`/`logs`/`uploads`/`repo`),
+yona doesn't require a single data directory upfront — physical storage (git/svn repos, LFS
+objects, uploads) is controlled by four independent settings
+(`yona.git.base-dir`, `yona.svn.base-dir`, `yona.lfs.base-dir`, `yona.upload.base-dir`), each with
+its own default. See [README's "Deployment configuration"](../README.md#deployment-configuration-especially-on-windows)
+for how to change them.
 
-/yona-data
-```
-- copy conf folder to `/yona-data` created above.
-```
-Ex) Assuming your current location is /Users/doortts/Download/yona-v1.3.0-bin
+Just run:
 
-cp -r conf /yona-data
-```
-
-- Specify the YONA_DATA environment variable and run Yona
-```
-Ex) Assuming your current location is /Users/doortts/Download/yona-v1.3.0-bin
-
-YONA_DATA=/yona-data;export YONA_DATA
-bin/yona
+```bash
+java -jar build/libs/yona-0.0.1-SNAPSHOT.jar --spring.profiles.active=mariadb
 ```
 
-Then, please refer to [yona-run-and-upgrade.md](yona-run-and-upgrade.md) for details.
-
+Then continue with [`yona-run-and-restart.md`](yona-run-and-restart.md) for details.

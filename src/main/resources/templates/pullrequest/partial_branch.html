@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<!-- legacy git/partial_branch.scala.html 대응 (그룹11 #174). from/to 브랜치 매핑 표시. -->
+<div th:fragment="branch(pull)" class="pullRequest-branchInfo">
+    <i class="yobicon-branch ml0"></i>
+
+    <code class="from" data-toggle="tooltip" th:data-original-title="#{pullRequest.from}">
+        <a th:href="@{/user/{loginId}(loginId=${pull.fromProject.owner})}" th:text="${pull.fromProject.owner}">owner</a><span>/</span><!--
+     --><a th:href="@{/{owner}/{name}(owner=${pull.fromProject.owner}, name=${pull.fromProject.name})}" th:text="${pull.fromProject.name}">name</a>:
+        <a th:href="@{/{owner}/{projectName}/code/{branch}(owner=${pull.fromProject.owner}, projectName=${pull.fromProject.name}, branch=${pull.fromBranch})}" class="branchName" th:text="${pull.fromBranch}">from-branch</a>
+    </code>
+
+    <i class="yobicon-right-2 ml10"></i>
+
+    <code class="to" data-toggle="tooltip" th:data-original-title="#{pullRequest.to}">
+        <a th:href="@{/user/{loginId}(loginId=${pull.toProject.owner})}" th:text="${pull.toProject.owner}">owner</a><span>/</span><!--
+     --><a th:href="@{/{owner}/{name}(owner=${pull.toProject.owner}, name=${pull.toProject.name})}" th:text="${pull.toProject.name}">name</a>:
+        <a th:href="@{/{owner}/{projectName}/code/{branch}(owner=${pull.toProject.owner}, projectName=${pull.toProject.name}, branch=${pull.toBranch})}" class="branchName" th:text="${pull.toBranch}">to-branch</a>
+    </code>
+</div>
+</body>
+</html>

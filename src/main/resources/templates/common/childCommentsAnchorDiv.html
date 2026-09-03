@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<!--
+ legacy common/childCommentsAnchorDiv.scala.html 대응 (#31). 대댓글 각각의 앵커 div(#comment-N).
+ legacy는 이 앵커 위치에 JS가 새 대댓글을 끼워넣지만, yona는 대댓글 작성 후 페이지를 새로고침하는
+ 단순한 방식(REST 아키텍처 전환에 따른 필요한 단순화, 문서화됨)을 쓰므로 실질적인 삽입 로직은
+ 없지만, DOM 앵커 자체는 legacy와 동일하게 유지해 CSS/앵커 링크(#comment-N) 호환성을 지킨다.
+-->
+<th:block th:fragment="anchorDiv(children)">
+    <div th:each="child : ${children}" th:id="'comment-' + ${child.id}"></div>
+</th:block>
+</body>
+</html>

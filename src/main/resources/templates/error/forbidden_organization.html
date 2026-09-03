@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<!--
+yona error/forbidden_organization.scala.html 대응 (P-템플릿 #49). 조직(organization)은 이미
+찾았지만 그 조직 내 리소스에 접근 권한이 없을 때 쓰는 컨텍스트 인지형 403 화면 — 조직
+헤더/메뉴가 그대로 붙는다. project 버전인 error/forbidden.html(#47)과 구조는 같지만 조직
+header/menu 프래그먼트를 쓰고, 로그인 유도 버튼은 legacy 원본에 없으므로 넣지 않는다.
+
+모델: org(Organization, 필수), messageKey(String?, 기본값 "error.forbidden").
+-->
+<head th:replace="~{site/layout :: head(#{__${messageKey != null ? messageKey : 'error.forbidden'}__})}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+  <div th:replace="~{site/layout :: gnb}"></div>
+  <div th:replace="~{organization/header :: header(${org})}"></div>
+  <!-- yona organization/menu.scala.html은 request.path 문자열 포함 여부로 active 메뉴를 계산했다
+       (명시적 activeMenu 인자가 없음) — yona 포팅판 organization/menu 프래그먼트는 명시적
+       activeMenu를 받으므로 같은 방식(현재 경로 기반)으로 이식했다. th:with와 th:replace를 같은
+       요소에 함께 쓰면 프래그먼트 인자 평가 시점에 변수가 안 보이는 문제가 있어(이 세션에서
+       반복 확인된 함정) 부모 th:block에 th:with를 두고 자식에서 th:replace로 분리한다. -->
+  <th:block th:with="activeMenu=${currentRequestPath != null and #strings.contains(currentRequestPath, '/issues')} ? 'issue' : (${currentRequestPath != null and #strings.contains(currentRequestPath, '/boards')} ? 'board' : (${currentRequestPath != null and #strings.contains(currentRequestPath, '/pullrequests')} ? 'pullRequest' : 'home'))">
+    <div th:replace="~{organization/menu :: menu(${org}, ${activeMenu})}"></div>
+  </th:block>
+  <div class="page-wrap-outer">
+    <div class="project-page-wrap">
+      <div class="error-wrap">
+        <i class="ico ico-err2"></i>
+        <p th:text="#{__${messageKey != null ? messageKey : 'error.forbidden'}__}">권한이 없습니다.</p>
+      </div>
+    </div>
+  </div>
+</div>
+<footer th:replace="~{site/layout :: footer}"></footer>
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+</body>
+</html>

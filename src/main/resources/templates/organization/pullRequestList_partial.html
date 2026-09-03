@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<ul th:fragment="pullRequestList(currentPage)" class="post-list-wrap">
+    <th:block th:if="${currentPage.content.size() > 0}">
+        <li th:each="pr : ${currentPage.content}" class="post-item title" th:href="@{/{owner}/{name}/pull/{number}(owner=${pr.toProject.owner}, name=${pr.toProject.name}, number=${pr.number})}"
+            th:with="stateKey=${#strings.toLowerCase(pr.state.name())}, stateClass=${pr.isConflict ? 'state conflict pull-right' : 'state ' + stateKey + ' pull-right'}">
+            <div class="span10 span-hard-wrap">
+                <a th:href="@{/user/{loginId}(loginId=${pr.contributor.loginId})}" class="avatar-wrap mlarge" data-toggle="tooltip" data-placement="top" th:title="${pr.contributor.loginId}">
+                    <img th:src="${pr.contributor.avatarUrl}" width="32" height="32" th:alt="${pr.contributor.name}"/>
+                </a>
+                <div class="title-wrap">
+                    <span class="post-id" th:text="${pr.number}">1</span>
+                    <span class="bracket-word" th:text="${@templateHelper.showHeaderWordsInBracketsIfExist(pr.title)}"></span>
+                    <a th:href="@{/{owner}/{name}/pull/{number}(owner=${pr.toProject.owner}, name=${pr.toProject.name}, number=${pr.number})}" th:class="${pr.isConflict} ? 'title conflict' : 'title'" th:text="${@templateHelper.removeHeaderWords(pr.title)}">title</a>
+                </div>
+                <div class="infos">
+                    <a th:if="${pr.contributor.name != null and !pr.contributor.name.isEmpty()}" th:href="@{/user/{loginId}(loginId=${pr.contributor.loginId})}" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="top" th:title="${pr.contributor.loginId}" th:text="${pr.contributor.name}">author</a>
+                    <span th:unless="${pr.contributor.name != null and !pr.contributor.name.isEmpty()}" class="infos-item" th:text="#{issue.noAuthor}">no author</span>
+
+                    <span class="infos-item" th:title="${@templateHelper.getDateString(pr.created)}" th:text="${@templateHelper.agoOrDateString(pr.created)}">date</span>
+
+                    <a th:href="@{/{owner}/{name}(owner=${pr.toProject.owner}, name=${pr.toProject.name})}" class="infos-link-item group-project-name" th:text="${pr.toProject.name}">project</a>
+
+                    <th:block th:with="threads=${@templateHelper.getCommentThreads(pr)}, countClosed=${@templateHelper.countCommentThreadsByState(pr, T(com.github.yonaprojects.yona.domain.pullrequest.CommentThread.ThreadState).CLOSED)}">
+                        <div th:if="${!threads.isEmpty()}" class="infos-item" style="margin-right:20px;">
+                            <i class="infos-icon yobicon-post2 vmiddle"></i>
+                            <div class="upload-progress">
+                                <div class="bar orange" th:style="'width: ' + ${@templateHelper.getReviewProgressPercent(pr)} + '%;'"></div>
+                            </div>
+                            <a th:href="@{/{owner}/{name}/pullRequest/{number}/changes(owner=${pr.toProject.owner}, name=${pr.toProject.name}, number=${pr.number})}" data-toggle="tooltip" th:title="${#messages.msg('pullRequest.review.closed')} + ' / ' + ${#messages.msg('pullRequest.review.total')}">
+                                <span th:text="${countClosed}">0</span>
+                                <span class="gray-txt">/</span>
+                                <span class="size total" th:text="${threads.size()}">0</span>
+                            </a>
+                        </div>
+                    </th:block>
+                </div>
+            </div>
+            <div class="span2 hide-in-mobile">
+                <div class="mt5 pull-right hide-in-mobile">
+                    <a th:if="${pr.receiver != null}" th:href="@{/user/{loginId}(loginId=${pr.receiver.loginId})}" class="avatar-wrap assinee" data-toggle="tooltip" data-placement="top" th:title="${pr.receiver.name}">
+                        <img th:src="${pr.receiver.avatarUrl}" width="32" height="32" th:alt="${pr.receiver.name}">
+                    </a>
+                    <div th:unless="${pr.receiver != null}" class="empty-avatar-wrap">&nbsp;</div>
+                </div>
+                <div th:class="${stateClass}"
+                     th:text="${pr.isConflict} ? #{pullRequest.state.conflict} : #{'pullRequest.state.' + ${stateKey}}">state</div>
+            </div>
+        </li>
+        <div id="pagination"></div>
+    </th:block>
+    <div th:if="${currentPage.content.size() == 0}" class="error-wrap">
+        <i class="ico ico-err1"></i>
+        <p th:text="#{pullRequest.is.empty}">등록된 코드 주고 받기가 없습니다.</p>
+    </div>
+</ul>
+</body>
+</html>

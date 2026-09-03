@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<th:block th:fragment="list(project, labelsByCategory)">
+  <div th:if="${labelsByCategory.isEmpty()}" class="error-wrap">
+    <i class="ico ico-err1"></i>
+    <p th:text="#{label.list.empty}">등록된 라벨이 없습니다.</p>
+  </div>
+  <th:block th:unless="${labelsByCategory.isEmpty()}">
+    <div class="row-fluid list-head">
+      <div class="span3 category">
+        <strong th:text="#{label.category}">카테고리</strong>
+      </div>
+      <div class="span9 name">
+        <strong th:text="#{label.name}">이름</strong>
+      </div>
+    </div>
+
+    <div class="row-fluid list-item category-wrap" th:each="entry : ${labelsByCategory}"
+         th:data-category="${entry.key.id}" th:data-category-name="${entry.key.name}">
+      <div class="span3">
+        <h5 class="right-txt mr20">
+          <span class="category-name" th:text="${entry.key.name}">카테고리</span>
+
+          <p class="mt5">
+            <i th:if="${entry.key.isExclusive}" class="category-exclusive yobicon-tag single"
+               data-toggle="tooltip" data-html="true"
+               th:title="|#{label.category.option}&lt;br&gt;#{label.category.option.single}|"></i>
+            <i th:unless="${entry.key.isExclusive}" class="category-exclusive yobicon-tags multiple"
+               data-toggle="tooltip" data-html="true"
+               th:title="|#{label.category.option}&lt;br&gt;#{label.category.option.multiple}|"></i>
+            <button type="button" class="ybtn ybtn-mini"
+                    th:data-project-id="${project.id}"
+                    th:data-category-id="${entry.key.id}"
+                    th:data-category-name="${entry.key.name}"
+                    th:data-category-is-exclusive="${entry.key.isExclusive}"
+                    th:data-category-update-uri="@{/{owner}/{name}/issue/label/category/{id}(owner=${project.owner}, name=${project.name}, id=${entry.key.id})}"
+                    th:text="#{label.category.edit}">카테고리 수정</button>
+          </p>
+        </h5>
+      </div>
+      <div class="span9">
+        <table class="table nm">
+          <tr th:each="label : ${entry.value}" th:data-label-id="${label.id}">
+            <td>
+              <span class="issue-label active" th:data-label-id="${label.id}" th:data-label-name="${label.name}" th:text="${label.name}">라벨</span>
+            </td>
+            <td class="actions">
+              <button type="button" class="ybtn ybtn-danger ybtn-small"
+                      th:data-category-name="${entry.key.name}"
+                      th:data-label-id="${label.id}"
+                      th:data-delete-uri="@{/{owner}/{name}/issue/label/{id}/delete(owner=${project.owner}, name=${project.name}, id=${label.id})}"
+                      th:text="#{button.delete}">삭제</button>
+              <button type="button" class="ybtn ybtn-small"
+                      th:data-category-id="${entry.key.id}"
+                      th:data-label-name="${label.name}"
+                      th:data-label-color="${label.color}"
+                      th:data-update-uri="@{/{owner}/{name}/issue/label/{id}(owner=${project.owner}, name=${project.name}, id=${label.id})}"
+                      th:text="#{button.edit}">수정</button>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <link rel="stylesheet" type="text/css" th:href="@{/{owner}/{projectName}/issue/labels.css(owner=${project.owner}, projectName=${project.name})}" />
+  </th:block>
+</th:block>
+</body>
+</html>

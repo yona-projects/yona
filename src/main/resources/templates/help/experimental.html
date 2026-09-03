@@ -1,0 +1,16 @@
+<div id="experimentalHelp" class="modal hide fade" tabindex="-1" role="dialog" xmlns:th="http://www.thymeleaf.org">
+    <div class="modal-body">
+        <div>
+            <h4 class="center-txt">
+                <i class="yobicon-flaskfull mr10 vmiddle"></i>
+                <span th:text="#{common.experimental.title}">실험실</span>
+            </h4>
+            <p class="modal-body center-txt" th:utext="#{common.experimental.description}">
+                실험실에 오신 것을 환영합니다!
+            </p>
+        </div>
+        <p class="actrow center-txt">
+            <button type="button" class="ybtn ybtn-info" data-dismiss="modal" th:text="#{button.confirm}">확인</button>
+        </p>
+    </div>
+</div>

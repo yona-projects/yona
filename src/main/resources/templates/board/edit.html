@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(title=${project.name} + ' - 글 수정')}">
+</head>
+<body class="theme-default prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+    <div th:replace="~{project/header :: header(${project})}"></div>
+    <div th:replace="~{project/menu :: menu(${project}, 'board')}"></div>
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
+            <form id="post-form" method="post" enctype="multipart/form-data" class="nm">
+                <div class="content-wrap frm-wrap">
+                    <dl>
+                        <dt>
+                            <label for="title" th:text="#{title}">제목</label>
+                        </dt>
+                        <dd>
+                            <input type="text" id="title" name="title" th:value="${post.title}" class="zen-mode text title" maxlength="250" tabindex="1" autocomplete="off"/>
+                        </dd>
+                        <dd style="position: relative;">
+                            <div th:replace="~{site/layout :: markdownEditor('body', ${post.body}, 'content-body')}"></div>
+                        </dd>
+                    </dl>
+
+                    <!-- 파일 업로더 영역 -->
+                    <div class="upload-wrap content-footer" data-resource-type="BOARD_POST" th:data-resource-id="${post.id}" id="upload">
+                        <input type="hidden" name="temporaryUploadFiles">
+                        <div class="attach-wrap">
+                            <span class="help help-droppable" th:text="#{common.attach.drophere}">Drag &amp; Drop files to attach here or</span>
+                            <div class="btn-wrap">
+                                <div class="nbtn medium white fake-file-wrap">
+                                    <i class="yobicon-upload"></i> <span th:text="#{button.upload}" th:remove="tag">File upload</span>
+                                    <input type="file" class="file" name="filePath" multiple="multiple">
+                                </div>
+                            </div>
+                            <span class="plain" th:text="#{common.attach.clickbutton}">Click upload button</span>
+                            <span class="help help-pastable" style="display: block;" th:text="#{common.attach.pastehere}">Paste the clipboard image</span>
+                        </div>
+                        <ul class="attached-files unstyled"></ul>
+                    </div>
+
+                    <div class="right-txt mt10 mb10">
+                        <label class="checkbox" th:if="${isAllowedToNotice}">
+                            <input type="checkbox" id="notice" name="notice" th:checked="${post.notice}"/>
+                            <span th:text="#{post.notice.label}">공지로 등록</span>
+                        </label>
+
+                        <label class="checkbox" th:if="${canReadmefy}">
+                            <input type="checkbox" id="readme" name="readme" th:checked="${post.readme}"/>
+                            <span th:text="#{post.readmefy}">README로 지정</span>
+                        </label>
+                    </div>
+
+                    <div class="actions">
+                        <span class="send-notification-check" th:if="${currentUser != null && post.authorId == currentUser.id && !post.readme}">
+                            <label class="checkbox inline">
+                                <input type="checkbox" name="sendNotificationMail" id="sendNotificationMail" checked="checked"/>
+                                <strong th:text="#{notification.send.mail}">수정 알림 메일 발송</strong>
+                            </label>
+                        </span>
+                        <button type="submit" class="ybtn ybtn-info" tabindex="3" th:text="#{button.save}">저장</button>
+                        <a href="javascript:history.back();" class="ybtn" tabindex="4" th:text="#{button.cancel}">취소</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+<link rel="stylesheet" type="text/css" media="screen" href="/javascripts/lib/atjs/jquery.atwho.css">
+<script type="text/javascript" src="/javascripts/lib/atjs/jquery.caret.min.js"></script>
+<script type="text/javascript" src="/javascripts/lib/atjs/jquery.atwho.js"></script>
+<script type="text/javascript">
+    $(function(){
+        $yobi.loadModule("board.Write", {
+            "sMode"     : "edit",
+            "elTextarea": 'textarea[data-editor-mode="content-body"]'
+        });
+
+        yobi.Mention({
+            "target": 'textarea[id^=editor-]',
+            "url"   : "/[[${project.owner}]]/[[${project.name}]]/mentionList"
+        });
+
+        $("#post-form").submit(function(e) {
+            e.preventDefault();
+            
+            var projectId = [[${project.id}]];
+            var postId = [[${post.number}]];
+            var owner = [[${project.owner}]];
+            var projectName = [[${project.name}]];
+            
+            var title = $("#title").val();
+            var body = $("#body").val();
+            var notice = $("#notice").is(":checked");
+            var sendNotificationMail = $("#sendNotificationMail").length ? $("#sendNotificationMail").is(":checked") : false;
+            // legacy board/edit.scala.html:59-64 대응 — readme 체크박스가 없으면(권한/VCS 조건
+            // 불충족) legacy도 posting.readme가 항상 false로 바인딩된다(폼에 필드 자체가 없으므로).
+            var readme = $("#readme").length ? $("#readme").is(":checked") : false;
+
+            var requestData = {
+                title: title,
+                body: body,
+                notice: notice,
+                readme: readme,
+                sendNotificationMail: sendNotificationMail
+            };
+            
+            $.ajax({
+                url: '/api/projects/' + projectId + '/posts/' + postId,
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify(requestData),
+                success: function(result) {
+                    alert("글이 성공적으로 수정되었습니다.");
+                    window.location.href = '/' + owner + '/' + projectName + '/post/' + postId;
+                },
+                error: function(xhr, status, error) {
+                    alert("수정 실패: " + xhr.responseText);
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

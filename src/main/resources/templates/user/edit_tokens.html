@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head th:replace="~{site/layout :: head(#{userinfo.accountSetting})}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div class="site-breadcrumb-outer">
+        <div class="site-breadcrumb-inner">
+            <h3 th:text="#{userinfo.tokens}">API 토큰(세분화)</h3>
+        </div>
+    </div>
+    <div class="page-wrap-outer">
+        <div class="page-wrap">
+            <div th:replace="~{user/partial_edit_tabmenu :: tabmenu('tokens')}"></div>
+
+            <!--
+             yona-wiki P3-02 Step6.6 — 레거시 전권 토큰 화면(user/edit_token.html)과는 완전히 별개의
+             화면이다. 저장소 범위 + 권한 그룹별 세분화(fine-grained) 스코프를 지정해 여러 개의
+             토큰을 발급/조회/폐기할 수 있다.
+            -->
+
+            <div th:if="${issuedRawToken != null}" class="alert alert-success mt20">
+                <strong th:text="#{apitoken.issued.title}">토큰이 발급되었습니다</strong>
+                <p th:text="#{apitoken.issued.warning}">이 값은 지금 한 번만 표시됩니다. 안전한 곳에 복사해 두세요 — 다시 조회할 수 없습니다.</p>
+                <div class="mt10">
+                    <input id="issued-token-value" type="text" readonly style="width: 80%;"
+                           th:value="${issuedRawToken}"
+                           onClick="this.setSelectionRange(0, this.value.length)">
+                    <button type="button" class="ybtn ybtn-small" onclick="document.getElementById('issued-token-value').select(); document.execCommand('copy');"
+                            th:text="#{button.copy}">복사</button>
+                </div>
+            </div>
+
+            <div th:if="${tokenIssueError != null}" class="alert alert-error mt20">
+                <span th:text="${tokenIssueError}">발급 오류</span>
+            </div>
+
+            <h4 class="mt20" th:text="#{apitoken.list.title}">발급된 토큰</h4>
+            <table class="table" th:if="${tokens != null and !tokens.isEmpty()}">
+                <thead>
+                <tr>
+                    <th th:text="#{apitoken.field.name}">이름</th>
+                    <th th:text="#{apitoken.field.repoScope}">저장소 범위</th>
+                    <th th:text="#{apitoken.field.permissions}">권한</th>
+                    <th th:text="#{apitoken.field.lastUsedAt}">마지막 사용일</th>
+                    <th th:text="#{apitoken.field.expiresAt}">만료일</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="token : ${tokens}">
+                    <td th:text="${token.name}">토큰 이름</td>
+                    <td>
+                        <span th:if="${token.allRepositories}" th:text="#{apitoken.repoScope.all}">전체 저장소</span>
+                        <span th:unless="${token.allRepositories}" th:text="${token.scopedProjects.size()} + #{apitoken.repoScope.selectedSuffix}">N개 저장소</span>
+                    </td>
+                    <td>
+                        <span th:each="scope : ${token.scopes}" class="label-head mr5" th:text="${#strings.toLowerCase(scope.scopeGroup.name())} + ':' + ${#strings.toLowerCase(scope.permission.name())}">issues:write</span>
+                    </td>
+                    <td th:text="${token.lastUsedAt != null ? token.lastUsedAt : '-'}">-</td>
+                    <td th:text="${token.expiresAt}">2027-01-01</td>
+                    <td>
+                        <form method="post" th:action="@{/user/editform/tokens/{id}/revoke(id=${token.id})}"
+                              th:attr="data-confirm-message=#{apitoken.revoke.confirm}" class="apitoken-revoke-form">
+                            <button type="submit" class="ybtn ybtn-small ybtn-danger" th:text="#{apitoken.revoke}">폐기</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <p th:if="${tokens == null or tokens.isEmpty()}" th:text="#{apitoken.list.empty}">발급된 토큰이 없습니다.</p>
+
+            <h4 class="mt20" th:text="#{apitoken.issue.title}">새 토큰 발급</h4>
+            <form id="frmApiTokenIssue" method="post" th:action="@{/user/editform/tokens}" class="mt10">
+                <div class="mt10">
+                    <label th:text="#{apitoken.field.name}">이름</label>
+                    <input type="text" name="name" class="text" style="width: 90%;" required="required">
+                </div>
+
+                <div class="mt10">
+                    <label th:text="#{apitoken.field.repoScope}">저장소 범위</label>
+                    <div>
+                        <label>
+                            <input type="radio" name="allRepositories" value="true" checked="checked">
+                            <span th:text="#{apitoken.repoScope.all}">전체 저장소</span>
+                        </label>
+                        <label class="ml10">
+                            <input type="radio" name="allRepositories" value="false">
+                            <span th:text="#{apitoken.repoScope.selected}">선택한 저장소</span>
+                        </label>
+                    </div>
+                    <select name="scopedProjectIds" multiple="multiple" data-toggle="select2" style="width: 100%;"
+                            th:if="${candidateProjects != null and !candidateProjects.isEmpty()}">
+                        <option th:each="project : ${candidateProjects}" th:value="${project.id}"
+                                th:text="${project.owner} + '/' + ${project.name}">owner/project</option>
+                    </select>
+                </div>
+
+                <div class="mt10">
+                    <label th:text="#{apitoken.field.permissions}">권한</label>
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th th:text="#{apitoken.field.scopeGroup}">그룹</th>
+                            <th th:text="#{apitoken.permission.none}">없음</th>
+                            <th th:text="#{apitoken.permission.read}">읽기</th>
+                            <th th:text="#{apitoken.permission.write}">쓰기</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="group : ${scopeGroups}">
+                            <td th:text="${group.name()}">ISSUES</td>
+                            <td><input type="radio" th:name="'scope_' + ${group.name()}" value="NONE" checked="checked"></td>
+                            <td><input type="radio" th:name="'scope_' + ${group.name()}" value="READ"></td>
+                            <td><input type="radio" th:name="'scope_' + ${group.name()}" value="WRITE"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt10">
+                    <label th:text="#{apitoken.field.expiresAt}">만료일</label>
+                    <select name="expiresInDays">
+                        <option value="30">30 일</option>
+                        <option value="90" selected="selected">90 일</option>
+                        <option value="366" th:text="#{apitoken.expiry.oneYear}">1년(최대)</option>
+                    </select>
+                </div>
+
+                <div class="mt10">
+                    <button type="submit" class="ybtn ybtn-success" th:text="#{apitoken.issue}">토큰 발급</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <footer th:replace="~{site/layout :: footer}"></footer>
+    <div th:replace="~{site/layout :: scripts}"></div>
+</div>
+<script type="text/javascript">
+    $(function(){
+        $yobi.loadModule("user.Setting");
+    });
+    // 토큰 폐기는 되돌릴 수 없는 작업이라(commentDeleteModal.html과 동일한 취지) 제출 전
+    // 확인한다 — 여러 행(form)이 반복 렌더링되므로 이벤트 위임으로 한 번만 등록한다.
+    document.addEventListener('submit', function(e) {
+        var form = e.target.closest('.apitoken-revoke-form');
+        if (!form) {
+            return;
+        }
+        var message = form.getAttribute('data-confirm-message');
+        if (message && !confirm(message)) {
+            e.preventDefault();
+        }
+    });
+</script>
+</body>
+</html>

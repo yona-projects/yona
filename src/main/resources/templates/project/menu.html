@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<div th:fragment="menu(project, activeMenu)" class="project-menu-outer"
+     th:with="isMember=${@templateHelper.isMember(project, currentUser)}, isManager=${@templateHelper.isManager(project, currentUser)}">
+    <div class="project-menu-inner">
+        <ul class="project-menu-nav project-menu-gruop">
+            <li th:class="${activeMenu == 'home' ? 'active' : ''}">
+                <a th:href="@{/{owner}/{name}(owner=${project.owner}, name=${project.name})}">
+                    <span class="menu-name" th:text="#{title.projectHome}">Project home</span><span class="short-menu">H</span>
+                </a>
+            </li>
+            <th:block th:if="${project.isCodeEnabled and (project.isCodeAccessibleMemberOnly != true or isMember)}">
+                <li class="code-menu" th:classappend="${activeMenu == 'code' ? 'active' : ''}">
+                    <a th:href="@{/{owner}/{name}/code(owner=${project.owner}, name=${project.name})}">
+                        <span class="menu-name" th:text="#{menu.code}">Code</span><span class="short-menu">C</span>
+                    </a>
+                </li>
+            </th:block>
+            <li th:if="${project.isIssueEnabled}" th:class="${activeMenu == 'issue' ? 'active' : ''}">
+                <a th:href="@{/{owner}/{name}/issues(owner=${project.owner}, name=${project.name})}">
+                    <span class="menu-name" th:text="#{menu.issue}">Issue</span><span class="short-menu">I</span>
+                    <span th:if="${templateHelper.countIssues(project) > 0}" class="project-menu-count" th:text="${templateHelper.countIssues(project)}">0</span>
+                </a>
+            </li>
+            <li th:if="${project.isPullRequestEnabled and project.vcs == 'GIT' and (project.isCodeAccessibleMemberOnly != true or isMember)}" th:class="${activeMenu == 'pullRequest' ? 'active' : ''}">
+                <a th:if="${project.originalProject != null}" th:href="@{/{owner}/{name}/sentPullRequests(owner=${project.owner}, name=${project.name})}">
+                    <span class="menu-name" th:text="#{menu.pullRequest}">Pull request</span><span class="short-menu">P</span>
+                    <span th:if="${templateHelper.countPullRequests(project) > 0}" class="project-menu-count" th:text="${templateHelper.countPullRequests(project)}">0</span>
+                </a>
+                <a th:if="${project.originalProject == null}" th:href="@{/{owner}/{name}/pulls(owner=${project.owner}, name=${project.name})}">
+                    <span class="menu-name" th:text="#{menu.pullRequest}">Pull request</span><span class="short-menu">P</span>
+                    <span th:if="${templateHelper.countPullRequests(project) > 0}" class="project-menu-count" th:text="${templateHelper.countPullRequests(project)}">0</span>
+                </a>
+            </li>
+            <li th:if="${project.isReviewEnabled and (project.isCodeAccessibleMemberOnly != true or isMember)}" th:class="${activeMenu == 'review' ? 'active' : ''}">
+                <a th:href="@{/{owner}/{name}/reviews(owner=${project.owner}, name=${project.name})}">
+                    <span class="menu-name" th:text="#{menu.review}">Review</span><span class="short-menu">R</span>
+                    <span th:if="${templateHelper.countReviews(project) > 0}" class="project-menu-count" th:text="${templateHelper.countReviews(project)}">0</span>
+                </a>
+            </li>
+            <li th:if="${project.isMilestoneEnabled}" th:class="${activeMenu == 'milestone' ? 'active' : ''}">
+                <a th:href="@{/{owner}/{name}/milestones(owner=${project.owner}, name=${project.name})}">
+                    <span class="menu-name" th:text="#{milestone}">Milestone</span><span class="short-menu">M</span>
+                </a>
+            </li>
+            <li th:if="${project.isBoardEnabled}" th:class="${activeMenu == 'board' ? 'active' : ''}">
+                <a th:href="@{/{owner}/{name}/posts(owner=${project.owner}, name=${project.name})}">
+                    <span class="menu-name" th:text="#{menu.board}">Board</span><span class="short-menu">B</span>
+                    <span th:if="${templateHelper.countBoardPosts(project) > 0}" class="project-menu-count" th:text="${templateHelper.countBoardPosts(project)}">0</span>
+                </a>
+            </li>
+        </ul>
+        <div th:if="${isManager}" class="project-setting">
+            <ul class="project-menu-nav">
+                <li th:class="${activeMenu == 'setting' ? 'active' : ''}">
+                    <a th:href="@{/{owner}/{name}/setting(owner=${project.owner}, name=${project.name})}">
+                        <i class="yobicon-cog"></i>
+                        <span class="blind"><span class="menu-name" th:text="#{menu.admin}">Project configuration</span></span>
+                        <span th:if="${project.enrolledUsers != null and project.enrolledUsers.size() > 0}" class="project-menu-count" th:text="${project.enrolledUsers.size()}">0</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" th:inline="javascript">
+$(document).ready(function(){
+    var htKeyMap = {
+        "H": /*[[@{/{owner}/{name}(owner=${project.owner}, name=${project.name})}]]*/ ''
+    };
+    /*[# th:if="${project.isBoardEnabled}"]*/
+    htKeyMap["B"] = /*[[@{/{owner}/{name}/posts(owner=${project.owner}, name=${project.name})}]]*/ '';
+    /*[/]*/
+    /*[# th:if="${project.isCodeEnabled and (project.isCodeAccessibleMemberOnly != true or isMember)}"]*/
+    htKeyMap["C"] = /*[[@{/{owner}/{name}/code(owner=${project.owner}, name=${project.name})}]]*/ '';
+    /*[/]*/
+    /*[# th:if="${project.isIssueEnabled}"]*/
+    htKeyMap["I"] = /*[[@{/{owner}/{name}/issues(owner=${project.owner}, name=${project.name})}]]*/ '';
+    /*[/]*/
+    /*[# th:if="${project.isMilestoneEnabled}"]*/
+    htKeyMap["M"] = /*[[@{/{owner}/{name}/milestones(owner=${project.owner}, name=${project.name})}]]*/ '';
+    /*[/]*/
+    /*[# th:if="${project.isPullRequestEnabled and project.vcs == 'GIT' and (project.isCodeAccessibleMemberOnly != true or isMember)}"]*/
+    /*[# th:if="${project.originalProject != null}"]*/
+    htKeyMap["P"] = /*[[@{/{owner}/{name}/sentPullRequests(owner=${project.owner}, name=${project.name})}]]*/ '';
+    /*[/]*/
+    /*[# th:unless="${project.originalProject != null}"]*/
+    htKeyMap["P"] = /*[[@{/{owner}/{name}/pulls(owner=${project.owner}, name=${project.name})}]]*/ '';
+    /*[/]*/
+    /*[/]*/
+    /*[# th:if="${isManager}"]*/
+    htKeyMap["Q"] = /*[[@{/{owner}/{name}/setting(owner=${project.owner}, name=${project.name})}]]*/ '';
+    /*[/]*/
+
+    $yobi.loadModule("project.Global", {
+        "htKeyMap": htKeyMap
+    });
+});
+</script>
+</body>
+</html>

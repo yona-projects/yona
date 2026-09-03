@@ -1,439 +1,122 @@
-application.conf detail descriptions
+application.yml detail descriptions
 ===
 
-Features configurable via application.conf in the conf directory
-----
-- Site name
-    - application.siteName = "Yona"
-- Appplication root context
-    - application.context = /myroot
-- Restrict user who is not logged in
-    - application.allowsAnonymousAccess = true
-- Setting guest user prefixes
-    - application.guest.user.login.id.prefix = ""
-- Restrict activation after an enrollment before administrator confirmed
-    - signup.require.admin.confirm = true
-- Allowed mail sending domains
-    - application.allowed.sending.mail.domains = ""
-- Use email verification
-    - application.use.email.verification = true
-- Notification bymail
-    - notification.bymail.enabled = true
-- Server-specific security key (required when resetting the admin account)
-- Language priority
-    - application.langs="en-US, ko-KR, ja-JP"
-- DB connection settings
-- The server name to display in the HTTP header
-- URL settings
-    - application.scheme="http"
-    - application.hostname="www.yourdomain.com"
-    - application.port="9000"
-- EMAIL settings
-- User upload temporary file cleaning schedule (seconds)
-    - application.temporaryfiles.keep-up.time = 86400
-- Notification delay time
-- Hide Yona in the referer header when moving to outer page
-    - application.noreferrer = true
-- Whether to display the private project in the project list view
-    - application.displayPrivateRepositories = false
-- Project default scope when create
-    - project.default.scope.when.create = "public"
-- Hide public project list
-    - application.hide.project.listing = false
-- Enable migration to Github feature  
-    - github.allow.migration = false
-    - github.client.id = "TYPE YOUR GITHUB CILENT ID"
-    - github.client.secret = "TYPE YOUR GITHUB CILENT SECRET"
-- Maximum single attachment size adjustment (default 2Gb)
-    - application.maxFileSize = 2147483454
-- Project Creation Menu Settings
-    - project.creation.default.menus = "code, issue, pullRequest, review, milestone, board"
-- Only sign up / login via social login (Github / Gmail)
-    - application.use.social.login.only = false
-- Username sync when using social sign-in
-    - application.use.social.login.name.sync = false
-- Social sign-in list to support
-    - application.social.login.support = "github, google"
-- Options when working with Github Enterprise
-    - Change sign-in button name
-      - application.social.login.github.name = "Github Enterprise"
-- LDAP login support
-    - application.use.ldap.login.supoort = false
+Ported from legacy Yona's `docs/application-conf-desc.md`, rewritten against yona's
+`src/main/resources/application.yml`. Legacy had one `application.conf` file; yona splits
+settings between Spring Boot standard keys (`spring.*`) and yona-specific keys (`yona.*`). The
+"Default" column below reflects what's actually in code (`@Value("${...:default}")`) or in
+`application.yml` — only what was verified.
 
-application.conf default settings
------
+## Site basics
 
-```
-# This is the main configuration file for the application.
-# ~~~~~
+| Key | Default | legacy equivalent | Notes |
+|---|---|---|---|
+| `yona.site-name` | `Yona` | `application.siteName` | Site name |
+| `yona.base-url` | `http://localhost:8080` | `application.scheme`+`hostname`+`port` | Absolute URL used in emails, etc. |
+| `yona.hostname` | `localhost` | `application.hostname` | Hostname |
+| `application.noreferrer` | `false` | `application.noreferrer` | Hide referer header when leaving via external links |
+| `yona.feedback-url` | `https://github.com/yona-projects/yona/issues` | `application.feedback.url` | Top-menu feedback link |
+| `yona.application.navbar.custom-link.name` / `.url` | empty | none (new) | Custom navbar link — not present in legacy |
 
-# Site Name
-# ~~~~~~~~~
-# The name of your website
-application.siteName="Yona"
+## Access control / signup
 
-# Application Context
-# ~~~~~~~~~~~~~~~~~~~
-# If you want your own application context root, you can set it.
-# Don't miss first / (slash) letter!
-# application.context = /myroot
+| Key | Default | legacy equivalent | Notes |
+|---|---|---|---|
+| `yona.access.allows-anonymous-access` | `true` | `application.allowsAnonymousAccess` | Allow anonymous access |
+| `yona.application.hide-project-listing` | `false` | `application.hide.project.listing` | Hide the public project listing |
+| `yona.signup.require-admin-confirm` | `false` | `signup.require.admin.confirm` | Require admin approval after signup |
+| `yona.signup.allowed-email-domains` | empty (no restriction) | `application.allowed.sending.mail.domains` | Allowlist of signup email domains |
 
-# Anonymous access
-# ~~~~~~~~~~~~~~~~
-# This site allows anonymous access. (default: true)
-# If this is false, Yona refuses anonymous access to any page except for the
-# ones to be needed for login, login and creating accout.
-# NOTE: Even if this is false, anyone can create a account freely. If you don't
-# want to allow that, set signup.require.confirm to true.
-application.allowsAnonymousAccess=true
+No config key was found for legacy's `application.guest.user.login.id.prefix` (a generic guest
+prefix), `application.displayPrivateRepositories`, `project.default.scope.when.create`,
+`project.creation.default.menus`, or `application.use.email.verification` — these may be
+hardcoded, or simply not yet ported as configurable. File a `docs/PARITY_BACKLOG.md` item if
+needed.
 
-# Guest User Id Rule
-# ~~~~~~~~~~~~~
-# If login id is created with following prefixes,
-# Yona treat that user is Guest User.
-# Guest user is extremely restricted in use of Yona.
-# They can not see any project listing of instance and
-# only create own account's projects.
-# In other words, they cannot create organization.
-# If multiple prefixes are needed, user , (comma)
-#
-# eg.
-# "PT_, GUEST_"
+## Social login / LDAP
 
-application.guest.user.login.id.prefix = ""
+Examples: [`yona-social-login-settings.md`](yona-social-login-settings.md).
 
-#
-# Signup options
-# ~~~~~~~~~~~~~~
+| Key | Default | legacy equivalent |
+|---|---|---|
+| `spring.security.oauth2.client.registration.github.client-id`/`.client-secret` | `dummy-client-id`/`dummy-client-secret` | Github section of `social-login.conf` |
+| `spring.security.oauth2.client.registration.google.client-id`/`.client-secret` | same | Google section of `social-login.conf` |
+| `yona.application.use-social-login-only` | `false` | `application.use.social.login.only` |
+| `yona.ldap.enabled` | `false` | `application.use.ldap.login.supoort` |
+| `yona.ldap.host`/`.port`/`.protocol` | `127.0.0.1`/`389`/`ldap` | `ldap.host`/`.port`/`.protocol` |
+| `yona.ldap.base-dn`/`.dn-postfix` | empty | `ldap.baseDN`/`distinguishedNamePostfix` |
+| `yona.ldap.login-property`/`.display-name-property`/`.user-name-property`/`.email-property`/`.department-property`/`.english-name-property` | same defaults as legacy (`sAMAccountName`/`displayName`/`CN`/`mail`/`department`/empty) | `ldap.loginProperty` etc. |
+| `yona.ldap.use-email-base-login`/`.fallback-to-local-login` | `false`/`false` | `ldap.options.useEmailBaseLogin`/`fallbackToLocalLogin` |
+| `yona.ldap.guest-login-id-prefix` | empty | none (LDAP-specific, new — distinct from legacy's generic guest prefix) |
 
-# If you wants to make the user available to use yona
-# after the server administrator approved,uncomment below
-#
-# signup.require.admin.confirm = true
+No config key was found yet for legacy's `application.use.social.login.name.sync`.
 
-# If you only want to allow for signing up in specific email domains,
-# use the following option.
-# application.allowed.sending.mail.domains = "gmail.com, your-company.com"
-# And "" is option for no restriction.
-#
-# application.allowed.sending.mail.domains = ""
+## Alert mail
 
-# If following email verification option is true, all user will be locked when it sign-up,
-# until user click the verification link of verification confirm mail
-#
-# application.use.email.verification = true
+Examples: [`yona-mail-settings.md`](yona-mail-settings.md).
 
-# If you enable to use social login or email verification, set followings
-play-easymail {
-  from {
-    # Mailing from address
-    email="projects.yona@gmail.com"
+| Key | Default | legacy equivalent |
+|---|---|---|
+| `yona.notification.bymail.enabled` | `true` | `notification.bymail.enabled` |
+| `yona.notification.bymail.interval-ms` | `60000` (60s) | `application.notification.bymail.interval` |
+| `yona.notification.bymail.delay-ms` | `180000` (180s) | `application.notification.bymail.delay` |
+| `yona.notification.bymail.recipient-limit` | `0` (unlimited) | `application.notification.bymail.recipientLimit` |
+| `yona.notification.bymail.hide-address` | `true` | `application.notification.bymail.hideAddress` |
+| `yona.notification.bymail.allowed-domains` | empty | none (new — restricts which domains get notification mail) |
+| `yona.notification.keep-days` | `-1` (keep forever) | `application.notification.keep-time` |
 
-    # Mailing name
-    name="yona-no-reply"
+Legacy's `application.notification.draft-time` (the event-merging time window) exists as a code
+constant (draft-time merge logic from the P1-xx items), but whether it's externalized as a
+config key wasn't confirmed at the time of writing.
 
-    # Seconds between sending mail through Akka (defaults to 1)
-    # delay=1
-  }
-}
+## Mailbox (IMAP)
 
-# Notification
-# ~~~~~
-# Notfication email is delivered by default.
-# If you want to disable the delivery, set the 'notification.bymail.enabled' to 'false'.
-notification.bymail.enabled = true
+`yona.mailbox.imap.*` — see [`yona-mail-settings.md`](yona-mail-settings.md#how-to-let-people-create-issuescomments-on-yona-by-email).
 
-# Secret key
-# ~~~~~
-# The secret key is used to secure cryptographics functions.
-# If you deploy your application to several instances be sure to use the same key!
-#
-# If you want to reset admin account, set this value to default.
-# Default: "VA2v:_I=h9>?FYOH:@ZhW]01P<mWZAKlQ>kk>Bo`mdCiA>pDw64FcBuZdDh<47Ew"
-application.secret="VA2v:_I=h9>?FYOH:@ZhW]01P<mWZAKlQ>kk>Bo`mdCiA>pDw64FcBuZdDh<47Ew"
+## Attachments / physical storage
 
-# The application languages
-# ~~~~~
-application.langs="en-US, ko-KR, ja-JP"
+| Key | Default | legacy equivalent |
+|---|---|---|
+| `yona.upload.base-dir` | `${yona.data:data}/uploads` | `YONA_DATA/uploads` |
+| `yona.git.base-dir` | `/tmp/yona/git` | `YONA_DATA/repo` (Git) |
+| `yona.svn.base-dir` | `/tmp/yona/svn` | `YONA_DATA/repo` (SVN) |
+| `yona.lfs.base-dir` | `/tmp/yona/lfs` | none (LFS didn't exist in legacy) |
+| `spring.servlet.multipart.max-file-size`/`.max-request-size` | **unset → Spring Boot default 1MB/10MB** | `application.maxFileSize` (default 2GB) |
 
-# Global object class
-# ~~~~~
-# Define the Global object class for this application.
-# Default to Global in the root package.
-application.global=Global
+`max-file-size` differs sharply from legacy's default — raise it before real use. See
+[`trouble-shootings.md`](trouble-shootings.md#attachment-uploads-fail-413--maxuploadsizeexceededexception).
 
-# Database configuration
-# ~~~~~
-# You can declare as many datasources as you want.
-# By convention, the default datasource is named `default`
-#
-ebeanconfig.datasource.default=default
-# H2 Configuration
-# db.default.driver=org.h2.Driver
-# db.default.url="jdbc:h2:mem:yona;MODE=PostgreSQL;DB_CLOSE_DELAY=-1"
-# db.default.url="jdbc:h2:file:./yona;MODE=PostgreSQL;MV_STORE=FALSE;MVCC=FALSE;CACHE_SIZE=131072;AUTO_SERVER=TRUE"
-# db.default.user=sa
-# db.default.password=sa
-# db.default.logStatements=true
-# db.default.partitionCount=20
-# db.default.maxConnectionsPerPartition=10
-# db.default.minConnectionsPerPartition=2
-# db.default.acquireIncrement=4
-# db.default.acquireRetryAttempts=3
-# db.default.acquireRetryDelay=1 seconds
-# db.default.connectionTimeout=3 second
-# db.default.statementsCacheSize=1000
+## GitHub Migration (Import)
 
-# MySQL Configuration
-# db.default.driver=com.mysql.jdbc.Driver
-# db.default.url="jdbc:mysql://127.0.0.1:3306/yona?characterEncoding=utf-8"
-# db.default.user=yona
-# db.default.password=""
+| Key | Default | legacy equivalent |
+|---|---|---|
+| `github.client.id` | empty | `github.client.id` |
+| `github.client.secret` | empty | `github.client.secret` |
+| `github.allow.migration` | `false` | `github.allow.migration` |
 
-# MariaDB
-db.default.driver=org.mariadb.jdbc.Driver
-db.default.url="jdbc:mariadb://127.0.0.1:3306/yona?useServerPrepStmts=true"
-db.default.user=yona
-db.default.password="password"
+Note: `github.*` lives at the top level, not under `yona.*` (matches the `@Value` declarations
+in `MigrationService` verbatim). It requires a **separate GitHub OAuth App registration** from
+the social-login `spring.security.oauth2.client.registration.github.*` above.
 
-# Local
-# db.default.url="jdbc:postgresql://localhost:5432/yona"
-# db.default.user=postgres
-# db.default.password=password
+## Google Analytics / software update check
 
-# You can expose this datasource via JNDI if needed (Useful for JPA)
-# db.default.jndiName=DefaultDS
+| Key | Default | legacy equivalent |
+|---|---|---|
+| `yona.analytics.send-usage` | `false` (legacy defaulted to `true` — opposite) | `application.send.yona.usage` |
+| `yona.update.repository-url` | `https://github.com/yona-projects/yona.git` | `application.update.repositoryUrl` |
+| `yona.update.current-version` | `1.15.0` | (still uses legacy's version string — may need updating to yona's own scheme) |
+| `yona.update.interval-ms` | `21600000` (6h) | `application.update.notification.interval` |
 
-# Ebean configuration
-# ~~~~~
-# You can declare as many Ebean servers as you want.
-# By convention, the default server is named `default`
-#
-ebean.default="models.*"
+## Logging
 
-# Evolutions
-# ~~~~~
-# You can disable evolutions if needed
-# evolutionplugin=disabled
-applyEvolutions.default=true
+Legacy managed this separately via `conf/application-logger.xml` (Logback). yona uses Spring
+Boot's standard approach — `logging.level.*` in `application.yml` (currently
+`org.springframework.web: DEBUG`, `org.hibernate: WARN`), or add a `logback-spring.xml` to the
+classpath for finer control (not present in this repository — plain Spring Boot logging
+defaults apply).
 
-# Logger
-# ~~~~~
-# You can also configure logback (http://logback.qos.ch/), by providing a logger.xml file in the conf directory .
+## Note
 
-# Server
-# ~~~~~
-
-# Server name used by servlet, as the value of "Server" field in HTTP response message.
-application.server="Play/2.3"
-
-# Components used to construct the URL to this application.
-application.scheme="http"
-# application.hostname="www.yourdomain.com"
-# application.port="8080"
-
-# Application feedback url at top layout menu. You can remove feedback menu by commenting it.
-application.feedback.url="https://github.com/yona-projects/yona/issues"
-
-# Mailer
-# ~~~~~~
-# You have to configure SMTP to send mails.
-# Example settings, it assume that you use gmail smtp
-smtp.host = smtp.gmail.com
-smtp.port = 465
-smtp.ssl = true
-smtp.user = yourGmailId
-# Be careful!!! Not to leak password
-smtp.password = yourGmailPassword
-smtp.domain = gmail.com
-#true to use mock mailer for testing, false for using real mail server
-smtp.mock = true
-# optional, size of mail archive for tests, default: 5
-smtp.archive.size = 5
-
-# Mailbox Service
-# ~~~~~~~~~~~~~~~
-#
-# Mailbox Service fetches and process mails from IMAP server. For example, if
-# the service fetches an email to a project, it posts the email as an issue of
-# the project.
-#
-# If you want to use this feature, your IMAP server has to be configured to
-# support the address alias using '+' sign, also known as 'subaddressing' or
-# 'detailed addressing'. For example, emails to 'yona+issue@yourmail.com' have
-# to be delivered to 'yona@yourmail.com'.
-#
-# SECURITY WARNING: Yona believes the email address in From header of the
-# received email is truthful and use it for authentication without doubt. To
-# avoid this problem, your imap server must deny every email whose From header
-# is forged.
-#
-# Here is an example if you use Gmail.
-#
-# Set imap.use to true if you want to use this feature.
-imap.use = false
-imap.host = imap.googlemail.com
-imap.ssl = true
-imap.user = "your-yona-email-address@gmail.com"
-# The email address of Yona. Mailbox Service processes an email only if its
-# address is as follows.
-imap.address = "your-yona-email-address@gmail.com"
-# Be careful!!!
-imap.password = yourGmailPassword
-imap.folder = inbox
-
-# Production configuration
-%prod.http.port=80
-%prod.application.log=INFO
-%prod.application.mode=prod
-
-# User uploaded temporary files cleanup schedule (sec, default 24hour: 24*60*60 = 86400)
-# application.temporaryfiles.keep-up.time = 86400
-
-# Notification
-# ~~~~~~~~~~~~
-# Check mails to send every this seconds.
-application.notification.bymail.interval = 60s
-# Sending a notification mail delays this seconds.
-application.notification.bymail.delay = 180s
-# Split notification emails by the recipient limit.
-# The value is number of maximum recipients per an email and inclusive.
-# (default: 0, This means there is no limitation.)
-application.notification.bymail.recipientLimit = 100
-# Hide recipients of notification email by using bcc. (default: true)
-application.notification.bymail.hideAddress = true
-# A new event notification can be merged if possible with previous one which is
-# not older than this seconds.
-application.notification.draft-time = 30s
-# Delete notifications which are older than this days.
-# If this value is undefined or not positive number, notifications will remain forever.
-# application.notification.keep-time = 60
-
-# Software Update
-# ~~~~~~~~~~~~~~~
-# Check for updates of Yona at this interval if it is grater than 0.
-application.update.notification.interval = 6h
-# A url to the git repository for Yona releases.
-application.update.check.use = true
-application.update.repositoryUrl = "https://github.com/yona-projects/yona"
-# A format to construct the url to latest Yona release. "%s" is a format
-# specifier for Yona version to download like "0.5.7".
-application.update.releaesUrlFormat = "https://github.com/yona-projects/yona/releases/tag/v%s"
-
-# customize play default thread pool size
-# see: https://www.playframework.com/documentation/2.3.x/ThreadPools
-play {
-  akka {
-    event-handlers = ["akka.event.Logging$DefaultLogger", "akka.event.slf4j.Slf4jEventHandler"]
-    loglevel = WARNING
-    actor {
-      default-dispatcher = {
-        fork-join-executor {
-          parallelism-min = 50
-          parallelism-max = 300
-        }
-      }
-    }
-  }
-}
-
-# customize akka thread pool size
-akka {
-  loggers = ["akka.event.Logging$DefaultLogger", "akka.event.slf4j.Slf4jLogger"]
-  loglevel = WARNING
-  actor {
-    default-dispatcher = {
-      fork-join-executor {
-        # Min number of threads to cap factor-based parallelism number to
-        parallelism-min = 8
-
-        # The parallelism factor is used to determine thread pool size using the
-        # following formula: ceil(available processors * factor). Resulting size
-        # is then bounded by the parallelism-min and parallelism-max values.
-        parallelism-factor = 3.0
-
-        # Max number of threads to cap factor-based parallelism number to
-        parallelism-max = 64
-      }
-    }
-  }
-}
-
-# No referrer information is to be leaked when following the link from yona pages. If you don't want, set it false
-application.noreferrer = true
-
-# Display private repositories in the list
-application.displayPrivateRepositories = false
-
-# Hide project listing for security
-application.hide.project.listing = false
-
-# choice: "public" or "private"
-# default: "public"
-project.default.scope.when.create = "public"
-
-# Google Analytics
-# ~~~~~~~~~~~~~~~~~
-# This data is used to better understand how users interact with the Web UI which gives us valuable information
-# in improving Yona user experience. To disable this for any reason, set the following option to false.
-application.send.yona.usage = true
-
-# Github Migration
-# ~~~~~~~~~~~~~~~~~
-# User can migrate their own projects to github
-#
-github.allow.migration = false
-github.client.id = "TYPE YOUR GITHUB CILENT ID"
-github.client.secret = "TYPE YOUR GITHUB CILENT SECRET"
-
-# Attachment Upload File Size Limit
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# 2,147,483,454 bytes = 2Gb
-application.maxFileSize = 2147483454
-
-# Project Creation Menu Settings
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Default: "code, issue, pullRequest, review, milestone, board"
-project.creation.default.menus = "issue, milestone, board"
-
-# Social Login Support
-# ~~~~~~~~~~~~~~~~~~~~
-# Social login settings for Yona
-# Detail settings are described at social-login.conf
-
-# Prevent using Yona's own login system
-application.use.social.login.only = false
-
-# If true, update local user name with social login account name
-application.use.social.login.name.sync = false
-
-# Allowed OAuth social login provider
-# choice: github, google
-application.social.login.support = "github, google"
-
-# LDAP Login Support
-# ~~~~~~~~~~~~~~~~~
-#
-application.use.ldap.login.supoort = false
-ldap {
-    host = "ldap.forumsys.com"
-    # default: ldap.port=389, ldaps.port=636
-    port = 389
-    # protocol: ldap or ldaps. If you want to use SSL/TLS, use 'ldaps'
-    protocol = "ldap"
-    baseDN = "ou=scientists,dc=example,dc=com"
-    # If your ldap service's distinguishedName is 'CN=username,OU=user,DC=abc,DC=com', postfix is 'OU=xxx,DC=abc,DC=com'
-    distinguishedNamePostfix = "OU=user,DC=abc,DC=com"
-    loginProperty = "sAMAccountName"
-    displayNameProperty = "displayName"
-    userNameProperty = "CN"
-    emailProperty = "mail"
-    options {
-      # If your LDAP configuration support email login
-      useEmailBaseLogin = false
-      fallbackToLocalLogin = false
-    }
-}
-
-include "social-login.conf"
-```
+This document was written by verifying actual `@Value("${...}")` declarations and
+`application.yml`, but the codebase keeps changing — the ultimate source of truth is always
+`src/main/resources/application.yml` and `grep -rn '@Value' src/main/kotlin`.

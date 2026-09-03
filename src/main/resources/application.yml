@@ -1,0 +1,294 @@
+spring:
+  profiles:
+    active: mariadb
+  messages:
+    basename: messages/messages
+    encoding: UTF-8
+  mail:
+    host: localhost
+    port: 1025
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: dummy-client-id
+            client-secret: dummy-client-secret
+            scope: profile,email
+          github:
+            client-id: dummy-client-id
+            client-secret: dummy-client-secret
+            scope: user:email,read:user
+
+application:
+  noreferrer: "${YONA_NOREFERRER:false}"
+
+yona:
+  base-url: "${YONA_BASE_URL:http://localhost:8080}"
+  hostname: "${YONA_HOSTNAME:localhost}"
+  site-name: "${YONA_SITE_NAME:Yona}"
+  upload:
+    base-dir: "${yona.data:data}/uploads"
+  git:
+    # 새로 만드는 프로젝트의 초기 브랜치명. 지정하지 않으면(환경변수 미설정) "main"이 기본값이다 —
+    # 이 값을 지정하지 않으면 JGit이 서버가 돌아가는 머신의 전역 git 설정(init.defaultBranch)을
+    # 그대로 따르게 되어 배포 환경마다 다른 이름으로 생성될 수 있다(사용자 요청으로 결정론적으로 고정).
+    default-branch: "${YONA_GIT_DEFAULT_BRANCH:main}"
+  signup:
+    allowed-email-domains: "${YONA_SIGNUP_ALLOWED_EMAIL_DOMAINS:}"
+  notification:
+    bymail:
+      enabled: "${YONA_NOTIFICATION_BYMAIL_ENABLED:true}"
+      hide-address: "${YONA_NOTIFICATION_BYMAIL_HIDE_ADDRESS:true}"
+      recipient-limit: "${YONA_NOTIFICATION_BYMAIL_RECIPIENT_LIMIT:0}"
+      initial-delay-ms: "${YONA_NOTIFICATION_BYMAIL_INITDELAY_MS:5000}"
+      interval-ms: "${YONA_NOTIFICATION_BYMAIL_INTERVAL_MS:60000}"
+      delay-ms: "${YONA_NOTIFICATION_BYMAIL_DELAY_MS:180000}"
+      allowed-domains: "${YONA_NOTIFICATION_BYMAIL_ALLOWED_DOMAINS:}"
+      keep-days: "${YONA_NOTIFICATION_KEEP_DAYS:-1}"
+  ldap:
+    enabled: "${YONA_LDAP_ENABLED:false}"
+    host: "${YONA_LDAP_HOST:127.0.0.1}"
+    port: "${YONA_LDAP_PORT:389}"
+    protocol: "${YONA_LDAP_PROTOCOL:ldap}"
+    base-dn: "${YONA_LDAP_BASE_DN:}"
+    dn-postfix: "${YONA_LDAP_DN_POSTFIX:}"
+    login-property: "${YONA_LDAP_LOGIN_PROPERTY:sAMAccountName}"
+    display-name-property: "${YONA_LDAP_DISPLAY_NAME_PROPERTY:displayName}"
+    user-name-property: "${YONA_LDAP_USER_NAME_PROPERTY:CN}"
+    email-property: "${YONA_LDAP_EMAIL_PROPERTY:mail}"
+    department-property: "${YONA_LDAP_DEPARTMENT_PROPERTY:department}"
+    english-name-property: "${YONA_LDAP_ENGLISH_NAME_PROPERTY:}"
+    use-email-base-login: "${YONA_LDAP_USE_EMAIL_BASE_LOGIN:false}"
+    fallback-to-local-login: "${YONA_LDAP_FALLBACK_TO_LOCAL_LOGIN:false}"
+    guest-login-id-prefix: "${YONA_LDAP_GUEST_LOGIN_ID_PREFIX:}"
+  mailbox:
+    imap:
+      enabled: "${YONA_IMAP_ENABLED:false}"
+      host: "${YONA_IMAP_HOST:}"
+      user: "${YONA_IMAP_USER:}"
+      password: "${YONA_IMAP_PASSWORD:}"
+      ssl: "${YONA_IMAP_SSL:true}"
+      folder: "${YONA_IMAP_FOLDER:inbox}"
+      address: "${YONA_IMAP_ADDRESS:}"
+      polling-interval-ms: "${YONA_IMAP_POLLING_INTERVAL_MS:300000}"
+  feedback-url: "${YONA_FEEDBACK_URL:https://github.com/yona-projects/yona/issues}"
+  translation:
+    api: "${YONA_TRANSLATION_API:}"
+    header-key: "${YONA_TRANSLATION_HEADER_KEY:}"
+    header-value: "${YONA_TRANSLATION_HEADER_VALUE:}"
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: dummy-client-id
+            client-secret: dummy-client-secret
+            scope: profile,email
+          github:
+            client-id: dummy-client-id
+            client-secret: dummy-client-secret
+            scope: user:email,read:user
+  mail:
+    host: localhost
+    port: 1025
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus
+  metrics:
+    tags:
+      application: yona
+  # yona-wiki P3-01(Observability) 계측 지점 4(트레이싱) 대응 — 별도 수집 인프라(Tempo/Jaeger)의
+  # 실제 배포는 이 계획의 범위 밖이라(docs/yona-wiki/plans/p3-01-observability.md 참고), OTLP
+  # 엔드포인트가 없는 환경에서도 애플리케이션 기동에는 영향이 없다(비동기 전송 실패는 로그만 남김).
+  tracing:
+    sampling:
+      probability: "${YONA_TRACING_SAMPLING_PROBABILITY:1.0}"
+  otlp:
+    tracing:
+      endpoint: "${YONA_OTLP_TRACING_ENDPOINT:http://localhost:4318/v1/traces}"
+    # spring-boot-starter-opentelemetry는 트레이싱뿐 아니라 OTLP 메트릭 푸시 레지스트리도 함께
+    # 자동구성한다 — 메트릭은 이미 /actuator/prometheus 스크랩으로 충분하고(P3-01 설계 개요 참고),
+    # OTLP 콜렉터가 없는 환경에서 애플리케이션 컨텍스트 종료 시마다 연결 실패 재시도로 종료가
+    # 지연되는 현상이 실제로 관측돼(테스트 스위트에서 확인) 명시적으로 꺼둔다.
+    metrics:
+      export:
+        enabled: false
+
+---
+spring:
+  config:
+    activate:
+      on-profile: mariadb
+  datasource:
+    url: jdbc:mariadb://localhost:23306/yona?characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useSSL=false
+    username: yona
+    password: yona_password
+    driver-class-name: org.mariadb.jdbc.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: postgres
+  datasource:
+    url: jdbc:postgresql://localhost:5432/yona
+    username: yona
+    password: yona_password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: mysql
+  datasource:
+    url: jdbc:mysql://localhost:3306/yona?characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useSSL=false
+    username: yona
+    password: yona_password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: mssql
+  datasource:
+    # sendStringParametersAsUnicode=true가 없으면(mssql-jdbc 기본값은 false) 문자열
+    # 파라미터가 비유니코드로 전송된다.
+    url: jdbc:sqlserver://localhost:1433;databaseName=yona;encrypt=false;sendStringParametersAsUnicode=true
+    username: sa
+    password: yona_password
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+  jpa:
+    database-platform: org.hibernate.dialect.SQLServerDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        # Hibernate가 String을 기본적으로 varchar(비유니코드)로 매핑해 한글 등 비ASCII
+        # 문자가 INSERT 시점에 손실된다(LIKE 검색에서만 0건으로 드러남 — 같은 트랜잭션
+        # 안에서는 Hibernate 1차 캐시가 저장 직전 자바 객체를 그대로 돌려줘서 findById/
+        # findAll로는 이 손실이 감춰진다). 모든 String을 nvarchar(유니코드)로 매핑한다.
+        use_nationalized_character_data: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: cubrid
+  datasource:
+    # charSet=utf-8이 없으면 한글 등 비ASCII 문자열이 깨져서 저장된다(실측 확인).
+    url: "jdbc:cubrid:localhost:33000:yona:::?charSet=utf-8"
+    username: yona
+    password: yona_password
+    driver-class-name: cubrid.jdbc.driver.CUBRIDDriver
+    hikari:
+      # CUBRID 브로커가 유휴/오래된 커넥션을 서버 쪽에서 먼저 끊어버리는 경우가 있는데,
+      # HikariCP가 이를 감지 못하고 죽은 커넥션을 그대로 내주면 CUBRID 드라이버 내부에서
+      # NPE(this.con is null)가 난다(대규모 테스트 스위트에서 실측 확인). 커넥션을 실제로
+      # 사용하기 전에 유효성 검사를 하도록 강제해 죽은 커넥션을 미리 걸러낸다.
+      connection-test-query: SELECT 1
+      max-lifetime: 300000
+  jpa:
+    # CUBRIDDialect는 hibernate-community-dialects 모듈에 있어 JDBC 메타데이터만으로 자동
+    # 인식되지 않는다 — 명시적으로 지정해야 한다.
+    database-platform: com.github.yonaprojects.yona.config.YonaCubridDialect
+    hibernate:
+      ddl-auto: update
+      # CUBRID는 role 등 다른 DB에서는 평범한 테이블/컬럼명을 예약어로 취급해 DDL이 "Syntax
+      # error: unexpected 'role'"처럼 깨진다. globally_quoted_identifiers로 전부 인용부호를
+      # 씌우면 되레 Hibernate가 모든 식별자를 "이미 인용됨"으로 표시해버려 기본 물리 네이밍
+      # 전략(camelCase→snake_case 변환)이 통째로 무시되는 부작용이 있어(실측 확인), 예약어와
+      # 겹칠 때만 개별적으로 인용하는 전용 네이밍 전략을 쓴다.
+      naming:
+        physical-strategy: com.github.yonaprojects.yona.config.YonaCubridNamingStrategy
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: h2
+  datasource:
+    # yona가 기본값으로 제공하던 H2(내장형) 대응 — Docker/별도 DB 서버 설치 없이 파일 기반으로
+    # 바로 실행된다(legacy `db.default.url="jdbc:h2:file:./yobi"`와 동일한 취지). AUTO_SERVER=TRUE로
+    # 실행 중에도 H2 콘솔 등 다른 클라이언트가 같은 파일에 동시 접속할 수 있게 한다.
+    # yona.upload.base-dir과 동일하게 yona.data 프로퍼티 기준으로 둬야 -Dyona.data로 DB 파일
+    # 위치까지 격리된다 — 예전엔 상대경로가 고정돼 있어 서버를 실행한 cwd(주로 저장소 루트)에
+    # data/h2/가 항상 생겨, -Dyona.data로 격리한 실행끼리도 DB 상태를 공유하는 문제가 있었다.
+    url: "jdbc:h2:file:${yona.data:data}/h2/yona;AUTO_SERVER=TRUE"
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+    org.hibernate: WARN

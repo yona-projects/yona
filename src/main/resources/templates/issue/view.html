@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko" th:with="pageTitle=${issue.title + ' |:| ' + @templateHelper.ogDescriptionPreview(issue.body)}">
+<head th:replace="~{site/layout :: head(title=${pageTitle})}">
+</head>
+<body class="theme-default prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+    <div th:replace="~{project/header :: header(${project})}"></div>
+    <div th:replace="~{project/menu :: menu(${project}, 'issue')}"></div>
+    <link rel="stylesheet" th:href="@{/{owner}/{projectName}/issue/labels.css(owner=${project.owner}, projectName=${project.name})}" type="text/css" />
+
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap board-view">
+            <!-- Post Info -->
+            <div class="board-header issue">
+                <div class="pull-right mr10 mt10 hide-in-mobile">
+                    <div class="date" th:title="${templateHelper.getDateString(issue.createdDate)}" th:text="${templateHelper.agoOrDateString(issue.createdDate)}">
+                        작성일
+                    </div>
+                    <span class="badge" th:classappend="'badge-issue-' + ${#strings.toLowerCase(issue.state)}" th:text="${#messages.msg('issue.state.' + issue.state)}">상태</span>
+                </div>
+                <div class="title">
+                    <strong class="board-id" th:text="'#' + ${issue.number}">#1</strong>
+                    <span th:text="${issue.title}">이슈 제목</span>
+                    <span class="favorite-issue" th:data-issue-id="${issue.id}">
+                        <i class="star material-icons va-text-top" th:classappend="${isFavoriteIssue ? 'starred' : ''}">star</i>
+                    </span>
+                    <div class="pull-right hide show-in-mobile" style="font-size: 0.7em">
+                        <span class="date" th:title="${templateHelper.getDateString(issue.createdDate)}" th:text="${templateHelper.agoOrDateString(issue.createdDate)}">작성일</span>
+                        <span class="badge badge-small" th:classappend="'badge-issue-' + ${#strings.toLowerCase(issue.state)}" th:text="${#messages.msg('issue.state.' + issue.state)}">상태</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content body -->
+            <div class="board-body row-fluid">
+                <div class="span9 span-left-pane">
+                    <div class="author-info">
+                        <a href="javascript:void(0);" class="usf-group">
+                            <span class="avatar-wrap smaller">
+                                <img src="/images/default-avatar-128.png" width="20" height="20">
+                            </span>
+                            <strong class="name" th:text="${issue.authorName != null ? issue.authorName : issue.authorLoginId}">작성자</strong>
+                            <span class="loginid"> <strong>@</strong><span th:text="${issue.authorLoginId}">loginId</span></span>
+                        </a>
+                    </div>
+
+                    <!-- legacy issue/view.scala.html:169 "@if(StringUtils.isNotEmpty(issue.history))" 블록 대응 (#41, TASK-0257) -->
+                    <div class="posting-history" th:if="${issue.history != null and !#strings.isEmpty(issue.history)}">
+                        <a th:if="${currentUser == null}" th:href="@{/users/loginform}" th:text="#{change.history}">변경 이력</a>
+                        <th:block th:if="${currentUser != null}">
+                            <a href="#-yona-posting-history" data-toggle="modal">
+                                <span class="lastUpdatedBy" th:if="${issue.updatedByAuthorId != null}">
+                                    <span th:text="${issue.updatedByAuthorName != null ? issue.updatedByAuthorName : issue.updatedByAuthorLoginId}">수정자</span>
+                                    <span th:text="${templateHelper.agoOrDateString(issue.updatedDate)}">방금 전</span>
+                                </span>
+                                <span th:text="#{change.edited}">수정됨</span>
+                            </a>
+                            <div th:replace="~{common/partial_history :: partial_history(${issue})}"></div>
+                        </th:block>
+                    </div>
+
+                    <div th:id="'issue-' + ${issue.number}" class="hide">
+                        <form th:action="@{/api/{owner}/{projectName}/issues/{number}/content(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}">
+                            <textarea th:text="${issue.body}"></textarea>
+                        </form>
+                    </div>
+                    <div th:id="'issue-body-' + ${issue.number}">
+                        <div class="tasklist">
+                            <div class="task-title">Tasks<span class="done-counter"></span></div>
+                            <div class="task-progress">
+                                <div class="bar red" style="width: 0;" title="Tasklist"></div>
+                            </div>
+                        </div>
+                        <div class="content markdown-wrap" th:data-allowed-update="${isAllowedUpdate}" th:utext="${markdownService.render(issue.body, true, project)}">본문 내용</div>
+                    </div>
+                    
+                    <div class="attachments" id="attachments" th:data-attachments="${attachmentsJson}"></div>
+                    
+                    <div class="board-actrow right-txt">
+                        <div class="pull-left">
+                            <div>
+                                <button id="watch-button" type="button" class="ybtn" th:classappend="${isWatching ? 'ybtn-watching' : ''}"
+                                        data-toggle="tooltip" data-placement="top" th:title="#{issue.watch.description}" th:data-watching="${isWatching}"
+                                        th:text="${isWatching ? #messages.msg('issue.unwatch') : #messages.msg('issue.watch')}">
+                                    지켜보기
+                                </button>
+                                <button th:if="${isAllowedUpdate}" id="issue-share-button" type="button" class="ybtn" data-toggle="popover" data-trigger="hover" data-placement="top" th:data-content="#{issue.sharer.description}" th:text="#{button.share.issue}">공유</button>
+                                <span class="project-btn-item ml4">
+                                    <a th:href="@{/{owner}/{projectName}/issue/new(owner=${project.owner}, projectName=${project.name}, parentIssueId=${issue.id})}" class="ybtn ybtn-success" th:text="#{button.newSubtask}">하위 이슈 등록</a>
+                                </span>
+                                <span class="issue-weight">
+                                    <span class="divider">|</span>
+                                    <button id="upvote-issue-weight" class="ybtn ybtn-small" data-toggle="tooltip" title="Upvote"><i class="yobicon-arrow-up-alt"></i></button>
+                                    <button class="ybtn ybtn-small" id="down-vote-issue-weight" data-toggle="tooltip" title="Down vote"><i class="yobicon-arrow-down-alt"></i></button>
+                                    <span class="weight-number" data-toggle="popover" data-trigger="hover" data-placement="top" th:data-content="#{issue.weight.description}" th:text="${issue.weight}">0</span>
+                                </span>
+                            </div>
+                        </div>
+                        <div id="vote" class="vote-wrap" th:classappend="${!issue.voters.isEmpty() ? 'voter-exists' : ''}">
+                            <th:block th:with="hasVoted=${currentUser != null && issue.voters.![id].contains(currentUser.id)}">
+                                <a th:if="${currentUser != null}" th:href="@{/{owner}/{projectName}/issue/{issueNumber}/vote(owner=${project.owner}, projectName=${project.name}, issueNumber=${issue.number})}" 
+                                   class="ybtn-watching-link" th:classappend="${hasVoted ? 'ybtn-watching' : ''}"
+                                   data-request-method="post" data-toggle="tooltip" th:title="${hasVoted ? #messages.msg('issue.unvote.description') : #messages.msg('issue.vote.description')}">
+                                    <span class="heart"><i class="yobicon-hearts"></i></span>
+                                </a>
+                                <span th:if="${currentUser == null}" class="ybtn-disabled" style="color: #777;" data-toggle="tooltip" th:title="#{user.login.alert}" data-login="required">
+                                    <span class="heart"><i class="yobicon-hearts"></i></span>
+                                </span>
+                            </th:block>
+
+                            <div th:if="${!issue.voters.isEmpty()}" class="voter-list-wrap">
+                                <ul class="voter-list">
+                                    <li th:if="${currentUser != null && issue.voters.![id].contains(currentUser.id)}">
+                                        <a th:href="@{/user/{loginId}(loginId=${currentUser.loginId})}" class="avatar-wrap smaller" data-toggle="tooltip" data-placement="top" th:title="${currentUser.name}">
+                                            <img th:src="${currentUser.avatarUrl}">
+                                        </a>
+                                    </li>
+
+                                    <th:block th:with="otherVoters=${templateHelper.getVotersExceptCurrentUser(issue.voters, currentUser)}">
+                                        <li th:each="voter : ${templateHelper.getVotersForAvatar(otherVoters, 3)}">
+                                            <a th:href="@{/user/{loginId}(loginId=${voter.loginId})}" class="avatar-wrap smaller" data-toggle="tooltip" data-placement="top" th:title="${voter.name}">
+                                                <img th:src="${voter.avatarUrl}">
+                                            </a>
+                                        </li>
+                                        <li th:if="${otherVoters.size() > 3}" data-toggle="tooltip" data-html="true"
+                                            th:title="${templateHelper.getVotersTooltip(otherVoters, 3, 5)}">
+                                            <a href="#voters" data-toggle="modal" th:text="#{issue.voters.more(${otherVoters.size() - 3})}">
+                                                외 N명
+                                            </a>
+                                        </li>
+                                    </th:block>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <button type="button" id="translate" class="icon btn-transparent-with-fontsize-lineheight ml10" data-toggle="tooltip" th:title="#{button.translation}"><i class="yobicon-lang"></i></button>
+                        <div class="watcher-list" style="margin-top: 10px;"></div>
+
+                        <span class="act-row">
+                            <!-- th:onclick에 문자열 리터럴 조립식을 쓰면 Thymeleaf가 "Only variable expressions
+                                 returning numbers or booleans are allowed" 예외를 던진다(이벤트 핸들러 속성
+                                 제약) — 이번 세션에 매니저로 렌더링 검증하면서 실제로 재현된 버그. legacy는
+                                 onclick(순수 JS)였지만 yona에서는 아래 !isAllowedUpdate 분기와 동일하게
+                                 th:href 앵커로 감싸 동일한 이동 동작을 안전하게 재현한다. -->
+                            <a th:if="${isAllowedUpdate}" th:href="@{/{owner}/{projectName}/issue/{number}/editform(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}">
+                                <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" th:title="#{button.edit}"><i class="yobicon-edit-2"></i></button>
+                            </a>
+                            <a th:if="${!isAllowedUpdate}" th:href="@{/{owner}/{projectName}/issue/{number}/editform(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}">
+                                <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" th:title="#{button.show.original}"><i class="yobicon-edit-2"></i></button>
+                            </a>
+                            <th:block th:if="${isAllowedUpdate}">
+                                <th:block th:if="${@templateHelper.canBeDeleted(issue, comments)}">
+                                    <a href="#deleteConfirm" data-toggle="modal">
+                                        <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml6" data-toggle="tooltip" th:title="#{button.delete}"><i class="yobicon-trash"></i></button>
+                                    </a>
+                                </th:block>
+                                <th:block th:unless="${@templateHelper.canBeDeleted(issue, comments)}">
+                                    <button type="button" class="icon disabled btn-transparent-with-fontsize-lineheight ml6" data-toggle="popover" data-trigger="hover" data-placement="top" th:data-content="#{issue.can.not.be.deleted}"><i class="yobicon-trash"></i></button>
+                                </th:block>
+                            </th:block>
+                        </span>
+                    </div>
+
+                    <!-- yona issue/view.scala.html:270-278 subtasks 영역 대응 (그룹7 #134/#135/#136).
+                         amIShared: 현재 사용자가 이 이슈의 공유자(sharer)인지. isThisParentIssue: 이
+                         이슈 자체가 최상위 부모인지(parent==null). 공유자로서 하위이슈를 보고 있을 때는
+                         (자신이 이미 하위이슈인 경우) 형제 하위이슈 목록을 노출하지 않는다. -->
+                    <div class="subtasks" th:with="amIShared=${currentUser != null && issue.sharers.![user.id].contains(currentUser.id)}, isThisParentIssue=${issue.parent == null}">
+                        <th:block th:if="${amIShared}">
+                            <div th:if="${isThisParentIssue}" th:replace="~{issue/partial_view_childIssueList :: childIssueList(${issue}, ${project}, ${currentUser})}"></div>
+                        </th:block>
+                        <div th:unless="${amIShared}" th:replace="~{issue/partial_view_childIssueList :: childIssueList(${issue}, ${project}, ${currentUser})}"></div>
+                    </div>
+
+                    <div id="comments" class="board-comment-wrap">
+                        <div id="timeline">
+                            <!-- yona IssueApp.timeline()/yobi.issue.View.js _updateTimeline() 대응 (그룹7 #127).
+                                 massUpdate로 담당자/마일스톤/마감일을 저장한 뒤 이 영역만 AJAX로 다시 불러온다
+                                 (GET .../issue/{number}/timeline, "issue/view :: timelineItems"). 이 fragment 밖의
+                                 로컬 변수(th:with)는 참조하지 않고 모델 속성(timeline, childCommentsByParentId,
+                                 isProjectManager, commentApiBase, currentUser, project, issue)만 사용한다 —
+                                 그래야 timeline() 엔드포인트가 같은 모델만 채워서 동일하게 렌더링할 수 있다. -->
+                            <div class="timeline-list" th:fragment="timelineItems">
+                                <!-- 타임라인 영역 (댓글 + 상태/담당자/라벨/마일스톤/이동 이벤트, Thymeleaf Loop) -->
+                                <th:block th:each="item : ${timeline}">
+                                <div th:if="${item.kind == 'COMMENT'}" th:with="comment=${item.comment}, children=${childCommentsByParentId != null ? childCommentsByParentId.get(comment.id) : null}, canEditThisComment=${currentUser != null and (item.comment.authorId == currentUser.id or isProjectManager)}, issueCommentResourceType=${T(com.github.yonaprojects.yona.domain.enumeration.ResourceType).ISSUE_COMMENT}"
+                                    class="comment" th:classappend="${currentUser != null and comment.authorLoginId == currentUser.loginId} ? ' author'" th:id="'comment-' + ${comment.id}">
+                                    <div th:replace="~{common/childCommentsAnchorDiv :: anchorDiv(${children})}"></div>
+                                    <div class="comment-avatar">
+                                        <span class="avatar-wrap"><img src="/images/default-avatar-128.png" width="32" height="32"></span>
+                                    </div>
+                                    <div class="media-body">
+                                    <div class="comment-body">
+                                        <div class="author-info meta-info">
+                                            <strong class="name" th:text="${comment.authorName != null ? comment.authorName : comment.authorLoginId}">댓글작성자</strong>
+                                            <span class="date" th:text="${templateHelper.agoOrDateString(comment.createdDate)}">작성일</span>
+
+                                            <span class="act-row pull-right">
+                                                <!-- 그룹11 #25 재작업: 댓글 인라인 수정/삭제 버튼(legacy issue/partial_comment.scala.html
+                                                     의 data-toggle="comment-edit"/"comment-delete" 대응) -->
+                                                <button th:if="${currentUser != null}" type="button" class="btn-transparent-with-fontsize-lineheight ml10" data-toggle="comment-edit" th:data-comment-id="${comment.id}" th:title="#{common.comment.edit}"><i class="yobicon-edit-2"></i></button>
+                                                <button th:if="${currentUser != null and (comment.authorId == currentUser.id or isProjectManager)}" type="button" class="btn-transparent-with-fontsize-lineheight ml6" data-toggle="comment-delete" th:data-request-uri="${commentApiBase} + '/' + ${comment.id}" th:title="#{common.comment.delete}"><i class="yobicon-trash"></i></button>
+                                                <!-- 댓글 공감인 5명 초과인 경우 -->
+                                                <th:block th:if="${comment.voters.size() > 5}">
+                                                    <span style="margin-right: 2px;" data-toggle="tooltip" data-html="true" th:title="${templateHelper.getVotersTooltip(comment.voters, 0, 5)}">
+                                                        <a class="vote-description-people" th:href="'#voters-' + ${comment.id}" data-toggle="modal" th:text="${comment.voters.size() == 1 ? #messages.msg('common.comment.vote.agreement', comment.voters.size()) : #messages.msg('common.comment.vote.agreements', comment.voters.size())}">
+                                                            N 공감
+                                                        </a>
+                                                    </span>
+
+                                                    <!-- 댓글 추천인 모달 -->
+                                                    <div th:id="'voters-' + ${comment.id}" class="modal hide voters-dialog">
+                                                        <div class="modal-header">
+                                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                                            <h5 class="nm" th:text="#{issue.voters}">공감하는 사람들</h5>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <ul class="unstyled">
+                                                                <li th:each="voter : ${comment.voters}">
+                                                                    <a th:href="@{/user/{loginId}(loginId=${voter.loginId})}" class="usf-group" target="_blank">
+                                                                        <span class="avatar-wrap mlarge">
+                                                                            <img th:src="${voter.avatarUrl}" width="40" height="40">
+                                                                        </span>
+                                                                        <strong class="name" th:text="${voter.name}">이름</strong>
+                                                                        <span class="loginid"> <strong>@</strong><span th:text="${voter.loginId}">loginId</span></span>
+                                                                    </a>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button class="ybtn ybtn-info ybtn-small" data-dismiss="modal" aria-hidden="true" th:text="#{button.close}">닫기</button>
+                                                        </div>
+                                                    </div>
+                                                </th:block>
+
+                                                <!-- 댓글 공감인 5명 이하인 경우 -->
+                                                <th:block th:if="${comment.voters.size() <= 5}">
+                                                    <a th:each="voter : ${comment.voters}" th:href="@{/user/{loginId}(loginId=${voter.loginId})}" class="avatar-wrap smaller" data-toggle="tooltip" data-placement="top" th:title="${voter.name}">
+                                                        <img th:src="${voter.avatarUrl}">
+                                                    </a>
+                                                </th:block>
+
+                                                <!-- 공감 버튼 토글 -->
+                                                <th:block th:with="hasCommentVoted=${currentUser != null && comment.voters.![id].contains(currentUser.id)}">
+                                                    <button th:if="${hasCommentVoted}" type="button" class="btn-transparent-with-fontsize-lineheight" th:title="#{common.comment.unvote}" data-request-type="comment-vote" th:data-request-uri="@{/{owner}/{projectName}/issue/{issueNumber}/comment/{commentId}/unvote(owner=${project.owner}, projectName=${project.name}, issueNumber=${issue.number}, commentId=${comment.id})}">
+                                                        <i class="yobicon-hearts vote-heart-on"></i>
+                                                    </button>
+                                                    <button th:if="${!hasCommentVoted && currentUser != null}" type="button" class="btn-transparent-with-fontsize-lineheight" th:title="#{common.comment.vote}" data-request-type="comment-vote" th:data-request-uri="@{/{owner}/{projectName}/issue/{issueNumber}/comment/{commentId}/vote(owner=${project.owner}, projectName=${project.name}, issueNumber=${issue.number}, commentId=${comment.id})}">
+                                                        <i class="yobicon-hearts vote-heart-off"></i>
+                                                    </button>
+                                                    <span th:if="${currentUser == null}" class="btn-transparent-with-fontsize-lineheight" th:title="#{common.comment.vote}">
+                                                        <i class="yobicon-hearts vote-heart-off vote-heart-disable-hover"></i>
+                                                    </span>
+                                                </th:block>
+                                            </span>
+                                        </div>
+                                        <div th:replace="~{common/commentUpdateForm :: updateForm(${comment}, ${commentApiBase}, ${canEditThisComment}, ${issueCommentResourceType})}"></div>
+                                        <div th:id="'comment-body-' + ${comment.id}">
+                                            <div class="content markdown-wrap" th:utext="${markdownService.render(comment.contents, true, project)}">댓글내용</div>
+                                        </div>
+                                    </div>
+                                    <div th:replace="~{common/childComments :: childComments(${comment}, ${children}, ${project}, ${commentApiBase}, ${currentUser}, ${isProjectManager})}"></div>
+                                    </div>
+                                </div>
+
+                                <!-- 이벤트 영역: yona partial_event_timeline.scala.html 대응 (P1-106) -->
+                                <div th:if="${item.kind == 'EVENT'}" th:with="event=${item.event}, eventTypeName=${event.eventType.name()}" class="event" th:id="'event-' + ${event.id}">
+                                    <div>
+                                        <th:block th:if="${eventTypeName == 'ISSUE_STATE_CHANGED'}">
+                                            <span class="state" th:classappend="${#strings.toLowerCase(event.newValue)}" th:text="#{'issue.state.' + ${#strings.toLowerCase(event.newValue)}}">상태</span>
+                                            <span th:if="${#strings.equalsIgnoreCase(event.newValue, 'OPEN')}" th:text="#{issue.event.open(${event.senderLoginId})}">이슈를 열었습니다</span>
+                                            <span th:if="${#strings.equalsIgnoreCase(event.newValue, 'CLOSED')}" th:text="#{issue.event.closed(${event.senderLoginId})}">이슈를 닫았습니다</span>
+                                        </th:block>
+                                        <th:block th:if="${eventTypeName == 'ISSUE_ASSIGNEE_CHANGED'}">
+                                            <span class="state changed" th:text="#{issue.state.assigned}">할당됨</span>
+                                            <span th:if="${event.newValue != null}" th:text="#{issue.event.assigned(${event.senderLoginId}, ${event.newValue})}">담당자로 지정했습니다</span>
+                                            <span th:if="${event.newValue == null}" th:text="#{issue.event.unassigned(${event.senderLoginId})}">담당자를 없앴습니다</span>
+                                        </th:block>
+                                        <th:block th:if="${eventTypeName == 'ISSUE_MILESTONE_CHANGED'}">
+                                            <span class="state milestone-changed" th:text="#{issue.update.milestone.id}">마일스톤 변경</span>
+                                            <span th:text="#{issue.event.milestone.changed(${event.senderLoginId}, ${event.newValue != null ? event.newValue : #messages.msg('common.none')})}">마일스톤을 변경했습니다</span>
+                                        </th:block>
+                                        <th:block th:if="${eventTypeName == 'ISSUE_MOVED'}">
+                                            <span class="state changed" th:text="#{issue.event.moved.title}">이동함</span>
+                                            <span th:text="#{issue.event.moved(${event.senderLoginId}, ${event.oldValue})}">이슈를 이동했습니다</span>
+                                        </th:block>
+                                        <th:block th:if="${eventTypeName == 'ISSUE_LABEL_CHANGED'}">
+                                            <span class="state label-changed" th:text="#{issue.event.label.added.title}">라벨 변경</span>
+                                            <span th:text="#{issue.event.label.changed(${event.senderLoginId}, ${event.oldValue}, ${event.newValue})}">라벨을 변경했습니다</span>
+                                        </th:block>
+                                        <th:block th:if="${eventTypeName != 'ISSUE_STATE_CHANGED' && eventTypeName != 'ISSUE_ASSIGNEE_CHANGED' && eventTypeName != 'ISSUE_MILESTONE_CHANGED' && eventTypeName != 'ISSUE_MOVED' && eventTypeName != 'ISSUE_LABEL_CHANGED'}">
+                                            <span class="state changed" th:text="${event.senderLoginId} + ': ' + ${event.newValue}">이벤트</span>
+                                        </th:block>
+                                    </div>
+                                    <span class="date" th:text="${templateHelper.agoOrDateString(event.created)}">날짜</span>
+                                </div>
+                            </th:block>
+                            </div>
+                        </div>
+
+                        <!-- 댓글 등록 폼 영역 -->
+                        <th:block sec:authorize="isAuthenticated()">
+                            <form id="comment-form" th:action="@{/{owner}/{projectName}/issue/{issueNumber}/comment(owner=${project.owner}, projectName=${project.name}, issueNumber=${issue.number})}" method="post" enctype="multipart/form-data">
+                                <div class="write-comment-box">
+                                    <div th:replace="~{site/layout :: markdownEditor('contents', '', 'comment-body')}"></div>
+
+                                    <div th:replace="~{common/uploadForm :: uploadForm('ISSUE_COMMENT', null, null)}"></div>
+
+                                    <div class="write-comment-wrap">
+                                        <div class="right-txt">
+                                            <button type="submit" class="ybtn ybtn-success" th:text="#{button.comment.new}">댓글 등록</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </th:block>
+
+                        <!-- 비로그인 사용자용 안내 영역 -->
+                        <th:block sec:authorize="isAnonymous()">
+                            <div class="write-comment-box mt20" th:title="#{error.auth.unauthorized.comment}" data-login="required">
+                                <div class="write-comment-wrap">
+                                    <div class="textarea-box">
+                                        <textarea class="comment disabled" disabled="disabled" style="cursor:text;" th:placeholder="#{error.auth.unauthorized.comment}"></textarea>
+                                    </div>
+                                    <div class="right-txt mt10">
+                                        <span class="ybtn ybtn-disabled" th:text="#{button.comment.new}">댓글 등록</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </th:block>
+                    </div>
+                </div>
+
+                <!-- Right Pane -->
+                <div class="span3 span-right-pane mb20">
+                    <div class="issue-info">
+                        <form id="issueUpdateForm" th:action="@{/{owner}/{projectName}/issues/massupdate(owner=${project.owner}, projectName=${project.name})}" method="post">
+                            <input type="hidden" name="issues[0].id" th:value="${issue.id}" />
+
+                            <!-- 담당자 — yona issue/partial_assignee.scala.html 대응 (그룹7 #127). isAllowedUpdate
+                                 일 때는 select2 인라인 위젯(yonaAssgineeModule, IssueApi.findAssignableUsers/
+                                 updateAssginees와 동일한 REST 대응 엔드포인트로 저장)으로 바뀐다 — massUpdate가
+                                 아니라 담당자 전용 REST 엔드포인트로 즉시 저장되는 legacy 동작을 그대로 재현한다. -->
+                            <dl>
+                                <dt th:text="#{issue.assignee}">담당자</dt>
+                                <dd>
+                                    <th:block th:if="${isAllowedUpdate}">
+                                        <input type="hidden" class="bigdrop" id="assignee" name="assigneeLoginId" th:placeholder="#{issue.noAssignee}" th:value="${issue.assignee != null ? issue.assignee.user.loginId : ''}" style="width: 100%" title="">
+                                    </th:block>
+                                    <th:block th:unless="${isAllowedUpdate}">
+                                        <a th:if="${issue.assignee != null}" th:href="@{/{loginId}(loginId=${issue.assignee.user.loginId})}" class="usf-group">
+                                            <span class="avatar-wrap smaller"><img th:src="${issue.assignee.user.avatarUrl}" width="20" height="20"></span>
+                                            <strong class="name" th:text="${issue.assignee.user.name}">이름</strong>
+                                            <span class="loginid"> <strong>@</strong><span th:text="${issue.assignee.user.loginId}">loginId</span></span>
+                                        </a>
+                                        <div th:unless="${issue.assignee != null}" th:text="#{issue.noAssignee}">담당자 없음</div>
+                                    </th:block>
+                                </dd>
+                            </dl>
+
+                            <!-- 마일스톤 — yona issue/view.scala.html:329-381 대응 (그룹7 #127). project.menuSetting.milestone
+                                 대응 gate + isAllowedUpdate일 때 select2, 아니면 링크/텍스트. -->
+                            <dl th:if="${project.isMilestoneEnabled}">
+                                <dt th:text="#{milestone}">마일스톤</dt>
+                                <dd>
+                                    <div th:if="${openMilestones.isEmpty() and closedMilestones.isEmpty()}">
+                                        <a th:href="@{/{owner}/{projectName}/newMilestoneForm(owner=${project.owner}, projectName=${project.name})}" class="ybtn ybtn-small ybtn-fullsize" target="_blank" th:text="#{milestone.menu.new}">새 마일스톤</a>
+                                    </div>
+                                    <th:block th:unless="${openMilestones.isEmpty() and closedMilestones.isEmpty()}">
+                                        <select th:if="${isAllowedUpdate}" id="milestone" name="milestone.id" data-toggle="select2" data-format="milestone" data-container-css-class="fullsize">
+                                            <option value="-1" th:selected="${issue.milestone == null}" th:text="#{issue.noMilestone}">마일스톤 없음</option>
+                                            <optgroup th:label="#{milestone.state.open}">
+                                                <option th:each="ms : ${openMilestones}" th:value="${ms.id}" th:selected="${issue.milestone != null and issue.milestone.id == ms.id}" th:text="${ms.title}"></option>
+                                            </optgroup>
+                                            <optgroup th:label="#{milestone.state.closed}">
+                                                <option th:each="ms : ${closedMilestones}" th:value="${ms.id}" th:selected="${issue.milestone != null and issue.milestone.id == ms.id}" th:text="${ms.title}"></option>
+                                            </optgroup>
+                                        </select>
+                                        <th:block th:unless="${isAllowedUpdate}">
+                                            <a th:if="${issue.milestone != null}" th:href="@{/{owner}/{projectName}/milestone/{id}(owner=${project.owner}, projectName=${project.name}, id=${issue.milestone.id})}" th:text="${issue.milestone.title}">마일스톤</a>
+                                            <span th:if="${issue.milestone == null}" th:text="#{issue.noMilestone}">마일스톤 없음</span>
+                                        </th:block>
+                                    </th:block>
+                                </dd>
+                            </dl>
+
+                            <!-- 마감일 — yona issue/view.scala.html:384-411 대응 (그룹7 #127). isAllowedUpdate일 때
+                                 calendar 텍스트 입력(massUpdate로 저장), 아니면 기존과 동일한 텍스트 표시. -->
+                            <dl>
+                                <dt>
+                                    <span th:text="#{issue.dueDate}">마감일</span>
+                                    <span class="duedate-status" th:classappend="${templateHelper.isOverDueDate(issue)} ? 'overdue' : ''">
+                                        <th:block th:if="${issue.dueDate != null and issue.state == T(com.github.yonaprojects.yona.domain.enumeration.State).OPEN}">
+                                            <th:block th:if="${templateHelper.isOverDueDate(issue)}">(<span th:text="#{issue.dueDate.overdue}">기한초과</span>)</th:block>
+                                            <th:block th:unless="${templateHelper.isOverDueDate(issue)}">(<span th:text="${templateHelper.until(issue)}">D-3</span>)</th:block>
+                                        </th:block>
+                                    </span>
+                                </dt>
+                                <dd>
+                                    <div th:if="${isAllowedUpdate}" class="search search-bar">
+                                        <input type="text" name="dueDate" th:value="${issue.dueDate != null ? #dates.format(issue.dueDate, 'yyyy-MM-dd') : ''}" class="textbox full" autocomplete="off" data-toggle="calendar">
+                                        <button type="button" class="search-btn btn-calendar"><i class="yobicon-calendar2"></i></button>
+                                    </div>
+                                    <span th:unless="${isAllowedUpdate}" th:text="${issue.dueDate != null ? #dates.format(issue.dueDate, 'yyyy-MM-dd') : #messages.msg('issue.noDuedate')}">마감일 없음</span>
+                                </dd>
+                            </dl>
+
+                            <!-- labels -->
+                            <th:block th:with="projectLabels=${@templateHelper.getProjectLabels(project)}">
+                                <div th:if="${projectLabels != null and !projectLabels.isEmpty()}">
+                                    <div th:if="${isAllowedUpdate}">
+                                        <div th:replace="~{issue/partial_select_label :: selectLabel(${projectLabels}, ${issue.labels}, '', '', ${project})}"></div>
+                                    </div>
+                                    <div th:unless="${isAllowedUpdate}">
+                                        <div th:replace="~{issue/partial_show_selected_label :: showLabel(${issue.labels}, '')}"></div>
+                                    </div>
+                                </div>
+                            </th:block>
+
+                            <!-- sharers -->
+                            <dl class="sharer-list" th:classappend="${issue.sharers.isEmpty()} ? 'hide' : ''" style="margin-top: 15px;">
+                                <dt class="issue-share-title mb10">
+                                    <span th:text="#{issue.sharer}">공유자</span>
+                                    <span class="num issue-sharer-count" th:if="${!issue.sharers.isEmpty()}" th:text="${issue.sharers.size()}">0</span>
+                                </dt>
+                                <dd id="sharer-list" th:classappend="${issue.sharers.isEmpty()} ? 'hide' : ''">
+                                    <th:block th:if="${isAllowedUpdate}">
+                                        <input type="text" class="width100p" id="issueSharer" name="issueSharer" th:placeholder="#{issue.sharer.select}" th:value="${#strings.listJoin(issue.sharers.![user.loginId], ',')}" style="width: 100%;">
+                                    </th:block>
+                                    <th:block th:unless="${isAllowedUpdate}">
+                                        <div th:each="sharer : ${issue.sharers}" class="text-ellipsis sharer-item" style="padding: 2px 0;">
+                                            <a th:href="@{/user/{loginId}(loginId=${sharer.user.loginId})}" class="usf-group">
+                                                <span class="avatar-wrap smaller"><img th:src="${sharer.user.avatarUrl}"></span>
+                                                <strong th:text="${sharer.user.name}">이름</strong>
+                                                <span th:text="'@' + ${sharer.user.loginId}">loginId</span>
+                                            </a>
+                                        </div>
+                                    </th:block>
+                                </dd>
+                            </dl>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm to delete post -->
+    <div id="deleteConfirm" class="modal hide fade">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">×</button>
+            <h3 th:text="#{issue.delete}">이슈 삭제</h3>
+        </div>
+        <div class="modal-body">
+            <p th:text="#{post.delete.confirm}">정말 이 이슈를 삭제하시겠습니까?</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="ybtn ybtn-danger" data-request-method="delete" th:data-request-uri="@{/api/projects/{projectId}/issues/{number}(projectId=${project.id}, number=${issue.number})}">네</button>
+            <button type="button" class="ybtn" data-dismiss="modal">아니요</button>
+        </div>
+    </div>
+
+    <!-- Voters Modal -->
+    <div id="voters" class="modal hide voters-dialog">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h5 class="nm" th:text="#{issue.voters}">공감하는 사람들</h5>
+        </div>
+        <div class="modal-body">
+            <ul class="unstyled">
+                <li th:each="voter : ${issue.voters}">
+                    <a th:href="@{/user/{loginId}(loginId=${voter.loginId})}" class="usf-group" target="_blank">
+                        <span class="avatar-wrap mlarge">
+                            <img th:src="${voter.avatarUrl}" width="40" height="40">
+                        </span>
+                        <strong class="name" th:text="${voter.name}">이름</strong>
+                        <span class="loginid"> <strong>@</strong><span th:text="${voter.loginId}">loginId</span></span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div class="modal-footer">
+            <button class="ybtn ybtn-info ybtn-small" data-dismiss="modal" aria-hidden="true" th:text="#{button.close}">닫기</button>
+        </div>
+    </div>
+
+    <div th:replace="~{common/commentDeleteModal :: commentDeleteModal('#comments')}"></div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+<th:block th:replace="~{common/select2 :: select2}"></th:block>
+<th:block th:replace="~{common/calendar :: calendar}"></th:block>
+<script type="text/javascript" src="/javascripts/common/yona.Tasklist.js"></script>
+<script type="text/javascript" src="/javascripts/lib/atjs/jquery.caret.min.js"></script>
+<script type="text/javascript" src="/javascripts/lib/atjs/jquery.atwho.js"></script>
+<script type="text/javascript" src="/javascripts/service/yona.issue.Assginee.js"></script>
+<script type="text/javascript">
+    $(function(){
+        $yobi.loadModule("issue.View", {
+            "issueId"  : "[[${issue.id}]]",
+            "nextState": "[[${issue.state}]]",
+            "urls"     : {
+                "watch"     : "/watch",
+                "unwatch"   : "/unwatch",
+                "timeline"  : "[[@{/{owner}/{projectName}/issue/{number}/timeline(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}]]",
+                "massUpdate": "[[@{/{owner}/{projectName}/issues/massupdate(owner=${project.owner}, projectName=${project.name})}]]"
+            }
+        });
+
+        // yona issue/view.scala.html:539-544 yonaAssgineeModule(...) 대응 (그룹7 #127) — 담당자
+        // select2는 massUpdate가 아니라 이슈별 전용 REST 엔드포인트(findAssignableUsers/updateAssginees,
+        // 이미 IssueShareController에 구현돼 있음)로 즉시 저장된다.
+        <th:block th:if="${isAllowedUpdate}">
+        yonaAssgineeModule(
+            "[[@{/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/assignableUsers(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}]]",
+            "[[@{/-_-api/v1/owners/{owner}/projects/{projectName}/issues/{number}/assignees(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}]]",
+            "[[#{issue.assignee}]]"
+        );
+        </th:block>
+
+        $('[data-request-method="delete"]').click(function(){
+            var uri = $(this).data("requestUri");
+            $.ajax({
+                url: uri,
+                type: "DELETE",
+                success: function() {
+                    window.location = "[[@{/{owner}/{projectName}/issues(owner=${project.owner}, projectName=${project.name})}]]";
+                }
+            });
+        });
+
+        // ===== 그룹11 #25/#26/#29/#30/#31 재작업: 댓글 인라인 수정/대댓글 AJAX 배선 =====
+        // legacy는 풀페이지 폼 제출(commentUpdateForm/child_commentForm)이지만, yona는 REST(PUT/POST
+        // .../comments[/id])만 제공하므로 fetch 기반 AJAX로 대체한다 — 성공 시 간단히 페이지를
+        // reload한다(리뷰어 참여/해제 등 이미 정착된 다른 PR 화면과 동일한 패턴).
+        $(document).on('click', '[data-toggle="comment-edit"]', function(){
+            var id = $(this).data('commentId');
+            $('#comment-body-' + id).hide();
+            $('#comment-editform-' + id).show();
+        });
+        $(document).on('click', '.ybtn-cancel', function(){
+            var id = $(this).data('commentId');
+            $('#comment-editform-' + id).hide();
+            $('#comment-body-' + id).show();
+        });
+        $(document).on('submit', '.comment-update-form form', function(e){
+            e.preventDefault();
+            var $form = $(this);
+            var apiBase = $form.data('apiBase');
+            var commentId = $form.data('commentId');
+            var contents = $form.find('textarea[data-editor-mode="update-comment-body"]').val();
+            $.ajax({
+                url: apiBase + '/' + commentId,
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({ contents: contents }),
+                success: function(){ window.location.reload(); },
+                error: function(xhr){ alert('[[#{common.comment.edit}]] failed: ' + (xhr.responseJSON && xhr.responseJSON.message || xhr.responseText || '')); }
+            });
+        });
+        $(document).on('submit', '.child-comment-form', function(e){
+            e.preventDefault();
+            var $form = $(this);
+            var apiBase = $form.data('apiBase');
+            var parentCommentId = $form.data('parentCommentId');
+            var contents = $form.find('textarea[name="contents"]').val();
+            $.ajax({
+                url: apiBase,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ contents: contents, parentCommentId: parentCommentId }),
+                success: function(){ window.location.reload(); },
+                error: function(xhr){ alert('[[#{button.comment.new}]] failed: ' + (xhr.responseJSON && xhr.responseJSON.message || xhr.responseText || '')); }
+            });
+        });
+    });
+</script>
+</body>
+</html>

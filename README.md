@@ -1,235 +1,482 @@
 <a name="korean"></a>[[English]](#english)
 
-[![Build Status](https://travis-ci.org/yona-projects/yona.svg?branch=master)](https://travis-ci.org/yona-projects/yona)
-![Downloads Status](https://img.shields.io/github/downloads/yona-projects/yona/total.svg)
+# yona
 
-
-<img src='public/images/yona_logo.png' width='300px'>
+<img src="src/main/resources/static/images/yona-logo.png" width="220px" alt="Yona logo">
 
 ##### 21세기 협업 개발 플랫폼
 
-- DEMO: [http://repo.yona.io](http://repo.yona.io)
-(데모 서버는 2023년 6월 30일 종료합니다. [관련 안내](https://github.com/yona-projects/yona/issues/785))
-- Official Site: [http://yona.io](http://yona.io)
+- Official Site (원본 프로젝트): [http://yona.io](http://yona.io)
+- 이 저장소([`search5/yona`](https://github.com/search5/yona))는 원본 [Yona](https://github.com/yona-projects/yona)(Play Framework/Java/Ebean
+  기반의 설치형 프로젝트 협업 플랫폼)를 **Kotlin + Spring Boot + JPA(Hibernate)** 스택으로 새로 옮겨
+  쓴 프로젝트입니다. 화면 구조·데이터 모델·동작 방식은 legacy Yona와 최대한 동일하게 유지하면서,
+  런타임과 빌드 도구만 현재 JVM 생태계로 교체하는 것을 목표로 합니다.
 
-Yona?
---
-- Git 저장소 기능이 내장된 설치형 이슈트래커
-- Naver, Naver Labs 를 비롯하여 게임회사, 통신회사 고객센터, 공공기관, 투자사, 학교, 기업등에서 수년 간 실제로 사용되어 왔고 개선되어 온(Real world battled) 애플리케이션입니다
+## Yona란?
 
-주요기능
----
-- 서비스 종료나 데이터 종속 걱정없는 설치형
-- 프로젝트 기반의 유연한 이슈트래커와 게시판
-   - 편리한 프로젝트간 이슈 이동
-   - 서브 태스크 이슈
-   - 본문 변경이력 보기
-   - 이슈 템플릿 기능
-- 자체 내장된 코드 저장소
-   - Git/SVN 선택 가능
-   - 온라인 수정 및 커밋 지원
-   - 프로젝트 멤버만 코드에 접근 가능 기능 등
-- 블럭기반 코드리뷰 
-   - 코드 블럭 및 리뷰 스레드 지원
-   - 리뷰 점수 지원
-- 그룹 기능
-   - 그룹 이슈 및 게시글 통합관리
-   - 그룹 프로젝트, 그룹 멤버
-- 한글 기반
-   - 프로젝트 이름 및 그룹 이름에 한글을 사용가능
-- LDAP 지원
-   - LDAP 장애시에도 사용가능한 기능 제공
-- 다른 제품이나 서비스로의 마이그레이션 기능 제공
-   - Github/Github Enterprise, 또 다른 Yona 인스턴스, Redmine 등
-- 로그인 관련 보안을 높일 수 있는 소셜로그인 지원
+- Git/SVN 저장소가 내장된 설치형 이슈 트래커 + 게시판 + 코드 리뷰 플랫폼
+- 네이버/네이버랩스를 비롯해 여러 기업·공공기관에서 수년간 실사용되며 다듬어진 애플리케이션
 
-등을 비롯하여 일상적인 업무에서 SW 개발 전반에 필요한 다양한 기능을 포함하고 있습니다.
+### 주요 기능
 
-추가 읽을거리
----
+- 서비스 종료나 데이터 종속 걱정 없는 설치형
+- 프로젝트 기반의 유연한 이슈 트래커와 게시판 — 프로젝트 간 이슈 이동, 서브 태스크, 본문 변경이력,
+  이슈 템플릿
+- 내장 코드 저장소 — Git/SVN 선택 가능, 온라인 수정·커밋, 프로젝트 멤버 전용 접근 제어
+- 블록 기반 코드 리뷰 — 코드 블록 단위 리뷰 스레드, 리뷰 점수
+- 그룹(조직) 기능 — 그룹 단위 이슈/게시글 통합 관리, 그룹 프로젝트·멤버
+- 한글 기반 — 프로젝트 이름 및 그룹 이름에 한글 사용 가능
+- LDAP 지원 및 소셜 로그인(OAuth2)
+- 다른 서비스·다른 Yona 인스턴스로의 마이그레이션(GitHub 프로젝트 Import 등)
+
+### 추가 읽을거리 (원본 프로젝트 자료)
+
 - [왜 Yona를 써야 하나요? (Why Yona?)](https://repo.yona.io/yona-projects/yona/post/3)
 - [기본 워크플로우](https://repo.yona.io/yona-projects/yona-help/post/2)
 
+## Yona(원본) → yona(이식판): 무엇이 바뀌었나
 
-라이선스
---
-Yona는 Apache 2.0 라이선스로 제공됩니다.
+| | legacy Yona | yona(이식판, 이 저장소) |
+|---|---|---|
+| 언어 | Java / Scala 템플릿 | Kotlin |
+| 프레임워크 | Play Framework 2.x | Spring Boot |
+| ORM | Ebean | JPA / Hibernate |
+| 뷰 엔진 | Scala Template(`.scala.html`) | Thymeleaf |
+| JDK | Java 8 | Java 21 |
+| 지원 DB | MariaDB(기본) 또는 H2(내장형) | **MariaDB / PostgreSQL / MySQL / SQL Server / CUBRID / H2(내장형)** |
 
-**이어지는 설치 및 실행, 백업 등등에 대한 자세한 설명은 [Wiki](https://github.com/yona-projects/yona/wiki)에 따로 세분화되어 정리되어 있습니다.**
+포팅 진행 상황과 legacy 대비 의도적으로 남겨둔 차이점은 `docs/PARITY_BACKLOG.md`,
+`docs/TEMPLATE_BACKLOG.md`, `docs/COVERAGE_BACKLOG.md`에 기록돼 있습니다.
 
-Yona 설치 및 실행
-===
+## 요구 사항
 
-Yona 배포판
----
-현재 Yona는 버전별로 두 개의 배포판을 [릴리즈 메뉴](https://github.com/yona-projects/yona/releases)를 통해 제공하고 있습니다.
+- JDK 21
+- 운영/테스트 DB 중 하나: MariaDB(기본), PostgreSQL, MySQL, SQL Server, CUBRID, H2(설치 없이 바로 써보기)
 
-- MariaDB 버전
-  - 기본 권장 버전
-  - `yona-v1.11.0-bin.zip` 같은 형식으로 파일로 배포
-  - DB 설치에 약간의 시간이 필요하지만 안정적으로 운영이 가능
-- H2 DB 내장형
-  - DB 설정없이 내려받아서 바로 실행해서 쓸 수 있는 버전
-  - `yona-h2-v1.11.0-bin.zip` 같은 형식으로 파일로 배포
-  - USB 등에 담아서 이동해가면서 사용하거나 작업후 통째로 zip으로 묶어서 들고 다니는 것이 가능함
-  - 대규모 사이트에서 사용하기에는 적합하지 않음. 참고: [Yona가 MariaDB를 기본 DB로 사용하게 된 이유](https://repo.yona.io/yona-projects/yona/post/4)
+## 빌드 & 실행
 
-Yona 설치
----
-Yona는 크게 다음과 같은 2단계로 설치합니다.
+```bash
+# Linux / macOS
+./gradlew bootRun
 
-- [MariaDB 설치](docs/ko/install-mariadb.md)
-- [Yona 설치](docs/ko/install-yona-server.md)
-
-#### Docker를 이용한 설치
-[Docker](https://www.docker.com/)를 이용해 설치하실분은 [pokev25](https://github.com/pokev25) 님의 https://github.com/pokev25/docker-yona 를 이용해주세요. 
-
-#### Amazon AWS 에 설치 
-https://okdevtv.com/mib/yona 에서 가이드를 볼 수 있습니다. by [Kenu](https://www.facebook.com/kenu.heo)님
-
-Yona 실행 및 업그레이드/백업 및 복구/문제 해결
----
-- [실행 및 재시작 방법](docs/ko/yona-run-and-restart.md)
-- 안정적인 운영을 위한 [실행 옵션들](docs/ko/yona-run-options.md)
-- [업그레이드](docs/ko/yona-upgrade.md)
-- [백업 및 복구](docs/ko/yona-backup-restore.md)
-- [알림메일 발송 기능 설정](docs/ko/yona-mail-settings.md)
-- [발생 가능한 문제상황들과 해결방법](docs/ko/trouble-shootings.md)
-
-
-소스코드를 직접 내려 받아서 빌드하거나 자신만의 배포판을 만들기
----
-자신의 입맛에 맛게 코드를 직접 수정해서 작업하거나 코드를 기여하고 싶을 경우에는 코드 저장소로부터 코드를 직접 내려받아서 빌드/실행하는 것도 가능합니다.
-[소스코드를 직접 내려 받아서 실행하기](https://repo.yona.io/yona-projects/yona/post/5)를 참고해 주세요
-
-서버 관련 설정들
----
-- [application.conf 설명](docs/ko/application-conf-desc.md)
-- [소셜 로그인 설정](docs/ko/yona-social-login-settings.md)
-
-Google Analytics
----
-- 기본적으로는 Google Analytics 가 활성화 되어 함께 배포됩니다. 
-- 설치형으로 제공되는 Yona의 특성상 제품이 지속적으로 개발/유지되기 위해서는 사용자들이 현재 어느정도 내려받아서 사용하고 있는지에 대한 정보가 필요합니다.
-- 만약 이부분에 대해 도움을 주기 곤란한 경우 application.conf 에서 아래 항목을 false로 수정합니다.
-```
-application.send.yona.usage = true
+# Windows
+gradlew.bat bootRun
 ```
 
-마이그레이션
----
-- 기본적으로 Yona 에서 Github/Github Enterprise 로 이전하는 기능을 제공합니다.
-    - [Yona에서 Github으로 이사가는 방법](https://repo.yona.io/yona-projects/yona-help/post/4)
-    - [설정](https://github.com/yona-projects/yona/blob/master/conf/application.conf.default#L297)
-- [Yona Export](https://github.com/yona-projects/yona-export)
-    - 프로젝트 로컬 백업
-    - Yona 에서 다른 Yona 인스턴스로 이전 지원
-       - 일명 '출장용 Yona 기능'이라고도 할 수 있는 하는 기능입니다. 
-          - DB내장형 경량 Yona인, [Yona H2 Embedded 버전]을 사용해서 출장/파견 나가서 작업하다가 작업 완료후에 Export 받아서 본점 Yona에 Import 하는 것이 v1.6.0부터 가능합니다.
-    - Export 파일 포맷만 일치시킨다면 어떤 소스로부터도 마이그레이션이나 이동이 가능합니다
+테스트:
 
+```bash
+./gradlew test        # Linux/macOS
+gradlew.bat test       # Windows
+```
 
-Contribution
----
-- 코드 기여의 기준이 되는 브랜치는 `master`입니다.
-- 저장소를 fork 한 다음 `master` 브랜치를 기준으로 작업하신다음 `master` 브랜치로 pull request를 보내주세요.
-  - `next`브랜치는 내부 개발용입니다. 어떠한 기능들이 추가되고 있는지 현장을 보고 싶으시면 `next`브랜치를 참고해주세요.
-- 코드리뷰 후 merge 되면 Yona Author로 파일에 기록되며 작은 기념품을 보내드립니다. 
+## 데이터베이스 선택
+
+기본 Spring 프로파일은 `mariadb`입니다. 다른 DB로 운영하려면 `spring.profiles.active`를
+아래 중 하나로 지정하세요(`src/main/resources/application.yml`에 각 프로파일의 접속 설정이 있습니다).
+로컬 개발용 MariaDB/PostgreSQL 컨테이너는 저장소 루트의 `docker-compose.yml`로 바로 띄울 수 있습니다.
+
+| 프로파일 | DB |
+|---|---|
+| `mariadb` (기본값) | MariaDB |
+| `postgres` | PostgreSQL |
+| `mysql` | MySQL |
+| `mssql` | Microsoft SQL Server |
+| `cubrid` | CUBRID |
+| `h2` | H2(내장형) — Docker/별도 서버 설치 없이 파일 기반으로 바로 실행(`./data/h2/yona`) |
+
+```bash
+java -jar yona.jar --spring.profiles.active=postgres
+
+# 설치 없이 바로 써보기(H2)
+java -jar yona.jar --spring.profiles.active=h2
+```
+
+통합 테스트는 실제 Docker 컨테이너(Testcontainers) 기준으로 5개 DB 전부 검증돼 있습니다.
+특정 DB로만 테스트를 돌리려면(**동시에 두 개 이상 돌리면 gradle 빌드 출력 디렉터리가
+꼬이니 항상 한 번에 하나씩만 실행하세요**):
+
+```bash
+./gradlew test -Dyona.it.db=postgres   # mariadb|postgres|mysql|mssql|cubrid
+```
+
+## 운영 환경 설정 (특히 Windows)
+
+물리 저장소(git bare repo, svn repo, git-lfs 객체, 첨부파일 업로드)를 디스크의 어느 경로에 둘지는
+아래 4개 설정으로 제어합니다. 기본값이 `/tmp/yona/...` 형태의 유닉스 절대경로이기 때문에,
+**Windows에서 운영할 때는 반드시 아래 값들을 Windows 경로로 재설정해야 합니다.**
+
+| 설정 키 | 기본값 | 용도 |
+|---|---|---|
+| `yona.git.base-dir` | `/tmp/yona/git` | Git bare 저장소 루트 |
+| `yona.svn.base-dir` | `/tmp/yona/svn` | SVN 저장소 루트 |
+| `yona.lfs.base-dir` | `/tmp/yona/lfs` | Git LFS 객체 저장 루트 |
+| `yona.upload.base-dir` | `${yona.data:data}/uploads` (상대경로) | 첨부파일 업로드 루트 |
+
+### 설정 변경 방법
+
+1. **`application.yml`에 직접 지정** (가장 확실한 방법)
+
+   ```yaml
+   yona:
+     git:
+       base-dir: "D:/yona-data/git"
+     svn:
+       base-dir: "D:/yona-data/svn"
+     lfs:
+       base-dir: "D:/yona-data/lfs"
+     upload:
+       base-dir: "D:/yona-data/uploads"
+   ```
+
+   Windows 경로도 슬래시(`/`)로 적으면 됩니다(자바가 두 구분자를 모두 인식합니다). 백슬래시를 쓸
+   경우 YAML 이스케이프 때문에 `\\`로 두 번 써야 하므로, 슬래시 표기를 권장합니다.
+
+2. **실행 시 커맨드라인 인자로 지정** (`application.yml`을 건드리지 않고 배포별로 다르게 줄 때)
+
+   ```powershell
+   java -jar yona.jar --yona.git.base-dir=D:\yona-data\git --yona.svn.base-dir=D:\yona-data\svn --yona.lfs.base-dir=D:\yona-data\lfs --yona.upload.base-dir=D:\yona-data\uploads
+   ```
+
+   `-D`로 JVM 시스템 프로퍼티를 주는 방식(`java -Dyona.git.base-dir=D:\... -jar yona.jar`)도 동일하게 동작합니다.
+
+3. **환경 변수** — Spring Boot의 relaxed binding 규칙상 `yona.git.base-dir`에 대응하는 환경 변수명은
+   `YONA_GIT_BASEDIR`처럼 하이픈(`-`)이 빠진 형태입니다(다른 `YONA_*` 설정들처럼 밑줄로 치환되는 게
+   아님). 헷갈리기 쉬우므로 **1번(yml) 또는 2번(커맨드라인 인자) 방식을 권장**합니다.
+
+### Windows에서 Fork(하드링크 복제) 사용 시 전제 조건
+
+프로젝트 Fork는 저장소를 실제로 복사하지 않고 파일시스템 하드링크로 복제합니다
+(`ProjectServiceImpl.cloneHardLinkedRepository`). 이 방식이 정상 동작하려면:
+
+- `yona.git.base-dir`(및 `yona.svn.base-dir`) 전체가 **하나의 NTFS 볼륨(드라이브)** 안에 있어야
+  합니다. 서로 다른 드라이브 간에는 하드링크가 불가능해 Fork가 실패합니다(폴백 복사 없음, 의도적 설계).
+- 저장 위치가 **NTFS**여야 합니다. FAT32/exFAT로 포맷된 외장 디스크나 일부 네트워크 드라이브는
+  하드링크 자체를 지원하지 않아 Fork가 실패합니다.
+
+## 서버 관련 설정
+
+- LDAP: `application.yml`의 `ldap` 섹션
+- 소셜 로그인(OAuth2): `application.yml`의 `spring.security.oauth2` 섹션
+
+## Google Analytics
+
+- legacy와 동일하게 Google Analytics 트래킹 스크립트가 실제로 구현되어 있습니다
+  (`GlobalModelAttributeAdvice`가 `sendYonaUsage` 모델 속성을 채우면 `templates/site/layout.html`이
+  그 값에 따라 GA 스크립트를 렌더링합니다).
+- **다만 기본값은 legacy(`application.send.yona.usage = true`, 기본 켜짐)와 반대로 꺼짐(`false`)
+  입니다.** 켜고 싶다면 `application.yml`에서 아래 항목을 `true`로 설정합니다.
+
+  ```yaml
+  yona:
+    analytics:
+      send-usage: true
+  ```
+
+## 마이그레이션
+
+- GitHub 프로젝트를 이 저장소로 Import하는 기능을 제공합니다(`MigrationService`,
+  `MigrationApiController`). `github.client.id` / `github.client.secret` / `github.allow.migration`
+  설정으로 활성화합니다.
+- 원본 Yona의 별도 백업/이관 도구인 [Yona Export](https://github.com/yona-projects/yona-export)는
+  이 저장소(Kotlin/Spring 이식판) 대상으로는 아직 포팅되지 않았습니다 — 진행 상황은
+  `docs/PARITY_BACKLOG.md` 참고.
+
+## Contribution
+
+- 코드 기여의 기준이 되는 브랜치는 `main`입니다.
+- 저장소를 fork한 다음 `main` 브랜치를 기준으로 작업하신 다음 `main` 브랜치로 pull request를
+  보내주세요.
+
+## 운영 가이드
+
+legacy Yona의 설치/운영 문서를 yona 기준으로 다시 쓴 것들이다 — `docs/guide/`:
+
+- [설치](docs/guide/install.md)
+- [실행 및 재시작](docs/guide/run-and-restart.md)
+- [실행 옵션](docs/guide/run-options.md)
+- [업그레이드](docs/guide/upgrade.md)
+- [백업 및 복구](docs/guide/backup-restore.md)
+- [메일 알림 설정](docs/guide/mail-settings.md)
+- [소셜 로그인 설정](docs/guide/social-login-settings.md)
+- [트러블슈팅](docs/guide/troubleshooting.md)
+- [설정 레퍼런스(application.yml)](docs/guide/settings-reference.md)
+- [시스템 요구 사항](docs/guide/system-requirements.md)
+- [사용자 가이드](docs/guide/user-manual/TOC.md) — 화면별 사용법
+- [기술 문서](docs/guide/technical/README.md) — 권한 규칙, JS 모듈 구조, 첨부파일/웹훅/마크다운
+  내부 동작 등
+
+영문 버전은 legacy와 동일하게 별도 위치에 있다 — 운영 문서는 [`docs/*.md`](#operations-guide),
+사용자 가이드는 [`docs/userManual/`](docs/userManual/TOC.md), 기술 문서는 legacy에 영문 원본이
+있던 5개(markdown/mailbox/watch/label-typeahead/name-validation)만 [`docs/technical/`](docs/technical/markdown.md)에
+있다(나머지 11개는 legacy도 한글 전용이었다).
+
+서비스로 상시 구동할 때 참고할 systemd 유닛 예시와 DB 튜닝 샘플은 [`support-script/`](support-script/README.md)에 있다.
+
+legacy Yona(Yobi/nFORGE 포함)의 설계 스펙·비전 문서·릴리즈노트는 원문 그대로
+[`docs/legacy-reference/`](docs/legacy-reference/README.md)에 보존되어 있다.
+
+## 코드 구조 개요
+
+`docs/PARITY_BACKLOG.md`, `docs/TEMPLATE_BACKLOG.md`, `docs/COVERAGE_BACKLOG.md`에 legacy yona 대비
+이식 진행 상황과 의도적으로 남겨둔 차이점들이 기록되어 있습니다.
+
+## 라이선스
+
+yona는 원본 Yona/Yobi와 동일하게 [Apache License 2.0](LICENSE)으로 제공됩니다.
+서드파티 구성 요소 고지는 [NOTICE](NOTICE), 원 프로젝트 기여자 명단은 [AUTHORS](AUTHORS)를
+참고하세요.
 
 <br/>
 
 <a name="english"></a>[[한국어]](#korean)
 
+# yona
 
-Yona
-=======
 Yona is a web-based project hosting software.
 
-What you can do with Yona:
---
-Yona is designed to increase the speed and efficiency of team work and team development.
+- Official Site (original project): [http://yona.io](http://yona.io)
+- This repository ([`search5/yona`](https://github.com/search5/yona)) is a rewrite of the original [Yona](https://github.com/yona-projects/yona)
+  (a self-hosted project collaboration platform built on Play Framework/Java/Ebean) onto a
+  **Kotlin + Spring Boot + JPA (Hibernate)** stack. The goal is to keep screen structure, data
+  model, and behavior as close as possible to legacy Yona while replacing only the runtime and
+  build tooling with the current JVM ecosystem.
 
-- Issue tracker
-   - Issues can be transferred to other projects
-   - Issues' change histories can be viewed
-- Bulletin board
-- Embedded Git/SVN respository features 
-- Pull requests & Block-based code review
-- Online Commits
-- LDAP support
-- Social login
-- Migration to/from other services or Yona instances
-     - Github/Github Enterprise, Redmine, Yona
+## What is Yona?
 
-Requirements
----
-- Java 8+
-- System Memory 2Gb+ (Recommendation: 4Gb+)
+- A self-hosted issue tracker + bulletin board + code review platform with an embedded Git/SVN
+  repository
+- An application battle-tested for years at NAVER, NAVER LABS, and various companies and public
+  institutions
 
-Distribution
----
-Currently, There are two distribution types.
+### Key features
 
-#### MariaDB version
-- Recommended version
-- It takes a little effort to install DB, but it guarantees stable operation
+- Self-hosted — no dependency on a third-party service that could shut down or lock in your data
+- A flexible, project-based issue tracker and bulletin board — issue transfer between projects,
+  sub-tasks, body change history, issue templates
+- Embedded code repository — choose Git or SVN, online edit/commit, access restricted to project
+  members
+- Block-based code review — review threads per code block, review scores
+- Group (organization) features — unified management of issues/posts across a group, group
+  projects and members
+- Korean-friendly — project and group names can use Korean characters
+- LDAP support and social login (OAuth2)
+- Migration to/from other services or Yona instances (GitHub project import, etc.)
 
-#### Embedded H2 DB version
-- Portable version that can be downloaded and run immediately. 
-  - Setting a DB is not required.
-  - Also, can run the software directly from a USB device
-- Suitable for small teams (under 500 users).
+### Further reading (original project resources)
 
-How to install
----
-Basically, Yona installation is in two steps:
+- [Why Yona?](https://repo.yona.io/yona-projects/yona/post/3)
+- [Basic workflow](https://repo.yona.io/yona-projects/yona-help/post/2)
 
-- [MariaDB install](docs/install-mariadb.md)
-- [Yona install](docs/install-yona-server.md)
+## Yona (original) → yona (this port): what changed
 
+| | legacy Yona | yona (this port) |
+|---|---|---|
+| Language | Java / Scala templates | Kotlin |
+| Framework | Play Framework 2.x | Spring Boot |
+| ORM | Ebean | JPA / Hibernate |
+| View engine | Scala Template (`.scala.html`) | Thymeleaf |
+| JDK | Java 8 | Java 21 |
+| Supported DB | MariaDB (default) or embedded H2 | **MariaDB / PostgreSQL / MySQL / SQL Server / CUBRID / embedded H2** |
 
-If you want to use [Docker](https://www.docker.com/), See https://github.com/pokev25/docker-yona by [pokev25](https://github.com/pokev25)
+Porting progress and deliberate differences from legacy are tracked in `docs/PARITY_BACKLOG.md`,
+`docs/TEMPLATE_BACKLOG.md`, and `docs/COVERAGE_BACKLOG.md`.
 
+## Requirements
 
-Start/Upgrade/Backup/Trouble Shootings
----
-- [Start and Restart](docs/yona-run-and-restart.md)
-- [Start Options](docs/yona-run-options.md) for stable operation
+- JDK 21
+- One of the supported/tested DBs: MariaDB (default), PostgreSQL, MySQL, SQL Server, CUBRID, or embedded H2 (no install needed)
+
+## Build & Run
+
+```bash
+# Linux / macOS
+./gradlew bootRun
+
+# Windows
+gradlew.bat bootRun
+```
+
+Tests:
+
+```bash
+./gradlew test        # Linux/macOS
+gradlew.bat test       # Windows
+```
+
+## Choosing a database
+
+The default Spring profile is `mariadb`. To run against a different DB, set
+`spring.profiles.active` to one of the profiles below (connection settings for each profile live
+in `src/main/resources/application.yml`). A local MariaDB/PostgreSQL container can be started
+directly from the `docker-compose.yml` at the repository root.
+
+| Profile | DB |
+|---|---|
+| `mariadb` (default) | MariaDB |
+| `postgres` | PostgreSQL |
+| `mysql` | MySQL |
+| `mssql` | Microsoft SQL Server |
+| `cubrid` | CUBRID |
+| `h2` | Embedded H2 — runs immediately from a local file (`./data/h2/yona`), no Docker/server install |
+
+```bash
+java -jar yona.jar --spring.profiles.active=postgres
+
+# Try it with zero setup (H2)
+java -jar yona.jar --spring.profiles.active=h2
+```
+
+Integration tests are verified against all 5 server DBs using real Docker containers
+(Testcontainers); H2 is embedded and needs no container. To run tests against a single DB
+(**never run two or more at once — the gradle build output directory gets corrupted; always run
+one at a time**):
+
+```bash
+./gradlew test -Dyona.it.db=postgres   # mariadb|postgres|mysql|mssql|cubrid|h2
+```
+
+## Deployment configuration (especially on Windows)
+
+Where physical storage lives on disk (git bare repos, svn repos, git-lfs objects, attachment
+uploads) is controlled by the 4 settings below. The defaults are Unix absolute paths in the form
+`/tmp/yona/...`, so **when operating on Windows you must reconfigure these to Windows paths.**
+
+| Setting key | Default | Purpose |
+|---|---|---|
+| `yona.git.base-dir` | `/tmp/yona/git` | Git bare repository root |
+| `yona.svn.base-dir` | `/tmp/yona/svn` | SVN repository root |
+| `yona.lfs.base-dir` | `/tmp/yona/lfs` | Git LFS object storage root |
+| `yona.upload.base-dir` | `${yona.data:data}/uploads` (relative) | Attachment upload root |
+
+### How to change these settings
+
+1. **Set directly in `application.yml`** (the most reliable way)
+
+   ```yaml
+   yona:
+     git:
+       base-dir: "D:/yona-data/git"
+     svn:
+       base-dir: "D:/yona-data/svn"
+     lfs:
+       base-dir: "D:/yona-data/lfs"
+     upload:
+       base-dir: "D:/yona-data/uploads"
+   ```
+
+   Windows paths can be written with forward slashes (`/`) too — Java accepts both separators.
+   If you use backslashes, YAML escaping requires doubling them (`\\`), so forward slashes are
+   recommended.
+
+2. **Pass as command-line arguments at runtime** (to vary per deployment without touching
+   `application.yml`)
+
+   ```powershell
+   java -jar yona.jar --yona.git.base-dir=D:\yona-data\git --yona.svn.base-dir=D:\yona-data\svn --yona.lfs.base-dir=D:\yona-data\lfs --yona.upload.base-dir=D:\yona-data\uploads
+   ```
+
+   Passing JVM system properties with `-D` (`java -Dyona.git.base-dir=D:\... -jar yona.jar`) works
+   the same way.
+
+3. **Environment variables** — under Spring Boot's relaxed binding rules, the environment
+   variable corresponding to `yona.git.base-dir` is `YONA_GIT_BASEDIR` (the hyphen is simply
+   dropped, not replaced with an underscore like other `YONA_*` settings). This is easy to get
+   wrong, so **option 1 (yml) or option 2 (command-line arguments) is recommended.**
+
+### Prerequisites for using Fork (hard-link cloning) on Windows
+
+Project Fork does not physically copy the repository — it clones via filesystem hard links
+(`ProjectServiceImpl.cloneHardLinkedRepository`). For this to work correctly:
+
+- `yona.git.base-dir` (and `yona.svn.base-dir`) must live entirely within **a single NTFS
+  volume (drive)**. Hard links cannot cross drives, so Fork fails between different drives (no
+  copy fallback — this is intentional).
+- The storage location must be **NTFS**. External disks formatted as FAT32/exFAT, and some
+  network drives, don't support hard links at all, so Fork fails there.
+
+## Server settings
+
+- LDAP: the `ldap` section of `application.yml`
+- Social login (OAuth2): the `spring.security.oauth2` section of `application.yml`
+
+## Google Analytics
+
+- The Google Analytics tracking script is actually implemented, same as legacy
+  (`GlobalModelAttributeAdvice` populates a `sendYonaUsage` model attribute, and
+  `templates/site/layout.html` renders the GA script based on that value).
+- **Unlike legacy (`application.send.yona.usage = true`, on by default), the default here is
+  off (`false`).** To enable it, set the following to `true` in `application.yml`.
+
+  ```yaml
+  yona:
+    analytics:
+      send-usage: true
+  ```
+
+## Migration
+
+- Provides GitHub project import into this repository (`MigrationService`,
+  `MigrationApiController`). Enable it via the `github.client.id` / `github.client.secret` /
+  `github.allow.migration` settings.
+- The original Yona's separate backup/migration tool,
+  [Yona Export](https://github.com/yona-projects/yona-export), has not yet been ported to this
+  repository (the Kotlin/Spring port) — see `docs/PARITY_BACKLOG.md` for status.
+
+## Contribution
+
+- The branch for contributions is `main`.
+- Fork the repository, work on top of the `main` branch, then send a pull request to the `main`
+  branch.
+
+## Operations guide
+
+legacy Yona kept English docs at `docs/*.md` and Korean docs at `docs/ko/*.md`. yona keeps that
+same split: this section lists the English set (same filenames/locations as legacy), rewritten
+for yona. The Korean set lives under `docs/guide/` — see the [운영 가이드](#운영-가이드) section
+above (it's reorganized slightly differently, e.g. install docs merged into one file, so the two
+sets aren't a strict 1:1 file mirror).
+
+- [Install (MariaDB)](docs/install-mariadb.md)
+- [Install (yona server)](docs/install-yona-server.md)
+- [Run and restart](docs/yona-run-and-restart.md)
+- [Run options](docs/yona-run-options.md)
 - [Upgrade](docs/yona-upgrade.md)
-- [Backup/Restore](docs/yona-backup-restore.md)
-- [Mail settings for Notification](docs/yona-mail-settings.md)
-- [Trouble Shootings](docs/trouble-shootings.md)
+- [Backup and restore](docs/yona-backup-restore.md)
+- [Mail notification settings](docs/yona-mail-settings.md)
+- [Social login settings](docs/yona-social-login-settings.md)
+- [Troubleshooting](docs/trouble-shootings.md)
+- [MariaDB 767 byte error](docs/db-error-767.md)
+- [application.yml reference](docs/application-conf-desc.md)
+- [System requirements](docs/system-requirements.md)
+- [Logging](docs/logging.md)
 
-Server Settings
----
-- [application.conf Settings](docs/application-conf-desc.md)
-- [Social Login Settings](docs/yona-social-login-settings.md)
+User manual: legacy's `docs/userManual/` was English-only, so it's ported here at the same
+location — [`docs/userManual/TOC.md`](docs/userManual/TOC.md). (The duplicate
+`projectSetting`/`projectSettings` folders from a legacy typo were merged into one,
+`projectSetting/`.)
 
-Migration
----
-- [Yona Export](https://github.com/yona-projects/yona-export)
-    - Local backup
-    - Move projects to another Yona instance
-    - If you can match the format, anything can be imported into Yona
-- Github/Github Enterprise migration
-    - [See here](https://github.com/yona-projects/yona/blob/master/conf/application.conf.default#L297)
-    
-Google Analytics
----
-- Distributed Yona includes Google Analytics
-- This data is used for making us to improve Yona
-- If you want to disable this for any reason, set the following option to false in conf/application.conf file.
-```
-application.send.yona.usage = true
-```
+Technical docs: legacy's `docs/technical/` (English) and `docs/ko/technical/` (Korean) were two
+different, non-overlapping sets of files. Only the English set is mirrored here at the same
+location — [`docs/technical/`](docs/technical/markdown.md) (markdown, mailbox, watch,
+label-typeahead, name-validation). The Korean set's 11 additional topics (access control, JS
+module conventions, uploader/webhook internals, etc.) only ever existed in Korean, both in
+legacy and here — see [`docs/guide/technical/README.md`](docs/guide/technical/README.md).
 
-Contribution
----
-- The branch for contributions is `master`.
-- At first, fork the repository, then work on the `master` branch. And send a pull request to the`master` branch.
-   - The `next` branch is for internal development. If you want to see what features are being added, please refer to the `next` branch.
+For a systemd unit example and DB tuning samples for running this as a standing service, see
+[`support-script/`](support-script/README.md).
 
+Design specs, vision docs, and release notes from legacy Yona (including its Yobi/nFORGE
+predecessors) are preserved verbatim under
+[`docs/legacy-reference/`](docs/legacy-reference/README.md).
 
-License
---
-Copyright Yona Authors, NAVER Corp. and NAVER LABS under the Apache License, Version 2.0
+## Code structure overview
+
+`docs/PARITY_BACKLOG.md`, `docs/TEMPLATE_BACKLOG.md`, and `docs/COVERAGE_BACKLOG.md` record
+porting progress against legacy yona and deliberately preserved differences.
+
+## License
+
+yona is provided under the [Apache License 2.0](LICENSE), the same license as the original
+Yona/Yobi project. See [NOTICE](NOTICE) for third-party component notices and [AUTHORS](AUTHORS)
+for the original project's contributor list.

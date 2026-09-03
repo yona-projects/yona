@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<div th:fragment="uploadForm(resourceType, resourceId, formId)"
+     class="upload-wrap content-footer"
+     th:data-resource-type="${resourceType}"
+     th:data-resource-id="${resourceId}"
+     th:id="${formId}">
+    <div class="attach-wrap">
+        <span class="help help-droppable" th:text="#{common.attach.drophere}">첨부할 파일을 끌어다 놓거나</span>
+        <div class="btn-wrap">
+            <div class="nbtn medium white fake-file-wrap">
+                <i class="yobicon-upload"></i> <span th:text="#{button.upload}">업로드</span>
+                <input type="file" class="file" name="filePath" multiple="multiple">
+            </div>
+        </div>
+        <span class="plain" th:text="#{common.attach.clickbutton}">버튼을 클릭해서 선택하세요</span>
+        <span class="help help-pastable" th:text="#{common.attach.pastehere}">클립보드 이미지를 붙여 넣을 수도 있습니다</span>
+    </div>
+
+    <ul class="attached-files unstyled"></ul>
+    <p class="right-txt help">
+        <i class="yobicon-supportrequest"></i> <span th:text="#{common.attach.attachIfYouSave}">표시된 파일은 글을 저장하면 첨부됩니다.</span>
+    </p>
+</div>
+</body>
+</html>

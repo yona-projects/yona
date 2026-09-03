@@ -1,0 +1,29 @@
+services:
+  mariadb:
+    image: mariadb:10.11
+    container_name: yona-mariadb
+    ports:
+      - "13306:3306"
+    environment:
+      MARIADB_DATABASE: yona
+      MARIADB_USER: yona
+      MARIADB_PASSWORD: yona_password
+      MARIADB_ROOT_PASSWORD: root_password
+    volumes:
+      - mariadb_data:/var/lib/mysql
+
+  postgres:
+    image: postgres:16
+    container_name: yona-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: yona
+      POSTGRES_USER: yona
+      POSTGRES_PASSWORD: yona_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  mariadb_data:
+  postgres_data:

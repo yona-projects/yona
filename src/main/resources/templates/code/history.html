@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<!-- th:replace는 호스트 <head> 태그와 그 자식을 전부 프래그먼트 결과로 치환하므로, 페이지 전용
+     <style>를 <head> 안에 두면 절대 렌더링되지 않는다(code/view.html P0-27과 동일 유형, 전수 감사로
+     발견) — <body> 최상단으로 옮겨서 실제로 렌더링되게 한다. -->
+<head th:replace="~{site/layout :: head(#{title.commitHistory} + ' - ' + ${project.name})}"></head>
+<body class="theme-default">
+<style>
+  .code-browse-wrap {
+      background: #fff;
+      border: 1px solid #d8dee2;
+      border-radius: 3px;
+      padding: 20px;
+      margin-bottom: 25px;
+  }
+  /* 공용 yobi.css에 `.code-browse-wrap .commit-wrap { background-color: #FFF; }`이 이미 있어
+     프리픽스를 맞춘다(속성이 겹치진 않지만 일관성/향후 안전을 위해 스코프). */
+  .code-browse-wrap .commit-wrap {
+      margin-top: 15px;
+  }
+</style>
+<div id="main" class="main">
+  <div th:replace="~{site/layout :: gnb}"></div>
+  <div th:replace="~{project/header :: header(${project})}"></div>
+  <div th:replace="~{project/menu :: menu(${project}, 'code')}"></div>
+
+  <div class="page-wrap-outer">
+    <div class="project-page-wrap">
+      <div class="bubble-wrap dark-gray repo-wrap">
+        <div class="code-browse-wrap">
+
+          <!-- 특정 파일 경로의 변경이력을 보는 중일 때만 브레드크럼을 보여준다 (yona code/history.scala.html:81-86) -->
+          <div id="breadcrumbs" class="code-breadcrumb-wrap" th:if="${!#strings.isEmpty(path)}">
+            <a th:href="@{/{owner}/{name}/commits/{branch}(owner=${project.owner}, name=${project.name}, branch=${branch})}" th:text="${project.name}">project</a><th:block
+               th:each="crumb : ${breadcrumbs}"><a th:href="@{/{owner}/{name}/commits/{branch}/{subPath}(owner=${project.owner}, name=${project.name}, branch=${branch}, subPath=${crumb.second})}" th:text="${crumb.first}">segment</a></th:block>
+          </div>
+
+          <!-- 루트(경로 없이 브랜치 전체) 이력을 볼 때만 브랜치 선택 + 탭을 보여준다 (yona code/history.scala.html:88-113) -->
+          <th:block th:if="${#strings.isEmpty(path)}">
+            <select id="branches" class="form-control pull-right" style="width: 200px;">
+              <option th:each="branchName : ${branches}"
+                      th:value="@{/{owner}/{name}/commits/{branch}(owner=${project.owner}, name=${project.name}, branch=${templateHelper.branchItemName(branchName)})}"
+                      th:selected="${templateHelper.branchItemName(branchName) == templateHelper.branchItemName(branch)}"
+                      th:text="${branchName}"></option>
+            </select>
+
+            <ul class="nav nav-tabs" style="margin-bottom:20px;">
+              <li>
+                <a th:href="@{/{owner}/{name}/code/{branch}(owner=${project.owner}, name=${project.name}, branch=${branch})}" th:text="#{code.files}">파일</a>
+              </li>
+              <li class="active">
+                <a th:href="@{/{owner}/{name}/commits/{branch}(owner=${project.owner}, name=${project.name}, branch=${branch})}" th:text="#{code.commits}">커밋</a>
+              </li>
+              <li th:if="${project.vcs == 'GIT'}">
+                <a th:href="@{/{owner}/{name}/branches(owner=${project.owner}, name=${project.name})}" th:text="#{title.branches}">브랜치</a>
+              </li>
+            </ul>
+          </th:block>
+
+          <div id="history" class="commit-wrap">
+            <table class="code-table commits" th:classappend="${!#strings.isEmpty(path)} ? 'mt10' : ''">
+              <thead class="thead">
+                <tr>
+                  <td class="commit-id"><strong>@</strong></td>
+                  <td class="messages"><strong th:text="#{code.commitMsg}">커밋 메시지</strong></td>
+                  <td class="browse" th:if="${!#strings.isEmpty(path)}"></td>
+                  <td class="date"><strong th:text="${project.vcs == 'GIT'} ? #{code.authorDate} : #{code.commitDate}">작성일</strong></td>
+                  <td class="author"><strong th:text="#{code.author}">작성자</strong></td>
+                </tr>
+              </thead>
+              <tbody class="tbody">
+                <tr th:if="${commits.isEmpty()}"><td colspan="5" class="warning-none" th:text="#{code.nocommits}">커밋 없음</td></tr>
+                <tr th:each="commit : ${commits}"
+                    th:with="showCommitURL=@{/{owner}/{name}/commit/{commitId}(owner=${project.owner}, name=${project.name}, commitId=${commit.id}, branch=${branch}, path=${#strings.isEmpty(path)} ? null : ${path})},
+                             numOfComment=${commentCounts.get(commit.id)}">
+                  <td class="commit-id">
+                    <button type="button" class="ybtn ybtn-mini btn-copy-commitId" th:title="#{code.copyCommitId}" th:data-commitid="${commit.id}">
+                      <i class="yobicon-copy"></i>
+                    </button>
+                    <a th:href="${showCommitURL}" th:title="#{code.showCommit}" th:text="${commit.shortId}">shortId</a>
+                  </td>
+                  <td class="messages">
+                    <span class="number-of-comments" th:if="${numOfComment > 0}"><i class="yobicon-comments"></i> <span th:text="${numOfComment}">0</span></span>
+                    <div th:replace="~{common/commitMsg :: commitMsg(${commit.shortMessage}, ${commit.message}, ${showCommitURL}, false)}"></div>
+                  </td>
+                  <td class="browse" th:if="${!#strings.isEmpty(path)}">
+                    <a th:href="@{/{owner}/{name}/code/{branch}/{path}(owner=${project.owner}, name=${project.name}, branch=${commit.shortId}, path=${path})}" th:title="#{code.showCodeAtThisCommit}" class="ybtn" th:text="#{code.showCode}">코드 보기</a>
+                  </td>
+                  <td class="date" th:text="${templateHelper.agoOrDateString(commit.authorDate != null ? commit.authorDate.toInstant() : null)}">date</td>
+                  <td class="author">
+                    <a th:if="${commit.author != null}" th:href="@{/user/{loginId}(loginId=${commit.author.loginId})}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${commit.author.loginId}">
+                      <img th:src="${commit.author.avatarUrl}" width="32" height="32">
+                    </a>
+                    <span th:if="${commit.author == null and commit.authorEmail != null}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${commit.authorEmail}">
+                      <img src="/images/default-avatar-32.png" width="32" height="32">
+                    </span>
+                    <span th:if="${commit.author == null and commit.authorEmail == null and commit.authorName != null}" th:text="${commit.authorName}">author</span>
+                    <span th:if="${commit.author == null and commit.authorEmail == null and commit.authorName == null}">Anonymous</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="actrow margin-top-20">
+            <a th:if="${page > 0}" th:href="@{/{owner}/{name}/commits/{branch}(owner=${project.owner}, name=${project.name}, branch=${branch}, page=${page - 1})}" class="ybtn pull-left" th:text="#{code.newer}">최신</a>
+            <a th:if="${!commits.isEmpty() and commits[commits.size() - 1].parentCount > 0}" th:href="@{/{owner}/{name}/commits/{branch}(owner=${project.owner}, name=${project.name}, branch=${branch}, page=${page + 1})}" class="ybtn pull-left" th:text="#{code.older}">이전</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+
+<div th:replace="~{site/layout :: scripts}"></div>
+<th:block th:replace="~{common/select2 :: select2}"></th:block>
+<script type="text/javascript">
+$(document).ready(function(){
+    $("button.moreBtn").on("click", function(){
+        $(this).next("pre.commitMsg.desc").toggleClass("hidden");
+    });
+
+    $("#branches").on("change", function(){
+        location.href = $(this).val();
+    });
+
+    $("#history").find(".btn-copy-commitId").each(function(i, el){
+        var welBtnCopy = $(el);
+        welBtnCopy.on("mouseenter", function(){
+            if (typeof ClipboardJS !== "undefined" && ClipboardJS.isSupported()) {
+                new ClipboardJS(this, {
+                    text: function(){ return $(welBtnCopy).data("commitid"); }
+                }).on('success', function(e) {
+                    if (window.$yobi) { $yobi.notify("[[#{code.copyCommitId.copied}]]", 1000); }
+                    e.clearSelection();
+                });
+            }
+        });
+    });
+});
+</script>
+</body>
+</html>

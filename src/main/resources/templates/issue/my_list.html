@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(#{issue.myIssue})}"></head>
+<body class="theme-default">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+    <div th:replace="~{site/layout :: breadcrumb}"></div>
+
+    <div class="page-wrap-outer">
+        <div class="page-wrap">
+            <div th:replace="~{common/mySeriesMenuTab :: menu('my_issues')}"></div>
+            <div th:replace="~{issue/my_partial_search :: search}"></div>
+        </div>
+    </div>
+</div>
+
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+<script type="text/javascript" src="/javascripts/lib/jquery.pageslide.js"></script>
+<script type="text/javascript" src="/javascripts/service/yona.twoColumnMode.js"></script>
+<script type="text/javascript" src="/javascripts/service/yona.showSubtask.js"></script>
+<script type="text/javascript">
+  $(function(){
+      $yobi.loadModule("issue.List");
+
+      var $setDefaultLoginPage = $("#setDefaultLoginPage");
+      $setDefaultLoginPage.on('click', function(){
+          $.post("/user/setDefaultLoginPage?path=" + $setDefaultLoginPage.data("url"))
+                  .done(function (data) {
+                      $yobi.notify("Set to default: " + data.defaultLoginPage, 3000);
+                      $setDefaultLoginPage.hide();
+                  })
+                  .fail(function (data) {
+                      $yobi.alert("set Default page failed: " + data);
+                  });
+      });
+
+      $(document).on({
+          "pjax:complete": labelTextColorAdjust
+      });
+      function labelTextColorAdjust() {
+          $(".title-cell > .label").each(function () {
+              var $this = $(this);
+              $this.removeClass("dimgray white")
+                      .addClass($yobi.getContrastColor($this.css('background-color')))
+          });
+      }
+
+      labelTextColorAdjust();
+  });
+</script>
+</body>
+</html>

@@ -1,55 +1,56 @@
 # Pull Request
 
-By using `Pull Request` you can let the original project members know the code changes you've made and ask them to review the code, and you can discuss the alterations with the members. Also, your code can be merged when the code review is done.
+By using `Pull Request` you can let the original project members know about the code changes
+you've made and ask them to review the code, and you can discuss the changes with the members.
+Also, your code can be merged once the code review is done.
 
 `Pull Request`, however, is only available for projects using a git repository.
-
 
 Creating pull requests
 ----------------------
 
-1. Create or modify code in your projects or forked projects.
+1. Create or modify code in your project or a forked project.
 1. Push the code to a repository in the project.
 1. Go to the project.
 1. Click the `Pull Request` menu.
 1. Click the `New Pull Request` button.
-1. Choose a project and a branch of `from`. This means that the branch in the project has modified and created code.
-1. Choose a project and a branch of `to`. This means a branch to which the `from` branch is merged.
+1. Choose a project and branch for `from` — the branch with the modified/created code.
+1. Choose a project and branch for `to` — the branch the `from` branch will be merged into.
 1. Click the `Send pull request` button.
-
 
 Conflicts
 ---------
 
-If modified codes come into conflicts with the original one, you will see guide on pull request page. To solve the conflicts follow the guide.
+If the modified code conflicts with the original, you'll see a guide on the pull request page.
+Follow the guide to resolve the conflicts.
 
-Although these conflicts are not solved, pull requests can be created. But you have to solve it to merge your code. If you solve the conflicts, the `Accept` button will be enabled.
-
+Pull requests can still be created even if these conflicts aren't resolved. But you have to
+resolve them to merge your code — once resolved, the `Accept` button becomes enabled.
 
 Code Review
 -----------
 
-The original project members can review the code. If the project's share option is public, non-project members can review the code, and they are able to let others give feedback and discuss with others.
+Original project members can review the code. If the project's share option is public,
+non-members can also review the code and give/receive feedback.
 
 1. Go to a pull request you want to review.
 1. Click the `Code Review` tab.
-1. There are two ways to open a review text box.
-    1. Drag mouse cursor on code you want to review and click the `Comment` button.
-    1. Click the `Comment` button at the left of a code line you want to review.
-1. Write your review and click the 'Add Comment' button.
-
-Also, you can comment without selecting code.
-
-1. Go to a pull request you want to review.
-1. Click the `Code Review` tab.
-1. Move to the bottom of page then you will see comment box.
+1. There are two ways to open a review text box:
+    1. Drag the mouse cursor over the code you want to review and click the `Comment` button.
+    1. Click the `Comment` button to the left of a code line you want to review.
 1. Write your review and click the `Add Comment` button.
 
+You can also comment without selecting code:
+
+1. Go to a pull request you want to review.
+1. Click the `Code Review` tab.
+1. Scroll to the bottom of the page — you'll see a comment box.
+1. Write your review and click the `Add Comment` button.
 
 Accept
 ------
 
-By using `Accept`, you can merge reviewed source codes to the original project repository.
+By using `Accept`, you can merge reviewed source code into the original project's repository.
 
 1. Click a request within the `Pull Request` menu.
 1. Click the `Accept` button.

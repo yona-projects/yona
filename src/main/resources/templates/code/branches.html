@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(#{title.branches} + ' - ' + ${project.name})}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <!-- Yona 원본 프로젝트 헤더 및 프로젝트 메뉴 탑재 -->
+    <div th:replace="~{project/header :: header(${project})}"></div>
+    <div th:replace="~{project/menu :: menu(${project}, 'code')}"></div>
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
+            <div class="bubble-wrap dark-gray repo-wrap">
+                <div class="code-browse-wrap">
+                    <ul class="nav nav-tabs" style="margin-bottom:20px;">
+                        <li>
+                            <a th:href="@{/{owner}/{name}/code(owner=${project.owner}, name=${project.name})}">
+                                <span th:text="#{code.files}">파일</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a th:href="@{/{owner}/{name}/commits(owner=${project.owner}, name=${project.name})}">
+                                <span th:text="#{code.commits}">커밋</span>
+                            </a>
+                        </li>
+                        <li class="active" th:if="${project.vcs == 'GIT'}">
+                            <a th:href="@{/{owner}/{name}/branches(owner=${project.owner}, name=${project.name})}">
+                                <span th:text="#{title.branches}">브랜치</span>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <table class="table branch-list-wrap">
+                        <thead class="thead">
+                            <tr>
+                                <th th:text="#{title.branches}">브랜치</th>
+                                <th th:text="#{code.branches.commit}">최신 커밋</th>
+                                <th th:text="#{code.branches.pullRequest}">보낸 코드</th>
+                                <th th:if="${showActionsColumn}"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- 기본(Head) 브랜치 렌더링 (yona code/partial_branchrow.scala.html isHead=true 대응) -->
+                            <tr th:if="${headBranch != null}" class="head">
+                                <td class="branchName">
+                                    <a th:href="@{/{owner}/{name}/code/{branch}(owner=${project.owner}, name=${project.name}, branch=${headBranch.shortName})}"
+                                       th:text="${headBranch.shortName}">default</a>
+                                    <span class="headBranch ml10" th:text="#{code.branches.defaultBranch}">기본 브랜치</span>
+                                </td>
+                                <td class="commit">
+                                    <a th:href="@{/{owner}/{name}/commit/{commitId}(owner=${project.owner}, name=${project.name}, commitId=${headBranch.headCommit.id})}"
+                                       class="commitId" th:title="${headBranch.headCommit.id}" th:text="${headBranch.headCommit.shortId}">shortId</a>
+                                    <span class="date"
+                                          th:data-toggle="tooltip"
+                                          th:data-placement="top"
+                                          th:title="${templateHelper.getDateString(headBranch.headCommit.committerDate.toInstant())}"
+                                          th:text="${templateHelper.agoOrDateString(headBranch.headCommit.committerDate.toInstant())}">date</span>
+                                </td>
+                                <td class="pullRequest">
+                                    <th:block th:with="pr=${pullRequestsByBranch.get(headBranch.shortName)}">
+                                        <a th:if="${pr != null}" th:href="@{/{owner}/{name}/pull/{number}(owner=${pr.toProject.owner}, name=${pr.toProject.name}, number=${pr.number})}"
+                                           th:class="'blue-txt pullrequest-state ' + ${#strings.toLowerCase(pr.state.name())}"
+                                           data-toggle="tooltip" data-placement="top" th:title="#{'pullRequest.state.' + ${#strings.toLowerCase(pr.state.name())}}"
+                                           th:text="'pullRequest-' + ${pr.number}">pullRequest-1</a>
+                                        <span th:if="${pr == null}" class="disabled" th:text="#{code.branches.noPullRequest}">보낸 코드 없음</span>
+                                    </th:block>
+                                </td>
+                                <td class="actions" th:if="${showActionsColumn}"></td>
+                            </tr>
+
+                            <!-- 나머지 브랜치 리스트 렌더링 -->
+                            <tr th:each="branch : ${allBranches}">
+                                <td class="branchName">
+                                    <a th:href="@{/{owner}/{name}/code/{branch}(owner=${project.owner}, name=${project.name}, branch=${branch.shortName})}"
+                                       th:text="${branch.shortName}">branchName</a>
+                                </td>
+                                <td class="commit">
+                                    <a th:href="@{/{owner}/{name}/commit/{commitId}(owner=${project.owner}, name=${project.name}, commitId=${branch.headCommit.id})}"
+                                       class="commitId" th:title="${branch.headCommit.id}" th:text="${branch.headCommit.shortId}">shortId</a>
+                                    <span class="date"
+                                          th:data-toggle="tooltip"
+                                          th:data-placement="top"
+                                          th:title="${templateHelper.getDateString(branch.headCommit.committerDate.toInstant())}"
+                                          th:text="${templateHelper.agoOrDateString(branch.headCommit.committerDate.toInstant())}">date</span>
+                                </td>
+                                <td class="pullRequest">
+                                    <th:block th:with="pr=${pullRequestsByBranch.get(branch.shortName)}">
+                                        <a th:if="${pr != null}" th:href="@{/{owner}/{name}/pull/{number}(owner=${pr.toProject.owner}, name=${pr.toProject.name}, number=${pr.number})}"
+                                           th:class="'blue-txt pullrequest-state ' + ${#strings.toLowerCase(pr.state.name())}"
+                                           data-toggle="tooltip" data-placement="top" th:title="#{'pullRequest.state.' + ${#strings.toLowerCase(pr.state.name())}}"
+                                           th:text="'pullRequest-' + ${pr.number}">pullRequest-1</a>
+                                        <span th:if="${pr == null}" class="disabled" th:text="#{code.branches.noPullRequest}">보낸 코드 없음</span>
+                                    </th:block>
+                                </td>
+                                <td class="actions" th:if="${showActionsColumn}">
+                                    <!-- allBranches는 이미 headBranch(기본 브랜치)를 제외한 목록이라 legacy의
+                                         "branch.getName() != project.defaultBranch()" 조건은 여기서 항상 참이다 -->
+                                    <button th:if="${canUpdate}" type="button"
+                                            class="ybtn ybtn-default ybtn-small"
+                                            data-request-method="post"
+                                            th:data-request-uri="@{/{owner}/{name}/code/{branch}/setAsDefault(owner=${project.owner}, name=${project.name}, branch=${branch.shortName})}"
+                                            th:text="#{code.branches.setAsDefault}">
+                                        기본 브랜치로 설정
+                                    </button>
+                                    <a th:if="${canDelete}" class="ybtn ybtn-danger ybtn-small" data-request-method="delete"
+                                       th:data-request-uri="@{/{owner}/{name}/code/{branch}(owner=${project.owner}, name=${project.name}, branch=${branch.shortName})}"
+                                       th:text="#{button.delete}">
+                                        삭제
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+
+<div th:replace="~{site/layout :: scripts}"></div>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head('알림 - Yona')}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+  <div th:replace="~{site/layout :: gnb}"></div>
+
+  <!-- 메인 컨텐츠 영역 -->
+  <div class="page full">
+    <div sec:authorize="isAuthenticated()" class="page-wrap-outer">
+        <div class="page-wrap">
+            <div class="site-guide-outer hide">
+                <h3>
+                    <span th:text="#{app.welcome('Yona')} + ' - ' + #{app.description}">Tada! Welcome to Yona!</span>
+                </h3>
+                <table class="welcome-table table borderless">
+                    <tr>
+                        <td>
+                            <a href="/projectform" class="ybtn ybtn-success" th:text="#{button.newProject}">Create new project</a>
+                        </td>
+                        <td th:text="#{app.welcome.project.desc}">Create your own project</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="/organizations/new" class="ybtn ybtn-success" th:text="#{button.newGroup}">New Group</a>
+                        </td>
+                        <td th:text="#{app.welcome.group.desc}">Create a group</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="/projects" class="ybtn ybtn-success" th:text="#{title.projectList}">Project list</a>
+                        </td>
+                        <td th:text="#{app.welcome.searchProject.desc}">Find a project</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="guide-toggle">
+                <button class="btn-transparent" id="toggleIntro"><i class="yobicon-resizev"></i></button>
+            </div>
+            <div class="page on-fold-intro">
+                <div class="row-fluid content-container">
+                    <div class="span8 main-stream">
+                        <div th:replace="~{common/mySeriesMenuTab :: menu('notifications')}"></div>
+                        <ul class="activity-streams notification-wrap unstyled" id="notifications-list">
+                            <!-- partial_notifications 조각 렌더링 -->
+                            <th:block th:replace="~{index/partial_notifications :: html}"></th:block>
+                        </ul>
+        	        </div>
+                    <div class="span4 index-menu right-menu span-hard-wrap">
+                        <!-- 우측 사이드바 등이 들어갈 수 있는 공간 -->
+        	        </div>
+                </div>
+            </div>
+        </div>
+</div>
+</div>
+<!-- 공통 스크립트 블록 포함 -->
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        $("#toggleIntro").click(function(){
+            var $outerGuide = $(".site-guide-outer");
+            $outerGuide.toggleClass("hide");
+            localStorage.setItem("yobi-intro", !$outerGuide.hasClass("hide"));
+        });
+
+        if(localStorage.getItem("yobi-intro") != "false"){
+            $(".site-guide-outer").removeClass("hide");
+        }
+
+        $('.notification-wrap').on('click','[data-toggle="learnmore"]',function(event) {
+            var $this = $(this);
+            $this.find(".more").toggle();
+            var sTargetId = $this.data('target'),
+                welMessage = $('#'+sTargetId),
+                nHeight;
+
+            if(event.target.localName =='a' || event.target.localName =='img') {
+                return ;
+            }
+
+            welMessage.toggleClass('nowrap');
+
+            nHeight = (welMessage.hasClass('nowrap')) ? '' : $(welMessage).find('.message').height();
+
+            $(welMessage).css('min-height',nHeight);
+        });
+
+        function checkOverflow(el) {
+            var curOverflow = el.style.overflow;
+
+            if (!curOverflow || curOverflow === "visible")
+                el.style.overflow = "hidden";
+
+            var isOverflowing = el.clientWidth < el.scrollWidth
+                    || el.clientHeight < el.scrollHeight;
+
+            el.style.overflow = curOverflow;
+
+            return isOverflowing;
+        }
+
+        $(".message-wrap").each(function(index, value){
+            var $this = $(this);
+            if(checkOverflow($this[0])){
+                $this.after("<div class='more'>...</div>");
+            }
+        });
+    });
+</script>
+</body>
+</html>

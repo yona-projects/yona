@@ -1,0 +1,118 @@
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="keymap(section, project)" th:with="isMac=${@templateHelper.isMac()}, ctrl=${isMac ? '⌘' : 'CTRL'}">
+<div class="pull-left" style="padding:10px 0; margin-left: 55px;">
+    <a href="#helpKeys" data-toggle="modal" class="ybtn ybtn-inverse ybtn-mini" th:text="#{title.keymap}">
+        단축키 도움말
+    </a>
+
+    <div id="helpKeys" class="modal hide fade keymap-help" tabindex="-1" role="dialog">
+        <div class="row-fluid">
+            <div class="span3">
+                <h5 th:text="#{project.projects}">프로젝트</h5>
+
+                <span class="ybtn ybtn-small">H</span>
+                <span class="help-inline" th:text="#{menu.home}">홈</span><br>
+
+                <span class="ybtn ybtn-small">B</span>
+                <span class="help-inline" th:text="#{menu.board}">게시판</span><br>
+
+                <span class="ybtn ybtn-small">I</span>
+                <span class="help-inline" th:text="#{menu.issue}">이슈</span><br>
+
+                <span class="ybtn ybtn-small">C</span>
+                <span class="help-inline" th:text="#{menu.code}">코드</span><br>
+
+                <span class="ybtn ybtn-small">M</span>
+                <span class="help-inline" th:text="#{milestone}">마일스톤</span><br>
+
+                <th:block th:if="${project != null}">
+                    <th:block th:if="${project.vcs == 'GIT'}">
+                        <span class="ybtn ybtn-small">P</span>
+                        <span class="help-inline" th:text="#{menu.pullRequest}">코드 보내기</span><br>
+                    </th:block>
+                </th:block>
+
+                <th:block th:if="${project != null && currentUser != null && currentUser.isManagerOf(project)}">
+                    <span class="ybtn ybtn-small">Q</span>
+                    <span class="help-inline" th:text="#{project.setting}">설정</span><br>
+                </th:block>
+            </div>
+
+            <div class="span9">
+                <div class="row-fluid">
+                    <div class="span5">
+                        <h5 th:text="#{'title.' + ${section}}">섹션 도움말</h5>
+
+                        <th:block th:if="${section != null && section.indexOf('board') > -1}">
+                            <span class="ybtn ybtn-small">N</span>
+                            <span class="help-inline" th:text="#{post.write}">글쓰기</span><br>
+                        </th:block>
+
+                        <th:block th:if="${section != null && section.indexOf('issue') > -1}">
+                            <span class="ybtn ybtn-small">N</span>
+                            <span class="help-inline" th:text="#{issue.menu.new}">새 이슈</span><br>
+                        </th:block>
+
+                        <th:block th:if="${section != null && section.indexOf('Detail') > -1}">
+                            <span class="ybtn ybtn-small">L</span>
+                            <span class="help-inline" th:text="#{button.list}">목록</span><br>
+
+                            <span class="ybtn ybtn-small">E</span>
+                            <span class="help-inline" th:text="#{button.edit}">수정</span><br>
+                        </th:block>
+
+                        <th:block th:if="${section != null && section.indexOf('List') > -1}">
+                            <span class="ybtn ybtn-small">←</span>
+                            <span class="help-inline" th:text="#{button.prevPage}">이전 페이지</span><br>
+
+                            <span class="ybtn ybtn-small">→</span>
+                            <span class="help-inline" th:text="#{button.nextPage}">다음 페이지</span><br>
+                        </th:block>
+
+                        <th:block th:if="${section == 'issueList'}">
+                            <span class="ybtn ybtn-small" th:text="${ctrl}">CTRL</span>+ <span class="ybtn ybtn-small">A</span>
+                            <span class="help-inline" th:text="#{button.selectAll}">모두 선택</span><br>
+                        </th:block>
+                    </div>
+
+                    <div class="span7">
+                        <h5 th:text="#{site}">사이트</h5>
+
+                        <span class="ybtn ybtn-small">A</span>
+                        <span class="help-inline" th:text="#{issue.myIssue}">내 이슈</span><br>
+
+                        <span class="ybtn ybtn-small">U</span>
+                        <span class="help-inline" th:text="#{userinfo.profile}">프로필</span><br>
+
+                        <span class="ybtn ybtn-small">F</span>
+                        <span class="help-inline" th:text="#{user.menu}">메뉴</span><br>
+
+                        <th:block th:if="${isMac}">
+                            <span class="ybtn ybtn-small">CTRL</span> +
+                        </th:block>
+                        <span class="ybtn ybtn-small">ALT</span> + <span class="ybtn ybtn-small">S</span>
+                        <span class="help-inline" th:text="#{site.search}">검색</span><br>
+
+                        <span class="ybtn ybtn-small" th:text="${ctrl}">CTRL</span> + <span class="ybtn ybtn-small">ENTER</span>
+                        <span class="help-inline" th:text="#{button.submitForm}">등록</span><br>
+                    </div>
+                </div>
+                <div class="row-fluid mt20">
+                    <div class="span12">
+                        <th:block th:if="${section != null && section.indexOf('issue') > -1 && section.indexOf('Detail') > -1}">
+                            <h5 th:text="#{search.menu.issue.comments}">댓글</h5>
+                            <span class="ybtn ybtn-small">SHIFT</span> +
+                            <span class="ybtn ybtn-small" th:text="${ctrl}">CTRL</span> +
+                            <span class="ybtn ybtn-small">ENTER</span>
+                            <span class="help-inline" th:text="#{button.commentAndNextState.closed}">등록하고 닫기</span><br>
+                        </th:block>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p class="actrow">
+            <button type="button" class="ybtn ybtn-info" data-dismiss="modal" th:text="#{button.confirm}">확인</button>
+        </p>
+    </div>
+</div>
+</th:block>

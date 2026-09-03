@@ -1,0 +1,334 @@
+<div class="tab-pane user-project-list active" id="myOrganizationList">
+    <div class="search-result">
+        <div class="group">
+            <input class="search-input org-search" type="text" autocomplete="off" placeholder="검색할 이름">
+            <span class="bar"></span>
+        </div>
+        
+        <div id="organizations" class="no-result tab-pane user-ul " th:if="${#lists.isEmpty(organizations) and #lists.isEmpty(favoriteOrganizations) and #lists.isEmpty(createdByMe)}">결과 없음</div>
+        <ul class="tab-pane user-ul " id="organizations" th:unless="${#lists.isEmpty(organizations) and #lists.isEmpty(favoriteOrganizations) and #lists.isEmpty(createdByMe)}">
+            <!-- 개인 소유 프로젝트 (오너가 본인인 가상 조직 영역) -->
+            <li class="org-li">
+                <div class="org-list project-flex-container all-orgs">
+                    <div class="project-item project-item-container">
+                        <div class="flex-item site-logo">
+                            <i class="yobicon-angle-right"></i>
+                        </div>
+                        <div class="projectName-owner all-org-names flex-item">
+                            <div class="project-name org-name flex-item" th:text="${currentUser.loginId}">admin</div>
+                            <div class="project-owner flex-item sub-project-counter">0</div>
+                        </div>
+                    </div>
+                    <div class="star-org flex-item"></div>
+                </div>
+                <ul class="project-ul">
+                    <li th:class="${#lists.contains(favoriteProjects, project) ? 'user-li' : 'user-li hide'}" th:each="project : ${createdByMe}" th:data-location="'/' + ${project.owner} + '/' + ${project.name} + '/go'">
+                        <div class="project-list project-flex-container" data-toggle="popover" data-trigger="hover" data-placement="right" th:data-content="${project.overview}">
+                            <div class="project-item project-item-container">
+                                <div class="flex-item site-logo all-project-names">
+                                    <i class="project-avatar"><span class="dummy-25px"> </span></i>
+                                </div>
+                                <div class="projectName-owner flex-item">
+                                    <div class="project-name flex-item" th:text="${project.name}">test</div>
+                                </div>
+                            </div>
+                            <div class="star-project flex-item" th:data-project-id="${project.id}">
+                                <i class="star material-icons" th:classappend="${#lists.contains(favoriteProjects, project) ? 'starred' : ''}">star</i>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </li>
+
+            <!-- 즐겨찾기한 조직 목록 루프 -->
+            <li class="org-li" th:each="org : ${favoriteOrganizations}">
+                <div class="org-list project-flex-container all-orgs">
+                    <div class="project-item project-item-container">
+                        <div class="flex-item site-logo">
+                            <i class="yobicon-angle-right"></i>
+                        </div>
+                        <div class="projectName-owner all-org-names flex-item">
+                            <div class="project-name org-name flex-item" th:text="${org.name}">admin</div>
+                            <div class="project-owner flex-item sub-project-counter" th:text="${org.projects.size()}">1</div>
+                        </div>
+                    </div>
+                    <div class="star-org flex-item" th:data-organization-id="${org.id}">
+                        <i class="star starred material-icons">star</i>
+                    </div>
+                </div>
+                <ul class="project-ul">
+                    <!-- 조직 하위 프로젝트 목록 루프 -->
+                    <li th:class="${#lists.contains(favoriteProjects, project) ? 'user-li' : 'user-li hide'}" th:each="project : ${org.projects}" th:data-location="'/' + ${project.owner} + '/' + ${project.name} + '/go'">
+                        <div class="project-list project-flex-container" data-toggle="popover" data-trigger="hover" data-placement="right" th:data-content="${project.overview}">
+                            <div class="project-item project-item-container">
+                                <div class="flex-item site-logo all-project-names">
+                                    <i class="project-avatar"><span class="dummy-25px"> </span></i>
+                                </div>
+                                <div class="projectName-owner flex-item">
+                                    <div class="project-name flex-item" th:text="${project.name}">test </div>
+                                </div>
+                            </div>
+                            <div class="star-project flex-item" th:data-project-id="${project.id}">
+                                <i class="star material-icons" th:classappend="${#lists.contains(favoriteProjects, project) ? 'starred' : ''}">star</i>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </li>
+
+            <!-- 즐겨찾기하지 않은 가입된 조직 목록 루프 -->
+            <li class="org-li" th:each="org : ${organizations}" th:if="${!#lists.contains(favoriteOrganizations, org)}">
+                <div class="org-list project-flex-container all-orgs">
+                    <div class="project-item project-item-container">
+                        <div class="flex-item site-logo">
+                            <i class="yobicon-angle-right"></i>
+                        </div>
+                        <div class="projectName-owner all-org-names flex-item">
+                            <div class="project-name org-name flex-item" th:text="${org.name}">admin</div>
+                            <div class="project-owner flex-item sub-project-counter" th:text="${org.projects.size()}">1</div>
+                        </div>
+                    </div>
+                    <div class="star-org flex-item" th:data-organization-id="${org.id}">
+                        <i class="star material-icons">star</i>
+                    </div>
+                </div>
+                <ul class="project-ul">
+                    <!-- 조직 하위 프로젝트 목록 루프 -->
+                    <li th:class="${#lists.contains(favoriteProjects, project) ? 'user-li' : 'user-li hide'}" th:each="project : ${org.projects}" th:data-location="'/' + ${project.owner} + '/' + ${project.name} + '/go'">
+                        <div class="project-list project-flex-container" data-toggle="popover" data-trigger="hover" data-placement="right" th:data-content="${project.overview}">
+                            <div class="project-item project-item-container">
+                                <div class="flex-item site-logo all-project-names">
+                                    <i class="project-avatar"><span class="dummy-25px"> </span></i>
+                                </div>
+                                <div class="projectName-owner flex-item">
+                                    <div class="project-name flex-item" th:text="${project.name}">test </div>
+                                </div>
+                            </div>
+                            <div class="star-project flex-item" th:data-project-id="${project.id}">
+                                <i class="star material-icons" th:classappend="${#lists.contains(favoriteProjects, project) ? 'starred' : ''}">star</i>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </li>
+            
+            <ul class="etc-favorites">
+            </ul>
+            <!-- 조직이 없으며, 오너가 본인이 아닌 즐겨찾기 프로젝트 목록 -->
+            <li class="user-li" th:each="project : ${favoriteProjects}" th:if="${project.organization == null and project.owner != currentUser.loginId}" th:data-location="'/' + ${project.owner} + '/' + ${project.name} + '/go'">
+                <div class="project-list project-flex-container">
+                    <div class="project-item project-item-container">
+                        <div class="flex-item site-logo">
+                            <i class="project-avatar"><span class="dummy-25px"> </span></i>
+                        </div>
+                        <div class="projectName-owner flex-item">
+                            <div class="project-name flex-item" th:text="${project.name}">test </div>
+                            <div class="project-owner flex-item"><a th:href="'/' + ${project.owner}" th:text="${project.owner}">admin</a></div>
+                        </div>
+                    </div>
+                    <div class="star-project flex-item" th:data-project-id="${project.id}">
+                        <i class="star starred material-icons">star</i>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div class="tab-pane user-project-list" id="myProjectList">
+    <div>
+        <div class="search-result">
+            <div class="tab-pane myproject-list-wrap">
+                <div class="group">
+                    <input class="search-input project-search" type="text" id="query" autocomplete="off" placeholder="검색할 이름">
+                    <span class="bar"></span>
+                </div>
+                <div class="subtab-wrap subtab-group">
+                    <ul class="nav-subtab unstyled">
+                        <li class="active">
+                            <a href="#recentlyVisited" data-toggle="tab">
+                            최근 방문
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#createdByMe" data-toggle="tab">
+                            내가 만든
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#watching" data-toggle="tab">
+                            지켜보는
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#joinmember" data-toggle="tab">
+                            참여 중인
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="tab-content">
+                    <!-- Recently Visited -->
+                    <ul class="tab-pane user-ul active" id="recentlyVisited" th:if="${recentlyVisited != null and !recentlyVisited.isEmpty()}">
+                        <li class="user-li " th:each="project : ${recentlyVisited}" th:data-location="'/' + ${project.owner} + '/' + ${project.name} + '/go'">
+                            <div class="project-list project-flex-container">
+                                <div class="project-item project-item-container">
+                                    <div class="flex-item site-logo">
+                                        <i class="project-avatar"><span class="dummy-25px"> </span></i>
+                                    </div>
+                                    <div class="projectName-owner flex-item">
+                                        <div class="project-name flex-item" th:text="${project.name}">test </div>
+                                        <div class="project-owner flex-item"><a th:href="'/' + ${project.owner}" th:text="${project.owner}">admin</a></div>
+                                    </div>
+                                </div>
+                                <div class="star-project flex-item" th:data-project-id="${project.id}">
+                                    <i class="star  material-icons" th:text="${#lists.contains(favoriteProjects, project) ? 'star' : 'star_border'}">star</i>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                    <div id="recentlyVisited" class="no-result tab-pane user-ul active" th:unless="${recentlyVisited != null and !recentlyVisited.isEmpty()}">결과 없음</div>
+
+                    <!-- Watching -->
+                    <ul class="tab-pane user-ul " id="watching" th:if="${watching != null and !watching.isEmpty()}">
+                        <li class="user-li " th:each="project : ${watching}" th:data-location="'/' + ${project.owner} + '/' + ${project.name} + '/go'">
+                            <div class="project-list project-flex-container">
+                                <div class="project-item project-item-container">
+                                    <div class="flex-item site-logo">
+                                        <i class="project-avatar"><span class="dummy-25px"> </span></i>
+                                    </div>
+                                    <div class="projectName-owner flex-item">
+                                        <div class="project-name flex-item" th:text="${project.name}">test </div>
+                                        <div class="project-owner flex-item"><a th:href="'/' + ${project.owner}" th:text="${project.owner}">admin</a></div>
+                                    </div>
+                                </div>
+                                <div class="star-project flex-item" th:data-project-id="${project.id}">
+                                    <i class="star  material-icons" th:text="${#lists.contains(favoriteProjects, project) ? 'star' : 'star_border'}">star</i>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                    <div id="watching" class="no-result tab-pane user-ul " th:unless="${watching != null and !watching.isEmpty()}">결과 없음</div>
+
+                    <!-- Created By Me -->
+                    <ul class="tab-pane user-ul " id="createdByMe" th:if="${createdByMe != null and !createdByMe.isEmpty()}">
+                        <li class="user-li " th:each="project : ${createdByMe}" th:data-location="'/' + ${project.owner} + '/' + ${project.name} + '/go'">
+                            <div class="project-list project-flex-container">
+                                <div class="project-item project-item-container">
+                                    <div class="flex-item site-logo">
+                                        <i class="project-avatar"><span class="dummy-25px"> </span></i>
+                                    </div>
+                                    <div class="projectName-owner flex-item">
+                                        <div class="project-name flex-item" th:text="${project.name}">test </div>
+                                        <div class="project-owner flex-item"><a th:href="'/' + ${project.owner}" th:text="${project.owner}">admin</a></div>
+                                    </div>
+                                </div>
+                                <div class="star-project flex-item" th:data-project-id="${project.id}">
+                                    <i class="star  material-icons" th:text="${#lists.contains(favoriteProjects, project) ? 'star' : 'star_border'}">star</i>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                    <div id="createdByMe" class="no-result tab-pane user-ul " th:unless="${createdByMe != null and !createdByMe.isEmpty()}">결과 없음</div>
+
+                    <!-- Member (joinmember) -->
+                    <ul class="tab-pane user-ul " id="joinmember" th:if="${joinmember != null and !joinmember.isEmpty()}">
+                        <li class="user-li " th:each="project : ${joinmember}" th:data-location="'/' + ${project.owner} + '/' + ${project.name} + '/go'">
+                            <div class="project-list project-flex-container">
+                                <div class="project-item project-item-container">
+                                    <div class="flex-item site-logo">
+                                        <i class="project-avatar"><span class="dummy-25px"> </span></i>
+                                    </div>
+                                    <div class="projectName-owner flex-item">
+                                        <div class="project-name flex-item" th:text="${project.name}">test </div>
+                                        <div class="project-owner flex-item"><a th:href="'/' + ${project.owner}" th:text="${project.owner}">admin</a></div>
+                                    </div>
+                                </div>
+                                <div class="star-project flex-item" th:data-project-id="${project.id}">
+                                    <i class="star  material-icons" th:text="${#lists.contains(favoriteProjects, project) ? 'star' : 'star_border'}">star</i>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                    <div id="joinmember" class="no-result tab-pane user-ul " th:unless="${joinmember != null and !joinmember.isEmpty()}">결과 없음</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="tab-pane user-project-list" id="allProjectList">
+    <div class="search-result">
+        <div class="group">
+            <input class="search-input org-search" type="text" autocomplete="off" placeholder="검색할 이름">
+            <span class="bar"></span>
+        </div>
+        
+        <ul class="tab-pane user-ul " id="organizations" th:if="${allOrganizations != null and !allOrganizations.isEmpty()}">
+            <li class="org-li" th:each="org : ${allOrganizations}">
+                <div class="org-list project-flex-container all-orgs">
+                    <div class="project-item project-item-container">
+                        <div class="flex-item site-logo">
+                            <i class="yobicon-angle-right"></i>
+                        </div>
+                        <div class="projectName-owner all-org-names flex-item">
+                            <div class="project-name org-name flex-item" th:text="${org.name}">admin</div>
+                            <div class="project-owner flex-item sub-project-counter"></div>
+                        </div>
+                    </div>
+                    <div class="star-org flex-item" th:data-organization-id="${org.id}">
+                        <i class="star material-icons" th:classappend="${#lists.contains(favoriteOrganizations, org) ? 'starred' : ''}">star</i>
+                    </div>
+                </div>
+                <ul class="project-ul">
+                    <li class="user-li hide " th:each="project : ${org.projects}" th:data-location="'/' + ${project.owner} + '/' + ${project.name} + '/go'">
+                        <div class="project-list project-flex-container" data-toggle="popover" data-trigger="hover" data-placement="right" th:data-content="${project.overview}">
+                            <div class="project-item project-item-container">
+                                <div class="flex-item site-logo all-project-names">
+                                    <i class="project-avatar"><span class="dummy-25px"> </span></i>
+                                </div>
+                                <div class="projectName-owner flex-item">
+                                    <div class="project-name flex-item">
+                                        <span th:text="${project.name}">test </span>
+                                        <i class="yobicon-lock yobicon-small" th:if="${project.isPrivate}"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="star-project flex-item" th:data-project-id="${project.id}">
+                                <i class="star material-icons" th:classappend="${#lists.contains(favoriteProjects, project) ? 'starred' : ''}">star</i>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+        <div id="organizations" class="no-result tab-pane user-ul " th:unless="${allOrganizations != null and !allOrganizations.isEmpty()}">결과 없음</div>
+    </div>
+</div>
+
+<div class="tab-pane user-project-list" id="myRecentIssueList">
+    <div>
+        <div class="search-result">
+            <div class="tab-pane myproject-list-wrap">
+                <div class="group">
+                    <input class="search-input project-search" type="text" id="query" autocomplete="off" th:placeholder="#{title.type.name}">
+                    <span class="bar"></span>
+                </div>
+                <div class="tab-content">
+                    <ul class="tab-pane user-ul active" id="recentlyVisitedIssues" th:if="${visitedIssues != null and !visitedIssues.isEmpty()}">
+                        <li class="user-li" th:each="visitedIssue : ${visitedIssues}" th:data-location="${visitedIssue.url}">
+                            <div class="project-list project-flex-container" data-toggle="popover" data-trigger="hover" data-placement="right" th:data-content="${visitedIssue.title}">
+                                <div class="project-item project-item-container">
+                                    <div class="issue-item projectName-owner flex-item">
+                                        <div class="issue-title-start">-</div><div class="issue-title flex-item" th:text="${visitedIssue.title}">issue title</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                    <div id="recentlyVisitedIssues" class="no-result tab-pane user-ul active" th:unless="${visitedIssues != null and !visitedIssues.isEmpty()}" th:text="#{title.no.results}">결과 없음</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

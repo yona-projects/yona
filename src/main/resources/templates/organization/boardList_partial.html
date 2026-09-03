@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<li th:fragment="postItem(post, project)" class="post-item title" th:href="@{/{owner}/{name}/post/{number}(owner=${project.owner}, name=${project.name}, number=${post.number})}">
+    <a th:href="@{/user/{loginId}(loginId=${post.authorLoginId})}" class="avatar-wrap mlarge hide-in-mobile" data-toggle="tooltip" data-placement="top" th:title="${post.authorLoginId}">
+        <img src="/images/default-avatar-128.png" width="32" height="32"/>
+    </a>
+    <div class="title-wrap">
+        <a th:href="@{/{owner}/{name}/post/{number}(owner=${project.owner}, name=${project.name}, number=${post.number})}" class="title" th:text="${post.title}">post title</a>
+    </div>
+    <div class="infos">
+        <a th:if="${post.authorName != null and !post.authorName.isEmpty()}" th:href="@{/user/{loginId}(loginId=${post.authorLoginId})}" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="top" th:title="${post.authorLoginId}" th:text="${post.authorName}">author</a>
+        <span th:unless="${post.authorName != null and !post.authorName.isEmpty()}" class="infos-item" th:text="#{issue.noAuthor}">no author</span>
+
+        <a th:href="@{/{owner}/{name}(owner=${project.owner}, name=${project.name})}" class="infos-link-item group-project-name" th:text="${project.name}">project</a>
+        <span class="post-id" th:text="'#' + ${post.number}">#1</span>
+
+        <span class="infos-item" th:title="${@templateHelper.getDateString(post.createdDate)}" th:text="${@templateHelper.agoOrDateString(post.createdDate)}">date</span>
+
+        <span th:if="${post.numOfComments > 0}" class="infos-item item-count-groups">
+            <a th:href="@{/{owner}/{name}/post/{number}#comments(owner=${project.owner}, name=${project.name}, number=${post.number})}" class="infos-item-link">
+                <span class="count-groups item-icon">
+                    <i class="yobicon-comments"></i>
+                </span>
+                <span class="count-groups item-count" th:text="${post.numOfComments}">0</span>
+            </a>
+        </span>
+    </div>
+</li>
+</body>
+</html>

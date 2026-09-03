@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+yona code/partial_nonrange_codecomment_thread.scala.html 대응 (그룹10 #166). 특정 코드 라인이 아니라
+커밋 전체에 달린("범위 없는") 코드리뷰 댓글 스레드 하나를 렌더링한다. code/diff.html의
+".non-ranged-threads-wrap" 안에서 NonRangedCodeCommentThread 목록을 순회하며 이 fragment로 각 스레드를
+렌더링한다(legacy: partial_nonrange_codecomment_thread(thread), Thymeleaf에서는 fragment 안에서
+model 암묵 접근이 안 되므로 project/currentUser를 명시적으로 함께 넘긴다).
+-->
+<div th:fragment="partial_nonrange_codecomment_thread(thread, project, currentUser)"
+     th:id="'thread-' + ${thread.id}" th:class="'comment-thread-wrap ' + ${thread.state.name().toLowerCase()}"
+     th:with="postUrl=@{/{owner}/{name}/commit/{commitId}/comments(owner=${project.owner}, name=${project.name}, commitId=${thread.commitId})},
+              canComment=${@accessControl.isProjectResourceCreatable(currentUser, project, T(com.github.yonaprojects.yona.domain.enumeration.ResourceType).COMMIT_COMMENT)},
+              canChangeState=${@accessControl.isAllowed(currentUser, project, thread, T(com.github.yonaprojects.yona.domain.enumeration.Operation).UPDATE)}">
+  <div class="btn-thread-here btn-thread-minimize">
+    <button type="button" class="ybtn ybtn-default ybtn-small"><i class="yobicon-comments"></i></button>
+  </div>
+  <ul class="comments">
+    <li th:each="comment : ${thread.reviewComments}" th:id="'comment-' + ${comment.id}" class="comment">
+      <div class="comment-avatar">
+        <a th:href="@{/user/{loginId}(loginId=${comment.author.loginId})}" class="avatar-wrap"
+           data-toggle="tooltip" data-placement="top" th:title="${comment.author.name}">
+          <img th:src="${@userRepository.findByLoginId(comment.author.loginId).orElse(null)?.avatarUrl}"
+               width="32" height="32" th:alt="${comment.author.loginId}">
+        </a>
+      </div>
+      <div class="media-body">
+        <div class="meta-info">
+          <span class="comment_author pull-left">
+            <a th:href="@{/user/{loginId}(loginId=${comment.author.loginId})}" data-toggle="tooltip" data-placement="top" th:title="${comment.author.name}">
+              <strong th:text="${comment.author.loginId} + ' '">loginId</strong>
+            </a>
+          </span>
+          <span class="ago">
+            <a th:href="'#comment-' + ${comment.id}" th:title="${templateHelper.getDateString(comment.createdDate)}"
+               th:text="${templateHelper.agoOrDateString(comment.createdDate)}">방금 전</a>
+          </span>
+
+          <span class="edit pull-right" th:if="${@accessControl.isAllowed(currentUser, project, comment, T(com.github.yonaprojects.yona.domain.enumeration.Operation).DELETE)}">
+            <button class="btn-transparent pull-right close" data-request-method="delete"
+                    th:data-request-uri="@{/{owner}/{name}/commit/{commitId}/comments/{id}/delete(owner=${project.owner}, name=${project.name}, commitId=${thread.commitId}, id=${comment.id})}"><i class="yobicon-trash"></i></button>
+          </span>
+        </div>
+
+        <div class="comment-body markdown-wrap" th:utext="${markdownService.render(comment.contents, true, project)}">댓글 내용</div>
+      </div>
+    </li>
+  </ul>
+
+  <div th:replace="~{common/commentFormOnThread :: commentFormOnThread(${thread}, ${postUrl}, ${canComment}, ${canChangeState}, ${currentUser})}"></div>
+</div>
+</body>
+</html>

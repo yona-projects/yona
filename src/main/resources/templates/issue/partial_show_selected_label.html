@@ -1,0 +1,11 @@
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="showLabel(labels, listLink)">
+    <dl th:if="${labels != null and !labels.isEmpty()}">
+        <dt th:text="#{label}">라벨</dt>
+        <dd style="margin: 5px 0;">
+            <a th:each="label : ${labels}" th:href="${listLink != null ? listLink : ''} + '&labelIds=' + ${label.id}" class="label issue-label active static"
+               th:data-label-id="${label.id}" th:style="'background:' + ${label.color} + '; color: #fff; padding: 2px 6px; margin-right: 4px; border-radius: 3px; display: inline-block;'" th:text="${label.name}">
+                라벨명
+            </a>
+        </dd>
+    </dl>
+</th:block>

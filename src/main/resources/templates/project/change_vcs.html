@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(${project.name} + ' - ' + #{project.changeVCS})}">
+</head>
+<body class="prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div th:replace="~{project/header :: header(${project})}"></div>
+    <div th:replace="~{project/menu :: menu(${project}, 'setting')}"></div>
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
+            <div th:replace="~{project/setting_menu :: menu(${project}, 'changeVCS')}"></div>
+
+            <div class="bubble-wrap gray wp">
+                <div class="row-fluid">
+                    <h3>
+                        <span th:text="${project.vcs}">VCS</span>
+                        <i class="yobicon-right-2 vmiddle"></i>
+                        <span th:text="${nextVcs}">NEXT_VCS</span>
+                    </h3>
+                    <div class="cu-desc">
+                        <ul>
+                            <li class="notice"><strong th:text="#{project.changeVCS.description1(${nextVcs})}">설명1</strong></li>
+                            <li class="notice"><strong th:text="#{project.changeVCS.description2}">설명2</strong></li>
+                        </ul>
+                        <p>
+                            <input id="acceptChangeVCS" type="checkbox" class="checkbox" autocomplete="off">
+                            <label for="acceptChangeVCS" class="bg-checkbox label-agreement" th:text="#{project.changeVCS.accept}">동의합니다.</label>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="box-wrap bottom">
+                <a id="btnChangeVCS" href="#alertChangeVCS" class="ybtn ybtn-danger" data-toggle="modal">
+                    <i class="yobicon-database"></i> <span th:text="#{project.changeVCS.this}">변경 실행</span>
+                </a>
+            </div>
+
+            <!-- Confirm to change VCS -->
+            <div id="alertChangeVCS" class="modal hide">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h3 th:text="#{project.changeVCS.requestion(${nextVcs})}">정말로 변경하시겠습니까?</h3>
+                </div>
+                <div class="modal-body">
+                    <p th:text="#{project.changeVCS.description2}">설명2</p>
+                    <p th:text="#{project.changeVCS.reaccept}">다시 확인</p>
+                </div>
+                <div class="modal-footer">
+                    <button id="btnChangeVCSExec" type="button" class="ybtn ybtn-danger" th:text="#{button.yes}">예</button>
+                    <button type="button" class="ybtn" data-dismiss="modal" th:text="#{button.no}">아니요</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+<script type="text/javascript" src="/javascripts/service/yobi.project.ChangeVCS.js"></script>
+<script type="text/javascript" th:inline="javascript">
+    $(document).ready(function(){
+        $yobi.loadModule("project.ChangeVCS", {
+            "sTransferURL": /*[[@{/{owner}/{name}/changeVCS(owner=${project.owner}, name=${project.name})}]]*/ ""
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<th:block th:fragment="header(org)"
+     th:with="isGuest=${@templateHelper.isOrganizationGuest(org, currentUser)}, isEnrolled=${@templateHelper.isEnrolledOrganization(org, currentUser)}">
+<div class="project-header-outer" th:style="'background-image:url(' + @{/organizations/{orgId}/logo(orgId=${org.id})} + ')'">
+    <div class="project-header-inner">
+        <div class="project-header-wrap">
+            <div class="project-header-avatar">
+                <img th:src="@{/organizations/{orgId}/logo(orgId=${org.id})}" />
+            </div>
+            <div class="project-breadcrumb-wrap">
+                <div class="project-breadcrumb">
+                    <span class="project-author">
+                        <span class="group-title-head">group</span>
+                        <a th:href="@{/organizations/{orgName}(orgName=${org.name})}" th:text="${org.name}">name</a>
+                    </span>
+                </div>
+            </div>
+            <div class="project-util-wrap" th:if="${isGuest}">
+                <ul class="project-util">
+                    <button class="ybtn ybtn-small" th:classappend="${isEnrolled} ? 'ybtn-info' : ''" type="button" data-toggle="dropdown">
+                        <i class="yobicon-addfriend"></i> <span th:text="#{organization.member.enrollment.title}">멤버등록요청</span>
+                    </button>
+                    <div class="dropdown-menu flat right title">
+                        <div class="pop-title" th:text="${isEnrolled} ? #{organization.you.want.to.be.a.member(${org.name})} : #{organization.you.may.want.to.be.a.member(${org.name})}">가입 요청</div>
+                        <div class="pop-content" th:text="${isEnrolled} ? #{organization.member.enrollment.help.after} : #{organization.member.enrollment.help.before}">안내</div>
+                        <div class="pop-content btn-wrap">
+                            <a class="ybtn enrollBtn" th:classappend="${!isEnrolled} ? 'ybtn-info' : ''"
+                               th:href="${isEnrolled} ? @{/organizations/{orgName}/cancel/enroll(orgName=${org.name})} : @{/organizations/{orgName}/enroll(orgName=${org.name})}"
+                               id="enrollBtn">
+                                <i th:class="${isEnrolled} ? 'yobicon-removefriend' : 'yobicon-addfriend'"></i>
+                                <span th:text="${isEnrolled} ? #{button.cancel.enrollment} : #{button.new.enrollment}">가입 요청하기</span>
+                            </a>
+                        </div>
+                    </div>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script language="javascript" th:inline="javascript">
+    $(function() {
+        $yobi.loadModule("organization.Global")
+    })
+</script>
+</th:block>
+</body>
+</html>

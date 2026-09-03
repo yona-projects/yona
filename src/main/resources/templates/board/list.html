@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(${project.name} + ' - ' + #{menu.board})}">
+</head>
+<body class="prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+    <div th:replace="~{project/header :: header(${project})}"></div>
+    <div th:replace="~{project/menu :: menu(${project}, 'board')}"></div>
+    <link rel="stylesheet" th:href="@{/{owner}/{projectName}/issue/labels.css(owner=${project.owner}, projectName=${project.name})}" type="text/css" />
+
+
+    <div class="page-wrap-outer">
+        <div class="post-list project-page-wrap">
+            <div class="search-wrap underline">
+                <form id="option_form" th:action="@{/{owner}/{projectName}/posts(owner=${project.owner}, projectName=${project.name})}" method="get" class="pull-left">
+                    <input type="hidden" name="orderBy" th:value="${orderBy}">
+                    <input type="hidden" name="orderDir" th:value="${orderDir}">
+                    <div class="search-bar">
+                        <input name="filter" class="textbox" type="text" th:placeholder="#{project.searchPlaceholder}" th:value="${filter}">
+                        <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                    </div>
+
+                    <!-- board labels filter -->
+                    <th:block th:with="projectLabels=${@templateHelper.getProjectLabels(project)}">
+                        <div th:if="${projectLabels != null and !projectLabels.isEmpty()}" class="board-labels" style="display: inline-block; vertical-align: middle; margin-left: 10px;">
+                            <div th:replace="~{issue/partial_select_label :: selectLabel(${projectLabels}, null, '', '', ${project})}"></div>
+                        </div>
+                    </th:block>
+                </form>
+                <div class="pull-right">
+                    <a th:href="@{/{owner}/{projectName}/post/new(owner=${project.owner}, projectName=${project.name})}" class="ybtn ybtn-success" th:text="#{post.write}">글쓰기</a>
+                </div>
+            </div>
+
+            <!-- 게시글이 아예 없을 때 -->
+            <div class="error-wrap" th:if="${postingPage.content.isEmpty() && notices.isEmpty()}">
+                <i class="ico ico-err1"></i>
+                <p th:text="#{post.is.empty}">게시글이 없습니다.</p>
+            </div>
+
+            <!-- 게시글이 존재할 때 필터 및 정렬 링크 제공 -->
+            <th:block th:if="${!postingPage.content.isEmpty() || !notices.isEmpty()}">
+                <div class="filter-wrap board" th:if="${postingPage.totalElements > 0}">
+                    <div class="filters">
+                        <a th:href="@{/{owner}/{projectName}/posts(owner=${project.owner}, projectName=${project.name}, filter=${filter}, orderBy='updatedDate', orderDir=${orderBy == 'updatedDate' && orderDir == 'desc' ? 'asc' : 'desc'})}"
+                           th:class="${orderBy == 'updatedDate'} ? 'filter active' : 'filter'">
+                            <i class="ico btn-gray-arrow" th:classappend="${orderBy == 'updatedDate' && orderDir == 'desc'} ? 'down'"></i>
+                            <span th:text="#{common.order.updatedDate}">최근 업데이트순</span>
+                        </a>
+                        <a th:href="@{/{owner}/{projectName}/posts(owner=${project.owner}, projectName=${project.name}, filter=${filter}, orderBy='createdDate', orderDir=${orderBy == 'createdDate' && orderDir == 'desc' ? 'asc' : 'desc'})}"
+                           th:class="${orderBy == 'createdDate'} ? 'filter active' : 'filter'">
+                            <i class="ico btn-gray-arrow" th:classappend="${orderBy == 'createdDate' && orderDir == 'desc'} ? 'down'"></i>
+                            <span th:text="#{common.order.date}">등록일순</span>
+                        </a>
+                        <a th:href="@{/{owner}/{projectName}/posts(owner=${project.owner}, projectName=${project.name}, filter=${filter}, orderBy='numOfComments', orderDir=${orderBy == 'numOfComments' && orderDir == 'desc' ? 'asc' : 'desc'})}"
+                           th:class="${orderBy == 'numOfComments'} ? 'filter active' : 'filter'">
+                            <i class="ico btn-gray-arrow" th:classappend="${orderBy == 'numOfComments' && orderDir == 'desc'} ? 'down'"></i>
+                            <span th:text="#{common.order.comments}">댓글순</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 공지사항 목록 -->
+                <ul class="post-list-wrap notice-wrap" th:if="${notices != null && !notices.isEmpty()}">
+                    <li th:each="notice : ${notices}" class="post-item title" th:href="@{/{owner}/{projectName}/post/{number}(owner=${project.owner}, projectName=${project.name}, number=${notice.number})}">
+                        <a th:href="@{/user/{loginId}(loginId=${notice.authorLoginId})}" class="avatar-wrap mlarge hide-in-mobile" data-toggle="tooltip" data-placement="bottom" th:title="${notice.authorLoginId}">
+                            <img src="/images/default-avatar-128.png" width="32" height="32"/>
+                        </a>
+                        <div class="title-wrap">
+                            <span class="label label-notice" th:text="#{post.notice}">공지</span>&nbsp;
+                            <span class="bracket-word" th:text="${@templateHelper.showHeaderWordsInBracketsIfExist(notice.title)}"></span>
+                            <a th:href="@{/{owner}/{projectName}/post/{number}(owner=${project.owner}, projectName=${project.name}, number=${notice.number})}" class="title" th:text="${@templateHelper.removeHeaderWords(notice.title)}">
+                                공지 제목
+                            </a>
+                            <span th:each="label : ${notice.labels}" class="label issue-label list-label active" th:style="'background: ' + ${label.color} + '; color: #fff; padding: 1px 4px; border-radius: 2px; font-size: 11px; margin-left: 4px; display: inline-block;'" th:text="${label.name}">라벨</span>
+                        </div>
+                        <div class="infos">
+                            <a th:href="@{/user/{loginId}(loginId=${notice.authorLoginId})}" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="bottom" th:title="${notice.authorLoginId}" th:text="${notice.authorName}">
+                                작성자
+                            </a>
+                            <span class="infos-item" data-toggle="tooltip" data-placement="bottom" th:title="${@templateHelper.getDateString(notice.createdDate)}" th:text="${@templateHelper.agoOrDateString(notice.createdDate)}">
+                                시간
+                            </span>
+                            <span th:if="${notice.numOfComments > 0}" class="infos-item item-count-groups">
+                                <a th:href="@{/{owner}/{projectName}/post/{number}#comments(owner=${project.owner}, projectName=${project.name}, number=${notice.number})}" class="infos-item-link">
+                                    <i class="yobicon-comments"></i>
+                                    <span th:text="${notice.numOfComments}">3</span>
+                                </a>
+                            </span>
+                        </div>
+                    </li>
+                </ul>
+
+                <!-- 일반 게시글 목록 -->
+                <ul class="post-list-wrap" th:if="${!postingPage.content.isEmpty()}">
+                    <li th:each="post : ${postingPage.content}" class="post-item title" th:href="@{/{owner}/{projectName}/post/{number}(owner=${project.owner}, projectName=${project.name}, number=${post.number})}">
+                        <a th:href="@{/user/{loginId}(loginId=${post.authorLoginId})}" class="avatar-wrap mlarge hide-in-mobile" data-toggle="tooltip" data-placement="bottom" th:title="${post.authorLoginId}">
+                            <img src="/images/default-avatar-128.png" width="32" height="32"/>
+                        </a>
+                        <div class="title-wrap">
+                            <span th:if="${post.notice}" class="label label-notice" th:text="#{post.notice}">공지</span>&nbsp;
+                            <span th:if="${post.readme}" class="label label-important">README</span>&nbsp;
+                            <span th:if="${!post.readme}" class="post-id" th:text="${post.number}">1</span>
+                            <span class="bracket-word" th:text="${@templateHelper.showHeaderWordsInBracketsIfExist(post.title)}"></span>
+                            <a th:href="@{/{owner}/{projectName}/post/{number}(owner=${project.owner}, projectName=${project.name}, number=${post.number})}" class="title" th:text="${@templateHelper.removeHeaderWords(post.title)}">
+                                게시글 제목
+                            </a>
+                            <span th:each="label : ${post.labels}" class="label issue-label list-label active" th:style="'background: ' + ${label.color} + '; color: #fff; padding: 1px 4px; border-radius: 2px; font-size: 11px; margin-left: 4px; display: inline-block;'" th:text="${label.name}">라벨</span>
+                        </div>
+                        <div class="infos">
+                            <a th:href="@{/user/{loginId}(loginId=${post.authorLoginId})}" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="bottom" th:title="${post.authorLoginId}" th:text="${post.authorName}">
+                                작성자
+                            </a>
+                            <span class="infos-item" data-toggle="tooltip" data-placement="bottom" th:title="${@templateHelper.getDateString(post.createdDate)}" th:text="${@templateHelper.agoOrDateString(post.createdDate)}">
+                                시간
+                            </span>
+                            <span th:if="${post.numOfComments > 0}" class="infos-item item-count-groups">
+                                <a th:href="@{/{owner}/{projectName}/post/{number}#comments(owner=${project.owner}, projectName=${project.name}, number=${post.number})}" class="infos-item-link">
+                                    <i class="yobicon-comments"></i>
+                                    <span th:text="${post.numOfComments}">3</span>
+                                </a>
+                            </span>
+                        </div>
+                    </li>
+                </ul>
+            </th:block>
+
+            <div class="write-btn-wrap"></div>
+
+            <!-- pagination.js가 채워질 페이징 바 영역 -->
+            <div id="pagination"></div>
+
+            <div class="board-footer" style="margin-top: 15px; margin-bottom: 15px;">
+                <div th:replace="~{help/keymap :: keymap('boardList', ${project})}"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+<th:block th:replace="~{common/select2 :: select2}"></th:block>
+<script type="text/javascript" src="/javascripts/lib/jquery.pageslide.js"></script>
+<script type="text/javascript" src="/javascripts/service/yona.twoColumnMode.js"></script>
+<script type="text/javascript" th:inline="javascript">
+    $(document).ready(function() {
+        $yobi.loadModule("board.List", {
+            "elPagination": $('#pagination'),
+            "nTotalPages" : [[${postingPage.totalPages}]]
+        });
+
+        // 단축키 "N" 바인딩 복원
+        var projectOwner = [[${project.owner}]];
+        var projectName = [[${project.name}]];
+        yobi.ShortcutKey.setKeymapLink({
+            "N": "/" + projectOwner + "/" + projectName + "/post/new"
+        });
+
+        $('.board-labels select').on('change', function(e){
+            $("#option_form").submit();
+        });
+    });
+</script>
+</body>
+</html>

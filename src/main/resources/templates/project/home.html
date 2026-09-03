@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko" th:with="menuHomeLabel=#{menu.home}, pageTitle=${project.name + ' - ' + menuHomeLabel + ' |:| ' + (project.overview ?: '')}">
+<head th:replace="~{site/layout :: head(${pageTitle})}">
+</head>
+<body class="prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+    
+    <!-- Yona 원본 프로젝트 헤더 및 프로젝트 메뉴 탑재 -->
+    <div th:replace="~{project/header :: header(${project})}"></div>
+    <div th:replace="~{project/menu :: menu(${project}, 'home')}"></div>
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
+            <div class="project-breadcrumb hide show-in-mobile">
+                <span class="project-author"><a th:href="@{/user/{owner}(owner=${project.owner})}" th:text="${project.owner}">owner</a></span>
+                <span class="project-separator">/</span>
+                <span class="project-name"><a th:href="@{/{owner}/{name}(owner=${project.owner}, name=${project.name})}" th:text="${project.name}">name</a></span>
+                <span th:if="${project.projectScope == T(com.github.yonaprojects.yona.domain.project.ProjectScope).PRIVATE}" class="project-private">
+                    <i class="yobicon-lock"></i>
+                </span>
+            </div>
+            
+            <div class="project-home-header row-fluid">
+                <div class="project-overview span9 span-hard-wrap">
+                    <div class="project-description" data-toggle="project-description-tab">
+                        <h3>
+                            <span id="project-description" class="markdown-wrap" th:text="${project.overview != null && !project.overview.isEmpty() ? project.overview : '프로젝트에 대한 설명이 등록되지 않았습니다.'}">test</span>
+                            <button type="button" class="ybtn ybtn-minimum" data-toggle="description-edit"><i class="yobicon-edit"></i></button>
+                        </h3>
+                    </div>
+                    <div class="project-description-edit hidden" data-toggle="project-description-tab">
+                        <form th:action="@{/{owner}/{name}(owner=${project.owner}, name=${project.name})}" onsubmit="return false">
+                            <input type="text" id="project-description-input" class="span6" th:placeholder="#{project.description.placeholder}" th:value="${project.overview}"/>
+                            <button type="button" class="ybtn ybtn-success" id="descriptionSaveBtn" th:text="#{button.save}">Save</button>
+                            <button type="button" class="ybtn" data-toggle="description-cancel" th:text="#{button.cancel}">Cancel</button>
+                        </form>
+                    </div>
+                </div>
+                <div th:if="${project.isCodeEnabled}" class="project-clone-wrap span3 hide-in-mobile">
+                    <input type="text" class="project-clone-url" id="cloneURL" readonly="readonly" th:value="'http://' + ${project.owner} + '@localhost:9091/' + ${project.owner} + '/' + ${project.name}">
+                    <button class="ybtn project-clone-button" data-clipboard-target="cloneURL" id="cloneURLBtn" th:text="#{code.copyUrl}">Copy URL</button>
+                </div>
+            </div>
+            
+            <div class="row-fluid">
+                <div class="span9 span-left-pane">
+                    <ul class="nav nav-tabs">
+                        <li th:class="${tabId == 'readme' ? 'active' : ''}">
+                            <a th:href="@{/{owner}/{name}(owner=${project.owner}, name=${project.name})}">README</a>
+                        </li>
+                        <li th:class="${tabId == 'history' ? 'active' : ''}">
+                            <a th:href="@{/{owner}/{name}(owner=${project.owner}, name=${project.name}, tabId='history')}" th:text="#{project.history.recent}">Recent history</a>
+                        </li>
+                        <li th:class="${tabId == 'dashboard' ? 'active' : ''}">
+                            <a th:href="@{/{owner}/{name}(owner=${project.owner}, name=${project.name}, tabId='dashboard')}" th:text="#{project.dashboard}">Dashboard</a>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <div class="tab-pane active">
+                            
+                            <!-- 1. README 탭 -->
+                            <div th:if="${tabId == 'readme'}" class="bubble-wrap gray readme">
+                                <p class="default" th:if="${readmeHtml == null}">
+                                    <span th:text="#{project.readme}">README.md will be shown here if you add it to the code repository's root directory.</span>
+                                    <br><br>
+                                    <a th:if="${project.isCodeEnabled}" th:href="@{/{owner}/{name}/postform?readme=true(owner=${project.owner}, name=${project.name})}" class="ybtn" th:text="#{project.readme.create}">create README</a>
+                                </p>
+                                <div class="readme-wrap" th:if="${readmeHtml != null}">
+                                    <header>
+                                        <i class="yobicon-book-open vmiddle"></i>
+                                        <strong class="vmiddle" th:text="${readmeFileName}"> README.md</strong>
+                                        <a th:if="${project.isCodeEnabled}" th:href="@{/{owner}/{name}/postform?readme=true(owner=${project.owner}, name=${project.name})}" class="ybtn vmiddle ml5" th:text="#{button.edit}">Edit</a>
+                                    </header>
+                                    <div class="readme-body markdown-wrap" th:utext="${readmeHtml}">README 내용</div>
+                                </div>
+                            </div>
+
+                            <!-- 2. Recent history 탭 -->
+                            <div th:if="${tabId == 'history'}" class="content-container nm">
+                                <div class="main-stream" style="width:100%;">
+                                    <ul class="activity-streams unstyled" th:if="${histories != null && !histories.isEmpty()}">
+                                        <li class="activity-stream" th:each="history : ${histories}">
+                                            <a th:href="${history.userPageUrl}" class="avatar-wrap pull-left mr10">
+                                                <img th:src="${history.userAvatarUrl}" width="32" height="32">
+                                            </a>
+                                            <div class="activity-desc">
+                                                <p class="header-text" style="margin-bottom:5px;">
+                                                    <th:block th:with="
+                                                        whoHtml='<a href=&quot;' + ${history.userPageUrl} + '&quot; class=&quot;actor&quot;>' + ${history.who} + '</a>',
+                                                        whatHtml=#{'project.history.type.' + ${history.what}},
+                                                        howHtml='<span class=&quot;whereis&quot;><a href=&quot;' + ${history.url} + '&quot; class=&quot;where&quot;>' + ${history.shortTitle} + '</a> <a href=&quot;' + ${history.url} + '&quot; class=&quot;title&quot;>' + ${history.how} + '</a></span>'
+                                                    ">
+                                                        <span th:utext="${#messages.msg('project.history.item', whoHtml, whatHtml, howHtml)}">이력 메시지</span>
+                                                    </th:block>
+                                                </p>
+                                                <p class="others" style="padding-left:0;">
+                                                    <span class="date" style="margin-left:0;" th:title="${@templateHelper.getDateString(history.whenInstant)}" th:text="${@templateHelper.agoOrDateString(history.whenInstant)}">시간</span>
+                                                </p>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- 3. Dashboard 탭 -->
+                            <div th:if="${tabId == 'dashboard'}" class="content-container nm">
+                                <div class="project-overview-home row-fluid">
+                                    <div class="span6">
+                                        <!-- 담당자별 오픈 이슈 -->
+                                        <th:block th:if="${project.isIssueEnabled}">
+                                            <h5 th:text="#{project.dashboard.openIssuesByAssignee}">Open issues by assignee</h5>
+                                            <div class="overview-assignee">
+                                                <div class="empty" th:if="${openIssuesCount == 0}">
+                                                    <p th:text="#{issue.is.empty}">No issues</p>
+                                                    <a th:href="@{/{owner}/{name}/issueform(owner=${project.owner}, name=${project.name})}" target="_blank" class="ybtn ybtn-small" th:text="#{issue.menu.new}">New issue</a>
+                                                </div>
+                                                <div th:if="${openIssuesCount > 0}">
+                                                    <div class="row-fluid" th:each="dto : ${assigneeList}">
+                                                        <div class="span6">
+                                                            <a th:href="@{/{owner}/{name}/issues(owner=${project.owner}, name=${project.name}, assigneeId=${dto.user.id})}" class="usf-group" th:title="${dto.user.name} + ' (@' + ${dto.user.loginId} + ')'">
+                                                                <span class="avatar-wrap smaller">
+                                                                    <img th:src="${dto.user.avatarUrl != null ? dto.user.avatarUrl : '/images/default-avatar-34.png'}" width="20" height="20">
+                                                                </span>
+                                                                <strong class="name" th:text="${dto.user.name}">Jiho</strong>
+                                                                <span class="loginid"> <strong>@</strong><span th:text="${dto.user.loginId}">admin</span></span>
+                                                            </a>
+                                                        </div>
+                                                        <div class="span3 num">
+                                                            <strong th:text="${dto.count}">1</strong>
+                                                        </div>
+                                                        <div class="span3 nm">
+                                                            <div class="progress progress-warning" th:classappend="${dto.percent == 0 ? 'empty' : ''}" data-toggle="tooltip" th:title="${dto.percent} + '%'">
+                                                                <div class="bar" th:style="'width: ' + ${dto.percent} + '%;'"></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <!-- 미할당 이슈 -->
+                                                    <div class="row-fluid" th:if="${notAssignedIssuesCount > 0}">
+                                                        <div class="span6">
+                                                            <a th:href="@{/{owner}/{name}/issues(owner=${project.owner}, name=${project.name}, assigneeId='anonymous')}" class="usf-group">
+                                                                <span class="avatar-wrap smaller">
+                                                                  <i class="yobicon-blankstare"></i>
+                                                                </span>
+                                                                <span class="name" th:text="#{issue.noAssignee}">No assignee</span>
+                                                            </a>
+                                                        </div>
+                                                        <div class="span3 num">
+                                                            <strong th:text="${notAssignedIssuesCount}">1</strong>
+                                                        </div>
+                                                        <div class="span3 nm">
+                                                            <div class="progress progress-warning" th:classappend="${notAssignedIssuesPercent == 0 ? 'empty' : ''}" data-toggle="tooltip" th:title="${notAssignedIssuesPercent} + '%'">
+                                                                <div class="bar" th:style="'width: ' + ${notAssignedIssuesPercent} + '%;'"></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <hr>
+
+                                            <!-- 마일스톤별 오픈 이슈 -->
+                                            <h5 th:text="#{project.dashboard.openIssuesByMilestone}">Open issues by milestone</h5>
+                                            <div class="overview-milestone">
+                                                <div class="empty" th:if="${milestoneList.isEmpty() && noMilestoneIssuesCount == 0}">
+                                                    <p th:text="#{milestone.is.empty}">No milestones</p>
+                                                    <a th:href="@{/{owner}/{name}/milestoneform(owner=${project.owner}, name=${project.name})}" target="_blank" class="ybtn ybtn-small" th:text="#{milestone.menu.new}">New milestone</a>
+                                                </div>
+                                                <div th:if="${!milestoneList.isEmpty() || noMilestoneIssuesCount > 0}">
+                                                    <div class="row-fluid" th:each="dto : ${milestoneList}">
+                                                        <div class="span6">
+                                                            <a th:href="@{/{owner}/{name}/milestones(owner=${project.owner}, name=${project.name}, milestoneId=${dto.id})}" th:text="${dto.title}">v1.0</a>
+                                                        </div>
+                                                        <div class="span3 num">
+                                                            <strong th:text="${dto.openCount}">1</strong>
+                                                        </div>
+                                                        <div class="span3 nm">
+                                                            <div class="progress progress-success" th:classappend="${dto.openCount == 0 ? 'empty' : ''}" data-toggle="tooltip" th:title="${dto.completionRate} + '%'">
+                                                                <div class="bar bar-success" th:style="'width: ' + ${dto.completionRate} + '%;'"></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <!-- 미지정 마일스톤 -->
+                                                    <div class="row-fluid" th:if="${noMilestoneIssuesCount > 0}">
+                                                        <div class="span6">
+                                                            <a th:href="@{/{owner}/{name}/issues(owner=${project.owner}, name=${project.name}, milestoneId=-1)}" th:text="#{issue.noMilestone}">No milestone</a>
+                                                        </div>
+                                                        <div class="span3 num">
+                                                            <strong th:text="${noMilestoneIssuesCount}">1</strong>
+                                                        </div>
+                                                        <div class="span3 nm"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </th:block>
+
+                                        <!-- 풀 리퀘스트 -->
+                                        <th:block th:if="${project.isPullRequestEnabled && (project.vcs ?: 'GIT').toUpperCase() == 'GIT'}">
+                                            <hr th:if="${project.isIssueEnabled}">
+                                            <h5 th:text="#{project.dashboard.pullRequests}">Pull requests</h5>
+                                            <div class="overview-pullrequest">
+                                                <div class="empty" th:if="${openPullRequests.isEmpty()}">
+                                                    <p th:text="#{pullRequest.is.empty}">No pull requests</p>
+                                                    <a th:href="@{/{owner}/{name}/newFork(owner=${project.owner}, name=${project.name})}" target="_blank" class="ybtn ybtn-small" th:text="#{pullRequest.new}">New pull request</a>
+                                                </div>
+                                                <div th:if="${!openPullRequests.isEmpty()}">
+                                                    <div class="row-fluid" th:each="pr : ${openPullRequests}">
+                                                        <div class="span9 title">
+                                                            <a th:href="@{/{owner}/{name}/pullrequests(owner=${project.owner}, name=${project.name}, contributorId=${pr.contributor?.id})}" class="usf-group">
+                                                                <span class="avatar-wrap smaller" data-toggle="tooltip" th:title="${pr.contributor?.name} + ' (@' + ${pr.contributor?.loginId} + ')'">
+                                                                    <img th:src="${pr.contributor?.avatarUrl != null ? pr.contributor?.avatarUrl : '/images/default-avatar-34.png'}" width="20" height="20">
+                                                                </span>
+                                                            </a>
+                                                            <a th:href="@{/{owner}/{name}/pullRequest/{number}(owner=${pr.toProject.owner}, name=${pr.toProject.name}, number=${pr.number})}" th:text="${pr.title}">PR Title</a>
+                                                        </div>
+                                                        <div class="span3 num right-txt" style="color:#999;" th:text="${@templateHelper.agoOrDateString(pr.created)}">
+                                                            방금 전
+                                                        </div>
+                                                    </div>
+                                                    <div class="right-txt mt5" style="margin-right:17px;">
+                                                        <a th:href="@{/{owner}/{name}/pullrequests(owner=${project.owner}, name=${project.name})}">
+                                                            <span th:utext="${#messages.msg('project.dashboard.more', totalOpenPullRequestsCount)}">더보기</span>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </th:block>
+                                    </div>
+
+                                    <!-- 라벨별 오픈 이슈 -->
+                                    <div class="span6" th:if="${project.isIssueEnabled}">
+                                        <link rel="stylesheet" type="text/css" th:href="@{/{owner}/{projectName}/issue/labels.css(owner=${project.owner}, projectName=${project.name})}" />
+                                        <h5 th:text="#{project.dashboard.openIssuesByLabel}">Open issues by label</h5>
+                                        <dl class="dl-horizontal overview-label" th:each="cat : ${labelCategories}">
+                                            <dt th:text="${cat.name}">Category</dt>
+                                            <dd>
+                                                <div class="row-fluid" th:each="label : ${cat.labels}">
+                                                    <div class="span10">
+                                                        <a th:href="@{/{owner}/{name}/issues(owner=${project.owner}, name=${project.name}, labelIds=${label.id})}">
+                                                            <span class="issue-label list-label active" th:data-label-id="${label.id}" th:text="${label.name}">Label</span>
+                                                        </a>
+                                                    </div>
+                                                    <div class="span2 num">
+                                                        <strong th:text="${label.count}">1</strong>
+                                                    </div>
+                                                </div>
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="span3 span-right-pane">
+                    <div class="bubble-wrap gray project-home">
+                        <div class="project-btn-wrap">
+                            <span th:if="${project.isIssueEnabled}" class="project-btn-item">
+                                <a th:href="@{/{owner}/{name}/issueform(owner=${project.owner}, name=${project.name})}" class="ybtn ybtn-success" th:text="#{button.newIssue}">New issue</a>
+                            </span>
+                            <span th:if="${project.isCodeEnabled}" class="project-btn-item">
+                                <a th:href="@{/{owner}/{name}/newFork(owner=${project.owner}, name=${project.name})}" class="ybtn ybtn-inverse" th:text="#{fork}">Fork</a>
+                            </span>
+                        </div>
+
+                        <th:block th:if="${project.isMilestoneEnabled and sidebarMilestone != null}">
+                            <div th:replace="~{milestone/partial_status :: status(${sidebarMilestone}, ${project})}"></div>
+                        </th:block>
+
+                        <div class="inner member-info">
+                            <header>
+                                <h3 th:text="#{project.members}">Project members</h3>
+                                <a th:href="@{/{owner}/{name}/members(owner=${project.owner}, name=${project.name})}" class="ybtn ybtn-minimum" id="member-add-link"><i class="yobicon-addfriend"></i> <span th:text="#{button.add}">Add</span></a>
+                            </header>
+                            <div class="member-wrap">
+                                <ul class="project-members">
+                                    <li class="member" th:each="pu : ${projectUsers}">
+                                        <a th:href="@{/user/{loginId}(loginId=${pu.user.loginId})}" class="avatar-wrap img-rounded pull-left small">
+                                            <img th:src="${pu.user.avatarUrl != null ? pu.user.avatarUrl : '/images/default-avatar-128.png'}" alt="avatar" width="24" height="24">
+                                        </a>
+                                        <a th:href="@{/user/{loginId}(loginId=${pu.user.loginId})}" class="name">
+                                            <strong th:text="${pu.user.name} + ' (' + ${pu.user.loginId} + ')'">jiho (admin)</strong>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <button type="button" class="ybtn ybtn-minimum ybtn-danger pull-right" id="projectLeaveBtn" th:text="#{project.member.leave}">Leave project</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="alertLeave" class="modal hide">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">×</button>
+                    <h3 th:text="#{project.member.leave}">Leave project</h3>
+                </div>
+                <div class="modal-body">
+                    <p th:text="#{project.member.leaveConfirm}">Do you want to leave this project?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="ybtn ybtn-info ybtn-mini" id="leaveBtn" th:text="#{button.yes}">Yes</button>
+                    <button type="button" class="ybtn ybtn-mini" data-dismiss="modal" th:text="#{button.no}">No</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+    <div th:replace="~{site/layout :: scripts}"></div>
+</div>
+<!-- legacy project/home.scala.html:165-177 대응 — 이 호출이 없으면 "주소복사"(ClipboardJS)/설명
+     수정 저장/라벨 편집이 전부 죽은 버튼이 된다. ClipboardJS 자체는 site/layout::scripts가 이미
+     불러오는 공용 yona-common.js에 번들돼 있어(legacy도 이 페이지에 clipboard.js를 별도로 로드하지
+     않음, 직접 대조 확인) 별도 <script src> 추가는 불필요하다. #label-board/#label-editor-toggle은
+     이 화면에 아직 없는 요소라 빈 jQuery 선택이 되지만, 모듈 쪽에서 그 요소가 실제로 있을 때만
+     사용하므로 안전하다(라벨 편집기는 이 화면에 아직 이식되지 않은 별도 범위). -->
+<script type="text/javascript" th:inline="javascript">
+$(document).ready(function(){
+    $yobi.loadModule("project.Home", {
+        "sURLProjectLabels": /*[[@{/api/{owner}/{name}/labels(owner=${project.owner}, name=${project.name})}]]*/ "",
+        "sURLLabels": /*[[@{/labels}]]*/ "",
+        "sURLLabelCategories": /*[[@{/categories}]]*/ "",
+        "welLabelBoard": $('#label-board'),
+        "welLabelEditorToggle": $('#label-editor-toggle'),
+        "nProjectId": /*[[${project.id}]]*/ "",
+        "sURLProject": /*[[@{/api/projects/{id}(id=${project.id})}]]*/ "",
+        "sURLZeroClipboard": /*[[@{/javascripts/lib/jquery/ZeroClipboard.swf}]]*/ ""
+    });
+});
+</script>
+</body>
+</html>

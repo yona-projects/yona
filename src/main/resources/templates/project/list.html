@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(#{title.projectList})}">
+</head>
+<body class="theme-default" id="html-body">
+<div id="main" class="main">
+  <div th:replace="~{site/layout :: gnb}"></div>
+
+  <div class="site-breadcrumb-outer">
+    <div class="site-breadcrumb-inner">
+      <div class="title_area">
+        <ul class="nav nav-tabs">
+          <li class="active">
+            <a th:href="@{/projects}" th:text="#{project.public} + ' ' + #{title.projectList}">
+              공개 프로젝트 목록
+            </a>
+          </li>
+          <li>
+            <a th:href="@{/orgs}">
+              <span th:text="#{title.organization.list}">그룹 목록</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-wrap-outer">
+    <div class="project-page-wrap">
+      <div class="search-wrap">
+        <div id="search" class="pull-left">
+          <form th:action="@{/projects}" method="GET">
+            <div class="search-bar">
+              <input name="filter" class="textbox" type="text" th:placeholder="#{site.project.filter}" th:value="${filter}" autofocus>
+              <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- 프로젝트가 없는 경우 -->
+      <div class="error-wrap" th:if="${projects.totalElements == 0}">
+        <i class="ico ico-err1"></i>
+        <p th:text="#{project.is.empty}">생성된 프로젝트가 없습니다.</p>
+      </div>
+
+      <!-- 프로젝트 목록 출력 -->
+      <ul class="all-projects" th:if="${projects.totalElements > 0}">
+        <li class="project" th:each="project : ${projects.content}">
+          <div class="info-wrap">
+            <div class="owner-avatar-wrap">
+              <a th:href="@{/{owner}/{projectName}(owner=${project.owner}, projectName=${project.name})}">
+                <img th:if="${@templateHelper.hasProjectLogo(project.id)}" th:src="@{/projects/{projectId}/logo(projectId=${project.id})}" th:alt="${project.name}" />
+              </a>
+            </div>
+            <div style="float:left">
+              <div class="header">
+                <a th:href="@{/{owner}/{projectName}(owner=${project.owner}, projectName=${project.name})}" class="black" th:text="${project.name}">프로젝트 이름</a>
+                
+                <!-- 포크 정보 -->
+                <span class="small-font blue-txt" th:if="${project.originalProject != null}">
+                  <a class="origin-title" th:href="@{/{owner}/{name}(owner=${project.originalProject.owner}, name=${project.originalProject.name})}">
+                    <i class="yobicon-split"></i>
+                    <span th:text="${project.originalProject.owner} + ' / ' + ${project.originalProject.name}">original/project</span>
+                  </a>
+                </span>
+
+                <!-- 비공개 아이콘 -->
+                <i class="yobicon-lock yobicon-small" th:if="${project.projectScope.name() == 'PRIVATE'}"></i>
+                
+                <!-- 라벨 리스트 -->
+                <a th:each="label : ${project.labels}" 
+                   th:class="'project-label ' + ${#strings.toLowerCase(label.category)}" 
+                   th:href="@{/projects(labelIds=${label.id})}" 
+                   th:text="${label.name}">라벨명</a>
+              </div>
+              
+              <div class="desc" th:text="${project.overview}">
+                프로젝트 설명
+              </div>
+              
+              <p class="name-tag">
+                by <a th:href="@{/user/{loginId}(loginId=${project.owner})}" class="owner-name-small" th:text="${project.owner}">소유자</a>
+                at <strong th:title="${@templateHelper.getDateString(project.createdDate)}" th:text="${@templateHelper.agoOrDateString(project.createdDate)}">생성 시각</strong>
+                <span class="small-font" th:if="${project.lastPushedDate != null}">
+                  , <span th:text="#{project.codeUpdate}">코드 업데이트</span>
+                  <strong th:title="${@templateHelper.getDateString(project.lastPushedDate)}" th:text="${@templateHelper.agoOrDateString(project.lastPushedDate)}">최근 푸시 시각</strong>
+                </span>
+              </p>
+            </div>
+          </div>
+
+          <div class="stats-wrap pull-right" th:if="${project.projectScope.name() == 'PUBLIC'}">
+            <div class="members">
+              <ul class="unstyled">
+                <li th:each="projectUser : ${project.projectUsers}">
+                  <a th:href="@{/{loginId}(loginId=${projectUser.user.loginId})}" class="avatar-wrap">
+                    <img th:src="${projectUser.user.avatarUrl ?: '/assets/images/default-avatar-128.png'}" th:alt="${projectUser.user.name}">
+                  </a>
+                </li>
+              </ul>
+              <p th:with="watchingCount=${@templateHelper.getWatchingCount(project.id)}">
+                <th:block th:utext="${#messages.msg('project.onmember', project.projectUsers != null ? project.projectUsers.size() : 0)}">멤버 수</th:block>
+                <i class="yobicon-eye yobicon-middle"></i>
+                <th:block th:utext="' ' + ${#messages.msg('project.onwatching', watchingCount)}">지켜보기 수</th:block>
+              </p>
+            </div>
+          </div>
+        </li>
+      </ul>
+
+      <!-- 페이지네이션 영역 -->
+      <div id="pagination"></div>
+    </div>
+  </div>
+  <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+<script type="text/javascript" th:inline="javascript">
+$(document).ready(function(){
+    yobi.Pagination.update($("#pagination"), /*[[${projects.totalPages}]]*/ 1);
+});
+</script>
+</body>
+</html>

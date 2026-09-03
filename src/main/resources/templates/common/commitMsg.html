@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+yona common/commitMsg.scala.html 대응 (그룹10 #38).
+매개변수: shortMessage(요약 1줄), fullMessage(원본 커밋 메시지 전체), linkURL(비어있으면 span, 있으면 a),
+         forceExpand(true면 moreBtn 없이 항상 펼쳐진 상태로 보여준다 — code/diff.html에서 사용).
+-->
+<th:block th:fragment="commitMsg(shortMessage, fullMessage, linkURL, forceExpand)">
+  <span th:if="${#strings.isEmpty(linkURL)}" class="commitMsg short"
+        th:utext="${#strings.isEmpty(shortMessage)} ? #{code.commitMsg.empty} : ${shortMessage}">short message</span>
+  <a th:unless="${#strings.isEmpty(linkURL)}" th:href="${linkURL}" class="commitMsg short"
+     th:utext="${#strings.isEmpty(shortMessage)} ? #{code.commitMsg.empty} : ${shortMessage}">short message</a>
+
+  <th:block th:if="${fullMessage != null and #strings.arraySplit(fullMessage, '\n').length > 1}">
+    <button th:unless="${forceExpand}" type="button" class="commitMsg moreBtn"><span>&hellip;</span></button>
+    <pre class="commitMsg desc" th:classappend="${forceExpand} ? '' : 'hidden'"
+         th:utext="${#strings.replace(fullMessage, #strings.arraySplit(fullMessage, '\n')[0] + '\n', '')}">description</pre>
+  </th:block>
+</th:block>
+</body>
+</html>

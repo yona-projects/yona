@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<!--
+ legacy git/partial_merge_result.scala.html 대응 (#178, TASK-0257). PR 생성/수정 화면(create.html/
+ edit.html)의 "#__commits" 영역을 pullrequest-write.js가 브랜치 선택 시마다 AJAX로 채우는 조각 —
+ from/to 브랜치 사이의 커밋 목록 + 충돌 여부를 보여준다.
+ PullRequestViewController#mergeResult()가 PullRequestService.previewMerge(fromProject, toProject,
+ fromBranch, toBranch)를 호출해 렌더링한다(저장되지 않은 임의 브랜치 조합 프리뷰 — legacy의
+ PullRequestApp.mergeResult()/PullRequest.attemptMerge() 대응). commit-id 링크와 커밋 작성자
+ 아바타는 code/history.html과 동일한 GitCommit(commit.author: User?) 패턴을 그대로 재사용한다
+ (fromProject 기준 — legacy가 routes.CodeHistoryApp.show(pullRequest.fromProject.owner, ...)로
+ 링크하는 것과 동일).
+-->
+<th:block th:fragment="mergeResult(fromProject, pullRequestTitle, pullRequestBody, commits, conflict)">
+    <div id="mergeResult" class="code-browser-wrap"
+         th:data-commits="${commits != null ? commits.size() : 0}"
+         th:data-pullrequest-title="${pullRequestTitle}"
+         th:data-pullrequest-body="${pullRequestBody}"
+         th:data-conflict="${commits != null and !commits.isEmpty() ? conflict : null}">
+        <div th:if="${commits == null or commits.isEmpty()}">
+            <h5 th:text="#{pullRequest.diff.noChanges}">변경 사항이 없습니다.</h5>
+        </div>
+        <div class="commit-wrap" th:if="${commits != null and !commits.isEmpty()}">
+            <table class="code-table commits">
+                <thead class="thead">
+                <tr>
+                    <td class="commit-id"><strong>@</strong></td>
+                    <td class="messages"><strong th:text="#{code.commitMsg}">커밋 메시지</strong></td>
+                    <td class="date"><strong th:text="#{code.commitDate}">커밋 일시</strong></td>
+                    <td class="author"><strong th:text="#{code.author}">작성자</strong></td>
+                </tr>
+                </thead>
+                <tbody class="tbody">
+                <tr th:each="commit : ${commits}"
+                    th:with="showCommitURL=@{/{owner}/{name}/commit/{commitId}(owner=${fromProject.owner}, name=${fromProject.name}, commitId=${commit.id})}">
+                    <td class="commit-id">
+                        <a th:href="${showCommitURL}" th:text="${commit.shortId}">abc1234</a>
+                    </td>
+                    <td class="messages">
+                        <div th:replace="~{common/commitMsg :: commitMsg(${commit.shortMessage}, ${commit.message}, ${showCommitURL}, false)}"></div>
+                    </td>
+                    <td class="date" th:title="${templateHelper.getDateString(commit.authorDate != null ? commit.authorDate.toInstant() : null)}" th:text="${templateHelper.agoOrDateString(commit.authorDate != null ? commit.authorDate.toInstant() : null)}">방금 전</td>
+                    <td class="author">
+                        <a th:if="${commit.author != null}" th:href="@{/user/{loginId}(loginId=${commit.author.loginId})}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${commit.author.loginId}">
+                            <img th:src="${commit.author.avatarUrl}" width="32" height="32">
+                        </a>
+                        <span th:if="${commit.author == null and commit.authorEmail != null}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${commit.authorEmail}">
+                            <img src="/images/default-avatar-32.png" width="32" height="32">
+                        </span>
+                        <span th:if="${commit.author == null and commit.authorEmail == null and commit.authorName != null}" th:text="${commit.authorName}">author</span>
+                        <span th:if="${commit.author == null and commit.authorEmail == null and commit.authorName == null}">Anonymous</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</th:block>
+</body>
+</html>

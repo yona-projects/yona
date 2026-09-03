@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<!--
+  legacy git/partial_recently_pushed_branches.scala.html 대응 (그룹11 #167/#180).
+
+  legacy 시그니처: @(pushedBranches: List[PushedBranch])
+  yona 시그니처는 defaultBranch(project) 로컬 헬퍼(원본 프로젝트 기준 기본 브랜치 계산, 저장소 조회가
+  필요해 Thymeleaf 표현식만으로는 불가)를 컨트롤러(PullRequestViewController.renderList())에서 미리
+  계산한 Map<Long, String>(branchId -> defaultBranch)으로 받는 것만 legacy와 다르다.
+
+  legacy branch.getShortName()은 name에서 "refs/heads/" 접두어를 제거하는데, yona PushedBranch.name은
+  애초에 짧은 브랜치 이름만 저장하므로(PushedBranch.kt 주석 참고) branch.name을 그대로 쓴다.
+
+  삭제 버튼의 data-request-uri는 legacy routes.ProjectApp.deletePushedBranch(...)에 대응하는 yona의
+  기존 REST 엔드포인트(ProjectController.deletePushedBranch, DELETE
+  /api/{owner}/{projectName}/pushedBranches/{id})를 그대로 재사용한다.
+-->
+<div th:fragment="recentlyPushedBranches(pushedBranches, defaultBranches)" th:if="${pushedBranches != null and !pushedBranches.isEmpty()}">
+    <h5 th:text="#{pullRequest.pushed.branches.title}">최근에 push된 브랜치</h5>
+    <div class="alert alert-info">
+        <div th:each="branch : ${pushedBranches}">
+            <i class="yobicon-split"></i>
+            <span style="margin-left:5px;font-weight:bold;"
+                  th:text="${branch.project.owner} + '/' + ${branch.project.name} + ':' + ${branch.name} + ' ( ' + ${@templateHelper.agoOrDateString(branch.pushedDate)} + ' )'">owner/project:branch</span>
+            &nbsp;-&nbsp;
+            <a th:href="@{/{owner}/{projectName}/pull/new(owner=${branch.project.owner}, projectName=${branch.project.name}, fromBranch=${branch.name}, toBranch=${defaultBranches.get(branch.id)})}"
+               th:text="#{pullRequest}">풀 리퀘스트</a>
+            <a href="#" class="close" data-dismiss="alert" aria-hidden="true"
+               data-request-method="delete"
+               th:data-request-uri="@{/api/{owner}/{projectName}/pushedBranches/{id}(owner=${branch.project.owner}, projectName=${branch.project.name}, id=${branch.id})}">&times;</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

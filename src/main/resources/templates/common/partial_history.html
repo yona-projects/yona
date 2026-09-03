@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<!--
+ legacy common/partial_history.scala.html 대응 (#41, TASK-0257). 이슈/게시글 수정 이력 모달.
+ posting.history는 AbstractPostingApp.addToHistory()/HistoryUtil.appendHistory()가 만든
+ 이미 완성된 HTML 조각(<div class='history-made-by'>...</div> + diff-* span들)이라 마크다운
+ 파싱 없이 markdownService.sanitize()로 새니타이즈만 거쳐 그대로 출력한다(legacy Markdown.sanitize
+ 대응).
+-->
+<th:block th:fragment="partial_history(posting)">
+    <div id="-yona-posting-history" class="modal hide">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h5 class="nm" th:text="#{change.history}">변경 이력</h5>
+        </div>
+        <div class="modal-body">
+            <p th:utext="${markdownService.sanitize(posting.history)}">이력 내용</p>
+        </div>
+        <div class="modal-footer">
+            <button class="ybtn ybtn-info ybtn-small" data-dismiss="modal" aria-hidden="true" th:text="#{button.confirm}">확인</button>
+        </div>
+    </div>
+</th:block>
+</body>
+</html>

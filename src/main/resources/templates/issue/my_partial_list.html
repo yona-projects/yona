@@ -1,0 +1,69 @@
+<ul th:fragment="list" class="post-list-wrap my-issues" th:if="${issuePage != null}">
+    <li class="post-item title" th:each="issue : ${issuePage.content}" th:id="'issue-item-' + ${issue.id}" th:href="@{'/' + ${issue.project.owner} + '/' + ${issue.project.name} + '/issue/' + ${issue.number}}">
+        <div class="span12 span-hard-wrap" style="display: flex; width: 100%; align-items: center;">
+            <div class="span2 project-name-in-my-issues fixed-height-my-issues-list col-md-2" style="padding-left: 10px;">
+                <span class="infos-item project-name">
+                    <a th:href="@{'/' + ${issue.project.owner} + '/' + ${issue.project.name}}" class="title project" data-toggle="tooltip" data-placement="bottom" th:title="#{project.name}" th:text="${issue.project.name}">
+                        프로젝트명
+                    </a>
+                </span>
+                <span class="infos-item post-id" th:text="'#' + ${issue.number}">#1</span>
+            </div>
+            
+            <div class="title-wrap span6 col-md-6">
+                <span class="title-cell">
+                    <span th:if="${issue.weight > 0}" class="weight-up-arrow" data-toggle="tooltip" data-placement="right" th:title="#{issue.weight} + ' ' + ${issue.weight}"><i class="yobicon-angle-circled-up"></i></span>
+                    <span th:if="${issue.weight < 0}" class="weight-down-arrow" data-toggle="tooltip" data-placement="right" th:title="#{issue.weight} + ' ' + ${issue.weight}"><i class="yobicon-angle-circled-down"></i></span>
+                    <a th:href="@{'/' + ${issue.project.owner} + '/' + ${issue.project.name} + '/issue/' + ${issue.number}}" class="title" th:text="${issue.title}">
+                        이슈 제목
+                    </a>
+                    
+                    <!-- 댓글 및 투표 카운트 -->
+                    <span class="item-count-groups" th:if="${issue.numOfComments > 0 or (issue.voters != null and !issue.voters.isEmpty())}">
+                        <span th:if="${issue.numOfComments > 0}" class="comment-count">
+                            <a th:href="@{'/' + ${issue.project.owner} + '/' + ${issue.project.name} + '/issue/' + ${issue.number} + '#comments'}" class="r-count" th:text="${issue.numOfComments}">0</a>
+                        </span>
+                        <span th:if="${issue.voters != null and !issue.voters.isEmpty()}" class="vote-count">
+                            <a th:href="@{'/' + ${issue.project.owner} + '/' + ${issue.project.name} + '/issue/' + ${issue.number} + '#vote'}" class="v-count" th:text="${issue.voters.size()}">0</a>
+                        </span>
+                    </span>
+                    
+                    <!-- 라벨 -->
+                    <span th:each="label : ${issue.labels}">
+                        <a href="#" class="label issue-label list-label twoColumeModeTarget" th:data-label-id="${label.id}" th:style="'background:' + ${label.color}" th:text="${label.name}">라벨</a>
+                    </span>
+                </span>
+            </div>
+            
+            <div class="span1 hide-in-mobile author project-name-in-my-issues fixed-height-my-issues-list col-md-1" th:if="${authorId != currentUser.id}">
+                <a th:href="@{'/user/' + ${issue.authorLoginId}}" class="infos-item infos-link-item author-cell" data-toggle="tooltip" data-placement="bottom" th:title="${issue.authorLoginId}" th:text="${issue.authorName != null ? issue.authorName : issue.authorLoginId}">
+                    작성자
+                </a>
+            </div>
+            <div class="span1 hide-in-mobile author project-name-in-my-issues fixed-height-my-issues-list col-md-1" th:if="${authorId == currentUser.id}">
+                <!-- 자기 자신이 작성한 경우 공백(또는 미표시) -->
+            </div>
+            
+            <div class="infos meta col-md-2" th:classappend="${assigneeId != currentUser.id and issue.assignee != null} ? 'span2' : 'span3'">
+                <span class="meta-cell">
+                    <span class="infos-item" th:text="${issue.updatedDate != null ? #temporals.format(issue.updatedDate, 'yyyy-MM-dd HH:mm') : ''}">수정일</span>
+                    
+                    <span class="mileston-tag" th:if="${issue.milestone != null}">
+                        <a th:href="@{'/' + ${issue.project.owner} + '/' + ${issue.project.name} + '/milestone/' + ${issue.milestone.id}}" data-toggle="tooltip" data-placement="bottom" th:title="#{milestone}" th:text="${issue.milestone.title}">
+                            마일스톤
+                        </a>
+                    </span>
+                </span>
+            </div>
+            
+            <!-- 담당자 아바타 -->
+            <div class="span1 hide-in-mobile col-md-1" th:if="${assigneeId != currentUser.id and issue.assignee != null}">
+                <div class="mt5 pull-right hide-in-mobile">
+                    <a th:href="@{'/user/' + ${issue.assignee.user.loginId}}" class="avatar-wrap assignee" data-toggle="tooltip" data-placement="bottom" th:title="#{issue.assignee} + ': ' + ${issue.assignee.user.name}">
+                        <img th:src="${issue.assignee.user.avatarUrl != null ? issue.assignee.user.avatarUrl : '/assets/images/default-avatar-128.png'}" width="32" height="32" th:alt="${issue.assignee.user.name}">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </li>
+</ul>

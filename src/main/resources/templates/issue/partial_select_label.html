@@ -1,0 +1,34 @@
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="selectLabel(labels, selectedLabels, wrapperCSSClassName, additionalAttr, project)">
+    <dl th:class="${wrapperCSSClassName}" th:if="${labels != null and !labels.isEmpty()}" th:with="currentUserObj=${#authentication != null and #authentication.name != 'anonymousUser' ? @userRepository.findByLoginId(#authentication.name).orElse(null) : null}">
+        <dt>
+            <span th:text="#{label}">라벨</span>
+            <th:block th:if="${project != null and currentUserObj != null and @templateHelper.isManager(project, currentUserObj)}">
+                <a th:href="@{/{owner}/{projectName}/issue/labelsform(owner=${project.owner}, projectName=${project.name})}" target="_blank" class="label-edit" style="font-size: 11px; margin-left: 5px;">
+                    [<span th:text="#{button.edit}">편집</span>]
+                </a>
+            </th:block>
+        </dt>
+        <dd>
+            <select id="labelIds" name="labelIds" multiple="multiple" data-search="labelIds"
+                    data-toggle="select2" data-format="issuelabel" data-allow-clear="true"
+                    data-dropdown-css-class="issue-labels" data-container-css-class="issue-labels bordered fullsize"
+                    th:placeholder="#{label.select}" class="hide" style="width: 100%;">
+                <option></option>
+                <th:block th:with="categories=${@templateHelper.getLabelCategories(project)}">
+                    <optgroup th:each="category : ${categories}" th:label="${category.name}"
+                              th:data-category-id="${category.id}"
+                              th:data-category-is-exclusive="${category.isExclusive}">
+                        <option th:each="label : ${@templateHelper.getLabelsByCategory(category)}"
+                                th:value="${label.id}"
+                                th:data-category-id="${category.id}"
+                                th:data-category-is-exclusive="${category.isExclusive}"
+                                th:selected="${selectedLabels != null && selectedLabels.![id].contains(label.id)}"
+                                th:text="${label.name}">
+                            라벨명
+                        </option>
+                    </optgroup>
+                </th:block>
+            </select>
+        </dd>
+    </dl>
+</th:block>

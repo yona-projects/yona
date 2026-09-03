@@ -1,7 +1,7 @@
 # Receiving Notifications
 
-Use 'Watching' to show and receive notifications on the main page of Yobi and from emails when changes are made in projects.
-
+Use 'Watching' to show and receive notifications on the main page of yona and by email when
+changes are made in projects.
 
 Watching
 --------
@@ -12,13 +12,14 @@ You can see the 'Watching' button on the following pages:
 * Issues
 * Posts
 * Pull requests
-* Commits in `Code` menu
+* Commits in the `Code` menu
 
-You should have authorizations to use `Watching`. While anyone can watch public project through 'Watching', for private project, only members of the private one can watch it.
+You need authorization to use `Watching`. Anyone can watch a public project, but for a private
+project, only members of it can watch it.
 
 ### Watching Projects
 
-On circumstances like those below you can get notifications through `Watching Project`.
+Under circumstances like these, you can get notifications through `Watching Project`:
 
 * New issues
 * New posts
@@ -28,43 +29,40 @@ On circumstances like those below you can get notifications through `Watching Pr
 * Pull request status changes
 * New comments on posts or issues
 * New comments on pull requests
-* Requests for joining projects
+* Requests to join the project
 * Pull request merges
 * Issue mentions in commits
 * Pull request commit changes
-* New commits on projects
+* New commits on the project
 * Pull request review action changes
 * Issue mentions in pull requests
 * Issue body changes
 * Review thread state changes
-* Requests for joining groups
+* Requests to join groups
 * Comment updates
 
-To watch projects:
+To watch a project:
 
 1. Go to a project.
 1. Click the `Watch` button.
 1. Click the `Watch` button on the popup.
 
-You basically will get notifications on all above conditions. But you can configure notification settings in more detail. In this case, refer `docs/userManual/notification/notification-setting.md`.
-
+By default you'll get notifications for all the conditions above. But you can configure
+notification settings in more detail — see
+[notification-setting.md](notification-setting.md).
 
 Unwatching
 ----------
 
-If you do not want to receive notifications anymore, use `Unwatch`.
+If you no longer want to receive notifications, use `Unwatch`.
 
-### Unwatching projects
+### Unwatching a project
 
-To unwatch projects:
-
-1. Go to a project you watch.
+1. Go to a project you're watching.
 1. Click the `Watching` button.
 1. Click the `Unwatch` button on the popup.
 
-### Unwatching boards, issues and pull requests
+### Unwatching a board post, issue, or pull request
 
-To unwatch individual items:
-
-1. Go to items on the `Board`, `Issues` or `Pull Request`.
-1. Click the `Unwatch` button to stop getting notifications.
+1. Go to an item in `Board`, `Issues`, or `Pull Request`.
+1. Click the `Unwatch` button to stop getting notifications on it.

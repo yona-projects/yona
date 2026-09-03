@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--
+  legacy site/partial_paginationForUserList.scala.html 대응. partial_pagination.scala.html과 마찬가지로
+  legacy 전체 저장소에 호출부가 전혀 없는 죽은(orphan) 파샬이다(site/userList.scala.html의 실제 페이지네이션은
+  yobi.Pagination.js 클라이언트 위젯). 그 상태를 그대로 이식(TEMPLATE_BACKLOG.md #223 참고).
+  legacy는 링크 대상을 routes.SiteApp.userList(index - 1)(Ebean 0-based pageNum)로 하드코딩했는데, yona의
+  실제 GET /sites/userList는 1-based "page" 쿼리 파라미터를 받으므로(SiteViewController#userList), Play 라우트
+  헬퍼 → 실제 @GetMapping 경로로 치환하는 기존 컨벤션에 따라 0-based index를 1-based page로 환산해 연결한다.
+-->
+<body>
+<div th:fragment="pagination(page, pageNumWindow, divId)"
+     class="pagination" th:id="${divId}"
+     th:with="currentPageNum1=${page.number + 1}, lastPageNum=${page.totalPages}, half=${pageNumWindow / 2},
+              currentPageNum=${currentPageNum1 <= half ? half + 1 : (currentPageNum1 > lastPageNum - half ? lastPageNum - half - 1 : currentPageNum1)}">
+  <ul>
+    <li th:if="${page.hasPrevious()}">
+      <a th:href="@{/sites/userList(page=${page.number})}" th:attr="pageNum=${page.number}">Prev</a>
+    </li>
+    <li th:unless="${page.hasPrevious()}" class="disabled"><a>Prev</a></li>
+
+    <th:block th:if="${lastPageNum < pageNumWindow}">
+      <li th:each="x : ${#numbers.sequence(1, lastPageNum)}" th:classappend="${page.number + 1 == x} ? 'active' : ''">
+        <a th:href="@{/sites/userList(page=${x})}" th:attr="pageNum=${x}" th:text="${x}"></a>
+      </li>
+    </th:block>
+    <th:block th:unless="${lastPageNum < pageNumWindow}">
+      <li th:each="x : ${#numbers.sequence(currentPageNum - half, currentPageNum + half)}" th:classappend="${page.number + 1 == x} ? 'active' : ''">
+        <a th:href="@{/sites/userList(page=${x})}" th:attr="pageNum=${x}" th:text="${x}"></a>
+      </li>
+    </th:block>
+
+    <li th:if="${page.hasNext()}">
+      <a th:href="@{/sites/userList(page=${page.number + 2})}" th:attr="pageNum=${page.number + 2}">Next</a>
+    </li>
+    <li th:unless="${page.hasNext()}" class="disabled"><a>Next</a></li>
+  </ul>
+</div>
+</body>
+</html>

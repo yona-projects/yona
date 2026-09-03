@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko"
+      th:with="notFoundMessage=${@templateHelper.notFoundMessage(title, targetType)}, notFoundActiveMenu=${@templateHelper.notFoundActiveMenu(targetType)}, notFoundReturnUrl=${@templateHelper.notFoundReturnUrl(project, targetType)}">
+<!--
+yona error/notfound.scala.html 대응 (P-템플릿 #45). 프로젝트는 이미 찾았지만(project resolve
+성공) 그 안의 서브 리소스(이슈/게시글/마일스톤/코드 등)를 찾지 못했을 때 쓰는 컨텍스트 인지형
+404 화면 — 프로젝트 헤더/메뉴가 그대로 붙어 있다. 프로젝트 자체를 못 찾았을 때 쓰는 제네릭
+error/404.html(#46)과는 다른 화면이니 혼동하지 말 것.
+
+legacy의 getMenuType/getReturnURL/getMessage 로컬 함수는 여러 컨트롤러가 공유하는 로직이라
+TemplateHelper.notFoundActiveMenu/notFoundReturnUrl/notFoundMessage로 옮겼다(config/TemplateHelper.kt).
+th:replace 프래그먼트 인자 자리에서 @templateHelper.xxx(...)를 직접 호출하면 Thymeleaf가
+"Instantiation of new objects and access to static classes or parameters is forbidden in this
+context" 예외를 던진다(이 세션에서 반복 확인된 함정) — 그래서 최상위 <html> 태그의 th:with로
+한 번만 계산해 변수로 재사용한다.
+
+모델: project(Project, 필수), targetType(String?, "issue_post"/"board_post"/"milestone"/"code"/null),
+title(String?, targetType="code"일 때 브랜치명처럼 메시지의 {0} 자리에 들어가는 값, 그 외엔 보통 없음).
+-->
+<head th:replace="~{site/layout :: head(${notFoundMessage})}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+  <div th:replace="~{site/layout :: gnb}"></div>
+  <div th:replace="~{project/header :: header(${project})}"></div>
+  <div th:replace="~{project/menu :: menu(${project}, ${notFoundActiveMenu})}"></div>
+  <div class="page-wrap-outer">
+      <div class="project-page-wrap">
+          <div class="error-wrap">
+              <i class="ico ico-err2"></i>
+              <p th:text="${notFoundMessage}">존재하지 않는 페이지입니다.</p>
+              <a th:href="${notFoundReturnUrl}" class="ybtn ybtn-primary" th:text="#{button.list}">목록으로</a>
+          </div>
+      </div>
+  </div>
+</div>
+<footer th:replace="~{site/layout :: footer}"></footer>
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+</body>
+</html>

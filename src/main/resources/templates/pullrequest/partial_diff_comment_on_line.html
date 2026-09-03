@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<!--
+ legacy partial_diff_comment_on_line.scala.html 대응 (그룹11 #190). 특정 코드 라인(diff, lineNum,
+ side)에 걸린 CodeCommentThread들을 찾아 렌더링한다. legacy는 미리 threadKey(path,side,line)로
+ 그룹핑된 Map을 받지만, yona는 파샬 재사용을 단순화하기 위해 전체 스레드 목록을 받아 이 조각
+ 안에서 직접 필터링한다(결과 동일, O(n) 스캔이라는 점만 차이 — 파일당 diff 라인 수 규모에서는
+ 무시 가능).
+-->
+<th:block th:fragment="commentsOnLine(allThreads, diff, project, pull, lineNum, side)">
+    <!-- th:each로 각 스레드마다 매칭 여부를 개별 th:if로 판정한다(SpEL 선택식(.?[...]) 대신 더
+         단순하고 검증하기 쉬운 형태를 택함 — 그룹11 세션은 컴파일 검증 없이 진행했음을 감안). -->
+    <th:block th:if="${allThreads != null}" th:each="thread : ${allThreads}"
+              th:with="isMatch=${(thread instanceof T(com.github.yonaprojects.yona.domain.pullrequest.CodeCommentThread))
+                    and thread.codeRange != null
+                    and thread.codeRange.isFor(diff)
+                    and thread.codeRange.endSide != null
+                    and thread.codeRange.endSide.name() == side
+                    and thread.codeRange.endLine == lineNum}">
+        <tr class="comments board-comment-wrap" th:if="${isMatch}" th:data-commit-id="${thread.commitId}">
+            <td colspan="3">
+                <div th:replace="~{pullrequest/partial_comment_thread :: thread(${thread}, ${project}, ${pull})}"></div>
+            </td>
+        </tr>
+    </th:block>
+</th:block>
+</body>
+</html>

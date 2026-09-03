@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(#{title.signUp})}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+  <div th:replace="~{site/layout :: gnb}"></div>
+  <div class="page full">
+    <div class="center-wrap tag-line-wrap signup">
+      <h1 class="title">Yona</h1>
+      <p class="tag-line" th:text="#{app.description}">21세기 프로젝트 호스팅 소프트웨어</p>
+    </div>
+
+    <div class="center-txt" th:if="${requireAdminConfirm}">
+      <p th:text="#{title.signupConfirmDesc}">가입 후 사용을 위해서는 관리자의 승인이 필요합니다</p>
+    </div>
+
+    <div class="signup-form-wrap frm-wrap">
+      <form th:action="@{/signup}" th:object="${user}" method="post" name="signup">
+
+        <!-- 에러 메시지 알림 -->
+        <div class="alert alert-danger" th:if="${passwordError}" th:text="${passwordError}" style="margin: 10px 0; color: #b94a48; background-color: #f2dede; border: 1px solid #eed3d7; padding: 8px 14px; border-radius: 4px; text-align: left;"></div>
+        <div class="alert alert-danger" th:if="${#fields.hasAnyErrors()}" style="margin: 10px 0; color: #b94a48; background-color: #f2dede; border: 1px solid #eed3d7; padding: 8px 14px; border-radius: 4px; text-align: left;">
+          <ul>
+            <li th:each="err : ${#fields.allErrors()}" th:text="${err}"></li>
+          </ul>
+        </div>
+
+        <div class="btns-row nm" th:if="${useSocialLoginOnly}" th:text="#{app.warn.support.social.login.only}">소셜 로그인을 통한 로그인만 가능합니다.</div>
+        <th:block th:unless="${useSocialLoginOnly}">
+        <dl>
+          <dt>
+            <label for="loginId" th:text="#{user.signupId}">아이디</label>
+          </dt>
+          <dd>
+            <input id="loginId" type="text" th:field="*{loginId}" class="text password" autocomplete="off" required autofocus>
+          </dd>
+
+          <dt>
+            <label for="uname" th:text="#{user.name}">이름</label>
+          </dt>
+          <dd>
+            <input id="uname" type="text" th:field="*{name}" class="text password" autocomplete="off" required>
+          </dd>
+
+          <dt>
+            <label for="email" th:text="#{user.email}">이메일</label>
+          </dt>
+          <dd>
+            <input id="email" type="email" th:field="*{email}" class="text password" autocomplete="off" required>
+          </dd>
+
+          <dt>
+            <label for="password" th:text="#{user.password}">비밀번호</label>
+          </dt>
+          <dd>
+            <input id="password" type="password" th:field="*{password}" class="text password" autocomplete="off" required>
+          </dd>
+
+          <dt>
+            <label for="retypedPassword" th:text="#{validation.retypePassword}">비밀번호 확인</label>
+          </dt>
+          <dd>
+            <input id="retypedPassword" type="password" name="retypedPassword" class="text password" autocomplete="off" required>
+          </dd>
+        </dl>
+
+        <div class="btns-row">
+          <button type="submit" class="ybtn ybtn-primary ybtn-large ybtn-fullsize" th:text="#{user.signupBtn}">가입하기</button>
+        </div>
+        </th:block>
+
+        <div class="act-row">
+          <span th:text="#{user.isAlreadySignupUser}">이미 가입하셨나요?</span> <a th:href="@{/login}" class="go-login" th:text="#{title.login}">로그인</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+<script type="text/javascript" src="/javascripts/lib/validate.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        $yobi.loadModule("user.SignUp", {
+            "sLogindIdCheckUrl" : "/user/isUsed?name=",
+            "sEmailCheckUrl" : "/user/isEmailExist?email="
+        });
+    });
+</script>
+<script type="text/javascript" src="/javascripts/service/yobi.user.SignUp.js"></script>
+</body>
+</html>

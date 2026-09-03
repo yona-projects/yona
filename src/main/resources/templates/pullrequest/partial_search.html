@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<!--
+  legacy git/partial_search.scala.html 대응 (그룹11 #167/#182) — pullrequest/list.html은 이 파샬을
+  호출만 하는 thin wrapper이고, 실제 검색폼/탭/목록은 전부 여기 있다.
+
+  legacy SearchCondition(filter/contributorId/category)는 yona에서 별도 클래스 없이 컨트롤러의
+  PullRequestViewController.buildPullRequestSpec()으로 대체했고, 이 파샬은 state(open/closed/all)와
+  requestType(open/closed/sent, 현재 활성 탭)을 인자로 받고 나머지(filter/contributorId/contributors/
+  openCount/closedCount/acceptedCount/sentCount/pushedBranches/pushedBranchDefaultBranches)는
+  PullRequestViewController.renderList()가 채운 모델 속성을 그대로 참조한다.
+
+  pjax 관련: legacy는 pjax-container/data-url(a[pjax-page])/$.pjax 초기화 스크립트로 부분 갱신
+  내비게이션을 구현하지만, yona 코드베이스 전체에 pjax 초기화가 실제로 연결된 곳이 없다(이미 포팅된
+  issue/list.html도 pjax-container 속성만 DOM에 남겨두고 $.pjax 호출부는 이식하지 않은 것과 동일한
+  선례를 따른다). 따라서 pjax-container 속성은 구조적 동치성을 위해 유지하되, $.pjax 초기화 스크립트
+  자체는 이식하지 않는다 — 탭 전환/검색은 폼 제출을 통한 완전한 페이지 재로딩으로 동작한다(legacy도
+  pjax가 비활성화된 브라우저에서는 동일하게 동작했다: isFirefox/isSafari면 pjax를 아예 건너뛰었다).
+-->
+<div th:fragment="search(project, prPage, state, requestType)" pjax-container class="row-fluid cb">
+    <div class="left-menu span2 search-wrap hide-in-mobile" style="padding-top:0;">
+        <form id="search" name="search" method="get"
+              th:action="${requestType == 'closed'} ? @{/{owner}/{projectName}/closedPullRequests(owner=${project.owner}, projectName=${project.name})} : (${requestType == 'sent'} ? @{/{owner}/{projectName}/sentPullRequests(owner=${project.owner}, projectName=${project.name})} : @{/{owner}/{projectName}/pulls(owner=${project.owner}, projectName=${project.name}, state=${state})})">
+            <div class="search">
+                <div class="search-bar">
+                    <input name="filter" class="textbox full" type="text" th:value="${filter}">
+                    <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                </div>
+            </div>
+            <div id="advanced-search-form" class="srch-advanced" th:if="${requestType != 'sent'}">
+                <dl class="issue-option">
+                    <dt th:text="#{pullRequest.sender}">보낸 사람</dt>
+                    <dd>
+                        <select id="contributors" name="contributorId" data-format="user">
+                            <option value="" th:text="#{common.order.all}">전체</option>
+                            <option th:if="${currentUser != null and contributors.![id].contains(currentUser.id)}"
+                                    th:value="${currentUser.id}" th:text="#{pullRequest.sentByMe}">내가 보낸 코드</option>
+                            <option th:each="contributor : ${contributors}"
+                                    th:value="${contributor.id}"
+                                    th:data-avatar-url="${contributor.avatarUrl}"
+                                    th:data-login-id="${contributor.loginId}"
+                                    th:selected="${contributorId != null and contributorId == contributor.id}"
+                                    th:text="${contributor.name}">기여자</option>
+                        </select>
+                    </dd>
+                </dl>
+            </div>
+        </form>
+    </div>
+    <div class="span10 span-hard-wrap" id="span10">
+        <div th:replace="~{pullrequest/partial_recently_pushed_branches :: recentlyPushedBranches(${pushedBranches}, ${pushedBranchDefaultBranches})}"></div>
+
+        <div class="pull-right">
+            <a th:href="@{/{owner}/{projectName}/pull/new(owner=${project.owner}, projectName=${project.name})}" class="ybtn ybtn-success" th:text="#{pullRequest.new}">새 코드 보내기</a>
+        </div>
+        <ul class="nav nav-tabs nm pullrequeset-tab-menu">
+            <li th:classappend="${requestType == 'open'} ? 'active'">
+                <a href="#" th:data-url="@{/{owner}/{projectName}/pulls(owner=${project.owner}, projectName=${project.name}, state='open')}" data-type="state">
+                    <span th:text="#{pullRequest.state.open}">열림</span> <span class="num-badge" th:text="${openCount}">0</span>
+                </a>
+            </li>
+            <li th:classappend="${requestType == 'closed'} ? 'active'">
+                <a href="#" th:data-url="@{/{owner}/{projectName}/closedPullRequests(owner=${project.owner}, projectName=${project.name})}" data-type="state">
+                    <span th:text="#{pullRequest.state.closed}">닫힘</span> <span class="num-badge" th:text="${closedCount}">0</span>
+                </a>
+            </li>
+            <li th:if="${project.isForkedFromOrigin}" th:classappend="${requestType == 'sent'} ? 'active'">
+                <a href="#" th:data-url="@{/{owner}/{projectName}/sentPullRequests(owner=${project.owner}, projectName=${project.name})}" data-type="state">
+                    <span th:text="#{pullRequest.sent}">보낸 코드</span>
+                    <span class="num-badge" th:text="${acceptedCount} + ' / ' + ${sentCount}">0 / 0</span>
+                </a>
+            </li>
+            <li>
+                <!-- legacy common.twoColumnModeCheckboxArea() 대응 — issue/list.html에 이미 이식된
+                     동일 마크업(백로그 #36)을 그대로 재사용한다. -->
+                <div class="two-column-icon mr10 hide-in-mobile" id="two-column-mode-checkbox" th:title="#{common.two.column.mode}" th:data-content="#{common.two.column.mode.desc}">
+                    <label class="checkbox">
+                        <div class="two-column-icon-border">
+                            <input id="two-column-mode" type="checkbox"><span class="two-column-mode-text" th:text="#{common.two.column.view}">2단 보기</span>
+                        </div>
+                    </label>
+                </div>
+            </li>
+        </ul>
+        <div class="tab-content" style="clear:both;padding-top:15px;">
+            <div id="list" class="row-fluid tab-pane active">
+                <div th:replace="~{pullrequest/partial_list :: list(${project}, ${prPage})}"></div>
+            </div>
+        </div>
+    </div>
+    <div th:replace="~{pullrequest/partial_list :: listScript(${prPage})}"></div>
+    <script type="text/javascript">
+        $(function(){
+            $('.pullrequeset-tab-menu').on('click','[data-type="state"]',function() {
+              $('#search').attr('action', $(this).data('url'));
+              $('#search').submit();
+              return false;
+            });
+            yobi.ui.Select2("#contributors").on("change", function(){ $('#search').submit(); });
+        });
+    </script>
+</div>
+</body>
+</html>

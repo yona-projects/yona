@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<!--
+  legacy git/partial_forklist.scala.html 대응 (그룹11 #175). legacy에서도 PR 도메인 전용이
+  아니라 프로젝트 코드/홈 화면의 "forks" 탭에서 재사용되는 프로젝트 fork 목록 카드 파샬이지만,
+  백로그가 pullrequest/partial_forklist.html 경로를 명시적으로 지정해 그 배치를 그대로 따른다.
+  현재 yona의 PR 관련 뷰들(list/create/edit)에서는 아직 호출되지 않는다(legacy도 이 파샬은
+  코드 브라우저 사이드바에서 호출하며, 그 화면은 이 그룹11 서브셋 범위 밖이다) — fragment 자체는
+  Thymeleaf 표준 프로세서로 렌더링 가능함을 테스트로 검증한다.
+
+  legacy는 fork.owner(String)로부터 User.findByLoginId(...)를 다시 조회해 아바타/이름을 얻는데,
+  yona 템플릿에서도 리포지토리 빈을 직접 참조하는 기존 관례(issue/partial_select_label.html,
+  site/issueList.html의 @userRepository.findByLoginId(...) 사용)를 그대로 따른다.
+-->
+<div th:fragment="forklist(project)" th:if="${project.hasForks}">
+    <div id="forks" class="tab-pane">
+        <ul class="all-projects">
+            <li class="project" th:each="fork : ${project.forkingProjects}"
+                th:with="forkOwnerUser=${@userRepository.findByLoginId(fork.owner).orElse(null)}">
+                <div class="info-wrap">
+                    <div class="owner-avatar-wrap">
+                        <a th:href="@{/user/{owner}(owner=${fork.owner})}">
+                            <img th:src="${forkOwnerUser != null ? forkOwnerUser.avatarUrl : ''}" th:alt="${forkOwnerUser != null ? forkOwnerUser.name : fork.owner}">
+                        </a>&nbsp;
+                        <i class="yobicon-lock yobicon-small" th:if="${!fork.isPublic}"></i>
+                        <span th:each="label : ${fork.labels}" class="project-label" th:classappend="${#strings.toLowerCase(label.category)}" th:text="${label.name}">라벨</span>
+                    </div>
+                    <div style="float:left">
+                        <div class="header">
+                            <a th:href="@{/{owner}/{name}(owner=${fork.owner}, name=${fork.name})}" class="black" th:text="${fork.name}">fork명</a>
+                            <i class="yobicon-lock yobicon-small" th:if="${!fork.isPublic}"></i>
+                            <span th:each="label : ${fork.labels}" class="project-label" th:classappend="${#strings.toLowerCase(label.category)}" th:text="${label.name}">라벨</span>
+                        </div>
+                        <div class="desc" th:text="${project.overview}">설명</div>
+                        <p class="name-tag">by <a th:href="@{/user/{owner}(owner=${fork.owner})}" class="owner-name-small" th:text="${fork.owner}">owner</a></p>
+                    </div>
+                </div>
+                <div class="stats-wrap pull-right">
+                    <div class="members" th:if="${fork.isPublic}"
+                         th:with="projectMembers=${@projectUserRepository.findByProjectId(project.id)}, forkMembers=${@projectUserRepository.findByProjectId(fork.id)}">
+                        <ul class="unstyled">
+                            <th:block th:each="pu : ${projectMembers}" th:if="${pu.user.loginId != fork.owner}">
+                                <li><a th:href="@{/user/{owner}(owner=${pu.user.loginId})}" class="avatar-wrap"><img th:src="${pu.user.avatarUrl}" th:alt="${pu.user.name}"></a></li>
+                            </th:block>
+                        </ul>
+                        <p>
+                            <span th:utext="#{project.onmember(${forkMembers.size()})}">멤버수</span>
+                            <i class="yobicon-eye yobicon-middle"></i>
+                            <span th:utext="#{project.onwatching(${@templateHelper.getWatchingCount(fork.id)})}">관심수</span>
+                        </p>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<!--
+yona error/badrequest.scala.html 대응 (P-템플릿 #50). 프로젝트는 이미 찾았지만(project resolve
+성공) 요청 자체가 잘못돼(예: GIT 전용 기능을 SVN 프로젝트에 요청) 400을 돌려줄 때 쓰는 컨텍스트
+인지형 400 화면 — 프로젝트 헤더/메뉴가 그대로 붙는다. 프로젝트 자체를 못 찾았을 때 쓰는 제네릭
+error/400.html(#51)과는 다른 화면.
+
+모델: project(Project, 필수), messageKey(String?, 기본값 "error.badrequest"),
+menuType(String, project/menu::menu 프래그먼트의 activeMenu 인자와 동일한 컨벤션
+"home"/"code"/"issue"/"pullRequest"/"review"/"milestone"/"board"/"setting" 중 하나 — 호출부가
+어떤 화면에서 잘못된 요청을 받았는지에 맞춰 넘길 것).
+-->
+<head th:replace="~{site/layout :: head(#{__${messageKey != null ? messageKey : 'error.badrequest'}__})}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+  <div th:replace="~{site/layout :: gnb}"></div>
+  <div th:replace="~{project/header :: header(${project})}"></div>
+  <div th:replace="~{project/menu :: menu(${project}, ${menuType})}"></div>
+  <div class="page-wrap-outer">
+    <div class="project-page-wrap">
+      <div class="error-wrap">
+        <i class="ico ico-err2"></i>
+        <p th:text="#{__${messageKey != null ? messageKey : 'error.badrequest'}__}">잘못된 요청입니다.</p>
+      </div>
+    </div>
+  </div>
+</div>
+<footer th:replace="~{site/layout :: footer}"></footer>
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+</body>
+</html>

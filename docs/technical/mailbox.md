@@ -1,65 +1,66 @@
 # Mailbox
 
-Mailbox is a service which fetches and posts emails from the IMAP server
-configured by imap.* configurations.
+Ported from legacy Yona's `docs/technical/mailbox.md`. The core algorithm (UID watermark to
+detect new mail, trusting the sender's `From` header, `+`-subaddressing to determine the
+project) is preserved 1:1 in `ImapMailboxPoller`/`IncomingMailProcessingService` — verified in
+code. Config keys moved from `imap.*` to `yona.mailbox.imap.*` (see
+[`docs/yona-mail-settings.md`](../yona-mail-settings.md)).
 
-When Yobi starts, a thread for Mailbox starts to fetch emails from the IMAP
-server and handle them.
+Mailbox is a service which fetches and posts emails from the IMAP server configured by
+`yona.mailbox.imap.*` settings. When yona starts, a thread for Mailbox starts to fetch emails
+from the IMAP server and handle them.
 
 ## Fetches new emails
 
 First of all, Mailbox opens the configured IMAP folder.
 
-If the folder is the same with the one Mailbox has used, it fetches new emails
-from the folder.
+If the folder is the same as the one Mailbox has used, it fetches new emails from the folder.
 
-How Mailbox determine whether the folder is same with the used one? After
-Mailbox opens a IMAP folder, it stores the uidvalidity in
-MAILBOX_LAST_UIDVALIDITY property. Mailbox considers a folder is same with the
-used one if their uidvalidity equals to each other.
+How does Mailbox determine whether the folder is the same as the used one? After Mailbox opens
+an IMAP folder, it stores the uidvalidity in a `MAILBOX_LAST_UID_VALIDITY` property. Mailbox
+considers a folder the same as the used one if their uidvalidity is equal.
 
-And how Mailbox determine which emails in the folder are "new" emails? Whenever
-Mailbox fetches an email, it updates MAILBOX_LAST_SEEN_UID property with the
-uid of the most recently fetched email. Mailbox considers an email is "new" if
-the uid is larger than the value of MAILBOX_LAST_SEEN_UID property.
+And how does Mailbox determine which emails in the folder are "new"? Whenever Mailbox fetches an
+email, it updates a `MAILBOX_LAST_SEEN_UID` property with the uid of the most recently fetched
+email. Mailbox considers an email "new" if its uid is larger than the value of
+`MAILBOX_LAST_SEEN_UID`.
 
-Mailbox handles the fetched emails immediately. See "Handling the emails".
+Mailbox handles fetched emails immediately. See "Handling the emails".
 
 ## Fetches upcoming emails
 
-After that Mailbox listens or do polling the upcoming emails. Mailbox tries to
-listen and fetch new emails immediately if possible.  But if listening is not
-available, because the IMAP server does not support IDLE command, it fetches
-new emails on the interval configured by `application.mailbox.polling.interval`.
+**This is improved over legacy** — legacy only polled. yona first tries IMAP `IDLE` for
+real-time server push, and only falls back to polling
+(`yona.mailbox.imap.polling-interval-ms`, default 5 minutes) when the IMAP server doesn't
+support `IDLE`.
 
-Mailbox handles the fetched emails immediately. See "Handling the emails".
+Mailbox handles fetched emails immediately, same as above.
 
 ## Handling the emails
 
-Yobi posts the fetched emails as an issue or a comment if possible.
+yona posts fetched emails as an issue or a comment if possible.
 
-Mailbox determines the author by the sender's email address from 'From' header of
-the email. Emails from the sender who is not a user of Yobi are ignored.
+Mailbox determines the author by the sender's email address in the `From` header. Emails from a
+sender who isn't a yona user are ignored.
 
-Mailbox determines the projects by the detail parts, which comes after plus
-sign in local part, e.g. owner/project from yobi+owner/project@mail.com, of the
-recipient's email addresses from 'To' header of the email. Since 'To' header
-can have multiple recipients, the projects to which the email will be posted
-can be more than one.
+Mailbox determines the project(s) from the detail part after the plus sign in the local part of
+the recipient's address in the `To` header — e.g. `owner/project` from
+`yona+owner/project@mail.com`. Since `To` can have multiple recipients, the email can be posted
+to more than one project.
 
-If the received email is reply to another notification email, the received
-email will be posted as a comment of the resources on which the notification is
-based. Mailbox determines the resources by message-ids, which is stored in
-'In-Reply-To' and/or 'References' header, and resource path, if the detail part
-includes: e.g.  'issue_post/123' of 'owner/project/issue_post/123'.
+If the received email is a reply to another notification email, it's posted as a comment on the
+resource the notification was about. Mailbox determines the resource from the message-ids stored
+in `In-Reply-To`/`References` headers, plus the resource path in the detail part if present
+(e.g. `issue_post/123` from `owner/project/issue_post/123`).
 
-If Yobi failed to post an email, it replies to the sender with an email which
-contains the reason and help message.
+If yona fails to post an email, it replies to the sender with the reason and a help message.
 
 ## Security Consideration
 
-Yobi believes the email address in From header of the received email is
-truthful and use it for authentication without doubt. It means a malicious user
-can send an email from another person's email address to create an issue to
-a private project the user cannot access. To avoid this problem, your imap
-server must deny every email whose From header is forged.
+yona believes the email address in the `From` header of a received email is truthful and uses it
+for authentication without doubt. This means a malicious user can send an email from another
+person's email address to create an issue in a private project they can't otherwise access. To
+avoid this, your IMAP server must deny every email whose `From` header is forged.
+
+(Re-verified in code: `IncomingMailProcessingService` calls
+`userRepository.findByEmail(message.fromAddress)` and trusts it directly.)

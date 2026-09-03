@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(#{${message}})}"></head>
+<body class="theme-default">
+<div id="main" class="main">
+  <!-- GNB -->
+  <div th:replace="~{site/layout :: gnb}"></div>
+
+  <!-- Breadcrumb -->
+  <div th:replace="~{site/layout :: breadcrumb}"></div>
+
+  <div class="page-wrap-outer">
+    <div class="site-setting-wrap">
+      <div class="row-fluid">
+        <!-- Sidebar -->
+        <div th:replace="~{site/layout :: sidebar('posts')}"></div>
+
+        <!-- Content Area -->
+        <div class="span10" th:with="templateHelper=${@templateHelper}">
+          <div class="title_area">
+            <h2 class="pull-left" th:text="#{site.sidebar.postList}">게시물</h2>
+          </div>
+          
+          <ul class="post-list-wrap">
+            <li class="row-fluid listitem" th:each="post : ${posts.content}" th:with="user=${userRepository.findByLoginId(post.authorLoginId).orElse(null)}">
+              <a th:href="@{'/' + ${post.project.owner} + '/' + ${post.project.name}}" class="avatar-wrap list-avatar">
+                <img th:src="@{/projects/{projectId}/logo(projectId=${post.project.id})}" th:alt="${post.project.name}"/>
+              </a>
+              <div class="post-info-wrap">
+                <a th:href="@{'/' + ${post.project.owner} + '/' + ${post.project.name}}" class="post-project" th:text="${post.project.owner} + '/' + ${post.project.name}"></a>
+                <span class="post-info-separator">·</span>
+                <a th:href="@{'/' + ${post.project.owner} + '/' + ${post.project.name} + '/post/' + ${post.number}}" class="post-title" th:text="${post.title}"></a>
+              </div>
+              <div class="post-meta-wrap">
+                <a th:href="@{'/user/' + ${post.authorLoginId}}" class="avatar-wrap">
+                  <img th:src="${user != null ? user.avatarUrl : '/images/default-avatar-128.png'}" th:alt="${user != null ? user.name : post.authorLoginId}" width="16" height="16"/>
+                </a>
+                <a th:href="@{'/user/' + ${post.authorLoginId}}" class="post-meta-item" th:text="${user != null ? user.name : post.authorLoginId}"></a>
+                <span class="post-meta-item" th:title="${templateHelper.getDateString(post.createdDate)}" th:text="${templateHelper.agoOrDateString(post.createdDate)}"></span>
+                <span class="post-comments post-meta-item">
+                  <a th:href="@{'/' + ${post.project.owner} + '/' + ${post.project.name} + '/post/' + ${post.number} + '#comments'}">
+                    <i class="yobicon-comments"></i>
+                    <span th:text="${post.numOfComments}"></span>
+                  </a>
+                </span>
+              </div>
+            </li>
+          </ul>
+
+          <div id="pagination"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer th:replace="~{site/layout :: footer}"></footer>
+
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+<script th:inline="javascript">
+  $(function(){
+    yobi.Pagination.update($("#pagination"), /*[[${posts.totalPages}]]*/ 1, {"paramNameForPage": "page"});
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko"
+      th:with="reviewMenuLabel=#{menu.review}, pageTitle=${project.name + ' - ' + reviewMenuLabel}">
+<head th:replace="~{site/layout :: head(title=${pageTitle})}">
+</head>
+<body class="prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div th:replace="~{project/header :: header(${project})}"></div>
+    <div th:replace="~{project/menu :: menu(${project}, 'review')}"></div>
+
+    <!-- legacy reviewthread/list.scala.html 1:1 이식 (P2-46 계열, 그룹11). -->
+    <div class="project-page-wrap">
+        <div class="row-fluid issue-list-wrap">
+            <div class="span2 search-wrap span-hard-wrap">
+                <div class="inner advanced">
+                    <ul class="lst-stacked unstyled">
+                        <li th:classappend="${searchCondition.participantId == null and searchCondition.authorId == null} ? 'active'">
+                            <a href="#" data-toggle="filter">
+                                <span th:text="#{review.allReview}">모든 리뷰</span> <span class="num-badge pull-right" th:text="${countEveryone}">0</span>
+                            </a>
+                        </li>
+                        <li th:if="${currentUser != null}" th:classappend="${searchCondition.participantId == currentUser.id} ? 'active'">
+                            <a href="#" data-toggle="filter" data-type="participantId" th:data-value="${currentUser.id}">
+                                <span th:text="#{review.involvingYou}">참여한 리뷰</span> <span class="num-badge pull-right" th:text="${countParticipant}">0</span>
+                            </a>
+                        </li>
+                        <li th:if="${currentUser != null}" th:classappend="${searchCondition.authorId == currentUser.id} ? 'active'">
+                            <a href="#" data-toggle="filter" data-type="authorId" th:data-value="${currentUser.id}">
+                                <span th:text="#{review.createdByYou}">내가 만든 리뷰</span> <span class="num-badge pull-right" th:text="${countAuthor}">0</span>
+                            </a>
+                        </li>
+                    </ul>
+                    <form id="search" name="search" th:action="@{/{owner}/{name}/reviews(owner=${project.owner}, name=${project.name})}" method="get">
+                        <input type="hidden" name="authorId" th:value="${searchCondition.authorId}">
+                        <input type="hidden" name="participantId" th:value="${searchCondition.participantId}">
+                        <input type="hidden" name="orderDir" th:value="${searchCondition.orderDir}">
+                        <input type="hidden" name="orderBy" th:value="${searchCondition.orderBy}">
+                        <input type="hidden" name="state" th:value="${searchCondition.state}">
+                        <hr class="hide-in-mobile">
+                        <div class="search-bar span-hard-wrap">
+                            <input name="filter" class="textbox full" type="text" th:value="${searchCondition.filter}">
+                            <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="span10 span-hard-wrap">
+                <div class="pull-right filters">
+                    <!-- makeSortLink("createdDate", ...) — 리뷰 목록의 유일한 정렬 필드가 createdDate라
+                         searchCondition.orderBy == 'createdDate' 분기가 사실상 항상 참이지만, legacy의 두 분기 구조를
+                         그대로 유지한다. -->
+                    <th:block th:if="${searchCondition.orderBy == 'createdDate'}">
+                        <a href="#" data-field="createdDate" th:data-value="${searchCondition.orderDir == 'asc'} ? 'desc' : 'asc'" class="filter" data-toggle="order">
+                            <i class="ico btn-gray-arrow" th:classappend="${searchCondition.orderDir == 'desc'} ? 'down'"></i><span th:text="#{common.order.date}">날짜순</span>
+                        </a>
+                    </th:block>
+                    <th:block th:unless="${searchCondition.orderBy == 'createdDate'}">
+                        <a href="#" data-field="createdDate" data-value="desc" class="filter" data-toggle="order">
+                            <i class="ico btn-gray-arrow down"></i><span th:text="#{common.order.date}">날짜순</span>
+                        </a>
+                    </th:block>
+                </div>
+                <ul class="nav nav-tabs nm">
+                    <li th:classappend="${searchCondition.state == 'OPEN'} ? 'active'">
+                        <a href="#" data-type="state" data-value="OPEN" data-toggle="filter">
+                            <span th:text="#{issue.state.open}">열림</span> <span class="num-badge" th:text="${countOpen}">0</span>
+                        </a>
+                    </li>
+                    <li th:classappend="${searchCondition.state == 'CLOSED'} ? 'active'">
+                        <a href="#" data-type="state" data-value="CLOSED" data-toggle="filter">
+                            <span th:text="#{issue.state.closed}">닫힘</span> <span class="num-badge" th:text="${countClosed}">0</span>
+                        </a>
+                    </li>
+                </ul>
+                <div class="review-list-wrap" th:insert="~{reviewthread/partial_list :: list(${project}, ${commentThreads}, ${searchCondition})}"></div>
+                <div class="pull-left" style="padding:10px;">
+                    <a th:href="@{/{owner}/{name}/reviews(owner=${project.owner}, name=${project.name}, authorId=${searchCondition.authorId}, participantId=${searchCondition.participantId}, orderBy=${searchCondition.orderBy}, orderDir=${searchCondition.orderDir}, state=${searchCondition.state}, filter=${searchCondition.filter}, format='xls')}" class="ybtn small">
+                        <i class="yobicon-file-excel"></i> <span th:text="#{issue.downloadAsExcel}">엑셀파일로 다운받기</span>
+                    </a>
+                </div>
+                <div id="pagination"></div>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+<script type="text/javascript" th:inline="javascript">
+    $(function(){
+        $yobi.loadModule("review.List", {
+            "elPagination": $("#pagination"),
+            "nTotalPages" : [[${commentThreads.totalPages}]],
+            "welSearchForm": $("form[name='search']")
+        });
+    });
+</script>
+</body>
+</html>

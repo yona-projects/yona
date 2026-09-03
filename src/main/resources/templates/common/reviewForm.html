@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<!--
+ legacy common/reviewForm.scala.html 대응 (그룹11 #40). 코드리뷰(블록 코멘트) 작성 폼 —
+ changes 탭 하단에서 "특정 라인이 아닌 전체 변경사항"에 대한 리뷰 댓글을 작성할 때 쓰인다.
+ common.editor("contents","","","code-review-body") -> site/layout::markdownEditor,
+ common.uploadForm(resourceType) -> common/uploadForm::uploadForm 재사용.
+-->
+<div th:fragment="reviewForm(project, resourceType, action, currentUser)" id="review-form" class="review-form">
+    <form th:action="${action}" method="post" enctype="multipart/form-data">
+        <div class="author-info-wrap pull-left hide-in-mobile">
+            <div class="author-info">
+                <a th:if="${currentUser != null}" th:href="@{/user/{loginId}(loginId=${currentUser.loginId})}" class="avatar-wrap medium" data-toggle="tooltip" data-placement="top" th:title="${currentUser.name}">
+                    <img th:src="${currentUser.avatarUrl}" width="32" height="32">
+                </a>
+            </div>
+        </div>
+        <div class="write-comment-box">
+            <div class="write-comment-wrap">
+                <div class="pull-right"><button type="button" class="ybtn ybtn-default ybtn-small" data-toggle="close">&times;</button></div>
+
+                <div th:replace="~{site/layout :: markdownEditor('contents', '', 'code-review-body')}"></div>
+
+                <div th:if="${currentUser != null}" th:replace="~{common/uploadForm :: uploadForm(${resourceType}, null, null)}"></div>
+
+                <div class="right-txt">
+                    <button type="submit" class="ybtn ybtn-success ybtn-small" th:text="#{button.comment.new}">댓글 등록</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+</body>
+</html>

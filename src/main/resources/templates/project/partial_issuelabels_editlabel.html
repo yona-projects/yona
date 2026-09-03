@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<div th:fragment="editlabel(categories)" id="editLabel" class="modal hide yobiDialog" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="btn-dismiss"><button type="button" class="btn-transparent" data-dismiss="modal">&times;</button></div>
+  <div class="message edit-label-form">
+    <div class="center-txt">
+      <select name="category.id" data-toggle="select2">
+        <option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.name}">카테고리</option>
+      </select>
+
+      <input type="text" name="name" class="text input-label-name" maxlength="250" th:placeholder="#{label.name}">
+
+      <div class="label-preset-colors edit">
+        <button type="button" class="issue-label btn-preset-color" style="background-color:#FF7770;"></button>
+        <button type="button" class="issue-label btn-preset-color" style="background-color:#F18CA7"></button>
+        <button type="button" class="issue-label btn-preset-color" style="background-color:#FFB399"></button>
+        <button type="button" class="issue-label btn-preset-color" style="background-color:#F1D55C"></button>
+        <button type="button" class="issue-label btn-preset-color" style="background-color:#A5D870"></button>
+        <button type="button" class="issue-label btn-preset-color" style="background-color:#32CDA1"></button>
+        <button type="button" class="issue-label btn-preset-color" style="background-color:#9985D8"></button>
+        <button type="button" class="issue-label btn-preset-color" style="background-color:#40A0EB"></button>
+        <button type="button" class="issue-label btn-preset-color" style="background-color:#6BC4E9"></button>
+        <button type="button" class="issue-label btn-preset-color" style="background-color:#DCBD98"></button>
+        <button type="button" class="issue-label btn-preset-color" style="background-color:#8C8C9C"></button>
+        <button type="button" class="issue-label btn-preset-color" style="background-color:#7A9CB4"></button>
+        <input type="text" name="color" class="input-small input-label-color" th:placeholder="#{label.customColor}">
+      </div>
+    </div>
+    <div class="center-txt buttons mt20 mb20">
+      <button type="button" class="ybtn ybtn-info btnSubmit" th:text="#{button.save}">저장</button>
+      <button type="button" class="ybtn ybtn-default" data-dismiss="modal" th:text="#{button.cancel}">취소</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

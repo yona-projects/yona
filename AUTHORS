@@ -1,6 +1,9 @@
 #
 # Yona Project (history is continued from yobi)
 #
+# yona is a Kotlin/Spring Boot port of Yona; the list below is carried forward
+# from the legacy Yona/Yobi project for attribution.
+#
 
 Suwon Chae (doortts) <sw.chae@navercorp.com>
 Yi EungJun (npcode) <eungjun.yi@navercorp.com>
@@ -52,3 +55,4 @@ Mijeong Park <p.mj@naverlabs.com>
 Joonho Choi <timberx@naver.com>
 GwanYeong Kim <gy741.kim@gmail.com>
 Father Vlasie <fv@spots.school>
+Andrew Lee <search5@gmail.com>

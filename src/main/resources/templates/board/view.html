@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko" th:with="pageTitle=${post.title + ' |:| ' + @templateHelper.ogDescriptionPreview(post.body)}">
+<head th:replace="~{site/layout :: head(title=${pageTitle})}">
+</head>
+<body class="theme-default prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+    <div th:replace="~{project/header :: header(${project})}"></div>
+    <div th:replace="~{project/menu :: menu(${project}, 'board')}"></div>
+    <link rel="stylesheet" th:href="@{/{owner}/{projectName}/issue/labels.css(owner=${project.owner}, projectName=${project.name})}" type="text/css" />
+
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap board-view">
+            <!-- Post Info -->
+            <div class="board-header issue">
+                <div class="pull-right mr10 mt10 hide-in-mobile">
+                    <div class="date" th:title="${templateHelper.getDateString(post.createdDate)}" th:text="${templateHelper.agoOrDateString(post.createdDate)}">
+                        작성일
+                    </div>
+                </div>
+                <div class="title">
+                    <strong class="board-id" th:text="'#' + ${post.number}">#1</strong>
+                    <span th:text="${post.title}">게시글 제목</span>
+                </div>
+            </div>
+
+            <!-- Content body -->
+            <div class="board-body row-fluid">
+                <div class="span9 span-left-pane">
+                    <div class="author-info">
+                        <a href="javascript:void(0);" class="usf-group">
+                            <span class="avatar-wrap smaller">
+                                <img src="/images/default-avatar-128.png" width="20" height="20">
+                            </span>
+                            <strong class="name" th:text="${post.authorName != null ? post.authorName : post.authorLoginId}">작성자</strong>
+                            <span class="loginid"> <strong>@</strong><span th:text="${post.authorLoginId}">loginId</span></span>
+                        </a>
+                    </div>
+
+                    <!-- legacy board/view.scala.html:78 "@if(StringUtils.isNotEmpty(post.history))" 블록 대응 (#41, TASK-0257) -->
+                    <div class="posting-history" th:if="${post.history != null and !#strings.isEmpty(post.history)}">
+                        <a th:if="${currentUser == null}" th:href="@{/users/loginform}" th:text="#{change.history}">변경 이력</a>
+                        <th:block th:if="${currentUser != null}">
+                            <a href="#-yona-posting-history" data-toggle="modal" th:text="#{change.history}">변경 이력</a>
+                            <div th:replace="~{common/partial_history :: partial_history(${post})}"></div>
+                        </th:block>
+                    </div>
+
+                    <div th:id="'post-' + ${post.number}" class="hide">
+                        <form th:action="@{/api/{owner}/{projectName}/posts/{number}/content(owner=${project.owner}, projectName=${project.name}, number=${post.number})}">
+                            <textarea th:text="${post.body}"></textarea>
+                        </form>
+                    </div>
+                    <div th:id="'post-body-' + ${post.number}">
+                        <div class="tasklist">
+                            <div class="task-title">Tasks<span class="done-counter"></span></div>
+                            <div class="task-progress">
+                                <div class="bar red" style="width: 0;" title="Tasklist"></div>
+                            </div>
+                        </div>
+                        <div class="content markdown-wrap" th:data-allowed-update="${isAllowedUpdate}" th:utext="${markdownService.render(post.body, true, project)}">본문 내용</div>
+                    </div>
+                    
+                    <div class="attachments" id="attachments" th:data-attachments="${attachmentsJson}"></div>
+                    
+                    <div class="board-actrow right-txt">
+                        <div class="pull-left">
+                            <div>
+                                <button id="watch-button" type="button" class="ybtn" th:classappend="${isWatching ? 'ybtn-watching' : ''}"
+                                        data-toggle="tooltip" data-placement="top" th:title="#{issue.watch.description}" th:data-watching="${isWatching}"
+                                        th:text="${isWatching ? #messages.msg('post.unwatch') : #messages.msg('post.watch')}">
+                                    지켜보기
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="button" id="translate" class="icon btn-transparent-with-fontsize-lineheight ml10" data-toggle="tooltip" th:title="#{button.translation}"><i class="yobicon-lang"></i></button>
+                        <div class="watcher-list" style="margin-top: 10px;"></div>
+
+                        <span class="act-row">
+                            <!-- issue/view.html과 동일한 이유로 th:onclick 대신 data-* + 정적 onclick으로
+                                 우회한다(TASK-0257, TemplateProcessingException 실제 발견/수정). -->
+                            <button th:if="${isAllowedUpdate}" type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" th:title="#{button.edit}" th:data-edit-url="@{/{owner}/{projectName}/post/{number}/editform(owner=${project.owner}, projectName=${project.name}, number=${post.number})}" onclick="window.location=this.getAttribute('data-edit-url')"><i class="yobicon-edit-2"></i></button>
+                            <a th:if="${!isAllowedUpdate}" th:href="@{/{owner}/{projectName}/post/{number}/editform(owner=${project.owner}, projectName=${project.name}, number=${post.number})}">
+                                <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml10 pt5px" data-toggle="tooltip" th:title="#{button.show.original}"><i class="yobicon-edit-2"></i></button>
+                            </a>
+                            <th:block th:if="${isAllowedUpdate}">
+                                <a href="#deleteConfirm" data-toggle="modal">
+                                    <button type="button" class="icon btn-transparent-with-fontsize-lineheight ml6" data-toggle="tooltip" th:title="#{button.delete}"><i class="yobicon-trash"></i></button>
+                                </a>
+                            </th:block>
+                        </span>
+                    </div>
+
+                    <div id="comments" class="board-comment-wrap">
+                        <div id="timeline">
+                            <div class="timeline-list">
+                                <div th:each="comment : ${comments}"
+                                     th:with="children=${childCommentsByParentId != null ? childCommentsByParentId.get(comment.id) : null}, canEditThisComment=${currentUser != null and (comment.authorId == currentUser.id or isProjectManager)}, postingCommentResourceType=${T(com.github.yonaprojects.yona.domain.enumeration.ResourceType).NONISSUE_COMMENT}"
+                                     class="comment" th:classappend="${currentUser != null and comment.authorLoginId == currentUser.loginId} ? ' author'" th:id="'comment-' + ${comment.id}">
+                                    <div th:replace="~{common/childCommentsAnchorDiv :: anchorDiv(${children})}"></div>
+                                    <div class="comment-avatar">
+                                        <span class="avatar-wrap"><img src="/images/default-avatar-128.png" width="32" height="32"></span>
+                                    </div>
+                                    <div class="media-body">
+                                    <div class="comment-body">
+                                        <div class="author-info meta-info">
+                                            <strong class="name" th:text="${comment.authorName != null ? comment.authorName : comment.authorLoginId}">댓글작성자</strong>
+                                            <span class="date" th:text="${templateHelper.agoOrDateString(comment.createdDate)}">작성일</span>
+                                            <span class="act-row pull-right">
+                                                <!-- 그룹11 #25 재작업: 댓글 인라인 수정/삭제 버튼 -->
+                                                <button th:if="${currentUser != null}" type="button" class="btn-transparent-with-fontsize-lineheight ml10" data-toggle="comment-edit" th:data-comment-id="${comment.id}" th:title="#{common.comment.edit}"><i class="yobicon-edit-2"></i></button>
+                                                <button th:if="${currentUser != null and (comment.authorId == currentUser.id or isProjectManager)}" type="button" class="btn-transparent-with-fontsize-lineheight ml6" data-toggle="comment-delete" th:data-request-uri="${commentApiBase} + '/' + ${comment.id}" th:title="#{common.comment.delete}"><i class="yobicon-trash"></i></button>
+                                            </span>
+                                        </div>
+                                        <div th:replace="~{common/commentUpdateForm :: updateForm(${comment}, ${commentApiBase}, ${canEditThisComment}, ${postingCommentResourceType})}"></div>
+                                        <div th:id="'comment-body-' + ${comment.id}">
+                                            <div class="content markdown-wrap" th:utext="${markdownService.render(comment.contents, true, project)}">댓글내용</div>
+                                        </div>
+                                    </div>
+                                    <div th:replace="~{common/childComments :: childComments(${comment}, ${children}, ${project}, ${commentApiBase}, ${currentUser}, ${isProjectManager})}"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 댓글 등록 폼 영역 -->
+                        <th:block sec:authorize="isAuthenticated()">
+                            <form id="comment-form" th:action="@{/{owner}/{projectName}/post/{postNumber}/comment(owner=${project.owner}, projectName=${project.name}, postNumber=${post.number})}" method="post" enctype="multipart/form-data">
+                                <div class="write-comment-box">
+                                    <div th:replace="~{site/layout :: markdownEditor('contents', '', 'comment-body')}"></div>
+
+                                    <div th:replace="~{common/uploadForm :: uploadForm('NONISSUE_COMMENT', null, null)}"></div>
+
+                                    <div class="write-comment-wrap">
+                                        <div class="right-txt">
+                                            <button type="submit" class="ybtn ybtn-success" th:text="#{button.comment.new}">댓글 등록</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </th:block>
+
+                        <!-- 비로그인 사용자용 안내 영역 -->
+                        <th:block sec:authorize="isAnonymous()">
+                            <div class="write-comment-box mt20" th:title="#{error.auth.unauthorized.comment}" data-login="required">
+                                <div class="write-comment-wrap">
+                                    <div class="textarea-box">
+                                        <textarea class="comment disabled" disabled="disabled" style="cursor:text;" th:placeholder="#{error.auth.unauthorized.comment}"></textarea>
+                                    </div>
+                                    <div class="right-txt mt10">
+                                        <span class="ybtn ybtn-disabled" th:text="#{button.comment.new}">댓글 등록</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </th:block>
+                    </div>
+                </div>
+
+                <!-- Right Pane -->
+                <div class="span3 span-right-pane mb20">
+                    <div class="issue-info board-labels">
+                        <dl>
+                            <dd class="project-btn-item">
+                                <a th:href="@{/{owner}/{projectName}/post/new(owner=${project.owner}, projectName=${project.name})}" class="ybtn ybtn-success" th:text="#{post.write}">글쓰기</a>
+                            </dd>
+                        </dl>
+
+                        <!-- labels -->
+                        <th:block th:with="projectLabels=${@templateHelper.getProjectLabels(project)}">
+                            <div th:if="${projectLabels != null and !projectLabels.isEmpty()}">
+                                <div th:if="${isAllowedUpdate}">
+                                    <div th:replace="~{issue/partial_select_label :: selectLabel(${projectLabels}, ${post.labels}, '', '', ${project})}"></div>
+                                </div>
+                                <div th:unless="${isAllowedUpdate}">
+                                    <div th:replace="~{issue/partial_show_selected_label :: showLabel(${post.labels}, '')}"></div>
+                                </div>
+                            </div>
+                        </th:block>
+                    </div>
+                </div>
+            </div>
+
+            <div class="board-footer" style="margin-top: 15px; margin-bottom: 15px;">
+                <div th:replace="~{help/keymap :: keymap('boardDetail', ${project})}"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm to delete post -->
+    <div id="deleteConfirm" class="modal hide fade">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">×</button>
+            <h3 th:text="#{post.delete}">글 삭제</h3>
+        </div>
+        <div class="modal-body">
+            <p th:text="#{post.delete.confirm}">정말 이 글을 삭제하시겠습니까?</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="ybtn ybtn-danger" data-request-method="delete" th:data-request-uri="@{/api/projects/{projectId}/posts/{number}(projectId=${project.id}, number=${post.number})}" th:text="#{button.yes}">예</button>
+            <button type="button" class="ybtn" data-dismiss="modal" th:text="#{button.no}">아니요</button>
+        </div>
+    </div>
+
+    <div th:replace="~{common/commentDeleteModal :: commentDeleteModal('#comments')}"></div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+<script type="text/javascript" src="/javascripts/common/yona.Tasklist.js"></script>
+<script type="text/javascript">
+    $(function(){
+        $yobi.loadModule("board.View", {
+            "postId"  : "[[${post.id}]]",
+            "urls"     : {
+                "watch"     : "/watch",
+                "unwatch"   : "/unwatch"
+            }
+        });
+
+        $('[data-request-method="delete"]').click(function(){
+            var uri = $(this).data("requestUri");
+            $.ajax({
+                url: uri,
+                type: "DELETE",
+                success: function() {
+                    window.location = "[[@{/{owner}/{projectName}/posts(owner=${project.owner}, projectName=${project.name})}]]";
+                }
+            });
+        });
+
+        // ===== 그룹11 #25/#26/#29/#30/#31 재작업: 댓글 인라인 수정/대댓글 AJAX 배선 =====
+        $(document).on('click', '[data-toggle="comment-edit"]', function(){
+            var id = $(this).data('commentId');
+            $('#comment-body-' + id).hide();
+            $('#comment-editform-' + id).show();
+        });
+        $(document).on('click', '.ybtn-cancel', function(){
+            var id = $(this).data('commentId');
+            $('#comment-editform-' + id).hide();
+            $('#comment-body-' + id).show();
+        });
+        $(document).on('submit', '.comment-update-form form', function(e){
+            e.preventDefault();
+            var $form = $(this);
+            var apiBase = $form.data('apiBase');
+            var commentId = $form.data('commentId');
+            var contents = $form.find('textarea[data-editor-mode="update-comment-body"]').val();
+            $.ajax({
+                url: apiBase + '/' + commentId,
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({ contents: contents }),
+                success: function(){ window.location.reload(); },
+                error: function(xhr){ alert('[[#{common.comment.edit}]] failed: ' + (xhr.responseJSON && xhr.responseJSON.message || xhr.responseText || '')); }
+            });
+        });
+        $(document).on('submit', '.child-comment-form', function(e){
+            e.preventDefault();
+            var $form = $(this);
+            var apiBase = $form.data('apiBase');
+            var parentCommentId = $form.data('parentCommentId');
+            var contents = $form.find('textarea[name="contents"]').val();
+            $.ajax({
+                url: apiBase,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ contents: contents, parentCommentId: parentCommentId }),
+                success: function(){ window.location.reload(); },
+                error: function(xhr){ alert('[[#{button.comment.new}]] failed: ' + (xhr.responseJSON && xhr.responseJSON.message || xhr.responseText || '')); }
+            });
+        });
+    });
+</script>
+</body>
+</html>

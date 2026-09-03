@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(#{user.verified})}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+  <div th:replace="~{site/layout :: gnb}"></div>
+  <div class="page full">
+    <div class="center-wrap tag-line-wrap reset-password">
+      <h1 class="title" th:utext="#{user.verified}">확인된 사용자</h1>
+      <p th:text="${loginId}">loginId</p>
+      <hr />
+      <p class="tag-line" th:text="#{user.verified.detail}">사용자 정보가 확인되었습니다. 다시 로그인 해주세요</p>
+    </div>
+  </div>
+</div>
+<footer th:replace="~{site/layout :: footer}"></footer>
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<!--
+  legacy site/setting.scala.html 대응. legacy 원본은 @siteMngLayout(message) { TODO } 형태의 미구현 스텁이며,
+  conf/routes/SiteApp.java 어디에도 이 템플릿을 렌더링하는 액션이 없어(전수 검색으로 확인) legacy에서도 실제로는
+  도달 불가능한 죽은 파일이다. 그 상태를 그대로 이식 — 새 라우트를 만들지 않고 legacy와 동일하게 "TODO" 플레이스홀더만
+  담은 파일로 둔다(TEMPLATE_BACKLOG.md #213 참고).
+-->
+<head th:replace="~{site/layout :: head(#{title.siteSetting})}"></head>
+<body class="theme-default">
+<div id="main" class="main">
+  <!-- GNB -->
+  <div th:replace="~{site/layout :: gnb}"></div>
+
+  <!-- Breadcrumb -->
+  <div th:replace="~{site/layout :: breadcrumb}"></div>
+
+  <div class="page-wrap-outer">
+    <div class="site-setting-wrap">
+      <div class="row-fluid">
+        <!-- Sidebar -->
+        <div th:replace="~{site/layout :: sidebar('setting')}"></div>
+
+        <!-- Content Area -->
+        <div class="span10">TODO</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer th:replace="~{site/layout :: footer}"></footer>
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+</body>
+</html>

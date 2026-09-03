@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(${project.name} + ' - ' + #{menu.issue})}">
+</head>
+<body class="prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+    <div th:replace="~{project/header :: header(${project})}"></div>
+    <div th:replace="~{project/menu :: menu(${project}, 'issue')}"></div>
+    <link rel="stylesheet" th:href="@{/{owner}/{projectName}/issue/labels.css(owner=${project.owner}, projectName=${project.name})}" type="text/css" />
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
+            <div pjax-container class="row-fluid issue-list-wrap">
+                <!-- 왼쪽 필터 영역 -->
+                <div class="left-menu span2 span-hard-wrap">
+                    
+                    <!-- 퀵링크 필터 -->
+                    <ul class="lst-stacked unstyled">
+                        <!-- 전체 열린/닫힌 이슈 -->
+                        <li th:class="${assigneeId == null && authorId == null && commenterId == null} ? 'active' : ''">
+                            <a pjax-filter href="#"
+                               data-assignee-id=""
+                               data-author-id=""
+                               data-commenter-id=""
+                               th:data-milestone-id="${milestoneId ?: ''}">
+                                <span th:if="${state == T(com.github.yonaprojects.yona.domain.enumeration.State).CLOSED}" th:text="#{issue.list.all.closed}">닫힌 이슈</span>
+                                <span th:if="${state == T(com.github.yonaprojects.yona.domain.enumeration.State).OPEN}" th:text="#{issue.list.all.open}">열린 이슈</span>
+                                <span class="num-badge pull-right" th:text="${state == T(com.github.yonaprojects.yona.domain.enumeration.State).OPEN ? openIssuesCount : closedIssuesCount}">0</span>
+                            </a>
+                        </li>
+                        <!-- 로그인 상태일 때 퀵링크 노출 -->
+                        <th:block th:if="${currentUser != null}">
+                            <li th:class="${assigneeId == currentUser.id} ? 'active' : ''">
+                                <a pjax-filter href="#"
+                                   th:data-assignee-id="${currentUser.id}"
+                                   data-author-id=""
+                                   data-commenter-id=""
+                                   th:data-milestone-id="${milestoneId ?: ''}">
+                                    [[#{issue.list.assignedToMe}]]
+                                    <span class="num-badge pull-right" th:text="${assignedToMeCount}">0</span>
+                                </a>
+                            </li>
+                            <li th:class="${authorId == currentUser.id} ? 'active' : ''">
+                                <a pjax-filter href="#"
+                                   data-assignee-id=""
+                                   th:data-author-id="${currentUser.id}"
+                                   data-commenter-id=""
+                                   th:data-milestone-id="${milestoneId ?: ''}">
+                                    [[#{issue.list.authoredByMe}]]
+                                    <span class="num-badge pull-right" th:text="${authoredByMeCount}">0</span>
+                                </a>
+                            </li>
+                            <li th:class="${commenterId == currentUser.id} ? 'active' : ''">
+                                <a pjax-filter href="#"
+                                   data-assignee-id=""
+                                   data-author-id=""
+                                   th:data-commenter-id="${currentUser.id}"
+                                   th:data-milestone-id="${milestoneId ?: ''}">
+                                    [[#{issue.list.commentedByMe}]]
+                                    <span class="num-badge pull-right" th:text="${commentedByMeCount}">0</span>
+                                </a>
+                            </li>
+                        </th:block>
+                    </ul>
+
+                    <!-- 검색 및 상세 필터 폼 -->
+                    <form id="search" name="search" th:action="@{/{owner}/{projectName}/issues(owner=${project.owner}, projectName=${project.name})}" method="get">
+                        <input type="hidden" name="orderBy" th:value="${orderBy}">
+                        <input type="hidden" name="orderDir" th:value="${orderDir}">
+                        <input type="hidden" name="state" th:value="${state}">
+                        <input type="hidden" name="commenterId" th:value="${commenterId}" data-search="commenterId">
+                        
+                        <hr class="hide-in-mobile">
+                        <div class="search">
+                            <div class="search-bar">
+                                <input name="filter" class="textbox full" type="text" th:placeholder="#{project.searchPlaceholder}" th:value="${filter}" data-search="filter">
+                                <button type="button" class="search-btn" data-submit="submit"><i class="yobicon-search"></i></button>
+                            </div>
+                        </div>
+
+                        <div id="advanced-search-form" class="srch-advanced hide-in-mobile">
+                            <!-- 등록자 -->
+                            <dl class="issue-option">
+                                <dt th:text="#{issue.author}">등록자</dt>
+                                <dd>
+                                    <select id="authorId" name="authorId" data-search="authorId" data-toggle="select2" data-format="user" data-container-css-class="fullsize">
+                                        <option value="" th:text="#{common.order.all}">전체</option>
+                                        <th:block th:if="${currentUser != null}">
+                                            <option th:value="${currentUser.id}" th:text="#{issue.list.authoredByMe}">작성한 이슈</option>
+                                        </th:block>
+                                        <th:block th:each="member : ${members}">
+                                            <option th:value="${member.id}"
+                                                    th:selected="${authorId == member.id}"
+                                                    th:data-avatar-url="@{/images/default-avatar-128.png}"
+                                                    th:data-login-id="${member.loginId}"
+                                                    th:text="${member.name}">
+                                            </option>
+                                        </th:block>
+                                    </select>
+                                </dd>
+                            </dl>
+
+                            <!-- 담당자 -->
+                            <dl class="issue-option">
+                                <dt th:text="#{issue.assignee}">담당자</dt>
+                                <dd>
+                                    <select id="assigneeId" name="assigneeId" data-search="assigneeId" data-toggle="select2" data-format="user" data-container-css-class="fullsize">
+                                        <option value="" th:text="#{common.order.all}">전체</option>
+                                        <option value="-1" th:selected="${assigneeId == -1}" th:text="#{issue.noAssignee}">담당자 없음</option>
+                                        <th:block th:if="${currentUser != null}">
+                                            <option th:value="${currentUser.id}" th:text="#{issue.list.assignedToMe}">할당된 이슈</option>
+                                        </th:block>
+                                        <th:block th:each="member : ${members}">
+                                            <option th:value="${member.id}"
+                                                    th:selected="${assigneeId == member.id}"
+                                                    th:data-avatar-url="@{/images/default-avatar-128.png}"
+                                                    th:data-login-id="${member.loginId}"
+                                                    th:text="${member.name}">
+                                            </option>
+                                        </th:block>
+                                    </select>
+                                </dd>
+                            </dl>
+
+                            <!-- 마일스톤 -->
+                            <dl class="issue-option" th:if="${!milestones.isEmpty() || !closedMilestones.isEmpty()}">
+                                <dt th:text="#{milestone}">마일스톤</dt>
+                                <dd>
+                                    <select id="milestoneId" name="milestoneId" data-search="milestoneId" data-toggle="select2" data-format="milestone" data-container-css-class="fullsize">
+                                        <option value="" th:text="#{milestone.state.all}">전체</option>
+                                        <option value="-1" th:selected="${milestoneId == -1}" th:text="#{issue.noMilestone}">마일스톤 없음</option>
+                                        <optgroup th:label="#{milestone.state.open}">
+                                            <th:block th:each="milestone : ${milestones}">
+                                                <option th:value="${milestone.id}" th:selected="${milestoneId == milestone.id}" th:data-state="${milestone.state}" th:text="${milestone.title}"></option>
+                                            </th:block>
+                                        </optgroup>
+                                        <optgroup th:label="#{milestone.state.closed}">
+                                            <th:block th:each="milestone : ${closedMilestones}">
+                                                <option th:value="${milestone.id}" th:selected="${milestoneId == milestone.id}" th:data-state="${milestone.state}" th:text="${milestone.title}"></option>
+                                            </th:block>
+                                        </optgroup>
+                                    </select>
+                                </dd>
+                            </dl>
+
+                            <!-- 목표 완료일 -->
+                            <dl class="issue-option">
+                                <dt th:text="#{issue.dueDate}">목표 완료일</dt>
+                                <dd class="search search-bar">
+                                    <input id="issueDueDate" type="text" name="dueDate" class="textbox full" th:value="${dueDate}" data-toggle="calendar">
+                                    <button type="button" class="search-btn btn-calendar"><i class="yobicon-calendar2"></i></button>
+                                </dd>
+                            </dl>
+
+                            <!-- 라벨 -->
+                            <dl class="issue-option" th:if="${!labels.isEmpty()}">
+                                <dt th:text="#{label}">라벨</dt>
+                                <dd>
+                                    <select id="labelIds" name="labelIds" multiple="multiple" data-search="labelIds"
+                                            data-toggle="select2" data-format="issuelabel" data-allow-clear="true"
+                                            data-dropdown-css-class="issue-labels" data-container-css-class="issue-labels bordered fullsize"
+                                            th:data-placeholder="#{label.select}" class="hide">
+                                        <option></option>
+                                        <th:block th:with="categories=${#sets.toSet(labels.![category])}">
+                                            <optgroup th:each="cat : ${categories}" th:label="${cat.name}" th:data-category-id="${cat.id}" th:data-category-is-exclusive="${cat.isExclusive}">
+                                                <th:block th:each="label : ${labels}" th:if="${label.category.id == cat.id}">
+                                                    <option th:value="${label.id}" th:text="${label.name}" th:selected="${labelIds != null && labelIds.contains(label.id)}" th:data-category-id="${cat.id}" th:data-category-is-exclusive="${cat.isExclusive}"></option>
+                                                </th:block>
+                                            </optgroup>
+                                        </th:block>
+                                    </select>
+                                </dd>
+                            </dl>
+
+                            <!-- 라벨 관리 -->
+                            <div class="labels-wrap" th:if="${templateHelper.isManager(project, currentUser) || (currentUser != null && currentUser.isSiteManager)}">
+                                <a th:href="@{/{owner}/{projectName}/issue/labelsform(owner=${project.owner}, projectName=${project.name})}" class="ybtn ybtn-default ybtn-mini pull-right">
+                                    <i class="yobicon-cog vmiddle"></i>
+                                    <span th:if="${labels.isEmpty()}" class="vmiddle" style="margin-left:2px;" th:text="#{label.manage}">라벨 관리</span>
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 오른쪽 이슈 목록 영역 -->
+                <div class="span10 span-hard-wrap" id="span10">
+                    <div class="pull-right">
+                        <a th:href="@{/{owner}/{projectName}/issueform(owner=${project.owner}, projectName=${project.name})}" class="ybtn ybtn-success" th:text="#{issue.menu.new}">새 이슈</a>
+                    </div>
+                    
+                    <!-- 상태 탭 (열림/닫힘) -->
+                    <ul class="nav nav-tabs nm">
+                        <li th:class="${state == T(com.github.yonaprojects.yona.domain.enumeration.State).OPEN} ? 'active' : ''" data-pjax>
+                            <a href="#" state="open">
+                                [[#{issue.state.open}]]
+                                <span class="num-badge" th:text="${openIssuesCount}">0</span>
+                            </a>
+                        </li>
+                        <li th:class="${state == T(com.github.yonaprojects.yona.domain.enumeration.State).CLOSED} ? 'active' : ''" data-pjax>
+                            <a href="#" state="closed">
+                                [[#{issue.state.closed}]]
+                                <span class="num-badge" th:text="${closedIssuesCount}">0</span>
+                            </a>
+                        </li>
+                        <li>
+                            <!-- 2단 보기 -->
+                            <div class="two-column-icon mr10 hide-in-mobile" id="two-column-mode-checkbox" th:title="#{common.two.column.mode}" th:data-content="#{common.two.column.mode.desc}">
+                                <label class="checkbox">
+                                    <div class="two-column-icon-border">
+                                        <input id="two-column-mode" type="checkbox"><span class="two-column-mode-text" th:text="#{common.two.column.view}">2단 보기</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </li>
+                        <li class="show-subtasks-li">
+                            <!-- 자식이슈 펼쳐보기 -->
+                            <div class="show-subtasks mr10" id="two-column-mode-checkbox" data-toggle="popover" data-trigger="hover" data-placement="top" th:title="#{common.show.subtasks}" th:data-content="#{common.show.subtasks.desc}">
+                                <label class="checkbox">
+                                    <div class="show-subtasks-button-border">
+                                        <input id="toggle-show-subtasks" type="checkbox"><span class="show-subtasks-text" th:text="#{common.show.subtasks}">자식이슈 펼쳐보기</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </li>
+                    </ul>
+
+                    <!-- 이슈가 없을 때 -->
+                    <div class="error-wrap" th:if="${issuePage.content.isEmpty()}">
+                        <i class="ico ico-err1"></i>
+                        <p th:text="#{issue.is.empty}">등록된 이슈가 없습니다.</p>
+                    </div>
+
+                    <!-- 이슈 목록 -->
+                    <th:block th:if="${!issuePage.content.isEmpty()}">
+                        <div class="filter-wrap board">
+                            <!-- 일괄 수정 (Mass Update) 폼 영역 -->
+                            <div class="mass-update-wrap hide-in-mobile" th:if="${currentUser != null && currentUser.isMemberOf(project)}">
+                                <form id="mass-update-form" class="mass-update-form pull-left" th:action="@{/{owner}/{projectName}/issues/massupdate(owner=${project.owner}, projectName=${project.name})}" method="post">
+                                    <div class="btn-group check-all">
+                                        <label for="check-all">
+                                            <input type="checkbox" id="check-all" data-target="checked-issue"/>
+                                        </label>
+                                    </div>
+                                    <!-- 상태 변경 -->
+                                    <div id="state" class="btn-group" data-name="state">
+                                        <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
+                                            <span class="d-label" th:text="#{issue.update.state}">상태 변경</span>
+                                            <span class="d-caret"><span class="caret"></span></span>
+                                        </button>
+                                        <ul class="dropdown-menu mass-update-list">
+                                            <li data-value="OPEN"><a th:text="#{issue.state.open}">열림</a></li>
+                                            <li data-value="CLOSED"><a th:text="#{issue.state.closed}">닫힘</a></li>
+                                        </ul>
+                                    </div>
+                                    <!-- 담당자 변경 -->
+                                    <div id="assignee" class="btn-group" data-name="assignee.id">
+                                        <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
+                                            <span class="d-label" th:text="#{issue.update.assignee.id}">담당자 지정</span>
+                                            <span class="d-caret"><span class="caret"></span></span>
+                                        </button>
+                                        <ul class="dropdown-menu mass-update-list">
+                                            <li data-value="-1"><a th:text="#{issue.noAssignee}">담당자 없음</a></li>
+                                            <li th:data-value="${currentUser.id}"><a th:text="#{issue.assignToMe}">나에게 할당</a></li>
+                                            <li class="divider"></li>
+                                            <th:block th:each="member : ${members}">
+                                                <li th:data-value="${member.id}">
+                                                    <a class="usf-group">
+                                                        <span class="avatar-wrap smaller">
+                                                            <img th:src="${member.avatarUrl}" width="20" height="20">
+                                                        </span>
+                                                        <strong class="name" th:text="${member.name}">이름</strong>
+                                                        <span class="loginid"> @[[${member.loginId}]]</span>
+                                                    </a>
+                                                </li>
+                                            </th:block>
+                                        </ul>
+                                    </div>
+                                    <!-- 마일스톤 변경 -->
+                                    <div id="milestone" class="btn-group" data-name="milestone.id" th:if="${project.isMilestoneEnabled && !milestones.isEmpty()}">
+                                        <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
+                                            <span class="d-label" th:text="#{issue.update.milestone.id}">마일스톤 지정</span>
+                                            <span class="d-caret"><span class="caret"></span></span>
+                                        </button>
+                                        <ul class="dropdown-menu mass-update-list">
+                                            <li data-value="-1"><a th:text="#{issue.noMilestone}">마일스톤 없음</a></li>
+                                            <li class="divider"></li>
+                                            <th:block th:each="milestone : ${milestones}">
+                                                <li th:data-value="${milestone.id}"><a th:text="${milestone.title}">마일스톤</a></li>
+                                            </th:block>
+                                        </ul>
+                                    </div>
+                                    <!-- 라벨 추가 -->
+                                    <div id="attaching-label" class="btn-group" data-name="attachingLabelIds" th:if="${!labels.isEmpty()}">
+                                        <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
+                                            <span class="d-label" th:text="#{issue.update.attachLabel}">라벨 추가</span>
+                                            <span class="d-caret"><span class="caret"></span></span>
+                                        </button>
+                                        <ul id="attach-label-list" class="dropdown-menu mass-update-list">
+                                            <th:block th:with="categories=${#sets.toSet(labels.![category])}">
+                                                <th:block th:each="cat : ${categories}">
+                                                    <li class="disabled" th:data-category="${cat.id}"><span th:text="${cat.name}">카테고리</span></li>
+                                                    <th:block th:each="label : ${labels}" th:if="${label.category.id == cat.id}">
+                                                        <li th:data-value="${label.id}" th:data-category="${cat.id}">
+                                                            <a>
+                                                                <span class="issue-label active list-label" th:data-label-id="${label.id}" th:text="${label.name}">라벨</span>
+                                                            </a>
+                                                        </li>
+                                                    </th:block>
+                                                    <li class="divider" th:data-category="${cat.id}"></li>
+                                                </th:block>
+                                            </th:block>
+                                        </ul>
+                                    </div>
+                                    <!-- 라벨 제거 -->
+                                    <div id="detaching-label" class="btn-group" data-name="detachingLabelIds" th:if="${!labels.isEmpty()}">
+                                        <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
+                                            <span class="d-label" th:text="#{issue.update.detachLabel}">라벨 제거</span>
+                                            <span class="d-caret"><span class="caret"></span></span>
+                                        </button>
+                                        <ul id="delete-label-list" class="dropdown-menu mass-update-list">
+                                            <!-- 자바스크립트가 체크된 이슈에 등록된 라벨들을 바탕으로 목록을 채웁니다. -->
+                                        </ul>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="filters pull-right" th:if="${issuePage.totalElements > 1}">
+                                <a th:href="@{/{owner}/{projectName}/issues(owner=${project.owner}, projectName=${project.name}, state=${state}, filter=${filter}, orderBy='dueDate', orderDir=${orderBy == 'dueDate' && orderDir == 'desc' ? 'asc' : 'desc'})}"
+                                   th:class="${orderBy == 'dueDate'} ? 'filter active' : 'filter'">
+                                    <i class="ico btn-gray-arrow" th:classappend="${orderBy == 'dueDate' && orderDir == 'desc'} ? 'down'"></i>
+                                    <span th:text="#{common.order.dueDate}">마감일순</span>
+                                </a>
+                                <a th:href="@{/{owner}/{projectName}/issues(owner=${project.owner}, projectName=${project.name}, state=${state}, filter=${filter}, orderBy='updatedDate', orderDir=${orderBy == 'updatedDate' && orderDir == 'desc' ? 'asc' : 'desc'})}"
+                                   th:class="${orderBy == 'updatedDate'} ? 'filter active' : 'filter'">
+                                    <i class="ico btn-gray-arrow" th:classappend="${orderBy == 'updatedDate' && orderDir == 'desc'} ? 'down'"></i>
+                                    <span th:text="#{common.order.updatedDate}">최근 업데이트순</span>
+                                </a>
+                                <a th:href="@{/{owner}/{projectName}/issues(owner=${project.owner}, projectName=${project.name}, state=${state}, filter=${filter}, orderBy='createdDate', orderDir=${orderBy == 'createdDate' && orderDir == 'desc' ? 'asc' : 'desc'})}"
+                                   th:class="${orderBy == 'createdDate'} ? 'filter active' : 'filter'">
+                                    <i class="ico btn-gray-arrow" th:classappend="${orderBy == 'createdDate' && orderDir == 'desc'} ? 'down'"></i>
+                                    <span th:text="#{common.order.date}">등록일순</span>
+                                </a>
+                                <a th:href="@{/{owner}/{projectName}/issues(owner=${project.owner}, projectName=${project.name}, state=${state}, filter=${filter}, orderBy='numOfComments', orderDir=${orderBy == 'numOfComments' && orderDir == 'desc' ? 'asc' : 'desc'})}"
+                                   th:class="${orderBy == 'numOfComments'} ? 'filter active' : 'filter'">
+                                    <i class="ico btn-gray-arrow" th:classappend="${orderBy == 'numOfComments' && orderDir == 'desc'} ? 'down'"></i>
+                                    <span th:text="#{common.order.comments}">댓글순</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- yona partial_list_wrap.scala.html:84-86/partial_list_draft.scala.html 대응
+                             (그룹7 #119) — 검색조건 없는 첫 페이지(닫힌 이슈 탭 제외)에서 로그인한 본인의
+                             초안 이슈를 목록 최상단에 노출한다. -->
+                        <div th:if="${draftIssues != null && !draftIssues.isEmpty()}" th:replace="~{issue/partial_list :: list(${project}, ${draftIssues}, ${currentUser})}"></div>
+
+                        <div th:replace="~{issue/partial_list :: list(${project}, ${issuePage.content}, ${currentUser})}"></div>
+
+                        <!-- 엑셀 다운로드 버튼 -->
+                        <div class="pull-left" style="padding:10px;">
+                            <a th:href="@{/{owner}/{projectName}/issues(owner=${project.owner}, projectName=${project.name}, format='xls', state=${state}, filter=${filter})}" class="ybtn small">
+                                <i class="yobicon-file-excel"></i> [[#{issue.downloadAsExcel}]]
+                            </a>
+                        </div>
+
+                        <div id="pagination" th:data-total="${issuePage.totalPages}"><!-- pagination.js가 채움 --></div>
+                    </th:block>
+
+                    <!-- 단축키 안내 모달 -->
+                    <div class="pull-left" style="padding:10px 0; margin-left: 55px;">
+                        <a href="#helpKeys" data-toggle="modal" class="ybtn ybtn-inverse ybtn-mini" th:text="#{common.shortcut.guide}">
+                            단축키 안내
+                        </a>
+
+                        <div id="helpKeys" class="modal hide fade keymap-help" tabindex="-1" role="dialog">
+                            <div class="row-fluid">
+                                <div class="span3">
+                                    <h5 th:text="#{shortcut.project}">프로젝트</h5>
+
+                                    <span class="ybtn ybtn-small">H</span>
+                                    <span class="help-inline" th:text="#{shortcut.home}">홈</span><br>
+
+                                    <span class="ybtn ybtn-small">B</span>
+                                    <span class="help-inline" th:text="#{shortcut.board}">게시판</span><br>
+
+                                    <span class="ybtn ybtn-small">I</span>
+                                    <span class="help-inline" th:text="#{shortcut.issue}">이슈</span><br>
+
+                                    <span class="ybtn ybtn-small">C</span>
+                                    <span class="help-inline" th:text="#{shortcut.code}">코드</span><br>
+
+                                    <span class="ybtn ybtn-small">M</span>
+                                    <span class="help-inline" th:text="#{shortcut.milestone}">마일스톤</span><br>
+
+                                    <th:block th:if="${project.isCodeEnabled}">
+                                        <span class="ybtn ybtn-small">P</span>
+                                        <span class="help-inline" th:text="#{shortcut.pullRequest}">코드 주고받기</span><br>
+                                    </th:block>
+
+                                    <span class="ybtn ybtn-small">Q</span>
+                                    <span class="help-inline" th:text="#{shortcut.setting}">설정</span><br>
+                                </div>
+
+                                <div class="span9">
+                                    <div class="row-fluid">
+                                        <div class="span5">
+                                            <h5 th:text="#{shortcut.issueList}">이슈 목록</h5>
+
+                                            <span class="ybtn ybtn-small">N</span>
+                                            <span class="help-inline" th:text="#{shortcut.newIssue}">새 이슈</span><br>
+
+                                            <span class="ybtn ybtn-small">&larr;</span>
+                                            <span class="help-inline" th:text="#{shortcut.prevPage}">이전 페이지</span><br>
+
+                                            <span class="ybtn ybtn-small">&rarr;</span>
+                                            <span class="help-inline" th:text="#{shortcut.nextPage}">다음 페이지</span><br>
+
+                                            <span class="ybtn ybtn-small">CTRL</span>+ <span class="ybtn ybtn-small">A</span>
+                                            <span class="help-inline" th:text="#{shortcut.selectAll}">전체 선택</span><br>
+                                        </div>
+
+                                        <div class="span7">
+                                            <h5 th:text="#{shortcut.site}">사이트</h5>
+
+                                            <span class="ybtn ybtn-small">A</span>
+                                            <span class="help-inline" th:text="#{shortcut.myIssues}">내 이슈</span><br>
+
+                                            <span class="ybtn ybtn-small">U</span>
+                                            <span class="help-inline" th:text="#{shortcut.profile}">프로필 페이지</span><br>
+
+                                            <span class="ybtn ybtn-small">F</span>
+                                            <span class="help-inline" th:text="#{shortcut.userMenu}">사용자 메뉴</span><br>
+
+                                            <span class="ybtn ybtn-small">ALT</span> + <span class="ybtn ybtn-small">S</span>
+                                            <span class="help-inline" th:text="#{shortcut.siteSearch}">사이트 검색</span><br>
+
+                                            <span class="ybtn ybtn-small">CTRL</span> + <span class="ybtn ybtn-small">ENTER</span>
+                                            <span class="help-inline" th:text="#{shortcut.submit}">폼 전송</span><br>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <p class="actrow">
+                                <button type="button" class="ybtn ybtn-info" data-dismiss="modal" th:text="#{button.confirm}">확인</button>
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+<th:block th:replace="~{common/select2 :: select2}"></th:block>
+<th:block th:replace="~{common/calendar :: calendar}"></th:block>
+<script type="text/javascript" src="/javascripts/lib/jquery.pageslide.js"></script>
+<script type="text/javascript" src="/javascripts/service/yona.twoColumnMode.js"></script>
+<script type="text/javascript" src="/javascripts/service/yona.showSubtask.js"></script>
+<script type="text/javascript" th:inline="javascript">
+    $(function(){
+        $yobi.loadModule("issue.List");
+
+        // 일괄 업데이트 초기화
+        $yobi.loadModule("issue.MassUpdate", {
+            "sURL": /*[[@{/{owner}/{projectName}/issues/massupdate(owner=${project.owner}, projectName=${project.name})}]]*/ "",
+            "welMassUpdateForm": $('#mass-update-form'),
+            "welMassUpdateButtons": $('#mass-update-form button'),
+            "welState": $("#state"),
+            "welMilestone": $("#milestone"),
+            "welAssignee": $("#assignee"),
+            "welAttachingLabel": $("#attaching-label"),
+            "welDetachingLabel": $("#detaching-label"),
+            "welDeleteButton": $("#delete"),
+            "sIssueCheckBoxesSelector": "[type=checkbox][name=checked-issue]",
+        });
+    });
+</script>
+</body>
+</html>

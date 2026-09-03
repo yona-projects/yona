@@ -18,6 +18,16 @@ db
 *.db
 .DS_Store
 *.DS_Store
+._*
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+.fseventsd
+.DocumentRevisions-V100
+.TemporaryItems
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
 bin
 .svn
 nohup.out
@@ -33,3 +43,8 @@ conf/application-logger.xml
 migration-client
 conf/play-authenticate/mine.conf
 conf/social-login.conf
+server.log
+bootRun.log
+data
+build/
+.serena/

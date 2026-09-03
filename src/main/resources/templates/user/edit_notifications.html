@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head th:replace="~{site/layout :: head(#{userinfo.accountSetting})}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div class="site-breadcrumb-outer">
+      <div class="site-breadcrumb-inner">
+        <h3 th:text="#{userinfo.accountSetting}">사용자 설정</h3>
+      </div>
+    </div>
+    <div class="page-wrap-outer">
+      <div class="page-wrap">
+        <div th:replace="~{user/partial_edit_tabmenu :: tabmenu('notifications')}"></div>
+
+        <div>
+          <ul id="notification-projects" class="unstyled lst-stacked span3 mr20" th:if="${not #lists.isEmpty(projects)}">
+            <li th:each="project, iter : ${projects}" th:class="${iter.first} ? 'active' : ''">
+              <a th:href="'#' + ${project.id}" data-toggle="tab" th:text="${project.owner + ' / ' + project.name}">owner / name</a>
+            </li>
+          </ul>
+          <div class="tab-content" th:if="${not #lists.isEmpty(projects)}">
+            <div th:each="project, iter : ${projects}" th:id="${project.id}" class="tab-pane" th:classappend="${iter.first} ? 'active' : ''">
+              <table class="table table-striped table-bordered">
+                <tr th:each="notiType : ${notiTypes}">
+                  <th th:text="#{${notiType.messageKey}}">알림 타입</th>
+                  <td>
+                    <div class="switch" data-on-label="On" data-off-label="Off">
+                      <input class="notiUpdate" 
+                             th:data-href="@{/noti/toggle/{projectId}/{notiType}(projectId=${project.id}, notiType=${notiType.name()})}" 
+                             type="checkbox" 
+                             data-toggle="switch" 
+                             th:checked="${notiMap[project.id][notiType.name()]}">
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <footer th:replace="~{site/layout :: footer}"></footer>
+    <div th:replace="~{site/layout :: scripts}"></div>
+</div>
+<script type="text/javascript">
+    $(function(){
+        $yobi.loadModule("user.Setting");
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+[Unit]
+Description=yona (Kotlin/Spring Boot 포팅판)
+After=network.target
+
+[Service]
+Type=simple
+User=yona
+Group=yona
+WorkingDirectory=/opt/yona
+# ./gradlew bootJar 로 만든 실행 가능 jar. 버전 번호는 build.gradle.kts의 version 값을 따라간다.
+ExecStart=/usr/bin/java -Xmx2048m -Xms2048m -jar /opt/yona/yona-0.0.1-SNAPSHOT.jar --spring.profiles.active=mariadb
+# 물리 저장소 base-dir을 서비스 계정 소유의 고정 경로로 두고 싶다면 아래처럼 오버라이드한다.
+# (자세한 설명: ../../docs/guide/settings-reference.md, ../../README.md의 "운영 환경 설정" 절)
+# ExecStart=/usr/bin/java -Xmx2048m -Xms2048m -jar /opt/yona/yona-0.0.1-SNAPSHOT.jar \
+#   --spring.profiles.active=mariadb \
+#   --yona.git.base-dir=/opt/yona-data/git \
+#   --yona.svn.base-dir=/opt/yona-data/svn \
+#   --yona.lfs.base-dir=/opt/yona-data/lfs \
+#   --yona.upload.base-dir=/opt/yona-data/uploads
+Restart=on-failure
+RestartSec=5
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target

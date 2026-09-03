@@ -7,7 +7,7 @@ To access the repository managed by the project, you need the repository URL.
 
 # Copying Repository URL
 
-To copy the repository URL
+To copy the repository URL:
 
 1. Click the `Copy URL` button.
 1. Then, the URL will be stored in a clipboard.

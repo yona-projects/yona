@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:fragment="head(title)" th:with="titleMain=${@templateHelper.titleMain(title)}, titleDesc=${@templateHelper.titleOgDescription(title)}">
+  <meta charset="utf-8">
+  <title th:text="${titleMain} + ' - Yona'">어드민 관리 - Yona</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta property="og:title" th:content="${titleMain}">
+  <meta property="og:url" th:content="${currentRequestPath}">
+  <meta property="og:type" content="website">
+  <meta property="og:description" th:content="${titleDesc}">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" th:content="${titleMain}">
+  <meta name="twitter:url" th:content="${currentRequestPath}">
+  <meta name="twitter:description" th:content="${titleDesc}">
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico">
+  <link rel="stylesheet" type="text/css" media="all" href="/bootstrap/css/bootstrap.css">
+  <link rel="stylesheet" type="text/css" media="all" href="/stylesheets/yobicon/style.css">
+  <link rel="stylesheet" type="text/css" media="all" href="/javascripts/lib/select2/select2.css">
+  <link rel="stylesheet" type="text/css" media="all" href="/javascripts/lib/pikaday/pikaday.css">
+  <link rel="stylesheet" type="text/css" media="all" href="/stylesheets/usermenu.css">
+  <link rel="stylesheet" type="text/css" media="all" href="/stylesheets/yobi.css?v=20260614-2">
+  <link rel="stylesheet" type="text/css" media="all" href="/javascripts/lib/nprogress/nprogress.css">
+  <link rel="stylesheet" href="/javascripts/lib/viewerjs/viewer.css">
+  <script type="text/javascript" src="/javascripts/yona-layout.js"></script>
+  <script type="text/javascript" src="/messages.js"></script>
+  <script type="text/javascript" sec:authorize="isAuthenticated()">
+    window.parent.document.title = window.document.title;
+    window.parent.history.replaceState('', window.document.title, window.location.href);
+
+    var shallWeOpenLeftNavigation = localStorage.getItem('shallWeOpenLeftNavigation');
+
+    if (window.parent === window) {
+        if (shallWeOpenLeftNavigation === "true") {
+            window.location.href = "/user/sidebar?path=" + window.location.pathname + "&hash=" + window.location.hash.replace('#','');
+        }
+    }
+  </script>
+</head>
+<body>
+
+  <!-- GNB (공통 네비게이션 바) -->
+  <th:block th:fragment="gnb">
+    <div sec:authorize="hasAuthority('ROLE_SITE_ADMIN')" class="admin-logged-in-affix" data-spy="affix" data-offset-top="30">
+      <span th:text="#{user.siteAdminLoggedInAffix}">관리자로 로그인 하였습니다!</span>
+      <span class="small-font" th:text="#{user.siteAdminLoggedInAffix.maxim}">- 큰 힘에는 큰 책임이 따릅니다</span>
+    </div>
+
+    <p class="center-txt" th:if="${currentUser != null and currentUser.isSiteManager and yonaUpdateService.isWatched() and yonaUpdateService.isUpdateRequired()}">
+      <a th:href="${yonaUpdateService.releaseUrl}" th:text="#{site.update.notification(${yonaUpdateService.latestVersion})}">Software update: Yona 1.16.0 is available</a>
+      <button type="button" data-request-method="post" data-request-uri="/sites/unwatchUpdate" class="ybtn ybtn-small" th:text="#{site.update.notification.hide}">Hide</button>
+    </p>
+
+    <div class="unsupported hidden">
+      <div class="unsupported-inner">
+        <p id="unsupported-content">
+          <!-- <i class="yobicon-alert"></i>
+          Please note that you're using an unsupported version of Internet Explorer.<br>We recommend the <a href="http://www.google.com/chrome/" target="_blank">Google Chrome</a> or 10+ version of Internet Explorer web browser. -->
+        </p>
+      </div>
+    </div>
+
+    <header class="gnb-outer" th:classappend="${project != null or org != null} ? 'project-header' : ''">
+      <div class="gnb-inner">
+        <div class="pin" data-toggle="tooltip" data-placement="bottom" title="Sidebar"><i class="yobicon-arrow-left"></i><i class="yobicon-arrow-right" style="display: block;"></i></div>
+        <ul class="gnb-nav">
+          <li>
+            <a href="/" class="logo logo-letter">Y</a>
+          </li>
+          <li class="hide-in-mobile" th:if="${!hideProjectListing and (currentUser == null or !currentUser.isGuest)}">
+            <a href="/projects" class="show-progress-bar" th:text="#{title.list}">전체 목록</a>
+          </li>
+          <li class="divider hide-in-mobile" th:if="${!hideProjectListing and (currentUser == null or !currentUser.isGuest)}"></li>
+
+          <li class="hide-in-mobile">
+            <a th:href="${#strings.isEmpty(feedbackUrl) ? 'https://github.com/yona-projects/yona/issues' : feedbackUrl}" target="_blank" th:text="#{title.yobi.feedback}">개발팀에게 문의하기</a>
+          </li>
+          
+          <li>
+            <form th:action="${project != null} ? @{/{owner}/{projectName}/search(owner=${project.owner}, projectName=${project.name})} : (${org != null} ? @{/org/{orgName}/search(orgName=${org.name})} : @{/search})" 
+                  class="input-prepend gnb-search-form" name="gnb-search-form">
+              <input type="hidden" name="searchType" value="auto">
+              
+              <div class="btn-group" th:if="${project != null or org != null}">
+                <button class="ybtn dropdown-toggle" data-toggle="dropdown" type="button" id="gnb-search-scope-title"
+                        th:text="${project != null} ? #{search.scope.project} : #{search.scope.group}">
+                  현재 프로젝트
+                </button>
+                <ul class="dropdown-menu flat right">
+                  <li th:if="${project != null}">
+                    <a href="#" data-toggle="search-scope" 
+                       th:data-action="@{/{owner}/{projectName}/search(owner=${project.owner}, projectName=${project.name})}"
+                       th:text="#{search.scope.project}">
+                      현재 프로젝트
+                    </a>
+                  </li>
+                  <li th:if="${project != null and project.organization != null}">
+                    <a href="#" data-toggle="search-scope" 
+                       th:data-action="@{/org/{orgName}/search(orgName=${project.organization.name})}"
+                       th:text="#{search.scope.group}">
+                      현재 그룹
+                    </a>
+                  </li>
+                  <li th:if="${project == null and org != null and (hideProjectListing or (currentUser != null and currentUser.isGuest)) and @templateHelper.isOrganizationMemberOrAdmin(org, currentUser)}">
+                    <a href="#" data-toggle="search-scope"
+                       th:data-action="@{/org/{orgName}/search(orgName=${org.name})}"
+                       th:text="#{search.scope.group}">
+                      현재 그룹
+                    </a>
+                  </li>
+                  <li th:if="${(!hideProjectListing and (currentUser == null or !currentUser.isGuest)) or (currentUser != null and currentUser.isSiteManager)}">
+                    <a href="#" data-toggle="search-scope" data-action="/search"
+                       th:text="#{search.scope.all}">
+                      모든 프로젝트
+                    </a>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="search-box" th:classappend="${project != null or org != null} ? 'select' : ''">
+                <input type="text" name="keyword" autocomplete="off" accesskey="S">
+                <button type="submit"><i class="yobicon-search"></i></button>
+              </div>
+            </form>
+          </li>
+        </ul>
+        
+        <!-- 사이드바 Sidenav -->
+        <div sec:authorize="isAuthenticated()" id="mySidenav" class="sidenav">
+          <div class="span5 right-menu span-hard-wrap">
+            <div class="row-fluid user-menu-wrap">
+              <span class="user-menu"><a th:href="@{'/user/' + ${#authentication.name}}" th:text="#{userinfo.profile}">Profile</a></span>
+              <span class="user-menu"><a href="/user/editform" th:text="#{userinfo.accountSetting}">Account settings</a></span>
+              <a href="/users/logout"><span class="user-menu logout label" th:text="#{title.logout}">Log out</span></a>
+            </div>
+            <ul class="nav nav-tabs nm">
+              <li class="myOrganizationList active">
+                <a href="#myOrganizationList" data-toggle="tab" th:text="#{title.favorite}">Favorite</a>
+              </li>
+              <li class="myProjectList">
+                <a href="#myProjectList" data-toggle="tab" th:text="#{title.project}">Project</a>
+              </li>
+              <li class="myRecentIssueList">
+                <a href="#myRecentIssueList" data-toggle="tab" th:text="#{title.recently.visited.issue}">Recently visited issue</a>
+              </li>
+              <li class="allProjectList">
+                <a href="#allProjectList" data-toggle="tab" th:text="#{common.order.all}">All</a>
+              </li>
+            </ul>
+            <div class="tab-content tab-box">
+              <div id="usermenu-tab-content-list" class="tab-content">
+                Loading...
+              </div>
+            </div>
+          </div>
+        </div>
+  
+        <!-- GNB 사용자 메뉴 -->
+        <ul class="gnb-usermenu">
+          <th:block sec:authorize="isAuthenticated()">
+            <li th:if="${!#strings.isEmpty(navbarCustomLinkName)}" class="gnb-usermenu-item">
+              <a th:href="${navbarCustomLinkUrl}" class="user-item-btn loggged-in" th:text="${navbarCustomLinkName}">custom link</a>
+            </li>
+            <li class="gnb-usermenu-item" data-toggle="tooltip" data-placement="bottom" th:title="#{title.shortcut} + ' (A)'">
+              <a href="/user/issues" class="user-item-btn loggged-in" th:inline="text">[[#{issue.myIssue}]]<span th:if="${myOpenIssueCount > 0}" class="counter-badge" th:text="${myOpenIssueCount}">0</span></a>
+            </li>
+            <li class="divider"></li>
+            <li sec:authorize="hasAuthority('ROLE_SITE_ADMIN')" class="gnb-usermenu-item">
+              <a href="/sites/userList" data-toggle="tooltip" th:title="#{menu.siteAdmin}" data-placement="bottom" class="usermenu-icon-button show-progress-bar">
+                <i class="yobicon-wrench"></i>
+              </a>
+            </li>
+            <li sec:authorize="hasAuthority('ROLE_SITE_ADMIN')" class="divider"></li>
+            
+            <li class="gnb-usermenu-dropdown sidebar-open-btn" id="sidebar-open-btn">
+              <a href="javascript:void(0);" class="gnb-dropdown-toggle" data-toggle="tooltip" data-placement="bottom" th:title="#{user.menu} + ', ' + #{title.shortcut} + ' (F)'">
+                <span class="avatar-wrap smaller">
+                  <img src="/images/default-avatar-128.png" th:src="${currentUser != null ? currentUser.avatarUrl(32) : '/images/default-avatar-128.png'}" />
+                </span>
+                <span class="caret"></span>
+              </a>
+            </li>
+            <li class="gnb-usermenu-dropdown">
+              <a href="javascript:void(0);" class="gnb-dropdown-toggle dropdwon-box-btn" data-toggle="dropdown">
+                <i class="yobicon-plus"></i>
+                <span class="caret"></span>
+              </a>
+              <ul class="dropdown-menu flat right">
+                <li>
+                  <a href="/user/issues/new" th:text="#{issue.menu.new}">새 이슈</a>
+                </li>
+                <li>
+                  <a href="/user/issues/new/mine" th:text="#{issue.menu.new.mine}">새 이슈 - 개인 inbox</a>
+                </li>
+                <li>
+                  <hr class="no-margin"/>
+                </li>
+                <li>
+                  <a href="/projectform" th:text="#{button.newProject}">새 프로젝트 만들기</a>
+                </li>
+                <li th:if="${currentUser == null or !currentUser.isGuest}">
+                  <a href="/organizations/new" th:text="#{button.newGroup}">새 그룹 만들기</a>
+                </li>
+              </ul>
+            </li>
+          </th:block>
+          
+          <th:block sec:authorize="isAnonymous()">
+            <li class="gnb-usermenu-item" id="required-logged-in">
+              <a href="/login" class="user-item-btn" data-login="required" th:text="#{title.login}">로그인</a>
+            </li>
+            <li class="divider"></li>
+            <li>
+              <a href="/signup" class="ybtn ybtn-success" th:text="#{title.signup}">회원가입</a>
+            </li>
+          </th:block>
+        </ul>
+      </div>
+    </header>
+  </th:block>
+
+  <!-- GNB (에러 페이지 전용) -->
+  <th:block th:fragment="errorGnb">
+    <div sec:authorize="hasAuthority('ROLE_SITE_ADMIN')" class="admin-logged-in-affix" data-spy="affix" data-offset-top="30">
+      <span th:text="#{user.siteAdminLoggedInAffix}">관리자로 로그인 하였습니다!</span> 
+      <span class="small-font" th:text="#{user.siteAdminLoggedInAffix.maxim}">- 큰 힘에는 큰 책임이 따릅니다</span>
+    </div>
+    
+    <div class="unsupported hidden">
+      <div class="unsupported-inner">
+        <p id="unsupported-content">
+        </p>
+      </div>
+    </div>
+    
+    <header class="gnb-outer">
+      <div class="gnb-inner">
+        <a href="/" class="logo"><h1 class="blind">Yona</h1></a>
+        <ul class="gnb-nav">
+          <li>
+            <a href="/projects" th:text="#{title.projectList}">프로젝트 목록</a>
+          </li>
+          <li>
+            <a href="/_help" th:text="#{title.help}">도움말</a>
+          </li>
+          <li>
+            <a th:href="${feedbackUrl != null and !feedbackUrl.isEmpty()} ? ${feedbackUrl} : 'https://github.com/yona-projects/yona/issues'" target="_blank" th:text="#{title.yobi.feedback}">개발팀에게 문의하기</a>
+          </li>
+        </ul>
+        
+        <!-- 사이드바 Sidenav -->
+        <div sec:authorize="isAuthenticated()" id="mySidenav" class="sidenav">
+          <div class="span5 right-menu span-hard-wrap">
+            <div class="row-fluid user-menu-wrap">
+              <span class="user-menu"><a href="/admin" th:text="#{userinfo.profile}">Profile</a></span>
+              <span class="user-menu"><a href="/user/editform" th:text="#{userinfo.accountSetting}">Account settings</a></span>
+              <a href="/users/logout"><span class="user-menu logout label" th:text="#{title.logout}">Log out</span></a>
+            </div>
+            <ul class="nav nav-tabs nm">
+              <li class="myOrganizationList active">
+                <a href="#myOrganizationList" data-toggle="tab" th:text="#{title.favorite}">Favorite</a>
+              </li>
+              <li class="myProjectList">
+                <a href="#myProjectList" data-toggle="tab" th:text="#{title.project}">Project</a>
+              </li>
+              <li class="myRecentIssueList">
+                <a href="#myRecentIssueList" data-toggle="tab" th:text="#{title.recently.visited.issue}">Recently visited issue</a>
+              </li>
+              <li class="allProjectList">
+                <a href="#allProjectList" data-toggle="tab" th:text="#{common.order.all}">All</a>
+              </li>
+            </ul>
+            <div class="tab-content tab-box">
+              <div id="usermenu-tab-content-list" class="tab-content">
+                Loading...
+              </div>
+            </div>
+          </div>
+        </div>
+  
+        <!-- GNB 사용자 메뉴 -->
+        <ul class="gnb-usermenu">
+          <th:block sec:authorize="isAuthenticated()">
+            <li th:if="${!#strings.isEmpty(navbarCustomLinkName)}" class="gnb-usermenu-item">
+              <a th:href="${navbarCustomLinkUrl}" class="user-item-btn loggged-in" th:text="${navbarCustomLinkName}">custom link</a>
+            </li>
+            <li class="gnb-usermenu-item" data-toggle="tooltip" data-placement="bottom" th:title="#{title.shortcut} + ' (A)'">
+              <a href="/user/issues" class="user-item-btn loggged-in" th:inline="text">[[#{issue.myIssue}]]<span th:if="${myOpenIssueCount > 0}" class="counter-badge" th:text="${myOpenIssueCount}">0</span></a>
+            </li>
+            <li class="divider"></li>
+            <li sec:authorize="hasAuthority('ROLE_SITE_ADMIN')" class="gnb-usermenu-item">
+              <a href="/sites/userList" data-toggle="tooltip" th:title="#{menu.siteAdmin}" data-placement="bottom" class="usermenu-icon-button show-progress-bar">
+                <i class="yobicon-wrench"></i>
+              </a>
+            </li>
+            <li sec:authorize="hasAuthority('ROLE_SITE_ADMIN')" class="divider"></li>
+            
+            <li class="gnb-usermenu-dropdown sidebar-open-btn" id="sidebar-open-btn">
+              <a href="javascript:void(0);" class="gnb-dropdown-toggle" data-toggle="tooltip" data-placement="bottom" th:title="#{user.menu} + ', ' + #{title.shortcut} + ' (F)'">
+                <span class="avatar-wrap smaller">
+                  <img src="/images/default-avatar-128.png" th:src="${currentUser != null ? currentUser.avatarUrl(32) : '/images/default-avatar-128.png'}" />
+                </span>
+                <span class="caret"></span>
+              </a>
+            </li>
+            <li class="gnb-usermenu-dropdown">
+              <a href="javascript:void(0);" class="gnb-dropdown-toggle dropdwon-box-btn" data-toggle="dropdown">
+                <i class="yobicon-plus"></i>
+                <span class="caret"></span>
+              </a>
+              <ul class="dropdown-menu flat right">
+                <li>
+                  <a href="/user/issues/new" th:text="#{issue.menu.new}">새 이슈</a>
+                </li>
+                <li>
+                  <a href="/user/issues/new/mine" th:text="#{issue.menu.new.mine}">새 이슈 - 개인 inbox</a>
+                </li>
+                <li>
+                  <hr class="no-margin"/>
+                </li>
+                <li>
+                  <a href="/projectform" th:text="#{button.newProject}">새 프로젝트 만들기</a>
+                </li>
+                <li th:if="${currentUser == null or !currentUser.isGuest}">
+                  <a href="/organizations/new" th:text="#{button.newGroup}">새 그룹 만들기</a>
+                </li>
+              </ul>
+            </li>
+          </th:block>
+          
+          <th:block sec:authorize="isAnonymous()">
+            <li class="gnb-usermenu-item" id="required-logged-in">
+              <a href="/login" class="user-item-btn" data-login="required" th:text="#{title.login}">로그인</a>
+            </li>
+            <li class="divider"></li>
+            <li>
+              <a href="/signup" class="ybtn ybtn-success" th:text="#{title.signup}">회원가입</a>
+            </li>
+          </th:block>
+        </ul>
+      </div>
+    </header>
+  </th:block>
+
+
+    <!-- Markdown Editor fragment -->
+    <div th:fragment="markdownEditor(name, value, editorMode)" data-toggle="markdown-editor" class="mt10" th:with="wrapId=${#strings.randomAlphanumeric(8)}">
+        <ul class="nav nav-tabs nm small">
+            <li class="active">
+                <a th:href="'#edit-' + ${wrapId}" data-toggle="tab" data-mode="edit" th:text="#{common.editor.edit}">Edit</a>
+            </li>
+            <li>
+                <a th:href="'#preview-' + ${wrapId}" data-toggle="tab" data-mode="preview" th:text="#{common.editor.preview}">Preview</a>
+            </li>
+            <li>
+                <div class="task-list-button">
+                    <button type="button" class="add-task-list-button ybtn ybtn-small ybtn-danger-no-outline">
+                        <i class="yobicon-list task-list-icon"></i> 
+                        <span th:text="#{button.add.checklist}">Add checklist</span>
+                    </button>
+                </div>
+            </li>
+            <li>
+                <div class="editor-clear-temporary">
+                    <div class="editor-clear-temporary-button">
+                        <button type="button" id="button-clear-temporary" class="ybtn ybtn-small ybtn-warning" th:text="#{button.clear.temporary}">Clear temporary</button>
+                    </div>
+                </div>
+            </li>
+            <li>
+                <div class="editor-notice-label"></div>
+            </li>
+        </ul>
+
+        <div class="tab-content" style="position:relative;overflow: visible;">
+            <div th:replace="~{help/markdown}"></div>
+
+            <div th:id="'edit-' + ${wrapId}" class="tab-pane active">
+                <div class="textarea-box">
+                    <textarea th:name="${name}" class="editorSeries content comment nm" th:data-editor-mode="${editorMode}" markdown="true" th:id="'editor-' + ${name} + '-' + ${wrapId}" tabindex="2" style="overflow: hidden; overflow-wrap: break-word; resize: none; height: 300px;" th:text="${value}"></textarea>
+                </div>
+            </div>
+
+            <div th:id="'preview-' + ${wrapId}" class="tab-pane">
+                <div class="markdown-preview markdown-wrap" th:classappend="${editorMode}" data-via-email="false"></div>
+            </div>
+            <div class="notification-receiver">
+                <span class="notification-receiver-title" th:text="#{notification.receiver.list.title}">Notification receivers</span>
+                <span class="notification-receiver-list"></span>
+            </div>
+        </div>
+    </div>
+
+  <!-- Markdown Script fragment -->
+  <th:block th:fragment="markdown(project)">
+    <link rel="stylesheet" type="text/css" href="/javascripts/lib/highlight/styles/default.css" />
+    <script type="text/javascript" src="/javascripts/lib/highlight/highlight.pack.js"></script>
+    <script type="text/javascript" src="/javascripts/lib/marked.js"></script>
+    <script type="text/javascript" th:inline="javascript">
+    $(document).ready(function(){
+        hljs.configure({languages: []});
+        hljs.initHighlightingOnLoad();
+        var htOptions = {};
+
+        /*[# th:if="${project != null}"]*/
+        htOptions.sMarkdownRendererUrl = "/markdown/" + [[${project.owner}]] + "/" + [[${project.name}]];
+        /*[/]*/
+
+        // Reusable markdown renderer
+        yobi.Markdown.init(htOptions);
+    });
+    </script>
+  </th:block>
+
+  <!-- Project Header fragment -->
+  <div th:fragment="projectHeader" th:if="${project != null}" class="project-header-outer" style="background-image:url(/images/project_default.jpg)">
+    <div class="project-header-inner">
+        <div class="project-header-wrap">
+            <div class="project-header-avatar">
+                <img src="/images/project_default_logo.png">
+            </div>
+            <div class="project-breadcrumb-wrap">
+                <div class="project-breadcrumb">
+                    <span class="project-author hide-in-mobile"><a th:href="@{/{owner}(owner=${project.owner})}" th:text="${project.owner}">owner</a></span>
+                    <span class="project-separator hide-in-mobile">/</span>
+                    <span class="project-name"><a th:href="@{/{owner}/{projectName}(owner=${project.owner}, projectName=${project.name})}" th:text="${project.name}">name</a></span>
+                    <span class="user-project-list" th:data-project-id="${project.id}">
+                        <i class="star material-icons va-text-top">star</i>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <!-- Project Menu fragment -->
+  <div th:fragment="projectMenu(menuType)" th:if="${project != null}" class="project-menu-outer"
+       th:with="isMember=${templateHelper.isMember(project, currentUser)}, isManager=${templateHelper.isManager(project, currentUser)}">
+    <div class="project-menu-inner">
+        <ul class="project-menu-nav project-menu-gruop">
+            <li th:class="${menuType == 'HOME' ? 'active' : ''}">
+                <a th:href="@{/{owner}/{projectName}(owner=${project.owner}, projectName=${project.name})}">
+                    <span class="menu-name" th:text="#{menu.home}">Project home</span><span class="short-menu">H</span>
+                </a>
+            </li>
+            <li th:if="${project.isCodeAccessibleMemberOnly != true or isMember}" th:class="${menuType == 'CODE' ? 'active' : ''}">
+                <a th:href="@{/{owner}/{projectName}/code(owner=${project.owner}, projectName=${project.name})}">
+                    <span class="menu-name" th:text="#{menu.code}">Code</span><span class="short-menu">C</span>
+                </a>
+            </li>
+            <li th:class="${menuType == 'ISSUE' ? 'active' : ''}">
+                <a th:href="@{/{owner}/{projectName}/issues(owner=${project.owner}, projectName=${project.name})}">
+                    <span class="menu-name" th:text="#{menu.issue}">Issue</span><span class="short-menu">I</span> 
+                    <span th:if="${templateHelper.countIssues(project) > 0}" class="project-menu-count" th:text="${templateHelper.countIssues(project)}">0</span>
+                </a>
+            </li>
+            <li th:if="${project.isCodeAccessibleMemberOnly != true or isMember}" th:class="${menuType == 'PULL_REQUEST' ? 'active' : ''}">
+                <a th:href="@{/{owner}/{projectName}/pullRequests(owner=${project.owner}, projectName=${project.name})}">
+                    <span class="menu-name" th:text="#{menu.pullRequest}">Pull request</span><span class="short-menu">P</span> 
+                    <span th:if="${templateHelper.countPullRequests(project) > 0}" class="project-menu-count" th:text="${templateHelper.countPullRequests(project)}">0</span>
+                </a>
+            </li>
+            <li th:if="${project.isCodeAccessibleMemberOnly != true or isMember}" th:class="${menuType == 'REVIEW' ? 'active' : ''}">
+                <a th:href="@{/{owner}/{projectName}/reviews(owner=${project.owner}, projectName=${project.name})}">
+                    <span class="menu-name" th:text="#{menu.review}">Review</span><span class="short-menu">R</span>
+                </a>
+            </li>
+            <li th:class="${menuType == 'MILESTONE' ? 'active' : ''}">
+                <a th:href="@{/{owner}/{projectName}/milestones(owner=${project.owner}, projectName=${project.name})}">
+                    <span class="menu-name" th:text="#{milestone}">Milestone</span><span class="short-menu">M</span>
+                </a>
+            </li>
+            <li th:class="${menuType == 'BOARD' ? 'active' : ''}">
+                <a th:href="@{/{owner}/{projectName}/posts(owner=${project.owner}, projectName=${project.name})}">
+                    <span class="menu-name" th:text="#{menu.board}">Board</span><span class="short-menu">B</span>
+                    <span th:if="${templateHelper.countBoardPosts(project) > 0}" class="project-menu-count" th:text="${templateHelper.countBoardPosts(project)}">0</span>
+                </a>
+            </li>
+        </ul>
+        <div class="project-setting" th:if="${isManager}">
+            <ul class="project-menu-nav">
+                <li th:class="${menuType == 'PROJECT_SETTING' ? 'active' : ''}">
+                    <a th:href="@{/{owner}/{projectName}/setting(owner=${project.owner}, projectName=${project.name})}">
+                        <i class="yobicon-cog"></i>
+                        <span class="blind"><span class="menu-name" th:text="#{menu.admin}">Setting</span></span>
+                        <span th:if="${project.enrolledUsers != null and !project.enrolledUsers.isEmpty()}" 
+                              class="project-menu-count" th:text="${project.enrolledUsers.size()}">0</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+  </div>
+
+  <!-- Breadcrumb -->
+  <div th:fragment="breadcrumb" class="site-breadcrumb-outer">
+    <div class="site-breadcrumb-inner">
+      <h3 th:text="#{site.sidebar}">사이트 설정</h3>
+    </div>
+  </div>
+
+  <!-- Sidebar Menu (사이트 설정 사이드바) -->
+  <div th:fragment="sidebar(activeMenu)" class="span2">
+    <ul class="site-setting-nav">
+      <li th:class="${activeMenu == 'users' ? 'active' : ''}">
+        <a href="/sites/userList" th:text="#{site.sidebar.userList}">사용자 관리</a>
+      </li>
+      <li th:class="${activeMenu == 'posts' ? 'active' : ''}">
+        <a href="/sites/postList" th:text="#{site.sidebar.postList}">게시글 관리</a>
+      </li>
+      <li th:class="${activeMenu == 'issues' ? 'active' : ''}">
+        <a href="/sites/issueList" th:text="#{site.sidebar.issueList}">이슈 관리</a>
+      </li>
+      <li th:class="${activeMenu == 'projects' ? 'active' : ''}">
+        <a href="/sites/projectList" th:text="#{site.sidebar.projectList}">프로젝트 관리</a>
+      </li>
+      <li th:class="${activeMenu == 'mail' ? 'active' : ''}">
+        <a href="/sites/mail" th:text="#{site.sidebar.mailSend}">메일 발송</a>
+      </li>
+      <li th:class="${activeMenu == 'massmail' ? 'active' : ''}">
+        <a href="/sites/massmail" th:text="#{site.sidebar.massMail}">대량 메일 발송</a>
+      </li>
+      <li th:class="${activeMenu == 'update' ? 'active' : ''}">
+        <a href="/sites/update"><span th:text="#{site.sidebar.update}">시스템 업데이트</span><span th:if="${yonaUpdateService.isUpdateRequired()}" class="notification-badge">1</span></a>
+      </li>
+      <li th:class="${activeMenu == 'diagnostic' ? 'active' : ''}">
+        <a href="/sites/diagnostic" th:text="#{site.sidebar.diagnostics}">시스템 자가진단</a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Footer -->
+  <footer th:fragment="footer" class="page-footer-outer">
+    <div class="page-footer">
+      <span class="provider">Copyright <a href="https://github.com/yona-projects/yona/blob/master/AUTHORS" target="_blank" class="yona-author">Yona authors</a>
+        & © <a href="https://navercorp.com" target="_blank">NAVER Corp.</a>
+        & <a href="https://naverlabs.com/" target="_blank" class="naver-labs">NAVER LABS</a>
+        Supported by <a href="https://www.ncloud.com/?referer=yona" target="_blank" class="naver-cloud-platform">NAVER CLOUD PLATFORM</a></span>
+    </div>
+  </footer>
+
+  <!-- 공통 스크립트 및 모달 다이얼로그 -->
+  <th:block th:fragment="scripts">
+    <!-- yobi.ui.Dialog -->
+    <div id="yobiDialog" class="modal hide yobiDialog" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="btn-dismiss"><button type="button" class="btn-transparent" data-dismiss="modal">&times;</button></div>
+        <div class="message">
+            <div class="center-text">
+                <p class="msg"></p>
+                <p class="desc"></p>
+            </div>
+            <div class="center-txt buttons">
+                <button type="button" class="ybtn ybtn-info" data-dismiss="modal" th:text="#{button.confirm}">Confirm</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- yobi.ui.Toast -->
+    <div id="yobiToasts" class="yobiToasts"></div>
+    <script type="text/x-jquery-tmpl" id="tplYobiToast">
+    <div class="toast" tabindex="-1">
+        <div class="btn-dismiss"><button type="button" class="btn-transparent">&times;</button></div>
+        <div class="center-text">
+            <span class="v"></span>
+            <div class="msg"></div>
+        </div>
+    </div>
+    </script>
+
+    <!-- loginDialog (익명 사용자용) -->
+    <div sec:authorize="isAnonymous()" id="loginDialog" class="modal hide loginDialog" tabindex="-1" role="dialog">
+      <div class="modal-body">
+        <div class="pull-right">
+          <button type="button" class="close mr10" data-dismiss="modal" aria-hidden="true">&times;</button>
+        </div>
+        <form action="/users/login" method="post" class="frm-wrap login-form-wrap">
+          <div class="btns-row nm" th:if="${useSocialLoginOnly}" th:text="#{app.warn.support.social.login.only}">소셜 로그인을 통한 로그인만 가능합니다.</div>
+          <th:block th:unless="${useSocialLoginOnly}">
+          <dl>
+            <dd>
+              <input id="loginIdOrEmailD" name="loginIdOrEmail" type="text" class="text email" autocomplete="off" th:placeholder="#{user.login.key}">
+            </dd>
+            <dd>
+              <input id="passwordD" name="password" type="password" class="text password" autocomplete="off" th:placeholder="#{user.password}">
+            </dd>
+          </dl>
+          <div class="error" style="display: none;">
+            <i class="yobicon-error"></i>
+            <span class="error-message"></span>
+          </div>
+          <div class="btns-row nm">
+            <button type="submit" class="ybtn ybtn-primary fullsize" th:text="#{button.login}">로그인</button>
+          </div>
+          </th:block>
+          <div class="btns-row nm">
+            <div class="social-login-title-line" th:unless="${useSocialLoginOnly}"> or </div>
+            <a href="/authenticate/github" class="ybtn oauth-login-btn">
+              <span class="auth-provider-logo">
+                <span class="github">
+                  <svg aria-hidden="true" height="24" version="1.1" viewBox="0 0 16 16" width="19">
+                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59 0.4 0.07 0.55-0.17 0.55-0.38 0-0.19-0.01-0.82-0.01-1.49-2.01 0.37-2.53-0.49-2.69-0.94-0.09-0.23-0.48-0.94-0.82-1.13-0.28-0.15-0.68-0.52-0.01-0.53 0.63-0.01 1.08 0.58 1.23 0.82 0.72 1.21 1.87 0.87 2.33 0.66 0.07-0.52 0.28-0.87 0.51-1.07-1.78-0.2-3.64-0.89-3.64-3.95 0-0.87 0.31-1.59 0.82-2.15-0.08-0.2-0.36-1.02 0.08-2.12 0 0 0.67-0.21 2.2 0.82 0.64-0.18 1.32-0.27 2-0.27 0.68 0 1.36 0.09 2 0.27 1.53-1.04 2.2-0.82 2.2-0.82 0.44 1.1 0.16 1.92 0.08 2.12 0.51 0.56 0.82 1.27 0.82 2.15 0 3.07-1.87 3.75-3.65 3.95 0.29 0.25 0.54 0.73 0.54 1.48 0 1.07-0.01 1.93-0.01 2.2 0 0.21 0.15 0.46 0.55 0.38C13.71 14.53 16 11.53 16 8 16 3.58 12.42 0 8 0z"></path>
+                  </svg>
+                </span>
+                <span class="provider-name">Sign in with github</span>
+              </span>
+            </a>
+            <a href="/authenticate/google" class="ybtn oauth-login-btn">
+              <span class="auth-provider-logo">
+                <img src="/images/provider-logo/btn_google_light_normal_ios.svg" alt="login with Google"> Sign in with Google
+              </span>
+            </a>
+          </div>
+          <div class="act-row right-txt mt20" th:unless="${useSocialLoginOnly}">
+            <div class="pull-left">
+              <input id="remember-meD" type="checkbox" name="rememberMe" class="checkbox" checked>
+              <label for="remember-meD" class="bg-checkbox" th:text="#{title.rememberMe}">로그인 유지</label>
+            </div>
+            <a href="/lostPassword" th:text="#{title.resetPassword}">비밀번호 찾기</a>
+            <span class="gray-txt ml10 mr10">|</span>
+            <a href="/signup" th:text="#{title.signup}">회원가입</a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 스크립트 라이브러리들 로드 -->
+    <script type="text/javascript" src="/javascripts/yona-common.js"></script>
+    <script type="text/javascript" src="/bootstrap/js/bootstrap-better-typeahead.js"></script>
+    <script type="text/javascript" src="/bootstrap/js/bootstrap-switch.js"></script>
+    <script type="text/javascript" src="/javascripts/yona-lib.js"></script>
+    <script type="text/javascript" src="/javascripts/lib/autosize/autosize.min.js"></script>
+    <script type="text/javascript" src="/javascripts/common/yona.KeyControl.js"></script>
+    <script type="text/javascript" src="/javascripts/lib/tippy/popper.min.js"></script>
+    <script type="text/javascript" src="/javascripts/lib/tippy/tippy-bundle.umd.min.js"></script>
+    <script type="text/javascript" src="/javascripts/common/yona.Usermenu.js"></script>
+    <script type="text/javascript" src="/javascripts/lib/jquery/jquery-ui-1.10.4.custom.min.js"></script>
+    <script type="text/javascript" src="/javascripts/common/yobi.LoginDialog.js"></script>
+    <script type="text/javascript" src="/javascripts/lib/nprogress/nprogress.js"></script>
+    <script type="text/javascript" src="/javascripts/lib/viewerjs/viewer.js"></script>
+    <script type="text/javascript" src="/javascripts/lib/viewerjs/jquery-viewer.js"></script>
+
+    <script type="text/javascript">
+        $(function() {
+            NProgress.configure({minimum: 0.7});
+        });
+    </script>
+    <script type="text/javascript">
+        $(function () {
+            Viewer.setDefaults({
+                transition: false
+            })
+            $(".markdown-wrap").each(function () {
+                var $that = $(this);
+                $that.find("img").on("mouseover", function () {
+                    $(this).css("cursor", "pointer");
+                })
+                $that.viewer();
+            });
+        });
+    </script>
+
+    <script type="text/javascript" th:inline="javascript">
+        // yobi.Usermenu.js를 위한 API URL 매핑
+        var UsermenuToggleFavoriteProjectUrl = "/-_-api/v1/favoriteProjects/";
+        var UsermenuToggleFoveriteOrganizationUrl = "/-_-api/v1/favoriteOrganizations/";
+        var UsermenuGetFoveriteProjectsUrl = "/-_-api/v1/favoriteProjects";
+        var UsermenuToggleFavoriteIssueUrl = "/-_-api/v1/favoriteIssues/";
+        var UsermenuGetFoveriteIssuesUrl = "/-_-api/v1/favoriteIssues";
+        var UsermenuUrl = "/user/usermenuTabContentList";
+        
+        $yobi.setScriptPath("/javascripts/");
+
+        $(document).ready(function(){
+            // tooltip
+            $(document.body).on("mouseenter", "[data-toggle=tooltip]", function(){
+                $(this).tooltip("show");
+            });
+
+            // jquery.placeholder plugin initiator
+            $('input[type=text], textarea').placeholder();
+
+            // yobi.Dropdown
+            var sActivation;
+            $(".btn-group[data-name]").each(function(i, el){
+                sActivation = $(el).attr("data-activate");
+                if(typeof sActivation == "undefined" || sActivation != "manual"){
+                    (new yobi.ui.Dropdown({"elContainer":el}));
+                }
+            });
+
+            // yobi.ShortcutKey
+            yobi.ShortcutKey.attach("CTRL+ENTER", function(htInfo){
+                if(htInfo.bFormInput){
+                    $(htInfo.welTarget.parents("form").get(0)).submit();
+                }
+            });
+
+            yobi.ShortcutKey.setKeymapLink({
+                "A": "/user/issues"
+            });
+            /*[# th:if="${currentUser != null}"]*/
+            yobi.ShortcutKey.setKeymapLink({
+                "U": [[${'/user/' + currentUser.loginId}]]
+            });
+            /*[/]*/
+
+            // yobi.Files 초기화
+            yobi.Files.init({
+                "sListURL"  : "/files",
+                "sUploadURL": "/files",
+                "maxFileSize": "2147483454"  // 2Gb
+            });
+
+            // 내부 링크 URL 툴팁
+            $(".issueLink").each(function(index) {
+                var $this = $(this);
+                var url = decodeURI($this.attr("href"));
+
+                tippy($this[0], {
+                    content: url,
+                    delay: [1000, 100],
+                    placement: 'top-start',
+                    theme: 'light-border',
+                    maxWidth: 'none',
+                    arrow: false
+                });
+            });
+
+            if (window.parent === window) {
+                $(".pin > .yobicon-arrow-right").show();
+            }
+
+            $(".pin").on("click", function () {
+                if (window.parent === window) {
+                    localStorage.setItem('shallWeOpenLeftNavigation', "true");
+                    window.location.href = "/user/sidebar?path=" + window.location.pathname + "&hash=" + window.location.hash.replace('#','');
+                } else {
+                    localStorage.setItem('shallWeOpenLeftNavigation', "false");
+                    window.parent.location = window.location.href;
+                }
+            });
+
+            if ($("div#sidebar.sidebar", window.parent.document).css("display") === "block") {
+                $("div.pin > i.yobicon-arrow-right").removeClass("yobicon-arrow-right").addClass("yobicon-arrow-left");
+            }
+
+            if(navigator.userAgent.match(/MSIE ([0-9])\./)){
+               $('.unsupported').show();
+            }
+
+            $('[data-toggle="search-scope"]').on('click', function() {
+                $('form[name="gnb-search-form"]').attr('action', $(this).data('action'));
+                $('#gnb-search-scope-title').text($(this).text());
+            });
+
+            /*[# th:if="${warning}"]*/
+            $yobi.notify([[${warning}]], 5000);
+            /*[/]*/
+            /*[# th:if="${error}"]*/
+            $yobi.notify([[${error}]], 5000);
+            /*[/]*/
+            /*[# th:if="${info}"]*/
+            $yobi.notify([[${info}]], 5000);
+            /*[/]*/
+
+            yobi.OriginalMessage.hide($("[data-via-email]"));
+
+            $('.logo, .title > a, .project-menu-nav > li > a, .show-progress-bar, .project-breadcrumb > span > a, .project-name > a, a[class="title"]').on('click.progressbar', function(){
+                NProgress.set(0.7);
+                NProgress.start();
+            });
+
+            window.addEventListener('pageshow', (event) => {
+                if (event.persisted) {
+                    NProgress.done();
+                }
+            });
+
+            $('.markdown-wrap').find('a[href]').each(function () {
+                var $link = $(this);
+                var linkUrl = $link.attr("href");
+                if (linkUrl && linkUrl.match("^[^./#]")) {
+                    var location = window.location;
+                    if (linkUrl.indexOf(location.protocol + "//" + location.host) !== 0) {
+                        $(this).attr("target", "_blank");
+                    }
+                }
+            });
+
+            autosize($('textarea'));
+
+            addTaskListButtonListener();
+            function addTaskListButtonListener() {
+                $(".add-task-list-button").on('click', function () {
+                    var tasklistTemplate = "\n- [ ] Todo A\n- [ ] Todo B\n- [ ] Todo C";
+                    var $textarea = $(this).closest("form").find("textarea");
+                    var cursorPos = $textarea.prop('selectionStart');
+                    var text = $textarea.val();
+
+                    if(cursorPos === 0 && text && text.length > 0){
+                        cursorPos = text.length;
+                    }
+
+                    var textBefore = text.substring(0, cursorPos);
+                    var textAfter  = text.substring(cursorPos, text.length);
+
+                    $textarea.val(textBefore + tasklistTemplate + textAfter);
+                    $textarea.focus();
+                    $textarea.get(0).setSelectionRange(cursorPos + tasklistTemplate.length, cursorPos + tasklistTemplate.length);
+                });
+            }
+
+            if (window.parent !== window) {
+                $("a.ago, .head-anchor, .share-link").on("click", function () {
+                    var $this = $(this);
+                    if (!history.state) {
+                        window.parent.history.pushState({ startPath: location.pathname }, $this.text(), $this.attr("href"));
+                    } else {
+                        window.parent.history.replaceState(history.state, $this.text(), $this.attr("href"));
+                    }
+                });
+            }
+        });
+    </script>
+
+    <!-- Yona 원본 project.Global 모듈 로드 및 단축키 바인딩 -->
+    <th:block th:if="${project != null}">
+      <script type="text/javascript" src="/javascripts/service/yobi.project.Global.js"></script>
+      <script type="text/javascript" th:inline="javascript">
+          $(document).ready(function(){
+              var htKeyMap = {
+                  "H": [[@{/{owner}/{name}(owner=${project.owner}, name=${project.name})}]],
+                  "C": [[@{/{owner}/{name}/code(owner=${project.owner}, name=${project.name})}]],
+                  "I": [[@{/{owner}/{name}/issues(owner=${project.owner}, name=${project.name})}]],
+                  "M": [[@{/{owner}/{name}/milestones(owner=${project.owner}, name=${project.name})}]],
+                  "B": [[@{/{owner}/{name}/posts(owner=${project.owner}, name=${project.name})}]]
+              };
+              $yobi.loadModule("project.Global", {
+                  "htKeyMap": htKeyMap,
+                  "sRepoURL": [[${project.owner}]] + '@' + window.location.host + '/' + [[${project.owner}]] + '/' + [[${project.name}]]
+              });
+          });
+      </script>
+    </th:block>
+  <!-- 첨부파일 아이템 렌더링 템플릿 -->
+  <script type="text/x-jquery-tmpl" id="tplAttachedFile">
+    <li class="attached-file" data-id="${fileId}" data-name="${fileName}" data-href="${fileHref}" data-mime="${mimeType}" data-size="${fileSize}">
+        <i class="yobicon-supportrequest"></i>
+        <i class="mimetype"></i>
+        <strong class="name">${fileName}</strong>
+        <span class="size">${fileSizeReadable}</span>
+        <div class="pull-right">
+            <div class="progress upload-progress"><div class="bar orange"></div></div>
+        </div>
+        <button type="button" class="btn-transparent btn-delete pull-right">&times;</button>
+        <span class="pull-right nbtn small white btn-insert" th:text="#{common.attach.clickToPost}">본문에 넣기</span>
+    </li>
+  </script>
+  <script type="text/x-jquery-tmpl" id="tplDropFilesHere">
+    <div class="upload-drop-here"><div class="msg-wrap"><div class="msg" th:text="#{common.attach.dropFilesHere}">여기에 파일을 끌어다 놓으면 업로드 됩니다</div></div></div>
+  </script>
+
+  <th:block th:if="${sendYonaUsage}">
+  <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+              m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-102735758-1', 'auto');
+      ga('send', 'pageview');
+  </script>
+  </th:block>
+  </th:block>
+</body>
+</html>

@@ -1,67 +1,77 @@
 MariaDB Installation
 ===
 
-Recommended MariaDB version is 10.2 or 10.3. (MariaDB 10.4 is under investigation about the error.)
+Ported from legacy Yona's `docs/install-mariadb.md`, adapted for yona. Legacy recommended
+MariaDB 10.2/10.3; yona's `docker-compose.yml` ships `mariadb:10.11`, so most of this is only
+needed if you install MariaDB yourself instead of using Docker.
 
-1. Linux 
+Fastest path (local development)
+---
+
+```bash
+docker compose up -d mariadb
+```
+
+This creates the `yona` database/user/password (`yona`/`yona_password`) automatically — none of
+the manual steps below are needed.
+
+Installing MariaDB yourself
+---
+
+1. Linux
    - [Setting up MariaDB Repositories](https://downloads.mariadb.org/mariadb/repositories/)
-  
 2. Mac
-   - Recommed to use `brew install mariadb@10.3`
+   - `brew install mariadb@10.11` (or newer) recommended
    - https://mariadb.com/blog/installing-mariadb-10010-mac-os-x-homebrew
-
 3. Windows
-   - https://downloads.mariadb.org/mariadb/10.1.11/#os_group=windows
+   - https://downloads.mariadb.org/mariadb/repositories/
 
 ##### Create user and database after installing DB
 
-The basic procedure is to connect to MariaDB as root user, create yona user, create DB, and give all permissions of yona user to DB.
+Connect to MariaDB as root:
 
-Connect to MariaDB with root
 ```
-mysql -uroot 
+mysql -uroot
 ```
 
-Create user `yona` and set password. 'yonadan' is just example, so change it.
-```
+Create the `yona` user and set a password ('yonadan' below is just an example — change it):
+
+```sql
 create user 'yona'@'localhost' IDENTIFIED BY 'yonadan';
 ```
 
-To use UTF8 extended chars, set file format to BARACUDA.
+Create the database with a format that supports UTF8 extended characters:
 
-```
+```sql
 create database yona
   DEFAULT CHARACTER SET utf8mb4
   DEFAULT COLLATE utf8mb4_bin
 ;
 ```
 
-Grant privileges
+Grant privileges:
 
-```
+```sql
 GRANT ALL ON yona.* to 'yona'@'localhost';
 ```
 
-Exit to the shell with `exit` command and check that yona DB is available and yona user is connected normally.
-Note that the letter after the -p is the password created above.
+Exit and check that the `yona` user can connect and the `yona` database is available (the
+letter after `-p` is the password created above):
 
 ```
 mysql -u yona -p'yonadan'
 use yona
 ```
 
-Please make a /etc/my.cnf file and add the following.
+Tuning: create a `/etc/my.cnf` (or `~/.my.cnf` on Mac) with the settings below. A ready-made
+sample lives at [`support-script/mariadb/my.cnf`](../support-script/mariadb/my.cnf) —
+**note it intentionally omits `innodb_file_format`/`innodb_large_prefix`, which legacy's sample
+had.** Those two options are deprecated since MariaDB 10.2 and MariaDB 10.6+ refuses to start
+at all if they're set. See [`db-error-767.md`](db-error-767.md) for the background.
 
-(If you are a mac os user, add the following line to ~/.my.cnf file)
-Example: https://github.com/yona-projects/yona/blob/next/support-script/mariadb/my.cnf
-
-- It is supposed to use utf8mb4 to support Unicode 4Byte extension strings.
-- `lower_case_table_name=1` is option makes the case of table or column names case insensitive.
-- collation-server is criteria options when sorting.
-
-```
-# [client]
-# default-character-set=utf8mb4
+```ini
+[client]
+default-character-set=utf8mb4
 
 [mysql]
 default-character-set=utf8mb4
@@ -76,26 +86,25 @@ collation-server=utf8mb4_unicode_ci
 skip-character-set-client-handshake
 ```
 
-Also, see [configuring-mariadb-with-mycnf](https://mariadb.com/kb/en/mariadb/configuring-mariadb-with-mycnf/) 
+Also see [configuring-mariadb-with-mycnf](https://mariadb.com/kb/en/mariadb/configuring-mariadb-with-mycnf/).
 
-Then restart MariaDB to apply the settings.
+Then restart MariaDB to apply the settings:
 
 ```
 service mysql restart
 ```
 
-Now, let's start to install Yona!
+Now you're ready to install yona — see [`install-yona-server.md`](install-yona-server.md).
 
+-- The following is for reference only --
 
--- The following is for reference only -- 
+### If the application doesn't come up properly after working on the DB
 
-### If the page does not open properly after working on the DB, check the items below.
-
-application.conf file
-- application.secret 
-- db.default.url  
+Check in `src/main/resources/application.yml`:
+- the active DB profile's `spring.datasource.url`/`username`/`password`
 
 ### MariaDB Restart
+
 ```
 service mysql restart
 
@@ -107,4 +116,5 @@ or
 
 mysql.server restart
 ```
+
 See: http://coolestguidesontheplanet.com/start-stop-mysql-from-the-command-line-terminal-osx-linux/

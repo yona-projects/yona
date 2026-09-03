@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<!-- legacy partial_diff_line.scala.html 대응 (그룹11 #189). diff 한 줄(tr) 렌더러. -->
+<tr th:fragment="diffLine(klass, prefix, num, numA, numB, content)" th:class="${klass}" th:data-line="${num}" th:data-type="${klass}" th:data-side="${klass == 'remove' ? 'A' : 'B'}">
+    <td class="linenum">
+        <i class="yobicon-comments"></i>
+        <div class="line-number" th:data-line-num="${numA}"></div>
+        <span class="hidden" th:text="${numA}"></span>
+    </td>
+    <td class="linenum">
+        <div class="line-number" th:data-line-num="${numB}"></div>
+        <span class="hidden" th:text="${numB}"></span>
+    </td>
+    <td class="code">
+        <pre class="diff-partial-codeline" th:text="${prefix} + ${content}"></pre>
+    </td>
+</tr>
+</body>
+</html>

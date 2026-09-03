@@ -1,57 +1,63 @@
 # Setting Project
 
-You can change a project settings if you have the project's administrator permissions.
+Legacy's `userManual` had two near-duplicate files for this — `projectSetting/project-setting-setting.md`
+and `projectSettings/project-setting-setting.md` (a folder-name typo split them apart), the
+second one shorter. Merged into one here, keeping the more detailed content.
 
-Project's logo, name, description, share option and member can be configured.
+You can change a project's settings if you have the project's administrator permissions.
 
-* Go to the project of which you have authorization.
-* Click 'Project Setting Button' on top right of a project.
-* Click `Setting` tab and change project's logo, name, description and share option.
+Project logo, name, description, share option, and members can be configured.
 
+* Go to a project you have authorization on.
+* Click the `Project Settings` button at the top right of the project page.
+* Click the `Setting` tab and change the project's logo, name, description, or share option.
 
 ## Logo
 
-A Project logo is displayed on top of a project page and everywhere projects are listed when setting is done.
-
+A project logo is displayed at the top of the project page, and everywhere projects are listed,
+once set.
 
 ## Name
 
-A project name can be changed. If the name is changed, it affects below.
+A project's name can be changed. Changing it affects:
 
-* `URL` related to source code repository will be changed.
+* The `URL` related to the source code repository.
 * Everywhere the name is shown.
-
 
 ## Description
 
-You can alter a project description. The explanation changed will be shown on project main page, `Project List` and `Group Page`.
-
+You can change a project's description. The updated description is shown on the project's main
+page, `Project List`, and `Group Page`.
 
 ## Share Option
 
-You can change share option (public, protected, private). Protected option is shown when a project is group project.
+You can change the share option (public, protected, private). The protected option is shown
+only for group projects.
 
-To get detail information see `docs/technical/access-control.md`
+* `public` — all users can access or watch everything in the project.
+* `private` — non-members of the project can't access it.
+* `protected` — non-members of the project and of the project's group can't access it.
 
+For more detail, see [technical/access-control.md](../../guide/technical/access-control.md)
+(Korean only — legacy never had an English version).
 
 ## Reviewer
 
-The value means number of minimum reviewers to merge pull requests.
+The value is the minimum number of reviewers needed to merge pull requests.
 
-Each pull request should be reviewed by users greater than or equal to the value to be accepted.
-
+Each pull request needs at least this many reviewers before it can be accepted.
 
 ## Default Branch
 
-This option is only shown when project repository type is GIT.
+This option is only shown when the project's repository type is Git.
 
-The value means a branch HEAD of git repository points to. Also, the value is default branch on `Code` menu and default `to branch` on new pull request page.
-
+The value is the branch the git repository's HEAD points to. It's also the default branch on
+the `Code` menu, and the default `to` branch on the new pull request page.
 
 ## Menu Setting
 
-Using menu setting, you can select menus you want to show.
+Menu setting lets you choose which menus are shown.
 
-There are code, issue, pull request, review, milestone and board options you can select.
+Options: code, issue, pull request, review, milestone, board.
 
-Although you do not select some options, data about it are not deleted. These are just invisible.
+Deselecting an option doesn't delete its data — it just becomes invisible.

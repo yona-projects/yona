@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<!--
+ legacy common/childComments.scala.html 대응 (#30, 이번 그룹11 세션에서 실제 착수). 대댓글 목록 +
+ 인라인 답글 폼. IssueViewController/BoardViewController가 부모 댓글별 children 맵을 만들어
+ 넘겨준다(대댓글은 최상위 timeline에는 노출하지 않고 이 조각에서만 렌더링).
+-->
+<th:block th:fragment="childComments(comment, children, project, apiBase, currentUser, isProjectManager)">
+    <div class="add-a-comment pull-right" th:text="#{comment.oneline.comment.placeholder}">한 줄 댓글 달기</div>
+    <div class="subcomment-media-body">
+        <div class="child-comments">
+            <div th:each="child : ${children}" class="one-line-comment" th:id="'comment-' + ${child.id}">
+                <div class="contents">
+                    <span th:utext="${markdownService.render(child.contents, true, project)}">대댓글 내용</span>
+                    <span class="subcomment-author hide">
+                        - <a th:if="${child.authorLoginId != null}" th:href="@{/user/{loginId}(loginId=${child.authorLoginId})}" th:text="${child.authorName != null ? child.authorName : child.authorLoginId}">작성자</a>
+                        <a th:href="'#comment-' + ${child.id}" class="ago" th:title="${@templateHelper.getDateString(child.createdDate)}" th:text="${@templateHelper.agoOrDateString(child.createdDate)}">방금 전</a>
+                        <a th:if="${currentUser != null and (child.authorId == currentUser.id or isProjectManager)}" href="javascript:void(0)" class="btn-transparent deleteButtonX"
+                           data-toggle="comment-delete" th:data-request-uri="${apiBase} + '/' + ${child.id}" th:title="#{common.comment.delete}">x</a>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="child-comment-input-form" th:if="${currentUser != null}">
+            <div th:replace="~{common/child_commentForm :: childCommentForm(${comment.id}, ${apiBase}, ${currentUser})}"></div>
+        </div>
+    </div>
+</th:block>
+</body>
+</html>

@@ -1,100 +1,50 @@
-Additional options when running Yona
+Additional options when running yona
 ===
 
-Linux, OSX
-----
+Ported from legacy Yona's `docs/yona-run-options.md`, adapted for yona. Legacy's OS-specific
+sections (`bin/yona` vs `bin/yona.bat`, Windows path-length issues) mostly don't apply anymore —
+yona runs the same `java -jar` command on every OS. The Windows issues that do still apply
+(base-dir path settings, NTFS-only Fork hard-links) are covered in
+[README's "Deployment configuration"](../README.md#deployment-configuration-especially-on-windows).
 
 ### Memory allocation
 
-You can also use the `JAVA_OPTS` environment variable to specify Java environment variables.
-If the memory is more than 4GB, it is recommended to increase the available memory with the following options.
+Pass JVM options directly to `java` (legacy read a `JAVA_OPTS` environment variable through its
+`bin/yona` wrapper script; yona has no such wrapper).
 
-    JAVA_OPTS="-Xmx2048m -Xms2048m" bin/yona
-
-This is useful when an error related to memory shortage occurs.
-
-```
-Ex) Example of writing an execution script created with yona-run.sh
-
-
-YONA_DATA=/yona-data;export YONA_DATA
-JAVA_OPTS="-Xmx4096m -Xms4096m" bin/yona
-
+```bash
+java -Xmx2048m -Xms2048m -jar build/libs/yona-0.0.1-SNAPSHOT.jar --spring.profiles.active=mariadb
 ```
 
-### Change default port
+### Changing the port
 
-By default it use port 9000. If you want to use a different port,
-modify the environment variables.
+Legacy used `-Dhttp.port=80`; Spring Boot uses `server.port`.
 
-
-```
-Ex) Example of writing an execution script created with `yona-run.sh` It use 80 port and 2G memory.
-
-YONA_DATA=/yona-data;export YONA_DATA
-JAVA_OPTS="-Dhttp.port=80 -Xmx2048m -Xms2048m" bin/yona
-
+```bash
+java -jar build/libs/yona-0.0.1-SNAPSHOT.jar --server.port=80
+# or
+java -Dserver.port=80 -jar build/libs/yona-0.0.1-SNAPSHOT.jar
 ```
 
+### Choosing a DB profile
 
-Windows os
----
+Not a legacy concept — yona is a single jar that supports 5 DBs (MariaDB/PostgreSQL/MySQL/SQL
+Server/CUBRID), selected with `--spring.profiles.active=<profile>`. See
+[README's "Choosing a database"](../README.md#choosing-a-database).
 
-When you start Yona, specify the environment variable YONA_DATA and execute it in the following order!
-The specified folder of YONA_DATA specifies the location where the configuration file, attachment, code repository, etc. will be created, not the location of the downloaded executable file.
-Please refer to [install-yona-server.md](install-yona-server.md) in the Yona Installation Guide.
+### DB schema migration
 
-```
-Windows OS Yona Recommended folder
-C:\yona\yona-1.3.0 <- unpack by version under the yona folder
-C:\yona-data <- conf where files, logs, uploads, and repo folders are created and maintained. Specify with the YONA_DATA environment variable
-```
-
-You can also create run.bat with the following contents!
+Legacy used Play's evolutions and, after upgrading, you might hit:
 
 ```
-SET YONA_DATA=c:\yona-data
-bin\yona.bat
+[warn] play - Your production database [default] needs evolutions!
 ```
 
-### Memory allocation
+which required setting `-DapplyEvolutions.default=true`. yona uses JPA/Hibernate's
+`ddl-auto: update` (already configured per DB profile in `application.yml`), which applies
+schema changes automatically on startup — there's no manual flag to flip.
 
-You can also specify Java environment variables using the `SET JAVA_OPTS` environment variable setting. system
-If you have more than 4 gigabytes of memory, we recommend running with the following options:
+### Physical storage path options
 
-```
-Ex) Example of writing an execution script created with `yona-run.sh` It use 2G memory.
-    SET YONA_DATA=c:\yona-data
-    SET JAVA_OPTS=-Xmx2048m -Xms2048m
-    bin\yona.bat
-```
-
-By default it use port 9000. If you want to use a different port,
-modify the environment variables.
-
-```
-Ex) Example of writing an execution script created with `yona-run.sh` It use 80 port and 2G memory.
-
-SET YONA_DATA=c:\yona-data
-SET JAVA_OPTS=-Dhttp.port=80 -Xmx2048m -Xms2048m
-bin\yona.bat
-```
-
-If you are upgrading, migrate the database schema as follows:
-You may experience a situation that does not work with a warning message that you need it.
-
-    [warn] play - Your production database [default] needs evolutions!
-
-In such a case, the migration should be done as follows
-ApplyEvolutions.default Adds a section with the Java property set to true.
-
-```
-SET YONA_DATA=c:\yona-data
-SET JAVA_OPTS=-DapplyEvolutions.default=true -Dhttp.port=80 -Xmx2048m -Xms2048m
-bin\yona.bat
-```
-
-#### A more detailed description of the options
-
-[http://www.playframework.com/documentation/2.3.6/Production](http://www.playframework.com/documentation/2.3.6/Production) 
-
+`--yona.git.base-dir=...` and the other 3 path settings are covered in
+[README's "How to change these settings"](../README.md#how-to-change-these-settings).

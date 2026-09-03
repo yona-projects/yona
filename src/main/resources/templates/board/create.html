@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(title=#{post.write})}">
+</head>
+<body class="theme-default prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+    <div th:replace="~{project/header :: header(${project})}"></div>
+    <div th:replace="~{project/menu :: menu(${project}, 'board')}"></div>
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
+            <form th:action="@{/{owner}/{projectName}/posts(owner=${project.owner}, projectName=${project.name})}" method="post" enctype="multipart/form-data" class="nm" id="post-form">
+                <div class="content-wrap frm-wrap">
+                    <dl>
+                        <dd>
+                            <input type="text" id="title" autocomplete="off" name="title" class="zen-mode text title" maxlength="250" tabindex="1" th:placeholder="#{title}"/>
+                        </dd>
+                        <dd style="position: relative;">
+                            <div th:replace="~{site/layout :: markdownEditor('body', ${preparedPostBody}, 'content-body')}"></div>
+                        </dd>
+                    </dl>
+                    
+                    <!-- 파일 업로더 영역 -->
+                    <div class="upload-wrap content-footer" data-resource-type="BOARD_POST" id="upload">
+                        <input type="hidden" name="temporaryUploadFiles">
+                        <div class="attach-wrap">
+                            <span class="help help-droppable" th:text="#{common.attach.drophere}">Drag &amp; Drop files to attach here or</span>
+                            <div class="btn-wrap">
+                                <div class="nbtn medium white fake-file-wrap">
+                                    <i class="yobicon-upload"></i> <span th:text="#{button.upload}" th:remove="tag">File upload</span>
+                                    <input type="file" class="file" name="filePath" multiple="multiple">
+                                </div>
+                            </div>
+                            <span class="plain" th:text="#{common.attach.clickbutton}">Click upload button</span>
+                            <span class="help help-pastable" style="display: block;" th:text="#{common.attach.pastehere}">Paste the clipboard image</span>
+                        </div>
+                        <ul class="attached-files unstyled"></ul>
+                    </div>
+
+                    <div class="right-txt mt10 mb10">
+                        <label class="checkbox" th:if="${isAllowedToNotice}">
+                            <input type="checkbox" id="notice" name="notice">
+                            <span th:text="#{post.notice.label}">공지로 등록</span>
+                        </label>
+
+                        <!-- yona board/create.scala.html:100-106 대응 — 이 체크박스가 없으면(권한/VCS/쿼리
+                             조건 불충족) post.readme 필드 자체가 폼에서 빠져 항상 false로 바인딩된다(legacy와 동일). -->
+                        <label class="checkbox" th:if="${canReadmefy}">
+                            <input type="checkbox" id="readme" name="readme" checked="checked">
+                            <span th:text="#{post.readmefy}">README로 지정</span>
+                        </label>
+                        <input type="hidden" id="issueTemplate" name="issueTemplate" th:value="${param.issueTemplate}">
+                        <input type="hidden" id="branch" name="branch" th:value="${param.branch}">
+                        <input type="hidden" id="path" name="path" th:value="${param.path}">
+                        <input type="hidden" id="lineEnding" name="lineEnding" value="LF">
+                    </div>
+
+                    <div class="actions">
+                        <button type="submit" class="ybtn ybtn-success" tabindex="3" th:text="#{button.save}">저장</button>
+                        <a href="javascript:history.back();" class="ybtn" tabindex="4" th:text="#{button.cancel}">취소</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+<link rel="stylesheet" type="text/css" media="screen" href="/javascripts/lib/atjs/jquery.atwho.css">
+<script type="text/javascript" src="/javascripts/lib/atjs/jquery.caret.min.js"></script>
+<script type="text/javascript" src="/javascripts/lib/atjs/jquery.atwho.js"></script>
+<script type="text/javascript" src="/javascripts/common/yona.TitleHeadAutoCompletion.js"></script>
+<script type="text/javascript">
+    $(function(){
+        $yobi.loadModule("board.Write", {
+            "sMode"     : "new",
+            "elTextarea": 'textarea[data-editor-mode="content-body"]'
+        });
+
+        yobi.Mention({
+            "target": 'textarea[id^=editor-]',
+            "url"   : "/[[${project.owner}]]/[[${project.name}]]/mentionList"
+        });
+
+        yonaTitleHeadModule({
+            "target": 'input[id=title]',
+            "url"   : "/api/projects/[[${project.id}]]/titleHeads"
+        });
+    });
+</script>
+</body>
+</html>

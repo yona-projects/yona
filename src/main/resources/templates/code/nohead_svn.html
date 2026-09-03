@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(#{title.commitHistory} + ' - ' + ${project.name})}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+  <div th:replace="~{site/layout :: gnb}"></div>
+  <div th:replace="~{project/header :: header(${project})}"></div>
+  <div th:replace="~{project/menu :: menu(${project}, 'code')}"></div>
+
+  <div class="page-wrap-outer">
+    <div class="project-page-wrap">
+      <div class="row-fluid">
+        <div class="span12">
+          <div th:utext="#{code.nohead}">저장소가 비어 있습니다.</div>
+
+          <!-- yona code/nohead_svn.scala.html:33 isAllowed(currentUser, project.asResource, UPDATE) 대응 -->
+          <th:block th:if="${canManage}">
+            <h5 th:text="#{code.nohead.svn.clone(${siteName})}">SVN 체크아웃 가이드</h5>
+            <pre><code id="svn-guide"></code></pre>
+          </th:block>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+
+<div th:replace="~{site/layout :: scripts}"></div>
+<script th:inline="javascript">
+    $(document).ready(function(){
+        var currentUser = /*[[${currentUser != null ? currentUser.loginId : null}]]*/ null;
+        var owner = /*[[${project.owner}]]*/ '';
+        var name = /*[[${project.name}]]*/ '';
+
+        var protocol = window.location.protocol;
+        var host = window.location.host;
+
+        var svnUrl = protocol + "//" + host + "/svn/" + owner + "/" + name;
+
+        var svnGuide = "svn co " + svnUrl + " --username " + (currentUser ? currentUser : "아이디") + "\n" +
+                       "cd " + name + "/\n" +
+                       "echo \"# " + name + "\" > README.md\n" +
+                       "svn add README.md\n" +
+                       "svn commit -m \"first commit\"";
+
+        $("#svn-guide").text(svnGuide);
+
+        if (window.$yobi && $yobi.loadModule) {
+            $yobi.loadModule("code.Nohead", {
+                "sProjectName": name
+            });
+        }
+    });
+</script>
+</body>
+</html>

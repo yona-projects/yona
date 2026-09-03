@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(#{title.newOrganization})}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+  <div th:replace="~{site/layout :: gnb}"></div>
+
+  <div class="page-wrap-outer">
+    <div class="project-page-wrap">
+      <div class="form-wrap new-project">
+        <form th:action="@{/organizations/new}" method="POST" name="new-org" class="frm-wrap">
+          <legend th:text="#{title.newOrganization}">그룹 생성</legend>
+          <dl>
+            <!-- Organization Name -->
+            <dt>
+              <div class="n-alert" data-errType="name">
+                <div class="orange-txt">
+                  <span th:if="${error}" class="warning" th:text="${error}">경고</span>
+                  <span class="msg wrongName" style="display: none;"></span>
+                </div>
+              </div>
+              <label for="name" th:text="#{organization.name.placeholder}">그룹 이름을 입력해주세요.</label>
+            </dt>
+            <dd>
+              <input id="name" type="text" name="name" class="text" placeholder="" maxlength="250" th:value="${name}" />
+            </dd>
+
+            <dt>
+              <label for="descr" th:text="#{organization.description.placeholder}">그룹 설명을 입력해주세요</label>
+            </dt>
+            <dd>
+              <textarea id="descr" name="descr" class="text textarea.span4" style="resize: vertical;" th:text="${descr}"></textarea>
+            </dd>
+          </dl>
+          <div class="actions">
+            <button class="ybtn ybtn-success">
+              <i class="yobicon-friends"></i> <span th:text="#{organization.create}">그룹 만들기</span>
+            </button>
+            <a href="/" class="ybtn" th:text="#{button.cancel}">취소</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <footer th:replace="~{site/layout :: footer}"></footer>
+  <div th:replace="~{site/layout :: scripts}"></div>
+</div>
+<script type="text/javascript" th:inline="javascript">
+    $(document).ready(function() {
+        $yobi.loadModule("organization.New", {
+            "sFormName" : "new-org"
+        });
+    });
+</script>
+</body>
+</html>

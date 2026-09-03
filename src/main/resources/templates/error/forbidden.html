@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<!--
+yona error/forbidden.scala.html 대응 (P-템플릿 #47). 프로젝트는 이미 찾았지만(project resolve
+성공) 그 프로젝트 내 리소스에 접근 권한이 없을 때 쓰는 컨텍스트 인지형 403 화면 — 프로젝트
+헤더/메뉴가 그대로 붙는다. 프로젝트 자체를 못 찾았을 때/컨텍스트가 없을 때 쓰는 제네릭
+error/403.html(#48)과는 다른 화면.
+
+모델: project(Project, 필수), messageKey(String?, 기본값 "error.forbidden" — 호출부가 이미
+error.forbidden.or.notfound 같은 다른 키를 쓰고 있으면 그 값을 그대로 넘길 것).
+-->
+<head th:replace="~{site/layout :: head(#{__${messageKey != null ? messageKey : 'error.forbidden'}__})}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+  <div th:replace="~{site/layout :: gnb}"></div>
+  <div th:replace="~{project/header :: header(${project})}"></div>
+  <div th:replace="~{project/menu :: menu(${project}, 'home')}"></div>
+  <div class="page-wrap-outer">
+    <div class="project-page-wrap">
+      <div class="error-wrap">
+        <i class="ico ico-err2"></i>
+        <p th:text="#{__${messageKey != null ? messageKey : 'error.forbidden'}__}">권한이 없습니다.</p>
+        <a th:if="${currentUser == null}" th:href="@{/login(redirectUrl=${currentRequestPath})}" class="ybtn ybtn-primary" data-login="required" th:text="#{title.login}">로그인</a>
+      </div>
+    </div>
+  </div>
+</div>
+<footer th:replace="~{site/layout :: footer}"></footer>
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+</body>
+</html>

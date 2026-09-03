@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head('Yona')}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+  <div th:replace="~{site/layout :: gnb}"></div>
+
+  <!-- 메인 컨텐츠 영역 -->
+  <div class="page full">
+    
+    <!-- 로그인하지 않은 익명 사용자 (Intro) -->
+    <div sec:authorize="isAnonymous()" class="siteintro-bg row" style="margin: 0;">
+      <div class="siteintro">
+          <div class="siteintro-cover">
+              <div class="siteintro-wrap">
+                  <h1 class="site-heading">21st Century Software Development Platform</h1>
+                  <ul class="site-features">
+                      <li>Just focus on what you have to do</li>
+                  </ul>
+              </div>
+              <div class="signup-btn">
+                  <a th:href="@{/signup}" class="ybtn ybtn-success ybtn-padding" th:text="#{button.signup('Yona')}">
+                      Sign up for Yona
+                  </a>
+              </div>
+          </div>
+      </div>
+      <div class="feature">
+          <h2><span th:text="#{title.features}">Key features</span></h2>
+          <ul class="feature-wrap row" style="list-style: none; padding: 0;">
+              <li>
+                  <div class="feature-image"><i class="yobicon-cgicenter"></i></div>
+                  <div class="feature-info">
+                      <h3 class="feature-title" th:text="#{title.unlimitedProjects}">Project / Organization</h3>
+                      <p class="feature-desc" th:text="#{site.features.unlimitedProjects}">Work based on projects/organizations supported by proper roles</p>
+                  </div>
+              </li>
+              <li>
+                  <div class="feature-image"><i class="yobicon-code"></i></div>
+                  <div class="feature-info">
+                      <h3 class="feature-title" th:text="#{title.codeManagement}">Code management</h3>
+                      <p class="feature-desc" th:text="#{site.features.codeManagement}">Your code is safely stored in a version controlled system.</p>
+                  </div>
+              </li>
+              <li>
+                  <div class="feature-image"><i class="yobicon-articles"></i></div>
+                  <div class="feature-info">
+                      <h3 class="feature-title" th:text="#{title.issueTracker}">Issue tracker</h3>
+                      <p class="feature-desc" th:text="#{site.features.issueTracker}">Yona provides an issue tracker to help you deal with your issues more easily and clearly.</p>
+                  </div>
+              </li>
+              <li>
+                  <div class="feature-image"><i class="yobicon-lock"></i></div>
+                  <div class="feature-info">
+                      <h3 class="feature-title" th:text="#{title.privateProject}">Private repositories</h3>
+                      <p class="feature-desc" th:text="#{site.features.privateRepositories}">Keep your code private at your private repositories.</p>
+                  </div>
+              </li>
+              <li>
+                  <div class="feature-image"><i class="yobicon-preview"></i></div>
+                  <div class="feature-info">
+                      <h3 class="feature-title" th:text="#{title.codeReview}">Code review</h3>
+                      <p class="feature-desc" th:text="#{site.features.codeReview}">Review all changes in the code with your team before merging. Code discussion will help improve your code.</p>
+                  </div>
+              </li>
+              <li>
+                  <div class="feature-image"><i class="yobicon-friends"></i></div>
+                  <div class="feature-info">
+                      <h3 class="feature-title" th:text="#{title.workTeam}">Team play</h3>
+                      <p class="feature-desc" th:text="#{site.features.workTeam}">Yona provides a simple and easy team management tool to help you build teams for projects.</p>
+                  </div>
+              </li>
+          </ul>
+      </div>
+    </div>
+
+    <!-- 로그인한 사용자 (Dashboard) -->
+    <div sec:authorize="isAuthenticated()" class="page-wrap-outer">
+        <div class="page-wrap">
+            <div class="site-guide-outer hide">
+                <h3>
+                    <span th:text="#{app.welcome('Yona')} + ' - ' + #{app.description}">Tada! Welcome to Yona! - Web-based platform for collaborative software development</span>
+                </h3>
+                <table class="welcome-table table borderless">
+                    <tr>
+                        <td>
+                            <a href="/projectform" class="ybtn ybtn-success" th:text="#{button.newProject}">
+                            Create new project
+                            </a>
+                        </td>
+                        <td th:text="#{app.welcome.project.desc}">Create your own project</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="/organizations/new" class="ybtn ybtn-success" th:text="#{button.newGroup}">
+                            New Group
+                            </a>
+                        </td>
+                        <td th:text="#{app.welcome.group.desc}">If you want to make a group and work with other members, then create a group</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <a href="/projects" class="ybtn ybtn-success" th:text="#{title.projectList}">
+                            Project list
+                            </a>
+                        </td>
+                        <td th:text="#{app.welcome.searchProject.desc}">Find a project in which you are interested</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="guide-toggle">
+                <button class="btn-transparent" id="toggleIntro"><i class="yobicon-resizev"></i></button>
+            </div>
+            <div class="page on-fold-intro">
+                <div class="row-fluid content-container">
+                    <div class="span8 main-stream">
+                        <div th:replace="~{common/mySeriesMenuTab :: menu('notifications')}"></div>
+                        <ul class="activity-streams notification-wrap unstyled">
+                            <th:block th:replace="~{index/partial_notifications :: html}"></th:block>
+                        </ul>
+        	        </div>
+                    <div class="span4 index-menu right-menu span-hard-wrap">
+                        <!-- 사이드바 내용 영역 -->
+        	        </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+  </div>
+</div>
+
+<!-- 공통 스크립트 블록 포함 -->
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        $("#toggleIntro").click(function(){
+            var $outerGuide = $(".site-guide-outer");
+            $outerGuide.toggleClass("hide");
+            localStorage.setItem("yobi-intro", !$outerGuide.hasClass("hide"));
+        });
+
+        if(localStorage.getItem("yobi-intro") != "false"){
+            $(".site-guide-outer").removeClass("hide");
+        }
+
+        $('.notification-wrap').on('click','[data-toggle="learnmore"]',function(event) {
+            var $this = $(this);
+            $this.find(".more").toggle();
+            var sTargetId = $this.data('target'),
+                welMessage = $('#'+sTargetId),
+                nHeight;
+
+            if(event.target.localName =='a' || event.target.localName =='img') {
+                return ;
+            }
+
+            welMessage.toggleClass('nowrap');
+
+            nHeight = (welMessage.hasClass('nowrap')) ? '' : $(welMessage).find('.message').height();
+
+            $(welMessage).css('min-height',nHeight);
+        });
+
+        function checkOverflow(el) {
+            var curOverflow = el.style.overflow;
+
+            if (!curOverflow || curOverflow === "visible")
+                el.style.overflow = "hidden";
+
+            var isOverflowing = el.clientWidth < el.scrollWidth
+                    || el.clientHeight < el.scrollHeight;
+
+            el.style.overflow = curOverflow;
+
+            return isOverflowing;
+        }
+
+        $(".message-wrap").each(function(index, value){
+            var $this = $(this);
+            if(checkOverflow($this[0])){
+                $this.after("<div class='more'>...</div>");
+            }
+        });
+
+        if ($(".admin-logged-in-affix").length === 1) {
+            $(".sidenav").css("top", "84px");
+        }
+
+        var $setDefaultLoginPage = $("#setDefaultLoginPage");
+        $setDefaultLoginPage.popover();
+        $setDefaultLoginPage.on('click', function(){
+            $.post("/user/setDefaultLoginPage?path=" + $setDefaultLoginPage.data("url"))
+                .done(function (data) {
+                    $yobi.notify("Set to default: " + (data ? data.defaultLoginPage : "notifications"), 3000);
+                    $setDefaultLoginPage.hide();
+                })
+                .fail(function (data) {
+                    $yobi.alert("set Default page failed: " + data);
+                });
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(title=${project.name} + ' - 마일스톤 수정')}">
+</head>
+<body class="theme-default prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+    <div th:replace="~{project/header :: header(${project})}"></div>
+    <div th:replace="~{project/menu :: menu(${project}, 'milestone')}"></div>
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
+            <div class="content-wrap frm-wrap">
+                <form th:action="@{/{owner}/{projectName}/milestone/{id}/edit(owner=${project.owner}, projectName=${project.name}, id=${milestone.id})}" method="POST" id="milestone-form">
+                    <div class="row-fluid">
+                        <div class="span12">
+                            <dl>
+                                <dd>
+                                    <input type="text" id="title" name="title" th:value="${milestone.title}" class="zen-mode text title" th:classappend="${titleError} ? 'error' : ''" maxlength="250" tabindex="1" th:placeholder="#{title}">
+                                    <div th:if="${titleError}" class="message">
+                                        <div th:text="#{__${titleError}__}">이미 존재하는 마일스톤 제목입니다.</div>
+                                    </div>
+                                </dd>
+                            </dl>
+                        </div>
+
+                        <div class="row-fluid">
+                            <div class="span9 span-left-pane">
+                                <dl>
+                                    <dd style="position: relative;">
+                                        <div th:replace="~{site/layout :: markdownEditor('contents', ${milestone.contents}, 'content-body')}"></div>
+                                    </dd>
+                                </dl>
+
+                                <!-- 파일 업로더 영역 -->
+                                <div sec:authorize="isAuthenticated()" class="upload-wrap content-footer" data-resource-type="MILESTONE" th:data-resource-id="${milestone.id}" id="upload">
+                                    <input type="hidden" name="temporaryUploadFiles">
+                                    <div class="attach-wrap">
+                                        <span class="help help-droppable" th:text="#{common.attach.drophere}">첨부할 파일을 끌어다 놓거나</span>
+                                        <div class="btn-wrap">
+                                            <div class="nbtn medium white fake-file-wrap">
+                                                <i class="yobicon-upload"></i> <span th:text="#{button.upload}" th:remove="tag">파일 올리기</span>
+                                                <input type="file" class="file" name="filePath" multiple="multiple">
+                                            </div>
+                                        </div>
+                                        <span class="plain" th:text="#{common.attach.clickbutton}">버튼을 클릭해서 선택하세요</span>
+                                        <span class="help help-pastable" style="display: block;" th:text="#{common.attach.pastehere}">클립보드 이미지를 붙여 넣을 수도 있습니다</span>
+                                    </div>
+                                    <ul class="attached-files unstyled"></ul>
+                                    <p class="right-txt help">
+                                        <i class="yobicon-supportrequest"></i> <span th:text="#{common.attach.attachIfYouSave}">표시된 파일은 글을 저장하면 첨부됩니다.</span>
+                                    </p>
+                                </div>
+
+                                <div class="actrow right-txt">
+                                    <button type="submit" class="ybtn ybtn-info" th:text="#{button.save}">저장</button><!--
+                                 --><a th:href="@{/{owner}/{projectName}/milestone/{id}(owner=${project.owner}, projectName=${project.name}, id=${milestone.id})}" class="ybtn" th:text="#{button.cancel}">취소</a>
+                                </div>
+                            </div>
+                            <div class="span3 span-hard-wrap">
+                                <dl class="issue-option">
+                                    <dt th:text="#{milestone.form.state}">마일스톤 상태</dt>
+                                    <dd>
+                                        <div>
+                                            <input type="radio" name="state" value="OPEN" id="milestone-open" class="radio-btn" th:checked="${milestone.state == T(com.github.yonaprojects.yona.domain.enumeration.State).OPEN}"><label for="milestone-open" class="bold" th:text="#{milestone.state.open}">진행중</label>&nbsp;
+                                            <input type="radio" name="state" value="CLOSED" id="milestone-close" class="radio-btn" th:checked="${milestone.state == T(com.github.yonaprojects.yona.domain.enumeration.State).CLOSED}"><label for="milestone-close" class="bold" th:text="#{milestone.state.closed}">종료</label>
+                                        </div>
+                                    </dd>
+                                </dl>
+                                <dl class="issue-option">
+                                    <dt th:text="#{milestone.form.dueDate}">기한을 선택하세요</dt>
+                                    <dd>
+                                        <div>
+                                            <label for="dueDate">
+                                                <input type="text" name="dueDate" id="dueDate" class="validate due-date" autocomplete="off" th:value="${dueDateError != null ? dueDate : (milestone.dueDate != null ? #strings.substring(milestone.dueDate.toString(), 0, 10) : '')}" th:classappend="${dueDateError} ? 'error' : ''">
+                                            </label>
+                                            <div id="datepicker" class="date-picker"></div>
+                                            <div th:if="${dueDateError}" class="message">
+                                                <div th:text="#{__${dueDateError}__}">기한 형식이 잘못되었습니다.</div>
+                                            </div>
+                                        </div>
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+<th:block th:replace="~{common/calendar :: calendar}"></th:block>
+<th:block th:replace="~{site/layout :: markdown(${project})}"></th:block>
+<script type="text/javascript" src="/javascripts/lib/atjs/jquery.caret.min.js"></script>
+<script type="text/javascript" src="/javascripts/lib/atjs/jquery.atwho.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        // yobi.milestone.Write
+        $yobi.loadModule("milestone.Write", {
+            "elDueDate"   : $("#dueDate"),
+            "elDatePicker": $("#datepicker")
+        });
+
+        // yobi.Mention
+        yobi.Mention({
+            "target": "textarea[id^=editor-]",
+            "url"   : "/[[${project.owner}]]/[[${project.name}]]/mentionList"
+        });
+    });
+</script>
+</body>
+</html>

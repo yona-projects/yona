@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(#{user.files})}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+  <div th:replace="~{site/layout :: gnb}"></div>
+
+  <link rel="stylesheet" type="text/css" media="all" href="/stylesheets/filetype.css">
+
+  <div class="page-wrap-outer">
+    <div class="page-wrap">
+      <div th:replace="~{common/mySeriesMenuTab :: menu('my_files')}"></div>
+
+      <form th:action="@{/user/files}" method="GET">
+        <div class="user-file-search search search-bar">
+          <input name="filter" class="textbox" type="text" th:placeholder="#{search.title}" th:value="${filter}" autofocus>
+          <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+        </div>
+      </form>
+
+      <div class="attachment-files">
+        <div class="attachment-files-header row">
+          <div class="span1 header-preview">Preview</div>
+          <div class="span5 header-file-name">Filename</div>
+          <div class="span1 header-size">Size</div>
+          <div class="span1">Download</div>
+          <div class="span2 file-date">Date</div>
+          <div class="span4 header-location">Location</div>
+        </div>
+
+        <div class="attachment-file-detail row" th:each="attachment : ${page.content}">
+          <!-- Preview -->
+          <div class="file-preview span1">
+            <a th:href="@{/files/{id}(id=${attachment.id})}" target="_blank">
+              <img th:if="${attachment.mimeType != null && #strings.startsWith(attachment.mimeType, 'image/')}"
+                   th:src="@{/files/{id}(id=${attachment.id})}"
+                   style="max-width: 50px; max-height: 50px;" />
+            </a>
+          </div>
+
+          <!-- Filename -->
+          <div class="span5 file-name">
+            <a th:href="@{/files/{id}(id=${attachment.id})}" target="_blank">
+              <i class="icon text-icon"></i>
+              <span th:text="${attachment.name}">파일명</span>
+            </a>
+          </div>
+
+          <!-- Size -->
+          <div class="span1 file-size" th:text="${attachment.size != null ? (attachment.size < 1024 ? attachment.size + ' B' : (attachment.size < 1048576 ? (attachment.size / 1024) + ' KB' : (attachment.size / 1048576) + ' MB')) : '0 B'}">크기</div>
+
+          <!-- Download -->
+          <div class="span1 file-download">
+            <a th:href="@{/files/{id}(id=${attachment.id}, action='download')}">
+              <button type="button" class="ybtn"><i class="yobicon-cloud-download"></i></button>
+            </a>
+          </div>
+
+          <!-- Date -->
+          <div class="span2 file-date" th:text="${attachment.createdDate != null ? #temporals.format(attachment.createdDate, 'yyyy-MM-dd HH:mm', 'Asia/Seoul') : ''}">작성일</div>
+
+          <!-- Location -->
+          <div class="span4 file-location">
+            <a th:with="url=${controller.getAttachmentUrl(attachment)}"
+               th:if="${url != null}"
+               th:href="${url}"
+               target="_blank"
+               th:text="${url}">상세 링크</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 페이지네이션 영역 -->
+      <div id="pagination" th:if="${page.totalPages > 1}"></div>
+    </div>
+  </div>
+
+  <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+
+<script type="text/javascript" src="/javascripts/lib/filetype.js"></script>
+<script type="text/javascript" th:inline="javascript">
+$(document).ready(function(){
+    $(".attachment-file-detail").hover(
+        function() {
+            $(this).addClass('hover');
+        }, function () {
+            $(this).removeClass("hover");
+        }
+    );
+
+    $('.file-name').each(function(){
+        var that = $(this);
+        if (typeof fileType !== 'undefined') {
+            fileType.some(function(item){
+                if( item[0].test(that.text()) ) {
+                    that.find('i').removeClass('text-icon').addClass(item[1] + " font-larger");
+                    return true;
+                }
+            });
+        }
+    });
+
+    /*[<![CDATA[*/
+    var totalPages = /*[[${page.totalPages}]]*/ 1;
+    /*]]>*/
+    if (typeof yobi !== 'undefined' && yobi.Pagination) {
+        yobi.Pagination.update($("#pagination"), totalPages);
+    }
+});
+</script>
+</body>
+</html>

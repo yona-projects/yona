@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<!-- legacy partial_comment_thread.scala.html 대응 (그룹11 #186). 코드리뷰 스레드 렌더러(댓글
+     목록 + 답글 폼). CodeCommentThread면 data-range-* 속성으로 라인 범위 정보를 함께 노출한다. -->
+<div th:fragment="thread(thread, project, pull)"
+     th:id="'thread-' + ${thread.id}"
+     th:data-state="${#strings.toLowerCase(thread.state.name())}"
+     th:class="'comment-thread-wrap ' + ${#strings.toLowerCase(thread.state.name())} + ${(thread instanceof T(com.github.yonaprojects.yona.domain.pullrequest.CodeCommentThread) and thread.state.name() == 'CLOSED') ? ' fold' : ''}"
+     th:data-toggle="${thread instanceof T(com.github.yonaprojects.yona.domain.pullrequest.CodeCommentThread) ? 'CodeCommentThread' : null}"
+     th:data-range-path="${thread instanceof T(com.github.yonaprojects.yona.domain.pullrequest.CodeCommentThread) ? thread.codeRange.path : null}"
+     th:data-range-startside="${thread instanceof T(com.github.yonaprojects.yona.domain.pullrequest.CodeCommentThread) ? thread.codeRange.startSide : null}"
+     th:data-range-startline="${thread instanceof T(com.github.yonaprojects.yona.domain.pullrequest.CodeCommentThread) ? thread.codeRange.startLine : null}"
+     th:data-range-startcolumn="${thread instanceof T(com.github.yonaprojects.yona.domain.pullrequest.CodeCommentThread) ? thread.codeRange.startColumn : null}"
+     th:data-range-endside="${thread instanceof T(com.github.yonaprojects.yona.domain.pullrequest.CodeCommentThread) ? thread.codeRange.endSide : null}"
+     th:data-range-endline="${thread instanceof T(com.github.yonaprojects.yona.domain.pullrequest.CodeCommentThread) ? thread.codeRange.endLine : null}"
+     th:data-range-endcolumn="${thread instanceof T(com.github.yonaprojects.yona.domain.pullrequest.CodeCommentThread) ? thread.codeRange.endColumn : null}">
+
+    <div class="btn-thread-here btn-thread-minimize">
+        <button type="button" class="ybtn ybtn-default ybtn-small"><i class="yobicon-post2"></i></button>
+    </div>
+
+    <div class="thread-header">
+        <span th:class="'badge state ' + ${#strings.toLowerCase(thread.state.name())}" th:text="#{'issue.state.' + ${#strings.toLowerCase(thread.state.name())}}">상태</span>
+        <button type="button" class="ybtn ybtn-default ybtn-small btn-thread-minimize"><i class="yobicon-maximize"></i></button>
+    </div>
+
+    <ul class="comments">
+        <!-- reviewComments는 CodeReviewService.createReviewComment()가 항상 thread.addComment()로
+             생성 순서대로 append하므로 이미 createdDate 오름차순이다(legacy의 .sortBy와 동일 결과) -->
+        <li th:each="comment : ${thread.reviewComments}"
+            th:id="'comment-' + ${comment.id}" class="comment">
+            <div class="comment-avatar">
+                <a th:if="${comment.author != null}" th:href="@{/user/{loginId}(loginId=${comment.author.loginId})}" class="avatar-wrap" data-toggle="tooltip" data-placement="top" th:title="${comment.author.name}">
+                    <img src="/images/default-avatar-128.png" width="32" height="32" th:alt="${comment.author.loginId}">
+                </a>
+            </div>
+            <div class="media-body">
+                <div class="meta-info">
+                    <span class="comment_author pull-left">
+                        <a th:if="${comment.author != null}" th:href="@{/user/{loginId}(loginId=${comment.author.loginId})}" data-toggle="tooltip" data-placement="top" th:title="${comment.author.name}">
+                            <strong th:text="${comment.author.loginId}">loginId</strong>
+                        </a>
+                    </span>
+                    <span class="ago"><a th:href="'#comment-' + ${comment.id}" th:title="${@templateHelper.getDateString(comment.createdDate)}" th:text="${@templateHelper.agoOrDateString(comment.createdDate)}">방금 전</a></span>
+
+                    <span class="edit pull-right" th:if="${currentUser != null and @accessControl.isAllowed(currentUser, project, comment, T(com.github.yonaprojects.yona.domain.enumeration.Operation).DELETE)}">
+                        <button class="btn-transparent pull-right close" data-toggle="comment-delete" th:data-request-uri="@{/comments/REVIEW_COMMENT/{id}(id=${comment.id})}" th:title="#{common.comment.delete}"><i class="yobicon-trash"></i></button>
+                    </span>
+                </div>
+
+                <div class="comment-body markdown-wrap" th:utext="${markdownService.render(comment.contents, true, project)}">댓글 내용</div>
+            </div>
+        </li>
+    </ul>
+
+    <div th:replace="~{pullrequest/partial_comment_form_on_thread :: form(${thread}, ${project}, ${pull}, ${currentUser})}"></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="status(milestone, project)" class="milestone-info" th:with="progress=${templateHelper.getMilestoneProgress(milestone)}">
+    <div class="meta-info">
+        <a th:href="@{/{owner}/{projectName}/milestone/{id}(owner=${project.owner}, projectName=${project.name}, id=${milestone.id})}" class="title" th:text="${milestone.title}">마일스톤 제목</a>
+        <span class="due-date" th:if="${milestone.dueDate != null}" th:classappend="${milestone.state.name() != 'CLOSED' and progress.isOverdue} ? 'over'">
+            <span th:text="#{label.dueDate}">기한</span>
+            <strong th:text="${templateHelper.getDueDateString(milestone.dueDate)}">2026-06-08</strong>
+            <span class="date" th:if="${milestone.state.name() != 'CLOSED'}">
+                (<span th:text="${templateHelper.until(milestone)}">오늘</span>)
+            </span>
+        </span>
+    </div>
+
+    <div class="progress-wrap">
+        <div class="progress progress-success nm">
+            <div class="bar" th:style="'width: ' + ${progress.completionRate} + '%;'"></div>
+        </div>
+        <div class="progress-info">
+            <span class="pull-right">
+                <strong th:text="${progress.closedCount} + ' / ' + (${progress.openCount} + ${progress.closedCount})">0 / 0</strong>
+            </span>
+        </div>
+    </div>
+</div>
+</body>
+</html>

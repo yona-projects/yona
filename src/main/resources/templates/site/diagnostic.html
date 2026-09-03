@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(#{${message}})}"></head>
+<body class="theme-default">
+<div id="main" class="main">
+  <!-- GNB -->
+  <div th:replace="~{site/layout :: gnb}"></div>
+
+  <!-- Breadcrumb -->
+  <div th:replace="~{site/layout :: breadcrumb}"></div>
+
+  <div class="page-wrap-outer">
+    <div class="site-setting-wrap">
+      <div class="row-fluid">
+        <!-- Sidebar -->
+        <div th:replace="~{site/layout :: sidebar('diagnostic')}"></div>
+
+        <!-- Content Area -->
+        <div class="span10">
+          <div class="title_area">
+            <h2 class="pull-left" th:text="#{site.sidebar.diagnostics}">자가진단</h2>
+          </div>
+
+          <div th:if="${errors.isEmpty()}">
+            <p th:text="#{site.diagnostic.errorNotFound}"></p>
+          </div>
+
+          <div th:if="${!errors.isEmpty()}">
+            <p th:text="#{site.diagnostic.errorFound(${errors.size()})}"></p>
+            <ul>
+              <li th:each="error : ${errors}">
+                <pre th:text="${error}"></pre>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<footer th:replace="~{site/layout :: footer}"></footer>
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+</body>
+</html>

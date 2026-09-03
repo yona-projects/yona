@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(#{${message}})}"></head>
+<body class="theme-default">
+<div id="main" class="main">
+  <!-- GNB -->
+  <div th:replace="~{site/layout :: gnb}"></div>
+
+  <!-- Breadcrumb -->
+  <div th:replace="~{site/layout :: breadcrumb}"></div>
+
+  <div class="page-wrap-outer">
+    <div class="site-setting-wrap">
+      <div class="row-fluid">
+        <!-- Sidebar -->
+        <div th:replace="~{site/layout :: sidebar('update')}"></div>
+
+        <!-- Content Area -->
+        <div class="span10">
+          <div class="title_area">
+            <h2 class="pull-left" th:text="#{site.sidebar.update}">업데이트</h2>
+          </div>
+
+          <div th:if="${versionToUpdate != null}">
+            <p>
+              <strong th:text="#{site.update.isAvailable(${versionToUpdate})}"></strong>
+              <a th:href="${releaseUrl}" class="ybtn ybtn-success" th:text="#{site.update.download}"></a>
+            </p>
+          </div>
+
+          <div th:if="${currentVersion != null}">
+            <p th:text="#{site.update.currentVersion(${currentVersion})}"></p>
+          </div>
+
+          <div th:if="${versionToUpdate == null && exception == null}">
+            <p th:text="#{site.update.isNotNecessary(${currentVersion})}"></p>
+          </div>
+
+          <div th:if="${exception != null}">
+            <p th:text="#{site.update.error}"></p>
+            <pre th:text="${T(org.apache.commons.lang3.exception.ExceptionUtils).getStackTrace(exception)}"></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<footer th:replace="~{site/layout :: footer}"></footer>
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+</body>
+</html>

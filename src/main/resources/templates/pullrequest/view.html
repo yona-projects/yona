@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko"
+      th:with="pullRequestMenuLabel=#{menu.pullRequest}, pageTitle=${pr.title + ' - ' + pullRequestMenuLabel}">
+<head th:replace="~{site/layout :: head(title=${pageTitle})}">
+</head>
+<body class="prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div th:replace="~{project/header :: header(${project})}"></div>
+    <div th:replace="~{project/menu :: menu(${project}, 'pullRequest')}"></div>
+    <link rel="stylesheet" th:href="@{/{owner}/{projectName}/issue/labels.css(owner=${project.owner}, projectName=${project.name})}" type="text/css" />
+
+    <!--
+     legacy git/view.scala.html("overview") + git/viewChanges.scala.html("changes") 대응(그룹11
+     #170/#171). 두 legacy 화면은 서로 다른 URL이지만 pullrequest/view.html 하나로 합쳐 tab 모델
+     속성(overview|changes)에 따라 분기한다 — URL 라우팅은 legacy와 동일하게 별도로 유지된다
+     (/pull/{number} = overview, /pull/{number}/changes[/{commitId}] = changes, 컨트롤러 참고).
+    -->
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap" th:classappend="${tab == 'changes'} ? 'code-browse-wrap' : ''">
+
+            <div th:replace="~{pullrequest/partial_info :: info(${project}, ${pr}, ${currentUser}, ${tab}, ${openThreadCount}, ${isAcceptable}, ${disabledAcceptReason})}"></div>
+
+            <!-- ===================== OVERVIEW 탭 (legacy git/view.scala.html) ===================== -->
+            <th:block th:if="${tab == 'overview'}">
+                <div class="board-body">
+                    <div class="author-info left-txt" style="margin-top:20px;">
+                        <a th:href="@{/user/{loginId}(loginId=${pr.contributor.loginId})}" class="usf-group pull-left">
+                            <span class="avatar-wrap smaller">
+                                <img th:src="${pr.contributor.avatarUrl}" width="32" height="32">
+                            </span>
+                            <strong class="name" th:text="${pr.contributor.name}">보낸 사람</strong>
+                            <span class="loginid"> <strong>@</strong><span th:text="${pr.contributor.loginId}">loginId</span></span>
+                        </a>
+                        <div th:replace="~{pullrequest/partial_branch :: branch(${pr})}"></div>
+                    </div>
+                    <div class="content markdown-wrap" th:utext="${markdownService.render(pr.body, true, project)}">본문 내용</div>
+                    <div class="attachments" id="attachments" th:data-attachments="${attachmentsJson}"></div>
+                </div>
+
+                <!-- yona-wiki P3-02 Step8.7 2번(2026-09-01) — PR 담당자/라벨 표시·편집. 7라운드가
+                     백엔드(PullRequestService.setAssignee/addLabel/removeLabel,
+                     PullRequestApiController)만 만들고 화면은 명시적으로 범위 밖에 뒀던 부분. issue/
+                     view.html의 담당자 dl/dt/dd 마크업(usf-group/avatar-wrap/name/loginid 클래스)과
+                     라벨 프래그먼트(issue/partial_select_label, issue/partial_show_selected_label)를
+                     그대로 재사용한다. 다만 담당자 입력만은 그대로 재사용하지 않았다 — Issue의
+                     담당자 select2는 로그인ID 기반 AJAX 검색(yonaAssgineeModule, Issue 전용
+                     assignableUsers/assignees 엔드포인트)인데 PR의 setAssignee REST API(round7)는
+                     숫자 userId를 받는 별도 계약이라 그대로 이어붙일 수 없다 — 대신 같은 화면의
+                     마일스톤 select(정적 <option> + data-toggle="select2")와 동일한 패턴으로 프로젝트
+                     멤버 목록을 서버 렌더링한다. 라벨은 백엔드 계약이 issue와 동일(라벨 ID)해 프래그먼트를
+                     100% 그대로 재사용했다. 편집 가능 여부는 PullRequestController.checkWritePermission()
+                     (프로젝트 멤버 여부)과 동일한 @templateHelper.isMember()로 게이트한다. -->
+                <div class="issue-info pr-assignee-label-info"
+                     th:with="prAssigneeLabelEditable=${currentUser != null and @templateHelper.isMember(project, currentUser)}">
+                    <dl>
+                        <dt th:text="#{issue.assignee}">담당자</dt>
+                        <dd>
+                            <select th:if="${prAssigneeLabelEditable}" id="pr-assignee-select" name="assigneeUserId"
+                                    data-toggle="select2" data-container-css-class="fullsize" style="width: 100%;">
+                                <option value="" th:selected="${pr.assignee == null}" th:text="#{issue.noAssignee}">담당자 없음</option>
+                                <option th:each="pu : ${project.projectUsers}" th:value="${pu.user.id}"
+                                        th:selected="${pr.assignee != null and pr.assignee.user.id == pu.user.id}"
+                                        th:text="${pu.user.name}">멤버</option>
+                            </select>
+                            <th:block th:unless="${prAssigneeLabelEditable}">
+                                <a th:if="${pr.assignee != null}" th:href="@{/{loginId}(loginId=${pr.assignee.user.loginId})}" class="usf-group">
+                                    <span class="avatar-wrap smaller"><img th:src="${pr.assignee.user.avatarUrl}" width="20" height="20"></span>
+                                    <strong class="name" th:text="${pr.assignee.user.name}">이름</strong>
+                                    <span class="loginid"> <strong>@</strong><span th:text="${pr.assignee.user.loginId}">loginId</span></span>
+                                </a>
+                                <div th:unless="${pr.assignee != null}" th:text="#{issue.noAssignee}">담당자 없음</div>
+                            </th:block>
+                        </dd>
+                    </dl>
+
+                    <th:block th:with="projectLabels=${@templateHelper.getProjectLabels(project)}">
+                        <div th:if="${projectLabels != null and !projectLabels.isEmpty()}">
+                            <div th:if="${prAssigneeLabelEditable}">
+                                <div th:replace="~{issue/partial_select_label :: selectLabel(${projectLabels}, ${pr.labels}, '', '', ${project})}"></div>
+                            </div>
+                            <div th:unless="${prAssigneeLabelEditable}">
+                                <div th:replace="~{issue/partial_show_selected_label :: showLabel(${pr.labels}, '')}"></div>
+                            </div>
+                        </div>
+                    </th:block>
+                </div>
+
+                <!-- 연동된 자동 닫기 이슈 정보(legacy에는 없는 yona 확장 — 기존 세션에서 이미 정착됨, 유지) -->
+                <div th:if="${referredIssues != null and !referredIssues.isEmpty()}" class="alert alert-info" style="margin-top:15px;">
+                    <strong>이 풀 리퀘스트가 병합되면 다음 이슈가 자동으로 닫힙니다:</strong>
+                    <ul style="margin-bottom:0;">
+                        <li th:each="issue : ${referredIssues}">
+                            <a th:href="@{/{owner}/{projectName}/issue/{number}(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}"
+                               th:text="'#' + ${issue.number} + ' ' + ${issue.title}">#123 이슈 제목</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div id="state" class="pullRequest-stateInfo">
+                    <div th:replace="~{pullrequest/partial_state :: state(${project}, ${pr}, ${currentUser}, ${canDeleteBranch}, ${canRestoreBranch})}"></div>
+                </div>
+
+                <div class="board-footer board-actrow">
+                    <div class="pull-left">
+                        <button th:if="${currentUser != null}" id="watch-button" type="button" class="ybtn" th:classappend="${isWatching} ? 'ybtn-watching' : ''"
+                                data-toggle="button" th:data-watching="${isWatching}"
+                                th:text="${isWatching} ? #{project.unwatch} : #{project.watch}">지켜보기</button>
+                    </div>
+
+                    <div class="mr5" style="display:inline-block;">
+                        <a th:if="${currentUser != null and @accessControl.isAllowed(currentUser, project, pr, T(com.github.yonaprojects.yona.domain.enumeration.Operation).UPDATE)}"
+                           th:href="@{/{owner}/{projectName}/pull/{number}/edit(owner=${project.owner}, projectName=${project.name}, number=${pr.number})}" class="ybtn" th:text="#{button.edit}">수정</a>
+                        <a th:if="${pr.state.name() == 'OPEN' and currentUser != null and @accessControl.isAllowed(currentUser, project, pr, T(com.github.yonaprojects.yona.domain.enumeration.Operation).CLOSE)}"
+                           data-request-method="post" th:data-request-uri="@{/api/projects/{projectId}/pullrequests/{number}/state(projectId=${project.id}, number=${pr.number}, state='CLOSED')}" class="ybtn" th:text="#{pullRequest.close}">보류</a>
+                        <a th:if="${pr.state.name() == 'CLOSED' and currentUser != null and @accessControl.isAllowed(currentUser, project, pr, T(com.github.yonaprojects.yona.domain.enumeration.Operation).REOPEN)}"
+                           data-request-method="post" th:data-request-uri="@{/api/projects/{projectId}/pullrequests/{number}/state(projectId=${project.id}, number=${pr.number}, state='OPEN')}" class="ybtn" th:text="#{pullRequest.reopen}">다시 열기</a>
+                    </div>
+                </div>
+
+                <hr class="nm">
+
+                <div class="board-comment-wrap">
+                    <ul class="comments" id="comments" th:if="${timeline != null and !timeline.isEmpty()}">
+                        <th:block th:each="item : ${timeline}">
+                            <div th:replace="~{pullrequest/partial_pull_request_event :: event(${project}, ${pr}, ${item.event})}"></div>
+                        </th:block>
+                    </ul>
+                </div>
+
+                <div class="right-txt">
+                    <a href="#helpMessage" class="ybtn ybtn-inverse ybtn-mini" data-toggle="modal" th:text="#{title.help}">도움말</a>
+                </div>
+            </th:block>
+
+            <!-- ===================== CHANGES 탭 (legacy git/viewChanges.scala.html) ===================== -->
+            <th:block th:if="${tab == 'changes'}">
+                <div class="board-body mb20">
+                    <div class="author-info right-txt" style="margin-top:20px;">
+                        <a th:href="@{/user/{loginId}(loginId=${pr.contributor.loginId})}" class="usf-group pull-left">
+                            <span class="avatar-wrap smaller">
+                                <img th:src="${pr.contributor.avatarUrl}" width="32" height="32">
+                            </span>
+                            <strong class="name" th:text="${pr.contributor.name}">보낸 사람</strong>
+                            <span class="loginid"> <strong>@</strong><span th:text="${pr.contributor.loginId}">loginId</span></span>
+                        </a>
+                        <div th:replace="~{pullrequest/partial_branch :: branch(${pr})}"></div>
+                    </div>
+                </div>
+
+                <div class="codediff-wrap mt10" th:classappend="${commentThreads == null or commentThreads.isEmpty()} ? 'diffs-only' : ''">
+                    <button th:if="${commentThreads != null and !commentThreads.isEmpty()}" type="button" class="ybtn ybtn-default btn-show-reviewcards">
+                        <i class="yobicon-restore"></i>
+                    </button>
+                    <div id="changes" class="diffs-wrap">
+                        <div id="commits" class="btn-group auto mb10">
+                            <button class="btn dropdown-toggle auto" data-toggle="dropdown">
+                                <span class="d-label" th:text="${commitId == null} ? #{pullRequest.changes.all} : ${commitId}">전체</span>
+                                <span class="d-caret"><span class="caret"></span></span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li data-value="All"><a th:href="@{/{owner}/{projectName}/pull/{number}/changes(owner=${project.owner}, projectName=${project.name}, number=${pr.number})}" th:text="#{pullRequest.changes.all}">전체</a></li>
+                            </ul>
+                        </div>
+
+                        <div class="diff-body diffs-wrap-scroll">
+                            <div th:replace="~{pullrequest/partial_state :: state(${project}, ${pr}, ${currentUser}, false, false)}"></div>
+                            <div th:if="${diffs != null and !diffs.isEmpty()}" th:replace="~{pullrequest/partial_diff :: diff(${diffs}, ${commentThreads}, ${project}, ${pr.toProject}, ${pr.toProject})}"></div>
+                            <div class="alert alert-info" th:if="${diffs == null or diffs.isEmpty()}" th:text="#{pullRequest.diff.noChanges}">변경 내역이 없습니다.</div>
+                            <div class="btnPop"><button type="button" class="ybtn ybtn-info ybtn-small"><i class="yobicon-post2"></i></button></div>
+                        </div>
+
+                        <div class="board-comment-wrap">
+                            <div class="non-ranged-threads-wrap">
+                                <th:block th:if="${commentThreads != null}" th:each="thread : ${commentThreads}">
+                                    <div th:if="${thread instanceof T(com.github.yonaprojects.yona.domain.pullrequest.NonRangedCodeCommentThread)}"
+                                         th:replace="~{pullrequest/partial_comment_thread :: thread(${thread}, ${project}, ${pr})}"></div>
+                                </th:block>
+                            </div>
+                            <th:block th:if="${currentUser != null and @accessControl.isProjectResourceCreatable(currentUser, project, T(com.github.yonaprojects.yona.domain.enumeration.ResourceType).REVIEW_COMMENT)}"
+                                      th:with="reviewCommentResourceType=${T(com.github.yonaprojects.yona.domain.enumeration.ResourceType).REVIEW_COMMENT},
+                                               reviewFormAction=@{/{owner}/{projectName}/pullRequest/{pullRequestId}/comments(owner=${project.owner}, projectName=${project.name}, pullRequestId=${pr.id}, commitId=${commitId})}">
+                                <div th:replace="~{common/reviewForm :: reviewForm(${project}, ${reviewCommentResourceType}, ${reviewFormAction}, ${currentUser})}"></div>
+                            </th:block>
+                        </div>
+                    </div>
+
+                    <div class="review-wrap" th:if="${commentThreads != null and !commentThreads.isEmpty()}">
+                        <div class="review-container">
+                            <button type="button" class="ybtn ybtn-default btn-hide-reviewcards"><i class="yobicon-maximize"></i></button>
+
+                            <ul class="nav nav-tabs" style="margin-bottom:10px;" th:with="openThreads=${commentThreads.?[state.name() == 'OPEN']}, closedThreads=${commentThreads.?[state.name() == 'CLOSED']}">
+                                <li class="active"><a href="#reviewcards-open" data-toggle="tab" th:text="#{issue.state.open} + ' ' + ${openThreads.size()}">열림</a></li>
+                                <li><a href="#reviewcards-closed" data-toggle="tab" th:text="#{issue.state.closed} + ' ' + ${closedThreads.size()}">닫힘</a></li>
+                            </ul>
+
+                            <div class="tab-content review-list" th:with="openThreads=${commentThreads.?[state.name() == 'OPEN']}, closedThreads=${commentThreads.?[state.name() == 'CLOSED']}">
+                                <div id="reviewcards-open" class="tab-pane active">
+                                    <div th:replace="~{pullrequest/partial_reviewlist :: reviewlist(${openThreads}, ${project}, ${pr})}"></div>
+                                </div>
+                                <div id="reviewcards-closed" class="tab-pane">
+                                    <div th:replace="~{pullrequest/partial_reviewlist :: reviewlist(${closedThreads}, ${project}, ${pr})}"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </th:block>
+
+        </div>
+    </div>
+
+    <th:block th:replace="~{site/layout :: markdown(${project})}"></th:block>
+    <th:block th:with="commentsContainerSelector=${tab == 'changes' ? '#changes' : '#comments'}">
+        <div th:replace="~{common/commentDeleteModal :: commentDeleteModal(${commentsContainerSelector})}"></div>
+    </th:block>
+
+    <div id="helpMessage" class="modal hide fade pullreq-info" th:if="${tab == 'overview'}">
+        <div class="modal-header">
+            <h5 th:text="#{pullRequest.merge.help.1}">도움말</h5>
+        </div>
+        <div class="modal-body">
+            <div class="row-fluid">
+                <div class="pull-left help-messages mt10">
+                    <p th:text="#{pullRequest.merge.help.2}"></p>
+                    <p th:text="#{pullRequest.merge.help.3}"></p>
+                    <p th:text="#{pullRequest.merge.help.4}"></p>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="ybtn ybtn-info ybtn-small" data-dismiss="modal" th:text="#{button.confirm}">확인</button>
+        </div>
+    </div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+<th:block th:replace="~{common/select2 :: select2}"></th:block>
+<script type="text/javascript" th:inline="javascript">
+  $(document).ready(function() {
+      var projectId = [[${project.id}]];
+      var prNumber = [[${pr.number}]];
+
+      // legacy git/view.scala.html $yobi.loadModule("git.View", {...}) 대응 — watch 토글
+      $("#watch-button").click(function() {
+          var $btn = $(this);
+          var watching = $btn.data("watching") === true || $btn.data("watching") === "true";
+          var url = watching ? "/unwatch" : "/watch";
+          $.post(url, { "resource.type": "PULL_REQUEST", "resource.id": String([[${pr.id}]]) }, function() {
+              window.location.reload();
+          });
+      });
+
+      // legacy partial_info.scala.html의 accept 버튼(#btnAccept) 대응
+      $("#btnAccept").click(function(e) {
+          e.preventDefault();
+          if (!confirm("[[#{pullRequest.merge}]]?")) { return; }
+          $.ajax({
+              url: '/api/projects/' + projectId + '/pullrequests/' + prNumber + '/merge',
+              type: 'POST',
+              success: function() { window.location.reload(); },
+              error: function(xhr) {
+                  var msg = (xhr.responseJSON && (xhr.responseJSON.message || xhr.responseJSON.error)) || xhr.responseText || "";
+                  alert("[[#{pullRequest.merge}]] failed: " + msg);
+              }
+          });
+      });
+
+      // yona-wiki P3-02 Step8.7 2번 — 담당자 변경. PullRequestApiController(round7)의
+      // PUT/DELETE .../assignee에 위임한다(userId 기반 계약, 위 select 주석 참고).
+      $('#pr-assignee-select').on('change', function() {
+          var userId = $(this).val();
+          var url = '/api/projects/' + projectId + '/pullrequests/' + prNumber + '/assignee';
+          var req = userId
+              ? $.ajax({ url: url, type: 'PUT', contentType: 'application/json', data: JSON.stringify({ userId: parseInt(userId, 10) }) })
+              : $.ajax({ url: url, type: 'DELETE' });
+          req.done(function() { window.location.reload(); })
+             .fail(function() { alert('담당자 변경에 실패했습니다.'); });
+      });
+
+      // 라벨 추가/제거. issue/partial_select_label.html의 select2 다중선택 마크업을 그대로
+      // 재사용하되, 이슈의 massUpdate 폼 제출과 달리 PR은 라벨 전용 REST 엔드포인트(round7의
+      // PullRequestApiController POST/DELETE .../labels)라 select2 change 이벤트에서 이전
+      // 선택값과의 diff를 계산해 추가/삭제 요청을 각각 보낸다.
+      var prevLabelIds = ($('#labelIds').val() || []).map(String);
+      $('#labelIds').on('change', function() {
+          var current = ($(this).val() || []).map(String);
+          var added = current.filter(function(id) { return prevLabelIds.indexOf(id) === -1; });
+          var removed = prevLabelIds.filter(function(id) { return current.indexOf(id) === -1; });
+          if (added.length === 0 && removed.length === 0) { return; }
+          var base = '/api/projects/' + projectId + '/pullrequests/' + prNumber + '/labels';
+          var requests = [];
+          added.forEach(function(id) {
+              requests.push($.ajax({ url: base, type: 'POST', contentType: 'application/json', data: JSON.stringify({ labelId: parseInt(id, 10) }) }));
+          });
+          removed.forEach(function(id) {
+              requests.push($.ajax({ url: base + '/' + id, type: 'DELETE' }));
+          });
+          $.when.apply($, requests)
+              .done(function() { window.location.reload(); })
+              .fail(function() { alert('라벨 변경에 실패했습니다.'); });
+      });
+
+      // 리뷰 참여/취소 버튼(legacy ReviewApp.review/unreview)
+      $("#btn-review").click(function() {
+          $.post("[[@{/api/{owner}/{projectName}/pullRequest/{pullRequestId}/review(owner=${project.owner}, projectName=${project.name}, pullRequestId=${pr.id})}]]", function() { window.location.reload(); });
+      });
+      $("#btn-unreview").click(function() {
+          $.post("[[@{/api/{owner}/{projectName}/pullRequest/{pullRequestId}/unreview(owner=${project.owner}, projectName=${project.name}, pullRequestId=${pr.id})}]]", function() { window.location.reload(); });
+      });
+
+      // [data-request-method] 범용 처리(닫기/다시열기/브랜치 삭제·복구 등)
+      $('[data-request-method]').not('#btnAccept').click(function(e) {
+          e.preventDefault();
+          var $this = $(this);
+          $.ajax({
+              url: $this.data('requestUri') || $this.attr('href'),
+              type: $this.data('requestMethod').toUpperCase(),
+              success: function() { window.location.reload(); },
+              error: function() { alert('요청을 처리하지 못했습니다.'); }
+          });
+      });
+
+      // legacy git/viewChanges.scala.html의 btn-show-reviewcards / btn-hide-reviewcards 토글
+      $('.btn-show-reviewcards').click(function() { $('.review-wrap').addClass('show'); });
+      $('.btn-hide-reviewcards').click(function() { $('.review-wrap').removeClass('show'); });
+  });
+</script>
+</body>
+</html>

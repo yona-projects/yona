@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<ul th:fragment="quicksearch(org, state, authorId, assigneeId, mentionId, selectedProjectNames)" class="lst-stacked unstyled">
+    <li th:class="${assigneeId == null and authorId == null and mentionId == null} ? 'active' : ''">
+        <a pjax-filter href="#"
+           data-assignee-id=""
+           data-author-id=""
+           data-mention-id=""
+           th:data-project-names="${#strings.listJoin(selectedProjectNames, ',')}">
+            <span th:text="#{issue.list.all}">All</span>
+        </a>
+    </li>
+    <th:block th:if="${currentUser != null}">
+        <li th:class="${assigneeId == currentUser.id} ? 'active' : ''">
+            <a pjax-filter href="#"
+               data-author-id=""
+               th:data-assignee-id="${currentUser.id}"
+               th:data-project-names="${#strings.listJoin(selectedProjectNames, ',')}"
+               data-mention-id="">
+                <span th:text="#{issue.list.assignedToMe}">Assigned to me</span>
+            </a>
+        </li>
+        <li th:class="${authorId == currentUser.id} ? 'active' : ''">
+            <a pjax-filter href="#"
+               th:data-author-id="${currentUser.id}"
+               data-assignee-id=""
+               th:data-project-names="${#strings.listJoin(selectedProjectNames, ',')}"
+               data-mention-id="">
+                <span th:text="#{issue.list.authoredByMe}">Authored by me</span>
+            </a>
+        </li>
+        <li th:class="${mentionId == currentUser.id} ? 'active' : ''">
+            <a pjax-filter href="#"
+               data-author-id=""
+               data-assignee-id=""
+               th:data-project-names="${#strings.listJoin(selectedProjectNames, ',')}"
+               th:data-mention-id="${currentUser.id}">
+                <span th:text="#{issue.list.mentionedOfMe}">Mentioned of me</span>
+            </a>
+        </li>
+    </th:block>
+</ul>
+</body>
+</html>

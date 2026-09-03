@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(${org.name})}">
+</head>
+<body class="prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div th:replace="~{organization/header :: header(${org})}"></div>
+    <div th:replace="~{organization/menu :: menu(${org}, 'pullRequest')}"></div>
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
+            <div pjax-container class="row-fluid cb">
+                <div class="left-menu span2 search-wrap hide-in-mobile" style="padding-top:0;">
+                    <form id="search" name="search" th:action="${requestType == 'closed'} ? @{/org/{orgName}/closedPullrequests(orgName=${org.name})} : @{/org/{orgName}/pullrequests(orgName=${org.name})}" method="get">
+                        <div class="search">
+                            <div class="search-bar">
+                                <input name="filter" class="textbox full" type="text" th:value="${filter}">
+                                <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="span10 span-hard-wrap" id="span10">
+                    <ul class="nav nav-tabs nm pullrequeset-tab-menu">
+                        <li th:class="${requestType == 'open'} ? 'active' : ''">
+                            <a href="#" th:data-url="@{/org/{orgName}/pullrequests(orgName=${org.name})}" data-type="state">
+                                <span th:text="#{pullRequest.state.open}">Open</span>
+                                <span class="num-badge" th:text="${openCount}">0</span>
+                            </a>
+                        </li>
+                        <li th:class="${requestType == 'closed'} ? 'active' : ''">
+                            <a href="#" th:data-url="@{/org/{orgName}/closedPullrequests(orgName=${org.name})}" data-type="state">
+                                <span th:text="#{pullRequest.state.closed}">Closed</span>
+                                <span class="num-badge" th:text="${closedCount}">0</span>
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="tab-content" style="clear:both;padding-top:15px;">
+                        <div id="list" class="row-fluid tab-pane active">
+                            <div th:replace="~{organization/pullRequestList_partial :: pullRequestList(${currentPage})}"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <script type="text/javascript">
+                $(function(){
+                    $('.pullrequeset-tab-menu').on('click','[data-type="state"]',function() {
+                        $('#search').attr('action', $(this).data('url'));
+                        $('#search').submit();
+                    });
+                });
+            </script>
+        </div>
+    </div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+    <div th:replace="~{site/layout :: scripts}"></div>
+</div>
+</body>
+</html>

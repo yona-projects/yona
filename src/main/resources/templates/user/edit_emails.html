@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head th:replace="~{site/layout :: head(#{userinfo.accountSetting})}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div class="site-breadcrumb-outer">
+      <div class="site-breadcrumb-inner">
+        <h3 th:text="#{userinfo.accountSetting}">사용자 설정</h3>
+      </div>
+    </div>
+    <div class="page-wrap-outer">
+      <div class="page-wrap">
+        <div th:replace="~{user/partial_edit_tabmenu :: tabmenu('emails')}"></div>
+
+        <form th:action="@{/user/email}" method="post" class="form-inline inner-bubble">
+          <input type="text" th:placeholder="#{user.email.new}" name="email" class="text uname">
+          <button type="submit" class="ybtn ybtn-success" th:text="#{button.add}">추가</button>
+        </form>
+
+        <hr>
+
+        <p>
+          <span th:text="#{emails.main.email.descr}">주 이메일 주소는 알림 메시지 수신 및 일부 계정 관련 서비스의 아이디 용도로 사용됩니다.</span><br>
+          <span th:text="#{emails.sub.email.descr}">보조 이메일 주소는 사용자가 작성한 커밋의 이메일 주소와 매칭하여 커밋 이력을 사용자 계정에 연결하는 용도로 사용됩니다.</span>
+        </p>
+
+        <table class="table mt20">
+          <tr>
+            <td>
+              <img th:src="${user.avatarUrl(80)}" width="40" height="40">
+              <strong class="ml10" th:text="${user.email}">user@domain.com</strong>
+              <span class="label-head vmiddle ml10" th:text="#{emails.main.email}">주 이메일</span>
+            </td>
+            <td style="text-align:right;">
+            </td>
+          </tr>
+
+          <tr th:each="mail : ${emails}">
+            <td>
+              <img src="/images/default-avatar-34.png" width="40" height="40">
+              <span class="ml10" th:text="${mail.email}">sub@domain.com</span>
+            </td>
+            <td style="text-align:right; vertical-align: middle;">
+              <button type="button" data-request-method="delete" th:data-request-uri="@{/user/email/delete/{id}(id=${mail.id})}" class="ybtn ybtn-small ybtn-danger" th:text="#{button.delete}">
+                삭제
+              </button>
+              <button th:if="${mail.valid}" type="button" data-request-method="put" th:href="@{/user/email/setAsMain/{id}(id=${mail.id})}" class="ybtn ybtn-small" style="width:150px;" th:text="#{emails.set.as.main}">
+                주 이메일로 지정
+              </button>
+              <button th:if="${!mail.valid}" type="button" data-request-method="post" th:href="@{/user/email/sendValidationEmail/{id}(id=${mail.id})}" class="ybtn ybtn-small" style="width:150px;">
+                <i class="yobicon-error2 orange-txt mr5" style="vertical-align: bottom;"></i><span th:text="#{emails.send.validatino.mail}">인증메일 재발송</span>
+              </button>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+    <footer th:replace="~{site/layout :: footer}"></footer>
+    <div th:replace="~{site/layout :: scripts}"></div>
+</div>
+<script type="text/javascript">
+    $(function(){
+        $yobi.loadModule("user.Setting");
+    });
+</script>
+</body>
+</html>

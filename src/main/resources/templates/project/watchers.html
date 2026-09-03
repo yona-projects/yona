@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(${project.name} + ' - ' + #{project.watcher.title})}">
+</head>
+<body class="prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div th:replace="~{project/header :: header(${project})}"></div>
+    <div th:replace="~{project/menu :: menu(${project}, '')}"></div>
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
+            <h4><strong th:text="#{project.watcher.title}">이 프로젝트를 지켜보는 사람</strong></h4>
+            <p th:text="#{project.watcher.description}">지켜보기 한 멤버 목록입니다</p>
+            <ul class="members project row-fluid">
+                <li th:each="watcher : ${watchers}" th:if="${watcher != null}" class="member span6 span-hard-wrap">
+                    <a th:href="@{/user/{loginId}(loginId=${watcher.loginId})}" class="avatar-wrap mlarge pull-left mr10">
+                        <img th:src="${watcher.avatarUrl != null ? watcher.avatarUrl : '/images/default-avatar-64.png'}" width="64" height="64" alt="avatar">
+                    </a>
+                    <div class="member-name" th:text="${watcher.name}">홍길동</div>
+                    <div class="member-id" th:text="'@' + ${watcher.loginId}">@loginId</div>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+</body>
+</html>

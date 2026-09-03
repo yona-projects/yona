@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<!--
+ legacy partial_filediff.scala.html 대응 (그룹11 #191). 파일 하나의 diff 렌더러 — ADD/DELETE/
+ MODIFY/RENAME/COPY changeType별로, 바이너리/에러(크기초과)/파일모드변경 케이스까지 legacy와
+ 동일하게 분기한다. FileDiff 도메인 모델(SIZE_LIMIT/LINE_LIMIT/Error enum/isFileModeChanged)이
+ 이미 legacy와 동일하게 이식되어 있어(그룹11 조사 중 확인) 모든 분기를 그대로 옮길 수 있었다.
+-->
+<div th:fragment="filediff(diff, threads, project, projectA, projectB)"
+     th:id="${(diff.pathB != null ? diff.pathB : diff.pathA).replace('/','-').replace('.','-')}"
+     class="diff-partial-outer">
+  <div class="diff-partial-inner">
+    <div class="diff-partial-meta">
+      <div class="diff-partial-commit">
+        <div class="diff-partial-commit-id">
+          <a th:if="${diff.commitA != null and diff.pathA != null}" th:href="@{/{owner}/{projectName}/commit/{commitId}(owner=${projectA.owner}, projectName=${projectA.name}, commitId=${diff.commitA})}" th:title="${diff.commitA}" target="_blank" th:text="${#strings.length(diff.commitA) < 7 ? diff.commitA : #strings.substring(diff.commitA, 0, 7)}">abc1234</a>
+          <th:block th:unless="${diff.commitA != null and diff.pathA != null}">&nbsp;</th:block>
+        </div>
+        <div class="diff-partial-commit-id">
+          <a th:if="${diff.commitB != null and diff.pathB != null}" th:href="@{/{owner}/{projectName}/commit/{commitId}(owner=${projectB.owner}, projectName=${projectB.name}, commitId=${diff.commitB})}" th:title="${diff.commitB}" target="_blank" th:text="${#strings.length(diff.commitB) < 7 ? diff.commitB : #strings.substring(diff.commitB, 0, 7)}">abc1234</a>
+          <th:block th:unless="${diff.commitB != null and diff.pathB != null}">&nbsp;</th:block>
+        </div>
+      </div>
+      <div class="diff-partial-file">
+        <span class="filename" th:text="${
+            diff.changeType.name() == 'ADD' ? #messages.msg('code.addedPath', diff.pathB + (diff.isBinaryB ? ' (Binary)' : '')) :
+            diff.changeType.name() == 'DELETE' ? #messages.msg('code.deletedPath', diff.pathA + (diff.isBinaryA ? ' (Binary)' : '')) :
+            diff.changeType.name() == 'RENAME' ? #messages.msg('code.renamedPath', diff.pathA + (diff.isBinaryA ? ' (Binary)' : ''), diff.pathB + (diff.isBinaryB ? ' (Binary)' : '')) :
+            diff.changeType.name() == 'COPY' ? #messages.msg('code.copiedPath', diff.pathA + (diff.isBinaryA ? ' (Binary)' : ''), diff.pathB + (diff.isBinaryB ? ' (Binary)' : '')) :
+            diff.pathB + (diff.isBinaryB ? ' (Binary)' : '')
+          }">파일명</span>
+      </div>
+    </div>
+    <div class="diff-partial-code" th:data-hashcode="${diff.hashCode()}">
+      <div class="patch-header">
+        <div class="path" th:if="${diff.pathA != null and !#strings.isEmpty(diff.pathA)}" th:text="'--- ' + ${diff.pathA}"></div>
+        <div class="path" th:if="${diff.pathB != null and !#strings.isEmpty(diff.pathB)}" th:text="'+++ ' + ${diff.pathB}"></div>
+      </div>
+      <table class="diff-container show-comments"
+             th:data-path-a="${diff.pathA}" th:data-path-b="${diff.pathB}"
+             th:data-commit-a="${diff.commitA}" th:data-commit-b="${diff.commitB}"
+             th:data-file-path="${diff.pathB != null and !#strings.isEmpty(diff.pathB) ? diff.pathB : diff.pathA}">
+        <tbody>
+          <!-- 파일 모드 변경 -->
+          <tr th:if="${diff.isFileModeChanged()}">
+            <td class="linenum"><div class="line-number" th:data-line-num="${diff.oldMode}"></div><span class="hidden" th:text="${diff.oldMode}"></span></td>
+            <td class="linenum"><div class="line-number" th:data-line-num="${diff.newMode}"></div><span class="hidden" th:text="${diff.newMode}"></span></td>
+            <td class="isBinary" th:text="#{code.fileModeChanged}">파일 모드 변경됨</td>
+          </tr>
+
+          <!-- ADD -->
+          <th:block th:if="${diff.changeType.name() == 'ADD'}">
+            <tr th:if="${diff.isBinaryB}"><td class="linenum"><div class="line-number"></div></td><td class="linenum"><div class="line-number"></div></td><td class="isBinary" th:text="#{code.isBinary}">이진 파일</td></tr>
+            <th:block th:unless="${diff.isBinaryB}">
+              <tr th:if="${diff.hasError(T(com.github.yonaprojects.yona.domain.vcs.FileDiff.Error).OTHERS_SIZE_EXCEEDED)}"><td colspan="3" th:text="#{code.skipDiff}"></td></tr>
+              <tr th:if="${diff.hasError(T(com.github.yonaprojects.yona.domain.vcs.FileDiff.Error).B_SIZE_EXCEEDED)}"><td colspan="3" th:text="#{code.tooBigFile}"></td></tr>
+              <tr th:if="${diff.hasError() and !diff.hasError(T(com.github.yonaprojects.yona.domain.vcs.FileDiff.Error).OTHERS_SIZE_EXCEEDED) and !diff.hasError(T(com.github.yonaprojects.yona.domain.vcs.FileDiff.Error).B_SIZE_EXCEEDED)}"><td colspan="3" th:text="#{code.unknownError}"></td></tr>
+              <th:block th:unless="${diff.hasError()}">
+                <tr class="range"><td class="linenum"><div class="line-number"></div></td><td class="linenum"><div class="line-number"></div></td><td class="hunk" th:text="'@@ -0,0 +1,' + ${diff.b.size()} + ' @@'"></td></tr>
+                <th:block th:each="i : ${#numbers.sequence(0, diff.b.size() - 1)}">
+                  <tr th:replace="~{pullrequest/partial_diff_line :: diffLine('add', '+', ${i+1}, null, ${i+1}, ${diff.b.getString(i)})}"></tr>
+                  <div th:replace="~{pullrequest/partial_diff_comment_on_line :: commentsOnLine(${threads}, ${diff}, ${project}, null, ${i}, 'B')}"></div>
+                </th:block>
+              </th:block>
+            </th:block>
+          </th:block>
+
+          <!-- DELETE -->
+          <th:block th:if="${diff.changeType.name() == 'DELETE'}">
+            <tr th:if="${diff.isBinaryA}"><td class="linenum"><div class="line-number"></div></td><td class="linenum"><div class="line-number"></div></td><td class="isBinary" th:text="#{code.isBinary}">이진 파일</td></tr>
+            <th:block th:unless="${diff.isBinaryA}">
+              <tr th:if="${diff.hasError(T(com.github.yonaprojects.yona.domain.vcs.FileDiff.Error).OTHERS_SIZE_EXCEEDED)}"><td colspan="3" th:text="#{code.skipDiff}"></td></tr>
+              <tr th:if="${diff.hasError(T(com.github.yonaprojects.yona.domain.vcs.FileDiff.Error).A_SIZE_EXCEEDED)}"><td colspan="3" th:text="#{code.tooBigFile}"></td></tr>
+              <tr th:if="${diff.hasError() and !diff.hasError(T(com.github.yonaprojects.yona.domain.vcs.FileDiff.Error).OTHERS_SIZE_EXCEEDED) and !diff.hasError(T(com.github.yonaprojects.yona.domain.vcs.FileDiff.Error).A_SIZE_EXCEEDED)}"><td colspan="3" th:text="#{code.unknownError}"></td></tr>
+              <th:block th:unless="${diff.hasError()}">
+                <tr class="range"><td class="linenum"><div class="line-number"></div></td><td class="linenum"><div class="line-number"></div></td><td class="hunk" th:text="'@@ -1,' + ${diff.a.size()} + ' +0,0 @@'"></td></tr>
+                <th:block th:each="i : ${#numbers.sequence(0, diff.a.size() - 1)}">
+                  <tr th:replace="~{pullrequest/partial_diff_line :: diffLine('remove', '-', ${i+1}, ${i+1}, null, ${diff.a.getString(i)})}"></tr>
+                  <div th:replace="~{pullrequest/partial_diff_comment_on_line :: commentsOnLine(${threads}, ${diff}, ${project}, null, ${i}, 'A')}"></div>
+                </th:block>
+              </th:block>
+            </th:block>
+          </th:block>
+
+          <!-- MODIFY / RENAME / COPY -->
+          <th:block th:if="${diff.changeType.name() == 'MODIFY' or diff.changeType.name() == 'RENAME' or diff.changeType.name() == 'COPY'}">
+            <tr th:if="${diff.isBinaryA or diff.isBinaryB}"><td colspan="3" class="isBinary" th:text="#{code.isBinary}">이진 파일</td></tr>
+            <th:block th:unless="${diff.isBinaryA or diff.isBinaryB}">
+              <tr th:if="${diff.hasError(T(com.github.yonaprojects.yona.domain.vcs.FileDiff.Error).OTHERS_SIZE_EXCEEDED)}"><td colspan="3" th:text="#{code.skipDiff}"></td></tr>
+              <tr th:if="${diff.hasAnyError(T(com.github.yonaprojects.yona.domain.vcs.FileDiff.Error).A_SIZE_EXCEEDED, T(com.github.yonaprojects.yona.domain.vcs.FileDiff.Error).B_SIZE_EXCEEDED)}"><td colspan="3" th:text="#{code.tooBigFile}"></td></tr>
+              <tr th:if="${diff.hasError(T(com.github.yonaprojects.yona.domain.vcs.FileDiff.Error).DIFF_SIZE_EXCEEDED)}"><td colspan="3" th:text="#{code.tooBigDiff}"></td></tr>
+              <tr th:if="${diff.hasError() and !diff.hasError(T(com.github.yonaprojects.yona.domain.vcs.FileDiff.Error).OTHERS_SIZE_EXCEEDED) and !diff.hasAnyError(T(com.github.yonaprojects.yona.domain.vcs.FileDiff.Error).A_SIZE_EXCEEDED, T(com.github.yonaprojects.yona.domain.vcs.FileDiff.Error).B_SIZE_EXCEEDED) and !diff.hasError(T(com.github.yonaprojects.yona.domain.vcs.FileDiff.Error).DIFF_SIZE_EXCEEDED)}"><td colspan="3" th:text="#{code.unknownError}"></td></tr>
+
+              <th:block th:unless="${diff.hasError()}">
+                <tr th:if="${diff.getHunks() == null or diff.getHunks().isEmpty()}"><td colspan="3" th:text="#{code.noChanges}"></td></tr>
+                <th:block th:if="${diff.getHunks() != null}" th:each="hunk : ${diff.getHunks()}">
+                  <tr class="range">
+                    <td class="linenum"><div class="line-number"></div></td>
+                    <td class="linenum"><div class="line-number"></div></td>
+                    <td class="hunk" th:text="'@@ -' + ${hunk.beginA + 1} + ',' + ${hunk.endA - hunk.beginA} + ' +' + ${hunk.beginB + 1} + ',' + ${hunk.endB - hunk.beginB} + ' @@'"></td>
+                  </tr>
+                  <th:block th:each="line : ${hunk.lines}"
+                            th:with="klass=${line.kind.name() == 'ADD' ? 'add' : (line.kind.name() == 'REMOVE' ? 'remove' : '')},
+                                     prefix=${line.kind.name() == 'ADD' ? '+' : (line.kind.name() == 'REMOVE' ? '-' : ' ')},
+                                     side=${line.kind.name() == 'REMOVE' ? 'A' : 'B'},
+                                     lineVal=${line.kind.name() == 'REMOVE' ? line.numA : line.numB}">
+                    <tr th:replace="~{pullrequest/partial_diff_line :: diffLine(${klass}, ${prefix}, ${(line.numA != null ? line.numA : line.numB) + 1}, ${line.numA != null ? line.numA + 1 : null}, ${line.numB != null ? line.numB + 1 : null}, ${line.content})}"></tr>
+                    <div th:replace="~{pullrequest/partial_diff_comment_on_line :: commentsOnLine(${threads}, ${diff}, ${project}, null, ${lineVal}, ${side})}"></div>
+                  </th:block>
+                </th:block>
+              </th:block>
+            </th:block>
+          </th:block>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</body>
+</html>

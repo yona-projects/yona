@@ -1,0 +1,132 @@
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="massupdate(project)">
+    <th:block th:with="projectLabels=${@templateHelper.getProjectLabels(project)}">
+        <div class="mass-update-wrap hide-in-mobile" style="background: #fafbfc; border: 1px solid #d8dee2; padding: 10px; border-radius: 3px; margin-bottom: 15px;">
+            <form id="mass-update-form" class="mass-update-form pull-left" th:action="@{/{owner}/{projectName}/issues/massupdate(owner=${project.owner}, projectName=${project.name})}" method="post" style="margin: 0;">
+                <div class="btn-group check-all" style="display: inline-block; vertical-align: middle; margin-right: 10px;">
+                    <label for="check-all" style="margin-bottom: 0; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                        <input type="checkbox" id="check-all" data-target="checked-issue" style="margin: 0;"/>
+                        <span th:text="#{button.selectAll}" style="font-size: 12px; font-weight: bold; color: #586069;">전체 선택</span>
+                    </label>
+                </div>
+                
+                <!-- 상태 변경 드롭다운 -->
+                <div id="state" class="btn-group" data-name="state" style="display: inline-block; margin-right: 5px;">
+                    <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
+                        <span class="d-label" th:text="#{issue.update.state}">상태 선택</span>
+                        <span class="d-caret"><span class="caret"></span></span>
+                    </button>
+                    <ul class="dropdown-menu mass-update-list">
+                        <li data-value="OPEN"><a href="javascript:void(0);" th:text="#{issue.state.open}">열림</a></li>
+                        <li data-value="CLOSED"><a href="javascript:void(0);" th:text="#{issue.state.closed}">닫힘</a></li>
+                    </ul>
+                </div>
+
+                <!-- 담당자 변경 드롭다운 -->
+                <div id="assignee" class="btn-group" data-name="assignee.id" style="display: inline-block; margin-right: 5px;">
+                    <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
+                        <span class="d-label" th:text="#{issue.update.assignee.id}">담당자 지정</span>
+                        <span class="d-caret"><span class="caret"></span></span>
+                    </button>
+                    <ul class="dropdown-menu mass-update-list">
+                        <li data-value="-1"><a href="javascript:void(0);" th:text="#{issue.noAssignee}">담당자 없음</a></li>
+                        <li class="divider"></li>
+                        <th:block th:with="currentUserObj=${#authentication != null and #authentication.name != 'anonymousUser' ? @userRepository.findByLoginId(#authentication.name).orElse(null) : null}">
+                            <li th:if="${currentUserObj != null}" th:data-value="${currentUserObj.id}">
+                                <a href="javascript:void(0);" th:text="#{issue.assignToMe}">나에게 지정</a>
+                            </li>
+                        </th:block>
+                        <li class="divider"></li>
+                        <li th:each="user : ${@templateHelper.getAssignableUsers(project)}" th:data-value="${user.id}">
+                            <a href="javascript:void(0);" class="usf-group" style="display: flex; align-items: center; gap: 6px;">
+                                <span class="avatar-wrap smaller">
+                                    <img th:src="${user.avatarUrl}" width="20" height="20">
+                                </span>
+                                <strong class="name" th:text="${user.name}">이름</strong>
+                                <span class="loginid"> <strong>@</strong><span th:text="${user.loginId}">loginId</span></span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 마일스톤 변경 드롭다운 -->
+                <th:block th:with="openMilestones=${@templateHelper.getOpenMilestones(project)}">
+                    <div id="milestone" class="btn-group" data-name="milestone.id" th:if="${!openMilestones.isEmpty()}" style="display: inline-block; margin-right: 5px;">
+                        <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
+                            <span class="d-label" th:text="#{issue.update.milestone.id}">마일스톤 지정</span>
+                            <span class="d-caret"><span class="caret"></span></span>
+                        </button>
+                        <ul class="dropdown-menu mass-update-list">
+                            <li data-value="-1"><a href="javascript:void(0);" th:text="#{issue.noMilestone}">마일스톤 없음</a></li>
+                            <li class="divider"></li>
+                            <li th:each="milestone : ${openMilestones}" th:data-value="${milestone.id}">
+                                <a href="javascript:void(0);" th:text="${milestone.title}">마일스톤 제목</a>
+                            </li>
+                        </ul>
+                    </div>
+                </th:block>
+
+                <!-- 라벨 부착 드롭다운 -->
+                <div id="attaching-label" class="btn-group" data-name="attachingLabelIds" th:if="${projectLabels != null and !projectLabels.isEmpty()}" style="display: inline-block; margin-right: 5px;">
+                    <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
+                        <span class="d-label" th:text="#{issue.update.attachLabel}">라벨 붙이기</span>
+                        <span class="d-caret"><span class="caret"></span></span>
+                    </button>
+                    <ul id="attach-label-list" class="dropdown-menu mass-update-list">
+                        <th:block th:with="categories=${@templateHelper.getLabelCategories(project)}">
+                            <th:block th:each="category : ${categories}">
+                                <li class="disabled" th:data-category="${category.id}"><span th:text="${category.name}">카테고리명</span></li>
+                                <li th:each="label : ${@templateHelper.getLabelsByCategory(category)}" th:data-value="${label.id}" th:data-category="${category.id}">
+                                    <a href="javascript:void(0);">
+                                        <span class="issue-label active list-label" th:data-label-id="${label.id}" th:style="'background:' + ${label.color} + '; color: #fff; padding: 1px 4px; border-radius: 2px;'" th:text="${label.name}">라벨명</span>
+                                    </a>
+                                </li>
+                                <li class="divider" th:data-category="${category.id}"></li>
+                            </th:block>
+                        </th:block>
+                    </ul>
+                </div>
+
+                <!-- 라벨 해제 드롭다운 -->
+                <div id="detaching-label" class="btn-group" data-name="detachingLabelIds" th:if="${projectLabels != null and !projectLabels.isEmpty()}" style="display: inline-block;">
+                    <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
+                        <span class="d-label" th:text="#{issue.update.detachLabel}">라벨 떼기</span>
+                        <span class="d-caret"><span class="caret"></span></span>
+                    </button>
+                    <ul id="delete-label-list" class="dropdown-menu mass-update-list">
+                        <th:block th:with="categories=${@templateHelper.getLabelCategories(project)}">
+                            <th:block th:each="category : ${categories}">
+                                <li class="disabled" th:data-category="${category.id}"><span th:text="${category.name}">카테고리명</span></li>
+                                <li th:each="label : ${@templateHelper.getLabelsByCategory(category)}" th:data-value="${label.id}" th:data-category="${category.id}">
+                                    <a href="javascript:void(0);">
+                                        <span class="issue-label active list-label" th:data-label-id="${label.id}" th:style="'background:' + ${label.color} + '; color: #fff; padding: 1px 4px; border-radius: 2px;'" th:text="${label.name}">라벨명</span>
+                                    </a>
+                                </li>
+                                <li class="divider" th:data-category="${category.id}"></li>
+                            </th:block>
+                        </th:block>
+                    </ul>
+                </div>
+            </form>
+            <div class="clearfix"></div>
+        </div>
+    </th:block>
+
+    <script type="text/javascript" th:inline="javascript">
+        $(document).ready(function(){
+            var projectOwner = [[${project.owner}]];
+            var projectName = [[${project.name}]];
+            $yobi.loadModule("issue.MassUpdate", {
+                "sURL": "/" + projectOwner + "/" + projectName + "/issues/massupdate",
+                "welMassUpdateForm": $('#mass-update-form'),
+                "welMassUpdateButtons": $('#mass-update-form button'),
+                "welState": $("#state"),
+                "welMilestone": $("#milestone"),
+                "welAssignee": $("#assignee"),
+                "welAttachingLabel": $("#attaching-label"),
+                "welDetachingLabel": $("#detaching-label"),
+                "welDeleteButton": $("#delete"),
+                "sIssueCheckBoxesSelector": "[type=checkbox][name=checked-issue]",
+            });
+        });
+    </script>
+</th:block>

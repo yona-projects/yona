@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- yona issue/partial_view_childIssueList.scala.html 대응 (그룹7 #135). 이슈 상세화면 좌측
+     "하위이슈" 영역 — 진짜 부모이슈(자신이 하위이슈면 issue.parent, 아니면 자기 자신) 헤더 +
+     진행률 바 + 초안/오픈/클로즈 하위이슈 목록. -->
+<div th:fragment="childIssueList(issue, project, currentUser)"
+     th:with="trueParentIssue=${issue.parent != null ? issue.parent : issue},
+              parentIssueId=${trueParentIssue.id},
+              openState=${T(com.github.yonaprojects.yona.domain.enumeration.State).OPEN},
+              closedState=${T(com.github.yonaprojects.yona.domain.enumeration.State).CLOSED},
+              draftState=${T(com.github.yonaprojects.yona.domain.enumeration.State).DRAFT},
+              openChildIssues=${templateHelper.findByParentIdAndState(parentIssueId, openState)},
+              closedChildIssues=${templateHelper.findByParentIdAndState(parentIssueId, closedState)},
+              draftChildIssues=${templateHelper.findByParentIdAndState(parentIssueId, draftState)},
+              hasVisibleChildren=${!openChildIssues.isEmpty() || !closedChildIssues.isEmpty() || (!draftChildIssues.isEmpty() && issue.isDraft && currentUser != null && issue.authorLoginId == currentUser.loginId)}">
+    <div class="child-issues" th:if="${hasVisibleChildren}">
+        <div th:with="closedCount=${closedChildIssues.size()}, openCount=${openChildIssues.size()}, percentStr=${templateHelper.getPercentFormatted(closedCount, openCount)}">
+            <div class="issue-item parent-issue">
+                <a th:href="@{/{owner}/{projectName}/issue/{number}(owner=${trueParentIssue.project.owner}, projectName=${trueParentIssue.project.name}, number=${trueParentIssue.number})}"
+                   th:classappend="${trueParentIssue.id == issue.id} ? 'bold' : ''">
+                    #<span th:text="${trueParentIssue.number}">1</span> <span th:text="${trueParentIssue.title}">부모 이슈 제목</span>
+                    <span th:if="${trueParentIssue.assignee != null}" th:text="'- ' + ${trueParentIssue.assignee.user.getPureNameOnly()}">- 담당자</span>
+                </a>
+                <div class="upload-progress" th:classappend="${percentStr == '100'} ? 'done-outline' : 'red-outline'">
+                    <div class="bar" th:classappend="${percentStr == '100'} ? 'done' : 'red'" th:style="'width: ' + ${percentStr} + '%;'" title="Subtask"></div>
+                </div>
+                <span th:classappend="${percentStr == '100'} ? 'txt-green' : ''">
+                    <th:block th:unless="${percentStr == '100'}"><span th:text="${closedCount}">0</span>/</th:block><span th:text="${closedCount + openCount}">0</span>
+                </span>
+                <span class="parent-issue-state" th:classappend="${trueParentIssue.state.state()}" th:text="#{'issue.state.' + ${trueParentIssue.state.state()}}">상태</span>
+            </div>
+        </div>
+        <hr class="parent-issue-delimeter"/>
+        <div class="child-issues">
+            <th:block th:each="childIssue : ${draftChildIssues}">
+                <div th:replace="~{issue/partial_view_child :: child('draft', ${childIssue}, ${issue}, ${project}, ${currentUser})}"></div>
+            </th:block>
+            <th:block th:each="childIssue : ${openChildIssues}">
+                <div th:replace="~{issue/partial_view_child :: child('open', ${childIssue}, ${issue}, ${project}, ${currentUser})}"></div>
+            </th:block>
+            <th:block th:each="childIssue : ${closedChildIssues}">
+                <div th:replace="~{issue/partial_view_child :: child('closed', ${childIssue}, ${issue}, ${project}, ${currentUser})}"></div>
+            </th:block>
+        </div>
+    </div>
+</div>
+</body>
+</html>

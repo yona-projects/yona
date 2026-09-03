@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="menu(org, activeMenu)" class="project-menu-outer">
+    <div class="project-menu-inner">
+        <ul class="project-menu-nav project-menu-gruop">
+            <li th:class="${activeMenu == 'home' ? 'active' : ''}">
+                <a th:href="@{/organizations/{orgName}(orgName=${org.name})}" th:text="#{title.organizationHome}">Organization home</a>
+            </li>
+            <li th:class="${activeMenu == 'issue' ? 'active' : ''}">
+                <a th:href="@{/org/{orgName}/issues(orgName=${org.name})}" th:text="#{menu.issue}">Issue</a>
+            </li>
+            <li th:class="${activeMenu == 'board' ? 'active' : ''}">
+                <a th:href="@{/org/{orgName}/boards(orgName=${org.name})}" th:text="#{menu.board}">Board</a>
+            </li>
+            <li th:class="${activeMenu == 'pullRequest' ? 'active' : ''}">
+                <a th:href="@{/org/{orgName}/pullrequests(orgName=${org.name})}" th:text="#{menu.pullRequest}">Pull request</a>
+            </li>
+        </ul>
+        <div class="project-setting" th:if="${@templateHelper.isOrganizationAdmin(org, currentUser) or (currentUser != null and currentUser.isSiteManager)}">
+            <ul class="project-menu-nav">
+                <li>
+                    <a th:href="@{/organizations/{orgName}/settingform(orgName=${org.name})}">
+                        <i class="yobicon-cog"></i>
+                        <span class="blind" th:text="#{menu.admin}">Organization configuration</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+</body>
+</html>

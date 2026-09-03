@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--
+  SiteAdminTemplateEquivalenceSpec 전용 테스트 픽스처. site/partial_pagination.html의 파라미터화된
+  프래그먼트(pagination(page, pageNumWindow, divId, listUrl))는 th:replace의 ~{...} 프래그먼트 표현식을
+  통해서만 인자 바인딩이 이뤄지므로(SpringTemplateEngine.process(String, IContext)에 "template :: fragment(args)"
+  형태의 문자열을 직접 넘기는 것은 지원되는 API가 아니다), 실제 프래그먼트 호출부와 동일한 형태의 얇은 래퍼로
+  감싸 테스트한다. 프로덕션 코드에서는 사용하지 않는다.
+-->
+<body>
+<div th:replace="~{site/partial_pagination :: pagination(${p}, ${window}, ${divId}, ${listUrl})}"></div>
+</body>
+</html>

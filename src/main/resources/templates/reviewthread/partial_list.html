@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- legacy reviewthread/partial_list.scala.html 1:1 이식 (P2-46 계열, 그룹11).
+     list.html의 review-list-wrap 안에서 th:insert로 삽입되는 조각. -->
+<th:block th:fragment="list(project, commentThreads, searchCondition)">
+    <ul class="post-list-wrap" th:if="${commentThreads.content.size() > 0}">
+        <li class="post-item" th:each="thread : ${commentThreads.content}"
+            th:with="threadUrlPr=(@{/{owner}/{name}/pull/{number}/changes(owner=${project.owner},name=${project.name},number=${thread.pullRequest != null ? thread.pullRequest.number : 0})} + '#thread-' + ${thread.id}),
+                     threadUrlCommit=(@{/{owner}/{name}/commit/{commitId}(owner=${project.owner},name=${project.name},commitId=${thread.commitId})} + '#thread-' + ${thread.id}),
+                     threadUrl=${thread.pullRequest != null} ? ${threadUrlPr} : ${threadUrlCommit}">
+            <!-- legacy는 User.find.byId(thread.getFirstReviewComment.author.id)로 아바타/이메일이 포함된
+                 전체 User 레코드를 재조회해 avatarUrl/DEFAULT_AVATAR_URL 비교 및 gravatar(urlToPicture)
+                 폴백까지 재현한다. yona CommentThread.author/ReviewComment.author는 UserIdent(임베디드:
+                 id/loginId/name)뿐이라 avatarUrl·email이 없다 — ReviewThreadController가 스레드별 작성자를
+                 User로 재조회해 모델에 얹어주지 않는 한(범위 밖, 컨트롤러 미변경) 실제 아바타 이미지를
+                 재현할 수 없어 기본 아바타로 대체한다(문서화된 갭). -->
+            <a th:if="${thread.author != null}" th:href="@{/{loginId}(loginId=${thread.author.loginId})}" class="avatar-wrap mlarge hide-in-mobile" data-toggle="tooltip" data-placement="top" th:title="${thread.author.loginId}">
+                <img th:src="@{/images/default-avatar-128.png}" width="32" height="32" alt="avatar"/>
+            </a>
+            <div class="title-wrap">
+                <span class="post-id" th:text="${thread.id}">1</span>
+                <a th:href="${threadUrl}" class="title" th:text="${thread.getFirstReviewComment().contents}">리뷰 내용</a>
+            </div>
+            <div class="infos">
+                <a th:if="${thread.author != null and thread.author.name != null and !#strings.isEmpty(thread.author.name)}"
+                   th:href="@{/{loginId}(loginId=${thread.author.loginId})}" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="top" th:title="${thread.author.loginId}" th:text="${thread.author.name}">작성자</a>
+                <span th:unless="${thread.author != null and thread.author.name != null and !#strings.isEmpty(thread.author.name)}" class="infos-item" th:text="#{issue.noAuthor}">작성자 없음</span>
+                <span class="infos-item" th:title="${@templateHelper.getDateString(thread.createdDate)}" th:text="${@templateHelper.agoOrDateString(thread.createdDate)}">방금 전</span>
+                <span th:if="${thread.reviewComments.size() - 1 > 0}" class="infos-item item-count-groups">
+                    <a th:href="${threadUrl}" class="comments-count comments-count-color">
+                        <span class="count-groups item-icon"><i class="yobicon-comment2"></i></span>
+                        <span class="count-groups item-count" th:text="${thread.reviewComments.size() - 1}">0</span>
+                    </a>
+                </span>
+            </div>
+        </li>
+    </ul>
+    <div class="error-wrap" th:unless="${commentThreads.content.size() > 0}">
+        <i class="ico ico-err1"></i>
+        <p th:text="#{review.is.empty}">등록된 리뷰가 없습니다.</p>
+    </div>
+</th:block>
+</body>
+</html>

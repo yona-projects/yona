@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(${org.name})}">
+</head>
+<body class="prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div th:replace="~{organization/header :: header(${org})}"></div>
+    <div th:replace="~{organization/menu :: menu(${org}, 'issue')}"></div>
+
+    <div class="page-wrap-outer">
+        <div class="page-wrap">
+            <div th:replace="~{organization/issueSearch_partial :: issueSearch}"></div>
+        </div>
+    </div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+    <div th:replace="~{site/layout :: scripts}"></div>
+</div>
+<script type="text/javascript" src="/javascripts/lib/jquery.pageslide.js"></script>
+<script type="text/javascript" src="/javascripts/service/yona.twoColumnMode.js"></script>
+<th:block th:replace="~{common/select2 :: select2}"></th:block>
+<script type="text/javascript" th:inline="javascript">
+    $(function(){
+        $yobi.loadModule("issue.List");
+
+        $("#projects").on("change", function(){
+            $("#search").submit();
+        });
+    });
+</script>
+</body>
+</html>

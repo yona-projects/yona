@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<ul th:fragment="issueList(issues)" class="post-list-wrap">
+    <li th:each="issue : ${issues}" class="post-item title" th:id="'issue-item-' + ${issue.id}" th:href="@{/{owner}/{name}/issue/{number}(owner=${issue.project.owner}, name=${issue.project.name}, number=${issue.number})}">
+        <div class="span10 span-hard-wrap">
+            <a th:href="@{/user/{loginId}(loginId=${issue.authorLoginId})}" class="avatar-wrap mlarge hide-in-mobile" data-toggle="tooltip" data-placement="top" th:title="${issue.authorLoginId}">
+                <img src="/images/default-avatar-128.png" width="32" height="32"/>
+            </a>
+            <div class="title-wrap">
+                <a th:href="@{/{owner}/{name}/issue/{number}(owner=${issue.project.owner}, name=${issue.project.name}, number=${issue.number})}" class="title" th:text="${issue.title}">issue title</a>
+            </div>
+            <div class="infos">
+                <a th:if="${issue.authorName != null and !issue.authorName.isEmpty()}" th:href="@{/user/{loginId}(loginId=${issue.authorLoginId})}" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="top" th:title="${issue.authorLoginId}" th:text="${issue.authorName}">author</a>
+                <span th:unless="${issue.authorName != null and !issue.authorName.isEmpty()}" class="infos-item" th:text="#{issue.noAuthor}">no author</span>
+
+                <span class="infos-item" th:title="${@templateHelper.getDateString(issue.createdDate)}" th:text="${@templateHelper.agoOrDateString(issue.createdDate)}">date</span>
+
+                <span th:if="${issue.milestone != null and issue.project.isMilestoneEnabled}" class="infos-item mileston-tag">
+                    <a th:href="@{/{owner}/{name}/milestone/{id}(owner=${issue.project.owner}, name=${issue.project.name}, id=${issue.milestone.id})}" data-toggle="tooltip" data-placement="top" th:title="#{milestone}" th:text="${issue.milestone.title}">milestone</a>
+                </span>
+
+                <span th:if="${issue.numOfComments > 0 or issue.voters.size() > 0}" class="infos-item item-count-groups">
+                    <a th:if="${issue.numOfComments > 0}" th:href="@{/{owner}/{name}/issue/{number}#comments(owner=${issue.project.owner}, name=${issue.project.name}, number=${issue.number})}" class="infos-item-link">
+                        <span class="count-groups item-icon"><i class="yobicon-comments"></i></span>
+                        <span class="count-groups item-count" th:text="${issue.numOfComments}">0</span>
+                    </a>
+                    <a th:if="${issue.voters.size() > 0}" th:href="@{/{owner}/{name}/issue/{number}#vote(owner=${issue.project.owner}, name=${issue.project.name}, number=${issue.number})}" class="infos-item-link">
+                        <span class="count-groups item-icon"><i class="yobicon-hearts"></i></span>
+                        <span class="count-groups item-count strong" th:text="${issue.voters.size()}">0</span>
+                    </a>
+                </span>
+
+                <a th:href="@{/{owner}/{name}(owner=${issue.project.owner}, name=${issue.project.name})}" class="infos-link-item group-project-name" th:text="${issue.project.name}">project</a>
+                <span class="post-id margin-right-5" th:text="'#' + ${issue.number}">#1</span>
+
+                <a th:each="label : ${issue.labels}" href="#" class="label issue-label list-label" th:data-label-id="${label.id}" th:style="'background:' + ${label.color}" th:text="${label.name}">label</a>
+            </div>
+        </div>
+        <div class="span2 hide-in-mobile">
+            <div class="mt5 pull-right">
+                <a th:if="${issue.assignee != null}" th:href="@{/user/{loginId}(loginId=${issue.assignee.user.loginId})}" class="avatar-wrap assinee" data-toggle="tooltip" data-placement="top" th:title="#{issue.assignee} + ': ' + ${issue.assignee.user.name}">
+                    <img th:src="${issue.assignee.user.avatarUrl}" width="32" height="32" th:alt="${issue.assignee.user.name}">
+                </a>
+                <div th:unless="${issue.assignee != null}" class="empty-avatar-wrap">&nbsp;</div>
+            </div>
+            <div th:if="${issue.dueDate != null}" class="mr20 mt10 pull-right" th:classappend="${@templateHelper.isOverDueDate(issue)} ? 'overdue' : ''" data-toggle="tooltip" data-placement="top" th:title="${@templateHelper.getDueDateString(issue.dueDate)}">
+                <i class="yobicon-clock2"></i>
+                <th:block th:if="${issue.state.name() == 'OPEN'}">
+                    <span th:if="${@templateHelper.isOverDueDate(issue)}" th:text="#{issue.dueDate.overdue}">overdue</span>
+                    <span th:unless="${@templateHelper.isOverDueDate(issue)}" th:text="${@templateHelper.until(issue)}">until</span>
+                </th:block>
+                <span th:unless="${issue.state.name() == 'OPEN'}" th:text="${@templateHelper.getDueDateString(issue.dueDate)}">due date</span>
+            </div>
+        </div>
+    </li>
+</ul>
+</body>
+</html>

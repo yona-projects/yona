@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(title=${project.name} + ' - ' + #{'milestone.state.' + ${state}})}">
+</head>
+<body class="theme-default prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+    <div th:replace="~{project/header :: header(${project})}"></div>
+    <div th:replace="~{project/menu :: menu(${project}, 'milestone')}"></div>
+
+    <link rel="stylesheet" th:href="@{/{owner}/{projectName}/issue/labels.css(owner=${project.owner}, projectName=${project.name})}" type="text/css" />
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
+            <div class="tab-wrap">
+                <div sec:authorize="isAuthenticated()" class="pull-right btns">
+                    <a th:href="@{/{owner}/{projectName}/milestone/new(owner=${project.owner}, projectName=${project.name})}" class="ybtn ybtn-success" th:text="#{milestone.menu.new}">새 마일스톤</a>
+                </div>
+
+                <ul class="nav nav-tabs">
+                    <li th:classappend="${state == 'open'} ? 'active'">
+                        <a th:href="@{/{owner}/{projectName}/milestones(owner=${project.owner}, projectName=${project.name}, state='open')}" th:text="#{milestone.state.open}">진행중</a>
+                    </li>
+                    <li th:classappend="${state == 'closed'} ? 'active'">
+                        <a th:href="@{/{owner}/{projectName}/milestones(owner=${project.owner}, projectName=${project.name}, state='closed')}" th:text="#{milestone.state.closed}">종료</a>
+                    </li>
+                    <li th:classappend="${state == 'all'} ? 'active'">
+                        <a th:href="@{/{owner}/{projectName}/milestones(owner=${project.owner}, projectName=${project.name}, state='all')}" th:text="#{milestone.state.all}">전체</a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 마일스톤 목록이 비었을 때 -->
+            <div th:if="${milestones == null || milestones.isEmpty()}" class="error-wrap">
+                <i class="ico ico-err1"></i>
+                <p th:text="#{milestone.is.empty}">등록된 마일스톤이 없습니다.</p>
+            </div>
+
+            <!-- 마일스톤 목록이 존재할 때 -->
+            <th:block th:if="${milestones != null && !milestones.isEmpty()}">
+                <div class="filter-wrap milestone" th:if="${milestones.size() > 1}">
+                    <div class="filters">
+                        <a th:href="@{/{owner}/{projectName}/milestones(owner=${project.owner}, projectName=${project.name}, orderBy='dueDate', orderDir=${orderBy == 'dueDate' && orderDir == 'desc' ? 'asc' : 'desc'}, state=${state})}"
+                           th:class="${orderBy == 'dueDate'} ? 'filter active' : 'filter'">
+                            <i class="ico btn-gray-arrow" th:classappend="${orderBy == 'dueDate' && orderDir == 'desc'} ? 'down'"></i><span th:text="#{common.order.dueDate}">기한순</span>
+                        </a>
+                        <a th:href="@{/{owner}/{projectName}/milestones(owner=${project.owner}, projectName=${project.name}, orderBy='completionRate', orderDir=${orderBy == 'completionRate' && orderDir == 'desc' ? 'asc' : 'desc'}, state=${state})}"
+                           th:class="${orderBy == 'completionRate'} ? 'filter active' : 'filter'">
+                            <i class="ico btn-gray-arrow" th:classappend="${orderBy == 'completionRate' && orderDir == 'desc'} ? 'down'"></i><span th:text="#{common.order.completionRate}">진행률순</span>
+                        </a>
+                    </div>
+                    <div class="pull-left search search-bar">
+                        <input name="filter" class="textbox" type="text" th:placeholder="#{search.title}" value="">
+                        <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                    </div>
+                </div>
+
+                <div class="row-fluid">
+                    <div>
+                        <ul class="milestones">
+                            <li class="milestone" th:each="dto : ${milestones}" th:with="milestone=${dto.milestone}">
+                                <div class="infos">
+                                    <div class="meta-info">
+                                        <strong class="version"></strong>
+                                        <a th:href="@{/{owner}/{projectName}/milestone/{id}(owner=${project.owner}, projectName=${project.name}, id=${milestone.id})}" class="milestone-name" th:text="${milestone.title}">마일스톤 제목</a>
+                                        <span class="sp">|</span>
+                                        <span class="issue-item" th:text="${dto.closedIssuesCount} + ' / ' + (${dto.openIssuesCount} + ${dto.closedIssuesCount})">0 / 0</span>
+                                        
+                                        <!-- milestone.state != CLOSED 일 때 -->
+                                        <th:block th:if="${milestone.state.name() != 'CLOSED'}">
+                                            <span class="sp" th:if="${state == 'all'}">|</span>
+                                            <span class="state nm open" th:if="${state == 'all'}" th:text="#{'milestone.state.' + ${#strings.toLowerCase(milestone.state.name())}}">진행중</span>
+                                            
+                                            <span class="sp" th:if="${milestone.dueDate != null}">|</span>
+                                            <span class="due-date" th:if="${milestone.dueDate != null}" th:classappend="${dto.isOverdue} ? 'over' : ''">
+                                                <span th:text="#{label.dueDate}">기한</span>
+                                                <strong th:text="${#temporals.format(milestone.dueDate, 'yyyy-MM-dd')}">2026-06-08</strong>
+                                                <span class="date" th:if="${dto.daysBetween != null}">
+                                                    (<span th:text="${dto.daysBetween == 0} ? #{common.time.today} : (${dto.daysBetween < 0} ? #{common.time.overday(${-dto.daysBetween})} : #{common.time.leftday(${dto.daysBetween})})">오늘</span>)
+                                                </span>
+                                            </span>
+                                        </th:block>
+                                        
+                                        <!-- milestone.state == CLOSED 일 때 -->
+                                        <th:block th:if="${milestone.state.name() == 'CLOSED'}">
+                                            <span class="sp" th:if="${state == 'all'}">|</span>
+                                            <span class="state nm closed" th:if="${state == 'all'}" th:text="#{'milestone.state.' + ${#strings.toLowerCase(milestone.state.name())}}">종료</span>
+                                            
+                                            <span class="sp" th:if="${milestone.dueDate != null}">|</span>
+                                            <span class="due-date ml5" th:if="${milestone.dueDate != null}">
+                                                <span th:text="#{label.dueDate}">기한</span>
+                                                <strong th:text="${#temporals.format(milestone.dueDate, 'yyyy-MM-dd')}">2026-06-08</strong>
+                                            </span>
+                                        </th:block>
+                                        
+                                        <div class="pull-right">
+                                            <span class="number completion-rate" th:if="${(dto.openIssuesCount + dto.closedIssuesCount) > 0}" th:text="${dto.completionRate} + '%'">0%</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="progress-wrap">
+                                        <div class="progress progress-success">
+                                            <div class="bar" th:style="'width: ' + ${dto.completionRate} + '%;'"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div></div>
+                                    <!-- 열린 이슈 목록 -->
+                                    <div>
+                                        <a class="issue-link" th:each="issue : ${dto.openIssues}" th:href="@{/{owner}/{projectName}/issue/{number}(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}" target="_blank">
+                                            <div class="issue-item">
+                                                <span class="state-label open"></span>
+                                                <span class="item-name">
+                                                    <span class="number" th:text="'#' + ${issue.number}">#1</span>
+                                                    <span th:text="${issue.title}">이슈 제목</span>
+                                                    <span th:if="${issue.assignee != null}" th:text="' - ' + ${issue.assignee.user.name}"> - 담당자</span>
+                                                    <th:block th:each="label : ${issue.labels}">
+                                                        <a href="#" class="label issue-label list-label active" th:data-category-id="${label.category.id}" th:data-label-id="${label.id}" th:text="${label.name}">라벨명</a>
+                                                    </th:block>
+                                                </span>
+                                            </div>
+                                        </a>
+                                    </div>
+                                    <div></div>
+                                    <!-- 닫힌 이슈 목록 -->
+                                    <div>
+                                        <a class="issue-link" th:each="issue : ${dto.closedIssues}" th:href="@{/{owner}/{projectName}/issue/{number}(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}" target="_blank">
+                                            <div class="issue-item">
+                                                <span class="state-label closed">
+                                                    <i class="yobicon-checkmark"></i>
+                                                </span>
+                                                <span class="item-name">
+                                                    <span class="number" th:text="'#' + ${issue.number}">#1</span>
+                                                    <span th:text="${issue.title}">이슈 제목</span>
+                                                    <span th:if="${issue.assignee != null}" th:text="' - ' + ${issue.assignee.user.name}"> - 담당자</span>
+                                                    <th:block th:each="label : ${issue.labels}">
+                                                        <a href="#" class="label issue-label list-label active" th:data-category-id="${label.category.id}" th:data-label-id="${label.id}" th:text="${label.name}">라벨명</a>
+                                                    </th:block>
+                                                </span>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </th:block>
+        </div>
+    </div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+<script type="text/javascript" th:if="${project.isMilestoneEnabled}" th:inline="javascript">
+    $(document).ready(function () {
+        // search by keyword
+        $(".textbox").on("keyup", function() {
+            var value = $(this).val().toLowerCase().trim();
+            $(".issue-link").each(function() {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) !== -1);
+            });
+        });
+        
+        var projectOwner = [[${project.owner}]];
+        var projectName = [[${project.name}]];
+        yobi.ShortcutKey.setKeymapLink({
+            "N": "/" + projectOwner + "/" + projectName + "/milestone/new"
+        });
+    });
+</script>
+</body>
+</html>

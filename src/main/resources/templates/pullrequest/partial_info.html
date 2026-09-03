@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<!--
+ legacy git/partial_info.scala.html 대응 (그룹11 #176). PR 헤더(제목/뱃지/등록일) + 리뷰어 참여
+ 정보/리뷰(review/unreview) 버튼 + 병합(accept) 버튼 + overview/changes 탭 바.
+ legacy는 이 조각을 git/view.scala.html(menuType="overview")과 git/viewChanges.scala.html
+ (menuType="changes") 양쪽에서 공유해서 쓴다 — yona도 pullrequest/view.html이 tab 값에 따라
+ menuType만 바꿔 동일하게 재사용한다.
+-->
+<div th:fragment="info(project, pull, currentUser, menuType, openThreadCount, isAcceptable, disabledAcceptReason)" class="board-header issue">
+    <div class="pull-right mr10 mt10">
+        <div class="date" th:title="${@templateHelper.getDateString(pull.created)}" th:text="${@templateHelper.agoOrDateString(pull.created)}">작성일</div>
+        <span class="badge nm"
+              th:classappend="${pull.isConflict == true} ? 'badge-issue-conflict' : ('badge-issue-' + ${#strings.toLowerCase(pull.state.name())})"
+              th:text="${pull.isConflict == true} ? #{pullRequest.state.conflict} : #{'pullRequest.state.' + ${#strings.toLowerCase(pull.state.name())}}">상태</span>
+    </div>
+    <div class="title">
+        <strong class="board-id" th:text="'#' + ${pull.number}">#1</strong> <span th:text="${pull.title}">제목</span>
+    </div>
+
+    <div class="pull-right">
+        <th:block th:if="${project.isUsingReviewerCount == true and currentUser != null}">
+            <div id="reviewers" style="display:inline-block; margin-right:5px;">
+                <span style="font-size: 13px; vertical-align: middle; margin: 0 10px;" th:utext="#{pullRequest.review.participants(${pull.reviewers.size()})}">참여자 0명</span>
+                <a th:each="reviewer : ${pull.reviewers}" th:href="@{/user/{loginId}(loginId=${reviewer.loginId})}" class="avatar-wrap smaller" data-toggle="tooltip" data-placement="top" th:title="${reviewer.name}">
+                    <img th:src="${reviewer.avatarUrl}">
+                </a>
+            </div>
+
+            <th:block th:if="${pull.state.name() == 'OPEN'}" th:with="isReviewer=${pull.reviewers.![id].contains(currentUser.id)}">
+                <button th:if="${isReviewer}" type="button" id="btn-unreview" class="ybtn ybtn-default" th:text="#{pullRequest.unreview}">리뷰 취소</button>
+                <button th:unless="${isReviewer}" type="button" id="btn-review" th:classappend="${!pull.reviewers.isEmpty()} ? 'ybtn-default' : 'ybtn-success'" class="ybtn" th:text="#{pullRequest.review}">리뷰 승인</button>
+            </th:block>
+        </th:block>
+
+        <th:block th:if="${currentUser != null and (pull.contributor.id == currentUser.id or @templateHelper.isManager(project, currentUser))}">
+            <a id="btnAccept" th:if="${isAcceptable}" th:href="@{/api/projects/{projectId}/pullrequests/{number}/merge(projectId=${project.id}, number=${pull.number})}"
+               data-request-method="post" class="ybtn ybtn-success" th:text="#{pullRequest.merge}">병합</a>
+            <button th:unless="${isAcceptable}" class="ybtn ybtn-disabled" data-toggle="tooltip" data-placement="top" th:title="${disabledAcceptReason}" th:text="#{pullRequest.merge}">병합</button>
+        </th:block>
+    </div>
+
+    <ul class="nav nav-tabs nm">
+        <li th:classappend="${menuType == 'overview'} ? 'active'">
+            <a th:href="@{/{owner}/{projectName}/pull/{number}(owner=${project.owner}, projectName=${project.name}, number=${pull.number})}" th:text="#{pullRequest.menu.overview}">개요</a>
+        </li>
+        <li th:classappend="${menuType == 'changes'} ? 'active'">
+            <a th:href="@{/{owner}/{projectName}/pull/{number}/changes(owner=${project.owner}, projectName=${project.name}, number=${pull.number})}">
+                <span th:text="#{pullRequest.menu.changes}">코드 리뷰</span>
+                <span class="num-badge" th:if="${openThreadCount != null and openThreadCount > 0}" th:text="${openThreadCount}">0</span>
+            </a>
+        </li>
+    </ul>
+</div>
+</body>
+</html>

@@ -1,26 +1,27 @@
-How to run Yona 
+How to run yona
 ===
 
-Go to the unpacked directory and run yona.
+Ported from legacy Yona's `docs/yona-run-and-restart.md`, adapted for yona.
 
+```bash
+java -jar build/libs/yona-0.0.1-SNAPSHOT.jar --spring.profiles.active=mariadb
 ```
-YONA_DATA=/yona-data;export YONA_DATA
-bin/yona
-```
-**[Caution!] Please move below bin folder and do not run `yona` directly**
 
 First Page
 ----
-You can now access the welcome page by accessing the appropriate server 9000 port (http://127.0.0.1:9000 in local environment) with your web browser.
+The default port is `8080` (not legacy's `9000`). Locally, visit
+[http://127.0.0.1:8080](http://127.0.0.1:8080).
 
-Finish setting admin and restart Yona.
-
-**Note! For Windows OS users**
-Please note [#windows-os](yona-run-options.md#windows-os)
-
+If no user is registered yet, you'll be redirected automatically to the initial admin setup
+screen (`/bootstrap-setup`) instead of legacy's roundabout "wrong password" → `welcome/secret`
+flow — see [`install-yona-server.md`](install-yona-server.md).
 
 ### To restart
 
-- In the Linux/Uinx, the kill pid command stops the service.
-- [Simple Restart Shell Example](https://github.com/yona-projects/yona/blob/next/restart.sh)
-- Windows users exit the batch file that is running with ctrl-c.
+- Foreground process: `Ctrl-C`, then re-run the `java -jar ...` command.
+- Running as a standing service: use the systemd unit example at
+  [`support-script/systemd/yona.service`](../support-script/systemd/yona.service) —
+
+  ```bash
+  sudo systemctl restart yona
+  ```

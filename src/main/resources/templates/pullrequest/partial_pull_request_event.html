@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<!--
+ legacy git/partial_pull_request_event.scala.html 대응 (그룹11 #179). PR 개요(overview) 탭
+ 하단 "댓글" 영역에 표시되는 이벤트(상태변경/병합/리뷰완료/커밋변경) 한 건.
+ 참고: PullRequestViewController의 기존 conversation 탭 필터가 PULL_REQUEST_COMMIT_CHANGED를
+ "legacy도 안 보여준다"는 잘못된 전제(P2-39 코멘트)로 제외하고 있었는데, legacy 원본은 실제로
+ 이 이벤트 타입을 렌더링한다 — 이번 재작업에서 컨트롤러 필터도 함께 바로잡는다. 단, yona의
+ PullRequestEvent 스키마는 legacy처럼 이벤트별 커밋 목록(getPullRequestCommits)을 관계로
+ 들고 있지 않아(이번 배치 범위를 넘는 스키마 확장 필요) 커밋 목록 서브 리스트는 생략하고
+ 메시지 문구 + "추가 변경사항 보기" 링크만 표시한다(문서화된 단순화).
+-->
+<th:block th:fragment="event(project, pull, event)" th:with="eventTypeName=${event.eventType.name()}">
+    <li class="event" th:id="'comment-' + ${event.id}" th:if="${eventTypeName == 'PULL_REQUEST_REVIEW_STATE_CHANGED'}">
+        <th:block th:if="${event.newValue == 'DONE'}">
+            <span class="state changed" th:text="#{pullRequest.review}">리뷰 승인</span>
+            <span th:text="#{notification.pullrequest.reviewed(${event.senderLoginId})}">리뷰를 완료했습니다</span>
+        </th:block>
+        <th:block th:unless="${event.newValue == 'DONE'}">
+            <span class="state changed" th:text="#{pullRequest.unreview}">리뷰 취소</span>
+            <span th:text="#{notification.pullrequest.unreviewed(${event.senderLoginId})}">리뷰를 취소했습니다</span>
+        </th:block>
+        <span class="date"><a th:href="'#event-' + ${event.id}" th:title="${@templateHelper.getDateString(event.created)}" th:text="${@templateHelper.agoOrDateString(event.created)}">방금 전</a></span>
+    </li>
+
+    <li class="event" th:id="'comment-' + ${event.id}" th:if="${eventTypeName == 'PULL_REQUEST_STATE_CHANGED'}" th:with="newValueLower=${#strings.toLowerCase(event.newValue)}">
+        <span th:class="'state ' + ${newValueLower}" th:text="#{'pullRequest.event.' + ${newValueLower}}">상태</span>
+        <th:block th:if="${newValueLower == 'merged'}">
+            <span th:utext="#{pullRequest.event.message.merged(${event.senderLoginId}, ${pull.mergedCommitIdTo != null ? #strings.substring(pull.mergedCommitIdTo, 0, 7) : ''})}">병합했습니다</span>
+        </th:block>
+        <th:block th:unless="${newValueLower == 'merged'}">
+            <span th:utext="#{'pullRequest.event.message.' + ${newValueLower}(${event.senderLoginId})}">상태가 변경되었습니다</span>
+        </th:block>
+        <span class="date"><a th:href="'#event-' + ${event.id}" th:title="${@templateHelper.getDateString(event.created)}" th:text="${@templateHelper.agoOrDateString(event.created)}">방금 전</a></span>
+    </li>
+
+    <li class="event" th:id="'comment-' + ${event.id}" th:if="${eventTypeName == 'PULL_REQUEST_MERGED'}">
+        <span class="state merged" th:text="#{pullRequest.event.merged}">병합</span>
+        <span th:utext="#{pullRequest.event.message.merged(${event.senderLoginId})}">병합했습니다</span>
+        <span class="date"><a th:href="'#event-' + ${event.id}" th:title="${@templateHelper.getDateString(event.created)}" th:text="${@templateHelper.agoOrDateString(event.created)}">방금 전</a></span>
+    </li>
+
+    <li class="event" th:id="'comment-' + ${event.id}" th:if="${eventTypeName == 'PULL_REQUEST_COMMIT_CHANGED'}">
+        <span class="state changed" th:text="#{pullRequest.event.commit}">커밋</span>
+        <span th:utext="#{pullRequest.event.message.commit(${event.senderLoginId})}">코드를 커밋했습니다</span>
+        <span class="date"><a th:href="'#event-' + ${event.id}" th:title="${@templateHelper.getDateString(event.created)}" th:text="${@templateHelper.agoOrDateString(event.created)}">방금 전</a></span>
+        <a th:if="${event.oldValue != null and !event.oldValue.isEmpty()}"
+           th:href="@{/{owner}/{projectName}/pull/{number}/changes/{commitId}(owner=${project.owner}, projectName=${project.name}, number=${pull.number}, commitId=${event.oldValue})}"
+           class="ybtn ybtn-mini" th:text="#{pullRequest.additional.changes}">추가 변경사항</a>
+    </li>
+</th:block>
+</body>
+</html>

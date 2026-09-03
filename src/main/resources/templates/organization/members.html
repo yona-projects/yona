@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(${org.name})}">
+</head>
+<body class="prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div th:replace="~{organization/header :: header(${org})}"></div>
+    <div th:replace="~{organization/menu :: menu(${org}, 'setting')}"></div>
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
+            <div th:replace="~{organization/partial_settingmenu :: menu(${org}, 'members')}"></div>
+
+            <div class="inner-bubble">
+                <form class="nm" id="addNewMember">
+                    <input type="text" class="text uname" id="loginId" name="loginId" required="required"
+                           autocomplete="off" th:placeholder="#{project.members.addMember}"
+                           pattern="^[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*$" th:title="#{user.wrongloginId.alert}" /><!--
+                --><button type="submit" class="ybtn ybtn-success"><i class="yobicon-addfriend"></i> <span th:text="#{button.add}">Add</span></button>
+                </form>
+            </div>
+
+            <ul class="members project row-fluid">
+                <li class="member span6 span-hard-wrap" th:each="ou : ${orgUsers}">
+                    <a th:href="@{/user/{loginId}(loginId=${ou.user.loginId})}" class="avatar-wrap mlarge pull-left mr10" data-toggle="tooltip" data-placement="top" th:title="${ou.user.loginId}">
+                        <img th:src="${ou.user.avatarUrl}" width="64" height="64">
+                    </a>
+                    <div class="member-name" th:text="${ou.user.name}">name</div>
+                    <div class="member-id" th:text="'@' + ${ou.user.loginId}">@loginId</div>
+                    <div class="member-setting">
+                        <div class="btn-group" th:data-name="'roleof-' + ${ou.user.loginId}">
+                            <button class="btn dropdown-toggle large" data-toggle="dropdown" type="button">
+                                <span class="d-label" th:text="#{'user.role.' + ${ou.role.id == 6 ? 'org_admin' : 'org_member'}}">role</span>
+                                <span class="d-caret"><span class="caret"></span></span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li th:each="role : ${roles}" th:class="${role.id == ou.role.id} ? 'active' : ''" th:data-value="${role.id}" th:data-selected="${role.id == ou.role.id}">
+                                    <a href="javascript:void(0)" class="role-apply-btn" th:data-role-id="${role.id}" th:data-user-id="${ou.user.id}" th:data-login-id="${ou.user.loginId}" th:text="#{'user.role.' + ${role.id == 6 ? 'org_admin' : 'org_member'}}">role</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <a href="javascript:void(0)" class="ybtn ybtn-danger ybtn-small delete-member-btn" th:data-user-id="${ou.user.id}" th:text="#{button.delete}">Delete</a>
+                    </div>
+                </li>
+            </ul>
+
+            <!-- Confirm to delete member -->
+            <div id="alertDeletion" class="modal hide">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h3 th:text="#{organization.member.delete}">Delete member</h3>
+                </div>
+                <div class="modal-body">
+                    <p th:text="#{organization.member.deleteConfirm}">Do you want to remove this member?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="ybtn ybtn-info ybtn-mini" id="deleteBtn" th:text="#{button.yes}">Yes</button>
+                    <button type="button" class="ybtn ybtn-mini" data-dismiss="modal" th:text="#{button.no}">No</button>
+                </div>
+            </div>
+
+            <!-- Enrolled Users -->
+            <th:block th:if="${org.enrolledUsers.size() > 0}">
+                <legend>
+                    <h3 th:text="#{project.member.enrollment.request} + ' (' + ${org.enrolledUsers.size()} + ')'">Requests</h3>
+                </legend>
+                <div class="row-fluid">
+                    <div class="span2" th:each="user : ${org.enrolledUsers}">
+                        <div class="pull-left mr10">
+                            <a th:href="@{/user/{loginId}(loginId=${user.loginId})}">
+                                <img th:src="${user.avatarUrl}" height="65" width="65" class="img-circle"/>
+                            </a>
+                        </div>
+                        <div class="pull-left" style="width: 60px;">
+                            <span><a th:href="@{/user/{loginId}(loginId=${user.loginId})}"><strong th:text="${user.name}">name</strong></a></span>
+                            <span th:text="'(' + ${user.loginId} + ')'">(loginId)</span>
+                            <button type="button" class="ybtn ybtn-info ybtn-mini blue enrollAcceptBtn" th:data-loginId="${user.loginId}"><i class="yobicon-addfriend"></i><span th:text="#{button.add}">Add</span></button>
+                        </div>
+                    </div>
+                </div>
+            </th:block>
+        </div>
+    </div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+    <div th:replace="~{site/layout :: scripts}"></div>
+</div>
+
+<script type="text/javascript" th:inline="javascript">
+    $(document).ready(function() {
+        var orgId = [[${org.id}]];
+
+        // 1. 멤버 추가 연동 (project/members.html과 동일 관례 — legacy $yobi.loadModule 대신
+        //    이미 확립된 REST API(/api/organizations/{orgId}/members)로 직결)
+        $("#addNewMember").submit(function(e) {
+            e.preventDefault();
+            var loginId = $("#loginId").val().trim();
+            if (!loginId) return;
+
+            $.ajax({
+                url: '/api/organizations/' + orgId + '/members?userLoginId=' + encodeURIComponent(loginId) + '&roleId=7',
+                type: 'POST',
+                success: function() {
+                    window.location.reload();
+                },
+                error: function(xhr) {
+                    var errorMsg = "멤버 추가 실패";
+                    if (xhr.responseJSON && xhr.responseJSON.error) {
+                        errorMsg += ": " + xhr.responseJSON.error;
+                    }
+                    alert(errorMsg);
+                }
+            });
+        });
+
+        // 2. 역할 변경 연동
+        $(".role-apply-btn").click(function(e) {
+            e.preventDefault();
+            var userId = $(this).data("user-id");
+            var roleId = $(this).data("role-id");
+
+            $.ajax({
+                url: '/api/organizations/' + orgId + '/members/' + userId + '/role?roleId=' + roleId,
+                type: 'PUT',
+                success: function() {
+                    window.location.reload();
+                },
+                error: function() {
+                    alert("역할 변경 실패");
+                }
+            });
+        });
+
+        // 3. 멤버 삭제 연동
+        var sDeleteUserId = null;
+        $(".delete-member-btn").click(function(e) {
+            e.preventDefault();
+            sDeleteUserId = $(this).data("user-id");
+            $("#alertDeletion").modal("show");
+        });
+        $("#deleteBtn").click(function() {
+            if (sDeleteUserId == null) return;
+            $.ajax({
+                url: '/api/organizations/' + orgId + '/members/' + sDeleteUserId,
+                type: 'DELETE',
+                success: function() {
+                    window.location.reload();
+                },
+                error: function() {
+                    alert("멤버 제거 실패");
+                }
+            });
+        });
+
+        // 4. 가입 요청 승인 연동
+        $(".enrollAcceptBtn").click(function(e) {
+            e.preventDefault();
+            var loginId = $(this).data("loginid");
+
+            $.ajax({
+                url: '/api/organizations/' + orgId + '/members?userLoginId=' + encodeURIComponent(loginId) + '&roleId=7',
+                type: 'POST',
+                success: function() {
+                    window.location.reload();
+                },
+                error: function() {
+                    alert("가입 승인 실패");
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+</head>
+<body>
+<!--
+ legacy git/partial_state.scala.html 대응 (그룹11 #183). PR 병합 가능/충돌/병합중/병합완료 상태 배너.
+ canDeleteBranch/canRestoreBranch는 컨트롤러가 실제 git 브랜치 존재 여부로 계산해서 넘긴다.
+-->
+<th:block th:fragment="state(project, pull, currentUser, canDeleteBranch, canRestoreBranch)">
+
+    <div class="alert alert-success"
+         th:if="${pull.isMerging != true and pull.state != T(com.github.yonaprojects.yona.domain.enumeration.State).CLOSED and pull.state != T(com.github.yonaprojects.yona.domain.enumeration.State).MERGED and pull.isConflict != true}">
+        <i class="yobicon-check-circle-alt mr5"></i>
+        <span th:text="#{pullRequest.is.safe}">안전하게 병합할 수 있습니다.</span>
+    </div>
+
+    <div class="alert alert-error"
+         th:if="${pull.isMerging != true and pull.state != T(com.github.yonaprojects.yona.domain.enumeration.State).CLOSED and pull.state != T(com.github.yonaprojects.yona.domain.enumeration.State).MERGED and pull.isConflict == true}">
+        <i class="yobicon-error mr5"></i>
+        <span th:text="#{pullRequest.is.not.safe}">충돌이 발생했습니다.</span>
+
+        <div class="howto-resolve-conflict" th:if="${currentUser != null and pull.contributor.id == currentUser.id}">
+            <h6 th:text="#{pullRequest.resolve.conflict}">충돌 해결하기</h6>
+            <div class="help">
+                <ol>
+                    <li><span th:text="#{pullRequest.resolver.step1}">1</span> <code th:text="'git checkout ' + ${pull.fromBranch}">git checkout branch</code></li>
+                    <li><span th:text="#{pullRequest.resolver.step2}">2</span> <code th:text="'git remote add upstream ' + ${@templateHelper.getCloneUrl(pull.toProject, currentUser)}">git remote add upstream URL</code></li>
+                    <li><span th:text="#{pullRequest.resolver.step3}">3</span> <code>git fetch upstream</code></li>
+                    <li><span th:text="#{pullRequest.resolver.step4}">4</span> <code th:text="'git rebase upstream/' + ${pull.toBranch}">git rebase upstream/branch</code></li>
+                    <li th:text="#{pullRequest.resolver.step5}">5</li>
+                    <li><span th:text="#{pullRequest.resolver.step6}">6</span> <code>git add resolved_file</code></li>
+                    <li><span th:text="#{pullRequest.resolver.step7}">7</span> <code>git rebase --continue</code></li>
+                    <li th:text="#{pullRequest.resolver.step8}">8</li>
+                    <li>
+                        <span th:text="#{pullRequest.resolver.step9}">9</span>
+                        <code th:text="'git push -f origin ' + ${pull.fromBranch}">git push -f origin branch</code>
+                    </li>
+                    <li>
+                        <span th:text="#{pullRequest.resolver.step10}">10</span>
+                        <a th:href="@{/{owner}/{projectName}/pull/{number}(owner=${project.owner}, projectName=${project.name}, number=${pull.number})}" class="ybtn ybtn-mini ybtn-primary" th:text="#{button.page.refresh}">새로고침</a>
+                        <span th:text="#{pullRequest.resolver.step11}">11</span>
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-warnning" th:if="${pull.isMerging == true}">
+        <i class="yobicon-supportrequest mr5"></i>
+        <span th:text="#{pullRequest.is.merging}">병합 중입니다.</span>
+    </div>
+
+    <div class="alert alert-info" th:if="${pull.state == T(com.github.yonaprojects.yona.domain.enumeration.State).MERGED}">
+        <a th:if="${pull.receiver != null}" th:href="@{/user/{loginId}(loginId=${pull.receiver.loginId})}" class="usf-group">
+            <span class="avatar-wrap smaller">
+                <img th:src="${pull.receiver.avatarUrl}" width="25" height="25">
+            </span>
+            <strong class="name" th:text="${pull.receiver.name}">receiver</strong>
+            <span class="loginid"> <strong>@</strong><span th:text="${pull.receiver.loginId}">loginId</span></span>
+        </a>
+        <span th:if="${pull.receiver != null}" th:utext="#{pullRequest.merged.the.pullrequest}"></span>
+
+        <th:block th:if="${currentUser != null and pull.contributor.id == currentUser.id}">
+            <th:block th:if="${canDeleteBranch}">
+                <code th:text="${pull.fromBranch}">branch</code>
+                <span th:text="#{pullRequest.delete.frombranch.message}"></span>
+                <button class="ybtn ybtn-danger ybtn-mini pull-right" data-request-method="delete"
+                        th:data-request-uri="@{/api/projects/{projectId}/pullrequests/{number}/fromBranch(projectId=${project.id}, number=${pull.number})}"
+                        th:text="#{pullRequest.delete.branch}">브랜치 삭제</button>
+            </th:block>
+            <th:block th:if="${canRestoreBranch}">
+                <code th:text="${pull.fromBranch}">branch</code>
+                <span th:text="#{pullRequest.restore.frombranch.message}"></span>
+                <a class="ybtn ybtn-info ybtn-mini pull-right" data-request-method="post"
+                   th:href="@{/api/projects/{projectId}/pullrequests/{number}/fromBranch(projectId=${project.id}, number=${pull.number})}"
+                   th:text="#{pullRequest.restore.branch}">브랜치 복구</a>
+            </th:block>
+        </th:block>
+    </div>
+</th:block>
+</body>
+</html>

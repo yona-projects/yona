@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<!--
+yona error/requestTextEntityTooLarge.scala.html 대응 (P-템플릿 #53). siteLayout 기반(프로젝트/조직
+컨텍스트 없음) — 완료된 error/404.html(#46)/403.html(#48)/400.html(#51)과 같은 제네릭 패턴.
+파일명은 기존 yona error 디렉터리 컨벤션(404.html/403.html처럼 숫자 기반)을 따라 413.html로 통일.
+
+GlobalExceptionHandler(MaxUploadSizeExceededException 핸들러)가 이 뷰를 리턴한다
+(web/GlobalExceptionHandler.kt). 모델: maxUploadSizeBytes(Long, 실제 적용된 업로드 최대 크기),
+currentUser(User?, 있으면).
+
+site/layout::gnb(전체 GNB)가 아니라 errorGnb를 쓴다 — gnb는 hideProjectListing/currentUser/
+myOpenIssueCount 등 GlobalModelAttributeAdvice(@ControllerAdvice의 @ModelAttribute)가 채워주는
+모델을 요구하는데, Spring MVC의 @ExceptionHandler 처리 경로는 원 요청을 처리하던 컨트롤러의
+모델 팩토리를 공유하지 않아 그 값들이 전혀 채워지지 않는다(실제로 실 렌더링 테스트에서
+"hideProjectListing" 관련 SpelEvaluationException으로 확인됨). 이미 완료된 제네릭 error/404.html
+(#46)도 같은 이유로 errorGnb를 쓰는 전례가 있다.
+-->
+<head th:replace="~{site/layout :: head(#{error.tooLargeText.title})}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+  <div th:replace="~{site/layout :: errorGnb}"></div>
+  <div class="page-wrap-outer">
+    <div class="project-page-wrap">
+      <div class="error-wrap">
+        <i class="ico ico-err2"></i>
+        <p th:text="#{error.tooLargeText.title}">너무 큰 텍스트 데이터를 보냈습니다.</p>
+        <p th:text="#{error.tooLargeText.limit(${maxUploadSizeBytes})}">텍스트 데이터는 최대 바이트까지만 보낼 수 있습니다.</p>
+        <p th:if="${currentUser != null and currentUser.isSiteManager}" th:text="#{error.tooLargeText.admin}">관리자 안내</p>
+      </div>
+    </div>
+  </div>
+</div>
+<footer th:replace="~{site/layout :: footer}"></footer>
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+</body>
+</html>

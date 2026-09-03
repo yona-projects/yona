@@ -1,0 +1,13 @@
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="menu(org, active)">
+  <ul class="nav nav-tabs">
+    <li th:class="${active == 'setting'} ? 'active' : ''">
+      <a th:href="@{/organizations/{orgName}/settingform(orgName=${org.name})}" th:text="#{organization.settingFrom}">설정</a>
+    </li>
+    <li th:class="${active == 'members'} ? 'active' : ''">
+      <a th:href="@{/org/{orgName}/members(orgName=${org.name})}" th:text="#{organization.member}">멤버</a>
+    </li>
+    <li th:class="${active == 'delete'} ? 'active' : ''">
+      <a th:href="@{/organizations/{orgName}/deleteForm(orgName=${org.name})}" th:text="#{organization.delete}">삭제</a>
+    </li>
+  </ul>
+</th:block>

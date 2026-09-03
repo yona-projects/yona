@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<!--
+ legacy common/attachmentFile.scala.html 대응 (#23). legacy 전체에서 이 파샬을 부르는 곳은 오직
+ common/commentUpdateForm.scala.html(#25, 댓글 인라인 수정 폼) 한 곳뿐이라(코디네이터 조사 확인)
+ 그 하위 조각으로 함께 완성한다 — 댓글 수정 폼을 열었을 때 "이미 첨부된 파일" 한 건을 보여주는
+ 서버 렌더 행(파일명 + 삭제 버튼).
+-->
+<li th:fragment="attachmentFile(attachment)" class="attachment-file" th:data-attachment-id="${attachment.id}">
+    <a th:href="@{/files/{id}(id=${attachment.id})}" target="_blank" th:text="${attachment.name}">파일명.png</a>
+    <span class="size" th:text="'(' + ${attachment.size} + ' bytes)'">(0 bytes)</span>
+    <button type="button" class="btn-transparent attachment-file-delete" data-toggle="tooltip" th:title="#{button.delete}"
+            th:data-request-uri="@{/files/{id}(id=${attachment.id}, _method='delete')}">
+        <i class="yobicon-trash"></i>
+    </button>
+</li>
+</body>
+</html>

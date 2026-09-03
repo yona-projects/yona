@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(${project.name} + ' - ' + #{issue.label})}">
+</head>
+<body class="prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div th:replace="~{project/header :: header(${project})}"></div>
+    <div th:replace="~{project/menu :: menu(${project}, 'setting')}"></div>
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap label-editor-wrap">
+          <div th:replace="~{project/setting_menu :: menu(${project}, 'labels')}"></div>
+
+          <form id="copyLabel" th:action="@{/{owner}/{name}/copyLabels(owner=${project.owner}, name=${project.name})}" method="post" class="new-label-wrap">
+            <strong class="form-legend" th:text="#{label.copy.append}">다른 프로젝트에서 라벨 복사</strong>
+            <div class="form-wrap">
+              <input type="text" name="owner" class="input-label mr5" th:placeholder="#{project.owner}">
+              <input type="text" name="projectName" class="input-label" th:placeholder="#{project.name}">
+            </div>
+            <button type="submit" class="ybtn ybtn-info btn-submit" th:text="#{label.copy}">복사</button>
+            <div th:text="#{label.copy.description}">설명</div>
+            <div th:text="#{label.copy.description2}">설명2</div>
+          </form>
+          <form id="frmNewLabel" th:action="@{/{owner}/{name}/issue/labels(owner=${project.owner}, name=${project.name})}" method="post" class="new-label-wrap">
+            <strong class="form-legend" th:text="#{label.new}">새 라벨</strong>
+            <div class="form-wrap">
+              <div>
+                <input type="text" name="category" class="input-label mr5" maxlength="250" data-provider="typeahead" autocomplete="off" th:placeholder="#{label.category}">
+                <input type="text" name="name" class="input-label" maxlength="250" autocomplete="off" th:placeholder="#{label.name}">
+              </div>
+              <div class="label-preset-colors">
+                <button type="button" class="issue-label btn-preset-color" style="background-color:#f44336;"></button>
+                <button type="button" class="issue-label btn-preset-color" style="background-color:#e91e63"></button>
+                <button type="button" class="issue-label btn-preset-color" style="background-color:#9c27b0"></button>
+                <button type="button" class="issue-label btn-preset-color" style="background-color:#3f51b5"></button>
+                <button type="button" class="issue-label btn-preset-color" style="background-color:#2196f3"></button>
+                <button type="button" class="issue-label btn-preset-color" style="background-color:#03a9f4"></button>
+                <button type="button" class="issue-label btn-preset-color" style="background-color:#00bcd4"></button>
+                <button type="button" class="issue-label btn-preset-color" style="background-color:#009688"></button>
+                <button type="button" class="issue-label btn-preset-color" style="background-color:#4caf50"></button>
+                <button type="button" class="issue-label btn-preset-color" style="background-color:#8bc34a"></button>
+                <button type="button" class="issue-label btn-preset-color" style="background-color:#cddc39"></button>
+                <button type="button" class="issue-label btn-preset-color" style="background-color:#ffeb3b"></button>
+                <button type="button" class="issue-label btn-preset-color" style="background-color:#ffc107"></button>
+                <button type="button" class="issue-label btn-preset-color" style="background-color:#ff9800"></button>
+                <button type="button" class="issue-label btn-preset-color" style="background-color:#ff5722"></button>
+                <button type="button" class="issue-label btn-preset-color" style="background-color:#795548"></button>
+                <button type="button" class="issue-label btn-preset-color" style="background-color:#9e9e9e"></button>
+                <input type="text" name="color" class="input-small input-label-color" th:placeholder="#{label.customColor}">
+              </div>
+            </div>
+            <button type="submit" class="ybtn ybtn-primary btn-submit" th:text="#{label.add}">추가</button>
+          </form>
+
+          <div id="labelsList" class="issue-label-list-wrap">
+            <div th:replace="~{project/partial_issuelabels_list :: list(${project}, ${labelsByCategory})}"></div>
+          </div>
+        </div>
+    </div>
+
+    <div th:replace="~{project/partial_issuelabels_editcategory :: editcategory}"></div>
+    <div th:replace="~{project/partial_issuelabels_editlabel :: editlabel(${labelsByCategory.keySet()})}"></div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+<th:block th:replace="~{common/select2 :: select2}"></th:block>
+<script type="text/javascript" src="/javascripts/service/yobi.issue.LabelEditor.js"></script>
+<script type="text/javascript" th:inline="javascript">
+  $(function(){
+      $yobi.loadModule("issue.LabelEditor", {
+          "form": "#frmNewLabel",
+          "list": "#labelsList",
+          "editCategoryForm": "#editCategory",
+          "editLabelForm"   : "#editLabel",
+          "listURL": /*[[@{/{owner}/{name}/issue/labels(owner=${project.owner}, name=${project.name})}]]*/ ""
+      });
+  });
+</script>
+</body>
+</html>

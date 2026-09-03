@@ -1,0 +1,23 @@
+<ul class="nav nav-tabs" xmlns:th="http://www.thymeleaf.org" th:fragment="menu(project, active)" style="margin-bottom: 20px;">
+    <li id="subMenuProjectSetting" th:class="${active == 'setting'} ? 'active' : ''">
+        <a th:href="@{/{owner}/{name}/setting(owner=${project.owner}, name=${project.name})}" th:text="#{project.setting}">설정</a>
+    </li>
+    <li id="subMenuProjectMember" th:class="${active == 'members'} ? 'active' : ''">
+        <a th:href="@{/{owner}/{name}/members(owner=${project.owner}, name=${project.name})}" th:text="#{project.member}">멤버</a>
+    </li>
+    <li id="subMenuIssueLabel" th:class="${active == 'labels'} ? 'active' : ''">
+        <a th:href="@{/{owner}/{name}/issue/labelsform(owner=${project.owner}, name=${project.name})}" th:text="#{issue.label}">이슈 라벨</a>
+    </li>
+    <li id="subMenuWebhook" th:class="${active == 'webhooks'} ? 'active' : ''">
+        <a th:href="@{/projects/{owner}/{name}/webhooks(owner=${project.owner}, name=${project.name})}" th:text="#{project.webhook}">웹훅</a>
+    </li>
+    <li id="subMenuProjectTransfer" th:class="${active == 'transfer'} ? 'active' : ''">
+        <a th:href="@{/{owner}/{name}/transfer(owner=${project.owner}, name=${project.name})}" th:text="#{project.transfer}">이관</a>
+    </li>
+    <li id="subMenuProjectDelete" th:class="${active == 'delete'} ? 'active' : ''">
+        <a th:href="@{/{owner}/{name}/deleteform(owner=${project.owner}, name=${project.name})}" th:text="#{project.delete}">삭제</a>
+    </li>
+    <li id="subMenuProjectChangeVCS" th:class="${active == 'changeVCS'} ? 'active' : ''">
+        <a th:href="@{/{owner}/{name}/changeVCS(owner=${project.owner}, name=${project.name})}" th:text="#{project.changeVCS}">VCS 변경</a>
+    </li>
+</ul>

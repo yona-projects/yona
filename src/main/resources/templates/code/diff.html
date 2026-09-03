@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(|${project.name} - 커밋 상세|)}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+  <div th:replace="~{site/layout :: gnb}"></div>
+  <div th:replace="~{project/header :: header(${project})}"></div>
+  <div th:replace="~{project/menu :: menu(${project}, 'code')}"></div>
+
+  <div class="page-wrap-outer">
+    <div class="project-page-wrap">
+      <div id="code-browse-wrap" class="code-browse-wrap">
+        <ul class="nav nav-tabs" style="margin-bottom:20px;">
+          <li>
+            <a th:href="@{/{owner}/{name}/code(owner=${project.owner}, name=${project.name})}" th:text="#{code.files}">Files</a>
+          </li>
+          <li class="active">
+            <a th:href="@{/{owner}/{name}/commits(owner=${project.owner}, name=${project.name})}" th:text="#{code.commits}">Commits</a>
+          </li>
+          <li th:if="${project.vcs == 'GIT'}">
+            <a th:href="@{/{owner}/{name}/branches(owner=${project.owner}, name=${project.name})}" th:text="#{title.branches}">Branches</a>
+          </li>
+        </ul>
+
+      <div class="codediff-wrap">
+        <div class="diffs-wrap">
+          <!-- Commit Info -->
+          <div class="commitInfo" style="background-color: #fafbfc; border: 1px solid #d1d5da; padding: 15px; border-radius: 3px; margin-bottom: 20px;">
+            <div class="commitAuthor">
+              <a th:if="${commit.author != null}" th:href="@{/user/{loginId}(loginId=${commit.author.loginId})}" class="avatar-wrap smaller">
+                <img th:src="${commit.author.avatarUrl}" width="32" height="32">
+              </a>
+              <strong th:text="${commit.author != null ? commit.author.name : commit.authorName}">Author Name</strong>
+              <span class="ago" th:title="${commit.authorDate != null ? templateHelper.getDateString(commit.authorDate.toInstant()) : ''}"
+                    th:text="${commit.authorDate != null ? templateHelper.agoOrDateString(commit.authorDate.toInstant()) : ''}">Date</span>
+            </div>
+            <div class="commitMsg-wrap" style="margin-top: 10px;">
+              <div th:replace="~{common/commitMsg :: commitMsg(${commit.shortMessage}, ${commit.message}, '', true)}"></div>
+            </div>
+            <div class="commitId-wrap" style="margin-top: 10px; font-family: monospace;">
+              <strong class="commitId" th:text="'@' + ${commit.id}">Commit ID</strong>
+            </div>
+          </div>
+
+          <!-- Diff Body -->
+          <div class="diff-body discommentable">
+            <div class="diff-partial-outer" th:each="diff : ${fileDiffs}" th:id="${diff.pathB != null ? diff.pathB : diff.pathA}">
+              <div class="diff-partial-inner">
+                <div class="diff-partial-meta clearfix" style="background-color: #fafbfc; border: 1px solid #d1d5da; border-bottom: none; padding: 10px; border-top-left-radius: 3px; border-top-right-radius: 3px; font-family: monospace;">
+                  <span th:text="${diff.pathB != null ? diff.pathB : diff.pathA}">파일명</span>
+                </div>
+                <div class="diff-partial-code" style="border: 1px solid #d1d5da; border-bottom-left-radius: 3px; border-bottom-right-radius: 3px; overflow: auto; margin-bottom: 20px;">
+                  <table class="diff-container show-comments" style="width: 100%; border-collapse: collapse; font-family: monospace; font-size: 12px;">
+                    <tbody>
+                    <!-- ADD -->
+                    <th:block th:if="${diff.changeType.name == 'ADD'}">
+                      <tr class="range">
+                        <td colspan="3" class="hunk" style="background-color: #e6ebf1; color: #586069; padding: 4px 10px;" 
+                            th:text="'@@ -0,0 +1,' + ${diff.b.size()} + ' @@'"></td>
+                      </tr>
+                      <th:block th:each="i : ${#numbers.sequence(0, diff.b.size() - 1)}">
+                        <tr class="add diff-line-tr" style="background-color: #e6ffed;"
+                            th:data-path="${diff.pathB}"
+                            th:data-line-num-b="${i}"
+                            data-kind="ADD">
+                          <td class="linenum add-comment-btn-cell" style="width: 50px; text-align: right; color: rgba(27,31,35,0.3); padding-right: 10px; border-right: 1px solid #d1d5da; user-select: none; cursor: pointer; position: relative;">+</td>
+                          <td class="linenum" style="width: 50px; text-align: right; color: rgba(27,31,35,0.3); padding-right: 10px; border-right: 1px solid #d1d5da; user-select: none;" th:text="${i+1}">1</td>
+                          <td class="code" style="padding-left: 10px;"><pre class="diff-partial-codeline" style="margin: 0; white-space: pre-wrap;" th:text="'+' + ${diff.b.getString(i)}"></pre></td>
+                        </tr>
+                        
+                        <th:block th:with="lineVal=${i}, pathVal=${diff.pathB}, sideVal='B'">
+                          <th:block th:insert="~{code/compare :: renderLineComments(${commentThreads}, ${diff}, ${lineVal}, ${sideVal})}"></th:block>
+                        </th:block>
+                      </th:block>
+                    </th:block>
+
+                    <!-- DELETE -->
+                    <th:block th:if="${diff.changeType.name == 'DELETE'}">
+                      <tr class="range">
+                        <td colspan="3" class="hunk" style="background-color: #e6ebf1; color: #586069; padding: 4px 10px;" 
+                            th:text="'@@ -1,' + ${diff.a.size()} + ' +0,0 @@'"></td>
+                      </tr>
+                      <th:block th:each="i : ${#numbers.sequence(0, diff.a.size() - 1)}">
+                        <tr class="remove diff-line-tr" style="background-color: #ffeef0;"
+                            th:data-path="${diff.pathA}"
+                            th:data-line-num-a="${i}"
+                            data-kind="REMOVE">
+                          <td class="linenum" style="width: 50px; text-align: right; color: rgba(27,31,35,0.3); padding-right: 10px; border-right: 1px solid #d1d5da; user-select: none;" th:text="${i+1}">1</td>
+                          <td class="linenum add-comment-btn-cell" style="width: 50px; text-align: right; color: rgba(27,31,35,0.3); padding-right: 10px; border-right: 1px solid #d1d5da; user-select: none; cursor: pointer; position: relative;">+</td>
+                          <td class="code" style="padding-left: 10px;"><pre class="diff-partial-codeline" style="margin: 0; white-space: pre-wrap;" th:text="'-' + ${diff.a.getString(i)}"></pre></td>
+                        </tr>
+
+                        <th:block th:with="lineVal=${i}, pathVal=${diff.pathA}, sideVal='A'">
+                          <th:block th:insert="~{code/compare :: renderLineComments(${commentThreads}, ${diff}, ${lineVal}, ${sideVal})}"></th:block>
+                        </th:block>
+                      </th:block>
+                    </th:block>
+
+                    <!-- MODIFY / RENAME -->
+                    <th:block th:if="${diff.changeType.name == 'MODIFY' or diff.changeType.name == 'RENAME' or diff.changeType.name == 'COPY'}">
+                      <tr th:if="${diff.isBinaryA or diff.isBinaryB}">
+                        <td colspan="3" class="isBinary" style="padding: 10px; color: #666; font-style: italic;">이진(Binary) 파일이 변경되었습니다.</td>
+                      </tr>
+                      <th:block th:if="${!diff.isBinaryA and !diff.isBinaryB and diff.getHunks() != null}" th:each="hunk : ${diff.getHunks()}">
+                        <tr class="range">
+                          <td class="linenum" style="width: 50px; text-align: right; color: rgba(27,31,35,0.3); padding-right: 10px; border-right: 1px solid #d1d5da; user-select: none;">...</td>
+                          <td class="linenum" style="width: 50px; text-align: right; color: rgba(27,31,35,0.3); padding-right: 10px; border-right: 1px solid #d1d5da; user-select: none;">...</td>
+                          <td class="hunk" style="background-color: #e6ebf1; color: #586069; padding: 4px 10px;" 
+                              th:text="'@@ -' + ${hunk.beginA + 1} + ',' + ${hunk.endA - hunk.beginA} + ' +' + ${hunk.beginB + 1} + ',' + ${hunk.endB - hunk.beginB} + ' @@'"></td>
+                        </tr>
+                        
+                        <th:block th:each="line : ${hunk.lines}">
+                          <tr class="diff-line-tr" 
+                              th:style="${line.kind.name == 'ADD' ? 'background-color: #e6ffed;' : (line.kind.name == 'REMOVE' ? 'background-color: #ffeef0;' : '')}"
+                              th:data-path="${line.kind.name == 'REMOVE' ? diff.pathA : diff.pathB}"
+                              th:data-line-num-a="${line.numA}"
+                              th:data-line-num-b="${line.numB}"
+                              th:data-kind="${line.kind}">
+                            <td class="linenum add-comment-btn-cell" style="width: 50px; text-align: right; color: rgba(27,31,35,0.3); padding-right: 10px; border-right: 1px solid #d1d5da; user-select: none; cursor: pointer; position: relative;" 
+                                th:text="${line.numA != null ? line.numA + 1 : '+'}"></td>
+                            <td class="linenum" style="width: 50px; text-align: right; color: rgba(27,31,35,0.3); padding-right: 10px; border-right: 1px solid #d1d5da; user-select: none;" 
+                                th:text="${line.numB != null ? line.numB + 1 : '+'}"></td>
+                            <td class="code" style="padding-left: 10px;">
+                              <pre class="diff-partial-codeline" style="margin: 0; white-space: pre-wrap;" 
+                                   th:text="${line.kind.name == 'ADD' ? '+' : (line.kind.name == 'REMOVE' ? '-' : ' ')} + ${line.content}"></pre>
+                            </td>
+                          </tr>
+
+                          <th:block th:with="lineVal=${line.kind == T(com.github.yonaprojects.yona.domain.vcs.DiffLineType).REMOVE ? line.numA : line.numB}, 
+                                             sideVal=${line.kind == T(com.github.yonaprojects.yona.domain.vcs.DiffLineType).REMOVE ? 'A' : 'B'}">
+                            <th:block th:insert="~{code/compare :: renderLineComments(${commentThreads}, ${diff}, ${lineVal}, ${sideVal})}"></th:block>
+                          </th:block>
+                        </th:block>
+                      </th:block>
+                    </th:block>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 범위 없는(commit 전체 대상) 코드리뷰 댓글 스레드 (yona code/diff.scala.html:94-107, #166) -->
+          <div class="board-comment-wrap">
+            <div class="non-ranged-threads-wrap">
+              <th:block th:each="thread : ${commentThreads}" th:if="${thread.class.simpleName == 'NonRangedCodeCommentThread'}">
+                <div th:replace="~{code/partial_nonrange_codecomment_thread :: partial_nonrange_codecomment_thread(${thread}, ${project}, ${currentUser})}"></div>
+              </th:block>
+            </div>
+
+            <!-- yona common.commentForm(commit.asResource, COMMIT_COMMENT, ...) 대응 — 새 범위 없는 스레드 시작 -->
+            <div class="write-comment-form" th:if="${currentUser != null}">
+              <form th:action="@{/{owner}/{projectName}/commit/{commitId}/comments(owner=${project.owner}, projectName=${project.name}, commitId=${commit.id})}" method="post">
+                <div class="write-comment-box" style="display: flex; flex-direction: column; gap: 8px;">
+                  <div th:replace="~{site/layout :: markdownEditor('contents', '', 'commit-comment-body')}"></div>
+                  <div style="text-align: right;">
+                    <button type="submit" class="ybtn ybtn-success" th:text="#{button.comment.new}">댓글 등록</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 리뷰 스레드 사이드바 (yona code/diff.scala.html:116-167 review-wrap 대응) -->
+        <div class="review-wrap span-hard-wrap">
+          <div class="review-container">
+            <ul class="nav nav-tabs" style="margin-bottom:10px;">
+              <li class="active"><a href="#reviewcards-open" data-toggle="tab"><span th:text="#{issue.state.open}">열림</span> <span th:text="${#lists.size(commentThreads.?[state.name() == 'OPEN'])}">0</span></a></li>
+              <li><a href="#reviewcards-closed" data-toggle="tab"><span th:text="#{issue.state.closed}">닫힘</span> <span th:text="${#lists.size(commentThreads.?[state.name() == 'CLOSED'])}">0</span></a></li>
+            </ul>
+
+            <div class="tab-content review-list">
+              <div id="reviewcards-open" class="tab-pane active">
+                <a th:each="thread : ${commentThreads.?[state.name() == 'OPEN']}" th:href="'#thread-' + ${thread.id}" th:class="'review-card ' + ${#strings.toLowerCase(thread.state.name())}">
+                  <p class="content" th:text="${thread.getFirstReviewComment().contents}">내용</p>
+                  <span class="date" th:title="${templateHelper.getDateString(thread.createdDate)}">
+                    <span class="comments" th:if="${thread.hasChildComments()}"><i class="yobicon-comments"></i> <span th:text="${thread.reviewComments.size() - 1}">0</span></span>
+                    <span th:text="${templateHelper.agoOrDateString(thread.createdDate)}">날짜</span>
+                  </span>
+                </a>
+              </div>
+              <div id="reviewcards-closed" class="tab-pane">
+                <a th:each="thread : ${commentThreads.?[state.name() == 'CLOSED']}" th:href="'#thread-' + ${thread.id}" th:class="'review-card ' + ${#strings.toLowerCase(thread.state.name())}">
+                  <p class="content" th:text="${thread.getFirstReviewComment().contents}">내용</p>
+                  <span class="date" th:title="${templateHelper.getDateString(thread.createdDate)}">
+                    <span class="comments" th:if="${thread.hasChildComments()}"><i class="yobicon-comments"></i> <span th:text="${thread.reviewComments.size() - 1}">0</span></span>
+                    <span th:text="${templateHelper.agoOrDateString(thread.createdDate)}">날짜</span>
+                  </span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button th:if="${currentUser != null}" id="watch-button" type="button" class="pull-left ybtn" th:classappend="${isWatching} ? 'active ybtn-watching' : ''"
+              data-toggle="button" th:data-watching="${isWatching}" th:text="#{notification.watch}">지켜보기</button>
+      <a th:href="@{/{owner}/{name}/commits/{branch}/{path}(owner=${project.owner}, name=${project.name}, branch=${selectedBranch}, path=${path})}" class="ybtn pull-right" th:text="#{button.list}">목록</a>
+      </div>
+    </div>
+  </div>
+
+  <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+
+<div th:replace="~{site/layout :: scripts}"></div>
+<th:block th:replace="~{common/select2 :: select2}"></th:block>
+<script th:inline="javascript">
+document.addEventListener("DOMContentLoaded", function() {
+  const currentUser = [[${currentUser != null}]];
+  const postUrl = [[@{/{owner}/{projectName}/commit/{commitId}/comments(owner=${project.owner}, projectName=${project.name}, commitId=${commit.id})}]];
+
+  // legacy code/diff.scala.html $yobi.loadModule("code.Diff", {sWatchUrl/sUnwatchUrl}) 대응
+  const watchBtn = document.getElementById("watch-button");
+  if (watchBtn) {
+    watchBtn.addEventListener("click", function() {
+      const watching = watchBtn.getAttribute("data-watching") === "true";
+      const url = watching ? "/unwatch" : "/watch";
+      const body = new URLSearchParams();
+      body.set("resource.type", "COMMIT");
+      body.set("resource.id", [[${commitResourceId}]]);
+      fetch(url, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: body.toString() })
+        .then(() => window.location.reload());
+    });
+  }
+
+  // hover effect for add-comment button
+  document.querySelectorAll(".diff-line-tr").forEach(tr => {
+    const btnCell = tr.querySelector(".add-comment-btn-cell");
+    if (btnCell) {
+      btnCell.style.color = "transparent";
+      tr.addEventListener("mouseenter", () => {
+        if (currentUser) btnCell.style.color = "#0366d6";
+      });
+      tr.addEventListener("mouseleave", () => {
+        btnCell.style.color = "transparent";
+      });
+      
+      btnCell.addEventListener("click", function(e) {
+        if (!currentUser) return;
+        e.stopPropagation();
+        
+        // check if form already open
+        let nextTr = tr.nextElementSibling;
+        if (nextTr && nextTr.classList.contains("comments-form-tr")) {
+          nextTr.remove();
+          return;
+        }
+        
+        const path = tr.getAttribute("th:data-path") || tr.getAttribute("data-path");
+        const lineNumA = tr.getAttribute("data-line-num-a");
+        const lineNumB = tr.getAttribute("data-line-num-b");
+        const kind = tr.getAttribute("data-kind");
+        
+        let side = "B";
+        let lineVal = lineNumB;
+        if (kind === "REMOVE") {
+          side = "A";
+          lineVal = lineNumA;
+        } else if (kind === "ADD") {
+          side = "B";
+          lineVal = lineNumB;
+        } else {
+          side = "B";
+          lineVal = lineNumB || lineNumA;
+        }
+        
+        const formHtml = `
+          <tr class="comments-form-tr">
+            <td colspan="3" style="padding: 10px; background-color: #fafbfc; border-top: 1px solid #e1e4e8; border-bottom: 1px solid #e1e4e8;">
+              <div class="write-comment-form">
+                <form action="${postUrl}" method="post">
+                  <input type="hidden" name="path" value="${path}">
+                  <input type="hidden" name="startSide" value="${side}">
+                  <input type="hidden" name="startLine" value="${lineVal}">
+                  <input type="hidden" name="startColumn" value="0">
+                  <input type="hidden" name="endSide" value="${side}">
+                  <input type="hidden" name="endLine" value="${lineVal}">
+                  <input type="hidden" name="endColumn" value="0">
+                  
+                  <div style="display: flex; align-items: flex-start;">
+                    <textarea name="contents" placeholder="새 코드 댓글을 입력하세요..." style="width: 100%; height: 50px; padding: 6px; border: 1px solid #d1d5da; border-radius: 3px; font-family: sans-serif; resize: vertical; margin-right: 10px; font-size: 12px;" required></textarea>
+                    <button type="submit" class="ybtn ybtn-success ybtn-small" style="padding: 4px 10px;">등록</button>
+                  </div>
+                </form>
+              </div>
+            </td>
+          </tr>
+        `;
+        tr.insertAdjacentHTML("afterend", formHtml);
+      });
+    }
+  });
+  // 댓글 삭제는 data-request-method="delete" 속성을 통해 site/layout::scripts가 로드하는
+  // 전역 jquery.requestAs.js 핸들러(yona-common.js)가 처리한다 — 별도 fetch 핸들러 불필요.
+});
+</script>
+</body>
+</html>

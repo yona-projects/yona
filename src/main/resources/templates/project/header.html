@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<div th:fragment="header(project)" class="project-header-outer" style="background-image:url(/images/project_default.jpg)">
+    <div class="project-header-inner">
+        <div class="project-header-wrap">
+            <div class="project-header-avatar">
+                <img th:src="@{/projects/{id}/logo(id=${project.id})}" src="/images/project_default_logo.png" />
+            </div>
+            <div class="project-breadcrumb-wrap" th:classappend="${project.originalProject != null} ? 'fork'">
+                <div class="project-breadcrumb">
+                    <span class="project-author hide-in-mobile"><a th:href="@{/user/{owner}(owner=${project.owner})}" th:text="${project.owner}">owner</a></span>
+                    <span class="project-separator hide-in-mobile">/</span>
+                    <span class="project-name"><a th:href="@{/{owner}/{name}(owner=${project.owner}, name=${project.name})}" th:text="${project.name}">name</a></span>
+                    <span class="user-project-list" th:data-project-id="${project.id}">
+                        <i class="star material-icons va-text-top" th:classappend="${@templateHelper.isFavoriteProject(project, currentUser)} ? 'starred'">star</i>
+                    </span>
+                    <span th:if="${project.projectScope == T(com.github.yonaprojects.yona.domain.project.ProjectScope).PRIVATE}" class="project-private">
+                        <i class="yobicon-lock"></i>
+                    </span>
+                    <span th:if="${project.isProtected}" class="project-protected" title="Group Project">G</span>
+                </div>
+                <div th:if="${project.originalProject != null}" class="project-origin">
+                    <span class="project-origin-title" th:text="#{fork.original}">forked from</span>
+                    <a th:href="@{/{owner}/{name}(owner=${project.originalProject.owner}, name=${project.originalProject.name})}" class="project-origin-name" th:text="${project.originalProject.owner} + ' / ' + ${project.originalProject.name}">
+                        original/name
+                    </a>
+                </div>
+            </div>
+            <div class="project-util-wrap" th:if="${currentUser != null}">
+                <ul class="project-util">
+                    <li th:if="${!templateHelper.isMember(project, currentUser)}">
+                        <th:block th:if="${templateHelper.isEnrolled(project, currentUser)}">
+                            <button class="ybtn ybtn-small ybtn-info dropdown-toggle" type="button" data-toggle="dropdown">
+                                <i class="yobicon-addfriend"></i>
+                            </button>
+                            <div class="dropdown-menu flat right title">
+                                <div class="pop-title" th:text="#{project.you.want.to.be.a.member(${project.name})}">가입 요청함</div>
+                                <div class="pop-content" th:text="#{project.member.enrollment.help}">승인 대기 중</div>
+                                <div class="pop-content btn-wrap">
+                                    <a class="ybtn enrollBtn" data-request-method="post" th:data-request-uri="@{/api/projects/{id}/enroll/cancel(id=${project.id})}" href="javascript:void(0);" id="enrollBtn">
+                                        <i class="yobicon-removefriend"></i>
+                                        <span th:text="#{button.cancel.enrollment}">가입 요청 취소</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </th:block>
+                        <th:block th:unless="${templateHelper.isEnrolled(project, currentUser)}">
+                            <button class="ybtn ybtn-small dropdown-toggle" type="button" data-toggle="dropdown">
+                                <i class="yobicon-addfriend"></i><span th:text="#{organization.member.enrollment.title}">멤버 가입 요청</span>
+                            </button>
+                            <div class="dropdown-menu flat right title">
+                                <div class="pop-title" th:text="#{project.you.may.want.to.be.a.member(${project.name})}">가입 요청할 수 있습니다</div>
+                                <div class="pop-content" th:text="#{project.member.enrollment.will.help}">요청하면 관리자가 확인합니다</div>
+                                <div class="pop-content btn-wrap">
+                                    <a class="ybtn ybtn-info enrollBtn" data-request-method="post" th:data-request-uri="@{/api/projects/{id}/enroll(id=${project.id})}" href="javascript:void(0);" id="enrollBtn">
+                                        <i class="yobicon-addfriend"></i>
+                                        <span th:text="#{button.new.enrollment}">가입 요청하기</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </th:block>
+                    </li>
+                    <li>
+                        <div class="btn-group dropdown watch-btn">
+                            <a class="btn watcher-count no-border"
+                               th:classappend="${isWatching != null and isWatching} ? 'watch-on'"
+                               th:title="#{project.watcher.number}"
+                               data-toggle="tooltip"
+                               th:href="@{/{owner}/{name}/watchers(owner=${project.owner}, name=${project.name})}"
+                               th:text="${watcherCount != null ? watcherCount : 0}">0</a>
+
+                            <!-- If user is watching -->
+                            <th:block th:if="${isWatching != null and isWatching}">
+                                <div class="dropdown-menu flat right title">
+                                    <div class="pop-title" th:text="#{project.you.are.watching(${project.name})}">프로젝트를 지켜보는 중입니다.</div>
+                                    <div class="pop-content">
+                                        <p th:text="#{notification.help}">다음 이벤트가 발생할 때 알림 메시지를 받습니다.</p>
+                                        <ul class="icons-ul">
+                                            <li><i class="yobicon-li yobicon-ok"></i><span th:text="#{notification.help.new}">새로운 이슈나 게시글, 코드 주고받기가 등록되었을 때</span></li>
+                                            <li><i class="yobicon-li yobicon-ok"></i><span th:text="#{notification.help.new.comment}">자신이 작성한 글이나 담당자인 이슈에 새 댓글이 등록되었을 때</span></li>
+                                            <li><i class="yobicon-li yobicon-ok"></i><span th:text="#{notification.help.update.issue}">자신이 담당자인 이슈의 상태가 변경되거나 담당자가 변경될 때</span></li>
+                                            <li><i class="yobicon-li yobicon-ok"></i><span th:text="#{notification.help.update.pullrequest}">보낸 코드의 상태가 변경 될 때</span></li>
+                                        </ul>
+                                    </div>
+                                    <div class="pop-content btn-wrap">
+                                        <a class="ybtn" th:href="@{/user/editform/notifications} + '#' + ${project.id}">
+                                            <i class="yobicon-alert2"></i>
+                                            <span th:text="#{userinfo.changeNotifications}">알림 설정</span>
+                                        </a>
+                                        <a class="ybtn ybtn-watching watchBtn" th:href="@{/{owner}/{name}/unwatch(owner=${project.owner}, name=${project.name})}">
+                                            <i class="yobicon-eye-off"></i>
+                                            <span th:text="#{project.unwatch}">지켜보기 취소</span>
+                                        </a>
+                                    </div>
+                                </div>
+                                <button class="btn nofocus no-border down-arrow" type="button" data-toggle="dropdown" th:text="#{project.unwatch}">
+                                    지켜보기 취소
+                                </button>
+                            </th:block>
+
+                            <!-- If user is not watching -->
+                            <th:block th:if="${isWatching == null or !isWatching}">
+                                <div class="dropdown-menu flat right title">
+                                    <div class="pop-title" th:text="#{project.you.are.not.watching(${project.name})}">프로젝트를 지켜보고 있지 않습니다.</div>
+                                    <div class="pop-content">
+                                        <p th:text="#{notification.help}">다음 이벤트가 발생할 때 알림 메시지를 받습니다.</p>
+                                        <ul class="icons-ul">
+                                            <li><i class="yobicon-li yobicon-ok"></i><span th:text="#{notification.help.new}">새로운 이슈나 게시글, 코드 주고받기가 등록되었을 때</span></li>
+                                            <li><i class="yobicon-li yobicon-ok"></i><span th:text="#{notification.help.new.comment}">자신이 작성한 글이나 담당자인 이슈에 새 댓글이 등록되었을 때</span></li>
+                                            <li><i class="yobicon-li yobicon-ok"></i><span th:text="#{notification.help.update.issue}">자신이 담당자인 이슈의 상태가 변경되거나 담당자가 변경될 때</span></li>
+                                            <li><i class="yobicon-li yobicon-ok"></i><span th:text="#{notification.help.update.pullrequest}">보낸 코드의 상태가 변경 될 때</span></li>
+                                        </ul>
+                                    </div>
+                                    <div class="pop-content btn-wrap">
+                                        <a class="ybtn" th:href="@{/user/editform/notifications} + '#' + ${project.id}">
+                                            <i class="yobicon-alert2"></i>
+                                            <span th:text="#{userinfo.changeNotifications}">알림 설정</span>
+                                        </a>
+                                        <a class="ybtn ybtn-watching watchBtn" th:href="@{/{owner}/{name}/watch(owner=${project.owner}, name=${project.name})}">
+                                            <i class="yobicon-eye"></i>
+                                            <span th:text="#{project.watch}">프로젝트 지켜보기</span>
+                                        </a>
+                                    </div>
+                                </div>
+                                <button class="btn nofocus no-border down-arrow" type="button" data-toggle="dropdown" th:text="#{project.watch}">
+                                    프로젝트 지켜보기
+                                </button>
+                            </th:block>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

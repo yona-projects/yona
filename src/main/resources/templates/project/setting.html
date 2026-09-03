@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(${project.name} + ' - ' + #{menu.admin})}">
+</head>
+<body class="prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+    
+    <!-- Yona 원본 프로젝트 헤더 및 프로젝트 메뉴 탑재 -->
+    <div th:replace="~{project/header :: header(${project})}"></div>
+    <div th:replace="~{project/menu :: menu(${project}, 'setting')}"></div>
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
+            <!-- 설정 서브 메뉴 탭 -->
+            <div th:replace="~{project/setting_menu :: menu(${project}, 'setting')}"></div>
+
+            <form id="saveSetting" method="post" th:action="@{/api/projects/{id}(id=${project.id})}" enctype="multipart/form-data" class="nm" onsubmit="return false">
+                <div class="bubble-wrap gray" style="overflow: visible">
+                    <input type="hidden" name="id" th:value="${project.id}">
+                    
+                    <div class="box-wrap top clearfix frm-wrap" style="padding-top:20px;">
+                        <div class="setting-box left">
+                            <div class="logo-wrap" th:style="'background-image:url(/projects/' + ${project.id} + '/logo)'"></div>
+                            <div class="logo-desc">
+                                <ul class="unstyled descs">
+                                    <li><strong th:text="#{project.logo}">Project Logo</strong></li>
+                                    <li><span th:text="#{project.logo.type}">Type</span> <span class="point">bmp, jpg, gif, png</span></li>
+                                    <li><span th:text="#{project.logo.maxFileSize}">Max File Size</span> <span class="point">5MB</span></li>
+                                    <li>
+                                        <div class="btn-wrap">
+                                            <div class="nbtn medium white fake-file-wrap">
+                                                <i class="yobicon-upload"></i> <span th:text="#{button.upload}">Upload</span>
+                                                <input id="logoPath" type="file" class="file" name="logoPath" accept="image/*">
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <dl class="setting-box right">
+                            <dt>
+                                <label for="project-name" th:text="#{project.name.placeholder}">Project Name</label>
+                            </dt>
+                            <dd>
+                                <input id="project-name" type="text" name="name" data-trigger="popover" th:data-content="#{project.transfer.description6}" data-placement="left" maxlength="250" th:value="${project.name}">
+                            </dd>
+                            <dt>
+                                <label for="project-desc" th:text="#{project.description.placeholder}">Description</label>
+                            </dt>
+                            <dd>
+                                <textarea id="project-desc" name="overview" maxlength="250" class="textarea" th:text="${project.overview}"></textarea>
+                            </dd>
+                        </dl>
+                    </div>
+
+                    <div class="box-wrap middle">
+                        <div class="cu-label" th:text="#{project.shareOption}">Share Option</div>
+                        <div class="cu-desc">
+                            <input name="projectScope" type="radio" class="radio-btn" id="public" value="PUBLIC" th:checked="${project.projectScope == T(com.github.yonaprojects.yona.domain.project.ProjectScope).PUBLIC}">
+                            <label for="public" class="bg-radiobtn label-public" th:text="#{project.public}">Public</label>
+                            
+                            <input name="projectScope" type="radio" class="radio-btn" id="private" value="PRIVATE" th:checked="${project.projectScope == T(com.github.yonaprojects.yona.domain.project.ProjectScope).PRIVATE}">
+                            <label for="private" class="bg-radiobtn label-private" th:text="#{project.private}">Private</label>
+                            
+                            <span class="note" th:text="#{project.private.notice}">Notice</span>
+                        </div>
+                    </div>
+
+                    <div class="box-wrap middle">
+                        <div class="cu-label" th:text="#{project.codeAccessible}">Code Accessible</div>
+                        <div class="cu-desc">
+                            <input name="isCodeAccessibleMemberOnly" type="radio" id="codeAccessibleMemberOnly" class="radio-btn" value="true" th:checked="${project.isCodeAccessibleMemberOnly}">
+                            <label for="codeAccessibleMemberOnly" class="bg-radiobtn label-public" th:text="#{button.yes}">Yes</label>
+                            
+                            <input name="isCodeAccessibleMemberOnly" type="radio" id="codeAccessibleAnyone" class="radio-btn" value="false" th:checked="${!project.isCodeAccessibleMemberOnly}">
+                            <label for="codeAccessibleAnyone" class="bg-radiobtn label-private" th:text="#{button.no}">No</label>
+                        </div>
+                    </div>
+
+                    <div th:if="${(project.vcs ?: 'GIT').toUpperCase() == 'GIT'}" class="box-wrap middle reviewer-count-wrap" id="reviewerCountSettingPanel">
+                        <div class="cu-label vmiddle" th:text="#{project.reviewer.count}">Reviewer Count</div>
+                        <div class="cu-desc">
+                            <input name="isUsingReviewerCount" type="radio" class="radio-btn" id="reviewerCountEnable" value="true" th:checked="${project.isUsingReviewerCount}">
+                            <label for="reviewerCountEnable" class="bg-radiobtn label-public" th:text="#{project.reviewer.count.enable}">Enable</label>
+                            
+                            <input name="isUsingReviewerCount" type="radio" class="radio-btn" id="reviewerCountDisable" value="false" th:checked="${!project.isUsingReviewerCount}">
+                            <label for="reviewerCountDisable" class="bg-radiobtn label-private" th:text="#{project.reviewer.count.disable}">Disable</label>
+
+                            <div id="welReviewerCount" style="margin-top: 10px; display: inline-block;">
+                                <label for="defaultReviewerCount" style="font-weight: normal; margin-right: 10px;" th:text="#{project.reviewer.count.description}">Reviewer Count:</label>
+                                <select id="defaultReviewerCount" name="defaultReviewerCount" class="form-control" style="display: inline-block; width: 100px;">
+                                    <option th:each="num : ${#numbers.sequence(1, 10)}" th:value="${num}" th:text="${num}" th:selected="${project.defaultReviewerCount == num}"></option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:if="${(project.vcs ?: 'GIT').toUpperCase() == 'GIT' and branches != null and !branches.isEmpty()}" class="box-wrap middle" id="defaultBranchSettingPanel">
+                        <div class="cu-label vmiddle" th:text="#{code.branches.defaultBranch}">Default Branch</div>
+                        <div class="cu-desc">
+                            <select id="project-default-branch" name="defaultBranch" style="min-width: 220px;">
+                                <option th:each="branch : ${branches}" th:value="${branch}" th:text="${branch}" th:selected="${branch == defaultBranch}"></option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="box-wrap middle">
+                        <div class="cu-label vmiddle" th:text="#{project.menu.setting}">Menu Setting</div>
+                        <div class="cu-desc">
+                            <label for="menuSettingCode" class="bg-radiobtn label-public inline-list" style="margin-right: 15px;">
+                                <input type="checkbox" class="radio-btn" id="menuSettingCode" name="code" value="true" th:checked="${project.isCodeEnabled}">
+                                <span th:text="#{menu.code}">Code</span>
+                            </label>
+                            <label for="menuSettingIssue" class="bg-radiobtn label-public inline-list" style="margin-right: 15px;">
+                                <input type="checkbox" class="radio-btn" id="menuSettingIssue" name="issue" value="true" th:checked="${project.isIssueEnabled}">
+                                <span th:text="#{menu.issue}">Issue</span>
+                            </label>
+                            <label th:if="${(project.vcs ?: 'GIT').toUpperCase() == 'GIT'}" for="menuSettingPullRequest" class="bg-radiobtn label-public inline-list" style="margin-right: 15px;">
+                                <input type="checkbox" class="radio-btn" id="menuSettingPullRequest" name="pullRequest" value="true" th:checked="${project.isPullRequestEnabled}">
+                                <span th:text="#{menu.pullRequest}">Pull Request</span>
+                            </label>
+                            <label for="menuSettingReview" class="bg-radiobtn label-public inline-list" style="margin-right: 15px;">
+                                <input type="checkbox" class="radio-btn" id="menuSettingReview" name="review" value="true" th:checked="${project.isReviewEnabled}">
+                                <span th:text="#{menu.review}">Review</span>
+                            </label>
+                            <label for="menuSettingMilestone" class="bg-radiobtn label-public inline-list" style="margin-right: 15px;">
+                                <input type="checkbox" class="radio-btn" id="menuSettingMilestone" name="milestone" value="true" th:checked="${project.isMilestoneEnabled}">
+                                <span th:text="#{milestone}">Milestone</span>
+                            </label>
+                            <label for="menuSettingBoard" class="bg-radiobtn label-public inline-list" style="margin-right: 15px;">
+                                <input type="checkbox" class="radio-btn" id="menuSettingBoard" name="board" value="true" th:checked="${project.isBoardEnabled}">
+                                <span th:text="#{menu.board}">Board</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="box-wrap bottom">
+                    <button id="save" type="submit" class="ybtn ybtn-success" th:text="#{button.save}">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+    <div th:replace="~{site/layout :: scripts}"></div>
+</div>
+
+<script th:inline="javascript">
+  $(document).ready(function() {
+      $("#saveSetting").submit(function(e) {
+          e.preventDefault();
+          var projectId = [[${project.id}]];
+          var overview = $("#project-desc").val();
+          var name = $("#project-name").val();
+          var projectScope = $("input[name='projectScope']:checked").val();
+          var isCodeAccessibleMemberOnly = $("input[name='isCodeAccessibleMemberOnly']:checked").val() === "true";
+          
+          var isUsingReviewerCount = false;
+          var defaultReviewerCount = 1;
+          if ($("#reviewerCountEnable").length > 0) {
+              isUsingReviewerCount = $("input[name='isUsingReviewerCount']:checked").val() === "true";
+              defaultReviewerCount = parseInt($("#defaultReviewerCount").val());
+          }
+          var defaultBranch = $("#project-default-branch").val();
+          
+          var isCodeEnabled = $("#menuSettingCode").is(":checked");
+          var isIssueEnabled = $("#menuSettingIssue").is(":checked");
+          var isPullRequestEnabled = $("#menuSettingPullRequest").is(":checked");
+          var isReviewEnabled = $("#menuSettingReview").is(":checked");
+          var isMilestoneEnabled = $("#menuSettingMilestone").is(":checked");
+          var isBoardEnabled = $("#menuSettingBoard").is(":checked");
+
+          var requestData = {
+              name: name,
+              overview: overview,
+              projectScope: projectScope,
+              isCodeAccessibleMemberOnly: isCodeAccessibleMemberOnly,
+              isUsingReviewerCount: isUsingReviewerCount,
+              defaultReviewerCount: defaultReviewerCount,
+              defaultBranch: defaultBranch,
+              isCodeEnabled: isCodeEnabled,
+              isIssueEnabled: isIssueEnabled,
+              isPullRequestEnabled: isPullRequestEnabled,
+              isReviewEnabled: isReviewEnabled,
+              isMilestoneEnabled: isMilestoneEnabled,
+              isBoardEnabled: isBoardEnabled
+          };
+
+          $.ajax({
+              url: '/api/projects/' + projectId,
+              type: 'PUT',
+              contentType: 'application/json',
+              data: JSON.stringify(requestData),
+              success: function(result) {
+                  alert("설정이 성공적으로 저장되었습니다.");
+                  window.location.reload();
+              },
+              error: function(xhr, status, error) {
+                  alert("저장 실패: " + xhr.responseText);
+              }
+          });
+      });
+  });
+</script>
+</body>
+</html>

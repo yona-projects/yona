@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<!--
+ legacy common/commentUpdateForm.scala.html 대응 (#25, 이번 그룹11 세션에서 실제 착수). 댓글
+ 인라인 수정 폼 — 기본은 숨김(.comment-update-form은 CSS로 display:none, JS가 "수정" 버튼 클릭 시
+ comment-body를 감추고 이 폼을 보여준다).
+
+ legacy는 <form action="@action/@comment.id" method="post" enctype=multipart/form-data> 풀 페이지
+ 제출 방식이지만, yona 백엔드는 REST(PUT /api/projects/{projectId}/issues|posts/{number}/comments/
+ {commentId})만 제공하므로 이 폼은 실제 제출을 막고(JS가 preventDefault) fetch PUT으로 대체한다 —
+ 필요한 AJAX 전환(정책 문서 "필요한 아키텍처 차이"에 해당, scope-cutting 아님).
+-->
+<div th:fragment="updateForm(comment, apiBase, isAllowedUpdate, resourceType)" th:id="'comment-editform-' + ${comment.id}" class="comment-update-form">
+    <form th:id="'comment-update-form-' + ${comment.id}" th:data-api-base="${apiBase}" th:data-comment-id="${comment.id}" th:data-original="${comment.contents}">
+        <div class="write-comment-box">
+            <div class="write-comment-wrap">
+                <div th:replace="~{site/layout :: markdownEditor('contents-' + ${comment.id}, ${comment.contents}, 'update-comment-body')}"></div>
+
+                <div th:replace="~{common/uploadForm :: uploadForm(${resourceType}, ${comment.id}, null)}"></div>
+
+                <div class="right-txt comment-update-button upload-button-line">
+                    <button type="button" class="ybtn ybtn-cancel" th:data-comment-id="${comment.id}" th:text="#{button.cancel}">취소</button>
+                    <button th:if="${isAllowedUpdate}" type="submit" class="ybtn ybtn-info" th:text="#{button.save}">저장</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+</body>
+</html>

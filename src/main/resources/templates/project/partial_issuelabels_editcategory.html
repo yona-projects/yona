@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<div th:fragment="editcategory" id="editCategory" class="modal hide yobiDialog" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="btn-dismiss"><button type="button" class="btn-transparent" data-dismiss="modal">&times;</button></div>
+  <div class="message edit-label-category-form">
+    <div class="center-txt">
+      <input type="text" name="name" class="text category-name" th:placeholder="#{label.category}">
+
+      <div class="desc">
+        <span th:text="#{label.category.option}">카테고리 옵션</span>
+
+        <select name="isExclusive" data-toggle="select2" data-dropdown-css-class="select2-without-searchbox">
+          <option value="false" th:text="#{label.category.option.multiple}">다중 선택</option>
+          <option value="true" th:text="#{label.category.option.single}">단일 선택</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="center-txt buttons mt20 mb20">
+      <button type="button" class="ybtn ybtn-info btnSubmit" th:text="#{button.save}">저장</button>
+      <button type="button" class="ybtn ybtn-default" data-dismiss="modal" th:text="#{button.cancel}">취소</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

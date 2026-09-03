@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(${org.name})}">
+</head>
+<body class="prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div th:replace="~{organization/header :: header(${org})}"></div>
+    <div th:replace="~{organization/menu :: menu(${org}, 'setting')}"></div>
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
+            <div th:replace="~{organization/partial_settingmenu :: menu(${org}, 'delete')}"></div>
+
+            <div class="box-wrap bottom">
+                <a id="btnDelete" href="#alertDeletion" class="ybtn ybtn-danger" data-toggle="modal" th:text="#{organization.delete.this}">Delete this organization</a>
+            </div>
+
+            <!-- Confirm to delete organization -->
+            <div id="alertDeletion" class="modal hide">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h3 th:text="#{organization.delete.requestion}">Delete organization?</h3>
+                </div>
+                <div class="modal-body">
+                    <p th:text="#{organization.delete.reaccept}">Are you sure?</p>
+                </div>
+                <div class="modal-footer">
+                    <button id="btnDeleteExec" type="button" class="ybtn ybtn-danger" th:text="#{button.yes}">Yes</button>
+                    <button type="button" class="ybtn" data-dismiss="modal" th:text="#{button.no}">No</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+    <div th:replace="~{site/layout :: scripts}"></div>
+</div>
+<script language="javascript" th:inline="javascript">
+    $("#btnDeleteExec").on("click", function() {
+        $.ajax({
+            type: "delete",
+            url: /*[[@{/organizations/{orgName}(orgName=${org.name})}]]*/ "",
+            success: function() {
+                location.href = /*[[@{/}]]*/ "/";
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                $("#alertDeletion").modal("hide");
+                var sErrorMsg;
+                try{
+                    sErrorMsg = Messages($.parseJSON(jqXHR.responseText).errorMsg);
+                }catch(e){
+                    sErrorMsg = Messages("organization.delete.error");
+                }
+                $yobi.alert(sErrorMsg);
+                return false;
+            }
+        });
+    });
+</script>
+</body>
+</html>

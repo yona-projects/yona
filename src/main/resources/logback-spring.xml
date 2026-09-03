@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    yona-wiki P3-01(Observability) 대응 — 구조화 JSON 로깅. Loki/Promtail 등 로그 수집기가
+    파싱하기 쉽도록 콘솔 출력을 LogstashEncoder 기반 JSON 한 줄(one line per event)로 통일한다.
+    <springProfile>/<springProperty> 등 Spring Boot 확장 태그를 쓰지 않아 순수 Logback
+    JoranConfigurator로도 그대로 파싱 가능하다(LogbackJsonLoggingSpec.kt에서 이 성질을 이용해
+    전체 애플리케이션 컨텍스트 기동 없이 빠르게 검증한다).
+-->
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
+    </root>
+</configuration>

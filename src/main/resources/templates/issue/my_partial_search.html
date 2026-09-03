@@ -1,0 +1,90 @@
+<div th:fragment="search" pjax-container="" class="row-fluid issue-list-wrap">
+    <div class="left-menu span2 span-hard-wrap">
+        <div class="inner advanced">
+            <div th:replace="~{issue/my_partial_list_quicksearch :: quicksearch}"></div>
+
+            <form id="search" name="search" action="/user/issues" method="get">
+                <input type="hidden" name="orderBy" th:value="${orderBy}">
+                <input type="hidden" name="orderDir" th:value="${orderDir}">
+                <input type="hidden" name="state" th:value="${state}">
+                <input type="hidden" name="authorId" th:value="${authorId}" data-search="authorId">
+                <input type="hidden" name="commenterId" th:value="${commenterId}" data-search="commenterId">
+                <input type="hidden" name="assigneeId" th:value="${assigneeId}" data-search="assigneeId">
+                <input type="hidden" name="mentionId" th:value="${mentionId}" data-search="mentionId">
+                <input type="hidden" name="sharerId" th:value="${sharerId}" data-search="sharerId">
+                <input type="hidden" name="favoriteId" th:value="${favoriteId}" data-search="favoriteId">
+                <div class="search myissues-search-input">
+                    <div class="search-bar">
+                        <input name="filter" class="textbox full" type="text" th:value="${filter}" th:placeholder="#{issue.search}">
+                        <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="span10 span-hard-wrap" id="span10">
+        <ul class="nav nav-tabs nm">
+            <li th:class="${state == 'open' ? 'active' : ''}" data-pjax="">
+                <a href="#" state="open">
+                    <span th:text="#{issue.state.open}">Open</span>
+                    <span class="num-badge" th:text="${openCount}">0</span>
+                </a>
+            </li>
+            <li th:class="${state == 'closed' ? 'active' : ''}" data-pjax="">
+                <a href="#" state="closed">
+                    <span th:text="#{issue.state.closed}">Closed</span>
+                    <span class="num-badge" th:text="${closedCount}">0</span>
+                </a>
+            </li>
+            <li>
+                <div class="two-column-icon mr10 hide-in-mobile" id="two-column-mode-checkbox" th:title="#{common.two.column.mode}" th:data-content="#{common.two.column.mode.desc}" th:data-original-title="#{common.two.column.mode}">
+                    <label class="checkbox">
+                        <div class="two-column-icon-border">
+                            <input id="two-column-mode" type="checkbox"><span class="two-column-mode-text" th:text="#{common.two.column.view}">Column View</span>
+                        </div>
+                    </label>
+                </div>
+            </li>
+            <li class="show-subtasks-li">
+                <div class="show-subtasks mr10" id="two-column-mode-checkbox" data-toggle="popover" data-trigger="hover" data-placement="top" title="" th:data-content="#{common.show.subtasks.desc}" th:data-original-title="#{common.show.subtasks}">
+                    <label class="checkbox">
+                        <div class="show-subtasks-button-border">
+                            <input id="toggle-show-subtasks" type="checkbox"><span class="show-subtasks-text" th:text="#{common.show.subtasks}">Show subtask</span>
+                        </div>
+                    </label>
+                </div>
+            </li>
+        </ul>
+        
+        <div th:if="${issuePage != null and !issuePage.content.isEmpty()}">
+            <div class="filter-wrap small-heights">
+                <div class="filters pull-right" th:if="${issuePage.totalElements > 1}">
+                    <a href="#" orderBy="dueDate" th:orderDir="${orderBy == 'dueDate' and orderDir == 'desc' ? 'asc' : 'desc'}" th:class="${orderBy == 'dueDate' ? 'filter active' : 'filter'}">
+                        <i th:class="${orderBy == 'dueDate' and orderDir == 'desc' ? 'ico btn-gray-arrow' : 'ico btn-gray-arrow down'}"></i>
+                        <span th:text="#{common.order.dueDate}">dueDate</span>
+                    </a>
+                    <a href="#" orderBy="updatedDate" th:orderDir="${orderBy == 'updatedDate' and orderDir == 'desc' ? 'asc' : 'desc'}" th:class="${orderBy == 'updatedDate' ? 'filter active' : 'filter'}">
+                        <i th:class="${orderBy == 'updatedDate' and orderDir == 'desc' ? 'ico btn-gray-arrow' : 'ico btn-gray-arrow down'}"></i>
+                        <span th:text="#{common.order.updatedDate}">updatedDate</span>
+                    </a>
+                    <a href="#" orderBy="createdDate" th:orderDir="${orderBy == 'createdDate' and orderDir == 'desc' ? 'asc' : 'desc'}" th:class="${orderBy == 'createdDate' ? 'filter active' : 'filter'}">
+                        <i th:class="${orderBy == 'createdDate' and orderDir == 'desc' ? 'ico btn-gray-arrow' : 'ico btn-gray-arrow down'}"></i>
+                        <span th:text="#{common.order.date}">date</span>
+                    </a>
+                    <a href="#" orderBy="numOfComments" th:orderDir="${orderBy == 'numOfComments' and orderDir == 'desc' ? 'asc' : 'desc'}" th:class="${orderBy == 'numOfComments' ? 'filter active' : 'filter'}">
+                        <i th:class="${orderBy == 'numOfComments' and orderDir == 'desc' ? 'ico btn-gray-arrow' : 'ico btn-gray-arrow down'}"></i>
+                        <span th:text="#{common.order.comments}">comments</span>
+                    </a>
+                </div>
+            </div>
+
+            <div th:replace="~{issue/my_partial_list :: list}"></div>
+
+            <div id="pagination" th:data-total="${issuePage.totalPages}"></div>
+        </div>
+        <div th:unless="${issuePage != null and !issuePage.content.isEmpty()}" class="error-wrap">
+            <i class="ico ico-err1"></i>
+            <p th:text="#{issue.is.empty}">No issue found</p>
+        </div>
+    </div>
+</div>

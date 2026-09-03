@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head('Unauthorized')}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+  <div th:replace="~{site/layout :: errorGnb}"></div>
+  <div class="page-wrap-outer">
+      <div class="project-page-wrap">
+          <div class="error-wrap">
+              <i class="ico ico-err2"></i>
+              <p th:text="${messageKey != null} ? #{__${messageKey}__} : '로그인이 필요한 서비스입니다.'">로그인이 필요합니다.</p>
+              <a href="/login" class="ybtn ybtn-primary" th:text="#{title.login}">로그인</a>
+          </div>
+      </div>
+  </div>
+</div>
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+</body>
+</html>

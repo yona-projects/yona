@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head th:replace="~{site/layout :: head(#{userinfo.accountSetting})}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div class="site-breadcrumb-outer">
+        <div class="site-breadcrumb-inner">
+            <h3 th:text="#{userinfo.accountSetting}">사용자 설정</h3>
+        </div>
+    </div>
+    <div class="page-wrap-outer">
+        <div class="page-wrap">
+            <div th:replace="~{user/partial_edit_tabmenu :: tabmenu('profile')}"></div>
+
+            <form id="frmBasic" method="post" th:action="@{/user/edit}" class="pull-left">
+                <dl>
+                    <dt th:text="#{user.loginId}">로그인 ID</dt>
+                    <dd class="mt10">
+                        <input type="text" class="text" th:value="${user.loginId}" readonly>
+                    </dd>
+                    <dt th:text="#{user.name}">이름</dt>
+                    <dd class="mt10">
+                        <input type="text" name="name" class="text" th:value="${user.name}">
+                    </dd>
+                    <dt th:text="#{user.email}">이메일</dt>
+                    <dd class="mt10">
+                        <input type="email" name="email" class="text" th:value="${user.email}">
+                    </dd>
+                    <dd>
+                        <button type="submit" class="ybtn ybtn-success" th:text="#{userinfo.editProfile}">프로필 수정</button>
+                    </dd>
+                </dl>
+            </form>
+
+            <form id="frmAvatar" method="post" th:action="@{/user/edit}" class="pull-left" style="margin-left:50px; padding-left:50px; border-left:1px solid #ddd;">
+                <input type="hidden" name="name" th:value="${user.name}">
+                <input type="hidden" name="email" th:value="${user.email}">
+
+                <div class="avatar-frm">
+                    <div class="avatar-wrap xlarge">
+                        <img th:src="${user.avatarUrl(256)}" style="width:128px; max-width:none;" />
+                    </div>
+                    <div class="upload-progress avatar" style="display:none;"><div class="bar orange"></div></div>
+                    <div class="btn-wrap mt10 center-txt">
+                        <div class="ybtn ybtn-small fake-file-wrap btnUploadAvatar">
+                            <span th:text="#{userinfo.changeAvatar}">아바타 변경</span>
+                            <input id="avatarFile" type="file" class="file" name="filePath" accept="image/*">
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <div class="reset-user-visited-list">
+                <hr/>
+                <form method="post" th:action="@{/user/resetVisitedList}">
+                    <button type="submit" class="ybtn" th:text="#{userinfo.reset.visited.project.list}">최근 방문 프로젝트 리스트 초기화</button>
+                </form>
+            </div>
+
+            <div id="avatarCropWrap" class="modal hide" role="dialog" data-backdrop="static">
+                <div class="modal-header center-txt">
+                    <div class="avatar-wrap xlarge">
+                        <img style="width:128px; max-width:none;"/>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <img style="max-width:500px;">
+                    <canvas width="128" height="128" class="hide"></canvas>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="ybtn ybtn-default" data-dismiss="modal" th:text="#{button.cancel}">취소</button>
+                    <button type="button" class="ybtn ybtn-success btnSubmitCrop" th:text="#{button.save}">저장</button>
+                </div>
+            </div>
+
+            <link rel="stylesheet" type="text/css" th:href="@{/stylesheets/jcrop/jquery.Jcrop.css}" />
+            <script type="text/javascript" th:src="@{/javascripts/lib/jquery/jquery.Jcrop.min.js}"></script>
+            <script type="text/javascript" th:src="@{/javascripts/lib/canvas-to-blob.js}"></script>
+        </div>
+    </div>
+    <footer th:replace="~{site/layout :: footer}"></footer>
+    <div th:replace="~{site/layout :: scripts}"></div>
+</div>
+<script type="text/javascript">
+    $(function(){
+        $yobi.loadModule("user.Setting");
+    });
+</script>
+</body>
+</html>

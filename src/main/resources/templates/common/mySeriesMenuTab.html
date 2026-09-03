@@ -1,0 +1,15 @@
+<ul class="nav nav-tabs" th:fragment="menu(activeTab)">
+    <li th:class="${activeTab == 'notifications'} ? 'active' : ''"><a href="/notifications" th:text="#{notification}">Notification</a></li>
+    <li th:class="${activeTab == 'my_issues'} ? 'active' : ''"><a href="/user/issues" th:text="#{issue.myIssue}">My Issues</a></li>
+    <li th:class="${activeTab == 'my_files'} ? 'active' : ''"><a href="/user/files" th:text="#{user.files}">My Files</a></li>
+    <li>
+        <button id="setDefaultLoginPage" type="button" class="ybtn hide-in-mobile"
+                th:if="${(activeTab == 'notifications' or activeTab == 'my_issues') and currentRequestPath != '/' and currentRequestPath.substring(1) != loginDefaultPage}"
+                th:data-url="${currentRequestPath != null and currentRequestPath.length() > 1 ? currentRequestPath.substring(1) : 'user/issues'}"
+                th:title="#{button.setDefaultLoginPage}"
+                data-trigger="hover" data-placement="bottom" data-toggle="popover"
+                th:data-content="#{button.setDefaultLoginPage.desc}"
+                th:data-original-title="#{button.setDefaultLoginPage}"
+                th:text="#{button.setDefaultLoginPage}">Set to default page</button>
+    </li>
+</ul>

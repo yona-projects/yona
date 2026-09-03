@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- yona issue/partial_list.scala.html 대응 — issue/list.html과 milestone/view.html이 공유하는
+     이슈 행 마크업(제목/작성자/날짜/서브태스크 진행률/마일스톤/댓글·공감·공유 카운트/담당자/마감일). -->
+<ul th:fragment="list(project, issues, currentUser)" class="post-list-wrap row-fluid">
+    <li th:each="issue : ${issues}" class="post-item title" th:id="'issue-item-' + ${issue.id}" data-item="issue-item" th:data-value="${issue.authorName} + ' ' + ${issue.number} + ' ' + ${issue.title}" th:href="@{/{owner}/{projectName}/issue/{number}(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}">
+        <div class="span9 span-hard-wrap">
+            <!-- 일괄 수정을 위한 개별 체크박스 영역 -->
+            <label th:if="${currentUser != null && currentUser.isMemberOf(project)}" th:for="'issue-' + ${issue.id}" class="mass-update-check hide-in-mobile">
+                <input th:id="'issue-' + ${issue.id}" type="checkbox" name="checked-issue" data-toggle="issue-checkbox" th:data-issue-id="${issue.id}" th:data-issue-labels="${templateHelper.getIssueLabelsString(issue.labels)}">
+            </label>
+            <div th:for="'issue-' + ${issue.id}" class="issue-item-row">
+                <div class="title-wrap">
+                    <a th:href="@{/{owner}/{projectName}/issue/{number}(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}" class="title">
+                        <!-- yona partial_list.scala.html:33 대응 (그룹7 #119) — 초안 이슈는 실제 번호
+                             대신 "#초안"으로 표시한다. -->
+                        <span class="post-id" th:if="${issue.isDraft}"><span class="draft-number" th:text="'#' + #{issue.state.draft}">#초안</span></span>
+                        <span class="post-id" th:unless="${issue.isDraft}">#<span th:text="${issue.number}">1</span></span>
+                    </a>
+                    <th:block th:if="${issue.weight > 0}">
+                        <span class="weight-up-arrow" data-toggle="tooltip" data-placement="right" th:title="|#{issue.weight} ${issue.weight}|"><i class="yobicon-angle-circled-up"></i></span>
+                    </th:block>
+                    <th:block th:if="${issue.weight < 0}">
+                        <span class="weight-down-arrow" data-toggle="tooltip" data-placement="right" th:title="|#{issue.weight} ${issue.weight}|"><i class="yobicon-angle-circled-down"></i></span>
+                    </th:block>
+                    &nbsp;
+                    <span th:text="${templateHelper.showHeaderWordsInBracketsIfExist(issue.title)}" class="bracket-word"></span>
+                    <a th:href="@{/{owner}/{projectName}/issue/{number}(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}" class="title" th:text="${templateHelper.removeHeaderWords(issue.title)}">
+                        이슈 제목
+                    </a>
+                </div>
+                <div class="infos">
+                    <a th:href="@{/{loginId}(loginId=${issue.authorLoginId})}" class="infos-item infos-link-item" data-toggle="tooltip" data-placement="bottom" th:title="${issue.authorLoginId}" th:text="${issue.authorName}">
+                        작성자
+                    </a>
+                    <span class="infos-item" data-toggle="tooltip" data-placement="bottom" th:title="${templateHelper.getDateString(issue.createdDate)}" th:text="${templateHelper.agoOrDateString(issue.createdDate)}">
+                        시간
+                    </span>
+
+                    <!-- 자식 이슈 진행률 바 -->
+                    <th:block th:if="${templateHelper.hasChildIssue(issue)}" th:with="openCount=${templateHelper.countByParentIssueIdAndState(issue.id, T(com.github.yonaprojects.yona.domain.enumeration.State).OPEN)}, closedCount=${templateHelper.countByParentIssueIdAndState(issue.id, T(com.github.yonaprojects.yona.domain.enumeration.State).CLOSED)}">
+                        <div class="subtask-progress upload-progress" th:classappend="${openCount == 0} ? 'done-outline' : 'red-outline'">
+                            <div class="bar" th:classappend="${openCount == 0} ? 'done' : 'red'" th:style="'width: ' + ${templateHelper.getPercentFormatted(closedCount, openCount)} + '%;'" title="Subtask"></div>
+                        </div>
+                        <span class="subtask-progress completion-ratio" th:classappend="${openCount == 0} ? 'txt-green'" th:text="${openCount > 0 ? (closedCount.toString() + '/' + (closedCount + openCount).toString()) : (closedCount).toString()}">0/0</span>
+                    </th:block>
+
+                    <!-- 부모 이슈 링크 -->
+                    <span th:if="${issue.parent != null}" class="infos-item subtask">
+                        <a th:href="@{/{owner}/{projectName}/issue/{number}(owner=${project.owner}, projectName=${project.name}, number=${issue.parent.number})}" th:text="'#' + ${issue.parent.number} + ' ' + ${issue.parent.title.length() > 10 ? #strings.substring(issue.parent.title, 0, 10) + '...' : issue.parent.title}">부모 이슈</a>
+                    </span>
+
+                    <span th:if="${project.isMilestoneEnabled && issue.milestone != null}" class="mileston-tag">
+                        <a th:href="@{/{owner}/{projectName}/milestone/{id}(owner=${project.owner}, projectName=${project.name}, id=${issue.milestone.id})}" data-toggle="tooltip" data-placement="bottom" th:title="#{milestone}" th:text="${issue.milestone.title}">
+                            마일스톤
+                        </a>
+                    </span>
+                    <span th:if="${issue.numOfComments > 0 || issue.voters.size() > 0 || issue.sharers.size() > 0}" class="infos-item item-count-groups">
+                        <a th:if="${issue.numOfComments > 0}" th:href="@{/{owner}/{projectName}/issue/{number}#comments(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}" class="comments-count comments-count-color">
+                            <span class="count-groups item-icon">
+                                <i class="yobicon-comment2"></i>
+                            </span>
+                            <span class="count-groups item-count" th:text="${issue.numOfComments}">0</span>
+                        </a>
+                        <a th:if="${issue.voters.size() > 0}" th:href="@{/{owner}/{projectName}/issue/{number}#vote(owner=${project.owner}, projectName=${project.name}, number=${issue.number})}" class="vote-count vote-color">
+                            <span class="count-groups item-icon">
+                                <i class="yobicon-hearts"></i>
+                            </span>
+                            <span class="count-groups item-count strong" th:text="${issue.voters.size()}">0</span>
+                        </a>
+                        <a th:if="${issue.sharers.size() > 0}" class="sharer-color" data-toggle="tooltip" data-placement="bottom" th:title="#{issue.sharer}">
+                            <span class="count-groups item-icon">
+                                <i class="yobicon-friends"></i>
+                            </span>
+                            <span class="count-groups item-count strong" th:text="${issue.sharers.size()}">0</span>
+                        </a>
+                    </span>
+                    <th:block th:each="label : ${issue.labels}">
+                        <a href="#" class="label issue-label list-label active" th:data-category-id="${label.category.id}" th:data-label-id="${label.id}" th:style="'background: ' + ${label.color}" th:text="${label.name}">라벨</a>
+                    </th:block>
+
+                    <!-- 자식 이슈 목록 (2단 보기 및 자식 펼쳐보기용) -->
+                    <div class="child-issue-list hide" th:if="${templateHelper.hasChildIssue(issue)}" th:with="parentIssueId=${issue.parent == null ? issue.id : issue.parent.id}">
+                        <div class="child-issues" th:with="openChildren=${templateHelper.findByParentId(parentIssueId).?[state == T(com.github.yonaprojects.yona.domain.enumeration.State).OPEN]}, closedChildren=${templateHelper.findByParentId(parentIssueId).?[state == T(com.github.yonaprojects.yona.domain.enumeration.State).CLOSED]}">
+                            <!-- 열려 있는 하위 이슈 -->
+                            <div th:each="child : ${openChildren}" class="issue-item child-issue" th:classappend="${child.id == issue.id} ? 'selected-child' : ''">
+                                <span class="state-label open"></span>
+                                <a class="twoColumeModeTarget" th:href="@{/{owner}/{projectName}/issue/{number}(owner=${project.owner}, projectName=${project.name}, number=${child.number})}">
+                                    <span class="item-name">
+                                        <span class="subtask-number" th:text="'#' + ${child.number}">#1</span>
+                                        <span th:text="${child.title}">하위이슈 제목</span>
+                                        <span th:if="${child.assignee != null}" th:text="' - ' + ${child.assignee.user.getPureNameOnly()}"> - 담당자</span>
+                                    </span>
+                                </a>
+                                <span class="font12 no-border-at-child">
+                                    <span th:if="${child.numOfComments > 0 || child.voters.size() > 0}" class="item-count-groups">
+                                        <a th:if="${child.numOfComments > 0}" th:href="@{/{owner}/{projectName}/issue/{number}#comments(owner=${project.owner}, projectName=${project.name}, number=${child.number})}" class="comments-count comments-count-color">
+                                            <span class="count-groups item-icon">
+                                                <i class="yobicon-comment2"></i>
+                                            </span>
+                                            <span class="count-groups item-count" th:text="${child.numOfComments}">0</span>
+                                        </a>
+                                        <a th:if="${child.voters.size() > 0}" th:href="@{/{owner}/{projectName}/issue/{number}#vote(owner=${project.owner}, projectName=${project.name}, number=${child.number})}" class="vote-count vote-color">
+                                            <span class="count-groups item-icon">
+                                                <i class="yobicon-hearts"></i>
+                                            </span>
+                                            <span class="count-groups item-count strong" th:text="${child.voters.size()}">0</span>
+                                        </a>
+                                    </span>
+                                </span>
+                                <a href="#" th:each="label : ${child.labels}" class="label issue-label list-label active twoColumeModeTarget" th:data-category-id="${label.category.id}" th:data-label-id="${label.id}" th:style="'background: ' + ${label.color}" th:text="${label.name}">라벨</a>
+                                <span class="child-issue-date" th:title="${templateHelper.getDateString(child.createdDate)}" th:text="${templateHelper.agoOrDateString(child.createdDate)}">날짜</span>
+                            </div>
+                            <!-- 닫혀 있는 하위 이슈 -->
+                            <div th:each="child : ${closedChildren}" class="issue-item child-issue" th:classappend="${child.id == issue.id} ? 'selected-child' : ''">
+                                <span class="state-label closed"><i class="yobicon-checkmark"></i></span>
+                                <a class="twoColumeModeTarget" th:href="@{/{owner}/{projectName}/issue/{number}(owner=${project.owner}, projectName=${project.name}, number=${child.number})}">
+                                    <span class="item-name">
+                                        <span class="subtask-number" th:text="'#' + ${child.number}">#1</span>
+                                        <span th:text="${child.title}">하위이슈 제목</span>
+                                        <span th:if="${child.assignee != null}" th:text="' - ' + ${child.assignee.user.getPureNameOnly()}"> - 담당자</span>
+                                    </span>
+                                </a>
+                                <span class="font12 no-border-at-child">
+                                    <span th:if="${child.numOfComments > 0 || child.voters.size() > 0}" class="item-count-groups">
+                                        <a th:if="${child.numOfComments > 0}" th:href="@{/{owner}/{projectName}/issue/{number}#comments(owner=${project.owner}, projectName=${project.name}, number=${child.number})}" class="comments-count comments-count-color">
+                                            <span class="count-groups item-icon">
+                                                <i class="yobicon-comment2"></i>
+                                            </span>
+                                            <span class="count-groups item-count" th:text="${child.numOfComments}">0</span>
+                                        </a>
+                                        <a th:if="${child.voters.size() > 0}" th:href="@{/{owner}/{projectName}/issue/{number}#vote(owner=${project.owner}, projectName=${project.name}, number=${child.number})}" class="vote-count vote-color">
+                                            <span class="count-groups item-icon">
+                                                <i class="yobicon-hearts"></i>
+                                            </span>
+                                            <span class="count-groups item-count strong" th:text="${child.voters.size()}">0</span>
+                                        </a>
+                                    </span>
+                                </span>
+                                <a href="#" th:each="label : ${child.labels}" class="label issue-label list-label active twoColumeModeTarget" th:data-category-id="${label.category.id}" th:data-label-id="${label.id}" th:style="'background: ' + ${label.color}" th:text="${label.name}">라벨</a>
+                                <span class="child-issue-date" th:title="${templateHelper.getDateString(child.createdDate)}" th:text="${templateHelper.agoOrDateString(child.createdDate)}">날짜</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="span3 hide-in-mobile">
+            <div class="mt5 pull-right">
+                <a th:if="${issue.assignee != null}" th:href="@{/{loginId}(loginId=${issue.assignee.user.loginId})}" class="avatar-wrap assignee" data-toggle="tooltip" data-placement="top" th:title="#{issue.assignee} + ': ' + ${issue.assignee.user.name}">
+                    <img th:src="${issue.assignee.user.avatarUrl}" width="32" height="32" />
+                </a>
+            </div>
+            <!-- 마감일 표시 영역 -->
+            <div th:if="${issue.dueDate != null}" class="mr20 mt10 pull-right"
+                 th:classappend="${issue.state == T(com.github.yonaprojects.yona.domain.enumeration.State).CLOSED} ? 'darkgray-txt' : (${templateHelper.isOverDueDate(issue)} ? 'overdue')"
+                 th:title="${templateHelper.getDueDateString(issue.dueDate)}"
+                 data-toggle="tooltip" data-placement="top">
+                <i class="yobicon-clock2 mr3 vmiddle"></i>
+                <span class="vmiddle" th:text="${issue.state == T(com.github.yonaprojects.yona.domain.enumeration.State).OPEN ? templateHelper.until(issue) : templateHelper.getDueDateString(issue.dueDate)}">
+                    마감일
+                </span>
+            </div>
+        </div>
+    </li>
+</ul>
+</body>
+</html>

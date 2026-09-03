@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(#{${message}})}"></head>
+<body class="theme-default">
+<div id="main" class="main">
+  <!-- GNB -->
+  <div th:replace="~{site/layout :: gnb}"></div>
+
+  <!-- Breadcrumb -->
+  <div th:replace="~{site/layout :: breadcrumb}"></div>
+
+  <div class="page-wrap-outer">
+    <div class="site-setting-wrap">
+      <div class="row-fluid">
+        <!-- Sidebar -->
+        <div th:replace="~{site/layout :: sidebar('issues')}"></div>
+
+        <!-- Content Area -->
+        <div class="span10">
+          <div class="title_area">
+            <h2 class="pull-left" th:text="#{site.sidebar.issueList}">이슈</h2>
+          </div>
+          
+          <ul class="nav nav-tabs">
+            <li th:class="${state.toLowerCase() == 'open' ? 'active' : ''}">
+              <a th:href="@{/sites/issueList(state='open')}" th:text="#{issue.state.open}">미해결</a>
+            </li>
+            <li th:class="${state.toLowerCase() == 'closed' ? 'active' : ''}">
+              <a th:href="@{/sites/issueList(state='closed')}" th:text="#{issue.state.closed}">해결됨</a>
+            </li>
+          </ul>
+          
+          <ul class="post-list-wrap">
+            <li class="row-fluid listitem" th:each="issue : ${issues.content}">
+              <a th:href="@{'/' + ${issue.project.owner} + '/' + ${issue.project.name}}" class="avatar-wrap list-avatar">
+                <img th:src="@{/projects/{projectId}/logo(projectId=${issue.project.id})}" th:alt="${issue.project.name}"/>
+              </a>
+              <div class="post-info-wrap">
+                <a th:href="@{'/' + ${issue.project.owner} + '/' + ${issue.project.name}}" class="post-project" th:text="${issue.project.owner} + '/' + ${issue.project.name}">
+                  owner/name
+                </a>
+                <span class="post-info-separator">·</span>
+                <a th:href="@{'/' + ${issue.project.owner} + '/' + ${issue.project.name} + '/issue/' + ${issue.number}}" class="post-title" th:text="${issue.title}">
+                  이슈제목
+                </a>
+              </div>
+              <div class="post-meta-wrap" th:with="user=${userRepository.findByLoginId(issue.authorLoginId).orElse(null)}">
+                <a th:href="@{'/user/' + ${issue.authorLoginId}}" class="avatar-wrap">
+                  <img th:src="${user != null ? user.avatarUrl : '/images/default-avatar-128.png'}" th:alt="${issue.authorName}" width="16" height="16"/>
+                </a>
+                <a th:href="@{'/user/' + ${issue.authorLoginId}}" class="post-meta-item" th:text="${user != null ? user.getDisplayName() : issue.authorName}">
+                  작성자
+                </a>
+                <span class="post-meta-item" th:title="${@templateHelper.getDateString(issue.createdDate)}" th:text="${@templateHelper.agoOrDateString(issue.createdDate)}">
+                  방금 전
+                </span>
+                <span class="post-comments post-meta-item">
+                  <a th:href="@{'/' + ${issue.project.owner} + '/' + ${issue.project.name} + '/issue/' + ${issue.number} + '#comments'}">
+                    <i class="yobicon-comments"></i>
+                    <span th:text="${issue.numOfComments}">0</span>
+                  </a>
+                </span>
+              </div>
+            </li>
+          </ul>
+          
+          <div id="pagination"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer th:replace="~{site/layout :: footer}"></footer>
+
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+<script type="text/javascript" th:inline="javascript">
+$(function(){
+    yobi.Pagination.update($("#pagination"), /*[[${issues.totalPages}]]*/ 1, {"paramNameForPage": "page"});
+});
+</script>
+</body>
+</html>

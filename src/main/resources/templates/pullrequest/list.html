@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko"
+      th:with="pullRequestMenuLabel=#{menu.pullRequest}, pageTitle=${project.name + ' - ' + pullRequestMenuLabel}">
+<!--
+  legacy git/list.scala.html 대응 (그룹11 #167). legacy는 projectLayout + projectMenu +
+  partial_search(project, page, condition, requestType) 호출 뿐인 얇은 wrapper인데, 기존 yona
+  pullrequest/list.html은 검색폼/탭/목록 전체를 하드코딩하고 있었다(공용 GNB 프래그먼트 대신
+  가짜 .gnb-wrap까지 직접 그려 넣은 상태) — 이번에 legacy 구조 그대로 얇은 wrapper +
+  partial_search/partial_list/partial_recently_pushed_branches 분리로 재작성했다.
+  (th:with로 제목을 미리 계산: ~{...} 프래그먼트 지정식 안에 #{...}를 직접 섞으면 Thymeleaf가
+  파싱하지 못하는 기존 발견 사례(#1 작업 로그 참고)를 피하기 위함)
+-->
+<head th:replace="~{site/layout :: head(title=${pageTitle})}">
+</head>
+<body class="prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+    <div th:replace="~{project/header :: header(${project})}"></div>
+    <div th:replace="~{project/menu :: menu(${project}, 'pullRequest')}"></div>
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
+            <div th:replace="~{pullrequest/partial_search :: search(${project}, ${prPage}, ${state}, ${requestType})}"></div>
+        </div>
+    </div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+<th:block th:replace="~{common/select2 :: select2}"></th:block>
+<!--
+  legacy jquery.pageslide.js/yona.twoColumnMode.js 로드 대응. 두 정적 자산 모두
+  src/main/resources/static/javascripts 아래 실재하므로(jquery.pageslide.js,
+  service/yona.twoColumnMode.js) legacy와 동일하게 로드하고 _initTwoColumnMode()를 호출한다.
+-->
+<script type="text/javascript" src="/javascripts/lib/jquery.pageslide.js"></script>
+<script type="text/javascript" src="/javascripts/service/yona.twoColumnMode.js"></script>
+<script type="text/javascript">
+    $(document).ready(function(){
+        _initTwoColumnMode();
+    });
+</script>
+</body>
+</html>

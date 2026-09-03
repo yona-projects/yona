@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(#{${message}})}"></head>
+<body class="theme-default">
+<div id="main" class="main">
+  <!-- GNB -->
+  <div th:replace="~{site/layout :: gnb}"></div>
+
+  <!-- Breadcrumb -->
+  <div th:replace="~{site/layout :: breadcrumb}"></div>
+
+  <div class="page-wrap-outer">
+    <div class="site-setting-wrap">
+      <div class="row-fluid">
+        <!-- Sidebar -->
+        <div th:replace="~{site/layout :: sidebar('projects')}"></div>
+
+        <!-- Content Area -->
+        <div class="span10">
+          <div class="title_area">
+            <h2 class="pull-left" th:text="#{site.sidebar.projectList}">프로젝트</h2>
+            <form class="form-search pull-right" th:action="@{/sites/projectList}" method="get">
+              <div class="search-bar">
+                <input type="text" class="textbox" name="projectName" th:placeholder="#{site.project.filter}" th:value="${projectName}">
+                <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+              </div>
+            </form>
+          </div>
+          
+          <div class="row-fluid listhead">
+            <div class="span5 listhead-title">
+              <strong th:text="#{project.name}">프로젝트 이름</strong>
+            </div>
+            <div class="span4 listhead-title">
+              <strong th:text="#{project.description}">프로젝트 설명</strong>
+            </div>
+            <div class="span2 listhead-title">
+              <strong th:text="#{project.created}">생성일</strong>
+            </div>
+            <div class="span1 listhead-title">
+              <strong>&nbsp;</strong>
+            </div>
+          </div>
+          
+          <ul class="project-list-wrap">
+            <li class="row-fluid listitem" th:each="project : ${projects.content}">
+              <div class="span5 listitem-col">
+                <a th:href="@{'/' + ${project.owner} + '/' + ${project.name}}" class="avatar-wrap list-avatar">
+                  <img th:src="@{/projects/{projectId}/logo(projectId=${project.id})}" th:alt="${project.name}"/>
+                </a>
+                <a th:href="@{'/' + ${project.owner} + '/' + ${project.name}}" class="project-name" th:text="${project.owner} + '/' + ${project.name}">
+                  owner/name
+                </a>
+              </div>
+              <div class="span4 listitem-col" th:text="${project.overview}">
+                프로젝트 설명
+              </div>
+              <div class="span2 listitem-col" th:text="${project.createdDate != null ? #temporals.format(project.createdDate, 'yyyy-MM-dd') : ''}">
+                생성일
+              </div>
+              <div class="span1 listitem-col">
+                <button class="ybtn ybtn-danger" th:data-project-name="${project.owner} + '/' + ${project.name}" data-toggle="delete-project" th:data-href="@{/sites/project/delete/{projectId}(projectId=${project.id})}" th:text="#{button.delete}">삭제</button>
+              </div>
+            </li>
+          </ul>
+
+          <div id="pagination"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm to delete project -->
+<div id="alertDeletionWrap" class="modal fade">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">×</button>
+    <span id="project-name"></span><span th:text="#{site.project.delete}">프로젝트 삭제</span>
+  </div>
+  <div class="modal-body">
+    <p th:text="#{site.project.deleteConfirm}">정말로 프로젝트를 삭제하시겠습니까?</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" id="projectDeleteBtn" class="ybtn ybtn-danger" th:text="#{button.yes}">예</button>
+    <button type="button" class="ybtn" data-dismiss="modal" th:text="#{button.no}">아니요</button>
+  </div>
+</div>
+
+<footer th:replace="~{site/layout :: footer}"></footer>
+
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+<script type="text/javascript" th:inline="javascript">
+$(function(){
+    $('.project-list-wrap').on('click','[data-toggle="delete-project"]',function(){
+        $('#projectDeleteBtn')
+          .data('requestUri',$(this).data('href'))
+          .data("requestMethod","delete")
+          .requestAs();
+
+        $('#project-name').html($(this).data('projectName'));
+        $('#alertDeletionWrap').modal('show');
+
+        console.log($(this).data('href'));
+    });
+
+    yobi.Pagination.update($("#pagination"), /*[[${projects.totalPages}]]*/ 1, {"paramNameForPage": "page"});
+});
+</script>
+</body>
+</html>

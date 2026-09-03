@@ -1,0 +1,95 @@
+<ul th:fragment="quicksearch" class="lst-stacked unstyled">
+    <li th:class="${assigneeId == currentUser.id} ? 'active' : ''">
+        <a pjax-filter="" href="#"
+            data-author-id=""
+            th:data-assignee-id="${currentUser.id}"
+            data-commenter-id=""
+            data-milestone-id=""
+            data-mention-id=""
+            data-sharer-id=""
+            data-favorite-id="">
+            <span class="assigned-to-me">
+                <i class="yobicon-user"></i>
+                <span th:text="#{issue.list.assignedToMe}">Assigned</span>
+            </span>
+        </a>
+    </li>
+    <li th:class="${authorId == currentUser.id} ? 'active' : ''">
+        <a pjax-filter="" href="#"
+            th:data-author-id="${currentUser.id}"
+            data-assignee-id=""
+            data-commenter-id=""
+            data-milestone-id=""
+            data-mention-id=""
+            data-sharer-id=""
+            data-favorite-id="">
+            <span class="authored-by-me">
+                <i class="yobicon-pencil"></i>
+                <span th:text="#{issue.list.authoredByMe}">Created</span>
+            </span>
+        </a>
+    </li>
+    <li th:class="${commenterId == currentUser.id} ? 'active' : ''">
+        <a pjax-filter="" href="#"
+            data-author-id=""
+            data-assignee-id=""
+            th:data-commenter-id="${currentUser.id}"
+            data-milestone-id=""
+            data-mention-id=""
+            data-sharer-id=""
+            data-favorite-id="">
+            <span class="commented-by-me">
+                <i class="yobicon-comments"></i>
+                <span th:text="#{issue.list.commentedByMe}">Commented</span>
+            </span>
+        </a>
+    </li>
+    <li th:class="${mentionId == currentUser.id} ? 'active' : ''">
+        <a pjax-filter="" href="#"
+            data-author-id=""
+            data-assignee-id=""
+            data-commenter-id=""
+            data-milestone-id=""
+            th:data-mention-id="${currentUser.id}"
+            data-sharer-id=""
+            data-favorite-id="">
+            <span class="mentioned-of-me">
+                <i class="yobicon-at"></i>
+                <span th:text="#{issue.list.mentionedOfMe}">Mentioned</span>
+            </span>
+            <span th:if="${#strings.isEmpty(filter)}" th:text="'(' + ${mentionCount} + ')'"> (0) </span>
+        </a>
+    </li>
+    <li th:class="${sharerId == currentUser.id} ? 'active' : ''">
+        <a pjax-filter="" href="#"
+            data-author-id=""
+            data-assignee-id=""
+            data-commenter-id=""
+            data-milestone-id=""
+            data-mention-id=""
+            th:data-sharer-id="${currentUser.id}"
+            data-favorite-id="">
+            <span class="shared-with-me">
+                <i class="yobicon-share"></i>
+                <span th:text="#{issue.list.sharedWithMe}">Shared</span>
+            </span>
+            <span th:if="${#strings.isEmpty(filter)}" th:text="'(' + ${shareCount} + ')'"> (0) </span>
+        </a>
+    </li>
+    <li th:class="${favoriteId == currentUser.id} ? 'active' : ''">
+        <a pjax-filter="" href="#"
+            data-author-id=""
+            data-assignee-id=""
+            data-commenter-id=""
+            data-milestone-id=""
+            data-mention-id=""
+            data-sharer-id=""
+            th:data-favorite-id="${currentUser.id}">
+            <span class="favorite-issue">
+                <i class="yobicon-favorite"></i>
+                <span th:text="#{issue.list.favorite}">Favorite</span>
+            </span>
+            <span th:if="${#strings.isEmpty(filter)}" th:text="'(' + ${favoriteCount} + ')'"> (0) </span>
+        </a>
+    </li>
+</ul>

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(#{title.newProject})}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+  <div th:replace="~{site/layout :: gnb}"></div>
+
+  <div class="page-wrap-outer">
+    <div class="project-page-wrap">
+      <div class="form-wrap new-project">
+        <form id="importGit" th:action="@{/new/import}" th:object="${importForm}" method="post" class="frm-wrap">
+          <legend>
+            <span th:text="#{project.import.from.git}">Git 저장소로부터 가져오기</span>
+            <span>
+              <small th:text="#{project.import.or} + ' '">또는 </small>
+              <a th:href="@{/projectform(owner=*{owner})}" class="ybtn ybtn-small nm">
+                <strong th:text="#{title.newProject}">새 프로젝트 생성</strong>
+              </a>
+            </span>
+          </legend>
+
+          <dl>
+            <!-- Old Repository URL -->
+            <dt>
+              <label for="url">
+                <span th:text="#{project.git.repository.url}">Git 저장소 URL</span>
+                <strong class="orange-txt">*</strong>
+              </label>
+            </dt>
+            <dd>
+              <input id="url" type="text" name="url" class="text" th:placeholder="#{project.git.url.alert}" th:value="*{url}">
+              <span class="orange-txt" th:if="${#fields.hasErrors('url')}" th:errors="*{url}">올바르지 않은 URL 에러</span>
+            </dd>
+            <dd>
+              <label class="checkbox">
+                <input type="checkbox" id="useRepoAuth" th:checked="*{authId != null or #fields.hasErrors('repoAuth') or #fields.hasErrors('authId')}">
+                <span th:text="#{project.import.auth.required}">인증이 필요한 저장소입니다.</span>
+              </label>
+
+              <div id="repoAuth" class="repo-auth-wrap" th:style="*{authId != null or #fields.hasErrors('repoAuth') or #fields.hasErrors('authId')} ? 'display:block;' : 'display:none;'">
+                <div class="row-fluid">
+                  <dl class="span6">
+                    <dt th:text="#{project.import.auth.userid}">ID</dt>
+                    <dd>
+                      <input type="text" name="authId" class="text"
+                             th:value="*{authId}"
+                             th:placeholder="#{project.import.auth.userid.desc}">
+                      <span class="orange-txt" th:if="${#fields.hasErrors('authId')}" th:errors="*{authId}">인증 아이디 에러</span>
+                    </dd>
+                  </dl>
+                  <dl class="span6">
+                    <dt th:text="#{project.import.auth.userpw}">비밀번호</dt>
+                    <dd>
+                      <input type="password" name="authPw" class="text" th:value="*{authPw}">
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </dd>
+            <!-- // -->
+
+            <!-- ProjectOwner -->
+            <dt class="bordertop">
+              <label for="project-owner">
+                <span th:text="#{project.owner}">소유자</span>
+                <strong class="orange-txt">*</strong>
+              </label>
+            </dt>
+            <dd>
+              <select id="project-owner" name="owner" data-toggle="select2" data-format="user" class="mb10" style="min-width: 220px;">
+                <option data-type="user"
+                        th:data-avatar-url="${currentUser.avatarUrl ?: '/images/default-avatar-128.png'}"
+                        th:value="${currentUser.loginId}"
+                        th:text="${currentUser.loginId}">
+                  admin
+                </option>
+                <option th:each="org : ${organizations}"
+                        data-type="group"
+                        th:data-avatar-url="@{/organizations/{orgId}/logo(orgId=${org.id})}"
+                        th:value="${org.name}"
+                        th:text="${org.name}"
+                        th:selected="*{owner == org.name}">
+                  group
+                </option>
+              </select>
+              <span class="orange-txt" th:if="${#fields.hasErrors('owner')}" th:errors="*{owner}">소유자 권한 에러</span>
+            </dd>
+            <!-- // -->
+
+            <!-- ProjectName -->
+            <dt>
+              <label for="project-name">
+                <span th:text="#{project.name}">프로젝트 이름</span>
+                <strong class="orange-txt">*</strong>
+              </label>
+            </dt>
+            <dd>
+              <input id="project-name" type="text" name="name" class="text" maxlength="250"
+                     th:value="*{name}" th:placeholder="#{project.name.alert}">
+              <span class="orange-txt" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">이름 중복/양식 에러</span>
+            </dd>
+            <!-- // -->
+
+            <!-- Description -->
+            <dt>
+              <label for="description" th:text="#{project.description}">설명</label>
+            </dt>
+            <dd>
+              <textarea id="description" name="overview" class="text textarea.span4" th:text="*{overview}"></textarea>
+            </dd>
+            <!-- // -->
+          </dl>
+
+          <div class="advanced-options">
+            <!-- Access Scope -->
+            <div class="row-fluid">
+              <div class="span2 right-txt mt10" th:text="#{project.shareOption}">
+                공개 설정
+              </div>
+              <div class="span10">
+                <ul class="unstyled project-scopes mt10">
+                  <li>
+                    <input type="radio" id="public" name="projectScope" value="PUBLIC" class="radio-btn pull-left" th:checked="*{projectScope == T(com.github.yonaprojects.yona.domain.project.ProjectScope).PUBLIC}">
+                    <label for="public">
+                      <strong class="ml5" th:text="#{project.public}">PUBLIC (공개)</strong>
+                      <p class="note" th:text="#{project.public.notice}">
+                        로그인하지 않은 사용자도 프로젝트를 볼 수 있습니다.
+                      </p>
+                    </label>
+                  </li>
+
+                  <li id="opt-protected" class="mt10" style="display:none;">
+                    <input type="radio" id="protected" name="projectScope" value="PROTECTED" class="radio-btn pull-left" th:checked="*{projectScope == T(com.github.yonaprojects.yona.domain.project.ProjectScope).PROTECTED}">
+                    <label for="protected">
+                      <strong class="ml5" th:text="#{project.protected}">PROTECTED (보호)</strong>
+                      <p class="note" th:text="#{project.protected.notice}">
+                        조직 멤버 및 관계자에게만 보입니다.
+                      </p>
+                    </label>
+                  </li>
+
+                  <li class="mt10">
+                    <input type="radio" id="private" name="projectScope" value="PRIVATE" class="radio-btn pull-left" th:checked="*{projectScope == T(com.github.yonaprojects.yona.domain.project.ProjectScope).PRIVATE}">
+                    <label for="private">
+                      <strong class="ml5" th:text="#{project.private}">PRIVATE (비공개)</strong>
+                      <p class="note" th:text="#{project.private.notice}">
+                        지정한 프로젝트 멤버에게만 노출되며 기본 정보만 공개될 수 있습니다.
+                      </p>
+                    </label>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <!-- // -->
+            <hr>
+            <!-- VCS -->
+            <div class="row-fluid">
+              <div class="span2 right-txt mt10">
+                <label for="vcs" th:text="#{project.vcs}">
+                  저장소 종류
+                </label>
+              </div>
+              <div class="span10 cu-desc">
+                <select data-toggle="select2" class="mb10 mt5" disabled>
+                  <option selected th:text="#{project.new.vcsType.git}">Git</option>
+                </select>
+                <input type="hidden" name="vcs" value="GIT">
+              </div>
+            </div>
+            <!-- // -->
+            <hr>
+            <!-- Menu Setting -->
+            <div class="row-fluid">
+              <div class="span2 right-txt" th:text="#{project.menu.setting}">
+                메뉴 설정
+              </div>
+              <div class="span10 cu-desc">
+                <label for="menuSettingCode" class="bg-radiobtn label-public inline-list">
+                  <input type="checkbox" class="radio-btn" id="menuSettingCode" name="code" value="true" th:checked="*{code}">
+                  <span th:text="#{menu.code}">코드</span>
+                </label>
+                <label for="menuSettingIssue" class="bg-radiobtn label-public inline-list">
+                  <input type="checkbox" class="radio-btn" id="menuSettingIssue" name="issue" value="true" th:checked="*{issue}">
+                  <span th:text="#{menu.issue}">이슈</span>
+                </label>
+                <label for="menuSettingPullRequest" class="bg-radiobtn label-public inline-list">
+                  <input type="checkbox" class="radio-btn" id="menuSettingPullRequest" name="pullRequest" value="true" th:checked="*{pullRequest}">
+                  <span th:text="#{menu.pullRequest}">코드 주고받기</span>
+                </label>
+                <label for="menuSettingReview" class="bg-radiobtn label-public inline-list">
+                  <input type="checkbox" class="radio-btn" id="menuSettingReview" name="review" value="true" th:checked="*{review}">
+                  <span th:text="#{menu.review}">리뷰</span>
+                </label>
+                <label for="menuSettingMilestone" class="bg-radiobtn label-public inline-list">
+                  <input type="checkbox" class="radio-btn" id="menuSettingMilestone" name="milestone" value="true" th:checked="*{milestone}">
+                  <span th:text="#{milestone}">마일스톤</span>
+                </label>
+                <label for="menuSettingBoard" class="bg-radiobtn label-public inline-list">
+                  <input type="checkbox" class="radio-btn" id="menuSettingBoard" name="board" value="true" th:checked="*{board}">
+                  <span th:text="#{menu.board}">게시판</span>
+                </label>
+              </div>
+            </div>
+            <!-- // -->
+          </div>
+
+          <div class="actions mt20">
+            <button class="ybtn ybtn-success" th:text="#{project.create}">
+              프로젝트 가져오기
+            </button>
+            <a href="/" class="ybtn" th:text="#{button.cancel}">취소</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+<th:block th:replace="~{common/select2 :: select2}"></th:block>
+<script type="text/javascript">
+  $(function() {
+      // 인증 체크박스 토글
+      $("#useRepoAuth").change(function() {
+          if($(this).is(":checked")) {
+              $("#repoAuth").show();
+          } else {
+              $("#repoAuth").hide();
+              $("input[name='authId']").val("");
+              $("input[name='authPw']").val("");
+          }
+      });
+
+      // 소유자가 조직(group)인 경우 protected 옵션을 노출
+      $("#project-owner").change(function() {
+          var selectedType = $(this).find("option:selected").attr("data-type");
+          if(selectedType === "group") {
+              $("#opt-protected").show();
+          } else {
+              $("#opt-protected").hide();
+              if($("#protected").is(":checked")) {
+                  $("#public").click();
+              }
+          }
+      }).trigger("change");
+
+      $yobi.loadModule("project.New", {
+          "sFormId": "#importGit",
+          "htError": {}
+      });
+  });
+</script>
+</body>
+</html>

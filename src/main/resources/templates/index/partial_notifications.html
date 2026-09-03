@@ -1,0 +1,85 @@
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="html">
+    <!-- 알림 목록이 비어 있는 경우 -->
+    <div th:if="${notifications == null || notifications.isEmpty()}" class="warning-none">
+        <i class="yobicon-danger"></i> [[#{notification.none}]]
+    </div>
+
+    <!-- 알림 목록 반복 렌더링 -->
+    <li th:each="noti : ${notifications}" class="notification-stream">
+        <!-- 이슈/의견 업데이트(수정)의 경우 특수 아이콘 클래스 및 "Edit" 텍스트 표시 -->
+        <div th:if="${noti.iconClass == 'ellipsis-horizontal'}" class="stream-type updated">
+            Edit
+        </div>
+        <!-- 일반 알림 타입인 경우 아이콘 노출 -->
+        <div th:unless="${noti.iconClass == 'ellipsis-horizontal'}" th:class="'stream-type ' + ${noti.iconClass}">
+            <i th:class="'yobicon-' + ${noti.iconClass}"></i>
+        </div>
+
+        <div class="stream-desc" th:data-target="'message-' + ${noti.id}" data-toggle="learnmore">
+            <div class="stream-info">
+                <!-- 타이틀 (링크 처리) -->
+                <div class="title">
+                    <a th:if="${noti.url != null}" th:href="${noti.url}" th:text="${noti.title}">알림 제목</a>
+                    <span th:if="${noti.url == null}" th:text="${noti.title}">알림 제목</span>
+                </div>
+                <!-- 메시지 본문 -->
+                <div class="message-wrap nowrap" th:id="'message-' + ${noti.id}">
+                    <div class="message" th:utext="${noti.message}">알림 상세 내용</div>
+                </div>
+                <!-- 메타 정보 (보낸이 아바타, 작성일 등) -->
+                <div class="meta">
+                    <!-- 보낸 사람 아바타 -->
+                    <span th:if="${noti.senderLoginId != null}">
+                        <a class="avatar-wrap smaller" th:href="@{'/user/' + ${noti.senderLoginId}}">
+                            <img th:src="${noti.senderAvatarUrl}">
+                        </a>
+                    </span>
+                    <span th:unless="${noti.senderLoginId != null}">
+                        <div class="smaller">
+                            <img src="/images/default-avatar-64.png" width="42" height="42">
+                        </div>
+                    </span>
+                    <!-- 보낸 사람 이름 및 loginId -->
+                    <span th:if="${noti.senderLoginId != null}">
+                        <a th:href="@{'/user/' + ${noti.senderLoginId}}" class="author" th:text="${noti.senderName}">보낸사람</a>@<span th:text="${noti.senderLoginId}">loginId</span>
+                    </span>
+                    <!-- 알림 발생일 -->
+                    <span class="ago pull-right" th:title="${noti.created != null ? @templateHelper.getDateString(noti.created) : ''}" th:text="${noti.created != null ? @templateHelper.agoOrDateString(noti.created) : ''}">방금 전</span>
+                </div>
+            </div>
+        </div>
+    </li>
+
+    <!-- 더보기 (More) 버튼 노출 -->
+    <li th:if="${notifications != null && !notifications.isEmpty()}">
+        <a href="javascript:void(0);" id="notification-more" class="ybtn">More</a>
+    </li>
+
+    <script type="text/javascript" th:if="${notifications != null && !notifications.isEmpty()}">
+        $(document).ready(function(){
+            function checkOverflow(el) {
+                var curOverflow = el.style.overflow;
+                if (!curOverflow || curOverflow === "visible")
+                    el.style.overflow = "hidden";
+                var isOverflowing = el.clientWidth < el.scrollWidth || el.clientHeight < el.scrollHeight;
+                el.style.overflow = curOverflow;
+                return isOverflowing;
+            }
+
+            $("#notification-more").click(function() {
+                $("#notification-more").closest("li").remove();
+                var currentCount = $('.notification-stream').length;
+                $.get("/_notifications?from=" + currentCount + "&size=20", function(data) {
+                    $('.activity-streams').append(data);
+                    $(".more").remove();
+                    $(".message-wrap").each(function(index, value){
+                        var $this = $(this);
+                        if(checkOverflow($this[0])){
+                            $this.after("<div class='more'>...</div>");
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+</th:block>

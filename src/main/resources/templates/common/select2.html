@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<th:block th:fragment="select2">
+    <script type="text/javascript" src="/javascripts/lib/select2/select2.js"></script>
+    <script type="text/javascript" src="/javascripts/common/yobi.ui.Select2.js"></script>
+    
+    <th:block th:if="${#locale.language == 'ko'}">
+        <script type="text/javascript" src="/javascripts/lib/select2/select2_locale_ko.js"></script>
+    </th:block>
+    <th:block th:if="${#locale.language == 'ja'}">
+        <script type="text/javascript" src="/javascripts/lib/select2/select2_locale_ja.js"></script>
+    </th:block>
+    
+    <script id="tplSelect2FormatUser" type="text/x-jquery-tmpl">
+    <div class="usf-group" title="${name} ${loginId}">
+        <span class="avatar-wrap smaller"><img src="${avatarURL}" width="20" height="20"></span>
+        <strong class="name">${name}</strong>
+        <span class="loginid">${loginId}</span>
+    </div>
+    </script>
+    <script id="tplSelect2FormatMilestone" type="text/x-jquery-tmpl">
+    <div title="[${stateLabel}] ${name}">
+        ${name}
+    </div>
+    </script>
+    <script id="tplSelect2Projects" type="text/x-jquery-tmpl">
+    <div class="usf-group" title="${name}">
+        <span class="avatar-wrap smaller"><img src="${avatarURL}" width="16" height="16"></span>
+        <span class="loginid">${owner}</span>
+        <span class="name">${name}</span>
+    </div>
+    </script>
+    <script id="tplSelect2ProjectsWithoutAvatar" type="text/x-jquery-tmpl">
+    <div class="usf-group" title="${name}">
+        <span class="width25px"></span>
+        <span class="loginid">${owner}</span>
+        <span class="name">${name}</span>
+    </div>
+    </script>
+    
+    <script id="tplSelect2FormatIssues" type="text/x-jquery-tmpl">
+    <div title="${name}">
+        ${name}
+    </div>
+    </script>
+</th:block>
+</body>
+</html>

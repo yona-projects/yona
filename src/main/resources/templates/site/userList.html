@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(#{${message}})}"></head>
+<body class="theme-default">
+<div id="main" class="main">
+  <!-- GNB -->
+  <div th:replace="~{site/layout :: gnb}"></div>
+
+  <!-- Breadcrumb -->
+  <div th:replace="~{site/layout :: breadcrumb}"></div>
+
+  <div class="page-wrap-outer">
+    <div class="site-setting-wrap">
+      <div class="row-fluid">
+        <!-- Sidebar -->
+        <div th:replace="~{site/layout :: sidebar('users')}"></div>
+
+        <!-- Content Area -->
+        <div class="span10">
+          <div class="title_area">
+            <h2 class="pull-left" th:text="#{site.sidebar.userList}">사용자</h2>
+            <form class="form-search pull-right" th:action="@{/sites/userList}" method="get">
+              <input type="hidden" name="state" th:value="${userState.name()}" />
+              <div class="search-bar">
+                <input class="textbox" name="query" type="text" th:placeholder="#{site.userList.search}" th:value="${query}">
+                <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+              </div>
+            </form>
+          </div>
+          
+          <ul class="nav nav-tabs">
+            <li th:class="${userState.name() == 'ACTIVE' ? 'active' : ''}">
+              <a th:href="@{/sites/userList(state='ACTIVE', query=${query})}" th:text="#{site.userList.unlocked}">활성화된 사용자</a>
+            </li>
+            <li th:class="${userState.name() == 'LOCKED' ? 'active' : ''}">
+              <a th:href="@{/sites/userList(state='LOCKED', query=${query})}" th:text="#{site.userList.locked}">계정이 잠긴 사용자</a>
+            </li>
+            <li th:class="${userState.name() == 'DELETED' ? 'active' : ''}">
+              <a th:href="@{/sites/userList(state='DELETED', query=${query})}" th:text="#{site.userList.deleted}">삭제된 사용자</a>
+            </li>
+            <li th:class="${userState.name() == 'GUEST' ? 'active' : ''}">
+              <a th:href="@{/sites/userList(state='GUEST', query=${query})}" th:text="#{site.userList.guest}">게스트 사용자</a>
+            </li>
+            <li th:class="${userState.name() == 'SITE_ADMIN' ? 'active' : ''}">
+              <a th:href="@{/sites/userList(state='SITE_ADMIN', query=${query})}">
+                <span th:text="#{site.userList.siteAdmin}">사이트 어드민</span>
+                <span class="num-badge" th:text="${adminCount}">0</span>
+              </a>
+            </li>
+          </ul>
+          
+          <div class="row-fluid listhead">
+            <div class="span3 listhead-title">
+              <strong th:text="#{user.name}">이름</strong>
+            </div>
+            <div class="span3 listhead-title">
+              <strong th:text="#{user.email}">이메일</strong>
+            </div>
+            <div class="span2 listhead-title">
+              <strong th:text="#{userinfo.since}">가입일</strong>
+            </div>
+            <div class="span4 listhead-title" th:if="${userState.name() != 'DELETED'}">
+              <strong>&nbsp;</strong>
+            </div>
+            <div class="span4 listhead-title" th:if="${userState.name() == 'DELETED'}">
+              <strong th:text="#{userinfo.leave}">탈퇴일</strong>
+            </div>
+          </div>
+          
+          <ul class="user-list-wrap">
+            <li class="row-fluid listitem" th:each="user : ${users.content}">
+              <div class="span3 listitem-col">
+                <a th:href="@{'/user/' + ${user.loginId}}" class="avatar-wrap list-avatar">
+                  <img th:src="${user.avatarUrl}" alt="avatar" width="32" height="32"/>
+                </a>
+                <a th:href="@{'/user/' + ${user.loginId}}" class="user-name" th:text="${user.name}">
+                  사용자이름
+                </a>
+                <a th:href="@{'/user/' + ${user.loginId}}" class="user-id" th:text="'@' + ${user.loginId}">
+                  @loginId
+                </a>
+              </div>
+              <div class="span3 listitem-col">
+                <span class="email" th:text="${user.email}">email@domain.com</span>
+              </div>
+              <div class="span2 listitem-col created-date">
+                <span th:text="${user.createdDate != null ? #temporals.format(user.createdDate, 'yyyy-MM-dd') : ''}">2026-06-08</span>
+              </div>
+              <div class="span5 listitem-col action-buttons" th:if="${userState.name() != 'DELETED'}">
+                <a class="ybtn ybtn-small" th:classappend="${user.isGuest} ? 'ybtn-success'" data-request-method="post" th:data-request-uri="@{/sites/toggleGuestMode(loginId=${user.loginId}, state=${userState.name()}, query=${query})}">
+                  <span th:if="${user.isGuest}" th:text="#{button.user.make.normal.mode}">일반회원 전환</span>
+                  <span th:if="${!user.isGuest}" th:text="#{button.user.make.guest.mode}">게스트 지정</span>
+                </a>
+                <a class="ybtn ybtn-small" data-request-method="post" th:data-request-uri="@{/sites/toggleAccountLock(loginId=${user.loginId}, state=${userState.name()}, query=${query})}" th:text="${user.state.name() == 'LOCKED'} ? #{button.user.makeAccountUnlock.true} : #{button.user.makeAccountUnlock.false}">
+                  계정 잠금/해제
+                </a>
+                <button th:id="${user.loginId}" class="ybtn ybtn-small" data-toggle="reset-password" th:data-href="@{'/' + ${user.loginId}(action='resetPassword')}" th:text="#{title.resetPassword}">비밀번호 초기화</button>
+                <a class="ybtn ybtn-small" th:classappend="${user.isSiteManager} ? 'ybtn-info' : 'label-info'" data-request-method="post" th:data-request-uri="@{/sites/toggleSiteAdminRole/{loginId}(loginId=${user.loginId}, state=${userState.name()}, query=${query})}">
+                  <span th:if="${user.isSiteManager}" th:text="#{button.user.revoke.site.admin.role}">관리자 박탈</span>
+                  <span th:if="${!user.isSiteManager}" th:text="#{button.user.upgrade.to.site.admin}">관리자 지정</span>
+                </a>
+                <button class="ybtn ybtn-small ybtn-danger" data-toggle="account-delete" th:data-href="@{/sites/user/delete/{userId}(userId=${user.id})}" th:data-user-id="${user.loginId}" th:data-user-name="${user.name}" th:text="#{button.delete}">
+                  삭제
+                </button>
+              </div>
+              <div class="span4 listitem-col" th:if="${userState.name() == 'DELETED'}">
+                <span th:text="${user.lastStateModifiedDate != null ? #temporals.format(user.lastStateModifiedDate, 'yyyy-MM-dd HH:mm') : ''}">탈퇴일</span>
+              </div>
+            </li>
+          </ul>
+          
+          <div id="pagination"></div>
+
+          <div id="alertDeletionWrap" class="modal fade">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">×</button>
+              <span id="userInfo"></span>
+              <span th:text="#{site.user.delete}">사용자 삭제</span>
+            </div>
+            <div class="modal-body">
+              <p th:text="#{site.user.deleteConfirm}">정말로 해당 사용자를 사이트에서 탈퇴시키겠습니까?</p>
+            </div>
+            <div class="modal-footer">
+              <a id="accountToggleBtn" class="ybtn ybtn-danger" th:text="#{button.yes}">
+                예
+              </a>
+              <button type="button" class="ybtn" data-dismiss="modal" th:text="#{button.no}">아니요</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer th:replace="~{site/layout :: footer}"></footer>
+
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+<script type="text/javascript" th:inline="javascript">
+$(function(){
+    function _showRequestWaitingMessage(that){
+        $(".alert").remove();
+        $.tmpl (document.getElementById("dismissable-alerts-request" ).text, {}).appendTo(that.parent());
+    }
+
+    $('.user-list-wrap').on('click','[data-toggle="account-delete"]',function(){
+        $('#accountToggleBtn')
+            .data("requestUri", $(this).data('href'))
+            .data("requestMethod","delete")
+            .requestAs({
+                    "fOnError": function(oRes) {
+                        if (oRes.oXHR.status == 403) {
+                            document.location.reload();
+                        }
+                    }
+                });
+        $('#userInfo').html($(this).data('userName')+'('+$(this).data('userId')+')');
+        $('#alertDeletionWrap').modal('show');
+    })
+    .on('click','[data-toggle="reset-password"]',function(){
+        var that = $(this);
+        _showRequestWaitingMessage(that);
+        $.post(that.data("href"))
+            .done(function(data){
+                $(".alert").remove();
+                if(data && data.isSuccess === true){
+                    $.tmpl($('#dismissable-alerts').text(), data).appendTo(that.parent());
+                } else {
+                    $yobi.alert("password change failed: " + data.reason);
+                }
+            })
+            .fail(function(data){
+                $yobi.alert("password change failed: " + JSON.parse(data.responseText).reason);
+            });
+    });
+
+    yobi.Pagination.update($("#pagination"), /*[[${users.totalPages}]]*/ 1, {"paramNameForPage": "page"});
+});
+</script>
+<script type="text/x-jquery-tmpl" id="dismissable-alerts">
+    <div class="alert alert-success">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <h4 th:text="#{user.newPassword} + ': ${newPassword}'">신규 비밀번호: ${newPassword}</h4>
+    </div>
+</script>
+<script type="text/x-jquery-tmpl" id="dismissable-alerts-request">
+    <div class="alert alert-fail">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <h4>sending requestHeader...</h4>
+    </div>
+</script>
+</body>
+</html>

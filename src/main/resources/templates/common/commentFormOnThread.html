@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+yona views/partial_comment_form_on_thread.scala.html 대응 — 코드리뷰 댓글 스레드(CommentThread)에
+답글을 다는 폼 + 스레드 상태(열림/닫힘) 토글 버튼. 호출부(code/diff.html 등)가 권한 판정
+(canComment=isProjectResourceCreatable, canChangeState=isAllowed(UPDATE))을 미리 계산해 넘긴다.
+-->
+<div th:fragment="commentFormOnThread(thread, postUrl, canComment, canChangeState, currentUser)">
+  <div th:if="${canComment}" class="write-comment-form">
+    <form th:action="${postUrl}" method="post" enctype="multipart/form-data" class="review-form" style="display:block;">
+      <input type="hidden" name="thread.id" th:value="${thread.id}">
+      <div class="author-info-wrap pull-left hide-in-mobile">
+        <div class="author-info">
+          <a th:href="@{/user/{loginId}(loginId=${currentUser.loginId})}" class="avatar-wrap medium"
+             th:title="${currentUser.name}" data-toggle="tooltip" data-placement="top">
+            <img th:src="${currentUser.avatarUrl}" width="32" height="32">
+          </a>
+        </div>
+      </div>
+      <div class="write-comment-box">
+        <div class="write-comment-wrap">
+          <div th:replace="~{site/layout :: markdownEditor('contents', '', 'code-review-body')}"></div>
+
+          <div th:replace="~{common/uploadForm :: uploadForm('COMMIT_COMMENT', null, null)}"></div>
+
+          <div class="right-txt">
+            <th:block th:if="${canChangeState}">
+              <button th:if="${thread.state.name() == 'OPEN'}" type="button" data-request-method="post"
+                      th:data-request-uri="@{/threads/{id}/close(id=${thread.id})}"
+                      class="ybtn ybtn-default ybtn-small" th:text="#{commentThread.close}">Close</button>
+              <button th:unless="${thread.state.name() == 'OPEN'}" type="button" data-request-method="post"
+                      th:data-request-uri="@{/threads/{id}/open(id=${thread.id})}"
+                      class="ybtn ybtn-default ybtn-small" th:text="#{commentThread.open}">Open</button>
+            </th:block>
+            <button type="submit" class="ybtn ybtn-success ybtn-small" th:text="#{button.comment.new}">Add a comment</button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+  <p th:unless="${canComment}" class="thread-actrow">
+    <th:block th:if="${canChangeState}">
+      <button th:if="${thread.state.name() == 'OPEN'}" type="button" data-request-method="post"
+              th:data-request-uri="@{/threads/{id}/close(id=${thread.id})}"
+              class="ybtn ybtn-default ybtn-small" th:text="#{commentThread.close}">Close</button>
+      <button th:unless="${thread.state.name() == 'OPEN'}" type="button" data-request-method="post"
+              th:data-request-uri="@{/threads/{id}/open(id=${thread.id})}"
+              class="ybtn ybtn-default ybtn-small" th:text="#{commentThread.open}">Open</button>
+    </th:block>
+  </p>
+</div>
+</body>
+</html>

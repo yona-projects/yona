@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(${user.name} + ' (' + ${user.loginId} + ') - Yona')}">
+</head>
+<body class="" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div class="site-breadcrumb-outer">
+        <div class="site-breadcrumb-inner">
+            <h3 th:text="${user.name}">이지호</h3>
+        </div>
+    </div>
+    <div class="page-wrap-outer">
+        <div class="page-wrap">
+            <section class="user-box">
+                <div class="user-info-box">
+                    <div class="whoami-wrap" th:style="'background-image:url(' + ${user.avatarUrl} + ')'">
+                        <div th:if="${user.isGuest}" class="guest-user">
+                            <span class="left-mark">OUR GUEST</span>
+                        </div>
+                    </div>
+                    <div class="whoami usf-group">
+                        <span class="name" th:text="${user.englishName}">englishName</span>
+                        <span class="loginid" th:text="'@' + ${user.loginId}">@admin</span>
+                        <span class="email" th:text="${user.email}">search5@gmail.com</span>
+                        
+                        <div th:if="${currentUser != null && user.loginId == currentUser.loginId}" class="edit">
+                            <a href="/user/editform" class="ybtn ybtn-default ybtn-mini">
+                                <i class="yobicon-edit"></i> 
+                                <span th:text="#{userinfo.editProfile}">프로필 수정</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="user-status">
+                        <span th:if="${user.isSiteManager}" class="badge label-success">SITE ADMIN</span>
+                    </div>
+                    <div class="user-status">
+                        <span th:if="${user.state == T(com.github.yonaprojects.yona.domain.user.UserState).LOCKED}" class="badge label-important">BLOCKED</span>
+                    </div>
+                    <div class="user-since">
+                        <strong th:text="#{userinfo.since}">가입일</strong>
+                        <span class="since" th:text="${user.createdDate != null ? #temporals.format(user.createdDate, 'MMM dd, yyyy', T(java.util.Locale).US) : ''}">Nov 01, 2012</span>
+                    </div>
+                    <div class="user-since">
+                        <div>
+                            <strong th:text="#{user.connected.social.login}">연결된 소셜 로그인</strong>
+                        </div>
+                        <div class="auth-provider-logo">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="user-stream-box">
+                    <th:block th:if="${currentUser == null || !currentUser.isGuest}">
+                        <div class="pull-right">
+                            최근 <input id="daysAgoBtn" name="daysAgo" type="number" min="1" max="99" class="input-mini-min" value="14" style="margin:0px 5px; vertical-align:bottom;"> 일
+                        </div>
+
+                        <ul class="nav nav-tabs">
+                            <li th:classappend="${selected == 'issues'} ? 'active' : ''">
+                                <a href="#issues" data-toggle="tab">
+                                    <span th:text="#{menu.issue}">이슈</span>
+                                    <span th:if="${issues.size() > 0}" class="num-badge" th:text="${issues.size()}">0</span>
+                                </a>
+                            </li>
+                            <li th:classappend="${selected == 'pullRequests'} ? 'active' : ''">
+                                <a href="#pullRequests" data-toggle="tab">
+                                    <span th:text="#{menu.pullRequest}">코드 주고받기</span>
+                                    <span th:if="${pullRequests.size() > 0}" class="num-badge" th:text="${pullRequests.size()}">0</span>
+                                </a>
+                            </li>
+                            <li th:classappend="${selected == 'projects'} ? 'active' : ''">
+                                <a href="#projects" data-toggle="tab">
+                                    <span th:text="#{project.projects}">프로젝트</span>
+                                    <span th:if="${projects.size() > 0}" class="num-badge" th:text="${projects.size()}">0</span>
+                                </a>
+                            </li>
+                            <li>
+                                <div class="two-column-icon mr10 hide-in-mobile" id="two-column-mode-checkbox" title="" data-content="리스트와 본문을 각각 컬럼으로 분할해서 보여줍니다" data-original-title="투 컬럼 모드">
+                                    <label class="checkbox">
+                                        <div class="two-column-icon-border">
+                                            <input id="two-column-mode" type="checkbox"><span class="two-column-mode-text">2단 보기</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content">
+                            <!-- 이슈 탭 -->
+                            <div id="issues" class="tab-pane" th:classappend="${selected == 'issues'} ? 'active' : ''">
+                                <ul class="nav nav-tabs nm">
+                                    <li class="active">
+                                        <a href="#openIssues" data-toggle="tab">
+                                            <span th:text="#{issue.state.open}">열림</span>
+                                            <span class="num-badge" th:text="${openIssuesCount}">0</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="#closedIssues" data-toggle="tab">
+                                            <span th:text="#{issue.state.closed}">닫힘</span>
+                                            <span class="num-badge" th:text="${closedIssuesCount}">0</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <div class="show-subtasks mr10" id="two-column-mode-checkbox" data-toggle="popover" data-trigger="hover" data-placement="top" title="" data-content="자식이슈(Subtask)를 항상 펼쳐진 상태로 표시합니다" data-original-title="자식이슈 펼쳐보기">
+                                            <label class="checkbox">
+                                                <div class="show-subtasks-button-border">
+                                                    <input id="toggle-show-subtasks" type="checkbox"><span class="show-subtasks-text">자식이슈 펼쳐보기</span>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </li>
+                                </ul>
+                                <div class="tab-content">
+                                    <div id="openIssues" class="tab-pane active">
+                                        <div th:if="${issues.isEmpty()}" class="error-wrap">
+                                            <p th:text="#{issue.is.empty}">이슈가 없습니다.</p>
+                                        </div>
+                                        <ul class="post-list-wrap my-issues row-fluid">
+                                            <th:block th:each="issue : ${issues}" th:if="${issue.state == T(com.github.yonaprojects.yona.domain.enumeration.State).OPEN}">
+                                                <li class="post-item title" th:id="'issue-item-' + ${issue.id}" th:href="@{/{owner}/{projectName}/issue/{number}(owner=${issue.project.owner}, projectName=${issue.project.name}, number=${issue.number})}">
+                                                    <div class="span12 span-hard-wrap">
+                                                        <div class="span2 project-name-in-my-issues fixed-height-my-issues-list">
+                                                            <span class="infos-item project-name">
+                                                                <a th:href="@{/{owner}/{projectName}(owner=${issue.project.owner}, projectName=${issue.project.name})}" class="title project" th:text="${issue.project.name}">project</a>
+                                                            </span>
+                                                            <span class="infos-item post-id" th:text="'#' + ${issue.number}">#1</span>
+                                                        </div>
+                                                        <div class="title-wrap span5">
+                                                            <span class="title-cell">
+                                                                <a th:href="@{/{owner}/{projectName}/issue/{number}(owner=${issue.project.owner}, projectName=${issue.project.name}, number=${issue.number})}" class="title" th:text="${issue.title}">title</a>
+                                                            </span>
+                                                        </div>
+                                                        <div class="span1 hide-in-mobile author project-name-in-my-issues fixed-height-my-issues-list">
+                                                            <a th:href="@{/user/{loginId}(loginId=${issue.authorLoginId})}" class="infos-item infos-link-item author-cell" th:text="${issue.authorName ?: issue.authorLoginId}">이지호</a>
+                                                        </div>
+                                                        <div class="span1 hide-in-mobile author project-name-in-my-issues fixed-height-my-issues-list">
+                                                            <span class="infos-item" th:text="${issue.assignee?.user?.name ?: ''}"></span>
+                                                        </div>
+                                                        <div class="infos span3 meta">
+                                                            <span class="meta-cell">
+                                                                <th:block th:if="${issue.createdDate != issue.updatedDate}">
+                                                                    <span class="infos-item" data-toggle="tooltip" data-placement="bottom" 
+                                                                          th:title="'Last Updated ' + ${@templateHelper.getDateString(issue.updatedDate)}"
+                                                                          th:text="${@templateHelper.agoOrDateString(issue.updatedDate)}">
+                                                                    </span>
+                                                                </th:block>
+                                                                <th:block th:unless="${issue.createdDate != issue.updatedDate}">
+                                                                    <span class="infos-item" data-toggle="tooltip" data-placement="bottom" 
+                                                                          th:title="'Created at ' + ${@templateHelper.getDateString(issue.createdDate)}"
+                                                                          th:text="${@templateHelper.agoOrDateString(issue.createdDate)}">
+                                                                    </span>
+                                                                </th:block>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                            </th:block>
+                                        </ul>
+                                    </div>
+                                    <div id="closedIssues" class="tab-pane">
+                                        <div th:if="${issues.isEmpty()}" class="error-wrap">
+                                            <p th:text="#{issue.is.empty}">이슈가 없습니다.</p>
+                                        </div>
+                                        <ul class="post-list-wrap my-issues row-fluid">
+                                            <th:block th:each="issue : ${issues}" th:if="${issue.state == T(com.github.yonaprojects.yona.domain.enumeration.State).CLOSED}">
+                                                <li class="post-item title" th:id="'issue-item-' + ${issue.id}" th:href="@{/{owner}/{projectName}/issue/{number}(owner=${issue.project.owner}, projectName=${issue.project.name}, number=${issue.number})}">
+                                                    <div class="span12 span-hard-wrap">
+                                                        <div class="span2 project-name-in-my-issues fixed-height-my-issues-list">
+                                                            <span class="infos-item project-name">
+                                                                <a th:href="@{/{owner}/{projectName}(owner=${issue.project.owner}, projectName=${issue.project.name})}" class="title project" th:text="${issue.project.name}">project</a>
+                                                            </span>
+                                                            <span class="infos-item post-id" th:text="'#' + ${issue.number}">#1</span>
+                                                        </div>
+                                                        <div class="title-wrap span5">
+                                                            <span class="title-cell">
+                                                                <a th:href="@{/{owner}/{projectName}/issue/{number}(owner=${issue.project.owner}, projectName=${issue.project.name}, number=${issue.number})}" class="title" th:text="${issue.title}">title</a>
+                                                            </span>
+                                                        </div>
+                                                        <div class="span1 hide-in-mobile author project-name-in-my-issues fixed-height-my-issues-list">
+                                                            <a th:href="@{/user/{loginId}(loginId=${issue.authorLoginId})}" class="infos-item infos-link-item author-cell" th:text="${issue.authorName ?: issue.authorLoginId}">이지호</a>
+                                                        </div>
+                                                        <div class="span1 hide-in-mobile author project-name-in-my-issues fixed-height-my-issues-list">
+                                                            <span class="infos-item" th:text="${issue.assignee?.user?.name ?: ''}"></span>
+                                                        </div>
+                                                        <div class="infos span3 meta">
+                                                            <span class="meta-cell">
+                                                                <th:block th:if="${issue.createdDate != issue.updatedDate}">
+                                                                    <span class="infos-item" data-toggle="tooltip" data-placement="bottom" 
+                                                                          th:title="'Last Updated ' + ${@templateHelper.getDateString(issue.updatedDate)}"
+                                                                          th:text="${@templateHelper.agoOrDateString(issue.updatedDate)}">
+                                                                    </span>
+                                                                </th:block>
+                                                                <th:block th:unless="${issue.createdDate != issue.updatedDate}">
+                                                                    <span class="infos-item" data-toggle="tooltip" data-placement="bottom" 
+                                                                          th:title="'Created at ' + ${@templateHelper.getDateString(issue.createdDate)}"
+                                                                          th:text="${@templateHelper.agoOrDateString(issue.createdDate)}">
+                                                                    </span>
+                                                                </th:block>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                            </th:block>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 풀 리퀘스트 탭 -->
+                            <div id="pullRequests" class="tab-pane" th:classappend="${selected == 'pullRequests'} ? 'active' : ''">
+                                <div th:if="${pullRequests.isEmpty()}" class="error-wrap">
+                                    <p th:text="#{pullRequest.is.empty}">제출한 풀 리퀘스트가 없습니다.</p>
+                                </div>
+                                <ul class="post-list-wrap row-fluid">
+                                    <th:block th:each="pr : ${pullRequests}">
+                                        <li class="post-item title" th:href="@{/{owner}/{projectName}/pull/{number}(owner=${pr.toProject.owner}, projectName=${pr.toProject.name}, number=${pr.number})}">
+                                            <div class="span12 span-hard-wrap">
+                                                <div class="span2 project-name-in-my-issues fixed-height-my-issues-list">
+                                                    <span class="infos-item project-name">
+                                                        <a th:href="@{/{owner}/{projectName}(owner=${pr.toProject.owner}, projectName=${pr.toProject.name})}" class="title project" th:text="${pr.toProject.name}">project</a>
+                                                    </span>
+                                                    <span class="infos-item post-id" th:text="'#' + ${pr.number}">#1</span>
+                                                </div>
+                                                <div class="title-wrap span5">
+                                                    <span class="title-cell">
+                                                        <a th:href="@{/{owner}/{projectName}/pull/{number}(owner=${pr.toProject.owner}, projectName=${pr.toProject.name}, number=${pr.number})}" class="title" th:text="${pr.title}">title</a>
+                                                    </span>
+                                                </div>
+                                                <div class="span1 hide-in-mobile author project-name-in-my-issues fixed-height-my-issues-list">
+                                                    <a th:href="@{/user/{loginId}(loginId=${pr.contributor.loginId})}" class="infos-item infos-link-item author-cell" th:text="${pr.contributor.name ?: pr.contributor.loginId}">이지호</a>
+                                                </div>
+                                                <div class="infos span3 meta">
+                                                    <span class="meta-cell">
+                                                        <span class="infos-item" data-toggle="tooltip" data-placement="bottom"
+                                                              th:title="'Created at ' + ${@templateHelper.getDateString(pr.created)}"
+                                                              th:text="${@templateHelper.agoOrDateString(pr.created)}">
+                                                        </span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </th:block>
+                                </ul>
+                            </div>
+
+                            <!-- 프로젝트 탭 -->
+                            <div id="projects" class="tab-pane" th:classappend="${selected == 'projects'} ? 'active' : ''">
+                                <div th:if="${projects.isEmpty()}" class="error-wrap">
+                                    <p th:text="#{project.is.empty}">프로젝트가 없습니다.</p>
+                                </div>
+                                <ul class="user-streams all-projects">
+                                    <th:block th:each="project : ${projects}">
+                                        <li class="project">
+                                            <div class="info-wrap">
+                                                <div class="pull-left">
+                                                    <a th:href="@{/{owner}/{projectName}(owner=${project.owner}, projectName=${project.name})}" class="avatar-wrap small">
+                                                        <img src="/images/project_default_logo.png" th:src="@{/images/project_default_logo.png}"/>
+                                                    </a>
+                                                </div>
+                                                <div class="pull-left" style="margin-left: 10px;">
+                                                    <div class="header">
+                                                        <a th:href="@{/{owner}/{projectName}(owner=${project.owner}, projectName=${project.name})}" class="project-name" th:text="${project.name}">project</a>
+                                                    </div>
+                                                    <div class="desc" th:text="${project.overview}">description</div>
+                                                    <div class="name-tag">
+                                                        <i class="yobicon-friends yobicon-middle"></i>
+                                                        <a th:href="@{/user/{loginId}(loginId=${project.owner})}" class="owner-name-small" th:text="${project.owner}">owner</a>
+                                                        <span data-toggle="tooltip" data-placement="bottom"
+                                                              th:title="'Created at ' + ${@templateHelper.getDateString(project.createdDate)}"
+                                                              th:text="${@templateHelper.agoOrDateString(project.createdDate)}">4일 전</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </th:block>
+                                </ul>
+                            </div>
+                        </div>
+                    </th:block>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+<script type="text/javascript" src="/javascripts/lib/parseuri.js"></script>
+<script type="text/javascript" src="/javascripts/lib/jquery.pageslide.js"></script>
+<script type="text/javascript" src="/javascripts/service/yona.twoColumnMode.js"></script>
+<script type="text/javascript" src="/javascripts/service/yona.showSubtask.js"></script>
+<script type="text/javascript" src="/javascripts/service/yobi.user.View.js"></script>
+<script type="text/javascript" th:inline="javascript">
+$(document).ready(function(){
+    $yobi.loadModule("user.View", {
+        "sTabSelected": [[${selected}]]
+    });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(${project.name} + ' - ' + #{project.webhook})}">
+</head>
+<body class="prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div th:replace="~{project/header :: header(${project})}"></div>
+    <div th:replace="~{project/menu :: menu(${project}, 'setting')}"></div>
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
+          <div class="webhook-container">
+          <div th:replace="~{project/setting_menu :: menu(${project}, 'webhooks')}"></div>
+          <h3 style="margin-top: 0; margin-bottom: 20px;">웹훅 설정</h3>
+
+          <!-- 새 웹훅 등록 폼 -->
+          <form id="formNewWebhook" th:action="@{/projects/{owner}/{name}/webhooks(owner=${project.owner}, name=${project.name})}" method="post" class="form-horizontal form-wrap">
+            <h4 style="margin-top: 0; margin-bottom: 15px;">새로운 웹훅 추가</h4>
+            
+            <div class="form-group">
+              <label class="col-sm-2 control-label" for="payloadUrl">Payload URL</label>
+              <div class="col-sm-10">
+                <input type="url" id="payloadUrl" name="payloadUrl" class="form-control" placeholder="https://example.com/post-receive" required maxlength="2000" autocomplete="off">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="col-sm-2 control-label" for="secret">Secret Token</label>
+              <div class="col-sm-10">
+                <input type="text" id="secret" name="secret" class="form-control" placeholder="비밀 서명 값 (선택 사항)" maxlength="250" autocomplete="off">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="col-sm-2 control-label">웹훅 타입</label>
+              <div class="col-sm-10">
+                <label class="radio-inline">
+                  <input type="radio" name="webhookType" value="SIMPLE" checked> SIMPLE (텍스트 전송)
+                </label>
+                <label class="radio-inline">
+                  <input type="radio" name="webhookType" value="DETAIL_SLACK"> Slack (상세 포맷)
+                </label>
+                <label class="radio-inline">
+                  <input type="radio" name="webhookType" value="DETAIL_HANGOUT_CHAT"> Google Chat (스레드 연동)
+                </label>
+                <label class="radio-inline">
+                  <input type="radio" name="webhookType" value="JSON"> JSON (CI 도구/푸시 전용)
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="col-sm-offset-2 col-sm-10">
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" id="gitPush" name="gitPush"> Git Push 이벤트 포함 여부
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <div class="col-sm-offset-2 col-sm-10">
+                <button type="submit" class="btn btn-primary">웹훅 추가</button>
+              </div>
+            </div>
+          </form>
+
+          <!-- 웹훅 목록 -->
+          <div th:if="${#lists.isEmpty(webhooks)}" class="error-wrap">
+            <i class="ico ico-err1"></i>
+            <p th:text="#{project.webhook.list.empty}">등록된 웹후크가 없습니다.</p>
+          </div>
+          <th:block th:if="${!#lists.isEmpty(webhooks)}">
+            <div class="row-fluid list-head">
+              <div class="span5 payload-url">
+                <strong th:text="#{project.webhook.payloadUrl}">Payload URL</strong>
+              </div>
+              <div class="span2 secret text-center">
+                <strong th:text="#{project.webhook.secret}">Secret Token</strong>
+              </div>
+              <div class="span2 secret text-center">
+                <strong>Type of message</strong>
+              </div>
+              <div class="span2 secret text-center">
+                <strong>Include git push events</strong>
+              </div>
+              <div class="span1 secret text-center"></div>
+            </div>
+
+            <div class="row-fluid list-item vertical-align" th:each="webhook : ${webhooks}" th:data-webhook-id="${webhook.id}">
+              <div class="span5">
+                <h6 class="mr20 truncate" th:text="${webhook.payloadUrl}">https://example.com/webhook</h6>
+              </div>
+              <div class="span2 text-center">
+                <h6 th:text="${#strings.isEmpty(webhook.secret) ? 'NONE' : webhook.secret}">NONE</h6>
+              </div>
+              <div class="span2 text-center">
+                <h6 th:text="${webhook.webhookType}"></h6>
+              </div>
+              <div class="span2 text-center">
+                <input type="checkbox" th:checked="${webhook.gitPush}" onclick="return false;" />
+              </div>
+              <div class="span1 text-center">
+                <button type="button" class="ybtn ybtn-danger ybtn-small"
+                        data-request-method="delete"
+                        th:data-request-uri="@{/projects/{owner}/{name}/webhooks/{id}(owner=${project.owner},name=${project.name},id=${webhook.id})}"
+                        th:text="#{button.delete}">삭제</button>
+              </div>
+            </div>
+          </th:block>
+          </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+<script th:inline="javascript">
+  $(document).ready(function() {
+      // JSON 타입 선택 시 Git Push 이벤트를 필수로 체크하게끔 동적 제어
+      $('input[type=radio][name=webhookType]').change(function() {
+          if (this.value == 'JSON') {
+              $("#gitPush").prop('checked', true);
+              $("#gitPush").attr('onclick', 'return false;');
+          } else {
+              $("#gitPush").attr('onclick', '');
+              $("#gitPush").prop('checked', false);
+          }
+      });
+  });
+</script>
+</body>
+</html>

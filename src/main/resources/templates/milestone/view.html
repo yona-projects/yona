@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(title=${milestoneDto.milestone.title} + ' - ' + ${project.name})}">
+</head>
+<body class="theme-default prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+    <div th:replace="~{project/header :: header(${project})}"></div>
+    <div th:replace="~{project/menu :: menu(${project}, 'milestone')}"></div>
+
+    <link rel="stylesheet" th:href="@{/{owner}/{projectName}/issue/labels.css(owner=${project.owner}, projectName=${project.name})}" type="text/css" />
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
+            <div class="milesion-wrap" th:with="milestone=${milestoneDto.milestone}">
+                <h4>
+                    <a th:href="@{/{owner}/{projectName}/milestone/{id}(owner=${project.owner}, projectName=${project.name}, id=${milestone.id})}" class="title" th:text="${milestone.title}">마일스톤 제목</a>
+                    <small class="ml10">
+                        <span class="due-date" th:if="${milestone.dueDate != null}">
+                            <span th:text="#{label.dueDate}">기한</span>
+                            <strong th:text="${#temporals.format(milestone.dueDate, 'yyyy-MM-dd')}">2026-06-08</strong>
+                        </span>
+                        <span class="date" th:if="${milestone.dueDate != null && milestone.state.name() != 'CLOSED' && milestoneDto.daysBetween != null}">
+                            (<span th:text="${milestoneDto.daysBetween == 0} ? #{common.time.today} : (${milestoneDto.daysBetween < 0} ? #{common.time.overday(${-milestoneDto.daysBetween})} : #{common.time.leftday(${milestoneDto.daysBetween})})">오늘</span>)
+                        </span>
+                        <span class="badge margin-left-5" th:classappend="'badge-issue-' + ${#strings.toLowerCase(milestone.state.name())}" th:text="#{'milestone.state.' + ${#strings.toLowerCase(milestone.state.name())}}">진행중</span>
+                    </small>
+                </h4>
+
+                <div class="progress progress-success">
+                    <div class="bar" th:style="'width: ' + ${milestoneDto.completionRate} + '%;'"></div>
+                </div>
+
+                <div th:if="${#strings.isEmpty(milestone.contents)}" class="content empty-content"></div>
+                <div th:unless="${#strings.isEmpty(milestone.contents)}" class="milestone-desc">
+                    <div class="markdown-wrap" th:utext="${contentsHtml}">마일스톤 설명</div>
+                    <div class="attachments" th:data-attachments="${attachmentsJson}"></div>
+                </div>
+
+                <div class="actrow right-txt row-fluid" style="padding: 15px 0; clear:both;">
+                    <a th:href="@{/{owner}/{projectName}/milestones(owner=${project.owner}, projectName=${project.name})}" class="ybtn pull-left" th:text="#{button.list}">목록</a>
+
+                    <!-- 삭제 버튼: 로그인 세션 존재 시 노출 -->
+                    <a sec:authorize="isAuthenticated()" href="#deleteConfirm" data-toggle="modal" class="ybtn ybtn-danger" th:text="#{button.delete}">삭제</a>
+
+                    <!-- 수정 및 상태 전환 버튼: 로그인 세션 존재 시 노출 -->
+                    <th:block sec:authorize="isAuthenticated()">
+                        <a th:href="@{/{owner}/{projectName}/milestone/{id}/editform(owner=${project.owner}, projectName=${project.name}, id=${milestone.id})}" class="ybtn" th:text="#{button.edit}">수정</a>
+
+                        <button th:if="${milestone.state.name() == 'OPEN'}" type="button" data-request-method="post" th:data-request-uri="@{/{owner}/{projectName}/milestone/{id}/close(owner=${project.owner}, projectName=${project.name}, id=${milestone.id})}" class="ybtn" th:text="#{milestone.close}">닫기</button>
+                        
+                        <button th:if="${milestone.state.name() == 'CLOSED'}" type="button" data-request-method="post" th:data-request-uri="@{/{owner}/{projectName}/milestone/{id}/open(owner=${project.owner}, projectName=${project.name}, id=${milestone.id})}" class="ybtn" th:text="#{milestone.open}">열기</button>
+                    </th:block>
+                </div>
+
+                <!-- 이슈 영역 -->
+                <div id="issues">
+                    <ul class="nav nav-tabs">
+                        <li class="active" id="tab-open-issues">
+                            <a href="#issues" onclick="toggleIssueState('open')">
+                                <span th:text="#{issue.state.open}">열림</span>
+                                <span class="num-badge" th:text="${milestoneDto.openIssuesCount}">0</span>
+                            </a>
+                        </li>
+                        <li id="tab-closed-issues">
+                            <a href="#issues" onclick="toggleIssueState('closed')">
+                                <span th:text="#{issue.state.closed}">닫힘</span>
+                                <span class="num-badge" th:text="${milestoneDto.closedIssuesCount}">0</span>
+                            </a>
+                        </li>
+                        <li id="tab-all-issues">
+                            <a href="#issues" onclick="toggleIssueState('all')">
+                                <span th:text="#{issue.state.all}">전체</span>
+                                <span class="num-badge" th:text="${milestoneDto.openIssuesCount + milestoneDto.closedIssuesCount}">0</span>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <div class="issues">
+                        <!-- 일괄 업데이트 조각 복원 -->
+                        <div th:replace="~{issue/partial_massupdate :: massupdate(${project})}"></div>
+
+                        <div class="filter-wrap">
+                            <div class="pull-right search search-bar">
+                                <input name="filter" class="textbox" type="text" th:placeholder="#{milestone.searchPlaceholder}" value="">
+                                <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                            </div>
+                        </div>
+                        
+                        <div id="issue-list-container">
+                            <!-- yona: issueState(open/closed/all)에 따라 milestone.sortedByNumberOfXxxIssue()로
+                                 골라낸 컬렉션 하나를 issue.partial_list에 넘긴다. yona는 서버 왕복 없는 탭
+                                 전환(toggleIssueState)을 쓰므로 열림/닫힘 목록을 각각 미리 렌더링해두고
+                                 JS로 노출을 전환한다 — 행 마크업 자체는 issue/list.html과 동일한
+                                 issue/partial_list 조각을 공유한다. -->
+                            <div class="open-issue-item" th:insert="~{issue/partial_list :: list(${project}, ${milestoneDto.openIssues}, ${currentUser})}"></div>
+                            <div class="closed-issue-item" th:insert="~{issue/partial_list :: list(${project}, ${milestoneDto.closedIssues}, ${currentUser})}"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 삭제 확인 모달 -->
+<div id="deleteConfirm" class="modal hide fade">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">×</button>
+        <h3 th:text="#{milestone.delete}">마일스톤 삭제</h3>
+    </div>
+    <div class="modal-body">
+        <p th:text="#{post.delete.confirm}">정말 삭제하시겠습니까?</p>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="ybtn ybtn-danger" data-request-method="delete" th:data-request-uri="@{/{owner}/{projectName}/milestone/{id}(owner=${project.owner}, projectName=${project.name}, id=${milestoneDto.milestone.id})}" th:text="#{button.yes}">예</button>
+        <button type="button" class="ybtn" data-dismiss="modal" th:text="#{button.no}">아니오</button>
+    </div>
+</div>
+
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+<th:block th:replace="~{site/layout :: markdown(${project})}"></th:block>
+
+<script type="text/javascript" th:inline="javascript">
+    function toggleIssueState(state) {
+        $("#issues ul.nav-tabs li").removeClass("active");
+        if (state === 'open') {
+            $("#tab-open-issues").addClass("active");
+            $(".open-issue-item").show();
+            $(".closed-issue-item").hide();
+        } else if (state === 'closed') {
+            $("#tab-closed-issues").addClass("active");
+            $(".open-issue-item").hide();
+            $(".closed-issue-item").show();
+        } else {
+            $("#tab-all-issues").addClass("active");
+            $(".open-issue-item").show();
+            $(".closed-issue-item").show();
+        }
+    }
+
+    $(document).ready(function(){
+        toggleIssueState('open');
+
+        // search by keyword
+        $(".textbox").on("keyup", function() {
+            var value = $(this).val().toLowerCase().trim();
+            $(".issue-item").each(function() {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) !== -1);
+            });
+        });
+
+        var projectOwner = [[${project.owner}]];
+        var projectName = [[${project.name}]];
+        $yobi.loadModule("milestone.View", {
+            "sMilestoneId" : [[${milestoneDto.milestone.id}]],
+            "sURLLabels"   : "/" + projectOwner + "/" + projectName + "/issues"
+        });
+    });
+</script>
+</body>
+</html>

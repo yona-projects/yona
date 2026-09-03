@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(${org.name})}">
+</head>
+<body class="prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div th:replace="~{organization/header :: header(${org})}"></div>
+    <div th:replace="~{organization/menu :: menu(${org}, 'board')}"></div>
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
+            <div class="search-wrap underline">
+                <form id="option_form" method="get" class="pull-left">
+                    <input type="hidden" name="orderBy" th:value="${orderBy}">
+                    <input type="hidden" name="orderDir" th:value="${orderDir}">
+                    <div class="project-selects span7">
+                        <select id="projects" name="projectNames[]" data-format="projects" multiple th:data-placeholder="#{organization.choose.projects}" data-toggle="select2" data-container-css-class="fullsize">
+                            <option th:each="project : ${visibleProjects}" th:with="isSelected=${selectedProjectNames.contains(project.name)}" th:value="${project.name}" th:selected="${isSelected}" th:data-avatar-url="@{/projects/{id}/logo(id=${project.id})}" th:text="${project.name}">project</option>
+                        </select>
+                    </div>
+                    <div class="search-bar span4">
+                        <input name="filter" class="textbox group-board" type="text" th:placeholder="#{title.searchByKeyword}" th:value="${filter}">
+                        <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                    </div>
+                    <div class="two-column-icon mr10 hide-in-mobile" id="two-column-mode-checkbox" th:title="#{common.two.column.mode}" th:data-content="#{common.two.column.mode.desc}">
+                        <label class="checkbox">
+                            <div class="two-column-icon-border">
+                                <input id="two-column-mode" type="checkbox"><span class="two-column-mode-text" th:text="#{common.two.column.view}">2단 보기</span>
+                            </div>
+                        </label>
+                    </div>
+                </form>
+            </div>
+
+            <div th:if="${currentPage.totalElements == 0 and notices.isEmpty()}" class="error-wrap">
+                <i class="ico ico-err1"></i>
+                <p th:text="#{post.is.empty}">게시글이 없습니다.</p>
+            </div>
+
+            <th:block th:if="${currentPage.totalElements > 0 or !notices.isEmpty()}">
+                <div class="filter-wrap board" th:if="${currentPage.totalElements > 1}">
+                    <div class="filters">
+                        <a th:href="@{/org/{orgName}/boards(orgName=${org.name}, orderBy='updatedDate', orderDir=${orderBy == 'updatedDate' && orderDir == 'desc' ? 'asc' : 'desc'})}"
+                           th:class="${orderBy == 'updatedDate'} ? 'filter active' : 'filter'">
+                            <i class="ico btn-gray-arrow" th:classappend="${orderBy == 'updatedDate' && orderDir == 'desc'} ? 'down'"></i><span th:text="#{common.order.updatedDate}">최근 업데이트순</span>
+                        </a>
+                        <a th:href="@{/org/{orgName}/boards(orgName=${org.name}, orderBy='createdDate', orderDir=${orderBy == 'createdDate' && orderDir == 'desc' ? 'asc' : 'desc'})}"
+                           th:class="${orderBy == 'createdDate'} ? 'filter active' : 'filter'">
+                            <i class="ico btn-gray-arrow" th:classappend="${orderBy == 'createdDate' && orderDir == 'desc'} ? 'down'"></i><span th:text="#{common.order.date}">등록일순</span>
+                        </a>
+                        <a th:href="@{/org/{orgName}/boards(orgName=${org.name}, orderBy='numOfComments', orderDir=${orderBy == 'numOfComments' && orderDir == 'desc' ? 'asc' : 'desc'})}"
+                           th:class="${orderBy == 'numOfComments'} ? 'filter active' : 'filter'">
+                            <i class="ico btn-gray-arrow" th:classappend="${orderBy == 'numOfComments' && orderDir == 'desc'} ? 'down'"></i><span th:text="#{common.order.comments}">댓글순</span>
+                        </a>
+                    </div>
+                </div>
+
+                <ul class="post-list-wrap notice-wrap" th:if="${!notices.isEmpty() and currentPage.number == 0}">
+                    <th:block th:each="post : ${notices}">
+                        <li th:replace="~{organization/boardList_partial :: postItem(${post}, ${post.project})}"></li>
+                    </th:block>
+                </ul>
+
+                <ul class="post-list-wrap">
+                    <th:block th:each="post : ${currentPage.content}">
+                        <li th:replace="~{organization/boardList_partial :: postItem(${post}, ${post.project})}"></li>
+                    </th:block>
+                </ul>
+            </th:block>
+
+            <div class="write-btn-wrap"></div>
+
+            <div id="pagination"><!-- pagination.js will fill here. --></div>
+        </div>
+    </div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+    <div th:replace="~{site/layout :: scripts}"></div>
+</div>
+<th:block th:replace="~{common/select2 :: select2}"></th:block>
+<script type="text/javascript" src="/javascripts/lib/jquery.pageslide.js"></script>
+<script type="text/javascript" src="/javascripts/service/yona.twoColumnMode.js"></script>
+<script type="text/javascript" th:inline="javascript">
+    $(document).ready(function() {
+        $yobi.loadModule("board.List", {
+            "elPagination": $('#pagination'),
+            "nTotalPages" : [[${currentPage.totalPages}]]
+        });
+
+        $("#projects").on("change", function(){
+            $("#option_form").submit();
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+yona common/branchItem.scala.html 대응 (그룹2 #39, 그룹10에서 처리). legacy는 viewType 인자로
+"history"/"code" 두 목적지를 다 지원하지만, 실제로 이 fragment를 호출하는 곳은 code/svnDiff.scala.html의
+브랜치 드롭다운(커밋 히스토리로 이동) 한 곳뿐이라 history 목적지만 이식한다.
+-->
+<ul>
+<li th:fragment="branchItem(project, branch, selected)"
+    th:data-value="${branch}" th:data-selected="${selected} ? 'true' : null">
+  <a th:href="@{/{owner}/{name}/commits/{branch}(owner=${project.owner}, name=${project.name}, branch=${@templateHelper.branchItemName(branch)})}"
+     th:utext="${@templateHelper.branchInHtml(branch)}">branch</a>
+</li>
+</ul>
+</body>
+</html>

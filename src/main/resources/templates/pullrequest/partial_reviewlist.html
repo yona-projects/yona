@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<!--
+ legacy git/partial_reviewlist.scala.html 대응 (그룹11 #181). changes 탭 우측 "리뷰 카드" 목록 —
+ 스레드별 첫 댓글 미리보기 카드. state(open/closed) 별로 partial_reviewlist가 두 번 호출된다.
+-->
+<th:block th:fragment="reviewlist(threads, project, pull)">
+    <a th:each="thread : ${threads}"
+       th:with="isOutdated=${thread instanceof T(com.github.yonaprojects.yona.domain.pullrequest.CodeCommentThread) and @codeReviewServiceImpl.isThreadOutdated(thread.id)}"
+       th:href="@{/{owner}/{projectName}/pull/{number}/changes(owner=${project.owner}, projectName=${project.name}, number=${pull.number})} + '#thread-' + ${thread.id}"
+       th:class="'review-card ' + ${#strings.toLowerCase(thread.state.name())} + (${isOutdated} ? ' outdated' : '')">
+        <p class="content" th:text="${thread.getFirstReviewComment().contents}">첫 댓글</p>
+        <p class="info">
+            <span class="comments pull-left" th:if="${thread.reviewComments.size() - 1 > 0}">
+                <i class="yobicon-comments"></i> <span th:text="${thread.reviewComments.size() - 1}">0</span>
+            </span>
+            <span class="outdated-label" th:text="#{review.outdated}">만료</span>
+            <span class="date" th:title="${@templateHelper.getDateString(thread.createdDate)}" th:text="${@templateHelper.agoOrDateString(thread.createdDate)}">방금 전</span>
+            <span class="avatar-wrap smaller ml5">
+                <img th:if="${thread.author != null}" src="/images/default-avatar-128.png" th:alt="${thread.author.name}">
+            </span>
+        </p>
+    </a>
+</th:block>
+</body>
+</html>

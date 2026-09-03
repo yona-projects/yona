@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<!--
+ legacy partial_diff.scala.html 대응 (그룹11 #188). fileDiffs 목록을 순회하며 partial_filediff를
+ 파일별로 렌더링하는 최상위 조각.
+ NOTE(문서화된 단순화): legacy는 fileDiffs.size >= GitRepository.DIFF_FILE_LIMIT일 때 "최대 N개
+ 파일까지만 보여드립니다" 경고를 표시하지만, yona의 diff 계산 경로(PullRequestService.getDiff)에는
+ 대응하는 파일개수 제한 상수/로직이 아직 없어(diffs 자체가 서버에서 잘리지 않음) 이 경고를
+ 추가하지 않았다 — 실제로 잘라내는 로직 없이 경고만 붙이면 오해를 유발하므로, 제한 기능 자체를
+ 백엔드에 먼저 도입해야 하는 별도 작업으로 남긴다.
+-->
+<th:block th:fragment="diff(fileDiffs, threads, project, projectA, projectB)">
+    <th:block th:each="d : ${fileDiffs}">
+        <div th:replace="~{pullrequest/partial_filediff :: filediff(${d}, ${threads}, ${project}, ${projectA}, ${projectB})}"></div>
+    </th:block>
+</th:block>
+</body>
+</html>

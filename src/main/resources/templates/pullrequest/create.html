@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko"
+      th:with="pullRequestNewLabel=#{pullRequest.new}, pageTitle=${project.name + ' - ' + pullRequestNewLabel}">
+<!--
+  legacy git/create.scala.html 대응 (그룹11 #168). 기존 yona pullrequest/create.html은 가짜
+  .gnb-wrap GNB, 인라인 <style>, code.jquery.com 중복 jQuery 로드, legacy와 무관한 부트스트랩 폼을
+  하드코딩하고 있어(버그 패턴 a/b) 전면 재작성한다.
+
+  legacy는 fromProjectId/toProjectId를 project.getAssociationProjects()(이 프로젝트 자신 + 이
+  프로젝트에서 포크해간 프로젝트들 + 이 프로젝트가 포크라면 원본) 기준의 실렉트로 제공해 서로 다른
+  fork 간에도 PR을 보낼 수 있다 — TASK-0263에서 Project.associationProjects(신규)로 완성했다.
+  fromProjectId 실렉트는 legacy와 동일하게 "현재 로그인 사용자가 멤버인" 연관 프로젝트만 후보로
+  좁힌다(memberAssociationProjects). toProjectId는 이 프로젝트가 포크이고 원본의 코드/PR 메뉴가
+  둘 다 켜져 있으면 기본값이 원본으로 전환된다(PullRequestViewController#resolveAssociatedProject,
+  legacy getSelectedProject() 대응). 프로젝트 선택이 바뀌면 legacy yobi.git.Write.js의
+  _onChangeProject()와 동일하게 새 fromProjectId/toProjectId 쿼리스트링으로 페이지 전체를
+  다시 로드한다(서버가 그 프로젝트 기준 브랜치 목록을 다시 계산). DOM 구조/id(pull-request-wrap/
+  pull-left/pull-right/arrow/#pullRequestState/#status/#title/#__commits)는 legacy와 동일하게 유지.
+
+  legacy는 $yobi.loadModule("git.Write", {...})(public/javascripts/service/yobi.git.Write.js)로
+  브랜치 select가 바뀔 때마다 PullRequestApp.mergeResult()를 GET AJAX로 호출해 커밋 탭(#__commits)을
+  채운다 — 이 흐름을 PullRequestViewController#mergeResult()(#178, TASK-0257)로 신설한 대응 엔드포인트
+  호출로 직접 재구현했다(별도 모듈 로더 없이 인라인 스크립트로, legacy git.Write.js의
+  _checkMergeResult()/_onSuccessMergeResult()/_getMergeResultData()와 동일한 데이터 흐름:
+  GET 응답 HTML을 #__commits에 삽입 → 갓 삽입된 #mergeResult의 data-commits/data-conflict/
+  data-pullrequest-title/data-pullrequest-body 속성을 다시 읽어 #status 배너와 title/body
+  자동채움에 반영). legacy create.scala.html에는 #pullRequestState 엘리먼트가 없어(state="OPEN"
+  체크가 항상 거짓) 페이지 로드시 자동 실행되지 않고 브랜치 select의 change 이벤트로만 트리거된다 —
+  이 파일도 동일하게 change 이벤트에만 바인딩한다(edit.html은 로드시 1회 자동 실행, edit.html
+  주석 참고). 실제 폼 제출은 기존 REST 엔드포인트(POST /api/projects/{projectId}/pullrequests)로
+  AJAX 전송한다(허용된 Play→Thymeleaf 변환 범위).
+-->
+<head th:replace="~{site/layout :: head(title=${pageTitle})}">
+</head>
+<body class="prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+    <div th:replace="~{project/header :: header(${project})}"></div>
+    <div th:replace="~{project/menu :: menu(${project}, 'pullRequest')}"></div>
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
+            <div class="content-wrap frm-wrap">
+
+                <div th:if="${branches.isEmpty()}" class="alert alert-danger">
+                    <span th:text="#{pullRequest.select.branch}">브랜치를 선택하세요.</span>
+                </div>
+
+                <form id="pull-request-form" th:if="${!branches.isEmpty()}" enctype="multipart/form-data">
+                    <div id="pull-request-wrap" class="row-fluid cb">
+                        <div class="pull-left span5">
+                            <dl class="pull-request-project">
+                                <dt th:text="#{pullRequest.from}">코드 보내는 곳</dt>
+                                <dd>
+                                    <select id="fromProjectId" name="fromProjectId" data-toggle="select2">
+                                        <option th:each="repo : ${memberAssociationProjects}" th:value="${repo.id}"
+                                                th:text="${repo.owner} + '/' + ${repo.name}" th:selected="${repo.id == fromProject.id}">owner/project</option>
+                                    </select>
+                                    <select id="fromBranch" name="fromBranch" data-toggle="select2">
+                                        <option th:each="br : ${fromBranches}" th:value="${br}" th:text="${br}" th:selected="${br == prefillFromBranch}"></option>
+                                    </select>
+                                </dd>
+                            </dl>
+                        </div>
+                        <div class="arrow span2 text-center">
+                            <i class="yobicon-arrow-right"></i>
+                        </div>
+                        <div class="pull-right span5">
+                            <dl class="pull-request-project">
+                                <dt th:text="#{pullRequest.to}">코드 받을 곳</dt>
+                                <dd>
+                                    <select id="toProjectId" name="toProjectId" data-toggle="select2">
+                                        <option th:each="repo : ${associationProjects}" th:value="${repo.id}"
+                                                th:data-owner="${repo.owner}" th:data-name="${repo.name}"
+                                                th:text="${repo.owner} + '/' + ${repo.name}" th:selected="${repo.id == toProject.id}">owner/project</option>
+                                    </select>
+                                    <select id="toBranch" name="toBranch" data-toggle="select2">
+                                        <option th:each="br : ${toBranches}" th:value="${br}" th:text="${br}" th:selected="${br == prefillToBranch}"></option>
+                                    </select>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <span id="pullRequestState" style="display:none;"></span>
+                    <div id="status" class="alert alert-info" style="display:none;"></div>
+
+                    <dl>
+                        <dd>
+                            <input type="text" id="title" name="title" class="text title" maxlength="250" tabindex="1" th:placeholder="#{title}" autocomplete="off">
+                        </dd>
+                    </dl>
+
+                    <div style="position: relative;">
+                        <div th:replace="~{site/layout :: markdownEditor('body', '', 'content-body')}"></div>
+                    </div>
+
+                    <!-- 파일 업로더 영역: issue/create.html과 동일한 마크업 패턴(legacy common.fileUploader 대응) -->
+                    <div class="upload-wrap content-footer" data-resource-type="PULL_REQUEST" id="upload">
+                        <input type="hidden" name="temporaryUploadFiles">
+                        <div class="attach-wrap">
+                            <span class="help help-droppable" th:text="#{common.attach.drophere}">Drag &amp; Drop files to attach here or</span>
+                            <div class="btn-wrap">
+                                <div class="nbtn medium white fake-file-wrap">
+                                    <i class="yobicon-upload"></i> <span th:text="#{button.upload}" th:remove="tag">File upload</span>
+                                    <input type="file" class="file" name="filePath" multiple="multiple">
+                                </div>
+                            </div>
+                            <span class="plain" th:text="#{common.attach.clickbutton}">Click upload button</span>
+                            <span class="help help-pastable" style="display: block;" th:text="#{common.attach.pastehere}">Paste the clipboard image</span>
+                        </div>
+                        <ul class="attached-files unstyled"></ul>
+                    </div>
+
+                    <div class="actrow right-txt">
+                        <button type="submit" id="button-save" class="ybtn ybtn-success" th:text="#{pullRequest.send}">코드 보내기</button><!--
+                     --><a th:href="@{/{owner}/{projectName}/pulls(owner=${project.owner}, projectName=${project.name})}" class="ybtn" th:text="#{pullRequest.cancel}">취소</a>
+                    </div>
+                </form>
+
+                <!-- legacy 커밋 탭(#__commits)은 git.Write.js가 비동기로 채우는 빈 셸이다(위 주석 참고) -->
+                <ul class="nav nav-tabs" id="pull-request-tabs">
+                    <li class="active"><a href="#overview" data-toggle="tab" th:text="#{pullRequest.menu.overview}">개요</a></li>
+                    <li><a href="#__commits" data-toggle="tab" th:text="#{pullRequest.menu.commit}">커밋</a></li>
+                </ul>
+                <div class="tab-content">
+                    <div id="__commits" class="tab-pane"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+<th:block th:replace="~{common/select2 :: select2}"></th:block>
+<th:block th:replace="~{site/layout :: markdown(${project})}"></th:block>
+<script type="text/javascript" th:inline="javascript">
+    $(document).ready(function() {
+        yobi.Mention({
+            "target": 'textarea[id^=editor-]',
+            "url"   : /*[[@{/{owner}/{projectName}/mentionList(owner=${project.owner}, projectName=${project.name})}]]*/ ""
+        });
+
+        // legacy yobi.git.Write.js _checkMergeResult()/_onSuccessMergeResult()/_getMergeResultData()
+        // 대응 (#178, TASK-0257). 브랜치 select가 바뀔 때마다 GET /pull/mergeResult로 커밋 프리뷰
+        // 조각을 받아와 #__commits에 꽂고, 그 조각이 렌더링한 #mergeResult의 data-* 속성을 다시 읽어
+        // #status 배너를 갱신한다.
+        var mergeResultURL = /*[[@{/{owner}/{projectName}/pull/mergeResult(owner=${project.owner}, projectName=${project.name})}]]*/ "";
+
+        function checkMergeResult() {
+            var fromBranch = $("#fromBranch").val();
+            var toBranch = $("#toBranch").val();
+            if (!fromBranch || !toBranch) {
+                return;
+            }
+            $("#status").attr("class", "alert alert-info").text([[#{pullRequest.is.merging}]]).show();
+            $.ajax({
+                url: mergeResultURL,
+                data: {
+                    fromBranch: fromBranch,
+                    toBranch: toBranch,
+                    fromProjectId: $("#fromProjectId").val(),
+                    toProjectId: $("#toProjectId").val()
+                }
+            }).done(function(resultHTML) {
+                $("#__commits").html(resultHTML);
+                var $result = $("#mergeResult");
+                var numOfCommits = parseInt($result.attr("data-commits"), 10) || 0;
+                var isConflict = $result.attr("data-conflict") === "true";
+
+                if (numOfCommits > 0 && isConflict) {
+                    $("#status").attr("class", "alert alert-error").text([[#{pullRequest.is.not.safe}]]).show();
+                } else if (numOfCommits > 0) {
+                    $("#status").attr("class", "alert alert-success").text([[#{pullRequest.is.safe}]]).show();
+                } else {
+                    $("#status").attr("class", "alert alert-info").text([[#{pullRequest.diff.noChanges}]]).show();
+                }
+
+                var suggestedTitle = $result.attr("data-pullrequest-title");
+                var suggestedBody = $result.attr("data-pullrequest-body");
+                if (suggestedTitle && $.trim($("#title").val()) === "") {
+                    $("#title").val(suggestedTitle);
+                }
+                if (suggestedBody && $.trim($('textarea[data-editor-mode="content-body"]').val()) === "") {
+                    $('textarea[data-editor-mode="content-body"]').val(suggestedBody);
+                }
+            });
+        }
+
+        $("#fromBranch, #toBranch").on("change", checkMergeResult);
+
+        // legacy yobi.git.Write.js _onChangeProject() 대응 — from/to 프로젝트 선택이 바뀌면 새
+        // fromProjectId/toProjectId 쿼리스트링으로 페이지 전체를 새로고침한다(서버가 그 프로젝트
+        // 기준으로 연관 프로젝트 목록·브랜치 목록을 다시 계산).
+        $("#fromProjectId, #toProjectId").on("change", function() {
+            location.search = "?fromProjectId=" + $("#fromProjectId").val() + "&toProjectId=" + $("#toProjectId").val();
+        });
+
+        $("#pull-request-form").submit(function(e) {
+            e.preventDefault();
+
+            var toProjectId = $("#toProjectId").val();
+            var $toSelected = $("#toProjectId option:selected");
+            var toOwner = $toSelected.data("owner");
+            var toName = $toSelected.data("name");
+
+            var requestData = {
+                title: $("#title").val(),
+                body: $('textarea[data-editor-mode="content-body"]').val(),
+                fromProjectId: $("#fromProjectId").val(),
+                fromBranch: $("#fromBranch").val(),
+                toBranch: $("#toBranch").val()
+            };
+
+            $.ajax({
+                url: '/api/projects/' + toProjectId + '/pullrequests',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(requestData),
+                success: function(result) {
+                    window.location.href = '/' + toOwner + '/' + toName + '/pulls';
+                },
+                error: function(xhr, status, error) {
+                    $("#status").text("생성 실패: " + xhr.responseText).show();
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

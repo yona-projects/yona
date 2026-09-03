@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<!--
+  legacy git/partial_list.scala.html 대응 (그룹11 #167). 기존 yona pullrequest/list.html에
+  하드코딩돼 있던 <table> 목록(yona 자체 발명, legacy에 없음)을 legacy의
+  <ul class="post-list-wrap">/<li class="post-item title"> 구조로 완전히 교체한다.
+
+  legacy req.commentThreads/req.countCommentThreadsByState(...)는 yona PullRequest 엔티티에
+  컬렉션으로 없어(CommentThread가 PullRequest를 참조하는 단방향 매핑) @commentThreadRepository
+  빈을 직접 참조해 조회한다(issue/partial_select_label.html의 @userRepository 직접참조 관례와 동일).
+
+  legacy branchItemName(x)는 브랜치명에서 "refs/heads/" 접두어를 정규화하는 헬퍼인데, yona는
+  브랜치명을 저장/조회 시점에 이미 짧은 이름으로 정규화해 두므로(PullRequestViewController의
+  getRefNames().substringAfter("refs/heads/")) 원본 값을 그대로 써도 동일한 결과다.
+
+  legacy user.avatarUrl == UserApp.DEFAULT_AVATAR_URL 분기(그라바타 URL 폴백)는 yona User.avatarUrl이
+  이미 자체적으로 기본 아바타 경로("/assets/images/default-avatar-128.png")를 반환하므로 그대로
+  ${req.contributor.avatarUrl}만 쓰면 legacy와 동일한 결과가 된다 — 그라바타 개념 자체가 yona에 없다.
+-->
+<ul class="post-list-wrap" th:fragment="list(project, prPage)">
+    <th:block th:if="${prPage.content.size() > 0}">
+        <li class="post-item title" th:each="req : ${prPage.content}"
+            th:href="@{/{owner}/{projectName}/pull/{number}(owner=${req.toProject.owner}, projectName=${req.toProject.name}, number=${req.number})}"
+            th:with="commentThreads=${@commentThreadRepository.findByPullRequest(req)}">
+            <div class="span10 span-hard-wrap">
+                <a th:href="@{/user/{loginId}(loginId=${req.contributor.loginId})}" class="avatar-wrap mlarge" data-toggle="tooltip" data-placement="top" th:title="${req.contributor.loginId}">
+                    <img th:src="${req.contributor.avatarUrl}">
+                </a>
+                <div class="title-wrap">
+                    <span class="post-id" th:text="${req.number}">1</span>
+                    <span class="title-prefix" th:text="${@templateHelper.showHeaderWordsInBracketsIfExist(req.title)}"></span>
+                    <a th:href="@{/{owner}/{projectName}/pull/{number}(owner=${req.toProject.owner}, projectName=${req.toProject.name}, number=${req.number})}"
+                       class="title" th:classappend="${req.isConflict == true} ? 'conflict'"
+                       th:text="${@templateHelper.removeHeaderWords(req.title)}">PR 제목</a>
+                </div>
+                <div class="infos">
+                    <a th:if="${req.contributor.name != null and !#strings.isEmpty(req.contributor.name)}"
+                       th:href="@{/user/{loginId}(loginId=${req.contributor.loginId})}" class="infos-item infos-link-item"
+                       data-toggle="tooltip" data-placement="top" th:title="${req.contributor.loginId}" th:text="${req.contributor.getDisplayName()}">작성자</a>
+                    <span th:unless="${req.contributor.name != null and !#strings.isEmpty(req.contributor.name)}" class="infos-item" th:text="#{issue.noAuthor}">작성자 없음</span>
+
+                    <span class="infos-item" th:title="${@templateHelper.getDateString(req.created)}" th:text="${@templateHelper.agoOrDateString(req.created)}">시간</span>
+
+                    <div class="infos-item" style="margin-right:10px;" th:if="${!commentThreads.isEmpty()}"
+                         th:with="countClosed=${commentThreads.?[state == T(com.github.yonaprojects.yona.domain.pullrequest.CommentThread.ThreadState).CLOSED].size()}">
+                        <i class="infos-icon yobicon-post2 vmiddle"></i>
+                        <div class="upload-progress"><div class="bar orange" th:style="'width: ' + ${@templateHelper.getPercent(countClosed, commentThreads.size())} + '%;'"></div></div>
+                        <a th:href="@{/{owner}/{projectName}/pull/{number}(owner=${req.toProject.owner}, projectName=${req.toProject.name}, number=${req.number}, tab='changes')}"
+                           data-toggle="tooltip" th:title="#{pullRequest.review.closed} + ' / ' + #{pullRequest.review.total}">
+                            <span th:text="${countClosed}">0</span><span class="gray-txt">/</span><span class="size total" th:text="${commentThreads.size()}">0</span>
+                        </a>
+                    </div>
+
+                    <div class="infos-item" th:if="${project.isUsingReviewerCount and !req.reviewers.isEmpty()}"
+                         th:classappend="${currentUser != null and req.reviewers.![id].contains(currentUser.id)} ? 'over'" style="margin-top:-1px;">
+                        <i class="infos-icon yobicon-preview vmiddle"></i>
+                        <a th:href="@{/{owner}/{projectName}/pull/{number}(owner=${req.toProject.owner}, projectName=${req.toProject.name}, number=${req.number})} + '#reviewers'"
+                           data-toggle="tooltip" data-html="true" th:data-title="${#strings.listJoin(req.reviewers.![name], '&lt;br&gt;')}">
+                            <span class="vmiddle" th:text="${req.reviewers.size()}">0</span>
+                        </a>
+                    </div>
+
+                    <span th:if="${req.toBranch == defaultBranch}" class="to-default-branch" th:text="${req.toBranch}">master</span>
+                    <span th:unless="${req.toBranch == defaultBranch}" class="to-branch" th:text="${req.toBranch}">브랜치</span>
+
+                    <!-- yona-wiki P3-02 Step8.7 2번(2026-09-01) — PR 라벨 표시. issue/partial_list.html의
+                         라벨 배지 마크업(클래스/데이터 속성)을 그대로 재사용한다(목록은 읽기 전용 —
+                         Issue 목록도 여기서 편집은 하지 않는다, 편집은 상세 화면에서만). -->
+                    <th:block th:each="label : ${req.labels}">
+                        <a href="#" class="label issue-label list-label active" th:data-category-id="${label.category.id}" th:data-label-id="${label.id}" th:style="'background: ' + ${label.color}" th:text="${label.name}">라벨</a>
+                    </th:block>
+                </div>
+            </div>
+            <div class="span2 hide-in-mobile">
+                <div class="mt5 pull-right hide-in-mobile">
+                    <!-- yona-wiki P3-02 Step8.7 2번 — PR 담당자 아바타. issue/partial_list.html의
+                         담당자 아바타 마크업(avatar-wrap assignee 클래스)을 그대로 재사용한다. 이
+                         칸에 이미 있던 avatar-wrap assinee(오탈자 - legacy 그대로 유지, 건드리지
+                         않음)는 receiver(병합한 사람)이고 담당자와는 다른 개념이라 별도로 둔다. -->
+                    <a th:if="${req.assignee != null}" th:href="@{/{loginId}(loginId=${req.assignee.user.loginId})}" class="avatar-wrap assignee"
+                       data-toggle="tooltip" data-placement="top" th:title="#{issue.assignee} + ': ' + ${req.assignee.user.name}">
+                        <img th:src="${req.assignee.user.avatarUrl}" width="32" height="32" th:alt="${req.assignee.user.name}">
+                    </a>
+                    <a th:if="${req.receiver != null}" th:href="@{/user/{loginId}(loginId=${req.receiver.loginId})}" class="avatar-wrap assinee"
+                       data-toggle="tooltip" data-placement="top" th:title="${req.receiver.name}">
+                        <img th:src="${req.receiver.avatarUrl}" width="32" height="32" th:alt="${req.receiver.name}">
+                    </a>
+                    <div th:if="${req.assignee == null and req.receiver == null}" class="empty-avatar-wrap">&nbsp;</div>
+                </div>
+                <div class="state pull-right"
+                     th:classappend="${req.isConflict == true} ? 'conflict' : ${#strings.toLowerCase(req.state.toString())}"
+                     th:text="${req.isConflict == true} ? #{pullRequest.state.conflict} : #{'pullRequest.state.' + ${#strings.toLowerCase(req.state.toString())}}">상태</div>
+            </div>
+        </li>
+        <div id="pagination"></div>
+    </th:block>
+    <div class="error-wrap" th:unless="${prPage.content.size() > 0}">
+        <i class="ico ico-err1"></i>
+        <p th:text="#{pullRequest.is.empty}">등록된 코드 주고 받기가 없습니다.</p>
+    </div>
+</ul>
+<script type="text/javascript" th:fragment="listScript(prPage)" th:inline="javascript">
+    $(function(){
+        yobi.Pagination.update($("#pagination"), /*[[${prPage.totalPages}]]*/ 0);
+        (function _initImplicitTitlePrefix() {
+            $(".title-prefix").on("click", function(){
+                var filterInput = $("input[name*='filter']");
+                filterInput.val($(this).text());
+                filterInput.closest("form").submit();
+            });
+        })();
+    });
+</script>
+</body>
+</html>

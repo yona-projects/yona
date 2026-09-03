@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko"
+      th:with="pullRequestMenuLabel=#{pullRequest.menu.overview}, pageTitle=${project.name + ' - ' + pullRequestMenuLabel}">
+<!--
+  legacy git/edit.scala.html 대응 (그룹11 #169). create.html과 동일한 구조 재작성 근거를 공유한다
+  (기존 yona edit.html도 가짜 GNB/중복 jQuery/legacy와 무관한 폼이었다).
+
+  legacy와의 핵심 차이: from/to 프로젝트뿐 아니라 브랜치까지 모두 disabled 셀렉트 + hidden input
+  조합으로 렌더링해(PR 생성 후에는 브랜치를 재지정할 수 없다) 읽기 전용으로 보여준다. #status 병합
+  경고는 pr.isOpen(=state가 OPEN)일 때만 노출한다. 제출 버튼 문구는 "저장"(create.html의 "코드
+  보내기"와 다름).
+
+  legacy git/edit.scala.html도 create.scala.html과 동일하게 #__commits 탭 + git.Write.js를 로드하고,
+  "state"가 "OPEN"이면 페이지 로드 시 1회 자동으로 mergeResult를 조회한다(브랜치 select가 모두
+  disabled라 change 이벤트로 재트리거될 일은 없음) — PullRequestViewController#mergeResult()
+  (#178, TASK-0257) 연동 및 이 자동 조회 흐름을 create.html과 동일한 인라인 스크립트로 재구현한다.
+-->
+<head th:replace="~{site/layout :: head(title=${pageTitle})}">
+</head>
+<body class="prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+    <div th:replace="~{project/header :: header(${project})}"></div>
+    <div th:replace="~{project/menu :: menu(${project}, 'pullRequest')}"></div>
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
+            <div class="content-wrap frm-wrap">
+
+                <form id="pull-request-form" enctype="multipart/form-data">
+                    <div id="pull-request-wrap" class="row-fluid cb">
+                        <div class="pull-left span5">
+                            <dl class="pull-request-project">
+                                <dt th:text="#{pullRequest.from}">코드 보내는 곳</dt>
+                                <dd>
+                                    <select id="fromProjectId" data-toggle="select2" disabled="disabled">
+                                        <option th:value="${pr.fromProject.id}" th:text="${pr.fromProject.owner} + '/' + ${pr.fromProject.name}">owner/project</option>
+                                    </select>
+                                    <input type="hidden" name="fromProjectId" th:value="${pr.fromProject.id}">
+                                    <select id="fromBranch" data-toggle="select2" disabled="disabled">
+                                        <option th:value="${pr.fromBranch}" th:text="${pr.fromBranch}"></option>
+                                    </select>
+                                    <input type="hidden" name="fromBranch" th:value="${pr.fromBranch}">
+                                </dd>
+                            </dl>
+                        </div>
+                        <div class="arrow span2 text-center">
+                            <i class="yobicon-arrow-right"></i>
+                        </div>
+                        <div class="pull-right span5">
+                            <dl class="pull-request-project">
+                                <dt th:text="#{pullRequest.to}">코드 받을 곳</dt>
+                                <dd>
+                                    <select id="toProjectId" data-toggle="select2" disabled="disabled">
+                                        <option th:value="${pr.toProject.id}" th:text="${pr.toProject.owner} + '/' + ${pr.toProject.name}">owner/project</option>
+                                    </select>
+                                    <input type="hidden" name="toProjectId" th:value="${pr.toProject.id}">
+                                    <select id="toBranch" data-toggle="select2" disabled="disabled">
+                                        <option th:value="${pr.toBranch}" th:text="${pr.toBranch}"></option>
+                                    </select>
+                                    <input type="hidden" name="toBranch" th:value="${pr.toBranch}">
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <span id="pullRequestState" style="display:none;" th:text="${pr.state}"></span>
+                    <div id="status" class="alert alert-info" th:if="${pr.state == T(com.github.yonaprojects.yona.domain.enumeration.State).OPEN}">
+                        <span th:text="#{pullRequest.is.checking}">확인중</span>
+                    </div>
+
+                    <dl>
+                        <dd>
+                            <input type="text" id="title" name="title" class="text title" maxlength="250" tabindex="1"
+                                   th:value="${pr.title}" data-is-user-has-typed="true" autocomplete="off">
+                        </dd>
+                    </dl>
+
+                    <div style="position: relative;">
+                        <div th:replace="~{site/layout :: markdownEditor('body', ${pr.body}, 'content-body')}"></div>
+                    </div>
+
+                    <!-- 파일 업로더 영역: issue/create.html과 동일한 마크업 패턴(legacy common.fileUploader 대응) -->
+                    <div class="upload-wrap content-footer" data-resource-type="PULL_REQUEST" id="upload">
+                        <input type="hidden" name="temporaryUploadFiles">
+                        <div class="attach-wrap">
+                            <span class="help help-droppable" th:text="#{common.attach.drophere}">Drag &amp; Drop files to attach here or</span>
+                            <div class="btn-wrap">
+                                <div class="nbtn medium white fake-file-wrap">
+                                    <i class="yobicon-upload"></i> <span th:text="#{button.upload}" th:remove="tag">File upload</span>
+                                    <input type="file" class="file" name="filePath" multiple="multiple">
+                                </div>
+                            </div>
+                            <span class="plain" th:text="#{common.attach.clickbutton}">Click upload button</span>
+                            <span class="help help-pastable" style="display: block;" th:text="#{common.attach.pastehere}">Paste the clipboard image</span>
+                        </div>
+                        <ul class="attached-files unstyled"></ul>
+                    </div>
+
+                    <div class="actrow right-txt">
+                        <button type="submit" id="button-save" class="ybtn ybtn-success" th:text="#{button.save}">저장</button><!--
+                     --><a th:href="@{/{owner}/{projectName}/pull/{number}(owner=${project.owner}, projectName=${project.name}, number=${pr.number})}" class="ybtn" th:text="#{pullRequest.cancel}">취소</a>
+                    </div>
+                </form>
+
+                <!-- legacy git/edit.scala.html의 #__commits 탭 대응 (#178, TASK-0257) -->
+                <ul class="nav nav-tabs" id="pull-request-tabs">
+                    <li class="active"><a href="#overview" data-toggle="tab" th:text="#{pullRequest.menu.overview}">개요</a></li>
+                    <li><a href="#__commits" data-toggle="tab" th:text="#{pullRequest.menu.commit}">커밋</a></li>
+                </ul>
+                <div class="tab-content">
+                    <div id="__commits" class="tab-pane"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+<th:block th:replace="~{common/select2 :: select2}"></th:block>
+<th:block th:replace="~{site/layout :: markdown(${project})}"></th:block>
+<script type="text/javascript" th:inline="javascript">
+    $(document).ready(function() {
+        yobi.Mention({
+            "target": 'textarea[id^=editor-]',
+            "url"   : /*[[@{/{owner}/{projectName}/mentionList(owner=${project.owner}, projectName=${project.name})}]]*/ ""
+        });
+
+        // legacy yobi.git.Write.js 대응 (#178, TASK-0257) — edit 페이지는 브랜치가 모두 disabled라
+        // change 이벤트 재트리거는 없고, state가 OPEN일 때 로드 시 1회만 조회한다
+        // ("if(elements.state === 'OPEN') { _checkMergeResult(); }" 대응).
+        var mergeResultURL = /*[[@{/{owner}/{projectName}/pull/mergeResult(owner=${project.owner}, projectName=${project.name})}]]*/ "";
+
+        function checkMergeResult() {
+            var fromBranch = $("input[name='fromBranch']").val();
+            var toBranch = $("input[name='toBranch']").val();
+            if (!fromBranch || !toBranch) {
+                return;
+            }
+            $("#status").attr("class", "alert alert-info").text([[#{pullRequest.is.merging}]]).show();
+            $.ajax({
+                url: mergeResultURL,
+                data: { fromBranch: fromBranch, toBranch: toBranch }
+            }).done(function(resultHTML) {
+                $("#__commits").html(resultHTML);
+                var $result = $("#mergeResult");
+                var numOfCommits = parseInt($result.attr("data-commits"), 10) || 0;
+                var isConflict = $result.attr("data-conflict") === "true";
+
+                if (numOfCommits > 0 && isConflict) {
+                    $("#status").attr("class", "alert alert-error").text([[#{pullRequest.is.not.safe}]]).show();
+                } else if (numOfCommits > 0) {
+                    $("#status").attr("class", "alert alert-success").text([[#{pullRequest.is.safe}]]).show();
+                } else {
+                    $("#status").attr("class", "alert alert-info").text([[#{pullRequest.diff.noChanges}]]).show();
+                }
+            });
+        }
+
+        if ($("#pullRequestState").text() === "OPEN") {
+            checkMergeResult();
+        }
+
+        $("#pull-request-form").submit(function(e) {
+            e.preventDefault();
+
+            var projectId = [[${project.id}]];
+            var owner = [[${project.owner}]];
+            var projectName = [[${project.name}]];
+            var number = [[${pr.number}]];
+
+            var requestData = {
+                title: $("#title").val(),
+                body: $('textarea[data-editor-mode="content-body"]').val(),
+                fromBranch: $("input[name='fromBranch']").val(),
+                toBranch: $("input[name='toBranch']").val()
+            };
+
+            $.ajax({
+                url: '/api/projects/' + projectId + '/pullrequests/' + number,
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify(requestData),
+                success: function(result) {
+                    window.location.href = '/' + owner + '/' + projectName + '/pull/' + number;
+                },
+                error: function(xhr, status, error) {
+                    $("#status").text("수정 실패: " + xhr.responseText).show();
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

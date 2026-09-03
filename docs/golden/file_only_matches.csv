@@ -1,0 +1,79 @@
+yona_file,yona_line,yona_file_ref,ticket_ids,file_confirmed_in_gl_index
+src/main/kotlin/com/github/yonaprojects/yona/web/BranchApiController.kt,42,error/badrequest.scala.html,P-템플릿 #50,True
+src/main/kotlin/com/github/yonaprojects/yona/web/BranchApiController.kt,52,error/forbidden.scala.html,P-템플릿 #47,True
+src/main/kotlin/com/github/yonaprojects/yona/web/BranchApiController.kt,80,error/badrequest.scala.html,P-템플릿 #50,True
+src/main/kotlin/com/github/yonaprojects/yona/web/BranchApiController.kt,92,error/forbidden.scala.html,P-템플릿 #47,True
+src/main/kotlin/com/github/yonaprojects/yona/web/PullRequestController.kt,95,models/PullRequestEvent.java,P1-08,True
+src/main/kotlin/com/github/yonaprojects/yona/web/ProjectViewController.kt,99,error/forbidden.scala.html,P-템플릿 #47,True
+src/main/kotlin/com/github/yonaprojects/yona/web/ProjectViewController.kt,296,error/forbidden.scala.html,P-템플릿 #47,True
+src/main/kotlin/com/github/yonaprojects/yona/web/ProjectViewController.kt,322,error/forbidden.scala.html,P-템플릿 #47,True
+src/main/kotlin/com/github/yonaprojects/yona/web/ProjectViewController.kt,370,error/forbidden.scala.html,P-템플릿 #47,True
+src/main/kotlin/com/github/yonaprojects/yona/web/ProjectViewController.kt,704,error/forbidden.scala.html,P-템플릿 #47,True
+src/main/kotlin/com/github/yonaprojects/yona/web/ProjectViewController.kt,879,error/forbidden.scala.html,P-템플릿 #47,True
+src/main/kotlin/com/github/yonaprojects/yona/web/ProjectViewController.kt,944,partial_issuelabels_list.scala.html,,True
+src/main/kotlin/com/github/yonaprojects/yona/web/IndexController.kt,92,actions/AnonymousCheckAction.java,,True
+src/main/kotlin/com/github/yonaprojects/yona/web/OrganizationViewController.kt,114,error/forbidden_organization.scala.html,P-템플릿 #49,True
+src/main/kotlin/com/github/yonaprojects/yona/web/OrganizationViewController.kt,130,organization/group_issue_list.scala.html,,True
+src/main/kotlin/com/github/yonaprojects/yona/web/OrganizationViewController.kt,199,organization/group_board_list.scala.html,,True
+src/main/kotlin/com/github/yonaprojects/yona/web/OrganizationViewController.kt,256,organization/group_pullrequest_list.scala.html,,True
+src/main/kotlin/com/github/yonaprojects/yona/web/OrganizationViewController.kt,412,error/forbidden_organization.scala.html,P-템플릿 #49,True
+src/main/kotlin/com/github/yonaprojects/yona/web/OrganizationViewController.kt,445,error/forbidden_organization.scala.html,P-템플릿 #49,True
+src/main/kotlin/com/github/yonaprojects/yona/web/OrganizationViewController.kt,523,error/forbidden_organization.scala.html,P-템플릿 #49,True
+src/main/kotlin/com/github/yonaprojects/yona/web/IssueViewController.kt,119,error/forbidden.scala.html,P-템플릿 #47,True
+src/main/kotlin/com/github/yonaprojects/yona/web/IssueViewController.kt,284,error/forbidden.scala.html,P-템플릿 #47,True
+src/main/kotlin/com/github/yonaprojects/yona/web/IssueViewController.kt,291,error/notfound.scala.html,P-템플릿 #45,True
+src/main/kotlin/com/github/yonaprojects/yona/web/IssueViewController.kt,435,error/forbidden.scala.html,P-템플릿 #47,True
+src/main/kotlin/com/github/yonaprojects/yona/web/IssueViewController.kt,583,error/forbidden.scala.html,P-템플릿 #47,True
+src/main/kotlin/com/github/yonaprojects/yona/web/IssueViewController.kt,750,error/forbidden.scala.html,P-템플릿 #47,True
+src/main/kotlin/com/github/yonaprojects/yona/web/IssueViewController.kt,909,error/forbidden.scala.html,P-템플릿 #47,True
+src/main/kotlin/com/github/yonaprojects/yona/web/IssueViewController.kt,1021,Issue.java,P1-66,True
+src/main/kotlin/com/github/yonaprojects/yona/web/ReviewThreadController.kt,101,reviewthread/list.scala.html,,True
+src/main/kotlin/com/github/yonaprojects/yona/web/GlobalExceptionHandler.kt,11,error/requestTextEntityTooLarge.scala.html,P-템플릿 #53,True
+src/main/kotlin/com/github/yonaprojects/yona/web/MilestoneViewController.kt,107,,,False
+src/main/kotlin/com/github/yonaprojects/yona/web/MilestoneViewController.kt,155,,,False
+src/main/kotlin/com/github/yonaprojects/yona/web/MilestoneViewController.kt,161,,,False
+src/main/kotlin/com/github/yonaprojects/yona/web/MilestoneViewController.kt,207,,,False
+src/main/kotlin/com/github/yonaprojects/yona/web/MilestoneViewController.kt,231,,,False
+src/main/kotlin/com/github/yonaprojects/yona/web/MilestoneViewController.kt,237,,,False
+src/main/kotlin/com/github/yonaprojects/yona/web/MilestoneViewController.kt,284,,,False
+src/main/kotlin/com/github/yonaprojects/yona/web/MilestoneViewController.kt,374,,,False
+src/main/kotlin/com/github/yonaprojects/yona/web/MilestoneViewController.kt,385,,,False
+src/main/kotlin/com/github/yonaprojects/yona/web/ProjectApiController.kt,49,controllers/api/ProjectApi.java,P2-45,True
+src/main/kotlin/com/github/yonaprojects/yona/web/ProjectApiController.kt,499,ProjectApi.java,,True
+src/main/kotlin/com/github/yonaprojects/yona/web/UserController.kt,61,models/User.java,P1-41,True
+src/main/kotlin/com/github/yonaprojects/yona/config/security/AccessControl.kt,32,utils/AccessControl.java,P1-85,True
+src/main/kotlin/com/github/yonaprojects/yona/config/TemplateHelper.kt,176,error/notfound.scala.html,,True
+src/main/kotlin/com/github/yonaprojects/yona/config/TemplateHelper.kt,553,models/User.java,,True
+src/main/kotlin/com/github/yonaprojects/yona/config/TemplateHelper.kt,560,git/partial_state.scala.html,,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/mail/MailService.kt,4,models/MailRecipient.java,,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/notification/MergedNotificationEvent.kt,8,notification/MergedNotificationEvent.java,P1-27,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/notification/NotificationEventMerger.kt,10,models/NotificationMail.java,P1-27,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/notification/INotificationEvent.kt,7,notification/INotificationEvent.java,,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/attachment/LogoValidator.kt,2,utils/LogoUtil.java,P1-124,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/project/TitleHeadServiceImpl.kt,5,models/TitleHead.java,P1-103,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/project/TitleHead.kt,12,models/TitleHead.java,P1-103,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/event/PullRequestMergeEventListener.kt,121,actors/RelatedPullRequestMergingActor.java,,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/event/GitPostReceiveEventListener.kt,155,actors/IssueReferredFromCommitEventActor.java,,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/issue/IssueServiceImpl.kt,564,models/IssueEvent.java,P1-38,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/issue/IssueSpecification.kt,112,organization/group_issue_search_partial.scala.html,TASK-0244,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/issue/RecentIssue.kt,10,models/RecentIssue.java,P1-09,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/issue/RecentIssueService.kt,8,models/RecentIssue.java,P1-09,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/issue/RecentIssueService.kt,70,models/RecentIssue.java,P1-41,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/site/SiteService.kt,102,models/RecentIssue.java,P1-41,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/enumeration/Operation.kt,2,models/enumeration/Operation.java,P1-85,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/organization/OrganizationServiceImpl.kt,55,utils/ReservedWordsValidator.java,P2-01,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/organization/OrganizationServiceImpl.kt,221,EnrollOrganizationApp.java,,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/board/PostingRepository.kt,25,organization/group_board_list.scala.html,,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/webhook/WebhookServiceImpl.kt,179,Webhook.java,P2-04,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/user/UserSetting.kt,4,models/UserSetting.java,P2-11,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/vcs/GitPushHooks.kt,80,playRepository/hooks/UpdateRecentlyPushedBranch.java,P1-24,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/vcs/PushedBranch.kt,6,models/PushedBranch.java,P1-24,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/support/ZipUtil.kt,8,utils/ZipUtil.java,P2-43,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/support/Property.kt,12,models/Property.java,P1-55,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/support/PropertyService.kt,5,models/Property.java,P1-55,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/support/LineEnding.kt,2,utils/LineEnding.java,P1-111,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/pullrequest/CodeReviewServiceImpl.kt,170,playRepository/Commit.java,,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/pullrequest/PullRequestServiceImpl.kt,801,models/PullRequestEvent.java,P1-40,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/pullrequest/PullRequestTimelineItem.kt,4,git/partial_pull_request_event.scala.html,,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/pullrequest/PullRequestRepository.kt,28,organization/group_pullrequest_list.scala.html,,True
+src/main/kotlin/com/github/yonaprojects/yona/domain/mention/Mention.kt,16,models/Mention.java,P2-41,True
