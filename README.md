@@ -6,8 +6,8 @@
 
 ##### 21세기 협업 개발 플랫폼
 
-- Official Site (원본 프로젝트): [http://yona.io](http://yona.io)
-- 이 저장소([`search5/yona`](https://github.com/search5/yona))는 원본 [Yona](https://github.com/yona-projects/yona)(Play Framework/Java/Ebean
+- Official Site: [http://yona.io](http://yona.io)
+- 이 저장소는 [Yona](https://github.com/yona-projects/yona)(Play Framework/Java/Ebean
   기반의 설치형 프로젝트 협업 플랫폼)를 **Kotlin + Spring Boot + JPA(Hibernate)** 스택으로 새로 옮겨
   쓴 프로젝트입니다. 화면 구조·데이터 모델·동작 방식은 legacy Yona와 최대한 동일하게 유지하면서,
   런타임과 빌드 도구만 현재 JVM 생태계로 교체하는 것을 목표로 합니다.
@@ -29,14 +29,14 @@
 - LDAP 지원 및 소셜 로그인(OAuth2)
 - 다른 서비스·다른 Yona 인스턴스로의 마이그레이션(GitHub 프로젝트 Import 등)
 
-### 추가 읽을거리 (원본 프로젝트 자료)
+### 추가 읽을거리
 
 - [왜 Yona를 써야 하나요? (Why Yona?)](https://repo.yona.io/yona-projects/yona/post/3)
 - [기본 워크플로우](https://repo.yona.io/yona-projects/yona-help/post/2)
 
-## Yona(원본) → yona(이식판): 무엇이 바뀌었나
+## Yona (New): 무엇이 바뀌었나
 
-| | legacy Yona | yona(이식판, 이 저장소) |
+| | Old Yona | New Yona |
 |---|---|---|
 | 언어 | Java / Scala 템플릿 | Kotlin |
 | 프레임워크 | Play Framework 2.x | Spring Boot |
@@ -178,7 +178,7 @@ java -jar yona.jar --spring.profiles.active=h2
 - GitHub 프로젝트를 이 저장소로 Import하는 기능을 제공합니다(`MigrationService`,
   `MigrationApiController`). `github.client.id` / `github.client.secret` / `github.allow.migration`
   설정으로 활성화합니다.
-- 원본 Yona의 별도 백업/이관 도구인 [Yona Export](https://github.com/yona-projects/yona-export)는
+- Yona의 별도 백업/이관 도구인 [Yona Export](https://github.com/yona-projects/yona-export)는
   이 저장소(Kotlin/Spring 이식판) 대상으로는 아직 포팅되지 않았습니다 — 진행 상황은
   `docs/PARITY_BACKLOG.md` 참고.
 
@@ -207,7 +207,7 @@ legacy Yona의 설치/운영 문서를 yona 기준으로 다시 쓴 것들이다
   내부 동작 등
 
 영문 버전은 legacy와 동일하게 별도 위치에 있다 — 운영 문서는 [`docs/*.md`](#operations-guide),
-사용자 가이드는 [`docs/userManual/`](docs/userManual/TOC.md), 기술 문서는 legacy에 영문 원본이
+사용자 가이드는 [`docs/userManual/`](docs/userManual/TOC.md), 기술 문서는 영문 원본이
 있던 5개(markdown/mailbox/watch/label-typeahead/name-validation)만 [`docs/technical/`](docs/technical/markdown.md)에
 있다(나머지 11개는 legacy도 한글 전용이었다).
 
@@ -223,7 +223,7 @@ legacy Yona(Yobi/nFORGE 포함)의 설계 스펙·비전 문서·릴리즈노트
 
 ## 라이선스
 
-yona는 원본 Yona/Yobi와 동일하게 [Apache License 2.0](LICENSE)으로 제공됩니다.
+yona는 [Apache License 2.0](LICENSE)으로 제공됩니다.
 서드파티 구성 요소 고지는 [NOTICE](NOTICE), 원 프로젝트 기여자 명단은 [AUTHORS](AUTHORS)를
 참고하세요.
 
