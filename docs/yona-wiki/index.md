@@ -22,9 +22,9 @@
 | 3 | P3-02 | yona CLI + 범용 REST API + 토큰 스코프 모델 | **진행 중(1부 REST API·토큰모델 + 2부 Go CLI 전부 완료, Step8.5~8.7의 `gh` 명령 체계 정합화·백엔드 기능 보강·발견된 실버그 수정까지 완료, 2026-09-01) — 남은 건 Step11(배포, 보류 결정)과 실서버 골든패스 수동검증(보류 중)뿐** | 없음 | [[plans/p3-02-cli-and-rest-api]] |
 | 4 | P3-04 | 브랜치 보호 | **완료(2026-09-06)** | 없음(스파이크 1개, 해소됨) | [[plans/p3-04-branch-protection]] |
 | 5 | P3-06 | 엔터프라이즈 SSO(SAML2/OIDC) | **완료(2026-09-06)** | 없음 | [[plans/p3-06-enterprise-sso]] |
-| 6 | P3-07 | yona MCP 서버(OAuth 2.1 인가 서버 포함) | planned | P3-02 | [[plans/p3-07-mcp-server]] |
+| 6 | P3-07 | yona MCP 서버(OAuth 2.1 인가 서버 포함) | **진행 중(착수, 2026-09-06)** | P3-02 | [[plans/p3-07-mcp-server]] |
 | 7 | P3-03 | SSH git 인증 + GPG 서명 검증 | planned | P3-02 | [[plans/p3-03-ssh-gpg]] |
-| 8 | P3-05 | CI/Actions 러너 아키텍처 | planned | P3-01(약함) | [[plans/p3-05-ci-actions-runner]] |
+| 8 | P3-05 | CI/Actions 러너 아키텍처 | **제외됨(2026-09-06 사용자 지시 — "ci/actions는 이번 구현에서 제외해!", 자동 진행 대상에서 빠짐, 재개는 사용자 지시 대기)** | P3-01(약함) | [[plans/p3-05-ci-actions-runner]] |
 | 9 | P3-12 | Mercurial(hg4j) 저장소 지원 | planned — 외부 블로커 있음 | 없음(단, `search5/hg4j` 라이브러리 진행 상황이 사실상의 착수 조건) | [[plans/p3-12-mercurial-hg4j]] |
 | 10 | P3-13 | 프런트엔드 분리 (React/Vue3/Angular 등 SPA) | planned — 프레임워크/인증 방식 미결정 | P3-02(REST API·인증 토대, 약한 선행) | [[plans/p3-13-decoupled-spa-frontend]] |
 | 11 | P3-10 | Git 태그(tag) 지원 | planned — 범위 미확정(TODO 등록만, 2026-09-03) | P3-02(REST API·토큰 스코프 토대, 약한 선행) | [[plans/p3-10-git-tags]] |
