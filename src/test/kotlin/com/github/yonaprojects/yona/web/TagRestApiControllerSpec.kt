@@ -22,6 +22,7 @@ import com.github.yonaprojects.yona.domain.vcs.GitTag
 import com.github.yonaprojects.yona.domain.vcs.PlayRepository
 import com.github.yonaprojects.yona.domain.vcs.RepositoryService
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
@@ -263,6 +264,20 @@ class TagRestApiControllerSpec : DescribeSpec({
 
             mockMvc.perform(delete("/api/v1/projects/owner/nosuch/tags/v1.0").principal(managerAuth))
                 .andExpect(status().isNotFound)
+        }
+
+        // 코디네이터 push 전 리뷰(2026-09-07) — create()는 Repository.isValidRefName()으로 경로
+        // 탈출/인젝션 문자를 걸러내는데 delete()는 원래 이 검증 없이 곧바로 deleteTag()를 호출했다.
+        // MockMvc로는 URL 경로 변수에 "../"를 실어 보내는 것 자체가 URI 정규화 때문에 신뢰성 있게
+        // 재현되지 않아(클라이언트/서블릿 레이어가 먼저 정규화해버릴 수 있음), 컨트롤러 메서드를
+        // 직접 호출해 이 검증 로직 자체를 확인한다.
+        it("경로 탈출 문자가 포함된 태그 이름을 직접 넘기면 404를 반환하고 deleteTag를 호출하지 않아야 한다") {
+            every { projectRepository.findByOwnerAndNameOrPreviousPlace("owner", "TestProject") } returns Optional.of(publicProject)
+
+            val response = controller.delete("owner", "TestProject", "../../../etc/evil", managerAuth)
+
+            response.statusCode.value() shouldBe 404
+            verify(exactly = 0) { playRepository.deleteTag(any()) }
         }
     }
 })

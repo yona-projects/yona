@@ -138,8 +138,18 @@ class TagRestApiController(
             return ResponseEntity.badRequest().body(mapOf("error" to "This project is not a git repository."))
         }
 
-        val repository = repositoryService.getRepository(found)
         val decodedTagName = URLDecoder.decode(tag.trimStart('/'), StandardCharsets.UTF_8.name())
+        // 코디네이터 push 전 리뷰(2026-09-07) — create()는 Repository.isValidRefName()으로 경로
+        // 탈출/인젝션 문자를 걸러내는데 delete()는 그 검증 없이 곧바로 deleteTag()를 호출하고
+        // 있었다. JGit의 ref 업데이트가 실제로 임의 파일에 영향을 줄 가능성은 낮아 보이지만(존재
+        // 확인 후 파싱 검증을 거쳐야 삭제로 이어짐), 검증 비대칭을 남겨둘 이유가 없어 동일하게
+        // 방어한다 — 방어 심층화(defense in depth), 관대한 실패(존재하지 않는 태그로 취급)로
+        // 일관성 유지.
+        if (decodedTagName.isBlank() || !Repository.isValidRefName("refs/tags/$decodedTagName")) {
+            return ResponseEntity.notFound().build()
+        }
+
+        val repository = repositoryService.getRepository(found)
         repository.deleteTag(decodedTagName)
         return ResponseEntity.noContent().build()
     }
