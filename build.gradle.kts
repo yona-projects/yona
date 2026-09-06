@@ -31,6 +31,14 @@ repositories {
 	}
 }
 
+// yona-wiki P3-07(MCP 서버) Step1 — io.spring.dependency-management가 자동으로 가져오는 건
+// Spring Boot의 BOM뿐이라, Spring AI의 버전을 관리하려면 그 BOM을 명시적으로 import해야 한다.
+dependencyManagement {
+	imports {
+		mavenBom("org.springframework.ai:spring-ai-bom:2.0.1")
+	}
+}
+
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("io.micrometer:micrometer-registry-prometheus")
@@ -53,6 +61,16 @@ dependencies {
 	// P3-06(엔터프라이즈 SSO) — SAML2 SP 연동. spring-boot-starter-security의 BOM(Spring Security
 	// 7.1.1)이 버전을 관리하므로 별도 버전 고정 불필요.
 	implementation("org.springframework.security:spring-security-saml2-service-provider")
+	// yona-wiki P3-07(MCP 서버) Step1 — yona 자신이 OAuth2 인가 서버(Authorization Server)를 자체
+	// 운영하기 위한 라이브러리(Spring Security 7.0부터 Spring Security 본체에 병합돼 spring-boot-
+	// starter-security의 BOM이 버전을 관리 — 별도 버전 고정 불필요). PKCE(S256 강제 기본값)/RFC7591
+	// Dynamic Client Registration을 기본 제공하고, RFC8707(Resource Indicators) 오디언스 검증만
+	// 이 프로젝트가 직접 구현한다(결정 근거: 계획 문서 "완료 로그 — Step 1" 참고).
+	implementation("org.springframework.security:spring-security-oauth2-authorization-server")
+	// yona-wiki P3-07 Step1 — MCP 프로토콜(Streamable HTTP 전송, 도구 등록)을 처음부터 구현하지
+	// 않고 재사용한다. spring-ai-bom(위 dependencyManagement)이 버전을 관리한다.
+	implementation("org.springframework.ai:spring-ai-starter-mcp-server-webmvc")
+	implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
 	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head th:replace="~{site/layout :: head(#{oauth2.consent.title})}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div class="site-breadcrumb-outer">
+        <div class="site-breadcrumb-inner">
+            <h3 th:text="#{oauth2.consent.title}">앱 인가</h3>
+        </div>
+    </div>
+    <div class="page-wrap-outer">
+        <div class="page-wrap" style="max-width: 640px; margin: 0 auto;">
+            <!--
+             yona-wiki P3-07(MCP 서버) Step2 — GitHub의 OAuth 동의 화면 관행을 따른다: "<clientName>이(가)
+             <principalName> 계정에 접근하려고 합니다" + 요청 권한 목록(체크박스, 이미 동의한 항목은
+             기본 체크) + Authorize/Cancel 버튼.
+            -->
+            <h4 class="mt20">
+                <span th:text="${clientName}">Claude Code</span>
+                <span th:text="#{oauth2.consent.wantsAccess}">이(가) 회원님의 계정에 접근하려고 합니다</span>
+            </h4>
+            <p class="mt10">
+                <span th:text="#{oauth2.consent.asUser}">사용자:</span>
+                <strong th:text="${principalName}">loginId</strong>
+            </p>
+
+            <form method="post" th:action="@{/oauth2/authorize}" class="mt20">
+                <input type="hidden" name="client_id" th:value="${clientId}">
+                <input type="hidden" name="state" th:value="${state}">
+
+                <h5 th:text="#{oauth2.consent.scopesTitle}">이 앱이 요청하는 권한</h5>
+                <ul class="oauth2-consent-scope-list">
+                    <li th:each="scope : ${scopes}">
+                        <label>
+                            <input type="checkbox" name="scope" th:value="${scope}" checked="checked">
+                            <span th:text="${scope}">issues:read</span>
+                        </label>
+                    </li>
+                    <li th:each="scope : ${previouslyApprovedScopes}">
+                        <label>
+                            <input type="checkbox" name="scope" th:value="${scope}" checked="checked" disabled="disabled">
+                            <input type="hidden" name="scope" th:value="${scope}">
+                            <span th:text="${scope}">issues:write</span>
+                            <em class="text-muted" th:text="#{oauth2.consent.alreadyApproved}">(이미 승인함)</em>
+                        </label>
+                    </li>
+                </ul>
+
+                <div class="mt20">
+                    <button type="submit" class="ybtn ybtn-success"
+                            th:text="#{oauth2.consent.authorize}">Authorize
+                    </button>
+                    <a th:href="@{/}" class="ybtn ml10" th:text="#{oauth2.consent.cancel}">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <footer th:replace="~{site/layout :: footer}"></footer>
+    <div th:replace="~{site/layout :: scripts}"></div>
+</div>
+</body>
+</html>

@@ -2,13 +2,13 @@
 type: plan
 id: P3-07
 title: "yona MCP 서버 (이슈/PR 읽기·쓰기)"
-status: planned
+status: in-progress
 priority: 6
 depends_on: [p3-02-cli-and-rest-api]
 blocks: []
 source: docs/PARITY_BACKLOG.md#P3-07
 created: 2026-08-28
-updated: 2026-08-28
+updated: 2026-09-06
 tags: [plan, p3, mcp, ai, oauth]
 ---
 
@@ -105,10 +105,12 @@ AI 에이전트(Claude Code 등)가 MCP(Model Context Protocol)로 yona 저장�
 
 ## 단계별 작업 계획 (TDD)
 
-1. **Step 1 — 구현 언어/배치 + 인가 서버 라이브러리 결정(스파이크)**
+1. **Step 1 — 구현 언어/배치 + 인가 서버 라이브러리 결정(스파이크, 해소됨 2026-09-06)**
    - Go(CLI 통합) vs Kotlin(서버 내장) 트레이드오프 정리(인가 서버는 Kotlin 확정, 전송 계층만 미정)
    - `spring-ai-community/mcp-security` 재사용 가능 여부 검토(라이선스/버전 호환성 포함)
    - 이 문서에 결정 사유 반영
+   - **결정: 안 B(Kotlin/Spring 서버 내장), 프로토콜/AS 핵심은 라이브러리 재사용 + 얇은 커스텀 글루**.
+     상세 근거는 아래 "완료 로그 — Step 1" 참고.
 2. **Step 2 — OAuth 인가 서버 + 리소스 서버 스캐폴딩**
    - `/.well-known/oauth-protected-resource`(RFC9728), `/.well-known/oauth-authorization-server`(RFC8414) 메타데이터 엔드포인트
    - PKCE 필수 강제, Dynamic Client Registration(RFC7591), Resource Indicators(RFC8707) audience 검증
@@ -144,10 +146,96 @@ AI 에이전트(Claude Code 등)가 MCP(Model Context Protocol)로 yona 저장�
 
 | 항목 | 내용 | 해소 방법 |
 |---|---|---|
-| 구현 언어/배치 | Go CLI 통합 vs Kotlin 서버 내장 미정(단, 인가 서버는 Kotlin 확정) | Step 1 스파이크 |
-| 인가 서버 자체 운영 vs 라이브러리 재사용 | `spring-ai-community/mcp-security` 재사용 가능 여부 미검증 | Step 1에서 라이선스/버전 호환성 확인 |
+| 구현 언어/배치 | Go CLI 통합 vs Kotlin 서버 내장 미정(단, 인가 서버는 Kotlin 확정) | **해소(2026-09-06)** — 안 B(Kotlin 서버 내장) 확정, 근거는 완료 로그 Step 1 참고 |
+| 인가 서버 자체 운영 vs 라이브러리 재사용 | `spring-ai-community/mcp-security` 재사용 가능 여부 미검증 | **해소(2026-09-06)** — 라이선스/버전 확인 완료(Apache 2.0, Boot 4.1 대상), 다만 보안 신뢰 경계 최소화를 위해 **채택하지 않고** `spring-security-oauth2-authorization-server` 직접 사용 + RFC8707만 직접 구현하기로 결정(근거는 완료 로그 Step 1 참고) |
 | 쓰기 권한 오남용 리스크 | AI 에이전트가 PR을 임의 머지할 위험 | 최소 권한 토큰 발급을 문서/가이드로 강제, [[p3-04-branch-protection]] 정책과 연동 검토 |
 | MCP 스펙 버전 드리프트 | 2025-11-25 draft에서 OIDC Discovery/증분 동의 등 확장이 이미 진행 중 — 착수 시점에 스펙이 더 바뀌어 있을 수 있음 | Step 1 착수 직전 공식 스펙 재확인 |
+
+## 완료 로그
+
+### 1라운드 (2026-09-06) — Step 1(스파이크: 언어/배치 + 라이브러리 결정)
+
+- **Go vs Kotlin**: 계획 문서가 이미 "인가 서버는 반드시 Kotlin"까지 확정해뒀던 상태에서, 코드로
+  직접 재확인한 결과 **안 B(Kotlin 서버 내장)로 확정**했다 — 결정적 근거는 [[p3-02-cli-and-rest-api]]가
+  이미 만들어둔 `IssueRestApiController`/`PullRequestApiController`(둘 다 `/api/v1/projects/{owner}/{project}/...`
+  네임스페이스)가 `IssueController`/`PullRequestController`의 기존 공개 메서드에 얇게 위임하는 구조이고,
+  그 메서드들이 전부 `Authentication?`을 받아 `userRepository.findByLoginId(authentication.name)`로
+  로그인 사용자를 찾는다는 점(`PullRequestController.getLoginUser()` 확인)이다. `YonaUserDetails.getUsername()`이
+  `loginId`를 반환하므로(코드 확인), 폼로그인/LDAP/SAML2/OIDC 어떤 경로로 인증하든 `Authentication.name`은
+  항상 `loginId`다. Spring Authorization Server가 액세스 토큰을 발급할 때 기본적으로 `sub` 클레임을
+  `context.getPrincipal().getName()`으로 채우므로, **별도의 사용자 매핑 코드 없이** 리소스 서버가 검증한
+  JWT의 `Authentication`을 `IssueController`/`PullRequestController`에 그대로 전달하면 스코프 체크 이후의
+  모든 기존 비즈니스 로직(AccessControl, 브랜치 보호 등)이 완전히 동일하게 동작한다 — 이 사실이 확인되며
+  "두 프로세스로 쪼개는 안 A"를 택할 이유가 사실상 사라졌다(안 A를 택해도 인가 서버는 Kotlin에 있어야 하고,
+  Go 프로세스는 그 JWT를 다시 이 방식으로 검증해야 하는데, 그럴 바엔 같은 프로세스에 두는 게 네트워크
+  홉·배포 단위 하나를 그냥 없애는 셈).
+- **`spring-ai-community/mcp-security`(v0.1.14, Apache 2.0, Spring Boot 4.1.0/Spring AI 2.0.0 대상,
+  Maven Central 공개 배포 확인)**: 리서치 결과 실제로 쓸 수 있는 라이브러리임을 확인했다(License/버전/
+  Maven Central 좌표 전부 실측 확인 — 자세한 근거는 아래 참고). 그럼에도 **채택하지 않기로 결정**했다.
+  이유:
+  1. 이 프로젝트가 인가 서버로 직접 채택한 `spring-security-oauth2-authorization-server`(Spring
+     Security 7.0부터 Spring Security 본체에 병합, 현재 7.1.1 — `spring-boot-starter-security`가 이미
+     관리하는 버전이라 별도 버전 고정 불필요)가 PKCE(S256 강제가 기본값, 코드 확인 불필요할 만큼 명확한
+     공식 문서/릴리스 노트 근거)와 RFC7591 DCR(`/oauth2/register`, 기본 비활성 → `setOpenRegistrationAllowed(true)`로
+     활성화)을 **이미 기본 제공**해, `mcp-security`가 채워주는 실질적 갭은 RFC8707(Resource Indicators)
+     오디언스 검증 하나로 좁혀진다.
+  2. RFC8707 오디언스 검증은 Spring이 명시적으로 확장 지점으로 설계해둔 `OAuth2TokenCustomizer<JwtEncodingContext>`
+     하나로 충분히 작게(수십 줄) 직접 구현 가능한 범위다 — "프로토콜을 처음부터 재구현하지 말라"는
+     이 프로젝트의 원칙은 OAuth2/PKCE/DCR처럼 정교하고 실수하기 쉬운 프로토콜 기계장치에 적용되는
+     것이지, 라이브러리가 의도적으로 열어둔 커스터마이징 포인트를 채우는 수십 줄짜리 글루 코드까지
+     반드시 서드파티에 의존해야 한다는 뜻은 아니라고 판단했다.
+  3. `mcp-security`는 **아직 0.1.x(pre-1.0), 사실상 단일 메인테이너** 프로젝트다 — 이 계획이 다루는
+     영역(OAuth2 인가 서버, 계정 탈취로 이어질 수 있는 가장 민감한 인프라)에서는, 이미 Spring Security
+     코어 팀이 직접 유지보수하는 `spring-security-oauth2-authorization-server`(신뢰 검증이 훨씬 두터운
+     1급 라이브러리) 위에 **직접 검토 가능한 얇은 커스텀 코드**를 얹는 쪽이, 검증이 상대적으로 얕은
+     pre-1.0 서드파티 보안 라이브러리를 신뢰 경계에 추가하는 것보다 안전하다고 판단했다(방금 전
+     [[p3-06-enterprise-sso]]에서 `email_verified` 미검증 같은 실제 계정 탈취 취약점이 최종 리뷰에서야
+     발견된 선례가 있어, 이번엔 더 보수적으로 간다).
+  4. 참고로 이 라이브러리가 실제로 Maven Central에 공개 배포돼 있다는 사실 자체(`org.springaicommunity:
+     mcp-authorization-server-spring-boot:0.1.14` 등, `repo.maven.apache.org` `maven-metadata.xml`로
+     확인)와 라이선스(Apache 2.0)는 향후 유지보수 부담이 커지면 재검토할 수 있도록 이 문서에 남겨둔다 —
+     **채택 보류이지 "쓸 수 없다"는 결론이 아니다.**
+- **최종 라이브러리 구성(확정)**:
+  - MCP 프로토콜/전송/도구 등록: **재사용** — `org.springframework.ai:spring-ai-starter-mcp-server-webmvc`
+    (Spring AI 2.0.x, MCP Java SDK 2.0.x를 내부에 포함) — Streamable HTTP 전송(`spring.ai.mcp.server.protocol=STREAMABLE`)과
+    `@McpTool`/`@McpToolParam` 애노테이션 기반 도구 등록을 그대로 쓴다(HTTP+SSE 프로토콜을 직접 구현하지 않음).
+  - OAuth2 인가 서버 핵심 메커니즘(PKCE/토큰 발급/도입·폐기): **재사용** —
+    `org.springframework.security:spring-security-oauth2-authorization-server`(7.1.1, Spring Security
+    BOM 관리 버전).
+  - RFC9728(Protected Resource Metadata) 응답 JSON, RFC8707(Resource Indicators) 오디언스 검증/스탬핑:
+    **직접 구현**(수십 줄, Spring이 명시적으로 열어둔 확장 지점만 사용) — Step 2에서 구현.
+  - `RegisteredClient`/`OAuth2Authorization`/`OAuth2AuthorizationConsent` 저장소: Spring이 기본 제공하는
+    `JdbcRegisteredClientRepository`/`JdbcOAuth2AuthorizationService`(공식 스키마 SQL, MariaDB/PostgreSQL/
+    MySQL 등 특정 방언 전제) 대신 **JPA 엔티티 기반 커스텀 구현을 새로 작성**한다 — 이 프로젝트는 마이그레이션
+    도구 없이 Hibernate `ddl-auto`(update/create-drop)로 스키마를 관리하고, MariaDB/PostgreSQL/MySQL/
+    SQL Server/CUBRID/H2 6개 DB를 전부 지원해야 하는데(`AbstractIntegrationTest` 확인) Spring 공식 스키마
+    스크립트는 CUBRID를 지원하지 않고 나머지 DB용도 방언별로 손으로 맞춰야 해 이 프로젝트의 기존 관례
+    (`ApiToken`처럼 JPA 엔티티 하나로 6개 DB 전부 자동 대응)에 정면으로 어긋난다. Step 2에서 신규
+    `domain/oauth2server/` 패키지로 구현.
+- **MCP 스펙 버전**: 착수 시점(2026-09-06) 최신 리비전은 2026-07-28(세션리스 Streamable HTTP로 프로토콜이
+  크게 바뀜)이지만, 실제로 쓸 수 있는 라이브러리(MCP Java SDK/Spring AI MCP 스타터 2.0.x)는 아직
+  2025-11-25 리비전을 구현하고 있고, Claude 등 실제 클라이언트 대부분도 아직 이 리비전 기준이다 — 이
+  계획은 **라이브러리가 실제로 구현한 2025-11-25 시맨틱을 기준으로 진행**한다(라이브러리가 지원하지
+  않는 최신 스펙을 미리 손으로 구현하지 않음). RFC9728/RFC8707 MUST 요구사항은 두 리비전 사이에 실질적
+  변화가 없음을 확인했다.
+- **토큰 스코프 축**: [[p3-02-cli-and-rest-api]]의 `ApiTokenScopeGroup`(8개 그룹: ISSUES/PULL_REQUESTS/CODE/
+  BOARD/WIKI/WEBHOOKS/ADMINISTRATION/USERS) + `ApiTokenPermission`(NONE/READ/WRITE)을 OAuth 스코프 문자열
+  축으로 그대로 재사용한다 — OAuth 스코프 문자열을 `"issues:read"`, `"issues:write"` 형식(그룹명 소문자 +
+  `:` + 권한명 소문자)으로 정의해 `ApiTokenScopeGroup`/`ApiTokenPermission`과 1:1 매핑한다(신규 축 설계
+  없음, `docs/PARITY_BACKLOG.md`의 P3-14 항목이 이미 언급한 재사용 가능성을 그대로 확정). 단, PAT의
+  `scopedProjects`(저장소 단위 세분화)에 대응하는 개념은 OAuth 스코프 문자열 표준에 자연스러운 자리가
+  없어 **v1의 OAuth 토큰은 PAT의 `allRepositories=true`와 동일하게 항상 전체 저장소 대상으로 발급**한다
+  (저장소 단위로 좁힌 OAuth 동의는 향후 [[p3-14]] 등에서 필요해지면 `resource` 파라미터(RFC8707)를
+  프로젝트 단위로 세분화하는 방식으로 확장 가능 — 지금은 과도한 설계이므로 하지 않음). 이 결정은 Step 3~5에서
+  스코프 검증 코드를 짤 때 그대로 적용한다.
+- **참고 리서치 근거 원문 요약**(정확한 버전 확인 근거, 필요 시 실제 Maven Central 재조회로 최신화할 것):
+  - MCP Java SDK 최신 `2.0.1`(MIT), Spring 통합은 2.0+부터 이 SDK가 아니라 Spring AI 쪽으로 이관됨.
+  - Spring AI 안정판 `2.0.1`(BOM `org.springframework.ai:spring-ai-bom`), MCP 서버 스타터 아티팩트명이
+    `spring-ai-starter-mcp-server-webmvc`로 확정(구 명명 `spring-ai-mcp-server-webmvc-spring-boot-starter`는
+    1.0.0-M6에서 멈춘 폐기 경로).
+  - Spring Authorization Server가 Spring Security 7.0(2025-09)에 정식 병합, 독립 버전 체계 종료.
+  - MCP 프로토콜 최신 리비전 `2026-07-28`(직전 `2025-11-25`), Streamable HTTP 이름은 유지되나
+    2026-07-28에서 세션리스로 재설계됨. RFC9728/RFC8707은 두 리비전 다 MUST로 동일.
 
 ## 관련
 

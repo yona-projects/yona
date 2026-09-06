@@ -2,6 +2,7 @@ package com.github.yonaprojects.yona.config
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
+import org.springframework.core.annotation.Order
 import org.springframework.http.HttpMethod
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.AuthenticationManager
@@ -47,7 +48,12 @@ class SecurityConfig(
     private val saml2DisplayNameAttribute: String
 ) {
 
+    // yona-wiki P3-07(MCP 서버) Step2 — 신규 AuthorizationServerConfig(@Order 1)/ResourceServerConfig
+    // (@Order 2)가 각각 /oauth2/**, /mcp/**만 좁게 담당하므로 이 캐치올 체인은 셋 중 가장 낮은
+    // 우선순위(@Order 3)로 명시한다 — 겹치는 URL이 없어 동작 변화는 없지만, 여러 SecurityFilterChain
+    // 빈이 공존할 때 순서를 암묵적 추론에 맡기지 않기 위해 명시적으로 선언했다.
     @Bean
+    @Order(3)
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
             .csrf { csrf -> csrf.disable() }

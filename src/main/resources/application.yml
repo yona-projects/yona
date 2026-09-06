@@ -35,6 +35,10 @@ yona:
   site-name: "${YONA_SITE_NAME:Yona}"
   upload:
     base-dir: "${yona.data:data}/uploads"
+  oauth2:
+    # yona-wiki P3-07(MCP 서버) — OAuth2 액세스 토큰(JWT) 서명용 RSA 키 쌍을 최초 1회 생성해 저장하는
+    # 파일 경로(JwkKeyPairProvider 참고). yona.upload.base-dir과 동일하게 yona.data 기준.
+    signing-key-path: "${yona.data:data}/oauth2/jwt-signing-key.json"
   git:
     # 새로 만드는 프로젝트의 초기 브랜치명. 지정하지 않으면(환경변수 미설정) "main"이 기본값이다 —
     # 이 값을 지정하지 않으면 JGit이 서버가 돌아가는 머신의 전역 git 설정(init.defaultBranch)을
