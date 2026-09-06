@@ -81,6 +81,12 @@
                   </td>
                   <td class="messages">
                     <span class="number-of-comments" th:if="${numOfComment > 0}"><i class="yobicon-comments"></i> <span th:text="${numOfComment}">0</span></span>
+                    <!-- yona-wiki P3-03 Step9 — GPG 서명 검증 배지(GitHub "Verified"/"Unverified"와 동일한 표시 규칙:
+                         미서명(UNSIGNED) 커밋은 배지를 아예 표시하지 않는다). -->
+                    <span th:if="${commit.gpgVerificationStatus.name() == 'VERIFIED'}"
+                          class="label-head gpg-verified" style="background-color:#dafbe1;color:#1a7f37;border:1px solid #2da44e;" th:title="#{commit.gpg.verified.title}" th:text="#{commit.gpg.verified}">Verified</span>
+                    <span th:if="${commit.gpgVerificationStatus.name() == 'UNVERIFIED'}"
+                          class="label-head gpg-unverified" style="background-color:#f6f8fa;color:#57606a;border:1px solid #d0d7de;" th:title="#{commit.gpg.unverified.title}" th:text="#{commit.gpg.unverified}">Unverified</span>
                     <div th:replace="~{common/commitMsg :: commitMsg(${commit.shortMessage}, ${commit.message}, ${showCommitURL}, false)}"></div>
                   </td>
                   <td class="browse" th:if="${!#strings.isEmpty(path)}">

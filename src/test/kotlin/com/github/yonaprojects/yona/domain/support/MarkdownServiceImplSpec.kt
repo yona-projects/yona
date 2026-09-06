@@ -232,6 +232,7 @@ class MarkdownServiceImplSpec : DescribeSpec({
                 override fun getCommitterDate(): Date? = null
                 override fun getCommitterTimezone(): TimeZone? = null
                 override fun getParentCount(): Int = 0
+                override fun getGpgVerificationStatus() = com.github.yonaprojects.yona.domain.gpgkey.GpgVerificationStatus.UNSIGNED
             }
 
             val playRepo = object : PlayRepository {

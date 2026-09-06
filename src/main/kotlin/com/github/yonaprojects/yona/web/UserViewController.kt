@@ -81,6 +81,8 @@ class UserViewController(
     // yona-wiki P3-03 Step3 — GitHub의 "Settings > SSH and GPG keys" 화면과 동등한 SSH 키
     // 등록/조회/삭제 UI.
     private val sshKeyService: com.github.yonaprojects.yona.domain.sshkey.SshKeyService,
+    // yona-wiki P3-03 Step7 — 커밋 서명 검증용 GPG 키 등록/조회/삭제 UI.
+    private val gpgKeyService: com.github.yonaprojects.yona.domain.gpgkey.GpgKeyService,
     // yona controllers/Application.java:35 HIDE_PROJECT_LISTING 대응 (P0-23).
     @Value("\${yona.application.hide-project-listing:false}")
     private val hideProjectListing: Boolean = false
@@ -752,6 +754,60 @@ class UserViewController(
 
         sshKeyService.delete(loginUser, id)
         return "redirect:/user/editform/ssh-keys"
+    }
+
+    // yona-wiki P3-03 Step7 — GitHub "Settings > SSH and GPG keys" 화면의 GPG 키 섹션과 동일한
+    // 컨벤션.
+    @GetMapping("/user/editform/gpg-keys")
+    fun editGpgKeysForm(
+        authentication: Authentication?,
+        model: Model
+    ): String {
+        val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
+            ?: return "error/403"
+
+        fillAvatarId(loginUser)
+        model.addAttribute("user", loginUser)
+        model.addAttribute("currentUser", loginUser)
+        model.addAttribute("gpgKeys", gpgKeyService.listByUser(loginUser))
+
+        return "user/edit_gpg_keys"
+    }
+
+    @PostMapping("/user/editform/gpg-keys")
+    fun addGpgKey(
+        @RequestParam("armoredPublicKey") armoredPublicKey: String,
+        authentication: Authentication?,
+        model: Model
+    ): String {
+        val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
+            ?: return "error/403"
+
+        fillAvatarId(loginUser)
+        try {
+            gpgKeyService.create(loginUser, armoredPublicKey)
+        } catch (e: IllegalArgumentException) {
+            model.addAttribute("gpgKeyError", e.message)
+        } catch (e: com.github.yonaprojects.yona.domain.gpgkey.GpgPublicKeyParser.InvalidGpgKeyException) {
+            model.addAttribute("gpgKeyError", e.message)
+        }
+
+        model.addAttribute("user", loginUser)
+        model.addAttribute("currentUser", loginUser)
+        model.addAttribute("gpgKeys", gpgKeyService.listByUser(loginUser))
+        return "user/edit_gpg_keys"
+    }
+
+    @PostMapping("/user/editform/gpg-keys/{id}/delete")
+    fun deleteGpgKey(
+        @PathVariable id: Long,
+        authentication: Authentication?
+    ): String {
+        val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
+            ?: return "error/403"
+
+        gpgKeyService.delete(loginUser, id)
+        return "redirect:/user/editform/gpg-keys"
     }
 
     @GetMapping("/user/files")

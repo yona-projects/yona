@@ -61,7 +61,12 @@ class GitRepository(
     // 프로브 참고), 애플리케이션 차원에서 결정론적으로 강제한다(RepositoryService가
     // yona.git.default-branch 설정값을 넘겨줌). userResolver 뒤에 둬서(파라미터 순서 유지) 기존
     // `GitRepository(a, b, c, userResolver)` 형태의 수십 개 테스트 호출부가 그대로 동작하게 한다.
-    private val defaultBranch: String = "main"
+    private val defaultBranch: String = "main",
+    // yona-wiki P3-03 Step9 — 커밋 목록/상세 화면의 GPG Verified 배지 계산(GpgSignatureVerifier.
+    // verify()). 기본값(no-op, 항상 UNSIGNED)을 둬서 defaultBranch와 마찬가지로 기존 호출부가
+    // 그대로 동작하게 한다 — RepositoryService가 실제 구현을 주입한다.
+    private val gpgVerifier: (org.eclipse.jgit.revwalk.RevCommit) -> com.github.yonaprojects.yona.domain.gpgkey.GpgVerificationStatus =
+        { com.github.yonaprojects.yona.domain.gpgkey.GpgVerificationStatus.UNSIGNED }
 ) : PlayRepository {
 
     private val objectMapper = ObjectMapper()
@@ -143,7 +148,7 @@ class GitRepository(
             val data = objectMapper.createObjectNode()
 
             if (latestCommit != null) {
-                val gitCommit = GitCommit(latestCommit, userResolver)
+                val gitCommit = GitCommit(latestCommit, userResolver, gpgVerifier)
                 val commitTime = gitCommit.getAuthorDate()?.time ?: 0L
                 val user = gitCommit.getAuthor()
 
@@ -201,7 +206,7 @@ class GitRepository(
         val latestCommit = logs.firstOrNull()
 
         if (latestCommit != null) {
-            val gitCommit = GitCommit(latestCommit, userResolver)
+            val gitCommit = GitCommit(latestCommit, userResolver, gpgVerifier)
             val commitTime = gitCommit.getAuthorDate()?.time ?: 0L
             val user = gitCommit.getAuthor()
 
@@ -567,7 +572,7 @@ class GitRepository(
                 logCommand.addPath(path)
             }
             val commits = logCommand.setSkip(pageNum * pageSize).setMaxCount(pageSize).call()
-            commits.map { GitCommit(it, userResolver) }
+            commits.map { GitCommit(it, userResolver, gpgVerifier) }
         }
     }
 
@@ -576,7 +581,7 @@ class GitRepository(
             val objectId = repo.resolve(rev) ?: return@useRepository null
             val revWalk = RevWalk(repo)
             val commit = revWalk.parseCommit(objectId)
-            GitCommit(commit, userResolver)
+            GitCommit(commit, userResolver, gpgVerifier)
         }
     }
 
@@ -625,7 +630,7 @@ class GitRepository(
             val revWalk = RevWalk(repo)
             refs.map { ref ->
                 val commit = revWalk.parseCommit(ref.objectId)
-                val gitCommit = GitCommit(commit, userResolver)
+                val gitCommit = GitCommit(commit, userResolver, gpgVerifier)
                 val user = userResolver(null, gitCommit.getCommitterEmail())
                 GitBranch(ref.name, gitCommit, user)
             }
@@ -639,7 +644,7 @@ class GitRepository(
             val objectId = targetRef.objectId ?: return@useRepository null
             val revWalk = RevWalk(repo)
             val commit = revWalk.parseCommit(objectId)
-            val gitCommit = GitCommit(commit, userResolver)
+            val gitCommit = GitCommit(commit, userResolver, gpgVerifier)
             val user = userResolver(null, gitCommit.getCommitterEmail())
             GitBranch(targetRef.name, gitCommit, user)
         }
@@ -673,7 +678,7 @@ class GitRepository(
             val revWalk = RevWalk(repo)
             val commit = revWalk.parseCommit(objectId)
             if (commit.parentCount > 0) {
-                GitCommit(commit.getParent(0), userResolver)
+                GitCommit(commit.getParent(0), userResolver, gpgVerifier)
             } else {
                 null
             }

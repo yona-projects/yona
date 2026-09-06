@@ -2,6 +2,7 @@ package com.github.yonaprojects.yona.domain.vcs
 
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.node.ObjectNode
+import com.github.yonaprojects.yona.domain.gpgkey.GpgSignatureVerifier
 import com.github.yonaprojects.yona.domain.project.Project
 import com.github.yonaprojects.yona.domain.project.ProjectRepository
 import com.github.yonaprojects.yona.domain.user.UserRepository
@@ -13,6 +14,8 @@ import java.io.File
 class RepositoryService(
     private val userRepository: UserRepository,
     private val projectRepository: ProjectRepository,
+    // yona-wiki P3-03 Step9 — 커밋 목록/상세 화면의 GPG Verified 배지 계산에 쓴다.
+    private val gpgSignatureVerifier: GpgSignatureVerifier,
     @Value("\${yona.git.base-dir:/tmp/yona/git}")
     private val gitBaseDir: String,
     @Value("\${yona.svn.base-dir:/tmp/yona/svn}")
@@ -46,7 +49,8 @@ class RepositoryService(
                         null
                     }
                 },
-                defaultBranch = gitDefaultBranch
+                defaultBranch = gitDefaultBranch,
+                gpgVerifier = { revCommit -> gpgSignatureVerifier.verify(revCommit) }
             )
         }
     }

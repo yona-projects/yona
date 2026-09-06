@@ -1,12 +1,17 @@
 package com.github.yonaprojects.yona.domain.vcs
 
+import com.github.yonaprojects.yona.domain.gpgkey.GpgVerificationStatus
 import com.github.yonaprojects.yona.domain.user.User
 import org.eclipse.jgit.revwalk.RevCommit
 import java.util.*
 
 class GitCommit(
     private val revCommit: RevCommit,
-    private val userResolver: (String?, String?) -> User?
+    private val userResolver: (String?, String?) -> User?,
+    // yona-wiki P3-03 Step9 — 기본값은 항상 UNSIGNED로 판정하는 no-op(GpgSignatureVerifier를
+    // 굳이 주입하지 않는 기존 호출부/테스트가 그대로 동작하게 하기 위함). RepositoryService가
+    // 실제 GpgSignatureVerifier.verify()를 넘겨준다.
+    private val gpgVerifier: (RevCommit) -> GpgVerificationStatus = { GpgVerificationStatus.UNSIGNED }
 ) : Commit() {
 
     override fun getId(): String {
@@ -63,5 +68,9 @@ class GitCommit(
 
     override fun getParentCount(): Int {
         return revCommit.parentCount
+    }
+
+    override fun getGpgVerificationStatus(): GpgVerificationStatus {
+        return gpgVerifier(revCommit)
     }
 }

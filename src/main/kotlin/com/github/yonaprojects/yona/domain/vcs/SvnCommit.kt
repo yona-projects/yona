@@ -1,5 +1,6 @@
 package com.github.yonaprojects.yona.domain.vcs
 
+import com.github.yonaprojects.yona.domain.gpgkey.GpgVerificationStatus
 import com.github.yonaprojects.yona.domain.user.User
 import org.tmatesoft.svn.core.SVNLogEntry
 import java.util.Date
@@ -74,5 +75,10 @@ class SvnCommit(
 
     override fun getShortId(): String {
         return getId()
+    }
+
+    override fun getGpgVerificationStatus(): GpgVerificationStatus {
+        // SVN은 이 앱에서 GPG 커밋 서명 개념이 없다(계획 문서 범위 밖).
+        return GpgVerificationStatus.UNSIGNED
     }
 }

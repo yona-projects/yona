@@ -114,7 +114,12 @@ dependencies {
 	implementation("org.apache.sshd:sshd-core:2.15.0")
 
 	// yona-wiki P3-03 Step8 — GPG 커밋 서명 실제 암호학적 검증(단순 "서명 존재" 확인이 아니라
-	// BouncyCastle로 서명을 공개키에 대해 실제로 검증한다).
+	// BouncyCastle(bcpg/bcprov)로 서명을 공개키에 대해 실제로 검증한다 — GpgSignatureVerifier.kt).
+	// org.eclipse.jgit.gpg.bc의 BouncyCastleGpgSignatureVerifier도 검토했으나, 그 verify()는
+	// Repository/GpgConfig 기반 로컬 GPG 키링(~/.gnupg) 조회에 결합돼 있어(자체 사용자 GPG 키를
+	// DB에 등록하는 이 앱의 멀티테넌트 모델과 안 맞음) 채택하지 않았다 — bcpg/bcprov API로
+	// (1) 등록된 공개키 목록에서 서명자 키를 직접 찾고 (2) PGPSignature.verify()로 검증하는
+	// 흐름을 직접 구현했다.
 	implementation("org.bouncycastle:bcpg-jdk18on:1.82")
 	implementation("org.bouncycastle:bcprov-jdk18on:1.82")
 

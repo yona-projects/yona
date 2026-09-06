@@ -42,6 +42,11 @@
       SSH 키
     </a>
   </li>
+  <li th:class="${tabId == 'gpg-keys'} ? 'active' : ''">
+    <a th:href="@{/user/editform/gpg-keys}" th:text="#{userinfo.gpgKeys}">
+      GPG 키
+    </a>
+  </li>
 </ul>
 </body>
 </html>

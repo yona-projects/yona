@@ -47,11 +47,11 @@ class GitCommitSpec : DescribeSpec({
             var resolvedName: String? = "호출안됨"
             var resolvedEmail: String? = "호출안됨"
             val revCommit = makeCommit("첫 줄 메시지")
-            val gitCommit = GitCommit(revCommit) { name, email ->
+            val gitCommit = GitCommit(revCommit, userResolver = { name, email ->
                 resolvedName = name
                 resolvedEmail = email
                 user
-            }
+            })
 
             gitCommit.getId() shouldBe revCommit.name
             gitCommit.getShortId() shouldBe revCommit.name.substring(0, 7)
@@ -75,7 +75,7 @@ class GitCommitSpec : DescribeSpec({
         it("부모 커밋이 있으면 parentCount가 1 이상이어야 한다") {
             val parent = makeCommit("부모 커밋")
             val child = makeCommit("자식 커밋", parents = listOf(parent))
-            val gitCommit = GitCommit(child) { _, _ -> null }
+            val gitCommit = GitCommit(child, userResolver = { _, _ -> null })
 
             gitCommit.getParentCount() shouldBe 1
         }
@@ -91,11 +91,11 @@ class GitCommitSpec : DescribeSpec({
 
             var calledWithName: String? = "호출안됨"
             var calledWithEmail: String? = "호출안됨"
-            val gitCommit = GitCommit(mockRevCommit) { name, email ->
+            val gitCommit = GitCommit(mockRevCommit, userResolver = { name, email ->
                 calledWithName = name
                 calledWithEmail = email
                 null
-            }
+            })
 
             gitCommit.getShortId() shouldBe "abc"
             gitCommit.getShortMessage() shouldBe ""
