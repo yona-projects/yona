@@ -15,6 +15,12 @@ import java.time.Instant
  * 생성 계정은 password/passwordSalt를 비워둔다 — 이 계정은 항상 SSO로만 로그인하게 된다(로컬
  * 아이디/비번 로그인은 애초에 시도할 수 없음, YonaAuthenticationProvider.authenticateLocally()가
  * BadCredentialsException을 던질 뿐 별도 차단 로직은 불필요).
+ *
+ * 보안: 기존 계정에 연결(link)할 때만 `email_verified` 클레임이 true여야 한다 — "임의 IdP"를
+ * 지원 대상으로 명시한 계획이라, 이메일 검증을 강제하지 않는(또는 자유 가입이 가능한) IdP에서
+ * 피해자의 이메일을 자칭하는 계정으로 로그인해 피해자의 기존 yona 계정을 탈취하는 걸 막는다.
+ * 신규 계정 생성은 뺏길 기존 계정이 없어 이 제약을 적용하지 않는다(과도한 제약 방지 — 일부
+ * 엔터프라이즈 IdP는 첫 로그인에서 email_verified 자체를 안 보낼 수 있다).
  */
 @Service
 class OidcUserProvisioningService(
@@ -29,6 +35,11 @@ class OidcUserProvisioningService(
         return if (existing == null) {
             createNewUser(email, oidcUser)
         } else {
+            if (oidcUser.emailVerified != true) {
+                throw IllegalStateException(
+                    "OIDC 이메일($email)이 검증되지 않아(email_verified) 기존 계정에 연결할 수 없습니다."
+                )
+            }
             syncExistingUser(existing, oidcUser)
         }
     }

@@ -266,6 +266,35 @@ LDAP 연동(`LdapService.kt`/`LdapUserProvisioningService.kt`/`LdapQueryBuilder.
 - **코드 변경 없음**: 이 라운드는 검증과 문서 갱신만 수행했다 — 1라운드가 작성한 소스/템플릿/테스트
   코드는 한 줄도 수정하지 않았다.
 
+### 3라운드 (2026-09-06) — push 전 코디네이터 코드 리뷰에서 실제 계정 탈취 취약점 발견·수정
+
+push 전 최종 리뷰 과정에서 `OidcUserProvisioningService.reconcile()`을 직접 읽어본 결과, 실제로
+악용 가능한 보안 결함을 발견했다.
+
+- **취약점**: `reconcile()`이 OIDC IdP가 반환한 `email` 클레임만으로 기존 로컬 계정에 연결(link)하면서
+  `email_verified` 클레임을 전혀 확인하지 않았다. 이 계획은 명시적으로 **"임의의 OIDC IdP"**(범용 OIDC
+  연동, Okta/Azure AD/Keycloak 등 무엇이든)를 지원 대상으로 삼고 있어 — LDAP처럼 관리자가 완전히
+  신뢰하는 단일 사내 디렉터리를 붙이는 게 아니라 신뢰 수준이 제각각인 IdP를 붙이는 게 전제다. 이메일
+  검증을 강제하지 않거나 자유 가입이 가능한 IdP를 관리자가 등록해뒀다면, 공격자가 그 IdP에서 피해자의
+  이메일을 자칭하는 계정을 만들어 yona에 SSO 로그인하는 것만으로 피해자의 기존 yona 계정을 그대로
+  가로챌 수 있었다(전형적인 OIDC 계정 연결 취약점 — "don't trust the email claim without email_verified"
+  는 OAuth/OIDC 통합의 잘 알려진 필수 체크리스트 항목).
+- **수정**: `reconcile()`에서 **기존 계정에 연결하는 분기에서만** `oidcUser.emailVerified != true`이면
+  `IllegalStateException`을 던지도록 가드를 추가했다(`email_verified`가 아예 없는 경우도 미검증으로
+  취급 — 값이 불명확하면 안전한 쪽으로 판단). **신규 계정 생성 분기에는 이 가드를 적용하지 않았다** —
+  뺏길 기존 계정이 없어 계정 탈취로 이어지지 않고, 일부 엔터프라이즈 IdP는 최초 로그인에서
+  `email_verified` 자체를 아예 안 보낼 수 있어 여기까지 막으면 정상적인 초기 SSO 온보딩을 과도하게
+  제약하게 된다(위험과 제약의 비대칭을 고려한 최소 수정). SAML2 경로(`Saml2UserProvisioningService`)에는
+  동일한 가드를 추가하지 않았다 — SAML2는 관리자가 특정 IdP의 서명 인증서를 명시적으로 등록해 신뢰를
+  선언하는 구조라(`RelyingPartyRegistration`) OIDC의 "발급자만 다르면 뭐든 붙는" 신뢰 모델과 다르고,
+  SAML에는 `email_verified`에 대응하는 표준 속성 자체가 없다.
+- **테스트**: `OidcUserProvisioningServiceSpec.kt`에 4개 추가(email_verified=false 시 기존 계정 연결
+  거부, email_verified 클레임 자체가 없을 때도 거부, email_verified=true면 정상 동기화, email_verified=false여도
+  신규 생성은 허용) + 기존 "이메일로 기존 유저를 찾으면...동기화" 테스트에 `email_verified: true` 클레임
+  추가(가드 신설로 인한 회귀 수정). `EnterpriseOidcUserServiceSpec`은 `reconcile()`을 모킹해 이 가드를
+  우회하는 구조라 영향 없음을 확인. 재검증: `OidcUserProvisioningServiceSpec`(8 tests)+
+  `EnterpriseOidcUserServiceSpec`(1 test) 전부 GREEN.
+
 ## 관련
 
 - 백로그 원본: [`docs/PARITY_BACKLOG.md`](../../PARITY_BACKLOG.md#p3-06)
