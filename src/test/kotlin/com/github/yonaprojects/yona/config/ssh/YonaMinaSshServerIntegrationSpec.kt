@@ -1,6 +1,8 @@
 package com.github.yonaprojects.yona.config.ssh
 
 import com.github.yonaprojects.yona.AbstractIntegrationTest
+import com.github.yonaprojects.yona.domain.branchprotection.ProtectedBranch
+import com.github.yonaprojects.yona.domain.branchprotection.ProtectedBranchRepository
 import com.github.yonaprojects.yona.domain.deploykey.DeployKeyRepository
 import com.github.yonaprojects.yona.domain.deploykey.DeployKeyService
 import com.github.yonaprojects.yona.domain.project.Project
@@ -44,7 +46,8 @@ class YonaMinaSshServerIntegrationSpec @Autowired constructor(
     private val sshKeyService: SshKeyService,
     private val sshKeyRepository: SshKeyRepository,
     private val deployKeyService: DeployKeyService,
-    private val deployKeyRepository: DeployKeyRepository
+    private val deployKeyRepository: DeployKeyRepository,
+    private val protectedBranchRepository: ProtectedBranchRepository
 ) : AbstractIntegrationTest() {
 
     override fun extensions() = listOf(SpringExtension)
@@ -92,6 +95,7 @@ class YonaMinaSshServerIntegrationSpec @Autowired constructor(
     init {
         describe("Apache MINA SSHD 폴백 — 실제 SSH 클라이언트/git 바이너리 통합테스트") {
             beforeEach {
+                protectedBranchRepository.deleteAll()
                 sshKeyRepository.deleteAll()
                 deployKeyRepository.deleteAll()
                 projectUserRepository.deleteAll()
@@ -101,6 +105,7 @@ class YonaMinaSshServerIntegrationSpec @Autowired constructor(
             }
 
             afterSpec {
+                protectedBranchRepository.deleteAll()
                 sshKeyRepository.deleteAll()
                 deployKeyRepository.deleteAll()
                 projectUserRepository.deleteAll()
@@ -263,6 +268,49 @@ class YonaMinaSshServerIntegrationSpec @Autowired constructor(
 
                     val (pushExit, _) = runGit("git", "push", cloneUrl, "main", dir = cloneDest, privateKeyFile = privateKeyFile)
                     (pushExit != 0) shouldBe true
+                } finally {
+                    cloneDest.deleteRecursively()
+                }
+            }
+
+            // 코디네이터 push 전 리뷰(2026-09-07) — HTTPS 경로(GitServletConfig)는
+            // RejectPushToReservedRefsPreReceiveHook과 BranchProtectionPreReceiveHook을 함께
+            // 체이닝하는데, 이 SSH 경로(YonaSshGitCommand)는 처음 구현 시 전자만 걸고 후자를
+            // 빠뜨려서 P3-04(브랜치 보호) 정책 전체가 SSH를 통하면 우회되는 실제 보안 결함이
+            // 있었다 — 이 테스트는 그 결함을 고정하는 회귀 가드다.
+            it("브랜치 보호 정책(require_pull_request)이 SSH 직접 push에도 적용돼야 한다(HTTPS와 동일)") {
+                val owner = userRepository.save(User(loginId = "mina-bp-owner", name = "미나브랜치보호오너", email = "mina-bp-owner@example.com"))
+                val project = projectRepository.save(Project(name = "mina-bp-repo", owner = owner.loginId, vcs = "GIT"))
+                repositoryService.getRepository(project).create()
+                BareCommit(project, owner, gitBaseDirHolder.absolutePath).commitTextFile("README.md", "# bp", "초기 커밋")
+                protectedBranchRepository.save(
+                    ProtectedBranch(project = project, branchPattern = "main", requirePullRequest = true, adminsCanBypass = false)
+                )
+
+                val (privateKeyFile, publicKey) = generateKeyPair("bp-owner")
+                sshKeyService.create(owner, "브랜치보호오너 키", publicKey)
+
+                val port = yonaMinaSshServer.boundPort
+                val cloneUrl = "ssh://mina-bp-owner@127.0.0.1:$port/${project.owner}/${project.name}.git"
+                val cloneDest = Files.createTempDirectory("mina-ssh-it-bp-clone-").toFile()
+
+                try {
+                    val (cloneExit, cloneOutput) = runGit("git", "clone", cloneUrl, cloneDest.absolutePath, privateKeyFile = privateKeyFile)
+                    withClue(cloneOutput) { cloneExit shouldBe 0 }
+
+                    File(cloneDest, "should-need-a-pr.txt").writeText("direct push must be rejected")
+                    fun run(vararg cmd: String) {
+                        val (exit, out) = runGit(*cmd, dir = cloneDest, privateKeyFile = privateKeyFile)
+                        withClue(out) { exit shouldBe 0 }
+                    }
+                    run("git", "config", "user.email", "mina-bp-owner@example.com")
+                    run("git", "config", "user.name", "mina-bp-owner")
+                    run("git", "add", "should-need-a-pr.txt")
+                    run("git", "commit", "-m", "direct push should be rejected")
+
+                    val (pushExit, pushOutput) = runGit("git", "push", cloneUrl, "main", dir = cloneDest, privateKeyFile = privateKeyFile)
+                    withClue(pushOutput) { (pushExit != 0) shouldBe true }
+                    pushOutput.contains("require_pull_request") shouldBe true
                 } finally {
                     cloneDest.deleteRecursively()
                 }

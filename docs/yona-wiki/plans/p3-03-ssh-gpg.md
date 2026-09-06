@@ -314,6 +314,42 @@ GREEN(`gofmt -l .`/`go vet ./...` 클린).
 | GPG 정책 미확정 | 미서명 커밋 허용 여부, 이메일 매칭 규칙, CLI 로컬 git 설정 자동화 여부 | **해소(Step 7 착수 시 확정)** — 미서명 커밋은 항상 push 허용(배지만 없음, `UNSIGNED`). author 이메일이 서명 키의 "계정 소유로 인증된" UID 이메일과 일치해야 `VERIFIED`(단순 UID 존재가 아니라 `Email.valid=true`/`user.email`과 대조 — 보안 리뷰로 강화). CLI 로컬 git 설정(`git config user.signingkey` 자동화 등)은 이번 라운드 범위 밖으로 남김(사용자가 자신의 로컬 git/gpg 설정을 이미 알고 있다고 가정하는 게 합리적이고, 과도한 설계를 피하기 위함). |
 | DeployKey의 HTTPS 자격증명 형태 미확정 | 설계 개요는 DeployKey를 SSH 공개키 스키마(public_key/fingerprint)로만 적었으나, HTTPS Basic 인증은 비대칭키로는 직접 성립하지 않음 | **해소(Step 1~2 구현 시 결정, 완료 로그 1부 참고)** — DeployKey 엔티티에 SSH 공개키/지문 필드와 별개로 HTTPS 전용 불투명 시크릿 해시(`httpsTokenHash`)를 추가해 두 프로토콜이 "같은 project_id/read_only 스코프 레코드"를 공유하되 각자의 자연스러운 인증 메커니즘(비대칭키 서명 vs 시크릿 대조)을 그대로 쓰도록 확정 |
 
+### 4부 (2026-09-07) — 코디네이터 push 전 리뷰: 실제 보안 결함 1건 발견·수정 + 하드닝 2건
+
+**실제 버그(수정 완료) — SSH 경로가 P3-04 브랜치 보호 정책 전체를 우회하고 있었다**: `GitServletConfig`
+(HTTPS)는 `RejectPushToReservedRefsPreReceiveHook`과 `BranchProtectionPreReceiveHook`을 함께
+체이닝하는데, `YonaSshGitCommand`(2부에서 신설한 SSH 경로)는 처음 구현 시 전자만 걸고 후자를
+빠뜨렸다 — 즉 `require_pull_request`/`disallow_force_push`/`disallow_delete`/`restrict_push_to`
+전부가 SSH(윈도우 MINA SSHD 폴백)를 통하면 완전히 무력화되는 실제 보안 결함이었다. 코드 리뷰
+중 발견해 `YonaMinaSshServerIntegrationSpec`에 회귀 테스트를 먼저 추가(RED — 실제로 보호된
+브랜치에 SSH로 직접 push가 성공해버림을 실측 확인)한 뒤 수정했다: `SshCommandAuthorization`에
+`project`/`pusher` 필드를 추가(`SshAuthServiceImpl`이 채움, Deploy Key로 push한 경우 `pusher`는
+HTTPS와 동일하게 null — 익명 push와 동일한 의미로 `restrict_push_to`는 여전히 적용되고
+`admins_can_bypass`는 적용되지 않음), `YonaSshGitCommand`가 이 값으로 `GitServletConfig`와
+완전히 동일한 훅 체인을 구성하도록 수정. `YonaMinaSshServer`에 `ProtectedBranchRepository`/
+`ProjectUserRepository`를 새로 주입해 전달.
+
+**하드닝(수정 완료, 낮은 심각도)**: `SshInternalSecretProvider`(이 4부에서 발견)와
+`JwkKeyPairProvider`(P3-07에서 이미 있던 동일 패턴, 이번에 함께 발견)가 최초 생성한 비밀
+파일(SSH 내부 API 공유 시크릿, OAuth2 JWT 서명용 RSA 개인키)을 소유자 전용 권한으로 제한하지
+않고 있었다 — 같은 호스트의 다른 로컬 사용자가 파일을 읽을 수 있으면 각각 SSH 내부 API 루프백
+제한을 우회하거나 OAuth2 액세스 토큰을 임의로 위조 서명할 수 있었다. `File.setReadable/
+setWritable(false/true, ...)`로 소유자 전용(0600 상당)으로 제한(Windows에서는 조용히 무시됨,
+이 두 파일 모두 리눅스/맥 전용 기능과 관련돼 문제 없음).
+
+**UI 문구 갱신**: `setting_branch_protection.html`의 `requireSignedCommits` 안내 문구가
+"GPG 서명 검증 기능이 아직 구현되지 않았습니다(P3-03)"로 돼 있었는데, 이 계획이 완료되면서
+더 이상 정확하지 않다(검증 기능 자체는 존재, `ProtectedBranch.requireSignedCommits` 플래그와의
+실제 연결만 아직 없음) — 문구를 갱신했다.
+
+**후속 과제로 명시적으로 남김(이번 라운드 범위 밖, 새 항목 추가는 아님)**: `require_signed_commits`
+플래그를 실제로 `BranchProtectionPreReceiveHook`(push 시점, 커밋 워크 필요)과
+`PullRequestServiceImpl.checkBranchProtectionForMerge()`(병합 시점)에 연결해 `GpgSignatureVerifier`로
+서명되지 않은/검증 실패한 커밋을 실제로 거부하는 작업은 이번 라운드에 포함하지 않았다 — 두 개의
+이미 완료된 계획([[p3-03-ssh-gpg]] 자신과 [[p3-04-branch-protection]])을 가로지르는, 커밋 워크 로직이
+필요한 별도 크기의 작업이라 이 리뷰 라운드에 욱여넣지 않고 즉시 이어지는 별도 작업으로 착수한다
+(조용히 방치하지 않기 위해 여기 명시).
+
 ## 관련
 
 - 백로그 원본: [`docs/PARITY_BACKLOG.md`](../../PARITY_BACKLOG.md#p3-03)

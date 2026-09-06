@@ -53,6 +53,14 @@ class JwkKeyPairProvider(
                 publicKeyBase64 = Base64.getEncoder().encodeToString(generated.public.encoded)
             )
         )
+        // 코디네이터 push 전 리뷰(2026-09-07, P3-03 SshInternalSecretProvider 리뷰 중 동일 패턴을
+        // 재사용하는 이 파일에서도 함께 발견) — 이 파일에 RSA 개인키가 평문으로 들어있어, 같은
+        // 호스트의 다른 로컬 사용자가 읽으면 임의로 OAuth2 액세스 토큰을 위조 서명할 수 있다.
+        // 소유자 전용으로 제한한다(Windows에서는 File API가 조용히 무시함 — 예외 없음).
+        file.setReadable(false, false)
+        file.setReadable(true, true)
+        file.setWritable(false, false)
+        file.setWritable(true, true)
         return generated
     }
 

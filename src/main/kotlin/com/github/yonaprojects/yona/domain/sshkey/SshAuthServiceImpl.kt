@@ -120,7 +120,10 @@ class SshAuthServiceImpl(
         if (isWrite && deployKey.readOnly) {
             return SshCommandAuthorization.denied("읽기 전용 Deploy Key로는 push할 수 없습니다.")
         }
-        return SshCommandAuthorization(allowed = true, isWrite = isWrite, repoDir = repoDirOf(project), service = service)
+        return SshCommandAuthorization(
+            allowed = true, isWrite = isWrite, repoDir = repoDirOf(project), service = service,
+            project = project, pusher = null
+        )
     }
 
     private fun authorizeForUser(
@@ -142,7 +145,10 @@ class SshAuthServiceImpl(
             return SshCommandAuthorization.denied("이 저장소에 접근할 권한이 없습니다.")
         }
 
-        return SshCommandAuthorization(allowed = true, isWrite = isWrite, repoDir = repoDirOf(project), service = service)
+        return SshCommandAuthorization(
+            allowed = true, isWrite = isWrite, repoDir = repoDirOf(project), service = service,
+            project = project, pusher = principal.user
+        )
     }
 
     // GitServletConfig의 setRepositoryResolver와 동일한 물리 경로 규칙("owner/name.git",

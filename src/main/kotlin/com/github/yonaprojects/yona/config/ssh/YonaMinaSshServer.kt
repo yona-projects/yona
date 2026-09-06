@@ -1,5 +1,7 @@
 package com.github.yonaprojects.yona.config.ssh
 
+import com.github.yonaprojects.yona.domain.branchprotection.ProtectedBranchRepository
+import com.github.yonaprojects.yona.domain.project.ProjectUserRepository
 import com.github.yonaprojects.yona.domain.sshkey.SshAuthService
 import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
@@ -26,6 +28,10 @@ import java.nio.file.Paths
 @Component
 final class YonaMinaSshServer(
     private val sshAuthService: SshAuthService,
+    // 코디네이터 push 전 리뷰(2026-09-07) — YonaSshGitCommand가 BranchProtectionPreReceiveHook을
+    // HTTPS 경로와 동일하게 체이닝하는 데 필요하다.
+    private val protectedBranchRepository: ProtectedBranchRepository,
+    private val projectUserRepository: ProjectUserRepository,
     @Value("\${yona.ssh.mina.enabled:auto}")
     private val enabledSetting: String,
     @Value("\${yona.ssh.mina.port:2222}")
@@ -75,7 +81,7 @@ final class YonaMinaSshServer(
         sshServer.commandFactory = org.apache.sshd.server.command.CommandFactory { channel, command ->
             val principal = channel.session.getAttribute(PRINCIPAL_ATTRIBUTE)
                 ?: throw java.io.IOException("인증되지 않은 세션입니다.")
-            YonaSshGitCommand(command, principal, sshAuthService)
+            YonaSshGitCommand(command, principal, sshAuthService, protectedBranchRepository, projectUserRepository)
         }
 
         sshServer.start()

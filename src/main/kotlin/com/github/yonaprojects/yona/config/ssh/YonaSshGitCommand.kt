@@ -1,7 +1,10 @@
 package com.github.yonaprojects.yona.config.ssh
 
+import com.github.yonaprojects.yona.domain.branchprotection.ProtectedBranchRepository
+import com.github.yonaprojects.yona.domain.project.ProjectUserRepository
 import com.github.yonaprojects.yona.domain.sshkey.SshAuthPrincipal
 import com.github.yonaprojects.yona.domain.sshkey.SshAuthService
+import com.github.yonaprojects.yona.domain.vcs.BranchProtectionPreReceiveHook
 import com.github.yonaprojects.yona.domain.vcs.RejectPushToReservedRefsPreReceiveHook
 import org.apache.sshd.server.Environment
 import org.apache.sshd.server.ExitCallback
@@ -11,6 +14,8 @@ import org.apache.sshd.server.command.CommandDirectErrorStreamAware
 import org.apache.sshd.server.command.CommandDirectInputStreamAware
 import org.apache.sshd.server.command.CommandDirectOutputStreamAware
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
+import org.eclipse.jgit.transport.PreReceiveHook
+import org.eclipse.jgit.transport.PreReceiveHookChain
 import org.eclipse.jgit.transport.ReceivePack
 import org.eclipse.jgit.transport.UploadPack
 import org.slf4j.LoggerFactory
@@ -29,7 +34,14 @@ import java.io.OutputStream
 class YonaSshGitCommand(
     private val commandLine: String,
     private val principal: SshAuthPrincipal,
-    private val sshAuthService: SshAuthService
+    private val sshAuthService: SshAuthService,
+    // 코디네이터 push 전 리뷰(2026-09-07) — GitServletConfig(HTTPS 경로)와 동일하게
+    // BranchProtectionPreReceiveHook을 체이닝하기 위해 필요하다. 이 필드들이 없어
+    // require_pull_request/disallow_force_push/disallow_delete/restrict_push_to 전부가
+    // SSH를 통하면 우회되는 실제 보안 결함이 있었다(YonaMinaSshServerIntegrationSpec의
+    // 회귀 테스트로 고정).
+    private val protectedBranchRepository: ProtectedBranchRepository,
+    private val projectUserRepository: ProjectUserRepository
 ) : Command, CommandDirectInputStreamAware, CommandDirectOutputStreamAware, CommandDirectErrorStreamAware {
 
     private val logger = LoggerFactory.getLogger(YonaSshGitCommand::class.java)
@@ -84,8 +96,21 @@ class YonaSshGitCommand(
                     }
                     "git-receive-pack" -> {
                         val receivePack = ReceivePack(repository)
-                        // GitServletConfig와 동일하게 refs/yobi/* 예약 ref는 SSH 경로에서도 거부한다.
-                        receivePack.setPreReceiveHook(RejectPushToReservedRefsPreReceiveHook())
+                        // GitServletConfig(HTTPS)와 완전히 동일한 훅 체이닝 — refs/yobi/* 예약
+                        // ref 거부는 항상 적용, project를 알 수 없는 경우가 아니라면(이 경로에서는
+                        // authorizeGitCommand()가 성공한 시점에 이미 project가 확정돼 있으므로
+                        // 사실상 항상 해당) 브랜치 보호 규칙도 함께 검사한다. pusher는
+                        // Deploy Key로 push한 경우 null(익명 push와 동일한 의미 — restrict_push_to는
+                        // 여전히 적용되고 admins_can_bypass는 적용되지 않음, HTTPS와 동일한 정책).
+                        val preReceiveHooks = mutableListOf<PreReceiveHook>(RejectPushToReservedRefsPreReceiveHook())
+                        if (authorization.project != null) {
+                            preReceiveHooks.add(
+                                BranchProtectionPreReceiveHook(
+                                    authorization.project, authorization.pusher, protectedBranchRepository, projectUserRepository
+                                )
+                            )
+                        }
+                        receivePack.setPreReceiveHook(PreReceiveHookChain.newChain(preReceiveHooks))
                         receivePack.receive(inputStream, outputStream, errorStream)
                     }
                     else -> {

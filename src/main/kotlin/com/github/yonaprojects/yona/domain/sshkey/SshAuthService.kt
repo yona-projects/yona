@@ -18,7 +18,15 @@ data class SshCommandAuthorization(
     val isWrite: Boolean = false,
     val repoDir: File? = null,
     val service: String? = null,
-    val reason: String? = null
+    val reason: String? = null,
+    // 코디네이터 push 전 리뷰(2026-09-07) — GitServletConfig(HTTPS)의
+    // BranchProtectionPreReceiveHook 체이닝을 이 SSH 경로에서도 그대로 재현하려면 이 두 값이
+    // 필요하다. pusher는 SshKeyPrincipal일 때만 채워지고 DeployKeyPrincipal이면 null이다 —
+    // HTTPS 경로도 Deploy Key(Basic 인증)로 push할 때 pusher를 null로 취급하는 것과 동일한
+    // 의미(익명 push와 동일하게 restrict_push_to는 여전히 적용되고 admins_can_bypass는
+    // 적용되지 않음).
+    val project: Project? = null,
+    val pusher: User? = null
 ) {
     companion object {
         fun denied(reason: String): SshCommandAuthorization = SshCommandAuthorization(allowed = false, reason = reason)
