@@ -672,6 +672,77 @@ class GitRepository(
         }
     }
 
+    override fun getTagNames(): List<String> {
+        return useRepository { repo ->
+            repo.refDatabase.getRefsByPrefix(Constants.R_TAGS).map { it.name }
+        }
+    }
+
+    override fun getTags(): List<GitTag> {
+        return useRepository { repo ->
+            val git = Git(repo)
+            val refs = git.tagList().call()
+            val revWalk = RevWalk(repo)
+            refs.map { ref ->
+                // annotated 태그는 ref가 태그 오브젝트(RevTag)를 가리키고, lightweight 태그는 ref가
+                // 커밋을 곧바로 가리킨다 — parseAny()로 실제 오브젝트 타입을 확인해 구분한다
+                // (parseCommit()은 어느 쪽이든 자동으로 peel해버려 이 구분 자체가 불가능해진다).
+                val any = revWalk.parseAny(ref.objectId)
+                if (any is org.eclipse.jgit.revwalk.RevTag) {
+                    val commit = revWalk.parseCommit(any.`object`)
+                    val gitCommit = GitCommit(commit, userResolver, gpgVerifier)
+                    val taggerIdent = any.taggerIdent
+                    val user = taggerIdent?.let { userResolver(null, it.emailAddress) }
+                    val message = any.fullMessage?.trim()?.takeIf { it.isNotEmpty() }
+                    GitTag(ref.name, gitCommit, user, message, annotated = true)
+                } else {
+                    val commit = revWalk.parseCommit(ref.objectId)
+                    val gitCommit = GitCommit(commit, userResolver, gpgVerifier)
+                    val user = userResolver(null, gitCommit.getCommitterEmail())
+                    GitTag(ref.name, gitCommit, user, message = null, annotated = false)
+                }
+            }
+        }
+    }
+
+    override fun deleteTag(tagName: String) {
+        useRepository { repo ->
+            Git(repo).use { git ->
+                git.tagDelete()
+                    .setTags(tagName.removePrefix(Constants.R_TAGS))
+                    .call()
+            }
+        }
+    }
+
+    override fun createTag(tagName: String, startPoint: String, message: String?, taggerName: String?, taggerEmail: String?) {
+        useRepository { repo ->
+            Git(repo).use { git ->
+                val revWalk = RevWalk(repo)
+                val objectId = repo.resolve(startPoint)
+                    ?: throw IllegalArgumentException("존재하지 않는 시작점입니다: $startPoint")
+                val commit = revWalk.parseCommit(objectId)
+
+                val tagCommand = git.tag()
+                    .setName(tagName.removePrefix(Constants.R_TAGS))
+                    .setObjectId(commit)
+                    .setForceUpdate(false)
+
+                if (message != null) {
+                    tagCommand.setAnnotated(true)
+                    tagCommand.setMessage(message)
+                    tagCommand.setTagger(
+                        org.eclipse.jgit.lib.PersonIdent(taggerName ?: "yona", taggerEmail ?: "yona@yona.io")
+                    )
+                } else {
+                    tagCommand.setAnnotated(false)
+                }
+
+                tagCommand.call()
+            }
+        }
+    }
+
     override fun getParentCommitOf(commitId: String): Commit? {
         return useRepository { repo ->
             val objectId = repo.resolve(commitId) ?: return@useRepository null

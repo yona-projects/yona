@@ -146,6 +146,10 @@ class CodeViewController(
 
         val repository = repositoryService.getRepository(project)
         val branches = repository.getRefNames()
+        // yona-wiki P3-10 — GitHub 방식의 브랜치/태그 통합 ref 셀렉터(그룹 헤더로 구분, code/view.html
+        // 참고). PR 브랜치 선택기(PullRequestViewController/ProjectViewController)와 달리 코드
+        // 브라우저는 태그로도 브라우징할 수 있어야 하므로 여기서만 tags를 추가로 노출한다.
+        val tags = repository.getTagNames()
         val recursiveData = repositoryService.getMetaDataFromAncestorDirectories(repository, decodedBranch, normalizedPath)
             ?: run {
                 // yona CodeApp.java:115-117 notFound(ErrorViews.NotFound.render(branch, project, "code"))
@@ -163,6 +167,7 @@ class CodeViewController(
 
         model.addAttribute("project", project)
         model.addAttribute("branches", branches)
+        model.addAttribute("tags", tags)
         model.addAttribute("recursiveData", recursiveData)
         model.addAttribute("branch", decodedBranch)
         model.addAttribute("path", normalizedPath)
@@ -383,6 +388,9 @@ class CodeViewController(
 
         val repository = repositoryService.getRepository(project)
         val branches = repository.getRefNames()
+        // yona-wiki P3-10 — code/view.html과 동일한 GitHub 방식 통합 ref 셀렉터를 커밋 히스토리
+        // 화면에도 그대로 노출한다(둘 다 같은 select#branches 패턴을 공유).
+        val tags = repository.getTagNames()
 
         // yona CodeHistoryApp.history()의 "catch (NoHeadException e) { return notFound(nohead.render(project)); }"
         // 대응 (P1-136) — 커밋이 하나도 없는 빈 저장소에서 히스토리를 조회하면 JGit이 NoHeadException을
@@ -397,6 +405,7 @@ class CodeViewController(
 
         model.addAttribute("project", project)
         model.addAttribute("branches", branches)
+        model.addAttribute("tags", tags)
         model.addAttribute("branch", decodedBranch)
         model.addAttribute("path", decodedPath ?: "")
         model.addAttribute("commits", commits)

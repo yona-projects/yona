@@ -340,7 +340,12 @@ class ApiTokenAuthenticationFilter(
             "metadata" to null,
             "labels" to ResourceType.ISSUE_LABEL,
             "fork" to ResourceType.FORK,
-            "permissions" to ResourceType.PROJECT_SETTING
+            "permissions" to ResourceType.PROJECT_SETTING,
+            // yona-wiki P3-10 — `yona tag list/create/delete`(TagRestApiController). git 태그는
+            // 코드/브랜치와 같은 저장소 콘텐츠라 "code"와 동일하게 ResourceType.CODE(CODE 그룹)로
+            // 매핑한다 - TagRestApiController가 실제로 요구하는 AccessControl 권한(PROJECT 리소스,
+            // Operation.READ/UPDATE/DELETE)과는 별개로, 이 필터는 PAT 스코프 그룹만 판정한다.
+            "tags" to ResourceType.CODE
         )
 
         private fun parseScopedApiTarget(requestUri: String?): ScopedApiTarget? {

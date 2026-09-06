@@ -24,7 +24,7 @@
 | 5 | P3-06 | 엔터프라이즈 SSO(SAML2/OIDC) | **완료(2026-09-06)** | 없음 | [[plans/p3-06-enterprise-sso]] |
 | 6 | P3-07 | yona MCP 서버(OAuth 2.1 인가 서버 포함) | **완료(2026-09-07)** | P3-02 | [[plans/p3-07-mcp-server]] |
 | 7 | P3-03 | SSH git 인증 + GPG 서명 검증 | **완료(2026-09-07) — 단, 리눅스/맥 실제 sshd 등록은 호스트 시스템을 건드릴 수 없다는 세션 제약으로 운영자의 수동 설정 단계로 남음(상세는 계획서 DoD 참고)** | P3-02 | [[plans/p3-03-ssh-gpg]] |
-| 8 | P3-10 | Git 태그(tag) 지원 | planned — 범위 미확정(TODO 등록만, 2026-09-03) | P3-02(REST API·토큰 스코프 토대, 약한 선행) | [[plans/p3-10-git-tags]] |
+| 8 | P3-10 | Git 태그(tag) 지원 | **완료(2026-09-07)** | P3-02(REST API·토큰 스코프 토대, 약한 선행) | [[plans/p3-10-git-tags]] |
 | 9 | P3-05 | CI/Actions 러너 아키텍처 | **제외됨(2026-09-06 사용자 지시 — "ci/actions는 이번 구현에서 제외해!", 자동 진행 대상에서 빠짐, 재개는 사용자 지시 대기)** | P3-01(약함) | [[plans/p3-05-ci-actions-runner]] |
 | 10 | P3-12 | Mercurial(hg4j) 저장소 지원 | planned — 외부 블로커 있음 | 없음(단, `search5/hg4j` 라이브러리 진행 상황이 사실상의 착수 조건) | [[plans/p3-12-mercurial-hg4j]] |
 | 11 | P3-13 | 프런트엔드 분리 (React/Vue3/Angular 등 SPA) | planned — 프레임워크/인증 방식 미결정 | P3-02(REST API·인증 토대, 약한 선행) | [[plans/p3-13-decoupled-spa-frontend]] |

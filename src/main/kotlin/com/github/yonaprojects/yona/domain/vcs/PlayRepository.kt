@@ -65,6 +65,20 @@ interface PlayRepository {
 
     fun createBranch(branchName: String, startPoint: String)
 
+    // yona-wiki P3-10 — 브랜치의 getRefNames()/getBranches()/deleteBranch()/createBranch()와
+    // 정확히 같은 패턴의 git 태그 지원. getTagNames()는 코드브라우저의 통합 ref 셀렉터가
+    // getRefNames()(브랜치)와 나란히 쓰는 원시 ref 이름 목록("refs/tags/v1" 형태), getTags()는
+    // 태그 목록 화면이 쓰는 상세 뷰 모델(GitTag) 목록이다.
+    fun getTagNames(): List<String>
+
+    fun getTags(): List<GitTag>
+
+    fun deleteTag(tagName: String)
+
+    // message가 null이면 lightweight 태그, 아니면 annotated 태그(taggerName/taggerEmail로 태그
+    // 오브젝트의 태거 identity를 채운다 — annotated 태그는 git 자체가 태거 identity를 항상 요구함).
+    fun createTag(tagName: String, startPoint: String, message: String?, taggerName: String?, taggerEmail: String?)
+
     fun getParentCommitOf(commitId: String): Commit?
 
     fun isEmpty(): Boolean

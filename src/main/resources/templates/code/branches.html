@@ -30,6 +30,11 @@
                                 <span th:text="#{title.branches}">브랜치</span>
                             </a>
                         </li>
+                        <li th:if="${project.vcs == 'GIT'}">
+                            <a th:href="@{/{owner}/{name}/tags(owner=${project.owner}, name=${project.name})}">
+                                <span th:text="#{title.tags}">태그</span>
+                            </a>
+                        </li>
                     </ul>
 
                     <table class="table branch-list-wrap">

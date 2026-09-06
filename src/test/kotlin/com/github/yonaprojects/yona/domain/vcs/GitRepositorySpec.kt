@@ -1285,6 +1285,145 @@ class GitRepositorySpec : DescribeSpec({
         }
     }
 
+    // yona-wiki P3-10 — getBranches()/deleteBranch()/createBranch()와 동일한 패턴의 git 태그 지원.
+    describe("getTagNames() / getTags() / deleteTag() / createTag()") {
+        it("태그가 없으면 getTagNames()/getTags() 모두 빈 목록을 반환한다") {
+            val repo = GitRepository("o90", "p90", newTempBaseDir(), userResolver)
+            repo.create()
+            testRepo(openRepo(repo)).put("a.txt", "v1").commit("master 커밋")
+
+            repo.getTagNames() shouldBe emptyList()
+            repo.getTags() shouldBe emptyList()
+        }
+
+        it("createTag()에 message를 주지 않으면 lightweight 태그가 만들어지고 getTagNames()에 refs/tags/* 이름으로 나타난다") {
+            val baseDir = newTempBaseDir()
+            val repo = GitRepository("o91", "p91", baseDir, userResolver)
+            repo.create()
+            testRepo(openRepo(repo)).put("a.txt", "v1").commit("master 커밋")
+
+            repo.createTag("v1.0", defaultBranchRef, message = null, taggerName = null, taggerEmail = null)
+
+            repo.getTagNames() shouldBe listOf("refs/tags/v1.0")
+        }
+
+        it("createTag()는 refs/tags/ 접두사를 제거하고 태그 이름을 사용한다") {
+            val baseDir = newTempBaseDir()
+            val repo = GitRepository("o92", "p92", baseDir, userResolver)
+            repo.create()
+            testRepo(openRepo(repo)).put("a.txt", "v1").commit("master 커밋")
+
+            repo.createTag("refs/tags/v2.0", defaultBranchRef, message = null, taggerName = null, taggerEmail = null)
+
+            repo.getTagNames() shouldBe listOf("refs/tags/v2.0")
+        }
+
+        it("lightweight 태그는 getTags()에서 annotated=false, tagger는 커밋 작성자로 채워지고 message는 null이다") {
+            val baseDir = newTempBaseDir()
+            val repo = GitRepository("o93", "p93", baseDir, userResolver)
+            repo.create()
+            testRepo(openRepo(repo)).put("a.txt", "v1").commit("master 커밋", author = "alice")
+
+            repo.createTag("v1.0", defaultBranchRef, message = null, taggerName = null, taggerEmail = null)
+
+            val tags = repo.getTags()
+            tags.size shouldBe 1
+            val tag = tags.first()
+            tag.shortName shouldBe "v1.0"
+            tag.annotated shouldBe false
+            tag.message shouldBe null
+            tag.tagger?.loginId shouldBe "alice"
+            tag.targetCommit.getMessage() shouldContain "master 커밋"
+        }
+
+        it("createTag()에 message를 주면 annotated 태그가 만들어지고 getTags()에서 태거/메시지가 채워진다") {
+            val baseDir = newTempBaseDir()
+            val repo = GitRepository("o94", "p94", baseDir, userResolver)
+            repo.create()
+            testRepo(openRepo(repo)).put("a.txt", "v1").commit("master 커밋", author = "alice")
+
+            repo.createTag(
+                "v2.0", defaultBranchRef,
+                message = "릴리즈 메모", taggerName = "테스트유저bob", taggerEmail = "bob@example.com"
+            )
+
+            val tags = repo.getTags()
+            tags.size shouldBe 1
+            val tag = tags.first()
+            tag.shortName shouldBe "v2.0"
+            tag.annotated shouldBe true
+            tag.message shouldBe "릴리즈 메모"
+            tag.tagger?.loginId shouldBe "bob"
+            // annotated 태그의 targetCommit은 태그 오브젝트가 아니라 그 태그가 최종적으로 가리키는
+            // 커밋으로 peel되어야 한다(RevWalk.parseCommit()의 자동 peel 동작과 일관).
+            tag.targetCommit.getMessage() shouldContain "master 커밋"
+        }
+
+        it("createTag()에 taggerName/taggerEmail을 주지 않으면 기본 identity(\"yona\"/\"yona@yona.io\")로 annotated 태그를 만든다") {
+            val baseDir = newTempBaseDir()
+            val repo = GitRepository("o95", "p95", baseDir, userResolver)
+            repo.create()
+            testRepo(openRepo(repo)).put("a.txt", "v1").commit("master 커밋")
+
+            repo.createTag("v3.0", defaultBranchRef, message = "메시지만", taggerName = null, taggerEmail = null)
+
+            val tag = repo.getTags().first()
+            tag.annotated shouldBe true
+            tag.message shouldBe "메시지만"
+            // userResolver는 이메일의 @ 앞부분을 loginId로 매칭하므로("yona@yona.io" -> "yona") 기본
+            // identity도 실제 사용자처럼 조회된다 — 시스템 계정으로 특별 취급하지 않는다는 뜻.
+            tag.tagger?.loginId shouldBe "yona"
+        }
+
+        it("존재하지 않는 시작점으로 createTag()를 호출하면 IllegalArgumentException을 던진다") {
+            val baseDir = newTempBaseDir()
+            val repo = GitRepository("o96", "p96", baseDir, userResolver)
+            repo.create()
+            testRepo(openRepo(repo)).put("a.txt", "v1").commit("master 커밋")
+
+            org.junit.jupiter.api.assertThrows<IllegalArgumentException> {
+                repo.createTag("v1.0", "no-such-rev", message = null, taggerName = null, taggerEmail = null)
+            }
+        }
+
+        it("deleteTag()로 태그를 삭제하면 getTagNames()/getTags()에서 사라진다") {
+            val baseDir = newTempBaseDir()
+            val repo = GitRepository("o97", "p97", baseDir, userResolver)
+            repo.create()
+            testRepo(openRepo(repo)).put("a.txt", "v1").commit("master 커밋")
+            repo.createTag("to-delete", defaultBranchRef, message = null, taggerName = null, taggerEmail = null)
+
+            repo.deleteTag("to-delete")
+
+            repo.getTagNames() shouldBe emptyList()
+            repo.getTags() shouldBe emptyList()
+        }
+
+        it("deleteTag()는 refs/tags/ 접두사를 제거하고 태그 이름을 사용한다") {
+            val baseDir = newTempBaseDir()
+            val repo = GitRepository("o98", "p98", baseDir, userResolver)
+            repo.create()
+            testRepo(openRepo(repo)).put("a.txt", "v1").commit("master 커밋")
+            repo.createTag("to-delete-2", defaultBranchRef, message = null, taggerName = null, taggerEmail = null)
+
+            repo.deleteTag("refs/tags/to-delete-2")
+
+            repo.getTagNames() shouldBe emptyList()
+        }
+
+        it("브랜치와 태그가 둘 다 있어도 getTagNames()는 태그만, getRefNames()는 브랜치만 반환한다(네임스페이스 분리)") {
+            val baseDir = newTempBaseDir()
+            val repo = GitRepository("o99", "p99", baseDir, userResolver)
+            repo.create()
+            testRepo(openRepo(repo)).put("a.txt", "v1").commit("master 커밋")
+            repo.createBranch("feature-z", defaultBranchRef)
+            repo.createTag("v1.0", defaultBranchRef, message = null, taggerName = null, taggerEmail = null)
+
+            repo.getRefNames().sorted() shouldBe listOf(defaultBranchRef, "refs/heads/feature-z").sorted()
+            repo.getTagNames() shouldBe listOf("refs/tags/v1.0")
+        }
+    }
+
     describe("getParentCommitOf()") {
         it("부모가 있는 커밋은 부모 커밋의 id를 반환한다") {
             // 주의(실제 버그 발견): GitRepository.getParentCommitOf()는 commit.getParent(0)이 반환한

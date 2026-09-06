@@ -38,10 +38,19 @@
           <!-- 루트(경로 없이 브랜치 전체) 이력을 볼 때만 브랜치 선택 + 탭을 보여준다 (yona code/history.scala.html:88-113) -->
           <th:block th:if="${#strings.isEmpty(path)}">
             <select id="branches" class="form-control pull-right" style="width: 200px;">
-              <option th:each="branchName : ${branches}"
-                      th:value="@{/{owner}/{name}/commits/{branch}(owner=${project.owner}, name=${project.name}, branch=${templateHelper.branchItemName(branchName)})}"
-                      th:selected="${templateHelper.branchItemName(branchName) == templateHelper.branchItemName(branch)}"
-                      th:text="${branchName}"></option>
+              <!-- GitHub의 브랜치/태그 통합 ref 셀렉터(그룹 헤더로 구분) 대응 (P3-10) -->
+              <optgroup th:if="${!branches.isEmpty()}" th:label="#{title.branches}">
+                <option th:each="branchName : ${branches}"
+                        th:value="@{/{owner}/{name}/commits/{branch}(owner=${project.owner}, name=${project.name}, branch=${templateHelper.branchItemName(branchName)})}"
+                        th:selected="${templateHelper.branchItemName(branchName) == templateHelper.branchItemName(branch)}"
+                        th:text="${templateHelper.branchItemName(branchName)}"></option>
+              </optgroup>
+              <optgroup th:if="${!tags.isEmpty()}" th:label="#{title.tags}">
+                <option th:each="tagName : ${tags}"
+                        th:value="@{/{owner}/{name}/commits/{branch}(owner=${project.owner}, name=${project.name}, branch=${templateHelper.branchItemName(tagName)})}"
+                        th:selected="${templateHelper.branchItemName(tagName) == templateHelper.branchItemName(branch)}"
+                        th:text="${templateHelper.branchItemName(tagName)}"></option>
+              </optgroup>
             </select>
 
             <ul class="nav nav-tabs" style="margin-bottom:20px;">
@@ -53,6 +62,9 @@
               </li>
               <li th:if="${project.vcs == 'GIT'}">
                 <a th:href="@{/{owner}/{name}/branches(owner=${project.owner}, name=${project.name})}" th:text="#{title.branches}">브랜치</a>
+              </li>
+              <li th:if="${project.vcs == 'GIT'}">
+                <a th:href="@{/{owner}/{name}/tags(owner=${project.owner}, name=${project.name})}" th:text="#{title.tags}">태그</a>
               </li>
             </ul>
           </th:block>

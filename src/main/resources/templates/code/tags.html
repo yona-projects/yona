@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(#{title.tags} + ' - ' + ${project.name})}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div th:replace="~{project/header :: header(${project})}"></div>
+    <div th:replace="~{project/menu :: menu(${project}, 'code')}"></div>
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
+            <div class="bubble-wrap dark-gray repo-wrap">
+                <div class="code-browse-wrap">
+                    <ul class="nav nav-tabs" style="margin-bottom:20px;">
+                        <li>
+                            <a th:href="@{/{owner}/{name}/code(owner=${project.owner}, name=${project.name})}">
+                                <span th:text="#{code.files}">파일</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a th:href="@{/{owner}/{name}/commits(owner=${project.owner}, name=${project.name})}">
+                                <span th:text="#{code.commits}">커밋</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a th:href="@{/{owner}/{name}/branches(owner=${project.owner}, name=${project.name})}">
+                                <span th:text="#{title.branches}">브랜치</span>
+                            </a>
+                        </li>
+                        <li class="active">
+                            <a th:href="@{/{owner}/{name}/tags(owner=${project.owner}, name=${project.name})}">
+                                <span th:text="#{title.tags}">태그</span>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <table class="table branch-list-wrap">
+                        <thead class="thead">
+                            <tr>
+                                <th th:text="#{title.tags}">태그</th>
+                                <th th:text="#{code.tags.targetCommit}">대상 커밋</th>
+                                <th th:if="${canDelete}"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="tag : ${tags}">
+                                <td class="branchName">
+                                    <a th:href="@{/{owner}/{name}/code/{branch}(owner=${project.owner}, name=${project.name}, branch=${tag.shortName})}"
+                                       th:text="${tag.shortName}">tagName</a>
+                                    <!-- annotated/lightweight 구분 배지(GitHub의 태그 목록이 커밋 SHA 링크 옆에
+                                         태그 타입을 굳이 노출하지 않는 것과 달리, yona는 두 종류가 다루는 데이터가
+                                         달라(annotated만 message/tagger 보유) 사용자 혼란을 막기 위해 명시한다). -->
+                                    <span th:if="${tag.annotated}" class="label tag ml10" th:text="#{code.tags.type.annotated}">annotated</span>
+                                    <span th:unless="${tag.annotated}" class="label branch ml10" th:text="#{code.tags.type.lightweight}">lightweight</span>
+                                    <div th:if="${tag.message != null}" class="disabled" th:text="${tag.message}">tag message</div>
+                                </td>
+                                <td class="commit">
+                                    <a th:href="@{/{owner}/{name}/commit/{commitId}(owner=${project.owner}, name=${project.name}, commitId=${tag.targetCommit.id})}"
+                                       class="commitId" th:title="${tag.targetCommit.id}" th:text="${tag.targetCommit.shortId}">shortId</a>
+                                    <span class="date"
+                                          th:data-toggle="tooltip"
+                                          th:data-placement="top"
+                                          th:title="${templateHelper.getDateString(tag.targetCommit.committerDate.toInstant())}"
+                                          th:text="${templateHelper.agoOrDateString(tag.targetCommit.committerDate.toInstant())}">date</span>
+                                </td>
+                                <td class="actions" th:if="${canDelete}">
+                                    <a class="ybtn ybtn-danger ybtn-small" data-request-method="delete"
+                                       th:data-request-uri="@{/{owner}/{name}/tags/{tag}(owner=${project.owner}, name=${project.name}, tag=${tag.shortName})}"
+                                       th:text="#{button.delete}">
+                                        삭제
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+
+<div th:replace="~{site/layout :: scripts}"></div>
+</body>
+</html>

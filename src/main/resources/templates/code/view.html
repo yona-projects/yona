@@ -137,6 +137,9 @@
         <li th:if="${project.vcs == 'GIT'}">
           <a th:href="@{/{owner}/{name}/branches(owner=${project.owner}, name=${project.name})}" th:text="#{title.branches}">브랜치</a>
         </li>
+        <li th:if="${project.vcs == 'GIT'}">
+          <a th:href="@{/{owner}/{name}/tags(owner=${project.owner}, name=${project.name})}" th:text="#{title.tags}">태그</a>
+        </li>
       </ul>
 
       <!-- 브라우저 헤더 (브랜치 선택 및 브레드크럼) -->
@@ -145,10 +148,19 @@
           <!-- 브랜치 선택 셀렉트 박스 (yona code/view.scala.html:78-87) -->
           <select id="branches" class="form-control pull-left"
                   th:classappend="${recursiveData[recursiveData.size() - 1].get('type').asText() == 'file'} ? 'mb10' : ''">
-            <option th:each="branchName : ${branches}"
-                    th:value="@{/{owner}/{name}/code/{branch}/{path}(owner=${project.owner}, name=${project.name}, branch=${templateHelper.branchItemName(branchName)}, path=${path})}"
-                    th:selected="${templateHelper.branchItemName(branchName) == templateHelper.branchItemName(branch)}"
-                    th:text="${branchName}"></option>
+            <!-- GitHub의 브랜치/태그 통합 ref 셀렉터(그룹 헤더로 구분) 대응 (P3-10) -->
+            <optgroup th:if="${!branches.isEmpty()}" th:label="#{title.branches}">
+              <option th:each="branchName : ${branches}"
+                      th:value="@{/{owner}/{name}/code/{branch}/{path}(owner=${project.owner}, name=${project.name}, branch=${templateHelper.branchItemName(branchName)}, path=${path})}"
+                      th:selected="${templateHelper.branchItemName(branchName) == templateHelper.branchItemName(branch)}"
+                      th:text="${templateHelper.branchItemName(branchName)}"></option>
+            </optgroup>
+            <optgroup th:if="${!tags.isEmpty()}" th:label="#{title.tags}">
+              <option th:each="tagName : ${tags}"
+                      th:value="@{/{owner}/{name}/code/{branch}/{path}(owner=${project.owner}, name=${project.name}, branch=${templateHelper.branchItemName(tagName)}, path=${path})}"
+                      th:selected="${templateHelper.branchItemName(tagName) == templateHelper.branchItemName(branch)}"
+                      th:text="${templateHelper.branchItemName(tagName)}"></option>
+            </optgroup>
           </select>
 
           <!-- 브레드크럼 (yona code/view.scala.html:26-39 makeBreadCrumbs() 대응, 세그먼트 사이에 구분자 없음) -->
