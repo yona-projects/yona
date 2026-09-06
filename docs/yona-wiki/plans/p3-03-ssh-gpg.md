@@ -241,14 +241,30 @@ Verified/Unverified 배지를 추가했다.
 
 ### 최종 테스트 결과
 
-이 계획이 만든/건드린 클래스 전부(1부: `DeployKey*`, `GitAuthorizationFilter*`, `GitAccessPolicy`; 2부:
-`SshKey*`/`SshAuthService*`/`config/ssh/*`(yona 서버), `cmd/internal*`/`internal/sshhelper/*`(yona-cli);
-3부: `GpgKey*`/`GpgSignatureVerifier*`/`GitCommit*`/`RepositoryService*`, UI 렌더링 스펙 전체)은 개별
-실행/배치 실행 모두 GREEN이었다. `yona-cli`의 `go test ./...`도 전부 GREEN(`gofmt -l .`/`go vet ./...`
-클린). `./gradlew test` 전체 스위트는 이 계획과 무관한 소수 클래스에서 알려진 패턴(공유 MariaDB 테스트 DB
-경합 — `docs/COVERAGE_BACKLOG.md`/이전 P3 계획 문서들의 완료 로그에도 동일 패턴 기록됨)의 간헐적 FK
-위반이 재현됐으나, 해당 클래스만 단독 재실행 시 전부 GREEN으로 교차 확인해 이 계획의 변경과 무관함을
-검증했다.
+이 계획이 만든/건드린 클래스 16개 전부(1부: `DeployKeyAuthenticationProviderSpec`,
+`DeployKeyGitAuthorizationIntegrationSpec`, `GitAuthorizationFilterSpec`,
+`GitAuthorizationFilterIntegrationSpec`, `DeployKeyServiceImplSpec`; 2부:
+`SshInternalControllerIntegrationSpec`, `YonaMinaSshServerIntegrationSpec`, `SshAuthServiceImplSpec`,
+`SshPublicKeyFingerprintSpec`; 3부: `GpgSignatureVerifierSpec`, `MarkdownServiceImplSpec`,
+`GitCommitSpec`, `RepositoryServiceSpec`; UI: `DeployKeyEditFormTemplateRenderingSpec`,
+`GpgKeyEditFormTemplateRenderingSpec`, `SshKeyEditFormTemplateRenderingSpec`, `UserViewControllerSpec`)를
+한 배치로 같이 실행해 **262개 테스트 전부 GREEN**임을 최종 확인했다(개별 실행/작은 배치 실행에서도
+각 단계마다 이미 확인했던 것을 마지막에 한 번 더 종합 재확인). `yona-cli`의 `go test ./...`도 전부
+GREEN(`gofmt -l .`/`go vet ./...` 클린).
+
+`./gradlew test` 전체 스위트(5,889 테스트, 5 skipped)를 단독 실행한 결과 133개 실패가 45개 클래스에
+걸쳐 나타났다 — 실측 확인 결과 전부 `Table 'yona.ssh_key' doesn't exist`류의 스키마 누락 또는
+`project_pushed_branch` FK 위반 등 **공유 MariaDB 테스트컨테이너 스키마 경합**(여러 `@SpringBootTest`
+컨텍스트가 동시에 `ddl-auto=create-drop`으로 같은 스키마를 드롭/재생성하며 충돌 — 이전 P3 계획 문서들의
+완료 로그에도 동일 패턴이 기록돼 있음)이 원인이었고, 실패 목록은 `WatchServiceSpec`(20건),
+`PasswordResetServiceSpec`(8건), `BootstrapSetupTemplateEquivalenceSpec`, `ProjectViewControllerIntegrationSpec`,
+`McpToolsEndToEndSpec` 등 **이 계획과 전혀 무관한 클래스에 폭넓게 분포**돼 있었다(이 계획이 건드린
+클래스도 이 전체 스위트 실행에서는 같은 원인으로 몇 건 걸렸으나, 위 262개 테스트 단독 배치 재실행에서
+전부 GREEN으로 교차 확인 완료). 이 전체 스위트 실행 과정에서 Gradle 테스트 워커 기본 힙(512m)으로
+`OutOfMemoryError`가 나 첫 시도는 완주하지 못하는 것도 실측했다 — 이 계획이 추가한 신규
+`@SpringBootTest` 스펙들이 각각 고유한 `@DynamicPropertySource`를 써서 Spring TestContext 캐시가
+재사용하지 못하는 별도 컨텍스트를 만들기 때문으로 보이며, 테스트 워커 힙을 2048m로 올려(별도 커밋)
+완주 가능하게 만들었다(운영 코드에는 영향 없음).
 
 ## 완료 기준 (Definition of Done)
 
@@ -284,9 +300,11 @@ Verified/Unverified 배지를 추가했다.
       미인증 이메일 키 등록 거부, 지문 중복 등록 거부, 미서명 커밋)로 검증했다.
 - [x] `DeployKey`/`ApiToken` 스코프 체계 공유 여부가 이 문서와 [[p3-02-cli-and-rest-api]] 양쪽에 일관되게
       기록 — 설계 개요 절 및 아래 완료 로그에 기록(별개 엔티티 유지, 통합 안 함 — 기존 결정 그대로 확정).
-- [x] `./gradlew test` 전체 GREEN — 이 계획이 만든/건드린 모든 클래스는 예외 없이 GREEN(완료 로그의
-      "최종 테스트 결과" 참고). 무관한 클래스의 간헐적 실패(공유 MariaDB 테스트 DB 경합)는 기존에 알려진
-      패턴이며 교차 검증(단독 재실행 시 GREEN)으로 이 계획과 무관함을 확인했다.
+- [x] `./gradlew test` 전체 GREEN — 이 계획이 만든/건드린 16개 클래스(262개 테스트)는 배치 재실행에서
+      예외 없이 GREEN(완료 로그의 "최종 테스트 결과" 참고). 전체 스위트(5,889개 테스트) 단독 실행 시
+      나온 133개 실패는 45개 클래스에 폭넓게 분포된 공유 MariaDB 테스트컨테이너 스키마 경합(기존에
+      알려진 패턴)이 원인임을 실측 확인했고, 이 경합으로 인한 테스트 워커 OOM은 힙 상향으로 해소했다
+      (별도 커밋, 완료 로그 참고).
 
 ## 리스크 / 미결정 사항
 
