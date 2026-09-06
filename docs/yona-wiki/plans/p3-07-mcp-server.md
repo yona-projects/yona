@@ -457,6 +457,56 @@ AI 에이전트(Claude Code 등)가 MCP(Model Context Protocol)로 yona 저장�
 - **커밋**: Step별로 4개 커밋(Step1-2, Step3-5, Step6 실버그 수정, 5라운드 UI+문서)으로 분리 — 각각
   `git log`에서 `feat(p3-07)`/`fix(p3-07)` 접두어로 조회 가능.
 
+### 6라운드 (2026-09-07) — 코디네이터 push 전 리뷰: 실제 버그 1건 발견·수정 + 알려진 제약 1건 기록
+
+**실제 버그(수정 완료) — 공개 클라이언트는 절대 refresh_token을 받지 못하는데 액세스 토큰마저
+Spring 내장 기본값(5분)으로 발급되고 있었다**: 5라운드가 추가했던 "refresh_token 그랜트로 재발급"
+테스트가 `NullPointerException`으로 실패하는 걸 push 전 리뷰 중 발견해 원인을 끝까지 추적했다.
+Spring Authorization Server의 `OAuth2RefreshTokenGenerator.isPublicClientForAuthorizationCodeGrant()`
+(공식 소스 직접 확인, `spring-security-oauth2-authorization-server-7.1.1-sources.jar`)가
+`client_authentication_method=none`인 `authorization_code` 그랜트에는 **리프레시 토큰을 아예
+생성하지 않는다** — 설정으로 끌 수 있는 옵션이 아니라 하드코딩된 동작이다. 이 앱의 모든 MCP
+클라이언트는 `JpaRegisteredClientRepository`가 PKCE를 강제하며 `token_endpoint_auth_method: none`
+공개 클라이언트로 등록되므로, **어떤 MCP 클라이언트도 리프레시 토큰을 받을 수 없다**(실측: 발급된
+토큰 JSON에 `refresh_token` 필드 자체가 없음). 게다가 DCR로 등록되는 클라이언트는 RFC7591 client
+metadata에 토큰 수명 필드가 없어 `RegisteredClient.tokenSettings`가 Spring 내장 기본값(액세스
+**5분**)을 그대로 받고 있었다(실측: 발급된 JWT의 `exp - iat = 300`) — `OAuthRegisteredClient`
+엔티티 자체는 1시간 기본값을 갖고 있었지만 DCR 경로에서는 전혀 적용되지 않고 있었다. 두 문제가
+겹치면 **MCP 클라이언트가 5분마다 전체 인가 화면을 처음부터 다시 띄워야 하는** 상태였다 —
+"접속만으로 자동 인가"라는 이 계획의 핵심 목표를 사실상 무력화하는 결함.
+
+수정 방향(리프레시 토큰 미발급 자체는 Spring의 의도된 보안 동작이라 되돌리지 않기로 결정 — OAuth
+2.1 스펙도 공개 클라이언트의 리프레시 토큰 발급을 권장하지 않는 쪽에 가깝고, 이를 우회하려면
+Spring 기본 `OAuth2TokenGenerator`를 통째로 커스텀 구현으로 교체해야 해 보안 표면이 늘어난다):
+- `JpaRegisteredClientRepository.toEntity()`가 DCR로 들어온 `RegisteredClient.tokenSettings`를
+  신뢰하지 않고, `requireProofKey`/`requireAuthorizationConsent`와 동일한 방식으로 이 앱의 정책값
+  (액세스 토큰 1시간)을 항상 강제하도록 수정 — Spring 5분 기본값 대신 실제 사용 가능한 세션
+  길이를 확보한다.
+- `OAuthRegisteredClient`에 `DEFAULT_ACCESS_TOKEN_TTL_SECONDS`(3600)/`DEFAULT_REFRESH_TOKEN_TTL_SECONDS`
+  (2,592,000) 명명 상수를 추가해 생성자 기본값과 리포지토리 강제값이 항상 같은 값을 참조하게 함
+  (매직 넘버 중복 방지).
+- 5라운드의 잘못된 가정 위에 작성됐던 테스트를 재작성 — "refresh_token 그랜트 시 resource 파라미터
+  필수"를 검증하려던 원래 의도는 애초에 존재할 수 없는 시나리오였으므로, 대신 "공개 클라이언트에는
+  refresh_token이 발급되지 않고, 액세스 토큰 TTL은 이 앱의 정책값(1시간)이어야 한다"는 올바른
+  회귀 가드로 교체했다(라이브러리 업그레이드나 설정 실수로 이 동작이 조용히 바뀌는 것을 방지).
+- 재검증: `config/oauth2server`+`domain/oauth2server`+`mcp`+`web.OAuthAuthorizedApps*`+
+  `UserViewControllerSpec` 전체(167 tests) GREEN. 이 계획과 무관한 3개 클래스
+  (`TemplateHelperSpec`/`GitAuthorizationFilterIntegrationSpec`/`FavoriteServiceSpec`)에서
+  `project_pushed_branch` FK 위반이 한 차례 발생했으나 개별 재실행 시 전부 GREEN — 기존에
+  문서화된 공유 테스트 DB 경합 패턴과 정확히 일치(상세: P3-04/P3-06 완료 로그), 이번 수정과 무관.
+
+**알려진 제약(기록만, 코드 변경 없음)**: `OAuthRegisteredClient.clientSecret`이 `PasswordEncoder`를
+거치지 않고 평문 그대로 저장/전달된다(`JpaRegisteredClientRepository`). Spring Authorization
+Server의 표준 클라이언트 인증(`client_secret_basic` 등)은 `RegisteredClient.clientSecret`이 이미
+인코딩돼 있다고 가정하고 `PasswordEncoder.matches()`로 비교하므로, 이 필드를 실제로 쓰는
+confidential 클라이언트를 등록하면 인증이 항상 실패할 수 있다. **현재는 실질적 위험이 아니다** —
+이 코드로 confidential 클라이언트를 실제로 생성하는 경로가 프로젝트 전체에 전무하다(RFC7591 DCR로
+등록되는 MCP 클라이언트는 전부 공개 클라이언트, PKCE 전용, `clientSecret = null`). 지금 인코딩
+로직을 추가하는 건 아무도 호출하지 않는 경로를 위한 과도한 설계이므로 보류하고, **P3-14
+(`docs/PARITY_BACKLOG.md#P3-14` — 아직 별도 계획서 없음, 백로그 항목만 존재)가 실제로 confidential
+사전등록 클라이언트를 만들 때 반드시 `PasswordEncoder`(Spring 기본 `DelegatingPasswordEncoder`)로
+인코딩해서 저장하도록 그때 구현할 것**을 여기 기록해 미검증 상태로 방치되지 않게 한다.
+
 ## 관련
 
 - 백로그 원본: [`docs/PARITY_BACKLOG.md`](../../PARITY_BACKLOG.md#p3-07)
