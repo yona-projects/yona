@@ -57,7 +57,10 @@ class GitAuthorizationFilterSpec : DescribeSpec({
         reviewCommentRepositoryForAccessControl, commitCommentRepositoryForAccessControl,
         milestoneRepositoryForAccessControl
     )
-    val filter = GitAuthorizationFilter(projectService, userRepository, accessControl)
+    // yona-wiki P3-03 Step6 — GitAuthorizationFilter가 접근 판정 로직을 GitAccessPolicy로 위임하도록
+    // 리팩터링됨(SshAuthServiceImpl과 공유하기 위함). 이 스펙이 검증하는 판정 결과 자체는 동일하다.
+    val gitAccessPolicy = GitAccessPolicy(projectService, userRepository, accessControl)
+    val filter = GitAuthorizationFilter(gitAccessPolicy)
     val filterChain = mockk<FilterChain>(relaxed = true)
 
     beforeTest {

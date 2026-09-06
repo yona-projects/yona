@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head th:replace="~{site/layout :: head(#{userinfo.sshKeys})}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div class="site-breadcrumb-outer">
+        <div class="site-breadcrumb-inner">
+            <h3 th:text="#{userinfo.sshKeys}">SSH 키</h3>
+        </div>
+    </div>
+    <div class="page-wrap-outer">
+        <div class="page-wrap">
+            <div th:replace="~{user/partial_edit_tabmenu :: tabmenu('ssh-keys')}"></div>
+
+            <!--
+             yona-wiki P3-03 Step3 — GitHub의 "Settings > SSH and GPG keys" 화면과 동일한 구성
+             (공개키 붙여넣기, 지문 표시, 등록일/마지막 사용일 표시, 삭제 버튼).
+            -->
+
+            <div th:if="${sshKeyError != null}" class="alert alert-error mt20">
+                <span th:text="${sshKeyError}">Error</span>
+            </div>
+
+            <h4 class="mt20" th:text="#{sshkey.list.title}">등록된 SSH 키</h4>
+            <table class="table" th:if="${sshKeys != null and !sshKeys.isEmpty()}">
+                <thead>
+                <tr>
+                    <th th:text="#{sshkey.field.title}">제목</th>
+                    <th th:text="#{sshkey.field.fingerprint}">지문</th>
+                    <th th:text="#{sshkey.field.createdAt}">등록일</th>
+                    <th th:text="#{sshkey.field.lastUsedAt}">마지막 사용일</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="key : ${sshKeys}">
+                    <td th:text="${key.title}">노트북</td>
+                    <td th:text="${key.fingerprint}">SHA256:...</td>
+                    <td th:text="${key.createdAt}">2026-01-01</td>
+                    <td th:text="${key.lastUsedAt != null ? key.lastUsedAt : '-'}">-</td>
+                    <td>
+                        <form method="post" th:action="@{/user/editform/ssh-keys/{id}/delete(id=${key.id})}"
+                              th:attr="data-confirm-message=#{sshkey.delete.confirm}" class="sshkey-delete-form">
+                            <button type="submit" class="ybtn ybtn-small ybtn-danger" th:text="#{sshkey.delete}">삭제</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <p th:if="${sshKeys == null or sshKeys.isEmpty()}" th:text="#{sshkey.list.empty}">등록된 SSH 키가 없습니다.</p>
+
+            <h4 class="mt20" th:text="#{sshkey.add.title}">새 SSH 키 추가</h4>
+            <form id="frmSshKeyAdd" method="post" th:action="@{/user/editform/ssh-keys}" class="mt10">
+                <div class="mt10">
+                    <label th:text="#{sshkey.field.title}">제목</label>
+                    <input type="text" name="title" class="text" style="width: 90%;" required="required">
+                </div>
+                <div class="mt10">
+                    <label th:text="#{sshkey.field.publicKey}">공개키</label>
+                    <textarea name="publicKey" style="width: 90%;" rows="4" required="required"
+                              th:placeholder="#{sshkey.field.publicKey.placeholder}"></textarea>
+                </div>
+                <div class="mt10">
+                    <button type="submit" class="ybtn ybtn-success" th:text="#{sshkey.add}">SSH 키 추가</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <footer th:replace="~{site/layout :: footer}"></footer>
+    <div th:replace="~{site/layout :: scripts}"></div>
+</div>
+<script type="text/javascript">
+    document.addEventListener('submit', function(e) {
+        var form = e.target.closest('.sshkey-delete-form');
+        if (!form) {
+            return;
+        }
+        var message = form.getAttribute('data-confirm-message');
+        if (message && !confirm(message)) {
+            e.preventDefault();
+        }
+    });
+</script>
+</body>
+</html>

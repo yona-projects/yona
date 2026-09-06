@@ -27,7 +27,10 @@ class DeployKey(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    // EAGER: authenticate()가 반환한 직후(트랜잭션 밖, 예: SSH/HTTPS 인증 컨텍스트)에도
+    // principal.deployKey.project를 안전하게 읽어야 하므로 LAZY 프록시로 인한
+    // LazyInitializationException을 피한다.
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "project_id", nullable = false)
     var project: Project? = null,
 

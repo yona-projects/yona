@@ -37,6 +37,11 @@
       인가된 OAuth 앱
     </a>
   </li>
+  <li th:class="${tabId == 'ssh-keys'} ? 'active' : ''">
+    <a th:href="@{/user/editform/ssh-keys}" th:text="#{userinfo.sshKeys}">
+      SSH 키
+    </a>
+  </li>
 </ul>
 </body>
 </html>

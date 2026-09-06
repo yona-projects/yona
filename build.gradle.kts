@@ -108,6 +108,16 @@ dependencies {
 	implementation("org.eclipse.jgit:org.eclipse.jgit.lfs:7.7.1.202607240634-r")
 	implementation("org.eclipse.jgit:org.eclipse.jgit.lfs.server:7.7.1.202607240634-r")
 
+	// yona-wiki P3-03 Step5 — 윈도우 SSH 폴백(시스템 OpenSSH의 AuthorizedKeysCommand 훅을 쓸 수
+	// 없는 환경)을 위한 JVM 내장 SSH 서버. 별도 포트(기본 2222)에서 이 애플리케이션 프로세스가
+	// 직접 SshServer를 띄운다 — 시스템 sshd/포트 22와는 무관.
+	implementation("org.apache.sshd:sshd-core:2.15.0")
+
+	// yona-wiki P3-03 Step8 — GPG 커밋 서명 실제 암호학적 검증(단순 "서명 존재" 확인이 아니라
+	// BouncyCastle로 서명을 공개키에 대해 실제로 검증한다).
+	implementation("org.bouncycastle:bcpg-jdk18on:1.82")
+	implementation("org.bouncycastle:bcprov-jdk18on:1.82")
+
 	// SVNKit
 	implementation("org.tmatesoft.svnkit:svnkit:1.10.11")
 	implementation("sonia.svnkit:svnkit-dav:1.10.10-scm2-jakarta")

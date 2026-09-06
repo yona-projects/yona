@@ -1,6 +1,7 @@
 package com.github.yonaprojects.yona.domain.deploykey
 
 import com.github.yonaprojects.yona.domain.project.Project
+import com.github.yonaprojects.yona.domain.sshkey.SshKeyRepository
 import com.github.yonaprojects.yona.domain.sshkey.SshPublicKeyFingerprint
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -10,7 +11,10 @@ import java.util.Base64
 
 @Service
 class DeployKeyServiceImpl(
-    private val deployKeyRepository: DeployKeyRepository
+    private val deployKeyRepository: DeployKeyRepository,
+    // yona-wiki P3-03 Step3 — SshKey(사용자 전역 키)가 생겨 이제 두 테이블을 모두 검사해야
+    // "이미 등록된 공개키" 전역 유일성(계정/저장소 사칭 방지)이 성립한다.
+    private val sshKeyRepository: SshKeyRepository
 ) : DeployKeyService {
 
     @Transactional(readOnly = true)
@@ -24,9 +28,10 @@ class DeployKeyServiceImpl(
 
         // 보안 리뷰 지적 4번 — 이미 등록된 공개키(다른 프로젝트의 Deploy Key든, 이 계정 저 계정의
         // SshKey든)를 재등록하면 "내가 이 키의 소유자다"를 사칭할 수 있으므로 전역적으로 거부한다.
-        // SshKey(Step3)와의 교차 검사는 SshKeyRepository가 생기는 시점에 이 서비스에 주입해
-        // 추가한다.
         if (deployKeyRepository.findByFingerprint(parsed.fingerprint).isPresent) {
+            throw IllegalArgumentException("이미 등록된 공개키입니다.")
+        }
+        if (sshKeyRepository.findByFingerprint(parsed.fingerprint).isPresent) {
             throw IllegalArgumentException("이미 등록된 공개키입니다.")
         }
 

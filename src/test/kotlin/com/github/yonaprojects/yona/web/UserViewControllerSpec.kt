@@ -78,6 +78,7 @@ class UserViewControllerSpec : DescribeSpec({
     val recentIssueService = mockk<RecentIssueService>(relaxed = true)
     val apiTokenService = mockk<com.github.yonaprojects.yona.domain.apitoken.ApiTokenService>()
     val oAuthAuthorizedAppsService = mockk<com.github.yonaprojects.yona.domain.oauth2server.OAuthAuthorizedAppsService>()
+    val sshKeyService = mockk<com.github.yonaprojects.yona.domain.sshkey.SshKeyService>()
 
     val userViewController = UserViewController(
         userRepository,
@@ -98,7 +99,8 @@ class UserViewControllerSpec : DescribeSpec({
         mentionService,
         recentIssueService,
         apiTokenService,
-        oAuthAuthorizedAppsService
+        oAuthAuthorizedAppsService,
+        sshKeyService
     )
     val mockMvc = MockMvcBuilders.standaloneSetup(userViewController)
         .setCustomArgumentResolvers(PageableHandlerMethodArgumentResolver())
@@ -283,7 +285,7 @@ class UserViewControllerSpec : DescribeSpec({
             projectRepository, userProjectNotificationRepository, attachmentRepository, postingRepository,
             favoriteProjectRepository, favoriteOrganizationRepository, organizationUserRepository,
             organizationRepository, userService, accessControl, mentionService, recentIssueService,
-            apiTokenService, oAuthAuthorizedAppsService, hideProjectListing = true
+            apiTokenService, oAuthAuthorizedAppsService, sshKeyService, hideProjectListing = true
         )
         val model = ExtendedModelMap()
 

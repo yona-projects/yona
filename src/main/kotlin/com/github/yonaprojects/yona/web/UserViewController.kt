@@ -78,6 +78,9 @@ class UserViewController(
     // yona-wiki P3-07 Step6 — "Authorized OAuth Apps" 화면(사용자가 인가한 MCP OAuth 클라이언트
     // 조회/취소).
     private val oAuthAuthorizedAppsService: OAuthAuthorizedAppsService,
+    // yona-wiki P3-03 Step3 — GitHub의 "Settings > SSH and GPG keys" 화면과 동등한 SSH 키
+    // 등록/조회/삭제 UI.
+    private val sshKeyService: com.github.yonaprojects.yona.domain.sshkey.SshKeyService,
     // yona controllers/Application.java:35 HIDE_PROJECT_LISTING 대응 (P0-23).
     @Value("\${yona.application.hide-project-listing:false}")
     private val hideProjectListing: Boolean = false
@@ -694,6 +697,61 @@ class UserViewController(
 
         oAuthAuthorizedAppsService.revoke(loginUser.loginId, clientId)
         return "redirect:/user/editform/oauth-apps"
+    }
+
+    // yona-wiki P3-03 Step3 — GitHub "Settings > SSH and GPG keys" 화면과 동일한 컨벤션
+    // (edit_tokens.html/edit_oauth_apps.html과 같은 탭 메뉴/CSS 클래스/컨트롤러 패턴).
+    @GetMapping("/user/editform/ssh-keys")
+    fun editSshKeysForm(
+        authentication: Authentication?,
+        model: Model
+    ): String {
+        val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
+            ?: return "error/403"
+
+        fillAvatarId(loginUser)
+        model.addAttribute("user", loginUser)
+        model.addAttribute("currentUser", loginUser)
+        model.addAttribute("sshKeys", sshKeyService.listByUser(loginUser))
+
+        return "user/edit_ssh_keys"
+    }
+
+    @PostMapping("/user/editform/ssh-keys")
+    fun addSshKey(
+        @RequestParam("title") title: String,
+        @RequestParam("publicKey") publicKey: String,
+        authentication: Authentication?,
+        model: Model
+    ): String {
+        val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
+            ?: return "error/403"
+
+        fillAvatarId(loginUser)
+        try {
+            sshKeyService.create(loginUser, title, publicKey)
+        } catch (e: IllegalArgumentException) {
+            model.addAttribute("sshKeyError", e.message)
+        } catch (e: com.github.yonaprojects.yona.domain.sshkey.SshPublicKeyFingerprint.InvalidPublicKeyException) {
+            model.addAttribute("sshKeyError", e.message)
+        }
+
+        model.addAttribute("user", loginUser)
+        model.addAttribute("currentUser", loginUser)
+        model.addAttribute("sshKeys", sshKeyService.listByUser(loginUser))
+        return "user/edit_ssh_keys"
+    }
+
+    @PostMapping("/user/editform/ssh-keys/{id}/delete")
+    fun deleteSshKey(
+        @PathVariable id: Long,
+        authentication: Authentication?
+    ): String {
+        val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
+            ?: return "error/403"
+
+        sshKeyService.delete(loginUser, id)
+        return "redirect:/user/editform/ssh-keys"
     }
 
     @GetMapping("/user/files")
