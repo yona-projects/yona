@@ -17,6 +17,7 @@ import com.github.yonaprojects.yona.domain.mention.MentionService
 import com.github.yonaprojects.yona.domain.apitoken.ApiTokenPermission
 import com.github.yonaprojects.yona.domain.apitoken.ApiTokenScopeGroup
 import com.github.yonaprojects.yona.domain.apitoken.ApiTokenService
+import com.github.yonaprojects.yona.domain.oauth2server.OAuthAuthorizedAppsService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Value
@@ -74,6 +75,9 @@ class UserViewController(
     private val recentIssueService: RecentIssueService,
     // yona-wiki P3-02 Step6.6 — Fine-grained API 토큰 발급/관리 웹 UI.
     private val apiTokenService: ApiTokenService,
+    // yona-wiki P3-07 Step6 — "Authorized OAuth Apps" 화면(사용자가 인가한 MCP OAuth 클라이언트
+    // 조회/취소).
+    private val oAuthAuthorizedAppsService: OAuthAuthorizedAppsService,
     // yona controllers/Application.java:35 HIDE_PROJECT_LISTING 대응 (P0-23).
     @Value("\${yona.application.hide-project-listing:false}")
     private val hideProjectListing: Boolean = false
@@ -658,6 +662,38 @@ class UserViewController(
         val candidateProjects: List<com.github.yonaprojects.yona.domain.project.Project> =
             loginUser.id?.let { userId -> projectUserRepository.findByUserId(userId).map { it.project } } ?: emptyList()
         model.addAttribute("candidateProjects", candidateProjects)
+    }
+
+    // yona-wiki P3-07(MCP 서버) Step6 — GitHub의 "Settings > Applications > Authorized OAuth Apps"에
+    // 대응하는 화면. 사용자가 자신이 인가한 OAuth 클라이언트(Claude Code 등 MCP 클라이언트)를
+    // 조회하고 취소(revoke)할 수 있게 한다 — 백엔드(인가 서버)만 만들고 실제로 관리할 방법이 없는
+    // 상태로 남기지 않기 위한 필수 UI.
+    @GetMapping("/user/editform/oauth-apps")
+    fun editOAuthAuthorizedAppsForm(
+        authentication: Authentication?,
+        model: Model
+    ): String {
+        val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
+            ?: return "error/403"
+
+        fillAvatarId(loginUser)
+        model.addAttribute("user", loginUser)
+        model.addAttribute("currentUser", loginUser)
+        model.addAttribute("authorizedApps", oAuthAuthorizedAppsService.listAuthorizedApps(loginUser.loginId))
+
+        return "user/edit_oauth_apps"
+    }
+
+    @PostMapping("/user/editform/oauth-apps/{clientId}/revoke")
+    fun revokeOAuthAuthorizedApp(
+        @PathVariable clientId: String,
+        authentication: Authentication?
+    ): String {
+        val loginUser = authentication?.let { userRepository.findByLoginId(it.name).orElse(null) }
+            ?: return "error/403"
+
+        oAuthAuthorizedAppsService.revoke(loginUser.loginId, clientId)
+        return "redirect:/user/editform/oauth-apps"
     }
 
     @GetMapping("/user/files")

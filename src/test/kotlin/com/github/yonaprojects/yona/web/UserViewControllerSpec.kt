@@ -77,6 +77,7 @@ class UserViewControllerSpec : DescribeSpec({
     val mentionService = mockk<MentionService>(relaxed = true)
     val recentIssueService = mockk<RecentIssueService>(relaxed = true)
     val apiTokenService = mockk<com.github.yonaprojects.yona.domain.apitoken.ApiTokenService>()
+    val oAuthAuthorizedAppsService = mockk<com.github.yonaprojects.yona.domain.oauth2server.OAuthAuthorizedAppsService>()
 
     val userViewController = UserViewController(
         userRepository,
@@ -96,7 +97,8 @@ class UserViewControllerSpec : DescribeSpec({
         accessControl,
         mentionService,
         recentIssueService,
-        apiTokenService
+        apiTokenService,
+        oAuthAuthorizedAppsService
     )
     val mockMvc = MockMvcBuilders.standaloneSetup(userViewController)
         .setCustomArgumentResolvers(PageableHandlerMethodArgumentResolver())
@@ -134,7 +136,8 @@ class UserViewControllerSpec : DescribeSpec({
             organizationRepository,
             accessControl,
             mentionService,
-            apiTokenService
+            apiTokenService,
+            oAuthAuthorizedAppsService
         )
         every { attachmentRepository.findByContainerTypeAndContainerId(any(), any()) } returns emptyList()
         every { accessControl.isAllowedToReadProject(any(), any()) } returns true
@@ -280,7 +283,7 @@ class UserViewControllerSpec : DescribeSpec({
             projectRepository, userProjectNotificationRepository, attachmentRepository, postingRepository,
             favoriteProjectRepository, favoriteOrganizationRepository, organizationUserRepository,
             organizationRepository, userService, accessControl, mentionService, recentIssueService,
-            apiTokenService, hideProjectListing = true
+            apiTokenService, oAuthAuthorizedAppsService, hideProjectListing = true
         )
         val model = ExtendedModelMap()
 
@@ -652,6 +655,48 @@ class UserViewControllerSpec : DescribeSpec({
 
             view shouldBe "redirect:/user/editform/tokens"
             verify(exactly = 1) { apiTokenService.revoke(loginUser, 5L) }
+        }
+    }
+
+    // yona-wiki P3-07(MCP 서버) Step6 — "Authorized OAuth Apps" 화면(GitHub의 "Settings >
+    // Applications > Authorized OAuth Apps"에 대응). editOAuthAuthorizedAppsForm(목록)/
+    // revokeOAuthAuthorizedApp(취소) 두 엔드포인트의 미인증/성공 분기.
+    describe("GET/POST /user/editform/oauth-apps (Authorized OAuth Apps)") {
+        val loginUser = User(id = 10L, loginId = "testuser", name = "테스트유저")
+        val userAuth = UsernamePasswordAuthenticationToken("testuser", "password")
+
+        it("editOAuthAuthorizedAppsForm은 미인증 시 error/403을 반환해야 한다") {
+            userViewController.editOAuthAuthorizedAppsForm(authentication = null, model = ExtendedModelMap()) shouldBe "error/403"
+        }
+
+        it("editOAuthAuthorizedAppsForm은 인증 시 user/edit_oauth_apps 뷰와 authorizedApps 모델을 채워야 한다") {
+            every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
+            every { attachmentRepository.findByContainerTypeAndContainerId(any(), any()) } returns emptyList()
+            val app = com.github.yonaprojects.yona.domain.oauth2server.AuthorizedAppView(
+                clientId = "client-1", clientName = "Claude Code",
+                scopes = listOf("issues:read", "issues:write"), dynamicallyRegistered = true
+            )
+            every { oAuthAuthorizedAppsService.listAuthorizedApps("testuser") } returns listOf(app)
+
+            val model = ExtendedModelMap()
+            val view = userViewController.editOAuthAuthorizedAppsForm(userAuth, model)
+
+            view shouldBe "user/edit_oauth_apps"
+            model.getAttribute("authorizedApps") shouldBe listOf(app)
+        }
+
+        it("revokeOAuthAuthorizedApp은 미인증 시 error/403을 반환해야 한다") {
+            userViewController.revokeOAuthAuthorizedApp(clientId = "client-1", authentication = null) shouldBe "error/403"
+        }
+
+        it("revokeOAuthAuthorizedApp은 인증 시 서비스에 위임하고 /user/editform/oauth-apps로 리다이렉트해야 한다") {
+            every { userRepository.findByLoginId("testuser") } returns Optional.of(loginUser)
+            every { oAuthAuthorizedAppsService.revoke("testuser", "client-1") } just Runs
+
+            val view = userViewController.revokeOAuthAuthorizedApp(clientId = "client-1", authentication = userAuth)
+
+            view shouldBe "redirect:/user/editform/oauth-apps"
+            verify(exactly = 1) { oAuthAuthorizedAppsService.revoke("testuser", "client-1") }
         }
     }
 

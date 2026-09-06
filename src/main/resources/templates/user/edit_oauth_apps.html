@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head th:replace="~{site/layout :: head(#{oauth2.authorizedApps.title})}">
+</head>
+<body class="theme-default">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div class="site-breadcrumb-outer">
+        <div class="site-breadcrumb-inner">
+            <h3 th:text="#{oauth2.authorizedApps.title}">인가된 OAuth 앱</h3>
+        </div>
+    </div>
+    <div class="page-wrap-outer">
+        <div class="page-wrap">
+            <div th:replace="~{user/partial_edit_tabmenu :: tabmenu('oauth-apps')}"></div>
+
+            <!--
+             yona-wiki P3-07(MCP 서버) Step6 — GitHub의 "Settings > Applications > Authorized OAuth
+             Apps"와 동등한 화면. Claude Code 등 MCP OAuth 클라이언트를 조회/취소한다. 사전등록
+             클라이언트 관리자 화면은 아직 없다 — RFC7591 Dynamic Client Registration으로 클라이언트
+             자동 등록이 이미 API로 되므로 필수는 아니라고 판단했다(계획 문서 참고).
+            -->
+
+            <h4 class="mt20" th:text="#{oauth2.authorizedApps.list.title}">인가한 애플리케이션</h4>
+            <table class="table" th:if="${authorizedApps != null and !authorizedApps.isEmpty()}">
+                <thead>
+                <tr>
+                    <th th:text="#{oauth2.authorizedApps.field.name}">애플리케이션</th>
+                    <th th:text="#{oauth2.authorizedApps.field.scopes}">권한</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="app : ${authorizedApps}">
+                    <td>
+                        <span th:text="${app.clientName}">Claude Code</span>
+                        <em th:if="${app.dynamicallyRegistered}" class="text-muted mt5"
+                            th:text="#{oauth2.authorizedApps.dynamicallyRegistered}">(자동 등록됨)</em>
+                    </td>
+                    <td>
+                        <span th:each="scope : ${app.scopes}" class="label-head mr5" th:text="${scope}">issues:write</span>
+                    </td>
+                    <td>
+                        <form method="post" th:action="@{/user/editform/oauth-apps/{clientId}/revoke(clientId=${app.clientId})}"
+                              th:attr="data-confirm-message=#{oauth2.authorizedApps.revoke.confirm}" class="oauth-app-revoke-form">
+                            <button type="submit" class="ybtn ybtn-small ybtn-danger" th:text="#{oauth2.authorizedApps.revoke}">접근 취소</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <p th:if="${authorizedApps == null or authorizedApps.isEmpty()}" th:text="#{oauth2.authorizedApps.list.empty}">인가한 OAuth 애플리케이션이 없습니다.</p>
+        </div>
+    </div>
+    <footer th:replace="~{site/layout :: footer}"></footer>
+    <div th:replace="~{site/layout :: scripts}"></div>
+</div>
+<script type="text/javascript">
+    // 접근 취소는 되돌릴 수 없는 작업이라(user/edit_tokens.html의 토큰 폐기와 동일한 취지) 제출 전
+    // 확인한다 — 여러 행(form)이 반복 렌더링되므로 이벤트 위임으로 한 번만 등록한다.
+    document.addEventListener('submit', function(e) {
+        var form = e.target.closest('.oauth-app-revoke-form');
+        if (!form) {
+            return;
+        }
+        var message = form.getAttribute('data-confirm-message');
+        if (message && !confirm(message)) {
+            e.preventDefault();
+        }
+    });
+</script>
+</body>
+</html>

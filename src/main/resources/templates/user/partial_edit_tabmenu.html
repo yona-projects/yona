@@ -32,6 +32,11 @@
       API 토큰(세분화)
     </a>
   </li>
+  <li th:class="${tabId == 'oauth-apps'} ? 'active' : ''">
+    <a th:href="@{/user/editform/oauth-apps}" th:text="#{userinfo.oauthApps}">
+      인가된 OAuth 앱
+    </a>
+  </li>
 </ul>
 </body>
 </html>
