@@ -3,12 +3,12 @@ type: plan
 id: P3-10
 title: "Git 태그(tag) 지원"
 status: planned
-priority: 11
+priority: 8
 depends_on: [p3-02-cli-and-rest-api]
 blocks: []
 source: 사용자 요청(2026-09-03) — "gh에 태그 기능이 있는걸로 아는데 yona도 구현할거거든"
 created: 2026-09-03
-updated: 2026-09-03
+updated: 2026-09-06
 tags: [plan, p3, vcs, cli]
 ---
 
