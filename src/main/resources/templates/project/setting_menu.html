@@ -11,6 +11,9 @@
     <li id="subMenuWebhook" th:class="${active == 'webhooks'} ? 'active' : ''">
         <a th:href="@{/projects/{owner}/{name}/webhooks(owner=${project.owner}, name=${project.name})}" th:text="#{project.webhook}">웹훅</a>
     </li>
+    <li id="subMenuBranchProtection" th:class="${active == 'branchProtections'} ? 'active' : ''">
+        <a th:href="@{/projects/{owner}/{name}/branch-protections(owner=${project.owner}, name=${project.name})}" th:text="#{project.branchProtection}">브랜치 보호</a>
+    </li>
     <li id="subMenuProjectTransfer" th:class="${active == 'transfer'} ? 'active' : ''">
         <a th:href="@{/{owner}/{name}/transfer(owner=${project.owner}, name=${project.name})}" th:text="#{project.transfer}">이관</a>
     </li>

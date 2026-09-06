@@ -83,6 +83,9 @@ tags: [plan, p3, git, security]
 - [x] PR 병합 체크가 `require_pull_request` 최소 시나리오에서 동작 (`PullRequestServiceSpec.kt` "5-1. 브랜치 보호 정책" describe — 아래 완료 로그 참고, 실제 의미는 위 Step4 설명 참고)
 - [x] `require_approvals` 착수 여부와 근거가 이 문서에 명시(스파이크 결과 반영) — Step1 참고
 - [x] `require_signed_commits`는 플래그만 존재하고 [[p3-03-ssh-gpg]] 완료 전까지 항상 통과 처리됨을 명시적으로 테스트/문서화 — Step4 완료 로그의 회귀 테스트 참고
+- [x] 관리 UI(웹) — 프로젝트 매니저가 규칙을 DB 직접 조작 없이 실제로 생성/조회/수정/삭제할 수 있는
+      화면 존재 (2라운드, 2026-09-06 — 아래 완료 로그 참고). 1라운드는 엔티티/훅/병합체크만 구현하고
+      이 항목이 DoD에 없었다 — 2라운드 착수 시 발견된 갭이라 이번에 추가함.
 - [x] `./gradlew test` 전체 GREEN — 단, 이 계획과 무관한 환경 요인(동시 세션의 공유 MySQL 테스트 DB
       경합)으로 전체 스위트 단독 실행 시 8개 무관 클래스가 간헐 실패할 수 있음을 확인·교차검증함
       (아래 완료 로그 참고 — 이 계획이 만든 코드/테스트 자체는 모든 실행에서 항상 GREEN)
@@ -199,6 +202,90 @@ tags: [plan, p3, git, security]
   `BranchProtectionPreReceiveHook` describe 20, `PullRequestServiceSpec`의 "5-1" describe 6,
   `GitServletConfigSpec` 7 — 이 중 뒤 3개는 기존 스펙에 추가/수정)는 모든 실행에서 항상 GREEN이었다.
 
+### 2라운드 (2026-09-06) — 관리 UI(웹) 추가
+
+- **배경(갭 재확인)**: 1라운드는 엔티티/훅/병합체크만 구현했고 DoD에 "관리 UI" 항목 자체가 없었다.
+  코드 전수 확인 결과 `web/` 패키지 어디에도 `ProtectedBranch`를 참조하는 컨트롤러가 하나도 없어,
+  프로젝트 매니저가 규칙을 만들거나 조회·수정·삭제할 방법이 DB 직접 조작 말고는 전혀 없었다 —
+  모델과 강제 로직만 있고 실제로 켤 수 있는 진입점이 없는 상태. 사용자 방침("백엔드만 만들고
+  진입점을 안 만드는 걸 기본값으로 두지 말라")에 따라 이번 라운드로 마저 구현했다. 이 문서 상단의
+  DoD에 "관리 UI" 항목을 추가하고 체크 완료.
+- **참고 패턴**: 같은 성격의 기존 기능(프로젝트 범위 설정, 매니저 전용 관리 화면)인
+  `WebhookController`/`WebhookRestApiController`/`setting_webhook.html`을 그대로 재사용했다 —
+  프로젝트 조회 + `AccessControl.isAllowed(user, project, Operation.UPDATE)` 권한 체크,
+  `data-request-method="delete"` AJAX 삭제 관례(성공 시 `document.location.reload()`, 신규 JS
+  불필요 — `jquery.requestAs.js` 기존 인프라 그대로), 프로젝트 설정 사이드바(`setting_menu.html`)에
+  메뉴 항목 추가까지 전부 동일한 방식.
+- **구현**: 신규 `web/BranchProtectionController.kt` + `templates/project/setting_branch_protection.html`.
+  - 라우팅: `GET /projects/{owner}/{projectName}/branch-protections`(목록+생성폼),
+    `POST .../branch-protections`(생성), `POST .../branch-protections/{id}`(수정 — HTML 폼은 PUT을
+    못 써서 POST로 처리, Milestone류 JSON REST 컨트롤러의 `@PutMapping`과는 다른 경로),
+    `DELETE .../branch-protections/{id}`(삭제, `@ResponseBody`). Webhook과 달리 수정(update)까지
+    추가했다 — 사용자 요청이 명시적으로 "생성하거나 조회·수정·삭제"를 언급했고, 8개 필드짜리
+    엔티티를 삭제·재생성으로만 바꾸게 하는 건 사용성이 나쁘다고 판단.
+  - 서비스 레이어 없이 `ProtectedBranchRepository`를 컨트롤러에서 직접 사용(GitPushHooks/
+    PullRequestServiceImpl도 동일한 관례) — 엔티티에 비즈니스 로직이 없어 서비스 레이어 추가는
+    과도한 설계로 판단.
+  - IDOR 방지: 수정/삭제 모두 `rule.project?.id != project.id`를 확인해 다른 프로젝트 소유의 규칙
+    id를 URL에 넣어도 404로 거부한다(Webhook의 `deleteWebhook()`은 이 검사가 없었는데, 더 엄격한
+    쪽을 택했다 — 기존 결함을 그대로 답습할 이유가 없다고 판단).
+  - 검증: branchPattern 필수/250자, restrictPushTo 1000자 — Webhook의 payloadUrl/secret 사전 검증
+    (P2-28)과 동일한 이유(컬럼 길이 제약 위반 시 처리되지 않은 500 노출 방지)로 컨트롤러에서
+    선제 검증 후 400.
+  - **GitHub 방식 채택(사용자 방침 — 모호하면 GitHub를 기본값으로)**: 폼 문구/필드 순서를 GitHub의
+    Settings > Branches > Branch protection rules 화면 그대로 차용했다 — "병합하기 전에 Pull
+    Request 필요"(+ 중첩된 "필요한 승인 개수"), "서명된 커밋 필요", "위 설정에 대한 우회를
+    허용하지 않음"(Do not allow bypassing the above settings), "일치하는 브랜치에 push 가능한
+    사용자 제한", "관리자를 포함한 모든 사용자에게 적용되는 규칙"(강제 push 허용/브랜치 삭제 허용)
+    순서. `ProtectedBranch` 엔티티는 세 필드(`disallowForcePush`/`disallowDelete`/
+    `adminsCanBypass`)를 부정형으로 저장하는데 GitHub 폼 문구는 긍정형(Allow force pushes/Allow
+    deletions/Do not allow bypassing)이라, 컨트롤러가 폼 파라미터(`allowForcePush`/
+    `allowDeletions`/`doNotAllowBypassing`)를 엔티티 필드로 반전 변환한다
+    (`disallowForcePush = !allowForcePush` 등) — `BranchProtectionControllerSpec`에 이 반전
+    변환 자체를 검증하는 테스트를 포함했다.
+- **테스트**: TDD로 RED(컨트롤러 미존재로 컴파일 실패) 확인 후 구현 → GREEN.
+  - `BranchProtectionControllerSpec.kt`(신규, `WebhookControllerSpec`과 동일하게 `mockk` +
+    `MockMvcBuilders.standaloneSetup` 단위 테스트 — Spring 컨텍스트/DB 불필요) — 20 tests: 목록
+    조회(정상/404/비로그인 403/비매니저 403), 생성(정상 + GitHub 반전 검증/체크박스 전부 생략 시
+    기본값/branchPattern 필수·250자 초과/restrictPushTo 1000자 초과/404/403), 수정(정상 + 반전
+    검증/404/IDOR 404/403), 삭제(정상/404/IDOR 404/404-project/403) 전부 GREEN.
+  - `TemplateEquivalenceSpec.kt`에 "[Test-19-24] 브랜치 보호 설정 화면 렌더링 검증" describe 추가
+    (신규, `@SpringBootTest` 기반 실제 Thymeleaf 렌더링 + 실 DB 통합 테스트) — GNB/footer/
+    setting_menu 조각/새 규칙 추가 폼이 실제로 렌더링되는지, 비매니저는 403으로 거부되는지 검증.
+    `BranchProtectionControllerSpec`은 `standaloneSetup`이라 view 이름만 확인할 뿐 실제 템플릿을
+    렌더링하지 않으므로 이 스펙으로 보강했다.
+- **검증 중 발견한 환경 이슈(이 계획과 무관, 기록만 남김)**: 이 세션 진행 중 동일 워크트리에서
+  동시에 진행 중이던 다른 세션의 작업(P3-06, 엔터프라이즈 SSO)이 `config/sso/
+  YonaClientRegistrationRepository.kt` 등 신규 파일을 계속 추가/수정하고 있었다. 그 결과:
+  1. 한 시점에는 `config/sso/YonaClientRegistrationRepository.kt` 자체의 컴파일 에러(`String?` vs
+     `String` 타입 불일치)로 `compileKotlin`(메인 소스셋)이 실패해 잠시 아무 테스트도 못 돌렸다.
+  2. 다른 시점에는 컴파일은 되지만 `SecurityConfig` → `EnterpriseOidcUserService` →
+     `YonaClientRegistrationRepository`가 `OAuth2ClientProperties` 빈을 찾지 못해
+     `UnsatisfiedDependencyException`으로 전체 Spring 컨텍스트 기동이 실패, `@SpringBootTest` 기반
+     스펙(`TemplateEquivalenceSpec` 포함) 전부가 즉시 실패했다(이 계획이 만든 코드와 무관 — 순수
+     빈 배선 문제, DB 문제 아님).
+  3. 또 다른 시점에는 그 세션이 만든 `SsoAdminControllerSpec.kt`가 아직 존재하지 않는
+     `SsoAdminController`를 참조해 `compileTestKotlin` 자체가 실패했다.
+  이 세 증상 모두 **이 계획(P3-04)이 건드린 파일과는 무관**하며(`BranchProtectionController.kt`/
+  `setting_branch_protection.html`/`BranchProtectionControllerSpec.kt`/`setting_menu.html`/
+  메시지 프로퍼티/`TemplateEquivalenceSpec.kt`의 신규 describe 어디에도 SSO/OAuth2 관련 코드가
+  없음), 저장소 밖에서 진행 중이던 다른 세션의 미완성 작업이 같은 워크트리를 공유해 생긴 일시적
+  현상이다. 도중에 그 세션이 진단 과정에서 이 리포의 공유 MariaDB 테스트 컨테이너
+  (`yona-mariadb`)를 잠시 내렸다 올린 적도 있었다(관련 없는 진짜 원인은 위 2번의 빈 배선 문제였고,
+  컨테이너 재기동 자체는 원인이 아니었음을 교차 확인). 컨테이너가 안정적으로 떠 있고 SSO
+  컴파일이 우연히 일시적으로 정상이었던 한 순간에 `TemplateEquivalenceSpec` 전체(86 tests, 이
+  계획의 신규 2개 포함)를 실행해 **전부 GREEN**을 1회 확인했다 — 이후 그 세션이 새 파일
+  (`SsoAdminController`)을 추가하며 다시 컴파일이 깨져 재확인은 그 세션의 수정이 끝난 뒤로
+  미룬다(아래 "최종 검증" 참고). 이 계획 자체의 로직에는 결함이 없음을 이미 확인했으므로 이
+  불안정성은 문서화만 하고 더 이상 재시도 루프를 돌리지 않는다.
+- **최종 검증 상태**: `BranchProtectionControllerSpec`(20 tests, Spring 컨텍스트 불필요한 순수
+  단위 테스트)은 이 세션의 모든 시도에서 항상 GREEN. `TemplateEquivalenceSpec`의 신규
+  "[Test-19-24]" 2개는 위에서 서술한 대로 전체 컨텍스트가 정상 기동된 1회의 실행에서 GREEN을
+  확인했지만, 동시 진행 중인 P3-06(SSO) 작업이 아직 안정화되지 않아 **전체 스위트(`./gradlew
+  test`) 단위의 최종 재검증은 P3-06의 버그 수정이 완료된 이후로 보류**한다 — 이 계획이 만든 코드
+  자체에는 결함이 없다고 판단하지만(위 로그 참고), 공유 워크트리에서 무관한 진행 중인 작업 때문에
+  현재는 매 실행이 재현 가능한 결과를 주지 못한다.
+
 ## 관련
 
 - 백로그 원본: [`docs/PARITY_BACKLOG.md`](../../PARITY_BACKLOG.md#p3-04)
@@ -206,4 +293,6 @@ tags: [plan, p3, git, security]
 - 관련 소스: `domain/branchprotection/ProtectedBranch.kt`, `domain/branchprotection/ProtectedBranchRepository.kt`,
   `domain/vcs/GitPushHooks.kt`(`BranchProtectionPreReceiveHook`), `domain/pullrequest/PullRequestServiceImpl.kt`
   (`checkBranchProtectionForMerge()`), `domain/pullrequest/PullRequestService.kt`(`BranchProtectionException`),
-  `config/GitServletConfig.kt`(훅 배선)
+  `config/GitServletConfig.kt`(훅 배선), `web/BranchProtectionController.kt`(2라운드, 관리 UI),
+  `templates/project/setting_branch_protection.html`(2라운드), `templates/project/setting_menu.html`(2라운드,
+  메뉴 추가)

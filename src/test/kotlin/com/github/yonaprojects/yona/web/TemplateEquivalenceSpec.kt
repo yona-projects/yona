@@ -1115,6 +1115,37 @@ class TemplateEquivalenceSpec @Autowired constructor(
                 }
             }
 
+            // yona-wiki P3-04(브랜치 보호) 2라운드 — setting_webhook과 동일한 패턴(신규
+            // BranchProtectionController + project/setting_branch_protection.html)으로 추가한
+            // 관리 화면이 실제 Spring 컨텍스트에서 렌더링 오류 없이 GNB/footer/setting_menu를
+            // 정상 포함하는지 검증한다. standaloneSetup 기반 BranchProtectionControllerSpec은
+            // view 이름만 확인할 뿐 실제 Thymeleaf 렌더링을 태우지 않으므로 이 스펙에서 보강한다.
+            describe("[Test-19-24] 브랜치 보호 설정 화면(project/setting_branch_protection.html) 렌더링 검증") {
+                it("브랜치 보호 설정 화면은 site/layout 기반 전체 GNB/footer와 project/header, setting_menu 조각, 새 규칙 추가 폼을 포함해야 한다") {
+                    val result = mockMvc.perform(
+                        get("/projects/owner/${settingProj.name}/branch-protections")
+                            .with(SecurityMockMvcRequestPostProcessors.user(memberDetails))
+                    ).andReturn()
+
+                    result.response.status shouldBe 200
+                    val doc = Jsoup.parse(result.response.contentAsString)
+                    doc.select("form[name='gnb-search-form']").size shouldBe 1
+                    doc.select("footer.page-footer-outer").size shouldBe 1
+                    doc.select("#subMenuBranchProtection").size shouldBe 1
+                    doc.select("#formNewBranchProtection").size shouldBe 1
+                    doc.select("input[name='branchPattern']").size shouldBe 1
+                }
+
+                it("프로젝트 매니저가 아닌 로그인 사용자는 403으로 거부된다") {
+                    val result = mockMvc.perform(
+                        get("/projects/owner/${settingProj.name}/branch-protections")
+                            .with(SecurityMockMvcRequestPostProcessors.user(nonMemberDetails))
+                    ).andReturn()
+
+                    result.response.status shouldBe 403
+                }
+            }
+
             describe("[Test-19-23] 이슈 라벨 설정 화면(project/issuelabels.scala.html) 동치성 검증") {
                 // 2026-08-23 재감사: #108이 "보류(현행 커스텀 구현 유지)"로 남겨뒀던 라벨/카테고리 CRUD를
                 // legacy 실제 정적 모듈(yobi.issue.LabelEditor.js) + 서버렌더 파샬(partial_issuelabels_list/

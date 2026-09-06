@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(${project.name} + ' - ' + #{project.branchProtection})}">
+</head>
+<body class="prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div th:replace="~{project/header :: header(${project})}"></div>
+    <div th:replace="~{project/menu :: menu(${project}, 'setting')}"></div>
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
+          <div class="branch-protection-container">
+          <div th:replace="~{project/setting_menu :: menu(${project}, 'branchProtections')}"></div>
+          <h3 style="margin-top: 0; margin-bottom: 20px;">브랜치 보호 설정</h3>
+
+          <!-- 새 브랜치 보호 규칙 추가. 필드/문구/순서는 GitHub의
+               Settings > Branches > Branch protection rules 화면을 그대로 따른다(사용자 방침:
+               모호하면 GitHub 방식을 기본값으로). 단, force-push/deletion/bypass 세 필드는 엔티티에
+               부정형(disallowForcePush/disallowDelete/adminsCanBypass)으로 저장되므로 컨트롤러가
+               폼 파라미터(allowForcePush/allowDeletions/doNotAllowBypassing)를 반전 변환한다. -->
+          <form id="formNewBranchProtection" th:action="@{/projects/{owner}/{name}/branch-protections(owner=${project.owner}, name=${project.name})}" method="post" class="form-horizontal form-wrap">
+            <h4 style="margin-top: 0; margin-bottom: 15px;">새 브랜치 보호 규칙 추가</h4>
+
+            <div class="form-group">
+              <label class="col-sm-2 control-label" for="branchPattern">브랜치 이름 패턴</label>
+              <div class="col-sm-10">
+                <input type="text" id="branchPattern" name="branchPattern" class="form-control" placeholder="main 또는 release/*" required maxlength="250" autocomplete="off">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="col-sm-offset-2 col-sm-10">
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" id="requirePullRequest" name="requirePullRequest" value="true"> 병합하기 전에 Pull Request 필요 (Require a pull request before merging)
+                  </label>
+                </div>
+                <div class="form-group" style="margin-left: 20px; margin-top: 10px;">
+                  <label class="col-sm-3 control-label" for="requireApprovals" style="text-align: left;">필요한 승인 개수</label>
+                  <div class="col-sm-3">
+                    <input type="number" id="requireApprovals" name="requireApprovals" class="form-control" value="0" min="0">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="col-sm-offset-2 col-sm-10">
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" id="requireSignedCommits" name="requireSignedCommits" value="true"> 서명된 커밋 필요 (Require signed commits)
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="col-sm-offset-2 col-sm-10">
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" id="doNotAllowBypassing" name="doNotAllowBypassing" value="true"> 위 설정에 대한 우회를 허용하지 않음 — 프로젝트 매니저 포함 (Do not allow bypassing the above settings)
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="col-sm-2 control-label" for="restrictPushTo">일치하는 브랜치에 push 가능한 사용자 제한 (Restrict who can push to matching branches)</label>
+              <div class="col-sm-10">
+                <input type="text" id="restrictPushTo" name="restrictPushTo" class="form-control" placeholder="콤마로 구분된 로그인ID (예: alice, bob) — 비워두면 제한 없음" maxlength="1000" autocomplete="off">
+              </div>
+            </div>
+
+            <h4 style="margin-bottom: 15px;">관리자를 포함한 모든 사용자에게 적용되는 규칙</h4>
+
+            <div class="form-group">
+              <div class="col-sm-offset-2 col-sm-10">
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" id="allowForcePush" name="allowForcePush" value="true"> 강제 push 허용 (Allow force pushes)
+                  </label>
+                </div>
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" id="allowDeletions" name="allowDeletions" value="true"> 브랜치 삭제 허용 (Allow deletions)
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <div class="col-sm-offset-2 col-sm-10">
+                <button type="submit" class="btn btn-primary">규칙 추가</button>
+              </div>
+            </div>
+          </form>
+
+          <!-- 등록된 브랜치 보호 규칙 목록. 규칙 하나당 하나의 수정 폼 + 별도 삭제 버튼
+               (Webhook 목록의 삭제 버튼과 동일하게 data-request-method="delete" AJAX 관례를 사용). -->
+          <div th:if="${#lists.isEmpty(branchProtections)}" class="error-wrap">
+            <i class="ico ico-err1"></i>
+            <p>등록된 브랜치 보호 규칙이 없습니다.</p>
+          </div>
+
+          <th:block th:if="${!#lists.isEmpty(branchProtections)}">
+            <h4 style="margin-top: 30px; margin-bottom: 15px;">등록된 브랜치 보호 규칙</h4>
+
+            <div class="form-wrap" style="border: 1px solid #e5e5e5; padding: 15px; margin-bottom: 15px;"
+                 th:each="rule : ${branchProtections}" th:data-branch-protection-id="${rule.id}">
+              <form th:action="@{/projects/{owner}/{name}/branch-protections/{id}(owner=${project.owner}, name=${project.name}, id=${rule.id})}" method="post" class="form-horizontal">
+                <div class="form-group">
+                  <label class="col-sm-2 control-label">브랜치 이름 패턴</label>
+                  <div class="col-sm-8">
+                    <input type="text" name="branchPattern" class="form-control" th:value="${rule.branchPattern}" required maxlength="250" autocomplete="off">
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <div class="col-sm-offset-2 col-sm-10">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" name="requirePullRequest" value="true" th:checked="${rule.requirePullRequest}"> 병합하기 전에 Pull Request 필요
+                      </label>
+                    </div>
+                    <div class="form-group" style="margin-left: 20px; margin-top: 10px;">
+                      <label class="col-sm-3 control-label" style="text-align: left;">필요한 승인 개수</label>
+                      <div class="col-sm-3">
+                        <input type="number" name="requireApprovals" class="form-control" th:value="${rule.requireApprovals}" min="0">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <div class="col-sm-offset-2 col-sm-10">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" name="requireSignedCommits" value="true" th:checked="${rule.requireSignedCommits}"> 서명된 커밋 필요
+                      </label>
+                    </div>
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" name="doNotAllowBypassing" value="true" th:checked="${!rule.adminsCanBypass}"> 위 설정에 대한 우회를 허용하지 않음 — 프로젝트 매니저 포함
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="col-sm-2 control-label">push 가능 사용자 제한</label>
+                  <div class="col-sm-8">
+                    <input type="text" name="restrictPushTo" class="form-control" th:value="${rule.restrictPushTo}" placeholder="콤마로 구분된 로그인ID — 비워두면 제한 없음" maxlength="1000" autocomplete="off">
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <div class="col-sm-offset-2 col-sm-10">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" name="allowForcePush" value="true" th:checked="${!rule.disallowForcePush}"> 강제 push 허용
+                      </label>
+                    </div>
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" name="allowDeletions" value="true" th:checked="${!rule.disallowDelete}"> 브랜치 삭제 허용
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                  <div class="col-sm-offset-2 col-sm-10">
+                    <button type="submit" class="ybtn ybtn-primary ybtn-small" th:text="#{button.save}">저장</button>
+                    <button type="button" class="ybtn ybtn-danger ybtn-small"
+                            data-request-method="delete"
+                            th:data-request-uri="@{/projects/{owner}/{name}/branch-protections/{id}(owner=${project.owner},name=${project.name},id=${rule.id})}"
+                            th:text="#{button.delete}">삭제</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </th:block>
+          </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+</body>
+</html>
