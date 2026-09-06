@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head th:replace="~{site/layout :: head(${project.name} + ' - ' + #{project.deploykey})}">
+</head>
+<body class="prj" id="html-body">
+<div id="main" class="main">
+    <div th:replace="~{site/layout :: gnb}"></div>
+
+    <div th:replace="~{project/header :: header(${project})}"></div>
+    <div th:replace="~{project/menu :: menu(${project}, 'setting')}"></div>
+
+    <div class="page-wrap-outer">
+        <div class="project-page-wrap">
+          <div class="webhook-container">
+          <div th:replace="~{project/setting_menu :: menu(${project}, 'deployKeys')}"></div>
+          <h3 style="margin-top: 0; margin-bottom: 20px;" th:text="#{project.deploykey.title}">Deploy Key</h3>
+
+          <!--
+           yona-wiki P3-03 Step1/Step2 — GitHub "Settings > Deploy keys" 화면과 동일한 구성(공개키
+           붙여넣기 + 읽기 전용 체크박스). 등록에 성공하면 HTTPS 접근용 토큰이 한 번만 표시된다
+           (edit_tokens.html의 issuedRawToken과 동일한 패턴).
+          -->
+          <div th:if="${issuedHttpsToken != null}" class="alert alert-success mt20">
+              <strong th:text="#{project.deploykey.issued.title}">Deploy key added</strong>
+              <p th:text="#{project.deploykey.issued.httpsToken.usage}"></p>
+              <div class="mt10">
+                  <label th:text="#{project.deploykey.issued.httpsToken.label}">HTTPS access token</label><br/>
+                  <input id="issued-https-token-value" type="text" readonly style="width: 80%;"
+                         th:value="${issuedHttpsToken}"
+                         onClick="this.setSelectionRange(0, this.value.length)">
+                  <button type="button" class="ybtn ybtn-small" onclick="document.getElementById('issued-https-token-value').select(); document.execCommand('copy');"
+                          th:text="#{button.copy}">Copy</button>
+              </div>
+          </div>
+
+          <div th:if="${deployKeyError != null}" class="alert alert-error mt20">
+              <span th:text="${deployKeyError}">Error</span>
+          </div>
+
+          <!-- 새 Deploy Key 등록 폼 -->
+          <form id="formNewDeployKey" th:action="@{/projects/{owner}/{name}/deploy-keys(owner=${project.owner}, name=${project.name})}" method="post" class="form-horizontal form-wrap">
+            <h4 style="margin-top: 0; margin-bottom: 15px;" th:text="#{project.deploykey.add.title}">Add new deploy key</h4>
+
+            <div class="form-group">
+              <label class="col-sm-2 control-label" for="deployKeyTitle" th:text="#{project.deploykey.field.title}">Title</label>
+              <div class="col-sm-10">
+                <input type="text" id="deployKeyTitle" name="title" class="form-control" required maxlength="255" autocomplete="off">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="col-sm-2 control-label" for="deployKeyPublicKey" th:text="#{project.deploykey.field.publicKey}">Public key</label>
+              <div class="col-sm-10">
+                <textarea id="deployKeyPublicKey" name="publicKey" class="form-control" rows="4" required
+                          th:placeholder="#{project.deploykey.field.publicKey.placeholder}"></textarea>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="col-sm-offset-2 col-sm-10">
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" id="deployKeyReadOnly" name="readOnly" value="true" checked>
+                    <span th:text="#{project.deploykey.field.readOnly}">Read-only</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <div class="col-sm-offset-2 col-sm-10">
+                <button type="submit" class="btn btn-primary" th:text="#{project.deploykey.add}">Add deploy key</button>
+              </div>
+            </div>
+          </form>
+
+          <!-- Deploy Key 목록 -->
+          <div th:if="${#lists.isEmpty(deployKeys)}" class="error-wrap">
+            <i class="ico ico-err1"></i>
+            <p th:text="#{project.deploykey.list.empty}">No deploy keys exist.</p>
+          </div>
+          <th:block th:if="${!#lists.isEmpty(deployKeys)}">
+            <div class="row-fluid list-head">
+              <div class="span3">
+                <strong th:text="#{project.deploykey.field.title}">Title</strong>
+              </div>
+              <div class="span4">
+                <strong th:text="#{project.deploykey.field.fingerprint}">Fingerprint</strong>
+              </div>
+              <div class="span2 text-center"></div>
+              <div class="span2 text-center">
+                <strong th:text="#{project.deploykey.field.lastUsedAt}">Last used</strong>
+              </div>
+              <div class="span1 text-center"></div>
+            </div>
+
+            <div class="row-fluid list-item vertical-align" th:each="deployKey : ${deployKeys}" th:data-deploy-key-id="${deployKey.id}">
+              <div class="span3">
+                <h6 class="mr20 truncate" th:text="${deployKey.title}">key title</h6>
+              </div>
+              <div class="span4">
+                <h6 th:text="${deployKey.fingerprint}">SHA256:...</h6>
+              </div>
+              <div class="span2 text-center">
+                <span th:if="${deployKey.readOnly}" class="label-head" th:text="#{project.deploykey.readOnly.badge}">Read-only</span>
+                <span th:unless="${deployKey.readOnly}" class="label-head" th:text="#{project.deploykey.readWrite.badge}">Read/write</span>
+              </div>
+              <div class="span2 text-center">
+                <h6 th:text="${deployKey.lastUsedAt != null ? deployKey.lastUsedAt : '-'}">-</h6>
+              </div>
+              <div class="span1 text-center">
+                <form method="post" th:action="@{/projects/{owner}/{name}/deploy-keys/{id}/delete(owner=${project.owner},name=${project.name},id=${deployKey.id})}"
+                      th:attr="data-confirm-message=#{project.deploykey.delete.confirm}" class="deploykey-delete-form">
+                    <button type="submit" class="ybtn ybtn-danger ybtn-small" th:text="#{project.deploykey.delete}">Delete</button>
+                </form>
+              </div>
+            </div>
+          </th:block>
+          </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{site/layout :: footer}"></footer>
+</div>
+
+<th:block th:replace="~{site/layout :: scripts}"></th:block>
+<script type="text/javascript">
+    document.addEventListener('submit', function(e) {
+        var form = e.target.closest('.deploykey-delete-form');
+        if (!form) {
+            return;
+        }
+        var message = form.getAttribute('data-confirm-message');
+        if (message && !confirm(message)) {
+            e.preventDefault();
+        }
+    });
+</script>
+</body>
+</html>

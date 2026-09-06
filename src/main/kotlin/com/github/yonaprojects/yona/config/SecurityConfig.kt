@@ -21,6 +21,7 @@ import org.springframework.security.core.AuthenticationException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 
+import com.github.yonaprojects.yona.config.git.DeployKeyAuthenticationProvider
 import com.github.yonaprojects.yona.config.git.GitAuthorizationFilter
 import com.github.yonaprojects.yona.config.oauth2.CustomOAuth2UserService
 import com.github.yonaprojects.yona.config.sso.EnterpriseOidcUserService
@@ -39,6 +40,16 @@ class SecurityConfig(
     // yona-wiki P3-06 Step3 — SAML2 JIT 프로비저닝.
     private val saml2UserProvisioningService: Saml2UserProvisioningService,
     private val gitAuthorizationFilter: GitAuthorizationFilter,
+    // yona-wiki P3-03 Step2 — HTTPS Deploy Key 인증. `HttpSecurity.authenticationProvider()`를
+    // 한 번이라도 호출하면 AuthenticationManagerBuilder가 "이미 구성됨" 상태가 되어, Spring Boot가
+    // 컨텍스트의 AuthenticationProvider 빈들을 자동으로 긁어모으는 기본 동작
+    // (InitializeAuthenticationProviderBeanManagerConfigurer)이 더 이상 동작하지 않는다 — 실제로
+    // 이 provider 하나만 등록했다가 기존 YonaAuthenticationProvider(로컬/LDAP 로그인)가 통째로
+    // 빠지면서 로그인 관련 통합테스트가 깨지는 회귀를 겪었다. 그래서 기존에 자동으로 등록되던
+    // YonaAuthenticationProvider도 이 필드로 명시적으로 주입받아 아래 securityFilterChain()에서
+    // 둘 다 등록한다.
+    private val yonaAuthenticationProvider: YonaAuthenticationProvider,
+    private val deployKeyAuthenticationProvider: DeployKeyAuthenticationProvider,
     private val svnAuthorizationFilter: SvnAuthorizationFilter,
     private val apiTokenAuthenticationFilter: ApiTokenAuthenticationFilter,
     private val accessLogFilter: AccessLogFilter,
@@ -100,6 +111,8 @@ class SecurityConfig(
                     .key("yonaRememberMeKey")
             }
             .httpBasic { }
+            .authenticationProvider(deployKeyAuthenticationProvider)
+            .authenticationProvider(yonaAuthenticationProvider)
             .oauth2Login { oauth2 ->
                 oauth2
                     .loginPage("/users/loginform")

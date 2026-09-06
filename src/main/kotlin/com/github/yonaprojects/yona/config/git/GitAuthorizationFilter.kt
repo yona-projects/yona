@@ -63,6 +63,24 @@ class GitAuthorizationFilter(
                 return
             }
 
+            // yona-wiki P3-03 Step2 — Deploy Key(저장소 스코프 자격증명)는 loginId 기반 멤버십
+            // 검사 대상이 아니다. project.id가 정확히 일치하는 저장소에만 접근을 허용하고(다른
+            // 프로젝트 스코프로 발급된 Deploy Key로는 이 프로젝트에 절대 접근할 수 없다 —
+            // 보안 리뷰 항목), read_only 플래그가 켜져 있으면 쓰기 요청을 거부한다.
+            if (authentication is DeployKeyAuthenticationToken) {
+                val deployKey = authentication.deployKey
+                if (deployKey.project?.id != project.id) {
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden")
+                    return
+                }
+                if (isWriteRequest && deployKey.readOnly) {
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden")
+                    return
+                }
+                filterChain.doFilter(request, response)
+                return
+            }
+
             val loginId = authentication.name
             if (!isMember(project, loginId)) {
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden")
